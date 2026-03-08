@@ -55,7 +55,7 @@ jobs:
             target: win
             ext: .exe
           - platform: macos-intel
-            runner: macos-13-large
+            runner: macos-15-intel
             target: mac-x64
             ext: .dmg
           - platform: macos-arm64
