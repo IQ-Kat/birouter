@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.15] — 2026-03-08
+
+> ### ✨ New Features + 🐛 Bug Fix
+
+### ✨ New Features
+
+- **Codex Effort Clamp** — `CodexExecutor` now caps `reasoning_effort` to each model's maximum. Added `MAX_EFFORT_BY_MODEL` table and `clampEffort()` — silently clamps with debug log. Unknown models default to `xhigh` (unrestricted). PR #246
+
+- **OpenRouter Catalog Cache** — New `src/lib/catalog/openrouterCatalog.ts`: persistent JSON cache at `DATA_DIR/cache/openrouter-catalog.json`, TTL 24h (`OPENROUTER_CATALOG_TTL_MS`), stale-if-error fallback. New endpoint `GET /api/models/openrouter-catalog` (authenticated, `?refresh=true` forces refresh). PR #246
+
+- **Quota Preflight — opt-in toggle per provider** — New `open-sse/services/quotaPreflight.ts`. Proactively checks quota before requests, enabling account switching before 429s. Toggle via `providerSpecificData.quotaPreflightEnabled` (default: `false`). Extensible via `registerQuotaFetcher()`. Graceful degradation. PR #246
+
+- **Quota Session Monitor — opt-in toggle per provider** — New `open-sse/services/quotaMonitor.ts`. Adaptive polling: 60s normal → 15s critical. Alert deduplication per session (5min window). Toggle via `providerSpecificData.quotaMonitorEnabled` (default: `false`). `timer.unref()` for clean exit. PR #246
+
+### 🛠️ Improvements
+
+- **Provider API supports `providerSpecificData` partial patch** — `PUT /api/providers/[id]` merges `providerSpecificData` (preserves existing keys). Validation schema updated. PR #246
+
+### 🐛 Bug Fixes
+
+- **#244 — Gemini rejects schemas with `"optional"` field** — Added `"optional"` to `UNSUPPORTED_SCHEMA_CONSTRAINTS` in `geminiHelper.ts`. Gemini API returns `400: Cannot find field: optional` when tool schemas include this field. PR #245
+
+### 📦 Desktop Binaries (Electron)
+
+Auto-generated on tag push via `electron-release.yml`:
+
+| Platform            | Download                                           |
+| ------------------- | -------------------------------------------------- |
+| Windows             | `OmniRoute-Setup.exe` + `OmniRoute.exe` (portable) |
+| macOS Intel         | `OmniRoute.dmg`                                    |
+| macOS Apple Silicon | `OmniRoute-arm64.dmg`                              |
+| Linux               | `OmniRoute.AppImage`                               |
+
+### 📁 Files Changed
+
+| File                                             | Change                     |
+| ------------------------------------------------ | -------------------------- |
+| `open-sse/executors/codex.ts`                    | Effort clamp logic         |
+| `open-sse/services/quotaPreflight.ts`            | **NEW**                    |
+| `open-sse/services/quotaMonitor.ts`              | **NEW**                    |
+| `src/lib/catalog/openrouterCatalog.ts`           | **NEW**                    |
+| `src/app/api/models/openrouter-catalog/route.ts` | **NEW**                    |
+| `src/app/api/providers/[id]/route.ts`            | providerSpecificData merge |
+| `src/shared/validation/schemas.ts`               | Schema update              |
+| `open-sse/translator/helpers/geminiHelper.ts`    | Fix #244                   |
+
+---
+
 ## [2.0.14] — 2026-03-08
 
 > ### 🐛 Bug Fixes + Electron Release Fix
