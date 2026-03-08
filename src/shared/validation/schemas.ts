@@ -769,6 +769,8 @@ export const updateProviderConnectionSchema = z
     rateLimitedUntil: z.union([z.string(), z.null()]).optional(),
     lastTested: z.union([z.string(), z.null()]).optional(),
     healthCheckInterval: z.coerce.number().int().min(0).optional(),
+    // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
+    providerSpecificData: z.record(z.string(), z.unknown()).optional(),
   })
   .superRefine((value, ctx) => {
     if (Object.keys(value).length === 0) {
