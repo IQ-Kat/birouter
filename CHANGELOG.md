@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.16] — 2026-03-08
+
+> ### 🐛 Bug Fixes + 🔧 CI Hardening
+
+### 🐛 Bug Fixes
+
+- **NanoBanana async image polling** — Fixed `data: []` results from `/v1/images/generations` for NanoBanana. The previous implementation treated the submit response as a final image payload. NanoBanana APIs return a `taskId` requiring status polling — the handler now submits, extracts `taskId`, polls `/record-info` until `successFlag=1`, and normalizes to OpenAI format. Added `aspectRatio`/`resolution` inference from `size`. Backward compatible. PR #247 by @hijak
+
+### 🔧 CI Fixes
+
+- **Electron build token missing** — `electron-builder`'s GitHub publish provider requires `GH_TOKEN` to be set, but the build step didn't have it in its `env`. The workflow was failing with `GitHub Personal Access Token is not set` on all 4 platforms. **Fixed**: added `GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}` to the `Build Electron for...` step (`.github/workflows/electron-release.yml`)
+
+- **Security test `inputSanitizer.js` import** — `tests/unit/security-fase01.test.mjs` imported `inputSanitizer.js` (non-existent) instead of `inputSanitizer.ts`, causing `ERR_MODULE_NOT_FOUND` in CI. Fixed extension.
+
+- **Route validation lint (t06)** — `POST /api/acp/agents` used `request.json()` without `validateBody()`, failing `check:route-validation:t06`. Added `validateBody(jsonObjectSchema)` — all 139 routes now pass.
+
+- **Deploy to VPS SSH failure** — Added `continue-on-error: true` and `command_timeout: 5m` to the SSH step so that connection failures (when VPS is unreachable) don't mark the workflow as failed.
+
+### 📁 Files Changed
+
+| File                                              | Change                                                   |
+| ------------------------------------------------- | -------------------------------------------------------- |
+| `open-sse/config/imageRegistry.ts`                | Added NanoBanana `statusUrl`, extended `supportedSizes`  |
+| `open-sse/handlers/imageGeneration.ts`            | NanoBanana async submit/poll flow + sync backward compat |
+| `tests/unit/nanobanana-image-handler.test.mjs`    | **NEW** — unit tests                                     |
+| `tests/unit/nanobanana-image-generation.test.mjs` | **NEW** — unit tests                                     |
+| `.github/workflows/electron-release.yml`          | Add `GH_TOKEN` to build step (critical fix)              |
+| `tests/unit/security-fase01.test.mjs`             | Fix `inputSanitizer.js` → `.ts`                          |
+| `src/app/api/acp/agents/route.ts`                 | Add `validateBody(jsonObjectSchema)` to POST             |
+| `.github/workflows/deploy-vps.yml`                | `continue-on-error: true` + `command_timeout: 5m`        |
+
+---
+
 ## [2.0.15] — 2026-03-08
 
 > ### ✨ New Features + 🐛 Bug Fix
