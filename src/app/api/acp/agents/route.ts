@@ -7,6 +7,8 @@ import {
   type CustomAgentDef,
 } from "@/lib/acp/registry";
 import { getSettings, updateSettings } from "@/lib/localDb";
+import { jsonObjectSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 export async function GET() {
   try {
@@ -37,8 +39,20 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  let rawBody: unknown;
   try {
-    const body = await request.json();
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const validation = validateBody(jsonObjectSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  try {
+    const body = validation.data;
 
     if (body.action === "refresh") {
       const agents = refreshAgentCache();
@@ -55,13 +69,13 @@ export async function POST(request: Request) {
     }
 
     const newAgent: CustomAgentDef = {
-      id: id.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-      name,
-      binary,
-      versionCommand,
-      providerAlias: providerAlias || id,
-      spawnArgs: spawnArgs || [],
-      protocol: protocol || "stdio",
+      id: (id as string).toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+      name: name as string,
+      binary: binary as string,
+      versionCommand: versionCommand as string,
+      providerAlias: (providerAlias as string) || (id as string),
+      spawnArgs: Array.isArray(spawnArgs) ? (spawnArgs as string[]) : [],
+      protocol: (protocol as "stdio" | "http") || "stdio",
     };
 
     // Load current, append, save
