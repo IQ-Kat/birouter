@@ -516,7 +516,7 @@ async function handleHyperbolicImageGeneration({
 
 /**
  * Handle NanoBanana image generation
- * Uses flash vs pro routing based on model ID
+ * NanoBanana is async (submit task -> poll status -> return final image URL/base64)
  */
 async function handleNanoBananaImageGeneration({
   model,
@@ -531,11 +531,41 @@ async function handleNanoBananaImageGeneration({
 
   // Route to pro URL for "nanobanana-pro" model
   const isPro = model === "nanobanana-pro";
-  const url = isPro && providerConfig.proUrl ? providerConfig.proUrl : providerConfig.baseUrl;
+  const submitUrl = isPro && providerConfig.proUrl ? providerConfig.proUrl : providerConfig.baseUrl;
+  const statusUrl = providerConfig.statusUrl;
 
-  const upstreamBody = {
-    prompt: body.prompt,
-  };
+  const aspectRatio =
+    typeof body.aspectRatio === "string"
+      ? body.aspectRatio
+      : typeof body.aspect_ratio === "string"
+        ? body.aspect_ratio
+        : inferAspectRatioFromSize(body.size) || "1:1";
+
+  let resolution =
+    typeof body.resolution === "string"
+      ? body.resolution
+      : inferResolutionFromSize(body.size) || "1K";
+  if (body.quality === "hd" && resolution === "1K") {
+    resolution = "2K";
+  }
+
+  const upstreamBody = isPro
+    ? {
+        prompt: body.prompt,
+        resolution,
+        aspectRatio,
+        ...(Array.isArray(body.imageUrls) ? { imageUrls: body.imageUrls } : {}),
+      }
+    : {
+        prompt: body.prompt,
+        type:
+          Array.isArray(body.imageUrls) && body.imageUrls.length > 0
+            ? "IMAGETOIAMGE"
+            : "TEXTTOIAMGE",
+        numImages: Number.isFinite(body.n) ? Math.max(1, Number(body.n)) : 1,
+        image_size: aspectRatio,
+        ...(Array.isArray(body.imageUrls) ? { imageUrls: body.imageUrls } : {}),
+      };
 
   if (log) {
     const promptPreview = String(body.prompt ?? "").slice(0, 60);
@@ -546,7 +576,7 @@ async function handleNanoBananaImageGeneration({
   }
 
   try {
-    const response = await fetch(url, {
+    const submitResp = await fetch(submitUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -555,55 +585,174 @@ async function handleNanoBananaImageGeneration({
       body: JSON.stringify(upstreamBody),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (log)
-        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
+    if (!submitResp.ok) {
+      const errorText = await submitResp.text();
+      if (log) {
+        log.error(
+          "IMAGE",
+          `${provider} submit error ${submitResp.status}: ${errorText.slice(0, 200)}`
+        );
+      }
 
       saveCallLog({
         method: "POST",
         path: "/v1/images/generations",
-        status: response.status,
+        status: submitResp.status,
         model: `${provider}/${model}`,
         provider,
         duration: Date.now() - startTime,
         error: errorText.slice(0, 500),
       }).catch(() => {});
 
-      return { success: false, status: response.status, error: errorText };
+      return { success: false, status: submitResp.status, error: errorText };
     }
 
-    const data = await response.json();
-    // Normalize NanoBanana response to OpenAI format
-    const images = [];
-    if (data.image) {
-      images.push({ b64_json: data.image, revised_prompt: body.prompt });
-    } else if (data.images) {
-      for (const img of data.images) {
-        images.push({
-          b64_json: typeof img === "string" ? img : img.image || img.data,
-          revised_prompt: body.prompt,
-        });
+    const submitData = await submitResp.json();
+
+    // Backward compatibility: handle providers returning image payload synchronously
+    const hasSyncPayload =
+      Boolean(submitData?.image) ||
+      Array.isArray(submitData?.images) ||
+      Array.isArray(submitData?.data) ||
+      Boolean(submitData?.data?.[0]?.url) ||
+      Boolean(submitData?.data?.[0]?.b64_json);
+
+    if (hasSyncPayload) {
+      const syncResult = normalizeNanoBananaSyncPayload(submitData, body.prompt);
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: 200,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        responseBody: { images_count: syncResult.data?.length || 0, mode: "sync" },
+      }).catch(() => {});
+      return {
+        success: true,
+        data: { created: Math.floor(Date.now() / 1000), data: syncResult.data },
+      };
+    }
+
+    const taskId = submitData?.data?.taskId || submitData?.taskId;
+    if (!taskId) {
+      const errorText = `NanoBanana submit did not return taskId: ${JSON.stringify(submitData).slice(0, 400)}`;
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: 502,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText,
+      }).catch(() => {});
+      return { success: false, status: 502, error: errorText };
+    }
+
+    if (!statusUrl) {
+      const errorText = "NanoBanana statusUrl is not configured";
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: 500,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText,
+      }).catch(() => {});
+      return { success: false, status: 500, error: errorText };
+    }
+
+    const timeoutMs = normalizePositiveNumber(
+      body.timeout_ms,
+      normalizePositiveNumber(process.env.NANOBANANA_POLL_TIMEOUT_MS, 120000)
+    );
+    const pollIntervalMs = normalizePositiveNumber(
+      body.poll_interval_ms,
+      normalizePositiveNumber(process.env.NANOBANANA_POLL_INTERVAL_MS, 2500)
+    );
+
+    let lastTaskData = null;
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const pollResp = await fetch(`${statusUrl}?taskId=${encodeURIComponent(taskId)}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!pollResp.ok) {
+        const errorText = await pollResp.text();
+        if (log) {
+          log.error(
+            "IMAGE",
+            `${provider} poll error ${pollResp.status}: ${errorText.slice(0, 200)}`
+          );
+        }
+        return { success: false, status: pollResp.status, error: errorText };
       }
-    } else if (data.data) {
-      // Already OpenAI-like
-      return { success: true, data };
+
+      const pollData = await pollResp.json();
+      const taskData = pollData?.data || pollData;
+      lastTaskData = taskData;
+
+      const successFlag = Number(taskData?.successFlag);
+      if (successFlag === 1) {
+        const normalized = await normalizeNanoBananaTaskResult(taskData, body, log);
+
+        saveCallLog({
+          method: "POST",
+          path: "/v1/images/generations",
+          status: 200,
+          model: `${provider}/${model}`,
+          provider,
+          duration: Date.now() - startTime,
+          responseBody: { images_count: normalized.length, mode: "async", taskId },
+        }).catch(() => {});
+
+        return {
+          success: true,
+          data: {
+            created: Math.floor(Date.now() / 1000),
+            data: normalized,
+          },
+        };
+      }
+
+      if (successFlag === 2 || successFlag === 3) {
+        const errorText =
+          taskData?.errorMessage || `NanoBanana task failed (successFlag=${String(successFlag)})`;
+
+        saveCallLog({
+          method: "POST",
+          path: "/v1/images/generations",
+          status: 502,
+          model: `${provider}/${model}`,
+          provider,
+          duration: Date.now() - startTime,
+          error: errorText.slice(0, 500),
+          responseBody: { taskId, successFlag, errorCode: taskData?.errorCode ?? null },
+        }).catch(() => {});
+
+        return { success: false, status: 502, error: errorText };
+      }
+
+      await sleep(pollIntervalMs);
     }
 
+    const timeoutError = `NanoBanana task timeout after ${timeoutMs}ms (taskId=${taskId}, successFlag=${String(lastTaskData?.successFlag ?? "unknown")})`;
     saveCallLog({
       method: "POST",
       path: "/v1/images/generations",
-      status: 200,
+      status: 504,
       model: `${provider}/${model}`,
       provider,
       duration: Date.now() - startTime,
-      responseBody: { images_count: images.length },
+      error: timeoutError,
+      responseBody: { taskId, lastSuccessFlag: lastTaskData?.successFlag ?? null },
     }).catch(() => {});
 
-    return {
-      success: true,
-      data: { created: Math.floor(Date.now() / 1000), data: images },
-    };
+    return { success: false, status: 504, error: timeoutError };
   } catch (err) {
     if (log) log.error("IMAGE", `${provider} fetch error: ${err.message}`);
     saveCallLog({
@@ -617,6 +766,129 @@ async function handleNanoBananaImageGeneration({
     }).catch(() => {});
     return { success: false, status: 502, error: `Image provider error: ${err.message}` };
   }
+}
+
+function normalizeNanoBananaSyncPayload(data, prompt) {
+  const images = [];
+
+  if (data.image) {
+    images.push({ b64_json: data.image, revised_prompt: prompt });
+  } else if (Array.isArray(data.images)) {
+    for (const img of data.images) {
+      images.push({
+        b64_json: typeof img === "string" ? img : img?.image || img?.data,
+        revised_prompt: prompt,
+      });
+    }
+  } else if (Array.isArray(data.data)) {
+    for (const img of data.data) {
+      if (!img) continue;
+      images.push(img);
+    }
+  }
+
+  return { data: images.filter(Boolean) };
+}
+
+async function normalizeNanoBananaTaskResult(taskData, body, log) {
+  const response = taskData?.response || {};
+
+  const urlCandidates = [
+    response?.resultImageUrl,
+    response?.originImageUrl,
+    taskData?.resultImageUrl,
+    taskData?.originImageUrl,
+  ].filter((v) => typeof v === "string" && v.length > 0);
+
+  if (Array.isArray(response?.resultImageUrls)) {
+    for (const u of response.resultImageUrls) {
+      if (typeof u === "string" && u.length > 0) urlCandidates.push(u);
+    }
+  }
+
+  const b64Candidates = [
+    response?.resultImageBase64,
+    response?.resultImage,
+    taskData?.resultImageBase64,
+    taskData?.resultImage,
+  ].filter((v) => typeof v === "string" && v.length > 0);
+
+  if (Array.isArray(response?.resultImageBase64List)) {
+    for (const b64 of response.resultImageBase64List) {
+      if (typeof b64 === "string" && b64.length > 0) b64Candidates.push(b64);
+    }
+  }
+
+  const wantsBase64 = body.response_format === "b64_json";
+
+  if (wantsBase64) {
+    if (b64Candidates.length > 0) {
+      return b64Candidates.map((b64) => ({ b64_json: b64, revised_prompt: body.prompt }));
+    }
+
+    if (urlCandidates.length > 0) {
+      const firstUrl = urlCandidates[0];
+      const resp = await fetch(firstUrl);
+      if (!resp.ok) {
+        throw new Error(`Failed to fetch NanoBanana result image URL (${resp.status})`);
+      }
+      const arrayBuffer = await resp.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString("base64");
+      return [{ b64_json: base64, revised_prompt: body.prompt }];
+    }
+  }
+
+  if (urlCandidates.length > 0) {
+    return urlCandidates.map((url) => ({ url, revised_prompt: body.prompt }));
+  }
+
+  if (b64Candidates.length > 0) {
+    return b64Candidates.map((b64) => ({ b64_json: b64, revised_prompt: body.prompt }));
+  }
+
+  if (log) {
+    log.warn(
+      "IMAGE",
+      `NanoBanana task completed without image payload: ${JSON.stringify(taskData).slice(0, 240)}`
+    );
+  }
+
+  return [];
+}
+
+function inferAspectRatioFromSize(size) {
+  if (typeof size !== "string") return null;
+  const [wRaw, hRaw] = size.split("x");
+  const width = Number(wRaw);
+  const height = Number(hRaw);
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return null;
+
+  const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+  const div = gcd(Math.round(width), Math.round(height));
+  return `${Math.round(width / div)}:${Math.round(height / div)}`;
+}
+
+function inferResolutionFromSize(size) {
+  if (typeof size !== "string") return null;
+  const [wRaw, hRaw] = size.split("x");
+  const width = Number(wRaw);
+  const height = Number(hRaw);
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return null;
+
+  const longestSide = Math.max(width, height);
+  if (longestSide <= 1024) return "1K";
+  if (longestSide <= 2048) return "2K";
+  return "4K";
+}
+
+function normalizePositiveNumber(value, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  return Math.floor(n);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**

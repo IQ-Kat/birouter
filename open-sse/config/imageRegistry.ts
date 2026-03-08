@@ -99,14 +99,15 @@ export const IMAGE_PROVIDERS = {
     id: "nanobanana",
     baseUrl: "https://api.nanobananaapi.ai/api/v1/nanobanana/generate",
     proUrl: "https://api.nanobananaapi.ai/api/v1/nanobanana/generate-pro",
+    statusUrl: "https://api.nanobananaapi.ai/api/v1/nanobanana/record-info",
     authType: "apikey",
     authHeader: "bearer",
-    format: "nanobanana", // custom format
+    format: "nanobanana", // custom format (async: submit task, then poll)
     models: [
       { id: "nanobanana-flash", name: "NanoBanana Flash (Gemini 2.5 Flash)" },
       { id: "nanobanana-pro", name: "NanoBanana Pro (Gemini 3 Pro)" },
     ],
-    supportedSizes: ["1024x1024"],
+    supportedSizes: ["1024x1024", "1024x1280", "1024x1536", "1536x1024", "1280x1024"],
   },
 
   sdwebui: {
