@@ -93,6 +93,19 @@ jobs:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
         run: npm run build
 
+      - name: Sync version in electron/package.json
+        shell: bash
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          VERSION_NO_V="${VERSION#v}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('electron/package.json'));
+            pkg.version = '$VERSION_NO_V';
+            fs.writeFileSync('electron/package.json', JSON.stringify(pkg, null, 2) + '\\n');
+          "
+          echo "✓ electron/package.json version set to $VERSION_NO_V"
+
       - name: Install Electron dependencies
         working-directory: electron
         run: npm install --no-audit --no-fund
@@ -166,9 +179,9 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
+          fail_on_unmatched_files: false
           files: |
             release-assets/*.dmg
-            release-assets/*-arm64.dmg
             release-assets/*.exe
             release-assets/*.AppImage
             release-assets/*.blockmap
