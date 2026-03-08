@@ -41,6 +41,8 @@ export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [
   "else",
   "contentMediaType",
   "contentEncoding",
+  // Non-standard schema fields (not recognized by Gemini API)
+  "optional",
   // UI/Styling properties (from Cursor tools - NOT JSON Schema standard)
   "cornerRadius",
   "fillColor",

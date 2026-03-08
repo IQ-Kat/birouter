@@ -1693,6 +1693,8 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
  </picture>
 </a>
 
+> 📈 **[View live star history on star-history.com](https://star-history.com/#diegosouzapw/OmniRoute&Date)** — The embedded chart may be cached. Click the link for real-time data.
+
 ---
 
 ## 🙏 Acknowledgments
