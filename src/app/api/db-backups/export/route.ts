@@ -3,14 +3,22 @@ import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
 import { getDbInstance, SQLITE_FILE } from "@/lib/db/core";
+import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * GET /api/db-backups/export — Download the current database as a .sqlite file.
  *
  * Uses SQLite's native backup API to create a consistent snapshot,
  * then streams it as a downloadable attachment.
+ *
+ * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-2).
  */
-export async function GET() {
+export async function GET(request: Request) {
+  if (await isAuthRequired()) {
+    if (!(await isAuthenticated(request))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
   try {
     if (!SQLITE_FILE || !fs.existsSync(SQLITE_FILE)) {
       return NextResponse.json({ error: "Database file not found" }, { status: 404 });

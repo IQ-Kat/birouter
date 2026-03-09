@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import {
   getProvider,
   generateAuthData,
@@ -27,6 +28,18 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 // Use globalThis to persist callback server state across Next.js HMR reloads
 if (!globalThis.__codexCallbackState) {
   globalThis.__codexCallbackState = null;
+}
+
+/**
+ * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).
+ * Handles null/undefined safely and different-length strings.
+ */
+function safeEqual(a: string | null | undefined, b: string | null | undefined): boolean {
+  if (a == null || b == null) return a === b;
+  const ba = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  if (ba.length !== bb.length) return false;
+  return timingSafeEqual(ba, bb);
 }
 
 /**
@@ -222,11 +235,12 @@ export async function POST(
       if (tokenData.email) {
         const existing = await getProviderConnections({ provider });
         const match = existing.find((c: any) => {
-          if (c.email !== tokenData.email || c.authType !== "oauth") return false;
+          // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-6/7)
+          if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
           // For Codex, also check workspaceId to avoid overwriting different workspace connections
           if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
             const existingWorkspace = c.providerSpecificData?.workspaceId;
-            return existingWorkspace === tokenData.providerSpecificData.workspaceId;
+            return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
           }
           return true;
         });
@@ -292,11 +306,12 @@ export async function POST(
         if (result.tokens.email) {
           const existing = await getProviderConnections({ provider });
           const match = existing.find((c: any) => {
-            if (c.email !== result.tokens.email || c.authType !== "oauth") return false;
+            // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-8/9)
+            if (!safeEqual(c.email, result.tokens.email) || c.authType !== "oauth") return false;
             // For Codex, also check workspaceId to avoid overwriting different workspace connections
             if (provider === "codex" && result.tokens.providerSpecificData?.workspaceId) {
               const existingWorkspace = c.providerSpecificData?.workspaceId;
-              return existingWorkspace === result.tokens.providerSpecificData.workspaceId;
+              return safeEqual(existingWorkspace, result.tokens.providerSpecificData.workspaceId);
             }
             return true;
           });
@@ -412,11 +427,12 @@ export async function POST(
         if (tokenData.email) {
           const existing = await getProviderConnections({ provider });
           const match = existing.find((c: any) => {
-            if (c.email !== tokenData.email || c.authType !== "oauth") return false;
+            // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-6/7)
+            if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
             // For Codex, also check workspaceId to avoid overwriting different workspace connections
             if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
               const existingWorkspace = c.providerSpecificData?.workspaceId;
-              return existingWorkspace === tokenData.providerSpecificData.workspaceId;
+              return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
             }
             return true;
           });

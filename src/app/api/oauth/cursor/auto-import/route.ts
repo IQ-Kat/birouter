@@ -2,12 +2,21 @@ import { NextResponse } from "next/server";
 import { homedir } from "os";
 import { join } from "path";
 import Database from "better-sqlite3";
+import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * GET /api/oauth/cursor/auto-import
- * Auto-detect and extract Cursor tokens from local SQLite database
+ * Auto-detect and extract Cursor tokens from local SQLite database.
+ *
+ * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-4).
  */
-export async function GET() {
+export async function GET(request: Request) {
+  if (await isAuthRequired()) {
+    if (!(await isAuthenticated(request))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   try {
     const platform = process.platform;
     let dbPath;
