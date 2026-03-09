@@ -477,13 +477,13 @@ async function getClaudeUsage(accessToken) {
 
     if (oauthResponse.ok) {
       const data = await oauthResponse.json();
-      const quotas: Record<string, any> = {};
+      const quotas: Record<string, UsageQuota> = {};
 
       // utilization = percentage REMAINING (e.g., 90 means 90% remaining, 10% used)
-      const hasUtilization = (window: any) =>
+      const hasUtilization = (window: JsonRecord) =>
         window && typeof window === "object" && safePercentage(window.utilization) !== undefined;
 
-      const createQuotaObject = (window: any) => {
+      const createQuotaObject = (window: JsonRecord) => {
         const remaining = safePercentage(window.utilization) as number;
         const used = 100 - remaining;
         return {
@@ -506,9 +506,10 @@ async function getClaudeUsage(accessToken) {
 
       // Parse model-specific weekly windows (e.g., seven_day_sonnet, seven_day_opus)
       for (const [key, value] of Object.entries(data)) {
-        if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(value)) {
+        const valueRecord = toRecord(value);
+        if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(valueRecord)) {
           const modelName = key.replace("seven_day_", "");
-          quotas[`weekly ${modelName} (7d)`] = createQuotaObject(value);
+          quotas[`weekly ${modelName} (7d)`] = createQuotaObject(valueRecord);
         }
       }
 
@@ -525,7 +526,7 @@ async function getClaudeUsage(accessToken) {
     );
     return await getClaudeUsageLegacy(accessToken);
   } catch (error) {
-    return { message: `Claude connected. Unable to fetch usage: ${(error as any).message}` };
+    return { message: `Claude connected. Unable to fetch usage: ${(error as Error).message}` };
   }
 }
 
@@ -577,7 +578,7 @@ async function getClaudeUsageLegacy(accessToken) {
 
     return { message: "Claude connected. Usage API requires admin permissions." };
   } catch (error) {
-    return { message: `Claude connected. Unable to fetch usage: ${(error as any).message}` };
+    return { message: `Claude connected. Unable to fetch usage: ${(error as Error).message}` };
   }
 }
 

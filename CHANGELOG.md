@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1] — 2026-03-09
+
+> ### 🔧 CI Fix + Docs Reorganization
+
+### Bug Fixes
+
+- **CI: fixed `any`-budget violation in `open-sse/services/usage.ts`** — replaced 5 explicit `any` annotations with proper TypeScript types (`UsageQuota`, `JsonRecord`, `Error`), restoring the green CI lint gate.
+- **Deleted all duplicate draft GitHub releases** — automated workflow was creating unnamed draft releases on each push; cleaned up all draft artifacts for v2.0.17–v2.1.0.
+
+### Documentation
+
+- **Root cleanup**: moved all 29 `README.<lang>.md` files from the project root into their correct `docs/i18n/<lang>/README.md` locations. The root now contains only `README.md` (English).
+- **i18n sync**: all 11 `docs/*.md` files synced with language bar headers to all 30 `docs/i18n/<lang>/` directories (319 file updates across ar, bg, da, de, es, fi, fr, he, hu, id, in, it, ja, ko, ms, nl, no, phi, pl, pt, pt-BR, ro, ru, sk, sv, th, uk-UA, vi, zh-CN).
+
+---
+
 ## [2.1.0] — 2026-03-09
 
 > ### 🗺️ Full Provider-UI Gap Audit — All Backends Now Accessible from Dashboard
