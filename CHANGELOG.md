@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.18] — 2026-03-09
+
+> ### 🐛 Bug Fixes — Cursor Decompression, Codex Token Refresh, Password Setup
+
+### 🐛 Bug Fixes
+
+- **#250 — Cursor OAuth tool calls fail (decompression error)** — Frames flagged as `GZIP_ALT (0x02)` or `GZIP_BOTH (0x03)` may use zlib deflate format instead of gzip. `decompressPayload()` previously only tried `gunzipSync`, failing silently and returning raw bytes that downstream protobuf parsing rejected. Fix adds cascaded fallbacks: `gunzipSync` → `inflateSync` → `inflateRawSync`, with verbose error logging when all methods fail.
+
+- **#251 — Codex OAuth accounts fail after v2.0.16 upgrade** — `CodexExecutor` was inheriting `BaseExecutor.refreshCredentials()` which always returns `null`. When a Codex access token expires after a server upgrade/restart, `chatCore.ts` calls `executor.refreshCredentials()` on every 401 response — which returned `null` for Codex, blocking token renewal entirely. Fix: `CodexExecutor` now overrides `refreshCredentials()` to call the existing `refreshCodexToken()` from `tokenRefresh.ts`, restoring automatic recovery.
+
+- **#256 — Configure Password button broken after skipping onboarding** — `isAuthRequired()` in `apiAuth.ts` had a `setupComplete` guard: once `setupComplete=true`, it always required auth. But when the password step is skipped, `setupComplete=true` and `password=null`, making the dashboard inaccessible without a valid JWT (which doesn't exist because no password was ever set). Fix: removed the `setupComplete` check — auth is now skipped whenever no password is configured at all, allowing users to navigate to Settings → Security to set a first password.
+
+### 📁 Files Changed
+
+| File                           | Change                                                               |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `open-sse/executors/cursor.ts` | Add `inflateSync`/`inflateRawSync` fallback in `decompressPayload()` |
+| `open-sse/executors/codex.ts`  | Override `refreshCredentials()` to call `refreshCodexToken()`        |
+| `src/shared/utils/apiAuth.ts`  | Remove `setupComplete` guard from `isAuthRequired()`                 |
+
+---
+
 ## [2.0.17] — 2026-03-09
 
 > ### 🐛 Bug Fixes + 🔌 Integrations
