@@ -31,6 +31,8 @@ export default function AgentsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const [settings, setSettings] = useState<Record<string, any>>({});
+  const [opencodeConfigLoading, setOpencodeConfigLoading] = useState(false);
+  const [opencodeConfigDone, setOpencodeConfigDone] = useState(false);
   const [newAgent, setNewAgent] = useState({
     name: "",
     binary: "",
@@ -302,6 +304,94 @@ export default function AgentsPage() {
           </Card>
         ))}
       </div>
+
+      {/* OpenCode Config Generator — shown only when opencode is detected */}
+      {agents.find((a) => a.id === "opencode" && a.installed) && (
+        <Card>
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-violet-500/10 text-violet-500 shrink-0">
+              <span className="material-symbols-outlined text-[20px]">code_blocks</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-base font-semibold">OpenCode Integration</h3>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
+                  opencode {agents.find((a) => a.id === "opencode")?.version} detected
+                </span>
+              </div>
+              <p className="text-sm text-text-muted mb-3">
+                Generate a ready-to-use{" "}
+                <code className="text-xs bg-black/[0.06] dark:bg-white/[0.08] px-1 py-0.5 rounded">
+                  opencode.json
+                </code>{" "}
+                with your OmniRoute base URL and all available models — drop it in your project root
+                and run{" "}
+                <code className="text-xs bg-black/[0.06] dark:bg-white/[0.08] px-1 py-0.5 rounded">
+                  opencode
+                </code>
+                .
+              </p>
+              <Button
+                variant="secondary"
+                loading={opencodeConfigLoading}
+                onClick={async () => {
+                  setOpencodeConfigLoading(true);
+                  setOpencodeConfigDone(false);
+                  try {
+                    // Fetch available models
+                    const modelsRes = await fetch("/v1/models");
+                    const modelsData = modelsRes.ok ? await modelsRes.json() : { data: [] };
+                    const models: Record<string, { name: string }> = {};
+                    for (const m of modelsData.data || []) {
+                      models[m.id] = { name: m.id };
+                    }
+                    // Build opencode.json
+                    const baseURL = window.location.origin + "/v1";
+                    const config = {
+                      $schema: "https://opencode.ai/config.json",
+                      provider: {
+                        omniroute: {
+                          npm: "@ai-sdk/openai-compatible",
+                          name: "OmniRoute",
+                          options: {
+                            baseURL,
+                            apiKey: "YOUR_OMNIROUTE_API_KEY",
+                          },
+                          models:
+                            Object.keys(models).length > 0
+                              ? models
+                              : { "gpt-4o": { name: "gpt-4o" } },
+                        },
+                      },
+                    };
+                    // Download as file
+                    const blob = new Blob([JSON.stringify(config, null, 2)], {
+                      type: "application/json",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "opencode.json";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    setOpencodeConfigDone(true);
+                    setTimeout(() => setOpencodeConfigDone(false), 3000);
+                  } catch (err) {
+                    console.error("Failed to generate opencode.json:", err);
+                  } finally {
+                    setOpencodeConfigLoading(false);
+                  }
+                }}
+              >
+                <span className="material-symbols-outlined text-[16px] mr-1">
+                  {opencodeConfigDone ? "check" : "download"}
+                </span>
+                {opencodeConfigDone ? "Downloaded!" : "Download opencode.json"}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Add Custom Agent */}
       <Card>
