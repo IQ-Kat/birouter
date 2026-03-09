@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.17] — 2026-03-09
+
+> ### 🐛 Bug Fixes + 🔌 Integrations
+
+### 🐛 Bug Fixes
+
+- **Antigravity/Gemini streaming broken in Claude Code** — Fixed `gemini-to-claude.ts` response translator that was emitting `content_block_start` + `content_block_stop` on **every single streaming chunk**. Claude Code interpreted each block as a separate element, rendering each text delta on its own line. Fix: `openTextBlockIdx` state variable keeps the text block open across chunks and only closes it when the block type changes or at `finishReason`. Fixes #253.
+
+### 🔌 New Integrations
+
+- **OpenCode native integration** — Agents dashboard now shows a **"Download opencode.json"** button when `opencode` is detected as installed. Clicking it fetches all available models from `/v1/models`, auto-fills `baseURL` from your current OmniRoute instance, and downloads a ready-to-use `opencode.json` config file. Inspired by @Alph4d0g's plugin (discussion #162).
+
+### 🔧 CI Improvements
+
+- **Electron macOS Intel CI fixed** — Updated CI runner from deprecated `macos-13` to `macos-15-intel` (GitHub's new Intel x64 runner, GA since April 2025). Fixes all macOS Intel build failures.
+- **Electron binary version sync** — Added step to sync `electron/package.json` version before build so binaries are named correctly (`OmniRoute-2.0.17.dmg` instead of `OmniRoute-2.0.13.dmg`).
+- **Release asset deduplication** — Removed duplicate `*-arm64.dmg` pattern from release files; added `fail_on_unmatched_files: false` for optional `.blockmap` files.
+
+---
+
 ## [2.0.16] — 2026-03-08
 
 > ### 🐛 Bug Fixes + 🔧 CI Hardening
