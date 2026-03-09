@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.1.1] — 2026-03-09
+## [Unreleased]
+
+---
+
+## [2.1.2] — 2026-03-09
+
+> ### 🔨 CI Green + Electron .deb + Link Fixes
+
+### Bug Fixes
+
+- **CI: `check:docs-sync`** — fixed 2 failures: bumped `docs/openapi.yaml` version to 2.1.1 (was 2.0.0), added required `## [Unreleased]` section to CHANGELOG.
+- **CI: npm-publish workflow** — rewrote to use `npm ci --ignore-scripts` + explicit `node scripts/prepublish.mjs` with `JWT_SECRET` env; fixes the prepublish loop that caused every npm CI publish to fail.
+- **README.md language bar** — fixed all 29 broken links that pointed to root `README.<lang>.md` (now `docs/i18n/<lang>/README.md`).
+- **docs/i18n READMEs** — fixed back-links to English (`../../README.md`) and cross-links to sibling languages.
+
+### New Features
+
+- **Electron Linux `.deb` package** — added `deb` target (x64 + arm64) to `electron/package.json`; updated `electron-release.yml` to collect and attach `.deb` files to GitHub releases alongside `.AppImage`.
 
 > ### 🔧 CI Fix + Docs Reorganization
 
