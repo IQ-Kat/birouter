@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] — 2026-03-09
+
+> ### 🗺️ Full Provider-UI Gap Audit — All Backends Now Accessible from Dashboard
+
+### ✨ New Features
+
+- **7 missing API-key providers added to Providers page** — ElevenLabs, Cartesia, PlayHT, Inworld, SD WebUI, ComfyUI, and Ollama Cloud now all appear in `/dashboard/providers` with API key configuration cards. Previously these providers existed only in the backend with no UI entry point.
+
+- **Media page: provider + model selectors for all 5 modalities** — `/dashboard/media` now has a **Provider** dropdown and a **Model** dropdown for every tab. Selecting a provider shows only its models:
+  - 🖼️ **Image**: OpenAI, xAI, Together, Fireworks, Nebius, Hyperbolic, NanoBanana, SD WebUI, ComfyUI (9 providers)
+  - 🎬 **Video**: ComfyUI (AnimateDiff, SVD), SD WebUI (2 providers)
+  - 🎵 **Music**: ComfyUI (Stable Audio Open, MusicGen)
+  - 🔊 **Speech**: OpenAI, ElevenLabs, Deepgram, Hyperbolic, NVIDIA, Inworld, Cartesia, PlayHT, HuggingFace, Qwen (10 providers). Voice dropdown updates per provider.
+  - 🎙️ **Transcription**: New tab — OpenAI Whisper, Groq, Deepgram, AssemblyAI, NVIDIA, HuggingFace, Qwen (7 providers). File upload instead of text prompt.
+
+- **Playground: 4 new endpoint options** — Audio Transcription (`/v1/audio/transcriptions`), Video Generation (`/v1/videos/generations`), Music Generation (`/v1/music/generations`), Rerank (`/v1/rerank`). Previously only Chat, Responses, Images, Embeddings, Speech were available.
+
+- **CLI Tools: OpenCode + Kiro** — Both tools now appear in `/dashboard/cli-tools` with step-by-step setup guides. OpenCode was already detected in Agents but had no configuration screen.
+
+- **Agents: expanded CLI fingerprint providers** — kiro, cursor, kimi-coding, kilocode, cline added to the CLI fingerprint toggle list (previously only codex, claude, github, antigravity).
+
+### 🧹 Maintenance
+
+- Deleted 3 stale remote branches (`features-agente-mcp-a2a`, `fix/issue-218-round-robin-lastUsedAt`, `fix/resolve-open-issues`) — all their changes were already in main.
+- Added minimal `layout.tsx` to all error-page routes (`400`, `401`, `403`, `408`, `429`, `500`, `502`, `503`) to fix Next.js standalone build.
+
+### 📁 Files Changed
+
+| File                                                      | Change                                                     |
+| --------------------------------------------------------- | ---------------------------------------------------------- |
+| `src/shared/constants/providers.ts`                       | Add 7 missing APIKEY_PROVIDERS                             |
+| `src/shared/constants/cliTools.ts`                        | Add opencode, kiro entries                                 |
+| `src/app/(dashboard)/dashboard/media/MediaPageClient.tsx` | Full rewrite — provider/model selectors, transcription tab |
+| `src/app/(dashboard)/dashboard/playground/page.tsx`       | Add 4 new endpoint options                                 |
+| `src/app/(dashboard)/dashboard/agents/page.tsx`           | Expand cliCompatProviders list                             |
+| `src/app/{400..503}/layout.tsx`                           | Add minimal layouts to fix Next.js build                   |
+
+---
+
 ## [2.0.20] — 2026-03-09
 
 > ### 🔊 TTS Expansion + 📱 Mobile UX + 🏷️ Friendly Names
