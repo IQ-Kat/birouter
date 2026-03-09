@@ -76,22 +76,37 @@ function decompressPayload(payload, flags) {
     flags === COMPRESS_FLAG.GZIP_ALT ||
     flags === COMPRESS_FLAG.GZIP_BOTH
   ) {
+    // Primary: try gzip decompression (standard gzip header 0x1f 0x8b)
     try {
       return zlib.gunzipSync(payload);
-    } catch (err) {
-      console.log(
-        `[DECOMPRESS ERROR] flags=${flags}, payloadSize=${payload.length}, error=${err.message}`
-      );
-      console.log(`[DECOMPRESS ERROR] First 50 bytes (hex):`, payload.slice(0, 50).toString("hex"));
-      console.log(
-        `[DECOMPRESS ERROR] First 50 bytes (utf8):`,
-        payload
-          .slice(0, 50)
-          .toString("utf8")
-          .replace(/[^\x20-\x7E]/g, ".")
-      );
-      // Try to use payload as-is if decompression fails
-      return payload;
+    } catch (gzipErr) {
+      // Fallback: GZIP_ALT (0x02) and GZIP_BOTH (0x03) frames sometimes use
+      // raw zlib deflate format instead of gzip wrapping (#250)
+      try {
+        return zlib.inflateSync(payload);
+      } catch (deflateErr) {
+        // Last resort: try raw deflate (no zlib header)
+        try {
+          return zlib.inflateRawSync(payload);
+        } catch (rawErr) {
+          console.log(
+            `[DECOMPRESS ERROR] flags=${flags}, payloadSize=${payload.length}, gzip=${gzipErr.message}, deflate=${deflateErr.message}, raw=${rawErr.message}`
+          );
+          console.log(
+            `[DECOMPRESS ERROR] First 50 bytes (hex):`,
+            payload.slice(0, 50).toString("hex")
+          );
+          console.log(
+            `[DECOMPRESS ERROR] First 50 bytes (utf8):`,
+            payload
+              .slice(0, 50)
+              .toString("utf8")
+              .replace(/[^\x20-\x7E]/g, ".")
+          );
+          // Try to use payload as-is if all decompression methods fail
+          return payload;
+        }
+      }
     }
   }
   return payload;
