@@ -2,12 +2,21 @@ import { NextResponse } from "next/server";
 import { readFile, readdir } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
+import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * GET /api/oauth/kiro/auto-import
- * Auto-detect and extract Kiro refresh token from AWS SSO cache
+ * Auto-detect and extract Kiro refresh token from AWS SSO cache.
+ *
+ * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-5).
  */
-export async function GET() {
+export async function GET(request: Request) {
+  if (await isAuthRequired()) {
+    if (!(await isAuthenticated(request))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   try {
     const cachePath = join(homedir(), ".aws/sso/cache");
 

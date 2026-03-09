@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import { getDbInstance, resetDbInstance, SQLITE_FILE } from "@/lib/db/core";
 import { backupDbFile } from "@/lib/db/backup";
+import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
 
@@ -16,8 +17,15 @@ const REQUIRED_TABLES = ["provider_connections", "provider_nodes", "combos", "ap
  *
  * Accepts multipart/form-data with a single "file" field containing the .sqlite backup.
  * Validates integrity, schema, and required tables before replacing the active database.
+ *
+ * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-3).
  */
 export async function POST(request: Request) {
+  if (await isAuthRequired()) {
+    if (!(await isAuthenticated(request))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
   let tmpPath: string | null = null;
 
   try {

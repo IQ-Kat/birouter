@@ -769,6 +769,29 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "ollama-cloud": {
+    id: "ollama-cloud",
+    alias: "ollamacloud",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.ollama.com/v1/chat/completions",
+    modelsUrl: "https://api.ollama.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    // Note: rate limits vary by plan (free = "Light usage", Pro = more, Max = 5x Pro).
+    // Users can generate API keys at https://ollama.com/settings/api-keys
+    models: [
+      { id: "gemma3:27b", name: "Gemma 3 27B" },
+      { id: "llama3.3:70b", name: "Llama 3.3 70B" },
+      { id: "qwen3:72b", name: "Qwen3 72B" },
+      { id: "devstral:24b", name: "Devstral 24B" },
+      { id: "deepseek-r2:671b", name: "DeepSeek R2 671B" },
+      { id: "phi4:14b", name: "Phi 4 14B" },
+      { id: "mistral-small3.2:24b", name: "Mistral Small 3.2 24B" },
+    ],
+    passthroughModels: true,
+  },
+
   cohere: {
     id: "cohere",
     alias: "cohere",
