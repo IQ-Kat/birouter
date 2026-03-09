@@ -416,7 +416,7 @@ IA não é apenas conclusão de bate-papo. Os desenvolvedores precisam gerar ima
 - **Texto para vídeo** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) e SD WebUI
 - **Texto para música** — `/v1/music/generations` — ComfyUI (áudio estável aberto, MusicGen)
 - **Transcrição de áudio** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Conversão de texto em fala** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + provedores existentes
+- **Conversão de texto em fala** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + provedores existentes
 - **Moderações** — `/v1/moderations` — Verificações de segurança de conteúdo
 - **Reclassificação** — `/v1/rerank` — Reclassificação da relevância do documento
 - **API de respostas ** — Suporte completo a `/v1/responses` para Codex

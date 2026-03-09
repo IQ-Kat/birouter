@@ -416,7 +416,7 @@ Az AI nem csak a csevegés befejezése. A fejlesztőknek képeket kell generáln
 - **Text-to-Video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) és SD WebUI
 - **Text-to-Music** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Audio átírás** - `/v1/audio/transcriptions` - Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Szövegfelolvasó** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + meglévő szolgáltatók
+- **Szövegfelolvasó** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + meglévő szolgáltatók
 - **Moderálás** — `/v1/moderations` — Tartalombiztonsági ellenőrzések
 - **Átsorolás** — `/v1/rerank` — Dokumentumreleváns átsorolás
 - **Responses API** - Teljes `/v1/responses` támogatás a Codexhez

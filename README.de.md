@@ -394,7 +394,7 @@ KI ist nicht nur der Abschluss eines Chats. Entwickler müssen Bilder generieren
 - **Text-zu-Video** – `/v1/videos/generations` – ComfyUI (AnimateDiff, SVD) und SD WebUI
 - **Text-zu-Musik** – `/v1/music/generations` – ComfyUI (Stable Audio Open, MusicGen)
 - **Audiotranskription** – `/v1/audio/transcriptions` – Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Text-to-Speech** – `/v1/audio/speech` – ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + bestehende Anbieter
+- **Text-to-Speech** – `/v1/audio/speech` – ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + bestehende Anbieter
 - **Moderationen** – `/v1/moderations` – Überprüfung der Inhaltssicherheit
 - **Neueinstufung** – `/v1/rerank` – Neueinstufung der Dokumentenrelevanz
 - **Antwort-API** – Vollständige `/v1/responses`-Unterstützung für Codex

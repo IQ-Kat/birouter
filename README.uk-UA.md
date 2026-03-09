@@ -416,7 +416,7 @@ Claude Code, Codex, Gemini CLI, Copilot — усі використовують 
 - **Текст у відео** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) і SD WebUI
 - **Текст у музику** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Транскрипція аудіо** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Перетворення тексту в мовлення** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3 + існуючі постачальники
+- **Перетворення тексту в мовлення** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT + існуючі постачальники
 - **Модерації** — `/v1/moderations` — Перевірки безпеки вмісту
 - **Переранжування** — `/v1/rerank` — Переранжування релевантності документа
 - **Responses API** — повна підтримка `/v1/responses` для Codex

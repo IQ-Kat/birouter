@@ -415,7 +415,7 @@ La IA no es solo completar un chat. Los desarrolladores necesitan generar imáge
 - **Texto a vídeo** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) y SD WebUI
 - **Texto a música** — `/v1/music/generations` — ComfyUI (audio estable abierto, MusicGen)
 - **Transcripción de audio** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Texto a voz** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3 y proveedores existentes
+- **Texto a voz** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT y proveedores existentes
 - **Moderaciones** — `/v1/moderations` — Comprobaciones de seguridad del contenido
 - **Reclasificación** — `/v1/rerank` — Reclasificación de relevancia del documento
 - **API de respuestas**: compatibilidad total con `/v1/responses` para Codex

@@ -415,7 +415,7 @@ L'IA ne se limite pas à la réalisation de discussions. Les développeurs doive
 - **Texte vers vidéo** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) et SD WebUI
 - **Texte en musique** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Transcription audio** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + fournisseurs existants
+- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + fournisseurs existants
 - **Modérations** — `/v1/moderations` — Contrôles de sécurité du contenu
 - **Reclassement** — `/v1/rerank` — Reclassement de la pertinence du document
 - **API Réponses** — Prise en charge complète de `/v1/responses` pour le Codex

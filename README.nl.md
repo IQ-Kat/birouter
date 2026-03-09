@@ -415,7 +415,7 @@ AI is niet alleen het voltooien van chats. Ontwikkelaars moeten afbeeldingen gen
 - **Tekst-naar-video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) en SD WebUI
 - **Tekst-naar-muziek** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Audiotranscriptie** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Tekst-naar-spraak** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + bestaande providers
+- **Tekst-naar-spraak** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + bestaande providers
 - **Moderaties** — `/v1/moderations` — Veiligheidscontroles van inhoud
 - **Herschikking** — `/v1/rerank` — Herschikking van de relevantie van documenten
 - **Responses API** — Volledige `/v1/responses`-ondersteuning voor Codex

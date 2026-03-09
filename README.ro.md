@@ -417,7 +417,7 @@ AI nu este doar finalizarea chatului. Dezvoltatorii trebuie să genereze imagini
 - **Text-to-Video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) și SD WebUI
 - **Text-to-Music** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Transcriere audio** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + furnizori existenți
+- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + furnizori existenți
 - **Moderări** — `/v1/moderations` — Verificări de siguranță a conținutului
 - **Reclasificare** — `/v1/rerank` — Reclasificarea relevanței documentului
 - **Responses API** — Suport complet `/v1/responses` pentru Codex

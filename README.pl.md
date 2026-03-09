@@ -415,7 +415,7 @@ Sztuczna inteligencja to nie tylko ukończenie czatu. Twórcy muszą generować 
 - **Tekst na wideo** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) i SD WebUI
 - **Tekst na muzykę** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Transkrypcja audio** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Zamiana tekstu na mowę** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + obecni dostawcy
+- **Zamiana tekstu na mowę** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + obecni dostawcy
 - **Moderacje** — `/v1/moderations` — Sprawdzanie bezpieczeństwa treści
 - **Reranking** — `/v1/rerank` — Zmiana rankingu trafności dokumentu
 - **Responses API** — Pełna obsługa `/v1/responses` dla Codexu

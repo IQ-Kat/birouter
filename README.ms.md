@@ -415,7 +415,7 @@ AI bukan sekadar penyelesaian sembang. Pembangun perlu menjana imej, menyalin au
 - **Teks-ke-Video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) dan SD WebUI
 - **Teks-ke-Muzik** — `/v1/music/generations` — ComfyUI (Audio Terbuka, MusicGen)
 - **Transkripsi Audio** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Teks-ke-Ucapan** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + pembekal sedia ada
+- **Teks-ke-Ucapan** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + pembekal sedia ada
 - **Moderasi** — `/v1/moderations` — Pemeriksaan keselamatan kandungan
 - **Penyusunan semula** — `/v1/rerank` — Penyusunan semula perkaitan dokumen
 - **Respons API** — Sokongan penuh `/v1/responses` untuk Codex

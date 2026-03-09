@@ -416,7 +416,7 @@ L'intelligenza artificiale non è solo il completamento della chat. Gli sviluppa
 - **Da testo a video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) e SD WebUI
 - **Trasformazione testo in musica** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Trascrizione audio** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Sintesi vocale** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + fornitori esistenti
+- **Sintesi vocale** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + fornitori esistenti
 - **Moderazioni** — `/v1/moderations` — Controlli di sicurezza dei contenuti
 - **Riclassificazione** — `/v1/rerank`: riclassificazione della pertinenza del documento
 - **API di risposta**: supporto `/v1/responses` completo per Codex

@@ -407,7 +407,7 @@ AI er ikke kun fuldførelse af chat. Udviklere skal generere billeder, transskri
 - **Tekst-til-video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) og SD WebUI
 - **Tekst-til-musik** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Lydtransskription** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Tekst-til-tale** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + eksisterende udbydere
+- **Tekst-til-tale** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + eksisterende udbydere
 - **Moderationer** — `/v1/moderations` — Indholdssikkerhedstjek
 - **Omrangering** — `/v1/rerank` — Omrangering af dokumentrelevans
 - **Responses API** — Fuld `/v1/responses`-understøttelse af Codex

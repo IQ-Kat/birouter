@@ -406,7 +406,7 @@ AI не е просто завършване на чат. Разработчиц
 - **Текст към видео** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) и SD WebUI
 - **Текст към музика** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Аудио транскрипция** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Текст-към-говор** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + съществуващи доставчици
+- **Текст-към-говор** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + съществуващи доставчици
 - **Модерации** — `/v1/moderations` — Проверки за безопасност на съдържанието
 - **Прекласиране** — `/v1/rerank` — Прекласиране на уместността на документа
 - **API за отговори** — Пълна `/v1/responses` поддръжка за Codex

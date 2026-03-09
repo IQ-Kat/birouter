@@ -415,7 +415,7 @@ AI är inte bara att slutföra chatt. Utvecklare måste generera bilder, transkr
 - **Text-till-video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) och SD WebUI
 - **Text-to-Music** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Ljudtranskription** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Text-till-tal** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + befintliga leverantörer
+- **Text-till-tal** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + befintliga leverantörer
 - **Moderationer** — `/v1/moderations` — Innehållssäkerhetskontroller
 - **Omrankning** — `/v1/rerank` — Omrankning av dokumentrelevans
 - **Responses API** — Fullständigt `/v1/responses`-stöd för Codex

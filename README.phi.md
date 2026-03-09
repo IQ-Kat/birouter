@@ -415,7 +415,7 @@ Ang AI ay hindi lamang pagkumpleto ng chat. Kailangan ng mga dev na bumuo ng mga
 - **Text-to-Video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) at SD WebUI
 - **Text-to-Music** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Audio Transcription** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + mga kasalukuyang provider
+- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + mga kasalukuyang provider
 - **Moderations** — `/v1/moderations` — Mga pagsusuri sa kaligtasan ng content
 - **Muling pagraranggo** — `/v1/rerank` — Muling pagraranggo ng kaugnayan ng dokumento
 - **Responses API** — Buong `/v1/responses` na suporta para sa Codex

@@ -416,7 +416,7 @@ Tekoäly ei ole vain chatin loppuun saattamista. Kehittäjien on luotava kuvia, 
 - **Tekstistä videoksi** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) ja SD WebUI
 - **Tekstistä musiikiksi** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Äänitranskriptio** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Tekstistä puheeksi** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3 ja olemassa olevat palveluntarjoajat
+- **Tekstistä puheeksi** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT ja olemassa olevat palveluntarjoajat
 - **Moderaatiot** — `/v1/moderations` — Sisällön turvallisuustarkastukset
 - **Uudelleensijoitus** — `/v1/rerank` — Asiakirjan relevanssin uudelleensijoitus
 - **Responses API** — Täysi `/v1/responses`-tuki Codexille

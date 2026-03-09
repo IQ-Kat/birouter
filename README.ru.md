@@ -415,7 +415,7 @@ Claude Code, Codex, Gemini CLI, Copilot — все используют OAuth 2.
 - **Преобразование текста в видео** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) и SD WebUI.
 - **Преобразование текста в музыку** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Аудиотранскрипция** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Преобразование текста в речь** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3 и + существующие поставщики
+- **Преобразование текста в речь** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT и + существующие поставщики
 - **Модерация** — `/v1/moderations` — Проверка безопасности контента.
 - **Реранжирование** — `/v1/rerank` — Изменение ранжирования релевантности документа.
 - **API ответов** — полная поддержка `/v1/responses` для Кодекса.

@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.20] — 2026-03-09
+
+> ### 🔊 TTS Expansion + 📱 Mobile UX + 🏷️ Friendly Names
+
+### ✨ New Features
+
+- **Inworld TTS provider** (`#248`) — Cloud TTS via `https://api.inworld.ai/tts/v1/voice`; Basic auth; JSON response with base64 `audioContent` decoded to binary. Use prefix `inworld/<model-id>`. Available models: `inworld-tts-1.5-max`, `inworld-tts-1.5-mini`.
+
+- **Cartesia TTS provider** (`#248`) — Cloud TTS via `https://api.cartesia.ai/tts/bytes`; `X-API-Key` + `Cartesia-Version: 2024-06-10` headers; returns binary audio stream. Use prefix `cartesia/<model-id>`. Available models: `sonic-2`, `sonic-3`. Voice is mapped via voice ID.
+
+- **PlayHT TTS provider** (`#248`) — Cloud TTS via `https://api.play.ht/api/v2/tts/stream`; dual auth `X-USER-ID` + `Authorization: Bearer` (store token as `userId:apiKey`). Use prefix `playht/<model-id>`. Available models: `PlayDialog`, `Play3.0-mini`.
+
+- **ElevenLabs voice presets in dashboard** (`#248`) — `/dashboard/media` → Speech tab now shows provider-aware voice dropdowns: ElevenLabs (9 premade voices), Cartesia (3 preset voices), Deepgram Aura (5 voices), Inworld (2 voices), OpenAI (6 standard voices). Voice list updates automatically based on the model prefix typed.
+
+- **Speech tab in `/dashboard/media`** (`#248`) — New "Text to Speech" tab alongside Image/Video/Music. Includes model text input (supports all provider prefixes), voice/format selectors, and an inline `<audio>` player with Blob URL + download button.
+
+- **Text to Speech in `/dashboard/playground`** (`#248`) — New endpoint option; pre-filled body with model/input/voice/response_format; binary audio responses auto-rendered in an inline audio player instead of JSON.
+
+- **Friendly display names** (`#260`) — New `src/lib/display/names.ts` with `getAccountDisplayName()` (name → displayName → email → Account #XXXXXX) and `getProviderDisplayName()` (node.name → node.prefix → de-UUIDed ID). Applied to `usageStats.ts` and `rate-limits/route.ts` to replace raw UUID fallbacks.
+
+### 📱 Mobile UX (`#261`)
+
+- **Sidebar scroll on short screens** — Mobile sidebar wrapper now uses `h-dvh` for true viewport height; `aside` receives `h-full` so the inner `nav` can actually scroll on short devices.
+- **Providers page action areas** — All 4 section headers changed from `flex justify-between` to `flex flex-wrap` so multi-button action bars wrap gracefully on narrow screens.
+
+### 📁 New Files
+
+| File                       | Purpose                                                      |
+| -------------------------- | ------------------------------------------------------------ |
+| `src/lib/display/names.ts` | Centralized friendly-name helpers for accounts and providers |
+
+### 📁 Files Changed
+
+| File                                                      | Change                                                                  |
+| --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `open-sse/config/audioRegistry.ts`                        | Add Inworld, Cartesia, PlayHT to `AUDIO_SPEECH_PROVIDERS`               |
+| `open-sse/handlers/audioSpeech.ts`                        | Add `handleInworldSpeech`, `handleCartesiaSpeech`, `handlePlayHtSpeech` |
+| `src/app/(dashboard)/dashboard/media/MediaPageClient.tsx` | Full rewrite with Speech tab + provider-aware voice presets             |
+| `src/app/(dashboard)/dashboard/playground/page.tsx`       | Add Speech endpoint option + audio Blob URL response renderer           |
+| `src/app/(dashboard)/dashboard/providers/page.tsx`        | `flex-wrap` mobile fix for section headers                              |
+| `src/lib/usage/usageStats.ts`                             | Use `getAccountDisplayName()`                                           |
+| `src/app/api/rate-limits/route.ts`                        | Use `getAccountDisplayName()`                                           |
+| `src/shared/components/Sidebar.tsx`                       | Add `h-full` to aside                                                   |
+| `src/shared/components/layouts/DashboardLayout.tsx`       | Add `h-dvh` to mobile sidebar wrapper                                   |
+
+---
+
 ## [2.0.19] — 2026-03-09
 
 > ### 🔌 New Provider: Ollama Cloud + 🔒 Security Hardening

@@ -419,7 +419,7 @@ AI nie je len dokončenie chatu. Vývojári potrebujú generovať obrázky, prep
 - **Text-to-Video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) a SD WebUI
 - **Text-to-Music** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
 - **Prepis zvuku** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3 a + existujúci poskytovatelia
+- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT a + existujúci poskytovatelia
 - **Moderácie** — `/v1/moderations` — Kontroly bezpečnosti obsahu
 - **Zmena poradia** — `/v1/rerank` — Zmena poradia relevantnosti dokumentu
 - **Responses API** – plná podpora `/v1/responses` pre kódex

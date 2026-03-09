@@ -869,16 +869,16 @@ Por que isso é relevante:
 
 ### 🎵 APIs Multi-Modal
 
-| Funcionalidade              | O que Faz                                                                        |
-| --------------------------- | -------------------------------------------------------------------------------- |
-| 🖼️ **Geração de Imagem**    | `/v1/images/generations` — 10 provedores, 20+ modelos (cloud + local)            |
-| 📐 **Embeddings**           | `/v1/embeddings` — 6 provedores, 9+ modelos                                      |
-| 🎤 **Transcrição de Áudio** | `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3            |
-| 🔊 **Texto para Fala**      | `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3 |
-| 🎬 **Geração de Vídeo**     | `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD), SD WebUI                  |
-| 🎵 **Geração de Música**    | `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)                  |
-| 🛡️ **Moderações**           | `/v1/moderations` — Verificações de segurança                                    |
-| 🔀 **Reranking**            | `/v1/rerank` — Reranking de relevância de documentos                             |
+| Funcionalidade              | O que Faz                                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Geração de Imagem**    | `/v1/images/generations` — 10 provedores, 20+ modelos (cloud + local)                                       |
+| 📐 **Embeddings**           | `/v1/embeddings` — 6 provedores, 9+ modelos                                                                 |
+| 🎤 **Transcrição de Áudio** | `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3                                       |
+| 🔊 **Texto para Fala**      | `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT |
+| 🎬 **Geração de Vídeo**     | `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD), SD WebUI                                             |
+| 🎵 **Geração de Música**    | `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)                                             |
+| 🛡️ **Moderações**           | `/v1/moderations` — Verificações de segurança                                                               |
+| 🔀 **Reranking**            | `/v1/rerank` — Reranking de relevância de documentos                                                        |
 
 ### 🛡️ Resiliência e Segurança
 

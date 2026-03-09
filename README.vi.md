@@ -416,7 +416,7 @@ AI không chỉ hoàn thành cuộc trò chuyện. Nhà phát triển cần tạ
 - **Chuyển văn bản thành video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) và SD WebUI
 - **Chuyển văn bản thành nhạc** — `/v1/music/generations` — ComfyUI (Mở âm thanh ổn định, MusicGen)
 - **Phiên âm âm thanh** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Chuyển văn bản thành giọng nói** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, + các nhà cung cấp hiện có
+- **Chuyển văn bản thành giọng nói** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, Inworld, Cartesia, PlayHT, + các nhà cung cấp hiện có
 - **Kiểm duyệt** — `/v1/moderations` — Kiểm tra an toàn nội dung
 - **Sắp xếp lại** — `/v1/rerank` — Sắp xếp lại mức độ liên quan của tài liệu
 - **API phản hồi** — Hỗ trợ đầy đủ `/v1/responses` cho Codex
