@@ -271,6 +271,7 @@ Non tutti possono pagare $ 20-200 al mese per gli abbonamenti AI. Studenti, svil
 **Come OmniRoute risolve il problema:**
 
 - **Fornitori del livello gratuito integrati**: supporto nativo per fornitori gratuiti al 100%: iFlow (8 modelli illimitati), Qwen (3 modelli illimitati), Kiro (Claude gratis), Gemini CLI (180.000/mese gratuiti)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Combo solo gratuiti** — Catena `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $ 0/mese senza tempi di inattività
 - **Crediti gratuiti NVIDIA NIM**: 1000 crediti gratuiti integrati
 - **Strategia di ottimizzazione dei costi**: strategia di routing che sceglie automaticamente il fornitore più economico disponibile

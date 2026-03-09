@@ -270,6 +270,7 @@ Không phải ai cũng có thể trả 20–200 USD/tháng để đăng ký AI. 
 **Cách OmniRoute giải quyết vấn đề này:**
 
 - **Tích hợp sẵn nhà cung cấp cấp miễn phí** — Hỗ trợ riêng cho các nhà cung cấp miễn phí 100%: iFlow (8 mẫu không giới hạn), Qwen (3 mẫu không giới hạn), Kiro (Claude miễn phí), Gemini CLI (miễn phí 180K/tháng)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Combo chỉ miễn phí** — Chuỗi `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/tháng mà không có thời gian ngừng hoạt động
 - **Tín dụng miễn phí NVIDIA NIM** — Tích hợp 1000 tín dụng miễn phí
 - **Chiến lược tối ưu hóa chi phí** — Chiến lược định tuyến tự động chọn nhà cung cấp sẵn có rẻ nhất

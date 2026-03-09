@@ -270,6 +270,7 @@ Nie každý môže platiť 20 – 200 $ mesačne za predplatné AI. Študenti, v
 **Ako to rieši OmniRoute:**
 
 - **Zabudovaní poskytovatelia bezplatnej úrovne** — Natívna podpora pre 100 % bezplatných poskytovateľov: iFlow (8 neobmedzených modelov), Qwen (3 neobmedzené modely), Kiro (Claude zdarma), Gemini CLI (180 000/mesiac zdarma)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Len bezplatné kombá** — Reťaz `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/mesiac s nulovými prestojmi
 - **Bezplatné kredity NVIDIA NIM** – integrovaných 1 000 bezplatných kreditov
 - **Cost Optimized Strategy** – Stratégia smerovania, ktorá automaticky vyberie najlacnejšieho dostupného poskytovateľa

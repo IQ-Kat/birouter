@@ -265,6 +265,7 @@ Result: Never stop coding, minimal cost
 **كيف يحل OmniRoute المشكلة:**
 
 - **موفرو الطبقة المجانية المضمنون** — دعم أصلي لمقدمي الخدمات المجانيين بنسبة 100%: iFlow (8 نماذج غير محدودة)، Qwen (3 نماذج غير محدودة)، Kiro (Claude مجانًا)، Gemini CLI (180 ألف/شهر مجانًا)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **المجموعات المجانية فقط** — السلسلة `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/الشهر بدون أي توقف عن العمل
 - **أرصدة NVIDIA NIM المجانية** — 1000 رصيد مجاني مدمج
 - **استراتيجية التكلفة المحسنة** — استراتيجية التوجيه التي تختار تلقائيًا أرخص مزود متاح

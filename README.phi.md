@@ -270,6 +270,7 @@ Hindi lahat ay maaaring magbayad ng $20–200/buwan para sa mga subscription sa 
 **Paano ito niresolba ng OmniRoute:**
 
 - **Libreng Tier Provider Built-in** — Native na suporta para sa 100% libreng provider: iFlow (8 unlimited na modelo), Qwen (3 unlimited na modelo), Kiro (Claude nang libre), Gemini CLI (180K/buwan libre)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Free-Only Combos** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/buwan na walang downtime
 - **NVIDIA NIM Free Credits** — 1000 libreng credits na isinama
 - **Cost Optimized Strategy** — Istratehiya sa pagruruta na awtomatikong pinipili ang pinakamurang available na provider

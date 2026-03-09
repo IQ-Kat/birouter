@@ -270,6 +270,7 @@ Nem mindenki fizethet havi 20–200 dollárt az AI-előfizetésekért. A feltör
 **Hogyan oldja meg az OmniRoute:**
 
 - **Beépített ingyenes szolgáltatók** - Natív támogatás 100%-ban ingyenes szolgáltatókhoz: iFlow (8 korlátlan modell), Qwen (3 korlátlan modell), Kiro (Claude ingyenes), Gemini CLI (180 000/hónap ingyenes)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Csak ingyenes kombók** — `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` lánc = 0 USD/hó nulla állásidővel
 - **NVIDIA NIM ingyenes kreditek** – 1000 ingyenes kredit integrálva
 - **Költségoptimalizált stratégia** — Útválasztási stratégia, amely automatikusan a legolcsóbb elérhető szolgáltatót választja

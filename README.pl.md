@@ -270,6 +270,7 @@ Nie każdy może zapłacić 20–200 USD miesięcznie za subskrypcje AI. Studenc
 **Jak rozwiązuje to OmniRoute:**
 
 - **Wbudowani dostawcy bezpłatnych poziomów** — Natywne wsparcie dla w 100% darmowych dostawców: iFlow (8 nielimitowanych modeli), Qwen (3 nieograniczone modele), Kiro (Claude za darmo), Gemini CLI (180 tys./miesiąc za darmo)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Kombinacje dostępne wyłącznie bezpłatnie** — Łańcuch `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/miesiąc z zerowymi przestojami
 - **Darmowe kredyty NVIDIA NIM** — zintegrowane 1000 darmowych kredytów
 - **Strategia zoptymalizowana pod względem kosztów** — Strategia routingu, która automatycznie wybiera najtańszego dostępnego dostawcę

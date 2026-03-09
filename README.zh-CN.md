@@ -270,6 +270,7 @@ OpenAI/Codex 等提供商会阻止来自某些地理区域的访问。用户在 
 **OmniRoute 如何解决：**
 
 - **内置免费层级提供商** — 对 100% 免费提供商的本机支持：iFlow（8 个无限型号）、Qwen（3 个无限型号）、Kiro（Claude 免费）、Gemini CLI（180K/月免费）
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **仅限免费组合** — 链 `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 美元/月，零停机时间
 - **NVIDIA NIM 免费积分** — 集成 1000 个免费积分
 - **成本优化策略** — 自动选择最便宜的可用提供商的路由策略

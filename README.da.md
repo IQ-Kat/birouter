@@ -265,6 +265,7 @@ Ikke alle kan betale $20-200/måned for AI-abonnementer. Studerende, udviklere f
 **Sådan løser OmniRoute det:**
 
 - **Free Tier Providers Indbygget** — Indbygget support for 100 % gratis udbydere: iFlow (8 ubegrænsede modeller), Qwen (3 ubegrænsede modeller), Kiro (Claude gratis), Gemini CLI (180K/måned gratis)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Kun gratis kombinationer** — Kæde `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/måned uden nedetid
 - **NVIDIA NIM gratis kreditter** — 1000 gratis kreditter integreret
 - **Cost Optimized Strategy** — Routingstrategi, der automatisk vælger den billigste tilgængelige udbyder

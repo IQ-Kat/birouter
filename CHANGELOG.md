@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.19] — 2026-03-09
+
+> ### 🔌 New Provider: Ollama Cloud + 🔒 Security Hardening
+
+### ✨ New Features
+
+- **Ollama Cloud provider** (`#255`, alias: `ollamacloud`) — API-key provider via `https://api.ollama.com/v1` (OpenAI-compatible). Use any cloud model with the `ollamacloud/<model>` prefix. Generate API keys at https://ollama.com/settings/api-keys. Pre-loaded models: Gemma 3 27B, Llama 3.3 70B, Qwen3 72B, Devstral 24B, DeepSeek R2 671B, Phi 4 14B, Mistral Small 3.2 24B. Passthrough model names also supported.
+
+### 🔒 Security Fixes (`#258`)
+
+- **CRITICAL — DB export endpoint unprotected** — Added `isAuthRequired + isAuthenticated` guard to `GET /api/db-backups/export`. Previously any unauthenticated user could download the full SQLite database (containing OAuth tokens and API keys).
+
+- **CRITICAL — DB import endpoint unprotected** — Added `isAuthRequired + isAuthenticated` guard to `POST /api/db-backups/import`. Previously any unauthenticated user could replace the application database, effectively taking admin control.
+
+- **HIGH — Cursor auto-import endpoint unprotected** — Added auth guard to `GET /api/oauth/cursor/auto-import`. Previously any unauthenticated user could read Cursor IDE access tokens from the local machine.
+
+- **HIGH — Kiro auto-import endpoint unprotected** — Added auth guard to `GET /api/oauth/kiro/auto-import`. Previously any unauthenticated user could read AWS SSO refresh tokens from the local filesystem.
+
+- **LOW (×4) — Non-constant-time string comparison (CWE-208)** — Replaced `===` with `safeEqual()` via `crypto.timingSafeEqual()` at all 4 email/workspaceId comparison sites in the OAuth route, preventing timing-oracle attacks.
+
+- **False positive — `package.json` `reset-password`** — The scanner flagged `omniroute-reset-password` (a CLI binary name) as a hardcoded password. This is not a credential; no action required.
+
+### 📁 Files Changed
+
+| File                                             | Change                                    |
+| ------------------------------------------------ | ----------------------------------------- |
+| `open-sse/config/providerRegistry.ts`            | Add `ollama-cloud` registry entry         |
+| `src/app/api/db-backups/export/route.ts`         | Add auth guard (CRITICAL)                 |
+| `src/app/api/db-backups/import/route.ts`         | Add auth guard (CRITICAL)                 |
+| `src/app/api/oauth/cursor/auto-import/route.ts`  | Add auth guard (HIGH)                     |
+| `src/app/api/oauth/kiro/auto-import/route.ts`    | Add auth guard (HIGH)                     |
+| `src/app/api/oauth/[provider]/[action]/route.ts` | Replace `===` with `safeEqual()` (LOW ×4) |
+
+---
+
 ## [2.0.18] — 2026-03-09
 
 > ### 🐛 Bug Fixes — Cursor Decompression, Codex Token Refresh, Password Setup

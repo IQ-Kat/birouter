@@ -270,6 +270,7 @@ Tidak semua orang boleh membayar $20–200/bulan untuk langganan AI. Pelajar, pe
 **Cara OmniRoute menyelesaikannya:**
 
 - **Pembekal Peringkat Percuma Terbina dalam** — Sokongan asli untuk 100% pembekal percuma: iFlow (8 model tanpa had), Qwen (3 model tanpa had), Kiro (Claude secara percuma), Gemini CLI (180K/bulan percuma)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Kombo Percuma Sahaja** — Rantaian `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/bulan dengan masa henti sifar
 - **Kredit Percuma NVIDIA NIM** — 1000 kredit percuma disepadukan
 - **Strategi Dioptimumkan Kos** — Strategi penghalaan yang secara automatik memilih pembekal yang tersedia paling murah

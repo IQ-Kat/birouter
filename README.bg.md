@@ -265,6 +265,7 @@ OpenAI използва един формат, Claude (Anthropic) използв
 **Как OmniRoute го решава:**
 
 - **Вградени доставчици на безплатни нива** — Вградена поддръжка за 100% безплатни доставчици: iFlow (8 неограничени модела), Qwen (3 неограничени модела), Kiro (Claude безплатно), Gemini CLI (180K/месец безплатно)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Безплатни само комбинации** — Верига `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/месец с нулев престой
 - **NVIDIA NIM безплатни кредити** — интегрирани 1000 безплатни кредита
 - **Стратегия за оптимизиране на разходите** — Стратегия за маршрутизиране, която автоматично избира най-евтиния наличен доставчик

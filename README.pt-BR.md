@@ -270,6 +270,7 @@ Nem todo mundo pode pagar $20–200/mês em assinaturas de IA. Estudantes, devs 
 **Como o OmniRoute resolve isso:**
 
 - **Provedores Gratuitos nativos** — Suporte nativo a provedores 100% free: iFlow (8 modelos ilimitados), Qwen (3 ilimitados), Kiro (Claude grátis), Gemini CLI (180K/mês grátis)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Combos Apenas Gratuitos** — Cadeia `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/mês com zero downtime
 - **Créditos Gratuitos NVIDIA NIM** — 1000 créditos free integrados
 - **Estratégia Cost Optimized** — Estratégia que escolhe automaticamente o provedor mais barato disponível

@@ -127,6 +127,7 @@ _OmniRoute के माध्यम से किसी भी AI-संचा�
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
        └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 
 Result: Never stop coding, minimal cost
 ```

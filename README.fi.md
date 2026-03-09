@@ -270,6 +270,7 @@ Kaikki eivät voi maksaa 20–200 dollaria kuukaudessa tekoälytilauksista. Opis
 **Kuinka OmniRoute ratkaisee sen:**
 
 - **Free Tier Providers -sisäänrakennettu** - Natiivituki 100 % ilmaisille palveluntarjoajille: iFlow (8 rajatonta mallia), Qwen (3 rajoittamatonta mallia), Kiro (Claude ilmaiseksi), Gemini CLI (180 000/kk ilmaiseksi)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Vain ilmaiset yhdistelmät** — Ketju `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 $/kk ilman seisonta-aikaa
 - **NVIDIA NIM Free Credits** - 1000 ilmaista saldoa integroituna
 - **Kustannusoptimoitu strategia** — Reititysstrategia, joka valitsee automaattisesti halvimman saatavilla olevan palveluntarjoajan

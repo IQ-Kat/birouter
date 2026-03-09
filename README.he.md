@@ -270,6 +270,7 @@ OpenAI משתמש בפורמט אחד, קלוד (אנתרופיק) משתמש ב
 **איך OmniRoute פותר את זה:**
 
 - **ספקי שכבת חינם מובנית** - תמיכה מקורית עבור 100% ספקים בחינם: iFlow (8 דגמים ללא הגבלה), Qwen (3 דגמים ללא הגבלה), Kiro (קלוד בחינם), Gemini CLI (180K/חודש חינם)
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **שילובים בחינם בלבד** — שרשרת `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0 לחודש עם אפס זמן השבתה
 - **קרדיטים חינם של NVIDIA NIM** - 1000 זיכויים חינם משולבים
 - **אסטרטגיית אופטימיזציה לעלות** — אסטרטגיית ניתוב שבוחרת אוטומטית את הספק הזמין הזול ביותר
