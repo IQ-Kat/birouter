@@ -23,6 +23,10 @@ const ENDPOINT_OPTIONS = [
   { value: "images", label: "Image Generation" },
   { value: "embeddings", label: "Embeddings" },
   { value: "speech", label: "Text to Speech" },
+  { value: "transcription", label: "Audio Transcription" },
+  { value: "video", label: "Video Generation" },
+  { value: "music", label: "Music Generation" },
+  { value: "rerank", label: "Rerank" },
 ];
 
 const DEFAULT_BODIES: Record<string, object> = {
@@ -54,6 +58,32 @@ const DEFAULT_BODIES: Record<string, object> = {
     voice: "alloy",
     response_format: "mp3",
   },
+  transcription: {
+    // Note: /v1/audio/transcriptions requires multipart/form-data with a file.
+    // Use curl or the Media page to upload audio files.
+    model: "openai/whisper-1",
+    language: "en",
+  },
+  video: {
+    model: "comfyui/animatediff",
+    prompt: "A timelapse of a sunset over the ocean",
+    n: 1,
+  },
+  music: {
+    model: "comfyui/stable-audio",
+    prompt: "Calm ambient piano music with soft reverb",
+    duration: 10,
+  },
+  rerank: {
+    model: "cohere/rerank-english-v3.0",
+    query: "What is the capital of France?",
+    documents: [
+      "Paris is the capital of France.",
+      "London is the capital of England.",
+      "Berlin is the capital of Germany.",
+    ],
+    top_n: 2,
+  },
 };
 
 const ENDPOINT_PATHS: Record<string, string> = {
@@ -62,6 +92,10 @@ const ENDPOINT_PATHS: Record<string, string> = {
   images: "/v1/images/generations",
   embeddings: "/v1/embeddings",
   speech: "/v1/audio/speech",
+  transcription: "/v1/audio/transcriptions",
+  video: "/v1/videos/generations",
+  music: "/v1/music/generations",
+  rerank: "/v1/rerank",
 };
 
 export default function PlaygroundPage() {

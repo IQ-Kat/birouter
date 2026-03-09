@@ -172,6 +172,36 @@ export const CLI_TOOLS = {
     description: "GitHub Copilot Chat — VS Code Extension",
     configType: "custom",
   },
+  opencode: {
+    id: "opencode",
+    name: "OpenCode",
+    image: "/providers/opencode.png",
+    icon: "terminal",
+    color: "#FF6B35",
+    description: "OpenCode AI coding agent (Terminal)",
+    configType: "guide",
+    guideSteps: [
+      { step: 1, title: "Install OpenCode", desc: "Install via npm: npm install -g opencode-ai" },
+      { step: 2, title: "API Key", type: "apiKeySelector" },
+      { step: 3, title: "Set Base URL", desc: "opencode config set baseUrl {{baseUrl}}" },
+      { step: 4, title: "Select Model", type: "modelSelector" },
+    ],
+  },
+  kiro: {
+    id: "kiro",
+    name: "Kiro AI",
+    image: "/providers/kiro.png",
+    icon: "psychology_alt",
+    color: "#FF6B35",
+    description: "Amazon Kiro — AI-powered IDE",
+    configType: "guide",
+    guideSteps: [
+      { step: 1, title: "Open Kiro Settings", desc: "Go to Settings → AI Provider" },
+      { step: 2, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 3, title: "API Key", type: "apiKeySelector" },
+      { step: 4, title: "Select Model", type: "modelSelector" },
+    ],
+  },
   // HIDDEN: gemini-cli
   // "gemini-cli": {
   //   id: "gemini-cli",

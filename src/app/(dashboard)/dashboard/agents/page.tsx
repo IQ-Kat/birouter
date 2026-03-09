@@ -192,7 +192,19 @@ export default function AgentsPage() {
         <div className="flex flex-col gap-4">
           <p className="text-sm text-text-muted">{ts("cliFingerprintDesc")}</p>
           <div className="flex flex-wrap gap-2">
-            {(["codex", "claude", "github", "antigravity"] as const).map((providerId) => {
+            {(
+              [
+                "codex",
+                "claude",
+                "github",
+                "antigravity",
+                "kiro",
+                "cursor",
+                "kimi-coding",
+                "kilocode",
+                "cline",
+              ] as const
+            ).map((providerId) => {
               const providerMeta = Object.values(AI_PROVIDERS).find(
                 (p: any) => p.id === providerId
               ) as any;
