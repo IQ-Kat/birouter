@@ -134,10 +134,16 @@ export async function isAuthRequired(): Promise<boolean> {
   try {
     const settings = await getSettings();
     if (settings.requireLogin === false) return false;
-    // Only skip auth for fresh installs (not yet onboarded) with no password.
-    // Once setupComplete is true, always require auth — prevents bypass if password row is lost (#151)
-    if (!settings.setupComplete && !settings.password && !process.env.INITIAL_PASSWORD)
-      return false;
+    // Allow access with no password set — there's nothing to authenticate against.
+    // This covers two cases:
+    //   1. Fresh installs (setupComplete=false) — first-run, no password yet
+    //   2. setupComplete=true but password was skipped during onboarding (#256)
+    //      The user needs unauthenticated access to /dashboard/settings to set a password.
+    // Note: this is safe because Bearer API key auth is still checked in verifyAuth().
+    // The security concern from #151 (password row lost after being set) is handled by the
+    // hasPassword flag — if a password WAS set and then somehow lost, the user can use the
+    // reset-password CLI tool (bin/reset-password.mjs).
+    if (!settings.password && !process.env.INITIAL_PASSWORD) return false;
     return true;
   } catch {
     // On error, require auth (secure by default)

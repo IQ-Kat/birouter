@@ -1,6 +1,7 @@
 import { BaseExecutor } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { refreshCodexToken } from "../services/tokenRefresh.ts";
 
 // Ordered list of effort levels from lowest to highest
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
@@ -60,6 +61,31 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     return headers;
+  }
+
+  /**
+   * Refresh Codex OAuth credentials when a 401 is received.
+   * OpenAI uses rotating (one-time-use) refresh tokens — if the token was already
+   * consumed by a concurrent refresh, this returns null to signal re-auth is needed.
+   *
+   * Fixes #251: After a server restart/upgrade, previously cached access tokens may
+   * have expired or become invalid. chatCore.ts calls this on 401; previously the
+   * base class returned null causing the request to fail instead of refreshing.
+   */
+  async refreshCredentials(credentials, log) {
+    if (!credentials?.refreshToken) {
+      log?.warn?.("TOKEN_REFRESH", "Codex: no refresh token available, re-authentication required");
+      return null;
+    }
+    const result = await refreshCodexToken(credentials.refreshToken, log);
+    if (!result || result.error) {
+      log?.warn?.(
+        "TOKEN_REFRESH",
+        `Codex: token refresh failed${result?.error ? ` (${result.error})` : ""} — re-authentication required`
+      );
+      return null;
+    }
+    return result;
   }
 
   /**
