@@ -5,6 +5,10 @@ import { FORMATS } from "../formats.ts";
  * Direct Gemini → Claude response translator.
  * Converts Gemini streaming chunks directly to Claude Messages API
  * streaming events, skipping the OpenAI hub intermediate step.
+ *
+ * Fix (issue #253): Keep the text content_block open across streaming chunks
+ * instead of opening+closing it on every chunk. This prevents Claude Code
+ * from rendering each delta on a separate line.
  */
 export function geminiToClaudeResponse(chunk, state) {
   if (!chunk) return null;
@@ -22,6 +26,8 @@ export function geminiToClaudeResponse(chunk, state) {
     state.messageId = response.responseId || `msg_${Date.now()}`;
     state.model = response.modelVersion || "gemini";
     state.contentBlockIndex = 0;
+    // Track open text block so we can keep it open across chunks
+    state.openTextBlockIdx = null;
 
     results.push({
       type: "message_start",
@@ -44,8 +50,13 @@ export function geminiToClaudeResponse(chunk, state) {
       const hasThoughtSig = part.thoughtSignature || part.thought_signature;
       const isThought = part.thought === true;
 
-      // Thinking content → thinking block
+      // Thinking content → thinking block (always open+close per chunk)
       if (isThought && part.text) {
+        // Close any open text block first
+        if (state.openTextBlockIdx !== null) {
+          results.push({ type: "content_block_stop", index: state.openTextBlockIdx });
+          state.openTextBlockIdx = null;
+        }
         const idx = state.contentBlockIndex++;
         results.push({
           type: "content_block_start",
@@ -61,8 +72,13 @@ export function geminiToClaudeResponse(chunk, state) {
         continue;
       }
 
-      // Function call → tool_use block (with or without thoughtSignature)
+      // Function call → tool_use block
       if (part.functionCall) {
+        // Close any open text block first
+        if (state.openTextBlockIdx !== null) {
+          results.push({ type: "content_block_stop", index: state.openTextBlockIdx });
+          state.openTextBlockIdx = null;
+        }
         const fc = part.functionCall;
         const idx = state.contentBlockIndex++;
         const toolId = fc.id || `toolu_${Date.now()}_${idx}`;
@@ -78,7 +94,6 @@ export function geminiToClaudeResponse(chunk, state) {
           },
         });
 
-        // Send args as a single JSON delta
         const argsStr = JSON.stringify(fc.args || {});
         results.push({
           type: "content_block_delta",
@@ -91,42 +106,32 @@ export function geminiToClaudeResponse(chunk, state) {
         continue;
       }
 
-      // Text content → text block
-      if (part.text !== undefined && part.text !== "" && !hasThoughtSig) {
-        const idx = state.contentBlockIndex++;
-        results.push({
-          type: "content_block_start",
-          index: idx,
-          content_block: { type: "text", text: "" },
-        });
-        results.push({
-          type: "content_block_delta",
-          index: idx,
-          delta: { type: "text_delta", text: part.text },
-        });
-        results.push({ type: "content_block_stop", index: idx });
-      }
-
-      // Text with thoughtSignature but not a thought (model output after thinking)
-      if (
+      // Regular text content → keep text block open across streaming chunks
+      const isRegularText = part.text !== undefined && part.text !== "" && !hasThoughtSig;
+      const isTextAfterThinking =
         hasThoughtSig &&
         part.text !== undefined &&
         part.text !== "" &&
         !isThought &&
-        !part.functionCall
-      ) {
-        const idx = state.contentBlockIndex++;
-        results.push({
-          type: "content_block_start",
-          index: idx,
-          content_block: { type: "text", text: "" },
-        });
+        !part.functionCall;
+
+      if (isRegularText || isTextAfterThinking) {
+        // Open a new text block only if none is open yet
+        if (state.openTextBlockIdx === null) {
+          const idx = state.contentBlockIndex++;
+          state.openTextBlockIdx = idx;
+          results.push({
+            type: "content_block_start",
+            index: idx,
+            content_block: { type: "text", text: "" },
+          });
+        }
+        // Always emit delta into the SAME open block (no open+close per chunk)
         results.push({
           type: "content_block_delta",
-          index: idx,
+          index: state.openTextBlockIdx,
           delta: { type: "text_delta", text: part.text },
         });
-        results.push({ type: "content_block_stop", index: idx });
       }
     }
   }
@@ -152,8 +157,14 @@ export function geminiToClaudeResponse(chunk, state) {
     }
   }
 
-  // ── Finish reason → message_delta + message_stop ───────────────
+  // ── Finish reason → close open blocks + message_delta + message_stop ──
   if (candidate.finishReason) {
+    // Close any still-open text block before finishing
+    if (state.openTextBlockIdx !== null) {
+      results.push({ type: "content_block_stop", index: state.openTextBlockIdx });
+      state.openTextBlockIdx = null;
+    }
+
     let stopReason;
     const reason = candidate.finishReason.toLowerCase();
     if (state.hasToolUse || reason === "tool_calls") {
