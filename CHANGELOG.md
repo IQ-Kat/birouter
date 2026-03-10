@@ -11,6 +11,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] — 2026-03-10
+
+> ### 🔧 Bug Fixes · Provider Support · CI Recovery
+
+### Bug Fixes
+
+- **Cursor tool-call loop (#275/#274)** — Stabilized Cursor executor to stop double-translating tool results. Set-based `finalizedIds` for O(1) dedup, byte guard (`0x7b`) before payload `.toString()`, `escapeXml()` to prevent tag injection, and converted all debug `console.log` to `debugLog()`. Fixes the 400 Bad Request loop that corrupted multi-turn Cursor sessions.
+- **A/V provider validation (#281)** — Added `validateElevenLabsProvider` (GET `/v1/voices` with `xi-api-key`) and `validateInworldProvider` (POST `/tts/v1/voice` with Basic auth) so both providers can be test-connected without false 400 errors.
+- **OpenAI-compatible Add Connection button (#272)** — "Add Connection" button was hidden behind `!isCompatible` guard in the Connections card. Button now appears for compatible providers when 0 connections exist, limited to 1 (matches single-key-per-node policy).
+- **CI: unit tests** — Fixed circuit breaker tests using wrong instance keys (`combo:groq` → `combo:groq/llama-3.3-70b`).
+- **CI: E2E protocol-visibility** — Updated spec to click "Protocols" tab before asserting MCP/A2A links (now tabs inside `/dashboard/endpoint`).
+- **CI: i18n** — Added missing `header.mcp`, `header.mcpDescription`, `header.a2a`, `header.a2aDescription` keys to `en.json`.
+
+### New Features
+
+- **Kimi Coding plan quota display (#279)** — New `getKimiUsage()` with `X-Msh-*` device headers. Parses weekly quota + rate-limit breakdown from `/v1/usages`. Wires `kimi-coding` into the provider usage switch; adds quota capability flag.
+
+### Dependencies
+
+- **Dev dependencies** — Bumped `@playwright/test`, `@types/react`, `eslint-plugin-*` and 2 others (#264).
+- **Prod dependencies** — Bumped 2 production packages (#263).
+
+---
+
 ## [2.1.2] — 2026-03-09
 
 > ### 🔨 CI Green + Electron .deb + Link Fixes
