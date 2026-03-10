@@ -11,6 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.5] — 2026-03-10
+
+> ### 🔧 Zero-Config Bootstrap · 🐛 Electron Black Screen Fix
+
+### Features
+
+- **Zero-config bootstrap (#252, #249)** — OmniRoute now auto-generates required secrets on first run across all deployment modes (npm, Docker, Electron Desktop App):
+  - `JWT_SECRET` (64-byte hex) — required for auth/sessions
+  - `STORAGE_ENCRYPTION_KEY` (32-byte hex) — required for SQLite encryption
+  - `API_KEY_SECRET` (32-byte hex) — required for API key signing
+  - Secrets are persisted to `{DATA_DIR}/server.env` and survive restarts, Docker volume remounts, and upgrades
+  - Friendly startup warnings if OAuth secrets (Antigravity, iFlow, Gemini) are not configured
+  - New **`scripts/bootstrap-env.mjs`** module — single source of truth for zero-config initialization
+
+### Bug Fixes
+
+- **Electron black screen on macOS/Windows/Linux** — The Next.js server was crashing silently because `JWT_SECRET` and `STORAGE_ENCRYPTION_KEY` are never present in desktop OS environments. Fixed by calling `bootstrapEnv()` before spawning `server.js`, with secrets persisted to Electron's `userData` directory.
+- **Dashboard bootstrap banner** — Added dismissable amber warning banner on the dashboard home when running in zero-config mode, showing where `server.env` is stored and how to customize secrets.
+
+### Note for Docker users
+
+Previously, `--env-file .env` was required to pass secrets to the container. Now OmniRoute will generate and persist them automatically in the mounted volume. Existing `DATA_DIR` secrets are always respected.
+
+---
+
 ## [2.2.4] — 2026-03-10
 
 > ### 🔧 CI Fixes
