@@ -250,6 +250,56 @@ async function validateNanoBananaProvider({ apiKey }: any) {
   }
 }
 
+async function validateElevenLabsProvider({ apiKey }: any) {
+  try {
+    // Lightweight auth check endpoint
+    const response = await fetch("https://api.elevenlabs.io/v1/voices", {
+      method: "GET",
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) return { valid: true, error: null };
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return { valid: false, error: error.message || "Validation failed" };
+  }
+}
+
+async function validateInworldProvider({ apiKey }: any) {
+  try {
+    // Inworld TTS lacks a simple key-introspection endpoint.
+    // Send a minimal synth request and treat non-auth 4xx as auth-pass.
+    const response = await fetch("https://api.inworld.ai/tts/v1/voice", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: "test",
+        modelId: "inworld-tts-1.5-mini",
+        audioConfig: { audioEncoding: "MP3" },
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    // Any other response indicates auth is accepted (payload/model may still be wrong)
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return { valid: false, error: error.message || "Validation failed" };
+  }
+}
+
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -416,6 +466,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     nanobanana: validateNanoBananaProvider,
+    elevenlabs: validateElevenLabsProvider,
+    inworld: validateInworldProvider,
   };
 
   if (SPECIALTY_VALIDATORS[provider]) {
