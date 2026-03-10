@@ -20,6 +20,7 @@ const PROVIDER_CONFIG = {
   kiro: { label: "Kiro AI", color: "#FF6B35" },
   codex: { label: "OpenAI Codex", color: "#10A37F" },
   claude: { label: "Claude Code", color: "#D97757" },
+  "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
 };
 
 const TIER_FILTERS = [
@@ -236,7 +237,7 @@ export default function ProviderLimits() {
   );
 
   const sortedConnections = useMemo(() => {
-    const priority = { antigravity: 1, github: 2, codex: 3, claude: 4, kiro: 5 };
+    const priority = { antigravity: 1, github: 2, codex: 3, claude: 4, kiro: 5, "kimi-coding": 6 };
     return [...filteredConnections].sort(
       (a, b) => (priority[a.provider] || 9) - (priority[b.provider] || 9)
     );

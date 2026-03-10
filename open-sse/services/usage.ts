@@ -38,6 +38,13 @@ const CLAUDE_CONFIG = {
   apiVersion: "2023-06-01",
 };
 
+// Kimi Coding API config
+const KIMI_CONFIG = {
+  baseUrl: "https://api.kimi.com/coding/v1",
+  usageUrl: "https://api.kimi.com/coding/v1/usages",
+  apiVersion: "2023-06-01",
+};
+
 type JsonRecord = Record<string, unknown>;
 type UsageQuota = {
   used: number;
@@ -89,6 +96,8 @@ export async function getUsageForProvider(connection) {
       return await getCodexUsage(accessToken, providerSpecificData);
     case "kiro":
       return await getKiroUsage(accessToken, providerSpecificData);
+    case "kimi-coding":
+      return await getKimiUsage(accessToken);
     case "qwen":
       return await getQwenUsage(accessToken, providerSpecificData);
     case "iflow":
@@ -776,6 +785,178 @@ async function getKiroUsage(accessToken, providerSpecificData) {
     };
   } catch (error) {
     throw new Error(`Failed to fetch Kiro usage: ${error.message}`);
+  }
+}
+
+/**
+ * Map Kimi membership level to display name
+ * LEVEL_BASIC = Moderato, LEVEL_INTERMEDIATE = Allegretto,
+ * LEVEL_ADVANCED = Allegro, LEVEL_STANDARD = Vivace
+ */
+function getKimiPlanName(level) {
+  if (!level) return "";
+
+  const levelMap = {
+    LEVEL_BASIC: "Moderato",
+    LEVEL_INTERMEDIATE: "Allegretto",
+    LEVEL_ADVANCED: "Allegro",
+    LEVEL_STANDARD: "Vivace",
+  };
+
+  return levelMap[level] || level.replace("LEVEL_", "").toLowerCase();
+}
+
+/**
+ * Kimi Coding Usage - Fetch quota from Kimi API
+ * Uses the official /v1/usages endpoint with custom X-Msh-* headers
+ */
+async function getKimiUsage(accessToken) {
+  // Generate device info for headers (same as OAuth flow)
+  const deviceId = "kimi-usage-" + Date.now();
+  const platform = "cli-proxy-api";
+  const version = "1.0.0";
+  const deviceModel =
+    typeof process !== "undefined" ? `${process.platform} ${process.arch}` : "unknown";
+
+  try {
+    const response = await fetch(KIMI_CONFIG.usageUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "X-Msh-Platform": platform,
+        "X-Msh-Version": version,
+        "X-Msh-Device-Model": deviceModel,
+        "X-Msh-Device-Id": deviceId,
+      },
+    });
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      console.warn(`[Kimi Usage] API returned ${response.status}: ${responseText}`);
+      return {
+        plan: "Kimi Coding",
+        message: `Kimi Coding connected. API Error ${response.status}: ${responseText.slice(0, 100)}`,
+      };
+    }
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("[Kimi Usage] Failed to parse JSON:", parseError);
+      return {
+        plan: "Kimi Coding",
+        message: "Kimi Coding connected. Invalid JSON response from API.",
+      };
+    }
+
+    const quotas: Record<string, UsageQuota> = {};
+    const dataObj = toRecord(data);
+
+    // Parse Kimi usage response format
+    // Format: { user: {...}, usage: { limit: "100", used: "92", remaining: "8", resetTime: "..." }, limits: [...] }
+    const usageObj = toRecord(dataObj.usage);
+
+    // Check for Kimi's actual usage fields (strings, not numbers)
+    const usageLimit = toNumber(usageObj.limit || usageObj.Limit, 0);
+    const usageUsed = toNumber(usageObj.used || usageObj.Used, 0);
+    const usageRemaining = toNumber(usageObj.remaining || usageObj.Remaining, 0);
+    const usageResetTime =
+      usageObj.resetTime || usageObj.ResetTime || usageObj.reset_at || usageObj.resetAt;
+
+    if (usageLimit > 0) {
+      const percentRemaining = usageLimit > 0 ? (usageRemaining / usageLimit) * 100 : 0;
+
+      quotas["Weekly"] = {
+        used: usageUsed,
+        total: usageLimit,
+        remaining: usageRemaining,
+        remainingPercentage: percentRemaining,
+        resetAt: parseResetTime(usageResetTime),
+        unlimited: false,
+      };
+    }
+
+    // Also parse limits array for rate limits
+    const limitsArray = Array.isArray(dataObj.limits) ? dataObj.limits : [];
+    for (let i = 0; i < limitsArray.length; i++) {
+      const limitItem = toRecord(limitsArray[i]);
+      const window = toRecord(limitItem.window);
+      const detail = toRecord(limitItem.detail);
+
+      const limit = toNumber(detail.limit || detail.Limit, 0);
+      const remaining = toNumber(detail.remaining || detail.Remaining, 0);
+      const resetTime = detail.resetTime || detail.reset_at || detail.resetAt;
+
+      if (limit > 0) {
+        quotas["Ratelimit"] = {
+          used: limit - remaining,
+          total: limit,
+          remaining,
+          remainingPercentage: limit > 0 ? (remaining / limit) * 100 : 0,
+          resetAt: parseResetTime(resetTime),
+          unlimited: false,
+        };
+      }
+    }
+
+    // Check for quota windows (Claude-like format with utilization) as fallback
+    const hasUtilization = (window: JsonRecord) =>
+      window && typeof window === "object" && safePercentage(window.utilization) !== undefined;
+
+    const createQuotaObject = (window: JsonRecord) => {
+      const remaining = safePercentage(window.utilization) as number;
+      const used = 100 - remaining;
+      return {
+        used,
+        total: 100,
+        remaining,
+        resetAt: parseResetTime(window.resets_at),
+        remainingPercentage: remaining,
+        unlimited: false,
+      };
+    };
+
+    if (hasUtilization(dataObj.five_hour)) {
+      quotas["session (5h)"] = createQuotaObject(dataObj.five_hour);
+    }
+
+    if (hasUtilization(dataObj.seven_day)) {
+      quotas["weekly (7d)"] = createQuotaObject(dataObj.seven_day);
+    }
+
+    // Check for model-specific quotas
+    for (const [key, value] of Object.entries(dataObj)) {
+      const valueRecord = toRecord(value);
+      if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(valueRecord)) {
+        const modelName = key.replace("seven_day_", "");
+        quotas[`weekly ${modelName} (7d)`] = createQuotaObject(valueRecord);
+      }
+    }
+
+    if (Object.keys(quotas).length > 0) {
+      const membershipLevel = dataObj.user?.membership?.level;
+      const planName = getKimiPlanName(membershipLevel);
+      return {
+        plan: planName || "Kimi Coding",
+        quotas,
+      };
+    }
+
+    // No quota data in response
+    const membershipLevel = dataObj.user?.membership?.level;
+    const planName = getKimiPlanName(membershipLevel);
+    return {
+      plan: planName || "Kimi Coding",
+      message: "Kimi Coding connected. Usage tracked per request.",
+    };
+  } catch (error) {
+    console.error("[Kimi Usage] Error:", error);
+    return {
+      message: `Kimi Coding connected. Unable to fetch usage: ${(error as Error).message}`,
+    };
   }
 }
 
