@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.6] — 2026-03-10
+
+> ### 🐛 Fix Claude Thinking Tokens Invisible in Passthrough Mode
+
+### Bug Fixes
+
+- **Claude thinking tokens not visible (#289)** — When routing through Antigravity OAuth or any Claude provider, thinking blocks were being emitted as regular `delta.content` with `<think>/<\/think>` XML wrappers. Fixed: now correctly maps `thinking_delta` events to `delta.reasoning_content` so clients like Claude Code, Cursor, and Windsurf display the thinking panel properly.
+
+---
+
 ## [2.2.5] — 2026-03-10
 
 > ### 🔧 Zero-Config Bootstrap · 🐛 Electron Black Screen Fix
