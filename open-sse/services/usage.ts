@@ -834,7 +834,6 @@ async function getKimiUsage(accessToken) {
     const responseText = await response.text();
 
     if (!response.ok) {
-      console.warn(`[Kimi Usage] API returned ${response.status}: ${responseText}`);
       return {
         plan: "Kimi Coding",
         message: `Kimi Coding connected. API Error ${response.status}: ${responseText.slice(0, 100)}`,
@@ -844,8 +843,7 @@ async function getKimiUsage(accessToken) {
     let data;
     try {
       data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error("[Kimi Usage] Failed to parse JSON:", parseError);
+    } catch {
       return {
         plan: "Kimi Coding",
         message: "Kimi Coding connected. Invalid JSON response from API.",
@@ -953,7 +951,6 @@ async function getKimiUsage(accessToken) {
       message: "Kimi Coding connected. Usage tracked per request.",
     };
   } catch (error) {
-    console.error("[Kimi Usage] Error:", error);
     return {
       message: `Kimi Coding connected. Unable to fetch usage: ${(error as Error).message}`,
     };
