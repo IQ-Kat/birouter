@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.2] — 2026-03-10
+
+> ### ✨ New Features · 🔀 Model Aliases
+
+### New Features
+
+- **system-info.mjs (#280)** — New `npm run system-info` command that collects Node.js version, OmniRoute version, OS info, CLI tool versions (iflow, gemini, claude, codex, antigravity, droid, openclaw, kilo, cursor, aider), Docker/PM2 status, and system packages. Outputs `system-info.txt` for easy attachment to bug reports.
+
+### Model Aliases
+
+- **Kimi K2/K2.5 Fireworks aliases (#265)** — Built-in aliases added: `fireworks/accounts/fireworks/models/kimi-k2p5` and `kimi-k2p5` → `moonshotai/Kimi-K2.5`; same for `kimi-k2` → `moonshotai/Kimi-K2`. Fireworks long path model names now auto-resolve.
+- **Mistral short aliases (#278)** — `mistral-large` → `mistral-large-latest`, `mistral-small` → `mistral-small-latest`, `codestral` → `codestral-latest`.
+- **Llama short aliases** — `llama-3.3` → `llama-3.3-70b-versatile`, `llama-3-70b` → `llama-3.3-70b-versatile`, `llama-3-8b` → `llama3-8b-8192`.
+- **Custom aliases** — Users can define their own aliases in **Settings → Model Aliases** tab. Example: `gpt-5.4` → `cx/gpt-5.4`.
+
+---
+
 ## [2.2.1] — 2026-03-10
 
 > ### 🐛 Bug Fixes · 🔐 Security · 🔧 CI
