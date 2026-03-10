@@ -38,7 +38,9 @@ export class AntigravityExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const bodyProjectId = body?.project;
     const credentialsProjectId = credentials?.projectId;
-    const projectId = bodyProjectId || credentialsProjectId;
+    // Prefer OAuth-stored projectId over incoming body.project to avoid stale/wrong
+    // client-side values causing 404/403 from Cloud Code endpoints.
+    const projectId = credentialsProjectId || bodyProjectId;
 
     if (!projectId) {
       throw new Error(

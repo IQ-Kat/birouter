@@ -20,7 +20,9 @@ export class GeminiCLIExecutor extends BaseExecutor {
   }
 
   transformRequest(model, body, stream, credentials) {
-    if (!body.project && credentials?.projectId) {
+    // Always prefer OAuth-stored projectId if present. Incoming body.project can be
+    // stale when clients cache older Cloud Code project values.
+    if (credentials?.projectId) {
       body.project = credentials.projectId;
     }
     return body;
