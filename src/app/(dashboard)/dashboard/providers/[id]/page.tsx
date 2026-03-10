@@ -868,7 +868,7 @@ export default function ProviderDetailPage() {
                 : t("providerProxy")}
             </button>
           </div>
-          {!isCompatible && (
+          {!isCompatible ? (
             <Button
               size="sm"
               icon="add"
@@ -876,6 +876,12 @@ export default function ProviderDetailPage() {
             >
               {t("add")}
             </Button>
+          ) : (
+            connections.length === 0 && (
+              <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+                {t("add")}
+              </Button>
+            )
           )}
         </div>
 
