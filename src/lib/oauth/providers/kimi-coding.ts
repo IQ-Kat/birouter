@@ -1,4 +1,26 @@
 import { KIMI_CODING_CONFIG } from "../constants/oauth";
+import { randomUUID } from "node:crypto";
+import { hostname } from "node:os";
+
+// Generate device ID (persistent per installation)
+const DEVICE_ID = randomUUID();
+const PLATFORM = "omniroute";
+const VERSION = "2.1.2";
+const DEVICE_NAME = hostname();
+const DEVICE_MODEL = `${process.platform} ${process.arch}`;
+
+// Custom headers required by Kimi OAuth
+function getKimiOAuthHeaders() {
+  return {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Accept: "application/json",
+    "X-Msh-Platform": PLATFORM,
+    "X-Msh-Version": VERSION,
+    "X-Msh-Device-Name": DEVICE_NAME,
+    "X-Msh-Device-Model": DEVICE_MODEL,
+    "X-Msh-Device-Id": DEVICE_ID,
+  };
+}
 
 export const kimiCoding = {
   config: KIMI_CODING_CONFIG,
@@ -6,10 +28,7 @@ export const kimiCoding = {
   requestDeviceCode: async (config) => {
     const response = await fetch(config.deviceCodeUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
+      headers: getKimiOAuthHeaders(),
       body: new URLSearchParams({
         client_id: config.clientId,
       }),
@@ -24,10 +43,10 @@ export const kimiCoding = {
     return {
       device_code: data.device_code,
       user_code: data.user_code,
-      verification_uri: data.verification_uri || `https://www.kimi.com/code/authorize_device`,
+      verification_uri: data.verification_uri || `https://auth.kimi.com/activate`,
       verification_uri_complete:
         data.verification_uri_complete ||
-        `https://www.kimi.com/code/authorize_device?user_code=${data.user_code}`,
+        `https://auth.kimi.com/activate?user_code=${data.user_code}`,
       expires_in: data.expires_in,
       interval: data.interval || 5,
     };
@@ -35,14 +54,11 @@ export const kimiCoding = {
   pollToken: async (config, deviceCode) => {
     const response = await fetch(config.tokenUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
+      headers: getKimiOAuthHeaders(),
       body: new URLSearchParams({
-        grant_type: "urn:ietf:params:oauth:grant-type:device_code",
         client_id: config.clientId,
         device_code: deviceCode,
+        grant_type: "urn:ietf:params:oauth:grant-type:device_code",
       }),
     });
 
@@ -63,5 +79,7 @@ export const kimiCoding = {
     accessToken: tokens.access_token,
     refreshToken: tokens.refresh_token,
     expiresIn: tokens.expires_in,
+    tokenType: tokens.token_type,
+    scope: tokens.scope,
   }),
 };

@@ -137,6 +137,7 @@ export async function refreshClineToken(refreshToken, log) {
 
 /**
  * Specialized refresh for Kimi Coding OAuth tokens.
+ * Uses custom X-Msh-* headers required by Kimi OAuth API.
  */
 export async function refreshKimiCodingToken(refreshToken, log) {
   const endpoint = PROVIDERS["kimi-coding"]?.refreshUrl || PROVIDERS["kimi-coding"]?.tokenUrl;
@@ -144,6 +145,13 @@ export async function refreshKimiCodingToken(refreshToken, log) {
     log?.warn?.("TOKEN_REFRESH", "No refresh URL configured for Kimi Coding");
     return null;
   }
+
+  // Generate device info for headers (same as OAuth flow)
+  const deviceId = "kimi-refresh-" + Date.now();
+  const platform = "omniroute";
+  const version = "2.1.2";
+  const deviceModel =
+    typeof process !== "undefined" ? `${process.platform} ${process.arch}` : "unknown";
 
   try {
     const params = new URLSearchParams({
@@ -157,6 +165,10 @@ export async function refreshKimiCodingToken(refreshToken, log) {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
+        "X-Msh-Platform": platform,
+        "X-Msh-Version": version,
+        "X-Msh-Device-Model": deviceModel,
+        "X-Msh-Device-Id": deviceId,
       },
       body: params,
     });
@@ -181,6 +193,8 @@ export async function refreshKimiCodingToken(refreshToken, log) {
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token || refreshToken,
       expiresIn: tokens.expires_in,
+      tokenType: tokens.token_type,
+      scope: tokens.scope,
     };
   } catch (error) {
     log?.error?.("TOKEN_REFRESH", `Network error refreshing Kimi Coding token: ${error.message}`);
