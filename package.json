@@ -138,5 +138,8 @@
     "*.{json,md,yml,yaml,css}": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "@swc/helpers": "^0.5.19"
   }
 }
