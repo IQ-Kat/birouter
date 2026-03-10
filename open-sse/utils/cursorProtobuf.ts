@@ -10,7 +10,7 @@
 import { v4 as uuidv4 } from "uuid";
 import zlib from "zlib";
 
-const DEBUG = true;
+const DEBUG = process.env.CURSOR_PROTOBUF_DEBUG === "1";
 const log = (tag, ...args) => DEBUG && console.log(`[PROTOBUF:${tag}]`, ...args);
 
 /**
@@ -66,7 +66,6 @@ const FIELD = {
   MSG_ID: 13,
   MSG_TOOL_RESULTS: 18,
   MSG_IS_AGENTIC: 29,
-  MSG_SERVER_BUBBLE_ID: 32,
   MSG_UNIFIED_MODE: 47,
   MSG_SUPPORTED_TOOLS: 51,
 
@@ -192,13 +191,6 @@ export function encodeField(fieldNum, wireType, value) {
   const tagBytes = encodeVarint(tag);
 
   if (wireType === WIRE_TYPE.VARINT) {
-    // Validate: VARINT value must be a number
-    if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
-      log(
-        "ENCODE",
-        `⚠️ VARINT field=${fieldNum} invalid value: type=${typeof value}, value=${value}`
-      );
-    }
     const valueBytes = encodeVarint(value);
     return concatArrays(tagBytes, valueBytes);
   }
@@ -389,20 +381,6 @@ export function encodeMessage(
   hasTools = false,
   toolResults = []
 ) {
-  // Debug: validate content type before encoding
-  if (
-    content !== null &&
-    content !== undefined &&
-    typeof content !== "string" &&
-    !(content instanceof Uint8Array) &&
-    !Buffer.isBuffer(content)
-  ) {
-    log(
-      "ENCODE",
-      `⚠️ MSG_CONTENT unexpected type: ${typeof content}, isArray=${Array.isArray(content)}, value=${JSON.stringify(content).slice(0, 200)}`
-    );
-  }
-
   return concatArrays(
     encodeField(FIELD.MSG_CONTENT, WIRE_TYPE.LEN, content),
     encodeField(FIELD.MSG_ROLE, WIRE_TYPE.VARINT, role),
@@ -549,27 +527,6 @@ export function encodeRequest(messages, modelName, tools = [], reasoningEffort =
     const role = msg.role === "user" ? ROLE.USER : ROLE.ASSISTANT;
     const msgId = uuidv4();
     const isLast = i === normalizedMessages.length - 1;
-
-    // Debug: log message shape for diagnosis
-    const toolResultsCount = Array.isArray(msg.tool_results) ? msg.tool_results.length : 0;
-    const contentStr = typeof msg.content === "string" ? msg.content : "";
-    const contentPreview = contentStr
-      .slice(0, 120)
-      .replace(/\r/g, "\\r")
-      .replace(/\n/g, "\\n")
-      .replace(/[^\x20-\x7E]/g, "?");
-    log(
-      "ENCODE",
-      `msg[${i}] role=${msg.role} contentType=${typeof msg.content} contentLen=${contentStr.length} contentPreview="${contentPreview}" contentIsArray=${Array.isArray(msg.content)} hasToolCalls=${Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0} hasToolResults=${toolResultsCount > 0} toolResultsCount=${toolResultsCount}`
-    );
-    if (toolResultsCount > 0) {
-      for (const tr of msg.tool_results) {
-        log(
-          "ENCODE",
-          `  toolResult: callId=${tr.tool_call_id} name=${tr.name} rawArgsType=${typeof tr.raw_args} rawArgsLen=${tr.raw_args?.length || 0} resultType=${typeof tr.result} resultLen=${tr.result?.length || 0}`
-        );
-      }
-    }
 
     formattedMessages.push({
       content: msg.content,

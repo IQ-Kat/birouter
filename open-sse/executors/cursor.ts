@@ -29,7 +29,6 @@ import {
 } from "../utils/cursorProtobuf.ts";
 import { estimateUsage } from "../utils/usageTracking.ts";
 import { FORMATS } from "../translator/formats.ts";
-import { buildCursorRequest } from "../translator/request/openai-to-cursor.ts";
 import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";
 import zlib from "zlib";
@@ -59,13 +58,18 @@ const COMPRESS_FLAG = {
   GZIP_BOTH: 0x03,
 };
 
+const CURSOR_STREAM_DEBUG = process.env.CURSOR_STREAM_DEBUG === "1";
+const debugLog = (...args: unknown[]) => {
+  if (CURSOR_STREAM_DEBUG) console.log(...args);
+};
+
 function decompressPayload(payload, flags) {
   // Check if payload is JSON error (starts with {"error")
   if (payload.length > 10 && payload[0] === 0x7b && payload[1] === 0x22) {
     try {
       const text = payload.toString("utf-8");
       if (text.startsWith('{"error"')) {
-        console.log(`[DECOMPRESS] Detected JSON error, skipping decompression`);
+        debugLog(`[DECOMPRESS] Detected JSON error, skipping decompression`);
         return payload;
       }
     } catch {}
@@ -89,14 +93,14 @@ function decompressPayload(payload, flags) {
         try {
           return zlib.inflateRawSync(payload);
         } catch (rawErr) {
-          console.log(
+          debugLog(
             `[DECOMPRESS ERROR] flags=${flags}, payloadSize=${payload.length}, gzip=${gzipErr.message}, deflate=${deflateErr.message}, raw=${rawErr.message}`
           );
-          console.log(
+          debugLog(
             `[DECOMPRESS ERROR] First 50 bytes (hex):`,
             payload.slice(0, 50).toString("hex")
           );
-          console.log(
+          debugLog(
             `[DECOMPRESS ERROR] First 50 bytes (utf8):`,
             payload
               .slice(0, 50)
@@ -381,11 +385,11 @@ export class CursorExecutor extends BaseExecutor {
     const toolCallsMap = new Map(); // Track streaming tool calls by ID
     let frameCount = 0;
 
-    console.log(`[CURSOR BUFFER] Total length: ${buffer.length} bytes`);
+    debugLog(`[CURSOR BUFFER] Total length: ${buffer.length} bytes`);
 
     while (offset < buffer.length) {
       if (offset + 5 > buffer.length) {
-        console.log(
+        debugLog(
           `[CURSOR BUFFER] Reached end, offset=${offset}, remaining=${buffer.length - offset}`
         );
         break;
@@ -394,12 +398,12 @@ export class CursorExecutor extends BaseExecutor {
       const flags = buffer[offset];
       const length = buffer.readUInt32BE(offset + 1);
 
-      console.log(
+      debugLog(
         `[CURSOR BUFFER] Frame ${frameCount + 1}: flags=0x${flags.toString(16).padStart(2, "0")}, length=${length}`
       );
 
       if (offset + 5 + length > buffer.length) {
-        console.log(
+        debugLog(
           `[CURSOR BUFFER] Incomplete frame, offset=${offset}, length=${length}, buffer.length=${buffer.length}`
         );
         break;
@@ -411,7 +415,7 @@ export class CursorExecutor extends BaseExecutor {
 
       payload = decompressPayload(payload, flags);
       if (!payload) {
-        console.log(`[CURSOR BUFFER] Frame ${frameCount}: decompression failed, skipping`);
+        debugLog(`[CURSOR BUFFER] Frame ${frameCount}: decompression failed, skipping`);
         continue;
       }
 
@@ -420,9 +424,7 @@ export class CursorExecutor extends BaseExecutor {
         const text = payload.toString("utf-8");
         if (text.startsWith("{") && text.includes('"error"')) {
           const hasContent = totalContent || toolCallsMap.size > 0;
-          console.log(
-            `[CURSOR BUFFER] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
-          );
+          debugLog(`[CURSOR BUFFER] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`);
           // If we already have content, treat error as stream termination (not fatal)
           if (hasContent) {
             break;
@@ -432,11 +434,11 @@ export class CursorExecutor extends BaseExecutor {
       } catch {}
 
       const result = extractTextFromResponse(new Uint8Array(payload));
-      console.log(`[CURSOR DECODED] Frame ${frameCount}:`, result);
+      debugLog(`[CURSOR DECODED] Frame ${frameCount}:`, result);
 
       if (result.error) {
         const hasContent = totalContent || toolCallsMap.size > 0;
-        console.log(`[CURSOR BUFFER] Decoded error (hasContent=${hasContent}): ${result.error}`);
+        debugLog(`[CURSOR BUFFER] Decoded error (hasContent=${hasContent}): ${result.error}`);
         // If we already have content, treat error as stream termination
         if (hasContent) {
           break;
@@ -486,7 +488,7 @@ export class CursorExecutor extends BaseExecutor {
       if (result.text) totalContent += result.text;
     }
 
-    console.log(
+    debugLog(
       `[CURSOR BUFFER] Parsed ${frameCount} frames, toolCallsMap size: ${toolCallsMap.size}, finalized toolCalls: ${toolCalls.length}`
     );
 
@@ -494,7 +496,7 @@ export class CursorExecutor extends BaseExecutor {
     for (const [id, tc] of toolCallsMap.entries()) {
       // Check if already in final array
       if (!toolCalls.find((t) => t.id === id)) {
-        console.log(`[CURSOR BUFFER] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
+        debugLog(`[CURSOR BUFFER] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
         toolCalls.push({
           id: tc.id,
           type: tc.type,
@@ -506,7 +508,7 @@ export class CursorExecutor extends BaseExecutor {
       }
     }
 
-    console.log(`[CURSOR BUFFER] Final toolCalls count: ${toolCalls.length}`);
+    debugLog(`[CURSOR BUFFER] Final toolCalls count: ${toolCalls.length}`);
 
     const message: Record<string, unknown> = {
       role: "assistant",
@@ -551,11 +553,11 @@ export class CursorExecutor extends BaseExecutor {
     const toolCallsMap = new Map(); // Track streaming tool calls by ID
     let frameCount = 0;
 
-    console.log(`[CURSOR BUFFER SSE] Total length: ${buffer.length} bytes`);
+    debugLog(`[CURSOR BUFFER SSE] Total length: ${buffer.length} bytes`);
 
     while (offset < buffer.length) {
       if (offset + 5 > buffer.length) {
-        console.log(
+        debugLog(
           `[CURSOR BUFFER SSE] Reached end, offset=${offset}, remaining=${buffer.length - offset}`
         );
         break;
@@ -564,12 +566,12 @@ export class CursorExecutor extends BaseExecutor {
       const flags = buffer[offset];
       const length = buffer.readUInt32BE(offset + 1);
 
-      console.log(
+      debugLog(
         `[CURSOR BUFFER SSE] Frame ${frameCount + 1}: flags=0x${flags.toString(16).padStart(2, "0")}, length=${length}`
       );
 
       if (offset + 5 + length > buffer.length) {
-        console.log(
+        debugLog(
           `[CURSOR BUFFER SSE] Incomplete frame, offset=${offset}, length=${length}, buffer.length=${buffer.length}`
         );
         break;
@@ -581,7 +583,7 @@ export class CursorExecutor extends BaseExecutor {
 
       payload = decompressPayload(payload, flags);
       if (!payload) {
-        console.log(`[CURSOR BUFFER SSE] Frame ${frameCount}: decompression failed, skipping`);
+        debugLog(`[CURSOR BUFFER SSE] Frame ${frameCount}: decompression failed, skipping`);
         continue;
       }
 
@@ -591,7 +593,7 @@ export class CursorExecutor extends BaseExecutor {
         if (text.startsWith("{") && text.includes('"error"')) {
           const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
           // Log the full error for debugging
-          console.log(
+          debugLog(
             `[CURSOR BUFFER SSE] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
           );
           // If we already have content, treat error as stream termination (not fatal)
@@ -603,13 +605,11 @@ export class CursorExecutor extends BaseExecutor {
       } catch {}
 
       const result = extractTextFromResponse(new Uint8Array(payload));
-      console.log(`[CURSOR DECODED SSE] Frame ${frameCount}:`, result);
+      debugLog(`[CURSOR DECODED SSE] Frame ${frameCount}:`, result);
 
       if (result.error) {
         const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
-        console.log(
-          `[CURSOR BUFFER SSE] Decoded error (hasContent=${hasContent}): ${result.error}`
-        );
+        debugLog(`[CURSOR BUFFER SSE] Decoded error (hasContent=${hasContent}): ${result.error}`);
         // If we already have content, treat error as stream termination
         if (hasContent) {
           break;
@@ -747,16 +747,14 @@ export class CursorExecutor extends BaseExecutor {
       }
     }
 
-    console.log(
+    debugLog(
       `[CURSOR BUFFER SSE] Parsed ${frameCount} frames, toolCallsMap size: ${toolCallsMap.size}, toolCalls array: ${toolCalls.length}`
     );
 
     // Finalize all remaining tool calls in map (stream may have ended without isLast=true)
     for (const [id, tc] of toolCallsMap.entries()) {
       if (!toolCalls.find((t) => t.id === id)) {
-        console.log(
-          `[CURSOR BUFFER SSE] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`
-        );
+        debugLog(`[CURSOR BUFFER SSE] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
         const toolCallIndex = toolCalls.length;
         toolCalls.push({
           id: tc.id,
