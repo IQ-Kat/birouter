@@ -20,8 +20,15 @@ export class GeminiCLIExecutor extends BaseExecutor {
   }
 
   transformRequest(model, body, stream, credentials) {
-    // Always prefer OAuth-stored projectId if present. Incoming body.project can be
-    // stale when clients cache older Cloud Code project values.
+    const allowBodyProjectOverride = process.env.OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE === "1";
+
+    // Default: prefer OAuth-stored projectId. Incoming body.project can be stale
+    // when clients cache older Cloud Code project values.
+    // Opt-in escape hatch: set OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE=1.
+    if (allowBodyProjectOverride && body?.project) {
+      return body;
+    }
+
     if (credentials?.projectId) {
       body.project = credentials.projectId;
     }

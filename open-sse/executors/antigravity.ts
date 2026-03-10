@@ -38,9 +38,13 @@ export class AntigravityExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const bodyProjectId = body?.project;
     const credentialsProjectId = credentials?.projectId;
-    // Prefer OAuth-stored projectId over incoming body.project to avoid stale/wrong
-    // client-side values causing 404/403 from Cloud Code endpoints.
-    const projectId = credentialsProjectId || bodyProjectId;
+    const allowBodyProjectOverride = process.env.OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE === "1";
+
+    // Default: prefer OAuth-stored projectId over incoming body.project to avoid
+    // stale/wrong client-side values causing 404/403 from Cloud Code endpoints.
+    // Opt-in escape hatch: set OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE=1.
+    const projectId =
+      allowBodyProjectOverride && bodyProjectId ? bodyProjectId : credentialsProjectId || bodyProjectId;
 
     if (!projectId) {
       throw new Error(
