@@ -813,8 +813,8 @@ function getKimiPlanName(level) {
 async function getKimiUsage(accessToken) {
   // Generate device info for headers (same as OAuth flow)
   const deviceId = "kimi-usage-" + Date.now();
-  const platform = "cli-proxy-api";
-  const version = "1.0.0";
+  const platform = "omniroute";
+  const version = "2.1.2";
   const deviceModel =
     typeof process !== "undefined" ? `${process.platform} ${process.arch}` : "unknown";
 

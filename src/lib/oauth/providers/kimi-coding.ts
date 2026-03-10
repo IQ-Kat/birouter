@@ -4,8 +4,8 @@ import { hostname } from "node:os";
 
 // Generate device ID (persistent per installation)
 const DEVICE_ID = randomUUID();
-const PLATFORM = "cli-proxy-api";
-const VERSION = "1.0.0";
+const PLATFORM = "omniroute";
+const VERSION = "2.1.2";
 const DEVICE_NAME = hostname();
 const DEVICE_MODEL = `${process.platform} ${process.arch}`;
 
