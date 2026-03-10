@@ -29,7 +29,6 @@ import {
 } from "../utils/cursorProtobuf.ts";
 import { estimateUsage } from "../utils/usageTracking.ts";
 import { FORMATS } from "../translator/formats.ts";
-import { buildCursorRequest } from "../translator/request/openai-to-cursor.ts";
 import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";
 import zlib from "zlib";
@@ -59,13 +58,18 @@ const COMPRESS_FLAG = {
   GZIP_BOTH: 0x03,
 };
 
+const CURSOR_STREAM_DEBUG = process.env.CURSOR_STREAM_DEBUG === "1";
+const debugLog = (...args: unknown[]) => {
+  if (CURSOR_STREAM_DEBUG) console.log(...args);
+};
+
 function decompressPayload(payload, flags) {
   // Check if payload is JSON error (starts with {"error")
   if (payload.length > 10 && payload[0] === 0x7b && payload[1] === 0x22) {
     try {
       const text = payload.toString("utf-8");
       if (text.startsWith('{"error"')) {
-        console.log(`[DECOMPRESS] Detected JSON error, skipping decompression`);
+        debugLog(`[DECOMPRESS] Detected JSON error, skipping decompression`);
         return payload;
       }
     } catch {}
@@ -89,14 +93,14 @@ function decompressPayload(payload, flags) {
         try {
           return zlib.inflateRawSync(payload);
         } catch (rawErr) {
-          console.log(
+          debugLog(
             `[DECOMPRESS ERROR] flags=${flags}, payloadSize=${payload.length}, gzip=${gzipErr.message}, deflate=${deflateErr.message}, raw=${rawErr.message}`
           );
-          console.log(
+          debugLog(
             `[DECOMPRESS ERROR] First 50 bytes (hex):`,
             payload.slice(0, 50).toString("hex")
           );
-          console.log(
+          debugLog(
             `[DECOMPRESS ERROR] First 50 bytes (utf8):`,
             payload
               .slice(0, 50)
@@ -134,6 +138,41 @@ function createErrorResponse(jsonError) {
       headers: { "Content-Type": "application/json" },
     }
   );
+}
+
+function parseCursorJsonErrorFrame(text: string) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function isToolBoundaryAbort(jsonError: any, toolCallCount: number) {
+  if (!jsonError || toolCallCount <= 0) return false;
+  const code = jsonError?.error?.code || "";
+  const debugError = jsonError?.error?.details?.[0]?.debug?.error || "";
+  const title = jsonError?.error?.details?.[0]?.debug?.details?.title || "";
+  const detail = jsonError?.error?.details?.[0]?.debug?.details?.detail || "";
+  const message = `${title} ${detail}`.toLowerCase();
+  const isAbortedCode = code === "aborted" || debugError === "ERROR_USER_ABORTED_REQUEST";
+  return isAbortedCode && message.includes("tool call ended before result was received");
+}
+
+function mergeToolCallDelta(existing, incoming) {
+  const mergedName = incoming?.function?.name || existing?.function?.name || "";
+  const existingArgs = existing?.function?.arguments || "";
+  const deltaArgs = incoming?.function?.arguments || "";
+  return {
+    id: incoming.id || existing.id,
+    type: "function",
+    function: {
+      name: mergedName,
+      arguments: `${existingArgs}${deltaArgs}`,
+    },
+    isLast: Boolean(existing?.isLast || incoming?.isLast),
+    index: existing?.index ?? incoming?.index ?? 0,
+  };
 }
 
 type CursorHttpResponse = {
@@ -230,10 +269,10 @@ export class CursorExecutor extends BaseExecutor {
   }
 
   transformRequest(model, body, stream, credentials) {
-    // Call translator to convert OpenAI format to Cursor format
-    const translatedBody = buildCursorRequest(model, body, stream, credentials);
-    const messages = translatedBody.messages || [];
-    const tools = translatedBody.tools || body.tools || [];
+    // Messages are already translated by chatCore (claude→openai→cursor)
+    // Do NOT call buildCursorRequest again — double-translation drops tool_results
+    const messages = body.messages || [];
+    const tools = body.tools || [];
     const reasoningEffort = body.reasoning_effort || null;
     return generateCursorBody(messages, model, tools, reasoningEffort);
   }
@@ -379,13 +418,14 @@ export class CursorExecutor extends BaseExecutor {
     let totalContent = "";
     const toolCalls = [];
     const toolCallsMap = new Map(); // Track streaming tool calls by ID
+    const finalizedIds = new Set<string>();
     let frameCount = 0;
 
-    console.log(`[CURSOR BUFFER] Total length: ${buffer.length} bytes`);
+    debugLog(`[CURSOR BUFFER] Total length: ${buffer.length} bytes`);
 
     while (offset < buffer.length) {
       if (offset + 5 > buffer.length) {
-        console.log(
+        debugLog(
           `[CURSOR BUFFER] Reached end, offset=${offset}, remaining=${buffer.length - offset}`
         );
         break;
@@ -394,12 +434,12 @@ export class CursorExecutor extends BaseExecutor {
       const flags = buffer[offset];
       const length = buffer.readUInt32BE(offset + 1);
 
-      console.log(
+      debugLog(
         `[CURSOR BUFFER] Frame ${frameCount + 1}: flags=0x${flags.toString(16).padStart(2, "0")}, length=${length}`
       );
 
       if (offset + 5 + length > buffer.length) {
-        console.log(
+        debugLog(
           `[CURSOR BUFFER] Incomplete frame, offset=${offset}, length=${length}, buffer.length=${buffer.length}`
         );
         break;
@@ -411,21 +451,37 @@ export class CursorExecutor extends BaseExecutor {
 
       payload = decompressPayload(payload, flags);
       if (!payload) {
-        console.log(`[CURSOR BUFFER] Frame ${frameCount}: decompression failed, skipping`);
+        debugLog(`[CURSOR BUFFER] Frame ${frameCount}: decompression failed, skipping`);
         continue;
       }
 
-      try {
-        const text = payload.toString("utf-8");
-        if (text.startsWith("{") && text.includes('"error"')) {
-          return createErrorResponse(JSON.parse(text));
-        }
-      } catch {}
+      // Check for JSON error frames (byte guard: skip toString on non-JSON frames)
+      if (payload.length > 0 && payload[0] === 0x7b) {
+        try {
+          const text = payload.toString("utf-8");
+          if (text.includes('"error"')) {
+            const hasContent = totalContent || toolCallsMap.size > 0;
+            debugLog(
+              `[CURSOR BUFFER] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
+            );
+            if (hasContent) {
+              break;
+            }
+            return createErrorResponse(JSON.parse(text));
+          }
+        } catch {}
+      }
 
       const result = extractTextFromResponse(new Uint8Array(payload));
-      console.log(`[CURSOR DECODED] Frame ${frameCount}:`, result);
+      debugLog(`[CURSOR DECODED] Frame ${frameCount}:`, result);
 
       if (result.error) {
+        const hasContent = totalContent || toolCallsMap.size > 0;
+        debugLog(`[CURSOR BUFFER] Decoded error (hasContent=${hasContent}): ${result.error}`);
+        // If we already have content, treat error as stream termination
+        if (hasContent) {
+          break;
+        }
         return new Response(
           JSON.stringify({
             error: {
@@ -457,6 +513,7 @@ export class CursorExecutor extends BaseExecutor {
         // Push to final array when isLast is true
         if (tc.isLast) {
           const finalToolCall = toolCallsMap.get(tc.id);
+          finalizedIds.add(tc.id);
           toolCalls.push({
             id: finalToolCall.id,
             type: finalToolCall.type,
@@ -471,15 +528,15 @@ export class CursorExecutor extends BaseExecutor {
       if (result.text) totalContent += result.text;
     }
 
-    console.log(
+    debugLog(
       `[CURSOR BUFFER] Parsed ${frameCount} frames, toolCallsMap size: ${toolCallsMap.size}, finalized toolCalls: ${toolCalls.length}`
     );
 
     // Finalize all remaining tool calls in map (in case stream ended without isLast=true)
     for (const [id, tc] of toolCallsMap.entries()) {
       // Check if already in final array
-      if (!toolCalls.find((t) => t.id === id)) {
-        console.log(`[CURSOR BUFFER] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
+      if (!finalizedIds.has(id)) {
+        debugLog(`[CURSOR BUFFER] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
         toolCalls.push({
           id: tc.id,
           type: tc.type,
@@ -491,7 +548,7 @@ export class CursorExecutor extends BaseExecutor {
       }
     }
 
-    console.log(`[CURSOR BUFFER] Final toolCalls count: ${toolCalls.length}`);
+    debugLog(`[CURSOR BUFFER] Final toolCalls count: ${toolCalls.length}`);
 
     const message: Record<string, unknown> = {
       role: "assistant",
@@ -534,13 +591,15 @@ export class CursorExecutor extends BaseExecutor {
     let totalContent = "";
     const toolCalls = [];
     const toolCallsMap = new Map(); // Track streaming tool calls by ID
+    const finalizedIds = new Set<string>();
+    const emittedToolCallIds = new Set<string>();
     let frameCount = 0;
 
-    console.log(`[CURSOR BUFFER SSE] Total length: ${buffer.length} bytes`);
+    debugLog(`[CURSOR BUFFER SSE] Total length: ${buffer.length} bytes`);
 
     while (offset < buffer.length) {
       if (offset + 5 > buffer.length) {
-        console.log(
+        debugLog(
           `[CURSOR BUFFER SSE] Reached end, offset=${offset}, remaining=${buffer.length - offset}`
         );
         break;
@@ -549,12 +608,12 @@ export class CursorExecutor extends BaseExecutor {
       const flags = buffer[offset];
       const length = buffer.readUInt32BE(offset + 1);
 
-      console.log(
+      debugLog(
         `[CURSOR BUFFER SSE] Frame ${frameCount + 1}: flags=0x${flags.toString(16).padStart(2, "0")}, length=${length}`
       );
 
       if (offset + 5 + length > buffer.length) {
-        console.log(
+        debugLog(
           `[CURSOR BUFFER SSE] Incomplete frame, offset=${offset}, length=${length}, buffer.length=${buffer.length}`
         );
         break;
@@ -566,21 +625,37 @@ export class CursorExecutor extends BaseExecutor {
 
       payload = decompressPayload(payload, flags);
       if (!payload) {
-        console.log(`[CURSOR BUFFER SSE] Frame ${frameCount}: decompression failed, skipping`);
+        debugLog(`[CURSOR BUFFER SSE] Frame ${frameCount}: decompression failed, skipping`);
         continue;
       }
 
-      try {
-        const text = payload.toString("utf-8");
-        if (text.startsWith("{") && text.includes('"error"')) {
-          return createErrorResponse(JSON.parse(text));
-        }
-      } catch {}
+      // Check for JSON error frames (byte-guard: only decode if starts with '{')
+      if (payload[0] === 0x7b) {
+        try {
+          const text = payload.toString("utf-8");
+          if (text.includes('"error"')) {
+            const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
+            debugLog(
+              `[CURSOR BUFFER SSE] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
+            );
+            if (hasContent) {
+              break;
+            }
+            return createErrorResponse(JSON.parse(text));
+          }
+        } catch {}
+      }
 
       const result = extractTextFromResponse(new Uint8Array(payload));
-      console.log(`[CURSOR DECODED SSE] Frame ${frameCount}:`, result);
+      debugLog(`[CURSOR DECODED SSE] Frame ${frameCount}:`, result);
 
       if (result.error) {
+        const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
+        debugLog(`[CURSOR BUFFER SSE] Decoded error (hasContent=${hasContent}): ${result.error}`);
+        // If we already have content, treat error as stream termination
+        if (hasContent) {
+          break;
+        }
         return new Response(
           JSON.stringify({
             error: {
@@ -626,6 +701,7 @@ export class CursorExecutor extends BaseExecutor {
 
           // Stream the delta arguments
           if (tc.function.arguments) {
+            emittedToolCallIds.add(tc.id);
             chunks.push(
               `data: ${JSON.stringify({
                 id: responseId,
@@ -657,10 +733,12 @@ export class CursorExecutor extends BaseExecutor {
         } else {
           // New tool call - assign index and add to map
           const toolCallIndex = toolCalls.length;
+          finalizedIds.add(tc.id);
           toolCalls.push({ ...tc, index: toolCallIndex });
           toolCallsMap.set(tc.id, { ...tc, index: toolCallIndex });
 
           // Stream initial tool call with name
+          emittedToolCallIds.add(tc.id);
           chunks.push(
             `data: ${JSON.stringify({
               id: responseId,
@@ -714,9 +792,57 @@ export class CursorExecutor extends BaseExecutor {
       }
     }
 
-    console.log(
+    debugLog(
       `[CURSOR BUFFER SSE] Parsed ${frameCount} frames, toolCallsMap size: ${toolCallsMap.size}, toolCalls array: ${toolCalls.length}`
     );
+
+    // Finalize all remaining tool calls in map (stream may have ended without isLast=true)
+    for (const [id, tc] of toolCallsMap.entries()) {
+      if (!finalizedIds.has(id)) {
+        debugLog(`[CURSOR BUFFER SSE] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
+        const toolCallIndex = toolCalls.length;
+        toolCalls.push({
+          id: tc.id,
+          type: tc.type,
+          index: toolCallIndex,
+          function: {
+            name: tc.function.name,
+            arguments: tc.function.arguments,
+          },
+        });
+
+        // Emit SSE chunk for the finalized tool call if not already emitted
+        if (!emittedToolCallIds.has(tc.id)) {
+          chunks.push(
+            `data: ${JSON.stringify({
+              id: responseId,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [
+                {
+                  index: 0,
+                  delta: {
+                    tool_calls: [
+                      {
+                        index: toolCallIndex,
+                        id: tc.id,
+                        type: "function",
+                        function: {
+                          name: tc.function.name,
+                          arguments: tc.function.arguments,
+                        },
+                      },
+                    ],
+                  },
+                  finish_reason: null,
+                },
+              ],
+            })}\n\n`
+          );
+        }
+      }
+    }
 
     if (chunks.length === 0 && toolCalls.length === 0) {
       chunks.push(

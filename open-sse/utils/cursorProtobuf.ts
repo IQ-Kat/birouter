@@ -10,8 +10,9 @@
 import { v4 as uuidv4 } from "uuid";
 import zlib from "zlib";
 
-const DEBUG = true;
+const DEBUG = process.env.CURSOR_PROTOBUF_DEBUG === "1";
 const log = (tag, ...args) => DEBUG && console.log(`[PROTOBUF:${tag}]`, ...args);
+const textDecoder = new TextDecoder();
 
 /**
  * Schema version — bump when updating field definitions.
@@ -28,6 +29,7 @@ const ROLE = { USER: 1, ASSISTANT: 2 };
 const UNIFIED_MODE = { CHAT: 1, AGENT: 2 };
 
 const THINKING_LEVEL = { UNSPECIFIED: 0, MEDIUM: 1, HIGH: 2 };
+const CLIENT_SIDE_TOOL_V2 = { MCP: 19 };
 
 const FIELD = {
   // StreamUnifiedChatRequestWithTools (top level)
@@ -74,6 +76,28 @@ const FIELD = {
   TOOL_RESULT_INDEX: 3,
   TOOL_RESULT_RAW_ARGS: 5,
   TOOL_RESULT_RESULT: 8,
+  TOOL_RESULT_TOOL_CALL: 11,
+  TOOL_RESULT_MODEL_CALL_ID: 12,
+
+  // ClientSideToolV2Result (nested inside ToolResult.result)
+  CLIENT_RESULT_TOOL: 1,
+  CLIENT_RESULT_MCP_RESULT: 28,
+  CLIENT_RESULT_TOOL_CALL_ID: 35,
+  CLIENT_RESULT_MODEL_CALL_ID: 48,
+  CLIENT_RESULT_TOOL_INDEX: 49,
+
+  // MCPResult (nested inside ClientSideToolV2Result.mcp_result)
+  MCP_RESULT_SELECTED_TOOL: 1,
+  MCP_RESULT_RESULT: 2,
+
+  // ClientSideToolV2Call (nested inside ToolResult.tool_call)
+  CLIENT_CALL_TOOL: 1,
+  CLIENT_CALL_MCP_PARAMS: 27,
+  CLIENT_CALL_TOOL_CALL_ID: 3,
+  CLIENT_CALL_NAME: 9,
+  CLIENT_CALL_RAW_ARGS: 10,
+  CLIENT_CALL_TOOL_INDEX: 48,
+  CLIENT_CALL_MODEL_CALL_ID: 49,
 
   // Model
   MODEL_NAME: 1,
@@ -120,6 +144,7 @@ const FIELD = {
   TOOL_NAME: 9,
   TOOL_RAW_ARGS: 10,
   TOOL_IS_LAST: 11,
+  TOOL_IS_LAST_ALT: 15,
   TOOL_MCP_PARAMS: 27,
 
   // MCPParams
@@ -202,16 +227,149 @@ function concatArrays(...arrays) {
 // ==================== MESSAGE ENCODING ====================
 
 export function encodeToolResult(toolResult) {
-  const toolCallId = toolResult.tool_call_id || "";
-  const toolName = toolResult.name || "";
-  const toolIndex = toolResult.index || 0;
+  const { toolCallId, modelCallId } = parseToolCallId(toolResult.tool_call_id || "");
+  const rawToolName = toolResult.name || "";
+  const toolName = formatCursorToolName(rawToolName);
+  const { selectedTool, serverName } = parseCursorToolName(toolName);
+  const toolIndex = toolResult.index > 0 ? toolResult.index : 1;
   const rawArgs = toolResult.raw_args || "{}";
+  const resultContent = toolResult.result || "";
+  const encodedResultMessage = encodeClientSideToolResult(
+    toolCallId,
+    modelCallId,
+    selectedTool,
+    toolIndex,
+    resultContent
+  );
+  const encodedToolCallMessage = encodeClientSideToolCall(
+    toolCallId,
+    modelCallId,
+    toolName,
+    selectedTool,
+    serverName,
+    rawArgs,
+    toolIndex
+  );
 
   return concatArrays(
     encodeField(FIELD.TOOL_RESULT_CALL_ID, WIRE_TYPE.LEN, toolCallId),
     encodeField(FIELD.TOOL_RESULT_NAME, WIRE_TYPE.LEN, toolName),
     encodeField(FIELD.TOOL_RESULT_INDEX, WIRE_TYPE.VARINT, toolIndex),
-    encodeField(FIELD.TOOL_RESULT_RAW_ARGS, WIRE_TYPE.LEN, rawArgs)
+    ...(modelCallId
+      ? [encodeField(FIELD.TOOL_RESULT_MODEL_CALL_ID, WIRE_TYPE.LEN, modelCallId)]
+      : []),
+    encodeField(FIELD.TOOL_RESULT_RAW_ARGS, WIRE_TYPE.LEN, rawArgs),
+    ...(encodedResultMessage
+      ? [encodeField(FIELD.TOOL_RESULT_RESULT, WIRE_TYPE.LEN, encodedResultMessage)]
+      : []),
+    encodeField(FIELD.TOOL_RESULT_TOOL_CALL, WIRE_TYPE.LEN, encodedToolCallMessage)
+  );
+}
+
+function parseToolCallId(toolCallIdRaw) {
+  if (typeof toolCallIdRaw !== "string" || toolCallIdRaw.length === 0) {
+    return { toolCallId: "", modelCallId: null };
+  }
+  const delimiter = "\nmc_";
+  const idx = toolCallIdRaw.indexOf(delimiter);
+  if (idx >= 0) {
+    return {
+      toolCallId: toolCallIdRaw.slice(0, idx),
+      modelCallId: toolCallIdRaw.slice(idx + delimiter.length),
+    };
+  }
+  return { toolCallId: toolCallIdRaw, modelCallId: null };
+}
+
+function formatCursorToolName(rawName) {
+  const base = typeof rawName === "string" && rawName.length > 0 ? rawName : "tool";
+
+  if (base.startsWith("mcp__")) {
+    const rest = base.slice("mcp__".length);
+    const splitIdx = rest.indexOf("__");
+    if (splitIdx >= 0) {
+      const server = rest.slice(0, splitIdx) || "custom";
+      const name = rest.slice(splitIdx + 2) || "tool";
+      return `mcp_${server}_${name}`;
+    }
+    return `mcp_custom_${rest || "tool"}`;
+  }
+
+  if (base.startsWith("mcp_")) return base;
+  return `mcp_custom_${base}`;
+}
+
+function parseCursorToolName(formattedName) {
+  if (typeof formattedName !== "string" || !formattedName.startsWith("mcp_")) {
+    return { serverName: "custom", selectedTool: formattedName || "tool" };
+  }
+
+  const tail = formattedName.slice("mcp_".length);
+  const splitIdx = tail.indexOf("_");
+  if (splitIdx < 0) {
+    return { serverName: "custom", selectedTool: tail || "tool" };
+  }
+
+  return {
+    serverName: tail.slice(0, splitIdx) || "custom",
+    selectedTool: tail.slice(splitIdx + 1) || "tool",
+  };
+}
+
+function encodeClientSideToolResult(toolCallId, modelCallId, toolName, toolIndex, resultContent) {
+  const outputText = typeof resultContent === "string" ? resultContent : "";
+  const selectedTool = typeof toolName === "string" && toolName.length > 0 ? toolName : "tool";
+
+  const mcpResult = concatArrays(
+    encodeField(FIELD.MCP_RESULT_SELECTED_TOOL, WIRE_TYPE.LEN, selectedTool),
+    encodeField(FIELD.MCP_RESULT_RESULT, WIRE_TYPE.LEN, outputText)
+  );
+
+  return concatArrays(
+    encodeField(FIELD.CLIENT_RESULT_TOOL, WIRE_TYPE.VARINT, CLIENT_SIDE_TOOL_V2.MCP),
+    encodeField(FIELD.CLIENT_RESULT_MCP_RESULT, WIRE_TYPE.LEN, mcpResult),
+    ...(toolCallId
+      ? [encodeField(FIELD.CLIENT_RESULT_TOOL_CALL_ID, WIRE_TYPE.LEN, toolCallId)]
+      : []),
+    ...(modelCallId
+      ? [encodeField(FIELD.CLIENT_RESULT_MODEL_CALL_ID, WIRE_TYPE.LEN, modelCallId)]
+      : []),
+    encodeField(FIELD.CLIENT_RESULT_TOOL_INDEX, WIRE_TYPE.VARINT, toolIndex)
+  );
+}
+
+function encodeMcpParamsForCall(toolName, rawArgs, serverName) {
+  const tool = concatArrays(
+    encodeField(FIELD.MCP_TOOL_NAME, WIRE_TYPE.LEN, toolName || "tool"),
+    encodeField(FIELD.MCP_TOOL_PARAMS, WIRE_TYPE.LEN, rawArgs || "{}"),
+    encodeField(FIELD.MCP_TOOL_SERVER, WIRE_TYPE.LEN, serverName || "custom")
+  );
+  return encodeField(FIELD.MCP_TOOLS_LIST, WIRE_TYPE.LEN, tool);
+}
+
+function encodeClientSideToolCall(
+  toolCallId,
+  modelCallId,
+  toolName,
+  selectedTool,
+  serverName,
+  rawArgs,
+  toolIndex
+) {
+  return concatArrays(
+    encodeField(FIELD.CLIENT_CALL_TOOL, WIRE_TYPE.VARINT, CLIENT_SIDE_TOOL_V2.MCP),
+    encodeField(
+      FIELD.CLIENT_CALL_MCP_PARAMS,
+      WIRE_TYPE.LEN,
+      encodeMcpParamsForCall(selectedTool, rawArgs, serverName)
+    ),
+    ...(toolCallId ? [encodeField(FIELD.CLIENT_CALL_TOOL_CALL_ID, WIRE_TYPE.LEN, toolCallId)] : []),
+    encodeField(FIELD.CLIENT_CALL_NAME, WIRE_TYPE.LEN, toolName || "tool"),
+    encodeField(FIELD.CLIENT_CALL_RAW_ARGS, WIRE_TYPE.LEN, rawArgs || "{}"),
+    encodeField(FIELD.CLIENT_CALL_TOOL_INDEX, WIRE_TYPE.VARINT, toolIndex > 0 ? toolIndex : 1),
+    ...(modelCallId
+      ? [encodeField(FIELD.CLIENT_CALL_MODEL_CALL_ID, WIRE_TYPE.LEN, modelCallId)]
+      : [])
   );
 }
 
@@ -311,13 +469,70 @@ export function encodeRequest(messages, modelName, tools = [], reasoningEffort =
   const isAgentic = hasTools;
   const formattedMessages = [];
   const messageIds = [];
+  const normalizedMessages = [];
 
-  // Prepare messages
+  // Guardrail: split mixed assistant payload into separate assistant messages.
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
+    const hasToolCalls = Array.isArray(msg?.tool_calls) && msg.tool_calls.length > 0;
+    const hasToolResults = Array.isArray(msg?.tool_results) && msg.tool_results.length > 0;
+
+    if (msg?.role === "assistant" && hasToolCalls && hasToolResults) {
+      log(
+        "ENCODE",
+        `normalizing mixed assistant tool payload at msg[${i}] (calls=${msg.tool_calls.length}, results=${msg.tool_results.length})`
+      );
+
+      // Keep assistant tool call message without embedded results
+      normalizedMessages.push({
+        ...msg,
+        tool_results: [],
+      });
+
+      // Avoid inserting duplicate assistant tool-result message if next one already matches
+      const nextMsg = messages[i + 1];
+      const nextHasToolResults =
+        nextMsg?.role === "assistant" &&
+        Array.isArray(nextMsg?.tool_results) &&
+        nextMsg.tool_results.length > 0;
+      const currentIds = new Set(
+        msg.tool_results.map((tr) => tr?.tool_call_id).filter((id) => typeof id === "string")
+      );
+      const nextIds = new Set(
+        (nextMsg?.tool_results || [])
+          .map((tr) => tr?.tool_call_id)
+          .filter((id) => typeof id === "string")
+      );
+      let sameIds = currentIds.size > 0 && currentIds.size === nextIds.size;
+      if (sameIds) {
+        for (const id of currentIds) {
+          if (!nextIds.has(id)) {
+            sameIds = false;
+            break;
+          }
+        }
+      }
+
+      if (!(nextHasToolResults && sameIds)) {
+        normalizedMessages.push({
+          role: "assistant",
+          content: "",
+          tool_results: msg.tool_results,
+        });
+      }
+
+      continue;
+    }
+
+    normalizedMessages.push(msg);
+  }
+
+  // Prepare messages
+  for (let i = 0; i < normalizedMessages.length; i++) {
+    const msg = normalizedMessages[i];
     const role = msg.role === "user" ? ROLE.USER : ROLE.ASSISTANT;
     const msgId = uuidv4();
-    const isLast = i === messages.length - 1;
+    const isLast = i === normalizedMessages.length - 1;
 
     formattedMessages.push({
       content: msg.content,
@@ -535,18 +750,19 @@ function extractToolCall(toolCallData) {
 
   // Extract tool call ID
   if (toolCall.has(FIELD.TOOL_ID)) {
-    const fullId = new TextDecoder().decode(toolCall.get(FIELD.TOOL_ID)[0].value);
-    toolCallId = fullId.split("\n")[0]; // Cursor returns multi-line ID, take first line
+    toolCallId = textDecoder.decode(toolCall.get(FIELD.TOOL_ID)[0].value);
   }
 
   // Extract tool name
   if (toolCall.has(FIELD.TOOL_NAME)) {
-    toolName = new TextDecoder().decode(toolCall.get(FIELD.TOOL_NAME)[0].value);
+    toolName = textDecoder.decode(toolCall.get(FIELD.TOOL_NAME)[0].value);
   }
 
   // Extract is_last flag
   if (toolCall.has(FIELD.TOOL_IS_LAST)) {
     isLast = toolCall.get(FIELD.TOOL_IS_LAST)[0].value !== 0;
+  } else if (toolCall.has(FIELD.TOOL_IS_LAST_ALT)) {
+    isLast = toolCall.get(FIELD.TOOL_IS_LAST_ALT)[0].value !== 0;
   }
 
   // Extract MCP params - nested real tool info
@@ -558,11 +774,11 @@ function extractToolCall(toolCallData) {
         const tool = decodeMessage(mcpParams.get(FIELD.MCP_TOOLS_LIST)[0].value);
 
         if (tool.has(FIELD.MCP_NESTED_NAME)) {
-          toolName = new TextDecoder().decode(tool.get(FIELD.MCP_NESTED_NAME)[0].value);
+          toolName = textDecoder.decode(tool.get(FIELD.MCP_NESTED_NAME)[0].value);
         }
 
         if (tool.has(FIELD.MCP_NESTED_PARAMS)) {
-          rawArgs = new TextDecoder().decode(tool.get(FIELD.MCP_NESTED_PARAMS)[0].value);
+          rawArgs = textDecoder.decode(tool.get(FIELD.MCP_NESTED_PARAMS)[0].value);
         }
       }
     } catch (err) {
@@ -572,7 +788,7 @@ function extractToolCall(toolCallData) {
 
   // Fallback to raw_args
   if (!rawArgs && toolCall.has(FIELD.TOOL_RAW_ARGS)) {
-    rawArgs = new TextDecoder().decode(toolCall.get(FIELD.TOOL_RAW_ARGS)[0].value);
+    rawArgs = textDecoder.decode(toolCall.get(FIELD.TOOL_RAW_ARGS)[0].value);
   }
 
   if (toolCallId && toolName) {
@@ -597,7 +813,7 @@ function extractTextAndThinking(responseData) {
 
   // Extract text
   if (nested.has(FIELD.RESPONSE_TEXT)) {
-    text = new TextDecoder().decode(nested.get(FIELD.RESPONSE_TEXT)[0].value);
+    text = textDecoder.decode(nested.get(FIELD.RESPONSE_TEXT)[0].value);
   }
 
   // Extract thinking
@@ -605,7 +821,7 @@ function extractTextAndThinking(responseData) {
     try {
       const thinkingMsg = decodeMessage(nested.get(FIELD.THINKING)[0].value);
       if (thinkingMsg.has(FIELD.THINKING_TEXT)) {
-        thinking = new TextDecoder().decode(thinkingMsg.get(FIELD.THINKING_TEXT)[0].value);
+        thinking = textDecoder.decode(thinkingMsg.get(FIELD.THINKING_TEXT)[0].value);
       }
     } catch (err) {
       log("EXTRACT", `Thinking parse error: ${err.message}`);
