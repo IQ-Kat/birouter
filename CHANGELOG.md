@@ -7,7 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [2.2.1] — 2026-03-10
+
+> ### 🐛 Bug Fixes · 🔐 Security · 🔧 CI
+
+### Bug Fixes
+
+- **Gemini image routing (#273)** — `gemini-3.1-flash-image-preview` was missing from the `antigravity` image provider registry in `imageRegistry.ts`, causing image generation to fall through to the chat handler. Added alongside `gemini-2.5-flash-preview-image-generation`.
+- **Ollama Cloud model listing (#276)** — `ollama-cloud` was absent from `PROVIDER_MODELS_CONFIG` in the models route, causing 400 errors when listing models from `api.ollama.com`. Entry added.
+- **Missing apiKey error clarity (#277)** — When login is disabled and a provider has no API key configured, the model import route now returns `400` with a clear message instead of a generic `401 Unauthorized`.
+
+### Security
+
+- **TLS validation re-enabled (GHSA-50)** — `mitm/server.ts`: `rejectUnauthorized` now defaults to `true`. Opt-out only via `MITM_DISABLE_TLS_VERIFY=1`.
+- **Path traversal hardening (GHSA-41–49)** — Added `safePath()`, `safeProfilePath()`, `safeLogPath()` helpers across `backupService.ts`, `db/backup.ts`, `codex-profiles/route.ts`, and `mitm/server.ts`. All user-supplied IDs/filenames are now anchored within their allowed directories using `path.resolve()` + bounds check.
+- **Prototype pollution fix (GHSA-18–20)** — `usageHistory.ts`: `pendingRequests` maps now use `Object.create(null)` + `hasOwnProperty` guards, preventing `__proto__` / `constructor` injection via crafted provider IDs.
+- **Dependency: dompurify updated to ^3.3.2** — Resolves CVE-2026-0540 (XSS in rendered HTML).
+- **GitHub Actions: added `permissions: contents: read`** — Prevents token over-permission in CI jobs.
+
+### CI
+
+- **Lock file sync** — Added `@swc/helpers: "^0.5.19"` override in `package.json`; regenerated `package-lock.json`. Fixes `npm ci` failures across `ci.yml` and `docker-publish.yml`.
+- **npm-publish: skip if version exists** — Workflow now checks registry before publishing; exits cleanly with a warning instead of failing with `E403` if the version is already on npm.
+- **npm-publish: use `npm install` instead of `npm ci`** — Prevents publish failures when a tag commit's lock file is slightly out of sync.
+- **Lint: `cursor.ts` any-budget** — Replaced `any` with `unknown` + type narrowing in `isToolBoundaryAbort()`.
 
 ---
 
