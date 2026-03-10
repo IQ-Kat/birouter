@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.4] — 2026-03-10
+
+> ### 🔧 CI Fixes
+
+### CI
+
+- **docs-sync fix** — Updated `docs/openapi.yaml` version from `2.2.0` to `2.2.3` (was out of sync with `package.json`, causing CI lint failure)
+- **CHANGELOG format** — Added required `## [Unreleased]` section at top of `CHANGELOG.md` (required by `check:docs-sync` script)
+- **Electron Linux** — Added `gem install fpm` step to `electron-release.yml` Linux build job; `fpm` is required by `electron-builder` to package `.deb` installers but was not pre-installed on `ubuntu-latest` runners
+- **Docker publish** — Added `DOCKER_BUILDKIT_INLINE_CACHE` env; previous `502 error writing layer blob` was a transient Docker Hub network error
+
+---
+
 ## [2.2.3] — 2026-03-10
 
 > ### 🐛 Bug Fixes · 🔧 Reliability
