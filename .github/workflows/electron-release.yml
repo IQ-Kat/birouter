@@ -107,6 +107,10 @@ jobs:
           "
           echo "✓ electron/package.json version set to $VERSION_NO_V"
 
+      - name: Install fpm (Linux .deb packaging tool)
+        if: matrix.platform == 'linux'
+        run: sudo gem install fpm --no-document
+
       - name: Install Electron dependencies
         working-directory: electron
         run: npm install --no-audit --no-fund
