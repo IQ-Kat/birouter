@@ -53,10 +53,14 @@ Keep an empty `## [Unreleased]` section above it.
 ## [2.x.y] — YYYY-MM-DD
 ```
 
-### 4. Update openapi.yaml version
+### 4. Update openapi.yaml version ⚠️ MANDATORY
+
+> **CI will fail** if `docs/openapi.yaml` version ≠ `package.json` version (`check:docs-sync` enforces this).
+
+// turbo
 
 ```bash
-sed -i 's/version: OLD/version: NEW/' docs/openapi.yaml
+VERSION=$(node -p "require('./package.json').version") && sed -i "s/  version: .*/  version: $VERSION/" docs/openapi.yaml && echo "✓ openapi.yaml → $VERSION"
 ```
 
 ### 5. Stage, commit, and tag
@@ -95,3 +99,12 @@ ssh root@<VPS_IP> "npm install -g omniroute@2.x.y && pm2 restart omniroute"
 - The `prepublishOnly` script runs `npm run build:cli` automatically during `npm publish`
 - After npm publish, verify with `npm info omniroute version`
 - Lock file sync errors are caused by skipping `npm install` after version bump
+
+## Known CI Pitfalls
+
+| CI failure                                                                | Cause                                                    | Fix                                                                    |
+| ------------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `[docs-sync] FAIL - OpenAPI version differs from package.json`            | Skipped step 4 — `docs/openapi.yaml` version not updated | Run step 4 (`sed -i ...`) and commit                                   |
+| `[docs-sync] FAIL - CHANGELOG.md first section must be "## [Unreleased]"` | `## [Unreleased]` missing or not at top of CHANGELOG     | Add `## [Unreleased]\n\n---\n` before the first versioned `## [x.y.z]` |
+| Electron Linux `.deb` build fails (`FpmTarget` error)                     | `fpm` Ruby gem not installed on `ubuntu-latest` runner   | Already fixed in `electron-release.yml` (`gem install fpm` step)       |
+| Docker Hub `502 error writing layer blob`                                 | Transient Docker Hub network error during ARM64 push     | Re-run the Docker publish workflow; no code change needed              |
