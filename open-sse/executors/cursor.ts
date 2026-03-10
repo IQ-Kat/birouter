@@ -230,10 +230,10 @@ export class CursorExecutor extends BaseExecutor {
   }
 
   transformRequest(model, body, stream, credentials) {
-    // Call translator to convert OpenAI format to Cursor format
-    const translatedBody = buildCursorRequest(model, body, stream, credentials);
-    const messages = translatedBody.messages || [];
-    const tools = translatedBody.tools || body.tools || [];
+    // Messages are already translated by chatCore (claude→openai→cursor)
+    // Do NOT call buildCursorRequest again — double-translation drops tool_results
+    const messages = body.messages || [];
+    const tools = body.tools || [];
     const reasoningEffort = body.reasoning_effort || null;
     return generateCursorBody(messages, model, tools, reasoningEffort);
   }
@@ -415,9 +415,18 @@ export class CursorExecutor extends BaseExecutor {
         continue;
       }
 
+      // Check for JSON error frames
       try {
         const text = payload.toString("utf-8");
         if (text.startsWith("{") && text.includes('"error"')) {
+          const hasContent = totalContent || toolCallsMap.size > 0;
+          console.log(
+            `[CURSOR BUFFER] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
+          );
+          // If we already have content, treat error as stream termination (not fatal)
+          if (hasContent) {
+            break;
+          }
           return createErrorResponse(JSON.parse(text));
         }
       } catch {}
@@ -426,6 +435,12 @@ export class CursorExecutor extends BaseExecutor {
       console.log(`[CURSOR DECODED] Frame ${frameCount}:`, result);
 
       if (result.error) {
+        const hasContent = totalContent || toolCallsMap.size > 0;
+        console.log(`[CURSOR BUFFER] Decoded error (hasContent=${hasContent}): ${result.error}`);
+        // If we already have content, treat error as stream termination
+        if (hasContent) {
+          break;
+        }
         return new Response(
           JSON.stringify({
             error: {
@@ -570,9 +585,19 @@ export class CursorExecutor extends BaseExecutor {
         continue;
       }
 
+      // Check for JSON error frames
       try {
         const text = payload.toString("utf-8");
         if (text.startsWith("{") && text.includes('"error"')) {
+          const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
+          // Log the full error for debugging
+          console.log(
+            `[CURSOR BUFFER SSE] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
+          );
+          // If we already have content, treat error as stream termination (not fatal)
+          if (hasContent) {
+            break;
+          }
           return createErrorResponse(JSON.parse(text));
         }
       } catch {}
@@ -581,6 +606,14 @@ export class CursorExecutor extends BaseExecutor {
       console.log(`[CURSOR DECODED SSE] Frame ${frameCount}:`, result);
 
       if (result.error) {
+        const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
+        console.log(
+          `[CURSOR BUFFER SSE] Decoded error (hasContent=${hasContent}): ${result.error}`
+        );
+        // If we already have content, treat error as stream termination
+        if (hasContent) {
+          break;
+        }
         return new Response(
           JSON.stringify({
             error: {
@@ -717,6 +750,56 @@ export class CursorExecutor extends BaseExecutor {
     console.log(
       `[CURSOR BUFFER SSE] Parsed ${frameCount} frames, toolCallsMap size: ${toolCallsMap.size}, toolCalls array: ${toolCalls.length}`
     );
+
+    // Finalize all remaining tool calls in map (stream may have ended without isLast=true)
+    for (const [id, tc] of toolCallsMap.entries()) {
+      if (!toolCalls.find((t) => t.id === id)) {
+        console.log(
+          `[CURSOR BUFFER SSE] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`
+        );
+        const toolCallIndex = toolCalls.length;
+        toolCalls.push({
+          id: tc.id,
+          type: tc.type,
+          index: toolCallIndex,
+          function: {
+            name: tc.function.name,
+            arguments: tc.function.arguments,
+          },
+        });
+
+        // Emit SSE chunk for the finalized tool call if not already emitted
+        if (!chunks.some((c) => c.includes(tc.id))) {
+          chunks.push(
+            `data: ${JSON.stringify({
+              id: responseId,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              choices: [
+                {
+                  index: 0,
+                  delta: {
+                    tool_calls: [
+                      {
+                        index: toolCallIndex,
+                        id: tc.id,
+                        type: "function",
+                        function: {
+                          name: tc.function.name,
+                          arguments: tc.function.arguments,
+                        },
+                      },
+                    ],
+                  },
+                  finish_reason: null,
+                },
+              ],
+            })}\n\n`
+          );
+        }
+      }
+    }
 
     if (chunks.length === 0 && toolCalls.length === 0) {
       chunks.push(
