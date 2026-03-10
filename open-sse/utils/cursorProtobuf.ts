@@ -12,6 +12,7 @@ import zlib from "zlib";
 
 const DEBUG = process.env.CURSOR_PROTOBUF_DEBUG === "1";
 const log = (tag, ...args) => DEBUG && console.log(`[PROTOBUF:${tag}]`, ...args);
+const textDecoder = new TextDecoder();
 
 /**
  * Schema version — bump when updating field definitions.
@@ -502,10 +503,15 @@ export function encodeRequest(messages, modelName, tools = [], reasoningEffort =
           .map((tr) => tr?.tool_call_id)
           .filter((id) => typeof id === "string")
       );
-      const sameIds =
-        currentIds.size > 0 &&
-        currentIds.size === nextIds.size &&
-        [...currentIds].every((id) => nextIds.has(id));
+      let sameIds = currentIds.size > 0 && currentIds.size === nextIds.size;
+      if (sameIds) {
+        for (const id of currentIds) {
+          if (!nextIds.has(id)) {
+            sameIds = false;
+            break;
+          }
+        }
+      }
 
       if (!(nextHasToolResults && sameIds)) {
         normalizedMessages.push({
@@ -744,12 +750,12 @@ function extractToolCall(toolCallData) {
 
   // Extract tool call ID
   if (toolCall.has(FIELD.TOOL_ID)) {
-    toolCallId = new TextDecoder().decode(toolCall.get(FIELD.TOOL_ID)[0].value);
+    toolCallId = textDecoder.decode(toolCall.get(FIELD.TOOL_ID)[0].value);
   }
 
   // Extract tool name
   if (toolCall.has(FIELD.TOOL_NAME)) {
-    toolName = new TextDecoder().decode(toolCall.get(FIELD.TOOL_NAME)[0].value);
+    toolName = textDecoder.decode(toolCall.get(FIELD.TOOL_NAME)[0].value);
   }
 
   // Extract is_last flag
@@ -768,11 +774,11 @@ function extractToolCall(toolCallData) {
         const tool = decodeMessage(mcpParams.get(FIELD.MCP_TOOLS_LIST)[0].value);
 
         if (tool.has(FIELD.MCP_NESTED_NAME)) {
-          toolName = new TextDecoder().decode(tool.get(FIELD.MCP_NESTED_NAME)[0].value);
+          toolName = textDecoder.decode(tool.get(FIELD.MCP_NESTED_NAME)[0].value);
         }
 
         if (tool.has(FIELD.MCP_NESTED_PARAMS)) {
-          rawArgs = new TextDecoder().decode(tool.get(FIELD.MCP_NESTED_PARAMS)[0].value);
+          rawArgs = textDecoder.decode(tool.get(FIELD.MCP_NESTED_PARAMS)[0].value);
         }
       }
     } catch (err) {
@@ -782,7 +788,7 @@ function extractToolCall(toolCallData) {
 
   // Fallback to raw_args
   if (!rawArgs && toolCall.has(FIELD.TOOL_RAW_ARGS)) {
-    rawArgs = new TextDecoder().decode(toolCall.get(FIELD.TOOL_RAW_ARGS)[0].value);
+    rawArgs = textDecoder.decode(toolCall.get(FIELD.TOOL_RAW_ARGS)[0].value);
   }
 
   if (toolCallId && toolName) {
@@ -807,7 +813,7 @@ function extractTextAndThinking(responseData) {
 
   // Extract text
   if (nested.has(FIELD.RESPONSE_TEXT)) {
-    text = new TextDecoder().decode(nested.get(FIELD.RESPONSE_TEXT)[0].value);
+    text = textDecoder.decode(nested.get(FIELD.RESPONSE_TEXT)[0].value);
   }
 
   // Extract thinking
@@ -815,7 +821,7 @@ function extractTextAndThinking(responseData) {
     try {
       const thinkingMsg = decodeMessage(nested.get(FIELD.THINKING)[0].value);
       if (thinkingMsg.has(FIELD.THINKING_TEXT)) {
-        thinking = new TextDecoder().decode(thinkingMsg.get(FIELD.THINKING_TEXT)[0].value);
+        thinking = textDecoder.decode(thinkingMsg.get(FIELD.THINKING_TEXT)[0].value);
       }
     } catch (err) {
       log("EXTRACT", `Thinking parse error: ${err.message}`);

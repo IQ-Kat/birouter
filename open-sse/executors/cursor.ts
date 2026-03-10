@@ -140,6 +140,41 @@ function createErrorResponse(jsonError) {
   );
 }
 
+function parseCursorJsonErrorFrame(text: string) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function isToolBoundaryAbort(jsonError: any, toolCallCount: number) {
+  if (!jsonError || toolCallCount <= 0) return false;
+  const code = jsonError?.error?.code || "";
+  const debugError = jsonError?.error?.details?.[0]?.debug?.error || "";
+  const title = jsonError?.error?.details?.[0]?.debug?.details?.title || "";
+  const detail = jsonError?.error?.details?.[0]?.debug?.details?.detail || "";
+  const message = `${title} ${detail}`.toLowerCase();
+  const isAbortedCode = code === "aborted" || debugError === "ERROR_USER_ABORTED_REQUEST";
+  return isAbortedCode && message.includes("tool call ended before result was received");
+}
+
+function mergeToolCallDelta(existing, incoming) {
+  const mergedName = incoming?.function?.name || existing?.function?.name || "";
+  const existingArgs = existing?.function?.arguments || "";
+  const deltaArgs = incoming?.function?.arguments || "";
+  return {
+    id: incoming.id || existing.id,
+    type: "function",
+    function: {
+      name: mergedName,
+      arguments: `${existingArgs}${deltaArgs}`,
+    },
+    isLast: Boolean(existing?.isLast || incoming?.isLast),
+    index: existing?.index ?? incoming?.index ?? 0,
+  };
+}
+
 type CursorHttpResponse = {
   status: number;
   headers: Record<string, unknown>;
@@ -383,6 +418,7 @@ export class CursorExecutor extends BaseExecutor {
     let totalContent = "";
     const toolCalls = [];
     const toolCallsMap = new Map(); // Track streaming tool calls by ID
+    const finalizedIds = new Set<string>();
     let frameCount = 0;
 
     debugLog(`[CURSOR BUFFER] Total length: ${buffer.length} bytes`);
@@ -419,19 +455,22 @@ export class CursorExecutor extends BaseExecutor {
         continue;
       }
 
-      // Check for JSON error frames
-      try {
-        const text = payload.toString("utf-8");
-        if (text.startsWith("{") && text.includes('"error"')) {
-          const hasContent = totalContent || toolCallsMap.size > 0;
-          debugLog(`[CURSOR BUFFER] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`);
-          // If we already have content, treat error as stream termination (not fatal)
-          if (hasContent) {
-            break;
+      // Check for JSON error frames (byte guard: skip toString on non-JSON frames)
+      if (payload.length > 0 && payload[0] === 0x7b) {
+        try {
+          const text = payload.toString("utf-8");
+          if (text.includes('"error"')) {
+            const hasContent = totalContent || toolCallsMap.size > 0;
+            debugLog(
+              `[CURSOR BUFFER] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
+            );
+            if (hasContent) {
+              break;
+            }
+            return createErrorResponse(JSON.parse(text));
           }
-          return createErrorResponse(JSON.parse(text));
-        }
-      } catch {}
+        } catch {}
+      }
 
       const result = extractTextFromResponse(new Uint8Array(payload));
       debugLog(`[CURSOR DECODED] Frame ${frameCount}:`, result);
@@ -474,6 +513,7 @@ export class CursorExecutor extends BaseExecutor {
         // Push to final array when isLast is true
         if (tc.isLast) {
           const finalToolCall = toolCallsMap.get(tc.id);
+          finalizedIds.add(tc.id);
           toolCalls.push({
             id: finalToolCall.id,
             type: finalToolCall.type,
@@ -495,7 +535,7 @@ export class CursorExecutor extends BaseExecutor {
     // Finalize all remaining tool calls in map (in case stream ended without isLast=true)
     for (const [id, tc] of toolCallsMap.entries()) {
       // Check if already in final array
-      if (!toolCalls.find((t) => t.id === id)) {
+      if (!finalizedIds.has(id)) {
         debugLog(`[CURSOR BUFFER] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
         toolCalls.push({
           id: tc.id,
@@ -551,6 +591,8 @@ export class CursorExecutor extends BaseExecutor {
     let totalContent = "";
     const toolCalls = [];
     const toolCallsMap = new Map(); // Track streaming tool calls by ID
+    const finalizedIds = new Set<string>();
+    const emittedToolCallIds = new Set<string>();
     let frameCount = 0;
 
     debugLog(`[CURSOR BUFFER SSE] Total length: ${buffer.length} bytes`);
@@ -587,22 +629,22 @@ export class CursorExecutor extends BaseExecutor {
         continue;
       }
 
-      // Check for JSON error frames
-      try {
-        const text = payload.toString("utf-8");
-        if (text.startsWith("{") && text.includes('"error"')) {
-          const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
-          // Log the full error for debugging
-          debugLog(
-            `[CURSOR BUFFER SSE] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
-          );
-          // If we already have content, treat error as stream termination (not fatal)
-          if (hasContent) {
-            break;
+      // Check for JSON error frames (byte-guard: only decode if starts with '{')
+      if (payload[0] === 0x7b) {
+        try {
+          const text = payload.toString("utf-8");
+          if (text.includes('"error"')) {
+            const hasContent = chunks.length > 0 || totalContent || toolCallsMap.size > 0;
+            debugLog(
+              `[CURSOR BUFFER SSE] Error frame (hasContent=${hasContent}): ${text.slice(0, 500)}`
+            );
+            if (hasContent) {
+              break;
+            }
+            return createErrorResponse(JSON.parse(text));
           }
-          return createErrorResponse(JSON.parse(text));
-        }
-      } catch {}
+        } catch {}
+      }
 
       const result = extractTextFromResponse(new Uint8Array(payload));
       debugLog(`[CURSOR DECODED SSE] Frame ${frameCount}:`, result);
@@ -659,6 +701,7 @@ export class CursorExecutor extends BaseExecutor {
 
           // Stream the delta arguments
           if (tc.function.arguments) {
+            emittedToolCallIds.add(tc.id);
             chunks.push(
               `data: ${JSON.stringify({
                 id: responseId,
@@ -690,10 +733,12 @@ export class CursorExecutor extends BaseExecutor {
         } else {
           // New tool call - assign index and add to map
           const toolCallIndex = toolCalls.length;
+          finalizedIds.add(tc.id);
           toolCalls.push({ ...tc, index: toolCallIndex });
           toolCallsMap.set(tc.id, { ...tc, index: toolCallIndex });
 
           // Stream initial tool call with name
+          emittedToolCallIds.add(tc.id);
           chunks.push(
             `data: ${JSON.stringify({
               id: responseId,
@@ -753,7 +798,7 @@ export class CursorExecutor extends BaseExecutor {
 
     // Finalize all remaining tool calls in map (stream may have ended without isLast=true)
     for (const [id, tc] of toolCallsMap.entries()) {
-      if (!toolCalls.find((t) => t.id === id)) {
+      if (!finalizedIds.has(id)) {
         debugLog(`[CURSOR BUFFER SSE] Finalizing incomplete tool call: ${id}, isLast=${tc.isLast}`);
         const toolCallIndex = toolCalls.length;
         toolCalls.push({
@@ -767,7 +812,7 @@ export class CursorExecutor extends BaseExecutor {
         });
 
         // Emit SSE chunk for the finalized tool call if not already emitted
-        if (!chunks.some((c) => c.includes(tc.id))) {
+        if (!emittedToolCallIds.has(tc.id)) {
           chunks.push(
             `data: ${JSON.stringify({
               id: responseId,

@@ -37,13 +37,17 @@ function sanitizeToolResultText(text: string): string {
   return text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
 }
 
+function escapeXml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function buildToolResultBlock(toolName: string, toolCallId: string, resultText: string): string {
   const cleanResult = sanitizeToolResultText(resultText || "");
   return [
     "<tool_result>",
-    `<tool_name>${toolName || "tool"}</tool_name>`,
-    `<tool_call_id>${toolCallId || ""}</tool_call_id>`,
-    `<result>${cleanResult}</result>`,
+    `<tool_name>${escapeXml(toolName || "tool")}</tool_name>`,
+    `<tool_call_id>${escapeXml(toolCallId || "")}</tool_call_id>`,
+    `<result>${escapeXml(cleanResult)}</result>`,
     "</tool_result>",
   ].join("\n");
 }
