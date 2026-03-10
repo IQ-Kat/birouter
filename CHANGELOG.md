@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.3] — 2026-03-10
+
+> ### 🐛 Bug Fixes · 🔧 Reliability
+
+### Bug Fixes
+
+- **Antigravity/Gemini CLI: remove fake projectId fallback (#285)** — OmniRoute was generating random fallback project IDs (e.g. `useful-fuze-a04c5`) when OAuth credentials lacked a real GCP `projectId`. This caused confusing `Permission denied on resource project` and `Verify your account` errors from Google. Now throws a clear actionable error: _reconnect OAuth so OmniRoute can load your real Cloud Code project_. Affects `antigravity.ts`, `openai-to-gemini.ts`, `geminiHelper.ts`.
+- **Claude Code: filter empty-named tool_use blocks across all message roles (#288)** — Pass 1.4 only filtered empty tool names from `assistant` messages. Extended to all roles (user, system). Also filters `tool_result` blocks missing `tool_use_id`, and top-level `body.tools` declarations with empty names. Prevents `Invalid input[x].name: empty string` 400 errors from Claude API.
+- **Docker: explicit @swc/helpers copy (#288)** — Added `COPY --from=builder /app/node_modules/@swc/helpers` to Dockerfile `runner-base` stage. The standalone tracer doesn't always include this package, causing runtime `MODULE_NOT_FOUND` crashloops.
+
+---
+
 ## [2.2.2] — 2026-03-10
 
 > ### ✨ New Features · 🔀 Model Aliases
