@@ -39,10 +39,13 @@ function mockHandler(statusSequence) {
 }
 
 // ─── Circuit Breaker Integration Tests ──────────────────────────────────────
+// NOTE: combo.ts uses the full model string (e.g. "combo:groq/llama-3.3-70b")
+// as the circuit breaker key, not just the provider prefix.
 
 test("handleComboChat: circuit breaker opens after repeated 502 errors", async () => {
-  // Reset breaker for this test's provider
-  const breaker = getCircuitBreaker("combo:groq", {
+  // breaker key mirrors what combo.ts uses: "combo:<full-model-string>"
+  const breakerKey = "combo:groq/llama-3.3-70b";
+  const breaker = getCircuitBreaker(breakerKey, {
     failureThreshold: 3,
     resetTimeout: 60000,
   });
@@ -77,7 +80,8 @@ test("handleComboChat: circuit breaker opens after repeated 502 errors", async (
 
 test("handleComboChat: skips models with open circuit breaker", async () => {
   // Set up: groq breaker is OPEN, fireworks breaker is CLOSED
-  const groqBreaker = getCircuitBreaker("combo:groq", {
+  const groqBreakerKey = "combo:groq/llama-3.3-70b";
+  const groqBreaker = getCircuitBreaker(groqBreakerKey, {
     failureThreshold: 3,
     resetTimeout: 60000,
   });
@@ -88,7 +92,8 @@ test("handleComboChat: skips models with open circuit breaker", async () => {
   groqBreaker._onFailure();
   assert.equal(groqBreaker.getStatus().state, STATE.OPEN);
 
-  const fireworksBreaker = getCircuitBreaker("combo:fireworks", {
+  const fireworksBreakerKey = "combo:fireworks/deepseek-v3p1";
+  const fireworksBreaker = getCircuitBreaker(fireworksBreakerKey, {
     failureThreshold: 5,
     resetTimeout: 30000,
   });
@@ -125,14 +130,14 @@ test("handleComboChat: skips models with open circuit breaker", async () => {
 });
 
 test("handleComboChat: returns 503 when all breakers are open", async () => {
-  // Open both breakers
-  const groqBreaker = getCircuitBreaker("combo:groq");
+  // Open both breakers using the full model string keys
+  const groqBreaker = getCircuitBreaker("combo:groq/llama-3.3-70b");
   groqBreaker.reset();
   groqBreaker._onFailure();
   groqBreaker._onFailure();
   groqBreaker._onFailure();
 
-  const fireworksBreaker = getCircuitBreaker("combo:fireworks");
+  const fireworksBreaker = getCircuitBreaker("combo:fireworks/deepseek-v3p1");
   fireworksBreaker.reset();
   for (let i = 0; i < 5; i++) fireworksBreaker._onFailure();
 
@@ -163,7 +168,8 @@ test("handleComboChat: returns 503 when all breakers are open", async () => {
 });
 
 test("handleComboChat: 429 errors also trigger circuit breaker", async () => {
-  const breaker = getCircuitBreaker("combo:cerebras", {
+  const breakerKey = "combo:cerebras/llama-3.3-70b";
+  const breaker = getCircuitBreaker(breakerKey, {
     failureThreshold: 5,
     resetTimeout: 30000,
   });
