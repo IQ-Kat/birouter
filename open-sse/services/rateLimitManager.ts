@@ -59,6 +59,11 @@ const PERSIST_DEBOUNCE_MS = 60_000; // Debounce persistence to every 60s max
 // Track initialization
 let initialized = false;
 
+// Max time (ms) a job can wait in queue before failing with a timeout error.
+// Prevents infinite queuing when all providers are exhausted after a 429.
+// Configurable via RATE_LIMIT_MAX_WAIT_MS env var (default: 2 minutes).
+const MAX_WAIT_MS = parseInt(process.env.RATE_LIMIT_MAX_WAIT_MS || "120000", 10);
+
 // Default conservative settings (before we learn from headers)
 const DEFAULT_SETTINGS = {
   maxConcurrent: 10,
@@ -66,6 +71,7 @@ const DEFAULT_SETTINGS = {
   reservoir: null, // No initial reservoir — unlimited until we learn
   reservoirRefreshAmount: null,
   reservoirRefreshInterval: null,
+  maxWait: MAX_WAIT_MS, // Fail-fast: don't queue forever on 429 exhaustion
 };
 
 /**
@@ -111,6 +117,7 @@ export async function initializeRateLimits() {
               reservoir: rpm,
               reservoirRefreshAmount: rpm,
               reservoirRefreshInterval: 60 * 1000,
+              maxWait: MAX_WAIT_MS,
               id: key,
             })
           );
@@ -135,6 +142,7 @@ export async function initializeRateLimits() {
               reservoir: DEFAULT_API_LIMITS.requestsPerMinute,
               reservoirRefreshAmount: DEFAULT_API_LIMITS.requestsPerMinute,
               reservoirRefreshInterval: 60 * 1000, // Refresh every minute
+              maxWait: MAX_WAIT_MS,
               id: key,
             })
           );
