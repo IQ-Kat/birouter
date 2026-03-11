@@ -158,6 +158,28 @@ export async function handleChatCore({
       translatedBody = { ...translatedBody, _disableToolPrefix: true };
     }
 
+    // ── #291: Strip empty name fields from messages/input items ──
+    // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
+    // Clients like PocketPaw may forward empty name fields from assistant turns.
+    if (Array.isArray(body.messages)) {
+      body.messages = body.messages.map((msg: Record<string, unknown>) => {
+        if (msg.name === "") {
+          const { name: _n, ...rest } = msg;
+          return rest;
+        }
+        return msg;
+      });
+    }
+    if (Array.isArray(body.input)) {
+      body.input = body.input.map((item: Record<string, unknown>) => {
+        if (item.name === "") {
+          const { name: _n, ...rest } = item;
+          return rest;
+        }
+        return item;
+      });
+    }
+
     translatedBody = translateRequest(
       sourceFormat,
       targetFormat,
