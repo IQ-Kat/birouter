@@ -11,6 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.7] — 2026-03-10
+
+> ### Bug Fixes & Dependency Updates
+
+### Bug Fixes
+
+- **Docker startup crash (#292)** — Fixed missing `bootstrap-env.mjs` in the runtime image. The Dockerfile runner stage now copies the file from the builder stage (PR #293).
+- **Google CLI stale projectId (#394)** — Antigravity and Gemini CLI executors now prefer the OAuth-stored `projectId` over `body.project` to prevent 403/404 errors from stale cached values. Includes type-safe body assignment (PR #294).
+- **Tool-calling 400 errors (#291)** — Empty `name: ""` fields in `messages[]` and `input[]` are now stripped before forwarding to upstream providers (OpenAI, Codex) that reject them (PR #300).
+
+### Dependencies
+
+- Bump `hono` from 4.12.4 to 4.12.7 (security patch) (PR #298)
+
+---
+
 ## [2.2.6] — 2026-03-10
 
 > ### 🐛 Fix Claude Thinking Tokens Invisible in Passthrough Mode
