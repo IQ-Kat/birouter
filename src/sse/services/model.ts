@@ -39,6 +39,7 @@ async function lookupCustomModelApiFormat(
  */
 export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
+  const { extendedContext } = parsed;
 
   // Check custom provider nodes first (for both alias and non-alias formats)
   if (parsed.providerAlias || parsed.provider) {
@@ -53,7 +54,12 @@ export async function getModelInfo(modelStr) {
         matchedOpenAI.id as string,
         parsed.model as string
       );
-      return { provider: matchedOpenAI.id, model: parsed.model, ...(apiFormat && { apiFormat }) };
+      return {
+        provider: matchedOpenAI.id,
+        model: parsed.model,
+        extendedContext,
+        ...(apiFormat && { apiFormat }),
+      };
     }
 
     // Check Anthropic Compatible nodes
@@ -67,6 +73,7 @@ export async function getModelInfo(modelStr) {
       return {
         provider: matchedAnthropic.id,
         model: parsed.model,
+        extendedContext,
         ...(apiFormat && { apiFormat }),
       };
     }
