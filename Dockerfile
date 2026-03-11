@@ -33,6 +33,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
 COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
+COPY --from=builder /app/scripts/bootstrap-env.mjs ./bootstrap-env.mjs
 COPY --from=builder /app/scripts/healthcheck.mjs ./healthcheck.mjs
 
 EXPOSE 20128
