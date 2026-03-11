@@ -46,6 +46,30 @@ export async function register() {
     startBackgroundRefresh();
     console.log("[STARTUP] Quota cache background refresh started");
 
+    // Model aliases: restore persisted custom aliases into in-memory state (#316)
+    // Custom aliases are saved to settings.modelAliases on PUT /api/settings/model-aliases
+    // but the in-memory _customAliases resets to {} on every restart — load them here.
+    try {
+      const { getSettings } = await import("@/lib/db/settings");
+      const { setCustomAliases } = await import("@omniroute/open-sse/services/modelDeprecation.ts");
+      const settings = getSettings();
+      if (settings.modelAliases) {
+        const aliases =
+          typeof settings.modelAliases === "string"
+            ? JSON.parse(settings.modelAliases)
+            : settings.modelAliases;
+        if (aliases && typeof aliases === "object") {
+          setCustomAliases(aliases);
+          console.log(
+            `[STARTUP] Restored ${Object.keys(aliases).length} custom model alias(es) from settings`
+          );
+        }
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Could not restore model aliases:", msg);
+    }
+
     // Compliance: Initialize audit_log table + cleanup expired logs
     try {
       const { initAuditLog, cleanupExpiredLogs } = await import("@/lib/compliance/index");

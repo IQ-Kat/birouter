@@ -12,6 +12,7 @@ import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { createErrorResult, parseUpstreamError, formatProviderError } from "../utils/error.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
@@ -105,8 +106,13 @@ export async function handleChatCore({
   // Detect source format and get target format
   // Model-specific targetFormat takes priority over provider default
 
+  // Apply custom model aliases (Settings → Model Aliases → Pattern→Target) before routing (#315)
+  // Custom aliases take priority over built-in and must be resolved here so the
+  // downstream getModelTargetFormat() lookup uses the correct, aliased model ID.
+  const resolvedModel = resolveModelAlias(model);
+
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
-  const modelTargetFormat = getModelTargetFormat(alias, model);
+  const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat = modelTargetFormat || getTargetFormat(provider);
 
   // Default to false unless client explicitly sets stream: true (OpenAI spec compliant)
