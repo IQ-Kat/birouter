@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.8] — 2026-03-11
+
+> ### Bug Fixes
+
+### Bug Fixes
+
+- **Docker healthcheck wrong endpoint (#296)** — `scripts/healthcheck.mjs` now queries `/api/monitoring/health` instead of `/api/settings`. Aligns the healthcheck with all other health monitoring components (PR #301).
+- **429 causes endless queue / requests hang forever (#297)** — Added `maxWait=120000` (2 min) to all Bottleneck instances. When all provider quotas are exhausted, requests now fail-fast with a clean error instead of queueing indefinitely. Configurable via `RATE_LIMIT_MAX_WAIT_MS` env var (PR #302).
+
+---
+
 ## [2.2.7] — 2026-03-10
 
 > ### Bug Fixes & Dependency Updates
