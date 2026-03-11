@@ -1341,6 +1341,7 @@ PassthroughModelRow.propTypes = {
 
 function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
   const t = useTranslations("providers");
+  const notify = useNotificationStore();
   const [customModels, setCustomModels] = useState([]);
   const [newModelId, setNewModelId] = useState("");
   const [newModelName, setNewModelName] = useState("");
@@ -1348,6 +1349,10 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
   const [newEndpoints, setNewEndpoints] = useState(["chat"]);
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editingModelId, setEditingModelId] = useState<string | null>(null);
+  const [editingApiFormat, setEditingApiFormat] = useState("chat-completions");
+  const [editingEndpoints, setEditingEndpoints] = useState<string[]>(["chat"]);
+  const [savingModelId, setSavingModelId] = useState<string | null>(null);
 
   const fetchCustomModels = useCallback(async () => {
     try {
@@ -1407,6 +1412,61 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
       await fetchCustomModels();
     } catch (e) {
       console.error("Failed to remove custom model:", e);
+    }
+  };
+
+  const beginEdit = (model) => {
+    setEditingModelId(model.id);
+    setEditingApiFormat(model.apiFormat || "chat-completions");
+    setEditingEndpoints(
+      Array.isArray(model.supportedEndpoints) && model.supportedEndpoints.length
+        ? model.supportedEndpoints
+        : ["chat"]
+    );
+  };
+
+  const cancelEdit = () => {
+    setEditingModelId(null);
+    setEditingApiFormat("chat-completions");
+    setEditingEndpoints(["chat"]);
+    setSavingModelId(null);
+  };
+
+  const saveEdit = async (modelId) => {
+    if (!editingModelId || editingModelId !== modelId) return;
+    if (!editingEndpoints.length) {
+      notify.error("Select at least one supported endpoint");
+      return;
+    }
+
+    setSavingModelId(modelId);
+    try {
+      const model = customModels.find((m) => m.id === modelId);
+      const res = await fetch("/api/provider-models", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: providerId,
+          modelId,
+          modelName: model?.name || modelId,
+          source: model?.source || "manual",
+          apiFormat: editingApiFormat,
+          supportedEndpoints: editingEndpoints,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save model endpoint settings");
+      }
+
+      await fetchCustomModels();
+      notify.success("Saved model endpoint settings");
+      cancelEdit();
+    } catch (e) {
+      console.error("Failed to save custom model:", e);
+      notify.error("Failed to save model endpoint settings");
+    } finally {
+      setSavingModelId(null);
     }
   };
 
@@ -1554,14 +1614,82 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
                       </span>
                     )}
                   </div>
+
+                  {editingModelId === model.id && (
+                    <div className="mt-3 p-3 rounded-lg border border-border bg-sidebar/40">
+                      <div className="flex items-end gap-3 flex-wrap">
+                        <div className="w-44">
+                          <label className="text-xs text-text-muted mb-1 block">API Format</label>
+                          <select
+                            value={editingApiFormat}
+                            onChange={(e) => setEditingApiFormat(e.target.value)}
+                            className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+                          >
+                            <option value="chat-completions">Chat Completions</option>
+                            <option value="responses">Responses API</option>
+                          </select>
+                        </div>
+
+                        <div className="flex-1 min-w-[240px]">
+                          <span className="text-xs text-text-muted mb-1 block">Supported Endpoints</span>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            {["chat", "embeddings", "images", "audio"].map((ep) => (
+                              <label key={ep} className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={editingEndpoints.includes(ep)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setEditingEndpoints((prev) => (prev.includes(ep) ? prev : [...prev, ep]));
+                                    } else {
+                                      setEditingEndpoints((prev) => prev.filter((x) => x !== ep));
+                                    }
+                                  }}
+                                  className="rounded border-border"
+                                />
+                                {ep === "chat"
+                                  ? "💬 Chat"
+                                  : ep === "embeddings"
+                                    ? "📐 Embeddings"
+                                    : ep === "images"
+                                      ? "🖼️ Images"
+                                      : "🔊 Audio"}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => saveEdit(model.id)}
+                          disabled={savingModelId === model.id}
+                        >
+                          {savingModelId === model.id ? t("saving") : t("save")}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit}>
+                          {t("cancel")}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={() => handleRemove(model.id)}
-                  className="p-1 hover:bg-red-50 rounded text-red-500"
-                  title={t("removeCustomModel")}
-                >
-                  <span className="material-symbols-outlined text-sm">delete</span>
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => beginEdit(model)}
+                    className="p-1 hover:bg-sidebar rounded text-text-muted hover:text-primary"
+                    title={t("edit")}
+                  >
+                    <span className="material-symbols-outlined text-sm">edit</span>
+                  </button>
+                  <button
+                    onClick={() => handleRemove(model.id)}
+                    className="p-1 hover:bg-red-50 rounded text-red-500"
+                    title={t("removeCustomModel")}
+                  >
+                    <span className="material-symbols-outlined text-sm">delete</span>
+                  </button>
+                </div>
               </div>
             );
           })}

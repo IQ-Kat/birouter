@@ -3,6 +3,7 @@ import {
   getAllCustomModels,
   addCustomModel,
   removeCustomModel,
+  updateCustomModel,
 } from "@/lib/localDb";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { providerModelMutationSchema } from "@/shared/validation/schemas";
@@ -79,6 +80,59 @@ export async function POST(request) {
     console.error("Error adding provider model:", error);
     return Response.json(
       { error: { message: "Failed to add provider model", type: "server_error" } },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/provider-models
+ * Body: { provider, modelId, modelName?, apiFormat?, supportedEndpoints? }
+ */
+export async function PUT(request) {
+  let rawBody;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return Response.json(
+      { error: { message: "Invalid JSON body", type: "validation_error" } },
+      { status: 400 }
+    );
+  }
+
+  try {
+    if (!(await isAuthenticated(request))) {
+      return Response.json(
+        { error: { message: "Authentication required", type: "invalid_api_key" } },
+        { status: 401 }
+      );
+    }
+
+    const validation = validateBody(providerModelMutationSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return Response.json({ error: validation.error }, { status: 400 });
+    }
+
+    const { provider, modelId, modelName, apiFormat, supportedEndpoints } = validation.data;
+
+    const model = await updateCustomModel(provider, modelId, {
+      modelName,
+      apiFormat,
+      supportedEndpoints,
+    });
+
+    if (!model) {
+      return Response.json(
+        { error: { message: "Model not found", type: "not_found" } },
+        { status: 404 }
+      );
+    }
+
+    return Response.json({ model });
+  } catch (error) {
+    console.error("Error updating provider model:", error);
+    return Response.json(
+      { error: { message: "Failed to update provider model", type: "server_error" } },
       { status: 500 }
     );
   }
