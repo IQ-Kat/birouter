@@ -52,7 +52,7 @@ export async function register() {
     try {
       const { getSettings } = await import("@/lib/db/settings");
       const { setCustomAliases } = await import("@omniroute/open-sse/services/modelDeprecation.ts");
-      const settings = getSettings();
+      const settings = await getSettings();
       if (settings.modelAliases) {
         const aliases =
           typeof settings.modelAliases === "string"
