@@ -918,12 +918,12 @@ async function getKimiUsage(accessToken) {
       };
     };
 
-    if (hasUtilization(dataObj.five_hour)) {
-      quotas["session (5h)"] = createQuotaObject(dataObj.five_hour);
+    if (hasUtilization(toRecord(dataObj.five_hour))) {
+      quotas["session (5h)"] = createQuotaObject(toRecord(dataObj.five_hour));
     }
 
-    if (hasUtilization(dataObj.seven_day)) {
-      quotas["weekly (7d)"] = createQuotaObject(dataObj.seven_day);
+    if (hasUtilization(toRecord(dataObj.seven_day))) {
+      quotas["weekly (7d)"] = createQuotaObject(toRecord(dataObj.seven_day));
     }
 
     // Check for model-specific quotas
@@ -936,7 +936,8 @@ async function getKimiUsage(accessToken) {
     }
 
     if (Object.keys(quotas).length > 0) {
-      const membershipLevel = dataObj.user?.membership?.level;
+      const userRecord = toRecord(dataObj.user);
+      const membershipLevel = toRecord(userRecord.membership).level;
       const planName = getKimiPlanName(membershipLevel);
       return {
         plan: planName || "Kimi Coding",
@@ -945,7 +946,8 @@ async function getKimiUsage(accessToken) {
     }
 
     // No quota data in response
-    const membershipLevel = dataObj.user?.membership?.level;
+    const userRecord = toRecord(dataObj.user);
+    const membershipLevel = toRecord(userRecord.membership).level;
     const planName = getKimiPlanName(membershipLevel);
     return {
       plan: planName || "Kimi Coding",
