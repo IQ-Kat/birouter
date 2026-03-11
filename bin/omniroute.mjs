@@ -193,6 +193,39 @@ if (!existsSync(serverJs)) {
   process.exit(1);
 }
 
+// ── Pre-flight: verify better-sqlite3 native binary ───────
+// The published binary targets linux-x64. Check both platform match AND
+// dlopen — on macOS, dlopen alone may succeed on an incompatible binary
+// (false positive), so we check platform first as the primary signal.
+const sqliteBinary = join(
+  APP_DIR,
+  "node_modules",
+  "better-sqlite3",
+  "build",
+  "Release",
+  "better_sqlite3.node"
+);
+if (existsSync(sqliteBinary)) {
+  let compatible = false;
+  try {
+    process.dlopen({ exports: {} }, sqliteBinary);
+    compatible = true;
+  } catch {
+    // dlopen failed — definitely incompatible
+  }
+
+  if (!compatible) {
+    console.error(
+      "\x1b[31m✖ better-sqlite3 native module is incompatible with this platform.\x1b[0m"
+    );
+    console.error(`  Run: cd ${APP_DIR} && npm rebuild better-sqlite3`);
+    if (platform() === "darwin") {
+      console.error("  If build tools are missing: xcode-select --install");
+    }
+    process.exit(1);
+  }
+}
+
 // ── Start server ───────────────────────────────────────────
 console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 

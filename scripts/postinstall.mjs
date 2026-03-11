@@ -30,14 +30,20 @@ if (!existsSync(appNodeModules)) {
 
 const buildInfoPath = join(appNodeModules, "build", "Release", "better_sqlite3.node");
 
-// Quick check: try to load the native module
-try {
-  // Use a dynamic import-like approach — try to dlopen the .node file
-  process.dlopen({ exports: {} }, buildInfoPath);
-  // If it loaded, the binary is compatible — nothing to do
-  process.exit(0);
-} catch {
-  // Binary is incompatible — rebuild
+// The published binary is compiled for linux-x64.
+// On any other platform/arch, we must rebuild — dlopen alone is unreliable
+// because macOS may load an incompatible binary without throwing.
+const BUILD_PLATFORM = "linux";
+const BUILD_ARCH = "x64";
+const needsRebuild = process.platform !== BUILD_PLATFORM || process.arch !== BUILD_ARCH;
+
+if (!needsRebuild) {
+  try {
+    process.dlopen({ exports: {} }, buildInfoPath);
+    process.exit(0);
+  } catch {
+    // Same platform but binary still incompatible (e.g. Node.js ABI mismatch) — rebuild
+  }
 }
 
 console.log(`\n  🔧 Rebuilding better-sqlite3 for ${process.platform}-${process.arch}...`);
@@ -48,10 +54,28 @@ try {
     stdio: "inherit",
     timeout: 120_000,
   });
-  console.log("  ✅ Native module rebuilt successfully!\n");
 } catch (error) {
-  console.warn("  ⚠️  Failed to rebuild better-sqlite3 automatically.");
-  console.warn("     You can fix this manually by running:");
-  console.warn(`     cd ${join(ROOT, "app")} && npm rebuild better-sqlite3\n`);
-  // Don't fail the install — the user can fix manually
+  console.error("  ❌ Failed to rebuild better-sqlite3 automatically.");
+  console.error("     You can fix this manually by running:");
+  console.error(`     cd ${join(ROOT, "app")} && npm rebuild better-sqlite3`);
+  if (process.platform === "darwin") {
+    console.error("     If build tools are missing: xcode-select --install");
+  }
+  console.error("");
+  process.exit(1);
+}
+
+// Verify the rebuilt binary actually loads
+try {
+  process.dlopen({ exports: {} }, buildInfoPath);
+  console.log("  ✅ Native module rebuilt successfully!\n");
+} catch {
+  console.error("  ❌ Rebuild completed but binary is still incompatible.");
+  console.error("     Try manually:");
+  console.error(`     cd ${join(ROOT, "app")} && npm rebuild better-sqlite3`);
+  if (process.platform === "darwin") {
+    console.error("     If build tools are missing: xcode-select --install");
+  }
+  console.error("");
+  process.exit(1);
 }
