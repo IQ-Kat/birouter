@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] — 2026-03-11
+
+> ### Bug Fixes
+
+### 🐛 Bug Fixes
+
+- **Custom Model Alias (Pattern→Target) ignored during routing (#315)** — `chatCore.ts` now calls `resolveModelAlias()` before the routing format lookup so aliases configured in Settings → Model Aliases → Pattern→Target are applied correctly (PR #317).
+- **Custom Model Aliases lost after server restart (#316)** — Next.js startup hook (`src/instrumentation.ts`) now restores custom aliases from `settings.modelAliases` in the DB at boot, preventing the in-memory state from resetting to empty on restart (PR #317).
+- **`better-sqlite3` postinstall rebuild fails silently on macOS ARM (#312)** — Replace unreliable `process.dlopen()` detection with explicit `process.platform`/`process.arch` comparison. Rebuild now fail-fasts with a clear error on non-linux-x64 platforms (PR #313 by @ardaaltinors).
+
+---
+
 ## [2.2.9] — 2026-03-11
 
 > ### Features, Bug Fixes & Dependency Updates
