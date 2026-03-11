@@ -98,12 +98,12 @@ export default function OAuthModal({
           GOOGLE_OAUTH_PROVIDERS.has(provider)
         ) {
           setError(
-            "redirect_uri_mismatch: As credenciais padrão do Google OAuth só funcionam em localhost. " +
-              "Para uso remoto, configure suas próprias credenciais OAuth nas variáveis de ambiente: " +
+            "redirect_uri_mismatch: The default Google OAuth credentials only work on localhost. " +
+              "For remote use, configure your own OAuth credentials via environment variables: " +
               (provider === "antigravity"
-                ? "ANTIGRAVITY_OAUTH_CLIENT_ID e ANTIGRAVITY_OAUTH_CLIENT_SECRET"
-                : "GEMINI_OAUTH_CLIENT_ID e GEMINI_OAUTH_CLIENT_SECRET") +
-              ". Veja o README, seção 'OAuth em Servidor Remoto'."
+                ? "ANTIGRAVITY_OAUTH_CLIENT_ID and ANTIGRAVITY_OAUTH_CLIENT_SECRET"
+                : "GEMINI_OAUTH_CLIENT_ID and GEMINI_OAUTH_CLIENT_SECRET") +
+              ". See the README section 'OAuth on a Remote Server'."
           );
         } else {
           setError(err.message);
@@ -512,17 +512,17 @@ export default function OAuthModal({
                   <span className="material-symbols-outlined text-sm align-middle mr-1">
                     warning
                   </span>
-                  <strong>Acesso remoto + Google OAuth:</strong> As credenciais padrão só aceitam
-                  redirect para <code>localhost</code>. Após autorizar, o browser tentará abrir
-                  <code>localhost</code> — copie essa URL completa e cole abaixo. Para uso
-                  totalmente remoto sem esse passo manual,{" "}
+                  <strong>Remote access + Google OAuth:</strong> The default credentials only accept
+                  redirects to <code>localhost</code>. After authorizing, your browser will try to
+                  open <code>localhost</code> — copy that full URL and paste it below. For fully
+                  remote use without this manual step,{" "}
                   <a
-                    href="https://github.com/diegosouzapw/OmniRoute#oauth-em-servidor-remoto"
+                    href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
                     target="_blank"
                     rel="noreferrer"
                     className="underline"
                   >
-                    configure suas próprias credenciais OAuth
+                    configure your own OAuth credentials
                   </a>
                   .
                 </div>
