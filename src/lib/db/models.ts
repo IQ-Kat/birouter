@@ -177,3 +177,38 @@ export async function removeCustomModel(providerId, modelId) {
   backupDbFile("pre-write");
   return true;
 }
+
+export async function updateCustomModel(providerId, modelId, updates = {}) {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
+    .get(providerId);
+  if (!row) return null;
+
+  const value = getKeyValue(row).value;
+  if (!value) return null;
+
+  const models = JSON.parse(value);
+  const index = models.findIndex((m) => m.id === modelId);
+  if (index === -1) return null;
+
+  const current = models[index];
+  const next = {
+    ...current,
+    ...(updates.modelName !== undefined ? { name: updates.modelName || current.name } : {}),
+    ...(updates.apiFormat !== undefined ? { apiFormat: updates.apiFormat } : {}),
+    ...(updates.supportedEndpoints !== undefined
+      ? { supportedEndpoints: updates.supportedEndpoints }
+      : {}),
+  };
+
+  models[index] = next;
+
+  db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
+    JSON.stringify(models),
+    providerId
+  );
+
+  backupDbFile("pre-write");
+  return next;
+}

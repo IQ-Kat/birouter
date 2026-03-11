@@ -40,6 +40,7 @@ export {
   getAllCustomModels,
   addCustomModel,
   removeCustomModel,
+  updateCustomModel,
 } from "./db/models";
 
 export {
