@@ -11,6 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.9] — 2026-03-11
+
+> ### Features, Bug Fixes & Dependency Updates
+
+### ✨ New Features
+
+- **Edit custom model endpoints (#307)** — Provider detail page now shows per-row **Edit / Save / Cancel** controls for custom models. Changes to `apiFormat` and `supportedEndpoints` are now persisted via the new `PUT /api/provider-models` endpoint instead of resetting on navigation (PR #307 by @hijak).
+
+### 🐛 Bug Fixes
+
+- **`@swc/helpers` MODULE_NOT_FOUND on startup (#306)** — Added `@swc/helpers@0.5.19` as an explicit `dependency` and `override` in `package.json`. Global npm install (`npm install -g omniroute`) now reliably includes this transitive dependency on all platforms including Windows (PR #308).
+- **Claude quota display inverted (#299)** — Claude Code's OAuth API returns `utilization` as _percent used_, not percent remaining. The quota bar was backwards: 87% used on Claude.ai = 87% "remaining" (green) in OmniRoute. Fixed `open-sse/services/usage.ts`: `remaining = 100 - utilization` (PR #309).
+
+---
+
 ## [2.2.8] — 2026-03-11
 
 > ### Bug Fixes
