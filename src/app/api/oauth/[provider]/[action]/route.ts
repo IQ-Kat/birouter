@@ -226,6 +226,12 @@ export async function POST(
         exchangeTokens(provider, code, redirectUri, codeVerifier, state)
       );
 
+      // Normalize: if name is missing, use email or displayName as fallback so accounts
+      // always show a real label (e.g. user@gmail.com) instead of "Account #abc123"
+      if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
+        tokenData.name = tokenData.email || tokenData.displayName;
+      }
+
       // Upsert: update existing connection if same provider+email, else create new
       const expiresAt = tokenData.expiresIn
         ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
@@ -297,6 +303,11 @@ export async function POST(
       }
 
       if (result.success) {
+        // Normalize: if name is missing, use email as fallback display label
+        if (!result.tokens.name && (result.tokens.email || result.tokens.displayName)) {
+          result.tokens.name = result.tokens.email || result.tokens.displayName;
+        }
+
         // Upsert: update existing connection if same provider+email, else create new
         const expiresAt = result.tokens.expiresIn
           ? new Date(Date.now() + result.tokens.expiresIn * 1000).toISOString()
@@ -417,6 +428,11 @@ export async function POST(
         const tokenData = await runWithProxyContext(proxy, () =>
           exchangeTokens(provider, params.code, redirectUri, codeVerifier, params.state)
         );
+
+        // Normalize: if name is missing, use email as fallback display label
+        if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
+          tokenData.name = tokenData.email || tokenData.displayName;
+        }
 
         // Upsert: update existing connection if same provider+email, else create new
         const expiresAt = tokenData.expiresIn

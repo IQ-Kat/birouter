@@ -13,7 +13,14 @@ export const cline = {
   },
   exchangeToken: async (config, code, redirectUri) => {
     try {
+      // Cline embeds tokens as base64-encoded JSON in the auth code.
+      // The code may be URL-encoded when pasted from the callback URL.
       let base64 = code;
+      try {
+        base64 = decodeURIComponent(base64);
+      } catch {
+        /* already decoded */
+      }
       const padding = 4 - (base64.length % 4);
       if (padding !== 4) {
         base64 += "=".repeat(padding);
@@ -62,16 +69,23 @@ export const cline = {
       };
     }
   },
-  mapTokens: (tokens) => ({
-    accessToken: tokens.access_token,
-    refreshToken: tokens.refresh_token,
-    expiresIn: tokens.expires_at
-      ? Math.floor((new Date(tokens.expires_at).getTime() - Date.now()) / 1000)
-      : 3600,
-    email: tokens.email,
-    providerSpecificData: {
-      firstName: tokens.firstName,
-      lastName: tokens.lastName,
-    },
-  }),
+  mapTokens: (tokens) => {
+    const firstName = tokens.firstName || "";
+    const lastName = tokens.lastName || "";
+    const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+    return {
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      expiresIn: tokens.expires_at
+        ? Math.floor((new Date(tokens.expires_at).getTime() - Date.now()) / 1000)
+        : 3600,
+      // Use full name if available, fallback to email so UI shows a real label
+      name: fullName || tokens.email || null,
+      email: tokens.email,
+      providerSpecificData: {
+        firstName: tokens.firstName,
+        lastName: tokens.lastName,
+      },
+    };
+  },
 };
