@@ -1664,15 +1664,9 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 
 ## 📊 Sterngeschichte
 
-<a href="https://star-history.com/#diegosouzapw/OmniRoute&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=diegosouzapw/OmniRoute&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=diegosouzapw/OmniRoute&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=diegosouzapw/OmniRoute&type=Date" />
- </picture>
-</a>
+## Stargazers over time
 
----
+## [![Stargazers over time](https://starchart.cc/diegosouzapw/OmniRoute.svg?variant=adaptive)](https://starchart.cc/diegosouzapw/OmniRoute)
 
 ## 🙏 Danksagungen
 

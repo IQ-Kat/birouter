@@ -1555,15 +1555,9 @@ gh release create v1.0.6 --title "v1.0.6" --generate-notes
 
 ## 📊 Tähtihistoria
 
-<a href="https://star-history.com/#diegosouzapw/OmniRoute&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=diegosouzapw/OmniRoute&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=diegosouzapw/OmniRoute&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=diegosouzapw/OmniRoute&type=Date" />
- </picture>
-</a>
+## Stargazers over time
 
----
+## [![Stargazers over time](https://starchart.cc/diegosouzapw/OmniRoute.svg?variant=adaptive)](https://starchart.cc/diegosouzapw/OmniRoute)
 
 ## 🙏 Kiitokset
 

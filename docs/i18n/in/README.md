@@ -1198,15 +1198,9 @@ gh release create v1.0.6 --title "v1.0.6" --generate-notes
 
 ## 📊 सितारा इतिहास
 
-<a href="https://star-history.com/#diegosouzapw/OmniRoute&Date">
-  
-    
-    
-    
-  
-</a>
+## Stargazers over time
 
----
+## [![Stargazers over time](https://starchart.cc/diegosouzapw/OmniRoute.svg?variant=adaptive)](https://starchart.cc/diegosouzapw/OmniRoute)
 
 ## 🙏 आभार
 
