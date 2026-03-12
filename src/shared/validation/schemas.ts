@@ -785,10 +785,13 @@ export const updateProviderConnectionSchema = z
 export const providersBatchTestSchema = z
   .object({
     mode: z.enum(["provider", "oauth", "free", "apikey", "compatible", "all"]),
-    providerId: z.string().trim().min(1).optional(),
+    // Frontend may send null when mode != 'provider' — accept and treat as missing
+    providerId: z.string().trim().min(1).nullable().optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.mode === "provider" && !value.providerId) {
+    // Treat null same as undefined
+    const pid = value.providerId ?? null;
+    if (value.mode === "provider" && !pid) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "providerId is required when mode=provider",
