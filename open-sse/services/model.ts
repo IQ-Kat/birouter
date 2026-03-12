@@ -59,29 +59,50 @@ function resolveProviderModelAlias(providerOrAlias, modelId) {
 
 /**
  * Parse model string: "alias/model" or "provider/model" or just alias
+ * Supports [1m] suffix for extended 1M context window (e.g. "claude-sonnet-4-6[1m]")
  */
 export function parseModel(modelStr) {
   if (!modelStr) {
-    return { provider: null, model: null, isAlias: false, providerAlias: null };
+    return {
+      provider: null,
+      model: null,
+      isAlias: false,
+      providerAlias: null,
+      extendedContext: false,
+    };
   }
 
   // Sanitize: reject strings with path traversal or control characters
   if (/\.\.[\/\\]/.test(modelStr) || /[\x00-\x1f]/.test(modelStr)) {
     console.log(`[MODEL] Warning: rejected malformed model string: "${modelStr.substring(0, 50)}"`);
-    return { provider: null, model: null, isAlias: false, providerAlias: null };
+    return {
+      provider: null,
+      model: null,
+      isAlias: false,
+      providerAlias: null,
+      extendedContext: false,
+    };
+  }
+
+  // Extract [1m] suffix before parsing provider/model
+  let extendedContext = false;
+  let cleanStr = modelStr;
+  if (cleanStr.endsWith("[1m]")) {
+    extendedContext = true;
+    cleanStr = cleanStr.slice(0, -4);
   }
 
   // Check if standard format: provider/model or alias/model
-  if (modelStr.includes("/")) {
-    const firstSlash = modelStr.indexOf("/");
-    const providerOrAlias = modelStr.slice(0, firstSlash);
-    const model = modelStr.slice(firstSlash + 1);
+  if (cleanStr.includes("/")) {
+    const firstSlash = cleanStr.indexOf("/");
+    const providerOrAlias = cleanStr.slice(0, firstSlash);
+    const model = cleanStr.slice(firstSlash + 1);
     const provider = resolveProviderAlias(providerOrAlias);
-    return { provider, model, isAlias: false, providerAlias: providerOrAlias };
+    return { provider, model, isAlias: false, providerAlias: providerOrAlias, extendedContext };
   }
 
   // Alias format (model alias, not provider alias)
-  return { provider: null, model: modelStr, isAlias: true, providerAlias: null };
+  return { provider: null, model: cleanStr, isAlias: true, providerAlias: null, extendedContext };
 }
 
 /**
@@ -123,12 +144,14 @@ export function resolveModelAliasFromMap(alias, aliases) {
  */
 export async function getModelInfoCore(modelStr, aliasesOrGetter) {
   const parsed = parseModel(modelStr);
+  const { extendedContext } = parsed;
 
   if (!parsed.isAlias) {
     const canonicalModel = resolveProviderModelAlias(parsed.provider, parsed.model);
     return {
       provider: parsed.provider,
       model: canonicalModel,
+      extendedContext,
     };
   }
 
@@ -142,6 +165,7 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
     return {
       provider: resolved.provider,
       model: canonicalModel,
+      extendedContext,
     };
   }
 
@@ -153,6 +177,7 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
     return {
       provider: "openai",
       model: modelId,
+      extendedContext,
     };
   }
 
@@ -160,7 +185,7 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
   if (nonOpenAIProviders.length === 1) {
     const provider = nonOpenAIProviders[0];
     const canonicalModel = resolveProviderModelAlias(provider, modelId);
-    return { provider, model: canonicalModel };
+    return { provider, model: canonicalModel, extendedContext };
   }
 
   if (nonOpenAIProviders.length > 1) {
@@ -182,5 +207,6 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
   return {
     provider: "openai",
     model: modelId,
+    extendedContext,
   };
 }
