@@ -2,7 +2,23 @@ import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
-const PROXY_TIMEOUT_MS = 30_000; // 30s timeout to prevent resource exhaustion
+const DEFAULT_PROXY_TIMEOUT_MS = 30_000;
+
+function parseProxyTimeoutMs(raw: string | undefined): number {
+  if (raw == null || raw.trim() === "") return DEFAULT_PROXY_TIMEOUT_MS;
+  const parsed = Number(raw);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    console.warn(
+      `[API Bridge] Invalid API_BRIDGE_PROXY_TIMEOUT_MS=\"${raw}\". Using default ${DEFAULT_PROXY_TIMEOUT_MS}ms.`
+    );
+    return DEFAULT_PROXY_TIMEOUT_MS;
+  }
+
+  return Math.floor(parsed);
+}
+
+const PROXY_TIMEOUT_MS = parseProxyTimeoutMs(process.env.API_BRIDGE_PROXY_TIMEOUT_MS);
 
 const OPENAI_COMPAT_PATHS = [
   /^\/v1(?:\/|$)/,
