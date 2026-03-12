@@ -138,7 +138,11 @@
     "media": "Media",
     "mediaDescription": "Generate images, videos, and music",
     "themes": "Themes",
-    "themesDescription": "Choose a color theme for the whole dashboard panel"
+    "themesDescription": "Choose a color theme for the whole dashboard panel",
+    "mcp": "MCP",
+    "mcpDescription": "Model Context Protocol server management and tools",
+    "a2a": "A2A",
+    "a2aDescription": "Agent-to-Agent protocol tasks and observability"
   },
   "home": {
     "quickStart": "빠른 시작",
@@ -456,7 +460,9 @@
       "cline": "Cline AI 코딩 어시스턴트 CLI",
       "kilo": "킬로코드 AI 어시스턴트 CLI",
       "cursor": "커서 AI 코드 편집기",
-      "continue": "AI 어시스턴트 계속하기"
+      "continue": "AI 어시스턴트 계속하기",
+      "opencode": "OpenCode AI coding agent (Terminal)",
+      "kiro": "Amazon Kiro — AI-powered IDE"
     },
     "guides": {
       "cursor": {
@@ -503,6 +509,42 @@
           "4": {
             "title": "모델 구성 추가",
             "desc": "모델 배열에 다음 구성을 추가합니다."
+          }
+        }
+      },
+      "opencode": {
+        "steps": {
+          "1": {
+            "title": "Install OpenCode",
+            "desc": "Install via npm: npm install -g opencode-ai"
+          },
+          "2": {
+            "title": "API Key"
+          },
+          "3": {
+            "title": "Set Base URL",
+            "desc": "opencode config set baseUrl {{baseUrl}}"
+          },
+          "4": {
+            "title": "Select Model"
+          }
+        }
+      },
+      "kiro": {
+        "steps": {
+          "1": {
+            "title": "Open Kiro Settings",
+            "desc": "Go to Settings → AI Provider"
+          },
+          "2": {
+            "title": "Base URL",
+            "desc": "Paste your OmniRoute endpoint URL"
+          },
+          "3": {
+            "title": "API Key"
+          },
+          "4": {
+            "title": "Select Model"
           }
         }
       }
@@ -1338,7 +1380,8 @@
     "editCompatibleTitle": "{type} 호환 가능 편집",
     "compatibleBaseUrlHint": "{type} 호환 API에는 기본 URL(/v1로 끝남)을 사용하세요.",
     "apiKeyForCheck": "API Key(확인용)",
-    "compatibleProdPlaceholder": "{type} 호환 가능(프로덕션)"
+    "compatibleProdPlaceholder": "{type} 호환 가능(프로덕션)",
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
   },
   "settings": {
     "title": "설정",
@@ -1734,7 +1777,12 @@
     "customPricingNote": "특정 모델의 기본 가격을 재정의할 수 있습니다. 맞춤 재정의는 자동 감지된 가격보다 우선 적용됩니다.",
     "editPricing": "가격 편집",
     "viewFullDetails": "전체 세부정보 보기",
-    "themeCoral": "코랄"
+    "themeCoral": "코랄",
+    "cliFingerprint": "CLI Fingerprint Matching",
+    "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
+    "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
+    "enableFingerprintTitle": "Enable fingerprint for {provider}",
+    "disableFingerprintTitle": "Disable fingerprint for {provider}"
   },
   "translator": {
     "title": "번역기",
@@ -2419,5 +2467,22 @@
     "featureWebhooks": "웹훅 구성 및 이벤트 구독",
     "featureSwagger": "OpenAPI / Swagger 사양 자동 생성",
     "featureAuth": "엔드포인트별 API 키 및 OAuth 범위 관리"
+  },
+  "agents": {
+    "title": "CLI Agents",
+    "description": "Discover installed CLI agents on your system. Add custom agents for auto-detection.",
+    "refresh": "Refresh",
+    "installed": "Installed",
+    "notFound": "Not Found",
+    "builtIn": "Built-in",
+    "custom": "Custom",
+    "remove": "Remove",
+    "addCustomAgent": "Add Custom Agent",
+    "addCustomAgentDesc": "Register any CLI tool for detection. It will be scanned automatically on refresh.",
+    "agentName": "Agent Name",
+    "binaryName": "Binary Name",
+    "versionCommand": "Version Command",
+    "spawnArgs": "Spawn Args",
+    "addAgent": "Add Agent"
   }
 }

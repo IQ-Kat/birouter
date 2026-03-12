@@ -205,7 +205,15 @@ export default function ProvidersPage() {
         // Response body is not valid JSON (e.g. truncated due to timeout)
         data = { error: t("providerTestFailed"), results: [], summary: null };
       }
-      setTestResults(data);
+      setTestResults({
+        ...data,
+        // Normalize error: if API returns an error object { message, details }, extract the string
+        error: data.error
+          ? typeof data.error === "object"
+            ? data.error.message || data.error.error || JSON.stringify(data.error)
+            : String(data.error)
+          : null,
+      });
       if (data?.summary) {
         const { passed, failed, total } = data.summary;
         if (failed === 0) notify.success(t("allTestsPassed", { total }));
@@ -1082,7 +1090,11 @@ function ProviderTestResultsView({ results }) {
     return (
       <div className="text-center py-6">
         <span className="material-symbols-outlined text-red-500 text-[32px] mb-2 block">error</span>
-        <p className="text-sm text-red-400">{String(results.error)}</p>
+        <p className="text-sm text-red-400">
+          {typeof results.error === "object"
+            ? results.error?.message || JSON.stringify(results.error)
+            : String(results.error)}
+        </p>
       </div>
     );
   }

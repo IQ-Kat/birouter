@@ -138,7 +138,11 @@
     "media": "Mídia",
     "mediaDescription": "Gerar imagens, vídeos e músicas",
     "themes": "Themes",
-    "themesDescription": "Choose a color theme for the whole dashboard panel"
+    "themesDescription": "Choose a color theme for the whole dashboard panel",
+    "mcp": "MCP",
+    "mcpDescription": "Model Context Protocol server management and tools",
+    "a2a": "A2A",
+    "a2aDescription": "Agent-to-Agent protocol tasks and observability"
   },
   "home": {
     "quickStart": "Início Rápido",
@@ -456,7 +460,9 @@
       "cline": "CLI assistente de codificação Cline",
       "kilo": "CLI assistente de IA Kilo Code",
       "cursor": "Editor de código com IA Cursor",
-      "continue": "Assistente de IA Continue"
+      "continue": "Assistente de IA Continue",
+      "opencode": "OpenCode AI coding agent (Terminal)",
+      "kiro": "Amazon Kiro — AI-powered IDE"
     },
     "guides": {
       "cursor": {
@@ -503,6 +509,42 @@
           "4": {
             "title": "Adicionar Config de Modelo",
             "desc": "Adicione a configuração abaixo ao array de modelos:"
+          }
+        }
+      },
+      "opencode": {
+        "steps": {
+          "1": {
+            "title": "Install OpenCode",
+            "desc": "Install via npm: npm install -g opencode-ai"
+          },
+          "2": {
+            "title": "API Key"
+          },
+          "3": {
+            "title": "Set Base URL",
+            "desc": "opencode config set baseUrl {{baseUrl}}"
+          },
+          "4": {
+            "title": "Select Model"
+          }
+        }
+      },
+      "kiro": {
+        "steps": {
+          "1": {
+            "title": "Open Kiro Settings",
+            "desc": "Go to Settings → AI Provider"
+          },
+          "2": {
+            "title": "Base URL",
+            "desc": "Paste your OmniRoute endpoint URL"
+          },
+          "3": {
+            "title": "API Key"
+          },
+          "4": {
+            "title": "Select Model"
           }
         }
       }
@@ -1338,7 +1380,8 @@
     "editCompatibleTitle": "Editar Compatível {type}",
     "compatibleBaseUrlHint": "Use a URL base (terminando em /v1) para sua API compatível com {type}.",
     "apiKeyForCheck": "Chave de API (para verificação)",
-    "compatibleProdPlaceholder": "{type} Compatível (Prod)"
+    "compatibleProdPlaceholder": "{type} Compatível (Prod)",
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
   },
   "settings": {
     "title": "Configurações",

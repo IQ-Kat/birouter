@@ -138,7 +138,11 @@
     "media": "Media",
     "mediaDescription": "Generate images, videos, and music",
     "themes": "ธีมส์",
-    "themesDescription": "Choose a color theme for the whole dashboard panel"
+    "themesDescription": "Choose a color theme for the whole dashboard panel",
+    "mcp": "MCP",
+    "mcpDescription": "Model Context Protocol server management and tools",
+    "a2a": "A2A",
+    "a2aDescription": "Agent-to-Agent protocol tasks and observability"
   },
   "home": {
     "quickStart": "เริ่มต้นอย่างรวดเร็ว",
@@ -456,7 +460,9 @@
       "cline": "Cline AI ผู้ช่วยเข้ารหัส CLI",
       "kilo": "กิโลโค้ด AI Assistant CLI",
       "cursor": "ตัวแก้ไขรหัสเคอร์เซอร์ AI",
-      "continue": "ดำเนินการต่อผู้ช่วย AI"
+      "continue": "ดำเนินการต่อผู้ช่วย AI",
+      "opencode": "OpenCode AI coding agent (Terminal)",
+      "kiro": "Amazon Kiro — AI-powered IDE"
     },
     "guides": {
       "cursor": {
@@ -503,6 +509,42 @@
           "4": {
             "title": "เพิ่มการกำหนดค่าโมเดล",
             "desc": "เพิ่มการกำหนดค่าต่อไปนี้ให้กับอาร์เรย์โมเดลของคุณ:"
+          }
+        }
+      },
+      "opencode": {
+        "steps": {
+          "1": {
+            "title": "Install OpenCode",
+            "desc": "Install via npm: npm install -g opencode-ai"
+          },
+          "2": {
+            "title": "API Key"
+          },
+          "3": {
+            "title": "Set Base URL",
+            "desc": "opencode config set baseUrl {{baseUrl}}"
+          },
+          "4": {
+            "title": "Select Model"
+          }
+        }
+      },
+      "kiro": {
+        "steps": {
+          "1": {
+            "title": "Open Kiro Settings",
+            "desc": "Go to Settings → AI Provider"
+          },
+          "2": {
+            "title": "Base URL",
+            "desc": "Paste your OmniRoute endpoint URL"
+          },
+          "3": {
+            "title": "API Key"
+          },
+          "4": {
+            "title": "Select Model"
           }
         }
       }
@@ -1338,7 +1380,8 @@
     "editCompatibleTitle": "แก้ไข {type} เข้ากันได้",
     "compatibleBaseUrlHint": "ใช้ URL พื้นฐาน (ลงท้ายด้วย /v1) สำหรับ {type}- API ที่เข้ากันได้กับของคุณ",
     "apiKeyForCheck": "คีย์ API (สำหรับการตรวจสอบ)",
-    "compatibleProdPlaceholder": "{type} เข้ากันได้ (ผลิตภัณฑ์)"
+    "compatibleProdPlaceholder": "{type} เข้ากันได้ (ผลิตภัณฑ์)",
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
   },
   "settings": {
     "title": "การตั้งค่า",
@@ -1734,7 +1777,12 @@
     "customPricingNote": "คุณสามารถแทนที่ราคาเริ่มต้นสำหรับรุ่นเฉพาะได้ การแทนที่แบบกำหนดเองจะมีลำดับความสำคัญมากกว่าการกำหนดราคาที่ตรวจพบอัตโนมัติ",
     "editPricing": "แก้ไขราคา",
     "viewFullDetails": "ดูรายละเอียดทั้งหมด",
-    "themeCoral": "คอรัล"
+    "themeCoral": "คอรัล",
+    "cliFingerprint": "CLI Fingerprint Matching",
+    "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
+    "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
+    "enableFingerprintTitle": "Enable fingerprint for {provider}",
+    "disableFingerprintTitle": "Disable fingerprint for {provider}"
   },
   "translator": {
     "title": "นักแปล",
@@ -2419,5 +2467,22 @@
     "featureWebhooks": "Webhook configuration and event subscriptions",
     "featureSwagger": "OpenAPI / Swagger spec auto-generation",
     "featureAuth": "API key and OAuth scope management per endpoint"
+  },
+  "agents": {
+    "title": "CLI Agents",
+    "description": "Discover installed CLI agents on your system. Add custom agents for auto-detection.",
+    "refresh": "Refresh",
+    "installed": "Installed",
+    "notFound": "Not Found",
+    "builtIn": "Built-in",
+    "custom": "Custom",
+    "remove": "Remove",
+    "addCustomAgent": "Add Custom Agent",
+    "addCustomAgentDesc": "Register any CLI tool for detection. It will be scanned automatically on refresh.",
+    "agentName": "Agent Name",
+    "binaryName": "Binary Name",
+    "versionCommand": "Version Command",
+    "spawnArgs": "Spawn Args",
+    "addAgent": "Add Agent"
   }
 }

@@ -138,7 +138,11 @@
     "media": "Médias",
     "mediaDescription": "Générez des images, des vidéos et de la musique",
     "themes": "Thèmes",
-    "themesDescription": "Choisissez un thème de couleur pour l'ensemble du panneau du tableau de bord"
+    "themesDescription": "Choisissez un thème de couleur pour l'ensemble du panneau du tableau de bord",
+    "mcp": "MCP",
+    "mcpDescription": "Model Context Protocol server management and tools",
+    "a2a": "A2A",
+    "a2aDescription": "Agent-to-Agent protocol tasks and observability"
   },
   "home": {
     "quickStart": "Démarrage rapide",
@@ -456,7 +460,9 @@
       "cline": "CLI de l'assistant de codage Cline AI",
       "kilo": "CLI de l'assistant IA Kilo Code",
       "cursor": "Éditeur de code AI du curseur",
-      "continue": "Continuer l'Assistant IA"
+      "continue": "Continuer l'Assistant IA",
+      "opencode": "OpenCode AI coding agent (Terminal)",
+      "kiro": "Amazon Kiro — AI-powered IDE"
     },
     "guides": {
       "cursor": {
@@ -503,6 +509,42 @@
           "4": {
             "title": "Ajouter une configuration de modèle",
             "desc": "Ajoutez la configuration suivante à votre tableau models :"
+          }
+        }
+      },
+      "opencode": {
+        "steps": {
+          "1": {
+            "title": "Install OpenCode",
+            "desc": "Install via npm: npm install -g opencode-ai"
+          },
+          "2": {
+            "title": "API Key"
+          },
+          "3": {
+            "title": "Set Base URL",
+            "desc": "opencode config set baseUrl {{baseUrl}}"
+          },
+          "4": {
+            "title": "Select Model"
+          }
+        }
+      },
+      "kiro": {
+        "steps": {
+          "1": {
+            "title": "Open Kiro Settings",
+            "desc": "Go to Settings → AI Provider"
+          },
+          "2": {
+            "title": "Base URL",
+            "desc": "Paste your OmniRoute endpoint URL"
+          },
+          "3": {
+            "title": "API Key"
+          },
+          "4": {
+            "title": "Select Model"
           }
         }
       }
@@ -1338,7 +1380,8 @@
     "editCompatibleTitle": "Modifier {type} Compatible",
     "compatibleBaseUrlHint": "Utilisez l'URL de base (se terminant par /v1) pour votre API compatible {type}.",
     "apiKeyForCheck": "Clé API (pour vérification)",
-    "compatibleProdPlaceholder": "{type} Compatible (Prod)"
+    "compatibleProdPlaceholder": "{type} Compatible (Prod)",
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
   },
   "settings": {
     "title": "Paramètres",
@@ -1734,7 +1777,12 @@
     "customPricingNote": "Vous pouvez remplacer le prix par défaut pour des modèles spécifiques. Les remplacements personnalisés ont la priorité sur les prix détectés automatiquement.",
     "editPricing": "Modifier le prix",
     "viewFullDetails": "Afficher tous les détails",
-    "themeCoral": "Corail"
+    "themeCoral": "Corail",
+    "cliFingerprint": "CLI Fingerprint Matching",
+    "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
+    "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
+    "enableFingerprintTitle": "Enable fingerprint for {provider}",
+    "disableFingerprintTitle": "Disable fingerprint for {provider}"
   },
   "translator": {
     "title": "Traducteur",
@@ -2419,5 +2467,22 @@
     "featureWebhooks": "Configuration de webhooks et abonnements aux événements",
     "featureSwagger": "Génération automatique de spécifications OpenAPI / Swagger",
     "featureAuth": "Gestion des clés API et des portées OAuth par point d'accès"
+  },
+  "agents": {
+    "title": "CLI Agents",
+    "description": "Discover installed CLI agents on your system. Add custom agents for auto-detection.",
+    "refresh": "Refresh",
+    "installed": "Installed",
+    "notFound": "Not Found",
+    "builtIn": "Built-in",
+    "custom": "Custom",
+    "remove": "Remove",
+    "addCustomAgent": "Add Custom Agent",
+    "addCustomAgentDesc": "Register any CLI tool for detection. It will be scanned automatically on refresh.",
+    "agentName": "Agent Name",
+    "binaryName": "Binary Name",
+    "versionCommand": "Version Command",
+    "spawnArgs": "Spawn Args",
+    "addAgent": "Add Agent"
   }
 }

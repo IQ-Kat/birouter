@@ -138,7 +138,11 @@
     "media": "Media",
     "mediaDescription": "Genereer afbeeldingen, video's en muziek",
     "themes": "Themes",
-    "themesDescription": "Choose a color theme for the whole dashboard panel"
+    "themesDescription": "Choose a color theme for the whole dashboard panel",
+    "mcp": "MCP",
+    "mcpDescription": "Model Context Protocol server management and tools",
+    "a2a": "A2A",
+    "a2aDescription": "Agent-to-Agent protocol tasks and observability"
   },
   "home": {
     "quickStart": "Snel beginnen",
@@ -456,7 +460,9 @@
       "cline": "Cline AI Coderingsassistent CLI",
       "kilo": "Kilocode AI Assistent CLI",
       "cursor": "Cursor AI-code-editor",
-      "continue": "Ga door met AI-assistent"
+      "continue": "Ga door met AI-assistent",
+      "opencode": "OpenCode AI coding agent (Terminal)",
+      "kiro": "Amazon Kiro — AI-powered IDE"
     },
     "guides": {
       "cursor": {
@@ -503,6 +509,42 @@
           "4": {
             "title": "Modelconfiguratie toevoegen",
             "desc": "Voeg de volgende configuratie toe aan uw modellenarray:"
+          }
+        }
+      },
+      "opencode": {
+        "steps": {
+          "1": {
+            "title": "Install OpenCode",
+            "desc": "Install via npm: npm install -g opencode-ai"
+          },
+          "2": {
+            "title": "API Key"
+          },
+          "3": {
+            "title": "Set Base URL",
+            "desc": "opencode config set baseUrl {{baseUrl}}"
+          },
+          "4": {
+            "title": "Select Model"
+          }
+        }
+      },
+      "kiro": {
+        "steps": {
+          "1": {
+            "title": "Open Kiro Settings",
+            "desc": "Go to Settings → AI Provider"
+          },
+          "2": {
+            "title": "Base URL",
+            "desc": "Paste your OmniRoute endpoint URL"
+          },
+          "3": {
+            "title": "API Key"
+          },
+          "4": {
+            "title": "Select Model"
           }
         }
       }
@@ -1338,7 +1380,8 @@
     "editCompatibleTitle": "Bewerk {type} Compatibel",
     "compatibleBaseUrlHint": "Gebruik de basis-URL (eindigend op /v1) voor uw {type}-compatibele API.",
     "apiKeyForCheck": "API-sleutel (ter controle)",
-    "compatibleProdPlaceholder": "{type} Compatibel (product)"
+    "compatibleProdPlaceholder": "{type} Compatibel (product)",
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
   },
   "settings": {
     "title": "Instellingen",
@@ -1734,7 +1777,12 @@
     "customPricingNote": "U kunt de standaardprijzen voor specifieke modellen overschrijven. Aangepaste overschrijvingen hebben voorrang op automatisch gedetecteerde prijzen.",
     "editPricing": "Prijzen bewerken",
     "viewFullDetails": "Bekijk volledige details",
-    "themeCoral": "Koraal"
+    "themeCoral": "Koraal",
+    "cliFingerprint": "CLI Fingerprint Matching",
+    "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
+    "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
+    "enableFingerprintTitle": "Enable fingerprint for {provider}",
+    "disableFingerprintTitle": "Disable fingerprint for {provider}"
   },
   "translator": {
     "title": "Vertaler",
@@ -2419,5 +2467,22 @@
     "featureWebhooks": "Webhook configuration and event subscriptions",
     "featureSwagger": "OpenAPI / Swagger spec auto-generation",
     "featureAuth": "API key and OAuth scope management per endpoint"
+  },
+  "agents": {
+    "title": "CLI Agents",
+    "description": "Discover installed CLI agents on your system. Add custom agents for auto-detection.",
+    "refresh": "Refresh",
+    "installed": "Installed",
+    "notFound": "Not Found",
+    "builtIn": "Built-in",
+    "custom": "Custom",
+    "remove": "Remove",
+    "addCustomAgent": "Add Custom Agent",
+    "addCustomAgentDesc": "Register any CLI tool for detection. It will be scanned automatically on refresh.",
+    "agentName": "Agent Name",
+    "binaryName": "Binary Name",
+    "versionCommand": "Version Command",
+    "spawnArgs": "Spawn Args",
+    "addAgent": "Add Agent"
   }
 }
