@@ -858,7 +858,9 @@
     "a2aQuickStartTitle": "A2A hurtigstart",
     "a2aQuickStartStep1": "Oppdag agentkortet på `/.well-known/agent.json`.",
     "a2aQuickStartStep2": "Send JSON-RPC-forespørsler til `POST /a2a` ved å bruke `message/send` eller `message/stream`.",
-    "a2aQuickStartStep3": "Spor og kontroller oppgaver ved å bruke `tasks/get` og `tasks/cancel`."
+    "a2aQuickStartStep3": "Spor og kontroller oppgaver ved å bruke `tasks/get` og `tasks/cancel`.",
+    "completionsLegacy": "Completions (Legacy)",
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
   },
   "mcpDashboard": {
     "loading": "Laster inn MCP-dashbordet ...",

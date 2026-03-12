@@ -858,7 +858,9 @@
     "a2aQuickStartTitle": "A2A Mula Pantas",
     "a2aQuickStartStep1": "Temui kad ejen di `/.well-known/agent.json`.",
     "a2aQuickStartStep2": "Hantar permintaan JSON-RPC ke `POST /a2a` menggunakan `message/send` atau `message/stream`.",
-    "a2aQuickStartStep3": "Jejak dan kawal tugas menggunakan `tasks/get` dan `tasks/cancel`."
+    "a2aQuickStartStep3": "Jejak dan kawal tugas menggunakan `tasks/get` dan `tasks/cancel`.",
+    "completionsLegacy": "Completions (Legacy)",
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",

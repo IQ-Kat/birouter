@@ -858,7 +858,9 @@
     "a2aQuickStartTitle": "A2A Pikaopas",
     "a2aQuickStartStep1": "Tutustu agenttikorttiin osoitteessa `/.well-known/agent.json`.",
     "a2aQuickStartStep2": "Lähetä JSON-RPC-pyynnöt osoitteeseen `POST /a2a` käyttämällä `message/send` tai `message/stream`.",
-    "a2aQuickStartStep3": "Seuraa ja ohjaa tehtäviä käyttämällä `tasks/get` ja `tasks/cancel`."
+    "a2aQuickStartStep3": "Seuraa ja ohjaa tehtäviä käyttämällä `tasks/get` ja `tasks/cancel`.",
+    "completionsLegacy": "Completions (Legacy)",
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
   },
   "mcpDashboard": {
     "loading": "Ladataan MCP-hallintapaneelia...",

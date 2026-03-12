@@ -858,7 +858,9 @@
     "a2aQuickStartTitle": "Button text: start playing a game",
     "a2aQuickStartStep1": "Открийте картата на агента на @@PH0 @@.",
     "a2aQuickStartStep2": "Изпратете JSON - RPC заявки до@@ PH0 @@, като използвате @@ PH1 @@ или @@ PH2 @@.",
-    "a2aQuickStartStep3": "Проследяване и контрол на задачите с помощта на @@ PH0 @@ и @@ PH1 @@."
+    "a2aQuickStartStep3": "Проследяване и контрол на задачите с помощта на @@ PH0 @@ и @@ PH1 @@.",
+    "completionsLegacy": "Completions (Legacy)",
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
   },
   "mcpDashboard": {
     "loading": "Зареждане на таблото за управление на MCP...",

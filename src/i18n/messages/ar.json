@@ -858,7 +858,9 @@
     "a2aQuickStartTitle": "البدء السريع",
     "a2aQuickStartStep1": "اكتشف بطاقة الوكيل على `/.well-known/agent.json`.",
     "a2aQuickStartStep2": "إرسال طلبات JSON - RPC إلى@@ PH0 @@ باستخدام @@PH1 @@ أو `message/stream`.",
-    "a2aQuickStartStep3": "تتبع المهام والتحكم فيها باستخدام `tasks/get` و `tasks/cancel`."
+    "a2aQuickStartStep3": "تتبع المهام والتحكم فيها باستخدام `tasks/get` و `tasks/cancel`.",
+    "completionsLegacy": "Completions (Legacy)",
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
   },
   "mcpDashboard": {
     "loading": "جارٍ تحميل لوحة تحكم MCP...",

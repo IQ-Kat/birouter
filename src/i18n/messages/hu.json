@@ -858,7 +858,9 @@
     "a2aQuickStartTitle": "A2A Quick Start",
     "a2aQuickStartStep1": "Discover the agent card at `/.well-known/agent.json`.",
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
-    "a2aQuickStartStep3": "Kövesse nyomon és vezérelje a feladatokat a `tasks/get` és `tasks/cancel` használatával."
+    "a2aQuickStartStep3": "Kövesse nyomon és vezérelje a feladatokat a `tasks/get` és `tasks/cancel` használatával.",
+    "completionsLegacy": "Completions (Legacy)",
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",

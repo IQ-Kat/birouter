@@ -446,6 +446,27 @@ export default function APIPageClient({ machineId }) {
                 copied={copied}
                 baseUrl={currentEndpoint}
               />
+
+              {/* Legacy Completions */}
+              <EndpointSection
+                icon="text_fields"
+                iconColor="text-orange-500"
+                iconBg="bg-orange-500/10"
+                title={t("completionsLegacy") || "Completions (Legacy)"}
+                path="/v1/completions"
+                description={
+                  t("completionsLegacyDesc") ||
+                  "Legacy OpenAI text completions — accepts both prompt and messages format"
+                }
+                models={endpointData.chat}
+                expanded={expandedEndpoint === "completions"}
+                onToggle={() =>
+                  setExpandedEndpoint(expandedEndpoint === "completions" ? null : "completions")
+                }
+                copy={copy}
+                copied={copied}
+                baseUrl={currentEndpoint}
+              />
             </div>
           </div>
 
