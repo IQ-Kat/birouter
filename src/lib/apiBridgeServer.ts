@@ -2,7 +2,7 @@ import http from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
-const PROXY_TIMEOUT_MS = 30_000; // 30s timeout to prevent resource exhaustion
+const PROXY_TIMEOUT_MS = Number(process.env.API_BRIDGE_PROXY_TIMEOUT_MS || "30000");
 
 const OPENAI_COMPAT_PATHS = [
   /^\/v1(?:\/|$)/,
