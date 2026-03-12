@@ -87,7 +87,13 @@ export default function OAuthModal({
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        if (!res.ok) {
+          const errMsg =
+            typeof data.error === "object" && data.error !== null
+              ? (data.error as any).message || JSON.stringify(data.error)
+              : data.error || "Exchange failed";
+          throw new Error(errMsg);
+        }
 
         setStep("success");
         onSuccess?.();
@@ -180,7 +186,13 @@ export default function OAuthModal({
 
         const res = await fetch(`/api/oauth/${provider}/device-code`);
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        if (!res.ok) {
+          const errMsg =
+            typeof data.error === "object" && data.error !== null
+              ? (data.error as any).message || JSON.stringify(data.error)
+              : data.error || "Request failed";
+          throw new Error(errMsg);
+        }
 
         setDeviceData(data);
 
@@ -281,7 +293,13 @@ export default function OAuthModal({
         `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        const errMsg =
+          typeof data.error === "object" && data.error !== null
+            ? (data.error as any).message || JSON.stringify(data.error)
+            : data.error || "Authorization failed";
+        throw new Error(errMsg);
+      }
 
       setAuthData({ ...data, redirectUri });
 
