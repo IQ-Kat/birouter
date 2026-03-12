@@ -60,9 +60,13 @@ export async function PATCH(request) {
           return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
         }
       } else {
-        // First time setting password, no current password needed
-        // Allow empty currentPassword or default "123456"
-        if (body.currentPassword && body.currentPassword !== "123456") {
+        // First-time password set (no DB hash yet).
+        // Accept empty current password, legacy default, or INITIAL_PASSWORD when configured.
+        const initialPassword = process.env.INITIAL_PASSWORD;
+        const currentPassword = body.currentPassword || "";
+        const allowedWithoutHash = ["", "123456", ...(initialPassword ? [initialPassword] : [])];
+
+        if (!allowedWithoutHash.includes(currentPassword)) {
           return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
         }
       }
