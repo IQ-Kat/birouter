@@ -40,6 +40,7 @@ import {
 } from "@/lib/semanticCache";
 import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer";
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
+import { isModelUnavailableError, getNextFamilyFallback } from "../services/modelFamilyFallback.ts";
 
 /**
  * Core chat handler - shared between SSE and Worker
@@ -248,6 +249,10 @@ export async function handleChatCore({
   // Track pending request
   trackPendingRequest(model, provider, connectionId, true);
 
+  // T5: track which models we've tried for intra-family fallback
+  const triedModels = new Set<string>([model]);
+  let currentModel = model;
+
   // Log start
   appendRequestLog({ model, provider, connectionId, status: "PENDING" }).catch(() => {});
 
@@ -421,7 +426,53 @@ export async function handleChatCore({
     // Update rate limiter from error response headers
     updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
 
-    return createErrorResult(statusCode, errMsg, retryAfterMs);
+    // ── T5: Intra-family model fallback ──────────────────────────────────────
+    // Before returning a model-unavailable error upstream, try sibling models
+    // from the same family. This keeps the request alive on the same account
+    // instead of failing the entire combo.
+    if (isModelUnavailableError(statusCode, message)) {
+      const nextModel = getNextFamilyFallback(currentModel, triedModels);
+      if (nextModel) {
+        triedModels.add(nextModel);
+        currentModel = nextModel;
+        translatedBody.model = nextModel;
+        log?.info?.("MODEL_FALLBACK", `${model} unavailable (${statusCode}) → trying ${nextModel}`);
+        // Re-execute with the fallback model
+        try {
+          const fallbackResult = await withRateLimit(provider, connectionId, nextModel, () =>
+            executor.execute({
+              model: nextModel,
+              body: translatedBody,
+              stream,
+              credentials,
+              signal: streamController.signal,
+              log,
+              extendedContext,
+            })
+          );
+          if (fallbackResult.response.ok) {
+            providerResponse = fallbackResult.response;
+            providerUrl = fallbackResult.url;
+            providerHeaders = fallbackResult.headers;
+            finalBody = fallbackResult.transformedBody;
+            // Continue processing with the fallback response — skip error return
+            log?.info?.("MODEL_FALLBACK", `Serving ${nextModel} as fallback for ${model}`);
+            // Jump to streaming/non-streaming handling below
+            // We fall through by NOT returning here
+          } else {
+            // Fallback also failed — return original error
+            return createErrorResult(statusCode, errMsg, retryAfterMs);
+          }
+        } catch {
+          return createErrorResult(statusCode, errMsg, retryAfterMs);
+        }
+      } else {
+        return createErrorResult(statusCode, errMsg, retryAfterMs);
+      }
+    } else {
+      return createErrorResult(statusCode, errMsg, retryAfterMs);
+    }
+    // ── End T5 ───────────────────────────────────────────────────────────────
   }
 
   // Non-streaming response

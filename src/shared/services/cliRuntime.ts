@@ -198,7 +198,26 @@ const resolveToolCommands = (toolId: string): string[] => {
   return tool.defaultCommand ? [tool.defaultCommand] : [];
 };
 
+/**
+ * T12: Validate a CLI executable path to prevent shell injection.
+ * Enforces: absolute path, no dangerous shell metacharacters, must exist and be a file.
+ * Inspired by Antigravity Manager commit 96732c2 (Mar 11, 2026).
+ */
+const DANGEROUS_PATH_CHARS = ["&", "|", ";", "<", ">", "(", ")", "`", "$", "^", "%", "!"];
+
+const isSafePath = (execPath: string): boolean => {
+  if (!execPath || !path.isAbsolute(execPath)) return false;
+  if (DANGEROUS_PATH_CHARS.some((c) => execPath.includes(c))) return false;
+  // Allow path.sep and path.delimiter — no further character filtering needed
+  return true;
+};
+
 const checkExplicitPath = async (commandPath: string) => {
+  // Reject paths that look like injection attempts
+  if (!isSafePath(commandPath)) {
+    return { installed: false, commandPath: null, reason: "unsafe_path" };
+  }
+
   try {
     await fs.access(commandPath, fs.constants.F_OK);
   } catch {

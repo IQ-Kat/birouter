@@ -2,6 +2,8 @@ import { BaseExecutor } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 
 export class GeminiCLIExecutor extends BaseExecutor {
+  private _currentModel: string = "";
+
   constructor() {
     super("gemini-cli", PROVIDERS["gemini-cli"]);
   }
@@ -15,11 +17,17 @@ export class GeminiCLIExecutor extends BaseExecutor {
     return {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials.accessToken}`,
+      // Fingerprint headers matching native GeminiCLI client (prevents upstream rejection)
+      "User-Agent": `GeminiCLI/0.31.0/${this._currentModel || "unknown"} (linux; x64)`,
+      "X-Goog-Api-Client": "google-genai-sdk/1.41.0 gl-node/v22.19.0",
       ...(stream && { Accept: "text/event-stream" }),
     };
   }
 
   transformRequest(model, body, stream, credentials) {
+    // Capture model so buildHeaders (called after transformRequest) can include it in User-Agent
+    this._currentModel = model || "";
+
     const allowBodyProjectOverride = process.env.OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE === "1";
 
     // Default: prefer OAuth-stored projectId. Incoming body.project can be stale

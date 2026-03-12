@@ -17,6 +17,7 @@ export interface ScoringFactors {
   latencyInv: number;
   taskFit: number;
   stability: number;
+  tierPriority: number; // T10: Ultra > Pro > Free account tier boost
 }
 
 export interface ScoringWeights {
@@ -26,15 +27,18 @@ export interface ScoringWeights {
   latencyInv: number;
   taskFit: number;
   stability: number;
+  tierPriority: number; // T10
 }
 
+// T10: Rebalanced — stability 0.10→0.05, tierPriority 0.05 added. Sum = 1.0.
 export const DEFAULT_WEIGHTS: ScoringWeights = {
   quota: 0.2,
   health: 0.25,
   costInv: 0.2,
   latencyInv: 0.15,
   taskFit: 0.1,
-  stability: 0.1,
+  stability: 0.05,
+  tierPriority: 0.05,
 };
 
 export interface ProviderCandidate {
@@ -47,6 +51,10 @@ export interface ProviderCandidate {
   p95LatencyMs: number;
   latencyStdDev: number;
   errorRate: number;
+  /** T10: Optional account tier for priority boosting (Ultra > Pro > Free) */
+  accountTier?: "ultra" | "pro" | "standard" | "free";
+  /** T10: Optional quota reset interval in seconds (shorter = higher priority when same quota) */
+  quotaResetIntervalSecs?: number;
 }
 
 export interface ScoredProvider {
@@ -68,6 +76,38 @@ export function calculateScore(factors: ScoringFactors, weights: ScoringWeights)
     weights.taskFit * factors.taskFit +
     weights.stability * factors.stability
   );
+}
+
+/**
+ * T10: Convert account tier string to a normalized score [0..1].
+ * Ultra = 1.0 (most quota, fastest reset)
+ * Pro   = 0.67
+ * Standard = 0.33
+ * Free  = 0.0
+ * Accounts with faster reset cycles (shorter quotaResetIntervalSecs) also get
+ * a small adjustment: monthly accounts are penalized vs. daily accounts.
+ */
+export function calculateTierScore(
+  tier: string | undefined,
+  quotaResetIntervalSecs: number | undefined
+): number {
+  const BASE_TIER_SCORES: Record<string, number> = {
+    ultra: 1.0,
+    pro: 0.67,
+    standard: 0.33,
+    free: 0.0,
+  };
+  const baseScore = BASE_TIER_SCORES[tier?.toLowerCase() ?? ""] ?? 0.33; // unknown defaults to standard
+
+  // Bonus for faster reset intervals (daily quota > weekly > monthly)
+  // maxInterval ~ 30 days (2_592_000s). Normalize: [0..1] where 0=monthly, 1=per-minute
+  const resetBonus =
+    quotaResetIntervalSecs != null && quotaResetIntervalSecs > 0
+      ? Math.max(0, 1 - quotaResetIntervalSecs / 2_592_000)
+      : 0;
+
+  // Blend: 80% tier level, 20% reset frequency
+  return Math.min(1, baseScore * 0.8 + resetBonus * 0.2);
 }
 
 /**
@@ -96,6 +136,7 @@ export function calculateFactors(
     latencyInv: 1 - candidate.p95LatencyMs / maxLatency,
     taskFit: getTaskFitness(candidate.model, taskType),
     stability: 1 - candidate.latencyStdDev / maxStdDev,
+    tierPriority: calculateTierScore(candidate.accountTier, candidate.quotaResetIntervalSecs),
   };
 }
 

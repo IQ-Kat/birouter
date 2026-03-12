@@ -24,6 +24,7 @@ type ClaudeTool = {
   description: string;
   input_schema: Record<string, unknown>;
   cache_control?: { type: string; ttl?: string };
+  defer_loading?: boolean;
 };
 
 // Convert OpenAI request to Claude format
@@ -191,6 +192,23 @@ export function openaiToClaudeRequest(model, body, stream) {
   // Tool choice
   if (body.tool_choice) {
     result.tool_choice = convertOpenAIToolChoice(body.tool_choice);
+  }
+
+  // response_format: inject JSON structured output instruction into system prompt.
+  // Claude doesn't natively support response_format, so we insert a system-level instruction.
+  // NOTE: systemParts are consumed later (after this block) — they're accumulated here.
+  if (body.response_format) {
+    const fmt = body.response_format;
+    if (fmt.type === "json_schema" && fmt.json_schema?.schema) {
+      const schemaJson = JSON.stringify(fmt.json_schema.schema, null, 2);
+      systemParts.push(
+        `You must respond with valid JSON that strictly follows this JSON schema:\n\`\`\`json\n${schemaJson}\n\`\`\`\nRespond ONLY with the JSON object, no other text.`
+      );
+    } else if (fmt.type === "json_object") {
+      systemParts.push(
+        "You must respond with valid JSON. Respond ONLY with a JSON object, no other text."
+      );
+    }
   }
 
   // Thinking configuration

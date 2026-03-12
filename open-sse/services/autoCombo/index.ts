@@ -3,6 +3,7 @@
  */
 export {
   calculateScore,
+  calculateTierScore,
   scorePool,
   validateWeights,
   DEFAULT_WEIGHTS,

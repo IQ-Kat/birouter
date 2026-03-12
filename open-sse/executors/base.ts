@@ -158,6 +158,9 @@ export class BaseExecutor {
     return status === HTTP_STATUS.RATE_LIMITED && urlIndex + 1 < this.getFallbackCount();
   }
 
+  // Intra-URL retry config: retry same URL before falling back to next node
+  static readonly RETRY_CONFIG = { maxAttempts: 2, delayMs: 2000 };
+
   // Override in subclass for provider-specific refresh
   async refreshCredentials(credentials: ProviderCredentials, log: ExecutorLog | null) {
     void credentials;
@@ -179,6 +182,8 @@ export class BaseExecutor {
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
     let lastStatus = 0;
+    // Track per-URL intra-retry attempts to avoid infinite loops
+    const retryAttemptsByUrl: Record<number, number> = {};
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, stream, urlIndex, credentials);
@@ -235,6 +240,22 @@ export class BaseExecutor {
         if (combinedSignal) fetchOptions.signal = combinedSignal;
 
         const response = await fetch(url, fetchOptions);
+
+        // Intra-URL retry: if 429 and we haven't exhausted per-URL retries, wait and retry the same URL
+        if (
+          response.status === HTTP_STATUS.RATE_LIMITED &&
+          (retryAttemptsByUrl[urlIndex] ?? 0) < BaseExecutor.RETRY_CONFIG.maxAttempts
+        ) {
+          retryAttemptsByUrl[urlIndex] = (retryAttemptsByUrl[urlIndex] ?? 0) + 1;
+          const attempt = retryAttemptsByUrl[urlIndex];
+          log?.debug?.(
+            "RETRY",
+            `429 intra-retry ${attempt}/${BaseExecutor.RETRY_CONFIG.maxAttempts} on ${url} — waiting ${BaseExecutor.RETRY_CONFIG.delayMs}ms`
+          );
+          await new Promise((resolve) => setTimeout(resolve, BaseExecutor.RETRY_CONFIG.delayMs));
+          urlIndex--; // re-run this urlIndex on the next loop iteration
+          continue;
+        }
 
         if (this.shouldRetry(response.status, urlIndex)) {
           log?.debug?.("RETRY", `${response.status} on ${url}, trying fallback ${urlIndex + 1}`);
