@@ -11,6 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.2] — 2026-03-12
+
+> ### Claude 1M Context, Postinstall Fix, New Models & OAuth Remote Docs
+
+### ✨ New Features
+
+- **Claude 1M extended context window support** — Use `[1m]` suffix on Claude model names (e.g. `claude-sonnet-4-6[1m]`) to activate Anthropic's 1M token context via the `Anthropic-Beta: context-1m-2025-08-07` header. Supported: `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-sonnet-4-5`, `claude-sonnet-4`. (PR #311 — @DavyMassoneto)
+- **New provider models** — Added `coder-model` (Qwen3.5) to Qwen and `iflow-rome-30ba3b`, `qwen3-max`, `qwen3-vl-plus`, `kimi-k2-0905`, `deepseek-v3.2`, `qwen3-235b` variants to iFlow; `kimi-for-coding` to Kimi. (PR #326 — @nyatoru)
+
+### 🐛 Bug Fixes
+
+- **Postinstall native binary regression fix** — PR #313's `process.exit(1)` caused npm to rollback the full package on rebuild failure. New approach copies the already-compiled binary from root `node_modules/` instead of rebuilding inside `app/` (which is a no-op). New `native-binary-compat.mjs` reads ELF/Mach-O/PE headers for reliable platform detection. (PR #327 — @ardaaltinors, fixes #321)
+- **README: English Remote OAuth guide added** — The OAuth Remote Server guide existed only in Portuguese. English version now appears first; PT moved to a collapsible section. Fixes the 🔗 anchor `#oauth-on-a-remote-server` referenced from `OAuthModal.tsx` since v2.3.1. (PR #329, fixes #318)
+
+### 🧪 Tests
+
+- Added 3 unit tests for `parseModel([1m])` suffix parsing (`model-parse.test.mjs`)
+
+---
+
 ## [2.3.1] — 2026-03-11
 
 > ### TypeScript Fixes & UI Polish
