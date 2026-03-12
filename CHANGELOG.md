@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.3] — 2026-03-12
+
+> ### Providers Test All Fix
+
+### 🐛 Bug Fixes
+
+- **Providers page crash when clicking 'Test All'** — Clicking 'Testar Todos' could trigger the error boundary ('Failed to load providers') when the batch test timed out or returned a non-JSON response. Fixed with:
+  - `AbortController` (90s timeout) on the `handleBatchTest` fetch
+  - Inner `try/catch` for `res.json()` — truncated/non-JSON responses no longer crash the component
+  - Null/type guard in `ProviderTestResultsView` — malformed results can no longer trigger a render exception
+  - New i18n key `providerTestTimeout` for friendly timeout message (PR #330)
+
+---
+
 ## [2.3.2] — 2026-03-12
 
 > ### Claude 1M Context, Postinstall Fix, New Models & OAuth Remote Docs
