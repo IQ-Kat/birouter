@@ -3,7 +3,10 @@
   "version": "2.0.13",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
-  "author": "OmniRoute Team",
+  "author": {
+    "name": "OmniRoute Team",
+    "email": "support@omniroute.online"
+  },
   "license": "MIT",
   "homepage": "https://omniroute.online",
   "scripts": {
