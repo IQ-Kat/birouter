@@ -13,6 +13,7 @@
     "open-sse/mcp-server/",
     "src/shared/contracts/",
     "scripts/postinstall.mjs",
+    "scripts/native-binary-compat.mjs",
     "README.md",
     "LICENSE"
   ],
