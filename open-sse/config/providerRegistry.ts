@@ -225,7 +225,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
       { id: "vision-model", name: "Qwen3 Vision Model" },
-      { id: "colder-model", name: "Qwen3.5 (Coder Model)" },
+      { id: "coder-model", name: "Qwen3.5 (Coder Model)" },
     ],
   },
 
