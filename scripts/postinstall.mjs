@@ -20,6 +20,8 @@ import { existsSync, copyFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { PUBLISHED_BUILD_PLATFORM, PUBLISHED_BUILD_ARCH } from "./native-binary-compat.mjs";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
@@ -43,23 +45,18 @@ const rootBinary = join(
 );
 
 if (!existsSync(join(ROOT, "app", "node_modules", "better-sqlite3"))) {
-  // No standalone app directory — nothing to do (dev install, not npm global)
   process.exit(0);
 }
 
-// The published binary is compiled for linux-x64. On any other platform/arch,
-// always replace it — dlopen alone is unreliable because macOS can load an
-// incompatible binary without throwing (the exact bug fixed in #312).
-const BUILD_PLATFORM = "linux";
-const BUILD_ARCH = "x64";
-const platformMatch = process.platform === BUILD_PLATFORM && process.arch === BUILD_ARCH;
+const platformMatch =
+  process.platform === PUBLISHED_BUILD_PLATFORM && process.arch === PUBLISHED_BUILD_ARCH;
 
 if (platformMatch) {
   try {
     process.dlopen({ exports: {} }, appBinary);
     process.exit(0);
-  } catch {
-    // Same platform but binary still incompatible (e.g. Node.js ABI mismatch)
+  } catch (err) {
+    console.warn(`  ⚠️  Bundled binary incompatible despite platform match: ${err.message}`);
   }
 }
 
@@ -70,18 +67,21 @@ if (existsSync(rootBinary)) {
   try {
     mkdirSync(dirname(appBinary), { recursive: true });
     copyFileSync(rootBinary, appBinary);
+  } catch (err) {
+    console.warn(`  ⚠️  Failed to copy binary: ${err.message}`);
+  }
 
-    // Verify the copied binary loads
+  try {
     process.dlopen({ exports: {} }, appBinary);
     console.log("  ✅ Native module fixed successfully!\n");
     process.exit(0);
-  } catch {
-    // Copy succeeded but binary still doesn't load — fall through
+  } catch (err) {
+    console.warn(`  ⚠️  Copied binary failed to load: ${err.message}`);
   }
 }
 
 // Strategy 2: Fall back to npm rebuild (may work if build tools are available)
-console.log("  ⚠️  Root binary not available, attempting npm rebuild...");
+console.log("  ⚠️  Root binary not available or incompatible, attempting npm rebuild...");
 
 try {
   const { execSync } = await import("node:child_process");
@@ -91,12 +91,16 @@ try {
     timeout: 120_000,
   });
 
-  // Verify rebuild worked
   process.dlopen({ exports: {} }, appBinary);
   console.log("  ✅ Native module rebuilt successfully!\n");
   process.exit(0);
-} catch {
-  // Rebuild failed or binary still incompatible
+} catch (err) {
+  const isTimeout = err.killed || err.signal === "SIGTERM";
+  if (isTimeout) {
+    console.warn("  ⚠️  npm rebuild timed out after 120s.");
+  } else {
+    console.warn(`  ⚠️  npm rebuild failed: ${err.message}`);
+  }
 }
 
 // If nothing worked, warn but don't fail the install — let the package stay
