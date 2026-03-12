@@ -1184,6 +1184,7 @@
     "clearing": "Clearing...",
     "until": "Until {time}",
     "providerTestFailed": "Provider test failed",
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
     "modeTest": "{mode} Test",
     "passedCount": "{count} passed",
     "failedCount": "{count} failed",
