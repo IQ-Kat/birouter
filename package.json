@@ -143,7 +143,14 @@
       "prettier --write"
     ]
   },
-  "overrides": {
-    "@swc/helpers": "0.5.19"
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core",
+      "better-sqlite3",
+      "esbuild",
+      "omniroute",
+      "sharp"
+    ]
   }
 }

@@ -711,6 +711,14 @@ npm install -g omniroute
 omniroute
 ```
 
+> **pnpm users:** Run `pnpm approve-builds -g` after install to enable native build scripts required by `better-sqlite3` and `@swc/core`:
+>
+> ```bash
+> pnpm install -g omniroute
+> pnpm approve-builds -g   # Select all packages → approve
+> omniroute
+> ```
+
 Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
 
 | Command                 | Description                                                 |
