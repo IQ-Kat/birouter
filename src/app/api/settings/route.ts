@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import { clearHealthCheckLogCache } from "@/lib/tokenHealthCheck";
 import bcrypt from "bcryptjs";
+import { timingSafeEqual } from "node:crypto";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -70,7 +71,14 @@ export async function PATCH(request) {
           if (!currentPassword) {
             return NextResponse.json({ error: "Current password required" }, { status: 400 });
           }
-          if (currentPassword !== initialPassword) {
+
+          const providedBuffer = Buffer.from(currentPassword, "utf8");
+          const expectedBuffer = Buffer.from(initialPassword, "utf8");
+          const isValidInitialPassword =
+            providedBuffer.length === expectedBuffer.length &&
+            timingSafeEqual(providedBuffer, expectedBuffer);
+
+          if (!isValidInitialPassword) {
             return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
           }
         } else {
