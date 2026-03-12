@@ -126,18 +126,16 @@ export async function createProviderConnection(data: JsonRecord) {
     return cleanNulls(merged);
   }
 
-  // Generate name
+  // Generate name: prefer explicit name, then email, then a stable short-ID label.
+  // Avoid sequential "Account N" — it reassigns when accounts are deleted/reordered.
   let connectionName = data.name || null;
   if (!connectionName && data.authType === "oauth") {
     if (data.email) {
-      connectionName = data.email;
-    } else {
-      const count = db
-        .prepare("SELECT COUNT(*) as cnt FROM provider_connections WHERE provider = ?")
-        .get(data.provider) as JsonRecord | undefined;
-      const cntValue = toNumberOrZero(toRecord(count).cnt);
-      connectionName = `Account ${cntValue + 1}`;
+      connectionName = data.email as string;
+    } else if (data.displayName) {
+      connectionName = data.displayName as string;
     }
+    // Otherwise leave null — UI will fall back to getAccountDisplayName() → "Account #<id>"
   }
 
   // Auto-increment priority
