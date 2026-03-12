@@ -1694,6 +1694,8 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ---
 
+</details>
+
 ## 🛠️ Tech Stack
 
 <details>
