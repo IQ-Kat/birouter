@@ -85,6 +85,7 @@ docs/*
 !docs/A2A-SERVER.md
 !docs/AUTO-COMBO.md
 !docs/MCP-SERVER.md
+!docs/CLI-TOOLS.md
 
 # open-sse tests
 open-sse/test/*
