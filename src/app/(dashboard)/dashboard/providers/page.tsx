@@ -189,23 +189,35 @@ export default function ProvidersPage() {
     if (testingMode) return;
     setTestingMode(mode === "provider" ? providerId : mode);
     setTestResults(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90_000); // 90s max
     try {
       const res = await fetch("/api/providers/test-batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode, providerId }),
+        signal: controller.signal,
       });
-      const data = await res.json();
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        // Response body is not valid JSON (e.g. truncated due to timeout)
+        data = { error: t("providerTestFailed"), results: [], summary: null };
+      }
       setTestResults(data);
-      if (data.summary) {
+      if (data?.summary) {
         const { passed, failed, total } = data.summary;
         if (failed === 0) notify.success(t("allTestsPassed", { total }));
         else notify.warning(t("testSummary", { passed, failed, total }));
       }
-    } catch (error) {
-      setTestResults({ error: t("providerTestFailed") });
-      notify.error(t("providerTestFailed"));
+    } catch (error: any) {
+      const isAbort = error?.name === "AbortError";
+      const msg = isAbort ? t("providerTestTimeout") : t("providerTestFailed");
+      setTestResults({ error: msg, results: [], summary: null });
+      notify.error(msg);
     } finally {
+      clearTimeout(timeoutId);
       setTestingMode(null);
     }
   };
@@ -1041,17 +1053,23 @@ function ProviderTestResultsView({ results }) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
 
-  if (results.error && !results.results) {
+  // Guard: never crash on malformed/null results (would trigger error boundary)
+  if (!results || typeof results !== "object") {
+    return null;
+  }
+
+  if (results.error && (!results.results || results.results.length === 0)) {
     return (
       <div className="text-center py-6">
         <span className="material-symbols-outlined text-red-500 text-[32px] mb-2 block">error</span>
-        <p className="text-sm text-red-400">{results.error}</p>
+        <p className="text-sm text-red-400">{String(results.error)}</p>
       </div>
     );
   }
 
-  const { summary, mode } = results;
-  const items = results.results || [];
+  const summary = results.summary ?? null;
+  const mode = results.mode ?? "";
+  const items = Array.isArray(results.results) ? results.results : [];
 
   const modeLabel =
     {
