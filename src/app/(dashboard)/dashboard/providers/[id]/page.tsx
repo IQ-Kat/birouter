@@ -1631,16 +1631,23 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy }) {
                         </div>
 
                         <div className="flex-1 min-w-[240px]">
-                          <span className="text-xs text-text-muted mb-1 block">Supported Endpoints</span>
+                          <span className="text-xs text-text-muted mb-1 block">
+                            Supported Endpoints
+                          </span>
                           <div className="flex items-center gap-3 flex-wrap">
                             {["chat", "embeddings", "images", "audio"].map((ep) => (
-                              <label key={ep} className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer">
+                              <label
+                                key={ep}
+                                className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
+                              >
                                 <input
                                   type="checkbox"
                                   checked={editingEndpoints.includes(ep)}
                                   onChange={(e) => {
                                     if (e.target.checked) {
-                                      setEditingEndpoints((prev) => (prev.includes(ep) ? prev : [...prev, ep]));
+                                      setEditingEndpoints((prev) =>
+                                        prev.includes(ep) ? prev : [...prev, ep]
+                                      );
                                     } else {
                                       setEditingEndpoints((prev) => prev.filter((x) => x !== ep));
                                     }
@@ -2312,7 +2319,7 @@ function ConnectionRow({
           onChange={onToggleActive}
           title={(connection.isActive ?? true) ? t("disableConnection") : t("enableConnection")}
         />
-        <div className="flex gap-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-1 ml-1 transition-opacity">
           {onReauth && (
             <button
               onClick={onReauth}

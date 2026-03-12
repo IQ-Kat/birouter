@@ -482,7 +482,16 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
+  const [imgSrc, setImgSrc] = useState(`/providers/${provider.id}.png`);
   const [imgError, setImgError] = useState(false);
+
+  const handleImgError = () => {
+    if (imgSrc.endsWith(".png")) {
+      setImgSrc(`/providers/${provider.id}.svg`);
+    } else {
+      setImgError(true);
+    }
+  };
 
   const dotColors = {
     free: "bg-green-500",
@@ -515,13 +524,13 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
                 </span>
               ) : (
                 <Image
-                  src={`/providers/${provider.id}.png`}
+                  src={imgSrc}
                   alt={provider.name}
                   width={30}
                   height={30}
                   className="object-contain rounded-lg max-w-[32px] max-h-[32px]"
                   sizes="32px"
-                  onError={() => setImgError(true)}
+                  onError={handleImgError}
                 />
               )}
             </div>
@@ -602,7 +611,6 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
   const isCompatible = providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
   const isAnthropicCompatible = providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
-  const [imgError, setImgError] = useState(false);
 
   const dotColors = {
     free: "bg-green-500",
@@ -628,6 +636,18 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
     return `/providers/${provider.id}.png`;
   };
 
+  const [imgSrc, setImgSrc] = useState<string>(() => getIconPath());
+  const [imgError, setImgError] = useState(false);
+
+  const handleImgError = () => {
+    const basePath = getIconPath();
+    if (imgSrc.endsWith(".png") && !isCompatible && !isAnthropicCompatible) {
+      setImgSrc(`/providers/${provider.id}.svg`);
+    } else {
+      setImgError(true);
+    }
+  };
+
   return (
     <Link href={`/dashboard/providers/${providerId}`} className="group">
       <Card
@@ -646,13 +666,13 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
                 </span>
               ) : (
                 <Image
-                  src={getIconPath()}
+                  src={imgSrc || getIconPath()}
                   alt={provider.name}
                   width={30}
                   height={30}
                   className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
                   sizes="30px"
-                  onError={() => setImgError(true)}
+                  onError={handleImgError}
                 />
               )}
             </div>

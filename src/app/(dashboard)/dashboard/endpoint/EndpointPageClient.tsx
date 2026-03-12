@@ -86,7 +86,8 @@ export default function APIPageClient({ machineId }) {
       (m) => m.type === "audio" && m.subtype === "speech" && !m.parent
     );
     const moderation = allModels.filter((m) => m.type === "moderation" && !m.parent);
-    return { chat, embeddings, images, rerank, audioTranscription, audioSpeech, moderation };
+    const music = allModels.filter((m) => m.type === "music" && !m.parent);
+    return { chat, embeddings, images, rerank, audioTranscription, audioSpeech, moderation, music };
   }, [allModels]);
 
   const postCloudAction = async (action, timeoutMs = CLOUD_ACTION_TIMEOUT_MS) => {
@@ -392,6 +393,7 @@ export default function APIPageClient({ machineId }) {
                       endpointData.audioTranscription,
                       endpointData.audioSpeech,
                       endpointData.moderation,
+                      endpointData.music,
                     ].filter((a) => a.length > 0).length + 2,
                 })}
               </p>
@@ -526,6 +528,25 @@ export default function APIPageClient({ machineId }) {
                 onToggle={() =>
                   setExpandedEndpoint(expandedEndpoint === "audioSpeech" ? null : "audioSpeech")
                 }
+                copy={copy}
+                copied={copied}
+                baseUrl={currentEndpoint}
+              />
+
+              {/* Music Generation */}
+              <EndpointSection
+                icon="music_note"
+                iconColor="text-fuchsia-500"
+                iconBg="bg-fuchsia-500/10"
+                title={t("musicGeneration") || "Music Generation"}
+                path="/v1/music/generations"
+                description={
+                  t("musicDesc") ||
+                  "Generate music and audio tracks via ComfyUI (Stable Audio, MusicGen)"
+                }
+                models={endpointData.music}
+                expanded={expandedEndpoint === "music"}
+                onToggle={() => setExpandedEndpoint(expandedEndpoint === "music" ? null : "music")}
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
