@@ -90,7 +90,8 @@ export default function OAuthModal({
         if (!res.ok) {
           const errMsg =
             typeof data.error === "object" && data.error !== null
-              ? (data.error as any).message || JSON.stringify(data.error)
+              ? ((data.error as Record<string, unknown>).message as string) ||
+                JSON.stringify(data.error)
               : data.error || "Exchange failed";
           throw new Error(errMsg);
         }
@@ -189,7 +190,8 @@ export default function OAuthModal({
         if (!res.ok) {
           const errMsg =
             typeof data.error === "object" && data.error !== null
-              ? (data.error as any).message || JSON.stringify(data.error)
+              ? ((data.error as Record<string, unknown>).message as string) ||
+                JSON.stringify(data.error)
               : data.error || "Request failed";
           throw new Error(errMsg);
         }
@@ -296,7 +298,8 @@ export default function OAuthModal({
       if (!res.ok) {
         const errMsg =
           typeof data.error === "object" && data.error !== null
-            ? (data.error as any).message || JSON.stringify(data.error)
+            ? ((data.error as Record<string, unknown>).message as string) ||
+              JSON.stringify(data.error)
             : data.error || "Authorization failed";
         throw new Error(errMsg);
       }
