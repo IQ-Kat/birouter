@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import { clearHealthCheckLogCache } from "@/lib/tokenHealthCheck";
 import bcrypt from "bcryptjs";
+import { timingSafeEqual } from "node:crypto";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -60,10 +61,32 @@ export async function PATCH(request) {
           return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
         }
       } else {
-        // First time setting password, no current password needed
-        // Allow empty currentPassword or default "123456"
-        if (body.currentPassword && body.currentPassword !== "123456") {
-          return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
+        // First-time password set (no DB hash yet).
+        const LEGACY_DEFAULT_PASSWORD = "123456";
+        const initialPassword = process.env.INITIAL_PASSWORD;
+        const currentPassword = body.currentPassword || "";
+
+        if (initialPassword) {
+          // If deploy is configured with INITIAL_PASSWORD, require explicit match.
+          if (!currentPassword) {
+            return NextResponse.json({ error: "Current password required" }, { status: 400 });
+          }
+
+          const providedBuffer = Buffer.from(currentPassword, "utf8");
+          const expectedBuffer = Buffer.from(initialPassword, "utf8");
+          const isValidInitialPassword =
+            providedBuffer.length === expectedBuffer.length &&
+            timingSafeEqual(providedBuffer, expectedBuffer);
+
+          if (!isValidInitialPassword) {
+            return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
+          }
+        } else {
+          // Legacy compatibility: instances without INITIAL_PASSWORD may still use old default.
+          const allowedWithoutHash = ["", LEGACY_DEFAULT_PASSWORD];
+          if (!allowedWithoutHash.includes(currentPassword)) {
+            return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
+          }
         }
       }
 
