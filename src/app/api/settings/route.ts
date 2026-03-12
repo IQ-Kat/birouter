@@ -61,13 +61,24 @@ export async function PATCH(request) {
         }
       } else {
         // First-time password set (no DB hash yet).
-        // Accept empty current password, legacy default, or INITIAL_PASSWORD when configured.
+        const LEGACY_DEFAULT_PASSWORD = "123456";
         const initialPassword = process.env.INITIAL_PASSWORD;
         const currentPassword = body.currentPassword || "";
-        const allowedWithoutHash = ["", "123456", ...(initialPassword ? [initialPassword] : [])];
 
-        if (!allowedWithoutHash.includes(currentPassword)) {
-          return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
+        if (initialPassword) {
+          // If deploy is configured with INITIAL_PASSWORD, require explicit match.
+          if (!currentPassword) {
+            return NextResponse.json({ error: "Current password required" }, { status: 400 });
+          }
+          if (currentPassword !== initialPassword) {
+            return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
+          }
+        } else {
+          // Legacy compatibility: instances without INITIAL_PASSWORD may still use old default.
+          const allowedWithoutHash = ["", LEGACY_DEFAULT_PASSWORD];
+          if (!allowedWithoutHash.includes(currentPassword)) {
+            return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
+          }
         }
       }
 
