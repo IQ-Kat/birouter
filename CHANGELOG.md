@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.11] - 2026-03-12
+
+### Fixed
+
+- **KiloCode healthcheck**: Increase `healthcheckTimeoutMs` from 4000ms to 15000ms — kilocode renders an ASCII logo banner on startup causing false `healthcheck_failed` on slow/cold-start environments
+
 ## [2.3.10] - 2026-03-12
 
 ### Fixed
