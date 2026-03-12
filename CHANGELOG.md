@@ -11,6 +11,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.4] — 2026-03-12
+
+> ### UI Polish — Endpoint Music Section, Always-Visible Buttons & Provider Logos
+
+### ✨ Improvements
+
+- **Endpoint page: Music Generation section** — `/v1/music/generations` now appears in the "Media & Multi-Modal" category alongside Image, Audio Transcription, and Text-to-Speech. Music models (ComfyUI Stable Audio, MusicGen) show up in the endpoint's model count.
+- **Provider connections: action buttons always visible** — Edit, Delete, Proxy Config, and Reauthenticate buttons on the provider connection rows are no longer hidden until hover. Improves discoverability on touch and keyboard-only navigation.
+- **Combos: action buttons always visible** — Test, Duplicate, Proxy Config, Edit, and Delete buttons on combo cards are no longer hidden until hover on desktop screens.
+- **Provider logos: SVG fallback chain** — `ProviderCard` and `ApiKeyProviderCard` now try `.png` → `.svg` → text initials, enabling proper logo rendering for providers without a PNG.
+
+### 🎨 New Provider Logos
+
+| Provider     | Logo               | Brand Colors                           |
+| ------------ | ------------------ | -------------------------------------- |
+| ElevenLabs   | `elevenlabs.svg`   | `#6C47FF` purple, double-bar "11" mark |
+| Hyperbolic   | `hyperbolic.svg`   | dark + cyan→purple gradient "H"        |
+| AssemblyAI   | `assemblyai.svg`   | `#0062FF` blue waveform                |
+| PlayHT       | `playht.svg`       | dark + gradient play triangle          |
+| Inworld      | `inworld.svg`      | dark + `#5B4FFF`→cyan "i"              |
+| NanoBanana   | `nanobanana.svg`   | dark + yellow banana icon              |
+| Ollama Cloud | `ollama-cloud.png` | Official Ollama logo                   |
+
+### 🔧 CI Fixes (included in commit `8630557`)
+
+- **docs-sync** — Updated `docs/openapi.yaml` version to `2.3.3`
+- **Unit tests** — Added missing `import { test } from 'node:test'` in `model-parse.test.mjs`
+- **Electron `.deb`** — `electron/package.json` `author` changed from string to object with `email` field (required by `fpm`)
+- **Docker build** — Added `COPY scripts/native-binary-compat.mjs` to `Dockerfile` (fixes `ERR_MODULE_NOT_FOUND` during `npm ci`)
+
+---
+
 ## [2.3.3] — 2026-03-12
 
 > ### Providers Test All Fix
