@@ -122,6 +122,18 @@ if (existsSync(sharedApiKey)) {
 // ── Step 10: Ensure data/ directory exists ──────────────────
 mkdirSync(join(APP_DIR, "data"), { recursive: true });
 
+// ── Step 10.5: Copy @swc/helpers into standalone ───────────
+// Next.js standalone tracer sometimes omits @swc/helpers from app/node_modules/,
+// causing MODULE_NOT_FOUND at runtime. Always copy it explicitly.
+const swcHelpersSrc = join(ROOT, "node_modules", "@swc", "helpers");
+const swcHelpersDst = join(APP_DIR, "node_modules", "@swc", "helpers");
+if (existsSync(swcHelpersSrc) && !existsSync(swcHelpersDst)) {
+  console.log("  📋 Copying @swc/helpers to standalone app/node_modules...");
+  mkdirSync(join(APP_DIR, "node_modules", "@swc"), { recursive: true });
+  cpSync(swcHelpersSrc, swcHelpersDst, { recursive: true });
+  console.log("  ✅ @swc/helpers included in standalone build.");
+}
+
 // ── Done ───────────────────────────────────────────────────
 const appPkg = join(APP_DIR, "package.json");
 if (existsSync(appPkg)) {

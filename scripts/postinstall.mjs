@@ -113,3 +113,28 @@ if (process.platform === "darwin") {
   console.warn("     If build tools are missing: xcode-select --install");
 }
 console.warn("");
+
+// ── @swc/helpers fix ────────────────────────────────────────────────────────
+// Next.js standalone tracer doesn't always include @swc/helpers in app/node_modules/,
+// causing a MODULE_NOT_FOUND crash at runtime. Copy it from root node_modules if needed.
+const swcHelpersApp = join(ROOT, "app", "node_modules", "@swc", "helpers");
+const swcHelpersRoot = join(ROOT, "node_modules", "@swc", "helpers");
+
+if (!existsSync(swcHelpersApp)) {
+  if (existsSync(swcHelpersRoot)) {
+    try {
+      const { cpSync } = await import("node:fs");
+      mkdirSync(join(ROOT, "app", "node_modules", "@swc"), { recursive: true });
+      cpSync(swcHelpersRoot, swcHelpersApp, { recursive: true });
+      console.log("  ✅ @swc/helpers copied to standalone app/node_modules.\n");
+    } catch (err) {
+      console.warn(`  ⚠️  Could not copy @swc/helpers: ${err.message}`);
+      console.warn(
+        "     Try manually: cp -r node_modules/@swc/helpers app/node_modules/@swc/helpers\n"
+      );
+    }
+  } else {
+    console.warn("  ⚠️  @swc/helpers not found in root node_modules either.");
+    console.warn("     Try: npm install --save-exact @swc/helpers@0.5.19\n");
+  }
+}

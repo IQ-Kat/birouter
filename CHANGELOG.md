@@ -11,7 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.3.4] — 2026-03-12
+## [2.3.5] — 2026-03-12
+
+> ### Hotfix: Permanent @swc/helpers MODULE_NOT_FOUND Fix
+
+### 🐛 Bug Fixes
+
+- **`@swc/helpers` MODULE_NOT_FOUND crash on `npm install -g`** — Next.js standalone tracer does not always include `@swc/helpers` in `app/node_modules/`, causing an immediate server crash after install. Fixed in two layers:
+  - `scripts/prepublish.mjs` — now explicitly copies `@swc/helpers` from root `node_modules/` into the standalone `app/node_modules/` before packaging. The npm tarball will always include it from now on.
+  - `scripts/postinstall.mjs` — added a fallback that copies `@swc/helpers` from root into `app/node_modules/@swc/` if it's missing after install. Handles older versions and edge cases.
+
+---
 
 > ### UI Polish — Endpoint Music Section, Always-Visible Buttons & Provider Logos
 
