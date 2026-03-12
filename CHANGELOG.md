@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.8] - 2026-03-12
+
+### Fixed
+
+- **OAuthModal**: Fix `[object Object]` displayed on all OAuth connection errors — properly extract `.message` from error response objects in all 3 `throw new Error(data.error)` calls (exchange, device-code, authorize)
+- Affects Cline, Codex, GitHub, Qwen, Kiro, and all other OAuth providers
+
 ## [2.3.7] - 2026-03-12
 
 ### Fixed
