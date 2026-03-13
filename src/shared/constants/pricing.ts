@@ -32,6 +32,14 @@ export const DEFAULT_PRICING = {
 
   // OpenAI Codex (cx)
   cx: {
+    // Issue #334: add gpt5.4
+    "gpt5.4": {
+      input: 5.0,
+      output: 20.0,
+      cached: 2.5,
+      reasoning: 30.0,
+      cache_creation: 5.0,
+    },
     "gpt-5.2-codex": {
       input: 5.0,
       output: 20.0,
@@ -39,6 +47,7 @@ export const DEFAULT_PRICING = {
       reasoning: 30.0,
       cache_creation: 5.0,
     },
+
     "gpt-5.2": {
       input: 5.0,
       output: 20.0,
@@ -763,6 +772,50 @@ export const DEFAULT_PRICING = {
       cached: 0.25,
       reasoning: 2.5,
       cache_creation: 0.5,
+    },
+    // Models from issue #334
+    "claude-sonnet-4": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
+    "claude-opus-4.6": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 75.0,
+      cache_creation: 15.0,
+    },
+    "deepseek-v3.2": {
+      input: 0.27,
+      output: 1.1,
+      cached: 0.07,
+      reasoning: 1.1,
+      cache_creation: 0.27,
+    },
+    "minimax-m2.1": {
+      input: 0.4,
+      output: 1.6,
+      cached: 0.1,
+      reasoning: 1.6,
+      cache_creation: 0.4,
+    },
+    "qwen3-coder-next": {
+      input: 2.0,
+      output: 8.0,
+      cached: 0.5,
+      reasoning: 8.0,
+      cache_creation: 2.0,
+    },
+    // Kiro "Auto" model — routes to best available
+    auto: {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
     },
   },
 };

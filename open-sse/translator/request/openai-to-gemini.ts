@@ -320,12 +320,17 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 
 // Wrap Gemini CLI format in Cloud Code wrapper
 function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
-  const projectId = credentials?.projectId;
+  let projectId = credentials?.projectId;
 
   if (!projectId) {
-    throw new Error(
-      `${isAntigravity ? "Antigravity" : "GeminiCLI"} account is missing projectId. Reconnect OAuth to load your real Cloud Code project before sending requests.`
+    // Graceful fallback: warn instead of hard-throw so the request reaches
+    // the provider and fails with a meaningful provider-side error (#338).
+    // Users who reconnect OAuth will get their real projectId loaded.
+    console.warn(
+      `[OmniRoute] ${isAntigravity ? "Antigravity" : "GeminiCLI"} account is missing projectId. ` +
+        `Attempting request with empty project — reconnect OAuth to resolve.`
     );
+    projectId = "";
   }
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
@@ -371,12 +376,14 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 }
 
 function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null) {
-  const projectId = credentials?.projectId;
+  let projectId = credentials?.projectId;
 
   if (!projectId) {
-    throw new Error(
-      "Antigravity/Claude account is missing projectId. Reconnect OAuth to load your real Cloud Code project before sending requests."
+    console.warn(
+      `[OmniRoute] Antigravity/Claude account is missing projectId. ` +
+        `Attempting request with empty project — reconnect OAuth to resolve.`
     );
+    projectId = "";
   }
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;

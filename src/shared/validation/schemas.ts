@@ -89,6 +89,7 @@ const scoringWeightsSchema = z
     latencyInv: z.number().min(0).max(1),
     taskFit: z.number().min(0).max(1),
     stability: z.number().min(0).max(1),
+    tierPriority: z.number().min(0).max(1).optional().default(0.05),
   })
   .optional();
 

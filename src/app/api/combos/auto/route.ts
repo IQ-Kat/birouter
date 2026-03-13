@@ -22,6 +22,7 @@ interface ScoringWeights {
   latencyInv: number;
   taskFit: number;
   stability: number;
+  tierPriority: number;
 }
 
 const DEFAULT_WEIGHTS: ScoringWeights = {
@@ -30,7 +31,8 @@ const DEFAULT_WEIGHTS: ScoringWeights = {
   costInv: 0.2,
   latencyInv: 0.15,
   taskFit: 0.1,
-  stability: 0.1,
+  stability: 0.05,
+  tierPriority: 0.05,
 };
 
 interface AutoComboConfig {

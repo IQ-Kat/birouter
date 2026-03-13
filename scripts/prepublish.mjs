@@ -101,13 +101,42 @@ if (existsSync(publicSrc)) {
   cpSync(publicSrc, publicDest, { recursive: true });
 }
 
-// ── Step 8: Copy MITM cert utilities (if needed) ───────────
+// ── Step 8: Compile + copy MITM cert utilities ─────────────
 const mitmSrc = join(ROOT, "src", "mitm");
 const mitmDest = join(APP_DIR, "src", "mitm");
 if (existsSync(mitmSrc)) {
-  console.log("  📋 Copying MITM utilities...");
+  console.log("  🔨 Compiling MITM utilities (TypeScript → JavaScript)...");
   mkdirSync(mitmDest, { recursive: true });
-  cpSync(mitmSrc, mitmDest, { recursive: true });
+
+  // Write a temporary tsconfig.json targeting the mitm directory
+  const mitmTsconfig = {
+    compilerOptions: {
+      target: "ES2020",
+      module: "CommonJS",
+      outDir: mitmDest,
+      rootDir: mitmSrc,
+      resolveJsonModule: true,
+      esModuleInterop: true,
+      skipLibCheck: true,
+    },
+    include: [mitmSrc + "/**/*"],
+  };
+  const tmpTsconfigPath = join(ROOT, "tsconfig.mitm.tmp.json");
+  writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
+
+  try {
+    execSync(`npx tsc -p ${tmpTsconfigPath}`, { cwd: ROOT, stdio: "inherit" });
+    console.log("  ✅ MITM utilities compiled to app/src/mitm/");
+  } catch (err) {
+    console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);
+    // Fallback: copy source files so at least they are present
+    cpSync(mitmSrc, mitmDest, { recursive: true });
+  } finally {
+    // Cleanup temp tsconfig
+    try {
+      rmSync(tmpTsconfigPath);
+    } catch {}
+  }
 }
 
 // ── Step 9: Copy shared utilities needed at runtime ────────
