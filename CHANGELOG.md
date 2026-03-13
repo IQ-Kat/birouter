@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.4.1] - 2026-03-13
+
+### 🐛 Fix
+
+- **Combos modal: Free Stack visible and prominent** — Free Stack template was hidden (4th in 3-column grid). Fixed: moved to position 1, switched to 2x2 grid so all 4 templates are visible, green border + FREE badge highlight.
+
 ## [2.4.0] - 2026-03-13
 
 > **Major release** — Free Stack ecosystem, transcription playground overhaul, 44+ providers, comprehensive free tier documentation, and UI improvements across the board.
