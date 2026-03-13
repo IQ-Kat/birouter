@@ -2,7 +2,7 @@
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
-_Your universal API proxy — one endpoint, 36+ providers, zero downtime. Now with **MCP & A2A** agent orchestration._
+_Your universal API proxy — one endpoint, 44+ providers, zero downtime. Now with **MCP & A2A** agent orchestration._
 
 **Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • MCP Server • A2A Protocol • 100% TypeScript**
 
@@ -234,7 +234,7 @@ OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If 
 
 **How OmniRoute solves it:**
 
-- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 36+ providers
+- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 44+ providers
 - **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
 - **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
@@ -268,10 +268,10 @@ Not everyone can pay $20–200/month for AI subscriptions. Students, devs from e
 
 **How OmniRoute solves it:**
 
-- **Free Tier Providers Built-in** — Native support for 100% free providers: iFlow (8 unlimited models), Qwen (3 unlimited models), Kiro (Claude for free), Gemini CLI (180K/month free)
+- **Free Tier Providers Built-in** — Native support for 100% free providers: iFlow (5 unlimited models via OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 unlimited models: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID for free), Gemini CLI (180K tokens/month free)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Free-Only Combos** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
-- **NVIDIA NIM Free Credits** — 1000 free credits integrated
+- **NVIDIA NIM Free Access** — ~40 RPM dev-forever free access to 70+ models at build.nvidia.com (transitioning from credits to pure rate limits)
 - **Cost Optimized Strategy** — Routing strategy that automatically chooses the cheapest available provider
 
 </details>
@@ -320,7 +320,7 @@ Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code..
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
 - **Onboarding Wizard** — Guided 4-step setup for first-time users
-- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 36+ providers
+- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 44+ providers
 
 </details>
 
@@ -888,22 +888,100 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 |                     | Codex (Plus/Pro)  | $20-200/mo              | 5h + weekly      | OpenAI users         |
 |                     | Gemini CLI        | **FREE**                | 180K/mo + 1K/day | Everyone!            |
 |                     | GitHub Copilot    | $10-19/mo               | Monthly          | GitHub users         |
-| **🔑 API KEY**      | NVIDIA NIM        | **FREE** (1000 credits) | One-time         | Free tier testing    |
-|                     | DeepSeek          | Pay-per-use             | None             | Best price/quality   |
-|                     | Groq              | Free tier + paid        | Rate limited     | Ultra-fast inference |
-|                     | xAI (Grok)        | Pay-per-use             | None             | Grok models          |
-|                     | Mistral           | Free tier + paid        | Rate limited     | European AI          |
-|                     | OpenRouter        | Pay-per-use             | None             | 100+ models          |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M                 | Daily 10AM       | Budget backup        |
-|                     | MiniMax M2.1      | $0.2/1M                 | 5-hour rolling   | Cheapest option      |
-|                     | Kimi K2           | $9/mo flat              | 10M tokens/mo    | Predictable cost     |
-| **🆓 FREE**         | iFlow             | $0                      | Unlimited        | 8 models free        |
-|                     | Qwen              | $0                      | Unlimited        | 3 models free        |
-|                     | Kiro              | $0                      | Unlimited        | Claude free          |
+| **🔑 API KEY**      | NVIDIA NIM        | **FREE** (dev forever)  | ~40 RPM           | 70+ open models |
+|                     | Cerebras          | **FREE** (1M tok/day)   | 60K TPM / 30 RPM  | World's fastest |
+|                     | Groq              | **FREE** (30 RPM)       | 14.4K RPD         | Ultra-fast Llama/Gemma |
+|                     | DeepSeek          | Pay-per-use             | None              | Best price/quality |
+|                     | xAI (Grok)        | Pay-per-use             | None              | Grok models |
+|                     | Mistral           | Free trial + paid       | Rate limited      | European AI |
+|                     | OpenRouter        | Pay-per-use             | None              | 100+ models aggr. |
+| **💰 CHEAP**        | GLM-4.7           | $0.6/1M                 | Daily 10AM        | Budget backup |
+|                     | MiniMax M2.1      | $0.2/1M                 | 5-hour rolling    | Cheapest option |
+|                     | Kimi K2           | $9/mo flat              | 10M tokens/mo     | Predictable cost |
+| **🆓 FREE**         | iFlow             | **$0**                  | Unlimited         | 5 models unlimited |
+|                     | Qwen              | **$0**                  | Unlimited         | 4 models unlimited |
+|                     | Kiro              | **$0**                  | Unlimited         | Claude (AWS Builder ID) |
 
-**💡 Pro Tip:** Start with Gemini CLI (180K free/month) + iFlow (unlimited free) combo = $0 cost!
+**💡 $0 Combo Stack:** Gemini CLI (180K/mo) → iFlow (unlimited: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1) → Kiro (Claude for free) → Qwen (4 models, unlimited) — **Zero cost, never stops coding.** When Gemini quota runs out, OmniRoute auto-falls back to iFlow or Kiro with zero config.
 
 ---
+
+---
+
+## 🆓 Free Models — What You Actually Get
+
+> All models below are **100% free with zero credit card required**. OmniRoute auto-routes between them when one quota runs out — combine them all for an unbreakable $0 combo.
+
+### 🔵 CLAUDE MODELS (via Kiro — AWS Builder ID)
+
+| Model | Prefix | Limit | Rate Limit |
+|---|---|---|---|
+| `claude-sonnet-4.5` | `kr/` | **Unlimited** | No reported daily cap |
+| `claude-haiku-4.5` | `kr/` | **Unlimited** | No reported daily cap |
+| `claude-opus-4.6` | `kr/` | **Unlimited** | Latest Opus via Kiro |
+
+### 🟢 IFLOW MODELS (Free OAuth — No Credit Card)
+
+| Model | Prefix | Limit | Rate Limit |
+|---|---|---|---|
+| `kimi-k2-thinking` | `if/` | **Unlimited** | No reported cap |
+| `qwen3-coder-plus` | `if/` | **Unlimited** | No reported cap |
+| `deepseek-r1` | `if/` | **Unlimited** | No reported cap |
+| `minimax-m2.1` | `if/` | **Unlimited** | No reported cap |
+| `kimi-k2` | `if/` | **Unlimited** | No reported cap |
+
+### 🟡 QWEN MODELS (Device Code Auth)
+
+| Model | Prefix | Limit | Rate Limit |
+|---|---|---|---|
+| `qwen3-coder-plus` | `qw/` | **Unlimited** | No reported cap |
+| `qwen3-coder-flash` | `qw/` | **Unlimited** | No reported cap |
+| `qwen3-coder-next` | `qw/` | **Unlimited** | No reported cap |
+| `vision-model` | `qw/` | **Unlimited** | Multimodal (images) |
+
+### 🟣 GEMINI CLI (Google OAuth)
+
+| Model | Prefix | Limit | Rate Limit |
+|---|---|---|---|
+| `gemini-3-flash-preview` | `gc/` | **180K tok/month** + 1K/day | Monthly reset |
+| `gemini-2.5-pro` | `gc/` | 180K/month (shared pool) | High quality |
+
+### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
+
+| Tier | Daily Limit | Rate Limit | Notes |
+|---|---|---|---|
+| Free (Dev) | No token cap | **~40 RPM** | 70+ models; transitioning to pure rate limits mid-2025 |
+
+Popular free models: `nvidia/llama-3.1-nemotron-70b-instruct`, `meta/llama-3.3-70b-instruct`, `mistralai/mixtral-8x7b-instruct`
+
+### ⚪ CEREBRAS (Free API Key — inference.cerebras.ai)
+
+| Tier | Daily Limit | Rate Limit | Notes |
+|---|---|---|---|
+| Free | **1M tokens/day** | 60K TPM / 30 RPM | World's fastest LLM inference; resets daily |
+
+Available free: `llama-3.3-70b`, `llama-3.1-8b`, `deepseek-r1-distill-llama-70b`
+
+### 🔴 GROQ (Free API Key — console.groq.com)
+
+| Tier | Daily Limit | Rate Limit | Notes |
+|---|---|---|---|
+| Free | **14.4K RPD** | 30 RPM per model | No credit card; 429 on limit, not charged |
+
+Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whisper-large-v3`
+
+> **💡 The Ultimate Free Stack:**
+> ```
+> Kiro (Claude, unlimited)
+>  → iFlow (5 models, unlimited)
+>  → Qwen (4 models, unlimited)
+>  → Gemini CLI (180K/mo)
+>  → Cerebras (1M tok/day)
+>  → Groq (14.4K req/day)
+>  → NVIDIA NIM (40 RPM, 70+ models)
+> ```
+> Configure this as an OmniRoute combo and you'll never pay for AI again.
+
 
 ## 💡 Key Features
 
@@ -1205,7 +1283,7 @@ Models:
 <details>
 <summary><b>🔑 API Key Providers</b></summary>
 
-### NVIDIA NIM (FREE 1000 credits!)
+### NVIDIA NIM (FREE developer access — 70+ models)
 
 1. Sign up: [build.nvidia.com](https://build.nvidia.com)
 2. Get free API key (1000 inference credits included)
@@ -1284,7 +1362,7 @@ Models:
 <details>
 <summary><b>🆓 FREE Providers (Emergency Backup)</b></summary>
 
-### iFlow (8 FREE models)
+### iFlow (5 FREE models via OAuth)
 
 ```bash
 Dashboard → Connect iFlow
@@ -1299,7 +1377,7 @@ Models:
   if/deepseek-r1
 ```
 
-### Qwen (3 FREE models)
+### Qwen (4 FREE models via Device Code)
 
 ```bash
 Dashboard → Connect Qwen
