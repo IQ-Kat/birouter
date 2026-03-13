@@ -1,6 +1,8 @@
 # Changelog
 
-## [2.3.17] - 2026-03-13
+## [2.4.0] - 2026-03-13
+
+> **Major release** — Free Stack ecosystem, transcription playground overhaul, 44+ providers, comprehensive free tier documentation, and UI improvements across the board.
 
 ### ✨ Features
 
