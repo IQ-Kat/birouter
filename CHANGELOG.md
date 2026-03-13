@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.3.17] - 2026-03-13
+
+### ✨ Features
+
+- **Combos: Free Stack template** — New 4th template "Free Stack ($0)" using round-robin across Kiro + iFlow + Qwen + Gemini CLI. Suggests the pre-built zero-cost combo on first use.
+- **Media/Transcription: Deepgram as default** — Deepgram (Nova 3, $200 free) is now the default transcription provider. AssemblyAI ($50 free) and Groq Whisper (free forever) shown with free credit badges.
+- **README: "Start Free" section** — New early-README 5-step table showing how to set up zero-cost AI in minutes.
+- **README: Free Transcription Combo** — New section with Deepgram/AssemblyAI/Groq combo suggestion and per-provider free credit details.
+- **providers.ts: hasFree flag** — NVIDIA NIM, Cerebras, and Groq marked with hasFree badge and freeNote for the providers UI.
+- **i18n: templateFreeStack keys** — Free Stack combo template translated and synced to all 30 languages.
+
 ## [2.3.16] - 2026-03-13
 
 ### 📖 Documentation

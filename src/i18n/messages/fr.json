@@ -746,7 +746,9 @@
         "tip2": "Garde un fallback de qualité pour les prompts difficiles.",
         "tip3": "Idéal pour batch/tâches de fond où le coût est le KPI principal."
       }
-    }
+    },
+    "templateFreeStack": "Free Stack ($0)",
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), iFlow (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
   },
   "costs": {
     "title": "Coûts",

@@ -140,6 +140,8 @@ const COMBO_TEMPLATE_FALLBACK = {
   costSaverDesc: "Cost-optimized routing for budget-first workloads.",
   balancedTitle: "Balanced load",
   balancedDesc: "Least-used routing to spread demand over time.",
+  freeStackTitle: "Free Stack ($0)",
+  freeStackDesc: "Round-robin across all free providers: Kiro, iFlow, Qwen, Gemini CLI. Zero cost, never stops.",
 };
 
 const COMBO_TEMPLATES = [
@@ -185,6 +187,21 @@ const COMBO_TEMPLATES = [
     config: {
       maxRetries: 1,
       retryDelayMs: 1000,
+      healthCheckEnabled: true,
+    },
+  },
+  {
+    id: "free-stack",
+    icon: "volunteer_activism",
+    titleKey: "templateFreeStack",
+    descKey: "templateFreeStackDesc",
+    fallbackTitle: COMBO_TEMPLATE_FALLBACK.freeStackTitle,
+    fallbackDesc: COMBO_TEMPLATE_FALLBACK.freeStackDesc,
+    strategy: "round-robin",
+    suggestedName: "free-stack",
+    config: {
+      maxRetries: 3,
+      retryDelayMs: 500,
       healthCheckEnabled: true,
     },
   },

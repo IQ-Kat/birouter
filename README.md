@@ -702,6 +702,23 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 ---
 
+## 🆓 Start Free — Zero Configuration Cost
+
+> Setup AI coding in minutes at **$0/month**. Connect these free accounts and use the built-in **Free Stack** combo.
+
+| Step | Action | Providers Unlocked |
+|---|---|---|
+| 1 | Connect **Kiro** (AWS Builder ID OAuth) | Claude Sonnet 4.5, Haiku 4.5 — **unlimited** |
+| 2 | Connect **iFlow** (Google OAuth) | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
+| 3 | Connect **Qwen** (Device Code) | qwen3-coder-plus, qwen3-coder-flash... — **unlimited** |
+| 4 | Connect **Gemini CLI** (Google OAuth) | gemini-3-flash, gemini-2.5-pro — **180K/mo free** |
+| 5 | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically |
+
+**Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
+
+> **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day).
+
+
 ## ⚡ Quick Start
 
 ### 1) Install and run
@@ -952,7 +969,7 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 |---|---|---|---|
 | Free (Dev) | No token cap | **~40 RPM** | 70+ models; transitioning to pure rate limits mid-2025 |
 
-Popular free models: `nvidia/llama-3.1-nemotron-70b-instruct`, `meta/llama-3.3-70b-instruct`, `mistralai/mixtral-8x7b-instruct`
+Popular free models: `moonshotai/kimi-k2.5` (Kimi K2.5), `z-ai/glm4.7` (GLM 4.7), `deepseek-ai/deepseek-v3.2` (DeepSeek V3.2), `nvidia/llama-3.3-70b-instruct`, `deepseek/deepseek-r1`
 
 ### ⚪ CEREBRAS (Free API Key — inference.cerebras.ai)
 
@@ -981,6 +998,30 @@ Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whis
 >  → NVIDIA NIM (40 RPM, 70+ models)
 > ```
 > Configure this as an OmniRoute combo and you'll never pay for AI again.
+
+
+## 🎙️ Free Transcription Combo
+
+> Transcribe any audio/video for **$0** — Deepgram leads with $200 free, AssemblyAI $50 fallback, Groq Whisper as unlimited emergency backup.
+
+| Provider | Free Credits | Best Model | Rate Limit |
+|---|---|---|---|
+| 🟢 **Deepgram** | **$200 free** (signup) | `nova-3` — best accuracy, 30+ languages | No RPM limit on free credits |
+| 🔵 **AssemblyAI** | **$50 free** (signup) | `universal-3-pro` — chapters, sentiment, PII | No RPM limit on free credits |
+| 🔴 **Groq** | **Free forever** | `whisper-large-v3` — OpenAI Whisper | 30 RPM (rate limited) |
+
+**Suggested combo in `/dashboard/combos`:**
+
+```
+Name: free-transcription
+Strategy: Priority
+Nodes:
+  [1] deepgram/nova-3          → uses $200 free first
+  [2] assemblyai/universal-3-pro → fallback when Deepgram credits run out
+  [3] groq/whisper-large-v3    → free forever, emergency fallback
+```
+
+Then in `/dashboard/media` → **Transcription** tab: upload any audio or video file → select your combo endpoint → get transcription in supported formats.
 
 
 ## 💡 Key Features

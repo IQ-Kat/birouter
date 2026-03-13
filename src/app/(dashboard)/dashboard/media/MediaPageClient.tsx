@@ -225,35 +225,38 @@ const PROVIDER_MODELS: Record<
   ],
   transcription: [
     {
+      id: "deepgram",
+      name: "Deepgram ($200 free)",
+      models: [
+        { id: "deepgram/nova-3", name: "Nova 3 (Best)" },
+        { id: "deepgram/nova-2", name: "Nova 2" },
+        { id: "deepgram/enhanced", name: "Enhanced" },
+        { id: "deepgram/base", name: "Base" },
+      ],
+    },
+    {
+      id: "assemblyai",
+      name: "AssemblyAI ($50 free)",
+      models: [
+        { id: "assemblyai/universal-3-pro", name: "Universal 3 Pro (Best)" },
+        { id: "assemblyai/universal-2", name: "Universal 2" },
+        { id: "assemblyai/nano", name: "Nano (Fast)" },
+      ],
+    },
+    {
+      id: "groq",
+      name: "Groq (Free — Whisper)",
+      models: [
+        { id: "groq/whisper-large-v3", name: "Whisper Large v3 (Free)" },
+        { id: "groq/whisper-large-v3-turbo", name: "Whisper Turbo (Free)" },
+      ],
+    },
+    {
       id: "openai",
       name: "OpenAI",
       models: [
         { id: "openai/whisper-1", name: "Whisper 1" },
         { id: "openai/gpt-4o-transcription", name: "GPT-4o Transcription" },
-      ],
-    },
-    {
-      id: "groq",
-      name: "Groq",
-      models: [
-        { id: "groq/whisper-large-v3", name: "Whisper Large v3" },
-        { id: "groq/whisper-large-v3-turbo", name: "Whisper Turbo" },
-      ],
-    },
-    {
-      id: "deepgram",
-      name: "Deepgram",
-      models: [
-        { id: "deepgram/nova-3", name: "Nova 3" },
-        { id: "deepgram/nova-2", name: "Nova 2" },
-      ],
-    },
-    {
-      id: "assemblyai",
-      name: "AssemblyAI",
-      models: [
-        { id: "assemblyai/universal-3-pro", name: "Universal 3 Pro" },
-        { id: "assemblyai/universal-2", name: "Universal 2" },
       ],
     },
     {
