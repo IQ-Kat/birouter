@@ -1,6 +1,14 @@
 # Changelog
 
+## [2.3.15] - 2026-03-13
+
+### ✨ Features
+
+- **Auto-Combo Dashboard (Tier Priority)**: Added `🏷️ Tier` as the 7th scoring factor label in the `/dashboard/auto-combo` factor breakdown display — all 7 Auto-Combo scoring factors are now visible.
+- **i18n — autoCombo section**: Added 20 new translation keys for the Auto-Combo dashboard (`title`, `status`, `modePack`, `providerScores`, `factorTierPriority`, etc.) to all 30 language files.
+
 ## [2.3.14] - 2026-03-13
+
 
 ### 🐛 Bug Fixes
 
