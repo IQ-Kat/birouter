@@ -90,6 +90,18 @@ export {
 } from "./db/settings";
 
 export {
+  // Pricing Sync
+  getSyncedPricing,
+  saveSyncedPricing,
+  clearSyncedPricing,
+  syncPricingFromSources,
+  getSyncStatus,
+  initPricingSync,
+  startPeriodicSync,
+  stopPeriodicSync,
+} from "./pricingSync";
+
+export {
   // Backup Management
   backupDbFile,
   listDbBackups,

@@ -31,6 +31,7 @@ import {
   bestComboForTaskInput,
   explainRouteInput,
   getSessionSnapshotInput,
+  syncPricingInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 
@@ -50,6 +51,7 @@ import {
   handleBestComboForTask,
   handleExplainRoute,
   handleGetSessionSnapshot,
+  handleSyncPricing,
 } from "./tools/advancedTools.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 
@@ -662,6 +664,18 @@ export function createMcpServer(): McpServer {
       getSessionSnapshotInput.parse(args ?? {});
       return handleGetSessionSnapshot();
     })
+  );
+
+  server.registerTool(
+    "omniroute_sync_pricing",
+    {
+      description:
+        "Syncs pricing data from external sources (LiteLLM) into OmniRoute without overwriting user-set prices",
+      inputSchema: syncPricingInput,
+    },
+    withScopeEnforcement("omniroute_sync_pricing", (args) =>
+      handleSyncPricing(syncPricingInput.parse(args))
+    )
   );
 
   return server;

@@ -42,6 +42,19 @@ async function startServer() {
     console.error("[FATAL] Error initializing cloud sync:", error);
     process.exit(1);
   }
+
+  // Pricing sync: opt-in external pricing data (non-blocking, never fatal)
+  if (process.env.PRICING_SYNC_ENABLED === "true") {
+    try {
+      const { initPricingSync } = await import("./lib/pricingSync");
+      await initPricingSync();
+    } catch (err) {
+      console.warn(
+        "[PRICING_SYNC] Could not initialize:",
+        err instanceof Error ? err.message : err
+      );
+    }
+  }
 }
 
 // Start the server initialization

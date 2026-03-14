@@ -678,6 +678,28 @@ export async function handleExplainRoute(args: { requestId: string }) {
   }
 }
 
+export async function handleSyncPricing(args: { sources?: string[]; dryRun?: boolean }) {
+  const start = Date.now();
+  try {
+    const result = toRecord(
+      await apiFetch("/api/pricing/sync", {
+        method: "POST",
+        body: JSON.stringify({
+          sources: args.sources,
+          dryRun: args.dryRun ?? false,
+        }),
+      })
+    );
+
+    await logToolCall("omniroute_sync_pricing", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_sync_pricing", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
 export async function handleGetSessionSnapshot() {
   const start = Date.now();
   try {
