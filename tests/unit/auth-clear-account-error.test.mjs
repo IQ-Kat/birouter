@@ -32,16 +32,20 @@ test("clearAccountError clears stale provider error metadata after recovery", as
     email: "recover@example.com",
     accessToken: "access",
     refreshToken: "refresh",
-    testStatus: "error",
-    lastError: "Health check: token refresh failed",
+    testStatus: "active",
+    lastError: null,
     lastErrorType: "token_refresh_failed",
     lastErrorSource: "oauth",
     errorCode: "refresh_failed",
-    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+    rateLimitedUntil: null,
     backoffLevel: 2,
   });
 
   const credentials = await auth.getProviderCredentials("codex");
+  assert.equal(credentials.connectionId, created.id);
+  assert.equal(credentials.errorCode, "refresh_failed");
+  assert.equal(credentials.lastErrorType, "token_refresh_failed");
+  assert.equal(credentials.lastErrorSource, "oauth");
   await auth.clearAccountError(created.id, credentials);
 
   const updated = await providersDb.getProviderConnectionById(created.id);
