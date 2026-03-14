@@ -723,6 +723,42 @@ export const getSessionSnapshotTool: McpToolDefinition<
   sourceEndpoints: ["/api/usage/analytics", "/api/telemetry/summary"],
 };
 
+// --- Tool 17: omniroute_sync_pricing ---
+export const syncPricingInput = z.object({
+  sources: z
+    .array(z.string())
+    .optional()
+    .describe("External pricing sources to sync from (default: ['litellm'])"),
+  dryRun: z
+    .boolean()
+    .optional()
+    .describe("If true, preview sync results without saving to database"),
+});
+
+export const syncPricingOutput = z.object({
+  success: z.boolean(),
+  modelCount: z.number(),
+  providerCount: z.number(),
+  source: z.string(),
+  dryRun: z.boolean(),
+  error: z.string().optional(),
+  warnings: z.array(z.string()).optional(),
+  data: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
+});
+
+export const syncPricingTool: McpToolDefinition<typeof syncPricingInput, typeof syncPricingOutput> =
+  {
+    name: "omniroute_sync_pricing",
+    description:
+      "Syncs pricing data from external sources (LiteLLM) into OmniRoute. Synced pricing fills gaps not covered by hardcoded defaults without overwriting user-set prices. Use dryRun=true to preview.",
+    inputSchema: syncPricingInput,
+    outputSchema: syncPricingOutput,
+    scopes: ["pricing:write"],
+    auditLevel: "full",
+    phase: 2,
+    sourceEndpoints: ["/api/pricing/sync"],
+  };
+
 // ============ Tool Registry ============
 
 /** All MCP tool definitions, ordered by phase then name */
@@ -745,6 +781,7 @@ export const MCP_TOOLS = [
   bestComboForTaskTool,
   explainRouteTool,
   getSessionSnapshotTool,
+  syncPricingTool,
 ] as const;
 
 /** Essential tools only (Phase 1) */
