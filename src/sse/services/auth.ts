@@ -15,6 +15,7 @@ import {
   lockModel,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import * as log from "../utils/logger";
+import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -86,6 +87,11 @@ let selectionMutex = Promise.resolve();
 // Prevents multiple concurrent requests from marking the same connection
 // unavailable in parallel, which was the root cause of cascading 502 lockouts.
 const markMutexes = new Map<string, Promise<void>>();
+
+// Strict-Random shuffle deck moved to src/shared/utils/shuffleDeck.ts
+// auth.ts uses getNextFromDeckSync (already inside selectionMutex).
+// Re-export for backwards compat with existing test imports.
+export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 
 /**
  * Get provider credentials from localDb
@@ -324,6 +330,11 @@ export async function getProviderCredentials(
         (a, b) => (a.priority || 999) - (b.priority || 999)
       );
       connection = sorted[0];
+    } else if (strategy === "strict-random") {
+      // Strict Random: shuffle deck — uses each account once before reshuffling
+      const ids = orderedConnections.map((c) => c.id);
+      const selectedId = getNextFromDeckSync(`conn:${provider}`, ids);
+      connection = orderedConnections.find((c) => c.id === selectedId) || orderedConnections[0];
     } else {
       // Default: fill-first (already sorted by priority in getProviderConnections)
       connection = orderedConnections[0];
