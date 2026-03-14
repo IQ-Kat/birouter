@@ -9,6 +9,7 @@ import { recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
+import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel } from "./model.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
@@ -150,53 +151,8 @@ function orderModelsForWeightedFallback(models, selectedModel) {
   return [selected, ...rest].filter(Boolean).map((e) => e.model);
 }
 
-/**
- * Fisher-Yates shuffle (in-place)
- * @param {Array} arr
- * @returns {Array} The shuffled array
- */
-function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-// ─── Strict-Random: Shuffle Deck for Combos ──────────────────────────────────
-// Keyed by combo name — persists across requests, resets on server restart.
-const comboShuffleDecks = new Map();
-
-/**
- * Returns the next model ID from a shuffle deck for the given combo.
- * Uses each model exactly once per cycle before reshuffling (Fisher-Yates).
- * Guarantees the last model of the previous cycle is not the first of the next.
- */
-function getNextModelFromDeck(comboName, modelIds) {
-  if (modelIds.length === 0) return "";
-  if (modelIds.length === 1) return modelIds[0];
-
-  const deck = comboShuffleDecks.get(comboName);
-  const idsKey = [...modelIds].sort().join(",");
-
-  // If deck exists, is for the same model set, and is not exhausted — advance
-  if (deck && deck.idsKey === idsKey && deck.index < deck.order.length) {
-    const id = deck.order[deck.index];
-    comboShuffleDecks.set(comboName, { ...deck, index: deck.index + 1 });
-    return id;
-  }
-
-  // Reshuffle — ensure last of previous cycle is not first of new cycle
-  const lastId = deck && deck.idsKey === idsKey ? deck.order[deck.order.length - 1] : undefined;
-  let newOrder = shuffleArray([...modelIds]);
-  if (lastId !== undefined && newOrder[0] === lastId && newOrder.length > 1) {
-    const swapIdx = Math.floor(Math.random() * (newOrder.length - 1)) + 1;
-    [newOrder[0], newOrder[swapIdx]] = [newOrder[swapIdx], newOrder[0]];
-  }
-
-  comboShuffleDecks.set(comboName, { order: newOrder, index: 1, idsKey });
-  return newOrder[0];
-}
+// shuffleArray and getNextModelFromDeck moved to src/shared/utils/shuffleDeck.ts
+// combo.ts now uses the shared, mutex-protected getNextFromDeck with "combo:" namespace.
 
 /**
  * Sort models by pricing (cheapest first) for cost-optimized strategy
@@ -323,7 +279,7 @@ export async function handleComboChat({
 
   // Apply strategy-specific ordering
   if (strategy === "strict-random") {
-    const selectedId = getNextModelFromDeck(combo.name, orderedModels);
+    const selectedId = await getNextFromDeck(`combo:${combo.name}`, orderedModels);
     // Put selected model first so the fallback loop tries it first
     const rest = orderedModels.filter((m) => m !== selectedId);
     orderedModels = [selectedId, ...rest];
@@ -332,7 +288,7 @@ export async function handleComboChat({
       `Strict-random deck: ${selectedId} selected (${orderedModels.length} models)`
     );
   } else if (strategy === "random") {
-    orderedModels = shuffleArray([...orderedModels]);
+    orderedModels = fisherYatesShuffle([...orderedModels]);
     log.info("COMBO", `Random shuffle: ${orderedModels.length} models`);
   } else if (strategy === "least-used") {
     orderedModels = sortModelsByUsage(orderedModels, combo.name);
