@@ -133,7 +133,9 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // Optional strict API key mode for /v1 endpoints.
   // Keep disabled by default to preserve local-mode compatibility.
-  if (process.env.REQUIRE_API_KEY === "true") {
+  // Exception: X-Internal-Test header bypasses auth for admin-side combo health checks (#350)
+  const isInternalTest = request.headers?.get?.("x-internal-test") === "combo-health-check";
+  if (process.env.REQUIRE_API_KEY === "true" && !isInternalTest) {
     if (!apiKey) {
       log.warn("AUTH", "Missing API key while REQUIRE_API_KEY=true");
       return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
