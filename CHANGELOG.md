@@ -2,6 +2,53 @@
 
 ## [Unreleased]
 
+## [2.4.2] - 2026-03-14
+
+> Multiple improvements from community issue analysis, new provider support, bug fixes for token tracking, model routing, and streaming reliability.
+
+### ✨ New Features
+
+- **Task-Aware Smart Routing (T05)**: Automatic model selection based on request content type — coding → deepseek-chat, analysis → gemini-2.5-pro, vision → gpt-4o, summarization → gemini-2.5-flash. Configurable via Settings. New `GET/PUT/POST /api/settings/task-routing` API.
+- **HuggingFace Provider**: Added HuggingFace Router as an OpenAI-compatible provider with Llama 3.1 70B/8B, Qwen 2.5 72B, Mistral 7B, Phi-3.5 Mini.
+- **Vertex AI Provider**: Added Vertex AI (Google Cloud) provider with Gemini 2.5 Pro/Flash, Gemma 2 27B, Claude via Vertex.
+- **Playground File Uploads**: Audio upload for transcription, image upload for vision models (auto-detect by model name), inline image rendering for image generation results.
+- **Model Select Visual Feedback**: Already-added models in combo picker now show ✓ green badge — prevents duplicate confusion.
+- **Qwen Compatibility (PR #352)**: Updated User-Agent and CLI fingerprint settings for Qwen provider compatibility.
+- **Round-Robin State Management (PR #349)**: Enhanced round-robin logic to handle excluded accounts and maintain rotation state correctly.
+- **Clipboard UX (PR #360)**: Hardened clipboard operations with fallback for non-secure contexts; Claude tool normalization improvements.
+
+### 🐛 Bug Fixes
+
+- **Fix #302 — OpenAI SDK stream=False drops tool_calls**: T01 Accept header negotiation no longer forces streaming when `body.stream` is explicitly `false`. Was causing tool_calls to be silently dropped when using the OpenAI Python SDK in non-streaming mode.
+- **Fix #73 — Claude Haiku routed to OpenAI without provider prefix**: `claude-*` models sent without a provider prefix now correctly route to the `antigravity` (Anthropic) provider. Added `gemini-*`/`gemma-*` → `gemini` heuristic as well.
+- **Fix #74 — Token counts always 0 for Antigravity/Claude streaming**: The `message_start` SSE event which carries `input_tokens` was not being parsed by `extractUsage()`, causing all input token counts to drop. Input/output token tracking now works correctly for streaming responses.
+- **Fix #180 — Model import duplicates with no feedback**: `ModelSelectModal` now shows ✓ green highlight for models already in the combo, making it obvious they're already added.
+- **Media page generation errors**: Image results now render as `<img>` tags instead of raw JSON. Transcription results shown as readable text. Credential errors show an amber banner instead of silent failure.
+- **Token refresh button on provider page**: Manual token refresh UI added for OAuth providers.
+
+### 🔧 Improvements
+
+- **Provider Registry**: HuggingFace and Vertex AI added to `providerRegistry.ts` and `providers.ts` (frontend).
+- **Read Cache**: New `src/lib/db/readCache.ts` for efficient DB read caching.
+- **Quota Cache**: Improved quota cache with TTL-based eviction.
+
+### 📦 Dependencies
+
+- `dompurify` → 3.3.3 (PR #347)
+- `undici` → 7.24.2 (PR #348, #361)
+- `docker/setup-qemu-action` → v4 (PR #342)
+- `docker/setup-buildx-action` → v4 (PR #343)
+
+### 📁 New Files
+
+| File                                          | Purpose                                 |
+| --------------------------------------------- | --------------------------------------- |
+| `open-sse/services/taskAwareRouter.ts`        | Task-aware routing logic (7 task types) |
+| `src/app/api/settings/task-routing/route.ts`  | Task routing config API                 |
+| `src/app/api/providers/[id]/refresh/route.ts` | Manual OAuth token refresh              |
+| `src/lib/db/readCache.ts`                     | Efficient DB read cache                 |
+| `src/shared/utils/clipboard.ts`               | Hardened clipboard with fallback        |
+
 ## [2.4.1] - 2026-03-13
 
 ### 🐛 Fix
@@ -39,7 +86,6 @@
 - **i18n — autoCombo section**: Added 20 new translation keys for the Auto-Combo dashboard (`title`, `status`, `modePack`, `providerScores`, `factorTierPriority`, etc.) to all 30 language files.
 
 ## [2.3.14] - 2026-03-13
-
 
 ### 🐛 Bug Fixes
 
