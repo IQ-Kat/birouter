@@ -87,8 +87,9 @@ function hasEncryptedCredentials(dataDir) {
     } finally {
       db.close();
     }
-  } catch {
-    return false;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
   }
 }
 

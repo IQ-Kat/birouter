@@ -89,3 +89,14 @@ test("bootstrapEnv refuses to generate a new key over encrypted data", () => {
     );
   });
 });
+
+test("bootstrapEnv fails closed when existing database cannot be inspected", () => {
+  withTempEnv(({ dataDir }) => {
+    fs.mkdirSync(path.join(dataDir, "storage.sqlite"), { recursive: true });
+
+    assert.throws(
+      () => bootstrapEnv({ quiet: true }),
+      /Unable to inspect existing database/
+    );
+  });
+});
