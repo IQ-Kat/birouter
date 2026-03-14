@@ -35,8 +35,20 @@ interface ProviderConnectionView {
   consecutiveUseCount: number;
   priority: number;
   lastError: string | null;
+  lastErrorType: string | null;
+  lastErrorSource: string | null;
   errorCode: string | number | null;
   backoffLevel: number;
+}
+
+interface RecoverableConnectionState {
+  connectionId: string;
+  testStatus?: string | null;
+  lastError?: string | null;
+  rateLimitedUntil?: string | null;
+  errorCode?: string | number | null;
+  lastErrorType?: string | null;
+  lastErrorSource?: string | null;
 }
 
 const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
@@ -76,6 +88,8 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
     priority: toNumber(row.priority, 999),
     lastError: toStringOrNull(row.lastError),
+    lastErrorType: toStringOrNull(row.lastErrorType),
+    lastErrorSource: toStringOrNull(row.lastErrorSource),
     errorCode:
       typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
@@ -469,6 +483,9 @@ export async function getProviderCredentials(
       // Include current status for optimization check
       testStatus: connection.testStatus,
       lastError: connection.lastError,
+      lastErrorType: connection.lastErrorType,
+      lastErrorSource: connection.lastErrorSource,
+      errorCode: connection.errorCode,
       rateLimitedUntil: connection.rateLimitedUntil,
     };
   } finally {
@@ -569,12 +586,18 @@ export async function markAccountUnavailable(
  * Clear account error status (only if currently has error)
  * Optimized to avoid unnecessary DB updates
  */
-export async function clearAccountError(connectionId: string, currentConnection: any) {
+export async function clearAccountError(
+  connectionId: string,
+  currentConnection: Partial<RecoverableConnectionState>
+) {
   // Only update if currently has error status
   const hasError =
-    currentConnection.testStatus === "unavailable" ||
+    (currentConnection.testStatus && currentConnection.testStatus !== "active") ||
     currentConnection.lastError ||
-    currentConnection.rateLimitedUntil;
+    currentConnection.rateLimitedUntil ||
+    currentConnection.errorCode ||
+    currentConnection.lastErrorType ||
+    currentConnection.lastErrorSource;
 
   if (!hasError) return; // Skip if already clean
 
@@ -582,10 +605,20 @@ export async function clearAccountError(connectionId: string, currentConnection:
     testStatus: "active",
     lastError: null,
     lastErrorAt: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
     rateLimitedUntil: null,
     backoffLevel: 0,
   });
   log.info("AUTH", `Account ${connectionId.slice(0, 8)} error cleared`);
+}
+
+export async function clearRecoveredProviderState(
+  credentials: Partial<RecoverableConnectionState> | null
+) {
+  if (!credentials?.connectionId) return;
+  await clearAccountError(credentials.connectionId, credentials);
 }
 
 /**
