@@ -35,6 +35,13 @@ interface QuotaCacheEntry {
   windowDurationMs?: number | null; // T08: optional rolling window duration
 }
 
+interface QuotaWindowStatus {
+  remainingPercentage: number;
+  usedPercentage: number;
+  resetAt: string | null;
+  reachedThreshold: boolean;
+}
+
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const ACTIVE_TTL_MS = 5 * 60 * 1000; // 5 minutes for active accounts
@@ -87,6 +94,11 @@ function advancedWindowResetAt(entry: QuotaCacheEntry, now: number): { exhausted
 function parseDate(value: string): number | null {
   const ms = new Date(value).getTime();
   return Number.isNaN(ms) ? null : ms;
+}
+
+function clampPercent(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, value));
 }
 
 function earliestResetAt(quotas: Record<string, QuotaInfo>): string | null {
@@ -173,6 +185,46 @@ export function isAccountQuotaExhausted(connectionId: string): boolean {
   if (!entry.nextResetAt && age > EXHAUSTED_TTL_MS) return false;
 
   return true;
+}
+
+/**
+ * Return quota window status for a connection (e.g., session/weekly).
+ * Returns null when no cache or no window data is available.
+ */
+export function getQuotaWindowStatus(
+  connectionId: string,
+  windowName: string,
+  thresholdPercent = 90
+): QuotaWindowStatus | null {
+  const entry = cache.get(connectionId);
+  if (!entry) return null;
+
+  const now = Date.now();
+  const advanced = advancedWindowResetAt(entry, now);
+  if (advanced) {
+    entry.exhausted = false;
+  }
+
+  const window = entry.quotas[windowName];
+  if (!window) return null;
+
+  const remainingPercentage = clampPercent(window.remainingPercentage);
+  const usedPercentage = clampPercent(100 - remainingPercentage);
+
+  let resetAt = window.resetAt || null;
+  if (resetAt) {
+    const resetMs = parseDate(resetAt);
+    if (resetMs !== null && resetMs <= now) {
+      resetAt = null;
+    }
+  }
+
+  return {
+    remainingPercentage,
+    usedPercentage,
+    resetAt,
+    reachedThreshold: usedPercentage >= thresholdPercent,
+  };
 }
 
 /**
