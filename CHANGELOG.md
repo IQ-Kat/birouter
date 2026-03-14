@@ -2,7 +2,22 @@
 
 ## [Unreleased]
 
-## [2.5.2] - 2026-03-14
+## [2.5.3] - 2026-03-14
+
+> Critical bugfixes: DB schema migration, startup env loading, provider error state clearing, and i18n tooltip fix. Code quality improvements on top of each PR.
+
+### 🐛 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
+
+- **fix(db) #373**: Add `provider_connections.group` column to base schema + backfill migration for existing databases — column was used in all queries but missing from schema definition
+- **fix(i18n) #371**: Replace non-existent `t("deleteConnection")` key with existing `providers.delete` key — fixes `MISSING_MESSAGE: providers.deleteConnection` runtime error on provider detail page
+- **fix(auth) #372**: Clear stale error metadata (`errorCode`, `lastErrorType`, `lastErrorSource`) from provider accounts after genuine recovery — previously, recovered accounts kept appearing as failed
+- **fix(startup) #369**: Unify env loading across `npm run start`, `run-standalone.mjs`, and Electron to respect `DATA_DIR/.env → ~/.omniroute/.env → ./.env` priority — prevents generating a new `STORAGE_ENCRYPTION_KEY` over an existing encrypted database
+
+### 🔧 Code Quality
+
+- Documented `result.success` vs `response?.ok` patterns in `auth.ts` (both intentional, now explained)
+- Normalized `overridePath?.trim()` in `electron/main.js` to match `bootstrap-env.mjs`
+- Added `preferredEnv` merge order comment in Electron startup
 
 > Codex account quota policy with auto-rotation, fast tier toggle, gpt-5.4 model, and analytics label fix.
 
