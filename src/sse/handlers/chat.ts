@@ -207,7 +207,11 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         return false;
       }
 
-      const creds = await getProviderCredentials(provider);
+      const creds = await getProviderCredentials(
+        provider,
+        null,
+        apiKeyInfo?.allowedConnections ?? null
+      );
       if (!creds || creds.allRateLimited) return false;
       return true;
     };
@@ -291,7 +295,11 @@ async function handleSingleModelChat(
   let lastStatus = null;
 
   while (true) {
-    const credentials = await getProviderCredentials(provider, excludeConnectionId);
+    const credentials = await getProviderCredentials(
+      provider,
+      excludeConnectionId,
+      apiKeyInfo?.allowedConnections ?? null
+    );
 
     if (!credentials || credentials.allRateLimited) {
       if (lastStatus === 429 || lastStatus === 503) {
