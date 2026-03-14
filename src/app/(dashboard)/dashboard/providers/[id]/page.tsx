@@ -32,6 +32,17 @@ import {
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
+function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
+  const record =
+    policy && typeof policy === "object" && !Array.isArray(policy)
+      ? (policy as Record<string, unknown>)
+      : {};
+  return {
+    use5h: typeof record.use5h === "boolean" ? record.use5h : true,
+    useWeekly: typeof record.useWeekly === "boolean" ? record.useWeekly : true,
+  };
+}
+
 export default function ProviderDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -49,6 +60,7 @@ export default function ProviderDetailPage() {
   const [headerImgError, setHeaderImgError] = useState(false);
   const { copied, copy } = useCopyToClipboard();
   const t = useTranslations("providers");
+  const notify = useNotificationStore();
   const hasAutoOpened = useRef(false);
   const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
@@ -327,8 +339,7 @@ export default function ProviderDetailPage() {
           : {};
 
       const nextPolicy = {
-        use5h: typeof existingPolicy.use5h === "boolean" ? existingPolicy.use5h : true,
-        useWeekly: typeof existingPolicy.useWeekly === "boolean" ? existingPolicy.useWeekly : true,
+        ...normalizeCodexLimitPolicy(existingPolicy),
         [field]: enabled,
       };
 
@@ -343,23 +354,29 @@ export default function ProviderDetailPage() {
         }),
       });
 
-      if (res.ok) {
-        setConnections((prev) =>
-          prev.map((connection) =>
-            connection.id === connectionId
-              ? {
-                  ...connection,
-                  providerSpecificData: {
-                    ...(connection.providerSpecificData || {}),
-                    codexLimitPolicy: nextPolicy,
-                  },
-                }
-              : connection
-          )
-        );
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error || "Failed to update Codex limit policy");
+        return;
       }
+
+      setConnections((prev) =>
+        prev.map((connection) =>
+          connection.id === connectionId
+            ? {
+                ...connection,
+                providerSpecificData: {
+                  ...(connection.providerSpecificData || {}),
+                  codexLimitPolicy: nextPolicy,
+                },
+              }
+            : connection
+        )
+      );
+      notify.success("Codex limit policy updated");
     } catch (error) {
       console.error("Error toggling Codex quota policy:", error);
+      notify.error("Failed to update Codex limit policy");
     }
   };
 
@@ -383,7 +400,6 @@ export default function ProviderDetailPage() {
 
   // T12: Manual token refresh
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
-  const notify = useNotificationStore();
   const handleRefreshToken = async (connectionId: string) => {
     if (refreshingId) return;
     setRefreshingId(connectionId);
@@ -2309,9 +2325,9 @@ function ConnectionRow({
     typeof connection.providerSpecificData.codexLimitPolicy === "object"
       ? connection.providerSpecificData.codexLimitPolicy
       : {};
-  const codex5hEnabled = typeof codexPolicy.use5h === "boolean" ? codexPolicy.use5h : true;
-  const codexWeeklyEnabled =
-    typeof codexPolicy.useWeekly === "boolean" ? codexPolicy.useWeekly : true;
+  const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
+  const codex5hEnabled = normalizedCodexPolicy.use5h;
+  const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
 
   return (
     <div

@@ -38,6 +38,8 @@ interface ProviderConnectionView {
   backoffLevel: number;
 }
 
+const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -99,6 +101,18 @@ function parseFutureDateMs(value: string | null): number | null {
   const ms = new Date(value).getTime();
   if (!Number.isFinite(ms) || ms <= Date.now()) return null;
   return ms;
+}
+
+function getEarliestFutureDate(candidates: Array<string | null>): string | null {
+  return (
+    candidates
+      .map((candidate) => ({
+        raw: candidate,
+        ms: parseFutureDateMs(candidate),
+      }))
+      .filter((entry) => entry.ms !== null)
+      .sort((a, b) => (a.ms as number) - (b.ms as number))[0]?.raw || null
+  );
 }
 
 // Mutex to prevent race conditions during account selection
@@ -231,10 +245,10 @@ export async function getProviderCredentials(
       policyEligibleConnections = availableConnections.filter((connection) => {
         const policy = getCodexLimitPolicy(connection.providerSpecificData);
         const sessionStatus = policy.use5h
-          ? getQuotaWindowStatus(connection.id, "session", 90)
+          ? getQuotaWindowStatus(connection.id, "session", CODEX_QUOTA_THRESHOLD_PERCENT)
           : null;
         const weeklyStatus = policy.useWeekly
-          ? getQuotaWindowStatus(connection.id, "weekly", 90)
+          ? getQuotaWindowStatus(connection.id, "weekly", CODEX_QUOTA_THRESHOLD_PERCENT)
           : null;
 
         const reasons: string[] = [];
@@ -251,14 +265,7 @@ export async function getProviderCredentials(
         }
 
         if (reasons.length > 0) {
-          const nextResetAt =
-            resetCandidates
-              .map((candidate) => ({
-                raw: candidate,
-                ms: parseFutureDateMs(candidate),
-              }))
-              .filter((entry) => entry.ms !== null)
-              .sort((a, b) => (a.ms as number) - (b.ms as number))[0]?.raw || null;
+          const nextResetAt = getEarliestFutureDate(resetCandidates);
 
           blockedByPolicy.push({
             id: connection.id,
@@ -281,10 +288,10 @@ export async function getProviderCredentials(
       }
 
       if (policyEligibleConnections.length === 0 && availableConnections.length > 0) {
-        const earliestResetMs = blockedByPolicy
-          .map((entry) => parseFutureDateMs(entry.resetAt))
-          .filter((ms): ms is number => ms !== null)
-          .sort((a, b) => a - b)[0];
+        const earliestResetAt = getEarliestFutureDate(
+          blockedByPolicy.map((entry) => entry.resetAt)
+        );
+        const earliestResetMs = parseFutureDateMs(earliestResetAt);
 
         const retryAfter = earliestResetMs
           ? new Date(earliestResetMs).toISOString()

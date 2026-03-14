@@ -200,10 +200,6 @@ export function getQuotaWindowStatus(
   if (!entry) return null;
 
   const now = Date.now();
-  const advanced = advancedWindowResetAt(entry, now);
-  if (advanced) {
-    entry.exhausted = false;
-  }
 
   const window = entry.quotas[windowName];
   if (!window) return null;
@@ -212,10 +208,12 @@ export function getQuotaWindowStatus(
   const usedPercentage = clampPercent(100 - remainingPercentage);
 
   let resetAt = window.resetAt || null;
+  let windowExpired = false;
   if (resetAt) {
     const resetMs = parseDate(resetAt);
     if (resetMs !== null && resetMs <= now) {
       resetAt = null;
+      windowExpired = true;
     }
   }
 
@@ -223,7 +221,8 @@ export function getQuotaWindowStatus(
     remainingPercentage,
     usedPercentage,
     resetAt,
-    reachedThreshold: usedPercentage >= thresholdPercent,
+    // If reset time has already passed, avoid stale cached percentages blocking selection.
+    reachedThreshold: windowExpired ? false : usedPercentage >= thresholdPercent,
   };
 }
 
