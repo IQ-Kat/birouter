@@ -2540,7 +2540,7 @@ function ConnectionRow({
           <button
             onClick={onDelete}
             className="p-2 hover:bg-red-500/10 rounded text-red-500"
-            title={t("deleteConnection")}
+            title={t("delete")}
           >
             <span className="material-symbols-outlined text-[18px]">delete</span>
           </button>
