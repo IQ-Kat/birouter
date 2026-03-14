@@ -100,3 +100,14 @@ test("bootstrapEnv fails closed when existing database cannot be inspected", () 
     );
   });
 });
+
+test("bootstrapEnv ignores blank dataDirOverride values", () => {
+  withTempEnv(({ dataDir }) => {
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(path.join(dataDir, ".env"), "JWT_SECRET=jwt-from-dot-env\n", "utf8");
+
+    const env = bootstrapEnv({ dataDirOverride: "   ", quiet: true });
+
+    assert.equal(env.JWT_SECRET, "jwt-from-dot-env");
+  });
+});

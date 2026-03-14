@@ -35,7 +35,7 @@ const OPTIONAL_OAUTH_SECRETS = [
 
 // ── Resolve DATA_DIR (mirrors dataPaths.ts logic) ───────────────────────────
 function resolveDataDir(overridePath, env = process.env) {
-  if (overridePath) return resolve(overridePath);
+  if (overridePath?.trim()) return resolve(overridePath);
 
   const configured = env.DATA_DIR?.trim();
   if (configured) return resolve(configured);
