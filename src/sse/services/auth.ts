@@ -601,6 +601,11 @@ export async function clearAccountError(connectionId: string, currentConnection:
   log.info("AUTH", `Account ${connectionId.slice(0, 8)} error cleared`);
 }
 
+export async function clearRecoveredProviderState(credentials: any) {
+  if (!credentials?.connectionId) return;
+  await clearAccountError(credentials.connectionId, credentials);
+}
+
 /**
  * Extract API key from request headers
  */
