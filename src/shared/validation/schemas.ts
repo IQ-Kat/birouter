@@ -449,6 +449,12 @@ export const updateThinkingBudgetSchema = z
     }
   });
 
+export const updateCodexServiceTierSchema = z
+  .object({
+    enabled: z.boolean(),
+  })
+  .strict();
+
 const ipFilterModeSchema = z.enum(["blacklist", "whitelist"]);
 const tempBanSchema = z.object({
   ip: z.string().trim().min(1),
