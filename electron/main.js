@@ -88,7 +88,7 @@ function getPreferredEnvFilePath(env = process.env) {
     candidates.push(path.join(path.resolve(env.DATA_DIR.trim()), ".env"));
   }
 
-  candidates.push(path.join(resolveDataDir(), ".env"));
+  candidates.push(path.join(resolveDataDir(null, env), ".env"));
   candidates.push(path.join(process.cwd(), ".env"));
 
   return candidates.find((filePath) => fs.existsSync(filePath)) || null;
