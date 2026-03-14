@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [2.5.1] - 2026-03-14
+## [2.5.2] - 2026-03-14
 
 > Codex account quota policy with auto-rotation, fast tier toggle, gpt-5.4 model, and analytics label fix.
 
