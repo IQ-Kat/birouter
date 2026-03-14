@@ -35,7 +35,7 @@ export async function PUT(request: Request) {
       },
       { status: 400 }
     );
-  }
+    }
 
   try {
     const validation = validateBody(updateCodexServiceTierSchema, rawBody);
@@ -44,8 +44,8 @@ export async function PUT(request: Request) {
     }
 
     const config = validation.data;
-    setDefaultFastServiceTierEnabled(config.enabled);
     await updateSettings({ codexServiceTier: config });
+    setDefaultFastServiceTierEnabled(config.enabled);
 
     return NextResponse.json(config);
   } catch (error) {
