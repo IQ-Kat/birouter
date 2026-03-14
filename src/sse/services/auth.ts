@@ -101,7 +101,8 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
  */
 export async function getProviderCredentials(
   provider: string,
-  excludeConnectionId: string | null = null
+  excludeConnectionId: string | null = null,
+  allowedConnections: string[] | null = null
 ) {
   // Acquire mutex to prevent race conditions
   const currentMutex = selectionMutex;
@@ -114,9 +115,13 @@ export async function getProviderCredentials(
     await currentMutex;
 
     const connectionsRaw = await getProviderConnections({ provider, isActive: true });
-    const connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
+    let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
       .map(toProviderConnection)
       .filter((conn) => conn.id.length > 0);
+    // allowedConnections: restrict to specific connection IDs (from API key policy, #363)
+    if (allowedConnections && allowedConnections.length > 0) {
+      connections = connections.filter((conn) => allowedConnections.includes(conn.id));
+    }
     log.debug(
       "AUTH",
       `${provider} | total connections: ${connections.length}, excludeId: ${excludeConnectionId || "none"}`
