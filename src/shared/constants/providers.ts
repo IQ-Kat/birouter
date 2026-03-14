@@ -349,6 +349,27 @@ export const APIKEY_PROVIDERS = {
     textIcon: "CF",
     website: "https://github.com/comfyanonymous/ComfyUI",
   },
+  huggingface: {
+    id: "huggingface",
+    alias: "hf",
+    name: "HuggingFace",
+    icon: "face",
+    color: "#FFD21E",
+    textIcon: "HF",
+    website: "https://huggingface.co",
+    hasFree: true,
+    freeNote: "Free Inference API for thousands of models (Whisper, VITS, SDXL…)",
+  },
+  vertex: {
+    id: "vertex",
+    alias: "vertex",
+    name: "Vertex AI",
+    icon: "cloud",
+    color: "#4285F4",
+    textIcon: "VA",
+    website: "https://cloud.google.com/vertex-ai",
+    authHint: "Provide Service Account JSON or OAuth access_token",
+  },
 };
 
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";

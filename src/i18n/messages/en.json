@@ -1397,7 +1397,9 @@
     "editCompatibleTitle": "Edit {type} Compatible",
     "compatibleBaseUrlHint": "Use the base URL (ending in /v1) for your {type}-compatible API.",
     "apiKeyForCheck": "API Key (for Check)",
-    "compatibleProdPlaceholder": "{type} Compatible (Prod)"
+    "compatibleProdPlaceholder": "{type} Compatible (Prod)",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed"
   },
   "settings": {
     "title": "Settings",

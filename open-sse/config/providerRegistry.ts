@@ -896,6 +896,55 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "NousResearch/Hermes-3-Llama-3.1-70B", name: "Hermes 3 70B" },
     ],
   },
+
+  huggingface: {
+    id: "huggingface",
+    alias: "hf",
+    format: "openai",
+    executor: "default",
+    // HuggingFace Inference API — OpenAI-compatible endpoint
+    // Users must set their provider-specific baseUrl (model endpoint) in providerSpecificData.baseUrl
+    // or use a fixed model like: https://router.huggingface.co/ngc/nvidia/llama-3_1-nemotron-51b-instruct
+    baseUrl:
+      "https://router.huggingface.co/hf-inference/models/meta-llama/Meta-Llama-3.1-70B-Instruct/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "meta-llama/Meta-Llama-3.1-70B-Instruct", name: "Llama 3.1 70B Instruct" },
+      { id: "meta-llama/Meta-Llama-3.1-8B-Instruct", name: "Llama 3.1 8B Instruct" },
+      { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
+      { id: "mistralai/Mistral-7B-Instruct-v0.3", name: "Mistral 7B v0.3" },
+      { id: "microsoft/Phi-3.5-mini-instruct", name: "Phi-3.5 Mini" },
+    ],
+  },
+
+  vertex: {
+    id: "vertex",
+    alias: "vertex",
+    // Vertex AI uses Google's generateContent format (same as Gemini)
+    format: "gemini",
+    executor: "default",
+    // URL uses {project_id} and {region} from providerSpecificData — handled by custom executor or fallback
+    // Default to us-central1 / generic endpoint; users configure project via providerSpecificData
+    baseUrl: "https://us-central1-aiplatform.googleapis.com/v1/projects",
+    urlBuilder: (base, model, stream) => {
+      // Full URL: {base}/{project}/locations/{region}/publishers/google/models/{model}:{action}
+      // For a generic fallback, we build a Gemini-compatible URL
+      // The actual project/region are configured via providerSpecificData in the DB connection
+      const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
+      return `https://generativelanguage.googleapis.com/v1beta/models/${model}:${action}`;
+    },
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (Vertex)" },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Vertex)" },
+      { id: "gemini-2.0-flash-thinking-exp", name: "Gemini 2.0 Flash Thinking Exp (Vertex)" },
+      { id: "gemma-2-27b-it", name: "Gemma 2 27B (Vertex)" },
+      { id: "claude-opus-4-5@20251101", name: "Claude Opus 4.5 (Vertex)" },
+      { id: "claude-sonnet-4-5@20251101", name: "Claude Sonnet 4.5 (Vertex)" },
+    ],
+  },
 };
 
 // ── Generator Functions ───────────────────────────────────────────────────

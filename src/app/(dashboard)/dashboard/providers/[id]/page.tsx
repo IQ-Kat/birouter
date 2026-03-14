@@ -329,6 +329,29 @@ export default function ProviderDetailPage() {
     }
   };
 
+  // T12: Manual token refresh
+  const [refreshingId, setRefreshingId] = useState<string | null>(null);
+  const notify = useNotificationStore();
+  const handleRefreshToken = async (connectionId: string) => {
+    if (refreshingId) return;
+    setRefreshingId(connectionId);
+    try {
+      const res = await fetch(`/api/providers/${connectionId}/refresh`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        notify.success(t("tokenRefreshed"));
+        await fetchConnections();
+      } else {
+        notify.error(data.error || t("tokenRefreshFailed"));
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      notify.error(t("tokenRefreshFailed"));
+    } finally {
+      setRefreshingId(null);
+    }
+  };
+
   const handleSwapPriority = async (conn1, conn2) => {
     if (!conn1 || !conn2) return;
     try {
@@ -926,6 +949,8 @@ export default function ProviderDetailPage() {
                   }}
                   onDelete={() => handleDelete(conn.id)}
                   onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
+                  onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
+                  isRefreshing={refreshingId === conn.id}
                   onProxy={() =>
                     setProxyTarget({
                       level: "key",
@@ -2165,6 +2190,8 @@ function ConnectionRow({
   hasProxy,
   proxySource,
   proxyHost,
+  onRefreshToken,
+  isRefreshing,
 }) {
   const t = useTranslations("providers");
   const displayName = isOAuth
@@ -2173,6 +2200,24 @@ function ConnectionRow({
 
   // Use useState + useEffect for impure Date.now() to avoid calling during render
   const [isCooldown, setIsCooldown] = useState(false);
+  // T12: token expiry status — lazy init avoids calling Date.now() during render;
+  // updates every 30s via interval only (no sync setState in effect body).
+  const getTokenMinsLeft = () => {
+    if (!isOAuth || !connection.expiresAt) return null;
+    const expiresMs = new Date(connection.expiresAt).getTime();
+    return Math.floor((expiresMs - Date.now()) / 60000);
+  };
+  const [tokenMinsLeft, setTokenMinsLeft] = useState<number | null>(getTokenMinsLeft);
+
+  useEffect(() => {
+    if (!isOAuth || !connection.expiresAt) return;
+    const update = () => {
+      const expiresMs = new Date(connection.expiresAt).getTime();
+      setTokenMinsLeft(Math.floor((expiresMs - Date.now()) / 60000));
+    };
+    const iv = setInterval(update, 30000);
+    return () => clearInterval(iv);
+  }, [isOAuth, connection.expiresAt]);
 
   useEffect(() => {
     const checkCooldown = () => {
@@ -2229,6 +2274,25 @@ function ConnectionRow({
             <Badge variant={statusPresentation.statusVariant as any} size="sm" dot>
               {statusPresentation.statusLabel}
             </Badge>
+            {/* T12: Token expiry status indicator (state-driven, no Date.now in render) */}
+            {tokenMinsLeft !== null &&
+              (tokenMinsLeft < 0 ? (
+                <span
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-red-500/15 text-red-500"
+                  title={`Token expired: ${connection.expiresAt}`}
+                >
+                  <span className="material-symbols-outlined text-[11px]">error</span>
+                  expired
+                </span>
+              ) : tokenMinsLeft < 30 ? (
+                <span
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-500"
+                  title={`Token expires in ${tokenMinsLeft}m`}
+                >
+                  <span className="material-symbols-outlined text-[11px]">warning</span>
+                  {`~${tokenMinsLeft}m`}
+                </span>
+              ) : null)}
             {isCooldown && connection.isActive !== false && (
               <CooldownTimer until={connection.rateLimitedUntil} />
             )}
@@ -2313,6 +2377,21 @@ function ConnectionRow({
         >
           {t("retest")}
         </Button>
+        {/* T12: Manual token refresh for OAuth accounts */}
+        {onRefreshToken && (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon="token"
+            loading={isRefreshing}
+            disabled={connection.isActive === false || isRefreshing}
+            onClick={onRefreshToken}
+            className="!h-7 !px-2 text-xs text-amber-500 hover:text-amber-400"
+            title="Refresh OAuth token manually"
+          >
+            Token
+          </Button>
+        )}
         <Toggle
           size="sm"
           checked={connection.isActive ?? true}
