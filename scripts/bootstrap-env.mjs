@@ -7,21 +7,24 @@
  * restarts, Docker volume remounts, and upgrades.
  *
  * Works across all deployment modes:
- *   - npm / CLI:  called from run-standalone.mjs and run-next.mjs
+ *   - npm / app runners:  called from run-standalone.mjs and run-next.mjs
  *   - Docker:     same, secrets persisted in mounted volume
- *   - Electron:   called from main.js startup, persisted in userData
+ *   - Electron:   called from main.js startup, persisted in DATA_DIR
  *
  * Priority (lowest → highest):
  *   1. Auto-generated defaults
  *   2. {DATA_DIR}/server.env  (persisted on first boot)
- *   3. .env in CWD            (user overrides)
+ *   3. Preferred config .env  (DATA_DIR/.env -> ~/.omniroute/.env -> ./.env)
  *   4. process.env            (shell / Docker -e flags, highest priority)
  */
 
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+
+const require = createRequire(import.meta.url);
 
 // ── OAuth secrets that are optional but warn if missing ─────────────────────
 const OPTIONAL_OAUTH_SECRETS = [
@@ -31,21 +34,63 @@ const OPTIONAL_OAUTH_SECRETS = [
 ];
 
 // ── Resolve DATA_DIR (mirrors dataPaths.ts logic) ───────────────────────────
-function resolveDataDir(overridePath) {
-  if (overridePath) return resolve(overridePath);
+function resolveDataDir(overridePath, env = process.env) {
+  if (overridePath?.trim()) return resolve(overridePath);
 
-  const configured = process.env.DATA_DIR?.trim();
+  const configured = env.DATA_DIR?.trim();
   if (configured) return resolve(configured);
 
   if (process.platform === "win32") {
-    const appData = process.env.APPDATA || join(homedir(), "AppData", "Roaming");
+    const appData = env.APPDATA || join(homedir(), "AppData", "Roaming");
     return join(appData, "omniroute");
   }
 
-  const xdg = process.env.XDG_CONFIG_HOME?.trim();
+  const xdg = env.XDG_CONFIG_HOME?.trim();
   if (xdg) return join(resolve(xdg), "omniroute");
 
   return join(homedir(), ".omniroute");
+}
+
+function getPreferredEnvFilePath(env = process.env) {
+  const candidates = [];
+
+  if (env.DATA_DIR?.trim()) {
+    candidates.push(join(resolve(env.DATA_DIR.trim()), ".env"));
+  }
+
+  candidates.push(join(resolveDataDir(null, env), ".env"));
+  candidates.push(join(process.cwd(), ".env"));
+
+  return candidates.find((filePath) => existsSync(filePath)) ?? null;
+}
+
+function hasEncryptedCredentials(dataDir) {
+  const dbPath = join(dataDir, "storage.sqlite");
+  if (!existsSync(dbPath)) return false;
+
+  try {
+    const Database = require("better-sqlite3");
+    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    try {
+      const row = db
+        .prepare(
+          `SELECT 1
+             FROM provider_connections
+            WHERE access_token LIKE 'enc:v1:%'
+               OR refresh_token LIKE 'enc:v1:%'
+               OR api_key LIKE 'enc:v1:%'
+               OR id_token LIKE 'enc:v1:%'
+            LIMIT 1`
+        )
+        .get();
+      return !!row;
+    } finally {
+      db.close();
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
+  }
 }
 
 // ── Parse a simple KEY=VALUE env file ───────────────────────────────────────
@@ -85,18 +130,17 @@ function writeEnvFile(filePath, env) {
 export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   const log = quiet ? () => {} : (msg) => process.stderr.write(`[bootstrap] ${msg}\n`);
 
-  const dataDir = resolveDataDir(dataDirOverride);
+  const preferredEnvPath = getPreferredEnvFilePath(process.env);
+  const preferredEnv = preferredEnvPath ? parseEnvFile(preferredEnvPath) : {};
+  const dataDir = resolveDataDir(dataDirOverride, { ...preferredEnv, ...process.env });
   const serverEnvPath = join(dataDir, "server.env");
-  const dotEnvPath = join(process.cwd(), ".env");
 
   // ── Layer 1: Load persisted server.env ────────────────────────────────────
   let persisted = parseEnvFile(serverEnvPath);
 
-  // ── Layer 2: Load .env from CWD (user overrides, higher priority) ─────────
-  const dotEnv = parseEnvFile(dotEnvPath);
-
-  // ── Merge: persisted < .env < process.env ─────────────────────────────────
-  const merged = { ...persisted, ...dotEnv, ...process.env };
+  // ── Layer 2: Load the same preferred .env that the CLI wrapper uses ───────
+  // This keeps run-next / run-standalone consistent with `bin/omniroute.mjs`.
+  const merged = { ...persisted, ...preferredEnv, ...process.env };
 
   // ── Auto-generate required secrets ────────────────────────────────────────
   let needsPersist = false;
@@ -109,6 +153,14 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   }
 
   if (!merged.STORAGE_ENCRYPTION_KEY?.trim()) {
+    if (hasEncryptedCredentials(dataDir)) {
+      throw new Error(
+        `Refusing to auto-generate STORAGE_ENCRYPTION_KEY: encrypted credentials already exist in ${join(
+          dataDir,
+          "storage.sqlite"
+        )}. Restore the key via ${preferredEnvPath ?? "an appropriate .env file"}, ${serverEnvPath}, or process.env.`
+      );
+    }
     persisted.STORAGE_ENCRYPTION_KEY = randomBytes(32).toString("hex");
     merged.STORAGE_ENCRYPTION_KEY = persisted.STORAGE_ENCRYPTION_KEY;
     needsPersist = true;
