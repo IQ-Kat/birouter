@@ -23,6 +23,12 @@ test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
   assert.equal(info.model, "gpt-4o");
 });
 
+test("getModelInfoCore resolves gpt-5.4 to codex", async () => {
+  const info = await getModelInfoCore("gpt-5.4", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.4");
+});
+
 test("getModelInfoCore returns explicit ambiguity metadata for ambiguous unprefixed model", async () => {
   const info = await getModelInfoCore("claude-haiku-4.5", {});
   assert.equal(info.provider, null);
