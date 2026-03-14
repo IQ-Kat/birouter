@@ -161,6 +161,11 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
 
     if (!response.ok) {
       const error = await response.text();
+      if (response.status === 401 || response.status === 403) {
+        return {
+          message: `GitHub token expired or permission denied. Please re-authenticate the connection.`,
+        };
+      }
       throw new Error(`GitHub API error: ${error}`);
     }
 
@@ -620,6 +625,11 @@ async function getCodexUsage(accessToken, providerSpecificData: Record<string, u
     });
 
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        return {
+          message: `Codex token expired or access denied. Please re-authenticate the connection.`,
+        };
+      }
       throw new Error(`Codex API error: ${response.status}`);
     }
 

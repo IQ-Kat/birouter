@@ -2411,6 +2411,7 @@ function ConnectionRow({
           <button
             onClick={onEdit}
             className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary"
+            title={t("edit")}
           >
             <span className="material-symbols-outlined text-[18px]">edit</span>
           </button>
@@ -2421,7 +2422,11 @@ function ConnectionRow({
           >
             <span className="material-symbols-outlined text-[18px]">vpn_lock</span>
           </button>
-          <button onClick={onDelete} className="p-2 hover:bg-red-500/10 rounded text-red-500">
+          <button
+            onClick={onDelete}
+            className="p-2 hover:bg-red-500/10 rounded text-red-500"
+            title={t("deleteConnection")}
+          >
             <span className="material-symbols-outlined text-[18px]">delete</span>
           </button>
         </div>

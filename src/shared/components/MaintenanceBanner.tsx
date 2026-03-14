@@ -8,38 +8,36 @@
  * comes back online.
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 export default function MaintenanceBanner() {
   const [show, setShow] = useState(false);
   const [message, setMessage] = useState("");
 
-  const checkHealth = useCallback(async () => {
-    try {
-      const res = await fetch("/api/monitoring/health", {
-        signal: AbortSignal.timeout(3000),
-      });
-      if (res.ok) {
-        // Server is healthy — hide banner if shown
-        if (show) {
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch("/api/monitoring/health", {
+          signal: AbortSignal.timeout(3000),
+        });
+        if (res.ok) {
           setShow(false);
           setMessage("");
+        } else {
+          setShow(true);
+          setMessage("Server is experiencing issues. Some features may be unavailable.");
         }
-      } else {
+      } catch {
         setShow(true);
-        setMessage("Server is experiencing issues. Some features may be unavailable.");
+        setMessage("Server is unreachable. Reconnecting...");
       }
-    } catch {
-      setShow(true);
-      setMessage("Server is unreachable. Reconnecting...");
-    }
-  }, [show]);
+    };
 
-  useEffect(() => {
-    // Check health every 10 seconds
+    // Run immediately on mount, then every 10 seconds
+    checkHealth();
     const interval = setInterval(checkHealth, 10000);
     return () => clearInterval(interval);
-  }, [checkHealth]);
+  }, []); // empty deps — checkHealth is defined inside effect, no stale closure
 
   if (!show) return null;
 

@@ -27,6 +27,13 @@ const STRATEGY_OPTIONS = [
   { value: "random", labelKey: "random", descKey: "randomDesc", icon: "shuffle" },
   { value: "least-used", labelKey: "leastUsed", descKey: "leastUsedDesc", icon: "low_priority" },
   { value: "cost-optimized", labelKey: "costOpt", descKey: "costOptimizedDesc", icon: "savings" },
+  {
+    value: "fill-first",
+    labelKey: "fillFirst",
+    descKey: "fillFirstDesc",
+    icon: "stacked_bar_chart",
+  },
+  { value: "p2c", labelKey: "p2c", descKey: "p2cDesc", icon: "compare_arrows" },
 ];
 
 const STRATEGY_GUIDANCE_FALLBACK = {
@@ -59,6 +66,16 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     when: "Use when minimizing cost is the top priority.",
     avoid: "Avoid when pricing data is missing or outdated.",
     example: "Example: Batch or background jobs where lower cost matters most.",
+  },
+  "fill-first": {
+    when: "Use when you want to drain one provider's quota fully before moving to the next.",
+    avoid: "Avoid when you need request-level load balancing across providers.",
+    example: "Example: Use all $200 Deepgram credits before falling to Groq.",
+  },
+  p2c: {
+    when: "Use when you want low-latency selection using Power-of-Two-Choices algorithm.",
+    avoid: "Avoid for small combos with 2 or fewer models — no benefit over round-robin.",
+    example: "Example: High-throughput inference across 4+ equivalent model endpoints.",
   },
 };
 
@@ -124,6 +141,25 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
       "Ensure pricing coverage for all selected models.",
       "Keep a quality fallback for hard prompts.",
       "Use for batch/background jobs where cost is the main KPI.",
+    ],
+  },
+  "fill-first": {
+    title: "Quota drain strategy",
+    description: "Exhausts one provider's quota before moving to the next in chain.",
+    tips: [
+      "Order models by free quota size — biggest first.",
+      "Enable health checks to skip drained providers.",
+      "Ideal for free-tier stacking (Deepgram → Groq → NIM).",
+    ],
+  },
+  p2c: {
+    title: "Power-of-Two-Choices",
+    description:
+      "Picks the less-loaded of two random candidates per request — low latency at scale.",
+    tips: [
+      "Use with 4+ models for best effect.",
+      "Requires latency telemetry enabled in Settings.",
+      "Great replacement for round-robin in high-throughput combos.",
     ],
   },
 };
@@ -227,6 +263,8 @@ function getStrategyBadgeClass(strategy) {
   if (strategy === "random") return "bg-purple-500/15 text-purple-600 dark:text-purple-400";
   if (strategy === "least-used") return "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400";
   if (strategy === "cost-optimized") return "bg-teal-500/15 text-teal-600 dark:text-teal-400";
+  if (strategy === "fill-first") return "bg-orange-500/15 text-orange-600 dark:text-orange-400";
+  if (strategy === "p2c") return "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400";
   return "bg-blue-500/15 text-blue-600 dark:text-blue-400";
 }
 
@@ -1365,10 +1403,24 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     );
   };
 
+  const FREE_STACK_PRESET_MODELS = [
+    { model: "gc/gemini-3-flash-preview", weight: 0 },
+    { model: "kr/claude-sonnet-4.5", weight: 0 },
+    { model: "if/kimi-k2-thinking", weight: 0 },
+    { model: "if/qwen3-coder-plus", weight: 0 },
+    { model: "qw/qwen3-coder-plus", weight: 0 },
+    { model: "nvidia/llama-3.3-70b-instruct", weight: 0 },
+    { model: "groq/llama-3.3-70b-versatile", weight: 0 },
+  ];
+
   const applyTemplate = (template) => {
     setStrategy(template.strategy);
     setConfig((prev) => ({ ...prev, ...template.config }));
     if (!name.trim()) setName(template.suggestedName);
+    // Pre-fill Free Stack with 7 real free provider models
+    if (template.id === "free-stack") {
+      setModels(FREE_STACK_PRESET_MODELS);
+    }
   };
 
   // Format model display name with readable provider name
@@ -1473,7 +1525,12 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? t("editCombo") : t("createCombo")}>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={isEdit ? t("editCombo") : t("createCombo")}
+        size="full"
+      >
         <div className="flex flex-col gap-3">
           {/* Name */}
           <div>
