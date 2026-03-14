@@ -56,10 +56,16 @@ interface SyncResult {
 
 // ─── Configuration ───────────────────────────────────────
 
-const SYNC_INTERVAL_MS = parseInt(process.env.PRICING_SYNC_INTERVAL || "86400", 10) * 1000;
+const SUPPORTED_SOURCES = ["litellm"] as const;
+type SupportedSource = (typeof SUPPORTED_SOURCES)[number];
+
+const parsedInterval = parseInt(process.env.PRICING_SYNC_INTERVAL || "86400", 10);
+const SYNC_INTERVAL_MS =
+  Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval * 1000 : 86400 * 1000;
 const SYNC_SOURCES = (process.env.PRICING_SYNC_SOURCES || "litellm")
   .split(",")
-  .map((s) => s.trim());
+  .map((s) => s.trim())
+  .filter((s): s is SupportedSource => SUPPORTED_SOURCES.includes(s as SupportedSource));
 
 const LITELLM_PRICING_URL =
   "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json";
@@ -87,6 +93,7 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
 let syncTimer: ReturnType<typeof setInterval> | null = null;
 let lastSyncTime: string | null = null;
 let lastSyncModelCount = 0;
+let activeSyncIntervalMs = SYNC_INTERVAL_MS;
 
 // ─── Core: Fetch + Transform ─────────────────────────────
 
@@ -100,7 +107,12 @@ export async function fetchLiteLLMPricing(): Promise<Record<string, LiteLLMModel
   if (!response.ok) {
     throw new Error(`LiteLLM fetch failed [${response.status}]: ${response.statusText}`);
   }
-  return response.json() as Promise<Record<string, LiteLLMModelInfo>>;
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as Record<string, LiteLLMModelInfo>;
+  } catch {
+    throw new Error(`LiteLLM returned invalid JSON (${text.slice(0, 100)}...)`);
+  }
 }
 
 /**
@@ -179,7 +191,11 @@ export function getSyncedPricing(): PricingByProvider {
     const key = typeof record.key === "string" ? record.key : null;
     const rawValue = typeof record.value === "string" ? record.value : null;
     if (!key || rawValue === null) continue;
-    synced[key] = JSON.parse(rawValue) as PricingModels;
+    try {
+      synced[key] = JSON.parse(rawValue) as PricingModels;
+    } catch {
+      console.warn(`[PRICING_SYNC] Corrupted data for provider "${key}", skipping`);
+    }
   }
   return synced;
 }
@@ -223,17 +239,36 @@ export async function syncPricingFromSources(opts?: {
   sources?: string[];
   dryRun?: boolean;
 }): Promise<SyncResult> {
-  const sources = opts?.sources || SYNC_SOURCES;
+  const requestedSources = opts?.sources || SYNC_SOURCES;
   const dryRun = opts?.dryRun ?? false;
 
-  try {
-    let aggregated: PricingByProvider = {};
+  // Validate sources
+  const validSources = requestedSources.filter((s): s is SupportedSource =>
+    SUPPORTED_SOURCES.includes(s as SupportedSource)
+  );
+  const invalidSources = requestedSources.filter(
+    (s) => !SUPPORTED_SOURCES.includes(s as SupportedSource)
+  );
 
-    for (const source of sources) {
+  if (validSources.length === 0) {
+    const supported = SUPPORTED_SOURCES.join(", ");
+    return {
+      success: false,
+      modelCount: 0,
+      providerCount: 0,
+      source: requestedSources.join(","),
+      dryRun,
+      error: `No valid sources provided. Supported: ${supported}. Invalid: ${invalidSources.join(", ")}`,
+    };
+  }
+
+  try {
+    const aggregated: PricingByProvider = {};
+
+    for (const source of validSources) {
       if (source === "litellm") {
         const raw = await fetchLiteLLMPricing();
         const transformed = transformToOmniRoute(raw);
-        // Merge into aggregated
         for (const [provider, models] of Object.entries(transformed)) {
           if (!aggregated[provider]) aggregated[provider] = {};
           Object.assign(aggregated[provider], models);
@@ -257,8 +292,11 @@ export async function syncPricingFromSources(opts?: {
       success: true,
       modelCount,
       providerCount,
-      source: sources.join(","),
+      source: validSources.join(","),
       dryRun,
+      ...(invalidSources.length > 0
+        ? { warnings: [`Unknown sources ignored: ${invalidSources.join(", ")}`] }
+        : {}),
       ...(dryRun ? { data: aggregated } : {}),
     };
   } catch (err) {
@@ -268,7 +306,7 @@ export async function syncPricingFromSources(opts?: {
       success: false,
       modelCount: 0,
       providerCount: 0,
-      source: sources.join(","),
+      source: requestedSources.join(","),
       dryRun,
       error: message,
     };
@@ -284,23 +322,35 @@ export function startPeriodicSync(intervalMs?: number): void {
   if (syncTimer) return; // Already running
 
   const interval = intervalMs ?? SYNC_INTERVAL_MS;
+  activeSyncIntervalMs = interval;
   console.log(`[PRICING_SYNC] Starting periodic sync every ${interval / 1000}s`);
 
   // Initial sync (non-blocking)
-  syncPricingFromSources().then((result) => {
-    if (result.success) {
-      console.log(
-        `[PRICING_SYNC] Initial sync complete: ${result.modelCount} models from ${result.providerCount} providers`
-      );
-    }
-  });
+  syncPricingFromSources()
+    .then((result) => {
+      if (result.success) {
+        console.log(
+          `[PRICING_SYNC] Initial sync complete: ${result.modelCount} models from ${result.providerCount} providers`
+        );
+      }
+    })
+    .catch((err) => {
+      console.warn("[PRICING_SYNC] Initial sync error:", err instanceof Error ? err.message : err);
+    });
 
   syncTimer = setInterval(() => {
-    syncPricingFromSources().then((result) => {
-      if (result.success) {
-        console.log(`[PRICING_SYNC] Periodic sync complete: ${result.modelCount} models`);
-      }
-    });
+    syncPricingFromSources()
+      .then((result) => {
+        if (result.success) {
+          console.log(`[PRICING_SYNC] Periodic sync complete: ${result.modelCount} models`);
+        }
+      })
+      .catch((err) => {
+        console.warn(
+          "[PRICING_SYNC] Periodic sync error:",
+          err instanceof Error ? err.message : err
+        );
+      });
   }, interval);
 }
 
@@ -326,9 +376,9 @@ export function getSyncStatus(): SyncStatus {
     lastSyncModelCount,
     nextSync:
       syncTimer && lastSyncTime
-        ? new Date(new Date(lastSyncTime).getTime() + SYNC_INTERVAL_MS).toISOString()
+        ? new Date(new Date(lastSyncTime).getTime() + activeSyncIntervalMs).toISOString()
         : null,
-    intervalMs: SYNC_INTERVAL_MS,
+    intervalMs: activeSyncIntervalMs,
     sources: SYNC_SOURCES,
   };
 }

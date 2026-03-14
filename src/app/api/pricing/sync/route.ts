@@ -11,7 +11,9 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const sources = Array.isArray(body.sources) ? body.sources : undefined;
+    const sources = Array.isArray(body.sources)
+      ? body.sources.filter((s: unknown): s is string => typeof s === "string")
+      : undefined;
     const dryRun = body.dryRun === true;
 
     const { syncPricingFromSources } = await import("@/lib/pricingSync");

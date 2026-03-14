@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { z } from "zod";
 import { syncPricingInput, syncPricingTool, MCP_TOOLS, MCP_TOOL_MAP } from "../schemas/tools.ts";
 
 describe("omniroute_sync_pricing MCP tool schema", () => {

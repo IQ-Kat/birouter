@@ -742,6 +742,8 @@ export const syncPricingOutput = z.object({
   source: z.string(),
   dryRun: z.boolean(),
   error: z.string().optional(),
+  warnings: z.array(z.string()).optional(),
+  data: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
 });
 
 export const syncPricingTool: McpToolDefinition<typeof syncPricingInput, typeof syncPricingOutput> =

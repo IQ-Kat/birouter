@@ -131,28 +131,17 @@ export async function getPricing() {
     mergedPricing[provider] = { ...(toRecord(models) as PricingModels) };
   }
 
-  // Layer synced on top of defaults
-  for (const [provider, models] of Object.entries(syncedPricing)) {
-    if (!mergedPricing[provider]) {
-      mergedPricing[provider] = { ...models };
-    } else {
-      for (const [model, pricing] of Object.entries(models)) {
-        mergedPricing[provider][model] = mergedPricing[provider][model]
-          ? { ...(mergedPricing[provider][model] || {}), ...toRecord(pricing) }
-          : pricing;
-      }
-    }
-  }
-
-  // Layer user overrides on top (highest priority)
-  for (const [provider, models] of Object.entries(userPricing)) {
-    if (!mergedPricing[provider]) {
-      mergedPricing[provider] = { ...models };
-    } else {
-      for (const [model, pricing] of Object.entries(models)) {
-        mergedPricing[provider][model] = mergedPricing[provider][model]
-          ? { ...(mergedPricing[provider][model] || {}), ...toRecord(pricing) }
-          : pricing;
+  // Layer synced then user on top (each higher-priority layer overrides)
+  for (const layer of [syncedPricing, userPricing]) {
+    for (const [provider, models] of Object.entries(layer)) {
+      if (!mergedPricing[provider]) {
+        mergedPricing[provider] = { ...models };
+      } else {
+        for (const [model, pricing] of Object.entries(models)) {
+          mergedPricing[provider][model] = mergedPricing[provider][model]
+            ? { ...(mergedPricing[provider][model] || {}), ...toRecord(pricing) }
+            : pricing;
+        }
       }
     }
   }
