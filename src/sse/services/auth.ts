@@ -572,9 +572,12 @@ export async function markAccountUnavailable(
 export async function clearAccountError(connectionId: string, currentConnection: any) {
   // Only update if currently has error status
   const hasError =
-    currentConnection.testStatus === "unavailable" ||
+    (currentConnection.testStatus && currentConnection.testStatus !== "active") ||
     currentConnection.lastError ||
-    currentConnection.rateLimitedUntil;
+    currentConnection.rateLimitedUntil ||
+    currentConnection.errorCode ||
+    currentConnection.lastErrorType ||
+    currentConnection.lastErrorSource;
 
   if (!hasError) return; // Skip if already clean
 
@@ -582,6 +585,9 @@ export async function clearAccountError(connectionId: string, currentConnection:
     testStatus: "active",
     lastError: null,
     lastErrorAt: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
     rateLimitedUntil: null,
     backoffLevel: 0,
   });
