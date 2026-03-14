@@ -35,6 +35,8 @@ interface ProviderConnectionView {
   consecutiveUseCount: number;
   priority: number;
   lastError: string | null;
+  lastErrorType: string | null;
+  lastErrorSource: string | null;
   errorCode: string | number | null;
   backoffLevel: number;
 }
@@ -76,6 +78,8 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
     priority: toNumber(row.priority, 999),
     lastError: toStringOrNull(row.lastError),
+    lastErrorType: toStringOrNull(row.lastErrorType),
+    lastErrorSource: toStringOrNull(row.lastErrorSource),
     errorCode:
       typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
@@ -469,6 +473,9 @@ export async function getProviderCredentials(
       // Include current status for optimization check
       testStatus: connection.testStatus,
       lastError: connection.lastError,
+      lastErrorType: connection.lastErrorType,
+      lastErrorSource: connection.lastErrorSource,
+      errorCode: connection.errorCode,
       rateLimitedUntil: connection.rateLimitedUntil,
     };
   } finally {
