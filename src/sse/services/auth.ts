@@ -41,6 +41,16 @@ interface ProviderConnectionView {
   backoffLevel: number;
 }
 
+interface RecoverableConnectionState {
+  connectionId: string;
+  testStatus?: string | null;
+  lastError?: string | null;
+  rateLimitedUntil?: string | null;
+  errorCode?: string | number | null;
+  lastErrorType?: string | null;
+  lastErrorSource?: string | null;
+}
+
 const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
 
 function asRecord(value: unknown): JsonRecord {
@@ -576,7 +586,10 @@ export async function markAccountUnavailable(
  * Clear account error status (only if currently has error)
  * Optimized to avoid unnecessary DB updates
  */
-export async function clearAccountError(connectionId: string, currentConnection: any) {
+export async function clearAccountError(
+  connectionId: string,
+  currentConnection: Partial<RecoverableConnectionState>
+) {
   // Only update if currently has error status
   const hasError =
     (currentConnection.testStatus && currentConnection.testStatus !== "active") ||
@@ -601,7 +614,9 @@ export async function clearAccountError(connectionId: string, currentConnection:
   log.info("AUTH", `Account ${connectionId.slice(0, 8)} error cleared`);
 }
 
-export async function clearRecoveredProviderState(credentials: any) {
+export async function clearRecoveredProviderState(
+  credentials: Partial<RecoverableConnectionState> | null
+) {
   if (!credentials?.connectionId) return;
   await clearAccountError(credentials.connectionId, credentials);
 }
