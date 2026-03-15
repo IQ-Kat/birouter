@@ -9,7 +9,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -45,8 +45,11 @@ function resolveStandaloneBundleDir() {
   );
 }
 
-function basename(filePath) {
-  return filePath.split(/[\\/]/).filter(Boolean).at(-1) || filePath;
+function createPathPattern(filePath) {
+  return filePath
+    .replace(/\\/g, "/")
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\//g, "[\\\\/]");
 }
 
 function sanitizeBuildPaths(bundleDir) {
@@ -65,8 +68,7 @@ function sanitizeBuildPaths(bundleDir) {
     let updated = content;
 
     for (const original of replacements) {
-      const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      updated = updated.replace(new RegExp(escaped, "g"), ".");
+      updated = updated.replace(new RegExp(createPathPattern(original), "g"), ".");
     }
 
     if (updated !== content) {
