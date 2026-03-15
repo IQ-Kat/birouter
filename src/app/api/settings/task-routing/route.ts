@@ -6,8 +6,6 @@ import {
   getDefaultTaskModelMap,
 } from "@omniroute/open-sse/services/taskAwareRouter.ts";
 import { updateSettings } from "@/lib/db/settings";
-import { taskRoutingActionSchema, updateTaskRoutingSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 /**
  * GET /api/settings/task-routing
@@ -31,29 +29,15 @@ export async function GET() {
  * Body: { enabled?: boolean, taskModelMap?: { coding?: "...", ... }, detectionEnabled?: boolean }
  */
 export async function PUT(request: Request) {
-  let rawBody: unknown;
+  let rawBody: Record<string, unknown>;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: { message: "Invalid JSON body" } }, { status: 400 });
   }
 
   try {
-    const validation = validateBody(updateTaskRoutingSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    const config = validation.data;
-
-    setTaskRoutingConfig(config);
+    setTaskRoutingConfig(rawBody as any);
 
     // Persist to database (excluding stats)
     const { stats, ...persistable } = getTaskRoutingConfig();
@@ -72,29 +56,15 @@ export async function PUT(request: Request) {
  * For "detect": pass { action: "detect", body: <request-body> } to test detection
  */
 export async function POST(request: Request) {
-  let rawBody: unknown;
+  let rawBody: any;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: { message: "Invalid JSON body" } }, { status: 400 });
   }
 
   try {
-    const validation = validateBody(taskRoutingActionSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    const actionRequest = validation.data;
-
-    if (actionRequest.action === "reset-stats") {
+    if (rawBody.action === "reset-stats") {
       resetTaskRoutingStats();
       return NextResponse.json({
         success: true,
@@ -102,9 +72,9 @@ export async function POST(request: Request) {
       });
     }
 
-    if (actionRequest.action === "detect") {
+    if (rawBody.action === "detect") {
       const { detectTaskType } = await import("@omniroute/open-sse/services/taskAwareRouter.ts");
-      const taskType = detectTaskType(actionRequest.body || {});
+      const taskType = detectTaskType(rawBody.body || {});
       const config = getTaskRoutingConfig();
       return NextResponse.json({
         taskType,

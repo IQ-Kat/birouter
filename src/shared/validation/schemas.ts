@@ -378,58 +378,6 @@ export const resetStatsActionSchema = z.object({
   action: z.literal("reset-stats"),
 });
 
-const pricingSyncSourceSchema = z.enum(["litellm"]);
-
-export const pricingSyncRequestSchema = z
-  .object({
-    sources: z.array(pricingSyncSourceSchema).min(1).optional(),
-    dryRun: z.boolean().optional(),
-  })
-  .strict();
-
-const taskRoutingModelMapSchema = z
-  .object({
-    coding: z.string().max(200).optional(),
-    creative: z.string().max(200).optional(),
-    analysis: z.string().max(200).optional(),
-    vision: z.string().max(200).optional(),
-    summarization: z.string().max(200).optional(),
-    background: z.string().max(200).optional(),
-    chat: z.string().max(200).optional(),
-  })
-  .strict();
-
-export const updateTaskRoutingSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-    taskModelMap: taskRoutingModelMapSchema.optional(),
-    detectionEnabled: z.boolean().optional(),
-  })
-  .strict()
-  .superRefine((value, ctx) => {
-    if (
-      value.enabled === undefined &&
-      value.taskModelMap === undefined &&
-      value.detectionEnabled === undefined
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "No valid fields to update",
-        path: [],
-      });
-    }
-  });
-
-export const taskRoutingActionSchema = z.discriminatedUnion("action", [
-  resetStatsActionSchema,
-  z
-    .object({
-      action: z.literal("detect"),
-      body: jsonObjectSchema.optional(),
-    })
-    .strict(),
-]);
-
 export const updateComboDefaultsSchema = z
   .object({
     comboDefaults: comboRuntimeConfigSchema.optional(),
