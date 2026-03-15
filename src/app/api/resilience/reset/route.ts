@@ -7,7 +7,7 @@ export async function POST() {
   try {
     // Reset all circuit breakers
     const { getAllCircuitBreakerStatuses, getCircuitBreaker } =
-      await import("@/../../src/shared/utils/circuitBreaker");
+      await import("@/shared/utils/circuitBreaker");
 
     const statuses = getAllCircuitBreakerStatuses();
     let resetCount = 0;
@@ -23,7 +23,7 @@ export async function POST() {
       resetCount,
       message: `Reset ${resetCount} circuit breaker(s)`,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[API] POST /api/resilience/reset error:", err);
     return NextResponse.json(
       { error: err.message || "Failed to reset resilience state" },

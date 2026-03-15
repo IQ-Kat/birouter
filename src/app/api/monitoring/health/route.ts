@@ -10,8 +10,7 @@ import { APP_CONFIG } from "@/shared/constants/config";
  */
 export async function GET() {
   try {
-    const { getAllCircuitBreakerStatuses } =
-      await import("@/../../src/shared/utils/circuitBreaker");
+    const { getAllCircuitBreakerStatuses } = await import("@/shared/utils/circuitBreaker");
     const { getAllRateLimitStatus } = await import("@omniroute/open-sse/services/rateLimitManager");
     const { getAllModelLockouts } = await import("@omniroute/open-sse/services/accountFallback");
 
@@ -66,7 +65,7 @@ export async function GET() {
 export async function DELETE() {
   try {
     const { resetAllCircuitBreakers, getAllCircuitBreakerStatuses } =
-      await import("@/../../src/shared/utils/circuitBreaker");
+      await import("@/shared/utils/circuitBreaker");
 
     const before = getAllCircuitBreakerStatuses();
     const resetCount = before.length;
