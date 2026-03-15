@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getModelAliases, setModelAlias, getProviderConnections } from "@/models";
-import { AI_MODELS } from "@/shared/constants/config";
+import { AI_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { updateModelAliasSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -18,7 +18,17 @@ export async function GET(request: Request) {
       try {
         const connections = await getProviderConnections();
         const active = connections.filter((c: any) => c.isActive !== false);
-        activeProviders = new Set(active.map((c: any) => c.provider));
+        // Include both provider IDs and their aliases in the active set.
+        // PROVIDER_MODELS keys are aliases (e.g. 'cc' for 'claude', 'gh' for 'github').
+        // DB connections are stored under provider IDs ('claude', 'github').
+        // Without this, models for aliased providers always appear unconfigured.
+        activeProviders = new Set<string>();
+        for (const c of active) {
+          const pId = String((c as any).provider);
+          activeProviders.add(pId);
+          const alias = PROVIDER_ID_TO_ALIAS[pId];
+          if (alias) activeProviders.add(alias);
+        }
       } catch {
         // If DB unavailable, show all models
       }
