@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+---
+
+## [2.5.5] - 2026-03-15
+
+> Model list dedup fix, Electron standalone build hardening, and Kiro credit tracking.
+
+### 🐛 Bug Fixes
+
+- **fix(models) #380**: `GET /api/models` now includes provider aliases when building the active-provider filter — models for `claude` (alias `cc`) and `github` (alias `gh`) were always shown regardless of whether a connection was configured, because `PROVIDER_MODELS` keys are aliases but DB connections are stored under provider IDs. Fixed by expanding each active provider ID to also include its alias via `PROVIDER_ID_TO_ALIAS`. Closes #353.
+- **fix(electron) #379**: New `scripts/prepare-electron-standalone.mjs` stages a dedicated `/.next/electron-standalone` bundle before Electron packaging. Aborts with a clear error if `node_modules` is a symlink (electron-builder would ship a runtime dependency on the build machine). Cross-platform path sanitization via `path.basename`. By @kfiramar.
+
+### ✨ New Features
+
+- **feat(kiro) #381**: Kiro credit balance tracking — usage endpoint now returns credit data for Kiro accounts by calling `codewhisperer.us-east-1.amazonaws.com/getUserCredits` (same endpoint Kiro IDE uses internally). Returns remaining credits, total allowance, renewal date, and subscription tier. Closes #337.
+
 ## [2.5.4] - 2026-03-15
 
 > Logger startup fix, login bootstrap security fix, and dev HMR reliability improvement. CI infrastructure hardened.
