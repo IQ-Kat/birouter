@@ -382,7 +382,13 @@ export async function getProviderCredentials(
           });
         } else {
           // Pick the least recently used (excluding current if possible)
+          // Also penalize accounts with high backoffLevel (previously rate-limited)
+          // so they don't get immediately re-selected after cooldown (#340)
           const sortedByOldest = [...orderedConnections].sort((a: any, b: any) => {
+            // Penalize previously rate-limited accounts (backoffLevel > 0)
+            const aBackoff = a.backoffLevel || 0;
+            const bBackoff = b.backoffLevel || 0;
+            if (aBackoff !== bBackoff) return aBackoff - bBackoff; // lower backoff first
             if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
             if (!a.lastUsedAt) return -1;
             if (!b.lastUsedAt) return 1;
@@ -404,7 +410,11 @@ export async function getProviderCredentials(
       } else {
         // Fallback scenario: excluded an account due to failure
         // Always pick the least recently used to ensure proper cycling
+        // Also penalize accounts with high backoffLevel (#340)
         const sortedByOldest = [...orderedConnections].sort((a: any, b: any) => {
+          const aBackoff = a.backoffLevel || 0;
+          const bBackoff = b.backoffLevel || 0;
+          if (aBackoff !== bBackoff) return aBackoff - bBackoff;
           if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
           if (!a.lastUsedAt) return -1;
           if (!b.lastUsedAt) return 1;
