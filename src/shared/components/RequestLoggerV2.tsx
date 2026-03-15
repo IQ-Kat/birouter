@@ -351,16 +351,16 @@ export default function RequestLoggerV2() {
           <span className="px-2 py-1 rounded bg-bg-subtle border border-border font-mono">
             {totalCount} total
           </span>
-          <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 font-mono">
+          <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono">
             {okCount} OK
           </span>
           {errorCount > 0 && (
-            <span className="px-2 py-1 rounded bg-red-500/10 text-red-400 font-mono">
+            <span className="px-2 py-1 rounded bg-red-500/10 text-red-700 dark:text-red-400 font-mono">
               {errorCount} ERR
             </span>
           )}
           {comboCount > 0 && (
-            <span className="px-2 py-1 rounded bg-violet-500/10 text-violet-300 font-mono">
+            <span className="px-2 py-1 rounded bg-violet-500/10 text-violet-700 dark:text-violet-400 font-mono">
               {comboCount} combo
             </span>
           )}
@@ -498,11 +498,11 @@ export default function RequestLoggerV2() {
             <table className="w-full text-left border-collapse text-xs">
               <thead
                 className="sticky top-0 z-10"
-                style={{ backgroundColor: "var(--bg-primary, #0f1117)" }}
+                style={{ backgroundColor: "var(--color-bg, #fff)" }}
               >
                 <tr
                   className="border-b border-border"
-                  style={{ backgroundColor: "var(--bg-primary, #0f1117)" }}
+                  style={{ backgroundColor: "var(--color-bg, #fff)" }}
                 >
                   {visibleColumns.status && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
@@ -635,7 +635,7 @@ export default function RequestLoggerV2() {
                       {visibleColumns.combo && (
                         <td className="px-3 py-2">
                           {log.comboName ? (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30">
                               {log.comboName}
                             </span>
                           ) : (
@@ -651,7 +651,7 @@ export default function RequestLoggerV2() {
                           </span>
                           <span className="mx-1 text-border">|</span>
                           <span className="text-text-muted">O:</span>{" "}
-                          <span className="text-emerald-400">
+                          <span className="text-emerald-700 dark:text-emerald-400">
                             {log.tokens?.out?.toLocaleString() || 0}
                           </span>
                         </td>
