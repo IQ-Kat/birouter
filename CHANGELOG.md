@@ -4,6 +4,18 @@
 
 ---
 
+## [2.5.9] - 2026-03-15
+
+> Codex native passthrough fix + route body validation hardening.
+
+### 🐛 Bug Fixes
+
+- **fix(codex)**: Preserve native Responses API passthrough for Codex clients — avoids unnecessary translation mutations (PR #387)
+- **fix(api)**: Validate request bodies on pricing/sync and task-routing routes — prevents crashes from malformed inputs (PR #388)
+- **fix(auth)**: JWT secrets persist across restarts via `src/lib/db/secrets.ts` — eliminates 401 errors after pm2 restart (PR #388)
+
+---
+
 ## [2.5.8] - 2026-03-15
 
 > Build fix: restore VPS connectivity broken by v2.5.7 incomplete publish.
