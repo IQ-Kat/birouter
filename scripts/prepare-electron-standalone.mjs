@@ -101,6 +101,14 @@ function assertBundleIsPackagable(bundleDir) {
   }
 }
 
+function logContextualError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[electron] failed to prepare standalone bundle: ${message}`);
+  process.exitCode = 1;
+}
+
+process.on("uncaughtException", logContextualError);
+
 const bundleDir = resolveStandaloneBundleDir();
 assertBundleIsPackagable(bundleDir);
 
