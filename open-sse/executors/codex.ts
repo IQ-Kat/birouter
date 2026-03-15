@@ -106,8 +106,22 @@ export class CodexExecutor extends BaseExecutor {
    * Transform request before sending - inject default instructions if missing
    */
   transformRequest(model, body, stream, credentials) {
+    const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
+
     // Codex /responses rejects stream=false; we aggregate SSE back to JSON when needed.
     body.stream = true;
+    delete body._nativeCodexPassthrough;
+
+    const requestServiceTier = normalizeServiceTierValue(body.service_tier);
+    if (requestServiceTier) {
+      body.service_tier = requestServiceTier;
+    } else if (defaultFastServiceTierEnabled) {
+      body.service_tier = CODEX_FAST_WIRE_VALUE;
+    }
+
+    if (nativeCodexPassthrough) {
+      return body;
+    }
 
     // If no instructions provided, inject default Codex instructions
     if (!body.instructions || body.instructions.trim() === "") {
@@ -116,13 +130,6 @@ export class CodexExecutor extends BaseExecutor {
 
     // Ensure store is false (Codex requirement)
     body.store = false;
-
-    const requestServiceTier = normalizeServiceTierValue(body.service_tier);
-    if (requestServiceTier) {
-      body.service_tier = requestServiceTier;
-    } else if (defaultFastServiceTierEnabled) {
-      body.service_tier = CODEX_FAST_WIRE_VALUE;
-    }
 
     // Extract thinking level from model name suffix
     // e.g., gpt-5.3-codex-high → high, gpt-5.3-codex → medium (default)
