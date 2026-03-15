@@ -4,6 +4,17 @@
 
 ---
 
+## [2.5.6] - 2026-03-15
+
+> Critical security/auth fixes: Antigravity OAuth broken + JWT sessions lost after restart.
+
+### 🐛 Bug Fixes
+
+- **fix(oauth) #384**: Antigravity Google OAuth now correctly sends `client_secret` to the token endpoint. The fallback for `ANTIGRAVITY_OAUTH_CLIENT_SECRET` was an empty string, which is falsy — so `client_secret` was never included in the request, causing `"client_secret is missing"` errors for all users without a custom env var. Closes #383.
+- **fix(auth) #385**: `JWT_SECRET` is now persisted to SQLite (`namespace='secrets'`) on first generation and reloaded on subsequent starts. Previously, a new random secret was generated each process startup, invalidating all existing cookies/sessions after any restart or upgrade. Affects both `JWT_SECRET` and `API_KEY_SECRET`. Closes #382.
+
+---
+
 ## [2.5.5] - 2026-03-15
 
 > Model list dedup fix, Electron standalone build hardening, and Kiro credit tracking.
