@@ -4,6 +4,18 @@
 
 ---
 
+## [2.5.7] - 2026-03-15
+
+> Media playground error handling fixes.
+
+### 🐛 Bug Fixes
+
+- **fix(media)**: Transcription "API Key Required" false positive when audio contains no speech (music, silence) — now shows "No speech detected" instead
+- **fix(media)**: `upstreamErrorResponse` in `audioTranscription.ts` and `audioSpeech.ts` now returns proper JSON (`{error:{message}}`), enabling correct 401/403 credential error detection in the MediaPageClient
+- **fix(media)**: `parseApiError` now handles Deepgram's `err_msg` field and detects `"api key"` in error messages for accurate credential error classification
+
+---
+
 ## [2.5.6] - 2026-03-15
 
 > Critical security/auth fixes: Antigravity OAuth broken + JWT sessions lost after restart.
