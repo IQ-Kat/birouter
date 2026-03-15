@@ -9,13 +9,14 @@
  */
 
 function ensureSecrets(): void {
-  // eslint-disable-next-line no-eval
-  const crypto = eval("require")("crypto");
-  // eslint-disable-next-line no-eval
-  const Database = eval("require")("better-sqlite3");
-  // eslint-disable-next-line no-eval
-  const path = eval("require")("path");
-  const os = eval("require")("os"); // eslint-disable-line no-eval
+  // Use createRequire to load CJS native modules without bundling
+  // (eval("require") is banned in Next.js 16 Edge Runtime checks)
+  const { createRequire } = require("node:module");
+  const _require = createRequire(import.meta.url ?? __filename);
+  const crypto = _require("crypto");
+  const Database = _require("better-sqlite3");
+  const path = _require("path");
+  const os = _require("os");
 
   function getSecretsDb() {
     const dataDir = process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");

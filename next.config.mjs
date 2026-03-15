@@ -4,9 +4,30 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  turbopack: {},
+  // Turbopack config: redirect native modules to stubs at build time
+  turbopack: {
+    resolveAlias: {
+      // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
+      "@/mitm/manager": "./src/mitm/manager.stub.ts",
+    },
+  },
   output: "standalone",
-  serverExternalPackages: ["better-sqlite3", "zod"],
+  serverExternalPackages: [
+    "better-sqlite3",
+    "zod",
+    "child_process",
+    "fs",
+    "path",
+    "os",
+    "crypto",
+    "net",
+    "tls",
+    "http",
+    "https",
+    "stream",
+    "buffer",
+    "util",
+  ],
   transpilePackages: ["@omniroute/open-sse"],
   allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.*"],
   typescript: {
@@ -16,15 +37,17 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-
-  // NEXT_PUBLIC_CLOUD_URL is set in .env — do NOT hardcode here (it overrides .env)
   webpack: (config, { isServer }) => {
-    // Ignore fs/path modules in browser bundle
+    // Ignore native Node.js modules in browser bundle
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         path: false,
+        child_process: false,
+        net: false,
+        tls: false,
+        crypto: false,
       };
     }
     return config;

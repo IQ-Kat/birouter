@@ -1,19 +1,15 @@
-"use server";
+// Node.js-only route: uses child_process, fs, path via mitm/manager
+// Dynamic imports prevent Turbopack from statically resolving native modules
+export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import {
-  getMitmStatus,
-  startMitm,
-  stopMitm,
-  getCachedPassword,
-  setCachedPassword,
-} from "@/mitm/manager";
 import { cliMitmStartSchema, cliMitmStopSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 // GET - Check MITM status
 export async function GET() {
   try {
+    const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager");
     const status = await getMitmStatus();
     return NextResponse.json({
       running: status.running,
@@ -51,6 +47,7 @@ export async function POST(request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { apiKey, sudoPassword } = validation.data;
+    const { startMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
     const isWin = process.platform === "win32";
     const pwd = sudoPassword || getCachedPassword() || "";
 
@@ -101,6 +98,7 @@ export async function DELETE(request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { sudoPassword } = validation.data;
+    const { stopMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
     const isWin = process.platform === "win32";
     const pwd = sudoPassword || getCachedPassword() || "";
 
