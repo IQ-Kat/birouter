@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 import { getModelInfoCore } from "../../open-sse/services/model.ts";
 import { detectFormat } from "../../open-sse/services/provider.ts";
+import { shouldUseNativeCodexPassthrough } from "../../open-sse/handlers/chatCore.ts";
 import { translateRequest } from "../../open-sse/translator/index.ts";
 import { GithubExecutor } from "../../open-sse/executors/github.ts";
 import {
@@ -79,6 +80,44 @@ test("CodexExecutor maps fast service tier to priority", () => {
   assert.equal(transformed.service_tier, "priority");
 });
 
+test("shouldUseNativeCodexPassthrough only enables responses-native Codex requests", () => {
+  assert.equal(
+    shouldUseNativeCodexPassthrough({
+      provider: "codex",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      endpointPath: "/v1/responses",
+    }),
+    true
+  );
+
+  assert.equal(
+    shouldUseNativeCodexPassthrough({
+      provider: "codex",
+      sourceFormat: FORMATS.OPENAI,
+      endpointPath: "/v1/responses",
+    }),
+    false
+  );
+
+  assert.equal(
+    shouldUseNativeCodexPassthrough({
+      provider: "openai",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      endpointPath: "/v1/responses",
+    }),
+    false
+  );
+
+  assert.equal(
+    shouldUseNativeCodexPassthrough({
+      provider: "codex",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      endpointPath: "/v1/chat/completions",
+    }),
+    false
+  );
+});
+
 test("CodexExecutor can force fast service tier from settings", () => {
   setDefaultFastServiceTierEnabled(true);
 
@@ -99,6 +138,33 @@ test("CodexExecutor always requests SSE accept header", () => {
   const executor = new CodexExecutor();
   const headers = executor.buildHeaders({ accessToken: "test-token" }, false);
   assert.equal(headers.Accept, "text/event-stream");
+});
+
+test("CodexExecutor preserves native responses payloads for Codex passthrough", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.1-codex",
+    {
+      model: "gpt-5.1-codex",
+      input: "ship it",
+      instructions: "custom system prompt",
+      store: true,
+      metadata: { source: "codex-client" },
+      reasoning_effort: "high",
+      service_tier: "fast",
+      _nativeCodexPassthrough: true,
+      stream: false,
+    },
+    false
+  );
+
+  assert.equal(transformed.stream, true);
+  assert.equal(transformed.service_tier, "priority");
+  assert.equal(transformed.instructions, "custom system prompt");
+  assert.equal(transformed.store, true);
+  assert.deepEqual(transformed.metadata, { source: "codex-client" });
+  assert.equal(transformed.reasoning_effort, "high");
+  assert.ok(!("_nativeCodexPassthrough" in transformed));
 });
 
 test("translateNonStreamingResponse converts Responses API payload to OpenAI chat.completion", () => {
