@@ -12,6 +12,7 @@ export async function GET() {
     const setupComplete = !!settings.setupComplete;
     return NextResponse.json({ requireLogin, hasPassword, setupComplete });
   } catch (error) {
+    console.error("[API] Error fetching require-login settings:", error);
     return NextResponse.json(
       { requireLogin: true, hasPassword: true, setupComplete: true },
       { status: 200 }
