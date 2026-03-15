@@ -12,13 +12,14 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --no-sandbox",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:mac-x64": "electron-builder --mac --x64",
-    "build:mac-arm64": "electron-builder --mac --arm64",
-    "build:linux": "electron-builder --linux",
-    "pack": "electron-builder --dir"
+    "prepare:bundle": "node ../scripts/prepare-electron-standalone.mjs",
+    "build": "npm run prepare:bundle && electron-builder",
+    "build:win": "npm run prepare:bundle && electron-builder --win",
+    "build:mac": "npm run prepare:bundle && electron-builder --mac",
+    "build:mac-x64": "npm run prepare:bundle && electron-builder --mac --x64",
+    "build:mac-arm64": "npm run prepare:bundle && electron-builder --mac --arm64",
+    "build:linux": "npm run prepare:bundle && electron-builder --linux",
+    "pack": "npm run prepare:bundle && electron-builder --dir"
   },
   "dependencies": {
     "electron-updater": "^6.8.3"
@@ -47,24 +48,18 @@
     ],
     "extraResources": [
       {
-        "from": "../.next/standalone",
+        "from": "../.next/electron-standalone",
         "to": "app",
         "filter": [
           "**/*"
         ]
       },
       {
-        "from": "../.next/static",
-        "to": "app/.next/static",
+        "from": "assets",
+        "to": "assets",
         "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "../public",
-        "to": "app/public",
-        "filter": [
-          "**/*"
+          "icon.png",
+          "tray-icon.png"
         ]
       }
     ],
