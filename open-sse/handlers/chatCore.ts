@@ -184,21 +184,23 @@ export async function handleChatCore({
   let translatedBody = body;
   try {
     if (nativeCodexPassthrough) {
-      translatedBody = { ...translatedBody, _nativeCodexPassthrough: true };
+      translatedBody = { ...body, _nativeCodexPassthrough: true };
       log?.debug?.("FORMAT", "native codex passthrough enabled");
     } else {
+      translatedBody = { ...body };
+
       // Issue #199: Disable tool name prefix when routing Claude-format requests
       // to non-Claude backends (prefix causes tool name mismatches)
       const claudeProviders = ["claude", "anthropic"];
       if (targetFormat === FORMATS.CLAUDE && !claudeProviders.includes(provider?.toLowerCase?.())) {
-        translatedBody = { ...translatedBody, _disableToolPrefix: true };
+        translatedBody._disableToolPrefix = true;
       }
 
       // ── #291: Strip empty name fields from messages/input items ──
       // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
       // Clients like PocketPaw may forward empty name fields from assistant turns.
-      if (Array.isArray(body.messages)) {
-        body.messages = body.messages.map((msg: Record<string, unknown>) => {
+      if (Array.isArray(translatedBody.messages)) {
+        translatedBody.messages = translatedBody.messages.map((msg: Record<string, unknown>) => {
           if (msg.name === "") {
             const { name: _n, ...rest } = msg;
             return rest;
@@ -206,8 +208,8 @@ export async function handleChatCore({
           return msg;
         });
       }
-      if (Array.isArray(body.input)) {
-        body.input = body.input.map((item: Record<string, unknown>) => {
+      if (Array.isArray(translatedBody.input)) {
+        translatedBody.input = translatedBody.input.map((item: Record<string, unknown>) => {
           if (item.name === "") {
             const { name: _n, ...rest } = item;
             return rest;
@@ -219,8 +221,8 @@ export async function handleChatCore({
       // Claude Code sometimes forwards tool definitions with empty names, causing
       // OpenAI-compatible upstream providers to reject with:
       // "Invalid 'input[N].name': empty string. Expected minimum length 1."
-      if (Array.isArray(body.tools)) {
-        body.tools = body.tools.filter((tool: Record<string, unknown>) => {
+      if (Array.isArray(translatedBody.tools)) {
+        translatedBody.tools = translatedBody.tools.filter((tool: Record<string, unknown>) => {
           const fn = tool.function as Record<string, unknown> | undefined;
           return fn?.name && String(fn.name).trim().length > 0;
         });
