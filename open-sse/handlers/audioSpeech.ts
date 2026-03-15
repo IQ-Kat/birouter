@@ -24,13 +24,28 @@ import { errorResponse } from "../utils/error.ts";
  * Return a CORS error response from an upstream fetch failure
  */
 function upstreamErrorResponse(res, errText) {
-  return new Response(errText, {
-    status: res.status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-    },
-  });
+  // Always return JSON so the client can detect 401/credential errors reliably
+  let errorMessage: string;
+  try {
+    const parsed = JSON.parse(errText);
+    errorMessage =
+      parsed?.err_msg ||
+      parsed?.error?.message ||
+      parsed?.error ||
+      parsed?.message ||
+      parsed?.detail ||
+      errText;
+  } catch {
+    errorMessage = errText || `Upstream error (${res.status})`;
+  }
+
+  return Response.json(
+    { error: { message: errorMessage, code: res.status } },
+    {
+      status: res.status,
+      headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+    }
+  );
 }
 
 /**

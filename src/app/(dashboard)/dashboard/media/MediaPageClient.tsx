@@ -328,6 +328,7 @@ function getVoiceList(providerId: string) {
 function parseApiError(raw: any, statusCode: number): { message: string; isCredentials: boolean } {
   const msg =
     raw?.error?.message ||
+    raw?.err_msg ||
     raw?.error ||
     raw?.message ||
     raw?.detail ||
@@ -340,6 +341,7 @@ function parseApiError(raw: any, statusCode: number): { message: string; isCrede
       msg.toLowerCase().includes("invalid api key") ||
       msg.toLowerCase().includes("unauthorized") ||
       msg.toLowerCase().includes("authentication") ||
+      msg.toLowerCase().includes("api key") ||
       statusCode === 401 ||
       statusCode === 403);
 
@@ -519,12 +521,22 @@ export default function MediaPageClient() {
           throw new Error(message);
         }
         const data = await res.json();
-        // Warn if text is empty (likely missing credentials that returned silently)
+        // Check for noSpeechDetected flag (music, silence, etc.) — NOT a credential error
+        if (data?.noSpeechDetected) {
+          setError(
+            `No speech detected in the audio file. If you uploaded music or a silent file, try an audio file with spoken words. Provider: "${selectedProvider}".`
+          );
+          setIsCredentialsError(false);
+          setLoading(false);
+          return;
+        }
+        // Warn if text is empty without the noSpeechDetected flag (unexpected)
         if (data && typeof data.text === "string" && data.text.trim() === "") {
           setError(
-            `Transcription returned empty text. Make sure you have a valid API key for "${selectedProvider}" configured in /dashboard/providers.`
+            `Transcription returned empty text. The audio may contain no recognizable speech, or the "${selectedProvider}" API key may be invalid. Check Dashboard → Logs → Proxy for details.`
           );
-          setIsCredentialsError(true);
+          // Only mark as credential error if we can confirm it from context
+          setIsCredentialsError(false);
           setLoading(false);
           return;
         }
