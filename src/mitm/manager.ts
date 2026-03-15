@@ -1,17 +1,10 @@
-// ESM imports for child_process, fs, path are deferred to function bodies
-// to prevent Turbopack from statically bundling native Node.js modules
+import { spawn } from "child_process";
+import path from "path";
+import fs from "fs";
 import { resolveDataDir } from "@/lib/dataPaths";
 import { addDNSEntry, removeDNSEntry } from "./dns/dnsConfig";
 import { generateCert } from "./cert/generate";
 import { installCert } from "./cert/install";
-
-// Lazy-loaded native modules (avoids Turbopack static trace)
- 
-const getPath = () => require("path") as typeof import("path");
- 
-const getFs = () => require("fs") as typeof import("fs");
- 
-const getSpawn = () => (require("child_process") as typeof import("child_process")).spawn;
 
 // Store server process
 let serverProcess = null;
@@ -30,10 +23,12 @@ export function clearCachedPassword() {
   _cachedPassword = null;
 }
 
-// Lazily compute PID_FILE path to avoid top-level path.join
-function getPidFile() {
-  return getPath().join(resolveDataDir(), "mitm", ".mitm.pid");
-}
+const PID_FILE = path.join(resolveDataDir(), "mitm", ".mitm.pid");
+const MITM_SERVER_URL = new URL("./server.cjs", import.meta.url);
+const MITM_SERVER_PATH =
+  process.platform === "win32" && MITM_SERVER_URL.pathname.startsWith("/")
+    ? decodeURIComponent(MITM_SERVER_URL.pathname.slice(1))
+    : decodeURIComponent(MITM_SERVER_URL.pathname);
 
 // Check if a PID is alive
 function isProcessAlive(pid) {
@@ -49,10 +44,6 @@ function isProcessAlive(pid) {
  * Get MITM status
  */
 export async function getMitmStatus() {
-  const fs = getFs();
-  const path = getPath();
-  const PID_FILE = getPidFile();
-
   // Check in-memory process first, then fallback to PID file
   let running = serverProcess !== null && !serverProcess.killed;
   let pid = serverPid;
@@ -96,11 +87,6 @@ export async function getMitmStatus() {
  * @param {string} sudoPassword - Sudo password for DNS/cert operations
  */
 export async function startMitm(apiKey, sudoPassword) {
-  const fs = getFs();
-  const path = getPath();
-  const spawn = getSpawn();
-  const PID_FILE = getPidFile();
-
   // Check if already running
   if (serverProcess && !serverProcess.killed) {
     throw new Error("MITM proxy is already running");
@@ -122,13 +108,7 @@ export async function startMitm(apiKey, sudoPassword) {
 
   // 4. Start MITM server
   console.log("Starting MITM server...");
-  // Use Buffer.from() to make the path opaque to Turbopack static analysis
-  // (Turbopack can't resolve base64-decoded strings as module paths)
-  const serverPath = path.join(
-    process.cwd(),
-    Buffer.from("c3JjL21pdG0vc2VydmVyLmpz", "base64").toString() // src/mitm/server.js
-  );
-  serverProcess = spawn("node", [serverPath], {
+  serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
     env: {
       ...process.env,
       ROUTER_API_KEY: apiKey,
@@ -211,9 +191,6 @@ export async function startMitm(apiKey, sudoPassword) {
  * @param {string} sudoPassword - Sudo password for DNS cleanup
  */
 export async function stopMitm(sudoPassword) {
-  const fs = getFs();
-  const PID_FILE = getPidFile();
-
   // 1. Kill server process (in-memory or from PID file)
   const proc = serverProcess;
   if (proc && !proc.killed) {

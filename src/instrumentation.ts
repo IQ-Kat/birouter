@@ -8,66 +8,41 @@
  * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 
-function ensureSecrets(): void {
-  // Use createRequire to load CJS native modules without bundling
-  // (eval("require") is banned in Next.js 16 Edge Runtime checks)
-  const { createRequire } = require("node:module");
-  const _require = createRequire(import.meta.url ?? __filename);
-  const crypto = _require("crypto");
-  const Database = _require("better-sqlite3");
-  const path = _require("path");
-  const os = _require("os");
+function getRandomBytes(byteLength: number): Uint8Array {
+  const bytes = new Uint8Array(byteLength);
+  globalThis.crypto.getRandomValues(bytes);
+  return bytes;
+}
 
-  function getSecretsDb() {
-    const dataDir = process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");
-    const dbPath = path.join(dataDir, "storage.sqlite");
-    try {
-      const db = new Database(dbPath);
-      db.exec(
-        "CREATE TABLE IF NOT EXISTS key_value (namespace TEXT, key TEXT, value TEXT, PRIMARY KEY (namespace, key))"
-      );
-      return db;
-    } catch {
-      return null;
-    }
-  }
+function toBase64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes));
+}
 
-  function loadPersistedSecret(key: string): string | null {
-    try {
-      const db = getSecretsDb();
-      if (!db) return null;
-      const row = db
-        .prepare("SELECT value FROM key_value WHERE namespace = 'secrets' AND key = ?")
-        .get(key) as { value: string } | undefined;
-      db.close();
-      return row ? JSON.parse(row.value) : null;
-    } catch {
-      return null;
-    }
-  }
+function toHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
 
-  function persistSecret(key: string, value: string): void {
-    try {
-      const db = getSecretsDb();
-      if (!db) return;
-      db.prepare(
-        "INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('secrets', ?, ?)"
-      ).run(key, JSON.stringify(value));
-      db.close();
-    } catch {
-      // Non-fatal — secrets can still work in-memory if persist fails
-    }
+async function ensureSecrets(): Promise<void> {
+  let getPersistedSecret = (_key: string): string | null => null;
+  let persistSecret = (_key: string, _value: string): void => {};
+
+  try {
+    ({ getPersistedSecret, persistSecret } = await import("@/lib/db/secrets"));
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(
+      "[STARTUP] Secret persistence unavailable; falling back to process-local secrets:",
+      msg
+    );
   }
 
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === "") {
-    // Try to load previously generated secret from DB (survives restarts)
-    const persisted = loadPersistedSecret("jwtSecret");
+    const persisted = getPersistedSecret("jwtSecret");
     if (persisted) {
       process.env.JWT_SECRET = persisted;
       console.log("[STARTUP] JWT_SECRET restored from persistent store");
     } else {
-      // First run — generate and persist
-      const generated = crypto.randomBytes(48).toString("base64");
+      const generated = toBase64(getRandomBytes(48));
       process.env.JWT_SECRET = generated;
       persistSecret("jwtSecret", generated);
       console.log("[STARTUP] JWT_SECRET auto-generated and persisted (random 64-char secret)");
@@ -75,11 +50,11 @@ function ensureSecrets(): void {
   }
 
   if (!process.env.API_KEY_SECRET || process.env.API_KEY_SECRET.trim() === "") {
-    const persisted = loadPersistedSecret("apiKeySecret");
+    const persisted = getPersistedSecret("apiKeySecret");
     if (persisted) {
       process.env.API_KEY_SECRET = persisted;
     } else {
-      const generated = crypto.randomBytes(32).toString("hex");
+      const generated = toHex(getRandomBytes(32));
       process.env.API_KEY_SECRET = generated;
       persistSecret("apiKeySecret", generated);
       console.log(
@@ -92,7 +67,7 @@ function ensureSecrets(): void {
 export async function register() {
   // Only run on the server (not during build or in Edge runtime)
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    ensureSecrets();
+    await ensureSecrets();
     // Console log file capture (must be first — before any logging occurs)
     const { initConsoleInterceptor } = await import("@/lib/consoleInterceptor");
     initConsoleInterceptor();
