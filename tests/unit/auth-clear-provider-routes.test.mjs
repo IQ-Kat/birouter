@@ -16,7 +16,6 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  core.getDbInstance().exec('ALTER TABLE provider_connections ADD COLUMN "group" TEXT');
 }
 
 async function seedOpenAIConnection(email) {

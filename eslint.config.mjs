@@ -24,16 +24,34 @@ const eslintConfig = [
       "react-hooks/rules-of-hooks": "off",
     },
   },
-  // Global ignores (open-sse and tests REMOVED — now linted)
+  // Global ignores — keep ESLint scoped to source files only
   {
     ignores: [
+      // Next.js build output
       ".next/**",
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Scripts and binaries
       "scripts/**",
       "bin/**",
+      // Dependencies
       "node_modules/**",
+      // VS Code extension and its large test fixtures
+      "vscode-extension/**",
+      // Electron app
+      "electron/**",
+      // Docs
+      "docs/**",
+      // Open-SSE compiled/bundled output
+      "open-sse/mcp-server/dist/**",
+      // Playwright test output
+      "playwright-report/**",
+      "test-results/**",
+      // Subdirectory .next build output (app/ subdir)
+      "app/.next/**",
+      // CLI package copy directory
+      "clipr/**",
     ],
   },
 ];

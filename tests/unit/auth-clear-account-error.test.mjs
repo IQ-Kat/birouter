@@ -24,7 +24,6 @@ test.after(() => {
 
 test("clearAccountError clears stale provider error metadata after recovery", async () => {
   await resetStorage();
-  core.getDbInstance().exec('ALTER TABLE provider_connections ADD COLUMN "group" TEXT');
 
   const created = await providersDb.createProviderConnection({
     provider: "codex",
