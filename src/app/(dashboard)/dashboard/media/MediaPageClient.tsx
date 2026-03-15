@@ -419,7 +419,46 @@ export default function MediaPageClient() {
   // Transcription-specific
   const [audioFile, setAudioFile] = useState<File | null>(null);
 
-  const currentProviders = PROVIDER_MODELS[activeTab] ?? [];
+  // Fix #390: Track which local providers (sdwebui, comfyui) are actually configured
+  // so we can hide them when they haven't been set up in the providers page
+  const LOCAL_PROVIDERS = ["sdwebui", "comfyui"];
+  const [configuredLocalProviders, setConfiguredLocalProviders] = useState<Set<string>>(
+    new Set(LOCAL_PROVIDERS) // Optimistic: show all until we know otherwise
+  );
+
+  useEffect(() => {
+    // Fetch configured provider connections to determine which local providers are set up
+    fetch("/api/providers")
+      .then((r) => r.json())
+      .then((data) => {
+        const connections: { provider?: string; testStatus?: string }[] = Array.isArray(data)
+          ? data
+          : (data?.connections ?? data?.providers ?? []);
+        const configured = new Set<string>();
+        for (const conn of connections) {
+          const pId = conn?.provider;
+          if (pId && LOCAL_PROVIDERS.includes(pId)) {
+            configured.add(pId);
+          }
+        }
+        // Only update if at least one local provider was found, otherwise keep optimistic
+        if (configured.size > 0) {
+          setConfiguredLocalProviders(configured);
+        } else {
+          // No local providers configured — hide sdwebui/comfyui
+          setConfiguredLocalProviders(new Set());
+        }
+      })
+      .catch(() => {
+        // On error, keep showing all (fail-open)
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Filter out unconfigured local providers from the provider list
+  const currentProviders = (PROVIDER_MODELS[activeTab] ?? []).filter(
+    (p) => !LOCAL_PROVIDERS.includes(p.id) || configuredLocalProviders.has(p.id)
+  );
   const currentModels = currentProviders.find((p) => p.id === selectedProvider)?.models ?? [];
 
   const switchTab = (tab: Modality) => {
