@@ -8,7 +8,7 @@ Visual guide to every section of the OmniRoute dashboard.
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (iFlow, Qwen, Kiro).
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (iFlow, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
 ![Providers Dashboard](screenshots/01-providers.png)
 
@@ -138,5 +138,6 @@ Key features:
 - Single-instance lock
 - Auto-update on restart
 - Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
 📖 See [`electron/README.md`](../electron/README.md) for full documentation.
