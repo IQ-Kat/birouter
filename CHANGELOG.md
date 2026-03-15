@@ -4,6 +4,16 @@
 
 ---
 
+## [2.5.8] - 2026-03-15
+
+> Build fix: restore VPS connectivity broken by v2.5.7 incomplete publish.
+
+### 🐛 Bug Fixes
+
+- **fix(build)**: `scripts/prepublish.mjs` still used deprecated `--webpack` flag causing Next.js standalone build to fail silently — npm publish completed without `app/server.js`, breaking VPS deployment
+
+---
+
 ## [2.5.7] - 2026-03-15
 
 > Media playground error handling fixes.

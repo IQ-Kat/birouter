@@ -34,7 +34,7 @@ execSync("npm install", { cwd: ROOT, stdio: "inherit" });
 
 // ── Step 3: Build Next.js ──────────────────────────────────
 console.log("  🏗️  Building Next.js (standalone)...");
-execSync("npx next build --webpack", { cwd: ROOT, stdio: "inherit" });
+execSync("npx next build", { cwd: ROOT, stdio: "inherit" });
 
 // ── Step 4: Verify standalone output ───────────────────────
 const standaloneDir = join(ROOT, ".next", "standalone");
