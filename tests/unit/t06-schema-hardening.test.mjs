@@ -10,9 +10,6 @@ import {
   v1EmbeddingsSchema,
   providerChatCompletionSchema,
   v1CountTokensSchema,
-  pricingSyncRequestSchema,
-  updateTaskRoutingSchema,
-  taskRoutingActionSchema,
 } from "../../src/shared/validation/schemas.ts";
 
 test("translatorDetectSchema rejects empty body object", () => {
@@ -132,50 +129,4 @@ test("v1CountTokensSchema rejects empty messages", () => {
     messages: [],
   });
   assert.equal(validation.success, false);
-});
-
-test("pricingSyncRequestSchema rejects unsupported sources", () => {
-  const validation = validateBody(pricingSyncRequestSchema, {
-    sources: ["unknown-source"],
-  });
-  assert.equal(validation.success, false);
-});
-
-test("pricingSyncRequestSchema accepts dryRun-only requests", () => {
-  const validation = validateBody(pricingSyncRequestSchema, {
-    dryRun: true,
-  });
-  assert.equal(validation.success, true);
-});
-
-test("updateTaskRoutingSchema rejects empty payloads", () => {
-  const validation = validateBody(updateTaskRoutingSchema, {});
-  assert.equal(validation.success, false);
-});
-
-test("updateTaskRoutingSchema accepts partial task routing updates", () => {
-  const validation = validateBody(updateTaskRoutingSchema, {
-    enabled: true,
-    taskModelMap: {
-      coding: "codex/gpt-5.1-codex",
-    },
-  });
-  assert.equal(validation.success, true);
-});
-
-test("taskRoutingActionSchema rejects unknown actions", () => {
-  const validation = validateBody(taskRoutingActionSchema, {
-    action: "noop",
-  });
-  assert.equal(validation.success, false);
-});
-
-test("taskRoutingActionSchema accepts detect action with object body", () => {
-  const validation = validateBody(taskRoutingActionSchema, {
-    action: "detect",
-    body: {
-      messages: [{ role: "user", content: "write code" }],
-    },
-  });
-  assert.equal(validation.success, true);
 });

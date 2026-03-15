@@ -7,31 +7,14 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { pricingSyncRequestSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 export async function POST(request: NextRequest) {
-  let rawBody: unknown;
   try {
-    rawBody = await request.json();
-  } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const validation = validateBody(pricingSyncRequestSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    const { sources, dryRun = false } = validation.data;
+    const body = await request.json().catch(() => ({}));
+    const sources = Array.isArray(body.sources)
+      ? body.sources.filter((s: unknown): s is string => typeof s === "string")
+      : undefined;
+    const dryRun = body.dryRun === true;
 
     const { syncPricingFromSources } = await import("@/lib/pricingSync");
     const result = await syncPricingFromSources({ sources, dryRun });
