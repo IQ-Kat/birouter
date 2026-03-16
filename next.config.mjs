@@ -38,8 +38,31 @@ const nextConfig = {
     unoptimized: true,
   },
   webpack: (config, { isServer }) => {
-    // Ignore native Node.js modules in browser bundle
-    if (!isServer) {
+    if (isServer) {
+      // Force better-sqlite3 to always be required by its exact package name.
+      //
+      // Next.js 16 webpack compiles the instrumentation hook into a separate
+      // chunk ([root-of-the-server]__<hash>.js) and can emit a hashed require
+      // such as `require('better-sqlite3-90e2652d1716b047')` even when the
+      // package is listed in `serverExternalPackages`. That hashed name doesn't
+      // exist in node_modules, causing the 500 error reported in issue #394.
+      //
+      // Adding an explicit `externals` function overrides the bundler's default
+      // handling and always emits `require('better-sqlite3')`, which resolves
+      // correctly in the published standalone build.
+      const prev = config.externals ?? [];
+      const prevArr = Array.isArray(prev) ? prev : [prev];
+      config.externals = [
+        ...prevArr,
+        ({ request }, callback) => {
+          if (request === "better-sqlite3") {
+            return callback(null, `commonjs ${request}`);
+          }
+          callback();
+        },
+      ];
+    } else {
+      // Ignore native Node.js modules in browser bundle
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
