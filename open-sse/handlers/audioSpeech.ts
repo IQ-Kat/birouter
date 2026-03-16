@@ -381,7 +381,12 @@ async function handleTortoiseSpeech(providerConfig, body) {
  * @returns {Response}
  */
 /** @returns {Promise<unknown>} */
-export async function handleAudioSpeech({ body, credentials }) {
+export async function handleAudioSpeech({
+  body,
+  credentials,
+  resolvedProvider = null,
+  resolvedModel = null,
+}) {
   if (!body.model) {
     return errorResponse(400, "model is required");
   }
@@ -389,8 +394,15 @@ export async function handleAudioSpeech({ body, credentials }) {
     return errorResponse(400, "input is required");
   }
 
-  const { provider: providerId, model: modelId } = parseSpeechModel(body.model);
-  const providerConfig = providerId ? getSpeechProvider(providerId) : null;
+  // Use pre-resolved provider/model from route handler if available (supports dynamic provider_nodes).
+  // Falls back to hardcoded registry lookup for backward compatibility.
+  let providerConfig = resolvedProvider;
+  let modelId = resolvedModel;
+  if (!providerConfig) {
+    const parsed = parseSpeechModel(body.model);
+    providerConfig = parsed.provider ? getSpeechProvider(parsed.provider) : null;
+    modelId = parsed.model;
+  }
 
   if (!providerConfig) {
     return errorResponse(
@@ -403,7 +415,7 @@ export async function handleAudioSpeech({ body, credentials }) {
   const token =
     providerConfig.authType === "none" ? null : credentials?.apiKey || credentials?.accessToken;
   if (providerConfig.authType !== "none" && !token) {
-    return errorResponse(401, `No credentials for speech provider: ${providerId}`);
+    return errorResponse(401, `No credentials for speech provider: ${providerConfig.id}`);
   }
 
   try {

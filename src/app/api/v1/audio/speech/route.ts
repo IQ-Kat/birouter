@@ -6,10 +6,16 @@ import {
   extractApiKey,
   isValidApiKey,
 } from "@/sse/services/auth";
-import { parseSpeechModel, getSpeechProvider } from "@omniroute/open-sse/config/audioRegistry.ts";
+import {
+  parseSpeechModel,
+  getSpeechProvider,
+  buildDynamicAudioProvider,
+  type ProviderNodeRow,
+} from "@omniroute/open-sse/config/audioRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+import { getProviderNodes } from "@/lib/localDb";
 import { v1AudioSpeechSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -55,7 +61,31 @@ export async function POST(request) {
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
 
-  const { provider } = parseSpeechModel(body.model);
+  // Load local provider_nodes for audio routing (only localhost — prevents auth bypass/SSRF)
+  let dynamicProviders: ReturnType<typeof buildDynamicAudioProvider>[] = [];
+  try {
+    const nodes = await getProviderNodes();
+    dynamicProviders = (Array.isArray(nodes) ? nodes : [])
+      .filter((n: ProviderNodeRow) => {
+        if (n.apiType !== "chat" && n.apiType !== "responses") return false;
+        try {
+          const hostname = new URL(n.baseUrl).hostname;
+          return (
+            hostname === "localhost" ||
+            hostname === "127.0.0.1" ||
+            hostname === "::1" ||
+            hostname === "[::1]"
+          );
+        } catch {
+          return false;
+        }
+      })
+      .map((n) => buildDynamicAudioProvider(n, "/audio/speech"));
+  } catch {
+    // DB error — fall back to hardcoded providers only
+  }
+
+  const { provider, model: resolvedModel } = parseSpeechModel(body.model, dynamicProviders);
   if (!provider) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -63,8 +93,9 @@ export async function POST(request) {
     );
   }
 
-  // Check provider config for auth bypass
-  const providerConfig = getSpeechProvider(provider);
+  // Check provider config — hardcoded first, then dynamic
+  const providerConfig =
+    getSpeechProvider(provider) || dynamicProviders.find((dp) => dp.id === provider) || null;
 
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
@@ -75,7 +106,12 @@ export async function POST(request) {
     }
   }
 
-  const response = await handleAudioSpeech({ body, credentials });
+  const response = await handleAudioSpeech({
+    body,
+    credentials,
+    resolvedProvider: providerConfig,
+    resolvedModel,
+  });
   if (response?.ok) {
     await clearRecoveredProviderState(credentials);
   }
