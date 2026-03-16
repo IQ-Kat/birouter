@@ -99,11 +99,11 @@ export class BaseExecutor {
     void model;
     void stream;
     if (this.provider?.startsWith?.("openai-compatible-")) {
-      const baseUrl =
-        typeof credentials?.providerSpecificData?.baseUrl === "string"
-          ? credentials.providerSpecificData.baseUrl
-          : "https://api.openai.com/v1";
+      const psd = credentials?.providerSpecificData;
+      const baseUrl = typeof psd?.baseUrl === "string" ? psd.baseUrl : "https://api.openai.com/v1";
       const normalized = baseUrl.replace(/\/$/, "");
+      const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
+      if (customPath) return `${normalized}${customPath}`;
       const path = this.provider.includes("responses") ? "/responses" : "/chat/completions";
       return `${normalized}${path}`;
     }

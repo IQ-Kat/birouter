@@ -819,6 +819,8 @@ export const createProviderNodeSchema = z
     apiType: z.enum(["chat", "responses"]).optional(),
     baseUrl: z.string().trim().min(1).optional(),
     type: z.enum(["openai-compatible", "anthropic-compatible"]).optional(),
+    chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+    modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   })
   .superRefine((value, ctx) => {
     const nodeType = value.type || "openai-compatible";
@@ -836,12 +838,15 @@ export const updateProviderNodeSchema = z.object({
   prefix: z.string().trim().min(1, "Prefix is required"),
   apiType: z.enum(["chat", "responses"]).optional(),
   baseUrl: z.string().trim().min(1, "Base URL is required"),
+  chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+  modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
 });
 
 export const providerNodeValidateSchema = z.object({
   baseUrl: z.string().trim().min(1, "Base URL and API key required"),
   apiKey: z.string().trim().min(1, "Base URL and API key required"),
   type: z.enum(["openai-compatible", "anthropic-compatible"]).optional(),
+  modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
 });
 
 export const updateProviderConnectionSchema = z

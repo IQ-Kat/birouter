@@ -1386,10 +1386,17 @@
     "failed": "A eșuat",
     "leaveBlankKeepCurrentApiKey": "Lăsați necompletat pentru a păstra cheia API curentă.",
     "editCompatibleTitle": "Editați {type} Compatibil",
-    "compatibleBaseUrlHint": "Utilizați adresa URL de bază (se termină în /v1) pentru API-ul dvs. compatibil {type}.",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "Cheie API (pentru verificare)",
     "compatibleProdPlaceholder": "{type} Compatibil (Prod)",
-    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "Setări",

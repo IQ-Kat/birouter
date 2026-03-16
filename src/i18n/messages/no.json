@@ -1386,10 +1386,17 @@
     "failed": "Mislyktes",
     "leaveBlankKeepCurrentApiKey": "La stå tomt for å beholde gjeldende API-nøkkel.",
     "editCompatibleTitle": "Rediger {type} Kompatibel",
-    "compatibleBaseUrlHint": "Bruk basis-URLen (som slutter på /v1) for din {type}-kompatible API.",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "API-nøkkel (for sjekk)",
     "compatibleProdPlaceholder": "{type} Kompatibel (Prod)",
-    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "Innstillinger",

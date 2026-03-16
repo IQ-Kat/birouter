@@ -24,7 +24,7 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { baseUrl, apiKey, type } = validation.data;
+    const { baseUrl, apiKey, type, modelsPath } = validation.data;
 
     // Anthropic Compatible Validation
     if (type === "anthropic-compatible") {
@@ -35,7 +35,7 @@ export async function POST(request) {
       }
 
       // Use /models endpoint for validation as many compatible providers support it (like OpenAI)
-      const modelsUrl = `${normalizedBase}/models`;
+      const modelsUrl = `${normalizedBase}${modelsPath || "/models"}`;
 
       const res = await fetch(modelsUrl, {
         method: "GET",
@@ -50,7 +50,7 @@ export async function POST(request) {
     }
 
     // OpenAI Compatible Validation (Default)
-    const modelsUrl = `${baseUrl.replace(/\/$/, "")}/models`;
+    const modelsUrl = `${baseUrl.replace(/\/$/, "")}${modelsPath || "/models"}`;
     const res = await fetch(modelsUrl, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });

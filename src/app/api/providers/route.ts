@@ -82,6 +82,8 @@ export async function POST(request: Request) {
         apiType: node.apiType,
         baseUrl: node.baseUrl,
         nodeName: node.name,
+        ...(node.chatPath ? { chatPath: node.chatPath } : {}),
+        ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
       };
     } else if (isAnthropicCompatibleProvider(provider)) {
       const node: any = await getProviderNodeById(provider);
@@ -101,6 +103,8 @@ export async function POST(request: Request) {
         prefix: node.prefix,
         baseUrl: node.baseUrl,
         nodeName: node.name,
+        ...(node.chatPath ? { chatPath: node.chatPath } : {}),
+        ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
       };
     }
 

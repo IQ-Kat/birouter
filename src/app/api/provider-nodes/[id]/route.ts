@@ -39,7 +39,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name, prefix, apiType, baseUrl } = validation.data;
+    const { name, prefix, apiType, baseUrl, chatPath, modelsPath } = validation.data;
     const node: any = await getProviderNodeById(id);
 
     if (!node) {
@@ -68,6 +68,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       name: name.trim(),
       prefix: prefix.trim(),
       baseUrl: sanitizedBaseUrl,
+      chatPath: chatPath || null,
+      modelsPath: modelsPath || null,
     };
 
     if (node.type === "openai-compatible") {
@@ -83,11 +85,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const connectionId = typeof connection.id === "string" ? connection.id : "";
         if (!connectionId) return [];
 
+        const updatedRecord = asRecord(updated);
         const providerSpecificData = {
           ...asRecord(connection.providerSpecificData),
           prefix: prefix.trim(),
           baseUrl: sanitizedBaseUrl,
           nodeName: updated.name,
+          ...(updatedRecord.chatPath
+            ? { chatPath: updatedRecord.chatPath }
+            : { chatPath: undefined }),
+          ...(updatedRecord.modelsPath
+            ? { modelsPath: updatedRecord.modelsPath }
+            : { modelsPath: undefined }),
         } as JsonRecord;
         if (node.type === "openai-compatible") {
           providerSpecificData.apiType = apiType;

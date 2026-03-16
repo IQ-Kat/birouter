@@ -1386,10 +1386,17 @@
     "failed": "thất bại",
     "leaveBlankKeepCurrentApiKey": "Để trống để giữ khóa API hiện tại.",
     "editCompatibleTitle": "Chỉnh sửa {type} Tương thích",
-    "compatibleBaseUrlHint": "Sử dụng URL cơ sở (kết thúc bằng /v1) cho API tương thích {type} của bạn.",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "Khóa API (để kiểm tra)",
     "compatibleProdPlaceholder": "{type} Tương thích (Sản phẩm)",
-    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "Cài đặt",

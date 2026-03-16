@@ -1386,10 +1386,17 @@
     "failed": "Mislukt",
     "leaveBlankKeepCurrentApiKey": "Laat dit leeg om de huidige API-sleutel te behouden.",
     "editCompatibleTitle": "Bewerk {type} Compatibel",
-    "compatibleBaseUrlHint": "Gebruik de basis-URL (eindigend op /v1) voor uw {type}-compatibele API.",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "API-sleutel (ter controle)",
     "compatibleProdPlaceholder": "{type} Compatibel (product)",
-    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "Instellingen",
