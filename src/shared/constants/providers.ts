@@ -370,6 +370,16 @@ export const APIKEY_PROVIDERS = {
     website: "https://cloud.google.com/vertex-ai",
     authHint: "Provide Service Account JSON or OAuth access_token",
   },
+  alibaba: {
+    id: "alibaba",
+    alias: "ali",
+    name: "Alibaba Cloud (DashScope)",
+    icon: "cloud_queue",
+    color: "#FF6600",
+    textIcon: "AL",
+    website: "https://dashscope-intl.aliyuncs.com",
+    hasFree: false,
+  },
 };
 
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
