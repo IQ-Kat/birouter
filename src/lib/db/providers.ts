@@ -453,14 +453,16 @@ export async function createProviderNode(data: JsonRecord) {
     prefix: data.prefix || null,
     apiType: data.apiType || null,
     baseUrl: data.baseUrl || null,
+    chatPath: data.chatPath || null,
+    modelsPath: data.modelsPath || null,
     createdAt: now,
     updatedAt: now,
   };
 
   db.prepare(
     `
-    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, created_at, updated_at)
-    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @createdAt, @updatedAt)
+    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, created_at, updated_at)
+    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @createdAt, @updatedAt)
   `
   ).run(node);
 
@@ -482,7 +484,8 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
   db.prepare(
     `
     UPDATE provider_nodes SET type = @type, name = @name, prefix = @prefix,
-    api_type = @apiType, base_url = @baseUrl, updated_at = @updatedAt
+    api_type = @apiType, base_url = @baseUrl, chat_path = @chatPath,
+    models_path = @modelsPath, updated_at = @updatedAt
     WHERE id = @id
   `
   ).run({
@@ -492,6 +495,8 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     prefix: merged["prefix"] || null,
     apiType: merged["apiType"] || null,
     baseUrl: merged["baseUrl"] || null,
+    chatPath: merged["chatPath"] || null,
+    modelsPath: merged["modelsPath"] || null,
     updatedAt: merged["updatedAt"],
   });
 

@@ -1386,10 +1386,17 @@
     "failed": "失败",
     "leaveBlankKeepCurrentApiKey": "留空以保留当前的 API 密钥。",
     "editCompatibleTitle": "编辑 {type} 兼容",
-    "compatibleBaseUrlHint": "使用 {type} 兼容 API 的基本 URL（以 /v1 结尾）。",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "API 密钥（用于检查）",
     "compatibleProdPlaceholder": "{type} 兼容（产品）",
-    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "设置",

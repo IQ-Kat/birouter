@@ -1386,10 +1386,17 @@
     "failed": "Epäonnistui",
     "leaveBlankKeepCurrentApiKey": "Jätä tyhjäksi, jos haluat säilyttää nykyisen API-avaimen.",
     "editCompatibleTitle": "Muokkaa {type} Yhteensopiva",
-    "compatibleBaseUrlHint": "Käytä perus-URL-osoitetta (päättyy /v1) {type}-yhteensopivalle API:lle.",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "API-avain (tarkistusta varten)",
     "compatibleProdPlaceholder": "{type} Yhteensopiva (tuote)",
-    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "Asetukset",

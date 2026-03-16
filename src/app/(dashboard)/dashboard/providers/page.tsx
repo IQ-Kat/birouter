@@ -772,11 +772,14 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
     prefix: "",
     apiType: "chat",
     baseUrl: "https://api.openai.com/v1",
+    chatPath: "",
+    modelsPath: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [checkKey, setCheckKey] = useState("");
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<"success" | "failed" | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const apiTypeOptions = [
     { value: "chat", label: t("chatCompletions") },
@@ -804,6 +807,8 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
           apiType: formData.apiType,
           baseUrl: formData.baseUrl,
           type: "openai-compatible",
+          chatPath: formData.chatPath || "",
+          modelsPath: formData.modelsPath || "",
         }),
       });
       const data = await res.json();
@@ -814,9 +819,12 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
           prefix: "",
           apiType: "chat",
           baseUrl: "https://api.openai.com/v1",
+          chatPath: "",
+          modelsPath: "",
         });
         setCheckKey("");
         setValidationResult(null);
+        setShowAdvanced(false);
       }
     } catch (error) {
       console.log("Error creating OpenAI Compatible node:", error);
@@ -835,6 +843,7 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
           baseUrl: formData.baseUrl,
           apiKey: checkKey,
           type: "openai-compatible",
+          modelsPath: formData.modelsPath || "",
         }),
       });
       const data = await res.json();
@@ -876,6 +885,39 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
           placeholder={t("openaiBaseUrlPlaceholder")}
           hint={t("compatibleBaseUrlHint", { type: t("openai") })}
         />
+        <button
+          type="button"
+          className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          aria-expanded={showAdvanced}
+          aria-controls="advanced-settings"
+        >
+          <span
+            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+            aria-hidden="true"
+          >
+            ▶
+          </span>
+          {t("advancedSettings")}
+        </button>
+        {showAdvanced && (
+          <div id="advanced-settings" className="flex flex-col gap-3 pl-2 border-l-2 border-border">
+            <Input
+              label={t("chatPathLabel")}
+              value={formData.chatPath}
+              onChange={(e) => setFormData({ ...formData, chatPath: e.target.value })}
+              placeholder={t("chatPathPlaceholder")}
+              hint={t("chatPathHint")}
+            />
+            <Input
+              label={t("modelsPathLabel")}
+              value={formData.modelsPath}
+              onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
+              placeholder={t("modelsPathPlaceholder")}
+              hint={t("modelsPathHint")}
+            />
+          </div>
+        )}
         <div className="flex gap-2">
           <Input
             label={t("apiKeyForCheck")}
@@ -933,11 +975,14 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
     name: "",
     prefix: "",
     baseUrl: "https://api.anthropic.com/v1",
+    chatPath: "",
+    modelsPath: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [checkKey, setCheckKey] = useState("");
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<"success" | "failed" | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     // Reset validation when modal opens
@@ -959,6 +1004,8 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           prefix: formData.prefix,
           baseUrl: formData.baseUrl,
           type: "anthropic-compatible",
+          chatPath: formData.chatPath || "",
+          modelsPath: formData.modelsPath || "",
         }),
       });
       const data = await res.json();
@@ -968,9 +1015,12 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           name: "",
           prefix: "",
           baseUrl: "https://api.anthropic.com/v1",
+          chatPath: "",
+          modelsPath: "",
         });
         setCheckKey("");
         setValidationResult(null);
+        setShowAdvanced(false);
       }
     } catch (error) {
       console.log("Error creating Anthropic Compatible node:", error);
@@ -989,6 +1039,7 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           baseUrl: formData.baseUrl,
           apiKey: checkKey,
           type: "anthropic-compatible",
+          modelsPath: formData.modelsPath || "",
         }),
       });
       const data = await res.json();
@@ -1024,6 +1075,39 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           placeholder={t("anthropicBaseUrlPlaceholder")}
           hint={t("compatibleBaseUrlHint", { type: t("anthropic") })}
         />
+        <button
+          type="button"
+          className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          aria-expanded={showAdvanced}
+          aria-controls="advanced-settings"
+        >
+          <span
+            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+            aria-hidden="true"
+          >
+            ▶
+          </span>
+          {t("advancedSettings")}
+        </button>
+        {showAdvanced && (
+          <div id="advanced-settings" className="flex flex-col gap-3 pl-2 border-l-2 border-border">
+            <Input
+              label={t("chatPathLabel")}
+              value={formData.chatPath}
+              onChange={(e) => setFormData({ ...formData, chatPath: e.target.value })}
+              placeholder="/messages"
+              hint={t("chatPathHint")}
+            />
+            <Input
+              label={t("modelsPathLabel")}
+              value={formData.modelsPath}
+              onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
+              placeholder={t("modelsPathPlaceholder")}
+              hint={t("modelsPathHint")}
+            />
+          </div>
+        )}
         <div className="flex gap-2">
           <Input
             label={t("apiKeyForCheck")}

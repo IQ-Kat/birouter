@@ -1386,10 +1386,17 @@
     "failed": "Fallito",
     "leaveBlankKeepCurrentApiKey": "Lascia vuoto per mantenere la chiave API corrente.",
     "editCompatibleTitle": "Modifica {type} Compatibile",
-    "compatibleBaseUrlHint": "Utilizza l'URL di base (che termina con /v1) per la tua API compatibile con {type}.",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "Chiave API (per controllo)",
     "compatibleProdPlaceholder": "{type} Compatibile (prodotto)",
-    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "Impostazioni",

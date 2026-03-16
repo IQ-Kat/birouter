@@ -1386,10 +1386,17 @@
     "failed": "실패",
     "leaveBlankKeepCurrentApiKey": "현재 API 키를 유지하려면 비워 두세요.",
     "editCompatibleTitle": "{type} 호환 가능 편집",
-    "compatibleBaseUrlHint": "{type} 호환 API에는 기본 URL(/v1로 끝남)을 사용하세요.",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "API Key(확인용)",
     "compatibleProdPlaceholder": "{type} 호환 가능(프로덕션)",
-    "providerTestTimeout": "Provider test timed out — too many connections to test at once"
+    "providerTestTimeout": "Provider test timed out — too many connections to test at once",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "설정",

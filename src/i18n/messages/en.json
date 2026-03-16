@@ -1420,11 +1420,18 @@
     "failed": "Failed",
     "leaveBlankKeepCurrentApiKey": "Leave blank to keep the current API key.",
     "editCompatibleTitle": "Edit {type} Compatible",
-    "compatibleBaseUrlHint": "Use the base URL (ending in /v1) for your {type}-compatible API.",
+    "compatibleBaseUrlHint": "Root URL of your {type}-compatible API. Use Advanced Settings for custom endpoint paths.",
     "apiKeyForCheck": "API Key (for Check)",
     "compatibleProdPlaceholder": "{type} Compatible (Prod)",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "advancedSettings": "Advanced Settings",
+    "chatPathLabel": "Chat Endpoint Path",
+    "chatPathPlaceholder": "/chat/completions",
+    "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
+    "modelsPathLabel": "Models Endpoint Path",
+    "modelsPathPlaceholder": "/models",
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
   },
   "settings": {
     "title": "Settings",

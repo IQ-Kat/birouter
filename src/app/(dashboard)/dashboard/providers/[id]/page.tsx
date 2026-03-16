@@ -3075,11 +3075,14 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
     prefix: "",
     apiType: "chat",
     baseUrl: "https://api.openai.com/v1",
+    chatPath: "",
+    modelsPath: "",
   });
   const [saving, setSaving] = useState(false);
   const [checkKey, setCheckKey] = useState("");
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     if (node) {
@@ -3090,7 +3093,10 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
         baseUrl:
           node.baseUrl ||
           (isAnthropic ? "https://api.anthropic.com/v1" : "https://api.openai.com/v1"),
+        chatPath: node.chatPath || "",
+        modelsPath: node.modelsPath || "",
       });
+      setShowAdvanced(!!(node.chatPath || node.modelsPath));
     }
   }, [node, isAnthropic]);
 
@@ -3107,6 +3113,8 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
         name: formData.name,
         prefix: formData.prefix,
         baseUrl: formData.baseUrl,
+        chatPath: formData.chatPath || "",
+        modelsPath: formData.modelsPath || "",
       };
       if (!isAnthropic) {
         payload.apiType = formData.apiType;
@@ -3127,6 +3135,7 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
           baseUrl: formData.baseUrl,
           apiKey: checkKey,
           type: isAnthropic ? "anthropic-compatible" : "openai-compatible",
+          modelsPath: formData.modelsPath || "",
         }),
       });
       const data = await res.json();
@@ -3182,6 +3191,39 @@ function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic })
             type: isAnthropic ? t("anthropic") : t("openai"),
           })}
         />
+        <button
+          type="button"
+          className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          aria-expanded={showAdvanced}
+          aria-controls="advanced-settings"
+        >
+          <span
+            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+            aria-hidden="true"
+          >
+            ▶
+          </span>
+          {t("advancedSettings")}
+        </button>
+        {showAdvanced && (
+          <div id="advanced-settings" className="flex flex-col gap-3 pl-2 border-l-2 border-border">
+            <Input
+              label={t("chatPathLabel")}
+              value={formData.chatPath}
+              onChange={(e) => setFormData({ ...formData, chatPath: e.target.value })}
+              placeholder={isAnthropic ? "/messages" : t("chatPathPlaceholder")}
+              hint={t("chatPathHint")}
+            />
+            <Input
+              label={t("modelsPathLabel")}
+              value={formData.modelsPath}
+              onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
+              placeholder={t("modelsPathPlaceholder")}
+              hint={t("modelsPathHint")}
+            />
+          </div>
+        )}
         <div className="flex gap-2">
           <Input
             label={t("apiKeyForCheck")}
@@ -3232,6 +3274,8 @@ EditCompatibleNodeModal.propTypes = {
     prefix: PropTypes.string,
     apiType: PropTypes.string,
     baseUrl: PropTypes.string,
+    chatPath: PropTypes.string,
+    modelsPath: PropTypes.string,
   }),
   onSave: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,

@@ -49,7 +49,7 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name, prefix, apiType, baseUrl, type } = validation.data;
+    const { name, prefix, apiType, baseUrl, type, chatPath, modelsPath } = validation.data;
 
     // Determine type
     const nodeType = type || "openai-compatible";
@@ -62,6 +62,8 @@ export async function POST(request) {
         apiType,
         baseUrl: (baseUrl || OPENAI_COMPATIBLE_DEFAULTS.baseUrl).trim(),
         name: name.trim(),
+        chatPath: chatPath || null,
+        modelsPath: modelsPath || null,
       });
       return NextResponse.json({ node }, { status: 201 });
     }
@@ -82,6 +84,8 @@ export async function POST(request) {
         prefix: prefix.trim(),
         baseUrl: sanitizedBaseUrl,
         name: name.trim(),
+        chatPath: chatPath || null,
+        modelsPath: modelsPath || null,
       });
       return NextResponse.json({ node }, { status: 201 });
     }
