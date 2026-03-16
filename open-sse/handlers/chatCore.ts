@@ -53,7 +53,9 @@ export function shouldUseNativeCodexPassthrough({
 }): boolean {
   if (provider !== "codex") return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
-  return String(endpointPath || "").toLowerCase().endsWith("/responses");
+  return String(endpointPath || "")
+    .toLowerCase()
+    .endsWith("/responses");
 }
 
 /**
@@ -191,7 +193,7 @@ export async function handleChatCore({
       // Claude-to-Claude passthrough: forward body completely untouched.
       // No translation, no field stripping, no thinking normalization.
       // We are just a gateway -- do not interfere with the request in any way.
-      translatedBody = body;
+      translatedBody = { ...body };
       log?.debug?.("FORMAT", "claude->claude passthrough -- forwarding untouched");
     } else {
       translatedBody = { ...body };
