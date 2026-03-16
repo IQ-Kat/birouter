@@ -889,12 +889,19 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
           type="button"
           className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
           onClick={() => setShowAdvanced(!showAdvanced)}
+          aria-expanded={showAdvanced}
+          aria-controls="advanced-settings"
         >
-          <span className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}>▶</span>
+          <span
+            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+            aria-hidden="true"
+          >
+            ▶
+          </span>
           {t("advancedSettings")}
         </button>
         {showAdvanced && (
-          <div className="flex flex-col gap-3 pl-2 border-l-2 border-border">
+          <div id="advanced-settings" className="flex flex-col gap-3 pl-2 border-l-2 border-border">
             <Input
               label={t("chatPathLabel")}
               value={formData.chatPath}
@@ -1072,12 +1079,19 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
           type="button"
           className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
           onClick={() => setShowAdvanced(!showAdvanced)}
+          aria-expanded={showAdvanced}
+          aria-controls="advanced-settings"
         >
-          <span className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}>▶</span>
+          <span
+            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+            aria-hidden="true"
+          >
+            ▶
+          </span>
           {t("advancedSettings")}
         </button>
         {showAdvanced && (
-          <div className="flex flex-col gap-3 pl-2 border-l-2 border-border">
+          <div id="advanced-settings" className="flex flex-col gap-3 pl-2 border-l-2 border-border">
             <Input
               label={t("chatPathLabel")}
               value={formData.chatPath}

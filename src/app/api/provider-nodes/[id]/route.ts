@@ -85,18 +85,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const connectionId = typeof connection.id === "string" ? connection.id : "";
         if (!connectionId) return [];
 
-        const updatedRecord = asRecord(updated);
         const providerSpecificData = {
           ...asRecord(connection.providerSpecificData),
           prefix: prefix.trim(),
           baseUrl: sanitizedBaseUrl,
           nodeName: updated.name,
-          ...(updatedRecord.chatPath
-            ? { chatPath: updatedRecord.chatPath }
-            : { chatPath: undefined }),
-          ...(updatedRecord.modelsPath
-            ? { modelsPath: updatedRecord.modelsPath }
-            : { modelsPath: undefined }),
+          chatPath: updated.chatPath || undefined,
+          modelsPath: updated.modelsPath || undefined,
         } as JsonRecord;
         if (node.type === "openai-compatible") {
           providerSpecificData.apiType = apiType;
