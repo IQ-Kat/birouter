@@ -217,14 +217,16 @@ export async function handleChatCore({
           return item;
         });
       }
-      // ── #346: Strip tools with empty function.name ──
+      // ── #346: Strip tools with empty name ──
       // Claude Code sometimes forwards tool definitions with empty names, causing
       // OpenAI-compatible upstream providers to reject with:
       // "Invalid 'input[N].name': empty string. Expected minimum length 1."
+      // Handles both OpenAI format ({ function: { name } }) and Anthropic format ({ name }).
       if (Array.isArray(translatedBody.tools)) {
         translatedBody.tools = translatedBody.tools.filter((tool: Record<string, unknown>) => {
           const fn = tool.function as Record<string, unknown> | undefined;
-          return fn?.name && String(fn.name).trim().length > 0;
+          const name = fn?.name ?? tool.name;
+          return name && String(name).trim().length > 0;
         });
       }
 
