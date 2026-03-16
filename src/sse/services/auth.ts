@@ -14,6 +14,8 @@ import {
   isModelLocked,
   lockModel,
 } from "@omniroute/open-sse/services/accountFallback.ts";
+import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
@@ -562,6 +564,25 @@ export async function markAccountUnavailable(
       provider // ← Now passes provider for profile-aware cooldowns
     );
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
+
+    // ── Local provider 404: model-only lockout, connection stays active ──
+    const connBaseUrl = (conn?.providerSpecificData as Record<string, unknown>)?.baseUrl as
+      | string
+      | undefined;
+    const isLocal =
+      isLocalProvider(connBaseUrl) || (conn?.apiKey === null && conn?.accessToken === null);
+
+    if (isLocal && status === 404) {
+      const localCooldown = COOLDOWN_MS.notFoundLocal;
+      if (provider && model) {
+        lockModel(provider, connectionId, model, "local_not_found", localCooldown);
+      }
+      log.info(
+        "AUTH",
+        `Local 404 for ${model} — model-only lockout ${localCooldown / 1000}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: localCooldown };
+    }
 
     const rateLimitedUntil = getUnavailableUntil(cooldownMs);
     const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";

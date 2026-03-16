@@ -382,7 +382,8 @@ async function handleSingleModelChat(
       credentials.connectionId,
       result.status,
       result.error,
-      provider
+      provider,
+      model
     );
 
     if (shouldFallback) {
