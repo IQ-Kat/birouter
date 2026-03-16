@@ -121,8 +121,8 @@ export function openaiResponsesToOpenAIRequest(
 
     if (itemType === "function_call") {
       // Skip tool calls with empty names to avoid infinite placeholder_tool loops
-      const fnName = toString(item.name);
-      if (!fnName || !fnName.trim()) {
+      const fnName = toString(item.name).trim();
+      if (!fnName) {
         continue;
       }
 
