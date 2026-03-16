@@ -9,6 +9,9 @@ import {
 import {
   parseEmbeddingModel,
   getAllEmbeddingModels,
+  getEmbeddingProvider,
+  buildDynamicEmbeddingProvider,
+  type EmbeddingProviderNodeRow,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -18,7 +21,7 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1EmbeddingsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-import { getAllCustomModels } from "@/lib/localDb";
+import { getAllCustomModels, getProviderNodes } from "@/lib/localDb";
 
 /**
  * Handle CORS preflight
@@ -110,8 +113,42 @@ export async function POST(request) {
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
 
+  // Load local provider_nodes for embedding routing (only localhost — prevents auth bypass/SSRF)
+  let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
+  try {
+    const nodes = await getProviderNodes();
+    dynamicProviders = (Array.isArray(nodes) ? nodes : [])
+      .filter((n: EmbeddingProviderNodeRow) => {
+        // provider_nodes apiType is "chat" or "responses" (not "embeddings") — local OpenAI-compatible
+        // backends expose /embeddings under the same base URL as chat, so we build the URL as baseUrl + /embeddings.
+        if (n.apiType !== "chat" && n.apiType !== "responses") return false;
+        try {
+          const hostname = new URL(n.baseUrl).hostname;
+          return (
+            hostname === "localhost" ||
+            hostname === "127.0.0.1" ||
+            hostname === "::1" ||
+            hostname === "[::1]"
+          );
+        } catch {
+          return false;
+        }
+      })
+      .map((n) => {
+        try {
+          return buildDynamicEmbeddingProvider(n);
+        } catch (err) {
+          log.error("EMBED", `Skipping invalid provider_node ${n.prefix}: ${err}`);
+          return null;
+        }
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null);
+  } catch (err) {
+    log.error("EMBED", `Failed to load provider_nodes for embeddings: ${err}`);
+  }
+
   // Parse model to get provider
-  const { provider } = parseEmbeddingModel(body.model);
+  const { provider, model: resolvedModel } = parseEmbeddingModel(body.model, dynamicProviders);
   if (!provider) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -119,19 +156,39 @@ export async function POST(request) {
     );
   }
 
-  // Get credentials for the embedding provider
-  const credentials = await getProviderCredentials(provider);
-  if (!credentials) {
+  // Resolve provider config — dynamic first (local override), then hardcoded
+  const providerConfig =
+    dynamicProviders.find((dp) => dp.id === provider) || getEmbeddingProvider(provider) || null;
+
+  if (!providerConfig) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
-      `No credentials for embedding provider: ${provider}`
+      `Unknown embedding provider: ${provider}. No matching hardcoded or local provider found.`
     );
   }
 
-  const result = await handleEmbedding({ body, credentials, log });
+  // Get credentials — skip for local providers (authType: "none")
+  let credentials = null;
+  if (providerConfig && providerConfig.authType !== "none") {
+    credentials = await getProviderCredentials(provider);
+    if (!credentials) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `No credentials for embedding provider: ${provider}`
+      );
+    }
+  }
+
+  const result = await handleEmbedding({
+    body,
+    credentials,
+    log,
+    resolvedProvider: providerConfig,
+    resolvedModel,
+  });
 
   if (result.success) {
-    await clearRecoveredProviderState(credentials);
+    if (credentials) await clearRecoveredProviderState(credentials);
     return new Response(JSON.stringify(result.data), {
       status: 200,
       headers: { "Content-Type": "application/json" },

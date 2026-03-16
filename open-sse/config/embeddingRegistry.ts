@@ -8,7 +8,43 @@
  * keyed by provider ID (e.g. "nebius", "openai").
  */
 
-export const EMBEDDING_PROVIDERS = {
+export interface EmbeddingProvider {
+  id: string;
+  baseUrl: string;
+  authType: string;
+  authHeader: string;
+  models: { id: string; name: string; dimensions?: number }[];
+}
+
+export interface EmbeddingProviderNodeRow {
+  prefix: string;
+  name: string;
+  baseUrl: string;
+  apiType?: string;
+}
+
+/**
+ * Build a dynamic EmbeddingProvider from a local provider_node.
+ * Only used for local providers (localhost) — caller must filter by hostname.
+ */
+export function buildDynamicEmbeddingProvider(node: EmbeddingProviderNodeRow): EmbeddingProvider {
+  if (!node.prefix || !node.baseUrl) {
+    throw new Error(`Invalid provider_node: missing prefix or baseUrl`);
+  }
+  if (node.prefix.includes("/") || node.prefix.includes(" ")) {
+    throw new Error(`Invalid provider_node prefix "${node.prefix}": must not contain / or spaces`);
+  }
+  const baseUrl = node.baseUrl.replace(/\/+$/, "");
+  return {
+    id: node.prefix,
+    baseUrl: `${baseUrl}/embeddings`,
+    authType: "none",
+    authHeader: "none",
+    models: [],
+  };
+}
+
+export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
   nebius: {
     id: "nebius",
     baseUrl: "https://api.tokenfactory.nebius.com/v1/embeddings",
@@ -70,7 +106,7 @@ export const EMBEDDING_PROVIDERS = {
 /**
  * Get embedding provider config by ID
  */
-export function getEmbeddingProvider(providerId) {
+export function getEmbeddingProvider(providerId: string): EmbeddingProvider | null {
   return EMBEDDING_PROVIDERS[providerId] || null;
 }
 
@@ -78,26 +114,36 @@ export function getEmbeddingProvider(providerId) {
  * Parse embedding model string (format: "provider/model" or just "model")
  * Returns { provider, model }
  */
-export function parseEmbeddingModel(modelStr) {
+export function parseEmbeddingModel(
+  modelStr: string | null,
+  dynamicProviders?: EmbeddingProvider[]
+): { provider: string | null; model: string | null } {
   if (!modelStr) return { provider: null, model: null };
 
   // Check for "provider/model" format
   const slashIdx = modelStr.indexOf("/");
   if (slashIdx > 0) {
-    // Handle nested model IDs like "nebius/Qwen/Qwen3-Embedding-8B"
-    // Try each provider prefix
-    for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
+    // Phase 1: Try each hardcoded provider prefix
+    for (const [providerId] of Object.entries(EMBEDDING_PROVIDERS)) {
       if (modelStr.startsWith(providerId + "/")) {
         return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
       }
     }
-    // Fallback: first segment is provider
+    // Phase 2: Try dynamic provider_nodes prefix
+    if (dynamicProviders) {
+      for (const dp of dynamicProviders) {
+        if (modelStr.startsWith(dp.id + "/")) {
+          return { provider: dp.id, model: modelStr.slice(dp.id.length + 1) };
+        }
+      }
+    }
+    // Phase 3: Fallback — first segment is provider
     const provider = modelStr.slice(0, slashIdx);
     const model = modelStr.slice(slashIdx + 1);
     return { provider, model };
   }
 
-  // No provider prefix — search all providers for the model
+  // No provider prefix — search hardcoded providers for the model
   for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
     if (config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };

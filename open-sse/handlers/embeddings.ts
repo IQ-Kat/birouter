@@ -13,18 +13,48 @@
  * }
  */
 
-import { getEmbeddingProvider, parseEmbeddingModel } from "../config/embeddingRegistry.ts";
+import {
+  getEmbeddingProvider,
+  parseEmbeddingModel,
+  type EmbeddingProvider,
+} from "../config/embeddingRegistry.ts";
 import { saveCallLog } from "@/lib/usageDb";
 
 /**
- * Handle embedding request
- * @param {object} options
- * @param {object} options.body - Request body
- * @param {object} options.credentials - Provider credentials { apiKey, accessToken }
- * @param {object} options.log - Logger
+ * Handle embedding request.
+ * Supports both hardcoded cloud providers and dynamic local provider_nodes.
+ * When resolvedProvider is passed, uses it directly (injection pattern from route handler).
+ * Falls back to hardcoded registry lookup for backward compatibility.
  */
-export async function handleEmbedding({ body, credentials, log }) {
-  const { provider, model } = parseEmbeddingModel(body.model);
+export async function handleEmbedding({
+  body,
+  credentials,
+  log,
+  resolvedProvider = null,
+  resolvedModel = null,
+}: {
+  body: Record<string, unknown>;
+  credentials: { apiKey?: string; accessToken?: string } | null;
+  log?: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void };
+  resolvedProvider?: EmbeddingProvider | null;
+  resolvedModel?: string | null;
+}) {
+  // Use pre-resolved provider/model from route handler if available (supports dynamic provider_nodes).
+  let provider: string | null;
+  let model: string | null;
+  let providerConfig: EmbeddingProvider | null;
+
+  if (resolvedProvider) {
+    provider = resolvedProvider.id;
+    model = resolvedModel;
+    providerConfig = resolvedProvider;
+  } else {
+    const parsed = parseEmbeddingModel(body.model as string);
+    provider = parsed.provider;
+    model = parsed.model;
+    providerConfig = provider ? getEmbeddingProvider(provider) : null;
+  }
+
   const startTime = Date.now();
 
   // Summarized request body for call log (avoid storing large embedding input arrays)
@@ -42,7 +72,6 @@ export async function handleEmbedding({ body, credentials, log }) {
     };
   }
 
-  const providerConfig = getEmbeddingProvider(provider);
   if (!providerConfig) {
     return {
       success: false,
@@ -66,11 +95,15 @@ export async function handleEmbedding({ body, credentials, log }) {
     "Content-Type": "application/json",
   };
 
-  const token = credentials.apiKey || credentials.accessToken;
-  if (providerConfig.authHeader === "bearer") {
-    headers["Authorization"] = `Bearer ${token}`;
-  } else if (providerConfig.authHeader === "x-api-key") {
-    headers["x-api-key"] = token;
+  // Skip credential injection for local providers (authType: "none")
+  const token =
+    providerConfig.authType === "none" ? null : credentials?.apiKey || credentials?.accessToken;
+  if (token) {
+    if (providerConfig.authHeader === "bearer") {
+      headers["Authorization"] = `Bearer ${token}`;
+    } else if (providerConfig.authHeader === "x-api-key") {
+      headers["x-api-key"] = token;
+    }
   }
 
   if (log) {
