@@ -91,6 +91,10 @@ export function filterToOpenAIFormat(body) {
     delete body.tools;
   }
 
+  // Strip Claude-specific fields that OpenAI-compatible providers reject
+  delete body.metadata;
+  delete body.anthropic_version;
+
   // Normalize tools to OpenAI format (from Claude, Gemini, etc.)
   if (body.tools && Array.isArray(body.tools) && body.tools.length > 0) {
     body.tools = body.tools
