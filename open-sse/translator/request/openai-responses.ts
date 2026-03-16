@@ -206,7 +206,7 @@ export function openaiResponsesToOpenAIRequest(
   for (const m of messages) {
     const rec = toRecord(m);
     if (Array.isArray(rec.tool_calls)) {
-      for (const tc of rec.tool_calls as any[]) {
+      for (const tc of rec.tool_calls as { id?: string }[]) {
         if (tc.id) allToolCallIds.add(String(tc.id));
       }
     }
@@ -361,10 +361,12 @@ export function openaiToOpenAIResponsesRequest(
   // This happens when Claude Code compaction removes messages but leaves tool results
   const knownCallIds = new Set(
     input
-      .filter((item: any) => item.type === "function_call" && item.call_id)
-      .map((item: any) => item.call_id),
+      .filter(
+        (item: { type?: string; call_id?: string }) => item.type === "function_call" && item.call_id
+      )
+      .map((item: { type?: string; call_id?: string }) => item.call_id)
   );
-  result.input = input.filter((item: any) => {
+  result.input = input.filter((item: { type?: string; call_id?: string }) => {
     if (item.type === "function_call_output" && item.call_id) {
       return knownCallIds.has(item.call_id);
     }
