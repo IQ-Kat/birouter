@@ -142,6 +142,62 @@ if (sanitisedCount > 0) {
   console.log("  ℹ️  No hardcoded paths found to sanitise");
 }
 
+// ── Step 5.6: Strip Turbopack hashed externals from compiled chunks ─────────
+// Even when Turbopack is disabled at build time, some instrumentation chunks
+// may still emit require('package-<16hexchars>') instead of require('package').
+// These hashed names don't exist in node_modules and cause MODULE_NOT_FOUND at
+// runtime. We strip the hex suffix from all .js files in app/.next/server/
+// to ensure all require() calls use the real package names.
+{
+  const serverOutput = join(APP_DIR, ".next", "server");
+  const HASH_RE = /(['"\\])([a-z@][a-z0-9@./_-]+-[0-9a-f]{16})\1/g;
+  let patchedFiles = 0;
+  let patchedMatches = 0;
+  const walkDir = (dir) => {
+    let entries = [];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry);
+      try {
+        const st = statSync(full);
+        if (st.isDirectory()) {
+          walkDir(full);
+          continue;
+        }
+        if (!entry.endsWith(".js")) continue;
+        const src = readFileSync(full, "utf8");
+        let count = 0;
+        const patched = src.replace(HASH_RE, (_, q, name) => {
+          const base = name.replace(/-[0-9a-f]{16}$/, "");
+          count++;
+          return `${q}${base}${q}`;
+        });
+        if (count > 0) {
+          writeFileSync(full, patched);
+          patchedFiles++;
+          patchedMatches += count;
+        }
+      } catch {
+        /* skip unreadable files */
+      }
+    }
+  };
+  if (existsSync(serverOutput)) {
+    walkDir(serverOutput);
+    if (patchedMatches > 0) {
+      console.log(
+        `  🔧 Hash-strip: patched ${patchedMatches} hashed require() in ${patchedFiles} server chunk file(s)`
+      );
+    } else {
+      console.log("  ✅ Hash-strip: no hashed externals found in compiled chunks.");
+    }
+  }
+}
+
 // ── Step 6: Copy static assets ─────────────────────────────
 const staticSrc = join(ROOT, ".next", "static");
 const staticDest = join(APP_DIR, ".next", "static");
