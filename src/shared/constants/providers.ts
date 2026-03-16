@@ -360,6 +360,16 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     freeNote: "Free Inference API for thousands of models (Whisper, VITS, SDXL…)",
   },
+  synthetic: {
+    id: "synthetic",
+    alias: "synthetic",
+    name: "Synthetic",
+    icon: "verified_user",
+    color: "#6366F1",
+    textIcon: "SY",
+    website: "https://synthetic.new",
+    passthroughModels: true,
+  },
   vertex: {
     id: "vertex",
     alias: "vertex",
