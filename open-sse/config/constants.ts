@@ -163,6 +163,9 @@ export const PROVIDER_PROFILES = {
     circuitBreakerThreshold: 5, // More tolerant (occasional 502 is normal)
     circuitBreakerReset: 30000, // 30s reset
   },
+  // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).
+  // Not yet wired into getProviderProfile() — will be used when local provider_nodes
+  // are integrated into the resilience layer. Kept here to avoid a second constants change.
   local: {
     transientCooldown: 2000, // 2s (local — very fast recovery)
     rateLimitCooldown: 5000, // 5s (local — no real rate limits)

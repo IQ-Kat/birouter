@@ -1044,6 +1044,7 @@ export function generateAliasMap(): Record<string, string> {
 
 // ── Local Provider Detection ──────────────────────────────────────────────
 
+// Evaluated once at module load time — process restart required for env var changes.
 const LOCAL_HOSTNAMES = new Set([
   "localhost",
   "127.0.0.1",

@@ -566,17 +566,15 @@ export async function markAccountUnavailable(
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
     // ── Local provider 404: model-only lockout, connection stays active ──
+    // Detection: URL-based only (apiKey===null heuristic was too broad — could match
+    // cloud providers with non-standard auth stored in providerSpecificData).
     const connBaseUrl = (conn?.providerSpecificData as Record<string, unknown>)?.baseUrl as
       | string
       | undefined;
-    const isLocal =
-      isLocalProvider(connBaseUrl) || (conn?.apiKey === null && conn?.accessToken === null);
 
-    if (isLocal && status === 404) {
+    if (isLocalProvider(connBaseUrl) && status === 404 && provider && model) {
       const localCooldown = COOLDOWN_MS.notFoundLocal;
-      if (provider && model) {
-        lockModel(provider, connectionId, model, "local_not_found", localCooldown);
-      }
+      lockModel(provider, connectionId, model, "local_not_found", localCooldown);
       log.info(
         "AUTH",
         `Local 404 for ${model} — model-only lockout ${localCooldown / 1000}s (connection stays active)`
