@@ -39,24 +39,59 @@ const nextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // Force better-sqlite3 to always be required by its exact package name.
+      // ── Turbopack / Next.js 16 module-hash patch (#394, #396, #398) ────────
       //
-      // Next.js 16 webpack compiles the instrumentation hook into a separate
-      // chunk ([root-of-the-server]__<hash>.js) and can emit a hashed require
-      // such as `require('better-sqlite3-90e2652d1716b047')` even when the
-      // package is listed in `serverExternalPackages`. That hashed name doesn't
-      // exist in node_modules, causing the 500 error reported in issue #394.
+      // Next.js 16 (with or without Turbopack) compiles the instrumentation hook
+      // into a separate chunk and emits hashed require() calls such as:
+      //   require('better-sqlite3-90e2652d1716b047')
+      //   require('zod-dcb22c6336e0bc69')
+      //   require('pino-28069d5257187539')
       //
-      // Adding an explicit `externals` function overrides the bundler's default
-      // handling and always emits `require('better-sqlite3')`, which resolves
-      // correctly in the published standalone build.
+      // These hashed names don't exist in node_modules and cause a 500 at
+      // startup on all npm global installs (issues #394, #396, #398).
+      //
+      // We use two strategies:
+      //  1. Exact-name externals for all known server-side packages.
+      //  2. Hash-strip catch-all: any require('<name>-<16hexchars>' strips the
+      //     suffix and falls through to the real package name.
+      //
+      const HASH_PATTERN = /^(.+)-[0-9a-f]{16}$/;
+
+      const KNOWN_EXTERNALS = new Set([
+        "better-sqlite3",
+        "zod",
+        "pino",
+        "pino-pretty",
+        "child_process",
+        "fs",
+        "path",
+        "os",
+        "crypto",
+        "net",
+        "tls",
+        "http",
+        "https",
+        "stream",
+        "buffer",
+        "util",
+      ]);
+
       const prev = config.externals ?? [];
       const prevArr = Array.isArray(prev) ? prev : [prev];
       config.externals = [
         ...prevArr,
         ({ request }, callback) => {
-          if (request === "better-sqlite3") {
+          // Case 1: Exact known package — treat as external
+          if (KNOWN_EXTERNALS.has(request)) {
             return callback(null, `commonjs ${request}`);
+          }
+          // Case 2: Hash-suffixed name — strip hash, use base name
+          // e.g. "better-sqlite3-90e2652d1716b047" → "better-sqlite3"
+          //      "zod-dcb22c6336e0bc69"            → "zod"
+          const hashMatch = request?.match?.(HASH_PATTERN);
+          if (hashMatch) {
+            const baseName = hashMatch[1];
+            return callback(null, `commonjs ${baseName}`);
           }
           callback();
         },
@@ -75,6 +110,7 @@ const nextConfig = {
     }
     return config;
   },
+
   async rewrites() {
     return [
       {
