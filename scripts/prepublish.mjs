@@ -10,7 +10,16 @@
  */
 
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, cpSync, rmSync, writeFileSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  cpSync,
+  rmSync,
+  writeFileSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+} from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,7 +46,13 @@ console.log("  🏗️  Building Next.js (standalone)...");
 execSync("npx next build", {
   cwd: ROOT,
   stdio: "inherit",
-  env: { ...process.env, EXPERIMENTAL_TURBOPACK: "0" },
+  env: {
+    ...process.env,
+    // Force webpack codegen — Turbopack emits hashed require() calls for
+    // server external packages that break npm global installs (#394, #396, #398).
+    EXPERIMENTAL_TURBOPACK: "0",
+    NEXT_PRIVATE_BUILD_WORKER: "0",
+  },
 });
 
 // ── Step 4: Verify standalone output ───────────────────────
@@ -51,6 +66,46 @@ if (!existsSync(serverJs)) {
 }
 
 // ── Step 5: Copy standalone output to app/ ─────────────────
+// ── Step 4.5: Check build for hashed external references ──────────────────────
+// Warn if Turbopack-style hash suffixes are found — they will be resolved at
+// runtime by the externals patch in next.config.mjs, but log for visibility.
+{
+  const HASH_RE = /require\(["']([\w@./-]+-[0-9a-f]{16})["']\)/;
+  const scanDir = (dir, hits = []) => {
+    let entries = [];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return hits;
+    }
+    for (const e of entries) {
+      const f = join(dir, e);
+      try {
+        if (statSync(f).isDirectory()) {
+          scanDir(f, hits);
+          continue;
+        }
+        if (!f.endsWith(".js")) continue;
+        const m = readFileSync(f, "utf8").match(HASH_RE);
+        if (m) hits.push({ file: f.replace(standaloneDir, "app"), mod: m[1] });
+      } catch {
+        continue;
+      }
+    }
+    return hits;
+  };
+  const hits = scanDir(join(standaloneDir, ".next", "server"));
+  if (hits.length > 0) {
+    console.warn(
+      "  ⚠️  Hashed externals in build (will be auto-fixed at runtime by externals patch):"
+    );
+    hits.slice(0, 5).forEach((h) => console.warn());
+    if (hits.length > 5) console.warn();
+  } else {
+    console.log("  ✅ Build clean — no hashed externals found.");
+  }
+}
+
 console.log("  📋 Copying standalone build to app/...");
 mkdirSync(APP_DIR, { recursive: true });
 cpSync(standaloneDir, APP_DIR, { recursive: true });
