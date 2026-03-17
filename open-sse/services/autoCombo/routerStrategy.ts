@@ -7,9 +7,9 @@
  *   - CostStrategy: always picks cheapest available model
  */
 
-import type { ProviderCandidate, ScoredProvider } from "./scoring.js";
-import { scorePool } from "./scoring.js";
-import { getTaskFitness } from "./taskFitness.js";
+import type { ProviderCandidate, ScoredProvider } from "./scoring.ts";
+import { scorePool } from "./scoring.ts";
+import { getTaskFitness } from "./taskFitness.ts";
 
 export interface RoutingContext {
   taskType: string;
