@@ -14,6 +14,7 @@
  *
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/129
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/321
+ * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/426
  */
 
 import { existsSync, copyFileSync, mkdirSync } from "node:fs";
@@ -80,8 +81,54 @@ if (existsSync(rootBinary)) {
   }
 }
 
+// Strategy 1.5: Use node-pre-gyp to download the correct prebuilt binary
+// This works on Windows without requiring node-gyp, Python, or MSVC.
+// better-sqlite3 ships prebuilts for win32-x64, win32-arm64, darwin-x64/arm64.
+console.log("  📥  Attempting to download prebuilt binary via node-pre-gyp...");
+try {
+  const { execSync } = await import("node:child_process");
+  // better-sqlite3 bundles @mapbox/node-pre-gyp — use it directly
+  const preGypBin = join(
+    ROOT,
+    "app",
+    "node_modules",
+    ".bin",
+    process.platform === "win32" ? "node-pre-gyp.cmd" : "node-pre-gyp"
+  );
+  const preGypFallback = join(
+    ROOT,
+    "app",
+    "node_modules",
+    "@mapbox",
+    "node-pre-gyp",
+    "bin",
+    "node-pre-gyp"
+  );
+  const preGypCmd = existsSync(preGypBin) ? preGypBin : preGypFallback;
+
+  if (existsSync(preGypCmd)) {
+    execSync(`"${process.execPath}" "${preGypCmd}" install --fallback-to-build=false`, {
+      cwd: join(ROOT, "app", "node_modules", "better-sqlite3"),
+      stdio: "inherit",
+      timeout: 60_000,
+    });
+    mkdirSync(dirname(appBinary), { recursive: true });
+    try {
+      process.dlopen({ exports: {} }, appBinary);
+      console.log("  ✅ Prebuilt binary downloaded and loaded successfully!\n");
+      process.exit(0);
+    } catch (loadErr) {
+      console.warn(`  ⚠️  Downloaded binary failed to load: ${loadErr.message}`);
+    }
+  } else {
+    console.warn("  ⚠️  node-pre-gyp not found, skipping prebuilt download.");
+  }
+} catch (err) {
+  console.warn(`  ⚠️  node-pre-gyp download failed: ${err.message.split("\n")[0]}`);
+}
+
 // Strategy 2: Fall back to npm rebuild (may work if build tools are available)
-console.log("  ⚠️  Root binary not available or incompatible, attempting npm rebuild...");
+console.log("  ⚠️  Attempting npm rebuild (requires build tools)...");
 
 try {
   const { execSync } = await import("node:child_process");
@@ -103,14 +150,23 @@ try {
   }
 }
 
-// If nothing worked, warn but don't fail the install — let the package stay
-// installed so users can fix manually or use the pre-flight check in the CLI
-console.warn("  ⚠️  Could not fix better-sqlite3 native module automatically.");
+// If nothing worked, warn but don't fail the install
+console.warn("\n  ⚠️  Could not fix better-sqlite3 native module automatically.");
 console.warn("     The server may not start correctly.");
-console.warn("     Try manually:");
-console.warn(`     cd ${join(ROOT, "app")} && npm rebuild better-sqlite3`);
-if (process.platform === "darwin") {
+console.warn("     Manual fix options:");
+if (process.platform === "win32") {
+  console.warn("     Option A (easiest — no build tools needed):");
+  console.warn(`       cd "${join(ROOT, "app", "node_modules", "better-sqlite3")}"`);
+  console.warn("       npx @mapbox/node-pre-gyp install --fallback-to-build=false");
+  console.warn("     Option B (requires Build Tools for Visual Studio):");
+  console.warn(`       cd "${join(ROOT, "app")}" && npm rebuild better-sqlite3`);
+  console.warn("       Install from: https://visualstudio.microsoft.com/visual-cpp-build-tools/");
+  console.warn("       Also ensure Python is installed: https://python.org");
+} else if (process.platform === "darwin") {
+  console.warn(`     cd ${join(ROOT, "app")} && npm rebuild better-sqlite3`);
   console.warn("     If build tools are missing: xcode-select --install");
+} else {
+  console.warn(`     cd ${join(ROOT, "app")} && npm rebuild better-sqlite3`);
 }
 console.warn("");
 
