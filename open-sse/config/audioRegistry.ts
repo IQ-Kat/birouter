@@ -11,7 +11,7 @@ interface AudioModel {
   name: string;
 }
 
-interface AudioProvider {
+export interface AudioProvider {
   id: string;
   baseUrl: string;
   authType: string;
@@ -262,36 +262,74 @@ export function getSpeechProvider(providerId: string): AudioProvider | null {
   return AUDIO_SPEECH_PROVIDERS[providerId] || null;
 }
 
+export interface ProviderNodeRow {
+  prefix: string;
+  name: string;
+  baseUrl: string;
+  apiType?: string;
+}
+
 /**
- * Parse audio model string (format: "provider/model" or just "model")
+ * Build a dynamic AudioProvider from a provider_node DB entry.
+ * Only used for local providers (localhost/127.0.0.1) — remote nodes are
+ * excluded by the caller to prevent auth bypass and SSRF.
  */
+export function buildDynamicAudioProvider(node: ProviderNodeRow, audioPath: string): AudioProvider {
+  if (!node.prefix || !node.baseUrl) {
+    throw new Error(`Invalid provider_node: missing prefix or baseUrl`);
+  }
+  const baseUrl = node.baseUrl.replace(/\/+$/, "");
+  return {
+    id: node.prefix,
+    baseUrl: `${baseUrl}${audioPath}`,
+    authType: "none",
+    authHeader: "none",
+    models: [],
+  };
+}
+
 function parseAudioModel(
   modelStr: string | null,
-  registry: Record<string, AudioProvider>
+  registry: Record<string, AudioProvider>,
+  dynamicProviders?: AudioProvider[]
 ): { provider: string | null; model: string | null } {
   if (!modelStr) return { provider: null, model: null };
 
-  for (const [providerId, config] of Object.entries(registry)) {
+  // Phase 1: prefix match in hardcoded registry
+  for (const [providerId] of Object.entries(registry)) {
     if (modelStr.startsWith(providerId + "/")) {
       return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
     }
   }
 
+  // Phase 2: bare model lookup in hardcoded registry
   for (const [providerId, config] of Object.entries(registry)) {
     if (config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };
     }
   }
 
+  // Phase 3: prefix match in dynamic providers (provider_nodes)
+  if (dynamicProviders) {
+    for (const dp of dynamicProviders) {
+      if (modelStr.startsWith(dp.id + "/")) {
+        return { provider: dp.id, model: modelStr.slice(dp.id.length + 1) };
+      }
+    }
+  }
+
   return { provider: null, model: modelStr };
 }
 
-export function parseTranscriptionModel(modelStr: string | null) {
-  return parseAudioModel(modelStr, AUDIO_TRANSCRIPTION_PROVIDERS);
+export function parseTranscriptionModel(
+  modelStr: string | null,
+  dynamicProviders?: AudioProvider[]
+) {
+  return parseAudioModel(modelStr, AUDIO_TRANSCRIPTION_PROVIDERS, dynamicProviders);
 }
 
-export function parseSpeechModel(modelStr: string | null) {
-  return parseAudioModel(modelStr, AUDIO_SPEECH_PROVIDERS);
+export function parseSpeechModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
+  return parseAudioModel(modelStr, AUDIO_SPEECH_PROVIDERS, dynamicProviders);
 }
 
 /**
