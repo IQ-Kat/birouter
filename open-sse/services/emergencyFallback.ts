@@ -3,7 +3,7 @@
  *
  * When a request fails due to budget exhaustion (HTTP 402 or budget keywords
  * in the error body), optionally redirect to a free-tier model
- * (default: nvidia/gpt-oss-120b at $0.00/M tokens).
+ * (default provider/model: nvidia + openai/gpt-oss-120b at $0.00/M tokens).
  *
  * Inspired by ClawRouter: "gpt-oss-120b costs nothing and serves as
  * automatic fallback when wallet is empty."
@@ -24,7 +24,7 @@ export interface EmergencyFallbackConfig {
 export const EMERGENCY_FALLBACK_CONFIG: EmergencyFallbackConfig = {
   enabled: true,
   provider: "nvidia",
-  model: "gpt-oss-120b",
+  model: "openai/gpt-oss-120b",
   triggerOn402: true,
   triggerOnBudgetKeywords: true,
   budgetKeywords: [

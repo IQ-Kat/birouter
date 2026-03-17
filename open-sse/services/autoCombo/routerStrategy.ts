@@ -84,16 +84,51 @@ class CostStrategyImpl implements RouterStrategy {
   }
 }
 
+// ── LatencyStrategy: prioritize low latency + reliability ───────────────────
+
+class LatencyStrategyImpl implements RouterStrategy {
+  readonly name = "latency";
+  readonly description = "Prioritizes lowest p95 latency with reliability weighting";
+
+  select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
+    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const candidates = healthy.length > 0 ? healthy : pool;
+    const sorted = [...candidates].sort((a, b) => {
+      const aPenalty = a.errorRate * 1000;
+      const bPenalty = b.errorRate * 1000;
+      return a.p95LatencyMs + aPenalty - (b.p95LatencyMs + bPenalty);
+    });
+    const best = sorted[0];
+    if (!best) throw new Error("[LatencyStrategy] No candidates available");
+
+    const latencyScore = best.p95LatencyMs > 0 ? Math.max(0.001, 10_000 / best.p95LatencyMs) : 1;
+    const reliability = Math.max(0, 1 - best.errorRate);
+    const finalScore = latencyScore * 0.7 + reliability * 0.3;
+
+    return {
+      provider: best.provider,
+      model: best.model,
+      strategy: this.name,
+      reason: `LatencyStrategy: p95=${best.p95LatencyMs}ms, errorRate=${(best.errorRate * 100).toFixed(2)}%`,
+      candidatesConsidered: candidates.length,
+      finalScore,
+    };
+  }
+}
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 const strategyRegistry = new Map<string, RouterStrategy>();
 
 const rulesStrategy = new RulesStrategyImpl();
 const costStrategy = new CostStrategyImpl();
+const latencyStrategy = new LatencyStrategyImpl();
 
 strategyRegistry.set("rules", rulesStrategy);
 strategyRegistry.set("cost", costStrategy);
 strategyRegistry.set("eco", costStrategy); // alias
+strategyRegistry.set("latency", latencyStrategy);
+strategyRegistry.set("fast", latencyStrategy); // alias
 
 export function getStrategy(name: string): RouterStrategy {
   const strategy = strategyRegistry.get(name);

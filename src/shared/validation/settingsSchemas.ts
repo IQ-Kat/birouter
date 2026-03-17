@@ -30,6 +30,12 @@ export const updateSettingsSchema = z.object({
     .optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
+  // Auto intent classifier settings (multilingual routing)
+  intentDetectionEnabled: z.boolean().optional(),
+  intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
+  intentExtraCodeKeywords: z.array(z.string().max(100)).optional(),
+  intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),
+  intentExtraSimpleKeywords: z.array(z.string().max(100)).optional(),
   // Protocol toggles (default: disabled)
   mcpEnabled: z.boolean().optional(),
   mcpTransport: z.enum(["stdio", "sse", "streamable-http"]).optional(),

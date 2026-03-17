@@ -98,6 +98,10 @@ CREATE TABLE IF NOT EXISTS usage_history (
   tokens_cache_creation INTEGER DEFAULT 0,
   tokens_reasoning INTEGER DEFAULT 0,
   status TEXT,
+  success INTEGER DEFAULT 1,
+  latency_ms INTEGER DEFAULT 0,
+  ttft_ms INTEGER DEFAULT 0,
+  error_code TEXT,
   timestamp TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_uh_timestamp ON usage_history(timestamp);

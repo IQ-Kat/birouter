@@ -24,8 +24,7 @@ export const CALL_LOGS_DIR = isCloud ? null : path.join(DATA_DIR, "call_logs");
 // Legacy paths
 const LEGACY_DB_FILE =
   isCloud || !LEGACY_DATA_DIR ? null : path.join(LEGACY_DATA_DIR, "usage.json");
-const LEGACY_LOG_FILE =
-  isCloud || !LEGACY_DATA_DIR ? null : path.join(LEGACY_DATA_DIR, "log.txt");
+const LEGACY_LOG_FILE = isCloud || !LEGACY_DATA_DIR ? null : path.join(LEGACY_DATA_DIR, "log.txt");
 const LEGACY_CALL_LOGS_DB_FILE =
   isCloud || !LEGACY_DATA_DIR ? null : path.join(LEGACY_DATA_DIR, "call_logs.json");
 const LEGACY_CALL_LOGS_DIR =
@@ -82,10 +81,10 @@ export function migrateUsageJsonToSqlite() {
         const insert = db.prepare(`
           INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
             tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-            status, timestamp)
+            status, success, latency_ms, ttft_ms, error_code, timestamp)
           VALUES (@provider, @model, @connectionId, @apiKeyId, @apiKeyName,
             @tokensInput, @tokensOutput, @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
-            @status, @timestamp)
+            @status, @success, @latencyMs, @ttftMs, @errorCode, @timestamp)
         `);
 
         const tx = db.transaction(() => {
@@ -103,6 +102,14 @@ export function migrateUsageJsonToSqlite() {
                 entry.tokens?.cacheCreation ?? entry.tokens?.cache_creation_input_tokens ?? 0,
               tokensReasoning: entry.tokens?.reasoning ?? entry.tokens?.reasoning_tokens ?? 0,
               status: entry.status || null,
+              success: entry.success === false ? 0 : 1,
+              latencyMs: Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+              ttftMs: Number.isFinite(Number(entry.timeToFirstTokenMs))
+                ? Number(entry.timeToFirstTokenMs)
+                : Number.isFinite(Number(entry.latencyMs))
+                  ? Number(entry.latencyMs)
+                  : 0,
+              errorCode: entry.errorCode || null,
               timestamp: entry.timestamp || new Date().toISOString(),
             });
           }

@@ -115,6 +115,13 @@ export const DEFAULT_PRICING = {
       reasoning: 18.0,
       cache_creation: 2.0,
     },
+    "gemini-3.1-pro-preview": {
+      input: 2.0,
+      output: 12.0,
+      cached: 0.25,
+      reasoning: 18.0,
+      cache_creation: 2.0,
+    },
     "gemini-2.5-pro": {
       input: 2.0,
       output: 12.0,
@@ -203,6 +210,13 @@ export const DEFAULT_PRICING = {
       cache_creation: 0.75,
     },
     "deepseek-v3.2-chat": {
+      input: 0.5,
+      output: 2.0,
+      cached: 0.25,
+      reasoning: 3.0,
+      cache_creation: 0.5,
+    },
+    "deepseek-v3.2": {
       input: 0.5,
       output: 2.0,
       cached: 0.25,
@@ -524,6 +538,13 @@ export const DEFAULT_PRICING = {
       reasoning: 18.0,
       cache_creation: 2.0,
     },
+    "gemini-3.1-pro-preview": {
+      input: 2.0,
+      output: 12.0,
+      cached: 0.25,
+      reasoning: 18.0,
+      cache_creation: 2.0,
+    },
     "gemini-2.5-pro": {
       input: 2.0,
       output: 12.0,
@@ -601,6 +622,20 @@ export const DEFAULT_PRICING = {
 
   // GLM
   glm: {
+    "glm-5": {
+      input: 1.0,
+      output: 3.2,
+      cached: 0.5,
+      reasoning: 4.8,
+      cache_creation: 1.0,
+    },
+    "glm-5-turbo": {
+      input: 1.2,
+      output: 4.0,
+      cached: 0.6,
+      reasoning: 6.0,
+      cache_creation: 1.2,
+    },
     "glm-4.7": {
       input: 0.75,
       output: 3.0,
@@ -653,6 +688,13 @@ export const DEFAULT_PRICING = {
 
   // MiniMax
   minimax: {
+    "minimax-m2.1": {
+      input: 0.5,
+      output: 2.0,
+      cached: 0.25,
+      reasoning: 3.0,
+      cache_creation: 0.5,
+    },
     "MiniMax-M2.1": {
       input: 0.5,
       output: 2.0,
@@ -762,6 +804,7 @@ export const DEFAULT_PRICING = {
 
   // Nvidia
   nvidia: {
+    "nvidia/gpt-oss-120b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
     "openai/gpt-oss-120b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
     "gpt-oss-120b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
     "moonshotai/kimi-k2.5": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },

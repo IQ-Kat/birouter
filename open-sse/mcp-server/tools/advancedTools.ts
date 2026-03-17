@@ -1,16 +1,18 @@
 /**
- * OmniRoute MCP Advanced Tools — 8 intelligence tools that differentiate
+ * OmniRoute MCP Advanced Tools — 10 intelligence tools that differentiate
  * OmniRoute from all other AI gateways.
  *
  * Tools:
  *   1. omniroute_simulate_route     — Dry-run routing simulation
  *   2. omniroute_set_budget_guard   — Session budget with degrade/block/alert
- *   3. omniroute_set_resilience_profile — Circuit breaker/retry profiles
- *   4. omniroute_test_combo         — Live test each provider in a combo
- *   5. omniroute_get_provider_metrics — Detailed per-provider metrics
- *   6. omniroute_best_combo_for_task — AI-powered combo recommendation
- *   7. omniroute_explain_route      — Post-hoc routing decision explainer
- *   8. omniroute_get_session_snapshot — Full session state snapshot
+ *   3. omniroute_set_routing_strategy — Runtime strategy switch for combos
+ *   4. omniroute_set_resilience_profile — Circuit breaker/retry profiles
+ *   5. omniroute_test_combo         — Live test each provider in a combo
+ *   6. omniroute_get_provider_metrics — Detailed per-provider metrics
+ *   7. omniroute_best_combo_for_task — AI-powered combo recommendation
+ *   8. omniroute_explain_route      — Post-hoc routing decision explainer
+ *   9. omniroute_get_session_snapshot — Full session state snapshot
+ *  10. omniroute_sync_pricing      — Sync provider pricing from external source
  */
 
 import { logToolCall } from "../audit.ts";
@@ -331,6 +333,108 @@ export async function handleSetBudgetGuard(args: {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await logToolCall("omniroute_set_budget_guard", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleSetRoutingStrategy(args: {
+  comboId: string;
+  strategy:
+    | "priority"
+    | "weighted"
+    | "round-robin"
+    | "strict-random"
+    | "random"
+    | "least-used"
+    | "cost-optimized"
+    | "auto";
+  autoRoutingStrategy?: "rules" | "cost" | "eco" | "latency" | "fast";
+}) {
+  const start = Date.now();
+  try {
+    const combos = normalizeCombosResponse(await apiFetch("/api/combos"));
+    const combo = combos.find(
+      (comboEntry) =>
+        toString(comboEntry.id) === args.comboId || toString(comboEntry.name) === args.comboId
+    );
+
+    if (!combo) {
+      const msg = `Combo '${args.comboId}' not found`;
+      await logToolCall(
+        "omniroute_set_routing_strategy",
+        args,
+        null,
+        Date.now() - start,
+        false,
+        msg
+      );
+      return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+    }
+
+    const comboId = toString(combo.id);
+    if (!comboId) {
+      const msg = "Matched combo has no id";
+      await logToolCall(
+        "omniroute_set_routing_strategy",
+        args,
+        null,
+        Date.now() - start,
+        false,
+        msg
+      );
+      return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+    }
+
+    const comboData = toRecord(combo.data);
+    const currentConfig = toRecord(
+      Object.keys(toRecord(combo.config)).length > 0 ? combo.config : comboData.config
+    );
+
+    let nextConfig: JsonRecord | undefined = undefined;
+    if (args.strategy === "auto" && args.autoRoutingStrategy) {
+      const currentAutoConfig = toRecord(currentConfig.auto);
+      nextConfig = {
+        ...currentConfig,
+        auto: {
+          ...currentAutoConfig,
+          routingStrategy: args.autoRoutingStrategy,
+        },
+      };
+    }
+
+    const payload: JsonRecord = { strategy: args.strategy };
+    if (nextConfig && Object.keys(nextConfig).length > 0) {
+      payload.config = nextConfig;
+    }
+
+    const updatedCombo = toRecord(
+      await apiFetch(`/api/combos/${encodeURIComponent(comboId)}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      })
+    );
+
+    const updatedConfig = toRecord(updatedCombo.config);
+    const resolvedAutoStrategy =
+      toString(toRecord(updatedConfig.auto).routingStrategy) ||
+      (args.strategy === "auto" ? (args.autoRoutingStrategy ?? "rules") : "");
+
+    const result = {
+      success: true,
+      combo: {
+        id: toString(updatedCombo.id, comboId),
+        name: toString(updatedCombo.name, toString(combo.name, comboId)),
+        strategy: toString(updatedCombo.strategy, args.strategy),
+        autoRoutingStrategy:
+          toString(updatedCombo.strategy, args.strategy) === "auto" ? resolvedAutoStrategy : null,
+      },
+    };
+
+    await logToolCall("omniroute_set_routing_strategy", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_set_routing_strategy", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }

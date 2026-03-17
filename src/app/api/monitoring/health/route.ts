@@ -13,6 +13,7 @@ export async function GET() {
     const { getAllCircuitBreakerStatuses } = await import("@/shared/utils/circuitBreaker");
     const { getAllRateLimitStatus } = await import("@omniroute/open-sse/services/rateLimitManager");
     const { getAllModelLockouts } = await import("@omniroute/open-sse/services/accountFallback");
+    const { getInflightCount } = await import("@omniroute/open-sse/services/requestDedup.ts");
 
     const settings = await getSettings();
     const circuitBreakers = getAllCircuitBreakerStatuses();
@@ -50,6 +51,9 @@ export async function GET() {
       localProviders: getAllHealthStatuses(),
       rateLimitStatus,
       lockouts,
+      dedup: {
+        inflightRequests: getInflightCount(),
+      },
       setupComplete: settings?.setupComplete || false,
     });
   } catch (error) {

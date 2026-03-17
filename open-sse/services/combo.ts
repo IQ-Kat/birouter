@@ -5,18 +5,35 @@
 
 import { checkFallbackError, formatRetryAfter, getProviderProfile } from "./accountFallback.ts";
 import { unavailableResponse } from "../utils/error.ts";
-import { recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
+import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel } from "./model.ts";
 import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
+import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts";
+import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
+import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
+import { DEFAULT_WEIGHTS, scorePool } from "./autoCombo/scoring.ts";
+import { supportsToolCalling } from "./modelCapabilities.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
 const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];
 
 const MAX_COMBO_DEPTH = 3;
+
+// Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
+const DEFAULT_MODEL_P95_MS = {
+  "grok-4-fast-non-reasoning": 1143,
+  "grok-4-1-fast-non-reasoning": 1244,
+  "gemini-2.5-flash": 1238,
+  "kimi-k2.5": 1646,
+  "gpt-4o-mini": 2764,
+  "claude-sonnet-4.6": 4000,
+  "claude-opus-4.6": 6000,
+  "deepseek-chat": 2000,
+};
 
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
@@ -202,6 +219,158 @@ function sortModelsByUsage(models, comboName) {
   return withUsage.map((e) => e.modelStr);
 }
 
+function toTextContent(content) {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((part) => {
+      if (!part || typeof part !== "object") return "";
+      if (typeof part.text === "string") return part.text;
+      return "";
+    })
+    .join("\n");
+}
+
+function extractPromptForIntent(body) {
+  if (!body || typeof body !== "object") return "";
+
+  const fromMessages = Array.isArray(body.messages)
+    ? [...body.messages].reverse().find((m) => m && typeof m === "object" && m.role === "user")
+    : null;
+  if (fromMessages) return toTextContent(fromMessages.content);
+
+  if (typeof body.input === "string") return body.input;
+  if (Array.isArray(body.input)) {
+    const text = body.input
+      .map((item) => {
+        if (!item || typeof item !== "object") return "";
+        if (typeof item.content === "string") return item.content;
+        if (typeof item.text === "string") return item.text;
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+    if (text) return text;
+  }
+
+  if (typeof body.prompt === "string") return body.prompt;
+  return "";
+}
+
+function mapIntentToTaskType(intent) {
+  switch (intent) {
+    case "code":
+      return "coding";
+    case "reasoning":
+      return "analysis";
+    case "simple":
+      return "default";
+    case "medium":
+    default:
+      return "default";
+  }
+}
+
+function toStringArray(input) {
+  if (Array.isArray(input)) {
+    return input.map((v) => (typeof v === "string" ? v.trim() : "")).filter(Boolean);
+  }
+  if (typeof input === "string") {
+    return input
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function getIntentConfig(settings, combo) {
+  const comboIntentConfig =
+    combo?.autoConfig?.intentConfig ||
+    combo?.config?.auto?.intentConfig ||
+    combo?.config?.intentConfig ||
+    {};
+
+  return {
+    ...DEFAULT_INTENT_CONFIG,
+    ...comboIntentConfig,
+    ...(typeof settings?.intentDetectionEnabled === "boolean"
+      ? { enabled: settings.intentDetectionEnabled }
+      : {}),
+    ...(Number.isFinite(Number(settings?.intentSimpleMaxWords))
+      ? { simpleMaxWords: Number(settings.intentSimpleMaxWords) }
+      : {}),
+    ...(toStringArray(settings?.intentExtraCodeKeywords).length > 0
+      ? { extraCodeKeywords: toStringArray(settings.intentExtraCodeKeywords) }
+      : {}),
+    ...(toStringArray(settings?.intentExtraReasoningKeywords).length > 0
+      ? { extraReasoningKeywords: toStringArray(settings.intentExtraReasoningKeywords) }
+      : {}),
+    ...(toStringArray(settings?.intentExtraSimpleKeywords).length > 0
+      ? { extraSimpleKeywords: toStringArray(settings.intentExtraSimpleKeywords) }
+      : {}),
+  };
+}
+
+function getBootstrapLatencyMs(modelId) {
+  const normalized = String(modelId || "").toLowerCase();
+  return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
+}
+
+async function buildAutoCandidates(modelStrings, comboName) {
+  const metrics = getComboMetrics(comboName);
+  const { getPricingForModel } = await import("../../src/lib/localDb");
+
+  const candidates = await Promise.all(
+    modelStrings.map(async (modelStr) => {
+      const parsed = parseModel(modelStr);
+      const provider = parsed.provider || parsed.providerAlias || "unknown";
+      const model = parsed.model || modelStr;
+
+      let costPer1MTokens = 1;
+      try {
+        const pricing = await getPricingForModel(provider, model);
+        const inputPrice = Number(pricing?.input);
+        if (Number.isFinite(inputPrice) && inputPrice >= 0) {
+          costPer1MTokens = inputPrice;
+        }
+      } catch {
+        // keep default cost
+      }
+
+      const modelMetric = metrics?.byModel?.[modelStr] || null;
+      const avgLatency = Number(modelMetric?.avgLatencyMs);
+      const successRate = Number(modelMetric?.successRate);
+      const p95LatencyMs =
+        Number.isFinite(avgLatency) && avgLatency > 0 ? avgLatency : getBootstrapLatencyMs(model);
+      const errorRate =
+        Number.isFinite(successRate) && successRate >= 0 && successRate <= 100
+          ? 1 - successRate / 100
+          : 0.05;
+
+      const breakerStateRaw = getCircuitBreaker(`combo:${modelStr}`)?.getStatus?.()?.state;
+      const circuitBreakerState =
+        breakerStateRaw === "OPEN" || breakerStateRaw === "HALF_OPEN" ? breakerStateRaw : "CLOSED";
+
+      return {
+        provider,
+        model,
+        quotaRemaining: 100,
+        quotaTotal: 100,
+        circuitBreakerState,
+        costPer1MTokens,
+        p95LatencyMs,
+        latencyStdDev: Math.max(10, p95LatencyMs * 0.1),
+        errorRate,
+        accountTier: "standard",
+        quotaResetIntervalSecs: 86400,
+      };
+    })
+  );
+
+  return candidates;
+}
+
 /**
  * Handle combo chat with fallback
  * Supports all 6 strategies: priority, weighted, round-robin, random, least-used, cost-optimized
@@ -316,7 +485,131 @@ export async function handleComboChat({
   }
 
   // Apply strategy-specific ordering
-  if (strategy === "strict-random") {
+  if (strategy === "auto") {
+    const requestHasTools = Array.isArray(body?.tools) && body.tools.length > 0;
+    let eligibleModels = [...orderedModels];
+
+    if (requestHasTools) {
+      const filtered = eligibleModels.filter((m) => supportsToolCalling(m));
+      if (filtered.length > 0) {
+        eligibleModels = filtered;
+      } else {
+        log.warn(
+          "COMBO",
+          "Auto strategy: all candidates filtered by tool-calling policy, falling back to full pool"
+        );
+      }
+    }
+
+    const prompt = extractPromptForIntent(body);
+    const systemPrompt =
+      typeof combo?.system_message === "string" ? combo.system_message : undefined;
+    const intentConfig = getIntentConfig(settings, combo);
+    const intent = classifyWithConfig(prompt, intentConfig, systemPrompt);
+    recordComboIntent(combo.name, intent);
+    const taskType = mapIntentToTaskType(intent);
+
+    const autoConfigSource = combo?.autoConfig || combo?.config?.auto || combo?.config || {};
+    const routingStrategy =
+      typeof autoConfigSource.routingStrategy === "string"
+        ? autoConfigSource.routingStrategy
+        : typeof autoConfigSource.strategyName === "string"
+          ? autoConfigSource.strategyName
+          : "rules";
+
+    const candidatePool = Array.isArray(autoConfigSource.candidatePool)
+      ? autoConfigSource.candidatePool
+      : [
+          ...new Set(
+            eligibleModels.map((m) => {
+              const parsed = parseModel(m);
+              return parsed.provider || parsed.providerAlias || "unknown";
+            })
+          ),
+        ];
+
+    const weights =
+      autoConfigSource.weights && typeof autoConfigSource.weights === "object"
+        ? autoConfigSource.weights
+        : DEFAULT_WEIGHTS;
+    const explorationRate = Number.isFinite(Number(autoConfigSource.explorationRate))
+      ? Number(autoConfigSource.explorationRate)
+      : 0.05;
+    const budgetCap = Number.isFinite(Number(autoConfigSource.budgetCap))
+      ? Number(autoConfigSource.budgetCap)
+      : undefined;
+    const modePack =
+      typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
+
+    const candidates = await buildAutoCandidates(eligibleModels, combo.name);
+    if (candidates.length > 0) {
+      let selectedProvider = null;
+      let selectedModel = null;
+      let selectionReason = "";
+
+      if (routingStrategy !== "rules") {
+        try {
+          const decision = selectWithStrategy(
+            candidates,
+            { taskType, requestHasTools },
+            routingStrategy
+          );
+          selectedProvider = decision.provider;
+          selectedModel = decision.model;
+          selectionReason = decision.reason;
+        } catch (err) {
+          log.warn(
+            "COMBO",
+            `Auto strategy '${routingStrategy}' failed (${err?.message || "unknown"}), falling back to rules`
+          );
+        }
+      }
+
+      if (!selectedProvider || !selectedModel) {
+        const selection = selectAutoProvider(
+          {
+            id: combo.id || combo.name,
+            name: combo.name,
+            type: "auto",
+            candidatePool,
+            weights,
+            modePack,
+            budgetCap,
+            explorationRate,
+          },
+          candidates,
+          taskType
+        );
+        selectedProvider = selection.provider;
+        selectedModel = selection.model;
+        selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
+      }
+
+      const modelLookup = new Map();
+      for (const modelStr of eligibleModels) {
+        const parsed = parseModel(modelStr);
+        const provider = parsed.provider || parsed.providerAlias || "unknown";
+        const modelId = parsed.model || modelStr;
+        modelLookup.set(`${provider}/${modelId}`, modelStr);
+      }
+
+      const ranked = scorePool(candidates, taskType, weights)
+        .map((r) => modelLookup.get(`${r.provider}/${r.model}`) || `${r.provider}/${r.model}`)
+        .filter(Boolean);
+
+      const selectedModelStr =
+        modelLookup.get(`${selectedProvider}/${selectedModel}`) ||
+        `${selectedProvider}/${selectedModel}`;
+      orderedModels = [...new Set([selectedModelStr, ...ranked, ...eligibleModels])];
+
+      log.info(
+        "COMBO",
+        `Auto selection: ${selectedModelStr} | intent=${intent} task=${taskType} | strategy=${routingStrategy} | ${selectionReason}`
+      );
+    } else {
+      log.warn("COMBO", "Auto strategy has no candidates, keeping default ordering");
+    }
+  } else if (strategy === "strict-random") {
     const selectedId = await getNextFromDeck(`combo:${combo.name}`, orderedModels);
     // Put selected model first so the fallback loop tries it first
     const rest = orderedModels.filter((m) => m !== selectedId);
