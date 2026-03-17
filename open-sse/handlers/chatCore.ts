@@ -13,6 +13,7 @@ import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
+import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { createErrorResult, parseUpstreamError, formatProviderError } from "../utils/error.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
@@ -53,7 +54,9 @@ export function shouldUseNativeCodexPassthrough({
 }): boolean {
   if (provider !== "codex") return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
-  return String(endpointPath || "").toLowerCase().endsWith("/responses");
+  return String(endpointPath || "")
+    .toLowerCase()
+    .endsWith("/responses");
 }
 
 /**
@@ -286,6 +289,21 @@ export async function handleChatCore({
 
   // Update model in body
   translatedBody.model = model;
+
+  // Strip unsupported parameters for reasoning models (o1, o3, etc.)
+  const unsupported = getUnsupportedParams(provider, model);
+  if (unsupported.length > 0) {
+    const stripped: string[] = [];
+    for (const param of unsupported) {
+      if (Object.hasOwn(translatedBody, param)) {
+        stripped.push(param);
+        delete translatedBody[param];
+      }
+    }
+    if (stripped.length > 0) {
+      log?.warn?.("PARAMS", `Stripped unsupported params for ${model}: ${stripped.join(", ")}`);
+    }
+  }
 
   // Get executor for this provider
   const executor = getExecutor(provider);

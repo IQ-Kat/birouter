@@ -12,7 +12,20 @@ export interface RegistryModel {
   id: string;
   name: string;
   targetFormat?: string;
+  unsupportedParams?: readonly string[];
 }
+
+// Reasoning models reject temperature, top_p, penalties, logprobs, n.
+// Frozen to prevent accidental mutation (shared across all model entries).
+const REASONING_UNSUPPORTED: readonly string[] = Object.freeze([
+  "temperature",
+  "top_p",
+  "frequency_penalty",
+  "presence_penalty",
+  "logprobs",
+  "top_logprobs",
+  "n",
+]);
 
 export interface RegistryOAuth {
   clientIdEnv?: string;
@@ -426,8 +439,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-4o", name: "GPT-4o" },
       { id: "gpt-4o-mini", name: "GPT-4o Mini" },
       { id: "gpt-4-turbo", name: "GPT-4 Turbo" },
-      { id: "o1", name: "O1" },
-      { id: "o1-mini", name: "O1 Mini" },
+      { id: "o1", name: "O1", unsupportedParams: REASONING_UNSUPPORTED },
+      { id: "o1-mini", name: "O1 Mini", unsupportedParams: REASONING_UNSUPPORTED },
+      { id: "o1-pro", name: "O1 Pro", unsupportedParams: REASONING_UNSUPPORTED },
+      { id: "o3", name: "O3", unsupportedParams: REASONING_UNSUPPORTED },
+      { id: "o3-mini", name: "O3 Mini", unsupportedParams: REASONING_UNSUPPORTED },
     ],
   },
 
@@ -1058,6 +1074,43 @@ export function getRegistryEntry(provider: string): RegistryEntry | null {
 /** Get all registered provider IDs */
 export function getRegisteredProviders(): string[] {
   return Object.keys(REGISTRY);
+}
+
+// Precomputed map: modelId → unsupportedParams (O(1) lookup instead of O(N×M) scan).
+// Built once at module load from all registry entries.
+const _unsupportedParamsMap = new Map<string, readonly string[]>();
+for (const entry of Object.values(REGISTRY)) {
+  for (const model of entry.models) {
+    if (model.unsupportedParams && !_unsupportedParamsMap.has(model.id)) {
+      _unsupportedParamsMap.set(model.id, model.unsupportedParams);
+    }
+  }
+}
+
+/**
+ * Get unsupported parameters for a specific model.
+ * Uses O(1) precomputed lookup. Also handles prefixed model IDs
+ * (e.g., "openai/o3" → strips prefix and looks up "o3").
+ * Returns empty array if no restrictions are defined.
+ */
+export function getUnsupportedParams(provider: string, modelId: string): readonly string[] {
+  // 1. Check current provider's registry (exact match)
+  const entry = getRegistryEntry(provider);
+  const modelEntry = entry?.models.find((m) => m.id === modelId);
+  if (modelEntry?.unsupportedParams) return modelEntry.unsupportedParams;
+
+  // 2. O(1) lookup in precomputed map (handles cross-provider routing)
+  const cached = _unsupportedParamsMap.get(modelId);
+  if (cached) return cached;
+
+  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3")
+  if (modelId.includes("/")) {
+    const bareId = modelId.split("/").pop() || "";
+    const bare = _unsupportedParamsMap.get(bareId);
+    if (bare) return bare;
+  }
+
+  return [];
 }
 
 /**
