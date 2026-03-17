@@ -18,6 +18,7 @@ export async function GET() {
     const circuitBreakers = getAllCircuitBreakerStatuses();
     const rateLimitStatus = getAllRateLimitStatus();
     const lockouts = getAllModelLockouts();
+    const { getAllHealthStatuses } = await import("@/lib/localHealthCheck");
 
     // System info
     const system = {
@@ -46,6 +47,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       system,
       providerHealth,
+      localProviders: getAllHealthStatuses(),
       rateLimitStatus,
       lockouts,
       setupComplete: settings?.setupComplete || false,
