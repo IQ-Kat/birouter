@@ -440,6 +440,69 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
   }
 }
 
+// ── Search provider validators (factored) ──
+
+async function validateSearchProvider(
+  url: string,
+  init: RequestInit
+): Promise<{ valid: boolean; error: string | null }> {
+  try {
+    const response = await fetch(url, init);
+    if (response.ok) return { valid: true, error: null };
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return { valid: false, error: error.message || "Validation failed" };
+  }
+}
+
+const SEARCH_VALIDATOR_CONFIGS: Record<
+  string,
+  (apiKey: string) => { url: string; init: RequestInit }
+> = {
+  "serper-search": (apiKey) => ({
+    url: "https://google.serper.dev/search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+      body: JSON.stringify({ q: "test", num: 1 }),
+    },
+  }),
+  "brave-search": (apiKey) => ({
+    url: "https://api.search.brave.com/res/v1/web/search?q=test&count=1",
+    init: {
+      method: "GET",
+      headers: { Accept: "application/json", "X-Subscription-Token": apiKey },
+    },
+  }),
+  "perplexity-search": (apiKey) => ({
+    url: "https://api.perplexity.ai/search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ query: "test", max_results: 1 }),
+    },
+  }),
+  "exa-search": (apiKey) => ({
+    url: "https://api.exa.ai/search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+      body: JSON.stringify({ query: "test", numResults: 1 }),
+    },
+  }),
+  "tavily-search": (apiKey) => ({
+    url: "https://api.tavily.com/search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ query: "test", max_results: 1 }),
+    },
+  }),
+};
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   if (!provider || !apiKey) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
@@ -468,6 +531,16 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     nanobanana: validateNanoBananaProvider,
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
+    // Search providers — use factored validator
+    ...Object.fromEntries(
+      Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
+        id,
+        ({ apiKey }: any) => {
+          const { url, init } = configFn(apiKey);
+          return validateSearchProvider(url, init);
+        },
+      ])
+    ),
   };
 
   if (SPECIALTY_VALIDATORS[provider]) {

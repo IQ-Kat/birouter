@@ -33,11 +33,29 @@ export default function APIPageClient({ machineId }) {
   const [viewTab, setViewTab] = useState("api");
   const [mcpStatus, setMcpStatus] = useState<any>(null);
   const [a2aStatus, setA2aStatus] = useState<any>(null);
+  const [searchProviders, setSearchProviders] = useState<any[]>([]);
 
   const { copied, copy } = useCopyToClipboard();
 
+  const fetchSearchProviders = async () => {
+    try {
+      const res = await fetch("/v1/search");
+      if (res.ok) {
+        const data = await res.json();
+        setSearchProviders(data.data || []);
+      }
+    } catch {
+      // Search endpoint may not be available
+    }
+  };
+
   useEffect(() => {
-    Promise.allSettled([loadCloudSettings(), fetchModels(), fetchProtocolStatus()]).finally(() => {
+    Promise.allSettled([
+      loadCloudSettings(),
+      fetchModels(),
+      fetchProtocolStatus(),
+      fetchSearchProviders(),
+    ]).finally(() => {
       setLoading(false);
     });
   }, []);
@@ -574,6 +592,47 @@ export default function APIPageClient({ machineId }) {
               />
             </div>
           </div>
+
+          {/* Search & Discovery */}
+          {searchProviders.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-sm text-cyan-400">
+                  travel_explore
+                </span>
+                <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  {t("categorySearch") || "Search & Discovery"}
+                </h3>
+                <div className="flex-1 h-px bg-border/50" />
+              </div>
+              <div className="flex flex-col gap-3">
+                <EndpointSection
+                  icon="search"
+                  iconColor="text-cyan-500"
+                  iconBg="bg-cyan-500/10"
+                  title={t("webSearch") || "Web Search"}
+                  path="/v1/search"
+                  description={
+                    t("webSearchDesc") ||
+                    "Unified web search across multiple providers with automatic failover and caching"
+                  }
+                  models={searchProviders.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    owned_by: p.id,
+                    type: "search",
+                  }))}
+                  expanded={expandedEndpoint === "search"}
+                  onToggle={() =>
+                    setExpandedEndpoint(expandedEndpoint === "search" ? null : "search")
+                  }
+                  copy={copy}
+                  copied={copied}
+                  baseUrl={currentEndpoint}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Utility & Management */}
           <div>
