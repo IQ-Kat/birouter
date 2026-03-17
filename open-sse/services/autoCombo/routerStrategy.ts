@@ -1,0 +1,124 @@
+/**
+ * RouterStrategy — Pluggable Routing Strategy System
+ *
+ * Inspired by ClawRouter commit 14c83c258 "refactor: extract routing into pluggable RouterStrategy system".
+ * Provides a RouterStrategy interface and two built-in implementations:
+ *   - RulesStrategy (default): wraps the existing 6-factor scoring engine
+ *   - CostStrategy: always picks cheapest available model
+ */
+
+import type { ProviderCandidate, ScoredProvider } from "./scoring.js";
+import { scorePool } from "./scoring.js";
+import { getTaskFitness } from "./taskFitness.js";
+
+export interface RoutingContext {
+  taskType: string;
+  requestHasTools?: boolean;
+  requestHasVision?: boolean;
+  estimatedInputTokens?: number;
+}
+
+export interface RoutingDecision {
+  provider: string;
+  model: string;
+  strategy: string;
+  reason: string;
+  candidatesConsidered: number;
+  finalScore: number;
+}
+
+export interface RouterStrategy {
+  readonly name: string;
+  readonly description: string;
+  select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision;
+}
+
+// ── RulesStrategy: wraps 6-factor scoring engine ────────────────────────────
+
+class RulesStrategyImpl implements RouterStrategy {
+  readonly name = "rules";
+  readonly description =
+    "6-factor weighted scoring: quota, health, cost, latency, taskFit, stability";
+
+  select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
+    const eligible = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const ranked: ScoredProvider[] = scorePool(
+      eligible.length > 0 ? eligible : pool,
+      context.taskType,
+      undefined,
+      getTaskFitness
+    );
+    const best = ranked[0];
+    if (!best) throw new Error("[RulesStrategy] No candidates to score");
+    return {
+      provider: best.provider,
+      model: best.model,
+      strategy: this.name,
+      reason: `RulesStrategy: score=${best.score.toFixed(3)} (quota=${best.factors.quota.toFixed(2)}, health=${best.factors.health.toFixed(2)}, cost=${best.factors.costInv.toFixed(2)}, taskFit=${best.factors.taskFit.toFixed(2)})`,
+      candidatesConsidered: ranked.length,
+      finalScore: best.score,
+    };
+  }
+}
+
+// ── CostStrategy: always picks cheapest healthy provider ─────────────────────
+
+class CostStrategyImpl implements RouterStrategy {
+  readonly name = "cost";
+  readonly description = "Always selects cheapest available provider (by costPer1MTokens)";
+
+  select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
+    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
+    const candidates = healthy.length > 0 ? healthy : pool;
+    const sorted = [...candidates].sort((a, b) => a.costPer1MTokens - b.costPer1MTokens);
+    const best = sorted[0];
+    if (!best) throw new Error("[CostStrategy] No candidates available");
+    return {
+      provider: best.provider,
+      model: best.model,
+      strategy: this.name,
+      reason: `CostStrategy: cheapest at $${best.costPer1MTokens.toFixed(3)}/1M tokens`,
+      candidatesConsidered: candidates.length,
+      finalScore: best.costPer1MTokens === 0 ? 1.0 : 1 / best.costPer1MTokens,
+    };
+  }
+}
+
+// ── Registry ──────────────────────────────────────────────────────────────────
+
+const strategyRegistry = new Map<string, RouterStrategy>();
+
+const rulesStrategy = new RulesStrategyImpl();
+const costStrategy = new CostStrategyImpl();
+
+strategyRegistry.set("rules", rulesStrategy);
+strategyRegistry.set("cost", costStrategy);
+strategyRegistry.set("eco", costStrategy); // alias
+
+export function getStrategy(name: string): RouterStrategy {
+  const strategy = strategyRegistry.get(name);
+  if (!strategy) {
+    console.warn(`[RouterStrategy] Strategy '${name}' not found, falling back to 'rules'`);
+    return rulesStrategy;
+  }
+  return strategy;
+}
+
+export function registerStrategy(name: string, strategy: RouterStrategy): void {
+  if (strategyRegistry.has(name)) {
+    console.warn(`[RouterStrategy] Overwriting strategy '${name}'`);
+  }
+  strategyRegistry.set(name, strategy);
+}
+
+export function listStrategies(): Array<{ name: string; description: string }> {
+  return [...strategyRegistry.entries()].map(([name, s]) => ({ name, description: s.description }));
+}
+
+export function selectWithStrategy(
+  pool: ProviderCandidate[],
+  context: RoutingContext,
+  strategyName = "rules"
+): RoutingDecision {
+  return getStrategy(strategyName).select(pool, context);
+}

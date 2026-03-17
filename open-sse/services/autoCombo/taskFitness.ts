@@ -24,10 +24,23 @@ const FITNESS_TABLE: Record<string, Record<string, number>> = {
     "deepseek-coder": 0.9,
     "deepseek-v3": 0.85,
     "deepseek-r1": 0.88,
+    "deepseek-chat": 0.84, // DeepSeek V3.2 Chat — strong code performance
+    "deepseek-v3.2": 0.86, // Explicit V3.2 alias
     qwen: 0.78,
     llama: 0.72,
     mistral: 0.75,
     mixtral: 0.77,
+    // Grok-4 fast — good code, ultra-low latency (1143ms P50)
+    "grok-4-fast": 0.8,
+    "grok-4": 0.82,
+    "grok-3": 0.8,
+    // Kimi K2.5 — agentic with tool calling, good at code tasks
+    "kimi-k2": 0.82,
+    // GLM-5 — Z.AI model with 128k output
+    "glm-5": 0.78,
+    // MiniMax M2.5 — reasoning support helps complex code
+    "minimax-m2.5": 0.75,
+    "minimax-m2": 0.72,
   },
   review: {
     "claude-sonnet": 0.92,
@@ -58,10 +71,15 @@ const FITNESS_TABLE: Record<string, Record<string, number>> = {
     "claude-sonnet": 0.92,
     "gemini-2.5-pro": 0.95,
     "gemini-pro": 0.88,
+    "gemini-3.1-pro": 0.95, // Gemini 3.1 Pro — 1M context, ideal for long analysis
     "gpt-4o": 0.85,
     o1: 0.9,
     o3: 0.93,
     "deepseek-r1": 0.88,
+    "deepseek-chat": 0.8,
+    "kimi-k2": 0.82, // Kimi K2.5 agentic — good for analysis
+    "glm-5": 0.78, // GLM-5 with 128k output for long analysis
+    "minimax-m2.5": 0.76,
   },
   debugging: {
     "claude-sonnet": 0.93,
@@ -87,8 +105,17 @@ const FITNESS_TABLE: Record<string, Record<string, number>> = {
     "claude-opus": 0.85,
     "gpt-4o": 0.85,
     "gemini-pro": 0.8,
+    "gemini-3.1-pro": 0.85,
     "deepseek-v3": 0.75,
+    "deepseek-chat": 0.74,
     "gemini-flash": 0.72,
+    // New models from ClawRouter analysis (2026-03-17):
+    "grok-4-fast": 0.72, // ultra-fast, suitable for all tasks
+    "grok-4": 0.74,
+    "grok-3": 0.73,
+    "kimi-k2": 0.76, // agentic multi-step tasks
+    "glm-5": 0.7,
+    "minimax-m2.5": 0.7,
   },
 };
 

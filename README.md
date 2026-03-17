@@ -898,27 +898,44 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 
 ## 💰 Pricing at a Glance
 
-| Tier                | Provider          | Cost                   | Quota Reset      | Best For                |
-| ------------------- | ----------------- | ---------------------- | ---------------- | ----------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo                 | 5h + weekly      | Already subscribed      |
-|                     | Codex (Plus/Pro)  | $20-200/mo             | 5h + weekly      | OpenAI users            |
-|                     | Gemini CLI        | **FREE**               | 180K/mo + 1K/day | Everyone!               |
-|                     | GitHub Copilot    | $10-19/mo              | Monthly          | GitHub users            |
-| **🔑 API KEY**      | NVIDIA NIM        | **FREE** (dev forever) | ~40 RPM          | 70+ open models         |
-|                     | Cerebras          | **FREE** (1M tok/day)  | 60K TPM / 30 RPM | World's fastest         |
-|                     | Groq              | **FREE** (30 RPM)      | 14.4K RPD        | Ultra-fast Llama/Gemma  |
-|                     | DeepSeek          | Pay-per-use            | None             | Best price/quality      |
-|                     | xAI (Grok)        | Pay-per-use            | None             | Grok models             |
-|                     | Mistral           | Free trial + paid      | Rate limited     | European AI             |
-|                     | OpenRouter        | Pay-per-use            | None             | 100+ models aggr.       |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M                | Daily 10AM       | Budget backup           |
-|                     | MiniMax M2.1      | $0.2/1M                | 5-hour rolling   | Cheapest option         |
-|                     | Kimi K2           | $9/mo flat             | 10M tokens/mo    | Predictable cost        |
-| **🆓 FREE**         | iFlow             | **$0**                 | Unlimited        | 5 models unlimited      |
-|                     | Qwen              | **$0**                 | Unlimited        | 4 models unlimited      |
-|                     | Kiro              | **$0**                 | Unlimited        | Claude (AWS Builder ID) |
+| Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
+| ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                    | 5h + weekly      | Already subscribed                |
+|                     | Codex (Plus/Pro)            | $20-200/mo                | 5h + weekly      | OpenAI users                      |
+|                     | Gemini CLI                  | **FREE**                  | 180K/mo + 1K/day | Everyone!                         |
+|                     | GitHub Copilot              | $10-19/mo                 | Monthly          | GitHub users                      |
+| **🔑 API KEY**      | NVIDIA NIM                  | **FREE** (dev forever)    | ~40 RPM          | 70+ open models                   |
+|                     | Cerebras                    | **FREE** (1M tok/day)     | 60K TPM / 30 RPM | World's fastest                   |
+|                     | Groq                        | **FREE** (30 RPM)         | 14.4K RPD        | Ultra-fast Llama/Gemma            |
+|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M        | None             | Best price/quality reasoning      |
+|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕 | None             | Fastest + tool calling, ultralow  |
+|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Reasoning flagship from xAI       |
+|                     | Mistral                     | Free trial + paid         | Rate limited     | European AI                       |
+|                     | OpenRouter                  | Pay-per-use               | None             | 100+ models aggr.                 |
+| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
+|                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
+|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
+|                     | MiniMax M2.1                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
+|                     | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use               | None             | Direct Moonshot API access        |
+|                     | Kimi K2                     | $9/mo flat                | 10M tokens/mo    | Predictable cost                  |
+| **🆓 FREE**         | iFlow                       | **$0**                    | Unlimited        | 5 models unlimited                |
+|                     | Qwen                        | **$0**                    | Unlimited        | 4 models unlimited                |
+|                     | Kiro                        | **$0**                    | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
 
-**💡 $0 Combo Stack:** Gemini CLI (180K/mo) → iFlow (unlimited: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1) → Kiro (Claude for free) → Qwen (4 models, unlimited) — **Zero cost, never stops coding.** When Gemini quota runs out, OmniRoute auto-falls back to iFlow or Kiro with zero config.
+> 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
+
+**💡 $0 Combo Stack — The Complete Free Setup:**
+
+```
+Gemini CLI (180K/mo free)
+  → iFlow (unlimited: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1)
+  → Kiro (Claude Sonnet 4.5 + Haiku — unlimited, via AWS Builder ID)
+  → Qwen (4 models — unlimited)
+  → Groq (14.4K req/day — ultra-fast)
+  → NVIDIA NIM (70+ models — 40 RPM forever)
+```
+
+**Zero cost. Never stops coding.** Configure this as one OmniRoute combo and all fallbacks happen automatically — no manual switching ever.
 
 ---
 

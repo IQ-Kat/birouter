@@ -129,12 +129,13 @@ export const DEFAULT_PRICING = {
       reasoning: 3.75,
       cache_creation: 0.3,
     },
+    // Gemini 2.5 Flash Lite — preco corrigido via ClawRouter: $0.10/$0.40 (era $0.15/$1.25)
     "gemini-2.5-flash-lite": {
-      input: 0.15,
-      output: 1.25,
-      cached: 0.015,
-      reasoning: 1.875,
-      cache_creation: 0.15,
+      input: 0.1,
+      output: 0.4,
+      cached: 0.025,
+      reasoning: 0.6,
+      cache_creation: 0.1,
     },
   },
 
@@ -451,10 +452,71 @@ export const DEFAULT_PRICING = {
       reasoning: 15.0,
       cache_creation: 3.0,
     },
+    // Claude 4.5 Haiku — modelo eco mais recente da Anthropic (2025-10)
+    "claude-haiku-4-5-20251001": {
+      input: 1.0,
+      output: 5.0,
+      cached: 0.5,
+      reasoning: 7.5,
+      cache_creation: 1.0,
+    },
+    "claude-haiku-4.5": {
+      input: 1.0,
+      output: 5.0,
+      cached: 0.5,
+      reasoning: 7.5,
+      cache_creation: 1.0,
+    },
+    // Claude Sonnet 4.6 — maxOutput 64k tokens, $3/$15/M
+    "claude-sonnet-4-6-20251031": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 22.5,
+      cache_creation: 3.0,
+    },
+    "claude-sonnet-4.6": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 22.5,
+      cache_creation: 3.0,
+    },
+    // Claude Opus 4.6 — mais barato que Opus 4 ($5/$25 vs $15/$75)
+    "claude-opus-4-6-20251031": {
+      input: 5.0,
+      output: 25.0,
+      cached: 2.5,
+      reasoning: 37.5,
+      cache_creation: 5.0,
+    },
+    "claude-opus-4.6": {
+      input: 5.0,
+      output: 25.0,
+      cached: 2.5,
+      reasoning: 37.5,
+      cache_creation: 5.0,
+    },
   },
 
   // Gemini
   gemini: {
+    // Gemini 3.1 Pro — novo flagship Google (2026-03-17)
+    // Context: 1.050.000 tokens | Max Output: 65.536
+    "gemini-3.1-pro": {
+      input: 2.0,
+      output: 12.0,
+      cached: 0.25,
+      reasoning: 18.0,
+      cache_creation: 2.0,
+    },
+    "gemini-3-1-pro": {
+      input: 2.0,
+      output: 12.0,
+      cached: 0.25,
+      reasoning: 18.0,
+      cache_creation: 2.0,
+    },
     "gemini-3-pro-preview": {
       input: 2.0,
       output: 12.0,
@@ -476,12 +538,53 @@ export const DEFAULT_PRICING = {
       reasoning: 3.75,
       cache_creation: 0.3,
     },
+    // Gemini 2.5 Flash Lite — preco corrigido: $0.10/$0.40 (ClawRouter)
     "gemini-2.5-flash-lite": {
-      input: 0.15,
-      output: 1.25,
-      cached: 0.015,
-      reasoning: 1.875,
-      cache_creation: 0.15,
+      input: 0.1,
+      output: 0.4,
+      cached: 0.025,
+      reasoning: 0.6,
+      cache_creation: 0.1,
+    },
+  },
+
+  // DeepSeek — API nativa (V3.2 Chat), separada de free providers
+  // Preco: $0.28/$0.42/M tokens (verificado via ClawRouter 2026-03-17)
+  deepseek: {
+    "deepseek-chat": {
+      input: 0.28,
+      output: 0.42,
+      cached: 0.014,
+      reasoning: 0.42,
+      cache_creation: 0.28,
+    },
+    "deepseek-v3": {
+      input: 0.28,
+      output: 0.42,
+      cached: 0.014,
+      reasoning: 0.42,
+      cache_creation: 0.28,
+    },
+    "deepseek-v3.2": {
+      input: 0.28,
+      output: 0.42,
+      cached: 0.014,
+      reasoning: 0.42,
+      cache_creation: 0.28,
+    },
+    "deepseek-reasoner": {
+      input: 0.55,
+      output: 2.19,
+      cached: 0.14,
+      reasoning: 2.19,
+      cache_creation: 0.55,
+    },
+    "deepseek-r1": {
+      input: 0.55,
+      output: 2.19,
+      cached: 0.14,
+      reasoning: 2.19,
+      cache_creation: 0.55,
     },
   },
 
@@ -521,7 +624,7 @@ export const DEFAULT_PRICING = {
     },
   },
 
-  // Kimi
+  // Kimi (Moonshot)
   kimi: {
     "kimi-latest": {
       input: 1.0,
@@ -529,6 +632,22 @@ export const DEFAULT_PRICING = {
       cached: 0.5,
       reasoning: 6.0,
       cache_creation: 1.0,
+    },
+    // Kimi K2.5 — acesso direto via Moonshot API
+    // Context: 262.144 tokens | Capabilities: reasoning, vision, agentic, tools
+    "kimi-k2.5": {
+      input: 0.6,
+      output: 3.0,
+      cached: 0.3,
+      reasoning: 4.5,
+      cache_creation: 0.6,
+    },
+    "moonshot-kimi-k2.5": {
+      input: 0.6,
+      output: 3.0,
+      cached: 0.3,
+      reasoning: 4.5,
+      cache_creation: 0.6,
     },
   },
 
@@ -540,6 +659,22 @@ export const DEFAULT_PRICING = {
       cached: 0.25,
       reasoning: 3.0,
       cache_creation: 0.5,
+    },
+    // MiniMax M2.5 — mais barato que M2.1, reasoning + tools
+    // Context: 204.800 tokens | Max Output: 16.384 tokens
+    "minimax-m2.5": {
+      input: 0.3,
+      output: 1.2,
+      cached: 0.15,
+      reasoning: 1.8,
+      cache_creation: 0.3,
+    },
+    "MiniMax-M2.5": {
+      input: 0.3,
+      output: 1.2,
+      cached: 0.15,
+      reasoning: 1.8,
+      cache_creation: 0.3,
     },
   },
 
@@ -757,7 +892,85 @@ export const DEFAULT_PRICING = {
     },
   },
 
-  // Kiro (AWS)
+  // ─────────────────────────────────────────────────────────────────────
+  // xAI (Grok) — Grok-3 + Grok-4 Family
+  // Source: ClawRouter benchmarks 2026-03-17
+  // Grok-4-fast-non-reasoning: 1143ms P50 (mais rapido do benchmark)
+  // ─────────────────────────────────────────────────────────────────────
+  xai: {
+    "grok-3": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 22.5,
+      cache_creation: 3.0,
+    },
+    "grok-3-mini": {
+      input: 0.3,
+      output: 0.5,
+      cached: 0.15,
+      reasoning: 0.75,
+      cache_creation: 0.3,
+    },
+    // Grok-4 Fast Family — ultrabaratos ($0.20/$0.50/M)
+    "grok-4-fast-non-reasoning": {
+      input: 0.2,
+      output: 0.5,
+      cached: 0.1,
+      reasoning: 0.0,
+      cache_creation: 0.2,
+    },
+    "grok-4-fast-reasoning": {
+      input: 0.2,
+      output: 0.5,
+      cached: 0.1,
+      reasoning: 0.75,
+      cache_creation: 0.2,
+    },
+    "grok-4-1-fast-non-reasoning": {
+      input: 0.2,
+      output: 0.5,
+      cached: 0.1,
+      reasoning: 0.0,
+      cache_creation: 0.2,
+    },
+    "grok-4-1-fast-reasoning": {
+      input: 0.2,
+      output: 0.5,
+      cached: 0.1,
+      reasoning: 0.75,
+      cache_creation: 0.2,
+    },
+    "grok-4-0709": {
+      input: 0.2,
+      output: 1.5,
+      cached: 0.1,
+      reasoning: 2.25,
+      cache_creation: 0.2,
+    },
+  },
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Z.AI / ZhipuAI — GLM-5 Family
+  // Adicionados via ClawRouter 2026-03-17 | maxOutput: 128k tokens!
+  // ─────────────────────────────────────────────────────────────────────
+  zai: {
+    "glm-5": {
+      input: 1.0,
+      output: 3.2,
+      cached: 0.5,
+      reasoning: 4.8,
+      cache_creation: 1.0,
+    },
+    "glm-5-turbo": {
+      input: 1.2,
+      output: 4.0,
+      cached: 0.6,
+      reasoning: 6.0,
+      cache_creation: 1.2,
+    },
+  },
+
   kiro: {
     "claude-sonnet-4.5": {
       input: 3.0,
