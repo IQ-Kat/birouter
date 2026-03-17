@@ -3,6 +3,11 @@ data/
 **/data/
 **/db.json
 
+# VS Code extension test runtime (large binary, not needed in npm package)
+app/vscode-extension/
+**/data/
+**/db.json
+
 # Source code (pre-built app/ is published instead)
 src/
 open-sse/
