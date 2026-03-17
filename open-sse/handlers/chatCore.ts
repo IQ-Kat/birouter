@@ -43,6 +43,11 @@ import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idem
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
 import { isModelUnavailableError, getNextFamilyFallback } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
+import {
+  shouldUseFallback,
+  isFallbackDecision,
+  EMERGENCY_FALLBACK_CONFIG,
+} from "../services/emergencyFallback.ts";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -641,6 +646,63 @@ export async function handleChatCore({
       return createErrorResult(statusCode, errMsg, retryAfterMs);
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
+
+    // ── Emergency Fallback (ClawRouter Feature #09/017) ────────────────────
+    // When a non-streaming request fails with a budget-related error (402 or
+    // budget keywords), redirect to nvidia/gpt-oss-120b ($0.00/M) before
+    // returning the error to the combo router. This gives one last free-tier
+    // attempt so the user's session stays alive.
+    const requestHasTools = Array.isArray(translatedBody.tools) && translatedBody.tools.length > 0;
+    if (!stream) {
+      const fbDecision = shouldUseFallback(
+        statusCode,
+        message,
+        requestHasTools,
+        EMERGENCY_FALLBACK_CONFIG
+      );
+      if (isFallbackDecision(fbDecision)) {
+        log?.info?.("EMERGENCY_FALLBACK", fbDecision.reason);
+        try {
+          // Build a minimal fallback request using the original body but with
+          // the NVIDIA free-tier model and max_tokens capped to avoid overuse.
+          const fbExecutor = getExecutor(fbDecision.provider);
+          const fbResult = await fbExecutor.execute({
+            model: fbDecision.model,
+            body: {
+              ...translatedBody,
+              model: fbDecision.model,
+              max_tokens: Math.min(
+                typeof translatedBody.max_tokens === "number"
+                  ? translatedBody.max_tokens
+                  : fbDecision.maxOutputTokens,
+                fbDecision.maxOutputTokens
+              ),
+            },
+            stream: false,
+            credentials: credentials,
+            signal: streamController.signal,
+            log,
+            extendedContext,
+          });
+          if (fbResult.response.ok) {
+            providerResponse = fbResult.response;
+            log?.info?.(
+              "EMERGENCY_FALLBACK",
+              `Serving ${fbDecision.provider}/${fbDecision.model} as budget fallback for ${provider}/${model}`
+            );
+            // Fall through to non-streaming handler — providerResponse is now OK
+          } else {
+            log?.warn?.(
+              "EMERGENCY_FALLBACK",
+              `Emergency fallback also failed (${fbResult.response.status})`
+            );
+          }
+        } catch (fbErr) {
+          log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${fbErr?.message}`);
+        }
+      }
+    }
+    // ── End Emergency Fallback ────────────────────────────────────────────
   }
 
   // Non-streaming response

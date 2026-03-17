@@ -20,6 +20,7 @@ import {
 import { getTaskFitness } from "./taskFitness";
 import { getModePack } from "./modePacks";
 import { getSelfHealingManager } from "./selfHealing";
+import { classifyPromptIntent } from "../intentClassifier";
 
 export interface AutoComboConfig {
   id: string;
@@ -30,6 +31,8 @@ export interface AutoComboConfig {
   modePack?: string;
   budgetCap?: number; // max cost per request in USD
   explorationRate: number; // 0.05 = 5% exploratory
+  /** If set, RouterStrategy name to use for selection ('rules' | 'cost' | 'latency') */
+  routerStrategy?: string;
 }
 
 export interface SelectionResult {
@@ -43,14 +46,44 @@ export interface SelectionResult {
 
 /**
  * Select the best provider from an auto-combo pool.
+ *
+ * @param config - AutoCombo configuration
+ * @param candidates - Provider candidates to score
+ * @param taskType - Task type hint. When "default" or omitted, the engine will attempt
+ *   to infer the intent from `promptMessages` using multilingual classification.
+ * @param promptMessages - Optional raw messages for intent classification
  */
 export function selectProvider(
   config: AutoComboConfig,
   candidates: ProviderCandidate[],
-  taskType: string = "default"
+  taskType: string = "default",
+  promptMessages?: Array<{ role: string; content: unknown }>
 ): SelectionResult {
   const healer = getSelfHealingManager();
 
+  // ── Intent classification (ClawRouter Feature #10/11) ────────────────────
+  // When taskType is generic ('default'), attempt to classify the prompt intent
+  // using the multilingual intentClassifier for better task fitness scoring.
+  let effectiveTaskType = taskType;
+  if ((taskType === "default" || taskType === "") && promptMessages?.length) {
+    // Extract text from last user message for classification
+    const lastUserMsg = [...promptMessages].reverse().find((m) => m.role === "user");
+    if (lastUserMsg) {
+      const text =
+        typeof lastUserMsg.content === "string"
+          ? lastUserMsg.content
+          : Array.isArray(lastUserMsg.content)
+            ? (lastUserMsg.content as Array<{ type: string; text?: string }>)
+                .filter((b) => b.type === "text")
+                .map((b) => b.text || "")
+                .join(" ")
+            : "";
+      if (text.length > 10) {
+        const intent = classifyPromptIntent(text);
+        effectiveTaskType = intent; // 'code' | 'reasoning' | 'simple' | 'medium'
+      }
+    }
+  }
   // Resolve weights from mode pack or config
   let weights = config.weights;
   if (config.modePack) {
@@ -80,8 +113,8 @@ export function selectProvider(
     excluded.length = 0;
   }
 
-  // Score all providers
-  const scored = scorePool(pool, taskType, weights, getTaskFitness);
+  // Score all providers (using classified intent if available)
+  const scored = scorePool(pool, effectiveTaskType, weights, getTaskFitness);
 
   // Apply self-healing re-evaluation with actual scores
   const finalCandidates = scored.filter((s) => {
