@@ -6,6 +6,7 @@
  */
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+import { generateToolCallId } from "../helpers/toolCallHelper.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -350,7 +351,7 @@ export function openaiToOpenAIResponsesRequest(
           }
           input.push({
             type: "function_call",
-            call_id: toString(toolCall.id),
+            call_id: toString(toolCall.id).trim() || generateToolCallId(),
             name: fnName,
             arguments: toString(fn.arguments, "{}"),
           });
