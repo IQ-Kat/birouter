@@ -8,6 +8,7 @@ import {
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { updateProxyConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import type { z } from "zod";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
@@ -135,11 +136,7 @@ export async function GET(request: Request) {
     const config = await getProxyConfig();
     return Response.json(config);
   } catch (error) {
-    const routeError = toApiRouteError(error);
-    return Response.json(
-      { error: { message: routeError.message, type: "server_error" } },
-      { status: 500 }
-    );
+    return createErrorResponseFromUnknown(error, "Failed to load proxy config");
   }
 }
 
@@ -152,25 +149,22 @@ export async function PUT(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return Response.json(
-      { error: { message: "Invalid JSON body", type: "invalid_request" } },
-      { status: 400 }
-    );
+    return createErrorResponse({
+      status: 400,
+      message: "Invalid JSON body",
+      type: "invalid_request",
+    });
   }
 
   try {
     const validation = validateBody(updateProxyConfigSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return Response.json(
-        {
-          error: {
-            message: validation.error.message,
-            details: validation.error.details,
-            type: "invalid_request",
-          },
-        },
-        { status: 400 }
-      );
+      return createErrorResponse({
+        status: 400,
+        message: validation.error.message,
+        details: validation.error.details,
+        type: "invalid_request",
+      });
     }
     const body = validation.data;
     const normalizedBody = normalizeProxyPayload(body);
@@ -181,7 +175,7 @@ export async function PUT(request: Request) {
     const routeError = toApiRouteError(error);
     const status = Number(routeError.status) || 500;
     const type = routeError.type || (status === 400 ? "invalid_request" : "server_error");
-    return Response.json({ error: { message: routeError.message, type } }, { status });
+    return createErrorResponse({ status, message: routeError.message, type });
   }
 }
 
@@ -196,20 +190,17 @@ export async function DELETE(request: Request) {
     const id = searchParams.get("id");
 
     if (!level) {
-      return Response.json(
-        { error: { message: "level is required", type: "invalid_request" } },
-        { status: 400 }
-      );
+      return createErrorResponse({
+        status: 400,
+        message: "level is required",
+        type: "invalid_request",
+      });
     }
 
     const updated = await deleteProxyForLevel(level, id);
     clearDispatcherCache();
     return Response.json(updated);
   } catch (error) {
-    const routeError = toApiRouteError(error);
-    return Response.json(
-      { error: { message: routeError.message, type: "server_error" } },
-      { status: 500 }
-    );
+    return createErrorResponseFromUnknown(error, "Failed to delete proxy");
   }
 }

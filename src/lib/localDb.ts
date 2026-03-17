@@ -90,6 +90,22 @@ export {
 } from "./db/settings";
 
 export {
+  // Proxy Registry
+  listProxies,
+  getProxyById,
+  createProxy,
+  updateProxy,
+  deleteProxyById,
+  getProxyAssignments,
+  getProxyWhereUsed,
+  assignProxyToScope,
+  resolveProxyForConnectionFromRegistry,
+  migrateLegacyProxyConfigToRegistry,
+  getProxyHealthStats,
+  bulkAssignProxyToScope,
+} from "./db/proxies";
+
+export {
   // Pricing Sync
   getSyncedPricing,
   saveSyncedPricing,

@@ -14,6 +14,36 @@ const ENDPOINT_ROWS = [
   { path: "/models", method: "GET", noteKey: "endpointRewriteModelsNote" },
 ] as const;
 
+const MANAGEMENT_ENDPOINT_ROWS = [
+  { path: "/api/v1/management/proxies", method: "GET", noteKey: "mgmtProxiesListNote" },
+  { path: "/api/v1/management/proxies", method: "POST", noteKey: "mgmtProxiesCreateNote" },
+  {
+    path: "/api/v1/management/proxies/health",
+    method: "GET",
+    noteKey: "mgmtProxiesHealthNote",
+  },
+  {
+    path: "/api/v1/management/proxies/bulk-assign",
+    method: "PUT",
+    noteKey: "mgmtProxiesBulkAssignNote",
+  },
+  {
+    path: "/api/v1/management/proxies/assignments",
+    method: "GET",
+    noteKey: "mgmtAssignmentsListNote",
+  },
+  {
+    path: "/api/v1/management/proxies/assignments",
+    method: "PUT",
+    noteKey: "mgmtAssignmentsUpdateNote",
+  },
+  {
+    path: "/api/settings/proxies/migrate",
+    method: "POST",
+    noteKey: "mgmtLegacyMigrationNote",
+  },
+] as const;
+
 const FEATURE_ITEMS = [
   { icon: "hub", titleKey: "featureRoutingTitle", textKey: "featureRoutingText" },
   { icon: "layers", titleKey: "featureCombosTitle", textKey: "featureCombosText" },
@@ -48,6 +78,7 @@ const TOC_ITEMS = [
   { href: "#client-compatibility", labelKey: "clientCompatibility" },
   { href: "#protocols", labelKey: "protocolsToc" },
   { href: "#api-reference", labelKey: "apiReference" },
+  { href: "#management-api", labelKey: "managementApiReference" },
   { href: "#model-prefixes", labelKey: "modelPrefixes" },
   { href: "#troubleshooting", labelKey: "troubleshooting" },
 ] as const;
@@ -99,6 +130,10 @@ export default function DocsPage() {
     Object.keys(APIKEY_PROVIDERS).length;
 
   const endpointRows = ENDPOINT_ROWS.map((row) => ({
+    ...row,
+    note: t(row.noteKey),
+  }));
+  const managementEndpointRows = MANAGEMENT_ENDPOINT_ROWS.map((row) => ({
     ...row,
     note: t(row.noteKey),
   }));
@@ -483,6 +518,35 @@ POST /a2a  (JSON-RPC: message/send | message/stream)`}</code>
                         {getProviderTypeLabel(p.type)}
                       </span>
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="management-api" className="rounded-2xl border border-border bg-bg-subtle p-6">
+          <h2 className="text-xl font-semibold">{t("managementApiReference")}</h2>
+          <p className="text-sm text-text-muted mt-2">{t("managementApiDescription")}</p>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 pr-4">{t("method")}</th>
+                  <th className="text-left py-2 pr-4">{t("path")}</th>
+                  <th className="text-left py-2">{t("notes")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {managementEndpointRows.map((row) => (
+                  <tr key={`${row.method}:${row.path}`} className="border-b border-border/60">
+                    <td className="py-2 pr-4">
+                      <code className="px-1.5 py-0.5 rounded bg-bg text-xs font-semibold">
+                        {row.method}
+                      </code>
+                    </td>
+                    <td className="py-2 pr-4 font-mono">{row.path}</td>
+                    <td className="py-2 text-text-muted">{row.note}</td>
                   </tr>
                 ))}
               </tbody>

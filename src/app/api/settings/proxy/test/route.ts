@@ -7,6 +7,7 @@ import {
 } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 import { testProxySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 
@@ -38,61 +39,46 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return Response.json(
-      { error: { message: "Invalid JSON body", type: "invalid_request" } },
-      { status: 400 }
-    );
+    return createErrorResponse({
+      status: 400,
+      message: "Invalid JSON body",
+      type: "invalid_request",
+    });
   }
 
   try {
     const validation = validateBody(testProxySchema, rawBody);
     if (isValidationFailure(validation)) {
-      return Response.json(
-        {
-          error: {
-            message: validation.error.message,
-            details: validation.error.details,
-            type: "invalid_request",
-          },
-        },
-        { status: 400 }
-      );
+      return createErrorResponse({
+        status: 400,
+        message: validation.error.message,
+        details: validation.error.details,
+        type: "invalid_request",
+      });
     }
     const { proxy } = validation.data;
 
     const proxyType = String(proxy.type || "http").toLowerCase();
     if (proxyType === "socks5" && !isSocks5ProxyEnabled()) {
-      return Response.json(
-        {
-          error: {
-            message: "SOCKS5 proxy is disabled (set ENABLE_SOCKS5_PROXY=true to enable)",
-            type: "invalid_request",
-          },
-        },
-        { status: 400 }
-      );
+      return createErrorResponse({
+        status: 400,
+        message: "SOCKS5 proxy is disabled (set ENABLE_SOCKS5_PROXY=true to enable)",
+        type: "invalid_request",
+      });
     }
     if (proxyType.startsWith("socks") && proxyType !== "socks5") {
-      return Response.json(
-        {
-          error: {
-            message: `proxy.type must be ${supportedTypesMessage()}`,
-            type: "invalid_request",
-          },
-        },
-        { status: 400 }
-      );
+      return createErrorResponse({
+        status: 400,
+        message: `proxy.type must be ${supportedTypesMessage()}`,
+        type: "invalid_request",
+      });
     }
     if (!getSupportedProxyTypes().has(proxyType)) {
-      return Response.json(
-        {
-          error: {
-            message: `proxy.type must be ${supportedTypesMessage()}`,
-            type: "invalid_request",
-          },
-        },
-        { status: 400 }
-      );
+      return createErrorResponse({
+        status: 400,
+        message: `proxy.type must be ${supportedTypesMessage()}`,
+        type: "invalid_request",
+      });
     }
 
     let proxyUrl: string;
@@ -108,27 +94,19 @@ export async function POST(request: Request) {
         { allowSocks5: isSocks5ProxyEnabled() }
       );
       if (!normalizedProxyUrl) {
-        return Response.json(
-          {
-            error: {
-              message: "Invalid proxy configuration",
-              type: "invalid_request",
-            },
-          },
-          { status: 400 }
-        );
+        return createErrorResponse({
+          status: 400,
+          message: "Invalid proxy configuration",
+          type: "invalid_request",
+        });
       }
       proxyUrl = normalizedProxyUrl;
     } catch (proxyError) {
-      return Response.json(
-        {
-          error: {
-            message: getErrorMessage(proxyError, "Invalid proxy configuration"),
-            type: "invalid_request",
-          },
-        },
-        { status: 400 }
-      );
+      return createErrorResponse({
+        status: 400,
+        message: getErrorMessage(proxyError, "Invalid proxy configuration"),
+        type: "invalid_request",
+      });
     }
 
     const publicProxyUrl = proxyUrlForLogs(proxyUrl);
@@ -180,7 +158,6 @@ export async function POST(request: Request) {
       clearTimeout(timeout);
     }
   } catch (error) {
-    const message = getErrorMessage(error, "Unexpected server error");
-    return Response.json({ error: { message, type: "server_error" } }, { status: 500 });
+    return createErrorResponseFromUnknown(error, "Unexpected server error");
   }
 }
