@@ -11,6 +11,7 @@
 export interface RegistryModel {
   id: string;
   name: string;
+  toolCalling?: boolean;
   targetFormat?: string;
   unsupportedParams?: readonly string[];
 }
@@ -139,6 +140,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: "",
     },
     models: [
+      { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
+      { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro (Alt ID)" },
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
@@ -168,6 +172,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: "",
     },
     models: [
+      { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
+      { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro (Alt ID)" },
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
@@ -460,8 +467,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Version": "2023-06-01",
     },
     models: [
+      { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
       { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4" },
+      { id: "claude-sonnet-4-6-20251031", name: "Claude Sonnet 4.6 (Dated)" },
+      { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
       { id: "claude-opus-4-20250514", name: "Claude Opus 4" },
+      { id: "claude-opus-4-6-20251031", name: "Claude Opus 4.6 (Dated)" },
+      { id: "claude-opus-4.6", name: "Claude Opus 4.6" },
       { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet" },
     ],
   },
@@ -495,6 +507,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
     },
     models: [
+      { id: "glm-5", name: "GLM 5" },
+      { id: "glm-5-turbo", name: "GLM 5 Turbo" },
       { id: "glm-4.7-flash", name: "GLM 4.7 Flash" },
       { id: "glm-4.7", name: "GLM 4.7" },
       { id: "glm-4.6v", name: "GLM 4.6V (Vision)" },
@@ -503,6 +517,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "glm-4.5", name: "GLM 4.5" },
       { id: "glm-4.5-air", name: "GLM 4.5 Air" },
       { id: "glm-4-32b", name: "GLM 4 32B" },
+    ],
+  },
+
+  zai: {
+    id: "zai",
+    alias: "zai",
+    format: "claude",
+    executor: "default",
+    baseUrl: "https://api.z.ai/api/anthropic/v1/messages",
+    urlSuffix: "?beta=true",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    headers: {
+      "Anthropic-Version": "2023-06-01",
+      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+    },
+    models: [
+      { id: "glm-5", name: "GLM 5" },
+      { id: "glm-5-turbo", name: "GLM 5 Turbo" },
     ],
   },
 
@@ -637,7 +670,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Version": "2023-06-01",
       "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
     },
-    models: [{ id: "MiniMax-M2.1", name: "MiniMax M2.1" }],
+    models: [
+      { id: "minimax-m2.5", name: "MiniMax M2.5" },
+      { id: "MiniMax-M2.5", name: "MiniMax M2.5 (Legacy Alias)" },
+      { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
+    ],
   },
 
   "minimax-cn": {
@@ -655,6 +692,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
+      { id: "minimax-m2.5", name: "MiniMax M2.5" },
+      { id: "MiniMax-M2.5", name: "MiniMax M2.5 (Legacy Alias)" },
       { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
     ],
   },
@@ -717,10 +756,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "grok-4", name: "Grok 4" },
+      { id: "grok-4-fast-non-reasoning", name: "Grok 4 Fast" },
       { id: "grok-4-fast-reasoning", name: "Grok 4 Fast Reasoning" },
-      { id: "grok-code-fast-1", name: "Grok Code Fast" },
+      { id: "grok-4-1-fast-non-reasoning", name: "Grok 4.1 Fast" },
+      { id: "grok-4-1-fast-reasoning", name: "Grok 4.1 Fast Reasoning" },
+      { id: "grok-4-0709", name: "Grok 4 (0709)" },
+      { id: "grok-4", name: "Grok 4" },
       { id: "grok-3", name: "Grok 3" },
+      { id: "grok-3-mini", name: "Grok 3 Mini" },
     ],
   },
 
@@ -849,7 +892,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
+      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)", toolCalling: false },
       { id: "meta/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
+      { id: "nvidia/llama-3.3-70b-instruct", name: "Llama 3.3 70B (NVIDIA Prefix)" },
       { id: "meta/llama-4-maverick-17b-128e-instruct", name: "Llama 4 Maverick" },
       { id: "moonshotai/kimi-k2.5", name: "Kimi K2.5" },
       { id: "z-ai/glm4.7", name: "GLM 4.7" },

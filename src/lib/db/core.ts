@@ -143,6 +143,10 @@ const SCHEMA_SQL = `
     tokens_cache_creation INTEGER DEFAULT 0,
     tokens_reasoning INTEGER DEFAULT 0,
     status TEXT,
+    success INTEGER DEFAULT 1,
+    latency_ms INTEGER DEFAULT 0,
+    ttft_ms INTEGER DEFAULT 0,
+    error_code TEXT,
     timestamp TEXT NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_uh_timestamp ON usage_history(timestamp);
@@ -327,6 +331,35 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
   }
 }
 
+function ensureUsageHistoryColumns(db: SqliteDatabase) {
+  try {
+    const columns = db.prepare("PRAGMA table_info(usage_history)").all() as Array<{
+      name?: string;
+    }>;
+    const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
+
+    if (!columnNames.has("success")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN success INTEGER DEFAULT 1");
+      console.log("[DB] Added usage_history.success column");
+    }
+    if (!columnNames.has("latency_ms")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN latency_ms INTEGER DEFAULT 0");
+      console.log("[DB] Added usage_history.latency_ms column");
+    }
+    if (!columnNames.has("ttft_ms")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN ttft_ms INTEGER DEFAULT 0");
+      console.log("[DB] Added usage_history.ttft_ms column");
+    }
+    if (!columnNames.has("error_code")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN error_code TEXT");
+      console.log("[DB] Added usage_history.error_code column");
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("[DB] Failed to verify usage_history schema:", message);
+  }
+}
+
 export function getDbInstance(): SqliteDatabase {
   if (_db) return _db;
 
@@ -337,6 +370,7 @@ export function getDbInstance(): SqliteDatabase {
     const memoryDb = new Database(":memory:");
     memoryDb.pragma("journal_mode = WAL");
     memoryDb.exec(SCHEMA_SQL);
+    ensureUsageHistoryColumns(memoryDb);
     _db = memoryDb;
     return memoryDb;
   }
@@ -420,6 +454,7 @@ export function getDbInstance(): SqliteDatabase {
   db.pragma("synchronous = NORMAL");
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
+  ensureUsageHistoryColumns(db);
 
   // ── Versioned Migrations ──
   // Auto-seed 001 as applied (the inline SCHEMA_SQL already created these tables)

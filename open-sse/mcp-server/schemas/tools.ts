@@ -107,6 +107,7 @@ export const listCombosOutput = z.object({
         "priority",
         "weighted",
         "round-robin",
+        "strict-random",
         "random",
         "least-used",
         "cost-optimized",
@@ -470,7 +471,53 @@ export const setBudgetGuardTool: McpToolDefinition<
   sourceEndpoints: ["/api/usage/budget"],
 };
 
-// --- Tool 11: omniroute_set_resilience_profile ---
+// --- Tool 11: omniroute_set_routing_strategy ---
+export const setRoutingStrategyInput = z.object({
+  comboId: z.string().describe("Combo ID or name to update"),
+  strategy: z
+    .enum([
+      "priority",
+      "weighted",
+      "round-robin",
+      "strict-random",
+      "random",
+      "least-used",
+      "cost-optimized",
+      "auto",
+    ])
+    .describe("Routing strategy to apply"),
+  autoRoutingStrategy: z
+    .enum(["rules", "cost", "eco", "latency", "fast"])
+    .optional()
+    .describe("Optional strategy used by auto mode (only used when strategy='auto')"),
+});
+
+export const setRoutingStrategyOutput = z.object({
+  success: z.boolean(),
+  combo: z.object({
+    id: z.string(),
+    name: z.string(),
+    strategy: z.string(),
+    autoRoutingStrategy: z.string().nullable(),
+  }),
+});
+
+export const setRoutingStrategyTool: McpToolDefinition<
+  typeof setRoutingStrategyInput,
+  typeof setRoutingStrategyOutput
+> = {
+  name: "omniroute_set_routing_strategy",
+  description:
+    "Updates a combo routing strategy (priority/weighted/auto/etc.) at runtime. Supports selecting the sub-strategy used by auto mode (rules/cost/latency).",
+  inputSchema: setRoutingStrategyInput,
+  outputSchema: setRoutingStrategyOutput,
+  scopes: ["write:combos"],
+  auditLevel: "full",
+  phase: 2,
+  sourceEndpoints: ["/api/combos", "/api/combos/{id}"],
+};
+
+// --- Tool 12: omniroute_set_resilience_profile ---
 export const setResilienceProfileInput = z.object({
   profile: z
     .enum(["aggressive", "balanced", "conservative"])
@@ -502,7 +549,7 @@ export const setResilienceProfileTool: McpToolDefinition<
   sourceEndpoints: ["/api/resilience"],
 };
 
-// --- Tool 12: omniroute_test_combo ---
+// --- Tool 13: omniroute_test_combo ---
 export const testComboInput = z.object({
   comboId: z.string().describe("ID of the combo to test"),
   testPrompt: z.string().max(500).describe("Short test prompt (max 500 chars)"),
@@ -540,7 +587,7 @@ export const testComboTool: McpToolDefinition<typeof testComboInput, typeof test
   sourceEndpoints: ["/api/combos/test", "/v1/chat/completions"],
 };
 
-// --- Tool 13: omniroute_get_provider_metrics ---
+// --- Tool 14: omniroute_get_provider_metrics ---
 export const getProviderMetricsInput = z.object({
   provider: z.string().describe("Provider name (e.g., 'claude', 'gemini-cli', 'codex')"),
 });
@@ -583,7 +630,7 @@ export const getProviderMetricsTool: McpToolDefinition<
   sourceEndpoints: ["/api/provider-metrics", "/api/resilience"],
 };
 
-// --- Tool 14: omniroute_best_combo_for_task ---
+// --- Tool 15: omniroute_best_combo_for_task ---
 export const bestComboForTaskInput = z.object({
   taskType: z
     .enum(["coding", "review", "planning", "analysis", "debugging", "documentation"])
@@ -628,7 +675,7 @@ export const bestComboForTaskTool: McpToolDefinition<
   sourceEndpoints: ["/api/combos", "/api/combos/metrics", "/api/monitoring/health"],
 };
 
-// --- Tool 15: omniroute_explain_route ---
+// --- Tool 16: omniroute_explain_route ---
 export const explainRouteInput = z.object({
   requestId: z.string().describe("Request ID from the X-Request-Id header"),
 });
@@ -674,7 +721,7 @@ export const explainRouteTool: McpToolDefinition<
   sourceEndpoints: [],
 };
 
-// --- Tool 16: omniroute_get_session_snapshot ---
+// --- Tool 17: omniroute_get_session_snapshot ---
 export const getSessionSnapshotInput = z.object({}).describe("No parameters required");
 
 export const getSessionSnapshotOutput = z.object({
@@ -723,7 +770,7 @@ export const getSessionSnapshotTool: McpToolDefinition<
   sourceEndpoints: ["/api/usage/analytics", "/api/telemetry/summary"],
 };
 
-// --- Tool 17: omniroute_sync_pricing ---
+// --- Tool 18: omniroute_sync_pricing ---
 export const syncPricingInput = z.object({
   sources: z
     .array(z.string())
@@ -775,6 +822,7 @@ export const MCP_TOOLS = [
   // Phase 2: Advanced
   simulateRouteTool,
   setBudgetGuardTool,
+  setRoutingStrategyTool,
   setResilienceProfileTool,
   testComboTool,
   getProviderMetricsTool,

@@ -107,6 +107,10 @@ export async function getUsageDb() {
         reasoning: toNumber(r.tokens_reasoning),
       },
       status: toStringOrNull(r.status),
+      success: toNumber(r.success) === 1,
+      latencyMs: toNumber(r.latency_ms),
+      timeToFirstTokenMs: toNumber(r.ttft_ms),
+      errorCode: toStringOrNull(r.error_code),
       timestamp: toStringOrNull(r.timestamp),
     };
   });
@@ -130,8 +134,8 @@ export async function saveRequestUsage(entry: any) {
       `
       INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
         tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-        status, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        status, success, latency_ms, ttft_ms, error_code, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
     ).run(
       entry.provider || null,
@@ -145,6 +149,14 @@ export async function saveRequestUsage(entry: any) {
       entry.tokens?.cacheCreation ?? entry.tokens?.cache_creation_input_tokens ?? 0,
       entry.tokens?.reasoning ?? entry.tokens?.reasoning_tokens ?? 0,
       entry.status || null,
+      entry.success === false ? 0 : 1,
+      Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+      Number.isFinite(Number(entry.timeToFirstTokenMs))
+        ? Number(entry.timeToFirstTokenMs)
+        : Number.isFinite(Number(entry.latencyMs))
+          ? Number(entry.latencyMs)
+          : 0,
+      entry.errorCode || null,
       timestamp
     );
   } catch (error) {
@@ -202,6 +214,10 @@ export async function getUsageHistory(filter: any = {}) {
         reasoning: toNumber(r.tokens_reasoning),
       },
       status: toStringOrNull(r.status),
+      success: toNumber(r.success) === 1,
+      latencyMs: toNumber(r.latency_ms),
+      timeToFirstTokenMs: toNumber(r.ttft_ms),
+      errorCode: toStringOrNull(r.error_code),
       timestamp: toStringOrNull(r.timestamp),
     };
   });

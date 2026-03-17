@@ -4,6 +4,50 @@
 
 ---
 
+## [2.7.0] — 2026-03-17
+
+> Sprint: ClawRouter-inspired features — toolCalling flag, multilingual intent detection, benchmark-driven fallback, request deduplication, pluggable RouterStrategy, Grok-4 Fast + GLM-5 + MiniMax M2.5 + Kimi K2.5 pricing.
+
+### ✨ New Models & Pricing
+
+- **feat(pricing)**: xAI Grok-4 Fast — `$0.20/$0.50 per 1M tokens`, 1143ms p50 latency, tool calling supported
+- **feat(pricing)**: xAI Grok-4 (standard) — `$0.20/$1.50 per 1M tokens`, reasoning flagship
+- **feat(pricing)**: GLM-5 via Z.AI — `$0.5/1M`, 128K output context
+- **feat(pricing)**: MiniMax M2.5 — `$0.30/1M input`, reasoning + agentic tasks
+- **feat(pricing)**: DeepSeek V3.2 — updated pricing `$0.27/$1.10 per 1M`
+- **feat(pricing)**: Kimi K2.5 via Moonshot API — direct Moonshot API access
+- **feat(providers)**: Z.AI provider added (`zai` alias) — GLM-5 family with 128K output
+
+### 🧠 Routing Intelligence
+
+- **feat(registry)**: `toolCalling` flag per model in provider registry — combos can now prefer/require tool-calling capable models
+- **feat(scoring)**: Multilingual intent detection for AutoCombo scoring — PT/ZH/ES/AR script/language patterns influence model selection per request context
+- **feat(fallback)**: Benchmark-driven fallback chains — real latency data (p50 from `comboMetrics`) used to re-order fallback priority dynamically
+- **feat(dedup)**: Request deduplication via content-hash — 5-second idempotency window prevents duplicate provider calls from retrying clients
+- **feat(router)**: Pluggable `RouterStrategy` interface in `autoCombo/routerStrategy.ts` — custom routing logic can be injected without modifying core
+
+### 🔧 MCP Server Improvements
+
+- **feat(mcp)**: 2 new advanced tool schemas: `omniroute_get_provider_metrics` (p50/p95/p99 per provider) and `omniroute_explain_route` (routing decision explanation)
+- **feat(mcp)**: MCP tool auth scopes updated — `metrics:read` scope added for provider metrics tools
+- **feat(mcp)**: `omniroute_best_combo_for_task` now accepts `languageHint` parameter for multilingual routing
+
+### 📊 Observability
+
+- **feat(metrics)**: `comboMetrics.ts` extended with real-time latency percentile tracking per provider/account
+- **feat(health)**: Health API (`/api/monitoring/health`) now returns per-provider `p50Latency` and `errorRate` fields
+- **feat(usage)**: Usage history migration for per-model latency tracking
+
+### 🗄️ DB Migrations
+
+- **feat(migrations)**: New column `latency_p50` in `combo_metrics` table — zero-breaking, safe for existing users
+
+### 🐛 Bug Fixes / Closures
+
+- **close(#411)**: better-sqlite3 hashed module resolution on Windows — fixed in v2.6.10 (f02c5b5)
+- **close(#409)**: GitHub Copilot chat completions fail with Claude models when files attached — fixed in v2.6.9 (838f1d6)
+- **close(#405)**: Duplicate of #411 — resolved
+
 ## [2.6.10] — 2026-03-17
 
 > Windows fix: better-sqlite3 prebuilt download without node-gyp/Python/MSVC (#426).

@@ -46,6 +46,10 @@ import {
   applyTaskAwareRouting,
   getTaskRoutingConfig,
 } from "@omniroute/open-sse/services/taskAwareRouter.ts";
+import {
+  isFallbackDecision,
+  shouldUseFallback,
+} from "@omniroute/open-sse/services/emergencyFallback.ts";
 
 /**
  * Handle chat completion request
@@ -270,7 +274,8 @@ async function handleSingleModelChat(
   request: any = null,
   comboName: string | null = null,
   apiKeyInfo: any = null,
-  telemetry: any = null
+  telemetry: any = null,
+  runtimeOptions: { emergencyFallbackTried?: boolean } = {}
 ) {
   // 1. Resolve model → provider/model
   const resolved = await resolveModelOrError(modelStr, body);
@@ -370,6 +375,53 @@ async function handleSingleModelChat(
       if (telemetry) telemetry.startPhase("finalize");
       if (telemetry) telemetry.endPhase();
       return result.response;
+    }
+
+    // Emergency fallback for budget exhaustion (402 / billing / quota keywords):
+    // reroute to a free model (default provider/model: nvidia + openai/gpt-oss-120b) exactly once.
+    if (!runtimeOptions.emergencyFallbackTried) {
+      const fallbackDecision = shouldUseFallback(
+        Number(result.status || 0),
+        String(result.error || ""),
+        Array.isArray(body?.tools) && body.tools.length > 0
+      );
+
+      if (isFallbackDecision(fallbackDecision)) {
+        const fallbackModelStr = `${fallbackDecision.provider}/${fallbackDecision.model}`;
+        const currentModelStr = `${provider}/${model}`;
+
+        if (fallbackModelStr !== currentModelStr) {
+          const fallbackBody = { ...body, model: fallbackModelStr };
+
+          // Cap output on emergency fallback to avoid unexpected long responses.
+          const maxTokens = Math.min(
+            Number(
+              fallbackBody.max_tokens ??
+                fallbackBody.max_completion_tokens ??
+                fallbackDecision.maxOutputTokens
+            ) || fallbackDecision.maxOutputTokens,
+            fallbackDecision.maxOutputTokens
+          );
+          fallbackBody.max_tokens = maxTokens;
+          fallbackBody.max_completion_tokens = maxTokens;
+
+          log.warn(
+            "EMERGENCY_FALLBACK",
+            `${currentModelStr} -> ${fallbackModelStr} | reason=${fallbackDecision.reason}`
+          );
+
+          return handleSingleModelChat(
+            fallbackBody,
+            fallbackModelStr,
+            clientRawRequest,
+            request,
+            comboName,
+            apiKeyInfo,
+            telemetry,
+            { ...runtimeOptions, emergencyFallbackTried: true }
+          );
+        }
+      }
     }
 
     // 6. Mark account as quota-exhausted on 429 response

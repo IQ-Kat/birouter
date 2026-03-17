@@ -21,6 +21,7 @@ interface ComboMetricsEntry {
   totalLatencyMs: number;
   strategy: string;
   lastUsedAt: string | null;
+  intentCounts: Record<string, number>;
   byModel: Record<string, ModelMetrics>;
 }
 
@@ -69,6 +70,7 @@ export function recordComboRequest(
       totalLatencyMs: 0,
       strategy,
       lastUsedAt: null,
+      intentCounts: {},
       byModel: {},
     });
   }
@@ -131,6 +133,7 @@ export function getComboMetrics(comboName: string): ComboMetricsView | null {
       combo.totalRequests > 0 ? Math.round((combo.totalSuccesses / combo.totalRequests) * 100) : 0,
     fallbackRate:
       combo.totalRequests > 0 ? Math.round((combo.totalFallbacks / combo.totalRequests) * 100) : 0,
+    intentCounts: { ...combo.intentCounts },
     byModel: Object.fromEntries(
       Object.entries(combo.byModel).map(([model, m]) => [
         model,
@@ -154,6 +157,30 @@ export function getAllComboMetrics(): Record<string, ComboMetricsView | null> {
     result[name] = getComboMetrics(name);
   }
   return result;
+}
+
+/**
+ * Record detected prompt intent for a combo (used by multilingual routing analytics).
+ */
+export function recordComboIntent(comboName: string, intent: string): void {
+  if (!metrics.has(comboName)) {
+    metrics.set(comboName, {
+      totalRequests: 0,
+      totalSuccesses: 0,
+      totalFailures: 0,
+      totalFallbacks: 0,
+      totalLatencyMs: 0,
+      strategy: "priority",
+      lastUsedAt: null,
+      intentCounts: {},
+      byModel: {},
+    });
+  }
+
+  const combo = metrics.get(comboName);
+  if (!combo) return;
+  const key = String(intent || "unknown");
+  combo.intentCounts[key] = (combo.intentCounts[key] || 0) + 1;
 }
 
 /**

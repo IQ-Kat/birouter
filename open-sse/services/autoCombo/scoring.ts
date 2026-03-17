@@ -74,7 +74,8 @@ export function calculateScore(factors: ScoringFactors, weights: ScoringWeights)
     weights.costInv * factors.costInv +
     weights.latencyInv * factors.latencyInv +
     weights.taskFit * factors.taskFit +
-    weights.stability * factors.stability
+    weights.stability * factors.stability +
+    weights.tierPriority * factors.tierPriority
   );
 }
 

@@ -390,6 +390,18 @@ export const APIKEY_PROVIDERS = {
     website: "https://cloud.google.com/vertex-ai",
     authHint: "Provide Service Account JSON or OAuth access_token",
   },
+  // Z.AI (formerly ZhipuAI) — GLM-5 family with 128k output
+  // Added 2026-03-17 based on ClawRouter feature analysis
+  zai: {
+    id: "zai",
+    alias: "zai",
+    name: "Z.AI (GLM-5)",
+    icon: "psychology",
+    color: "#2563EB",
+    textIcon: "ZA",
+    website: "https://open.bigmodel.cn",
+    apiHint: "API key from https://open.bigmodel.cn/usercenter/apikeys",
+  },
 };
 
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";

@@ -42,6 +42,7 @@ import {
 import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer";
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
 import { isModelUnavailableError, getNextFamilyFallback } from "../services/modelFamilyFallback.ts";
+import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -89,6 +90,22 @@ export async function handleChatCore({
 }) {
   const { provider, model, extendedContext } = modelInfo;
   const startTime = Date.now();
+  const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
+    saveRequestUsage({
+      provider: provider || "unknown",
+      model: model || "unknown",
+      tokens: { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, reasoning: 0 },
+      status: String(statusCode),
+      success: false,
+      latencyMs: Date.now() - startTime,
+      timeToFirstTokenMs: 0,
+      errorCode: errorCode || String(statusCode),
+      timestamp: new Date().toISOString(),
+      connectionId: connectionId || undefined,
+      apiKeyId: apiKeyInfo?.id || undefined,
+      apiKeyName: apiKeyInfo?.name || undefined,
+    }).catch(() => {});
+  };
 
   // ── Phase 9.2: Idempotency check ──
   const idempotencyKey = getIdempotencyKey(clientRawRequest?.headers);
@@ -364,6 +381,57 @@ export async function handleChatCore({
   // Get executor for this provider
   const executor = getExecutor(provider);
 
+  // Create stream controller for disconnect detection
+  const streamController = createStreamController({ onDisconnect, log, provider, model });
+
+  const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}` };
+  const dedupEnabled = shouldDeduplicate(dedupRequestBody);
+  const dedupHash = dedupEnabled ? computeRequestHash(dedupRequestBody) : null;
+
+  const executeProviderRequest = async (modelToCall = model, allowDedup = false) => {
+    const execute = async () => {
+      const bodyToSend =
+        translatedBody.model === modelToCall
+          ? translatedBody
+          : { ...translatedBody, model: modelToCall };
+
+      const rawResult = await withRateLimit(provider, connectionId, modelToCall, () =>
+        executor.execute({
+          model: modelToCall,
+          body: bodyToSend,
+          stream,
+          credentials,
+          signal: streamController.signal,
+          log,
+          extendedContext,
+        })
+      );
+
+      if (stream) return rawResult;
+
+      // Non-stream responses need cloning for shared dedup consumers.
+      const status = rawResult.response.status;
+      const statusText = rawResult.response.statusText;
+      const headers = Array.from(rawResult.response.headers.entries());
+      const payload = await rawResult.response.text();
+
+      return {
+        ...rawResult,
+        response: new Response(payload, { status, statusText, headers }),
+      };
+    };
+
+    if (allowDedup && dedupEnabled && dedupHash) {
+      const dedupResult = await deduplicate(dedupHash, execute);
+      if (dedupResult.wasDeduplicated) {
+        log?.debug?.("DEDUP", `Joined in-flight request hash=${dedupHash}`);
+      }
+      return dedupResult.result;
+    }
+
+    return execute();
+  };
+
   // Track pending request
   trackPendingRequest(model, provider, connectionId, true);
 
@@ -381,9 +449,6 @@ export async function handleChatCore({
     0;
   log?.debug?.("REQUEST", `${provider.toUpperCase()} | ${model} | ${msgCount} msgs`);
 
-  // Create stream controller for disconnect detection
-  const streamController = createStreamController({ onDisconnect, log, provider, model });
-
   // Execute request using executor (handles URL building, headers, fallback, transform)
   let providerResponse;
   let providerUrl;
@@ -391,17 +456,7 @@ export async function handleChatCore({
   let finalBody;
 
   try {
-    const result = await withRateLimit(provider, connectionId, model, () =>
-      executor.execute({
-        model,
-        body: translatedBody,
-        stream,
-        credentials,
-        signal: streamController.signal,
-        log,
-        extendedContext,
-      })
-    );
+    const result = await executeProviderRequest(model, true);
 
     providerResponse = result.response;
     providerUrl = result.url;
@@ -448,6 +503,7 @@ export async function handleChatCore({
       streamController.handleError(error);
       return createErrorResult(499, "Request aborted");
     }
+    persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, error?.name || "upstream_error");
     const errMsg = formatProviderError(error, provider, model, HTTP_STATUS.BAD_GATEWAY);
     console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
     return createErrorResult(HTTP_STATUS.BAD_GATEWAY, errMsg);
@@ -557,17 +613,7 @@ export async function handleChatCore({
         log?.info?.("MODEL_FALLBACK", `${model} unavailable (${statusCode}) → trying ${nextModel}`);
         // Re-execute with the fallback model
         try {
-          const fallbackResult = await withRateLimit(provider, connectionId, nextModel, () =>
-            executor.execute({
-              model: nextModel,
-              body: translatedBody,
-              stream,
-              credentials,
-              signal: streamController.signal,
-              log,
-              extendedContext,
-            })
-          );
+          const fallbackResult = await executeProviderRequest(nextModel, false);
           if (fallbackResult.response.ok) {
             providerResponse = fallbackResult.response;
             providerUrl = fallbackResult.url;
@@ -579,15 +625,19 @@ export async function handleChatCore({
             // We fall through by NOT returning here
           } else {
             // Fallback also failed — return original error
+            persistFailureUsage(statusCode, "model_unavailable");
             return createErrorResult(statusCode, errMsg, retryAfterMs);
           }
         } catch {
+          persistFailureUsage(statusCode, "model_unavailable");
           return createErrorResult(statusCode, errMsg, retryAfterMs);
         }
       } else {
+        persistFailureUsage(statusCode, "model_unavailable");
         return createErrorResult(statusCode, errMsg, retryAfterMs);
       }
     } else {
+      persistFailureUsage(statusCode, `upstream_${statusCode}`);
       return createErrorResult(statusCode, errMsg, retryAfterMs);
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
@@ -616,6 +666,7 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
+        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
         return createErrorResult(
           HTTP_STATUS.BAD_GATEWAY,
           "Invalid SSE response for non-streaming request"
@@ -633,6 +684,7 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
+        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
         return createErrorResult(HTTP_STATUS.BAD_GATEWAY, "Invalid JSON response from provider");
       }
     }
@@ -675,6 +727,11 @@ export async function handleChatCore({
         provider: provider || "unknown",
         model: model || "unknown",
         tokens: usage,
+        status: "200",
+        success: true,
+        latencyMs: Date.now() - startTime,
+        timeToFirstTokenMs: Date.now() - startTime,
+        errorCode: null,
         timestamp: new Date().toISOString(),
         connectionId: connectionId || undefined,
         apiKeyId: apiKeyInfo?.id || undefined,

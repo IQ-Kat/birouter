@@ -25,6 +25,7 @@ import {
   listModelsCatalogInput,
   simulateRouteInput,
   setBudgetGuardInput,
+  setRoutingStrategyInput,
   setResilienceProfileInput,
   testComboInput,
   getProviderMetricsInput,
@@ -45,6 +46,7 @@ import {
 import {
   handleSimulateRoute,
   handleSetBudgetGuard,
+  handleSetRoutingStrategy,
   handleSetResilienceProfile,
   handleTestCombo,
   handleGetProviderMetrics,
@@ -590,6 +592,18 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_set_budget_guard", (args) =>
       handleSetBudgetGuard(setBudgetGuardInput.parse(args))
+    )
+  );
+
+  server.registerTool(
+    "omniroute_set_routing_strategy",
+    {
+      description:
+        "Updates combo routing strategy at runtime (priority/weighted/round-robin/auto/etc.)",
+      inputSchema: setRoutingStrategyInput,
+    },
+    withScopeEnforcement("omniroute_set_routing_strategy", (args) =>
+      handleSetRoutingStrategy(setRoutingStrategyInput.parse(args))
     )
   );
 
