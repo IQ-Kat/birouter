@@ -1057,6 +1057,38 @@ export function generateAliasMap(): Record<string, string> {
   return map;
 }
 
+// ── Local Provider Detection ──────────────────────────────────────────────
+
+// Evaluated once at module load time — process restart required for env var changes.
+const LOCAL_HOSTNAMES = new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "[::1]",
+  ...(typeof process !== "undefined" && process.env.LOCAL_HOSTNAMES
+    ? process.env.LOCAL_HOSTNAMES.split(",")
+        .map((h) => h.trim())
+        .filter(Boolean)
+    : []),
+]);
+
+/**
+ * Detect if a base URL points to a local inference backend.
+ * Used for shorter 404 cooldowns (model-only, not connection) and health check targets.
+ *
+ * Operators can extend via LOCAL_HOSTNAMES env var (comma-separated) for Docker
+ * hostnames (e.g., LOCAL_HOSTNAMES=omlx,mlx-audio).
+ */
+export function isLocalProvider(baseUrl?: string | null): boolean {
+  if (!baseUrl) return false;
+  try {
+    const url = new URL(baseUrl);
+    return LOCAL_HOSTNAMES.has(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 // ── Registry Lookup Helpers ───────────────────────────────────────────────
 
 const _byAlias = new Map<string, RegistryEntry>();

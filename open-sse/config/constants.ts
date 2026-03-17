@@ -135,6 +135,7 @@ export const COOLDOWN_MS = {
   unauthorized: 2 * 60 * 1000, // 401 → 2 min
   paymentRequired: 2 * 60 * 1000, // 402/403 → 2 min
   notFound: 2 * 60 * 1000, // 404 → 2 minutes
+  notFoundLocal: 5 * 1000, // 404 on local provider → 5s model-only lockout (connection stays active)
   transientInitial: 5 * 1000, // 408/500/502/503/504 first hit → 5s (backoff from here)
   transientMax: 60 * 1000, // 502/503/504 backoff ceiling → 60s
   transient: 5 * 1000, // Legacy alias → points to transientInitial
@@ -161,6 +162,16 @@ export const PROVIDER_PROFILES = {
     maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
     circuitBreakerThreshold: 5, // More tolerant (occasional 502 is normal)
     circuitBreakerReset: 30000, // 30s reset
+  },
+  // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).
+  // Not yet wired into getProviderProfile() — will be used when local provider_nodes
+  // are integrated into the resilience layer. Kept here to avoid a second constants change.
+  local: {
+    transientCooldown: 2000, // 2s (local — very fast recovery)
+    rateLimitCooldown: 5000, // 5s (local — no real rate limits)
+    maxBackoffLevel: 3, // Low ceiling (local either works or doesn't)
+    circuitBreakerThreshold: 2, // Opens fast (if local is down, it's down)
+    circuitBreakerReset: 15000, // 15s reset (check again quickly)
   },
 };
 
