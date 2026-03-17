@@ -184,6 +184,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                   typeof parsed.type === "string" &&
                   parsed.type.startsWith("response.");
 
+                // Detect Claude SSE payloads. Includes "ping" and "error" to ensure
+                // they bypass the Chat Completions sanitization path which would
+                // incorrectly process or drop them.
+                const isClaudeSSE =
+                  parsed.type &&
+                  typeof parsed.type === "string" &&
+                  (parsed.type.startsWith("message") ||
+                    parsed.type.startsWith("content_block") ||
+                    parsed.type === "ping" ||
+                    parsed.type === "error");
+
                 if (isResponsesSSE) {
                   // Responses SSE: only extract usage, forward payload as-is
                   const extracted = extractUsage(parsed);
@@ -194,6 +205,22 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (parsed.delta && typeof parsed.delta === "string") {
                     totalContentLength += parsed.delta.length;
                   }
+                } else if (isClaudeSSE) {
+                  // Claude SSE: extract usage, track content, forward as-is
+                  const extracted = extractUsage(parsed);
+                  if (extracted) {
+                    // Non-destructive merge: never overwrite a positive value with 0
+                    // message_start carries input_tokens, message_delta carries output_tokens
+                    if (!usage) usage = {};
+                    if (extracted.prompt_tokens > 0) usage.prompt_tokens = extracted.prompt_tokens;
+                    if (extracted.completion_tokens > 0) usage.completion_tokens = extracted.completion_tokens;
+                    if (extracted.total_tokens > 0) usage.total_tokens = extracted.total_tokens;
+                    if (extracted.cache_read_input_tokens) usage.cache_read_input_tokens = extracted.cache_read_input_tokens;
+                    if (extracted.cache_creation_input_tokens) usage.cache_creation_input_tokens = extracted.cache_creation_input_tokens;
+                  }
+                  // Track content length from Claude format
+                  if (parsed.delta?.text) totalContentLength += parsed.delta.text.length;
+                  if (parsed.delta?.thinking) totalContentLength += parsed.delta.thinking.length;
                 } else {
                   // Chat Completions: full sanitization pipeline
                   parsed = sanitizeStreamingChunk(parsed);
@@ -372,9 +399,9 @@ export function createSSEStream(options: StreamOptions = {}) {
               controller.enqueue(encoder.encode(output));
             }
 
-            // Estimate usage if provider didn't return valid usage (PASSTHROUGH is always OpenAI format)
+            // Estimate usage if provider didn't return valid usage
             if (!hasValidUsage(usage) && totalContentLength > 0) {
-              usage = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
+              usage = estimateUsage(body, totalContentLength, sourceFormat || FORMATS.OPENAI);
             }
 
             if (hasValidUsage(usage)) {
