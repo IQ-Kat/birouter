@@ -4,7 +4,7 @@
 
 _Your universal API proxy — one endpoint, 44+ providers, zero downtime. Now with **MCP & A2A** agent orchestration._
 
-**Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • MCP Server • A2A Protocol • 100% TypeScript**
+**Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
 
 ---
 
@@ -1105,16 +1105,17 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 
 ### 🎵 Multi-Modal APIs
 
-| Feature                    | What It Does                                                  |
-| -------------------------- | ------------------------------------------------------------- |
-| 🖼️ **Image Generation**    | `/v1/images/generations` with cloud and local backends        |
-| 📐 **Embeddings**          | `/v1/embeddings` for search and RAG pipelines                 |
-| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` (Whisper and additional providers) |
-| 🔊 **Text-to-Speech**      | `/v1/audio/speech` (multiple engines/providers)               |
-| 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)       |
-| 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                   |
-| 🛡️ **Moderations**         | `/v1/moderations` safety checks                               |
-| 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                            |
+| Feature                    | What It Does                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 🖼️ **Image Generation**    | `/v1/images/generations` with cloud and local backends                                                       |
+| 📐 **Embeddings**          | `/v1/embeddings` for search and RAG pipelines                                                                |
+| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` (Whisper and additional providers)                                                |
+| 🔊 **Text-to-Speech**      | `/v1/audio/speech` (multiple engines/providers)                                                              |
+| 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)                                                      |
+| 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                                                                  |
+| 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                              |
+| 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                                                                           |
+| 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache |
 
 ### 🛡️ Resilience, Security & Governance
 

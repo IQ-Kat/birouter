@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(search)**: Unified web search routing — `POST /v1/search` with 5 providers (Serper, Brave, Perplexity, Exa, Tavily)
+  - Auto-failover across providers, 6,500+ free searches/month
+  - In-memory cache with request coalescing (configurable TTL)
+  - Dashboard: Search Analytics tab in `/dashboard/analytics` with provider breakdown, cache hit rate, cost tracking
+  - New API: `GET /api/v1/search/analytics` for search request statistics
+  - DB migration: `request_type` column on `call_logs` for non-chat request tracking
+  - Zod validation (`v1SearchSchema`), auth-gated, cost recorded via `recordCost()`
+
+### 🔒 Security
+
+- **deps**: Next.js 16.1.6 → 16.1.7 — fixes 6 CVEs:
+  - **Critical**: CVE-2026-29057 (HTTP request smuggling via http-proxy)
+  - **High**: CVE-2026-27977, CVE-2026-27978 (WebSocket + Server Actions)
+  - **Medium**: CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7
+
+### 📁 New Files
+
+| File                                                             | Purpose                                    |
+| ---------------------------------------------------------------- | ------------------------------------------ |
+| `open-sse/handlers/search.ts`                                    | Search handler with 5-provider routing     |
+| `open-sse/config/searchRegistry.ts`                              | Provider registry (auth, cost, quota, TTL) |
+| `open-sse/services/searchCache.ts`                               | In-memory cache with request coalescing    |
+| `src/app/api/v1/search/route.ts`                                 | Next.js route (POST + GET)                 |
+| `src/app/api/v1/search/analytics/route.ts`                       | Search stats API                           |
+| `src/app/(dashboard)/dashboard/analytics/SearchAnalyticsTab.tsx` | Analytics dashboard tab                    |
+| `src/lib/db/migrations/007_search_request_type.sql`              | DB migration                               |
+| `tests/unit/search-registry.test.mjs`                            | 277 lines of unit tests                    |
+
 ---
 
 ## [2.7.0] — 2026-03-17

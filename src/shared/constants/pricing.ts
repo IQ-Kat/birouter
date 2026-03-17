@@ -7,6 +7,20 @@ export const DEFAULT_PRICING = {
 
   // Claude Code (cc)
   cc: {
+    "claude-opus-4-6": {
+      input: 5.0,
+      output: 25.0,
+      cached: 2.5,
+      reasoning: 25.0,
+      cache_creation: 5.0,
+    },
+    "claude-sonnet-4-6": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
     "claude-opus-4-5-20251101": {
       input: 15.0,
       output: 75.0,
@@ -210,25 +224,25 @@ export const DEFAULT_PRICING = {
       cache_creation: 0.75,
     },
     "deepseek-v3.2-chat": {
-      input: 0.5,
-      output: 2.0,
-      cached: 0.25,
-      reasoning: 3.0,
-      cache_creation: 0.5,
+      input: 0.28,
+      output: 0.42,
+      cached: 0.014,
+      reasoning: 0.63,
+      cache_creation: 0.28,
     },
     "deepseek-v3.2": {
-      input: 0.5,
-      output: 2.0,
-      cached: 0.25,
-      reasoning: 3.0,
-      cache_creation: 0.5,
+      input: 0.28,
+      output: 0.42,
+      cached: 0.014,
+      reasoning: 0.63,
+      cache_creation: 0.28,
     },
     "deepseek-v3.2-reasoner": {
-      input: 0.75,
-      output: 3.0,
-      cached: 0.375,
-      reasoning: 4.5,
-      cache_creation: 0.75,
+      input: 0.55,
+      output: 2.19,
+      cached: 0.14,
+      reasoning: 2.19,
+      cache_creation: 0.55,
     },
     // Short-form aliases used by decolua/9router catalog (Mar 2026)
     "deepseek-3.1": {

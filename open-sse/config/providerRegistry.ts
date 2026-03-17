@@ -115,6 +115,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+      { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet" },
       { id: "claude-opus-4-5-20251101", name: "Claude 4.5 Opus" },
       { id: "claude-sonnet-4-5-20250929", name: "Claude 4.5 Sonnet" },
       { id: "claude-haiku-4-5-20251001", name: "Claude 4.5 Haiku" },

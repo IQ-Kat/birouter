@@ -34,6 +34,7 @@ const DEFAULT_MODEL_P95_MS = {
   "claude-opus-4.6": 6000,
   "deepseek-chat": 2000,
 };
+const MIN_HISTORY_SAMPLES = 10;
 
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
@@ -320,12 +321,28 @@ function getBootstrapLatencyMs(modelId) {
 async function buildAutoCandidates(modelStrings, comboName) {
   const metrics = getComboMetrics(comboName);
   const { getPricingForModel } = await import("../../src/lib/localDb");
+  let historicalLatencyStats = {};
+  try {
+    const { getModelLatencyStats } = await import("../../src/lib/usageDb");
+    historicalLatencyStats = await getModelLatencyStats({
+      windowHours: 24,
+      minSamples: 3,
+      maxRows: 10000,
+    });
+  } catch {
+    // keep empty stats — auto-combo will use runtime + bootstrap signals
+  }
 
   const candidates = await Promise.all(
     modelStrings.map(async (modelStr) => {
       const parsed = parseModel(modelStr);
       const provider = parsed.provider || parsed.providerAlias || "unknown";
       const model = parsed.model || modelStr;
+      const historicalKey = `${provider}/${model}`;
+      const historicalModelMetric = historicalLatencyStats[historicalKey] || null;
+      const historicalTotal = Number(historicalModelMetric?.totalRequests);
+      const hasHistoricalSignal =
+        Number.isFinite(historicalTotal) && historicalTotal >= MIN_HISTORY_SAMPLES;
 
       let costPer1MTokens = 1;
       try {
@@ -341,12 +358,31 @@ async function buildAutoCandidates(modelStrings, comboName) {
       const modelMetric = metrics?.byModel?.[modelStr] || null;
       const avgLatency = Number(modelMetric?.avgLatencyMs);
       const successRate = Number(modelMetric?.successRate);
-      const p95LatencyMs =
-        Number.isFinite(avgLatency) && avgLatency > 0 ? avgLatency : getBootstrapLatencyMs(model);
-      const errorRate =
-        Number.isFinite(successRate) && successRate >= 0 && successRate <= 100
+      const historicalP95Latency = Number(historicalModelMetric?.p95LatencyMs);
+      const historicalStdDev = Number(historicalModelMetric?.latencyStdDev);
+      const historicalSuccessRate = Number(historicalModelMetric?.successRate); // 0..1
+
+      const p95LatencyMs = hasHistoricalSignal
+        ? Number.isFinite(historicalP95Latency) && historicalP95Latency > 0
+          ? historicalP95Latency
+          : getBootstrapLatencyMs(model)
+        : Number.isFinite(avgLatency) && avgLatency > 0
+          ? avgLatency
+          : getBootstrapLatencyMs(model);
+
+      const errorRate = hasHistoricalSignal
+        ? Number.isFinite(historicalSuccessRate) &&
+          historicalSuccessRate >= 0 &&
+          historicalSuccessRate <= 1
+          ? 1 - historicalSuccessRate
+          : 0.05
+        : Number.isFinite(successRate) && successRate >= 0 && successRate <= 100
           ? 1 - successRate / 100
           : 0.05;
+      const latencyStdDev =
+        hasHistoricalSignal && Number.isFinite(historicalStdDev) && historicalStdDev > 0
+          ? Math.max(10, historicalStdDev)
+          : Math.max(10, p95LatencyMs * 0.1);
 
       const breakerStateRaw = getCircuitBreaker(`combo:${modelStr}`)?.getStatus?.()?.state;
       const circuitBreakerState =
@@ -360,7 +396,7 @@ async function buildAutoCandidates(modelStrings, comboName) {
         circuitBreakerState,
         costPer1MTokens,
         p95LatencyMs,
-        latencyStdDev: Math.max(10, p95LatencyMs * 0.1),
+        latencyStdDev,
         errorRate,
         accountTier: "standard",
         quotaResetIntervalSecs: 86400,
