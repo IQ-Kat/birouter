@@ -258,7 +258,7 @@ export default function RequestLoggerV2() {
           onClick={() => setRecording(!recording)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
             recording
-              ? "bg-red-500/10 border-red-500/30 text-red-400"
+              ? "bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400"
               : "bg-bg-subtle border-border text-text-muted"
           }`}
         >
@@ -413,11 +413,11 @@ export default function RequestLoggerV2() {
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all ${
               activeFilter === f.key
                 ? f.key === "error"
-                  ? "bg-red-500/20 text-red-400 border-red-500/40"
+                  ? "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/40"
                   : f.key === "ok"
-                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                    ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40"
                     : f.key === "combo"
-                      ? "bg-violet-500/20 text-violet-300 border-violet-500/40"
+                      ? "bg-violet-500/20 text-violet-700 dark:text-violet-300 border-violet-500/40"
                       : "bg-primary text-white border-primary"
                 : "bg-bg-subtle border-border text-text-muted hover:border-text-muted"
             }`}
@@ -635,7 +635,7 @@ export default function RequestLoggerV2() {
                       {visibleColumns.combo && (
                         <td className="px-3 py-2">
                           {log.comboName ? (
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-800 dark:text-violet-300 border border-violet-500/40">
                               {log.comboName}
                             </span>
                           ) : (
