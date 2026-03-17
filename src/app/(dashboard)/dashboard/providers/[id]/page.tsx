@@ -101,6 +101,7 @@ export default function ProviderDetailPage() {
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible;
+  const isSearchProvider = providerId.endsWith("-search");
 
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
   const providerDisplayAlias = isCompatible ? providerNode?.prefix || providerId : providerAlias;
@@ -1060,21 +1061,43 @@ export default function ProviderDetailPage() {
         )}
       </Card>
 
-      {/* Models */}
-      <Card>
-        <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
-        {renderModelsSection()}
+      {/* Models — hidden for search providers (they don't have models) */}
+      {!isSearchProvider && (
+        <Card>
+          <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
+          {renderModelsSection()}
 
-        {/* Custom Models — available for ALL providers */}
-        {!isCompatible && (
-          <CustomModelsSection
-            providerId={providerId}
-            providerAlias={providerDisplayAlias}
-            copied={copied}
-            onCopy={copy}
-          />
-        )}
-      </Card>
+          {/* Custom Models — available for non-compatible, non-search providers */}
+          {!isCompatible && (
+            <CustomModelsSection
+              providerId={providerId}
+              providerAlias={providerDisplayAlias}
+              copied={copied}
+              onCopy={copy}
+            />
+          )}
+        </Card>
+      )}
+
+      {/* Search provider info */}
+      {isSearchProvider && (
+        <Card>
+          <h2 className="text-lg font-semibold mb-4">{t("searchProvider") || "Search Provider"}</h2>
+          <p className="text-sm text-text-muted">
+            {t("searchProviderDesc") ||
+              "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."}
+          </p>
+          {providerId === "perplexity-search" && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <span className="material-symbols-outlined text-sm text-blue-400">link</span>
+              <p className="text-xs text-blue-300">
+                Uses the same API key as <strong>Perplexity</strong> (chat provider). If you already
+                have Perplexity configured, no additional setup is needed.
+              </p>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Modals */}
       {providerId === "kiro" ? (

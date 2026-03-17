@@ -186,6 +186,7 @@ export async function saveCallLog(entry: any) {
       duration: entry.duration || 0,
       tokensIn: entry.tokens?.prompt_tokens || 0,
       tokensOut: entry.tokens?.completion_tokens || 0,
+      requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
       targetFormat: entry.targetFormat || null,
       apiKeyId,
@@ -201,10 +202,10 @@ export async function saveCallLog(entry: any) {
     db.prepare(
       `
       INSERT INTO call_logs (id, timestamp, method, path, status, model, provider,
-        account, connection_id, duration, tokens_in, tokens_out, source_format, target_format,
+        account, connection_id, duration, tokens_in, tokens_out, request_type, source_format, target_format,
         api_key_id, api_key_name, combo_name, request_body, response_body, error)
       VALUES (@id, @timestamp, @method, @path, @status, @model, @provider,
-        @account, @connectionId, @duration, @tokensIn, @tokensOut, @sourceFormat, @targetFormat,
+        @account, @connectionId, @duration, @tokensIn, @tokensOut, @requestType, @sourceFormat, @targetFormat,
         @apiKeyId, @apiKeyName, @comboName, @requestBody, @responseBody, @error)
     `
     ).run(logEntry);
