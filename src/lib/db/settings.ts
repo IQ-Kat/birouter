@@ -6,6 +6,7 @@ import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { invalidateDbCache } from "./readCache";
+import { resolveProxyForConnectionFromRegistry } from "./proxies";
 
 type JsonRecord = Record<string, unknown>;
 type PricingModels = Record<string, JsonRecord>;
@@ -389,6 +390,11 @@ export async function deleteProxyForLevel(level: string, id: string | null) {
 }
 
 export async function resolveProxyForConnection(connectionId: string) {
+  const registryResolved = await resolveProxyForConnectionFromRegistry(connectionId);
+  if (registryResolved?.proxy) {
+    return registryResolved;
+  }
+
   const config = await getProxyConfig();
 
   if (connectionId && config.keys?.[connectionId]) {

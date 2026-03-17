@@ -33,7 +33,24 @@ const LEVEL_LABELS = {
  * @param {string} [props.levelLabel] — display name for the level
  * @param {Function} [props.onSaved] — callback after save
  */
-export default function ProxyConfigModal({ isOpen, onClose, level, levelId, levelLabel, onSaved }: { isOpen: any; onClose: any; level: any; levelId?: any; levelLabel?: any; onSaved?: any }) {
+export default function ProxyConfigModal({
+  isOpen,
+  onClose,
+  level,
+  levelId,
+  levelLabel,
+  onSaved,
+}: {
+  isOpen: any;
+  onClose: any;
+  level: any;
+  levelId?: any;
+  levelLabel?: any;
+  onSaved?: any;
+}) {
+  const [mode, setMode] = useState("saved");
+  const [savedProxies, setSavedProxies] = useState([]);
+  const [selectedProxyId, setSelectedProxyId] = useState("");
   const [proxyType, setProxyType] = useState(PROXY_TYPES[0]?.value || "http");
   const [host, setHost] = useState("");
   const [port, setPort] = useState("");
@@ -63,6 +80,36 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
 
     const loadProxy = async () => {
       try {
+        let hasSavedAssignment = false;
+        const registryRes = await fetch("/api/settings/proxies");
+        if (registryRes.ok) {
+          const registryPayload = await registryRes.json();
+          setSavedProxies(Array.isArray(registryPayload?.items) ? registryPayload.items : []);
+        } else {
+          setSavedProxies([]);
+        }
+
+        const scope = level === "key" ? "account" : level;
+        const assignmentParams = new URLSearchParams({ scope });
+        if (level !== "global" && levelId) {
+          assignmentParams.set("scopeId", levelId);
+        }
+        const assignmentRes = await fetch(`/api/settings/proxies/assignments?${assignmentParams}`);
+        if (assignmentRes.ok) {
+          const assignmentPayload = await assignmentRes.json();
+          const items = Array.isArray(assignmentPayload?.items) ? assignmentPayload.items : [];
+          const target = items[0];
+          if (target?.proxyId) {
+            setMode("saved");
+            setSelectedProxyId(target.proxyId);
+            setHasOwnProxy(true);
+            hasSavedAssignment = true;
+          } else {
+            setMode("custom");
+            setSelectedProxyId("");
+          }
+        }
+
         // Load own proxy
         const params = new URLSearchParams({ level });
         if (levelId) params.set("id", levelId);
@@ -85,9 +132,12 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
                 "SOCKS5 is configured but hidden because NEXT_PUBLIC_ENABLE_SOCKS5_PROXY=false."
               );
             }
+            if (!hasSavedAssignment) setMode("custom");
           } else {
             resetFields();
-            setHasOwnProxy(false);
+            if (!hasSavedAssignment) {
+              setHasOwnProxy(false);
+            }
           }
         }
 
@@ -130,28 +180,70 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
   };
 
   const handleSave = async () => {
-    if (!host.trim()) return;
+    if (mode === "saved" && !selectedProxyId) {
+      setFormError("Select a saved proxy before saving.");
+      return;
+    }
+    if (mode === "custom" && !host.trim()) return;
     setFormError(null);
     setSaving(true);
     try {
-      const proxy = {
-        type: proxyType,
-        host: host.trim(),
-        port: port.trim() || getDefaultPort(proxyType),
-        username: username.trim(),
-        password: password.trim(),
-      };
-      const res = await fetch("/api/settings/proxy", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ level, id: levelId, proxy }),
-      });
+      const scope = level === "key" ? "account" : level;
+      let res;
+      if (mode === "saved") {
+        res = await fetch("/api/settings/proxies/assignments", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scope,
+            scopeId: level === "global" ? null : levelId,
+            proxyId: selectedProxyId,
+          }),
+        });
+
+        if (res.ok) {
+          const clearParams = new URLSearchParams({ level });
+          if (levelId) clearParams.set("id", levelId);
+          await fetch(`/api/settings/proxy?${clearParams.toString()}`, { method: "DELETE" });
+        }
+      } else {
+        const clearAssignmentRes = await fetch("/api/settings/proxies/assignments", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scope,
+            scopeId: level === "global" ? null : levelId,
+            proxyId: null,
+          }),
+        });
+        const clearAssignmentPayload = await clearAssignmentRes.json().catch(() => ({}));
+        if (!clearAssignmentRes.ok) {
+          setFormError(clearAssignmentPayload?.error?.message || "Failed to clear saved proxy");
+          return;
+        }
+
+        const proxy = {
+          type: proxyType,
+          host: host.trim(),
+          port: port.trim() || getDefaultPort(proxyType),
+          username: username.trim(),
+          password: password.trim(),
+        };
+        res = await fetch("/api/settings/proxy", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ level, id: levelId, proxy }),
+        });
+      }
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
         setFormError(payload?.error?.message || "Failed to save proxy configuration");
         return;
       }
       setHasOwnProxy(true);
+      if (mode === "custom") {
+        setSelectedProxyId("");
+      }
       onSaved?.();
     } catch (error) {
       console.error("Error saving proxy:", error);
@@ -165,6 +257,17 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
     setFormError(null);
     setSaving(true);
     try {
+      const scope = level === "key" ? "account" : level;
+      await fetch("/api/settings/proxies/assignments", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scope,
+          scopeId: level === "global" ? null : levelId,
+          proxyId: null,
+        }),
+      });
+
       const params = new URLSearchParams({ level });
       if (levelId) params.set("id", levelId);
       const res = await fetch(`/api/settings/proxy?${params}`, { method: "DELETE" });
@@ -175,6 +278,7 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
       }
       resetFields();
       setHasOwnProxy(false);
+      setSelectedProxyId("");
       setTestResult(null);
       onSaved?.();
     } catch (error) {
@@ -186,6 +290,10 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
   };
 
   const handleTest = async () => {
+    if (mode === "saved") {
+      setFormError("Use custom mode to run manual connection test.");
+      return;
+    }
     if (!host.trim()) return;
     setFormError(null);
     setTesting(true);
@@ -248,93 +356,145 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
           {/* Proxy Type Selector */}
           <div>
             <label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
-              Proxy Type
+              Source
             </label>
-            <div className="flex gap-1 bg-bg-subtle rounded-lg p-1 border border-border">
-              {PROXY_TYPES.map((t) => (
-                <button
-                  key={t.value}
-                  onClick={() => setProxyType(t.value)}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    proxyType === t.value
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-text-muted hover:text-text-primary hover:bg-black/5 dark:hover:bg-white/5"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMode("saved")}
+                className={`px-3 py-2 rounded text-sm border transition-colors ${
+                  mode === "saved"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-bg-subtle text-text-muted border-border"
+                }`}
+              >
+                Saved Proxy
+              </button>
+              <button
+                onClick={() => setMode("custom")}
+                className={`px-3 py-2 rounded text-sm border transition-colors ${
+                  mode === "custom"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-bg-subtle text-text-muted border-border"
+                }`}
+              >
+                Custom
+              </button>
             </div>
           </div>
 
-          {/* Host + Port */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
-                Host
-              </label>
-              <input
-                type="text"
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-                placeholder="1.2.3.4 or proxy.example.com"
-                className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-              />
-            </div>
+          {mode === "saved" && (
             <div>
               <label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
-                Port
+                Saved Proxy
               </label>
-              <input
-                type="text"
-                value={port}
-                onChange={(e) => setPort(e.target.value)}
-                placeholder={getDefaultPort(proxyType)}
-                className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
-              />
+              <select
+                value={selectedProxyId}
+                onChange={(e) => setSelectedProxyId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary"
+              >
+                <option value="">Select saved proxy...</option>
+                {savedProxies.map((item: any) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} ({item.type}://{item.host}:{item.port})
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
+          )}
 
-          {/* Auth Toggle */}
-          <div>
-            <button
-              onClick={() => setShowAuth(!showAuth)}
-              className="flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors"
-            >
-              <span className="material-symbols-outlined text-base">
-                {showAuth ? "expand_less" : "expand_more"}
-              </span>
-              Authentication (optional)
-            </button>
-            {showAuth && (
-              <div className="grid grid-cols-2 gap-3 mt-3">
-                <div>
+          {mode === "custom" && (
+            <>
+              <div>
+                <label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+                  Proxy Type
+                </label>
+                <div className="flex gap-1 bg-bg-subtle rounded-lg p-1 border border-border">
+                  {PROXY_TYPES.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => setProxyType(t.value)}
+                      className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                        proxyType === t.value
+                          ? "bg-primary text-white shadow-sm"
+                          : "text-text-muted hover:text-text-primary hover:bg-black/5 dark:hover:bg-white/5"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Host + Port */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
                   <label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
-                    Username
+                    Host
                   </label>
                   <input
                     type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Username"
+                    value={host}
+                    onChange={(e) => setHost(e.target.value)}
+                    placeholder="1.2.3.4 or proxy.example.com"
                     className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
                 <div>
                   <label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
-                    Password
+                    Port
                   </label>
                   <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
+                    type="text"
+                    value={port}
+                    onChange={(e) => setPort(e.target.value)}
+                    placeholder={getDefaultPort(proxyType)}
                     className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* Auth Toggle */}
+              <div>
+                <button
+                  onClick={() => setShowAuth(!showAuth)}
+                  className="flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {showAuth ? "expand_less" : "expand_more"}
+                  </span>
+                  Authentication (optional)
+                </button>
+                {showAuth && (
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Username"
+                        className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                        className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-primary transition-colors"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Test Result */}
           {formError && (
@@ -390,7 +550,7 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
                 icon="speed"
                 onClick={handleTest}
                 loading={testing}
-                disabled={!host.trim()}
+                disabled={mode !== "custom" || !host.trim()}
               >
                 Test Connection
               </Button>
@@ -416,7 +576,7 @@ export default function ProxyConfigModal({ isOpen, onClose, level, levelId, leve
                 icon="save"
                 onClick={handleSave}
                 loading={saving}
-                disabled={!host.trim()}
+                disabled={mode === "saved" ? !selectedProxyId : !host.trim()}
               >
                 Save
               </Button>

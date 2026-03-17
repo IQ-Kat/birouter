@@ -54,6 +54,8 @@ interface RecoverableConnectionState {
 }
 
 const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
+const MIN_QUOTA_THRESHOLD_PERCENT = 1;
+const MAX_QUOTA_THRESHOLD_PERCENT = 100;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -110,6 +112,84 @@ function getCodexLimitPolicy(providerSpecificData: JsonRecord): {
   return {
     use5h: toBooleanOrDefault(policy.use5h, true),
     useWeekly: toBooleanOrDefault(policy.useWeekly, true),
+  };
+}
+
+interface QuotaLimitPolicy {
+  enabled: boolean;
+  thresholdPercent: number;
+  windows: string[];
+}
+
+function normalizeQuotaThreshold(value: unknown, fallback = CODEX_QUOTA_THRESHOLD_PERCENT): number {
+  const parsed = toNumber(value, fallback);
+  return Math.min(MAX_QUOTA_THRESHOLD_PERCENT, Math.max(MIN_QUOTA_THRESHOLD_PERCENT, parsed));
+}
+
+function normalizeWindowName(windowName: unknown): string | null {
+  if (typeof windowName !== "string") return null;
+  const normalized = windowName.trim().toLowerCase();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function getLegacyCodexWindows(providerSpecificData: JsonRecord): string[] {
+  const codexPolicy = getCodexLimitPolicy(providerSpecificData);
+  const windows: string[] = [];
+  if (codexPolicy.use5h) windows.push("session");
+  if (codexPolicy.useWeekly) windows.push("weekly");
+  return windows;
+}
+
+export function resolveQuotaLimitPolicy(
+  provider: string,
+  providerSpecificData: JsonRecord
+): QuotaLimitPolicy {
+  const rawPolicy = asRecord(providerSpecificData.limitPolicy);
+  const rawWindows = Array.isArray(rawPolicy.windows) ? rawPolicy.windows : [];
+  const windows = rawWindows.map(normalizeWindowName).filter(Boolean) as string[];
+
+  if (provider === "codex") {
+    const fallbackWindows = getLegacyCodexWindows(providerSpecificData);
+    const defaultWindows = windows.length > 0 ? windows : fallbackWindows;
+    const enabled = toBooleanOrDefault(rawPolicy.enabled, defaultWindows.length > 0);
+
+    return {
+      enabled,
+      thresholdPercent: normalizeQuotaThreshold(rawPolicy.thresholdPercent),
+      windows: defaultWindows,
+    };
+  }
+
+  return {
+    enabled: toBooleanOrDefault(rawPolicy.enabled, false),
+    thresholdPercent: normalizeQuotaThreshold(rawPolicy.thresholdPercent),
+    windows,
+  };
+}
+
+export function evaluateQuotaLimitPolicy(
+  provider: string,
+  connection: ProviderConnectionView
+): { blocked: boolean; reasons: string[]; resetAt: string | null } {
+  const policy = resolveQuotaLimitPolicy(provider, connection.providerSpecificData);
+  if (!policy.enabled || policy.windows.length === 0) {
+    return { blocked: false, reasons: [], resetAt: null };
+  }
+
+  const reasons: string[] = [];
+  const resetCandidates: Array<string | null> = [];
+
+  for (const windowName of policy.windows) {
+    const status = getQuotaWindowStatus(connection.id, windowName, policy.thresholdPercent);
+    if (!status?.reachedThreshold) continue;
+    reasons.push(`${windowName} usage ${Math.round(status.usedPercentage)}%`);
+    resetCandidates.push(status.resetAt);
+  }
+
+  return {
+    blocked: reasons.length > 0,
+    reasons,
+    resetAt: getEarliestFutureDate(resetCandidates),
   };
 }
 
@@ -262,76 +342,48 @@ export async function getProviderCredentials(
     }
 
     let policyEligibleConnections = availableConnections;
-    if (provider === "codex") {
-      const blockedByPolicy: Array<{
-        id: string;
-        reasons: string[];
-        resetAt: string | null;
-      }> = [];
+    const blockedByPolicy: Array<{
+      id: string;
+      reasons: string[];
+      resetAt: string | null;
+    }> = [];
 
-      policyEligibleConnections = availableConnections.filter((connection) => {
-        const policy = getCodexLimitPolicy(connection.providerSpecificData);
-        const sessionStatus = policy.use5h
-          ? getQuotaWindowStatus(connection.id, "session", CODEX_QUOTA_THRESHOLD_PERCENT)
-          : null;
-        const weeklyStatus = policy.useWeekly
-          ? getQuotaWindowStatus(connection.id, "weekly", CODEX_QUOTA_THRESHOLD_PERCENT)
-          : null;
+    policyEligibleConnections = availableConnections.filter((connection) => {
+      const evaluation = evaluateQuotaLimitPolicy(provider, connection);
+      if (!evaluation.blocked) return true;
 
-        const reasons: string[] = [];
-        const resetCandidates: Array<string | null> = [];
-
-        if (policy.use5h && sessionStatus?.reachedThreshold) {
-          reasons.push(`5h usage ${Math.round(sessionStatus.usedPercentage)}%`);
-          resetCandidates.push(sessionStatus.resetAt);
-        }
-
-        if (policy.useWeekly && weeklyStatus?.reachedThreshold) {
-          reasons.push(`weekly usage ${Math.round(weeklyStatus.usedPercentage)}%`);
-          resetCandidates.push(weeklyStatus.resetAt);
-        }
-
-        if (reasons.length > 0) {
-          const nextResetAt = getEarliestFutureDate(resetCandidates);
-
-          blockedByPolicy.push({
-            id: connection.id,
-            reasons,
-            resetAt: nextResetAt,
-          });
-          return false;
-        }
-
-        return true;
+      blockedByPolicy.push({
+        id: connection.id,
+        reasons: evaluation.reasons,
+        resetAt: evaluation.resetAt,
       });
+      return false;
+    });
 
-      if (blockedByPolicy.length > 0) {
-        log.info(
-          "AUTH",
-          `${provider} | quota policy filtered ${blockedByPolicy.length} account(s): ${blockedByPolicy
-            .map((entry) => `${entry.id.slice(0, 8)}(${entry.reasons.join(", ")})`)
-            .join("; ")}`
-        );
-      }
+    if (blockedByPolicy.length > 0) {
+      log.info(
+        "AUTH",
+        `${provider} | quota policy filtered ${blockedByPolicy.length} account(s): ${blockedByPolicy
+          .map((entry) => `${entry.id.slice(0, 8)}(${entry.reasons.join(", ")})`)
+          .join("; ")}`
+      );
+    }
 
-      if (policyEligibleConnections.length === 0 && availableConnections.length > 0) {
-        const earliestResetAt = getEarliestFutureDate(
-          blockedByPolicy.map((entry) => entry.resetAt)
-        );
-        const earliestResetMs = parseFutureDateMs(earliestResetAt);
+    if (policyEligibleConnections.length === 0 && availableConnections.length > 0) {
+      const earliestResetAt = getEarliestFutureDate(blockedByPolicy.map((entry) => entry.resetAt));
+      const earliestResetMs = parseFutureDateMs(earliestResetAt);
 
-        const retryAfter = earliestResetMs
-          ? new Date(earliestResetMs).toISOString()
-          : new Date(Date.now() + 5 * 60 * 1000).toISOString();
+      const retryAfter = earliestResetMs
+        ? new Date(earliestResetMs).toISOString()
+        : new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-        return {
-          allRateLimited: true,
-          retryAfter,
-          retryAfterHuman: formatRetryAfter(retryAfter),
-          lastError: "All Codex accounts reached configured quota threshold",
-          lastErrorCode: 429,
-        };
-      }
+      return {
+        allRateLimited: true,
+        retryAfter,
+        retryAfterHuman: formatRetryAfter(retryAfter),
+        lastError: `All ${provider} accounts reached configured quota threshold`,
+        lastErrorCode: 429,
+      };
     }
 
     // Quota-aware: prioritize accounts with available quota
