@@ -208,7 +208,7 @@ export function openaiResponsesToOpenAIRequest(
     });
   }
 
-  // Filter orphaned tool results (no matching tool_call in any assistant message)
+  // Filter orphaned tool results (no matching tool_call in assistant messages)
   const allToolCallIds = new Set<string>();
   for (const m of messages) {
     const rec = toRecord(m);

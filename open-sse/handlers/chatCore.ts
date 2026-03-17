@@ -193,7 +193,7 @@ export async function handleChatCore({
     } else if (isClaudePassthrough) {
       // Claude-to-Claude passthrough: forward body completely untouched.
       // No translation, no field stripping, no thinking normalization.
-      // We are just a gateway -- do not interfere with the request in any way.
+      // We are just a gateway -- do not interfere with the request in the slightest.
       translatedBody = { ...body };
       log?.debug?.("FORMAT", "claude->claude passthrough -- forwarding untouched");
     } else {
@@ -246,8 +246,44 @@ export async function handleChatCore({
       if (Array.isArray(translatedBody.messages)) {
         for (const msg of translatedBody.messages) {
           if (Array.isArray(msg.content)) {
-            msg.content = msg.content.filter((block: Record<string, unknown>) =>
-              block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
+            msg.content = msg.content.filter(
+              (block: Record<string, unknown>) =>
+                block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
+            );
+          }
+        }
+      }
+
+      // ── #409: Normalize unsupported content part types ──
+      // Cursor and other clients send {type:"file"} when attaching .md or other files.
+      // Providers (Copilot, OpenAI) only accept "text" and "image_url" in content arrays.
+      // Convert: file → text (extract content), drop unrecognized types with a warning.
+      if (Array.isArray(translatedBody.messages)) {
+        for (const msg of translatedBody.messages) {
+          if (msg.role === "user" && Array.isArray(msg.content)) {
+            msg.content = (msg.content as Record<string, unknown>[]).flatMap(
+              (block: Record<string, unknown>) => {
+                if (block.type === "text" || block.type === "image_url" || block.type === "image") {
+                  return [block];
+                }
+                // file / document → extract text content
+                if (block.type === "file" || block.type === "document") {
+                  const fileContent =
+                    (block.file as Record<string, unknown>)?.content ??
+                    (block.file as Record<string, unknown>)?.text ??
+                    block.content ??
+                    block.text;
+                  const fileName =
+                    (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
+                  if (typeof fileContent === "string" && fileContent.length > 0) {
+                    return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
+                  }
+                  return [];
+                }
+                // Unknown types: drop silently
+                log?.debug?.("CONTENT", `Dropped unsupported content part type="${block.type}"`);
+                return [];
+              }
             );
           }
         }

@@ -32,6 +32,27 @@ Version format: `2.x.y` — examples:
 npm version patch --no-git-tag-version
 ```
 
+> **⚠️ ATOMIC COMMIT RULE — Version bump MUST happen before committing feature files.**
+>
+> **CORRECT order:**
+>
+> 1. `npm version patch --no-git-tag-version` ← bump first
+> 2. implement features / fix bugs
+> 3. `git add -A && git commit -m "chore(release): v2.x.y — all changes in ONE commit"`
+>
+> **OR if features are already staged:**
+>
+> 1. implement features (do NOT commit yet)
+> 2. `npm version patch --no-git-tag-version` ← bump before committing
+> 3. `git add -A && git commit -m "chore(release): v2.x.y — all changes in ONE commit"`
+>
+> **NEVER do this (creates version mismatch in git history):**
+>
+> - ~~commit features → then bump version → commit package.json separately~~
+>
+> This ensures that `git show v2.x.y` always contains both code changes and the version bump together.
+> The GitHub release tag will point to a commit that includes ALL changes for that version.
+
 ### 2. Regenerate lock file (REQUIRED after version bump)
 
 **Mandatory** — skipping causes `@swc/helpers` lock mismatch and CI failures:
