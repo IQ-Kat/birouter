@@ -370,6 +370,16 @@ export const APIKEY_PROVIDERS = {
     website: "https://synthetic.new",
     passthroughModels: true,
   },
+  "kilo-gateway": {
+    id: "kilo-gateway",
+    alias: "kg",
+    name: "Kilo Gateway",
+    icon: "hub",
+    color: "#617A91",
+    textIcon: "KG",
+    website: "https://kilo.ai",
+    passthroughModels: true,
+  },
   vertex: {
     id: "vertex",
     alias: "vertex",
