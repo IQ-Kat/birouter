@@ -278,6 +278,16 @@ if (existsSync(swcHelpersSrc) && !existsSync(swcHelpersDst)) {
   console.log("  ✅ @swc/helpers included in standalone build.");
 }
 
+// ── Step 10.6: Remove vscode-extension from standalone build ──
+// The vscode extension test runtime (vsda.node) is a platform-native binary
+// that triggers Z_DATA_ERROR during npm pack. Remove it from the bundle.
+const vscodeBuildDir = join(APP_DIR, "vscode-extension");
+if (existsSync(vscodeBuildDir)) {
+  console.log("  🧹 Removing app/vscode-extension/ (not needed in npm package)...");
+  rmSync(vscodeBuildDir, { recursive: true, force: true });
+  console.log("  ✅ app/vscode-extension/ removed.");
+}
+
 // ── Done ───────────────────────────────────────────────────
 const appPkg = join(APP_DIR, "package.json");
 if (existsSync(appPkg)) {
