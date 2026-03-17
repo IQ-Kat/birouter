@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+---
+
+## [2.7.1] — 2026-03-17
+
+> Sprint: Unified web search routing (POST /v1/search) with 5 providers + Next.js 16.1.7 security fixes (6 CVEs).
+
 ### ✨ New Features
 
 - **feat(search)**: Unified web search routing — `POST /v1/search` with 5 providers (Serper, Brave, Perplexity, Exa, Tavily)
