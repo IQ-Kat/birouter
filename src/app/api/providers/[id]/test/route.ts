@@ -20,6 +20,7 @@ const OAUTH_TEST_CONFIG = {
   claude: {
     // Claude doesn't have userinfo, we verify token exists and not expired
     checkExpiry: true,
+    refreshable: true,
   },
   codex: {
     // Codex OAuth tokens are ChatGPT session tokens, NOT standard OpenAI API keys.
