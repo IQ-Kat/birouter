@@ -9,7 +9,7 @@
  * @module lib/db/prompts
  */
 
-import crypto from "node:crypto";
+import crypto from "crypto";
 import { getDbInstance } from "./core";
 
 interface StatementLike<TRow = unknown> {

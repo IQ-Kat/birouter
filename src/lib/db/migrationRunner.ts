@@ -9,9 +9,9 @@
  * All migrations run within a single transaction — all-or-nothing per file.
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import type Database from "better-sqlite3";
 
 /**

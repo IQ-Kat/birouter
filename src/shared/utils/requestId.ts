@@ -10,9 +10,8 @@
  * @module shared/utils/requestId
  */
 
-
 import { AsyncLocalStorage } from "node:async_hooks";
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "crypto";
 
 const requestIdStore = new AsyncLocalStorage();
 
@@ -66,10 +65,7 @@ export function addRequestIdHeader(headers = {}) {
  * @returns {Response} Response with request ID header
  */
 export function attachRequestIdToResponse(request, response) {
-  const requestId =
-    getRequestId() ||
-    request?.headers?.get?.("x-request-id") ||
-    randomUUID();
+  const requestId = getRequestId() || request?.headers?.get?.("x-request-id") || randomUUID();
 
   const headers = new Headers(response.headers);
   headers.set("x-request-id", requestId);

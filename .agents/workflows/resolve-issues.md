@@ -21,8 +21,8 @@ This workflow fetches all open issues from the project's GitHub repository, clas
 
 // turbo
 
-- Run: `gh issue list --repo <owner>/<repo> --state open --limit 100 --json number,title,labels,body,comments,createdAt,author`
-- Parse the JSON output to get a list of all open issues
+- Run: `gh issue list --repo <owner>/<repo> --state open --limit 500 --json number,title,labels,body,comments,createdAt,author`
+- Parse the JSON output to get a list of **all** open issues
 - Sort by oldest first (FIFO)
 
 ### 3. Classify Each Issue

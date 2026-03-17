@@ -81,29 +81,36 @@ const PROVIDER_MODELS: Record<
         { id: "openai/dall-e-2", name: "DALL-E 2" },
       ],
     },
-    { id: "xai", name: "xAI (Grok)", models: [{ id: "xai/grok-2-image", name: "Grok 2 Image" }] },
+    {
+      id: "xai",
+      name: "xAI (Grok)",
+      models: [{ id: "xai/grok-2-image-1212", name: "Grok 2 Image" }],
+    },
     {
       id: "together",
       name: "Together AI",
       models: [
-        { id: "together/stable-diffusion-xl", name: "SDXL" },
-        { id: "together/FLUX.1-schnell-Free", name: "FLUX.1 Schnell" },
+        { id: "together/stabilityai/stable-diffusion-xl-base-1.0", name: "SDXL" },
+        { id: "together/black-forest-labs/FLUX.1-schnell-Free", name: "FLUX.1 Schnell" },
       ],
     },
     {
       id: "fireworks",
       name: "Fireworks AI",
       models: [
-        { id: "fireworks/stable-diffusion-xl-1024-v1-0", name: "SDXL 1024" },
-        { id: "fireworks/flux-1-dev-fp8", name: "FLUX.1 Dev" },
+        {
+          id: "fireworks/accounts/fireworks/models/stable-diffusion-xl-1024-v1-0",
+          name: "SDXL 1024",
+        },
+        { id: "fireworks/accounts/fireworks/models/flux-1-dev-fp8", name: "FLUX.1 Dev" },
       ],
     },
     {
       id: "nebius",
       name: "Nebius AI",
       models: [
-        { id: "nebius/flux-dev", name: "FLUX Dev" },
-        { id: "nebius/sdxl", name: "SDXL" },
+        { id: "nebius/black-forest-labs/flux-dev", name: "FLUX Dev" },
+        { id: "nebius/black-forest-labs/flux-schnell", name: "FLUX Schnell" },
       ],
     },
     {
@@ -117,7 +124,10 @@ const PROVIDER_MODELS: Record<
     {
       id: "nanobanana",
       name: "NanoBanana",
-      models: [{ id: "nanobanana/flux-schnell", name: "FLUX Schnell" }],
+      models: [
+        { id: "nanobanana/nanobanana-flash", name: "NanoBanana Flash" },
+        { id: "nanobanana/nanobanana-pro", name: "NanoBanana Pro" },
+      ],
     },
     {
       id: "sdwebui",

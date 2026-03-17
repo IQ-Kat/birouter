@@ -1,6 +1,6 @@
 import { KIMI_CODING_CONFIG } from "../constants/oauth";
-import { randomUUID } from "node:crypto";
-import { hostname } from "node:os";
+import { randomUUID } from "crypto";
+import { hostname } from "os";
 
 // Generate device ID (persistent per installation)
 const DEVICE_ID = randomUUID();

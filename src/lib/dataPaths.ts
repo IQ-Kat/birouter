@@ -1,5 +1,5 @@
-import path from "node:path";
-import os from "node:os";
+import path from "path";
+import os from "os";
 
 export const APP_NAME = "omniroute";
 

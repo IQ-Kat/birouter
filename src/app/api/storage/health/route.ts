@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import path from "node:path";
-import fs from "node:fs";
+import path from "path";
+import fs from "fs";
 import { resolveDataDir } from "@/lib/dataPaths";
 
 /**

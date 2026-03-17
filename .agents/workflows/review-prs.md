@@ -18,7 +18,11 @@ This workflow fetches all open PRs from the project's GitHub repository, perform
 
 ### 2. Fetch Open Pull Requests
 
-- Navigate to `https://github.com/<owner>/<repo>/pulls` and scrape all open PRs
+// turbo
+
+- Run: `gh pr list --repo <owner>/<repo> --state open --limit 500 --json number,title,author,headRefName,body,createdAt,additions,deletions,files`
+- This fetches **all** open PRs without restriction. Get the diff for each with:
+  `gh pr diff <NUMBER> --repo <owner>/<repo>`
 - For each open PR, collect:
   - PR number, title, author, branch, number of commits, date
   - PR description/body

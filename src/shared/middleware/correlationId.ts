@@ -9,7 +9,7 @@
  */
 
 import { AsyncLocalStorage } from "node:async_hooks";
-import crypto from "node:crypto";
+import crypto from "crypto";
 
 const correlationStore = new AsyncLocalStorage();
 

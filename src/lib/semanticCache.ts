@@ -10,7 +10,7 @@
  * @module lib/semanticCache
  */
 
-import crypto from "node:crypto";
+import crypto from "crypto";
 import { LRUCache } from "./cacheLayer";
 import { getDbInstance } from "./db/core";
 

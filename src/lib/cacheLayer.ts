@@ -8,7 +8,7 @@
  * @module lib/cacheLayer
  */
 
-import crypto from "node:crypto";
+import crypto from "crypto";
 
 /**
  * @typedef {Object} CacheEntry

@@ -85,12 +85,49 @@ git push origin main --tags
 gh release create v2.x.y --title "v2.x.y — summary" --notes "..."
 ```
 
-### 8. Deploy to VPS (if requested)
+### 8. 🐳 Trigger Docker Hub build (MANDATORY — keep npm and Docker in sync)
 
-See `/deploy-vps` workflow for Akamai VPS or use npm for local VPS:
+> **CRITICAL**: Docker Hub and npm MUST always publish the same version.
+> The Docker image is built automatically via GitHub Actions when a new tag is pushed.
+> After pushing the tag in step 5-6, **verify the workflow runs**:
 
 ```bash
-ssh root@<VPS_IP> "npm install -g omniroute@2.x.y && pm2 restart omniroute"
+# Verify the Docker workflow triggered
+gh run list --repo diegosouzapw/OmniRoute --workflow docker-publish.yml --limit 3
+
+# Wait for the Docker build to complete (usually 5–10 min)
+gh run watch --repo diegosouzapw/OmniRoute
+
+# After completion, verify on Docker Hub:
+# https://hub.docker.com/r/diegosouzapw/omniroute/tags
+```
+
+If the Docker build was not triggered automatically, trigger it manually:
+
+```bash
+gh workflow run docker-publish.yml --repo diegosouzapw/OmniRoute --ref v2.x.y
+```
+
+### 9. Deploy to BOTH VPS environments (MANDATORY)
+
+> Always deploy to **both** environments after every release.
+> See `/deploy-vps` workflow for detailed steps.
+
+```bash
+# Build and pack locally
+cd /home/diegosouzapw/dev/proxys/9router && npm run build:cli && npm pack --ignore-scripts
+
+# Deploy to LOCAL VPS (192.168.0.15)
+scp omniroute-*.tgz root@192.168.0.15:/tmp/
+ssh root@192.168.0.15 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && pm2 restart omniroute && pm2 save"
+
+# Deploy to AKAMAI VPS (69.164.221.35)
+scp omniroute-*.tgz root@69.164.221.35:/tmp/
+ssh root@69.164.221.35 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && pm2 restart omniroute && pm2 save"
+
+# Verify both
+curl -s -o /dev/null -w "LOCAL:  HTTP %{http_code}\n" http://192.168.0.15:20128/
+curl -s -o /dev/null -w "AKAMAI: HTTP %{http_code}\n" http://69.164.221.35:20128/
 ```
 
 ## Notes

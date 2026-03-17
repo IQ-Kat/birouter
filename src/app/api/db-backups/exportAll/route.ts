@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDbInstance, SQLITE_FILE } from "@/lib/db/core";
-import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 /**
  * GET /api/db-backups/exportAll

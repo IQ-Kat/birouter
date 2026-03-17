@@ -1,5 +1,5 @@
-import http from "node:http";
-import type { IncomingMessage, ServerResponse } from "node:http";
+import http from "http";
+import type { IncomingMessage, ServerResponse } from "http";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
 const DEFAULT_PROXY_TIMEOUT_MS = 30_000;
