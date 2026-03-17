@@ -233,6 +233,19 @@ export async function handleChatCore({
         });
       }
 
+      // Strip empty text content blocks from messages.
+      // Anthropic API rejects {"type":"text","text":""} with 400 "text content blocks must be non-empty".
+      // Some clients (LiteLLM passthrough, @ai-sdk/anthropic) may forward these empty blocks as-is.
+      if (Array.isArray(translatedBody.messages)) {
+        for (const msg of translatedBody.messages) {
+          if (Array.isArray(msg.content)) {
+            msg.content = msg.content.filter((block: Record<string, unknown>) =>
+              block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
+            );
+          }
+        }
+      }
+
       translatedBody = translateRequest(
         sourceFormat,
         targetFormat,
