@@ -11,6 +11,7 @@ import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel } from "./model.ts";
+import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
 const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];
@@ -225,12 +226,49 @@ export async function handleComboChat({
   const strategy = combo.strategy || "priority";
   const models = combo.models || [];
 
+  // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
+  // Apply system_message override, tool_filter_regex, and extract pinned model
+  // from context caching tag. These are all opt-in per combo config.
+  const { body: agentBody, pinnedModel } = applyComboAgentMiddleware(
+    body,
+    combo,
+    "" // provider/model not yet known — resolved per-model in loop
+  );
+  body = agentBody;
+  if (pinnedModel) {
+    log.info("COMBO", `[#401] Context caching: pinned model=${pinnedModel}`);
+  }
+  // Wrap handleSingleModel to inject context caching tag on response (#401)
+  const handleSingleModelWrapped = combo.context_cache_protection
+    ? async (b, modelStr) => {
+        const res = await handleSingleModel(b, modelStr);
+        // Inject tag only on success and only for non-streaming non-binary responses
+        if (res.ok && !b.stream) {
+          try {
+            const json = await res.clone().json();
+            const msgs = Array.isArray(json?.messages) ? json.messages : [];
+            if (msgs.length > 0) {
+              const tagged = injectModelTag(msgs, modelStr);
+              return new Response(JSON.stringify({ ...json, messages: tagged }), {
+                status: res.status,
+                headers: res.headers,
+              });
+            }
+          } catch {
+            /* non-JSON or stream — skip tagging */
+          }
+        }
+        return res;
+      }
+    : handleSingleModel;
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Route to round-robin handler if strategy matches
   if (strategy === "round-robin") {
     return handleRoundRobinCombo({
       body,
       combo,
-      handleSingleModel,
+      handleSingleModel: handleSingleModelWrapped,
       isModelAvailable,
       log,
       settings,
@@ -348,7 +386,7 @@ export async function handleComboChat({
         `Trying model ${i + 1}/${orderedModels.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
       );
 
-      const result = await handleSingleModel(body, modelStr);
+      const result = await handleSingleModelWrapped(body, modelStr);
 
       // Success — return response
       if (result.ok) {
