@@ -11,6 +11,16 @@ _Seu proxy de API universal — um endpoint, mais de 36 provedores, tempo de ina
 
 ---
 
+### 🆕 Novidades na v2.7.0
+
+- **RouterStrategy extensível** — estratégias de regras, custo e latência
+- **Deteção de intenção multilíngue** — scoring de encaminhamento em 30+ idiomas
+- **Deduplicação de pedidos** — evita chamadas duplicadas por hash de conteúdo
+- **Novos fornecedores:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
+- **Preços atualizados:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
+
+---
+
 ### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
 
 | Feature                                    | What It Does                                                                                                                                  |

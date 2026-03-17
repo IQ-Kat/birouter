@@ -8,6 +8,16 @@ _Ihr universeller API-Proxy – ein Endpunkt, mehr als 36 Anbieter, keine Ausfal
 
 ---
 
+### 🆕 Neu in v2.7.0
+
+- **Erweiterbare RouterStrategy** — Regeln-, Kosten- und Latenzstrategien
+- **Mehrsprachige Absichtserkennung** — Routing-Scoring in 30+ Sprachen
+- **Anfrage-Deduplizierung** — doppelte API-Aufrufe per Content-Hash vermeiden
+- **Neue Anbieter:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
+- **Aktualisierte Preise:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
+
+---
+
 <div align="center">
 
 [![npm-Version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)

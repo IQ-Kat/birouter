@@ -11,6 +11,16 @@ _您的通用 API 代理 — 一个端点，36+ 提供商，零停机时间。_
 
 ---
 
+### 🆕 v2.7.0 新功能
+
+- **可插拔 RouterStrategy** — 支持规则、成本和延迟策略
+- **多语言意图检测** — 支持 30+ 语言的路由评分
+- **请求去重** — 基于内容哈希避免重复 API 调用
+- **新增提供商：** Grok-4 Fast (xAI)、GLM-5 / Z.AI、MiniMax M2.5、Kimi K2.5
+- **价格更新：** Grok-4 Fast $0.20/$0.50/M，GLM-5 $0.50/M，MiniMax M2.5 $0.30/M
+
+---
+
 ### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
 
 | Feature                                    | What It Does                                                                                                                                  |

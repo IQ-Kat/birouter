@@ -11,6 +11,16 @@ _범용 API 프록시 — 하나의 엔드포인트, 36개 이상의 공급자, 
 
 ---
 
+### 🆕 v2.7.0 새로운 기능
+
+- **플러그형 RouterStrategy** — 규칙, 비용, 지연 전략 지원
+- **다국어 의도 감지** — 30개 이상 언어로 라우팅 스코어링
+- **요청 중복 제거** — 콘텐츠 해시로 중복 API 호출 방지
+- **새 공급자:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
+- **가격 업데이트:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
+
+---
+
 ### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
 
 | Feature                                    | What It Does                                                                                                                                  |
