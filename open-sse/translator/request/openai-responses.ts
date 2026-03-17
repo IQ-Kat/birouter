@@ -120,6 +120,12 @@ export function openaiResponsesToOpenAIRequest(
     }
 
     if (itemType === "function_call") {
+      // Skip tool calls with empty names to avoid infinite placeholder_tool loops
+      const fnName = toString(item.name).trim();
+      if (!fnName) {
+        continue;
+      }
+
       // Start or append assistant message with tool_calls
       if (!currentAssistantMsg) {
         currentAssistantMsg = {
@@ -136,7 +142,7 @@ export function openaiResponsesToOpenAIRequest(
         id: toString(item.call_id),
         type: "function",
         function: {
-          name: toString(item.name),
+          name: fnName,
           arguments: item.arguments,
         },
       });
@@ -319,10 +325,15 @@ export function openaiToOpenAIResponsesRequest(
         for (const toolCallValue of msg.tool_calls) {
           const toolCall = toRecord(toolCallValue);
           const fn = toRecord(toolCall.function);
+          // Skip tool calls with empty names to avoid infinite placeholder_tool loops
+          const fnName = toString(fn.name).trim();
+          if (!fnName) {
+            continue;
+          }
           input.push({
             type: "function_call",
             call_id: toString(toolCall.id),
-            name: toString(fn.name),
+            name: fnName,
             arguments: toString(fn.arguments, "{}"),
           });
         }
