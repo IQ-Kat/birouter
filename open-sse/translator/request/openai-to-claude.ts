@@ -123,6 +123,43 @@ export function openaiToClaudeRequest(model, body, stream) {
 
     flushCurrentMessage();
 
+    // Remove assistant messages with empty content (can happen when all tool_use blocks were skipped)
+    result.messages = result.messages.filter((msg) => {
+      if (msg.role === "assistant" && Array.isArray(msg.content) && msg.content.length === 0) {
+        return false;
+      }
+      return true;
+    });
+
+    // Filter orphaned tool_result blocks whose tool_use_id has no matching tool_use
+    const allToolUseIds = new Set<string>();
+    for (const msg of result.messages) {
+      if (msg.role === "assistant" && Array.isArray(msg.content)) {
+        for (const block of msg.content) {
+          if (block.type === "tool_use" && block.id) {
+            allToolUseIds.add(String(block.id));
+          }
+        }
+      }
+    }
+    for (const msg of result.messages) {
+      if (msg.role === "user" && Array.isArray(msg.content)) {
+        msg.content = msg.content.filter((block) => {
+          if (block.type === "tool_result" && block.tool_use_id) {
+            return allToolUseIds.has(String(block.tool_use_id));
+          }
+          return true;
+        });
+      }
+    }
+    // Remove user messages that became empty after orphan filtering
+    result.messages = result.messages.filter((msg) => {
+      if (msg.role === "user" && Array.isArray(msg.content) && msg.content.length === 0) {
+        return false;
+      }
+      return true;
+    });
+
     // Add cache_control to last assistant message
     for (let i = result.messages.length - 1; i >= 0; i--) {
       const message = result.messages[i];

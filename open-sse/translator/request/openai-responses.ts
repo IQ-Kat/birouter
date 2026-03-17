@@ -207,6 +207,24 @@ export function openaiResponsesToOpenAIRequest(
     });
   }
 
+  // Filter orphaned tool results (no matching tool_call in any assistant message)
+  const allToolCallIds = new Set<string>();
+  for (const m of messages) {
+    const rec = toRecord(m);
+    if (Array.isArray(rec.tool_calls)) {
+      for (const tc of rec.tool_calls as { id?: string }[]) {
+        if (tc.id) allToolCallIds.add(String(tc.id));
+      }
+    }
+  }
+  result.messages = messages.filter((m) => {
+    const rec = toRecord(m);
+    if (rec.role === "tool" && rec.tool_call_id) {
+      return allToolCallIds.has(String(rec.tool_call_id));
+    }
+    return true;
+  });
+
   // Cleanup Responses API specific fields
   delete result.input;
   delete result.instructions;
@@ -349,6 +367,22 @@ export function openaiToOpenAIResponsesRequest(
       });
     }
   }
+
+  // Filter orphaned function_call_output items (no matching function_call)
+  // This happens when Claude Code compaction removes messages but leaves tool results
+  const knownCallIds = new Set(
+    input
+      .filter(
+        (item: { type?: string; call_id?: string }) => item.type === "function_call" && item.call_id
+      )
+      .map((item: { type?: string; call_id?: string }) => item.call_id)
+  );
+  result.input = input.filter((item: { type?: string; call_id?: string }) => {
+    if (item.type === "function_call_output" && item.call_id) {
+      return knownCallIds.has(item.call_id);
+    }
+    return true;
+  });
 
   // If no system message, keep empty instructions
   if (!hasSystemMessage) {
