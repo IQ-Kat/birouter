@@ -5,6 +5,9 @@ import { Card, Button, Select, Badge } from "@/shared/components";
 import dynamic from "next/dynamic";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+const SearchPlayground = dynamic(() => import("./SearchPlayground"), {
+  ssr: false,
+});
 
 interface ModelInfo {
   id: string;
@@ -27,6 +30,7 @@ const ENDPOINT_OPTIONS = [
   { value: "video", label: "Video Generation" },
   { value: "music", label: "Music Generation" },
   { value: "rerank", label: "Rerank" },
+  { value: "search", label: "Web Search" },
 ];
 
 const DEFAULT_BODIES: Record<string, object> = {
@@ -83,6 +87,11 @@ const DEFAULT_BODIES: Record<string, object> = {
     ],
     top_n: 2,
   },
+  search: {
+    query: "latest AI developments",
+    max_results: 5,
+    search_type: "web",
+  },
 };
 
 const ENDPOINT_PATHS: Record<string, string> = {
@@ -95,6 +104,7 @@ const ENDPOINT_PATHS: Record<string, string> = {
   video: "/v1/videos/generations",
   music: "/v1/music/generations",
   rerank: "/v1/rerank",
+  search: "/v1/search",
 };
 
 // Models known to support vision (image input)
@@ -189,6 +199,7 @@ export default function PlaygroundPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]); // base64 URIs for vision
 
+  const isSearchEndpoint = selectedEndpoint === "search";
   const isTranscriptionEndpoint = selectedEndpoint === "transcription";
   const isChatEndpoint = selectedEndpoint === "chat";
   const isImageEndpoint = selectedEndpoint === "images";
@@ -419,33 +430,7 @@ export default function PlaygroundPage() {
       {/* Controls */}
       <Card>
         <div className="p-4 flex flex-col sm:flex-row items-end gap-4">
-          {/* Provider */}
-          <div className="flex-1 w-full">
-            <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-              Provider
-            </label>
-            <Select
-              value={selectedProvider}
-              onChange={(e: any) => handleProviderChange(e.target.value)}
-              options={providers}
-              className="w-full"
-            />
-          </div>
-
-          {/* Model */}
-          <div className="flex-1 w-full">
-            <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-              Model
-            </label>
-            <Select
-              value={selectedModel}
-              onChange={(e: any) => handleModelChange(e.target.value)}
-              options={filteredModels}
-              className="w-full"
-            />
-          </div>
-
-          {/* Endpoint */}
+          {/* Endpoint — always first */}
           <div className="flex-1 w-full">
             <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
               Endpoint
@@ -458,274 +443,315 @@ export default function PlaygroundPage() {
             />
           </div>
 
-          {/* Send Button */}
-          <div className="shrink-0">
-            {loading ? (
-              <Button icon="stop" variant="secondary" onClick={handleCancel}>
-                Cancel
-              </Button>
-            ) : (
-              <Button
-                icon="send"
-                onClick={handleSend}
-                disabled={
-                  (!requestBody.trim() && !isTranscriptionEndpoint) ||
-                  (!selectedModel && !isTranscriptionEndpoint)
-                }
-              >
-                Send
-              </Button>
-            )}
-          </div>
+          {/* Provider — hidden in search mode */}
+          {!isSearchEndpoint && (
+            <div className="flex-1 w-full">
+              <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+                Provider
+              </label>
+              <Select
+                value={selectedProvider}
+                onChange={(e: any) => handleProviderChange(e.target.value)}
+                options={providers}
+                className="w-full"
+              />
+            </div>
+          )}
+
+          {/* Model — hidden in search mode */}
+          {!isSearchEndpoint && (
+            <div className="flex-1 w-full">
+              <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+                Model
+              </label>
+              <Select
+                value={selectedModel}
+                onChange={(e: any) => handleModelChange(e.target.value)}
+                options={filteredModels}
+                className="w-full"
+              />
+            </div>
+          )}
+
+          {/* Send Button — hidden in search mode (SearchPlayground has its own) */}
+          {!isSearchEndpoint && (
+            <div className="shrink-0">
+              {loading ? (
+                <Button icon="stop" variant="secondary" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              ) : (
+                <Button
+                  icon="send"
+                  onClick={handleSend}
+                  disabled={
+                    (!requestBody.trim() && !isTranscriptionEndpoint) ||
+                    (!selectedModel && !isTranscriptionEndpoint)
+                  }
+                >
+                  Send
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </Card>
 
-      {/* File Upload Zone — shown for transcription and vision models */}
-      {(isTranscriptionEndpoint || supportsVision) && (
-        <Card>
-          <div className="p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-text-muted">
-                attach_file
-              </span>
-              <h3 className="text-sm font-semibold text-text-main">
-                {isTranscriptionEndpoint ? "Audio File" : "Attach Images (Vision)"}
-              </h3>
-              {isTranscriptionEndpoint && (
-                <Badge variant="info" size="sm">
-                  multipart/form-data
-                </Badge>
-              )}
-              {supportsVision && (
-                <Badge variant="info" size="sm">
-                  up to 4 images
-                </Badge>
-              )}
-            </div>
-            {isTranscriptionEndpoint && (
-              <div>
-                <input
-                  type="file"
-                  accept="audio/*,video/*"
-                  onChange={handleAudioFileChange}
-                  className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-sm"
-                />
-                {uploadedFile && (
-                  <p className="text-xs text-text-muted mt-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[12px] text-green-500">
-                      check_circle
-                    </span>
-                    {uploadedFile.name} ({(uploadedFile.size / 1024).toFixed(0)} KB)
-                  </p>
+      {/* Search mode — isolated sub-component */}
+      {isSearchEndpoint ? (
+        <SearchPlayground />
+      ) : (
+        <>
+          {/* File Upload Zone — shown for transcription and vision models */}
+          {(isTranscriptionEndpoint || supportsVision) && (
+            <Card>
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-text-muted">
+                    attach_file
+                  </span>
+                  <h3 className="text-sm font-semibold text-text-main">
+                    {isTranscriptionEndpoint ? "Audio File" : "Attach Images (Vision)"}
+                  </h3>
+                  {isTranscriptionEndpoint && (
+                    <Badge variant="info" size="sm">
+                      multipart/form-data
+                    </Badge>
+                  )}
+                  {supportsVision && (
+                    <Badge variant="info" size="sm">
+                      up to 4 images
+                    </Badge>
+                  )}
+                </div>
+                {isTranscriptionEndpoint && (
+                  <div>
+                    <input
+                      type="file"
+                      accept="audio/*,video/*"
+                      onChange={handleAudioFileChange}
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-sm"
+                    />
+                    {uploadedFile && (
+                      <p className="text-xs text-text-muted mt-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px] text-green-500">
+                          check_circle
+                        </span>
+                        {uploadedFile.name} ({(uploadedFile.size / 1024).toFixed(0)} KB)
+                      </p>
+                    )}
+                    {!uploadedFile && (
+                      <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">info</span>
+                        Select an audio file to transcribe (mp3, wav, m4a, ogg, flac…)
+                      </p>
+                    )}
+                  </div>
                 )}
-                {!uploadedFile && (
-                  <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[12px]">info</span>
-                    Select an audio file to transcribe (mp3, wav, m4a, ogg, flac…)
-                  </p>
-                )}
-              </div>
-            )}
-            {supportsVision && (
-              <div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageFileChange}
-                  className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-sm"
-                />
-                {uploadedImages.length > 0 && (
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    {uploadedImages.map((src, i) => (
-                      <div
-                        key={i}
-                        className="relative group size-16 rounded overflow-hidden border border-border"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={src}
-                          alt={`Attached ${i + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                {supportsVision && (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageFileChange}
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-sm"
+                    />
+                    {uploadedImages.length > 0 && (
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        {uploadedImages.map((src, i) => (
+                          <div
+                            key={i}
+                            className="relative group size-16 rounded overflow-hidden border border-border"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={src}
+                              alt={`Attached ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              onClick={() =>
+                                setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))
+                              }
+                              className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">close</span>
+                            </button>
+                          </div>
+                        ))}
                         <button
-                          onClick={() =>
-                            setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))
-                          }
-                          className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          onClick={() => setUploadedImages([])}
+                          className="text-xs text-text-muted hover:text-red-500 self-center ml-1"
                         >
-                          <span className="material-symbols-outlined text-[16px]">close</span>
+                          Clear all
                         </button>
                       </div>
-                    ))}
+                    )}
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Split Editor View */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Request Panel */}
+            <Card>
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-text-muted">
+                      upload
+                    </span>
+                    <h3 className="text-sm font-semibold text-text-main">Request</h3>
+                    <Badge variant="info" size="sm">
+                      POST {ENDPOINT_PATHS[selectedEndpoint]}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-1">
                     <button
-                      onClick={() => setUploadedImages([])}
-                      className="text-xs text-text-muted hover:text-red-500 self-center ml-1"
+                      onClick={() => handleCopy(requestBody)}
+                      className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
+                      title="Copy"
                     >
-                      Clear all
+                      <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const template = { ...DEFAULT_BODIES[selectedEndpoint] };
+                        if ("model" in template) (template as any).model = selectedModel;
+                        setRequestBody(JSON.stringify(template, null, 2));
+                      }}
+                      className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
+                      title="Reset to default"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">restart_alt</span>
                     </button>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {/* Split Editor View */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Request Panel */}
-        <Card>
-          <div className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-text-muted">
-                  upload
-                </span>
-                <h3 className="text-sm font-semibold text-text-main">Request</h3>
-                <Badge variant="info" size="sm">
-                  POST {ENDPOINT_PATHS[selectedEndpoint]}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleCopy(requestBody)}
-                  className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-                  title="Copy"
-                >
-                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                </button>
-                <button
-                  onClick={() => {
-                    const template = { ...DEFAULT_BODIES[selectedEndpoint] };
-                    if ("model" in template) (template as any).model = selectedModel;
-                    setRequestBody(JSON.stringify(template, null, 2));
-                  }}
-                  className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-                  title="Reset to default"
-                >
-                  <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-                </button>
-              </div>
-            </div>
-            {isTranscriptionEndpoint && (
-              <p className="text-xs text-text-muted bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1.5 flex items-start gap-1">
-                <span className="material-symbols-outlined text-[12px] text-amber-500 mt-0.5">
-                  info
-                </span>
-                Transcription uses multipart/form-data. Upload the audio file above — JSON below
-                controls extra params (model, language).
-              </p>
-            )}
-            <div className="border border-border rounded-lg overflow-hidden">
-              <Editor
-                height="400px"
-                defaultLanguage="json"
-                value={requestBody}
-                onChange={(value: string | undefined) => setRequestBody(value || "")}
-                theme="vs-dark"
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 12,
-                  lineNumbers: "on",
-                  scrollBeyondLastLine: false,
-                  wordWrap: "on",
-                  automaticLayout: true,
-                  formatOnPaste: true,
-                }}
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Response Panel */}
-        <Card>
-          <div className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-text-muted">
-                  download
-                </span>
-                <h3 className="text-sm font-semibold text-text-main">Response</h3>
-                {responseStatus !== null && (
-                  <Badge
-                    variant={responseStatus >= 200 && responseStatus < 300 ? "success" : "error"}
-                    size="sm"
-                  >
-                    {responseStatus}
-                  </Badge>
-                )}
-                {responseDuration !== null && (
-                  <span className="text-xs text-text-muted">{responseDuration}ms</span>
-                )}
-                {loading && (
-                  <span className="material-symbols-outlined text-[14px] text-primary animate-spin">
-                    progress_activity
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleCopy(responseBody)}
-                  className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-                  title="Copy"
-                >
-                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                </button>
-              </div>
-            </div>
-            <div className="border border-border rounded-lg overflow-hidden">
-              {audioUrl ? (
-                <div className="p-4 space-y-3">
-                  <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
-                  <a
-                    href={audioUrl}
-                    download="speech.mp3"
-                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">download</span>
-                    Download audio
-                  </a>
                 </div>
-              ) : imageData ? (
-                <ImageResultsInline data={imageData} />
-              ) : transcriptionText !== null ? (
-                <div className="p-4 space-y-2">
-                  <p className="text-xs text-text-muted font-medium uppercase tracking-wider">
-                    Transcription
+                {isTranscriptionEndpoint && (
+                  <p className="text-xs text-text-muted bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1.5 flex items-start gap-1">
+                    <span className="material-symbols-outlined text-[12px] text-amber-500 mt-0.5">
+                      info
+                    </span>
+                    Transcription uses multipart/form-data. Upload the audio file above — JSON below
+                    controls extra params (model, language).
                   </p>
-                  <div className="bg-surface/50 rounded p-3 text-sm text-text-main leading-relaxed whitespace-pre-wrap">
-                    {transcriptionText}
-                  </div>
-                  <button
-                    onClick={() => handleCopy(transcriptionText)}
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                  >
-                    <span className="material-symbols-outlined text-[12px]">content_copy</span>
-                    Copy text
-                  </button>
+                )}
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <Editor
+                    height="400px"
+                    defaultLanguage="json"
+                    value={requestBody}
+                    onChange={(value: string | undefined) => setRequestBody(value || "")}
+                    theme="vs-dark"
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 12,
+                      lineNumbers: "on",
+                      scrollBeyondLastLine: false,
+                      wordWrap: "on",
+                      automaticLayout: true,
+                      formatOnPaste: true,
+                    }}
+                  />
                 </div>
-              ) : (
-                <Editor
-                  height="400px"
-                  defaultLanguage="json"
-                  value={responseBody}
-                  theme="vs-dark"
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 12,
-                    lineNumbers: "on",
-                    scrollBeyondLastLine: false,
-                    wordWrap: "on",
-                    automaticLayout: true,
-                    readOnly: true,
-                  }}
-                />
-              )}
-            </div>
+              </div>
+            </Card>
+
+            {/* Response Panel */}
+            <Card>
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-text-muted">
+                      download
+                    </span>
+                    <h3 className="text-sm font-semibold text-text-main">Response</h3>
+                    {responseStatus !== null && (
+                      <Badge
+                        variant={
+                          responseStatus >= 200 && responseStatus < 300 ? "success" : "error"
+                        }
+                        size="sm"
+                      >
+                        {responseStatus}
+                      </Badge>
+                    )}
+                    {responseDuration !== null && (
+                      <span className="text-xs text-text-muted">{responseDuration}ms</span>
+                    )}
+                    {loading && (
+                      <span className="material-symbols-outlined text-[14px] text-primary animate-spin">
+                        progress_activity
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleCopy(responseBody)}
+                      className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
+                      title="Copy"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="border border-border rounded-lg overflow-hidden">
+                  {audioUrl ? (
+                    <div className="p-4 space-y-3">
+                      <audio controls src={audioUrl} className="w-full rounded-lg" autoPlay />
+                      <a
+                        href={audioUrl}
+                        download="speech.mp3"
+                        className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">download</span>
+                        Download audio
+                      </a>
+                    </div>
+                  ) : imageData ? (
+                    <ImageResultsInline data={imageData} />
+                  ) : transcriptionText !== null ? (
+                    <div className="p-4 space-y-2">
+                      <p className="text-xs text-text-muted font-medium uppercase tracking-wider">
+                        Transcription
+                      </p>
+                      <div className="bg-surface/50 rounded p-3 text-sm text-text-main leading-relaxed whitespace-pre-wrap">
+                        {transcriptionText}
+                      </div>
+                      <button
+                        onClick={() => handleCopy(transcriptionText)}
+                        className="text-xs text-primary hover:underline flex items-center gap-1"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">content_copy</span>
+                        Copy text
+                      </button>
+                    </div>
+                  ) : (
+                    <Editor
+                      height="400px"
+                      defaultLanguage="json"
+                      value={responseBody}
+                      theme="vs-dark"
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 12,
+                        lineNumbers: "on",
+                        scrollBeyondLastLine: false,
+                        wordWrap: "on",
+                        automaticLayout: true,
+                        readOnly: true,
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            </Card>
           </div>
-        </Card>
-      </div>
+        </>
+      )}
     </div>
   );
 }

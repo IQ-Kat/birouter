@@ -32,6 +32,7 @@ const debugItemDefs = [
   { href: "/dashboard/translator", i18nKey: "translator", icon: "translate" },
   { href: "/dashboard/playground", i18nKey: "playground", icon: "science" },
   { href: "/dashboard/media", i18nKey: "media", icon: "auto_awesome" },
+  { href: "/dashboard/search-tools", i18nKey: "searchTools", icon: "manage_search" },
 ];
 
 const systemItemDefs = [
