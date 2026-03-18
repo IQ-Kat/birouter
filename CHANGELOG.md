@@ -4,6 +4,19 @@
 
 ---
 
+## [2.7.3] — 2026-03-18
+
+> Sprint: Codex direct API quota fallback fix.
+
+### 🐛 Bug Fixes
+
+- **fix(codex)**: Block weekly-exhausted accounts in direct API fallback (#440)
+  - `resolveQuotaWindow()` prefix matching: `"weekly"` now matches `"weekly (7d)"` cache keys
+  - `applyCodexWindowPolicy()` enforces `useWeekly`/`use5h` toggles correctly
+  - 4 new regression tests (766 total)
+
+---
+
 ## [2.7.2] — 2026-03-18
 
 > Sprint: Light mode UI contrast fixes.
