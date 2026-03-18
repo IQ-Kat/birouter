@@ -1,16 +1,14 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleChat } from "@/sse/handlers/chat";
-import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 
-let initialized = false;
-
-async function ensureInitialized() {
-  if (!initialized) {
-    await initTranslators();
-    initialized = true;
-    console.log("[SSE] Translators initialized for /v1/responses");
-  }
-}
+// NOTE: We do NOT call initTranslators() here — the translator registry is
+// bootstrapped at module level inside open-sse/translator/index.ts when it
+// is first imported. Calling it again from a Next.js Route Handler caused a
+// "the worker has exited" uncaughtException crash on Codex CLI requests (#450)
+// because the dynamic import runs in a Next.js server worker context where
+// certain Node APIs used by the translator bootstrap are not available.
+// The translators are always initialized via the open-sse side (chatCore),
+// so /v1/responses just delegates to handleChat which handles everything.
 
 export async function OPTIONS() {
   return new Response(null, {
@@ -24,9 +22,8 @@ export async function OPTIONS() {
 
 /**
  * POST /v1/responses - OpenAI Responses API format
- * Now handled by translator pattern (openai-responses format auto-detected)
+ * Handled by the unified chat handler (openai-responses format auto-detected).
  */
 export async function POST(request) {
-  await ensureInitialized();
   return await handleChat(request);
 }
