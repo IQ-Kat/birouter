@@ -83,7 +83,11 @@ export default function BudgetTab() {
         if (data.monthlyLimitUsd)
           setForm((f) => ({ ...f, monthlyLimitUsd: String(data.monthlyLimitUsd) }));
         if (data.warningThreshold)
-          setForm((f) => ({ ...f, warningThreshold: String(data.warningThreshold) }));
+          // stored as fraction (0–1), display as percentage (0–100)
+          setForm((f) => ({
+            ...f,
+            warningThreshold: String(Math.round(data.warningThreshold * 100)),
+          }));
       }
     } catch {
       // silent
@@ -104,7 +108,8 @@ export default function BudgetTab() {
           apiKeyId: selectedKey,
           dailyLimitUsd: form.dailyLimitUsd ? parseFloat(form.dailyLimitUsd) : null,
           monthlyLimitUsd: form.monthlyLimitUsd ? parseFloat(form.monthlyLimitUsd) : null,
-          warningThreshold: parseInt(form.warningThreshold) || 80,
+          // schema expects a fraction (0–1); UI shows percentage (0–100)
+          warningThreshold: (parseInt(form.warningThreshold) || 80) / 100,
         }),
       });
       if (res.ok) {
