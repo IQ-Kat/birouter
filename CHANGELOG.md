@@ -4,6 +4,17 @@
 
 ---
 
+## [2.7.5] — 2026-03-18
+
+> Sprint: UX improvements and Windows CLI healthcheck fix.
+
+### 🐛 Bug Fixes
+
+- **fix(ux)**: Show default password hint on login page — new users now see `"Default password: 123456"` below the password input (#437)
+- **fix(cli)**: Claude CLI and other npm-installed tools now correctly detected as runnable on Windows — spawn uses `shell:true` to resolve `.cmd` wrappers via PATHEXT (#447)
+
+---
+
 ## [2.7.4] — 2026-03-18
 
 > Sprint: Search Tools dashboard, i18n fixes, Copilot limits, Serper validation fix.
