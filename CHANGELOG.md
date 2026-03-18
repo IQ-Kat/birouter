@@ -4,6 +4,18 @@
 
 ---
 
+## [2.7.2] — 2026-03-18
+
+> Sprint: Light mode UI contrast fixes.
+
+### 🐛 Bug Fixes
+
+- **fix(logs)**: Fix light mode contrast in request logs filter buttons and combo badge (#378)
+  - Error/Success/Combo filter buttons now readable in light mode
+  - Combo row badge uses stronger violet in light mode
+
+---
+
 ## [2.7.1] — 2026-03-17
 
 > Sprint: Unified web search routing (POST /v1/search) with 5 providers + Next.js 16.1.7 security fixes (6 CVEs).
