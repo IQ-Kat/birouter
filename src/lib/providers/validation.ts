@@ -445,16 +445,22 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
 async function validateSearchProvider(
   url: string,
   init: RequestInit
-): Promise<{ valid: boolean; error: string | null }> {
+): Promise<{ valid: boolean; error: string | null; unsupported: false }> {
   try {
     const response = await fetch(url, init);
-    if (response.ok) return { valid: true, error: null };
+    if (response.ok) return { valid: true, error: null, unsupported: false };
     if (response.status === 401 || response.status === 403) {
-      return { valid: false, error: "Invalid API key" };
+      return { valid: false, error: "Invalid API key", unsupported: false };
     }
-    return { valid: false, error: `Validation failed: ${response.status}` };
+    // For provider setup we only need to confirm authentication passed.
+    // Search providers may return non-auth statuses for exhausted credits,
+    // rate limiting, or request-shape quirks while still accepting the key.
+    if (response.status < 500) {
+      return { valid: true, error: null, unsupported: false };
+    }
+    return { valid: false, error: `Validation failed: ${response.status}`, unsupported: false };
   } catch (error: any) {
-    return { valid: false, error: error.message || "Validation failed" };
+    return { valid: false, error: error.message || "Validation failed", unsupported: false };
   }
 }
 
