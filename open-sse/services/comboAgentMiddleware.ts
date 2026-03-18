@@ -123,6 +123,20 @@ export function applyToolFilter(
   });
 }
 
+/**
+ * Strip all <omniModel> tags from message content before forwarding to the provider.
+ * The tag is an internal OmniRoute marker; providers must never see it or their
+ * cache will treat every tagged request as a new session (#454).
+ */
+export function stripModelTags(messages: Message[]): Message[] {
+  return messages.map((msg) => {
+    if (typeof msg.content === "string" && CACHE_TAG_PATTERN.test(msg.content)) {
+      return { ...msg, content: msg.content.replace(CACHE_TAG_PATTERN, "").trimEnd() };
+    }
+    return msg;
+  });
+}
+
 // ── Main Middleware ──────────────────────────────────────────────────────────
 
 /**
@@ -157,6 +171,11 @@ export function applyComboAgentMiddleware(
     body.tools as unknown[] | undefined,
     comboConfig.tool_filter_regex
   );
+
+  // 4. Strip internal <omniModel> tags before forwarding to provider (#454)
+  //    These tags are OmniRoute-internal markers and must never reach the provider
+  //    since providers would treat each tagged request as a new cache session.
+  messages = stripModelTags(messages);
 
   return {
     body: {
