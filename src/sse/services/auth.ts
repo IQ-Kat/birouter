@@ -132,12 +132,37 @@ function normalizeWindowName(windowName: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function getLegacyCodexWindows(providerSpecificData: JsonRecord): string[] {
+function uniqueWindows(windows: string[]): string[] {
+  return [...new Set(windows)];
+}
+
+function normalizeCodexWindowName(windowName: string): string {
+  const normalized = windowName.trim().toLowerCase();
+  if (normalized === "session (5h)" || normalized === "5h" || normalized === "five_hour") {
+    return "session";
+  }
+  if (normalized === "weekly (7d)" || normalized === "7d" || normalized === "seven_day") {
+    return "weekly";
+  }
+  return normalized;
+}
+
+function applyCodexWindowPolicy(rawWindows: string[], providerSpecificData: JsonRecord): string[] {
   const codexPolicy = getCodexLimitPolicy(providerSpecificData);
-  const windows: string[] = [];
+  const normalizedRaw = rawWindows.map(normalizeCodexWindowName).filter(Boolean);
+
+  // Preserve explicitly configured custom windows, but enforce canonical Codex windows
+  // from toggles so weekly exhaustion is never skipped when useWeekly=true.
+  let windows = [...normalizedRaw];
+  windows = windows.filter((windowName) => {
+    if (windowName === "session") return codexPolicy.use5h;
+    if (windowName === "weekly") return codexPolicy.useWeekly;
+    return true;
+  });
   if (codexPolicy.use5h) windows.push("session");
   if (codexPolicy.useWeekly) windows.push("weekly");
-  return windows;
+
+  return uniqueWindows(windows);
 }
 
 export function resolveQuotaLimitPolicy(
@@ -149,8 +174,7 @@ export function resolveQuotaLimitPolicy(
   const windows = rawWindows.map(normalizeWindowName).filter(Boolean) as string[];
 
   if (provider === "codex") {
-    const fallbackWindows = getLegacyCodexWindows(providerSpecificData);
-    const defaultWindows = windows.length > 0 ? windows : fallbackWindows;
+    const defaultWindows = applyCodexWindowPolicy(windows, providerSpecificData);
     const enabled = toBooleanOrDefault(rawPolicy.enabled, defaultWindows.length > 0);
 
     return {

@@ -21,6 +21,26 @@ test("resolveQuotaLimitPolicy keeps codex legacy defaults when generic policy is
   assert.equal(policy.thresholdPercent, 90);
 });
 
+test("resolveQuotaLimitPolicy enforces codex weekly window when weekly toggle is enabled", () => {
+  const policy = auth.resolveQuotaLimitPolicy("codex", {
+    codexLimitPolicy: { use5h: true, useWeekly: true },
+    limitPolicy: { enabled: true, windows: ["session"] },
+  });
+
+  assert.equal(policy.enabled, true);
+  assert.deepEqual(policy.windows.sort(), ["session", "weekly"]);
+});
+
+test("resolveQuotaLimitPolicy removes codex weekly window when weekly toggle is disabled", () => {
+  const policy = auth.resolveQuotaLimitPolicy("codex", {
+    codexLimitPolicy: { use5h: true, useWeekly: false },
+    limitPolicy: { enabled: true, windows: ["session", "weekly"] },
+  });
+
+  assert.equal(policy.enabled, true);
+  assert.deepEqual(policy.windows, ["session"]);
+});
+
 test("resolveQuotaLimitPolicy disables non-codex policy by default", () => {
   const policy = auth.resolveQuotaLimitPolicy("openai", {});
   assert.equal(policy.enabled, false);
@@ -57,6 +77,26 @@ test("evaluateQuotaLimitPolicy blocks when configured window reaches threshold",
   assert.equal(result.blocked, true);
   assert.equal(result.reasons.length, 1);
   assert.match(result.reasons[0], /daily usage/i);
+  assert.equal(result.resetAt, resetAt);
+});
+
+test("evaluateQuotaLimitPolicy matches canonical weekly window against labeled cache keys", () => {
+  const resetAt = new Date(Date.now() + 60_000).toISOString();
+  quotaCache.setQuotaCache("conn-policy-weekly-label", "codex", {
+    "weekly (7d)": { remainingPercentage: 0, resetAt },
+  });
+
+  const result = auth.evaluateQuotaLimitPolicy(
+    "codex",
+    buildConnection("conn-policy-weekly-label", {
+      codexLimitPolicy: { use5h: true, useWeekly: true },
+      limitPolicy: { enabled: true, windows: ["weekly"] },
+    })
+  );
+
+  assert.equal(result.blocked, true);
+  assert.equal(result.reasons.length, 1);
+  assert.match(result.reasons[0], /weekly usage/i);
   assert.equal(result.resetAt, resetAt);
 });
 

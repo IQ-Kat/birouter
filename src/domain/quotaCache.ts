@@ -101,6 +101,35 @@ function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
+function normalizeWindowKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function resolveQuotaWindow(
+  quotas: Record<string, QuotaInfo>,
+  windowName: string
+): QuotaInfo | null {
+  const direct = quotas[windowName];
+  if (direct) return direct;
+
+  const normalizedTarget = normalizeWindowKey(windowName);
+  if (!normalizedTarget) return null;
+
+  for (const [key, quota] of Object.entries(quotas)) {
+    const normalizedKey = normalizeWindowKey(key);
+    if (!normalizedKey) continue;
+    if (normalizedKey === normalizedTarget) return quota;
+    // Support canonical selection of generic windows from labeled windows,
+    // e.g. "weekly" from "weekly (7d)" or "session" from "session (5h)".
+    if (normalizedKey.startsWith(`${normalizedTarget} `)) return quota;
+  }
+
+  return null;
+}
+
 function earliestResetAt(quotas: Record<string, QuotaInfo>): string | null {
   let earliest: string | null = null;
   let earliestMs = Infinity;
@@ -201,7 +230,7 @@ export function getQuotaWindowStatus(
 
   const now = Date.now();
 
-  const window = entry.quotas[windowName];
+  const window = resolveQuotaWindow(entry.quotas, windowName);
   if (!window) return null;
 
   const remainingPercentage = clampPercent(window.remainingPercentage);
