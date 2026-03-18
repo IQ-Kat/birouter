@@ -32,6 +32,10 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.next/standalone ./
 # Explicitly copy @swc/helpers — not always traced by standalone output but needed at runtime
 COPY --from=builder /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
+# Explicitly copy pino transport dependencies — pino spawns a worker that requires
+# pino-abstract-transport at runtime; Next.js standalone trace does not capture it (#449)
+COPY --from=builder /app/node_modules/pino-abstract-transport ./node_modules/pino-abstract-transport
+COPY --from=builder /app/node_modules/pino-pretty ./node_modules/pino-pretty
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
 COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
 COPY --from=builder /app/scripts/bootstrap-env.mjs ./bootstrap-env.mjs
