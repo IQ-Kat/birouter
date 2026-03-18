@@ -4,6 +4,21 @@
 
 ---
 
+## [2.7.8] — 2026-03-18
+
+> Sprint: Budget save bug + combo agent features UI + omniModel tag security fix.
+
+### 🐛 Bug Fixes
+
+- **fix(budget)**: "Save Limits" no longer returns 422 — `warningThreshold` is now correctly sent as fraction (0–1) instead of percentage (0–100) (#451)
+- **fix(combos)**: `<omniModel>` internal cache tag is now stripped before forwarding requests to providers, preventing cache session breaks (#454)
+
+### ✨ Features
+
+- **feat(combos)**: Agent Features section added to combo create/edit modal — expose `system_message` override, `tool_filter_regex`, and `context_cache_protection` directly from the dashboard (#454)
+
+---
+
 ## [2.7.7] — 2026-03-18
 
 > Sprint: Docker pino crash, Codex CLI responses worker fix, package-lock sync.
