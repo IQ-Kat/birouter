@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useLocale } from "next-intl";
 import Card from "../Card";
 import { getModelColor } from "@/shared/constants/colors";
 import {
@@ -24,6 +25,14 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+
+function createDateFormatter(locale: string, options: Intl.DateTimeFormatOptions) {
+  try {
+    return new Intl.DateTimeFormat(locale, options);
+  } catch {
+    return new Intl.DateTimeFormat(undefined, options);
+  }
+}
 
 // ── Custom Tooltip for dark theme ──────────────────────────────────────────
 
@@ -724,6 +733,15 @@ export function WeeklyPattern({ weeklyPattern }) {
 // ── MostActiveDay7d ────────────────────────────────────────────────────────
 
 export function MostActiveDay7d({ activityMap }) {
+  const locale = useLocale();
+  const weekdayFormatter = useMemo(
+    () => createDateFormatter(locale, { weekday: "long" }),
+    [locale]
+  );
+  const dateFormatter = useMemo(
+    () => createDateFormatter(locale, { month: "short", day: "numeric" }),
+    [locale]
+  );
   const data = useMemo(() => {
     if (!activityMap) return null;
     const today = new Date();
@@ -743,27 +761,12 @@ export function MostActiveDay7d({ activityMap }) {
     if (!peakKey || peakVal === 0) return null;
 
     const peakDate = new Date(peakKey + "T12:00:00");
-    const weekdays = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
-    const months = [
-      "jan",
-      "fev",
-      "mar",
-      "abr",
-      "mai",
-      "jun",
-      "jul",
-      "ago",
-      "set",
-      "out",
-      "nov",
-      "dez",
-    ];
     return {
-      weekday: weekdays[peakDate.getDay()],
-      label: `${peakDate.getDate()} de ${months[peakDate.getMonth()]}`,
+      weekday: weekdayFormatter.format(peakDate),
+      label: dateFormatter.format(peakDate),
       tokens: peakVal,
     };
-  }, [activityMap]);
+  }, [activityMap, dateFormatter, weekdayFormatter]);
 
   return (
     <Card className="p-4 flex flex-col justify-center" style={{ flex: 1, minHeight: 0 }}>
@@ -784,7 +787,7 @@ export function MostActiveDay7d({ activityMap }) {
         </>
       ) : (
         <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-          Sem dados nos últimos 7 dias
+          No data in the last 7 days
         </span>
       )}
     </Card>
@@ -794,6 +797,15 @@ export function MostActiveDay7d({ activityMap }) {
 // ── WeeklySquares7d ────────────────────────────────────────────────────────
 
 export function WeeklySquares7d({ activityMap }) {
+  const locale = useLocale();
+  const weekdayFormatter = useMemo(
+    () => createDateFormatter(locale, { weekday: "short" }),
+    [locale]
+  );
+  const dateFormatter = useMemo(
+    () => createDateFormatter(locale, { month: "short", day: "numeric" }),
+    [locale]
+  );
   const days = useMemo(() => {
     if (!activityMap) return [];
     const today = new Date();
@@ -806,11 +818,15 @@ export function WeeklySquares7d({ activityMap }) {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const val = activityMap[key] || 0;
       if (val > maxVal) maxVal = val;
-      const shortDays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
-      result.push({ key, val, label: shortDays[d.getDay()] });
+      result.push({
+        key,
+        val,
+        label: weekdayFormatter.format(d),
+        dateLabel: dateFormatter.format(d),
+      });
     }
     return result.map((d) => ({ ...d, intensity: maxVal > 0 ? d.val / maxVal : 0 }));
-  }, [activityMap]);
+  }, [activityMap, dateFormatter, weekdayFormatter]);
 
   function getSquareStyle(intensity) {
     if (intensity === 0) return { background: "rgba(255,255,255,0.04)" };
@@ -829,11 +845,11 @@ export function WeeklySquares7d({ activityMap }) {
       <div style={{ display: "flex", alignItems: "flex-end", gap: 6, justifyContent: "center" }}>
         {days.map((d, i) => (
           <div
-            key={i}
+            key={d.key}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}
           >
             <div
-              title={`${d.key}: ${fmtFull(d.val)} tokens`}
+              title={`${d.dateLabel}: ${fmtFull(d.val)} tokens`}
               style={{
                 width: 36,
                 height: 36,
