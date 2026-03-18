@@ -203,6 +203,7 @@ export default function LoginPage() {
                   {error}
                 </p>
               )}
+              <p className="text-xs text-text-muted/60 pt-0.5">{t("defaultPasswordHint")}</p>
             </div>
 
             <Button

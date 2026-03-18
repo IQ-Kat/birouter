@@ -121,7 +121,14 @@ const runProcess = (
     let timedOut = false;
     let settled = false;
 
-    const child = spawn(command, args, { env, stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(command, args, {
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+      // On Windows, npm installs CLI wrappers as .cmd scripts (e.g. claude.cmd).
+      // Without shell:true, spawn cannot resolve them via PATHEXT and the
+      // healthcheck fails even when the CLI is correctly installed (#447).
+      ...(isWindows() ? { shell: true } : {}),
+    });
     const timer = setTimeout(() => {
       timedOut = true;
       child.kill("SIGKILL");

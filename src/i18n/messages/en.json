@@ -2293,7 +2293,8 @@
     "orRemovePasswordHashField": "or remove the passwordHash field",
     "restartServerWithNewPassword": "Restart the server - it will use the new password",
     "backToLogin": "Back to Login",
-    "forgotPassword": "Forgot password?"
+    "forgotPassword": "Forgot password?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
   },
   "landing": {
     "brandName": "OmniRoute",
