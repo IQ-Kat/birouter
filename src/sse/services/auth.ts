@@ -136,7 +136,8 @@ function uniqueWindows(windows: string[]): string[] {
   return [...new Set(windows)];
 }
 
-function normalizeCodexWindowName(windowName: string): string {
+function normalizeCodexWindowName(windowName: unknown): string | null {
+  if (typeof windowName !== "string") return null;
   const normalized = windowName.trim().toLowerCase();
   if (normalized === "session (5h)" || normalized === "5h" || normalized === "five_hour") {
     return "session";
@@ -149,7 +150,7 @@ function normalizeCodexWindowName(windowName: string): string {
 
 function applyCodexWindowPolicy(rawWindows: string[], providerSpecificData: JsonRecord): string[] {
   const codexPolicy = getCodexLimitPolicy(providerSpecificData);
-  const normalizedRaw = rawWindows.map(normalizeCodexWindowName).filter(Boolean);
+  const normalizedRaw = rawWindows.map(normalizeCodexWindowName).filter(Boolean) as string[];
 
   // Preserve explicitly configured custom windows, but enforce canonical Codex windows
   // from toggles so weekly exhaustion is never skipped when useWeekly=true.

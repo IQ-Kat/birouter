@@ -101,7 +101,8 @@ function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
-function normalizeWindowKey(value: string): string {
+function normalizeWindowKey(value: unknown): string {
+  if (typeof value !== "string") return "";
   return value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
@@ -118,13 +119,22 @@ function resolveQuotaWindow(
   const normalizedTarget = normalizeWindowKey(windowName);
   if (!normalizedTarget) return null;
 
+  const prefixMatches: Array<{ key: string; quota: QuotaInfo }> = [];
   for (const [key, quota] of Object.entries(quotas)) {
     const normalizedKey = normalizeWindowKey(key);
     if (!normalizedKey) continue;
     if (normalizedKey === normalizedTarget) return quota;
     // Support canonical selection of generic windows from labeled windows,
     // e.g. "weekly" from "weekly (7d)" or "session" from "session (5h)".
-    if (normalizedKey.startsWith(`${normalizedTarget} `)) return quota;
+    if (normalizedKey.startsWith(`${normalizedTarget} `)) {
+      prefixMatches.push({ key, quota });
+    }
+  }
+
+  // Deterministic fallback: choose the lexicographically first matching key.
+  if (prefixMatches.length > 0) {
+    prefixMatches.sort((a, b) => a.key.localeCompare(b.key));
+    return prefixMatches[0].quota;
   }
 
   return null;
