@@ -39,10 +39,10 @@ export default function APIPageClient({ machineId }) {
 
   const fetchSearchProviders = async () => {
     try {
-      const res = await fetch("/v1/search");
+      const res = await fetch("/api/search/providers");
       if (res.ok) {
         const data = await res.json();
-        setSearchProviders(data.data || []);
+        setSearchProviders(data.providers || []);
       }
     } catch {
       // Search endpoint may not be available

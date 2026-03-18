@@ -75,7 +75,12 @@ interface SearchHandlerOptions {
   timeRange?: string;
   offset?: number;
   domainFilter?: string[];
-  contentOptions?: { snippet?: boolean; full_page?: boolean; format?: string; max_characters?: number };
+  contentOptions?: {
+    snippet?: boolean;
+    full_page?: boolean;
+    format?: string;
+    max_characters?: number;
+  };
   strictFilters?: boolean;
   providerOptions?: Record<string, unknown>;
   credentials: Record<string, any>;
@@ -189,7 +194,9 @@ function normalizeBraveResponse(
   searchType: string
 ): { results: SearchResult[]; totalResults: number | null } {
   const now = new Date().toISOString();
-  const container = searchType === "news" ? data.news : data.web;
+  // Brave news endpoint returns { results: [...] } directly,
+  // while web endpoint returns { web: { results: [...] } }
+  const container = searchType === "news" ? data.news || data : data.web;
   const items = container?.results;
   if (!Array.isArray(items)) return { results: [], totalResults: null };
 
@@ -593,7 +600,9 @@ async function tryProvider(
           search_type: searchType,
           max_results: maxResults,
         },
-      }).catch(() => { /* non-critical — logging must not block search response */ });
+      }).catch(() => {
+        /* non-critical — logging must not block search response */
+      });
 
       return {
         success: false,
@@ -603,7 +612,10 @@ async function tryProvider(
     }
 
     const data = await response.json();
-    const { results, totalResults } = normalizeResponse(config.id, data, query, searchType);
+    const normalized = normalizeResponse(config.id, data, query, searchType);
+    // Enforce max_results — some providers return more than requested
+    const results = normalized.results.slice(0, maxResults);
+    const totalResults = normalized.totalResults;
     const duration = Date.now() - startTime;
 
     saveCallLog({
@@ -617,7 +629,9 @@ async function tryProvider(
       tokens: { prompt_tokens: 0, completion_tokens: 0 },
       requestBody: { query: query.slice(0, 200), search_type: searchType, max_results: maxResults },
       responseBody: { results_count: results.length, cached: false },
-    }).catch(() => { /* non-critical — logging must not block search response */ });
+    }).catch(() => {
+      /* non-critical — logging must not block search response */
+    });
 
     return {
       success: true,
@@ -653,7 +667,9 @@ async function tryProvider(
       requestType: "search",
       error: err.message,
       requestBody: { query: query.slice(0, 200), search_type: searchType, max_results: maxResults },
-    }).catch(() => { /* non-critical — logging must not block search response */ });
+    }).catch(() => {
+      /* non-critical — logging must not block search response */
+    });
 
     return {
       success: false,
