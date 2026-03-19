@@ -223,21 +223,21 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             </div>
           ) : (
             <>
-              {/* Request Payload */}
-              {requestJson && (
+              {/* Response Payload (返回) — show first */}
+              {responseJson && (
                 <PayloadSection
-                  title="Request Payload"
-                  json={requestJson}
-                  onCopy={() => onCopy(requestJson)}
+                  title="Response Payload (返回)"
+                  json={responseJson}
+                  onCopy={() => onCopy(responseJson)}
                 />
               )}
 
-              {/* Response Payload */}
-              {responseJson && (
+              {/* Request Payload (请求) */}
+              {requestJson && (
                 <PayloadSection
-                  title="Response Payload"
-                  json={responseJson}
-                  onCopy={() => onCopy(responseJson)}
+                  title="Request Payload (请求)"
+                  json={requestJson}
+                  onCopy={() => onCopy(requestJson)}
                 />
               )}
 
