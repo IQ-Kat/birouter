@@ -288,6 +288,15 @@ const LOCALE_SPECS = [
     readmeName: "Filipino",
     docsName: "Filipino",
   },
+  {
+    code: "cs",
+    googleTl: "cs",
+    label: "CS",
+    flag: "🇨🇿",
+    languageName: "Čeština",
+    readmeName: "Čeština",
+    docsName: "Čeština",
+  },
 ];
 
 const EXISTING_README_CODES = new Set(["pt-BR", "es", "fr", "it", "ru", "zh-CN", "de"]);
