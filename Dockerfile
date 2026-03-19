@@ -36,6 +36,7 @@ COPY --from=builder /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
 # pino-abstract-transport at runtime; Next.js standalone trace does not capture it (#449)
 COPY --from=builder /app/node_modules/pino-abstract-transport ./node_modules/pino-abstract-transport
 COPY --from=builder /app/node_modules/pino-pretty ./node_modules/pino-pretty
+COPY --from=builder /app/node_modules/split2 ./node_modules/split2
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
 COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
 COPY --from=builder /app/scripts/bootstrap-env.mjs ./bootstrap-env.mjs
