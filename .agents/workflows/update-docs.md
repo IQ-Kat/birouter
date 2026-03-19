@@ -56,13 +56,13 @@ README.pt-BR.md README.pt.md README.es.md README.fr.md README.it.md
 README.de.md README.nl.md README.sv.md README.no.md README.da.md README.fi.md
 README.ru.md README.uk-UA.md README.bg.md README.sk.md README.pl.md README.ro.md README.hu.md
 README.ar.md README.he.md README.th.md README.in.md README.id.md README.ms.md README.vi.md
-README.ja.md README.ko.md README.zh-CN.md README.phi.md
+README.ja.md README.ko.md README.zh-CN.md README.phi.md README.cs.md
 ```
 
 **docs/i18n/ directories (29 languages):**
 
 ```
-docs/i18n/{ar,bg,da,de,es,fi,fr,he,hu,id,in,it,ja,ko,ms,nl,no,phi,pl,pt,pt-BR,ro,ru,sk,sv,th,uk-UA,vi,zh-CN}/
+docs/i18n/{ar,bg,cs,da,de,es,fi,fr,he,hu,id,in,it,ja,ko,ms,nl,no,phi,pl,pt,pt-BR,ro,ru,sk,sv,th,uk-UA,vi,zh-CN}/
 Each contains: API_REFERENCE.md, ARCHITECTURE.md, CODEBASE_DOCUMENTATION.md, FEATURES.md, TROUBLESHOOTING.md, USER_GUIDE.md
 ```
 

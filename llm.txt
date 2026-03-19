@@ -59,7 +59,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   └── login/                # Login page
 │   ├── domain/                   # Domain types and business logic interfaces
 │   ├── i18n/                     # Internationalization
-│   │   └── messages/             # 30 language JSON files (ar, bg, da, de, en, es, fi, fr, he, hu, id, in, it, ja, ko, ms, nl, no, phi, pl, pt, pt-BR, ro, ru, sk, sv, th, uk-UA, vi, zh-CN)
+│   │   └── messages/             # 30 language JSON files (ar, bg, cs, da, de, en, es, fi, fr, he, hu, id, in, it, ja, ko, ms, nl, no, phi, pl, pt, pt-BR, ro, ru, sk, sv, th, uk-UA, vi, zh-CN)
 │   ├── lib/                      # Core libraries
 │   │   ├── acp/                  # ACP agent registry and manager (14 built-in agents + custom)
 │   │   ├── db/                   # SQLite database layer (providers, combos, prompts, logs)
@@ -91,7 +91,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   ├── unit/                     # Unit tests (32+ test files)
 │   └── integration/              # Integration tests
 ├── docs/                         # Documentation (with 29-language i18n subdirectories)
-│   ├── i18n/                     # Translated docs (ar, bg, da, de, es, fi, fr, he, hu, id, in, it, ja, ko, ms, nl, no, phi, pl, pt, pt-BR, ro, ru, sk, sv, th, uk-UA, vi, zh-CN)
+│   ├── i18n/                     # Translated docs (ar, bg, cs, da, de, es, fi, fr, he, hu, id, in, it, ja, ko, ms, nl, no, phi, pl, pt, pt-BR, ro, ru, sk, sv, th, uk-UA, vi, zh-CN)
 │   ├── screenshots/              # Dashboard screenshots
 │   ├── a2a-server.md             # A2A agent protocol documentation
 │   ├── auto-combo.md             # Auto-combo engine (6-factor scoring)
