@@ -2,6 +2,47 @@
 // All rates are in dollars per million tokens ($/1M tokens)
 // Based on user-provided pricing for Antigravity models and industry standards for others
 
+// Shared pricing constants to reduce duplication
+const GPT_5_3_CODEX_PRICING = {
+  input: 5.0,
+  output: 20.0,
+  cached: 2.5,
+  reasoning: 30.0,
+  cache_creation: 5.0,
+};
+
+const CLAUDE_OPUS_4_PRICING = {
+  input: 15.0,
+  output: 75.0,
+  cached: 7.5,
+  reasoning: 112.5,
+  cache_creation: 15.0,
+};
+
+const CLAUDE_SONNET_4_PRICING = {
+  input: 3.0,
+  output: 15.0,
+  cached: 1.5,
+  reasoning: 15.0,
+  cache_creation: 3.0,
+};
+
+const CLAUDE_OPUS_46_PRICING = {
+  input: 5.0,
+  output: 25.0,
+  cached: 2.5,
+  reasoning: 37.5,
+  cache_creation: 5.0,
+};
+
+const CLAUDE_SONNET_46_PRICING = {
+  input: 3.0,
+  output: 15.0,
+  cached: 1.5,
+  reasoning: 22.5,
+  cache_creation: 3.0,
+};
+
 export const DEFAULT_PRICING = {
   // OAuth Providers (using aliases)
 
@@ -46,13 +87,33 @@ export const DEFAULT_PRICING = {
 
   // OpenAI Codex (cx)
   cx: {
-    // Issue #334: add gpt5.4
+    // GPT 5.4
+    "gpt-5.4": {
+      input: 5.0,
+      output: 20.0,
+      cached: 2.5,
+      reasoning: 30.0,
+      cache_creation: 5.0,
+    },
     "gpt5.4": {
       input: 5.0,
       output: 20.0,
       cached: 2.5,
       reasoning: 30.0,
       cache_creation: 5.0,
+    },
+    // GPT 5.3 Codex family (all same pricing tier)
+    "gpt-5.3-codex": GPT_5_3_CODEX_PRICING,
+    "gpt-5.3-codex-xhigh": GPT_5_3_CODEX_PRICING,
+    "gpt-5.3-codex-high": GPT_5_3_CODEX_PRICING,
+    "gpt-5.3-codex-low": GPT_5_3_CODEX_PRICING,
+    "gpt-5.3-codex-none": GPT_5_3_CODEX_PRICING,
+    "gpt-5.1-codex-mini-high": {
+      input: 1.5,
+      output: 6.0,
+      cached: 0.75,
+      reasoning: 9.0,
+      cache_creation: 1.5,
     },
     "gpt-5.2-codex": {
       input: 5.0,
@@ -525,6 +586,15 @@ export const DEFAULT_PRICING = {
       reasoning: 37.5,
       cache_creation: 5.0,
     },
+    // Common model IDs (without dates) used across providers
+    // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
+    // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
+    "claude-opus-4-6": CLAUDE_OPUS_46_PRICING,
+    "claude-sonnet-4-6": CLAUDE_SONNET_46_PRICING,
+    "claude-opus-4-5-20251101": CLAUDE_OPUS_4_PRICING,
+    "claude-sonnet-4-5-20250929": CLAUDE_SONNET_4_PRICING,
+    "claude-sonnet-4": CLAUDE_SONNET_4_PRICING,
+    "claude-opus-4": CLAUDE_OPUS_4_PRICING,
   },
 
   // Gemini
