@@ -4,6 +4,25 @@
 
 ---
 
+## [2.8.3] — 2026-03-19
+
+> Sprint: Czech i18n, SSE protocol fix, VM guide translation.
+
+### Features
+
+- **Czech Language** (#482): Full Czech (cs) i18n — 22 docs, 2606 UI strings, language switcher updates (@zen0bit)
+- **VM Deployment Guide**: Translated from Portuguese to English as the source document (@zen0bit)
+
+### Bug Fixes
+
+- **SSE Protocol** (#483): Stop sending trailing `data: null` after `[DONE]` signal — fixes `AI_TypeValidationError` in strict AI SDK clients (Zod-based validators)
+
+### Merged PRs
+
+- #482 — Add Czech language + Fix VM_DEPLOYMENT_GUIDE.md English source (@zen0bit)
+
+---
+
 ## [2.8.2] — 2026-03-19
 
 > Sprint: 2 merged PRs, model aliases routing fix, log export, and issue triage.
