@@ -63,6 +63,13 @@ test.describe("Bailian Coding Plan Provider", () => {
     const redirectedToLogin = page.url().includes("/login");
     test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
 
+    // Dismiss any pre-existing dialog/overlay that may appear on page load
+    const preExistingDialog = page.getByRole("dialog").first();
+    if (await preExistingDialog.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await page.keyboard.press("Escape");
+      await preExistingDialog.waitFor({ state: "hidden", timeout: 3000 }).catch(() => {});
+    }
+
     const addKeyButton = page.getByRole("button", {
       name: /add.*api.*key|add.*key|add.*connection|connect/i,
     });
@@ -174,6 +181,13 @@ test.describe("Bailian Coding Plan Provider", () => {
 
     const redirectedToLogin = page.url().includes("/login");
     test.skip(redirectedToLogin, "Authentication enabled without a login fixture.");
+
+    // Dismiss any pre-existing dialog/overlay that may appear on page load
+    const preExistingDialog = page.getByRole("dialog").first();
+    if (await preExistingDialog.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await page.keyboard.press("Escape");
+      await preExistingDialog.waitFor({ state: "hidden", timeout: 3000 }).catch(() => {});
+    }
 
     const addKeyButton = page.getByRole("button", {
       name: /add.*api.*key|add.*key|add.*connection|connect/i,
