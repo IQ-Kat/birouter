@@ -10,6 +10,9 @@ export const FREE_PROVIDERS = {
     name: "Gemini CLI",
     icon: "terminal",
     color: "#4285F4",
+    deprecated: true,
+    deprecationReason:
+      "Google restricts third-party OAuth usage for Gemini CLI (Mar 2026). Pro models require paid plans. Use 'gemini' (API key) provider instead.",
   },
   kiro: { id: "kiro", alias: "kr", name: "Kiro AI", icon: "psychology_alt", color: "#FF6B35" },
 };

@@ -1,73 +1,71 @@
-🌐 **Languages:** 🇺🇸 [English](../../README.md) · 🇧🇷 [pt-BR](../pt-BR/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../es/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../fr/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../de/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../it/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../ru/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../zh-CN/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../ja/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../ko/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../ar/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [in](../in/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../th/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../vi/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../id/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../ms/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../nl/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../pl/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../sv/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../no/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../da/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../fi/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../pt/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../ro/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../hu/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../bg/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../sk/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../uk-UA/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../he/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../phi/VM_DEPLOYMENT_GUIDE.md)
+# OmniRoute — Gabay sa Deployment sa VM gamit ang Cloudflare
+
+🌐 **Languages:** 🇺🇸 [English](../../VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../pt-BR/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../es/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../fr/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../it/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../ru/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../zh-CN/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../de/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../in/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../th/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../uk-UA/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../ar/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../ja/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../vi/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../bg/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../da/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../fi/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../he/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../hu/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../id/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../ko/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../ms/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../nl/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../no/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../pt/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../ro/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../pl/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../sk/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../sv/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../phi/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../cs/VM_DEPLOYMENT_GUIDE.md)
+
+Kumpletong gabay sa pag-install at pag-configure ng OmniRoute sa isang VM (VPS) na may domain na pinamamahalaan sa pamamagitan ng Cloudflare.
 
 ---
 
-# OmniRoute — Guia de Deploy em VM com Cloudflare
+## Mga kinakailangan
 
-Guia completo para instalar e configurar o OmniRoute em uma VM (VPS) com domínio gerenciado via Cloudflare.
+| aytem      | Pinakamababa               | Inirerekomenda   |
+| ---------- | -------------------------- | ---------------- |
+| **CPU**    | 1 vCPU                     | 2 vCPU           |
+| **RAM**    | 1 GB                       | 2 GB             |
+| **Disk**   | 10 GB SSD                  | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS           | Ubuntu 24.04 LTS |
+| **Domain** | Nakarehistro sa Cloudflare | —                |
+| **Docker** | Docker Engine 24+          | Docker 27+       |
 
----
-
-## Pré-Requisitos
-
-| Item        | Mínimo                   | Recomendado      |
-| ----------- | ------------------------ | ---------------- |
-| **CPU**     | 1 vCPU                   | 2 vCPU           |
-| **RAM**     | 1 GB                     | 2 GB             |
-| **Disco**   | 10 GB SSD                | 25 GB SSD        |
-| **SO**      | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domínio** | Registrado no Cloudflare | —                |
-| **Docker**  | Docker Engine 24+        | Docker 27+       |
-
-**Providers testados**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**Mga nasubok na provider**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configurar a VM
+## 1. I-configure ang VM
 
-### 1.1 Criar a instância
+### 1.1 Lumikha ng instance
 
-No seu provider de VPS preferido:
+Sa iyong gustong VPS provider:
 
-- Escolha Ubuntu 24.04 LTS
-- Selecione o plano mínimo (1 vCPU / 1 GB RAM)
-- Defina uma senha forte para root ou configure SSH key
-- Anote o **IP público** (ex: `203.0.113.10`)
+- Piliin ang Ubuntu 24.04 LTS
+- Piliin ang minimum na plano (1 vCPU / 1 GB RAM)
+- Magtakda ng malakas na root password o i-configure ang SSH key
+- Tandaan ang **pampublikong IP** (hal., `203.0.113.10`)
 
-### 1.2 Conectar via SSH
+### 1.2 Kumonekta sa pamamagitan ng SSH
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Atualizar o sistema
+### 1.3 I-update ang system
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Instalar Docker
+### 1.4 I-install ang Docker
 
 ```bash
-# Instalar dependências
+# Install dependencies
 apt install -y ca-certificates curl gnupg
 
-# Adicionar repositório oficial do Docker
+# Add official Docker repository
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Instalar nginx
+### 1.5 I-install ang nginx
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configurar Firewall (UFW)
+### 1.6 I-configure ang Firewall (UFW)
 
 ```bash
 ufw default deny incoming
@@ -78,29 +76,29 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Dica**: Para segurança máxima, restrinja as portas 80 e 443 apenas para IPs da Cloudflare. Veja a seção [Segurança Avançada](#segurança-avançada).
+> **Tip**: Para sa maximum na seguridad, paghigpitan ang mga port 80 at 443 sa mga Cloudflare IP lamang. Tingnan ang seksyong [Advanced Security](#advanced-security).
 
 ---
 
-## 2. Instalar o OmniRoute
+## 2. I-install ang OmniRoute
 
-### 2.1 Criar diretório de configuração
+### 2.1 Lumikha ng direktoryo ng pagsasaayos
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Criar arquivo de variáveis de ambiente
+### 2.2 Lumikha ng file ng mga variable ng kapaligiran
 
 ```bash
-cat > /opt/omniroute/.env << 'EOF'
-# === Segurança ===
-JWT_SECRET=ALTERE-PARA-CHAVE-SECRETA-UNICA-64-CHARS
-INITIAL_PASSWORD=SuaSenhaSegura123!
-API_KEY_SECRET=ALTERE-PARA-OUTRA-CHAVE-SECRETA
-STORAGE_ENCRYPTION_KEY=ALTERE-PARA-TERCEIRA-CHAVE-SECRETA
+cat > /opt/omniroute/.env << ‘EOF’
+# === Security ===
+JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
+INITIAL_PASSWORD=YourSecurePassword123!
+API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
+STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
-MACHINE_ID_SALT=ALTERE-PARA-SALT-UNICO
+MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
 
 # === App ===
 PORT=20128
@@ -112,19 +110,19 @@ ENABLE_REQUEST_LOGS=true
 AUTH_COOKIE_SECURE=false
 REQUIRE_API_KEY=false
 
-# === Domain (altere para seu domínio) ===
+# === Domain (change to your domain) ===
 BASE_URL=https://llms.seudominio.com
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (opcional) ===
+# === Cloud Sync (optional) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANTE**: Gere chaves secretas únicas! Use `openssl rand -hex 32` para cada chave.
+> ⚠️ **MAHALAGA**: Bumuo ng mga natatanging lihim na key! Gamitin ang `openssl rand -hex 32` para sa bawat key.
 
-### 2.3 Iniciar o container
+### 2.3 Simulan ang lalagyan
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +136,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verificar se está rodando
+### 2.4 I-verify na ito ay tumatakbo
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-Deve exibir: `[DB] SQLite database ready` e `listening on port 20128`.
+Dapat itong magpakita ng: `[DB] SQLite database ready` at `listening on port 20128`.
 
 ---
 
-## 3. Configurar nginx (Reverse Proxy)
+## 3. I-configure ang nginx (Reverse Proxy)
 
-### 3.1 Gerar certificado SSL (Cloudflare Origin)
+### 3.1 Bumuo ng SSL certificate (Cloudflare Origin)
 
-No painel da Cloudflare:
+Sa dashboard ng Cloudflare:
 
-1. Vá em **SSL/TLS → Origin Server**
-2. Clique **Create Certificate**
-3. Deixe os padrões (15 anos, \*.seudominio.com)
-4. Copie o **Origin Certificate** e a **Private Key**
+1. Pumunta sa **SSL/TLS → Origin Server**
+2. I-click ang **Gumawa ng Sertipiko**
+3. Panatilihin ang mga default (15 taon, \*.yourdomain.com)
+4. Kopyahin ang **Origin Certificate** at ang **Private Key**
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Colar o certificado
+# Paste the certificate
 nano /etc/nginx/ssl/origin.crt
 
-# Colar a chave privada
+# Paste the private key
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Configuração do nginx
+### 3.2 Configuration ng Nginx
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << 'NGINX'
-# Default server — bloqueia acesso direto por IP
+cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
+# Default server — blocks direct access via IP
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +190,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.seudominio.com;  # Altere para seu domínio
+    server_name llms.yourdomain.com;  # Change to your domain
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -210,7 +208,7 @@ server {
         # WebSocket support
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_set_header Connection “upgrade”;
 
         # SSE (Server-Sent Events) — streaming AI responses
         proxy_buffering off;
@@ -224,61 +222,61 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name llms.seudominio.com;
+    server_name llms.yourdomain.com;
     return 301 https://$server_name$request_uri;
 }
 NGINX
 ```
 
-### 3.3 Ativar e testar
+### 3.3 Paganahin at Pagsubok
 
 ```bash
-# Remover config padrão
+# Remove default configuration
 rm -f /etc/nginx/sites-enabled/default
 
-# Ativar OmniRoute
+# Enable OmniRoute
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Testar e recarregar
+# Test and reload
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configurar Cloudflare DNS
+## 4. I-configure ang Cloudflare DNS
 
-### 4.1 Adicionar registro DNS
+### 4.1 Magdagdag ng DNS record
 
-No painel da Cloudflare → DNS:
+Sa Cloudflare dashboard → DNS:
 
-| Type | Name   | Content                   | Proxy      |
-| ---- | ------ | ------------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (IP da VM) | ✅ Proxied |
+| Uri   | Pangalan | Nilalaman              | Proxy      |
+| ----- | -------- | ---------------------- | ---------- |
+| Isang | `llms`   | `203.0.113.10` (VM IP) | ✅ Proxied |
 
-### 4.2 Configurar SSL
+### 4.2 I-configure ang SSL
 
-Em **SSL/TLS → Overview**:
+Sa ilalim ng **SSL/TLS → Pangkalahatang-ideya**:
 
-- Modo: **Full (Strict)**
+- Mode: **Buong (Mahigpit)**
 
-Em **SSL/TLS → Edge Certificates**:
+Sa ilalim ng **SSL/TLS → Edge Certificates**:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- Palaging Gumamit ng HTTPS: ✅ Naka-on
+- Minimum na Bersyon ng TLS: TLS 1.2
+- Mga Awtomatikong HTTPS Rewrite: ✅ Naka-on
 
-### 4.3 Testar
+### 4.3 Pagsubok
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Deve retornar HTTP/2 200
+# Should return HTTP/2 200
 ```
 
 ---
 
-## 5. Operações e Manutenção
+## 5. Mga Operasyon at Pagpapanatili
 
-### Atualizar para nova versão
+### Mag-upgrade sa bagong bersyon
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -290,42 +288,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### Ver logs
+### Tingnan ang mga log
 
 ```bash
-docker logs -f omniroute          # Stream em tempo real
-docker logs omniroute --tail 50   # Últimas 50 linhas
+docker logs -f omniroute          # Real-time stream
+docker logs omniroute --tail 50   # Last 50 lines
 ```
 
-### Backup manual do banco
+### Manu-manong backup ng database
 
 ```bash
-# Copiar dados do volume para o host
+# Copy data from the volume to the host
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Ou comprimir todo o volume
+# Or compress the entire volume
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restaurar de backup
+### Ibalik mula sa backup
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
+  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
 docker start omniroute
 ```
 
 ---
 
-## 6. Segurança Avançada
+## 6. Advanced na Seguridad
 
-### Restringir nginx para Cloudflare IPs
+### Limitahan ang nginx sa mga Cloudflare IP
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << 'CF'
-# Cloudflare IPv4 ranges — atualizar periodicamente
+cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
+# Cloudflare IPv4 ranges — update periodically
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -346,58 +344,58 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Adicionar no `nginx.conf` dentro do bloco `http {}`:
+Idagdag ang sumusunod sa `nginx.conf` sa loob ng `http {}` block:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### I-install ang fail2ban
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Verificar status
+# Check status
 fail2ban-client status sshd
 ```
 
-### Bloquear acesso direto na porta do Docker
+### I-block ang direktang access sa Docker port
 
 ```bash
-# Impedir acesso externo direto à porta 20128
+# Prevent direct external access to port 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persistir as regras
+# Persist the rules
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy do Cloud Worker (Opcional)
+## 7. I-deploy sa Cloudflare Workers (Opsyonal)
 
-Para acesso remoto via Cloudflare Workers (sem expor a VM diretamente):
+Para sa malayuang pag-access sa pamamagitan ng Cloudflare Workers (nang hindi direktang inilalantad ang VM):
 
 ```bash
-# No repositório local
+# In the local repository
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-Ver documentação completa em [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+Tingnan ang buong dokumentasyon sa [omnirouteCloud/README.md](../omnirouteCloud/README.md).
 
 ---
 
-## Resumo de Portas
+## Buod ng Port
 
-| Porta | Serviço     | Acesso                        |
-| ----- | ----------- | ----------------------------- |
-| 22    | SSH         | Público (com fail2ban)        |
-| 80    | nginx HTTP  | Redirect → HTTPS              |
-| 443   | nginx HTTPS | Via Cloudflare Proxy          |
-| 20128 | OmniRoute   | Somente localhost (via nginx) |
+| Port  | Serbisyo    | Access                                   |
+| ----- | ----------- | ---------------------------------------- |
+| 22    | SSH         | Pampubliko (na may fail2ban)             |
+| 80    | nginx HTTP  | I-redirect → HTTPS                       |
+| 443   | nginx HTTPS | Sa pamamagitan ng Cloudflare Proxy       |
+| 20128 | OmniRoute   | Localhost lang (sa pamamagitan ng nginx) |

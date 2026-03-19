@@ -19,6 +19,12 @@ export const ProviderSchema = z.object({
   textIcon: z.string().optional(),
   website: z.string().url().optional(),
   passthroughModels: z.boolean().optional(),
+  deprecated: z.boolean().optional(),
+  deprecationReason: z.string().optional(),
+  hasFree: z.boolean().optional(),
+  freeNote: z.string().optional(),
+  authHint: z.string().optional(),
+  apiHint: z.string().optional(),
 });
 
 export const ProvidersMapSchema = z.record(z.string(), ProviderSchema);

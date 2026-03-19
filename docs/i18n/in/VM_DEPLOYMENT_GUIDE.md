@@ -1,73 +1,69 @@
-🌐 **Languages:** 🇺🇸 [English](../../README.md) · 🇧🇷 [pt-BR](../pt-BR/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../es/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../fr/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../de/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../it/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../ru/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../zh-CN/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../ja/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../ko/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../ar/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [in](../in/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../th/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../vi/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../id/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../ms/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../nl/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../pl/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../sv/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../no/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../da/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../fi/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../pt/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../ro/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../hu/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../bg/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../sk/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../uk-UA/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../he/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../phi/VM_DEPLOYMENT_GUIDE.md)
+# ओमनीरूट - क्लाउडफ्लेयर के साथ वीएम पर परिनियोजन गाइड
+
+🌐 **Languages:** 🇺🇸 [English](../../VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../pt-BR/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../es/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../fr/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../it/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../ru/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../zh-CN/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../de/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../in/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../th/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../uk-UA/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../ar/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../ja/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../vi/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../bg/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../da/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../fi/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../he/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../hu/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../id/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../ko/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../ms/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../nl/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../no/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../pt/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../ro/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../pl/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../sk/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../sv/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../phi/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../cs/VM_DEPLOYMENT_GUIDE.md)
+
+क्लाउडफ्लेयर के माध्यम से प्रबंधित डोमेन के साथ वीएम (वीपीएस) पर ओमनीरूट को स्थापित और कॉन्फ़िगर करने के लिए पूरी गाइड।
 
 ---
 
-# OmniRoute — Guia de Deploy em VM com Cloudflare
+## पूर्वावश्यकताएँ
 
-Guia completo para instalar e configurar o OmniRoute em uma VM (VPS) com domínio gerenciado via Cloudflare.
+| आइटम       | न्यूनतम               | अनुशंसित           |
+| ---------- | --------------------- | ------------------ |
+| **सीपीयू** | 1 वीसीपीयू            | 2 वीसीपीयू         |
+| **राम**    | 1 जीबी                | 2 जीबी             |
+| **डिस्क**  | 10 जीबी एसएसडी        | 25 जीबी एसएसडी     |
+| **ओएस**    | उबंटू 22.04 एलटीएस    | उबंटू 24.04 एलटीएस |
+| **डोमेन**  | Cloudflare पर पंजीकृत | —                  |
+| **डॉकर**   | डॉकर इंजन 24+         | डॉकर 27+           |
 
----
-
-## Pré-Requisitos
-
-| Item        | Mínimo                   | Recomendado      |
-| ----------- | ------------------------ | ---------------- |
-| **CPU**     | 1 vCPU                   | 2 vCPU           |
-| **RAM**     | 1 GB                     | 2 GB             |
-| **Disco**   | 10 GB SSD                | 25 GB SSD        |
-| **SO**      | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domínio** | Registrado no Cloudflare | —                |
-| **Docker**  | Docker Engine 24+        | Docker 27+       |
-
-**Providers testados**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**परीक्षित प्रदाता**: अकामाई (लिनोड), डिजिटलओशन, वल्चर, हेट्ज़नर, एडब्ल्यूएस लाइटसेल।
 
 ---
 
-## 1. Configurar a VM
+## 1. वीएम को कॉन्फ़िगर करें
 
-### 1.1 Criar a instância
+### 1.1 उदाहरण बनाएँ
 
-No seu provider de VPS preferido:
+आपके पसंदीदा VPS प्रदाता पर:
 
-- Escolha Ubuntu 24.04 LTS
-- Selecione o plano mínimo (1 vCPU / 1 GB RAM)
-- Defina uma senha forte para root ou configure SSH key
-- Anote o **IP público** (ex: `203.0.113.10`)
+- उबंटू 24.04 एलटीएस चुनें
+- न्यूनतम योजना चुनें (1 वीसीपीयू / 1 जीबी रैम)
+- एक मजबूत रूट पासवर्ड सेट करें या SSH कुंजी कॉन्फ़िगर करें
+- **सार्वजनिक आईपी** पर ध्यान दें (जैसे, `203.0.113.10`)
 
-### 1.2 Conectar via SSH
+### 1.2 एसएसएच के माध्यम से कनेक्ट करें
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Atualizar o sistema
+### 1.3 सिस्टम को अपडेट करें
+
+**OMNI_टोकन_1**
+
+### 1.4 डॉकर स्थापित करें
 
 ```bash
-apt update && apt upgrade -y
-```
-
-### 1.4 Instalar Docker
-
-```bash
-# Instalar dependências
+# Install dependencies
 apt install -y ca-certificates curl gnupg
 
-# Adicionar repositório oficial do Docker
+# Add official Docker repository
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Instalar nginx
+### 1.5 nginx स्थापित करें
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configurar Firewall (UFW)
+### 1.6 फ़ायरवॉल कॉन्फ़िगर करें (UFW)
 
 ```bash
 ufw default deny incoming
@@ -78,53 +74,23 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Dica**: Para segurança máxima, restrinja as portas 80 e 443 apenas para IPs da Cloudflare. Veja a seção [Segurança Avançada](#segurança-avançada).
+> **टिप**: अधिकतम सुरक्षा के लिए, पोर्ट 80 और 443 को केवल क्लाउडफ़ेयर आईपी तक सीमित रखें। [Advanced Security](#advanced-security) अनुभाग देखें।
 
 ---
 
-## 2. Instalar o OmniRoute
+## 2. ओमनीरूट स्थापित करें
 
-### 2.1 Criar diretório de configuração
+### 2.1 कॉन्फ़िगरेशन निर्देशिका बनाएं
 
-```bash
-mkdir -p /opt/omniroute
-```
+**OMNI_टोकन_5**
 
-### 2.2 Criar arquivo de variáveis de ambiente
+### 2.2 पर्यावरण चर फ़ाइल बनाएँ
 
-```bash
-cat > /opt/omniroute/.env << 'EOF'
-# === Segurança ===
-JWT_SECRET=ALTERE-PARA-CHAVE-SECRETA-UNICA-64-CHARS
-INITIAL_PASSWORD=SuaSenhaSegura123!
-API_KEY_SECRET=ALTERE-PARA-OUTRA-CHAVE-SECRETA
-STORAGE_ENCRYPTION_KEY=ALTERE-PARA-TERCEIRA-CHAVE-SECRETA
-STORAGE_ENCRYPTION_KEY_VERSION=v1
-MACHINE_ID_SALT=ALTERE-PARA-SALT-UNICO
+**OMNI_टोकन_6**
 
-# === App ===
-PORT=20128
-NODE_ENV=production
-HOSTNAME=0.0.0.0
-DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
-ENABLE_REQUEST_LOGS=true
-AUTH_COOKIE_SECURE=false
-REQUIRE_API_KEY=false
+> ⚠️ **महत्वपूर्ण**: अद्वितीय गुप्त कुंजियाँ उत्पन्न करें! प्रत्येक कुंजी के लिए `openssl rand -hex 32` का उपयोग करें।
 
-# === Domain (altere para seu domínio) ===
-BASE_URL=https://llms.seudominio.com
-NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
-
-# === Cloud Sync (opcional) ===
-# CLOUD_URL=https://cloud.omniroute.online
-# NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
-EOF
-```
-
-> ⚠️ **IMPORTANTE**: Gere chaves secretas únicas! Use `openssl rand -hex 32` para cada chave.
-
-### 2.3 Iniciar o container
+### 2.3 कंटेनर प्रारंभ करें
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +104,42 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verificar se está rodando
+### 2.4 सत्यापित करें कि यह चल रहा है
 
-```bash
-docker ps | grep omniroute
-docker logs omniroute --tail 20
-```
+**OMNI_टोकन_8**
 
-Deve exibir: `[DB] SQLite database ready` e `listening on port 20128`.
+इसे प्रदर्शित करना चाहिए: `[DB] SQLite database ready` और `listening on port 20128`।
 
 ---
 
-## 3. Configurar nginx (Reverse Proxy)
+## 3. nginx कॉन्फ़िगर करें (रिवर्स प्रॉक्सी)
 
-### 3.1 Gerar certificado SSL (Cloudflare Origin)
+### 3.1 एसएसएल प्रमाणपत्र उत्पन्न करें (क्लाउडफ्लेयर ओरिजिन)
 
-No painel da Cloudflare:
+क्लाउडफ्लेयर डैशबोर्ड में:
 
-1. Vá em **SSL/TLS → Origin Server**
-2. Clique **Create Certificate**
-3. Deixe os padrões (15 anos, \*.seudominio.com)
-4. Copie o **Origin Certificate** e a **Private Key**
+1. **एसएसएल/टीएलएस → ओरिजिन सर्वर** पर जाएं
+2. **प्रमाणपत्र बनाएं** पर क्लिक करें
+3. डिफ़ॉल्ट रखें (15 वर्ष, \*.yourdomain.com)
+4. **मूल प्रमाणपत्र** और **निजी कुंजी** की प्रतिलिपि बनाएँ
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Colar o certificado
+# Paste the certificate
 nano /etc/nginx/ssl/origin.crt
 
-# Colar a chave privada
+# Paste the private key
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Configuração do nginx
+### 3.2 नगनेक्स कॉन्फ़िगरेशन
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << 'NGINX'
-# Default server — bloqueia acesso direto por IP
+cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
+# Default server — blocks direct access via IP
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +155,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.seudominio.com;  # Altere para seu domínio
+    server_name llms.yourdomain.com;  # Change to your domain
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -210,7 +173,7 @@ server {
         # WebSocket support
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_set_header Connection “upgrade”;
 
         # SSE (Server-Sent Events) — streaming AI responses
         proxy_buffering off;
@@ -224,180 +187,109 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name llms.seudominio.com;
+    server_name llms.yourdomain.com;
     return 301 https://$server_name$request_uri;
 }
 NGINX
 ```
 
-### 3.3 Ativar e testar
+### 3.3 सक्षम करें और परीक्षण करें
 
-```bash
-# Remover config padrão
-rm -f /etc/nginx/sites-enabled/default
-
-# Ativar OmniRoute
-ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
-
-# Testar e recarregar
-nginx -t && systemctl reload nginx
-```
+**OMNI_टोकन_11**
 
 ---
 
-## 4. Configurar Cloudflare DNS
+## 4. क्लाउडफ्लेयर डीएनएस कॉन्फ़िगर करें
 
-### 4.1 Adicionar registro DNS
+### 4.1 डीएनएस रिकॉर्ड जोड़ें
 
-No painel da Cloudflare → DNS:
+क्लाउडफ़ेयर डैशबोर्ड में → DNS:
 
-| Type | Name   | Content                   | Proxy      |
-| ---- | ------ | ------------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (IP da VM) | ✅ Proxied |
+| प्रकार | नाम    | सामग्री                | प्रॉक्सी    |
+| ------ | ------ | ---------------------- | ----------- |
+| ए      | `llms` | `203.0.113.10` (VM IP) | ✅ प्रॉक्सी |
 
-### 4.2 Configurar SSL
+### 4.2 एसएसएल कॉन्फ़िगर करें
 
-Em **SSL/TLS → Overview**:
+**एसएसएल/टीएलएस → अवलोकन** के अंतर्गत:
 
-- Modo: **Full (Strict)**
+- मोड: **पूर्ण (सख्त)**
 
-Em **SSL/TLS → Edge Certificates**:
+**एसएसएल/टीएलएस → एज सर्टिफिकेट** के अंतर्गत:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- हमेशा HTTPS का उपयोग करें: ✅ चालू
+- न्यूनतम टीएलएस संस्करण: टीएलएस 1.2
+- स्वचालित HTTPS पुनर्लेखन: ✅ चालू
 
-### 4.3 Testar
+### 4.3 परीक्षण
 
-```bash
-curl -sI https://llms.seudominio.com/health
-# Deve retornar HTTP/2 200
-```
+**OMNI_टोकन_12**
 
 ---
 
-## 5. Operações e Manutenção
+## 5. संचालन एवं रखरखाव
 
-### Atualizar para nova versão
+### नए संस्करण में अपग्रेड करें
 
-```bash
-docker pull diegosouzapw/omniroute:latest
-docker stop omniroute && docker rm omniroute
-docker run -d --name omniroute --restart unless-stopped \
-  --env-file /opt/omniroute/.env \
-  -p 20128:20128 \
-  -v omniroute-data:/app/data \
-  diegosouzapw/omniroute:latest
-```
+**OMNI_टोकन_13**
 
-### Ver logs
+### लॉग देखें
 
-```bash
-docker logs -f omniroute          # Stream em tempo real
-docker logs omniroute --tail 50   # Últimas 50 linhas
-```
+**OMNI_टोकन_14**
 
-### Backup manual do banco
+### मैनुअल डेटाबेस बैकअप
 
-```bash
-# Copiar dados do volume para o host
-docker cp omniroute:/app/data ./backup-$(date +%F)
+**OMNI_टोकन_15**
 
-# Ou comprimir todo o volume
-docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
-```
+### बैकअप से पुनर्स्थापित करें
 
-### Restaurar de backup
-
-```bash
-docker stop omniroute
-docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
-docker start omniroute
-```
+**OMNI_टोकन_16**
 
 ---
 
-## 6. Segurança Avançada
+## 6. उन्नत सुरक्षा
 
-### Restringir nginx para Cloudflare IPs
+### nginx को Cloudflare IP तक सीमित करें
 
-```bash
-cat > /etc/nginx/cloudflare-ips.conf << 'CF'
-# Cloudflare IPv4 ranges — atualizar periodicamente
-# https://www.cloudflare.com/ips-v4/
-set_real_ip_from 173.245.48.0/20;
-set_real_ip_from 103.21.244.0/22;
-set_real_ip_from 103.22.200.0/22;
-set_real_ip_from 103.31.4.0/22;
-set_real_ip_from 141.101.64.0/18;
-set_real_ip_from 108.162.192.0/18;
-set_real_ip_from 190.93.240.0/20;
-set_real_ip_from 188.114.96.0/20;
-set_real_ip_from 197.234.240.0/22;
-set_real_ip_from 198.41.128.0/17;
-set_real_ip_from 162.158.0.0/15;
-set_real_ip_from 104.16.0.0/13;
-set_real_ip_from 104.24.0.0/14;
-set_real_ip_from 172.64.0.0/13;
-set_real_ip_from 131.0.72.0/22;
-real_ip_header CF-Connecting-IP;
-CF
-```
+**OMNI_टोकन_17**
 
-Adicionar no `nginx.conf` dentro do bloco `http {}`:
+निम्नलिखित को `http {}` ब्लॉक के अंदर `nginx.conf` में जोड़ें:
 
-```nginx
-include /etc/nginx/cloudflare-ips.conf;
-```
+**OMNI_टोकन_18**
 
-### Install fail2ban
+### फेल2बैन स्थापित करें
+
+**OMNI_टोकन_19**
+
+### डॉकर पोर्ट तक सीधी पहुंच को अवरुद्ध करें
 
 ```bash
-apt install -y fail2ban
-systemctl enable fail2ban
-systemctl start fail2ban
-
-# Verificar status
-fail2ban-client status sshd
-```
-
-### Bloquear acesso direto na porta do Docker
-
-```bash
-# Impedir acesso externo direto à porta 20128
+# Prevent direct external access to port 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persistir as regras
+# Persist the rules
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy do Cloud Worker (Opcional)
+## 7. क्लाउडफ्लेयर श्रमिकों की तैनाती (वैकल्पिक)
 
-Para acesso remoto via Cloudflare Workers (sem expor a VM diretamente):
+क्लाउडफ्लेयर वर्कर्स के माध्यम से रिमोट एक्सेस के लिए (वीएम को सीधे उजागर किए बिना):
 
-```bash
-# No repositório local
-cd omnirouteCloud
-npm install
-npx wrangler login
-npx wrangler deploy
-```
+**OMNI_टोकन_21**
 
-Ver documentação completa em [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+पूरा दस्तावेज़ [omnirouteCloud/README.md](../omnirouteCloud/README.md) पर देखें।
 
 ---
 
-## Resumo de Portas
+## पोर्ट सारांश
 
-| Porta | Serviço     | Acesso                        |
-| ----- | ----------- | ----------------------------- |
-| 22    | SSH         | Público (com fail2ban)        |
-| 80    | nginx HTTP  | Redirect → HTTPS              |
-| 443   | nginx HTTPS | Via Cloudflare Proxy          |
-| 20128 | OmniRoute   | Somente localhost (via nginx) |
+| बंदरगाह | सेवा        | पहुंच                               |
+| ------- | ----------- | ----------------------------------- |
+| 22      | एसएसएच      | सार्वजनिक (fail2ban के साथ)         |
+| 80      | nginx HTTP  | रीडायरेक्ट → HTTPS                  |
+| 443     | nginx HTTPS | क्लाउडफ्लेयर प्रॉक्सी के माध्यम से  |
+| 20128   | ओमनीरूट     | केवल लोकलहोस्ट (nginx के माध्यम से) |

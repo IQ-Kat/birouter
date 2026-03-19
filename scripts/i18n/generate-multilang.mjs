@@ -15,6 +15,7 @@ const DOC_SOURCE_FILES = [
   "FEATURES.md",
   "TROUBLESHOOTING.md",
   "USER_GUIDE.md",
+  "VM_DEPLOYMENT_GUIDE.md",
 ];
 
 const LOCALE_SPECS = [

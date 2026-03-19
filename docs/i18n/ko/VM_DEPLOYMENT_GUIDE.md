@@ -1,73 +1,71 @@
-🌐 **Languages:** 🇺🇸 [English](../../README.md) · 🇧🇷 [pt-BR](../pt-BR/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../es/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../fr/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../de/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../it/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../ru/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../zh-CN/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../ja/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../ko/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../ar/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [in](../in/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../th/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../vi/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../id/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../ms/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../nl/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../pl/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../sv/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../no/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../da/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../fi/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../pt/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../ro/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../hu/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../bg/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../sk/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../uk-UA/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../he/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../phi/VM_DEPLOYMENT_GUIDE.md)
+# OmniRoute — Cloudflare를 사용한 VM 배포 가이드
+
+🌐 **Languages:** 🇺🇸 [English](../../VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../pt-BR/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../es/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../fr/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../it/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../ru/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../zh-CN/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../de/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../in/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../th/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../uk-UA/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../ar/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../ja/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../vi/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../bg/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../da/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../fi/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../he/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../hu/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../id/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../ko/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../ms/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../nl/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../no/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../pt/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../ro/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../pl/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../sk/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../sv/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../phi/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../cs/VM_DEPLOYMENT_GUIDE.md)
+
+Cloudflare를 통해 관리되는 도메인이 있는 VM(VPS)에 OmniRoute를 설치하고 구성하기 위한 전체 가이드입니다.
 
 ---
 
-# OmniRoute — Guia de Deploy em VM com Cloudflare
+## 전제조건
 
-Guia completo para instalar e configurar o OmniRoute em uma VM (VPS) com domínio gerenciado via Cloudflare.
+| 아이템     | 최소                | 추천             |
+| ---------- | ------------------- | ---------------- |
+| **CPU**    | vCPU 1개            | vCPU 2개         |
+| **램**     | 1GB                 | 2GB              |
+| **디스크** | 10GB SSD            | 25GB SSD         |
+| **OS**     | 우분투 22.04 LTS    | 우분투 24.04 LTS |
+| **도메인** | Cloudflare에 등록됨 | —                |
+| **도커**   | 도커 엔진 24+       | 도커 27+         |
 
----
-
-## Pré-Requisitos
-
-| Item        | Mínimo                   | Recomendado      |
-| ----------- | ------------------------ | ---------------- |
-| **CPU**     | 1 vCPU                   | 2 vCPU           |
-| **RAM**     | 1 GB                     | 2 GB             |
-| **Disco**   | 10 GB SSD                | 25 GB SSD        |
-| **SO**      | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domínio** | Registrado no Cloudflare | —                |
-| **Docker**  | Docker Engine 24+        | Docker 27+       |
-
-**Providers testados**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+**테스트된 공급자**: Akamai(Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## 1. Configurar a VM
+## 1. VM 구성
 
-### 1.1 Criar a instância
+### 1.1 인스턴스 생성
 
-No seu provider de VPS preferido:
+선호하는 VPS 제공업체에서:
 
-- Escolha Ubuntu 24.04 LTS
-- Selecione o plano mínimo (1 vCPU / 1 GB RAM)
-- Defina uma senha forte para root ou configure SSH key
-- Anote o **IP público** (ex: `203.0.113.10`)
+- 우분투 24.04 LTS를 선택하세요
+- 최소 요금제 선택(vCPU 1개 / RAM 1GB)
+- 강력한 루트 비밀번호를 설정하거나 SSH 키를 구성하세요.
+- **공용 IP**(예: `203.0.113.10`)를 기록해 두세요.
 
-### 1.2 Conectar via SSH
+### 1.2 SSH를 통해 연결
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Atualizar o sistema
+### 1.3 시스템 업데이트
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Instalar Docker
+### 1.4 도커 설치
 
 ```bash
-# Instalar dependências
+# Install dependencies
 apt install -y ca-certificates curl gnupg
 
-# Adicionar repositório oficial do Docker
+# Add official Docker repository
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Instalar nginx
+### 1.5 nginx 설치
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configurar Firewall (UFW)
+### 1.6 방화벽 구성(UFW)
 
 ```bash
 ufw default deny incoming
@@ -78,29 +76,29 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Dica**: Para segurança máxima, restrinja as portas 80 e 443 apenas para IPs da Cloudflare. Veja a seção [Segurança Avançada](#segurança-avançada).
+> **팁**: 보안을 극대화하려면 포트 80과 443을 Cloudflare IP로만 제한하세요. [Advanced Security](#advanced-security) 섹션을 참조하세요.
 
 ---
 
-## 2. Instalar o OmniRoute
+## 2. OmniRoute 설치
 
-### 2.1 Criar diretório de configuração
+### 2.1 구성 디렉터리 생성
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Criar arquivo de variáveis de ambiente
+### 2.2 환경변수 파일 생성
 
 ```bash
-cat > /opt/omniroute/.env << 'EOF'
-# === Segurança ===
-JWT_SECRET=ALTERE-PARA-CHAVE-SECRETA-UNICA-64-CHARS
-INITIAL_PASSWORD=SuaSenhaSegura123!
-API_KEY_SECRET=ALTERE-PARA-OUTRA-CHAVE-SECRETA
-STORAGE_ENCRYPTION_KEY=ALTERE-PARA-TERCEIRA-CHAVE-SECRETA
+cat > /opt/omniroute/.env << ‘EOF’
+# === Security ===
+JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
+INITIAL_PASSWORD=YourSecurePassword123!
+API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
+STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
-MACHINE_ID_SALT=ALTERE-PARA-SALT-UNICO
+MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
 
 # === App ===
 PORT=20128
@@ -112,19 +110,19 @@ ENABLE_REQUEST_LOGS=true
 AUTH_COOKIE_SECURE=false
 REQUIRE_API_KEY=false
 
-# === Domain (altere para seu domínio) ===
+# === Domain (change to your domain) ===
 BASE_URL=https://llms.seudominio.com
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 
-# === Cloud Sync (opcional) ===
+# === Cloud Sync (optional) ===
 # CLOUD_URL=https://cloud.omniroute.online
 # NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
 EOF
 ```
 
-> ⚠️ **IMPORTANTE**: Gere chaves secretas únicas! Use `openssl rand -hex 32` para cada chave.
+> ⚠️ **중요**: 고유한 비밀 키를 생성하세요! 각 키에 `openssl rand -hex 32`을 사용하세요.
 
-### 2.3 Iniciar o container
+### 2.3 컨테이너 시작
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,45 +136,45 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verificar se está rodando
+### 2.4 실행 중인지 확인
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-Deve exibir: `[DB] SQLite database ready` e `listening on port 20128`.
+`[DB] SQLite database ready` 및 `listening on port 20128`이 표시되어야 합니다.
 
 ---
 
-## 3. Configurar nginx (Reverse Proxy)
+## 3. nginx(역방향 프록시) 구성
 
-### 3.1 Gerar certificado SSL (Cloudflare Origin)
+### 3.1 SSL 인증서 생성(Cloudflare 원본)
 
-No painel da Cloudflare:
+Cloudflare 대시보드에서:
 
-1. Vá em **SSL/TLS → Origin Server**
-2. Clique **Create Certificate**
-3. Deixe os padrões (15 anos, \*.seudominio.com)
-4. Copie o **Origin Certificate** e a **Private Key**
+1. **SSL/TLS → 원본 서버**로 이동합니다.
+2. **인증서 만들기**를 클릭하세요.
+3. 기본값(15년, \*.yourdomain.com)을 유지합니다.
+4. **원본 인증서** 및 **개인 키**를 복사합니다.
 
 ```bash
 mkdir -p /etc/nginx/ssl
 
-# Colar o certificado
+# Paste the certificate
 nano /etc/nginx/ssl/origin.crt
 
-# Colar a chave privada
+# Paste the private key
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Configuração do nginx
+### 3.2 Nginx 구성
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << 'NGINX'
-# Default server — bloqueia acesso direto por IP
+cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
+# Default server — blocks direct access via IP
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -192,7 +190,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name llms.seudominio.com;  # Altere para seu domínio
+    server_name llms.yourdomain.com;  # Change to your domain
 
     ssl_certificate     /etc/nginx/ssl/origin.crt;
     ssl_certificate_key /etc/nginx/ssl/origin.key;
@@ -210,7 +208,7 @@ server {
         # WebSocket support
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_set_header Connection “upgrade”;
 
         # SSE (Server-Sent Events) — streaming AI responses
         proxy_buffering off;
@@ -224,61 +222,61 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name llms.seudominio.com;
+    server_name llms.yourdomain.com;
     return 301 https://$server_name$request_uri;
 }
 NGINX
 ```
 
-### 3.3 Ativar e testar
+### 3.3 활성화 및 테스트
 
 ```bash
-# Remover config padrão
+# Remove default configuration
 rm -f /etc/nginx/sites-enabled/default
 
-# Ativar OmniRoute
+# Enable OmniRoute
 ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
 
-# Testar e recarregar
+# Test and reload
 nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## 4. Configurar Cloudflare DNS
+## 4. Cloudflare DNS 구성
 
-### 4.1 Adicionar registro DNS
+### 4.1 DNS 레코드 추가
 
-No painel da Cloudflare → DNS:
+Cloudflare 대시보드 → DNS:
 
-| Type | Name   | Content                   | Proxy      |
-| ---- | ------ | ------------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (IP da VM) | ✅ Proxied |
+| 유형 | 이름   | 내용                  | 프록시      |
+| ---- | ------ | --------------------- | ----------- |
+| A    | `llms` | `203.0.113.10`(VM IP) | ✅ 프록시됨 |
 
-### 4.2 Configurar SSL
+### 4.2 SSL 구성
 
-Em **SSL/TLS → Overview**:
+**SSL/TLS → 개요**에서:
 
-- Modo: **Full (Strict)**
+- 모드: **전체(엄격)**
 
-Em **SSL/TLS → Edge Certificates**:
+**SSL/TLS → 에지 인증서**에서:
 
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
+- 항상 HTTPS 사용: ✅ 켜기
+- 최소 TLS 버전: TLS 1.2
+- 자동 HTTPS 재작성: ✅ 켜짐
 
-### 4.3 Testar
+### 4.3 테스트
 
 ```bash
 curl -sI https://llms.seudominio.com/health
-# Deve retornar HTTP/2 200
+# Should return HTTP/2 200
 ```
 
 ---
 
-## 5. Operações e Manutenção
+## 5. 운영 및 유지 관리
 
-### Atualizar para nova versão
+### 새 버전으로 업그레이드
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -290,42 +288,42 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### Ver logs
+### 로그 보기
 
 ```bash
-docker logs -f omniroute          # Stream em tempo real
-docker logs omniroute --tail 50   # Últimas 50 linhas
+docker logs -f omniroute          # Real-time stream
+docker logs omniroute --tail 50   # Last 50 lines
 ```
 
-### Backup manual do banco
+### 수동 데이터베이스 백업
 
 ```bash
-# Copiar dados do volume para o host
+# Copy data from the volume to the host
 docker cp omniroute:/app/data ./backup-$(date +%F)
 
-# Ou comprimir todo o volume
+# Or compress the entire volume
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restaurar de backup
+### 백업에서 복원
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
+  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
 docker start omniroute
 ```
 
 ---
 
-## 6. Segurança Avançada
+## 6. 고급 보안
 
-### Restringir nginx para Cloudflare IPs
+### nginx를 Cloudflare IP로 제한
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << 'CF'
-# Cloudflare IPv4 ranges — atualizar periodicamente
+cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
+# Cloudflare IPv4 ranges — update periodically
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
@@ -346,58 +344,58 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Adicionar no `nginx.conf` dentro do bloco `http {}`:
+`http {}` 블록 내부의 `nginx.conf`에 다음을 추가합니다.
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### Fail2ban 설치
 
 ```bash
 apt install -y fail2ban
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Verificar status
+# Check status
 fail2ban-client status sshd
 ```
 
-### Bloquear acesso direto na porta do Docker
+### Docker 포트에 대한 직접 액세스 차단
 
 ```bash
-# Impedir acesso externo direto à porta 20128
+# Prevent direct external access to port 20128
 iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
 iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
 
-# Persistir as regras
+# Persist the rules
 apt install -y iptables-persistent
 netfilter-persistent save
 ```
 
 ---
 
-## 7. Deploy do Cloud Worker (Opcional)
+## 7. Cloudflare Workers에 배포(선택 사항)
 
-Para acesso remoto via Cloudflare Workers (sem expor a VM diretamente):
+Cloudflare Workers를 통한 원격 액세스의 경우(VM을 직접 노출하지 않고):
 
 ```bash
-# No repositório local
+# In the local repository
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-Ver documentação completa em [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+[omnirouteCloud/README.md](../omnirouteCloud/README.md)에서 전체 문서를 참조하세요.
 
 ---
 
-## Resumo de Portas
+## 포트 요약
 
-| Porta | Serviço     | Acesso                        |
+| 포트  | 서비스      | 액세스                        |
 | ----- | ----------- | ----------------------------- |
-| 22    | SSH         | Público (com fail2ban)        |
-| 80    | nginx HTTP  | Redirect → HTTPS              |
-| 443   | nginx HTTPS | Via Cloudflare Proxy          |
-| 20128 | OmniRoute   | Somente localhost (via nginx) |
+| 22    | SSH         | 공개(fail2ban 포함)           |
+| 80    | nginx HTTP  | 리디렉션 → HTTPS              |
+| 443   | nginx HTTPS | Cloudflare 프록시를 통해      |
+| 20128 | 옴니루트    | 로컬호스트 전용(nginx를 통해) |
