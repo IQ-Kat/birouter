@@ -54,6 +54,7 @@ export class DefaultExecutor extends BaseExecutor {
         break;
       case "glm":
       case "kimi-coding":
+      case "bailian-coding-plan":
       case "kimi-coding-apikey":
       case "minimax":
       case "minimax-cn":
