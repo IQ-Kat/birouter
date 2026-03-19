@@ -17,6 +17,11 @@ Deploy OmniRoute to the production VPS using `npm pack + scp` + PM2.
 > The Next.js standalone build is at `app/server.js` inside that directory.
 > The npm registry rejects packages > 100MB, so deployment uses **npm pack + scp**.
 
+> [!CAUTION]
+> **NEVER** use `pm2 restart omniroute` after `npm install -g`. This drops env vars.
+> Always use `pm2 delete omniroute && pm2 start <ecosystem.config.cjs> --update-env`.
+> After `npm install -g`, always rebuild better-sqlite3: `cd .../app && npm rebuild better-sqlite3`
+
 ## Steps
 
 ### 1. Build + pack locally
@@ -38,11 +43,11 @@ scp omniroute-*.tgz root@69.164.221.35:/tmp/ && scp omniroute-*.tgz root@192.168
 ```
 
 ```bash
-ssh root@69.164.221.35 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && pm2 restart omniroute && pm2 save && echo '✅ Akamai done'"
+ssh root@69.164.221.35 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 && pm2 delete omniroute 2>/dev/null; pm2 start /root/.omniroute/ecosystem.config.cjs --update-env && pm2 save && echo '✅ Akamai done'"
 ```
 
 ```bash
-ssh root@192.168.0.15 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && pm2 restart omniroute && pm2 save && echo '✅ Local done'"
+ssh root@192.168.0.15 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 && pm2 delete omniroute 2>/dev/null; pm2 start /root/.omniroute/ecosystem.config.cjs --update-env && pm2 save && echo '✅ Local done'"
 ```
 
 ### 3. Verify the deployment
@@ -51,7 +56,11 @@ ssh root@192.168.0.15 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && p
 ssh root@69.164.221.35 "pm2 list && cat \$(npm root -g)/omniroute/app/package.json | grep version | head -1 && curl -s -o /dev/null -w 'HTTP %{http_code}' http://localhost:20128/"
 ```
 
-Expected: PM2 shows `online`, version matches, HTTP returns `307`.
+```bash
+ssh root@192.168.0.15 "pm2 list && cat \$(npm root -g)/omniroute/app/package.json | grep version | head -1 && curl -s -X POST http://localhost:20128/api/auth/login -H 'Content-Type: application/json' -d '{\"password\":\"123456\"}'"
+```
+
+Expected: PM2 shows `online`, version matches, login returns `{"success":true}`.
 
 ## How it works
 
@@ -59,26 +68,35 @@ Expected: PM2 shows `online`, version matches, HTTP returns `307`.
 2. `npm pack --ignore-scripts` packages without re-running the build
 3. `scp` transfers the .tgz to each VPS (~286MB)
 4. `npm install -g /tmp/omniroute-*.tgz --ignore-scripts` installs pre-built package
-5. PM2 runs `app/server.js` from `/usr/lib/node_modules/omniroute`
+5. `npm rebuild better-sqlite3` recompiles native bindings for the VPS Node.js version
+6. `pm2 delete` + `pm2 start ecosystem.config.cjs --update-env` restarts with env vars
+7. `pm2 save` persists the process list for reboot survival
+
+## Ecosystem Config
+
+Both VPSs have `ecosystem.config.cjs` at `/root/.omniroute/ecosystem.config.cjs`.
+This file defines env vars (PORT, DATA_DIR, INITIAL_PASSWORD, OAuth secrets, etc.)
+that `pm2 restart` does NOT inject — only `pm2 start --update-env` does.
 
 ## PM2 Setup (one-time — if reconfiguring from scratch)
 
 ```bash
 ssh root@<VPS> "
-  pm2 delete omniroute ;
-  cp /opt/omniroute-app/.env /usr/lib/node_modules/omniroute/.env &&
-  PORT=20128 pm2 start /usr/lib/node_modules/omniroute/app/server.js --name omniroute --cwd /usr/lib/node_modules/omniroute/app &&
+  pm2 delete omniroute 2>/dev/null;
+  cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 &&
+  pm2 start /root/.omniroute/ecosystem.config.cjs --update-env &&
   pm2 save && pm2 startup
 "
 ```
 
 > [!NOTE]
-> Copy `.env` from the old installation first. For Akamai it was at `/opt/omniroute-app/.env`,
-> for the local VPS it was at `/root/omniroute-fresh/.env`.
+> Ensure `/root/.omniroute/ecosystem.config.cjs` exists with all required env vars.
+> For fresh installs, copy from the existing VPS or create from the template in `.env`.
 
 ## Notes
 
-- `.env` should be placed at `/usr/lib/node_modules/omniroute/app/.env`
+- Env vars are in `/root/.omniroute/ecosystem.config.cjs` (NOT `.env` in app dir)
 - PM2 is configured with `pm2 startup` to auto-restart on reboot
 - Nginx proxies `omniroute.online` → `localhost:20128`
 - The VPS has only 1GB RAM — builds happen locally, never on the VPS
+- After `npm install -g`, `better-sqlite3` MUST be rebuilt in the `app/` subdir
