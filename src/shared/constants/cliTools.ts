@@ -193,8 +193,8 @@ export const CLI_TOOLS = {
     image: "/providers/kiro.png",
     icon: "psychology_alt",
     color: "#FF6B35",
-    description: "Amazon Kiro — AI-powered IDE",
-    configType: "guide",
+    description: "Amazon Kiro — AI-powered IDE with MITM",
+    configType: "mitm",
     guideSteps: [
       { step: 1, title: "Open Kiro Settings", desc: "Go to Settings → AI Provider" },
       { step: 2, title: "Base URL", value: "{{baseUrl}}", copyable: true },

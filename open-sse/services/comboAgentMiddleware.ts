@@ -52,7 +52,15 @@ export function injectModelTag(messages: Message[], providerModel: string): Mess
 
   // Find last assistant message with string content
   const lastAssistantIdx = cleaned.map((m) => m.role).lastIndexOf("assistant");
-  if (lastAssistantIdx === -1) return cleaned;
+
+  // #474: If no assistant message exists yet (first turn), append a synthetic one
+  // so the tag is present when the client sends the next request with the response.
+  if (lastAssistantIdx === -1) {
+    return [
+      ...cleaned,
+      { role: "assistant", content: `\n<omniModel>${providerModel}</omniModel>` },
+    ];
+  }
 
   const msg = cleaned[lastAssistantIdx];
   if (typeof msg.content !== "string") return cleaned;

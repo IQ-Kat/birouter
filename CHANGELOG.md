@@ -4,6 +4,30 @@
 
 ---
 
+## [2.8.5] — 2026-03-19
+
+> Sprint: Fix zombie SSE streams, context cache first-turn, KIRO MITM, and triage 5 external issues.
+
+### Bug Fixes
+
+- **Zombie SSE Streams** (#473): Reduce `STREAM_IDLE_TIMEOUT_MS` from 300s → 120s for faster combo fallback when providers hang mid-stream. Configurable via env var.
+- **Context Cache Tag** (#474): Fix `injectModelTag()` to handle first-turn requests (no assistant messages) — context cache protection now works from the very first response.
+- **KIRO MITM** (#481): Change KIRO `configType` from `guide` → `mitm` so the dashboard renders MITM Start/Stop controls.
+- **E2E Test** (CI): Fix `providers-bailian-coding-plan.spec.ts` — dismiss pre-existing modal overlay before clicking Add API Key button.
+
+### Closed Issues
+
+- #473 — Zombie SSE streams bypass combo fallback
+- #474 — Context cache `<omniModel>` tag missing on first turn
+- #481 — MITM for KIRO not activatable from dashboard
+- #468 — Gemini CLI remote server (superseded by #462 deprecation)
+- #438 — Claude unable to write files (external CLI issue)
+- #439 — AppImage doesn't work (documented libfuse2 workaround)
+- #402 — ARM64 DMG "damaged" (documented xattr -cr workaround)
+- #460 — CLI not runnable on Windows (documented PATH fix)
+
+---
+
 ## [2.8.4] — 2026-03-19
 
 > Sprint: Gemini CLI deprecation, VM guide i18n fix, dependabot security fix, provider schema expansion.
