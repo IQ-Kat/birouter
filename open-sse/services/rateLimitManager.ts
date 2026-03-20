@@ -352,7 +352,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // After stop, delete from Map so getLimiter() creates a fresh instance.
     limiter.stop({ dropWaitingJobs: true }).then(() => {
       limiters.delete(limiterKey);
-    });
+    }).catch(() => {});
     return;
   }
 
