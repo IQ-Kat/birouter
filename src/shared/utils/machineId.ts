@@ -1,25 +1,30 @@
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 
 function getMachineIdRaw(): string {
   if (process.platform === "win32") {
     const sysRoot = process.env.SystemRoot || process.env.windir || "C:\\Windows";
-    const output = execSync(
-      `"${sysRoot}\\System32\\REG.exe" QUERY "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography" /v MachineGuid`,
+    const output = execFileSync(
+      `${sysRoot}\\System32\\REG.exe`,
+      ["QUERY", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "/v", "MachineGuid"],
       { encoding: "utf8" }
     );
-    return output
-      .toString()
-      .split("REG_SZ")[1]
-      .replace(/\r+|\n+|\s+/gi, "")
-      .toLowerCase();
+    return (
+      output
+        .toString()
+        .split("REG_SZ")[1]
+        ?.replace(/\r+|\n+|\s+/gi, "")
+        ?.toLowerCase() ?? ""
+    );
   }
   if (process.platform === "darwin") {
     const output = execSync("ioreg -rd1 -c IOPlatformExpertDevice", { encoding: "utf8" });
-    return output
-      .split("IOPlatformUUID")[1]
-      .split("\n")[0]
-      .replace(/\=|\s+|\"/gi, "")
-      .toLowerCase();
+    return (
+      output
+        .split("IOPlatformUUID")[1]
+        ?.split("\n")[0]
+        ?.replace(/\=|\s+|\"/gi, "")
+        ?.toLowerCase() ?? ""
+    );
   }
   const output = execSync(
     "( cat /var/lib/dbus/machine-id /etc/machine-id 2> /dev/null || hostname ) | head -n 1 || :",
