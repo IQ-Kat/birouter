@@ -355,25 +355,33 @@ export default function AntigravityToolCard({
           )}
 
           {/* When stopped: how it works */}
-          {!isRunning && (
-            <div className="flex flex-col gap-1.5 px-1">
-              <p className="text-xs text-text-muted">
-                <span className="font-medium text-text-main">{t("howItWorks")}</span>{" "}
-                {t("antigravityHowWorksDesc")}
-              </p>
-              <div className="flex flex-col gap-0.5 text-[11px] text-text-muted">
-                <span>{t("antigravityStep1")}</span>
-                <span>
-                  {t("antigravityStep2Prefix")}{" "}
-                  <code className="text-[10px] bg-surface px-1 rounded">
-                    daily-cloudcode-pa.googleapis.com
-                  </code>{" "}
-                  {t("antigravityStep2Suffix")}
-                </span>
-                <span>{t("antigravityStep3")}</span>
-              </div>
-            </div>
-          )}
+          {!isRunning &&
+            (() => {
+              // Dynamic MITM instructions per tool (#505)
+              const mitmDomains: Record<string, string> = {
+                antigravity: "daily-cloudcode-pa.googleapis.com",
+                kiro: "api.anthropic.com",
+              };
+              const toolName = tool.name || tool.id;
+              const domain = mitmDomains[tool.id] || mitmDomains.antigravity;
+              return (
+                <div className="flex flex-col gap-1.5 px-1">
+                  <p className="text-xs text-text-muted">
+                    <span className="font-medium text-text-main">{t("howItWorks")}</span>{" "}
+                    {t("mitmHowWorksDesc", { toolName })}
+                  </p>
+                  <div className="flex flex-col gap-0.5 text-[11px] text-text-muted">
+                    <span>{t("mitmStep1")}</span>
+                    <span>
+                      {t("mitmStep2Prefix")}{" "}
+                      <code className="text-[10px] bg-surface px-1 rounded">{domain}</code>{" "}
+                      {t("mitmStep2Suffix")}
+                    </span>
+                    <span>{t("mitmStep3", { toolName })}</span>
+                  </div>
+                </div>
+              );
+            })()}
         </div>
       )}
 

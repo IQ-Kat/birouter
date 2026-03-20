@@ -4,6 +4,23 @@
 
 ---
 
+## [2.8.9] — 2026-03-20
+
+> Sprint: Merge community PRs, fix KIRO MITM card, dependency updates.
+
+### Merged PRs
+
+- **PR #498** (@Sajid11194): Fix Windows machine ID crash (`undefined\REG.exe`). Replaces `node-machine-id` with native OS registry queries. **Closes #486.**
+- **PR #497** (@zhangqiang8vip): Fix dev-mode HMR resource leaks — 485 leaked DB connections → 1, memory 2.4GB → 195MB. `globalThis` singletons, Edge Runtime warning fix, Windows test stability. (+1168/-338 across 22 files)
+- **PRs #499-503** (Dependabot): GitHub Actions updates — `docker/build-push-action@7`, `actions/checkout@6`, `peter-evans/dockerhub-description@5`, `docker/setup-qemu-action@4`, `docker/login-action@4`.
+
+### Bug Fixes
+
+- **#505** — KIRO MITM card now displays tool-specific instructions (`api.anthropic.com`) instead of Antigravity-specific text.
+- **#504** — Responded with UX clarification (MITM "Inactive" is expected behavior when proxy is not running).
+
+---
+
 ## [2.8.8] — 2026-03-20
 
 > Sprint: Fix OAuth batch test crash, add "Test All" button to individual provider pages.
