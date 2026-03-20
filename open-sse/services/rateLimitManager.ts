@@ -350,9 +350,9 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // be hours for providers like Codex with long rate limit windows).
     // This lets upstream callers (e.g. LiteLLM) trigger fallback to other providers.
     // After stop, delete from Map so getLimiter() creates a fresh instance.
-    limiter.stop({ dropWaitingJobs: true }).then(() => {
+    limiter.stop({ dropWaitingJobs: true }).finally(() => {
       limiters.delete(limiterKey);
-    }).catch(() => {});
+    });
     return;
   }
 
