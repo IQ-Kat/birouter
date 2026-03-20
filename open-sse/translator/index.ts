@@ -98,7 +98,7 @@ export function translateRequest(
 
   // Normalize roles: developer→system unless preserved, system→user for incompatible models.
   // This handles (1) sourceFormat openai with messages containing developer → non-openai target
-  // or preserveDeveloperRole=false, and (2) any other path where result.messages already exists.
+  // or preserveDeveloperRole=false, and (2) all other paths where result.messages already exists.
   if (result.messages && Array.isArray(result.messages)) {
     result.messages = normalizeRoles(
       result.messages,
