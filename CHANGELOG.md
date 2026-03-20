@@ -4,6 +4,56 @@
 
 ---
 
+## [2.8.7] — 2026-03-20
+
+> Sprint: Merge PR #495 (Bottleneck 429 drop), fix #496 (custom embedding providers), triage features.
+
+### Bug Fixes
+
+- **Bottleneck 429 infinite wait** (PR #495 by @xandr0s): On 429, `limiter.stop({ dropWaitingJobs: true })` immediately fails all queued requests so upstream callers can trigger fallback. Limiter is deleted from Map so next request creates a fresh instance.
+- **Custom embedding models unresolvable** (#496): `POST /v1/embeddings` now resolves custom embedding models from ALL provider_nodes (not just localhost). Enables models like `google/gemini-embedding-001` added via dashboard.
+
+### Issues Responded
+
+- **#452** — Per-API-key request-count limits (acknowledged, on roadmap)
+- **#464** — Auto-issue API keys with provider/account limits (needs more detail)
+- **#488** — Auto-update model lists (acknowledged, on roadmap)
+- **#496** — Custom embedding provider resolution (fixed)
+
+---
+
+## [2.8.6] — 2026-03-20
+
+> Sprint: Merge PR #494 (MiniMax role fix), fix KIRO MITM dashboard, triage 8 issues.
+
+### Features
+
+- **MiniMax developer→system role fix** (PR #494 by @zhangqiang8vip): Per-model `preserveDeveloperRole` toggle. Adds "Compatibility" UI in providers page. Fixes 422 "role param error" for MiniMax and similar gateways.
+- **roleNormalizer**: `normalizeDeveloperRole()` now accepts `preserveDeveloperRole` parameter with tri-state behavior (undefined=keep, true=keep, false=convert).
+- **DB**: New `getModelPreserveOpenAIDeveloperRole()` and `mergeModelCompatOverride()` in `models.ts`.
+
+### Bug Fixes
+
+- **KIRO MITM dashboard** (#481/#487): `CLIToolsPageClient` now routes any `configType: "mitm"` tool to `AntigravityToolCard` (MITM Start/Stop controls). Previously only Antigravity was hardcoded.
+- **AntigravityToolCard generic**: Uses `tool.image`, `tool.description`, `tool.id` instead of hardcoded Antigravity values. Guards against missing `defaultModels`.
+
+### Cleanup
+
+- Removed `ZWS_README_V2.md` (development-only docs from PR #494).
+
+### Issues Triaged (8)
+
+- **#487** — Closed (KIRO MITM fixed in this release)
+- **#486** — needs-info (Windows REG.exe PATH issue)
+- **#489** — needs-info (Antigravity projectId missing, OAuth reconnect needed)
+- **#492** — needs-info (missing app/server.js on mise-managed Node)
+- **#490** — Acknowledged (streaming + context cache blocking, fix planned)
+- **#491** — Acknowledged (Codex auth state inconsistency)
+- **#493** — Acknowledged (Modal provider model name prefix, workaround provided)
+- **#488** — Feature request backlog (auto-update model lists)
+
+---
+
 ## [2.8.5] — 2026-03-19
 
 > Sprint: Fix zombie SSE streams, context cache first-turn, KIRO MITM, and triage 5 external issues.
