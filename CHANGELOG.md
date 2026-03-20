@@ -4,6 +4,20 @@
 
 ---
 
+## [2.8.8] — 2026-03-20
+
+> Sprint: Fix OAuth batch test crash, add "Test All" button to individual provider pages.
+
+### Bug Fixes
+
+- **OAuth batch test crash** (ERR_CONNECTION_REFUSED): Replaced sequential for-loop with 5-connection concurrency limit + 30s per-connection timeout via `Promise.race()` + `Promise.allSettled()`. Prevents server crash when testing large OAuth provider groups (~30+ connections).
+
+### Features
+
+- **"Test All" button on provider pages**: Individual provider pages (e.g., `/providers/codex`) now show a "Test All" button in the Connections header when there are 2+ connections. Uses `POST /api/providers/test-batch` with `{mode: "provider", providerId}`. Results displayed in a modal with pass/fail summary and per-connection diagnosis.
+
+---
+
 ## [2.8.7] — 2026-03-20
 
 > Sprint: Merge PR #495 (Bottleneck 429 drop), fix #496 (custom embedding providers), triage features.
