@@ -96,7 +96,9 @@ export function translateRequest(
   // Fix missing tool responses (insert empty tool_result if needed)
   fixMissingToolResponses(result);
 
-  // Normalize roles: developer→system unless preserved, system→user for incompatible models
+  // Normalize roles: developer→system unless preserved, system→user for incompatible models.
+  // This handles (1) sourceFormat openai with messages containing developer → non-openai target
+  // or preserveDeveloperRole=false, and (2) any other path where result.messages already exists.
   if (result.messages && Array.isArray(result.messages)) {
     result.messages = normalizeRoles(
       result.messages,
@@ -151,8 +153,10 @@ export function translateRequest(
     result = normalizeOpenAIResponsesRequest(result);
   }
 
-  // After OPENAI_RESPONSES → OPENAI, messages are built from input; first normalizeRoles was a no-op.
-  // Run role pipeline again so developer→system respects preserveDeveloperRole (no hardcoding in translator).
+  // Second role normalization: only for OPENAI_RESPONSES. Here messages are built from input
+  // after the translation step, so the first normalizeRoles (above) did not see them. For
+  // sourceFormat openai with messages already on the body, the first block handles developer
+  // → system (non-openai target or preserveDeveloperRole=false); no second pass needed.
   if (
     sourceFormat === FORMATS.OPENAI_RESPONSES &&
     result.messages &&

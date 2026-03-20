@@ -7,6 +7,11 @@ import {
   getModelCompatOverrides,
   mergeModelCompatOverride,
 } from "@/lib/localDb";
+import {
+  AI_PROVIDERS,
+  isOpenAICompatibleProvider,
+  isAnthropicCompatibleProvider,
+} from "@/shared/constants/providers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { providerModelMutationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -32,9 +37,9 @@ export async function GET(request) {
     const modelCompatOverrides = provider ? getModelCompatOverrides(provider) : [];
 
     return Response.json({ models, modelCompatOverrides });
-  } catch (error) {
+  } catch {
     return Response.json(
-      { error: { message: error.message, type: "server_error" } },
+      { error: { message: "Failed to fetch provider models", type: "server_error" } },
       { status: 500 }
     );
   }
@@ -146,20 +151,36 @@ export async function PUT(request) {
         ) &&
         ("normalizeToolCallId" in raw || "preserveOpenAIDeveloperRole" in raw);
       if (compatOnly) {
+        const knownProvider =
+          !!provider &&
+          (Object.prototype.hasOwnProperty.call(
+            AI_PROVIDERS as Record<string, unknown>,
+            provider
+          ) ||
+            isOpenAICompatibleProvider(provider) ||
+            isAnthropicCompatibleProvider(provider));
+        if (!knownProvider) {
+          return Response.json(
+            { error: { message: "Unknown provider", type: "validation_error" } },
+            { status: 400 }
+          );
+        }
         const patch: {
           normalizeToolCallId?: boolean;
-          preserveOpenAIDeveloperRole?: boolean;
+          preserveOpenAIDeveloperRole?: boolean | null;
         } = {};
         if ("normalizeToolCallId" in raw && typeof normalizeToolCallId === "boolean") {
           patch.normalizeToolCallId = normalizeToolCallId;
         }
-        if (
-          "preserveOpenAIDeveloperRole" in raw &&
-          typeof preserveOpenAIDeveloperRole === "boolean"
-        ) {
-          patch.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
+        if ("preserveOpenAIDeveloperRole" in raw) {
+          patch.preserveOpenAIDeveloperRole =
+            preserveOpenAIDeveloperRole === null || typeof preserveOpenAIDeveloperRole === "boolean"
+              ? preserveOpenAIDeveloperRole
+              : undefined;
         }
-        mergeModelCompatOverride(provider, modelId, patch);
+        if (Object.keys(patch).length > 0) {
+          mergeModelCompatOverride(provider, modelId, patch);
+        }
         return Response.json({
           ok: true,
           modelCompatOverrides: getModelCompatOverrides(provider),

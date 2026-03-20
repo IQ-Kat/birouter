@@ -32,6 +32,193 @@ import {
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
+interface ModelRowProps {
+  model: { id: string };
+  fullModel: string;
+  alias?: string;
+  copied?: string;
+  onCopy: (text: string, key: string) => void;
+  t: (key: string, values?: Record<string, unknown>) => string;
+  showDeveloperToggle?: boolean;
+  normalizeToolCallId?: boolean;
+  preserveDeveloperRole?: boolean;
+  onNormalizeChange?: (v: boolean) => void;
+  onPreserveChange?: (v: boolean) => void;
+  compatDisabled?: boolean;
+}
+
+interface PassthroughModelRowProps {
+  modelId: string;
+  fullModel: string;
+  copied?: string;
+  onCopy: (text: string, key: string) => void;
+  onDeleteAlias: () => void;
+  t: (key: string, values?: Record<string, unknown>) => string;
+  showDeveloperToggle?: boolean;
+  normalizeToolCallId?: boolean;
+  preserveDeveloperRole?: boolean;
+  onNormalizeChange?: (v: boolean) => void;
+  onPreserveChange?: (v: boolean) => void;
+  compatDisabled?: boolean;
+}
+
+interface PassthroughModelsSectionProps {
+  providerAlias: string;
+  modelAliases: Record<string, string>;
+  copied?: string;
+  onCopy: (text: string, key: string) => void;
+  onSetAlias: (modelId: string, alias: string) => Promise<void>;
+  onDeleteAlias: (alias: string) => void;
+  t: (key: string, values?: Record<string, unknown>) => string;
+  effectiveModelNormalize: (alias: string) => boolean;
+  effectiveModelPreserveDeveloper: (alias: string) => boolean;
+  saveModelCompatFlags: (
+    modelId: string,
+    flags: {
+      normalizeToolCallId?: boolean;
+      preserveDeveloperRole?: boolean;
+      preserveOpenAIDeveloperRole?: boolean;
+    }
+  ) => Promise<void>;
+  compatSavingModelId?: string;
+}
+
+interface CustomModelsSectionProps {
+  providerId: string;
+  providerAlias: string;
+  copied?: string;
+  onCopy: (text: string, key: string) => void;
+  onModelsChanged?: () => void;
+}
+
+interface CompatibleModelsSectionProps {
+  providerStorageAlias: string;
+  providerDisplayAlias: string;
+  modelAliases: Record<string, string>;
+  copied?: string;
+  onCopy: (text: string, key: string) => void;
+  onSetAlias: (modelId: string, alias: string, providerStorageAlias?: string) => Promise<void>;
+  onDeleteAlias: (alias: string) => void;
+  connections: { id?: string; isActive?: boolean }[];
+  isAnthropic?: boolean;
+  onImportWithProgress: (
+    fetchModels: () => Promise<{ models: unknown[] }>,
+    processModel: (model: unknown) => Promise<boolean>
+  ) => Promise<void>;
+  t: (key: string, values?: Record<string, unknown>) => string;
+  effectiveModelNormalize: (alias: string) => boolean;
+  effectiveModelPreserveDeveloper: (alias: string) => boolean;
+  saveModelCompatFlags: (
+    modelId: string,
+    flags: {
+      normalizeToolCallId?: boolean;
+      preserveDeveloperRole?: boolean;
+      preserveOpenAIDeveloperRole?: boolean;
+    }
+  ) => Promise<void>;
+  compatSavingModelId?: string;
+  onModelsChanged?: () => void;
+}
+
+interface CooldownTimerProps {
+  until: string | number | Date;
+}
+
+interface ConnectionRowConnection {
+  id?: string;
+  name?: string;
+  email?: string;
+  displayName?: string;
+  rateLimitedUntil?: string;
+  rateLimitProtection?: boolean;
+  testStatus?: string;
+  isActive?: boolean;
+  priority?: number;
+  lastError?: string;
+  lastErrorType?: string;
+  lastErrorSource?: string;
+  errorCode?: string | number;
+  globalPriority?: number;
+  providerSpecificData?: Record<string, unknown>;
+  expiresAt?: string;
+}
+
+interface ConnectionRowProps {
+  connection: ConnectionRowConnection;
+  isOAuth: boolean;
+  isCodex?: boolean;
+  isFirst: boolean;
+  isLast: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onToggleActive: (isActive?: boolean) => void | Promise<void>;
+  onToggleRateLimit: (enabled?: boolean) => void;
+  onToggleCodex5h?: (enabled?: boolean) => void;
+  onToggleCodexWeekly?: (enabled?: boolean) => void;
+  onRetest: () => void;
+  isRetesting?: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onReauth?: () => void;
+  onProxy?: () => void;
+  hasProxy?: boolean;
+  proxySource?: string;
+  proxyHost?: string;
+  onRefreshToken?: () => void;
+  isRefreshing?: boolean;
+}
+
+interface AddApiKeyModalProps {
+  isOpen: boolean;
+  provider?: string;
+  providerName?: string;
+  isCompatible?: boolean;
+  isAnthropic?: boolean;
+  onSave: (data: {
+    name: string;
+    apiKey: string;
+    priority: number;
+    baseUrl?: string;
+  }) => Promise<void | unknown>;
+  onClose: () => void;
+}
+
+interface EditConnectionModalConnection {
+  id?: string;
+  name?: string;
+  email?: string;
+  priority?: number;
+  authType?: string;
+  provider?: string;
+  providerSpecificData?: Record<string, unknown>;
+  healthCheckInterval?: number;
+}
+
+interface EditConnectionModalProps {
+  isOpen: boolean;
+  connection: EditConnectionModalConnection | null;
+  onSave: (data: unknown) => Promise<void | unknown>;
+  onClose: () => void;
+}
+
+interface EditCompatibleNodeModalNode {
+  id?: string;
+  name?: string;
+  prefix?: string;
+  apiType?: string;
+  baseUrl?: string;
+  chatPath?: string;
+  modelsPath?: string;
+}
+
+interface EditCompatibleNodeModalProps {
+  isOpen: boolean;
+  node: EditCompatibleNodeModalNode | null;
+  onSave: (data: unknown) => Promise<void>;
+  onClose: () => void;
+  isAnthropic?: boolean;
+}
+
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
     policy && typeof policy === "object" && !Array.isArray(policy)
@@ -62,11 +249,17 @@ function ModelCompatPopover({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
+  // Click-outside: check both trigger and panel so that if the panel is ever rendered
+  // in a portal (outside this subtree), clicks inside the panel still do not close it.
   useEffect(() => {
     if (!open) return;
     const onDocClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      const insideTrigger = ref.current?.contains(target);
+      const insidePanel = panelRef.current?.contains(target);
+      if (!insideTrigger && !insidePanel) setOpen(false);
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
@@ -85,7 +278,10 @@ function ModelCompatPopover({
         {t("compatButtonLabel")}
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 min-w-[200px] p-3 rounded-lg border border-border bg-white dark:bg-zinc-900 shadow-xl ring-1 ring-black/5 dark:ring-white/10">
+        <div
+          ref={panelRef}
+          className="absolute left-0 top-full mt-1 z-50 min-w-[200px] p-3 rounded-lg border border-border bg-white dark:bg-zinc-900 shadow-xl ring-1 ring-black/5 dark:ring-white/10"
+        >
           <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted mb-2">
             {t("compatAdjustmentsTitle")}
           </p>
@@ -99,14 +295,17 @@ function ModelCompatPopover({
               disabled={disabled}
             />
             {showDeveloperToggle && (
-              <Toggle
-                size="sm"
-                label={t("compatDoNotPreserveDeveloper")}
-                title={t("preserveDeveloperRoleLabel")}
-                checked={preserveDeveloperRole === false}
-                onChange={(checked) => onPreserveChange(!checked)}
-                disabled={disabled}
-              />
+              <>
+                {/* Inversion: Toggle checked = "do not preserve" (UI). onPreserveChange(val) = value to store (true = preserve, false = do not preserve), so we pass !checked. */}
+                <Toggle
+                  size="sm"
+                  label={t("compatDoNotPreserveDeveloper")}
+                  title={t("preserveDeveloperRoleLabel")}
+                  checked={preserveDeveloperRole === false}
+                  onChange={(checked) => onPreserveChange(!checked)}
+                  disabled={disabled}
+                />
+              </>
             )}
           </div>
         </div>
@@ -802,36 +1001,7 @@ export default function ProviderDetailPage() {
   ) => {
     setCompatSavingModelId(modelId);
     try {
-      const c = modelMeta.customModels.find((m: { id?: string }) => m.id === modelId) as Record<
-        string,
-        unknown
-      > | null;
-      let body: Record<string, unknown>;
-      if (c) {
-        body = {
-          provider: providerId,
-          modelId,
-          modelName: (c.name as string) || modelId,
-          source: (c.source as string) || "manual",
-          apiFormat: (c.apiFormat as string) || "chat-completions",
-          supportedEndpoints:
-            Array.isArray(c.supportedEndpoints) && (c.supportedEndpoints as unknown[]).length
-              ? c.supportedEndpoints
-              : ["chat"],
-          normalizeToolCallId:
-            patch.normalizeToolCallId !== undefined
-              ? patch.normalizeToolCallId
-              : Boolean(c.normalizeToolCallId),
-          preserveOpenAIDeveloperRole:
-            patch.preserveOpenAIDeveloperRole !== undefined
-              ? patch.preserveOpenAIDeveloperRole
-              : Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")
-                ? Boolean(c.preserveOpenAIDeveloperRole)
-                : true,
-        };
-      } else {
-        body = { provider: providerId, modelId, ...patch };
-      }
+      const body: Record<string, unknown> = { provider: providerId, modelId, ...patch };
       const res = await fetch("/api/provider-models", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -1492,7 +1662,7 @@ function ModelRow({
   onNormalizeChange,
   onPreserveChange,
   compatDisabled,
-}: any) {
+}: ModelRowProps) {
   return (
     <div className="flex flex-col px-3 py-2 rounded-lg border border-border hover:bg-sidebar/50 min-w-[220px] max-w-md">
       <div className="flex items-center gap-2 flex-wrap">
@@ -1554,7 +1724,7 @@ function PassthroughModelsSection({
   effectiveModelPreserveDeveloper,
   saveModelCompatFlags,
   compatSavingModelId,
-}) {
+}: PassthroughModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
 
@@ -1676,7 +1846,7 @@ function PassthroughModelRow({
   onNormalizeChange,
   onPreserveChange,
   compatDisabled,
-}: any) {
+}: PassthroughModelRowProps) {
   return (
     <div className="flex flex-col gap-0 p-3 rounded-lg border border-border hover:bg-sidebar/50">
       <div className="flex items-start gap-3">
@@ -1740,7 +1910,13 @@ PassthroughModelRow.propTypes = {
 
 // ============ Custom Models Section (for ALL providers) ============
 
-function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onModelsChanged }) {
+function CustomModelsSection({
+  providerId,
+  providerAlias,
+  copied,
+  onCopy,
+  onModelsChanged,
+}: CustomModelsSectionProps) {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
   const [customModels, setCustomModels] = useState([]);
@@ -2176,7 +2352,7 @@ function CompatibleModelsSection({
   saveModelCompatFlags,
   compatSavingModelId,
   onModelsChanged,
-}) {
+}: CompatibleModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -2423,7 +2599,7 @@ CompatibleModelsSection.propTypes = {
   onModelsChanged: PropTypes.func,
 };
 
-function CooldownTimer({ until }) {
+function CooldownTimer({ until }: CooldownTimerProps) {
   const [remaining, setRemaining] = useState("");
 
   useEffect(() => {
@@ -2636,7 +2812,7 @@ function ConnectionRow({
   proxyHost,
   onRefreshToken,
   isRefreshing,
-}) {
+}: ConnectionRowProps) {
   const t = useTranslations("providers");
   const displayName = isOAuth
     ? connection.name || connection.email || connection.displayName || t("oauthAccount")
@@ -2961,7 +3137,7 @@ function AddApiKeyModal({
   isAnthropic,
   onSave,
   onClose,
-}) {
+}: AddApiKeyModalProps) {
   const t = useTranslations("providers");
   const isBailian = provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
@@ -3169,7 +3345,7 @@ function normalizeAndValidateHttpBaseUrl(rawValue, fallbackUrl) {
   }
 }
 
-function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
+function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnectionModalProps) {
   const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
@@ -3192,7 +3368,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
 
   useEffect(() => {
     if (connection) {
-      const existingBaseUrl = connection.providerSpecificData?.baseUrl;
+      const rawBaseUrl = connection.providerSpecificData?.baseUrl;
+      const existingBaseUrl = typeof rawBaseUrl === "string" ? rawBaseUrl : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -3314,7 +3491,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }) {
           updates.providerSpecificData.baseUrl = validatedBailianBaseUrl;
         }
       }
-      const error = await onSave(updates);
+      const error = (await onSave(updates)) as void | unknown;
       if (error) {
         setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
       }
@@ -3524,7 +3701,13 @@ EditConnectionModal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-function EditCompatibleNodeModal({ isOpen, node, onSave, onClose, isAnthropic }) {
+function EditCompatibleNodeModal({
+  isOpen,
+  node,
+  onSave,
+  onClose,
+  isAnthropic,
+}: EditCompatibleNodeModalProps) {
   const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
