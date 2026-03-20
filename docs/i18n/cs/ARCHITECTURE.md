@@ -593,12 +593,12 @@ Každý poskytovatel má specializovaný exekutor rozšiřující `BaseExecutor`
 Vykonavatel | Poskytovatel(é) | Speciální manipulace
 --- | --- | ---
 `DefaultExecutor` | OpenAI, Claude, Gemini, Qwen, iFlow, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Konfigurace dynamické adresy URL/záhlaví pro každého poskytovatele
-`AntigravityExecutor` | Google Antigravitace | Vlastní ID projektů/relací, analýza Opakování po
-`CodexExecutor` | Kodex OpenAI | Vkládá systémové instrukce, vynucuje úsilí k uvažování
+`AntigravityExecutor` | Google Antigravity | Vlastní ID projektů/relací, analýza Opakování po
+`CodexExecutor` | OpenAI Codex | Vkládá systémové instrukce, vynucuje úsilí k uvažování
 `CursorExecutor` | IDE kurzoru | Protokol ConnectRPC, kódování Protobuf, podepisování požadavků pomocí kontrolního součtu
 `GithubExecutor` | GitHub Copilot | Aktualizace tokenu Copilot, hlavičky napodobující VSCode
 `KiroExecutor` | AWS CodeWhisperer/Kiro | Binární formát AWS EventStream → konverze SSE
-`GeminiCLIExecutor` | Rozhraní příkazového řádku Gemini | Cyklus obnovy tokenu Google OAuth
+`GeminiCLIExecutor` | Gemini CLI | Cyklus obnovy tokenu Google OAuth
 
 Všichni ostatní poskytovatelé (včetně uzlů kompatibilních s vlastními funkcemi) používají `DefaultExecutor` .
 
@@ -608,8 +608,8 @@ Poskytovatel | Formát | Autorizace | Proud | Nestreamované | Obnovení tokenu 
 --- | --- | --- | --- | --- | --- | ---
 Claude | Claude | Klíč API / OAuth | ✅ | ✅ | ✅ | ⚠️ Pouze pro administrátory
 Blíženci | Blíženci | Klíč API / OAuth | ✅ | ✅ | ✅ | ⚠️ Cloudová konzole
-Rozhraní příkazového řádku Gemini | gemini-cli | OAuth | ✅ | ✅ | ✅ | ⚠️ Cloudová konzole
-Antigravitace | antigravitace | OAuth | ✅ | ✅ | ✅ | ✅ Plná kvóta API
+Gemini CLI | gemini-cli | OAuth | ✅ | ✅ | ✅ | ⚠️ Cloudová konzole
+Antigravity | antigravitace | OAuth | ✅ | ✅ | ✅ | ✅ Plná kvóta API
 OpenAI | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
 Kodex | openai-odpovědi | OAuth | ✅ vynucený | ❌ | ✅ | ✅ Limity sazeb
 GitHub Copilot | otevřeno | OAuth + token Copilota | ✅ | ✅ | ✅ | ✅ Snímky kvót
@@ -643,7 +643,7 @@ Cílové formáty zahrnují:
 
 - Chat/Odpovědi v OpenAI
 - Claude
-- Obálka Gemini/Gemini-CLI/Antigravitace
+- Obálka Gemini/Gemini-CLI/Antigravity
 - Kiro
 - Kurzor
 

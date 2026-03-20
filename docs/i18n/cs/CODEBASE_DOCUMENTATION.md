@@ -200,8 +200,8 @@ Vykonavatel | Poskytovatel | Klíčové specializace
 `default.ts` | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Aktualizace generického tokenu OAuth pro standardní poskytovatele
 `antigravity.ts` | Kód Google Cloud | Generování ID projektu/relace, záložní více URL adres, vlastní analýza opakovaných pokusů z chybových zpráv („reset po 2h7m23s“)
 `cursor.ts` | IDE kurzoru | **Nejsložitější** : autorizace kontrolního součtu SHA-256, kódování požadavků Protobuf, analýza binárních EventStream → SSE odpovědí
-`codex.ts` | Kodex OpenAI | Vkládá systémové instrukce, spravuje úrovně myšlení, odstraňuje nepodporované parametry
-`gemini-cli.ts` | Rozhraní příkazového řádku Google Gemini | Vytvoření vlastní URL adresy ( `streamGenerateContent` ), aktualizace tokenu Google OAuth
+`codex.ts` | OpenAI Codex | Vkládá systémové instrukce, spravuje úrovně myšlení, odstraňuje nepodporované parametry
+`gemini-cli.ts` | Google Gemini CLI | Vytvoření vlastní URL adresy ( `streamGenerateContent` ), aktualizace tokenu Google OAuth
 `github.ts` | GitHub Copilot | Systém duálních tokenů (GitHub OAuth + Copilot token), napodobování hlaviček VSCode
 `kiro.ts` | AWS CodeWhisperer | Binární parsování AWS EventStream, rámce událostí AMZN, odhad tokenů
 `index.ts` | — | Továrna: název poskytovatele map → třída exekutoru s výchozím záložním nastavením
@@ -463,18 +463,18 @@ Adresář | Účel
 
 Trasa | Metody | Účel
 --- | --- | ---
-`/api/provider-models` | ZÍSKAT/ODESLAT/SMAZAT | CRUD pro vlastní modely na poskytovatele
-`/api/models/catalog` | ZÍSKAT | Agregovaný katalog všech modelů (chat, embedding, image, custom) seskupených podle poskytovatele
-`/api/settings/proxy` | ZÍSKAT/VLOŽIT/ODSTRANIT | Konfigurace hierarchické odchozí proxy ( `global/providers/combos/keys` )
-`/api/settings/proxy/test` | ZVEŘEJNIT | Ověřuje připojení proxy a vrací veřejnou IP adresu/latenci
-`/v1/providers/[provider]/chat/completions` | ZVEŘEJNIT | Vyhrazené dokončování chatu pro jednotlivé poskytovatele s ověřováním modelu
-`/v1/providers/[provider]/embeddings` | ZVEŘEJNIT | Vyhrazené vkládání pro jednotlivé poskytovatele s ověřováním modelu
-`/v1/providers/[provider]/images/generations` | ZVEŘEJNIT | Vyhrazené generování obrázků pro každého poskytovatele s ověřováním modelu
-`/api/settings/ip-filter` | ZÍSKAT/VLOŽIT | Správa povolených/blokovaných IP adres
-`/api/settings/thinking-budget` | ZÍSKAT/VLOŽIT | Konfigurace rozpočtu tokenů zdůvodnění (průchozí/automatická/vlastní/adaptivní)
-`/api/settings/system-prompt` | ZÍSKAT/VLOŽIT | Globální vložení systémového promptu pro všechny požadavky
-`/api/sessions` | ZÍSKAT | Sledování a metriky aktivních relací
-`/api/rate-limits` | ZÍSKAT | Stav limitu sazby na účet
+`/api/provider-models` | GET/POST/DELETE | CRUD pro vlastní modely na poskytovatele
+`/api/models/catalog` | GET | Agregovaný katalog všech modelů (chat, embedding, image, custom) seskupených podle poskytovatele
+`/api/settings/proxy` | GET/PUT/DELETE | Konfigurace hierarchické odchozí proxy ( `global/providers/combos/keys` )
+`/api/settings/proxy/test` | POST | Ověřuje připojení proxy a vrací veřejnou IP adresu/latenci
+`/v1/providers/[provider]/chat/completions` | POST | Vyhrazené dokončování chatu pro jednotlivé poskytovatele s ověřováním modelu
+`/v1/providers/[provider]/embeddings` | POST | Vyhrazené vkládání pro jednotlivé poskytovatele s ověřováním modelu
+`/v1/providers/[provider]/images/generations` | POST | Vyhrazené generování obrázků pro každého poskytovatele s ověřováním modelu
+`/api/settings/ip-filter` | GET/PUT | Správa povolených/blokovaných IP adres
+`/api/settings/thinking-budget` | GET/PUT | Konfigurace rozpočtu tokenů zdůvodnění (průchozí/automatická/vlastní/adaptivní)
+`/api/settings/system-prompt` | GET/PUT | Globální vložení systémového promptu pro všechny požadavky
+`/api/sessions` | GET | Sledování a metriky aktivních relací
+`/api/rate-limits` | GET | Stav limitu sazby na účet
 
 ---
 
@@ -512,38 +512,38 @@ K hlášenému využití je přidána vyrovnávací paměť o kapacitě 2000 tok
 
 ## 6. Podporované formáty
 
-Formát | Směr | Identifikátor
---- | --- | ---
-Dokončení chatu OpenAI | zdroj + cíl | `openai`
-API pro odpovědi OpenAI | zdroj + cíl | `openai-responses`
-Antropický Claude | zdroj + cíl | `claude`
-Google Gemini | zdroj + cíl | `gemini`
-Rozhraní příkazového řádku Google Gemini | pouze cíl | `gemini-cli`
-Antigravitace | zdroj + cíl | `antigravity`
-AWS Kiro | pouze cíl | `kiro`
-Kurzor | pouze cíl | `cursor`
+Formát                    | Směr        | Identifikátor      |
+| ----------------------- | ----------- | ------------------ |
+| OpenAI Chat Completions | zdroj + cíl | `openai`           |
+| OpenAI Responses API    | zdroj + cíl | `openai-responses` |
+| Anthropic Claude        | zdroj + cíl | `claude`           |
+| Google Gemini           | zdroj + cíl | `gemini`           |
+| Google Gemini CLI       | jen cíl     | `gemini-cli`       |
+| Antigravity             | zdroj + cíl | `antigravity`      |
+| AWS Kiro                | jen cíl     | `kiro`             |
+| Cursor                  | jen cíl     | `cursor`           |
 
 ---
 
 ## 7. Podporovaní poskytovatelé
 
-Poskytovatel | Metoda ověřování | Vykonavatel | Klíčové poznámky
---- | --- | --- | ---
-Antropický Claude | Klíč API nebo OAuth | Výchozí | Používá hlavičku `x-api-key`
-Google Gemini | Klíč API nebo OAuth | Výchozí | Používá hlavičku `x-goog-api-key`
-Rozhraní příkazového řádku Google Gemini | OAuth | GeminiCLI | Používá koncový bod `streamGenerateContent`
-Antigravitace | OAuth | Antigravitace | Záložní více URL adres, vlastní analýza opakovaných pokusů
-OpenAI | Klíč API | Výchozí | Autorizace standardního nosiče
-Kodex | OAuth | Kodex | Vkládá systémové instrukce, řídí myšlení
-GitHub Copilot | OAuth + token Copilot | Github | Duální token, napodobování záhlaví VSCode
-Kiro (AWS) | AWS SSO OIDC nebo sociální sítě | Kiro | Analýza binárního EventStreamu
-IDE kurzoru | Autorizace kontrolního součtu | Kurzor | Kódování Protobuf, kontrolní součty SHA-256
-Qwen | OAuth | Výchozí | Standardní ověřování
-iFlow | OAuth (základní + nosič) | Výchozí | Duální hlavička pro autorizaci
-OpenRouter | Klíč API | Výchozí | Autorizace standardního nosiče
-GLM, Kimi, MiniMax | Klíč API | Výchozí | Kompatibilní s Claude, použijte `x-api-key`
-`openai-compatible-*` | Klíč API | Výchozí | Dynamické: jakýkoli koncový bod kompatibilní s OpenAI
-`anthropic-compatible-*` | Klíč API | Výchozí | Dynamický: jakýkoli koncový bod kompatibilní s Claude
+| Poskytovatel             | Metoda ověřování         | Vykonavatel | Klíčové poznámky                             |
+| ------------------------ | ------------------------ | ----------- | -------------------------------------------- |
+| Anthropic Claude         | API klíč nebo OAuth      | Výchozí     | Používá hlavičku `x-api-key`                 |
+| Google Gemini            | API klíč nebo OAuth      | Výchozí     | Používá hlavičku `x-goog-api-key`            |
+| Google Gemini CLI        | OAuth                    | GeminiCLI   | Používá koncový bod `streamGenerateContent`  |
+| Antigravity              | OAuth                    | Antigravity | Záložní více URL, analýza opakovaných pokusů |
+| OpenAI                   | API klíč                 | Výchozí     | Autorizace standardního nosiče               |
+| Codex                    | OAuth                    | Codex       | Vkládá systémové instrukce, řídí myšlení     |
+| GitHub Copilot           | OAuth + Copilot token    | Github      | Duální token, napodobování záhlaví VSCode    |
+| Kiro (AWS)               | AWS SSO OIDC nebo Social | Kiro        | Analýza binárního EventStreamu               |
+| Cursor IDE               | Checksum auth            | Cursor      | Kódování Protobuf, kontrolní součty SHA-256  |
+| Qwen                     | OAuth                    | Výchozí     | Standardní ověřování                         |
+| iFlow                    | OAuth (Basic + Bearer)   | Výchozí     | Duální hlavička pro autorizaci               |
+| OpenRouter               | API klíč                 | Výchozí     | Autorizace standardního nosiče               |
+| GLM, Kimi, MiniMax       | API klíč                 | Výchozí     | Kompatibilní s Claude, použijte `x-api-key`  |
+| `openai-compatible-*`    | API klíč                 | Výchozí     | Dynamické: jakýkoli OpenAI kompatibilní      |
+| `anthropic-compatible-*` | API klíč                 | Výchozí     | Dynamické: jakýkoli OpenAI kompatibilní      |
 
 ---
 

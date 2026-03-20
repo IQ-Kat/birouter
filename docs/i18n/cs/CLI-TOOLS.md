@@ -27,19 +27,19 @@ Claude / Codex / Gemini CLI / OpenCode / Cline / KiloCode / Continue / Kiro CLI
 
 ## Podporované nástroje
 
-Nástroj | Příkaz | Typ | Metoda instalace
---- | --- | --- | ---
-**Claude Code** | `claude` | Rozhraní příkazového řádku | npm
-**Kodex OpenAI** | `codex` | Rozhraní příkazového řádku | npm
-**Rozhraní příkazového řádku Gemini** | `gemini` | Rozhraní příkazového řádku | npm
-**OpenCode** | `opencode` | Rozhraní příkazového řádku | npm
-**Cline** | `cline` | Rozšíření CLI + VS kódu | npm
-**KiloCode** | `kilocode` / `kilo` | Rozšíření CLI + VS kódu | npm
-**Pokračovat** | průvodce | VS Code ext | VS kód
-**Kiro CLI** | `kiro-cli` | Rozhraní příkazového řádku | instalační program Curl
-**Kurzor** | `cursor` | Aplikace pro stolní počítače | Stáhnout
-**Droid** | webový | Vestavěný agent | OmniRoute
-**OpenClaw** | webový | Vestavěný agent | OmniRoute
+| Nástroj          | Příkaz              | Typ                     | Instalace      |
+| ---              | ------------------- | ----------------------- | -------------- |
+| **Claude Code**  | `claude`            | CLI                     | npm            |
+| **OpenAI Codex** | `codex`             | CLI                     | npm            |
+| **Gemini CLI**   | `gemini`            | CLI                     | npm            |
+| **OpenCode**     | `opencode`          | CLI                     | npm            |
+| **Cline**        | `cline`             | CLI + VS Code + VS kódu | npm            |
+| **KiloCode**     | `kilocode` / `kilo` | CLI + VS Code + VS kódu | npm            |
+| **Continue**     | průvodce            | VS Code ext             | VS kód         |
+| **Kiro CLI**     | `kiro-cli`          | CLI                     | curl instalace |
+| **Kurzor**       | `cursor`            | Aplikace pro PC         | Download       |
+| **Droid**        | webový              | Built-in agent          | OmniRoute      |
+| **OpenClaw**     | webový              | Built-in agent          | OmniRoute      |
 
 ---
 
@@ -136,7 +136,7 @@ EOF
 
 ---
 
-### Kodex OpenAI
+### OpenAI Codex
 
 ```bash
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
@@ -150,7 +150,7 @@ EOF
 
 ---
 
-### Rozhraní příkazového řádku Gemini
+### Gemini CLI
 
 ```bash
 mkdir -p ~/.gemini && cat > ~/.gemini/settings.json << EOF
@@ -220,7 +220,7 @@ Nebo použijte dashboard OmniRoute → **CLI Tools → KiloCode → Apply Config
 
 ---
 
-### Pokračovat (rozšíření kódu VS)
+### Continue (rozšíření kódu VS)
 
 Upravit `~/.continue/config.yaml` :
 

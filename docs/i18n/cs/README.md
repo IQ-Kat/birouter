@@ -58,9 +58,9 @@ _Připojte libovolný nástroj IDE nebo CLI s umělou inteligencí přes OmniRou
     </tr>
     <tr>
       <td align="center" width="110">         <a href="https://github.com/anomalyco/opencode"><img src="./public/providers/opencode.svg" alt="OpenCode" width="48"><br><b>OpenCode</b></a><br> <sub>⭐ 106 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/openai/codex"><img src="./public/providers/codex.png" alt="CLI Codexu" width="48"><br><b>CLI Codexu</b></a><br> <sub>⭐ 60,8 tisíc</sub>       </td>
+      <td align="center" width="110">         <a href="https://github.com/openai/codex"><img src="./public/providers/codex.png" alt="Codex CLI" width="48"><br><b>Codex CLI</b></a><br> <sub>⭐ 60,8 tisíc</sub>       </td>
       <td align="center" width="110">         <a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.png" alt="Claude Code" width="48"><br><b>Claude Code</b></a><br> <sub>⭐ 67,3 tisíc</sub>       </td>
-      <td align="center" width="110">         <a href="https://github.com/google-gemini/gemini-cli"><img src="./public/providers/gemini-cli.png" alt="Rozhraní příkazového řádku Gemini" width="48"><br> <b>Rozhraní příkazového řádku Gemini</b></a><br> <sub>⭐ 94,7 tisíc</sub>       </td>
+      <td align="center" width="110">         <a href="https://github.com/google-gemini/gemini-cli"><img src="./public/providers/gemini-cli.png" alt="Gemini CLI" width="48"><br> <b>Gemini CLI</b></a><br> <sub>⭐ 94,7 tisíc</sub>       </td>
       <td align="center" width="110">         <a href="https://github.com/Kilo-Org/kilocode"><img src="./public/providers/kilocode.png" alt="Kilo kód" width="48"><br><b>Kilo kód</b></a><br> <sub>⭐ 15,5 tisíc</sub>       </td>
     </tr>
   </table>
@@ -803,7 +803,7 @@ Po minimalizaci se OmniRoute nachází v systémové liště a nabízí rychlé 
 | --------------------------------- | -------------------------------- | ------------------------------------ | ------------------------------------------ | --------------------------------------------------------- |
 | **💳 PŘEDPLATNÉ**                 | Claude Code (profesionál)        | 20 dolarů měsíčně                    | 5 hodin + týdně                            | Již přihlášen/a k odběru                                  |
 | Kodex (Plus/Pro)                  | 20–200 USD/měsíc                 | 5 hodin + týdně                      | Uživatelé OpenAI                           |
-| Rozhraní příkazového řádku Gemini | **UVOLNIT**                      | 180 tisíc měsíčně + 1 tisíc denně    | Každý!                                     |
+| Gemini CLI | **UVOLNIT**                      | 180 tisíc měsíčně + 1 tisíc denně    | Každý!                                     |
 | GitHub Copilot                    | 10–19 USD/měsíc                  | Měsíční                              | Uživatelé GitHubu                          |
 | **🔑 KLÍČ API**                   | NVIDIA NIM                       | **ZDARMA** (vývoj navždy)            | ~40 ot./min                                | 70+ otevřených modelů                                     |
 | Mozky                             | **ZDARMA** (1 milion tok/den)    | 60 000 otáček za minutu / 30 ot./min | Nejrychlejší na světě                      |
@@ -1439,7 +1439,7 @@ Settings → Models → Advanced:
 
 Pro konfiguraci jedním kliknutím použijte stránku **Nástroje CLI** na řídicím panelu nebo ručně upravte soubor `~/.claude/settings.json` .
 
-### CLI Codexu
+### Codex CLI
 
 ```bash
 export OPENAI_BASE_URL="http://localhost:20128"
@@ -1676,94 +1676,17 @@ Pokud si teď nechcete nastavovat vlastní přihlašovací údaje, můžete stá
 
 ---
 
-<details>
-<summary><b>🇧🇷 Versão em Português</b></summary>
-</details>
+#### Dočasné řešení (bez vlastních přihlašovacích údajů)
 
-#### Pokud používáte OAuth pro Antigravity / Gemini CLI?
+Chcete-li získat přístup k přihlašovacím údajům bez vlastní konfigurace, můžete použít následující postup:
 
-Ověřeno **Antigravity** a **Gemini CLI** pomocí **Google OAuth 2.0** pro autenticitu. O Google exige que a `redirect_uri` usada no fluxo OAuth seja **exatamente** uma das URIs pre-cadastradas no Google Cloud Console to use.
+1. OmniRoute otevře URL autorizace Google
+2. Po autorizaci se Google pokusí přesměrovat na `localhost` (což selže na vzdáleném serveru)
+3. **Zkopírujte celou URL adresu** z adresního řádku prohlížeče
+4. Vložte tuto URL adresu do pole zobrazeného v modálním okně připojení OmniRoute
+5. Klikněte na **„Připojit"**
 
-Jako credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`** . Quando você acessa o OmniRoute em um servidor remote (ex: `https://omniroute.meuservidor.com` ), o Google rejeita a autenticação com:
-
-```
-Error 400: redirect_uri_mismatch
-```
-
-#### Řešení: Nakonfigurujte souas próprias credenciais OAuth
-
-Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu server.
-
-#### Přejít na přejezd
-
-**1. Přístup ke službě Google Cloud Console**
-
-Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
-
-**2. Crie um novo OAuth 2.0 Client ID**
-
-- Klikněte na **„+ Vytvořit přihlašovací údaje“** → **„ID klienta OAuth“**
-- Typ aplikace: **"Webová aplikace"**
-- Název: escolha qualquer nome (např.: `OmniRoute Remote` )
-
-**3. Adicione jako autorizované URI pro přesměrování**
-
-Žádné pole **"URI autorizovaného přesměrování"** , adicione:
-
-```
-https://seu-servidor.com/callback
-```
-
-> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (včetně portu se necessário, např.: `http://45.33.32.156:20128/callback` ).
-
-**4. Uložte a kopii jako credenciais**
-
-Após criar, o Google Mostrará o **Client ID** eo **Client Secret** .
-
-**5. Nakonfigurujte jako variáveis ​​de ambiente**
-
-No seu `.env` (ou nas variáveis ​​de ambiente do Docker):
-
-```bash
-# Para Antigravity:
-ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-
-# Para Gemini CLI:
-GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-```
-
-**6. Reinicie o OmniRoute**
-
-```bash
-# Se usando npm:
-npm run dev
-
-# Se usando Docker:
-docker restart omniroute
-```
-
-**7. Připojte se znovu**
-
-Řídicí panel → Poskytovatelé → Antigravity (nebo Gemini CLI) → OAuth
-
-Agora nebo Google redirecionará corretamente para `https://seu-servidor.com/callback` ea autenticação funcionará.
-
----
-
-#### Řešení temporário (sem configurar credenciais próprias)
-
-Chcete-li získat přístup k kriterii pověření, můžete použít adresu **URL** :
-
-1. O OmniRoute abrirá a URL autorização Google
-2. Após você autorizar, nebo Google tentará redirecionar para `localhost` (que falha no servidor remoto)
-3. **Zkopírujte úplnou** adresu URL prohlížeče do svého prohlížeče (mesmo que a pagina não carregue)
-4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
-5. Klikněte na **„Připojit se“**
-
-> Toto řešení funguje na základě autorizačního kódu na adrese URL a nezávislého přesměrování přesměrování nebo jiného.
+> Toto řešení funguje, protože autorizační kód v URL adrese je platný bez ohledu na načtení přesměrovací stránky.
 
 ---
 
