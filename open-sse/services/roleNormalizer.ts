@@ -80,9 +80,17 @@ function supportsSystemRole(provider: string, model: string): boolean {
  * OpenAI Responses API sends `developer`; MiniMax and most OpenAI-compatible gateways
  * only accept system/user/assistant/tool and return "role param error" otherwise.
  *
+ * Logic:
+ * - When targetFormat !== "openai": always convert developer → system (Claude, Gemini, etc.).
+ * - When targetFormat === "openai": convert only when preserveDeveloperRole === false.
+ *   This covers OpenAI-compatible providers (MiniMax, etc.) that use targetFormat "openai"
+ *   but do not accept the developer role; the per-model preserveDeveloperRole flag is set
+ *   via the dashboard "Compatibility" toggle ("Do not preserve developer role").
+ * - When targetFormat === "openai" && preserveDeveloperRole !== false: keep developer (e.g. official OpenAI).
+ *
  * @param messages - Array of messages
  * @param targetFormat - The target format (e.g., "openai", "claude", "gemini")
- * @param preserveDeveloperRole - For targetFormat openai: undefined/true = keep developer (legacy default); false = map to system (MiniMax etc.)
+ * @param preserveDeveloperRole - For targetFormat openai: undefined/true = keep developer (legacy default); false = map to system (MiniMax and other OpenAI-compatible gateways that reject developer)
  */
 export function normalizeDeveloperRole(
   messages: NormalizedMessage[] | unknown,
@@ -170,8 +178,14 @@ export function normalizeSystemRole(
 /**
  * Full role normalization pipeline.
  * Call this before sending the request to the provider.
+ * Applies developer→system (when needed) then system→user for providers/models that do not support system role.
  *
- * @param preserveDeveloperRole - See {@link normalizeDeveloperRole}
+ * @param messages - Array of messages to normalize (or non-array, returned as-is)
+ * @param provider - Provider id for capability lookup (e.g. system role support)
+ * @param model - Model id for capability lookup
+ * @param targetFormat - Target request format (e.g. "openai", "claude", "gemini"); see {@link normalizeDeveloperRole}
+ * @param preserveDeveloperRole - Optional; see {@link normalizeDeveloperRole}. When false, developer role is mapped to system.
+ * @returns Normalized messages array, or the original value if messages is not an array
  */
 export function normalizeRoles(
   messages: NormalizedMessage[] | unknown,

@@ -55,7 +55,10 @@ export function getModelCompatOverrides(providerId: string): ModelCompatOverride
 export function mergeModelCompatOverride(
   providerId: string,
   modelId: string,
-  patch: Partial<Pick<ModelCompatOverride, "normalizeToolCallId" | "preserveOpenAIDeveloperRole">>
+  patch: Partial<{
+    normalizeToolCallId: boolean;
+    preserveOpenAIDeveloperRole: boolean | null;
+  }>
 ) {
   const list = readCompatList(providerId);
   const idx = list.findIndex((e) => e.id === modelId);
@@ -66,7 +69,11 @@ export function mergeModelCompatOverride(
     else delete next.normalizeToolCallId;
   }
   if ("preserveOpenAIDeveloperRole" in patch) {
-    next.preserveOpenAIDeveloperRole = Boolean(patch.preserveOpenAIDeveloperRole);
+    if (patch.preserveOpenAIDeveloperRole === null) {
+      delete next.preserveOpenAIDeveloperRole; // unset: revert to default (undefined at read time)
+    } else {
+      next.preserveOpenAIDeveloperRole = Boolean(patch.preserveOpenAIDeveloperRole);
+    }
   }
   const filtered = list.filter((e) => e.id !== modelId);
   const hasPreserveFlag = Object.prototype.hasOwnProperty.call(next, "preserveOpenAIDeveloperRole");
@@ -274,7 +281,7 @@ export async function updateCustomModel(
   if (index === -1) return null;
 
   const current = models[index];
-  const next = {
+  const next: JsonRecord = {
     ...current,
     ...(updates.modelName !== undefined ? { name: updates.modelName || current.name } : {}),
     ...(updates.apiFormat !== undefined ? { apiFormat: updates.apiFormat } : {}),
@@ -284,10 +291,14 @@ export async function updateCustomModel(
     ...(updates.normalizeToolCallId !== undefined
       ? { normalizeToolCallId: Boolean(updates.normalizeToolCallId) }
       : {}),
-    ...(updates.preserveOpenAIDeveloperRole !== undefined
-      ? { preserveOpenAIDeveloperRole: Boolean(updates.preserveOpenAIDeveloperRole) }
-      : {}),
   };
+  if (Object.prototype.hasOwnProperty.call(updates, "preserveOpenAIDeveloperRole")) {
+    if (updates.preserveOpenAIDeveloperRole === null) {
+      delete next.preserveOpenAIDeveloperRole;
+    } else {
+      next.preserveOpenAIDeveloperRole = Boolean(updates.preserveOpenAIDeveloperRole);
+    }
+  }
 
   models[index] = next;
 
