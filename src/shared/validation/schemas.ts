@@ -340,6 +340,13 @@ export const clearModelAvailabilitySchema = z.object({
   model: modelIdSchema,
 });
 
+const modelCompatPerProtocolSchema = z
+  .object({
+    normalizeToolCallId: z.boolean().optional(),
+    preserveOpenAIDeveloperRole: z.boolean().optional(),
+  })
+  .strict();
+
 export const providerModelMutationSchema = z.object({
   provider: z.string().trim().min(1, "provider is required").max(120),
   modelId: z.string().trim().min(1, "modelId is required").max(240),
@@ -349,6 +356,7 @@ export const providerModelMutationSchema = z.object({
   supportedEndpoints: z.array(z.enum(["chat", "embeddings", "images", "audio"])).default(["chat"]),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().optional(),
+  compatByProtocol: z.record(z.string(), modelCompatPerProtocolSchema).optional(),
 });
 
 const pricingFieldsSchema = z

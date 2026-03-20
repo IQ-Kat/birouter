@@ -124,6 +124,7 @@ export async function PUT(request) {
       supportedEndpoints,
       normalizeToolCallId,
       preserveOpenAIDeveloperRole,
+      compatByProtocol,
     } = validation.data;
 
     const raw = rawBody as Record<string, unknown>;
@@ -134,6 +135,9 @@ export async function PUT(request) {
     if ("normalizeToolCallId" in raw) updates.normalizeToolCallId = normalizeToolCallId;
     if ("preserveOpenAIDeveloperRole" in raw)
       updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
+    if ("compatByProtocol" in raw && compatByProtocol !== undefined) {
+      updates.compatByProtocol = compatByProtocol;
+    }
 
     const model = await updateCustomModel(provider, modelId, updates);
 
@@ -142,13 +146,25 @@ export async function PUT(request) {
       const compatOnly =
         rawKeys.length > 0 &&
         rawKeys.every((k) =>
-          ["provider", "modelId", "normalizeToolCallId", "preserveOpenAIDeveloperRole"].includes(k)
+          [
+            "provider",
+            "modelId",
+            "normalizeToolCallId",
+            "preserveOpenAIDeveloperRole",
+            "compatByProtocol",
+          ].includes(k)
         ) &&
-        ("normalizeToolCallId" in raw || "preserveOpenAIDeveloperRole" in raw);
+        ("normalizeToolCallId" in raw ||
+          "preserveOpenAIDeveloperRole" in raw ||
+          "compatByProtocol" in raw);
       if (compatOnly) {
         const patch: {
           normalizeToolCallId?: boolean;
           preserveOpenAIDeveloperRole?: boolean;
+          compatByProtocol?: Record<
+            string,
+            { normalizeToolCallId?: boolean; preserveOpenAIDeveloperRole?: boolean }
+          >;
         } = {};
         if ("normalizeToolCallId" in raw && typeof normalizeToolCallId === "boolean") {
           patch.normalizeToolCallId = normalizeToolCallId;
@@ -158,6 +174,12 @@ export async function PUT(request) {
           typeof preserveOpenAIDeveloperRole === "boolean"
         ) {
           patch.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
+        }
+        if ("compatByProtocol" in raw && compatByProtocol && typeof compatByProtocol === "object") {
+          patch.compatByProtocol = compatByProtocol as Record<
+            string,
+            { normalizeToolCallId?: boolean; preserveOpenAIDeveloperRole?: boolean }
+          >;
         }
         mergeModelCompatOverride(provider, modelId, patch);
         return Response.json({

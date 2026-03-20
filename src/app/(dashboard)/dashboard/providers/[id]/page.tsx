@@ -31,6 +31,115 @@ import {
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { MODEL_COMPAT_PROTOCOL_KEYS } from "@/shared/constants/modelCompat";
+
+type CompatByProtocolMap = Partial<
+  Record<string, { normalizeToolCallId?: boolean; preserveOpenAIDeveloperRole?: boolean }>
+>;
+type CompatModelRow = {
+  id?: string;
+  name?: string;
+  source?: string;
+  apiFormat?: string;
+  supportedEndpoints?: string[];
+  normalizeToolCallId?: boolean;
+  preserveOpenAIDeveloperRole?: boolean;
+  compatByProtocol?: CompatByProtocolMap;
+};
+
+function getProtoSlice(
+  c: CompatModelRow | undefined,
+  o: (CompatModelRow & { id: string }) | undefined,
+  protocol: string
+) {
+  return c?.compatByProtocol?.[protocol] ?? o?.compatByProtocol?.[protocol];
+}
+
+function effectiveNormalizeForProtocol(
+  modelId: string,
+  protocol: string,
+  customModels: CompatModelRow[],
+  overrides: Array<CompatModelRow & { id: string }>
+): boolean {
+  const c = customModels.find((m) => m.id === modelId);
+  const o = overrides.find((e) => e.id === modelId);
+  const pc = getProtoSlice(c, o, protocol);
+  if (pc && Object.prototype.hasOwnProperty.call(pc, "normalizeToolCallId")) {
+    return Boolean(pc.normalizeToolCallId);
+  }
+  if (c?.normalizeToolCallId) return true;
+  return Boolean(o?.normalizeToolCallId);
+}
+
+function effectivePreserveForProtocol(
+  modelId: string,
+  protocol: string,
+  customModels: CompatModelRow[],
+  overrides: Array<CompatModelRow & { id: string }>
+): boolean {
+  const c = customModels.find((m) => m.id === modelId);
+  const o = overrides.find((e) => e.id === modelId);
+  const pc = getProtoSlice(c, o, protocol);
+  if (pc && Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole")) {
+    return Boolean(pc.preserveOpenAIDeveloperRole);
+  }
+  if (c && Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")) {
+    return Boolean(c.preserveOpenAIDeveloperRole);
+  }
+  if (o && Object.prototype.hasOwnProperty.call(o, "preserveOpenAIDeveloperRole")) {
+    return Boolean(o.preserveOpenAIDeveloperRole);
+  }
+  return true;
+}
+
+function anyNormalizeCompatBadge(
+  modelId: string,
+  customModels: CompatModelRow[],
+  overrides: Array<CompatModelRow & { id: string }>
+): boolean {
+  const c = customModels.find((m) => m.id === modelId);
+  const o = overrides.find((e) => e.id === modelId);
+  if (c?.normalizeToolCallId || o?.normalizeToolCallId) return true;
+  for (const p of MODEL_COMPAT_PROTOCOL_KEYS) {
+    const pc = getProtoSlice(c, o, p);
+    if (pc?.normalizeToolCallId) return true;
+  }
+  return false;
+}
+
+function anyNoPreserveCompatBadge(
+  modelId: string,
+  customModels: CompatModelRow[],
+  overrides: Array<CompatModelRow & { id: string }>
+): boolean {
+  const c = customModels.find((m) => m.id === modelId);
+  const o = overrides.find((e) => e.id === modelId);
+  if (
+    c &&
+    Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole") &&
+    c.preserveOpenAIDeveloperRole === false
+  ) {
+    return true;
+  }
+  if (
+    o &&
+    Object.prototype.hasOwnProperty.call(o, "preserveOpenAIDeveloperRole") &&
+    o.preserveOpenAIDeveloperRole === false
+  ) {
+    return true;
+  }
+  for (const p of MODEL_COMPAT_PROTOCOL_KEYS) {
+    const pc = getProtoSlice(c, o, p);
+    if (
+      pc &&
+      Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole") &&
+      pc.preserveOpenAIDeveloperRole === false
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
 
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
@@ -43,25 +152,41 @@ function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly
   };
 }
 
+function compatProtocolLabelKey(protocol: string): string {
+  if (protocol === "openai") return "compatProtocolOpenAI";
+  if (protocol === "openai-responses") return "compatProtocolOpenAIResponses";
+  if (protocol === "claude") return "compatProtocolClaude";
+  return "compatProtocolOpenAI";
+}
+
 function ModelCompatPopover({
   t,
-  normalizeToolCallId,
-  preserveDeveloperRole,
+  effectiveModelNormalize,
+  effectiveModelPreserveDeveloper,
+  onCompatPatch,
   showDeveloperToggle = true,
-  onNormalizeChange,
-  onPreserveChange,
   disabled,
 }: {
   t: (key: string) => string;
-  normalizeToolCallId: boolean;
-  preserveDeveloperRole?: boolean;
+  effectiveModelNormalize: (protocol: string) => boolean;
+  effectiveModelPreserveDeveloper: (protocol: string) => boolean;
+  onCompatPatch: (
+    protocol: string,
+    payload: {
+      normalizeToolCallId?: boolean;
+      preserveOpenAIDeveloperRole?: boolean;
+    }
+  ) => void;
   showDeveloperToggle?: boolean;
-  onNormalizeChange: (v: boolean) => void;
-  onPreserveChange: (v: boolean) => void;
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [protocol, setProtocol] = useState<string>(MODEL_COMPAT_PROTOCOL_KEYS[0]);
   const ref = useRef<HTMLDivElement>(null);
+
+  const normalizeToolCallId = effectiveModelNormalize(protocol);
+  const preserveDeveloperRole = effectiveModelPreserveDeveloper(protocol);
+  const devToggle = showDeveloperToggle && protocol !== "claude";
 
   useEffect(() => {
     if (!open) return;
@@ -85,26 +210,44 @@ function ModelCompatPopover({
         {t("compatButtonLabel")}
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 min-w-[200px] p-3 rounded-lg border border-border bg-white dark:bg-zinc-900 shadow-xl ring-1 ring-black/5 dark:ring-white/10">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted mb-2">
+        <div className="absolute left-0 top-full mt-1 z-50 min-w-[220px] max-w-[92vw] p-3 rounded-lg border border-border bg-white dark:bg-zinc-900 shadow-xl ring-1 ring-black/5 dark:ring-white/10">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted mb-1">
             {t("compatAdjustmentsTitle")}
           </p>
+          <p className="text-[10px] text-text-muted mb-2 leading-snug">{t("compatProtocolHint")}</p>
+          <label className="block text-[10px] font-medium text-text-muted mb-1">
+            {t("compatProtocolLabel")}
+          </label>
+          <select
+            value={protocol}
+            onChange={(e) => setProtocol(e.target.value)}
+            disabled={disabled}
+            className="w-full mb-3 px-2 py-1.5 text-xs rounded-md border border-border bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-primary/50"
+          >
+            {MODEL_COMPAT_PROTOCOL_KEYS.map((p) => (
+              <option key={p} value={p}>
+                {t(compatProtocolLabelKey(p))}
+              </option>
+            ))}
+          </select>
           <div className="flex flex-col gap-3">
             <Toggle
               size="sm"
               label={t("compatToolIdShort")}
               title={t("normalizeToolCallIdLabel")}
               checked={normalizeToolCallId}
-              onChange={onNormalizeChange}
+              onChange={(v) => onCompatPatch(protocol, { normalizeToolCallId: v })}
               disabled={disabled}
             />
-            {showDeveloperToggle && (
+            {devToggle && (
               <Toggle
                 size="sm"
                 label={t("compatDoNotPreserveDeveloper")}
                 title={t("preserveDeveloperRoleLabel")}
                 checked={preserveDeveloperRole === false}
-                onChange={(checked) => onPreserveChange(!checked)}
+                onChange={(checked) =>
+                  onCompatPatch(protocol, { preserveOpenAIDeveloperRole: !checked })
+                }
                 disabled={disabled}
               />
             )}
@@ -149,12 +292,8 @@ export default function ProviderDetailPage() {
     importedCount: 0,
   });
   const [modelMeta, setModelMeta] = useState<{
-    customModels: Record<string, unknown>[];
-    modelCompatOverrides: {
-      id: string;
-      normalizeToolCallId?: boolean;
-      preserveOpenAIDeveloperRole?: boolean;
-    }[];
+    customModels: CompatModelRow[];
+    modelCompatOverrides: Array<CompatModelRow & { id: string }>;
   }>({ customModels: [], modelCompatOverrides: [] });
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
 
@@ -773,62 +912,76 @@ export default function ProviderDetailPage() {
 
   const canImportModels = connections.some((conn) => conn.isActive !== false);
 
-  const effectiveModelNormalize = (modelId: string) => {
-    const c = modelMeta.customModels.find((m: { id?: string }) => m.id === modelId) as
-      | { normalizeToolCallId?: boolean }
-      | undefined;
-    if (c) return Boolean(c.normalizeToolCallId);
-    const o = modelMeta.modelCompatOverrides.find((e) => e.id === modelId);
-    return Boolean(o?.normalizeToolCallId);
-  };
+  const effectiveModelNormalize = (modelId: string, protocol = MODEL_COMPAT_PROTOCOL_KEYS[0]) =>
+    effectiveNormalizeForProtocol(
+      modelId,
+      protocol,
+      modelMeta.customModels,
+      modelMeta.modelCompatOverrides
+    );
 
-  const effectiveModelPreserveDeveloper = (modelId: string) => {
-    const c = modelMeta.customModels.find((m: { id?: string }) => m.id === modelId) as
-      | Record<string, unknown>
-      | undefined;
-    if (c && Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")) {
-      return Boolean(c.preserveOpenAIDeveloperRole);
-    }
-    const o = modelMeta.modelCompatOverrides.find((e) => e.id === modelId);
-    if (o && Object.prototype.hasOwnProperty.call(o, "preserveOpenAIDeveloperRole")) {
-      return Boolean(o.preserveOpenAIDeveloperRole);
-    }
-    return true;
-  };
+  const effectiveModelPreserveDeveloper = (
+    modelId: string,
+    protocol = MODEL_COMPAT_PROTOCOL_KEYS[0]
+  ) =>
+    effectivePreserveForProtocol(
+      modelId,
+      protocol,
+      modelMeta.customModels,
+      modelMeta.modelCompatOverrides
+    );
 
   const saveModelCompatFlags = async (
     modelId: string,
-    patch: { normalizeToolCallId?: boolean; preserveOpenAIDeveloperRole?: boolean }
+    patch: {
+      normalizeToolCallId?: boolean;
+      preserveOpenAIDeveloperRole?: boolean;
+      compatByProtocol?: CompatByProtocolMap;
+    }
   ) => {
     setCompatSavingModelId(modelId);
     try {
-      const c = modelMeta.customModels.find((m: { id?: string }) => m.id === modelId) as Record<
+      const c = modelMeta.customModels.find((m) => m.id === modelId) as Record<
         string,
         unknown
       > | null;
       let body: Record<string, unknown>;
+      const onlyCompatByProtocol =
+        patch.compatByProtocol &&
+        patch.normalizeToolCallId === undefined &&
+        patch.preserveOpenAIDeveloperRole === undefined;
+
       if (c) {
-        body = {
-          provider: providerId,
-          modelId,
-          modelName: (c.name as string) || modelId,
-          source: (c.source as string) || "manual",
-          apiFormat: (c.apiFormat as string) || "chat-completions",
-          supportedEndpoints:
-            Array.isArray(c.supportedEndpoints) && (c.supportedEndpoints as unknown[]).length
-              ? c.supportedEndpoints
-              : ["chat"],
-          normalizeToolCallId:
-            patch.normalizeToolCallId !== undefined
-              ? patch.normalizeToolCallId
-              : Boolean(c.normalizeToolCallId),
-          preserveOpenAIDeveloperRole:
-            patch.preserveOpenAIDeveloperRole !== undefined
-              ? patch.preserveOpenAIDeveloperRole
-              : Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")
-                ? Boolean(c.preserveOpenAIDeveloperRole)
-                : true,
-        };
+        if (onlyCompatByProtocol) {
+          body = {
+            provider: providerId,
+            modelId,
+            compatByProtocol: patch.compatByProtocol,
+          };
+        } else {
+          body = {
+            provider: providerId,
+            modelId,
+            modelName: (c.name as string) || modelId,
+            source: (c.source as string) || "manual",
+            apiFormat: (c.apiFormat as string) || "chat-completions",
+            supportedEndpoints:
+              Array.isArray(c.supportedEndpoints) && (c.supportedEndpoints as unknown[]).length
+                ? c.supportedEndpoints
+                : ["chat"],
+            normalizeToolCallId:
+              patch.normalizeToolCallId !== undefined
+                ? patch.normalizeToolCallId
+                : Boolean(c.normalizeToolCallId),
+            preserveOpenAIDeveloperRole:
+              patch.preserveOpenAIDeveloperRole !== undefined
+                ? patch.preserveOpenAIDeveloperRole
+                : Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")
+                  ? Boolean(c.preserveOpenAIDeveloperRole)
+                  : true,
+          };
+          if (patch.compatByProtocol) body.compatByProtocol = patch.compatByProtocol;
+        }
       } else {
         body = { provider: providerId, modelId, ...patch };
       }
@@ -948,14 +1101,9 @@ export default function ProviderDetailPage() {
                 onCopy={copy}
                 t={t}
                 showDeveloperToggle
-                normalizeToolCallId={effectiveModelNormalize(model.id)}
-                preserveDeveloperRole={effectiveModelPreserveDeveloper(model.id)}
-                onNormalizeChange={(v) =>
-                  saveModelCompatFlags(model.id, { normalizeToolCallId: v })
-                }
-                onPreserveChange={(v) =>
-                  saveModelCompatFlags(model.id, { preserveOpenAIDeveloperRole: v })
-                }
+                effectiveModelNormalize={effectiveModelNormalize}
+                effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                saveModelCompatFlags={saveModelCompatFlags}
                 compatDisabled={compatSavingModelId === model.id}
               />
             );
@@ -1487,10 +1635,9 @@ function ModelRow({
   onCopy,
   t,
   showDeveloperToggle = true,
-  normalizeToolCallId,
-  preserveDeveloperRole,
-  onNormalizeChange,
-  onPreserveChange,
+  effectiveModelNormalize,
+  effectiveModelPreserveDeveloper,
+  saveModelCompatFlags,
   compatDisabled,
 }: any) {
   return (
@@ -1514,11 +1661,12 @@ function ModelRow({
       </div>
       <ModelCompatPopover
         t={t}
-        normalizeToolCallId={Boolean(normalizeToolCallId)}
-        preserveDeveloperRole={preserveDeveloperRole}
+        effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
+        effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(model.id, p)}
+        onCompatPatch={(protocol, payload) =>
+          saveModelCompatFlags(model.id, { compatByProtocol: { [protocol]: payload } })
+        }
         showDeveloperToggle={showDeveloperToggle}
-        onNormalizeChange={onNormalizeChange}
-        onPreserveChange={onPreserveChange}
         disabled={compatDisabled}
       />
     </div>
@@ -1535,10 +1683,9 @@ ModelRow.propTypes = {
   onCopy: PropTypes.func.isRequired,
   t: PropTypes.func,
   showDeveloperToggle: PropTypes.bool,
-  normalizeToolCallId: PropTypes.bool,
-  preserveDeveloperRole: PropTypes.bool,
-  onNormalizeChange: PropTypes.func,
-  onPreserveChange: PropTypes.func,
+  effectiveModelNormalize: PropTypes.func.isRequired,
+  effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
+  saveModelCompatFlags: PropTypes.func.isRequired,
   compatDisabled: PropTypes.bool,
 };
 
@@ -1634,12 +1781,9 @@ function PassthroughModelsSection({
               onDeleteAlias={() => onDeleteAlias(alias)}
               t={t}
               showDeveloperToggle
-              normalizeToolCallId={effectiveModelNormalize(modelId)}
-              preserveDeveloperRole={effectiveModelPreserveDeveloper(modelId)}
-              onNormalizeChange={(v) => saveModelCompatFlags(modelId, { normalizeToolCallId: v })}
-              onPreserveChange={(v) =>
-                saveModelCompatFlags(modelId, { preserveOpenAIDeveloperRole: v })
-              }
+              effectiveModelNormalize={effectiveModelNormalize}
+              effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+              saveModelCompatFlags={saveModelCompatFlags}
               compatDisabled={compatSavingModelId === modelId}
             />
           ))}
@@ -1671,10 +1815,9 @@ function PassthroughModelRow({
   onDeleteAlias,
   t,
   showDeveloperToggle = true,
-  normalizeToolCallId,
-  preserveDeveloperRole,
-  onNormalizeChange,
-  onPreserveChange,
+  effectiveModelNormalize,
+  effectiveModelPreserveDeveloper,
+  saveModelCompatFlags,
   compatDisabled,
 }: any) {
   return (
@@ -1711,11 +1854,12 @@ function PassthroughModelRow({
       <div className="pl-9">
         <ModelCompatPopover
           t={t}
-          normalizeToolCallId={Boolean(normalizeToolCallId)}
-          preserveDeveloperRole={preserveDeveloperRole}
+          effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
+          effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(modelId, p)}
+          onCompatPatch={(protocol, payload) =>
+            saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
+          }
           showDeveloperToggle={showDeveloperToggle}
-          onNormalizeChange={onNormalizeChange}
-          onPreserveChange={onPreserveChange}
           disabled={compatDisabled}
         />
       </div>
@@ -1731,10 +1875,9 @@ PassthroughModelRow.propTypes = {
   onDeleteAlias: PropTypes.func.isRequired,
   t: PropTypes.func,
   showDeveloperToggle: PropTypes.bool,
-  normalizeToolCallId: PropTypes.bool,
-  preserveDeveloperRole: PropTypes.bool,
-  onNormalizeChange: PropTypes.func,
-  onPreserveChange: PropTypes.func,
+  effectiveModelNormalize: PropTypes.func.isRequired,
+  effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
+  saveModelCompatFlags: PropTypes.func.isRequired,
   compatDisabled: PropTypes.bool,
 };
 
@@ -1743,7 +1886,10 @@ PassthroughModelRow.propTypes = {
 function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onModelsChanged }) {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
-  const [customModels, setCustomModels] = useState([]);
+  const [customModels, setCustomModels] = useState<CompatModelRow[]>([]);
+  const [modelCompatOverrides, setModelCompatOverrides] = useState<
+    Array<CompatModelRow & { id: string }>
+  >([]);
   const [newModelId, setNewModelId] = useState("");
   const [newModelName, setNewModelName] = useState("");
   const [newApiFormat, setNewApiFormat] = useState("chat-completions");
@@ -1753,8 +1899,6 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onMode
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
   const [editingApiFormat, setEditingApiFormat] = useState("chat-completions");
   const [editingEndpoints, setEditingEndpoints] = useState<string[]>(["chat"]);
-  const [editingNormalizeToolCallId, setEditingNormalizeToolCallId] = useState(false);
-  const [editingPreserveDeveloperRole, setEditingPreserveDeveloperRole] = useState(false);
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
 
   const fetchCustomModels = useCallback(async () => {
@@ -1763,6 +1907,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onMode
       if (res.ok) {
         const data = await res.json();
         setCustomModels(data.models || []);
+        setModelCompatOverrides(data.modelCompatOverrides || []);
       }
     } catch (e) {
       console.error("Failed to fetch custom models:", e);
@@ -1828,21 +1973,37 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onMode
         ? model.supportedEndpoints
         : ["chat"]
     );
-    setEditingNormalizeToolCallId(Boolean(model.normalizeToolCallId));
-    setEditingPreserveDeveloperRole(
-      Object.prototype.hasOwnProperty.call(model, "preserveOpenAIDeveloperRole")
-        ? Boolean(model.preserveOpenAIDeveloperRole)
-        : true
-    );
   };
 
   const cancelEdit = () => {
     setEditingModelId(null);
     setEditingApiFormat("chat-completions");
     setEditingEndpoints(["chat"]);
-    setEditingNormalizeToolCallId(false);
-    setEditingPreserveDeveloperRole(true);
     setSavingModelId(null);
+  };
+
+  const saveCustomCompat = async (
+    modelId: string,
+    patch: { compatByProtocol?: CompatByProtocolMap }
+  ) => {
+    setSavingModelId(modelId);
+    try {
+      const res = await fetch("/api/provider-models", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: providerId, modelId, ...patch }),
+      });
+      if (res.ok) {
+        await fetchCustomModels();
+        onModelsChanged?.();
+      } else {
+        notify.error(t("failedSaveCustomModel"));
+      }
+    } catch {
+      notify.error(t("failedSaveCustomModel"));
+    } finally {
+      setSavingModelId(null);
+    }
   };
 
   const saveEdit = async (modelId) => {
@@ -1865,8 +2026,6 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onMode
           source: model?.source || "manual",
           apiFormat: editingApiFormat,
           supportedEndpoints: editingEndpoints,
-          normalizeToolCallId: editingNormalizeToolCallId,
-          preserveOpenAIDeveloperRole: editingPreserveDeveloperRole,
         }),
       });
 
@@ -2029,7 +2188,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onMode
                         🔊 Audio
                       </span>
                     )}
-                    {model.normalizeToolCallId && (
+                    {anyNormalizeCompatBadge(model.id, customModels, modelCompatOverrides) && (
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-500/15 text-slate-400 font-medium"
                         title={t("normalizeToolCallIdLabel")}
@@ -2037,7 +2196,7 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onMode
                         ID×9
                       </span>
                     )}
-                    {model.preserveOpenAIDeveloperRole === false && (
+                    {anyNoPreserveCompatBadge(model.id, customModels, modelCompatOverrides) && (
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-medium"
                         title={t("compatDoNotPreserveDeveloper")}
@@ -2101,11 +2260,28 @@ function CustomModelsSection({ providerId, providerAlias, copied, onCopy, onMode
                       <div className="mt-3 pt-3 border-t border-border/80 w-full">
                         <ModelCompatPopover
                           t={t}
-                          normalizeToolCallId={editingNormalizeToolCallId}
-                          preserveDeveloperRole={editingPreserveDeveloperRole}
+                          effectiveModelNormalize={(p) =>
+                            effectiveNormalizeForProtocol(
+                              model.id,
+                              p,
+                              customModels,
+                              modelCompatOverrides
+                            )
+                          }
+                          effectiveModelPreserveDeveloper={(p) =>
+                            effectivePreserveForProtocol(
+                              model.id,
+                              p,
+                              customModels,
+                              modelCompatOverrides
+                            )
+                          }
+                          onCompatPatch={(protocol, payload) =>
+                            saveCustomCompat(model.id, {
+                              compatByProtocol: { [protocol]: payload },
+                            })
+                          }
                           showDeveloperToggle
-                          onNormalizeChange={setEditingNormalizeToolCallId}
-                          onPreserveChange={setEditingPreserveDeveloperRole}
                           disabled={savingModelId === model.id}
                         />
                       </div>
@@ -2384,12 +2560,9 @@ function CompatibleModelsSection({
               onDeleteAlias={() => handleDeleteModel(modelId, alias)}
               t={t}
               showDeveloperToggle={!isAnthropic}
-              normalizeToolCallId={effectiveModelNormalize(modelId)}
-              preserveDeveloperRole={effectiveModelPreserveDeveloper(modelId)}
-              onNormalizeChange={(v) => saveModelCompatFlags(modelId, { normalizeToolCallId: v })}
-              onPreserveChange={(v) =>
-                saveModelCompatFlags(modelId, { preserveOpenAIDeveloperRole: v })
-              }
+              effectiveModelNormalize={effectiveModelNormalize}
+              effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+              saveModelCompatFlags={saveModelCompatFlags}
               compatDisabled={compatSavingModelId === modelId}
             />
           ))}
