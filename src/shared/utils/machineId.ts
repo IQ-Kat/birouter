@@ -1,39 +1,86 @@
 import { execSync, execFileSync } from "child_process";
+import { existsSync, readFileSync } from "fs";
 
+/**
+ * Get raw machine ID using OS-specific methods.
+ *
+ * IMPORTANT: We do NOT use `if (process.platform === ...)` branching here.
+ * Next.js SWC bundler evaluates `process.platform` at BUILD time, so when the
+ * project is built on Linux, the win32/darwin branches get dead-code-eliminated
+ * and the Linux fallback (which uses `head`) runs on Windows at runtime.
+ *
+ * Instead, we use a try/catch waterfall: try each OS method and fall through
+ * to the next on failure. The correct method always succeeds on the target OS.
+ */
 function getMachineIdRaw(): string {
-  if (process.platform === "win32") {
+  // Strategy 1: Windows — REG.exe query for MachineGuid
+  try {
     const sysRoot = process.env.SystemRoot || process.env.windir || "C:\\Windows";
-    const output = execFileSync(
-      `${sysRoot}\\System32\\REG.exe`,
-      ["QUERY", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "/v", "MachineGuid"],
-      { encoding: "utf8" }
-    );
-    return (
-      output
-        .toString()
+    const regPath = `${sysRoot}\\System32\\REG.exe`;
+    if (existsSync(regPath)) {
+      const output = execFileSync(
+        regPath,
+        ["QUERY", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "/v", "MachineGuid"],
+        { encoding: "utf8", timeout: 5000 }
+      );
+      const id = output
         .split("REG_SZ")[1]
         ?.replace(/\r+|\n+|\s+/gi, "")
-        ?.toLowerCase() ?? ""
-    );
+        ?.toLowerCase();
+      if (id && id.length > 8) return id;
+    }
+  } catch {
+    // Not Windows or REG.exe failed — continue
   }
-  if (process.platform === "darwin") {
-    const output = execSync("ioreg -rd1 -c IOPlatformExpertDevice", { encoding: "utf8" });
-    return (
-      output
+
+  // Strategy 2: macOS — ioreg IOPlatformUUID
+  try {
+    const output = execSync("ioreg -rd1 -c IOPlatformExpertDevice", {
+      encoding: "utf8",
+      timeout: 5000,
+    });
+    if (output.includes("IOPlatformUUID")) {
+      const id = output
         .split("IOPlatformUUID")[1]
         ?.split("\n")[0]
-        ?.replace(/\=|\s+|\"/gi, "")
-        ?.toLowerCase() ?? ""
-    );
+        ?.replace(/=|\s+|"/gi, "")
+        ?.toLowerCase();
+      if (id && id.length > 8) return id;
+    }
+  } catch {
+    // Not macOS or ioreg not available — continue
   }
-  const output = execSync(
-    "( cat /var/lib/dbus/machine-id /etc/machine-id 2> /dev/null || hostname ) | head -n 1 || :",
-    { encoding: "utf8" }
-  );
-  return output
-    .toString()
-    .replace(/\r+|\n+|\s+/gi, "")
-    .toLowerCase();
+
+  // Strategy 3: Linux — read machine-id files directly (no `head` or pipe)
+  try {
+    for (const filePath of ["/etc/machine-id", "/var/lib/dbus/machine-id"]) {
+      if (existsSync(filePath)) {
+        const content = readFileSync(filePath, "utf8").trim().toLowerCase();
+        if (content.length > 8) return content;
+      }
+    }
+  } catch {
+    // Files not readable — continue
+  }
+
+  // Strategy 4: Hostname fallback (works on all platforms)
+  try {
+    const hostname = execSync("hostname", { encoding: "utf8", timeout: 5000 });
+    const id = hostname.trim().toLowerCase();
+    if (id) return id;
+  } catch {
+    // hostname failed — continue
+  }
+
+  // Strategy 5: Node.js os.hostname() (no exec needed)
+  try {
+    const os = require("os");
+    return os.hostname().toLowerCase();
+  } catch {
+    // Final fallback
+  }
+
+  return "unknown-machine";
 }
 
 /**
