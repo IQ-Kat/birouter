@@ -490,6 +490,16 @@ export const APIKEY_PROVIDERS = {
     website: "https://tavily.com",
     authHint: "API key from app.tavily.com (format: tvly-...)",
   },
+  alibaba: {
+    id: "alibaba",
+    alias: "ali",
+    name: "Alibaba Cloud (DashScope)",
+    icon: "cloud_queue",
+    color: "#FF6600",
+    textIcon: "AL",
+    website: "https://dashscope-intl.aliyuncs.com",
+    hasFree: false,
+  },
 };
 
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
