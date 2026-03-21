@@ -34,13 +34,15 @@ function upstreamErrorResponse(res, errText) {
   let errorMessage: string;
   try {
     const parsed = JSON.parse(errText);
-    errorMessage =
+    // Guard against `parsed.error` or `parsed.detail` being objects
+    const raw =
       parsed?.err_msg ||
       parsed?.error?.message ||
-      parsed?.error ||
+      (typeof parsed?.error === "string" ? parsed.error : null) ||
       parsed?.message ||
-      parsed?.detail ||
-      errText;
+      (typeof parsed?.detail === "string" ? parsed.detail : parsed?.detail?.message) ||
+      null;
+    errorMessage = raw ? String(raw) : errText || `Upstream error (${res.status})`;
   } catch {
     errorMessage = errText || `Upstream error (${res.status})`;
   }
