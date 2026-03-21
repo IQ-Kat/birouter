@@ -42,8 +42,7 @@ function deepMergeCompatByProtocol(
     if (!hasDelta) continue;
     const cur: ModelCompatPerProtocol = { ...(out[key] || {}) };
     if ("normalizeToolCallId" in deltas) {
-      if (deltas.normalizeToolCallId) cur.normalizeToolCallId = true;
-      else delete cur.normalizeToolCallId;
+      cur.normalizeToolCallId = Boolean(deltas.normalizeToolCallId);
     }
     if ("preserveOpenAIDeveloperRole" in deltas) {
       cur.preserveOpenAIDeveloperRole = Boolean(deltas.preserveOpenAIDeveloperRole);
