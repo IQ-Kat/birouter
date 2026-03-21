@@ -1105,17 +1105,17 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 
 ### 🎵 Multi-Modal APIs
 
-| Feature                    | What It Does                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| 🖼️ **Image Generation**    | `/v1/images/generations` with cloud and local backends                                                       |
-| 📐 **Embeddings**          | `/v1/embeddings` for search and RAG pipelines                                                                |
-| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` (Whisper and additional providers)                                                |
-| 🔊 **Text-to-Speech**      | `/v1/audio/speech` (multiple engines/providers)                                                              |
-| 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)                                                      |
-| 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                                                                  |
-| 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                              |
-| 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                                                                           |
-| 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache |
+| Feature                    | What It Does                                                                                                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🖼️ **Image Generation**    | `/v1/images/generations` with cloud and local backends                                                                                                                     |
+| 📐 **Embeddings**          | `/v1/embeddings` for search and RAG pipelines                                                                                                                              |
+| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
+| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) with correct error messages          |
+| 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)                                                                                                                    |
+| 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                                                                                                                                |
+| 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                                                                                            |
+| 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                                                                                                                                         |
+| 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache                                                               |
 
 ### 🛡️ Resilience, Security & Governance
 
