@@ -4,16 +4,60 @@
 
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import {
+  MODEL_COMPAT_PROTOCOL_KEYS,
+  type ModelCompatProtocolKey,
+} from "@/shared/constants/modelCompat";
 
 type JsonRecord = Record<string, unknown>;
 
 /** Built-in / alias models: tool-call + developer-role flags without a full custom row */
 const MODEL_COMPAT_NAMESPACE = "modelCompatOverrides";
 
+export { MODEL_COMPAT_PROTOCOL_KEYS, type ModelCompatProtocolKey };
+
+export type ModelCompatPerProtocol = {
+  normalizeToolCallId?: boolean;
+  preserveOpenAIDeveloperRole?: boolean;
+};
+
+type CompatByProtocolMap = Partial<Record<ModelCompatProtocolKey, ModelCompatPerProtocol>>;
+
+function isCompatProtocolKey(p: string): p is ModelCompatProtocolKey {
+  return (MODEL_COMPAT_PROTOCOL_KEYS as readonly string[]).includes(p);
+}
+
+function deepMergeCompatByProtocol(
+  prev: CompatByProtocolMap | undefined,
+  patch: Partial<Record<ModelCompatProtocolKey, Partial<ModelCompatPerProtocol>>>
+): CompatByProtocolMap {
+  const out: CompatByProtocolMap = { ...(prev || {}) };
+  for (const key of Object.keys(patch) as ModelCompatProtocolKey[]) {
+    if (!isCompatProtocolKey(key)) continue;
+    const deltas = patch[key];
+    if (!deltas || typeof deltas !== "object") continue;
+    const hasDelta =
+      Object.prototype.hasOwnProperty.call(deltas, "normalizeToolCallId") ||
+      Object.prototype.hasOwnProperty.call(deltas, "preserveOpenAIDeveloperRole");
+    if (!hasDelta) continue;
+    const cur: ModelCompatPerProtocol = { ...(out[key] || {}) };
+    if ("normalizeToolCallId" in deltas) {
+      cur.normalizeToolCallId = Boolean(deltas.normalizeToolCallId);
+    }
+    if ("preserveOpenAIDeveloperRole" in deltas) {
+      cur.preserveOpenAIDeveloperRole = Boolean(deltas.preserveOpenAIDeveloperRole);
+    }
+    if (Object.keys(cur).length === 0) delete out[key];
+    else out[key] = cur;
+  }
+  return out;
+}
+
 export type ModelCompatOverride = {
   id: string;
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
+  compatByProtocol?: CompatByProtocolMap;
 };
 
 function readCompatList(providerId: string): ModelCompatOverride[] {
@@ -52,13 +96,24 @@ export function getModelCompatOverrides(providerId: string): ModelCompatOverride
   return readCompatList(providerId);
 }
 
+export type ModelCompatPatch = {
+  normalizeToolCallId?: boolean;
+  preserveOpenAIDeveloperRole?: boolean | null;
+  compatByProtocol?: CompatByProtocolMap;
+};
+
+function compatByProtocolHasEntries(map: CompatByProtocolMap | undefined): boolean {
+  if (!map || typeof map !== "object") return false;
+  return Object.keys(map).some((k) => {
+    const v = map[k as ModelCompatProtocolKey];
+    return v && typeof v === "object" && Object.keys(v).length > 0;
+  });
+}
+
 export function mergeModelCompatOverride(
   providerId: string,
   modelId: string,
-  patch: Partial<{
-    normalizeToolCallId: boolean;
-    preserveOpenAIDeveloperRole: boolean | null;
-  }>
+  patch: ModelCompatPatch
 ) {
   const list = readCompatList(providerId);
   const idx = list.findIndex((e) => e.id === modelId);
@@ -75,9 +130,18 @@ export function mergeModelCompatOverride(
       next.preserveOpenAIDeveloperRole = Boolean(patch.preserveOpenAIDeveloperRole);
     }
   }
+  if (patch.compatByProtocol && Object.keys(patch.compatByProtocol).length > 0) {
+    const merged = deepMergeCompatByProtocol(next.compatByProtocol, patch.compatByProtocol);
+    if (compatByProtocolHasEntries(merged)) next.compatByProtocol = merged;
+    else delete next.compatByProtocol;
+  }
   const filtered = list.filter((e) => e.id !== modelId);
   const hasPreserveFlag = Object.prototype.hasOwnProperty.call(next, "preserveOpenAIDeveloperRole");
-  if (next.normalizeToolCallId || hasPreserveFlag) {
+  if (
+    next.normalizeToolCallId ||
+    hasPreserveFlag ||
+    compatByProtocolHasEntries(next.compatByProtocol)
+  ) {
     filtered.push(next);
   }
   writeCompatList(providerId, filtered);
@@ -281,6 +345,23 @@ export async function updateCustomModel(
   if (index === -1) return null;
 
   const current = models[index];
+  const currentCompat = (current as JsonRecord).compatByProtocol as CompatByProtocolMap | undefined;
+  let mergedCompat: CompatByProtocolMap | undefined = currentCompat;
+  if (
+    updates.compatByProtocol !== undefined &&
+    typeof updates.compatByProtocol === "object" &&
+    updates.compatByProtocol !== null &&
+    !Array.isArray(updates.compatByProtocol)
+  ) {
+    mergedCompat = deepMergeCompatByProtocol(
+      currentCompat,
+      updates.compatByProtocol as Partial<
+        Record<ModelCompatProtocolKey, Partial<ModelCompatPerProtocol>>
+      >
+    );
+    if (!compatByProtocolHasEntries(mergedCompat)) mergedCompat = undefined;
+  }
+
   const next: JsonRecord = {
     ...current,
     ...(updates.modelName !== undefined ? { name: updates.modelName || current.name } : {}),
@@ -297,6 +378,13 @@ export async function updateCustomModel(
       delete next.preserveOpenAIDeveloperRole;
     } else {
       next.preserveOpenAIDeveloperRole = Boolean(updates.preserveOpenAIDeveloperRole);
+    }
+  }
+  if (updates.compatByProtocol !== undefined) {
+    if (mergedCompat && compatByProtocolHasEntries(mergedCompat)) {
+      next.compatByProtocol = mergedCompat;
+    } else {
+      delete next.compatByProtocol;
     }
   }
 
@@ -335,11 +423,33 @@ function getCustomModelRow(providerId: string, modelId: string): JsonRecord | nu
 /**
  * Whether the given provider/model has "normalize tool call id" (9-char Mistral-style) enabled.
  * Custom model row wins; otherwise {@link getModelCompatOverrides}.
+ * When `sourceFormat` is one of `openai` | `openai-responses` | `claude`, per-protocol
+ * `compatByProtocol[sourceFormat].normalizeToolCallId` overrides the legacy top-level flag.
  */
-export function getModelNormalizeToolCallId(providerId: string, modelId: string): boolean {
+export function getModelNormalizeToolCallId(
+  providerId: string,
+  modelId: string,
+  sourceFormat?: string | null
+): boolean {
   const m = getCustomModelRow(providerId, modelId);
-  if (m) return Boolean(m.normalizeToolCallId);
+  const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
+
+  if (m) {
+    if (protocol) {
+      const pc = (m.compatByProtocol as CompatByProtocolMap | undefined)?.[protocol];
+      if (pc && Object.prototype.hasOwnProperty.call(pc, "normalizeToolCallId")) {
+        return Boolean(pc.normalizeToolCallId);
+      }
+    }
+    return Boolean(m.normalizeToolCallId);
+  }
   const co = readCompatList(providerId).find((e) => e.id === modelId);
+  if (protocol && co?.compatByProtocol?.[protocol]) {
+    const pc = co.compatByProtocol[protocol]!;
+    if (Object.prototype.hasOwnProperty.call(pc, "normalizeToolCallId")) {
+      return Boolean(pc.normalizeToolCallId);
+    }
+  }
   return Boolean(co?.normalizeToolCallId);
 }
 
@@ -347,19 +457,35 @@ export function getModelNormalizeToolCallId(providerId: string, modelId: string)
  * Explicit preserve-openai-developer preference for this provider/model.
  * `undefined` = unset → routing keeps legacy default (preserve developer for OpenAI format).
  * `false` = map developer → system (e.g. MiniMax). `true` = keep developer.
+ * Per-protocol overrides live under `compatByProtocol[sourceFormat]` when `sourceFormat` matches.
  */
 export function getModelPreserveOpenAIDeveloperRole(
   providerId: string,
-  modelId: string
+  modelId: string,
+  sourceFormat?: string | null
 ): boolean | undefined {
   const m = getCustomModelRow(providerId, modelId);
+  const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
+
   if (m) {
+    if (protocol) {
+      const pc = (m.compatByProtocol as CompatByProtocolMap | undefined)?.[protocol];
+      if (pc && Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole")) {
+        return Boolean(pc.preserveOpenAIDeveloperRole);
+      }
+    }
     if (Object.prototype.hasOwnProperty.call(m, "preserveOpenAIDeveloperRole")) {
       return Boolean(m.preserveOpenAIDeveloperRole);
     }
     return undefined;
   }
   const co = readCompatList(providerId).find((e) => e.id === modelId);
+  if (protocol && co?.compatByProtocol?.[protocol]) {
+    const pc = co.compatByProtocol[protocol]!;
+    if (Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole")) {
+      return Boolean(pc.preserveOpenAIDeveloperRole);
+    }
+  }
   if (co && Object.prototype.hasOwnProperty.call(co, "preserveOpenAIDeveloperRole")) {
     return Boolean(co.preserveOpenAIDeveloperRole);
   }

@@ -48,6 +48,8 @@ export {
   getModelPreserveOpenAIDeveloperRole,
 } from "./db/models";
 
+export type { ModelCompatPerProtocol, ModelCompatPatch } from "./db/models";
+
 export {
   // Combos
   getCombos,
