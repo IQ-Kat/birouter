@@ -447,8 +447,10 @@ export async function handleComboChat({
   const handleSingleModelWrapped = combo.context_cache_protection
     ? async (b, modelStr) => {
         const res = await handleSingleModel(b, modelStr);
-        // Inject tag only on success and only for non-streaming non-binary responses
-        if (res.ok && !b.stream) {
+        if (!res.ok) return res;
+
+        // Non-streaming: inject tag into JSON response (existing logic)
+        if (!b.stream) {
           try {
             const json = await res.clone().json();
             const msgs = Array.isArray(json?.messages) ? json.messages : [];
@@ -460,10 +462,74 @@ export async function handleComboChat({
               });
             }
           } catch {
-            /* non-JSON or stream — skip tagging */
+            /* non-JSON — skip tagging */
           }
+          return res;
         }
-        return res;
+
+        // Streaming (Fix #490): append omniModel tag as a final SSE content delta
+        // before the [DONE] marker using TransformStream for zero-copy passthrough
+        if (!res.body) return res;
+        const tagContent = `\n<omniModel>${modelStr}</omniModel>`;
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        const transform = new TransformStream({
+          transform(chunk, controller) {
+            // Decode chunk and check for [DONE] marker
+            const text = decoder.decode(chunk, { stream: true });
+            buffer += text;
+
+            // Check if buffer contains the [DONE] marker
+            const doneIdx = buffer.indexOf("data: [DONE]");
+            if (doneIdx === -1) {
+              // No [DONE] yet — flush buffer as-is (keep passthrough latency low)
+              controller.enqueue(encoder.encode(buffer));
+              buffer = "";
+              return;
+            }
+
+            // Found [DONE] — inject tag content delta before it
+            const beforeDone = buffer.slice(0, doneIdx);
+            const afterDone = buffer.slice(doneIdx);
+
+            // Build a synthetic SSE content delta chunk with the tag
+            const tagChunk = `data: ${JSON.stringify({
+              choices: [
+                {
+                  delta: { content: tagContent },
+                  index: 0,
+                  finish_reason: null,
+                },
+              ],
+            })}\n\n`;
+
+            controller.enqueue(encoder.encode(beforeDone + tagChunk + afterDone));
+            buffer = "";
+          },
+          flush(controller) {
+            // If stream ends without [DONE], flush remaining buffer + tag
+            if (buffer.length > 0) {
+              const tagChunk = `data: ${JSON.stringify({
+                choices: [
+                  {
+                    delta: { content: tagContent },
+                    index: 0,
+                    finish_reason: null,
+                  },
+                ],
+              })}\n\n`;
+              controller.enqueue(encoder.encode(buffer + tagChunk));
+            }
+          },
+        });
+
+        const transformedStream = res.body.pipeThrough(transform);
+        return new Response(transformedStream, {
+          status: res.status,
+          headers: res.headers,
+        });
       }
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────
