@@ -4,6 +4,26 @@
 
 ---
 
+## [2.9.1] — 2026-03-21
+
+> Sprint: Fix SSE omniModel data loss, merge per-protocol model compatibility.
+
+### Bug Fixes
+
+- **#511** — Critical: `<omniModel>` tag was sent after `finish_reason:stop` in SSE streams, causing data loss. Tag is now injected into the first non-empty content chunk, guaranteeing delivery before SDKs close the connection.
+
+### Merged PRs
+
+- **PR #512** (@zhangqiang8vip): Per-protocol model compatibility — `normalizeToolCallId` and `preserveOpenAIDeveloperRole` can now be configured per client protocol (OpenAI, Claude, Responses API). New `compatByProtocol` field in model config with Zod validation.
+
+### Triaged Issues
+
+- **#510** — Windows CLI healthcheck_failed: requested PATH/version info
+- **#509** — Turbopack Electron regression: upstream Next.js bug, documented workarounds
+- **#508** — macOS black screen: suggested `--disable-gpu` workaround
+
+---
+
 ## [2.9.0] — 2026-03-20
 
 > Sprint: Cross-platform machineId fix, per-API-key rate limits, streaming context cache, Alibaba DashScope, search analytics, ZWS v5, and 8 issues closed.

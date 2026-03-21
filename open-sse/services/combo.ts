@@ -467,50 +467,47 @@ export async function handleComboChat({
           return res;
         }
 
-        // Streaming (Fix #490): append omniModel tag as a final SSE content delta
-        // before the [DONE] marker using TransformStream for zero-copy passthrough
+        // Streaming (Fix #490 + #511): prepend omniModel tag into the first
+        // non-empty content chunk so it arrives BEFORE finish_reason:stop.
+        // SDKs close the connection on finish_reason, so anything sent after
+        // that marker is silently dropped.
         if (!res.body) return res;
-        const tagContent = `\n<omniModel>${modelStr}</omniModel>`;
+        const tagContent = `\n<omniModel>${modelStr}</omniModel>\n`;
         const encoder = new TextEncoder();
         const decoder = new TextDecoder();
-        let buffer = "";
+        let tagInjected = false;
 
         const transform = new TransformStream({
           transform(chunk, controller) {
-            // Decode chunk and check for [DONE] marker
-            const text = decoder.decode(chunk, { stream: true });
-            buffer += text;
-
-            // Check if buffer contains the [DONE] marker
-            const doneIdx = buffer.indexOf("data: [DONE]");
-            if (doneIdx === -1) {
-              // No [DONE] yet — flush buffer as-is (keep passthrough latency low)
-              controller.enqueue(encoder.encode(buffer));
-              buffer = "";
+            if (tagInjected) {
+              // Already injected — passthrough
+              controller.enqueue(chunk);
               return;
             }
 
-            // Found [DONE] — inject tag content delta before it
-            const beforeDone = buffer.slice(0, doneIdx);
-            const afterDone = buffer.slice(doneIdx);
+            const text = decoder.decode(chunk, { stream: true });
 
-            // Build a synthetic SSE content delta chunk with the tag
-            const tagChunk = `data: ${JSON.stringify({
-              choices: [
-                {
-                  delta: { content: tagContent },
-                  index: 0,
-                  finish_reason: null,
-                },
-              ],
-            })}\n\n`;
+            // Look for the first SSE data line with non-empty content
+            // Pattern: "content":"<non-empty>" — we inject tag at the start
+            const contentMatch = text.match(/"content":"([^"]+)/);
+            if (contentMatch) {
+              // Inject tag at the beginning of the first content value
+              const injected = text.replace(
+                /"content":"([^"]+)/,
+                `"content":"${tagContent.replace(/"/g, '\\"')}$1`
+              );
+              tagInjected = true;
+              controller.enqueue(encoder.encode(injected));
+              return;
+            }
 
-            controller.enqueue(encoder.encode(beforeDone + tagChunk + afterDone));
-            buffer = "";
+            // No content yet — passthrough
+            controller.enqueue(chunk);
           },
           flush(controller) {
-            // If stream ends without [DONE], flush remaining buffer + tag
-            if (buffer.length > 0) {
+            // If stream ends without ever finding content (edge case),
+            // inject tag as a standalone chunk before the stream closes
+            if (!tagInjected) {
               const tagChunk = `data: ${JSON.stringify({
                 choices: [
                   {
@@ -520,7 +517,7 @@ export async function handleComboChat({
                   },
                 ],
               })}\n\n`;
-              controller.enqueue(encoder.encode(buffer + tagChunk));
+              controller.enqueue(encoder.encode(tagChunk));
             }
           },
         });
