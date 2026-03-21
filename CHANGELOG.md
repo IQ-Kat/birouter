@@ -4,6 +4,27 @@
 
 ---
 
+## [2.9.4] — 2026-03-21
+
+> Sprint: Bug fixes — preserve Codex prompt cache key, fix tagContent JSON escaping, sync expired token status to DB.
+
+### 🐛 Bug Fixes
+
+- **fix(translator)**: Preserve `prompt_cache_key` in Responses API → Chat Completions translation (#517)
+  — The field is a cache-affinity signal used by Codex; stripping it was preventing prompt cache hits.
+  Fixed in `openai-responses.ts` and `responsesApiHelper.ts`.
+
+- **fix(combo)**: Escape `\n` in `tagContent` so injected JSON string is valid (#515)
+  — Template literal newlines (U+000A) are not allowed unescaped inside JSON string values.
+  Replaced with `\\n` literal sequences in `open-sse/services/combo.ts`.
+
+- **fix(usage)**: Sync expired token status back to DB on live auth failure (#491)
+  — When the Limits & Quotas live check returns 401/403, the connection `testStatus` is now updated
+  to `"expired"` in the database so the Providers page reflects the same degraded state.
+  Fixed in `src/app/api/usage/[connectionId]/route.ts`.
+
+---
+
 ## [2.9.3] — 2026-03-21
 
 > Sprint: Add 5 new free AI providers — LongCat, Pollinations, Cloudflare AI, Scaleway, AI/ML API.
