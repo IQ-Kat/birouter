@@ -82,7 +82,7 @@ export class DefaultExecutor extends BaseExecutor {
   /**
    * For compatible providers, the model name is already clean by the time
    * it reaches the executor (chatCore sets body.model = modelInfo.model,
-   * which is the parsed model ID without any internal routing prefix).
+   * which is the parsed model ID without internal routing prefixes).
    *
    * Models may legitimately contain "/" as part of their ID (e.g. "zai-org/GLM-5-FP8",
    * "org/model-name") — we must NOT strip path segments. (Fix #493)
