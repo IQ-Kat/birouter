@@ -317,10 +317,15 @@ export async function handleChatCore({
         }
       }
 
-      const normalizeToolCallId = getModelNormalizeToolCallId(provider || "", model || "");
+      const normalizeToolCallId = getModelNormalizeToolCallId(
+        provider || "",
+        model || "",
+        sourceFormat
+      );
       const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
         provider || "",
-        model || ""
+        model || "",
+        sourceFormat
       );
       translatedBody = translateRequest(
         sourceFormat,
