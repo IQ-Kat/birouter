@@ -495,6 +495,39 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "opencode-go": {
+    id: "opencode-go",
+    alias: "opencode-go",
+    format: "openai",
+    executor: "opencode",
+    baseUrl: "https://opencode.ai/zen/go/v1",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
+    models: [
+      { id: "glm-5", name: "GLM-5" },
+      { id: "kimi-k2.5", name: "Kimi K2.5" },
+      { id: "minimax-m2.7", name: "MiniMax M2.7", targetFormat: "claude" },
+      { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
+    ],
+  },
+
+  "opencode-zen": {
+    id: "opencode-zen",
+    alias: "opencode-zen",
+    format: "openai",
+    executor: "opencode",
+    baseUrl: "https://opencode.ai/zen/v1",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
+    models: [
+      { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free" },
+      { id: "big-pickle", name: "Big Pickle" },
+      { id: "gpt-5-nano", name: "GPT 5 Nano" },
+    ],
+  },
+
   openrouter: {
     id: "openrouter",
     alias: "openrouter",

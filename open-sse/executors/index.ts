@@ -8,6 +8,7 @@ import { CursorExecutor } from "./cursor.ts";
 import { DefaultExecutor } from "./default.ts";
 import { PollinationsExecutor } from "./pollinations.ts";
 import { CloudflareAIExecutor } from "./cloudflare-ai.ts";
+import { OpencodeExecutor } from "./opencode.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -22,6 +23,8 @@ const executors = {
   pol: new PollinationsExecutor(), // Alias
   "cloudflare-ai": new CloudflareAIExecutor(),
   cf: new CloudflareAIExecutor(), // Alias
+  "opencode-zen": new OpencodeExecutor("opencode-zen"),
+  "opencode-go": new OpencodeExecutor("opencode-go"),
 };
 
 const defaultCache = new Map();
@@ -47,3 +50,4 @@ export { CursorExecutor } from "./cursor.ts";
 export { DefaultExecutor } from "./default.ts";
 export { PollinationsExecutor } from "./pollinations.ts";
 export { CloudflareAIExecutor } from "./cloudflare-ai.ts";
+export { OpencodeExecutor } from "./opencode.ts";
