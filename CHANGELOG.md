@@ -4,6 +4,16 @@
 
 ---
 
+## [3.0.0-rc.2] - 2026-03-22
+
+### 🔧 Bug Fixes
+
+- **#536** — LongCat AI key validation: fixed baseUrl (`api.longcat.chat/openai`) and authHeader (`Authorization: Bearer`)
+- **#535** — Pinned model override: `body.model` is now set to `pinnedModel` when context-cache protection detects a pinned model
+- **#524** — OpenCode config now saved correctly: added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML)
+
+---
+
 ## [3.0.0-rc.1] - 2026-03-22
 
 ### 🔧 Bug Fixes

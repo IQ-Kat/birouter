@@ -1205,9 +1205,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "lc",
     format: "openai",
     executor: "default",
-    baseUrl: "https://longcat.chat/api/v1/chat/completions",
+    // (#536) Correct OpenAI-compatible base URL — was longcat.chat/api/v1/chat/completions
+    // which is the chat endpoint directly, not the base. Key validation and routing must
+    // use https://api.longcat.chat/openai which resolves /v1/models and /v1/chat/completions
+    baseUrl: "https://api.longcat.chat/openai",
     authType: "apikey",
-    authHeader: "bearer",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
     // Free tier: 50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta
     models: [
       { id: "LongCat-Flash-Lite", name: "LongCat Flash-Lite (50M tok/day 🆓)" },

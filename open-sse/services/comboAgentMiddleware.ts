@@ -169,7 +169,11 @@ export function applyComboAgentMiddleware(
   if (comboConfig.context_cache_protection) {
     pinnedModel = extractPinnedModel(messages);
     if (pinnedModel) {
-      // Model is pinned — caller should override model selection
+      // (#535) Model is pinned via <omniModel> tag — override body.model so the combo
+      // router uses exactly this model instead of picking a different one. Without this,
+      // the extracted pinnedModel is returned but body.model is unchanged, breaking
+      // context cache sessions by sending subsequent turns to a different model.
+      body = { ...body, model: pinnedModel };
     }
   }
 

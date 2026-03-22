@@ -39,6 +39,10 @@ export async function POST(request, { params }) {
     switch (toolId) {
       case "continue":
         return await saveContinueConfig({ baseUrl, apiKey, model });
+      case "opencode":
+        // (#524) OpenCode config was never saved because only 'continue' was handled here.
+        // opencode reads ~/.config/opencode/config.toml — write the OmniRoute settings there.
+        return await saveOpenCodeConfig({ baseUrl, apiKey, model });
       default:
         return NextResponse.json(
           { error: `Direct config save not supported for: ${toolId}` },
@@ -122,6 +126,59 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
   return NextResponse.json({
     success: true,
     message: `Continue config saved to ${configPath}`,
+    configPath,
+  });
+}
+
+/**
+ * Save OpenCode config to ~/.config/opencode/config.toml (XDG_CONFIG_HOME aware).
+ * (#524) OpenCode was silently failing because this handler was missing.
+ */
+async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
+  const { apiPort } = getRuntimePorts();
+  // Honour $XDG_CONFIG_HOME if set, otherwise use ~/.config per the XDG Base Directory spec
+  const xdgConfigHome = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config");
+  const configPath = path.join(xdgConfigHome, "opencode", "config.toml");
+  const configDir = path.dirname(configPath);
+
+  // Ensure ~/.config/opencode/ exists
+  await fs.mkdir(configDir, { recursive: true });
+
+  const normalizedBaseUrl = String(baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
+
+  // Read existing TOML to preserve any user settings outside our block
+  let existingContent = "";
+  try {
+    existingContent = await fs.readFile(configPath, "utf-8");
+  } catch {
+    // File doesn't exist yet — start fresh
+  }
+
+  // Build the OmniRoute TOML block.
+  // opencode config.toml uses the [provider.X] table format.
+  void apiPort; // available for future port-based detection
+  const omniBlock = `
+# OmniRoute managed — updated automatically by OmniRoute CLI Tools
+[provider.omniroute]
+api_key = "${apiKey || "sk_omniroute"}"
+base_url = "${normalizedBaseUrl}"
+model = "${model}"
+`;
+
+  // Remove old OmniRoute-managed block (if any) then append fresh one
+  const cleanedContent = existingContent
+    .replace(/\n?# OmniRoute managed[\s\S]*?(?=\n\[|$)/, "")
+    .trimEnd();
+
+  const newContent = (cleanedContent ? cleanedContent + "\n" : "") + omniBlock;
+
+  await fs.writeFile(configPath, newContent, "utf-8");
+
+  return NextResponse.json({
+    success: true,
+    message: `OpenCode config saved to ${configPath}`,
     configPath,
   });
 }
