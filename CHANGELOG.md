@@ -4,6 +4,29 @@
 
 ---
 
+## [3.0.0-rc.1] - 2026-03-22
+
+### 🔧 Bug Fixes
+
+- **#521** — Login no longer gets stuck after skipping password setup (redirects to onboarding)
+- **#522** — API Manager: Removed misleading "Copy masked key" button (replaced with lock icon tooltip)
+- **#527** — Claude Code + Codex superpowers loop: `tool_result` blocks now converted to text instead of dropped
+- **#532** — OpenCode GO API key validation now uses the correct `zen/v1` endpoint (`testKeyBaseUrl`)
+- **#489** — Antigravity: missing `googleProjectId` returns structured 422 error with reconnect guidance
+- **#510** — Windows: MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...`
+- **#492** — `omniroute` CLI now detects `mise`/`nvm` when `app/server.js` is missing and shows targeted fix
+
+### 📖 Documentation
+
+- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
+- **#520** — pnpm: `pnpm approve-builds better-sqlite3` documented
+
+### ✅ Closed Issues
+
+#489, #492, #510, #513, #520, #521, #522, #525, #527, #532
+
+---
+
 ## [2.9.5] — 2026-03-22
 
 > Sprint: New OpenCode providers, embedding credentials fix, CLI masked key bug, CACHE_TAG_PATTERN fix.
