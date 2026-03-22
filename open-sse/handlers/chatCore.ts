@@ -308,6 +308,27 @@ export async function handleChatCore({
                   }
                   return [];
                 }
+                // (#527) tool_result → convert to text instead of dropping.
+                // When Claude Code + superpowers routes through Codex, it sends tool_result
+                // blocks in user messages. Silently dropping them causes Codex to loop
+                // because it never receives the tool response and keeps re-requesting it.
+                if (block.type === "tool_result") {
+                  const toolId = block.tool_use_id ?? block.id ?? "unknown";
+                  const resultContent = block.content ?? block.text ?? block.output ?? "";
+                  const resultText =
+                    typeof resultContent === "string"
+                      ? resultContent
+                      : Array.isArray(resultContent)
+                        ? resultContent
+                            .filter((c: Record<string, unknown>) => c.type === "text")
+                            .map((c: Record<string, unknown>) => c.text)
+                            .join("\n")
+                        : JSON.stringify(resultContent);
+                  if (resultText.length > 0) {
+                    return [{ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }];
+                  }
+                  return [];
+                }
                 // Unknown types: drop silently
                 log?.debug?.("CONTENT", `Dropped unsupported content part type="${block.type}"`);
                 return [];
