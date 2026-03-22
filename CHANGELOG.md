@@ -4,6 +4,16 @@
 
 ---
 
+## [3.0.0-rc.4] - 2026-03-22
+
+### ✨ New Features
+
+- **#530 (PR)** — OpenCode Zen and OpenCode Go providers added (by @kang-heewon)
+  - New `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`)
+  - 7 models across both tiers
+
+---
+
 ## [3.0.0-rc.3] - 2026-03-22
 
 ### ✨ New Features
