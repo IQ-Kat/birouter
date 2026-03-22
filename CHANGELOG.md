@@ -2,6 +2,113 @@
 
 ## [Unreleased]
 
+> **Coming next** — see [3.0.0-rc branch](https://github.com/diegosouzapw/OmniRoute/tree/3.0.0-rc).
+
+---
+
+## [3.0.0-rc.5] — 2026-03-22 _(What's New vs v2.9.5 — will be released as v3.0.0)_
+
+> **Upgrade from v2.9.5:** 16 issues resolved · 2 community PRs merged · 2 new providers · 7 new API endpoints · 3 new features · DB migration 008 · 832 tests passing.
+
+### 🆕 New Providers
+
+| Provider         | Alias          | Tier | Notes                                                          |
+| ---------------- | -------------- | ---- | -------------------------------------------------------------- |
+| **OpenCode Zen** | `opencode-zen` | Free | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon)    |
+| **OpenCode Go**  | `opencode-go`  | Paid | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon) |
+
+Both providers use the new `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`, `/models/{model}:generateContent`).
+
+---
+
+### ✨ New Features
+
+#### 🔑 Registered Keys Provisioning API (#464)
+
+Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+
+| Endpoint                              | Method    | Description                                      |
+| ------------------------------------- | --------- | ------------------------------------------------ |
+| `/api/v1/registered-keys`             | `POST`    | Issue a new key — raw key returned **once only** |
+| `/api/v1/registered-keys`             | `GET`     | List registered keys (masked)                    |
+| `/api/v1/registered-keys/{id}`        | `GET`     | Get key metadata                                 |
+| `/api/v1/registered-keys/{id}`        | `DELETE`  | Revoke a key                                     |
+| `/api/v1/registered-keys/{id}/revoke` | `POST`    | Revoke (for clients without DELETE support)      |
+| `/api/v1/quotas/check`                | `GET`     | Pre-validate quota before issuing                |
+| `/api/v1/providers/{id}/limits`       | `GET/PUT` | Configure per-provider issuance limits           |
+| `/api/v1/accounts/{id}/limits`        | `GET/PUT` | Configure per-account issuance limits            |
+| `/api/v1/issues/report`               | `POST`    | Report quota events to GitHub Issues             |
+
+**DB — Migration 008:** Three new tables: `registered_keys`, `provider_key_limits`, `account_key_limits`.
+**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
+**Quota types:** `maxActiveKeys`, `dailyIssueLimit`, `hourlyIssueLimit` per provider and per account.
+**Idempotency:** `idempotency_key` field prevents duplicate issuance. Returns `409 IDEMPOTENCY_CONFLICT` if key was already used.
+**Budget per key:** `dailyBudget` / `hourlyBudget` — limits how many requests a key can route per window.
+**GitHub reporting:** Optional. Set `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` to auto-create GitHub issues on quota exceeded or issuance failures.
+
+#### 🎨 Provider Icons — @lobehub/icons (#529)
+
+All provider icons in the dashboard now use `@lobehub/icons` React components (130+ providers with SVG).
+Fallback chain: **Lobehub SVG → existing `/providers/{id}.png` → generic icon**. Uses a proper React `ErrorBoundary` pattern.
+
+#### 🔄 Model Auto-Sync Scheduler (#488)
+
+OmniRoute now automatically refreshes model lists for connected providers every **24 hours**.
+
+- Runs on server startup via the existing `/api/sync/initialize` hook
+- Configurable via `MODEL_SYNC_INTERVAL_HOURS` environment variable
+- Covers 16 major providers
+- Records last sync time in the settings database
+
+---
+
+### 🔧 Bug Fixes
+
+#### OAuth & Auth
+
+- **#537 — Gemini CLI OAuth:** Clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments. Previously showed cryptic `client_secret is missing` from Google. Now provides specific `docker-compose.yml` and `~/.omniroute/.env` instructions.
+
+#### Providers & Routing
+
+- **#536 — LongCat AI:** Fixed `baseUrl` (`api.longcat.chat/openai`) and `authHeader` (`Authorization: Bearer`).
+- **#535 — Pinned model override:** `body.model` is now correctly set to `pinnedModel` when context-cache protection is active.
+- **#532 — OpenCode Go key validation:** Now uses the `zen/v1` test endpoint (`testKeyBaseUrl`) — same key works for both tiers.
+
+#### CLI & Tools
+
+- **#527 — Claude Code + Codex loop:** `tool_result` blocks are now converted to text instead of dropped, stopping infinite tool-result loops.
+- **#524 — OpenCode config save:** Added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML).
+- **#521 — Login stuck:** Login no longer freezes after skipping password setup — redirects correctly to onboarding.
+- **#522 — API Manager:** Removed misleading "Copy masked key" button (replaced with a lock icon tooltip).
+- **#532 — OpenCode Go config:** Guide settings handler now handles `opencode` toolId.
+
+#### Developer Experience
+
+- **#489 — Antigravity:** Missing `googleProjectId` returns a structured 422 error with reconnect guidance instead of a cryptic crash.
+- **#510 — Windows paths:** MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...` automatically.
+- **#492 — CLI startup:** `omniroute` CLI now detects `mise`/`nvm`-managed Node when `app/server.js` is missing and shows targeted fix instructions.
+
+---
+
+### 📖 Documentation Updates
+
+- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
+- **#520** — pnpm: `pnpm approve-builds better-sqlite3` step documented
+
+---
+
+### ✅ Issues Resolved in v3.0.0
+
+`#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#536` `#537`
+
+---
+
+### 🔀 Community PRs Merged
+
+| PR       | Author       | Summary                                                                |
+| -------- | ------------ | ---------------------------------------------------------------------- |
+| **#530** | @kang-heewon | OpenCode Zen + Go providers with `OpencodeExecutor` and improved tests |
+
 ---
 
 ## [3.0.0-rc.5] - 2026-03-22
