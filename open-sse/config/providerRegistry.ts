@@ -1241,6 +1241,68 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  puter: {
+    id: "puter",
+    alias: "pu",
+    format: "openai",
+    executor: "puter",
+    // OpenAI-compatible gateway with 500+ models (GPT, Claude, Gemini, Grok, DeepSeek, Qwen…)
+    // Auth: Bearer <puter_auth_token> from puter.com/dashboard → Copy Auth Token
+    // Model IDs use provider/model-name format for non-OpenAI models.
+    // Only chat completions (incl. streaming) are available via REST.
+    // Image gen, TTS, STT, video are puter.js SDK-only (browser).
+    baseUrl: "https://api.puter.com/puterai/openai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      // OpenAI — use bare IDs
+      { id: "gpt-4o-mini", name: "GPT-4o Mini (🆓 Puter)" },
+      { id: "gpt-4o", name: "GPT-4o (Puter)" },
+      { id: "gpt-4.1", name: "GPT-4.1 (Puter)" },
+      { id: "gpt-4.1-mini", name: "GPT-4.1 Mini (Puter)" },
+      { id: "gpt-5-nano", name: "GPT-5 Nano (Puter)" },
+      { id: "gpt-5-mini", name: "GPT-5 Mini (Puter)" },
+      { id: "gpt-5", name: "GPT-5 (Puter)" },
+      { id: "o3-mini", name: "OpenAI o3-mini (Puter)" },
+      { id: "o3", name: "OpenAI o3 (Puter)" },
+      { id: "o4-mini", name: "OpenAI o4-mini (Puter)" },
+      // Anthropic Claude — use bare IDs (confirmed working)
+      { id: "claude-haiku-4-5", name: "Claude Haiku 4.5 (Puter)" },
+      { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5 (Puter)" },
+      { id: "claude-opus-4-5", name: "Claude Opus 4.5 (Puter)" },
+      { id: "claude-sonnet-4", name: "Claude Sonnet 4 (Puter)" },
+      { id: "claude-opus-4", name: "Claude Opus 4 (Puter)" },
+      // Google Gemini — use google/ prefix (confirmed working)
+      { id: "google/gemini-2.0-flash", name: "Gemini 2.0 Flash (Puter)" },
+      { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash (Puter)" },
+      { id: "google/gemini-2.5-pro", name: "Gemini 2.5 Pro (Puter)" },
+      { id: "google/gemini-3-flash", name: "Gemini 3 Flash (Puter)" },
+      { id: "google/gemini-3-pro", name: "Gemini 3 Pro (Puter)" },
+      // DeepSeek — use deepseek/ prefix (confirmed working)
+      { id: "deepseek/deepseek-chat", name: "DeepSeek Chat (Puter)" },
+      { id: "deepseek/deepseek-r1", name: "DeepSeek R1 (Puter)" },
+      { id: "deepseek/deepseek-v3.2", name: "DeepSeek V3.2 (Puter)" },
+      // xAI Grok — use x-ai/ prefix
+      { id: "x-ai/grok-3", name: "Grok 3 (Puter)" },
+      { id: "x-ai/grok-3-mini", name: "Grok 3 Mini (Puter)" },
+      { id: "x-ai/grok-4", name: "Grok 4 (Puter)" },
+      { id: "x-ai/grok-4-fast", name: "Grok 4 Fast (Puter)" },
+      // Meta Llama — bare IDs (confirmed ✅)
+      { id: "llama-4-scout", name: "Llama 4 Scout (Puter)" },
+      { id: "llama-4-maverick", name: "Llama 4 Maverick (Puter)" },
+      { id: "llama-3.3-70b-instruct", name: "Llama 3.3 70B (Puter)" },
+      // Mistral — bare IDs (confirmed ✅)
+      { id: "mistral-small-latest", name: "Mistral Small (Puter)" },
+      { id: "mistral-medium-latest", name: "Mistral Medium (Puter)" },
+      { id: "open-mistral-nemo", name: "Mistral Nemo (Puter)" },
+      // Qwen — use qwen/ prefix (confirmed ✅)
+      { id: "qwen/qwen3-235b-a22b", name: "Qwen3 235B (Puter)" },
+      { id: "qwen/qwen3-32b", name: "Qwen3 32B (Puter)" },
+      { id: "qwen/qwen3-coder", name: "Qwen3 Coder 480B (Puter)" },
+    ],
+    passthroughModels: true, // 500+ models available — users can type any Puter model ID
+  },
+
   "cloudflare-ai": {
     id: "cloudflare-ai",
     alias: "cf",
