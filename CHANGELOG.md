@@ -4,6 +4,19 @@
 
 ---
 
+## [3.0.0-rc.3] - 2026-03-22
+
+### ✨ New Features
+
+- **#529** — Provider icons now use [@lobehub/icons](https://github.com/lobehub/lobe-icons) with graceful PNG fallback and a `ProviderIcon` component (130+ providers supported)
+- **#488** — Auto-update model lists every 24h via `modelSyncScheduler` (configurable via `MODEL_SYNC_INTERVAL_HOURS`)
+
+### 🔧 Bug Fixes
+
+- **#537** — Gemini CLI OAuth: now shows clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments
+
+---
+
 ## [3.0.0-rc.2] - 2026-03-22
 
 ### 🔧 Bug Fixes
