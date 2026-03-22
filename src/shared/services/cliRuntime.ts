@@ -105,6 +105,24 @@ const CLI_TOOLS: Record<string, any> = {
 
 const isWindows = () => process.platform === "win32";
 
+/**
+ * (#510) Normalize MSYS2/Git-Bash style paths to Windows-native paths.
+ * On Windows with Git Bash, 'where claude' may return '/c/Program Files/...'
+ * instead of 'C:\\Program Files\\...'. Convert these so the path is usable
+ * by Node's fs and child_process modules.
+ */
+const normalizeMsys2Path = (p: string): string => {
+  if (!p || !isWindows()) return p;
+  // Match /letter/rest-of-path — MSYS2 POSIX-style drive mount
+  const msys2Match = p.match(/^\/([a-zA-Z])\/(.+)$/);
+  if (msys2Match) {
+    const drive = msys2Match[1].toUpperCase();
+    const rest = msys2Match[2].replace(/\//g, "\\");
+    return `${drive}:\\${rest}`;
+  }
+  return p;
+};
+
 const parseBoolean = (value: unknown, defaultValue = true) => {
   if (value == null || value === "") return defaultValue;
   return !FALSE_VALUES.has(String(value).trim().toLowerCase());
@@ -256,7 +274,7 @@ const locateCommand = async (command: string, env: Record<string, string | undef
     const first =
       located.stdout
         .split(/\r?\n/)
-        .map((line) => line.trim())
+        .map((line) => normalizeMsys2Path(line.trim()))
         .find(Boolean) || null;
     return { installed: !!first, commandPath: first, reason: first ? null : "not_found" };
   }
@@ -271,7 +289,7 @@ const locateCommand = async (command: string, env: Record<string, string | undef
   const first =
     located.stdout
       .split(/\r?\n/)
-      .map((line) => line.trim())
+      .map((line) => normalizeMsys2Path(line.trim()))
       .find(Boolean) || null;
   return { installed: !!first, commandPath: first, reason: first ? null : "not_found" };
 };
