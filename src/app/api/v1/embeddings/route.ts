@@ -160,6 +160,7 @@ export async function POST(request) {
   // Resolve provider config — dynamic first (local override), then hardcoded
   let providerConfig: EmbeddingProvider | null =
     dynamicProviders.find((dp) => dp.id === provider) || getEmbeddingProvider(provider) || null;
+  let credentialsProviderId = provider;
 
   // #496: Fallback — resolve from ALL provider_nodes (not just localhost)
   // This enables custom embedding models (e.g. google/gemini-embedding-001) whose
@@ -180,6 +181,7 @@ export async function POST(request) {
           authHeader: "bearer",
           models: [],
         };
+        credentialsProviderId = matchingNode.id || provider;
         log.info(
           "EMBED",
           `Resolved custom embedding provider: ${provider} → ${providerConfig.baseUrl}`
@@ -200,7 +202,7 @@ export async function POST(request) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentials(credentialsProviderId);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
