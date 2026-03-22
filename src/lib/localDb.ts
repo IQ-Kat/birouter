@@ -138,3 +138,27 @@ export {
   getCachedProviderConnections,
   invalidateDbCache,
 } from "./db/readCache";
+
+export {
+  // Registered Keys Provisioning (#464)
+  issueRegisteredKey,
+  getRegisteredKey,
+  listRegisteredKeys,
+  revokeRegisteredKey,
+  validateRegisteredKey,
+  incrementRegisteredKeyUsage,
+  checkQuota,
+  setProviderKeyLimit,
+  setAccountKeyLimit,
+  getProviderKeyLimit,
+  getAccountKeyLimit,
+} from "./db/registeredKeys";
+
+export type {
+  RegisteredKey,
+  RegisteredKeyWithSecret,
+  ProviderKeyLimit,
+  AccountKeyLimit,
+  QuotaCheckResult,
+  IssueKeyParams,
+} from "./db/registeredKeys";
