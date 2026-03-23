@@ -10,23 +10,24 @@ const limitsSchema = z.object({
 });
 
 /**
- * GET /api/v1/providers/[id]/limits
+ * GET /api/v1/providers/[provider]/limits
  * Get the current issuance limits for a provider.
  */
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ provider: string }> }) {
   if (!(await isAuthenticated(request))) {
     return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
 
-  const limits = getProviderKeyLimit(params.id);
-  return NextResponse.json({ provider: params.id, limits: limits ?? null });
+  const { provider } = await params;
+  const limits = getProviderKeyLimit(provider);
+  return NextResponse.json({ provider, limits: limits ?? null });
 }
 
 /**
- * PUT /api/v1/providers/[id]/limits
+ * PUT /api/v1/providers/[provider]/limits
  * Configure issuance limits for a provider.
  */
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ provider: string }> }) {
   if (!(await isAuthenticated(request))) {
     return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
@@ -43,7 +44,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  setProviderKeyLimit(params.id, parsed.data);
-  const updated = getProviderKeyLimit(params.id);
-  return NextResponse.json({ provider: params.id, limits: updated });
+  const { provider } = await params;
+  setProviderKeyLimit(provider, parsed.data);
+  const updated = getProviderKeyLimit(provider);
+  return NextResponse.json({ provider, limits: updated });
 }

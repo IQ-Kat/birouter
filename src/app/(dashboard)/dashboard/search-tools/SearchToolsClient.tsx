@@ -39,6 +39,7 @@ interface SearchResponse {
   id: string;
   provider: string;
   query: string;
+  answer?: string;
   results: SearchResult[];
   cached: boolean;
   usage: {

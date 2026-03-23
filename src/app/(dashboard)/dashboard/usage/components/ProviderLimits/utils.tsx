@@ -84,7 +84,7 @@ function isPastResetWindow(resetAt) {
   return Date.now() >= resetTime;
 }
 
-function normalizeQuotaEntry(name, quota = {}, extras = {}) {
+function normalizeQuotaEntry(name: string, quota: any = {}, extras: any = {}) {
   const usedRaw = Number(quota?.used || 0);
   const totalRaw = Number(quota?.total || 0);
   const resetAt = quota?.resetAt || null;

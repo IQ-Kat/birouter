@@ -20,7 +20,7 @@ interface SearchResponse {
   provider: string;
   results: SearchResult[];
   query: string;
-  answer: string | null;
+  answer?: string | null;
   cached: boolean;
   usage: {
     queries_used: number;

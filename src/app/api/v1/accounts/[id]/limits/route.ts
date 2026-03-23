@@ -13,20 +13,21 @@ const limitsSchema = z.object({
  * GET /api/v1/accounts/[id]/limits
  * Get the current issuance limits for an account.
  */
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAuthenticated(request))) {
     return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
 
-  const limits = getAccountKeyLimit(params.id);
-  return NextResponse.json({ accountId: params.id, limits: limits ?? null });
+  const resolvedParams = await params;
+  const limits = getAccountKeyLimit(resolvedParams.id);
+  return NextResponse.json({ accountId: resolvedParams.id, limits: limits ?? null });
 }
 
 /**
  * PUT /api/v1/accounts/[id]/limits
  * Configure issuance limits for an account.
  */
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAuthenticated(request))) {
     return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
@@ -43,7 +44,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  setAccountKeyLimit(params.id, parsed.data);
-  const updated = getAccountKeyLimit(params.id);
-  return NextResponse.json({ accountId: params.id, limits: updated });
+  const resolvedParams = await params;
+  setAccountKeyLimit(resolvedParams.id, parsed.data);
+  const updated = getAccountKeyLimit(resolvedParams.id);
+  return NextResponse.json({ accountId: resolvedParams.id, limits: updated });
 }

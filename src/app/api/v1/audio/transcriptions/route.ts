@@ -63,7 +63,7 @@ export async function POST(request) {
   let dynamicProviders: ReturnType<typeof buildDynamicAudioProvider>[] = [];
   try {
     const nodes = await getProviderNodes();
-    dynamicProviders = (Array.isArray(nodes) ? nodes : [])
+    dynamicProviders = (Array.isArray(nodes) ? (nodes as unknown as ProviderNodeRow[]) : [])
       .filter((n: ProviderNodeRow) => {
         if (n.apiType !== "chat" && n.apiType !== "responses") return false;
         try {

@@ -8,7 +8,7 @@ const reportSchema = z.object({
   accountId: z.string().max(120).optional(),
   requestId: z.string().max(200).optional(),
   errorCode: z.string().max(100).optional(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
   labels: z.array(z.string().max(50)).optional(),
 });
 

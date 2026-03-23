@@ -57,7 +57,7 @@ export const TaskInputSchema = z.object({
   role: z
     .enum(["coding", "review", "planning", "analysis", "debugging", "documentation"])
     .optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const CostEnvelopeSchema = z.object({
@@ -120,7 +120,7 @@ export type PolicyVerdict = z.infer<typeof PolicyVerdictSchema>;
 export const JsonRpcRequestSchema = z.object({
   jsonrpc: z.literal("2.0"),
   method: z.enum(["message/send", "message/stream", "tasks/get", "tasks/cancel"]),
-  params: z.record(z.unknown()),
+  params: z.record(z.string(), z.unknown()),
   id: z.union([z.string(), z.number()]),
 });
 
@@ -151,7 +151,7 @@ export const MessageSendParamsSchema = z.object({
   message: z.object({
     role: z.string().default("user"),
     content: z.string(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   }),
   config: z
     .object({

@@ -17,6 +17,7 @@ const nextConfig = {
     "pino-pretty",
     "thread-stream",
     "better-sqlite3",
+    "keytar",
     "zod",
     "child_process",
     "fs",
@@ -70,6 +71,7 @@ const nextConfig = {
 
       const KNOWN_EXTERNALS = new Set([
         "better-sqlite3",
+        "keytar",
         "zod",
         "pino",
         "pino-pretty",

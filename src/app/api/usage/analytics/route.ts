@@ -64,7 +64,7 @@ export async function GET(request) {
       /* ignore */
     }
 
-    const analytics = await computeAnalytics(history, range, connectionMap);
+    const analytics: any = await computeAnalytics(history, range, connectionMap);
 
     // T01: fallback transparency metrics from call_logs (requested_model vs routed model).
     try {

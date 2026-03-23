@@ -219,20 +219,7 @@ export const DEFAULT_PRICING = {
       reasoning: 18.0,
       cache_creation: 2.0,
     },
-    "gemini-3-flash-preview": {
-      input: 0.5,
-      output: 3.0,
-      cached: 0.03,
-      reasoning: 4.5,
-      cache_creation: 0.5,
-    },
-    "gemini-3.1-flash-lite-preview": {
-      input: 0.5,
-      output: 3.0,
-      cached: 0.03,
-      reasoning: 4.5,
-      cache_creation: 0.5,
-    },
+
     "gemini-2.5-pro": {
       input: 2.0,
       output: 12.0,
