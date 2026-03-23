@@ -13,6 +13,8 @@ const nextConfig = {
   },
   output: "standalone",
   serverExternalPackages: [
+    "pino",
+    "pino-pretty",
     "thread-stream",
     "better-sqlite3",
     "zod",
