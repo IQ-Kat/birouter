@@ -6,6 +6,16 @@
 
 ---
 
+## [3.0.0-rc.10] — 2026-03-23
+
+### 🔧 Bug Fixes
+
+- **#509 / #508** — Electron build regression: downgraded Next.js from `16.1.x` to `16.0.10` to eliminate Turbopack module-hashing instability that caused blank screens in the Electron desktop bundle.
+- **Unit test fixes** — Corrected two stale test assertions (`nanobanana-image-handler` aspect ratio/resolution, `thinking-budget` Gemini `thinkingConfig` field mapping) that had drifted after recent implementation changes.
+- **#541** — Responded to user feedback about installation complexity; no code changes required.
+
+---
+
 ## [3.0.0-rc.9] — 2026-03-23
 
 ### ✨ New Features
