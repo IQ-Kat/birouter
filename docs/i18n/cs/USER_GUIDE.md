@@ -335,7 +335,7 @@ omniroute
 omniroute --port 3000
 ```
 
-CLI řádku automaticky načte `.env` z adresáře `~/.omniroute/.env` nebo `./.env` .
+CLI automaticky načte `.env` z adresáře `~/.omniroute/.env` nebo `./.env` .
 
 ### Nasazení VPS
 
