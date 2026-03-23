@@ -5,7 +5,7 @@ import {
   extractApiKey,
   isValidApiKey,
 } from "../services/auth";
-import { getModelInfo, getCombo } from "../services/model";
+import { getModelInfo, getComboForModel } from "../services/model";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import {
   detectFormatFromEndpoint,
@@ -234,7 +234,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // Check if model is a combo (has multiple models with fallback)
   telemetry.startPhase("resolve");
-  const combo = await getCombo(resolvedModelStr);
+  const combo = await getComboForModel(resolvedModelStr);
   if (combo) {
     log.info(
       "CHAT",

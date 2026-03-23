@@ -171,3 +171,15 @@ export type {
   QuotaCheckResult,
   IssueKeyParams,
 } from "./db/registeredKeys";
+
+export {
+  // Model-Combo Mappings (#563)
+  getModelComboMappings,
+  getModelComboMappingById,
+  createModelComboMapping,
+  updateModelComboMapping,
+  deleteModelComboMapping,
+  resolveComboForModel,
+} from "./db/modelComboMappings";
+
+export type { ModelComboMapping } from "./db/modelComboMappings";

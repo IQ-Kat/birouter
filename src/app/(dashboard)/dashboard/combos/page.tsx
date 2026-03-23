@@ -13,6 +13,7 @@ import {
   EmptyState,
 } from "@/shared/components";
 import Tooltip from "@/shared/components/Tooltip";
+import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
@@ -597,6 +598,9 @@ export default function CombosPage() {
           </div>
         </Card>
       )}
+
+      {/* Model Routing Rules (#563) */}
+      <ModelRoutingSection combos={combos} />
 
       {/* Combos List */}
       {combos.length === 0 ? (
