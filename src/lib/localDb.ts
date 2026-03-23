@@ -23,6 +23,15 @@ export {
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,
+
+  // T05: Rate-limit DB persistence (survives token refresh)
+  setConnectionRateLimitUntil,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
+
+  // T13: Stale quota display fix (zero out usage after window resets)
+  getEffectiveQuotaUsage,
+  formatResetCountdown,
 } from "./db/providers";
 
 export {
