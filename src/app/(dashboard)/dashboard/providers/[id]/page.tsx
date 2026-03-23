@@ -3830,7 +3830,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || (isBailian ? defaultBailianUrl : ""),
         region: existingRegion || (isVertex ? defaultRegion : ""),
-        validationModelId: connection.providerSpecificData?.validationModelId || "",
+        validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
