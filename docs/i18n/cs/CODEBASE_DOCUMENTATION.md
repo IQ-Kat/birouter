@@ -543,7 +543,7 @@ Formát                    | Směr        | Identifikátor      |
 | OpenRouter               | API klíč                 | Výchozí     | Autorizace standardního nosiče               |
 | GLM, Kimi, MiniMax       | API klíč                 | Výchozí     | Kompatibilní s Claude, použijte `x-api-key`  |
 | `openai-compatible-*`    | API klíč                 | Výchozí     | Dynamické: jakýkoli OpenAI kompatibilní      |
-| `anthropic-compatible-*` | API klíč                 | Výchozí     | Dynamické: jakýkoli OpenAI kompatibilní      |
+| `anthropic-compatible-*` | API klíč                 | Výchozí     | Dynamické: jakýkoli Claude kompatibilní      |
 
 ---
 
