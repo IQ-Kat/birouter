@@ -33,8 +33,8 @@ Claude / Codex / Gemini CLI / OpenCode / Cline / KiloCode / Continue / Kiro CLI
 | **OpenAI Codex** | `codex`             | CLI                     | npm            |
 | **Gemini CLI**   | `gemini`            | CLI                     | npm            |
 | **OpenCode**     | `opencode`          | CLI                     | npm            |
-| **Cline**        | `cline`             | CLI + VS Code + VS kódu | npm            |
-| **KiloCode**     | `kilocode` / `kilo` | CLI + VS Code + VS kódu | npm            |
+| **Cline**        | `cline`             | CLI + VS Code           | npm            |
+| **KiloCode**     | `kilocode` / `kilo` | CLI + VS Code           | npm            |
 | **Continue**     | průvodce            | VS Code ext             | VS kód         |
 | **Kiro CLI**     | `kiro-cli`          | CLI                     | curl instalace |
 | **Kurzor**       | `cursor`            | Aplikace pro PC         | Download       |
