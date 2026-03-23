@@ -516,6 +516,7 @@ async function testApiKeyConnection(connection: any) {
   return {
     valid: !!result.valid,
     error,
+    warning: result.warning || null,
     diagnosis,
   };
 }
@@ -667,6 +668,7 @@ export async function testSingleConnection(connectionId: string, validationModel
   return {
     valid: result.valid,
     error: result.error,
+    warning: result.warning || null,
     refreshed: result.refreshed || false,
     diagnosis,
     latencyMs,

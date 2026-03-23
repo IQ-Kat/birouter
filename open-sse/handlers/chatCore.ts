@@ -18,6 +18,7 @@ import { createErrorResult, parseUpstreamError, formatProviderError } from "../u
 import { HTTP_STATUS } from "../config/constants.ts";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
+import { logAuditEvent } from "@/lib/compliance";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
   saveRequestUsage,
@@ -52,7 +53,7 @@ import { createProgressTransform, wantsProgress } from "../utils/progressTracker
 import { isModelUnavailableError, getNextFamilyFallback } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 import {
-  isBackgroundTask,
+  getBackgroundTaskReason,
   getDegradedModel,
   getBackgroundDegradationConfig,
 } from "../services/backgroundTaskDetector.ts";
@@ -61,6 +62,7 @@ import {
   isFallbackDecision,
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
+import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -234,17 +236,32 @@ export async function handleChatCore({
 
   // ── Background Task Redirection (T41) ──
   const bgConfig = getBackgroundDegradationConfig();
-  if (bgConfig.enabled && isBackgroundTask(body, clientRawRequest?.headers)) {
+  const backgroundReason = bgConfig.enabled
+    ? getBackgroundTaskReason(body, clientRawRequest?.headers)
+    : null;
+  if (backgroundReason) {
     const degradedModel = getDegradedModel(model);
     if (degradedModel !== model) {
+      const originalModel = model;
       log?.info?.(
         "BACKGROUND",
-        `Background task detected: Redirecting ${model} → ${degradedModel}`
+        `Background task redirect (${backgroundReason}): ${originalModel} → ${degradedModel}`
       );
       model = degradedModel;
       if (body && typeof body === "object") {
         body.model = model;
       }
+
+      logAuditEvent({
+        action: "routing.background_task_redirect",
+        actor: apiKeyInfo?.name || "system",
+        target: connectionId || provider || "chat",
+        details: {
+          original_model: originalModel,
+          redirected_to: degradedModel,
+          reason: backgroundReason,
+        },
+      });
     }
   }
 
@@ -269,12 +286,7 @@ export async function handleChatCore({
       ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
       : (clientRawRequest?.headers || {})["accept"] || (clientRawRequest?.headers || {})["Accept"];
 
-  const clientWantsJson =
-    typeof acceptHeader === "string" &&
-    acceptHeader.includes("application/json") &&
-    !acceptHeader.includes("text/event-stream");
-
-  const stream = body.stream === true && !clientWantsJson;
+  const stream = resolveStreamFlag(body?.stream, acceptHeader);
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
   if (isCacheable(body, clientRawRequest?.headers)) {
@@ -1004,14 +1016,10 @@ export async function handleChatCore({
 
     // T26: Strip markdown code blocks if provider format is Claude
     if (sourceFormat === "claude" && !stream) {
-      if (translatedResponse?.choices?.[0]?.message?.content) {
-        const text = translatedResponse.choices[0].message.content;
-        const codeBlockRegex =
-          /^```(?:json|javascript|typescript|js|ts)?\s*\n?([\s\S]*?)\n?```\s*$/;
-        const match = text.trim().match(codeBlockRegex);
-        if (match) {
-          translatedResponse.choices[0].message.content = match[1].trim();
-        }
+      if (typeof translatedResponse?.choices?.[0]?.message?.content === "string") {
+        translatedResponse.choices[0].message.content = stripMarkdownCodeFence(
+          translatedResponse.choices[0].message.content
+        ) as string;
       }
     }
 

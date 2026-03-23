@@ -63,6 +63,8 @@ export async function POST(request) {
     return NextResponse.json({
       valid: !!result.valid,
       error: result.valid ? null : result.error || "Invalid API key",
+      warning: result.warning || null,
+      method: result.method || null,
     });
   } catch (error) {
     console.log("Error validating API key:", error);

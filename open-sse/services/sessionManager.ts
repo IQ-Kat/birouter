@@ -198,6 +198,17 @@ export function getActiveSessionCountForKey(apiKeyId: string): number {
 }
 
 /**
+ * Snapshot of active session counts per API key.
+ */
+export function getAllActiveSessionCountsByKey(): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [apiKeyId, sessionIds] of activeSessionsByKey) {
+    out[apiKeyId] = sessionIds.size;
+  }
+  return out;
+}
+
+/**
  * T08: Register a session as belonging to an API key.
  * Call this after session creation is allowed (i.e., limit check passed).
  */

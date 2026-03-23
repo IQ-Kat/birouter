@@ -508,6 +508,19 @@ export function checkFallbackError(
     HTTP_STATUS.GATEWAY_TIMEOUT,
   ];
   if (transientStatuses.includes(status)) {
+    const resetTime = parseResetFromHeaders(headers, errorStr);
+    if (resetTime) {
+      const waitMs = resetTime - Date.now();
+      if (waitMs > 60_000) {
+        return {
+          shouldFallback: true,
+          cooldownMs: waitMs,
+          newBackoffLevel: 0,
+          reason: RateLimitReason.SERVER_ERROR,
+        };
+      }
+    }
+
     const profile = provider ? getProviderProfile(provider) : null;
     const baseCooldown = profile?.transientCooldown ?? COOLDOWN_MS.transientInitial;
     const maxLevel = profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel;

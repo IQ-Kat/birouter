@@ -29,9 +29,9 @@ export const EFFORT_BUDGETS = {
 // Used when clients send string-based thinking levels (e.g., VS Code Copilot)
 export const THINKING_LEVEL_MAP = {
   none: 0,
-  low: 1024,
-  medium: 10240,
-  high: 131072,
+  low: 4096,
+  medium: 8192,
+  high: 24576,
   max: 131072, // T11: max = full Claude budget (sub2api: xhigh)
   xhigh: 131072, // T11: explicit xhigh alias
 };
@@ -75,7 +75,8 @@ export function normalizeThinkingLevel(body) {
   // Handle top-level thinkingLevel or thinking_level string fields
   const levelStr = result.thinkingLevel || result.thinking_level;
   if (typeof levelStr === "string" && THINKING_LEVEL_MAP[levelStr.toLowerCase()] !== undefined) {
-    const budget = THINKING_LEVEL_MAP[levelStr.toLowerCase()];
+    const rawBudget = THINKING_LEVEL_MAP[levelStr.toLowerCase()];
+    const budget = capThinkingBudget(result.model || "", rawBudget);
     // Convert to Claude thinking format as canonical representation
     result.thinking = {
       type: budget > 0 ? "enabled" : "disabled",
@@ -93,7 +94,8 @@ export function normalizeThinkingLevel(body) {
     typeof geminiLevel === "string" &&
     THINKING_LEVEL_MAP[geminiLevel.toLowerCase()] !== undefined
   ) {
-    const budget = THINKING_LEVEL_MAP[geminiLevel.toLowerCase()];
+    const rawBudget = THINKING_LEVEL_MAP[geminiLevel.toLowerCase()];
+    const budget = capThinkingBudget(result.model || "", rawBudget);
     result.generationConfig = {
       ...result.generationConfig,
       thinkingConfig: { ...result.generationConfig.thinkingConfig, thinkingBudget: budget },
