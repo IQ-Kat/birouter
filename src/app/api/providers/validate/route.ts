@@ -30,9 +30,9 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { provider, apiKey } = validation.data;
+    const { provider, apiKey, validationModelId } = validation.data;
 
-    let providerSpecificData = {};
+    let providerSpecificData: any = { validationModelId };
 
     if (isOpenAICompatibleProvider(provider) || isAnthropicCompatibleProvider(provider)) {
       const node: any = await getProviderNodeById(provider);
@@ -44,6 +44,7 @@ export async function POST(request) {
         );
       }
       providerSpecificData = {
+        ...providerSpecificData,
         baseUrl: node.baseUrl,
         apiType: node.apiType,
       };

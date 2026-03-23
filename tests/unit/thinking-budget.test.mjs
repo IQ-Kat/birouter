@@ -213,8 +213,8 @@ test("normalizeThinkingLevel: converts Gemini thinkingConfig.thinkingLevel", () 
     },
   };
   const result = normalizeThinkingLevel(body);
-  assert.equal(result.generationConfig.thinking_config.thinking_budget, 131072);
-  assert.equal(result.generationConfig.thinkingConfig, undefined);
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 131072);
+  assert.equal(result.generationConfig.thinking_config, undefined);
 });
 
 test("normalizeThinkingLevel: ignores unknown string values", () => {

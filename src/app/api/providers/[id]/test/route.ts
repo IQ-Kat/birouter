@@ -523,9 +523,10 @@ async function testApiKeyConnection(connection: any) {
 /**
  * Core test logic — reusable by test-batch without HTTP self-calls.
  * @param {string} connectionId
+ * @param {string} validationModelId Optional custom model ID to test connection with
  * @returns {Promise<object>} Test result (same shape as the JSON response)
  */
-export async function testSingleConnection(connectionId: string) {
+export async function testSingleConnection(connectionId: string, validationModelId?: string) {
   const connection = await getProviderConnectionById(connectionId);
 
   if (!connection) {
@@ -567,8 +568,17 @@ export async function testSingleConnection(connectionId: string) {
       diagnosis: (runtime as any).diagnosis,
     };
   } else if (connection.authType === "apikey") {
+    const enrichedConnection = validationModelId
+      ? {
+          ...connection,
+          providerSpecificData: {
+            ...((connection.providerSpecificData as any) || {}),
+            validationModelId,
+          },
+        }
+      : connection;
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
-      testApiKeyConnection(connection)
+      testApiKeyConnection(enrichedConnection)
     );
   } else {
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
@@ -670,7 +680,17 @@ export async function testSingleConnection(connectionId: string) {
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const data = await testSingleConnection(id);
+
+    // Parse optional body for validationModelId
+    let validationModelId;
+    try {
+      const body = await request.json();
+      validationModelId = body?.validationModelId;
+    } catch {
+      // Body is optional
+    }
+
+    const data = await testSingleConnection(id, validationModelId);
 
     if (data.error === "Connection not found") {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });

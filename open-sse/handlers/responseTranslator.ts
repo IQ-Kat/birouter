@@ -103,6 +103,25 @@ export function translateNonStreamingResponse(
       message.content = "";
     }
 
+    if (process.env.DEBUG_RESPONSES_SSE_TO_JSON === "true") {
+      const msgItems = output.filter((i) => toRecord(i).type === "message");
+      console.log(`[ResponsesSSE] ${output.length} output items, ${msgItems.length} message items`);
+      msgItems.forEach((item, idx) => {
+        const itemObj = toRecord(item);
+        let textLen = 0;
+        if (Array.isArray(itemObj.content)) {
+          for (const part of itemObj.content) {
+            const partObj = toRecord(part);
+            if (partObj.type === "output_text" && typeof partObj.text === "string") {
+              textLen += partObj.text.length;
+            }
+          }
+        }
+        console.log(`  [${idx}] text length: ${textLen}`);
+      });
+      console.log(`  → Final text content length: ${textContent.length}`);
+    }
+
     const createdAt = toNumber(response.created_at, Math.floor(Date.now() / 1000));
     const model = toString(response.model || responseRoot.model, "openai-responses");
     const finishReason = toolCalls.length > 0 ? "tool_calls" : "stop";
