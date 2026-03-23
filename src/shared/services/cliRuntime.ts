@@ -223,6 +223,41 @@ const isPathWithin = (childPath: string, parentPath: string): boolean => {
   return normalizedChild.startsWith(parentWithSep);
 };
 
+const isSafePath = (execPath: string): boolean => {
+  if (!execPath || !path.isAbsolute(execPath)) return false;
+  if (DANGEROUS_PATH_CHARS.some((c) => execPath.includes(c))) return false;
+  // Allow path.sep and path.delimiter — no further character filtering needed
+  return true;
+};
+
+/**
+ * Validate that an environment variable value is a safe, absolute path
+ * within acceptable directory trees. Rejects traversal, special chars,
+ * and paths outside expected locations.
+ */
+const validateEnvPath = (value: string | undefined, allowedParents: string[]): string => {
+  if (!value) return "";
+  const trimmed = value.trim();
+
+  // Reject if not absolute
+  if (!path.isAbsolute(trimmed)) return "";
+
+  // Reject dangerous characters (same as isSafePath but applied to env vars)
+  if (DANGEROUS_PATH_CHARS.some((c) => trimmed.includes(c))) return "";
+
+  // Reject if contains path traversal segments
+  const normalized = path.normalize(trimmed);
+  if (normalized.includes("..")) return "";
+
+  // Reject if outside allowed parent directories
+  if (allowedParents.length > 0) {
+    const withinAllowed = allowedParents.some((parent) => isPathWithin(normalized, parent));
+    if (!withinAllowed) return "";
+  }
+
+  return normalized;
+};
+
 /**
  * Pre-compute expected parent directories at module startup for performance.
  * These are the allowed directories for CLI binary installation locations.
@@ -258,41 +293,6 @@ const getExpectedParentPaths = (): string[] => {
 
 // Cache expected parent paths at module startup (avoid recalculation on every checkKnownPath call)
 const EXPECTED_PARENT_PATHS = getExpectedParentPaths();
-
-const isSafePath = (execPath: string): boolean => {
-  if (!execPath || !path.isAbsolute(execPath)) return false;
-  if (DANGEROUS_PATH_CHARS.some((c) => execPath.includes(c))) return false;
-  // Allow path.sep and path.delimiter — no further character filtering needed
-  return true;
-};
-
-/**
- * Validate that an environment variable value is a safe, absolute path
- * within acceptable directory trees. Rejects traversal, special chars,
- * and paths outside expected locations.
- */
-const validateEnvPath = (value: string | undefined, allowedParents: string[]): string => {
-  if (!value) return "";
-  const trimmed = value.trim();
-
-  // Reject if not absolute
-  if (!path.isAbsolute(trimmed)) return "";
-
-  // Reject dangerous characters (same as isSafePath but applied to env vars)
-  if (DANGEROUS_PATH_CHARS.some((c) => trimmed.includes(c))) return "";
-
-  // Reject if contains path traversal segments
-  const normalized = path.normalize(trimmed);
-  if (normalized.includes("..")) return "";
-
-  // Reject if outside allowed parent directories
-  if (allowedParents.length > 0) {
-    const withinAllowed = allowedParents.some((parent) => isPathWithin(normalized, parent));
-    if (!withinAllowed) return "";
-  }
-
-  return normalized;
-};
 
 const getExtraPaths = () =>
   String(process.env.CLI_EXTRA_PATHS || "")
