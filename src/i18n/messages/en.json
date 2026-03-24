@@ -2554,6 +2554,8 @@
     "endpointResponsesNote": "Responses API endpoint (Codex, o-series).",
     "endpointModelsNote": "Model catalog for all connected providers.",
     "endpointAudioNote": "Audio transcription (Deepgram, AssemblyAI).",
+    "endpointSpeechNote": "Text-to-speech generation (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Text embedding generation (OpenAI, Cohere, Voyage).",
     "endpointImagesNote": "Image generation (NanoBanana).",
     "endpointRewriteChatNote": "Rewrite helper for clients without /v1.",
     "endpointRewriteResponsesNote": "Rewrite helper for Responses without /v1.",
