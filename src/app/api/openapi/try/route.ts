@@ -10,7 +10,7 @@ import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 const tryRequestSchema = z.object({
   method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]).optional().default("GET"),
   path: z.string().min(1, "Path is required").startsWith("/", "Path must start with /"),
-  headers: z.record(z.string()).optional().default({}),
+  headers: z.record(z.string(), z.string()).optional().default({}),
   body: z.any().optional(),
 });
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Forward cookies/auth from the original request
     const forwardHeaders: Record<string, string> = {
-      ...headers,
+      ...(headers as Record<string, string>),
     };
 
     // Forward auth from the dashboard session
