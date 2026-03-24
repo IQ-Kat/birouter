@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { setAccountKeyLimit, getAccountKeyLimit } from "@/lib/db/registeredKeys";
 
 const limitsSchema = z.object({
@@ -32,20 +33,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
 
-  let body: unknown;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = limitsSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  const validation = validateBody(limitsSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
   const resolvedParams = await params;
-  setAccountKeyLimit(resolvedParams.id, parsed.data);
+  setAccountKeyLimit(resolvedParams.id, validation.data);
   const updated = getAccountKeyLimit(resolvedParams.id);
   return NextResponse.json({ accountId: resolvedParams.id, limits: updated });
 }

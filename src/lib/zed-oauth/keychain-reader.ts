@@ -4,13 +4,30 @@
  * Extracts OAuth credentials from OS keychain where Zed IDE stores them.
  * Supports macOS (Keychain), Windows (Credential Manager), and Linux (libsecret).
  *
+ * `keytar` is a native module (e.g. libsecret on Linux). Load it only via dynamic import
+ * so `next build` / CI without those libs does not fail when this module is analyzed.
+ *
  * @see https://zed.dev/docs/ai/llm-providers - Official Zed documentation confirming keychain storage
  */
 
-import keytar from "keytar";
 import fs from "fs";
 import os from "os";
 import path from "path";
+
+/** Minimal keytar surface (CJS/native; typings may not expose `default`). */
+type KeytarModule = {
+  findCredentials: (service: string) => Promise<Array<{ account: string; password: string }>>;
+  getPassword: (service: string, account: string) => Promise<string | null>;
+};
+
+async function loadKeytar(): Promise<KeytarModule | null> {
+  try {
+    const mod = (await import("keytar")) as { default?: KeytarModule } & KeytarModule;
+    return mod.default ?? mod;
+  } catch {
+    return null;
+  }
+}
 
 export interface ZedCredential {
   provider: string;
@@ -87,6 +104,12 @@ function extractProviderFromService(service: string): string {
  * @returns Array of discovered credentials with provider, service, and token
  */
 export async function discoverZedCredentials(): Promise<ZedCredential[]> {
+  const keytar = await loadKeytar();
+  if (!keytar) {
+    console.debug("[Zed keychain] keytar not available — skipping keychain read");
+    return [];
+  }
+
   const credentials: ZedCredential[] = [];
 
   for (const pattern of ZED_SERVICE_PATTERNS) {
@@ -128,6 +151,9 @@ export async function discoverZedCredentials(): Promise<ZedCredential[]> {
  * @returns The credential if found, null otherwise
  */
 export async function getZedCredential(provider: string): Promise<ZedCredential | null> {
+  const keytar = await loadKeytar();
+  if (!keytar) return null;
+
   const patterns = ZED_SERVICE_PATTERNS.filter((p) =>
     p.toLowerCase().includes(provider.toLowerCase())
   );

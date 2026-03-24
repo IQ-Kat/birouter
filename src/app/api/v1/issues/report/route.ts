@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const reportSchema = z.object({
   title: z.string().min(1).max(300),
@@ -26,19 +27,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
 
-  let body: unknown;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = reportSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  const validation = validateBody(reportSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  const { title, provider, accountId, requestId, errorCode, details, labels = [] } = parsed.data;
+  const { title, provider, accountId, requestId, errorCode, details, labels = [] } = validation.data;
 
   const repo = process.env.GITHUB_ISSUES_REPO;
   const token = process.env.GITHUB_ISSUES_TOKEN;
