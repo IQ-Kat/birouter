@@ -56,7 +56,9 @@
     "warning": "Varoitus",
     "note": "Huom",
     "free": "Ilmainen",
-    "skipToContent": "Siirry sisältöön"
+    "skipToContent": "Siirry sisältöön",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "Kotiin",
@@ -576,7 +578,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Milloin käyttää",
+    "openToolDocs": "Avaa työkaludokumentit",
+    "toolUseCases": {
+      "claude": "Käytä, kun haluat vahvoja suunnittelutyönkulkuja ja pitkiä monitiedostoisia refraktoreita Claude Coden avulla.",
+      "codex": "Käytä, kun tiimisi on standardoitu OpenAI Codex CLI -virtojen ja profiilipohjaisen todennuksen kanssa.",
+      "droid": "Käytä, kun tarvitset kevyen pääteagentin, joka keskittyy nopeaan koodaukseen ja komentojen suoritussilmukoihin.",
+      "openclaw": "Käytä, kun haluat Open Claw -tyyppisen koodausagentin, mutta reititetyn OmniRoute-käytäntöjen kautta.",
+      "cline": "Käytä, kun määrität koodausagentteja editorien sisällä ja haluat ohjatun asennuksen OmniRoute-malleilla.",
+      "kilo": "Käytä, kun työnkulkusi riippuu Kilo Code -komennoista ja nopeista iteratiivisista muokkauksista.",
+      "cursor": "Käytä koodattaessa Cursorissa ja tarvitset mukautettuja OpenAI-yhteensopivia malleja OmniRouten kautta.",
+      "continue": "Käytä, kun käytät Continuea IDE:issä ja tarvitset kannettavan JSON-pohjaisen palveluntarjoajan määrityksen.",
+      "opencode": "Käytä, kun haluat käyttää päätealustaisia ​​agentteja ja komentosarjottua automaatiota OpenCoden kautta.",
+      "kiro": "Käytä integroitaessa Kiroa ja ohjattaessa mallin reititystä keskitetysti OmniRoutesta.",
+      "antigravity": "Käytä, kun Antigravity/Kiro-liikenne on siepattava MITM:n kautta ja ohjattava OmniRouteen.",
+      "copilot": "Käytä, kun haluat Copilot-chat-tyylisen UX:n ja pakota OmniRoute-avaimia ja reitityssääntöjä."
+    }
   },
   "combos": {
     "title": "Yhdistelmät",
@@ -1087,7 +1105,13 @@
     "resetAllTitle": "Palauta kaikki katkaisijat terveeseen tilaan",
     "resetting": "Nollataan...",
     "resetAll": "Nollaa kaikki",
-    "until": "{time} asti"
+    "until": "{time} asti",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Konfiguroitu kojelaudassa",
+    "configuredProvidersHint": "Palveluntarjoajat, joiden valtuustiedot on tallennettu kansioon /dashboard/providers, suorituksen tilasta riippumatta.",
+    "activeProvidersHint": "Määritetyt palveluntarjoajat, jotka ovat tällä hetkellä käytössä reitityspyyntöjä varten.",
+    "monitoredProvidersHint": "Palveluntarjoajat, joita tällä hetkellä seurataan katkaisijoiden kuntovalvojien avulla."
   },
   "limits": {
     "title": "Rajoitukset ja kiintiöt",
@@ -1446,7 +1470,14 @@
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "Asetukset",
@@ -1849,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Edistynyt reititysopastus",
+    "routingAdvancedGuideHint1": "Käytä Täytä ensin ennustettavaa prioriteettia varten, Round Robinia oikeudenmukaisuuden varmistamiseksi ja P2C:tä latenssin kestävyyteen.",
+    "routingAdvancedGuideHint2": "Jos palveluntarjoajat vaihtelevat laadultaan/kustannuksiltaan, aloita Cost Opt -vaihtoehdolla taustatyössä ja Vähiten käytetyllä tasapainoiseen kulumiseen.",
+    "comboDefaultsGuideTitle": "Kuinka virittää yhdistelmäoletusasetukset",
+    "comboDefaultsGuideHint1": "Pidä uudelleenyritykset alhaisena matalan viiveen virroissa; lisää aikakatkaisua vain pitkiä sukupolvitehtäviä varten.",
+    "comboDefaultsGuideHint2": "Käytä palveluntarjoajan ohituksia, kun yksi palveluntarjoaja tarvitsee erilaista aikakatkaisu-/uudelleenyritystoimintaa kuin yleiset oletusasetukset."
   },
   "translator": {
     "title": "Kääntäjä",
@@ -2569,7 +2606,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2628,6 +2673,21 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

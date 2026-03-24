@@ -9,7 +9,7 @@ cost tracking, model switching, and request logging across every tool.
 ## How It Works
 
 ```
-Claude / Codex / Gemini CLI / OpenCode / Cline / KiloCode / Continue / Kiro CLI
+Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
            │
            ▼  (all point to OmniRoute)
     http://YOUR_SERVER:20128/v1
@@ -27,21 +27,38 @@ Claude / Codex / Gemini CLI / OpenCode / Cline / KiloCode / Continue / Kiro CLI
 
 ---
 
-## Supported Tools
+## Supported Tools (Dashboard Source of Truth)
 
-| Tool             | Command             | Type              | Install Method |
-| ---------------- | ------------------- | ----------------- | -------------- |
-| **Claude Code**  | `claude`            | CLI               | npm            |
-| **OpenAI Codex** | `codex`             | CLI               | npm            |
-| **Gemini CLI**   | `gemini`            | CLI               | npm            |
-| **OpenCode**     | `opencode`          | CLI               | npm            |
-| **Cline**        | `cline`             | CLI + VS Code ext | npm            |
-| **KiloCode**     | `kilocode` / `kilo` | CLI + VS Code ext | npm            |
-| **Continue**     | guide-based         | VS Code ext       | VS Code        |
-| **Kiro CLI**     | `kiro-cli`          | CLI               | curl installer |
-| **Cursor**       | `cursor`            | Desktop app       | Download       |
-| **Droid**        | web-based           | Built-in agent    | OmniRoute      |
-| **OpenClaw**     | web-based           | Built-in agent    | OmniRoute      |
+The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
+Current list (v3.0.0-rc.16):
+
+| Tool             | ID            | Command      | Setup Mode | Install Method |
+| ---------------- | ------------- | ------------ | ---------- | -------------- |
+| **Claude Code**  | `claude`      | `claude`     | env        | npm            |
+| **OpenAI Codex** | `codex`       | `codex`      | custom     | npm            |
+| **Factory Droid**| `droid`       | `droid`      | custom     | bundled/CLI    |
+| **OpenClaw**     | `openclaw`    | `openclaw`   | custom     | bundled/CLI    |
+| **Cursor**       | `cursor`      | app          | guide      | desktop app    |
+| **Cline**        | `cline`       | `cline`      | custom     | npm            |
+| **Kilo Code**    | `kilo`        | `kilocode`   | custom     | npm            |
+| **Continue**     | `continue`    | extension    | guide      | VS Code        |
+| **Antigravity**  | `antigravity` | internal     | mitm       | OmniRoute      |
+| **GitHub Copilot**| `copilot`    | extension    | custom     | VS Code        |
+| **OpenCode**     | `opencode`    | `opencode`   | guide      | npm            |
+| **Kiro AI**      | `kiro`        | app/cli      | mitm       | desktop/CLI    |
+
+### CLI fingerprint sync (Agents + Settings)
+
+`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
+This keeps provider IDs aligned with CLI cards and legacy IDs.
+
+| CLI ID | Fingerprint Provider ID |
+| ------ | ----------------------- |
+| `kilo` | `kilocode`              |
+| `copilot` | `github`             |
+| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID |
+
+Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
 
 ---
 
@@ -67,9 +84,6 @@ npm install -g @anthropic-ai/claude-code
 # OpenAI Codex
 npm install -g @openai/codex
 
-# Gemini CLI (Google)
-npm install -g @google/gemini-cli
-
 # OpenCode
 npm install -g opencode-ai
 
@@ -77,7 +91,7 @@ npm install -g opencode-ai
 npm install -g cline
 
 # KiloCode
-npm install -g kilecode
+npm install -g kilocode
 
 # Kiro CLI (Amazon — requires curl + unzip)
 apt-get install -y unzip   # on Debian/Ubuntu
@@ -90,7 +104,6 @@ export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
 ```bash
 claude --version     # 2.x.x
 codex --version      # 0.x.x
-gemini --version     # 0.x.x
 opencode --version   # x.x.x
 cline --version      # 2.x.x
 kilocode --version   # x.x.x (or: kilo --version)
@@ -150,21 +163,6 @@ EOF
 ```
 
 **Test:** `codex "what is 2+2?"`
-
----
-
-### Gemini CLI
-
-```bash
-mkdir -p ~/.gemini && cat > ~/.gemini/settings.json << EOF
-{
-  "apiKey": "sk-your-omniroute-key",
-  "baseUrl": "http://localhost:20128/v1"
-}
-EOF
-```
-
-**Test:** `gemini "hello"`
 
 ---
 
@@ -324,17 +322,16 @@ They run as internal routes and use OmniRoute's model routing automatically.
 OMNIROUTE_URL="http://localhost:20128/v1"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
-npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli opencode-ai cline kilecode
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode
 
 # Kiro CLI
 apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
 
 # Write configs
-mkdir -p ~/.claude ~/.codex ~/.gemini ~/.config/opencode ~/.continue
+mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
 
 cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
 cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
-cat > ~/.gemini/settings.json   <<< "{\"apiKey\":\"$OMNIROUTE_KEY\",\"baseUrl\":\"$OMNIROUTE_URL\"}"
 cat >> ~/.bashrc << EOF
 export OPENAI_BASE_URL="$OMNIROUTE_URL"
 export OPENAI_API_KEY="$OMNIROUTE_KEY"

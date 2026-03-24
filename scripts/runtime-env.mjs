@@ -5,10 +5,14 @@ export function parsePort(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535 ? parsed : fallback;
 }
 
-export function resolveRuntimePorts() {
-  const basePort = parsePort(process.env.PORT || "20128", 20128);
-  const apiPort = parsePort(process.env.API_PORT || String(basePort), basePort);
-  const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(basePort), basePort);
+/**
+ * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [fromEnv]
+ *        Defaults to process.env. Pass bootstrap `merged` so project `.env` PORT applies before spawn.
+ */
+export function resolveRuntimePorts(fromEnv = process.env) {
+  const basePort = parsePort(fromEnv.PORT || "20128", 20128);
+  const apiPort = parsePort(fromEnv.API_PORT || String(basePort), basePort);
+  const dashboardPort = parsePort(fromEnv.DASHBOARD_PORT || String(basePort), basePort);
 
   return { basePort, apiPort, dashboardPort };
 }

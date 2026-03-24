@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
   getProviderConnectionById,
   updateProviderConnection,
@@ -91,6 +93,11 @@ const CLI_RUNTIME_PROVIDER_MAP = {
   cline: "cline",
   kilocode: "kilo",
 };
+
+/** POST body is optional; when present, only known fields are validated. */
+const providerConnectionTestBodySchema = z.object({
+  validationModelId: z.string().max(500).optional(),
+});
 
 function toSafeMessage(value: any, fallback = "Unknown error"): string {
   if (typeof value !== "string") return fallback;
@@ -683,14 +690,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const { id } = await params;
 
-    // Parse optional body for validationModelId
-    let validationModelId;
+    let rawBody: unknown = {};
     try {
-      const body = await request.json();
-      validationModelId = body?.validationModelId;
+      rawBody = await request.json();
     } catch {
-      // Body is optional
+      // Empty or non-JSON body — treat as {}
     }
+    const validation = validateBody(providerConnectionTestBodySchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+    const { validationModelId } = validation.data;
 
     const data = await testSingleConnection(id, validationModelId);
 

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Card, Button, Input } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import { AI_PROVIDERS } from "@/shared/constants/config";
+import { CLI_COMPAT_PROVIDER_IDS } from "@/shared/constants/cliCompatProviders";
 
 interface AgentInfo {
   id: string;
@@ -180,6 +182,51 @@ export default function AgentsPage() {
         </div>
       )}
 
+      {/* Setup Guide */}
+      <Card>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                support
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold">{t("setupGuideTitle")}</h3>
+          </div>
+          <Link
+            href="/dashboard/cli-tools"
+            className="text-xs px-2.5 py-1.5 rounded-lg border border-border/60 hover:bg-surface/40 transition-colors"
+          >
+            {t("openCliTools")}
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="material-symbols-outlined text-[16px] text-blue-500">radar</span>
+              <p className="text-sm font-medium">{t("setupGuideDetectCliTitle")}</p>
+            </div>
+            <p className="text-xs text-text-muted">{t("setupGuideDetectCliDesc")}</p>
+          </div>
+          <div className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="material-symbols-outlined text-[16px] text-amber-500">build</span>
+              <p className="text-sm font-medium">{t("setupGuideCustomAgentTitle")}</p>
+            </div>
+            <p className="text-xs text-text-muted">{t("setupGuideCustomAgentDesc")}</p>
+          </div>
+          <div className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="material-symbols-outlined text-[16px] text-emerald-500">
+                terminal
+              </span>
+              <p className="text-sm font-medium">{t("setupGuideCommandMissingTitle")}</p>
+            </div>
+            <p className="text-xs text-text-muted">{t("setupGuideCommandMissingDesc")}</p>
+          </div>
+        </div>
+      </Card>
+
       {/* CLI Fingerprint Matching */}
       <Card>
         <div className="flex items-center gap-3 mb-4">
@@ -193,24 +240,7 @@ export default function AgentsPage() {
         <div className="flex flex-col gap-4">
           <p className="text-sm text-text-muted">{ts("cliFingerprintDesc")}</p>
           <div className="flex flex-wrap gap-2">
-            {(
-              [
-                "codex",
-                "claude",
-                "github",
-                "antigravity",
-                "kiro",
-                "cursor",
-                "kimi-coding",
-                "kilocode",
-                "cline",
-                "qwen",
-                "droid",
-                "openclaw",
-                "copilot",
-                "opencode",
-              ] as const
-            ).map((providerId) => {
+            {CLI_COMPAT_PROVIDER_IDS.map((providerId) => {
               const providerMeta = Object.values(AI_PROVIDERS).find(
                 (p: any) => p.id === providerId
               ) as any;

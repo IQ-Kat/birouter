@@ -56,7 +56,9 @@
     "warning": "Advarsel",
     "note": "Merk",
     "free": "Gratis",
-    "skipToContent": "Gå til innhold"
+    "skipToContent": "Gå til innhold",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "Hjem",
@@ -576,7 +578,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Når du skal bruke",
+    "openToolDocs": "Åpne verktøydokumenter",
+    "toolUseCases": {
+      "claude": "Bruk når du vil ha sterke planleggingsarbeidsflyter og lange multifilrefaktorer med Claude Code.",
+      "codex": "Bruk når teamet ditt er standardisert på OpenAI Codex CLI-flyter og profilbasert autentisering.",
+      "droid": "Bruk når du trenger en lettvekts terminalagent fokusert på rask koding og løkker for kommandoutførelse.",
+      "openclaw": "Bruk når du vil ha en Open Claw-kodingsagent, men rutet gjennom OmniRoute-policyer.",
+      "cline": "Bruk når du konfigurerer kodeagenter inne i redaktører og ønsker veiledet oppsett med OmniRoute-modeller.",
+      "kilo": "Bruk når arbeidsflyten din avhenger av Kilo Code-kommandoer og raske iterative redigeringer.",
+      "cursor": "Bruk når du koder i Cursor og du trenger tilpassede OpenAI-kompatible modeller gjennom OmniRoute.",
+      "continue": "Bruk når du kjører Continue i IDEer og du trenger bærbar JSON-basert leverandørkonfigurasjon.",
+      "opencode": "Bruk når du foretrekker terminal-native agentkjøringer og skriptautomatisering via OpenCode.",
+      "kiro": "Brukes når du integrerer Kiro og kontrollerer modellruting sentralt fra OmniRoute.",
+      "antigravity": "Brukes når Antigravity/Kiro-trafikk må avskjæres gjennom MITM og rutes til OmniRoute.",
+      "copilot": "Bruk når du vil ha Copilot chat-stil UX mens du håndhever OmniRoute-nøkler og rutingsregler."
+    }
   },
   "combos": {
     "title": "Combos",
@@ -1087,7 +1105,13 @@
     "resetAllTitle": "Tilbakestill alle effektbrytere til sunn tilstand",
     "resetting": "Tilbakestiller...",
     "resetAll": "Tilbakestill alle",
-    "until": "Inntil {time}"
+    "until": "Inntil {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Konfigurert i dashbordet",
+    "configuredProvidersHint": "Leverandører med legitimasjon lagret i /dashboard/leverandører, uavhengig av kjøretidstilstand.",
+    "activeProvidersHint": "Konfigurerte leverandører er for øyeblikket aktivert for rutingforespørsler.",
+    "monitoredProvidersHint": "Leverandører spores for øyeblikket av strømbryterhelsemonitorer."
   },
   "limits": {
     "title": "Grenser og kvoter",
@@ -1446,7 +1470,14 @@
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "Innstillinger",
@@ -1849,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Avansert ruteveiledning",
+    "routingAdvancedGuideHint1": "Bruk Fill First for forutsigbar prioritet, Round Robin for rettferdighet og P2C for latensmotstandskraft.",
+    "routingAdvancedGuideHint2": "Hvis leverandørene varierer i kvalitet/kostnad, start med Cost Opt for bakgrunnsarbeid og Minst brukt for balansert slitasje.",
+    "comboDefaultsGuideTitle": "Hvordan justere kombinasjonsstandarder",
+    "comboDefaultsGuideHint1": "Hold lave gjenforsøk i flyter med lav latens; øke tidsavbruddet bare for langgenerasjonsoppgaver.",
+    "comboDefaultsGuideHint2": "Bruk leverandøroverstyringer når en leverandør trenger annen tidsavbrudd/forsøk på nytt enn globale standardinnstillinger."
   },
   "translator": {
     "title": "Oversetter",
@@ -2569,7 +2606,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2628,6 +2673,21 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

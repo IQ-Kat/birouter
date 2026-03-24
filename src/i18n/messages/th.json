@@ -56,7 +56,9 @@
     "warning": "คำเตือน",
     "note": "หมายเหตุ",
     "free": "ฟรี",
-    "skipToContent": "ข้ามไปที่เนื้อหา"
+    "skipToContent": "ข้ามไปที่เนื้อหา",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "บ้าน",
@@ -576,7 +578,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "เมื่อจะใช้",
+    "openToolDocs": "เปิดเอกสารเครื่องมือ",
+    "toolUseCases": {
+      "claude": "ใช้เมื่อคุณต้องการเวิร์กโฟลว์การวางแผนที่แข็งแกร่งและรีแฟคเตอร์หลายไฟล์แบบยาวด้วย Claude Code",
+      "codex": "ใช้เมื่อทีมของคุณได้รับมาตรฐานในโฟลว์ OpenAI Codex CLI และการตรวจสอบสิทธิ์ตามโปรไฟล์",
+      "droid": "ใช้เมื่อคุณต้องการเอเจนต์เทอร์มินัลน้ำหนักเบาที่เน้นไปที่การเขียนโค้ดที่รวดเร็วและลูปการดำเนินการคำสั่ง",
+      "openclaw": "ใช้เมื่อคุณต้องการเอเจนต์การเข้ารหัสสไตล์ Open Claw แต่กำหนดเส้นทางผ่านนโยบาย OmniRoute",
+      "cline": "ใช้เมื่อคุณกำหนดค่าเอเจนต์การเขียนโค้ดภายในโปรแกรมแก้ไข และต้องการการตั้งค่าที่แนะนำด้วยโมเดล OmniRoute",
+      "kilo": "ใช้เมื่อเวิร์กโฟลว์ของคุณขึ้นอยู่กับคำสั่ง Kilo Code และการแก้ไขซ้ำอย่างรวดเร็ว",
+      "cursor": "ใช้เมื่อเขียนโค้ดในเคอร์เซอร์และคุณต้องการโมเดลที่เข้ากันได้กับ OpenAI แบบกำหนดเองผ่าน OmniRoute",
+      "continue": "ใช้เมื่อเรียกใช้ดำเนินการต่อใน IDE และคุณต้องกำหนดค่าผู้ให้บริการที่ใช้ JSON แบบพกพา",
+      "opencode": "ใช้เมื่อคุณต้องการเรียกใช้ Terminal-Native Agent และใช้สคริปต์อัตโนมัติผ่าน OpenCode",
+      "kiro": "ใช้เมื่อรวม Kiro และควบคุมการกำหนดเส้นทางโมเดลจากส่วนกลางจาก OmniRoute",
+      "antigravity": "ใช้เมื่อต้องสกัดกั้นการรับส่งข้อมูล Antigravity/Kiro ผ่าน MITM และกำหนดเส้นทางไปยัง OmniRoute",
+      "copilot": "ใช้เมื่อคุณต้องการ UX รูปแบบการแชทของ Copilot ในขณะที่บังคับใช้คีย์ OmniRoute และกฎการกำหนดเส้นทาง"
+    }
   },
   "combos": {
     "title": "คอมโบ",
@@ -1087,7 +1105,13 @@
     "resetAllTitle": "รีเซ็ตเบรกเกอร์วงจรทั้งหมดให้อยู่ในสถานะปกติ",
     "resetting": "กำลังรีเซ็ต...",
     "resetAll": "รีเซ็ตทั้งหมด",
-    "until": "จนถึง {time}"
+    "until": "จนถึง {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "กำหนดค่าในแดชบอร์ด",
+    "configuredProvidersHint": "ผู้ให้บริการที่มีข้อมูลรับรองบันทึกไว้ใน /dashboard/providers โดยไม่คำนึงถึงสถานะรันไทม์",
+    "activeProvidersHint": "ผู้ให้บริการที่กำหนดค่าไว้เปิดใช้งานอยู่สำหรับการร้องขอการกำหนดเส้นทาง",
+    "monitoredProvidersHint": "ผู้ให้บริการในปัจจุบันได้รับการติดตามโดยเครื่องตรวจสุขภาพของเซอร์กิตเบรกเกอร์"
   },
   "limits": {
     "title": "ขีดจำกัดและโควต้า",
@@ -1446,7 +1470,14 @@
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "การตั้งค่า",
@@ -1849,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "คำแนะนำการกำหนดเส้นทางขั้นสูง",
+    "routingAdvancedGuideHint1": "ใช้ Fill First เพื่อลำดับความสำคัญที่คาดการณ์ได้ Round Robin เพื่อความยุติธรรม และ P2C เพื่อความยืดหยุ่นในการตอบสนอง",
+    "routingAdvancedGuideHint2": "หากผู้ให้บริการมีคุณภาพ/ต้นทุนแตกต่างกัน ให้เริ่มด้วยการเลือกต้นทุนสำหรับงานเบื้องหลังและใช้งานน้อยที่สุดสำหรับการสึกหรอที่สมดุล",
+    "comboDefaultsGuideTitle": "วิธีปรับแต่งค่าเริ่มต้นคอมโบ",
+    "comboDefaultsGuideHint1": "พยายามลองใหม่ให้ต่ำในกระแสเวลาแฝงต่ำ เพิ่มการหมดเวลาเฉพาะสำหรับงานที่ใช้เวลานานเท่านั้น",
+    "comboDefaultsGuideHint2": "ใช้การแทนที่ผู้ให้บริการเมื่อผู้ให้บริการรายหนึ่งต้องการพฤติกรรมการหมดเวลา/การลองใหม่ที่แตกต่างไปจากค่าเริ่มต้นส่วนกลาง"
   },
   "translator": {
     "title": "นักแปล",
@@ -2569,7 +2606,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2628,6 +2673,21 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

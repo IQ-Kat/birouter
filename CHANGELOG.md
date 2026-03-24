@@ -6,6 +6,14 @@
 
 ---
 
+## [3.0.0-rc.16] — 2026-03-24
+
+### ✨ New Features
+- Increased media transcription limits
+- Added Model Context Length to registry metadata
+- Added per-model upstream custom headers via configuration UI
+- Fixed multiple bugs, Zod valiadation for patches, and resolved various community issues.
+
 ## [3.0.0-rc.15] — 2026-03-24
 
 ### ✨ New Features

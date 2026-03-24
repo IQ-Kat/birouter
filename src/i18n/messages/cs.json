@@ -56,7 +56,9 @@
     "warning": "Varování",
     "note": "Poznámka",
     "free": "Uvolnit",
-    "skipToContent": "Přejít na obsah"
+    "skipToContent": "Přejít na obsah",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "Domov",
@@ -364,7 +366,22 @@
     "rerank": "Přeřadit",
     "rerankModel": "Přeřazovací Model (Rerank)",
     "positionDelta": "Změna pozice",
-    "emptyState": "Odešlete vyhledávací dotaz pro zobrazení výsledků"
+    "emptyState": "Odešlete vyhledávací dotaz pro zobrazení výsledků",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   },
   "cliTools": {
     "title": "CLI Nástroje",
@@ -612,7 +629,23 @@
     "mitmStep1": "Přejděte na stránku Správce API",
     "mitmStep2Prefix": "Zadejte prefix, např. cc/",
     "mitmStep2Suffix": "a cílový model jako claude-sonnet-4-20250514",
-    "mitmStep3": "Uložte a restartujte server"
+    "mitmStep3": "Uložte a restartujte server",
+    "whenToUseLabel": "Kdy použít",
+    "openToolDocs": "Otevřete dokumentaci nástroje",
+    "toolUseCases": {
+      "claude": "Použijte, když chcete silné plánovací pracovní postupy a dlouhé vícesouborové refaktory s Claude Code.",
+      "codex": "Použijte, když je váš tým standardizován na tocích OpenAI Codex CLI a ověřování na základě profilu.",
+      "droid": "Použijte, když potřebujete lehkého terminálového agenta zaměřeného na rychlé kódování a smyčky provádění příkazů.",
+      "openclaw": "Použijte, když chcete kódovacího agenta ve stylu Open Claw, ale směrovaného přes zásady OmniRoute.",
+      "cline": "Použijte, když konfigurujete kódovací agenty v editorech a chcete řízené nastavení s modely OmniRoute.",
+      "kilo": "Použijte, když váš pracovní postup závisí na příkazech Kilo Code a rychlých iterativních úpravách.",
+      "cursor": "Použijte při kódování v Cursoru a potřebujete vlastní modely kompatibilní s OpenAI prostřednictvím OmniRoute.",
+      "continue": "Použijte, když spouštíte Pokračovat v IDE a potřebujete přenosnou konfiguraci poskytovatele na bázi JSON.",
+      "opencode": "Použijte, pokud dáváte přednost spouštění nativního agenta a skriptované automatizaci prostřednictvím OpenCode.",
+      "kiro": "Použijte při integraci Kiro a centrálním řízení směrování modelu z OmniRoute.",
+      "antigravity": "Použijte, když provoz Antigravity/Kiro musí být zachycen prostřednictvím MITM a směrován do OmniRoute.",
+      "copilot": "Použijte, když chcete uživatelské rozhraní ve stylu chatu Copilot při vynucování klíčů OmniRoute a pravidel směrování."
+    }
   },
   "combos": {
     "title": "Komba",
@@ -1135,7 +1168,13 @@
     "resetAllTitle": "Resetujte všechny jističe do funkčního stavu",
     "resetting": "Resetování...",
     "resetAll": "Obnovit vše",
-    "until": "Do {time}"
+    "until": "Do {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Nakonfigurováno v řídicím panelu",
+    "configuredProvidersHint": "Poskytovatelé s přihlašovacími údaji uloženými v /dashboard/providers, bez ohledu na stav běhu.",
+    "activeProvidersHint": "Konfigurovaní poskytovatelé aktuálně povoleni pro požadavky na směrování.",
+    "monitoredProvidersHint": "Poskytovatelé aktuálně sledovaní monitory stavu vypínačů."
   },
   "limits": {
     "title": "Limity a kvóty",
@@ -1494,7 +1533,14 @@
     "compatProtocolHint": "Formát požadavku",
     "compatProtocolOpenAI": "OpenAI",
     "compatProtocolOpenAIResponses": "OpenAI Responses",
-    "compatProtocolClaude": "Anthropic Messages"
+    "compatProtocolClaude": "Anthropic Messages",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "Nastavení",
@@ -1897,7 +1943,13 @@
     "customPricingNote": "Výchozí ceny pro konkrétní modely můžete přepsat. Vlastní přepsání má přednost před automaticky zjištěnými cenami.",
     "editPricing": "Upravit ceny",
     "viewFullDetails": "Zobrazit všechny podrobnosti",
-    "themeCoral": "Korál"
+    "themeCoral": "Korál",
+    "routingAdvancedGuideTitle": "Pokročilé vedení trasy",
+    "routingAdvancedGuideHint1": "Použijte Fill First pro předvídatelnou prioritu, Round Robin pro spravedlnost a P2C pro odolnost vůči latenci.",
+    "routingAdvancedGuideHint2": "Pokud se poskytovatelé liší v kvalitě/ceně, začněte s Cost Opt pro práci na pozadí a Nejméně použité pro vyvážené opotřebení.",
+    "comboDefaultsGuideTitle": "Jak vyladit výchozí nastavení komba",
+    "comboDefaultsGuideHint1": "Udržujte počet opakování na nízké úrovni v tocích s nízkou latencí; prodlužte časový limit pouze u úloh s dlouhým generováním.",
+    "comboDefaultsGuideHint2": "Použít přepsání poskytovatele, když jeden poskytovatel potřebuje jiné chování časového limitu/opakování než globální výchozí hodnoty."
   },
   "translator": {
     "title": "Překladatel",
@@ -2605,7 +2657,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Kombo Engine",
