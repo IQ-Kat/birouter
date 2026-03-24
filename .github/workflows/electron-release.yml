@@ -201,3 +201,13 @@ jobs:
             release-assets/*.source.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-npm:
+    name: Publish to npm
+    needs: [validate, release]
+    uses: ./.github/workflows/npm-publish.yml
+    with:
+      version: ${{ needs.validate.outputs.version }}
+      tag: latest
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
