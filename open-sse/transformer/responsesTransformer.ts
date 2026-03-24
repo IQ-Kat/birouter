@@ -40,6 +40,7 @@ export function createResponsesLogger(model, logsDir = null) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "").slice(0, 15);
   const uniqueId = Math.random().toString(36).slice(2, 8);
   const baseDir = logsDir || (typeof process !== "undefined" ? process.cwd() : ".");
+  // previous: const baseDir = logsDir || resolveDataDir(); — reverted in #555 for Workers compat
   const logDir = path.join(baseDir, "logs", `responses_${model}_${timestamp}_${uniqueId}`);
 
   try {
