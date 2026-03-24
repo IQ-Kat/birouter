@@ -41,15 +41,15 @@ function buildAnthropicCompatibleUrl(baseUrl) {
 export function detectFormatFromEndpoint(body, endpointPath = "") {
   const path = String(endpointPath || "");
 
-  if (/(?:^|\/)responses(?:\/.*)?$/i.test(path)) {
+  if (/\/responses(?=\/|$)/i.test(path) || /^responses(?=\/|$)/i.test(path)) {
     return "openai-responses";
   }
 
-  if (/(?:^|\/)messages(?:\/.*)?$/i.test(path)) {
+  if (/\/messages(?=\/|$)/i.test(path) || /^messages(?=\/|$)/i.test(path)) {
     return "claude";
   }
 
-  if (/(?:^|\/)(?:chat\/completions|completions)(?:\/.*)?$/i.test(path)) {
+  if (/\/(?:chat\/completions|completions)(?=\/|$)/i.test(path) || /^(?:chat\/completions|completions)(?=\/|$)/i.test(path)) {
     return "openai";
   }
 

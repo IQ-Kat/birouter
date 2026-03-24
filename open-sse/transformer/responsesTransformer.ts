@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import * as path from "path";
-import { resolveDataDir } from "../../src/lib/dataPaths";
 /**
  * Responses API Transformer
  * Converts OpenAI Chat Completions SSE to Codex Responses API SSE format
@@ -40,7 +39,8 @@ export function createResponsesLogger(model, logsDir = null) {
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "").slice(0, 15);
   const uniqueId = Math.random().toString(36).slice(2, 8);
-  const baseDir = logsDir || resolveDataDir();
+  const baseDir = logsDir || (typeof process !== "undefined" ? process.cwd() : ".");
+  // previous: const baseDir = logsDir || resolveDataDir(); — reverted in #555 for Workers compat
   const logDir = path.join(baseDir, "logs", `responses_${model}_${timestamp}_${uniqueId}`);
 
   try {

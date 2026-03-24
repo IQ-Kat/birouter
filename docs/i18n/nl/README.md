@@ -11,28 +11,6 @@ _Uw universele API-proxy: één eindpunt, meer dan 36 providers, geen downtime._
 
 ---
 
-### 🆕 What's New in v2.7.0
-
-- **Pluggable RouterStrategy** — rules, cost, and latency routing strategies
-- **Multilingual intent detection** — routing scoring in 30+ languages
-- **Request deduplication** — prevent duplicate API calls via content hash
-- **New providers:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
-- **Updated pricing:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
-
----
-
-### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
-
-| Feature                                    | What It Does                                                                                                                                  |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                        |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved** |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw), process spawner, `/api/acp/agents` endpoint                                 |
-| 🤖 **ACP Agents Dashboard**                | Debug > Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool                                      |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                               |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                   |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                      |
-
 ### 🤖 Gratis AI-provider voor uw favoriete codeeragenten
 
 _Verbind elke AI-aangedreven IDE- of CLI-tool via OmniRoute: gratis API-gateway voor onbeperkte codering._
@@ -117,6 +95,38 @@ _Verbind elke AI-aangedreven IDE- of CLI-tool via OmniRoute: gratis API-gateway 
 <sub>📡 Alle agenten maken verbinding via <code>http://localhost:20128/v1</code> of <code>http://cloud.omniroute.online/v1</code> — één configuratie, onbeperkte modellen en quota</sub>
 
 ---
+
+### 🆕 What's New in v3.0.0
+
+| Area | Change |
+| --- | --- |
+| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
+| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
+| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
+| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
+| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
+| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+
+
+
+### 🆕 What's New in v3.0.0
+
+| Area | Change |
+| --- | --- |
+| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
+| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
+| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
+| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
+| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
+| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+
+---
+
+
 
 [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)

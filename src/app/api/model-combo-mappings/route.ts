@@ -4,8 +4,18 @@
  * POST — Create a new mapping
  */
 
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import { getModelComboMappings, createModelComboMapping } from "@/lib/localDb";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+
+const createMappingSchema = z.object({
+  pattern: z.string().min(1, "Pattern is required").max(500),
+  comboId: z.string().min(1, "ComboId is required"),
+  priority: z.number().int().optional().default(0),
+  enabled: z.boolean().optional().default(true),
+  description: z.string().max(1000).optional().default(""),
+});
 
 export async function GET() {
   try {
@@ -21,21 +31,19 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-
-    if (!body.pattern || typeof body.pattern !== "string") {
-      return NextResponse.json({ error: "Missing or invalid 'pattern' field" }, { status: 400 });
-    }
-    if (!body.comboId || typeof body.comboId !== "string") {
-      return NextResponse.json({ error: "Missing or invalid 'comboId' field" }, { status: 400 });
+    const rawBody = await request.json();
+    const validation = validateBody(createMappingSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
+    const { data } = validation;
     const mapping = await createModelComboMapping({
-      pattern: body.pattern.trim(),
-      comboId: body.comboId,
-      priority: typeof body.priority === "number" ? body.priority : 0,
-      enabled: body.enabled !== false,
-      description: body.description || "",
+      pattern: data.pattern.trim(),
+      comboId: data.comboId,
+      priority: data.priority,
+      enabled: data.enabled,
+      description: data.description,
     });
 
     return NextResponse.json({ mapping }, { status: 201 });

@@ -80,7 +80,8 @@ export function shouldUseNativeCodexPassthrough({
   if (provider !== "codex") return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
   const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
-  return /(?:^|\/)responses(?:\/.*)?$/i.test(normalizedEndpoint);
+  const segments = normalizedEndpoint.split("/");
+  return segments.includes("responses");
 }
 
 /**
@@ -222,7 +223,7 @@ export async function handleChatCore({
 
   const endpointPath = String(clientRawRequest?.endpoint || "");
   const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
-  const isResponsesEndpoint = /(?:^|\/)responses(?:\/.*)?$/i.test(endpointPath);
+  const isResponsesEndpoint = /\/responses(?=\/|$)/i.test(endpointPath) || /^responses(?=\/|$)/i.test(endpointPath);
   const nativeCodexPassthrough = shouldUseNativeCodexPassthrough({
     provider,
     sourceFormat,
