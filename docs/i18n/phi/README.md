@@ -5,7 +5,7 @@
 
 ### Huwag kailanman ihinto ang coding. Smart routing sa **LIBRE at murang mga modelo ng AI** na may awtomatikong fallback.
 
-_Iyong unibersal na API proxy — isang endpoint, 36+ provider, zero downtime._
+_Iyong unibersal na API proxy — isang endpoint, 67+ provider, zero downtime._
 
 **Mga Pagkumpleto ng Chat • Mga Pag-embed • Pagbuo ng Imahe • Audio • Pag-rerank • 100% TypeScript**
 
@@ -256,7 +256,7 @@ Gumagamit ang OpenAI ng isang format, gumagamit si Claude (Anthropic) ng isa pa,
 
 **Paano ito niresolba ng OmniRoute:**
 
-- **Pinag-isang Endpoint** — Isang `http://localhost:20128/v1` ang nagsisilbing proxy para sa lahat ng 36+ provider
+- **Pinag-isang Endpoint** — Isang `http://localhost:20128/v1` ang nagsisilbing proxy para sa lahat ng 67+ provider
 - **Format Translation** — Awtomatiko at transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Response Sanitization** — Tinatanggal ang mga hindi karaniwang field (`x_groq`, `usage_breakdown`, `service_tier`) na sumisira sa OpenAI SDK v1.83+
 - **Role Normalization** — Kino-convert ang `developer` → `system` para sa mga provider na hindi OpenAI; `system` → `user` para sa GLM/ERNIE
@@ -341,7 +341,7 @@ Gumagamit ang mga developer ng Cursor, Claude Code, Codex CLI, OpenClaw, Gemini 
 - **CLI Tools Dashboard** — Nakatuon na page na may isang-click na setup para sa Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Bumubuo ng `chatLanguageModels.json` para sa VS Code na may maramihang pagpili ng modelo
 - **Onboarding Wizard** — May gabay na 4-step na pag-setup para sa mga unang beses na user
-- **Isang endpoint, lahat ng modelo** — I-configure ang `http://localhost:20128/v1` nang isang beses, i-access ang 36+ provider
+- **Isang endpoint, lahat ng modelo** — I-configure ang `http://localhost:20128/v1` nang isang beses, i-access ang 67+ provider
 
 </details>
 

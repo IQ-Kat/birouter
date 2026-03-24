@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
@@ -356,7 +357,6 @@ HomePageClient.propTypes = {
 };
 
 function ProviderOverviewCard({ item, metrics, onClick }) {
-  const [imgError, setImgError] = useState(false);
   const t = useTranslations("home");
   const tc = useTranslations("common");
 
@@ -380,24 +380,7 @@ function ProviderOverviewCard({ item, metrics, onClick }) {
           className="size-8 rounded-lg flex items-center justify-center shrink-0"
           style={{ backgroundColor: `${item.provider.color || "#888"}15` }}
         >
-          {imgError ? (
-            <span
-              className="text-[10px] font-bold"
-              style={{ color: item.provider.color || "#888" }}
-            >
-              {item.provider.textIcon || item.provider.id.slice(0, 2).toUpperCase()}
-            </span>
-          ) : (
-            <Image
-              src={`/providers/${item.provider.id}.png`}
-              alt={item.provider.name}
-              width={26}
-              height={26}
-              className="object-contain rounded-lg"
-              sizes="26px"
-              onError={() => setImgError(true)}
-            />
-          )}
+          <ProviderIcon providerId={item.provider.id} size={26} type="color" />
         </div>
 
         <div className="min-w-0 flex-1">
