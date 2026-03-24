@@ -5,7 +5,7 @@
 
 ### Non smettere mai di programmare. Routing intelligente verso **modelli IA GRATUITI e economici** con fallback automatico.
 
-_Il tuo proxy API universale — un endpoint, 36+ provider, zero downtime._
+_Il tuo proxy API universale — un endpoint, 67+ provider, zero downtime._
 
 **Chat Completions • Embeddings • Generazione Immagini • Audio • Reranking • 100% TypeScript**
 

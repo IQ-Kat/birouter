@@ -256,7 +256,7 @@ OpenAI gebruikt het ene formaat, Claude (Anthropic) gebruikt een ander, Gemini n
 
 **Hoe OmniRoute het oplost:**
 
-- **Unified Endpoint** — Eén enkele `http://localhost:20128/v1` dient als proxy voor alle 36+ providers
+- **Unified Endpoint** — Eén enkele `http://localhost:20128/v1` dient als proxy voor alle 67+ providers
 - **Formatvertaling** — Automatisch en transparant: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Response Sanitization** — Verwijdert niet-standaardvelden (`x_groq`, `usage_breakdown`, `service_tier`) die OpenAI SDK v1.83+ breken
 - **Rolnormalisatie** — Converteert `developer` → `system` voor niet-OpenAI-providers; `system` → `user` voor GLM/ERNIE

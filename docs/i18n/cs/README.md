@@ -197,7 +197,7 @@ OpenAI používá jeden formát, Claude (Anthropic) jiný a Gemini ještě třet
 
 **Jak to OmniRoute řeší:**
 
-- **Sjednocený koncový bod** — Jeden `http://localhost:20128/v1` slouží jako proxy pro všech 44+ poskytovatelů.
+- **Sjednocený koncový bod** — Jeden `http://localhost:20128/v1` slouží jako proxy pro všech 67+ poskytovatelů.
 - **Překlad formátu** — Automatický a transparentní: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Sanitizace odpovědí** — Odstraňuje nestandardní pole ( `x_groq` , `usage_breakdown` , `service_tier` ), která porušují OpenAI SDK v1.83+
 - **Normalizace rolí** — Převádí `developer` → `system` pro poskytovatele bez OpenAI; `system` → `user` pro GLM/ERNIE
