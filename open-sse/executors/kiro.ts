@@ -1,5 +1,6 @@
 import {
   BaseExecutor,
+  mergeUpstreamExtraHeaders,
   type ExecuteInput,
   type ExecutorLog,
   type ProviderCredentials,
@@ -89,9 +90,18 @@ export class KiroExecutor extends BaseExecutor {
   /**
    * Custom execute for Kiro - handles AWS EventStream binary response
    */
-  async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
+  async execute({
+    model,
+    body,
+    stream,
+    credentials,
+    signal,
+    log,
+    upstreamExtraHeaders,
+  }: ExecuteInput) {
     const url = this.buildUrl(model, stream, 0);
     const headers = this.buildHeaders(credentials, stream);
+    mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
     const transformedBody = this.transformRequest(model, body, stream, credentials);
 
     const response = await fetch(url, {

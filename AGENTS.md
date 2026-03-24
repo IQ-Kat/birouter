@@ -49,19 +49,22 @@ but the real logic lives in `src/lib/db/`.
 
 Translation between provider formats: `open-sse/translator/`
 
+**Upstream model extra headers** (`compatByProtocol` / custom models): merged in executors after default auth; **same header name replaces** the executor value (e.g. custom `Authorization` overrides Bearer). In `open-sse/handlers/chatCore.ts`, the primary request merges headers for **both** the client model id and `resolveModelAlias(clientModel)` (resolved id wins on key conflicts). **T5 intra-family fallback** recomputes headers using only the fallback model id and `resolveModelAlias(fallback)` so sibling models do not inherit another model’s headers. Forbidden header names live in `src/shared/constants/upstreamHeaders.ts` — keep sanitize (`models.ts`), Zod (`schemas.ts`), and unit tests aligned when editing that list.
+
 ### MCP Server (`open-sse/mcp-server/`)
 
 16 tools for AI agent control via **3 transport modes**:
+
 - **stdio** — Local IDE integration (Claude Desktop, Cursor, VS Code)
 - **SSE** — Remote Server-Sent Events at `/api/mcp/sse`
 - **Streamable HTTP** — Modern bidirectional HTTP at `/api/mcp/stream`
 
 HTTP transports run in-process via `httpTransport.ts` singleton using `WebStandardStreamableHTTPServerTransport`.
 
-| Category   | Tools                                                                                                                     |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Essential  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog` |
-| Advanced   | `simulate_route`, `set_budget_guard`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot` |
+| Category  | Tools                                                                                                                                                                |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Essential | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`                               |
+| Advanced  | `simulate_route`, `set_budget_guard`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot` |
 
 - Scoped authorization (9 scopes), audit logging, Zod schemas
 - IDE configs for Claude Desktop, Cursor, VS Code Copilot
@@ -79,25 +82,26 @@ Agent-to-Agent v0.3 protocol:
 ### Auto-Combo Engine (`open-sse/services/autoCombo/`)
 
 Self-healing routing optimization:
+
 - 6-factor scoring, 4 mode packs, bandit exploration
 - Progressive cooldown, probe-based re-admission
 
 ### Dashboard (`src/app/(dashboard)/`)
 
-| Page                         | Description                                                    |
-| ---------------------------- | -------------------------------------------------------------- |
-| `/dashboard`                 | Home with quick start, provider overview                       |
-| `/dashboard/endpoint`        | **Endpoints** (tabbed): Endpoint Proxy, MCP, A2A, API Endpoints |
-| `/dashboard/providers`       | Provider management and connections                            |
-| `/dashboard/combos`          | Combo configurations with routing strategies                   |
-| `/dashboard/logs`            | Request, Proxy, Audit, Console logs (tabbed)                   |
-| `/dashboard/analytics`       | Usage analytics and evaluations                                |
-| `/dashboard/costs`           | Cost tracking and breakdown                                    |
-| `/dashboard/health`          | Uptime, circuit breakers, latency                              |
-| `/dashboard/cli-tools`       | CLI tool integrations (Claude, Codex, Antigravity, etc.)       |
-| `/dashboard/media`           | Image, Video, Music generation playground                      |
-| `/dashboard/settings`        | System settings with multiple tabs                             |
-| `/dashboard/api-manager`     | API key management with model permissions                      |
+| Page                     | Description                                                     |
+| ------------------------ | --------------------------------------------------------------- |
+| `/dashboard`             | Home with quick start, provider overview                        |
+| `/dashboard/endpoint`    | **Endpoints** (tabbed): Endpoint Proxy, MCP, A2A, API Endpoints |
+| `/dashboard/providers`   | Provider management and connections                             |
+| `/dashboard/combos`      | Combo configurations with routing strategies                    |
+| `/dashboard/logs`        | Request, Proxy, Audit, Console logs (tabbed)                    |
+| `/dashboard/analytics`   | Usage analytics and evaluations                                 |
+| `/dashboard/costs`       | Cost tracking and breakdown                                     |
+| `/dashboard/health`      | Uptime, circuit breakers, latency                               |
+| `/dashboard/cli-tools`   | CLI tool integrations (Claude, Codex, Antigravity, etc.)        |
+| `/dashboard/media`       | Image, Video, Music generation playground                       |
+| `/dashboard/settings`    | System settings with multiple tabs                              |
+| `/dashboard/api-manager` | API key management with model permissions                       |
 
 ### OAuth & Tokens (`src/lib/oauth/`)
 

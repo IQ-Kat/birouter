@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -340,10 +341,34 @@ export const clearModelAvailabilitySchema = z.object({
   model: modelIdSchema,
 });
 
+/** Align with `sanitizeUpstreamHeadersMap` — allow non-ASCII names; reject Host / hop-by-hop / whitespace / ":". */
+const upstreamHeaderNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(128)
+  .refine((s) => !/[\r\n\0]/.test(s), { message: "header name cannot contain control characters" })
+  .refine((s) => !/\s/.test(s), { message: "header name cannot contain whitespace" })
+  .refine((s) => !s.includes(":"), { message: "header name cannot contain ':'" })
+  .refine((s) => !isForbiddenUpstreamHeaderName(s), { message: "header name is not allowed" });
+
+const upstreamHeaderValueSchema = z
+  .string()
+  .max(4096)
+  .refine((s) => !/[\r\n]/.test(s), { message: "header value cannot contain line breaks" });
+
+const upstreamHeadersRecordSchema = z
+  .record(upstreamHeaderNameSchema, upstreamHeaderValueSchema)
+  .refine((rec) => Object.keys(rec).length <= 16, { message: "at most 16 custom headers" })
+  .refine((rec) => !Object.keys(rec).some((k) => isForbiddenUpstreamHeaderName(k)), {
+    message: "forbidden header name in record",
+  });
+
 const modelCompatPerProtocolSchema = z
   .object({
     normalizeToolCallId: z.boolean().optional(),
     preserveOpenAIDeveloperRole: z.boolean().optional(),
+    upstreamHeaders: upstreamHeadersRecordSchema.optional(),
   })
   .strict();
 
@@ -356,8 +381,10 @@ export const providerModelMutationSchema = z.object({
   supportedEndpoints: z.array(z.enum(["chat", "embeddings", "images", "audio"])).default(["chat"]),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
+  upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
+  /** Zod 4: `z.record(z.enum([...]), …)` requires every enum key; use `partialRecord` for sparse patches. */
   compatByProtocol: z
-    .record(z.enum(["openai", "openai-responses", "claude"]), modelCompatPerProtocolSchema)
+    .partialRecord(z.enum(["openai", "openai-responses", "claude"]), modelCompatPerProtocolSchema)
     .optional(),
 });
 
