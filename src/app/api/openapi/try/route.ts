@@ -3,21 +3,26 @@
  * POST — forwards a request to a local endpoint and returns the result
  */
 
+import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+
+const tryRequestSchema = z.object({
+  method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]).optional().default("GET"),
+  path: z.string().min(1, "Path is required").startsWith("/", "Path must start with /"),
+  headers: z.record(z.string()).optional().default({}),
+  body: z.any().optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { method = "GET", path, headers = {}, body: reqBody } = body;
-
-    if (!path || typeof path !== "string") {
-      return NextResponse.json({ error: "Missing 'path' field" }, { status: 400 });
+    const rawBody = await request.json();
+    const validation = validateBody(tryRequestSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    // Only allow requests to local endpoints for security
-    if (!path.startsWith("/")) {
-      return NextResponse.json({ error: "Path must start with /" }, { status: 400 });
-    }
+    const { method, path, headers, body: reqBody } = validation.data;
 
     // Build the target URL using the incoming request's origin
     const origin = request.headers.get("x-forwarded-proto")

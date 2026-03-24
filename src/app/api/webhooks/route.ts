@@ -4,8 +4,17 @@
  * POST — Create a new webhook
  */
 
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import { getWebhooks, createWebhook } from "@/lib/localDb";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+
+const createWebhookSchema = z.object({
+  url: z.string().url("Invalid URL format").max(2000),
+  events: z.array(z.string()).optional().default(["*"]),
+  secret: z.string().max(500).optional(),
+  description: z.string().max(1000).optional().default(""),
+});
 
 export async function GET() {
   try {
@@ -26,24 +35,18 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-
-    if (!body.url || typeof body.url !== "string") {
-      return NextResponse.json({ error: "Missing or invalid 'url' field" }, { status: 400 });
+    const rawBody = await request.json();
+    const validation = validateBody(createWebhookSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    // Validate URL format
-    try {
-      new URL(body.url);
-    } catch {
-      return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
-    }
-
+    const { data } = validation;
     const webhook = createWebhook({
-      url: body.url,
-      events: body.events || ["*"],
-      secret: body.secret,
-      description: body.description || "",
+      url: data.url,
+      events: data.events,
+      secret: data.secret,
+      description: data.description,
     });
 
     return NextResponse.json({ webhook }, { status: 201 });

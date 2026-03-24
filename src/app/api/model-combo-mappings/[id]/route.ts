@@ -4,12 +4,22 @@
  * DELETE — Delete a mapping
  */
 
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import {
   updateModelComboMapping,
   deleteModelComboMapping,
   getModelComboMappingById,
 } from "@/lib/localDb";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+
+const updateMappingSchema = z.object({
+  pattern: z.string().min(1).max(500).optional(),
+  comboId: z.string().min(1).optional(),
+  priority: z.number().int().optional(),
+  enabled: z.boolean().optional(),
+  description: z.string().max(1000).optional(),
+});
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,15 +37,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const rawBody = await request.json();
+    const validation = validateBody(updateMappingSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
 
-    const mapping = await updateModelComboMapping(id, {
-      pattern: body.pattern,
-      comboId: body.comboId,
-      priority: body.priority,
-      enabled: body.enabled,
-      description: body.description,
-    });
+    const mapping = await updateModelComboMapping(id, validation.data);
 
     if (!mapping) {
       return NextResponse.json({ error: "Mapping not found" }, { status: 404 });
