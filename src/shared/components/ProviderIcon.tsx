@@ -6,7 +6,8 @@
  * Strategy (#529):
  * 1. Try @lobehub/icons ProviderIcon (130+ providers, React components)
  * 2. Fall back to /providers/{id}.png (existing static assets)
- * 3. Fall back to a generic AI icon
+ * 3. Fall back to /providers/{id}.svg (SVG assets)
+ * 4. Fall back to a generic AI icon
  *
  * Usage:
  *   <ProviderIcon providerId="openai" size={24} />
@@ -123,6 +124,7 @@ const ProviderIcon = memo(function ProviderIcon({
   const lobehubId = LOBEHUB_PROVIDER_MAP[providerId.toLowerCase()] ?? null;
   const [useLobehub, setUseLobehub] = useState(lobehubId !== null);
   const [usePng, setUsePng] = useState(true);
+  const [useSvg, setUseSvg] = useState(true);
 
   if (useLobehub && lobehubId) {
     return (
@@ -150,6 +152,25 @@ const ProviderIcon = memo(function ProviderIcon({
           height={size}
           style={{ objectFit: "contain" }}
           onError={() => setUsePng(false)}
+          unoptimized
+        />
+      </span>
+    );
+  }
+
+  if (useSvg) {
+    return (
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
+        <Image
+          src={`/providers/${providerId}.svg`}
+          alt={providerId}
+          width={size}
+          height={size}
+          style={{ objectFit: "contain" }}
+          onError={() => setUseSvg(false)}
           unoptimized
         />
       </span>
