@@ -111,12 +111,12 @@ Authorization: Bearer your-api-key
 | Metoda | Cesta                       | Formát                |
 | ------ | --------------------------- | --------------------- |
 | POST   | `/v1/chat/completions`      | OpenAI                |
-| POST   | `/v1/messages`              | Antropický            |
+| POST   | `/v1/messages`              | Anthropic             |
 | POST   | `/v1/responses`             | Reakce OpenAI         |
 | POST   | `/v1/embeddings`            | OpenAI                |
 | POST   | `/v1/images/generations`    | OpenAI                |
 | GET    | `/v1/models`                | OpenAI                |
-| POST   | `/v1/messages/count_tokens` | Antropický            |
+| POST   | `/v1/messages/count_tokens` | Anthropic             |
 | GET    | `/v1beta/models`            | Blíženci              |
 | POST   | `/v1beta/models/{...path}`  | Gemini generuje obsah |
 | POST   | `/v1/api/chat`              | Ollama                |

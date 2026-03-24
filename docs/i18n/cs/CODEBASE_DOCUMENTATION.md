@@ -200,8 +200,8 @@ classDiagram
 | `default.ts`     | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Aktualizace generického tokenu OAuth pro standardní poskytovatele                                                                    |
 | `antigravity.ts` | Kód Google Cloud                           | Generování ID projektu/relace, záložní více URL adres, vlastní analýza opakovaných pokusů z chybových zpráv („reset po 2h7m23s“)     |
 | `cursor.ts`      | IDE kurzoru                                | **Nejsložitější** : autorizace kontrolního součtu SHA-256, kódování požadavků Protobuf, analýza binárních EventStream → SSE odpovědí |
-| `codex.ts`       | Kodex OpenAI                               | Vkládá systémové instrukce, spravuje úrovně myšlení, odstraňuje nepodporované parametry                                              |
-| `gemini-cli.ts`  | Rozhraní příkazového řádku Google Gemini   | Vytvoření vlastní URL adresy ( `streamGenerateContent` ), aktualizace tokenu Google OAuth                                            |
+| `codex.ts`       | OpenAI Codex                               | Vkládá systémové instrukce, spravuje úrovně myšlení, odstraňuje nepodporované parametry                                              |
+| `gemini-cli.ts`  | Google Gemini CLI                          | Vytvoření vlastní URL adresy ( `streamGenerateContent` ), aktualizace tokenu Google OAuth                                            |
 | `github.ts`      | GitHub Copilot                             | Systém duálních tokenů (GitHub OAuth + Copilot token), napodobování hlaviček VSCode                                                  |
 | `kiro.ts`        | AWS CodeWhisperer                          | Binární parsování AWS EventStream, rámce událostí AMZN, odhad tokenů                                                                 |
 | `index.ts`       | —                                          | Továrna: název poskytovatele map → třída exekutoru s výchozím záložním nastavením                                                    |
@@ -512,38 +512,38 @@ K hlášenému využití je přidána vyrovnávací paměť o kapacitě 2000 tok
 
 ## 6. Podporované formáty
 
-| Formát                                   | Směr        | Identifikátor      |
-| ---------------------------------------- | ----------- | ------------------ |
-| Dokončení chatu OpenAI                   | zdroj + cíl | `openai`           |
-| API pro odpovědi OpenAI                  | zdroj + cíl | `openai-responses` |
-| Antropický Claude                        | zdroj + cíl | `claude`           |
-| Google Gemini                            | zdroj + cíl | `gemini`           |
-| Rozhraní příkazového řádku Google Gemini | pouze cíl   | `gemini-cli`       |
-| Antigravitace                            | zdroj + cíl | `antigravity`      |
-| AWS Kiro                                 | pouze cíl   | `kiro`             |
-| Kurzor                                   | pouze cíl   | `cursor`           |
+| Formát                  | Směr        | Identifikátor      |
+| ----------------------- | ----------- | ------------------ |
+| OpenAI Chat Completions | zdroj + cíl | `openai`           |
+| OpenAI Responses API    | zdroj + cíl | `openai-responses` |
+| Anthropic Claude        | zdroj + cíl | `claude`           |
+| Google Gemini           | zdroj + cíl | `gemini`           |
+| Google Gemini CLI       | jen cíl     | `gemini-cli`       |
+| Antigravity             | zdroj + cíl | `antigravity`      |
+| AWS Kiro                | jen cíl     | `kiro`             |
+| Cursor                  | jen cíl     | `cursor`           |
 
 ---
 
 ## 7. Podporovaní poskytovatelé
 
-| Poskytovatel                             | Metoda ověřování                | Vykonavatel   | Klíčové poznámky                                           |
-| ---------------------------------------- | ------------------------------- | ------------- | ---------------------------------------------------------- |
-| Antropický Claude                        | Klíč API nebo OAuth             | Výchozí       | Používá hlavičku `x-api-key`                               |
-| Google Gemini                            | Klíč API nebo OAuth             | Výchozí       | Používá hlavičku `x-goog-api-key`                          |
-| Rozhraní příkazového řádku Google Gemini | OAuth                           | GeminiCLI     | Používá koncový bod `streamGenerateContent`                |
-| Antigravitace                            | OAuth                           | Antigravitace | Záložní více URL adres, vlastní analýza opakovaných pokusů |
-| OpenAI                                   | Klíč API                        | Výchozí       | Autorizace standardního nosiče                             |
-| Kodex                                    | OAuth                           | Kodex         | Vkládá systémové instrukce, řídí myšlení                   |
-| GitHub Copilot                           | OAuth + token Copilot           | Github        | Duální token, napodobování záhlaví VSCode                  |
-| Kiro (AWS)                               | AWS SSO OIDC nebo sociální sítě | Kiro          | Analýza binárního EventStreamu                             |
-| IDE kurzoru                              | Autorizace kontrolního součtu   | Kurzor        | Kódování Protobuf, kontrolní součty SHA-256                |
-| Qwen                                     | OAuth                           | Výchozí       | Standardní ověřování                                       |
-| iFlow                                    | OAuth (základní + nosič)        | Výchozí       | Duální hlavička pro autorizaci                             |
-| OpenRouter                               | Klíč API                        | Výchozí       | Autorizace standardního nosiče                             |
-| GLM, Kimi, MiniMax                       | Klíč API                        | Výchozí       | Kompatibilní s Claude, použijte `x-api-key`                |
-| `openai-compatible-*`                    | Klíč API                        | Výchozí       | Dynamické: jakýkoli koncový bod kompatibilní s OpenAI      |
-| `anthropic-compatible-*`                 | Klíč API                        | Výchozí       | Dynamický: jakýkoli koncový bod kompatibilní s Claude      |
+| Poskytovatel             | Metoda ověřování         | Vykonavatel | Klíčové poznámky                             |
+| ------------------------ | ------------------------ | ----------- | -------------------------------------------- |
+| Anthropic Claude         | API klíč nebo OAuth      | Výchozí     | Používá hlavičku `x-api-key`                 |
+| Google Gemini            | API klíč nebo OAuth      | Výchozí     | Používá hlavičku `x-goog-api-key`            |
+| Google Gemini CLI        | OAuth                    | GeminiCLI   | Používá koncový bod `streamGenerateContent`  |
+| Antigravity              | OAuth                    | Antigravity | Záložní více URL, analýza opakovaných pokusů |
+| OpenAI                   | API klíč                 | Výchozí     | Autorizace standardního nosiče               |
+| Codex                    | OAuth                    | Codex       | Vkládá systémové instrukce, řídí myšlení     |
+| GitHub Copilot           | OAuth + Copilot token    | Github      | Duální token, napodobování záhlaví VSCode    |
+| Kiro (AWS)               | AWS SSO OIDC nebo Social | Kiro        | Analýza binárního EventStreamu               |
+| Cursor IDE               | Checksum auth            | Cursor      | Kódování Protobuf, kontrolní součty SHA-256  |
+| Qwen                     | OAuth                    | Výchozí     | Standardní ověřování                         |
+| iFlow                    | OAuth (Basic + Bearer)   | Výchozí     | Duální hlavička pro autorizaci               |
+| OpenRouter               | API klíč                 | Výchozí     | Autorizace standardního nosiče               |
+| GLM, Kimi, MiniMax       | API klíč                 | Výchozí     | Kompatibilní s Claude, použijte `x-api-key`  |
+| `openai-compatible-*`    | API klíč                 | Výchozí     | Dynamické: jakýkoli OpenAI kompatibilní      |
+| `anthropic-compatible-*` | API klíč                 | Výchozí     | Dynamické: jakýkoli Claude kompatibilní      |
 
 ---
 

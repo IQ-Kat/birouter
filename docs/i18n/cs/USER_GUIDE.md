@@ -20,30 +20,30 @@ Kompletní průvodce konfigurací poskytovatelů, vytvářením kombinací, inte
 
 ## 💰 Přehled cen
 
-Úroveň | Poskytovatel | Náklady | Obnovení kvóty | Nejlepší pro
---- | --- | --- | --- | ---
-**💳 PŘEDPLATNÉ** | Claude Code (profesionál) | 20 dolarů měsíčně | 5 hodin + týdně | Již přihlášen/a k odběru
- | Kodex (Plus/Pro) | 20–200 USD/měsíc | 5 hodin + týdně | Uživatelé OpenAI
- | Rozhraní příkazového řádku Gemini | **UVOLNIT** | 180 tisíc měsíčně + 1 tisíc denně | Každý!
- | GitHub Copilot | 10–19 USD/měsíc | Měsíční | Uživatelé GitHubu
-**🔑 KLÍČ API** | Hluboké vyhledávání | Platba za použití | Žádný | Laciné uvažování
- | Groq | Platba za použití | Žádný | Ultrarychlá inference
- | xAI (Grok) | Platba za použití | Žádný | Grok 4 uvažování
- | Mistral | Platba za použití | Žádný | Modely hostované v EU
- | Zmatek | Platba za použití | Žádný | Rozšířené vyhledávání
- | Společně s umělou inteligencí | Platba za použití | Žádný | Modely s otevřeným zdrojovým kódem
- | Ohňostroj s umělou inteligencí | Platba za použití | Žádný | Rychlé snímky FLUX
- | Mozky | Platba za použití | Žádný | Rychlost v měřítku destičky
- | Soudržný | Platba za použití | Žádný | Příkaz R+ RAG
- | NVIDIA NIM | Platba za použití | Žádný | Podnikové modely
-**💰 LEVNÉ** | GLM-4.7 | 0,6 USD/1 milion | Denně v 10:00 | Záloha rozpočtu
- | MiniMax M2.1 | 0,2 USD/1 milion | 5hodinové válcování | Nejlevnější varianta
- | Kimi K2 | 9 dolarů měsíčně bez závazků | 10 milionů tokenů/měsíc | Předvídatelné náklady
-**🆓 ZDARMA** | iFlow | 0 dolarů | Neomezený | 8 modelů zdarma
- | Qwen | 0 dolarů | Neomezený | 3 modely zdarma
- | Kiro | 0 dolarů | Neomezený | Claude zdarma
+| Úroveň            | Poskytovatel      | Náklady          | Obnovení kvóty      | Nejlepší pro               |
+| ----------------- | ----------------- | ---------------- | ------------------- | -------------------------- |
+| **💳 PŘEDPLATNÉ** | Claude Code (pro) | 20 USD měsíc     | 5h + týdně          | Již přihlášené             |
+|                   | Kodex (Plus/Pro)  | 20–200 USD/měsíc | 5h + týdně          | Uživatele OpenAI           |
+|                   | Gemini CLI        | **ZDARMA**       | 180K/mo + 1K/den    | Každého!                   |
+|                   | GitHub Copilot    | 10–19 USD/měsíc  | Měsíční             | Uživatele GitHubu          |
+| **🔑 KLÍČ API**   | DeepSeek          | Dle užití        | Žádné               | Laciné uvažování           |
+|                   | Groq              | Dle užití        | Žádné               | Ultrarychlá inference      |
+|                   | xAI (Grok)        | Dle užití        | Žádné               | Grok 4 uvažování           |
+|                   | Mistral           | Dle užití        | Žádné               | Modely hostované v EU      |
+|                   | Perplexity        | Dle užití        | Žádné               | Rozšířené vyhledávání      |
+|                   | Together AI       | Dle užití        | Žádné               | Open Source modely         |
+|                   | Fireworks AI      | Dle užití        | Žádné               | Rychlé FLUX obrázky        |
+|                   | Cerebras          | Dle užití        | Žádné               | Rychlost destičkového čipu |
+|                   | Cohere            | Dle užití        | Žádné               | Command R+ RAG             |
+|                   | NVIDIA NIM        | Dle užití        | Žádné               | Podnikové modely           |
+| **💰 LEVNÉ**      | GLM-4.7           | $0.6/1M          | Denně 10:00         | Levná záloha               |
+|                   | MiniMax M2.1      | $0.2/1M          | 5hodinové válcování | Nejlevnější varianta       |
+|                   | Kimi K2           | 9 USD měsíc      | 10M tokens/měsíc    | Předvídatelné náklady      |
+| **🆓 ZDARMA**     | iFlow             | $0               | Neomezený           | 8 modelů zdarma            |
+|                   | Qwen              | $0               | Neomezený           | 3 modely zdarma            |
+|                   | Kiro              | $0               | Neomezený           | Claude zdarma              |
 
-**💡 Tip pro profesionály:** Začněte s kombinací Gemini CLI (180 tisíc zdarma/měsíc) + iFlow (neomezeně zdarma) = 0 dolarů!
+**💡 Pro Tip:** Začněte s kombinací Gemini CLI (180K zdarma/měsíc) + iFlow (neomezeně zdarma) = $0!
 
 ---
 
@@ -271,7 +271,7 @@ Upravit `~/.claude/config.json` :
 }
 ```
 
-### CLI Codexu
+### Codex CLI
 
 ```bash
 export OPENAI_BASE_URL="http://localhost:20128"
@@ -335,7 +335,7 @@ omniroute
 omniroute --port 3000
 ```
 
-Rozhraní příkazového řádku automaticky načte `.env` z adresáře `~/.omniroute/.env` nebo `./.env` .
+CLI automaticky načte `.env` z adresáře `~/.omniroute/.env` nebo `./.env` .
 
 ### Nasazení VPS
 
@@ -407,23 +407,23 @@ Informace o režimu integrovaném s hostitelem s binárními soubory CLI nalezne
 
 ### Proměnné prostředí
 
-Proměnná | Výchozí | Popis
---- | --- | ---
-`JWT_SECRET` | `omniroute-default-secret-change-me` | Tajný klíč podpisu JWT ( **změna v produkčním prostředí** )
-`INITIAL_PASSWORD` | `123456` | První přihlašovací heslo
-`DATA_DIR` | `~/.omniroute` | Datový adresář (db, využití, protokoly)
-`PORT` | výchozí nastavení rámce | Servisní port ( `20128` v příkladech)
-`HOSTNAME` | výchozí nastavení rámce | Vázat hostitele (Docker má výchozí hodnotu `0.0.0.0` )
-`NODE_ENV` | výchozí nastavení za běhu | Nastavení `production` pro nasazení
-`BASE_URL` | `http://localhost:20128` | Interní základní URL na straně serveru
-`CLOUD_URL` | `https://omniroute.dev` | Základní adresa URL koncového bodu synchronizace s cloudem
-`API_KEY_SECRET` | `endpoint-proxy-api-key-secret` | Tajný klíč HMAC pro generované klíče API
-`REQUIRE_API_KEY` | `false` | Vynutit klíč rozhraní Bearer API na `/v1/*`
-`ENABLE_REQUEST_LOGS` | `false` | Povoluje protokolování požadavků/odpovědí
-`AUTH_COOKIE_SECURE` | `false` | Vynutit soubor cookie `Secure` ověřování (za reverzní proxy HTTPS)
-`OMNIROUTE_MEMORY_MB` | `512` | Limit haldy Node.js v MB
-`PROMPT_CACHE_MAX_SIZE` | `50` | Maximální počet položek mezipaměti výzev
-`SEMANTIC_CACHE_MAX_SIZE` | `100` | Maximální počet položek sémantické mezipaměti
+| Proměnná                  | Výchozí                              | Popis                                                              |
+| ------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
+| `JWT_SECRET`              | `omniroute-default-secret-change-me` | Tajný klíč podpisu JWT ( **změna v produkčním prostředí** )        |
+| `INITIAL_PASSWORD`        | `123456`                             | První přihlašovací heslo                                           |
+| `DATA_DIR`                | `~/.omniroute`                       | Datový adresář (db, využití, protokoly)                            |
+| `PORT`                    | výchozí nastavení rámce              | Servisní port ( `20128` v příkladech)                              |
+| `HOSTNAME`                | výchozí nastavení rámce              | Vázat hostitele (Docker má výchozí hodnotu `0.0.0.0` )             |
+| `NODE_ENV`                | výchozí nastavení za běhu            | Nastavení `production` pro nasazení                                |
+| `BASE_URL`                | `http://localhost:20128`             | Interní základní URL na straně serveru                             |
+| `CLOUD_URL`               | `https://omniroute.dev`              | Základní adresa URL koncového bodu synchronizace s cloudem         |
+| `API_KEY_SECRET`          | `endpoint-proxy-api-key-secret`      | Tajný klíč HMAC pro generované klíče API                           |
+| `REQUIRE_API_KEY`         | `false`                              | Vynutit klíč rozhraní Bearer API na `/v1/*`                        |
+| `ENABLE_REQUEST_LOGS`     | `false`                              | Povoluje protokolování požadavků/odpovědí                          |
+| `AUTH_COOKIE_SECURE`      | `false`                              | Vynutit soubor cookie `Secure` ověřování (za reverzní proxy HTTPS) |
+| `OMNIROUTE_MEMORY_MB`     | `512`                                | Limit haldy Node.js v MB                                           |
+| `PROMPT_CACHE_MAX_SIZE`   | `50`                                 | Maximální počet položek mezipaměti výzev                           |
+| `SEMANTIC_CACHE_MAX_SIZE` | `100`                                | Maximální počet položek sémantické mezipaměti                      |
 
 Úplný přehled proměnných prostředí naleznete v souboru [README](../README.md) .
 
@@ -439,7 +439,7 @@ Proměnná | Výchozí | Popis
 
 **Codex ( `cx/` )** — Plus/Pro: `cx/gpt-5.2-codex` , `cx/gpt-5.1-codex-max`
 
-**Rozhraní příkazového řádku Gemini ( `gc/` )** — ZDARMA: `gc/gemini-3-flash-preview` , `gc/gemini-2.5-pro`
+**Gemini CLI ( `gc/` )** — ZDARMA: `gc/gemini-3-flash-preview` , `gc/gemini-2.5-pro`
 
 **GitHub Copilot ( `gh/` )** : `gh/gpt-5` , `gh/claude-4.5-sonnet`
 
@@ -472,9 +472,6 @@ Proměnná | Výchozí | Popis
 **Soudržnost ( `cohere/` )** : `cohere/command-r-plus-08-2024`
 
 **NVIDIA NIM ( `nvidia/` )** : `nvidia/nvidia/llama-3.3-70b-instruct`
-
-
-
 
 ---
 
@@ -552,12 +549,12 @@ Vrátí modely seskupené podle poskytovatele s typy ( `chat` , `embedding` , `i
 
 Přístup přes **Dashboard → Translator** . Ladění a vizualizace toho, jak OmniRoute překládá požadavky API mezi poskytovateli.
 
-Režim | Účel
---- | ---
-**Dětské hřiště** | Vyberte zdrojový/cílový formát, vložte požadavek a okamžitě si prohlédněte přeložený výstup
-**Tester chatu** | Odesílejte zprávy živého chatu přes proxy a kontrolujte celý cyklus požadavku/odpovědi
-**Zkušební stolice** | Spusťte dávkové testy napříč různými kombinacemi formátů pro ověření správnosti překladu
-**Živý monitor** | Sledujte překlady v reálném čase, jak požadavky procházejí proxy serverem
+| Režim                | Účel                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------- |
+| **Dětské hřiště**    | Vyberte zdrojový/cílový formát, vložte požadavek a okamžitě si prohlédněte přeložený výstup |
+| **Tester chatu**     | Odesílejte zprávy živého chatu přes proxy a kontrolujte celý cyklus požadavku/odpovědi      |
+| **Zkušební stolice** | Spusťte dávkové testy napříč různými kombinacemi formátů pro ověření správnosti překladu    |
+| **Živý monitor**     | Sledujte překlady v reálném čase, jak požadavky procházejí proxy serverem                   |
 
 **Případy použití:**
 
@@ -571,14 +568,14 @@ Režim | Účel
 
 Konfigurace přes **Dashboard → Nastavení → Routing** .
 
-Strategie | Popis
---- | ---
-**Nejprve vyplňte** | Používá účty podle priority – primární účet zpracovává všechny požadavky, dokud není k dispozici.
-**Round Robin** | Cykluje mezi všemi účty s nastavitelným trvalým limitem (výchozí: 3 volání na účet)
-**P2C (Síla dvou možností)** | Vybere 2 náhodné účty a nasměruje je k tomu zdravějšímu – vyvažuje zátěž s povědomím o zdraví
-**Náhodný** | Náhodně vybere účet pro každý požadavek pomocí Fisher-Yatesova náhodného výběru.
-**Nejméně používané** | Směruje k účtu s nejstarším časovým razítkem `lastUsedAt` a rovnoměrně rozděluje provoz.
-**Optimalizované náklady** | Směruje k účtu s nejnižší prioritou a optimalizuje pro poskytovatele s nejnižšími náklady.
+| Strategie                    | Popis                                                                                             |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Nejprve vyplňte**          | Používá účty podle priority – primární účet zpracovává všechny požadavky, dokud není k dispozici. |
+| **Round Robin**              | Cykluje mezi všemi účty s nastavitelným trvalým limitem (výchozí: 3 volání na účet)               |
+| **P2C (Síla dvou možností)** | Vybere 2 náhodné účty a nasměruje je k tomu zdravějšímu – vyvažuje zátěž s povědomím o zdraví     |
+| **Náhodný**                  | Náhodně vybere účet pro každý požadavek pomocí Fisher-Yatesova náhodného výběru.                  |
+| **Nejméně používané**        | Směruje k účtu s nejstarším časovým razítkem `lastUsedAt` a rovnoměrně rozděluje provoz.          |
+| **Optimalizované náklady**   | Směruje k účtu s nejnižší prioritou a optimalizuje pro poskytovatele s nejnižšími náklady.        |
 
 #### Aliasy zástupných znaků modelů
 
@@ -611,24 +608,21 @@ Konfigurace přes **Dashboard → Settings → Resilience** .
 OmniRoute implementuje odolnost na úrovni poskytovatele se čtyřmi komponentami:
 
 1. **Profily poskytovatelů** – Konfigurace pro jednotlivé poskytovatele pro:
-
-    - Práh selhání (počet selhání před otevřením)
-    - Doba zchlazení
-    - Citlivost detekce limitu frekvence
-    - Exponenciální backoff parametry
+   - Práh selhání (počet selhání před otevřením)
+   - Doba zchlazení
+   - Citlivost detekce limitu frekvence
+   - Exponenciální backoff parametry
 
 2. **Upravitelné limity rychlosti** – Výchozí nastavení na úrovni systému konfigurovatelná na řídicím panelu:
-
-    - **Požadavky za minutu (RPM)** — Maximální počet požadavků za minutu na účet
-    - **Minimální doba mezi požadavky** — Minimální mezera v milisekundách mezi požadavky
-    - **Max. počet souběžných požadavků** — Maximální počet souběžných požadavků na účet
-    - Klikněte na **Upravit** pro úpravu a poté **na Uložit** nebo **Zrušit** . Hodnoty se ukládají prostřednictvím rozhraní API pro odolnost.
+   - **Požadavky za minutu (RPM)** — Maximální počet požadavků za minutu na účet
+   - **Minimální doba mezi požadavky** — Minimální mezera v milisekundách mezi požadavky
+   - **Max. počet souběžných požadavků** — Maximální počet souběžných požadavků na účet
+   - Klikněte na **Upravit** pro úpravu a poté **na Uložit** nebo **Zrušit** . Hodnoty se ukládají prostřednictvím rozhraní API pro odolnost.
 
 3. **Jistič** – Sleduje poruchy u jednotlivých poskytovatelů a automaticky rozpojuje obvod, když je dosaženo prahové hodnoty:
-
-    - **ZAVŘENO** (v pořádku) – Požadavky probíhají normálně.
-    - **OTEVŘENO** — Poskytovatel je dočasně zablokován po opakovaných selháních
-    - **HALF_OPEN** — Testování, zda se poskytovatel zotavil
+   - **ZAVŘENO** (v pořádku) – Požadavky probíhají normálně.
+   - **OTEVŘENO** — Poskytovatel je dočasně zablokován po opakovaných selháních
+   - **HALF_OPEN** — Testování, zda se poskytovatel zotavil
 
 4. **Zásady a uzamčené identifikátory** – Zobrazuje stav jističe a uzamčené identifikátory s možností vynuceného odemčení.
 
@@ -642,11 +636,11 @@ OmniRoute implementuje odolnost na úrovni poskytovatele se čtyřmi komponentam
 
 Správa záloh databáze se provádí v **nabídce Ovládací panel → Nastavení → Systém a úložiště** .
 
-Akce | Popis
---- | ---
-**Exportovat databázi** | Stáhne aktuální databázi SQLite jako soubor `.sqlite`
-**Exportovat vše (.tar.gz)** | Stáhne kompletní zálohu včetně: databáze, nastavení, kombinací, připojení k poskytovatelům (bez přihlašovacích údajů) a metadat klíče API.
-**Importovat databázi** | Nahrajte soubor `.sqlite` , který nahradí aktuální databázi. Záloha před importem se vytvoří automaticky.
+| Akce                         | Popis                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Exportovat databázi**      | Stáhne aktuální databázi SQLite jako soubor `.sqlite`                                                                                      |
+| **Exportovat vše (.tar.gz)** | Stáhne kompletní zálohu včetně: databáze, nastavení, kombinací, připojení k poskytovatelům (bez přihlašovacích údajů) a metadat klíče API. |
+| **Importovat databázi**      | Nahrajte soubor `.sqlite` , který nahradí aktuální databázi. Záloha před importem se vytvoří automaticky.                                  |
 
 ```bash
 # API: Export database
@@ -674,13 +668,13 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 Stránka nastavení je pro snadnou navigaci uspořádána do 5 záložek:
 
-Záložka | Obsah
---- | ---
-**Zabezpečení** | Nastavení přihlášení/hesla, řízení přístupu k IP adrese, autorizace API pro `/models` a blokování poskytovatelů
-**Směrování** | Globální strategie směrování (6 možností), aliasy zástupných znaků, záložní řetězce, kombinované výchozí hodnoty
-**Odolnost** | Profily poskytovatelů, upravitelné limity sazeb, stav jističů, zásady a uzamčené identifikátory
-**Umělá inteligence** | Konfigurace rozpočtu promyšleného projektu, globální vkládání promptu do systému, statistiky mezipaměti promptu
-**Moderní** | Globální konfigurace proxy (HTTP/SOCKS5)
+| Záložka               | Obsah                                                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Zabezpečení**       | Nastavení přihlášení/hesla, řízení přístupu k IP adrese, autorizace API pro `/models` a blokování poskytovatelů  |
+| **Směrování**         | Globální strategie směrování (6 možností), aliasy zástupných znaků, záložní řetězce, kombinované výchozí hodnoty |
+| **Odolnost**          | Profily poskytovatelů, upravitelné limity sazeb, stav jističů, zásady a uzamčené identifikátory                  |
+| **Umělá inteligence** | Konfigurace rozpočtu promyšleného projektu, globální vkládání promptu do systému, statistiky mezipaměti promptu  |
+| **Moderní**           | Globální konfigurace proxy (HTTP/SOCKS5)                                                                         |
 
 ---
 
@@ -688,10 +682,10 @@ Záložka | Obsah
 
 Přístup přes **Dashboard → Náklady** .
 
-Záložka | Účel
---- | ---
-**Rozpočet** | Nastavte limity útrat pro každý klíč API s denními/týdenními/měsíčními rozpočty a sledováním v reálném čase
-**Ceny** | Zobrazení a úprava cenových položek modelu – cena za 1000 vstupních/výstupních tokenů na poskytovatele
+| Záložka      | Účel                                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Rozpočet** | Nastavte limity útrat pro každý klíč API s denními/týdenními/měsíčními rozpočty a sledováním v reálném čase |
+| **Ceny**     | Zobrazení a úprava cenových položek modelu – cena za 1000 vstupních/výstupních tokenů na poskytovatele      |
 
 ```bash
 # API: Set a budget
@@ -733,14 +727,14 @@ Podporované zvukové formáty: `mp3` , `wav` , `m4a` , `flac` , `ogg` , `webm` 
 
 Nastavte vyvažování jednotlivých kombinací v **nabídce Dashboard → Kombinace → Vytvořit/Upravit → Strategie** .
 
-Strategie | Popis
---- | ---
-**Round-Robin** | Postupně prochází modely
-**Přednost** | Vždy se pokusí o první model; vrací se pouze v případě chyby.
-**Náhodný** | Pro každý požadavek vybere náhodný model z komba
-**Vážené** | Trasy proporcionálně na základě přiřazených vah pro každý model
-**Nejméně používané** | Směruje k modelu s nejmenším počtem nedávných požadavků (používá kombinované metriky)
-**Optimalizované z hlediska nákladů** | Trasy k nejlevnějšímu dostupnému modelu (používá ceník)
+| Strategie                             | Popis                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Round-Robin**                       | Postupně prochází modely                                                              |
+| **Přednost**                          | Vždy se pokusí o první model; vrací se pouze v případě chyby.                         |
+| **Náhodný**                           | Pro každý požadavek vybere náhodný model z komba                                      |
+| **Vážené**                            | Trasy proporcionálně na základě přiřazených vah pro každý model                       |
+| **Nejméně používané**                 | Směruje k modelu s nejmenším počtem nedávných požadavků (používá kombinované metriky) |
+| **Optimalizované z hlediska nákladů** | Trasy k nejlevnějšímu dostupnému modelu (používá ceník)                               |
 
 Globální výchozí hodnoty kombinací lze nastavit v **nabídce Dashboard → Settings → Routing → Combo Defaults** .
 
@@ -750,14 +744,14 @@ Globální výchozí hodnoty kombinací lze nastavit v **nabídce Dashboard → 
 
 Přístup přes **Dashboard → Stav** . Přehled stavu systému v reálném čase se 6 kartami:
 
-Karta | Co to ukazuje
---- | ---
-**Stav systému** | Doba provozuschopnosti, verze, využití paměti, datový adresář
-**Zdraví poskytovatelů** | Stav jističe podle dodavatele (Zapnuto/Vypnuto/Napůl vypnuto)
-**Limity sazeb** | Aktivní limit rychlosti cooldownů na účet se zbývajícím časem
-**Aktivní výluky** | Poskytovatelé dočasně blokovaní politikou uzamčení
-**Mezipaměť podpisů** | Statistiky mezipaměti pro deduplikaci (aktivní klíče, míra zásahů)
-**Telemetrie latence** | Agregace latence p50/p95/p99 na poskytovatele
+| Karta                    | Co to ukazuje                                                      |
+| ------------------------ | ------------------------------------------------------------------ |
+| **Stav systému**         | Doba provozuschopnosti, verze, využití paměti, datový adresář      |
+| **Zdraví poskytovatelů** | Stav jističe podle dodavatele (Zapnuto/Vypnuto/Napůl vypnuto)      |
+| **Limity sazeb**         | Aktivní limit rychlosti cooldownů na účet se zbývajícím časem      |
+| **Aktivní výluky**       | Poskytovatelé dočasně blokovaní politikou uzamčení                 |
+| **Mezipaměť podpisů**    | Statistiky mezipaměti pro deduplikaci (aktivní klíče, míra zásahů) |
+| **Telemetrie latence**   | Agregace latence p50/p95/p99 na poskytovatele                      |
 
 **Tip pro profesionály:** Stránka Zdraví se automaticky obnovuje každých 10 sekund. Pomocí karty jističe můžete zjistit, kteří poskytovatelé mají problémy.
 
@@ -795,20 +789,20 @@ Výstup → `electron/dist-electron/`
 
 ### Klíčové vlastnosti
 
-Funkce | Popis
---- | ---
-**Připravenost serveru** | Před zobrazením okna se dotazuje server (žádná prázdná obrazovka)
-**Systémový zásobník** | Minimalizovat do zásobníku, změnit port, ukončit menu v zásobníku
-**Správa přístavů** | Změna portu serveru z panelu úloh (automatické restartování serveru)
-**Zásady zabezpečení obsahu** | Omezující CSP prostřednictvím záhlaví relace
-**Jedna instance** | V daném okamžiku může běžet pouze jedna instance aplikace
-**Offline režim** | Dodávaný server Next.js funguje bez internetu
+| Funkce                        | Popis                                                                |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Připravenost serveru**      | Před zobrazením okna se dotazuje server (žádná prázdná obrazovka)    |
+| **Systémový zásobník**        | Minimalizovat do zásobníku, změnit port, ukončit menu v zásobníku    |
+| **Správa přístavů**           | Změna portu serveru z panelu úloh (automatické restartování serveru) |
+| **Zásady zabezpečení obsahu** | Omezující CSP prostřednictvím záhlaví relace                         |
+| **Jedna instance**            | V daném okamžiku může běžet pouze jedna instance aplikace            |
+| **Offline režim**             | Dodávaný server Next.js funguje bez internetu                        |
 
 ### Proměnné prostředí
 
-Proměnná | Výchozí | Popis
---- | --- | ---
-`OMNIROUTE_PORT` | `20128` | Port serveru
-`OMNIROUTE_MEMORY_MB` | `512` | Limit haldy Node.js (64–16384 MB)
+| Proměnná              | Výchozí | Popis                             |
+| --------------------- | ------- | --------------------------------- |
+| `OMNIROUTE_PORT`      | `20128` | Port serveru                      |
+| `OMNIROUTE_MEMORY_MB` | `512`   | Limit haldy Node.js (64–16384 MB) |
 
 📖 Úplná dokumentace: [`electron/README.md`](../electron/README.md)

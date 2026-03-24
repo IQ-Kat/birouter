@@ -2,7 +2,7 @@
 
 🌐 **Jazyky:** 🇺🇸 [angličtina](ARCHITECTURE.md) | 🇧🇷 [Português (Brazílie)](i18n/pt-BR/ARCHITECTURE.md) | 🇪🇸 [Español](i18n/es/ARCHITECTURE.md) | 🇫🇷 [Français](i18n/fr/ARCHITECTURE.md) | 🇮🇹 [Italiano](i18n/it/ARCHITECTURE.md) | 🇷🇺 [Русский](i18n/ru/ARCHITECTURE.md) | 🇨🇳[中文 (简体)](i18n/zh-CN/ARCHITECTURE.md) | 🇩🇪 [Deutsch](i18n/de/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](i18n/in/ARCHITECTURE.md) | 🇹🇭 [ไทย](i18n/th/ARCHITECTURE.md) | 🇺🇦 [Українська](i18n/uk-UA/ARCHITECTURE.md) | 🇸🇦 [العربية](i18n/ar/ARCHITECTURE.md) | 🇯🇵[日本語](i18n/ja/ARCHITECTURE.md)| 🇻🇳 [Tiếng Việt](i18n/vi/ARCHITECTURE.md) | 🇧🇬 [Български](i18n/bg/ARCHITECTURE.md) | 🇩🇰 [Dánsko](i18n/da/ARCHITECTURE.md) | 🇫🇮 [Suomi](i18n/fi/ARCHITECTURE.md) | 🇮🇱 [עברית](i18n/he/ARCHITECTURE.md) | 🇭🇺 [maďarština](i18n/hu/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonésie](i18n/id/ARCHITECTURE.md) | 🇰🇷 [한국어](i18n/ko/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/ARCHITECTURE.md) | 🇳🇱 [Nizozemsko](i18n/nl/ARCHITECTURE.md) | 🇳🇴 [Norsk](i18n/no/ARCHITECTURE.md) | 🇵🇹 [Português (Portugalsko)](i18n/pt/ARCHITECTURE.md) | 🇷🇴 [Română](i18n/ro/ARCHITECTURE.md) | 🇵🇱 [Polski](i18n/pl/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](i18n/sk/ARCHITECTURE.md) | 🇸🇪 [Svenska](i18n/sv/ARCHITECTURE.md) | 🇵🇭 [Filipínec](i18n/phi/ARCHITECTURE.md) | 🇨🇿 [Čeština](i18n/cs/ARCHITECTURE.md)
 
-*Poslední aktualizace: 2026-03-04*
+_Poslední aktualizace: 2026-03-04_
 
 ## Shrnutí pro manažery
 
@@ -590,45 +590,45 @@ flowchart LR
 
 Každý poskytovatel má specializovaný exekutor rozšiřující `BaseExecutor` (v `open-sse/executors/base.ts` ), který zajišťuje vytváření URL adres, konstrukci hlaviček, opakování s exponenciálním odkladem, hooky pro obnovení pověření a orchestrační metodu `execute()` .
 
-Vykonavatel | Poskytovatel(é) | Speciální manipulace
---- | --- | ---
-`DefaultExecutor` | OpenAI, Claude, Gemini, Qwen, iFlow, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Konfigurace dynamické adresy URL/záhlaví pro každého poskytovatele
-`AntigravityExecutor` | Google Antigravitace | Vlastní ID projektů/relací, analýza Opakování po
-`CodexExecutor` | Kodex OpenAI | Vkládá systémové instrukce, vynucuje úsilí k uvažování
-`CursorExecutor` | IDE kurzoru | Protokol ConnectRPC, kódování Protobuf, podepisování požadavků pomocí kontrolního součtu
-`GithubExecutor` | GitHub Copilot | Aktualizace tokenu Copilot, hlavičky napodobující VSCode
-`KiroExecutor` | AWS CodeWhisperer/Kiro | Binární formát AWS EventStream → konverze SSE
-`GeminiCLIExecutor` | Rozhraní příkazového řádku Gemini | Cyklus obnovy tokenu Google OAuth
+| Vykonavatel           | Poskytovatel(é)                                                                                                                                              | Speciální manipulace                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `DefaultExecutor`     | OpenAI, Claude, Gemini, Qwen, iFlow, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Konfigurace dynamické adresy URL/záhlaví pro každého poskytovatele                       |
+| `AntigravityExecutor` | Google Antigravity                                                                                                                                           | Vlastní ID projektů/relací, analýza Opakování po                                         |
+| `CodexExecutor`       | OpenAI Codex                                                                                                                                                 | Vkládá systémové instrukce, vynucuje úsilí k uvažování                                   |
+| `CursorExecutor`      | IDE kurzoru                                                                                                                                                  | Protokol ConnectRPC, kódování Protobuf, podepisování požadavků pomocí kontrolního součtu |
+| `GithubExecutor`      | GitHub Copilot                                                                                                                                               | Aktualizace tokenu Copilot, hlavičky napodobující VSCode                                 |
+| `KiroExecutor`        | AWS CodeWhisperer/Kiro                                                                                                                                       | Binární formát AWS EventStream → konverze SSE                                            |
+| `GeminiCLIExecutor`   | Gemini CLI                                                                                                                                                   | Cyklus obnovy tokenu Google OAuth                                                        |
 
 Všichni ostatní poskytovatelé (včetně uzlů kompatibilních s vlastními funkcemi) používají `DefaultExecutor` .
 
 ## Matice kompatibility poskytovatelů
 
-Poskytovatel | Formát | Autorizace | Proud | Nestreamované | Obnovení tokenu | API pro použití
---- | --- | --- | --- | --- | --- | ---
-Claude | Claude | Klíč API / OAuth | ✅ | ✅ | ✅ | ⚠️ Pouze pro administrátory
-Blíženci | Blíženci | Klíč API / OAuth | ✅ | ✅ | ✅ | ⚠️ Cloudová konzole
-Rozhraní příkazového řádku Gemini | gemini-cli | OAuth | ✅ | ✅ | ✅ | ⚠️ Cloudová konzole
-Antigravitace | antigravitace | OAuth | ✅ | ✅ | ✅ | ✅ Plná kvóta API
-OpenAI | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-Kodex | openai-odpovědi | OAuth | ✅ vynucený | ❌ | ✅ | ✅ Limity sazeb
-GitHub Copilot | otevřeno | OAuth + token Copilota | ✅ | ✅ | ✅ | ✅ Snímky kvót
-Kurzor | kurzor | Vlastní kontrolní součet | ✅ | ✅ | ❌ | ❌
-Kiro | Kiro | OIDC pro jednotné přihlašování AWS | ✅ (Stream událostí) | ❌ | ✅ | ✅ Limity použití
-Qwen | otevřeno | OAuth | ✅ | ✅ | ✅ | ⚠️ Na vyžádání
-iFlow | otevřeno | OAuth (základní) | ✅ | ✅ | ✅ | ⚠️ Na vyžádání
-OpenRouter | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-GLM/Kimi/MiniMax | Claude | Klíč API | ✅ | ✅ | ❌ | ❌
-Hluboké vyhledávání | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-Groq | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-xAI (Grok) | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-Mistral | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-Zmatek | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-Společně s umělou inteligencí | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-Ohňostroj s umělou inteligencí | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-Mozky | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-Soudržný | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
-NVIDIA NIM | otevřeno | Klíč API | ✅ | ✅ | ❌ | ❌
+| Poskytovatel                   | Formát          | Autorizace                         | Proud                | Nestreamované | Obnovení tokenu | API pro použití             |
+| ------------------------------ | --------------- | ---------------------------------- | -------------------- | ------------- | --------------- | --------------------------- |
+| Claude                         | Claude          | Klíč API / OAuth                   | ✅                   | ✅            | ✅              | ⚠️ Pouze pro administrátory |
+| Blíženci                       | Blíženci        | Klíč API / OAuth                   | ✅                   | ✅            | ✅              | ⚠️ Cloudová konzole         |
+| Gemini CLI                     | gemini-cli      | OAuth                              | ✅                   | ✅            | ✅              | ⚠️ Cloudová konzole         |
+| Antigravity                    | antigravitace   | OAuth                              | ✅                   | ✅            | ✅              | ✅ Plná kvóta API           |
+| OpenAI                         | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Kodex                          | openai-odpovědi | OAuth                              | ✅ vynucený          | ❌            | ✅              | ✅ Limity sazeb             |
+| GitHub Copilot                 | otevřeno        | OAuth + token Copilota             | ✅                   | ✅            | ✅              | ✅ Snímky kvót              |
+| Kurzor                         | kurzor          | Vlastní kontrolní součet           | ✅                   | ✅            | ❌              | ❌                          |
+| Kiro                           | Kiro            | OIDC pro jednotné přihlašování AWS | ✅ (Stream událostí) | ❌            | ✅              | ✅ Limity použití           |
+| Qwen                           | otevřeno        | OAuth                              | ✅                   | ✅            | ✅              | ⚠️ Na vyžádání              |
+| iFlow                          | otevřeno        | OAuth (základní)                   | ✅                   | ✅            | ✅              | ⚠️ Na vyžádání              |
+| OpenRouter                     | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| GLM/Kimi/MiniMax               | Claude          | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Hluboké vyhledávání            | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Groq                           | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| xAI (Grok)                     | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Mistral                        | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Zmatek                         | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Společně s umělou inteligencí  | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Ohňostroj s umělou inteligencí | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Mozky                          | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| Soudržný                       | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
+| NVIDIA NIM                     | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
 
 ## Pokrytí překladů formátů
 
@@ -643,7 +643,7 @@ Cílové formáty zahrnují:
 
 - Chat/Odpovědi v OpenAI
 - Claude
-- Obálka Gemini/Gemini-CLI/Antigravitace
+- Obálka Gemini/Gemini-CLI/Antigravity
 - Kiro
 - Kurzor
 
@@ -664,25 +664,25 @@ Další vrstvy zpracování v překladovém kanálu:
 
 ## Podporované koncové body API
 
-Koncový bod | Formát | Psovod
---- | --- | ---
-`POST /v1/chat/completions` | Chat s OpenAI | `src/sse/handlers/chat.ts`
-`POST /v1/messages` | Claude Messages | Stejný obslužný program (automaticky detekováno)
-`POST /v1/responses` | Reakce OpenAI | `open-sse/handlers/responsesHandler.ts`
-`POST /v1/embeddings` | Vkládání OpenAI | `open-sse/handlers/embeddings.ts`
-`GET /v1/embeddings` | Seznam modelů | Trasa API
-`POST /v1/images/generations` | Obrázky OpenAI | `open-sse/handlers/imageGeneration.ts`
-`GET /v1/images/generations` | Seznam modelů | Trasa API
-`POST /v1/providers/{provider}/chat/completions` | Chat s OpenAI | Vyhrazené pro každého poskytovatele s ověřováním modelu
-`POST /v1/providers/{provider}/embeddings` | Vkládání OpenAI | Vyhrazené pro každého poskytovatele s ověřováním modelu
-`POST /v1/providers/{provider}/images/generations` | Obrázky OpenAI | Vyhrazené pro každého poskytovatele s ověřováním modelu
-`POST /v1/messages/count_tokens` | Počet žetonů Claude | Trasa API
-`GET /v1/models` | Seznam modelů OpenAI | Trasa API (chat + vkládání + obrázek + vlastní modely)
-`GET /api/models/catalog` | Katalog | Všechny modely seskupené podle poskytovatele + typu
-`POST /v1beta/models/*:streamGenerateContent` | Rodák z Blíženců | Trasa API
-`GET/PUT/DELETE /api/settings/proxy` | Konfigurace proxy serveru | Konfigurace síťového proxy serveru
-`POST /api/settings/proxy/test` | Připojení proxy serveru | Koncový bod testu stavu/připojení proxy serveru
-`GET/POST/DELETE /api/provider-models` | Vlastní modely | Správa vlastních modelů pro každého poskytovatele
+| Koncový bod                                        | Formát                    | Psovod                                                  |
+| -------------------------------------------------- | ------------------------- | ------------------------------------------------------- |
+| `POST /v1/chat/completions`                        | Chat s OpenAI             | `src/sse/handlers/chat.ts`                              |
+| `POST /v1/messages`                                | Claude Messages           | Stejný obslužný program (automaticky detekováno)        |
+| `POST /v1/responses`                               | Reakce OpenAI             | `open-sse/handlers/responsesHandler.ts`                 |
+| `POST /v1/embeddings`                              | Vkládání OpenAI           | `open-sse/handlers/embeddings.ts`                       |
+| `GET /v1/embeddings`                               | Seznam modelů             | Trasa API                                               |
+| `POST /v1/images/generations`                      | Obrázky OpenAI            | `open-sse/handlers/imageGeneration.ts`                  |
+| `GET /v1/images/generations`                       | Seznam modelů             | Trasa API                                               |
+| `POST /v1/providers/{provider}/chat/completions`   | Chat s OpenAI             | Vyhrazené pro každého poskytovatele s ověřováním modelu |
+| `POST /v1/providers/{provider}/embeddings`         | Vkládání OpenAI           | Vyhrazené pro každého poskytovatele s ověřováním modelu |
+| `POST /v1/providers/{provider}/images/generations` | Obrázky OpenAI            | Vyhrazené pro každého poskytovatele s ověřováním modelu |
+| `POST /v1/messages/count_tokens`                   | Počet žetonů Claude       | Trasa API                                               |
+| `GET /v1/models`                                   | Seznam modelů OpenAI      | Trasa API (chat + vkládání + obrázek + vlastní modely)  |
+| `GET /api/models/catalog`                          | Katalog                   | Všechny modely seskupené podle poskytovatele + typu     |
+| `POST /v1beta/models/*:streamGenerateContent`      | Rodák z Blíženců          | Trasa API                                               |
+| `GET/PUT/DELETE /api/settings/proxy`               | Konfigurace proxy serveru | Konfigurace síťového proxy serveru                      |
+| `POST /api/settings/proxy/test`                    | Připojení proxy serveru   | Koncový bod testu stavu/připojení proxy serveru         |
+| `GET/POST/DELETE /api/provider-models`             | Vlastní modely            | Správa vlastních modelů pro každého poskytovatele       |
 
 ## Obejít obslužnou rutinu
 

@@ -27,19 +27,19 @@ Claude / Codex / Gemini CLI / OpenCode / Cline / KiloCode / Continue / Kiro CLI
 
 ## Podporované nástroje
 
-Nástroj | Příkaz | Typ | Metoda instalace
---- | --- | --- | ---
-**Claude Code** | `claude` | Rozhraní příkazového řádku | npm
-**Kodex OpenAI** | `codex` | Rozhraní příkazového řádku | npm
-**Rozhraní příkazového řádku Gemini** | `gemini` | Rozhraní příkazového řádku | npm
-**OpenCode** | `opencode` | Rozhraní příkazového řádku | npm
-**Cline** | `cline` | Rozšíření CLI + VS kódu | npm
-**KiloCode** | `kilocode` / `kilo` | Rozšíření CLI + VS kódu | npm
-**Pokračovat** | průvodce | VS Code ext | VS kód
-**Kiro CLI** | `kiro-cli` | Rozhraní příkazového řádku | instalační program Curl
-**Kurzor** | `cursor` | Aplikace pro stolní počítače | Stáhnout
-**Droid** | webový | Vestavěný agent | OmniRoute
-**OpenClaw** | webový | Vestavěný agent | OmniRoute
+| Nástroj          | Příkaz              | Typ             | Instalace      |
+| ---------------- | ------------------- | --------------- | -------------- |
+| **Claude Code**  | `claude`            | CLI             | npm            |
+| **OpenAI Codex** | `codex`             | CLI             | npm            |
+| **Gemini CLI**   | `gemini`            | CLI             | npm            |
+| **OpenCode**     | `opencode`          | CLI             | npm            |
+| **Cline**        | `cline`             | CLI + VS Code   | npm            |
+| **KiloCode**     | `kilocode` / `kilo` | CLI + VS Code   | npm            |
+| **Continue**     | průvodce            | VS Code ext     | VS kód         |
+| **Kiro CLI**     | `kiro-cli`          | CLI             | curl instalace |
+| **Kurzor**       | `cursor`            | Aplikace pro PC | Download       |
+| **Droid**        | webový              | Built-in agent  | OmniRoute      |
+| **OpenClaw**     | webový              | Built-in agent  | OmniRoute      |
 
 ---
 
@@ -136,7 +136,7 @@ EOF
 
 ---
 
-### Kodex OpenAI
+### OpenAI Codex
 
 ```bash
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
@@ -150,7 +150,7 @@ EOF
 
 ---
 
-### Rozhraní příkazového řádku Gemini
+### Gemini CLI
 
 ```bash
 mkdir -p ~/.gemini && cat > ~/.gemini/settings.json << EOF
@@ -220,7 +220,7 @@ Nebo použijte dashboard OmniRoute → **CLI Tools → KiloCode → Apply Config
 
 ---
 
-### Pokračovat (rozšíření kódu VS)
+### Continue (rozšíření kódu VS)
 
 Upravit `~/.continue/config.yaml` :
 
@@ -286,28 +286,28 @@ Ovládací panel OmniRoute automatizuje konfiguraci většiny nástrojů:
 
 ## Dostupné koncové body API
 
-Koncový bod | Popis | Použití pro
---- | --- | ---
-`/v1/chat/completions` | Standardní chat (všichni poskytovatelé) | Všechny moderní nástroje
-`/v1/responses` | API pro odpovědi (formát OpenAI) | Kodex, agentické pracovní postupy
-`/v1/completions` | Doplňování starších textů | Starší nástroje používající `prompt:`
-`/v1/embeddings` | Vkládání textu | RAG, vyhledávání
-`/v1/images/generations` | Generování obrázků | DALL-E, Flux atd.
-`/v1/audio/speech` | Převod textu na řeč | ElevenLabs, OpenAI TTS
-`/v1/audio/transcriptions` | Převod řeči na text | Deepgram, AssemblyAI
+| Koncový bod                | Popis                                   | Použití pro                           |
+| -------------------------- | --------------------------------------- | ------------------------------------- |
+| `/v1/chat/completions`     | Standardní chat (všichni poskytovatelé) | Všechny moderní nástroje              |
+| `/v1/responses`            | API pro odpovědi (formát OpenAI)        | Kodex, agentické pracovní postupy     |
+| `/v1/completions`          | Doplňování starších textů               | Starší nástroje používající `prompt:` |
+| `/v1/embeddings`           | Vkládání textu                          | RAG, vyhledávání                      |
+| `/v1/images/generations`   | Generování obrázků                      | DALL-E, Flux atd.                     |
+| `/v1/audio/speech`         | Převod textu na řeč                     | ElevenLabs, OpenAI TTS                |
+| `/v1/audio/transcriptions` | Převod řeči na text                     | Deepgram, AssemblyAI                  |
 
 ---
 
 ## Odstraňování problémů
 
-Chyba | Příčina | Opravit
---- | --- | ---
-`Connection refused` | OmniRoute neběží | `pm2 start omniroute`
-`401 Unauthorized` | Chybný klíč API | Zkontrolovat `/dashboard/api-manager`
-`No combo configured` | Žádná aktivní routingová kombinace | Nastavení v `/dashboard/combos`
-`invalid model` | Model není v katalogu | Použijte `auto` nebo zkontrolujte `/dashboard/providers`
-CLI zobrazuje „není nainstalováno“ | Binární soubor není v cestě PATH | Zkontrolujte, `which <command>`
-`kiro-cli: not found` | Není v PATH | `export PATH="$HOME/.local/bin:$PATH"`
+| Chyba                              | Příčina                            | Opravit                                                  |
+| ---------------------------------- | ---------------------------------- | -------------------------------------------------------- |
+| `Connection refused`               | OmniRoute neběží                   | `pm2 start omniroute`                                    |
+| `401 Unauthorized`                 | Chybný klíč API                    | Zkontrolovat `/dashboard/api-manager`                    |
+| `No combo configured`              | Žádná aktivní routingová kombinace | Nastavení v `/dashboard/combos`                          |
+| `invalid model`                    | Model není v katalogu              | Použijte `auto` nebo zkontrolujte `/dashboard/providers` |
+| CLI zobrazuje „není nainstalováno“ | Binární soubor není v cestě PATH   | Zkontrolujte, `which <command>`                          |
+| `kiro-cli: not found`              | Není v PATH                        | `export PATH="$HOME/.local/bin:$PATH"`                   |
 
 ---
 
