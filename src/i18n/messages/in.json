@@ -56,7 +56,9 @@
     "warning": "चेतावनी",
     "note": "नोट",
     "free": "निःशुल्क",
-    "skipToContent": "सामग्री पर जाएं"
+    "skipToContent": "सामग्री पर जाएं",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "घर",
@@ -576,7 +578,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "कब उपयोग करें",
+    "openToolDocs": "टूल दस्तावेज़ खोलें",
+    "toolUseCases": {
+      "claude": "जब आप क्लाउड कोड के साथ मजबूत नियोजन वर्कफ़्लो और लंबे मल्टी-फ़ाइल रिफैक्टर चाहते हों तो इसका उपयोग करें।",
+      "codex": "जब आपकी टीम OpenAI कोडेक्स CLI प्रवाह और प्रोफ़ाइल-आधारित प्रमाणीकरण पर मानकीकृत हो तो इसका उपयोग करें।",
+      "droid": "जब आपको तेज़ कोडिंग और कमांड निष्पादन लूप पर केंद्रित हल्के टर्मिनल एजेंट की आवश्यकता हो तो इसका उपयोग करें।",
+      "openclaw": "जब आप ओपन क्लॉ स्टाइल कोडिंग एजेंट चाहते हैं लेकिन ओमनीरूट नीतियों के माध्यम से रूट किया जाता है तो इसका उपयोग करें।",
+      "cline": "जब आप संपादकों के अंदर कोडिंग एजेंटों को कॉन्फ़िगर करते हैं और ओमनीरूट मॉडल के साथ निर्देशित सेटअप चाहते हैं तो इसका उपयोग करें।",
+      "kilo": "इसका उपयोग तब करें जब आपका वर्कफ़्लो किलो कोड कमांड और तेज़ पुनरावृत्त संपादन पर निर्भर हो।",
+      "cursor": "कर्सर में कोडिंग करते समय उपयोग करें और आपको ओमनीरूट के माध्यम से कस्टम ओपनएआई-संगत मॉडल की आवश्यकता है।",
+      "continue": "IDE में जारी रखें चलाते समय उपयोग करें और आपको पोर्टेबल JSON-आधारित प्रदाता कॉन्फ़िगरेशन की आवश्यकता है।",
+      "opencode": "जब आप ओपनकोड के माध्यम से टर्मिनल-नेटिव एजेंट रन और स्क्रिप्टेड ऑटोमेशन पसंद करते हैं तो इसका उपयोग करें।",
+      "kiro": "किरो को एकीकृत करते समय और ओमनीरूट से केंद्रीय रूप से मॉडल रूटिंग को नियंत्रित करते समय उपयोग करें।",
+      "antigravity": "इसका उपयोग तब करें जब एंटीग्रेविटी/किरो ट्रैफिक को एमआईटीएम के माध्यम से रोका जाना चाहिए और ओमनीरूट पर भेजा जाना चाहिए।",
+      "copilot": "जब आप ओम्निरूट कुंजी और रूटिंग नियमों को लागू करते समय कोपायलट चैट शैली यूएक्स चाहते हैं तो इसका उपयोग करें।"
+    }
   },
   "combos": {
     "title": "संयोजन",
@@ -1087,7 +1105,13 @@
     "resetAllTitle": "सभी सर्किट ब्रेकरों को स्वस्थ स्थिति में रीसेट करें",
     "resetting": "रीसेट किया जा रहा है...",
     "resetAll": "सभी रीसेट करें",
-    "until": "{time} तक"
+    "until": "{time} तक",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "डैशबोर्ड में कॉन्फ़िगर किया गया",
+    "configuredProvidersHint": "रनटाइम स्थिति की परवाह किए बिना, /डैशबोर्ड/प्रदाताओं में सहेजे गए क्रेडेंशियल वाले प्रदाता।",
+    "activeProvidersHint": "कॉन्फ़िगर किए गए प्रदाता वर्तमान में रूटिंग अनुरोधों के लिए सक्षम हैं।",
+    "monitoredProvidersHint": "प्रदाताओं को वर्तमान में सर्किट-ब्रेकर स्वास्थ्य मॉनिटर द्वारा ट्रैक किया जाता है।"
   },
   "limits": {
     "title": "सीमाएँ और कोटा",
@@ -1446,7 +1470,14 @@
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -1849,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "उन्नत रूटिंग मार्गदर्शन",
+    "routingAdvancedGuideHint1": "पूर्वानुमानित प्राथमिकता के लिए फ़िल फ़र्स्ट का उपयोग करें, निष्पक्षता के लिए राउंड रॉबिन और विलंबता लचीलेपन के लिए P2C का उपयोग करें।",
+    "routingAdvancedGuideHint2": "यदि प्रदाता गुणवत्ता/लागत में भिन्न हैं, तो पृष्ठभूमि कार्य के लिए कॉस्ट ऑप्ट और संतुलित पहनावे के लिए कम से कम उपयोग से शुरुआत करें।",
+    "comboDefaultsGuideTitle": "कॉम्बो डिफॉल्ट्स को कैसे ट्यून करें",
+    "comboDefaultsGuideHint1": "कम-विलंबता प्रवाह में पुनः प्रयास कम रखें; केवल लंबी पीढ़ी के कार्यों के लिए टाइमआउट बढ़ाएँ।",
+    "comboDefaultsGuideHint2": "जब एक प्रदाता को वैश्विक डिफ़ॉल्ट की तुलना में अलग टाइमआउट/पुनः प्रयास व्यवहार की आवश्यकता होती है तो प्रदाता ओवरराइड का उपयोग करें।"
   },
   "translator": {
     "title": "अनुवादक",
@@ -2569,7 +2606,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2628,6 +2673,21 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

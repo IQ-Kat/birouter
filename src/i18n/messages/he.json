@@ -56,7 +56,9 @@
     "warning": "אזהרה",
     "note": "הערה",
     "free": "חינם",
-    "skipToContent": "דלג לתוכן"
+    "skipToContent": "דלג לתוכן",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "בית",
@@ -576,7 +578,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "מתי להשתמש",
+    "openToolDocs": "פתח את מסמכי הכלים",
+    "toolUseCases": {
+      "claude": "השתמש כאשר אתה רוצה זרימות עבודה תכנון חזקות וריפקטורים ארוכים מרובי קבצים עם Claude Code.",
+      "codex": "השתמש כאשר הצוות שלך סטנדרטי על זרימות OpenAI Codex CLI ואימות מבוסס פרופיל.",
+      "droid": "השתמש כאשר אתה צריך סוכן מסוף קל משקל המתמקד בלולאות קידוד מהיר וביצוע פקודות.",
+      "openclaw": "השתמש כאשר אתה רוצה סוכן קידוד בסגנון Open Claw אך מנותב דרך מדיניות OmniRoute.",
+      "cline": "השתמש כאשר אתה מגדיר סוכני קידוד בתוך עורכים ורוצה הגדרה מודרכת עם דגמי OmniRoute.",
+      "kilo": "השתמש כאשר זרימת העבודה שלך תלויה בפקודות Kilo Code ועריכות איטרטיביות מהירות.",
+      "cursor": "השתמש בעת קידוד בסמן ואתה צריך מודלים מותאמים אישית תואמי OpenAI דרך OmniRoute.",
+      "continue": "השתמש בעת הפעלת Continue ב-IDEs ואתה זקוק לתצורת ספק ניידת מבוססת JSON.",
+      "opencode": "השתמש כאשר אתה מעדיף ריצות סוכנים מקוריים ומאוטומציה של סקריפטים באמצעות OpenCode.",
+      "kiro": "השתמש בעת שילוב Kiro ושליטה בניתוב מודלים באופן מרכזי מ- OmniRoute.",
+      "antigravity": "השתמש כאשר יש ליירט תעבורת Antigravity/Kiro דרך MITM ולנתב אל OmniRoute.",
+      "copilot": "השתמש כאשר אתה רוצה UX בסגנון צ'אט Copilot תוך אכיפת מפתחות וכללי ניתוב OmniRoute."
+    }
   },
   "combos": {
     "title": "שילובים",
@@ -1087,7 +1105,13 @@
     "resetAllTitle": "אפס את כל המפסקים למצב תקין",
     "resetting": "מאפס...",
     "resetAll": "אפס הכל",
-    "until": "עד {time}"
+    "until": "עד {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "מוגדר בלוח המחוונים",
+    "configuredProvidersHint": "ספקים עם אישורים שנשמרו ב-/dashboard/ספקים, ללא קשר למצב זמן הריצה.",
+    "activeProvidersHint": "ספקים מוגדרים מופעלים כעת עבור בקשות ניתוב.",
+    "monitoredProvidersHint": "ספקים שנמצאים כעת במעקב על-ידי מסכי תקינות מפסקים."
   },
   "limits": {
     "title": "מגבלות ומכסות",
@@ -1446,7 +1470,14 @@
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "הגדרות",
@@ -1849,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "הנחיית ניתוב מתקדמת",
+    "routingAdvancedGuideHint1": "השתמש ב-Fill First לקבלת עדיפות צפויה, ב-Round Robin להגינות, וב-P2C עבור חוסן חביון.",
+    "routingAdvancedGuideHint2": "אם הספקים משתנים באיכות/עלות, התחל עם Cost Opt עבור עבודת רקע והפחות בשימוש עבור בלאי מאוזן.",
+    "comboDefaultsGuideTitle": "כיצד לכוונן ברירות מחדל משולבות",
+    "comboDefaultsGuideHint1": "שמור על ניסיונות חוזרים נמוכים בזרימות עם אחזור נמוך; להגדיל את הזמן הקצוב רק עבור משימות דור ארוך.",
+    "comboDefaultsGuideHint2": "השתמש בעקיפות ספק כאשר ספק אחד זקוק להתנהגות שונה של זמן קצוב/ניסיון חוזר מאשר ברירות מחדל גלובליות."
   },
   "translator": {
     "title": "מתרגם",
@@ -2569,7 +2606,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2628,6 +2673,21 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

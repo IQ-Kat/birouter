@@ -37,7 +37,7 @@ export default function SettingsPage() {
   const activeTab = userSelectedTab || tabs.find((t) => t.id === tabParam)?.id || "general";
 
   return (
-    <div className="max-w-2xl mx-auto min-w-0">
+    <div className="max-w-6xl mx-auto min-w-0">
       <div className="flex flex-col gap-6">
         {/* Tab navigation */}
         <div className="w-full overflow-x-auto pb-1">

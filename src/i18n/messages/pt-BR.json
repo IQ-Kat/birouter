@@ -56,7 +56,9 @@
     "warning": "Aviso",
     "note": "Nota",
     "free": "Gratuito",
-    "skipToContent": "Pular para conteúdo"
+    "skipToContent": "Pular para conteúdo",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "Início",
@@ -576,7 +578,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Quando usar",
+    "openToolDocs": "Abrir documentos de ferramentas",
+    "toolUseCases": {
+      "claude": "Use quando desejar fluxos de trabalho de planejamento robustos e refatorações longas de vários arquivos com Claude Code.",
+      "codex": "Use quando sua equipe estiver padronizada em fluxos OpenAI Codex CLI e autenticação baseada em perfil.",
+      "droid": "Use quando precisar de um agente de terminal leve focado em codificação rápida e loops de execução de comandos.",
+      "openclaw": "Use quando desejar um agente de codificação no estilo Open Claw, mas roteado por meio de políticas OmniRoute.",
+      "cline": "Use quando você configura agentes de codificação dentro de editores e deseja configuração guiada com modelos OmniRoute.",
+      "kilo": "Use quando seu fluxo de trabalho depender de comandos Kilo Code e edições iterativas rápidas.",
+      "cursor": "Use ao codificar no Cursor e você precisar de modelos personalizados compatíveis com OpenAI por meio do OmniRoute.",
+      "continue": "Use ao executar Continue em IDEs e você precisar de uma configuração de provedor portátil baseada em JSON.",
+      "opencode": "Use quando preferir execuções de agentes nativos de terminal e automação com script via OpenCode.",
+      "kiro": "Use ao integrar o Kiro e controlar o roteamento do modelo centralmente no OmniRoute.",
+      "antigravity": "Use quando o tráfego Antigravity/Kiro deve ser interceptado através do MITM e roteado para OmniRoute.",
+      "copilot": "Use quando desejar UX no estilo de bate-papo do Copilot enquanto impõe chaves OmniRoute e regras de roteamento."
+    }
   },
   "combos": {
     "title": "Combos",
@@ -1099,7 +1117,13 @@
     "resetAllTitle": "Resetar todos os circuit breakers para estado saudável",
     "resetting": "Resetando...",
     "resetAll": "Resetar Tudo",
-    "until": "Até {time}"
+    "until": "Até {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Configurado no painel",
+    "configuredProvidersHint": "Provedores com credenciais salvas em /dashboard/providers, independentemente do estado do tempo de execução.",
+    "activeProvidersHint": "Provedores configurados atualmente habilitados para solicitações de roteamento.",
+    "monitoredProvidersHint": "Provedores atualmente monitorados por monitores de integridade dos disjuntores."
   },
   "limits": {
     "title": "Limites e Cotas",
@@ -1458,7 +1482,14 @@
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "Configurações",
@@ -1861,7 +1892,13 @@
     "customPricingNote": "Você pode sobrescrever preços padrão para modelos específicos. Sobrescritas personalizadas têm prioridade sobre preços detectados automaticamente.",
     "editPricing": "Editar Preços",
     "viewFullDetails": "Ver Detalhes Completos",
-    "themeCoral": "Coral"
+    "themeCoral": "Coral",
+    "routingAdvancedGuideTitle": "Orientação avançada de roteamento",
+    "routingAdvancedGuideHint1": "Use Fill First para prioridade previsível, Round Robin para justiça e P2C para resiliência de latência.",
+    "routingAdvancedGuideHint2": "Se os fornecedores variarem em qualidade/custo, comece com Opção de custo para trabalho em segundo plano e Menos usado para desgaste equilibrado.",
+    "comboDefaultsGuideTitle": "Como ajustar os padrões de combinação",
+    "comboDefaultsGuideHint1": "Mantenha as tentativas baixas em fluxos de baixa latência; aumente o tempo limite apenas para tarefas de geração longa.",
+    "comboDefaultsGuideHint2": "Use substituições de provedor quando um provedor precisar de um comportamento de tempo limite/nova tentativa diferente dos padrões globais."
   },
   "translator": {
     "title": "Tradutor",
@@ -2581,7 +2618,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2640,6 +2685,21 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

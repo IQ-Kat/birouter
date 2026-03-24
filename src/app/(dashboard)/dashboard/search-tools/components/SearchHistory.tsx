@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 interface HistoryEntry {
   query: string;
@@ -14,9 +14,9 @@ interface SearchHistoryProps {
   onReplay: (entry: HistoryEntry) => void;
 }
 
-function timeAgo(timestamp: string): string {
+function timeAgo(timestamp: string, locale: string): string {
   try {
-    const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
     const diff = Date.now() - new Date(timestamp).getTime();
     const minutes = Math.floor(diff / 60_000);
     if (minutes < 1) return rtf.format(0, "minute");
@@ -25,12 +25,13 @@ function timeAgo(timestamp: string): string {
     if (hours < 24) return rtf.format(-hours, "hour");
     return rtf.format(-Math.floor(hours / 24), "day");
   } catch {
-    return new Date(timestamp).toLocaleString();
+    return new Date(timestamp).toLocaleString(locale);
   }
 }
 
 export default function SearchHistory({ onReplay }: SearchHistoryProps) {
   const t = useTranslations("search");
+  const locale = useLocale();
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function SearchHistory({ onReplay }: SearchHistoryProps) {
             <div className="text-xs text-text-main truncate">{entry.query}</div>
             <div className="flex justify-between mt-0.5">
               <span className="text-[10px] text-text-muted">{entry.provider}</span>
-              <span className="text-[10px] text-text-muted">{timeAgo(entry.timestamp)}</span>
+              <span className="text-[10px] text-text-muted">{timeAgo(entry.timestamp, locale)}</span>
             </div>
           </button>
         ))}

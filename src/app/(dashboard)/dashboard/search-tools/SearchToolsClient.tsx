@@ -119,9 +119,9 @@ export default function SearchToolsClient() {
     } catch (err: any) {
       setDuration(Date.now() - start);
       if (err.name === "AbortError") {
-        setError("Request timed out (15s)");
+        setError(t("requestTimedOut", { seconds: 15 }));
       } else {
-        setError(err.message || "Network error");
+        setError(err?.message || t("networkError"));
       }
     } finally {
       setLoading(false);

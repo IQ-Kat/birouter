@@ -56,7 +56,9 @@
     "warning": "Cảnh báo",
     "note": "Lưu ý",
     "free": "miễn phí",
-    "skipToContent": "Chuyển đến nội dung"
+    "skipToContent": "Chuyển đến nội dung",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "Trang chủ",
@@ -576,7 +578,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Khi nào nên sử dụng",
+    "openToolDocs": "Mở tài liệu công cụ",
+    "toolUseCases": {
+      "claude": "Sử dụng khi bạn muốn quy trình lập kế hoạch mạnh mẽ và các trình tái cấu trúc nhiều tệp dài với Mã Claude.",
+      "codex": "Sử dụng khi nhóm của bạn được chuẩn hóa trên các luồng OpenAI Codex CLI và xác thực dựa trên hồ sơ.",
+      "droid": "Sử dụng khi bạn cần một tác nhân đầu cuối nhẹ tập trung vào các vòng lặp thực thi lệnh và mã hóa nhanh.",
+      "openclaw": "Sử dụng khi bạn muốn một tác nhân mã hóa kiểu Open Claw nhưng được định tuyến thông qua các chính sách OmniRoute.",
+      "cline": "Sử dụng khi bạn định cấu hình các tác nhân mã hóa bên trong trình chỉnh sửa và muốn thiết lập có hướng dẫn với các mô hình OmniRoute.",
+      "kilo": "Sử dụng khi quy trình làm việc của bạn phụ thuộc vào các lệnh Kilo Code và các chỉnh sửa lặp lại nhanh chóng.",
+      "cursor": "Sử dụng khi mã hóa bằng Con trỏ và bạn cần các mô hình tương thích với OpenAI tùy chỉnh thông qua OmniRoute.",
+      "continue": "Sử dụng khi chạy Tiếp tục trong IDE và bạn cần cấu hình nhà cung cấp dựa trên JSON di động.",
+      "opencode": "Sử dụng khi bạn thích chạy tác nhân gốc trên thiết bị đầu cuối và tự động hóa theo kịch bản thông qua OpenCode.",
+      "kiro": "Sử dụng khi tích hợp Kiro và điều khiển định tuyến mô hình tập trung từ OmniRoute.",
+      "antigravity": "Sử dụng khi lưu lượng truy cập AntiGravity/Kiro phải bị chặn thông qua MITM và được định tuyến đến OmniRoute.",
+      "copilot": "Sử dụng khi bạn muốn UX kiểu trò chuyện Copilot trong khi thực thi các khóa OmniRoute và quy tắc định tuyến."
+    }
   },
   "combos": {
     "title": "Combo",
@@ -1087,7 +1105,13 @@
     "resetAllTitle": "Đặt lại tất cả các bộ ngắt mạch về trạng thái khỏe mạnh",
     "resetting": "Đang đặt lại...",
     "resetAll": "Đặt lại tất cả",
-    "until": "Cho đến {time}"
+    "until": "Cho đến {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Được định cấu hình trong bảng điều khiển",
+    "configuredProvidersHint": "Nhà cung cấp có thông tin xác thực được lưu trong /dashboard/providers, bất kể trạng thái thời gian chạy.",
+    "activeProvidersHint": "Nhà cung cấp được định cấu hình hiện đã được bật cho các yêu cầu định tuyến.",
+    "monitoredProvidersHint": "Các nhà cung cấp hiện được theo dõi bởi máy theo dõi tình trạng ngắt mạch."
   },
   "limits": {
     "title": "Giới hạn & hạn ngạch",
@@ -1446,7 +1470,14 @@
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "Cài đặt",
@@ -1849,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Hướng dẫn định tuyến nâng cao",
+    "routingAdvancedGuideHint1": "Sử dụng Fill First để có mức độ ưu tiên có thể dự đoán được, Round Robin để đảm bảo tính công bằng và P2C để có khả năng phục hồi độ trễ.",
+    "routingAdvancedGuideHint2": "Nếu các nhà cung cấp khác nhau về chất lượng/chi phí, hãy bắt đầu với Cost Opt cho công việc nền và Ít được sử dụng nhất để cân bằng độ hao mòn.",
+    "comboDefaultsGuideTitle": "Cách điều chỉnh mặc định kết hợp",
+    "comboDefaultsGuideHint1": "Giữ số lần thử ở mức thấp trong các luồng có độ trễ thấp; chỉ tăng thời gian chờ cho các tác vụ tạo dài.",
+    "comboDefaultsGuideHint2": "Sử dụng ghi đè nhà cung cấp khi một nhà cung cấp cần hành vi hết thời gian chờ/thử lại khác với mặc định chung."
   },
   "translator": {
     "title": "Người phiên dịch",
@@ -2569,7 +2606,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2628,6 +2673,21 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

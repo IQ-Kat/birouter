@@ -56,7 +56,9 @@
     "warning": "Figyelmeztetés",
     "note": "Megjegyzés",
     "free": "Ingyenes",
-    "skipToContent": "Ugrás a tartalomhoz"
+    "skipToContent": "Ugrás a tartalomhoz",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "Otthon",
@@ -576,7 +578,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Mikor kell használni",
+    "openToolDocs": "Nyissa meg az eszközdokumentumokat",
+    "toolUseCases": {
+      "claude": "Használja, ha erős tervezési munkafolyamatokat és hosszú, több fájlból álló refaktorokat szeretne a Claude Code segítségével.",
+      "codex": "Akkor használja, ha csapata szabványosítva van az OpenAI Codex CLI-folyamatokon és a profilalapú hitelesítésen.",
+      "droid": "Használja, ha egy könnyű terminálügynökre van szüksége, amely a gyors kódolásra és parancsvégrehajtási ciklusokra összpontosít.",
+      "openclaw": "Akkor használja, ha Open Claw stílusú kódoló ügynököt szeretne, de az OmniRoute házirendeken keresztül irányítja.",
+      "cline": "Akkor használja, ha kódoló ügynököket konfigurál a szerkesztőkön belül, és irányított beállítást szeretne az OmniRoute modellekkel.",
+      "kilo": "Akkor használja, ha a munkafolyamat a Kilo Code parancsoktól és a gyors iteratív szerkesztésektől függ.",
+      "cursor": "Használja a Kurzorban való kódoláshoz, és egyéni OpenAI-kompatibilis modellekre van szüksége az OmniRoute-on keresztül.",
+      "continue": "Használja a Continue futtatásakor az IDE-ben, és hordozható JSON-alapú szolgáltatói konfigurációra van szüksége.",
+      "opencode": "Akkor használja, ha a terminál-natív ügynökfuttatásokat és az OpenCode-on keresztüli parancsfájl-automatizálást részesíti előnyben.",
+      "kiro": "Használja a Kiro integrálásához és a modell-útválasztás központi vezérléséhez az OmniRoute-ból.",
+      "antigravity": "Akkor használja, ha az Antigravity/Kiro forgalmat MITM-en keresztül kell elfogni, és az OmniRoute-hoz kell irányítani.",
+      "copilot": "Használja, ha másodpilóta csevegési stílusú UX-et szeretne, miközben betartja az OmniRoute kulcsokat és útválasztási szabályokat."
+    }
   },
   "combos": {
     "title": "Kombók",
@@ -1087,7 +1105,13 @@
     "resetAllTitle": "Állítsa vissza az összes megszakítót egészséges állapotba",
     "resetting": "Visszaállítás...",
     "resetAll": "Összes visszaállítása",
-    "until": "{time}-ig"
+    "until": "{time}-ig",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "A műszerfalon konfigurálva",
+    "configuredProvidersHint": "A /dashboard/providers mappába mentett hitelesítő adatokkal rendelkező szolgáltatók, a futásidejű állapottól függetlenül.",
+    "activeProvidersHint": "Konfigurált szolgáltatók, amelyek jelenleg engedélyezve vannak az útválasztási kérelmek számára.",
+    "monitoredProvidersHint": "Azok a szolgáltatók, amelyeket jelenleg a megszakítók állapotfigyelői követnek nyomon."
   },
   "limits": {
     "title": "Korlátok és kvóták",
@@ -1446,7 +1470,14 @@
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
     "tokenRefreshed": "Token refreshed successfully",
-    "tokenRefreshFailed": "Token refresh failed"
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "Beállítások elemre",
@@ -1849,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Speciális útbaigazítás",
+    "routingAdvancedGuideHint1": "Használja a Fill First funkciót a kiszámítható prioritáshoz, a Round Robint a méltányossághoz és a P2C-t a késleltetési rugalmassághoz.",
+    "routingAdvancedGuideHint2": "Ha a szolgáltatók minősége/költségei eltérőek, kezdje a Cost Opt opcióval a háttérmunkához és a Least Used beállítással a kiegyensúlyozott viselet érdekében.",
+    "comboDefaultsGuideTitle": "A kombinált alapértelmezett beállítások hangolása",
+    "comboDefaultsGuideHint1": "Tartsa alacsonyan az újrapróbálkozásokat az alacsony késleltetésű folyamatokban; csak hosszú generációs feladatok esetén növelje az időtúllépést.",
+    "comboDefaultsGuideHint2": "Használja a szolgáltató felülbírálását, ha az egyik szolgáltatónak a globális alapértelmezetttől eltérő időtúllépési/újrapróbálkozási viselkedésre van szüksége."
   },
   "translator": {
     "title": "Fordító",
@@ -2569,7 +2606,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2628,6 +2673,21 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

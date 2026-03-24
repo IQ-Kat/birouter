@@ -134,7 +134,7 @@ export default function HealthPage() {
     );
   }
 
-  const { system, providerHealth, rateLimitStatus, lockouts } = data;
+  const { system, providerHealth, providerSummary, rateLimitStatus, lockouts } = data;
   const cbEntries = Object.entries(providerHealth || {});
   const lockoutEntries = Object.entries(lockouts || {});
 
@@ -235,11 +235,37 @@ export default function HealthPage() {
             </div>
             <span className="text-sm text-text-muted">{t("providers")}</span>
           </div>
-          <p className="text-xl font-semibold text-text-main">{cbEntries.length}</p>
-          <p className="text-xs text-text-muted mt-1">
-            {t("healthyCount", {
-              count: cbEntries.filter(([, v]: [string, any]) => v.state === "CLOSED").length,
+          <p className="text-xl font-semibold text-text-main">
+            {providerSummary?.configuredCount ?? cbEntries.length}
+          </p>
+          <p
+            className="text-[11px] text-text-muted mt-1 inline-flex items-center gap-1"
+            title={t("configuredProvidersHint")}
+          >
+            {t("configuredProvidersLabel")}
+            <span className="material-symbols-outlined text-[12px]" aria-hidden="true">
+              help
+            </span>
+          </p>
+          <p
+            className="text-xs text-text-muted inline-flex items-center gap-1"
+            title={t("activeProvidersHint")}
+          >
+            {t("activeProviders", { count: providerSummary?.activeCount ?? 0 })}
+            <span className="material-symbols-outlined text-[12px]" aria-hidden="true">
+              info
+            </span>
+          </p>
+          <p
+            className="text-xs text-text-muted inline-flex items-center gap-1"
+            title={t("monitoredProvidersHint")}
+          >
+            {t("monitoredProviders", {
+              count: providerSummary?.monitoredCount ?? cbEntries.length,
             })}
+            <span className="material-symbols-outlined text-[12px]" aria-hidden="true">
+              info
+            </span>
           </p>
         </Card>
       </div>

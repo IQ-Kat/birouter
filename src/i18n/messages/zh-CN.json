@@ -56,7 +56,9 @@
     "warning": "警告",
     "note": "注意事项",
     "free": "免费",
-    "skipToContent": "跳至内容"
+    "skipToContent": "跳至内容",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "首页",
@@ -364,7 +366,22 @@
     "rerank": "重排",
     "rerankModel": "重排模型",
     "positionDelta": "排名变化",
-    "emptyState": "发送搜索请求后即可查看结果"
+    "emptyState": "发送搜索请求后即可查看结果",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   },
   "cliTools": {
     "title": "CLI工具",
@@ -612,7 +629,23 @@
     "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
     "mitmStep2Prefix": "2. Add",
     "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
-    "mitmStep3": "3. Open {toolName} and requests will be proxied."
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "何时使用",
+    "openToolDocs": "打开工具文档",
+    "toolUseCases": {
+      "claude": "当您需要强大的规划工作流程和使用 Claude Code 进行长的多文件重构时使用。",
+      "codex": "当您的团队在 OpenAI Codex CLI 流程和基于配置文件的身份验证方面实现标准化时使用。",
+      "droid": "当您需要专注于快速编码和命令执行循环的轻量级终端代理时使用。",
+      "openclaw": "当您需要 Open Claw 风格的编码代理但通过 OmniRoute 策略进行路由时使用。",
+      "cline": "当您在编辑器内配置编码代理并希望使用 OmniRoute 模型进行引导设置时使用。",
+      "kilo": "当您的工作流程依赖于 Kilo Code 命令和快速迭代编辑时使用。",
+      "cursor": "在 Cursor 中编码并且需要通过 OmniRoute 自定义 OpenAI 兼容模型时使用。",
+      "continue": "在 IDE 中运行“Continue”并且需要可移植的基于 JSON 的提供程序配置时使用。",
+      "opencode": "当您更喜欢通过 OpenCode 进行终端本机代理运行和脚本自动化时使用。",
+      "kiro": "在集成 Kiro 并从 OmniRoute 集中控制模型路由时使用。",
+      "antigravity": "当必须通过 MITM 拦截 Antigravity/Kiro 流量并将其路由到 OmniRoute 时使用。",
+      "copilot": "当您想要 Copilot 聊天风格的 UX 同时强制执行 OmniRoute 键和路由规则时使用。"
+    }
   },
   "combos": {
     "title": "组合",
@@ -1135,7 +1168,13 @@
     "resetAllTitle": "将所有断路器重置为正常状态",
     "resetting": "正在重置...",
     "resetAll": "全部重置",
-    "until": "直到 {time}"
+    "until": "直到 {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "在仪表板中配置",
+    "configuredProvidersHint": "凭证保存在 /dashboard/providers 中的提供者，无论运行时状态如何。",
+    "activeProvidersHint": "当前启用路由请求的已配置提供程序。",
+    "monitoredProvidersHint": "目前由断路器运行状况监控器跟踪提供者。"
   },
   "limits": {
     "title": "限制和配额",
@@ -1904,7 +1943,13 @@
     "customPricingNote": "你可以覆盖特定模型的默认定价。自定义覆盖会优先于自动检测到的定价。",
     "editPricing": "编辑定价",
     "viewFullDetails": "查看完整详情",
-    "themeCoral": "珊瑚色"
+    "themeCoral": "珊瑚色",
+    "routingAdvancedGuideTitle": "高级路线指导",
+    "routingAdvancedGuideHint1": "使用 Fill First 实现可预测的优先级，使用 Round Robin 实现公平性，使用 P2C 实现延迟弹性。",
+    "routingAdvancedGuideHint2": "如果提供商的质量/成本各不相同，请从“成本选择”开始进行后台工作，并从“最少使用”开始进行平衡磨损。",
+    "comboDefaultsGuideTitle": "如何调整组合默认值",
+    "comboDefaultsGuideHint1": "在低延迟流中保持较低的重试次数；仅增加长生成任务的超时。",
+    "comboDefaultsGuideHint2": "当一个提供程序需要与全局默认值不同的超时/重试行为时，请使用提供程序覆盖。"
   },
   "translator": {
     "title": "翻译者",
@@ -2612,7 +2657,15 @@
     "opencodeDetected": "opencode {version} detected",
     "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
     "downloadConfig": "Download {file}",
-    "downloaded": "Downloaded!"
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "自动组合引擎",
