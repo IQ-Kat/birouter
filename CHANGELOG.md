@@ -6,6 +6,40 @@
 
 ---
 
+## [3.0.0-rc.15] — 2026-03-23
+
+### ✨ New Features
+
+- **#563** — Per-model Combo Routing: map model name patterns (glob) to specific combos for automatic routing
+  - New `model_combo_mappings` table (migration 010) with pattern, combo_id, priority, enabled
+  - `resolveComboForModel()` DB function with glob-to-regex matching (case-insensitive, `*` and `?` wildcards)
+  - `getComboForModel()` in `model.ts`: augments `getCombo()` with model-pattern fallback
+  - `chat.ts`: routing decision now checks model-combo mappings before single-model handling
+  - API: `GET/POST /api/model-combo-mappings`, `GET/PUT/DELETE /api/model-combo-mappings/:id`
+  - Dashboard: "Model Routing Rules" section added to Combos page with inline add/edit/toggle/delete
+  - Examples: `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
+
+### 🧪 Tests
+
+- Test suite: **923 tests, 0 failures** (+15 new model-combo mapping tests)
+
+---
+
+## [3.0.0-rc.14] — 2026-03-23
+
+### 🔀 Community PRs Merged
+
+| PR       | Author   | Summary                                                                                      |
+| -------- | -------- | -------------------------------------------------------------------------------------------- |
+| **#562** | @coobabm | fix(ux): MCP session management, Claude passthrough normalization, OAuth modal, detectFormat |
+| **#561** | @zen0bit | fix(i18n): Czech translation corrections — HTTP method names and documentation updates       |
+
+### 🧪 Tests
+
+- Test suite: **908 tests, 0 failures**
+
+---
+
 ## [3.0.0-rc.13] — 2026-03-23
 
 ### 🔧 Bug Fixes
