@@ -8,73 +8,6 @@ _وكيل API العالمي الخاص بك - نقطة نهاية واحدة، 
 
 ---
 
-### 🆕 الجديد في v2.7.0
-
-- **RouterStrategy قابل للتوصيل** — استراتيجيات القواعد والتكلفة والكمون
-- **كشف النية متعدد اللغات** — تسجيل التوجيه بأكثر من 30 لغة
-- **إلغاء تكرار الطلبات** — تجنب مكالمات API المكررة عبر تجزئة المحتوى
-- **مزودون جدد:** Grok-4 Fast (xAI) وGLM-5 / Z.AI وMiniMax M2.5 وKimi K2.5
-- **أسعار محدثة:** Grok-4 Fast $0.20/$0.50/M، GLM-5 $0.50/M، MiniMax M2.5 $0.30/M
-
----
-
-<div align="center">
-
-[![إصدار npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-[![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
-[![الترخيص](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
-[![موقع الويب](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
-[![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
-
-[🌐 الموقع الإلكتروني](https://omniroute.online) • [🚀 البداية السريعة](#-quick-start) • [💡 الميزات](#-key-features) • [📖 المستندات](#-documentation) • [💰 التسعير](#-pricing-at-a-glance) • [💬 واتساب](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
-
-</div>
-
-🌐 **متوفر باللغة:** 🇺🇸 [الإنجليزية](../../README.md) | 🇧🇷 [البرتغالية (البرازيل)](../pt-BR/README.md) | 🇪🇸 [الإسبانية](../es/README.md) | 🇫🇷 [Français](../fr/README.md) | 🇮🇹 [الإيطالية](../it/README.md) | 🇷🇺 [Русский](../ru/README.md) | 🇨🇳 [中文 (简体)](../zh-CN/README.md) | 🇩🇪 [الألمانية](../de/README.md) | 🇮🇳 [هندي](../in/README.md) | 🇹🇭 [ไทย](../th/README.md) | 🇺🇦 [أوكرانيا](../uk-UA/README.md) | 🇸🇦 [العربية](../ar/README.md) | 🇯🇵 [日本語](../ja/README.md) | 🇻🇳 [تيانج فيت](../vi/README.md) | 🇧🇬 [بلغارسكي](../bg/README.md) | 🇩🇰 [الدانسك](../da/README.md) | 🇫🇮 [سومي](../fi/README.md) | 🇮🇱 [العربية](../he/README.md) | 🇭🇺 [المجرية](../hu/README.md) | 🇮🇩 [البهاسا الإندونيسية](../id/README.md) | 🇰🇷 [한국어](../ko/README.md) | 🇲🇾 [البهاسا ملايو](../ms/README.md) | 🇳🇱 [هولندا](../nl/README.md) | 🇳🇴 [نورسك](../no/README.md) | 🇵🇹 [البرتغالية (البرتغال)](../pt/README.md) | 🇷🇴 [روماني](../ro/README.md) | 🇵🇱 [بولسكي](../pl/README.md) | 🇸🇰 [سلوفينسينا](../sk/README.md) | 🇸🇪 [سفينسكا](../sv/README.md) | 🇵🇭 [فلبينية](../phi/README.md)
-
----
-
-## 🖼️ لوحة التحكم الرئيسية
-
-<div align="center">
-  <img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="800"/>
-</div>
-
----
-
-## 📸 معاينة لوحة التحكم
-
-<details>
-<summary><b>انقر لرؤية لقطات شاشة لوحة القيادة</b></summary>
-
-| صفحة                  | لقطة شاشة                                          |
-| --------------------- | -------------------------------------------------- |
-| ** مقدمو الخدمة **    | ![مقدمو الخدمة](docs/screenshots/01-providers.png) |
-| **المجموعات**         | ![المجموعات](docs/screenshots/02-combos.png)       |
-| **تحليلات**           | ![تحليلات](docs/screenshots/03-analytics.png)      |
-| **الصحة**             | ![الصحة](docs/screenshots/04-health.png)           |
-| **مترجم**             | ![مترجم](docs/screenshots/05-translator.png)       |
-| **الإعدادات**         | ![الإعدادات](docs/screenshots/06-settings.png)     |
-| **أدوات سطر الأوامر** | ![أدوات CLI](docs/screenshots/07-cli-tools.png)    |
-| **سجلات الاستخدام**   | ![الاستخدام](docs/screenshots/08-usage.png)        |
-| **نقطة النهاية**      | ![نقطة النهاية](docs/screenshots/09-endpoint.png)  |
-
-</details>
-
----
-
-### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
-
-| Feature                                    | What It Does                                                                                                                                  |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                        |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved** |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw), process spawner, `/api/acp/agents` endpoint                                 |
-| 🤖 **ACP Agents Dashboard**                | Debug > Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool                                      |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                               |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                   |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                      |
-
 ### 🤖 موفر الذكاء الاصطناعي المجاني لوكلاء البرمجة المفضلين لديك
 
 _قم بتوصيل أي أداة IDE أو CLI مدعومة بالذكاء الاصطناعي من خلال OmniRoute - بوابة واجهة برمجة التطبيقات المجانية للترميز غير المحدود._
@@ -158,6 +91,38 @@ _قم بتوصيل أي أداة IDE أو CLI مدعومة بالذكاء الا
 <sub>📡 يتصل جميع الوكلاء عبر <code>http://localhost:20128/v1</code> أو <code>http://cloud.omniroute.online/v1</code> - تكوين واحد ونماذج غير محدودة و حصة</sub>
 
 ---
+
+### 🆕 What's New in v3.0.0
+
+| Area | Change |
+| --- | --- |
+| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
+| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
+| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
+| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
+| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
+| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+
+
+
+### 🆕 What's New in v3.0.0
+
+| Area | Change |
+| --- | --- |
+| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
+| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
+| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
+| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
+| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
+| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+
+---
+
+
 
 ## 🤔 لماذا OmniRoute؟
 

@@ -32,6 +32,9 @@ _Your universal API proxy — one endpoint, 44+ providers, zero downtime. Now wi
 
 | Area                         | Change                                                                                                                                                                    |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**       | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection remediation                                                                              |
+| ✅ **Route Validation**       | All 176 API routes now validated with Zod schemas + `validateBody()` — CI `check:route-validation:t06` passes                                                            |
+| 🐛 **omniModel Tag Leak**    | Internal `<omniModel>` tags no longer leak to clients in SSE streaming responses (#585)                                                                                  |
 | 🔑 **Registered Keys API**   | Auto-provision API keys via `POST /api/v1/registered-keys` with per-provider/account quota enforcement, idempotency, SHA-256 storage, and optional GitHub issue reporting |
 | 🎨 **Provider Icons**        | 130+ provider logos via `@lobehub/icons` (SVG) with PNG → generic fallback chain                                                                                          |
 | 🔄 **Model Auto-Sync**       | 24h scheduler refreshes model lists for 16 providers on startup — configurable via `MODEL_SYNC_INTERVAL_HOURS`                                                            |

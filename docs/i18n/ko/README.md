@@ -11,28 +11,6 @@ _범용 API 프록시 — 하나의 엔드포인트, 36개 이상의 공급자, 
 
 ---
 
-### 🆕 v2.7.0 새로운 기능
-
-- **플러그형 RouterStrategy** — 규칙, 비용, 지연 전략 지원
-- **다국어 의도 감지** — 30개 이상 언어로 라우팅 스코어링
-- **요청 중복 제거** — 콘텐츠 해시로 중복 API 호출 방지
-- **새 공급자:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
-- **가격 업데이트:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
-
----
-
-### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
-
-| Feature                                    | What It Does                                                                                                                                  |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                        |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved** |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw), process spawner, `/api/acp/agents` endpoint                                 |
-| 🤖 **ACP Agents Dashboard**                | Debug > Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool                                      |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                               |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                   |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                      |
-
 ### 🤖 좋아하는 코딩 에이전트를 위한 무료 AI 제공업체
 
 _무제한 코딩을 위한 무료 API 게이트웨이인 OmniRoute를 통해 AI 기반 IDE 또는 CLI 도구를 연결하세요._
@@ -117,6 +95,38 @@ _무제한 코딩을 위한 무료 API 게이트웨이인 OmniRoute를 통해 AI
 <sub>📡 모든 에이전트는 <code>http://localhost:20128/v1</code> 또는 <code>http://cloud.omniroute.online/v1</code>을 통해 연결됩니다. — 하나의 구성, 무제한 모델 및 할당량</sub>
 
 ---
+
+### 🆕 What's New in v3.0.0
+
+| Area | Change |
+| --- | --- |
+| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
+| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
+| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
+| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
+| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
+| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+
+
+
+### 🆕 What's New in v3.0.0
+
+| Area | Change |
+| --- | --- |
+| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
+| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
+| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
+| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
+| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
+| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+
+---
+
+
 
 [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
