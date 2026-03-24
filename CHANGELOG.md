@@ -2,7 +2,22 @@
 
 ## [Unreleased]
 
-> **Coming next** — see [3.0.0-rc branch](https://github.com/diegosouzapw/OmniRoute/tree/3.0.0-rc).
+---
+
+## [3.0.0] — 2026-03-24
+
+### 🎉 v3.0.0 — Major Release
+
+- All RC changes from v3.0.0-rc.1 through rc.17 finalized
+- **PR #587**: fix(sse): revert `resolveDataDir` import in responsesTransformer for Cloudflare Workers compat (@k0valik)
+- **67+ AI providers** with automatic format translation
+- **9 routing strategies** including auto-combo with self-healing
+- **MCP Server** (16 tools, 3 transports: stdio/SSE/streamable-HTTP)
+- **A2A Server** (Agent-to-Agent v0.3 protocol)
+- **Provider Icons** via `@lobehub/icons` (130+ SVG with PNG fallback)
+- **926 tests** with 0 failures
+- **CodeQL security** — 10+ alerts remediated
+- **Route validation** — 176/176 routes validated with Zod schemas
 
 ---
 
