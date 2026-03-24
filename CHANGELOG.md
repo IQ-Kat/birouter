@@ -6,7 +6,7 @@
 
 ---
 
-## [3.0.0-rc.15] — 2026-03-23
+## [3.0.0-rc.15] — 2026-03-24
 
 ### ✨ New Features
 
@@ -18,6 +18,23 @@
   - API: `GET/POST /api/model-combo-mappings`, `GET/PUT/DELETE /api/model-combo-mappings/:id`
   - Dashboard: "Model Routing Rules" section added to Combos page with inline add/edit/toggle/delete
   - Examples: `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
+
+### 🌐 i18n
+
+- **Full i18n Sync**: 2,788 missing keys added across 30 language files — all languages now at 100% parity with `en.json`
+- **Agents page i18n**: OpenCode Integration section fully internationalized (title, description, scanning, download labels)
+- **6 new keys** added to `agents` namespace for OpenCode section
+
+### 🎨 UI/UX
+
+- **Provider Icons**: 16 missing provider icons added (3 copied, 2 downloaded, 11 SVG created)
+- **SVG fallback**: `ProviderIcon` component updated with 4-tier strategy: Lobehub → PNG → SVG → Generic icon
+- **Agents fingerprinting**: Synced with CLI tools — added droid, openclaw, copilot, opencode to fingerprint list (14 total)
+
+### 🔒 Security
+
+- **CVE fix**: Resolved dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) via npm overrides forcing `dompurify@^3.3.2`
+- `npm audit` now reports **0 vulnerabilities**
 
 ### 🧪 Tests
 
