@@ -183,3 +183,17 @@ export {
 } from "./db/modelComboMappings";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
+
+export {
+  // Webhooks
+  getWebhooks,
+  getWebhook,
+  getEnabledWebhooks,
+  createWebhook,
+  updateWebhook as updateWebhookRecord,
+  deleteWebhook,
+  recordWebhookDelivery,
+  disableWebhooksWithHighFailures,
+} from "./db/webhooks";
+
+export type { Webhook } from "./db/webhooks";
