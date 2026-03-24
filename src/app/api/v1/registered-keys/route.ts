@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { issueRegisteredKey, checkQuota, listRegisteredKeys } from "@/lib/db/registeredKeys";
 
 // ─── Validation ───────────────────────────────────────────────────────────────
@@ -53,19 +54,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
   }
 
-  let body: unknown;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = issueKeySchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  const validation = validateBody(issueKeySchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  const { provider, accountId } = parsed.data;
+  const { provider, accountId } = validation.data;
 
   // ── Quota check ──
   try {
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
 
   // ── Issue ──
   try {
-    const result = issueRegisteredKey(parsed.data);
+    const result = issueRegisteredKey(validation.data);
 
     if ("idempotencyConflict" in result) {
       return NextResponse.json(

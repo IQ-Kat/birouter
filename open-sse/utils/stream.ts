@@ -57,6 +57,8 @@ type TranslateState = ReturnType<typeof initState> & {
   accumulatedContent?: string;
 };
 
+type UsageTokenRecord = Record<string, number>;
+
 function getOpenAIIntermediateChunks(value: unknown): unknown[] {
   if (!value || typeof value !== "object") return [];
   const candidate = (value as JsonRecord)._openaiIntermediate;
@@ -108,7 +110,9 @@ export function createSSEStream(options: StreamOptions = {}) {
   } = options;
 
   let buffer = "";
-  let usage = null;
+  let usage: UsageTokenRecord | null = null;
+  /** Passthrough (OpenAI CC shape): saw tool_calls in stream before finish_reason */
+  let passthroughHasToolCalls = false;
 
   // State for translate mode (accumulatedContent for call log response body)
   const state: TranslateState | null =
@@ -223,9 +227,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (extracted) {
                     // Non-destructive merge: never overwrite a positive value with 0
                     // message_start carries input_tokens, message_delta carries output_tokens;
-                    if (!usage) usage = {} as any;
-                    const u = usage as Record<string, number>;
-                    const eu = extracted as Record<string, number>;
+                    if (!usage) usage = {};
+                    const u = usage;
+                    const eu = extracted as UsageTokenRecord;
                     if (eu.prompt_tokens > 0) u.prompt_tokens = eu.prompt_tokens;
                     if (eu.completion_tokens > 0) u.completion_tokens = eu.completion_tokens;
                     if (eu.total_tokens > 0) u.total_tokens = eu.total_tokens;
@@ -266,7 +270,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
                   // T18: Track if we saw tool calls
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
-                    (state as any).passthroughHasToolCalls = true;
+                    passthroughHasToolCalls = true;
                   }
 
                   const content = delta?.content || delta?.reasoning_content;
@@ -288,7 +292,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // T18: Normalize finish_reason to 'tool_calls' if tool calls were used
                   if (
                     isFinishChunk &&
-                    (state as any).passthroughHasToolCalls &&
+                    passthroughHasToolCalls &&
                     parsed.choices[0].finish_reason !== "tool_calls"
                   ) {
                     parsed.choices[0].finish_reason = "tool_calls";

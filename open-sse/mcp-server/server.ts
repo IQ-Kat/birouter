@@ -435,7 +435,7 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
     let path = "/v1/models";
     let isProviderSpecific = false;
     let source = "local_catalog";
-    let warning = undefined;
+    let warning: string | undefined;
 
     if (args.provider && !args.capability) {
       // Use direct provider fetch to get real-time API status
@@ -451,7 +451,7 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
     const raw = toRecord(await omniRouteFetch(path));
 
     // If we used the direct provider endpoint
-    let rawModels = [];
+    let rawModels: unknown[] = [];
     if (isProviderSpecific) {
       rawModels = Array.isArray(raw.models) ? raw.models : [];
       source = typeof raw.source === "string" ? raw.source : "api";

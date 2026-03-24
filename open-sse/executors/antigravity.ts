@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { BaseExecutor } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
 
 const MAX_RETRY_AFTER_MS = 10000;
@@ -198,7 +198,7 @@ export class AntigravityExecutor extends BaseExecutor {
     return totalMs > 0 ? totalMs : null;
   }
 
-  async execute({ model, body, stream, credentials, signal, log }) {
+  async execute({ model, body, stream, credentials, signal, log, upstreamExtraHeaders }) {
     const fallbackCount = this.getFallbackCount();
     let lastError = null;
     let lastStatus = 0;
@@ -208,6 +208,7 @@ export class AntigravityExecutor extends BaseExecutor {
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, stream, urlIndex);
       const headers = this.buildHeaders(credentials, stream);
+      mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
       const transformedBody = this.transformRequest(model, body, stream, credentials);
 
       // Initialize retry counter for this URL

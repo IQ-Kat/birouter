@@ -55,6 +55,7 @@ export {
   removeModelCompatOverride,
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
+  getModelUpstreamExtraHeaders,
 } from "./db/models";
 
 export type { ModelCompatPerProtocol, ModelCompatPatch } from "./db/models";

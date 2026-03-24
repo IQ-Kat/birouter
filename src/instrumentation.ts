@@ -10,11 +10,10 @@
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    // Computed path prevents Turbopack from statically resolving the import
-    // for the Edge instrumentation bundle, avoiding spurious warnings about
-    // Node.js modules not being available in the Edge Runtime.
-    const nodeMod = "./instrumentation-" + "node";
-    const { registerNodejs } = await import(nodeMod);
+    // Literal path so Webpack emits the chunk (computed string breaks dev:
+    // MODULE_NOT_FOUND for ./instrumentation-node at runtime).
+    // Turbopack may still avoid tracing this into Edge when guarded by NEXT_RUNTIME.
+    const { registerNodejs } = await import("./instrumentation-node");
     await registerNodejs();
   }
 }

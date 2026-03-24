@@ -140,7 +140,7 @@ export function createDisconnectAwareStream(transformStream, streamController) {
         const errorMsg = error instanceof Error ? error.message : "Upstream stream error";
         const statusCode =
           typeof error === "object" && error !== null && "statusCode" in error
-            ? (error as any).statusCode
+            ? Number((error as { statusCode?: unknown }).statusCode) || 500
             : 500;
 
         const errorEvent = {

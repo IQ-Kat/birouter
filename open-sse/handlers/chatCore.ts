@@ -26,7 +26,11 @@ import {
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
-import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
+import {
+  getModelNormalizeToolCallId,
+  getModelPreserveOpenAIDeveloperRole,
+  getModelUpstreamExtraHeaders,
+} from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import {
   parseCodexQuotaHeaders,
@@ -279,6 +283,23 @@ export async function handleChatCore({
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat = modelTargetFormat || getTargetFormat(provider);
+
+  // Primary path: merge client model id + alias target so config on either key applies; resolved
+  // id wins on same header name. T5 family fallback uses only (nextModel, resolveModelAlias(next))
+  // so A-model headers are not sent to B — see buildUpstreamHeadersForExecute.
+  const buildUpstreamHeadersForExecute = (modelToCall: string): Record<string, string> => {
+    if (modelToCall === effectiveModel) {
+      return {
+        ...getModelUpstreamExtraHeaders(provider || "", model || "", sourceFormat),
+        ...getModelUpstreamExtraHeaders(provider || "", resolvedModel || "", sourceFormat),
+      };
+    }
+    const r = resolveModelAlias(modelToCall);
+    return {
+      ...getModelUpstreamExtraHeaders(provider || "", modelToCall || "", sourceFormat),
+      ...getModelUpstreamExtraHeaders(provider || "", r || "", sourceFormat),
+    };
+  };
 
   // Default to false unless client explicitly sets stream: true (OpenAI spec compliant)
   const acceptHeader =
@@ -593,6 +614,7 @@ export async function handleChatCore({
           signal: streamController.signal,
           log,
           extendedContext,
+          upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
         })
       );
 
@@ -724,16 +746,19 @@ export async function handleChatCore({
         await onCredentialsRefreshed(newCredentials);
       }
 
-      // Retry with new credentials
+      // Retry with new credentials — model + extra headers follow translatedBody.model so they
+      // stay aligned if this block ever runs after a path that mutates body.model (e.g. fallback).
       try {
+        const retryModelId = String(translatedBody.model || effectiveModel);
         const retryResult = await executor.execute({
-          model,
+          model: retryModelId,
           body: translatedBody,
           stream,
           credentials: getExecutionCredentials(),
           signal: streamController.signal,
           log,
           extendedContext,
+          upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
         });
 
         if (retryResult.response.ok) {

@@ -23,12 +23,19 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
   const first = chunks[0];
   const contentParts = [];
   const reasoningParts = [];
-  const accumulatedToolCalls = new Map<string, any>();
+  type AccumulatedToolCall = {
+    id: string | null;
+    index: number;
+    type: string;
+    function: { name: string; arguments: string };
+  };
+
+  const accumulatedToolCalls = new Map<string, AccumulatedToolCall>();
   let unknownToolCallSeq = 0;
   let finishReason = "stop";
   let usage = null;
 
-  const getToolCallKey = (toolCall: any) => {
+  const getToolCallKey = (toolCall: Record<string, unknown>) => {
     if (toolCall?.id) return `id:${toolCall.id}`;
     if (Number.isInteger(toolCall?.index)) return `idx:${toolCall.index}`;
     unknownToolCallSeq += 1;
