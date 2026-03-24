@@ -29,7 +29,7 @@ type ClaudeTool = {
 
 /**
  * T02: Recursively strips empty text blocks from content arrays.
- * Anthropic returns 400 "text content blocks must be non-empty" if any
+ * Anthropic returns 400 "text content blocks must be non-empty" when a
  * text block has text: "". Must also recurse into nested tool_result.content.
  * Ref: sub2api PR #1212
  */

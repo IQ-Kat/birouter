@@ -229,3 +229,7 @@ Zod 4 下全键 `record` 与「只提交部分协议」的 PATCH 语义冲突，
 `src/lib/zed-oauth/keychain-reader.ts` 顶层 **`import keytar`** 会在 `next build` 收集路由数据时加载原生模块；无 `libsecret` 的 Linux runner 会失败。改为 **`await import("keytar")`** 动态加载，失败则 **跳过读钥匙串**（返回空列表 / null），构建不再依赖本机 keytar。
 
 > 若本文随上游合并，可删除文首「仅供 ZWS 作者自用」一句；**ZWS** 为贡献者笔名，可保留作变更索引。
+
+### T11：`check:any-budget:t11`
+
+脚本 `scripts/check-t11-any-budget.mjs` 用正则统计文件中 **单词 `any`**（含注释里的英文 *any*）。失败原因通常是：注释误触（如 “type **any** model ID”）、或真实 `: any` / `as any`。处理方式：改写注释用词、用 `unknown` / `Record<string, unknown>` / 显式接口替代 `any`。`open-sse/utils/stream.ts` 中 passthrough 分支原先对 `state`（在 passthrough 模式下为 `null`）做 `(state as any).passthroughHasToolCalls`，已改为闭包内独立布尔变量 `passthroughHasToolCalls`。

@@ -1353,7 +1353,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen/qwen3-32b", name: "Qwen3 32B (Puter)" },
       { id: "qwen/qwen3-coder", name: "Qwen3 Coder 480B (Puter)" },
     ],
-    passthroughModels: true, // 500+ models available — users can type any Puter model ID
+    passthroughModels: true, // 500+ models available — users can type arbitrary Puter model IDs
   },
 
   "cloudflare-ai": {
