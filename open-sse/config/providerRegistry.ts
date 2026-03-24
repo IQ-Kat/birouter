@@ -14,6 +14,8 @@ export interface RegistryModel {
   toolCalling?: boolean;
   targetFormat?: string;
   unsupportedParams?: readonly string[];
+  /** Maximum context window in tokens */
+  contextLength?: number;
 }
 
 // Reasoning models reject temperature, top_p, penalties, logprobs, n.
@@ -61,6 +63,8 @@ export interface RegistryEntry {
   chatPath?: string;
   clientVersion?: string;
   passthroughModels?: boolean;
+  /** Default context window for all models in this provider (can be overridden per-model) */
+  defaultContextLength?: number;
 }
 
 interface LegacyProvider {
@@ -107,6 +111,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     urlSuffix: "?beta=true",
     authType: "oauth",
     authHeader: "x-api-key",
+    defaultContextLength: 200000,
     headers: {
       "Anthropic-Version": "2023-06-01",
       "Anthropic-Beta":
@@ -150,6 +155,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     authType: "apikey",
     authHeader: "x-goog-api-key",
+    defaultContextLength: 1000000,
     oauth: {
       clientIdEnv: "GEMINI_OAUTH_CLIENT_ID",
       clientIdDefault: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
@@ -182,6 +188,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     authType: "oauth",
     authHeader: "bearer",
+    defaultContextLength: 1000000,
     oauth: {
       clientIdEnv: "GEMINI_CLI_OAUTH_CLIENT_ID",
       clientIdDefault: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
@@ -209,6 +216,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://chatgpt.com/backend-api/codex/responses",
     authType: "oauth",
     authHeader: "bearer",
+    defaultContextLength: 400000,
     headers: {
       Version: "0.92.0",
       "Openai-Beta": "responses=experimental",
@@ -357,6 +365,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     responsesBaseUrl: "https://api.githubcopilot.com/responses",
     authType: "oauth",
     authHeader: "bearer",
+    defaultContextLength: 128000,
     headers: {
       "copilot-integration-id": "vscode-chat",
       "editor-version": "vscode/1.107.1",
@@ -405,6 +414,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse",
     authType: "oauth",
     authHeader: "bearer",
+    defaultContextLength: 200000,
     headers: {
       "Content-Type": "application/json",
       Accept: "application/vnd.amazon.eventstream",
@@ -431,6 +441,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     chatPath: "/aiserver.v1.ChatService/StreamUnifiedChatWithTools",
     authType: "oauth",
     authHeader: "bearer",
+    defaultContextLength: 200000,
     headers: {
       "connect-accept-encoding": "gzip",
       "connect-protocol-version": "1",
@@ -459,6 +470,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://api.openai.com/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
+    defaultContextLength: 128000,
     models: [
       { id: "gpt-4o", name: "GPT-4o" },
       { id: "gpt-4o-mini", name: "GPT-4o Mini" },
@@ -480,6 +492,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     urlSuffix: "?beta=true",
     authType: "apikey",
     authHeader: "x-api-key",
+    defaultContextLength: 200000,
     headers: {
       "Anthropic-Version": "2023-06-01",
     },
@@ -504,6 +517,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "Authorization",
     authPrefix: "Bearer",
+    defaultContextLength: 200000,
     models: [
       { id: "glm-5", name: "GLM-5" },
       { id: "kimi-k2.5", name: "Kimi K2.5" },
@@ -521,6 +535,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "Authorization",
     authPrefix: "Bearer",
+    defaultContextLength: 200000,
     models: [
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free" },
       { id: "big-pickle", name: "Big Pickle" },
@@ -536,6 +551,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://openrouter.ai/api/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
+    defaultContextLength: 128000,
     headers: {
       "HTTP-Referer": "https://endpoint-proxy.local",
       "X-Title": "Endpoint Proxy",
@@ -549,6 +565,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     format: "claude",
     executor: "default",
     baseUrl: "https://api.z.ai/api/anthropic/v1/messages",
+    defaultContextLength: 200000,
     urlSuffix: "?beta=true",
     authType: "apikey",
     authHeader: "x-api-key",

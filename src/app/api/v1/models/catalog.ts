@@ -16,6 +16,7 @@ import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
 import { getAllVideoModels, getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { getAllMusicModels, getMusicProvider } from "@omniroute/open-sse/config/musicRegistry.ts";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -190,6 +191,7 @@ export async function getUnifiedModelsResponse(
         permission: [],
         root: combo.name,
         parent: null,
+        ...(combo.context_length ? { context_length: combo.context_length } : {}),
       });
     }
 
@@ -206,8 +208,15 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
+      // Get default context length from registry (provider-level default)
+      const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
+      const defaultContextLength = registryEntry?.defaultContextLength;
+
       for (const model of providerModels) {
         const aliasId = `${alias}/${model.id}`;
+        // Model-level context length overrides provider default
+        const contextLength = model.contextLength || defaultContextLength;
+
         models.push({
           id: aliasId,
           object: "model",
@@ -216,6 +225,7 @@ export async function getUnifiedModelsResponse(
           permission: [],
           root: model.id,
           parent: null,
+          ...(contextLength ? { context_length: contextLength } : {}),
         });
 
         // Add provider-id prefix in addition to short alias (ex: kiro/model + kr/model).
@@ -229,6 +239,7 @@ export async function getUnifiedModelsResponse(
             permission: [],
             root: model.id,
             parent: aliasId,
+            ...(contextLength ? { context_length: contextLength } : {}),
           });
         }
       }
