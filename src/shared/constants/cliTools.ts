@@ -16,6 +16,7 @@ export const CLI_TOOLS = {
     },
     modelAliases: ["default", "sonnet", "opus", "haiku", "opusplan"],
     settingsFile: "~/.claude/settings.json",
+    defaultCommand: "claude",
     defaultModels: [
       {
         id: "opus",
@@ -47,6 +48,7 @@ export const CLI_TOOLS = {
     color: "#10A37F",
     description: "OpenAI Codex CLI",
     configType: "custom",
+    defaultCommand: "codex",
   },
   droid: {
     id: "droid",
@@ -55,6 +57,7 @@ export const CLI_TOOLS = {
     color: "#00D4FF",
     description: "Factory Droid AI Assistant",
     configType: "custom",
+    defaultCommand: "droid",
   },
   openclaw: {
     id: "openclaw",
@@ -63,6 +66,7 @@ export const CLI_TOOLS = {
     color: "#FF6B35",
     description: "Open Claw AI Assistant",
     configType: "custom",
+    defaultCommand: "openclaw",
   },
   cursor: {
     id: "cursor",
@@ -72,6 +76,7 @@ export const CLI_TOOLS = {
     description: "Cursor AI Code Editor",
     configType: "guide",
     requiresCloud: true,
+    defaultCommands: ["agent", "cursor"],
     notes: [
       { type: "warning", text: "Requires Cursor Pro account to use this feature." },
       {
@@ -95,6 +100,7 @@ export const CLI_TOOLS = {
     color: "#00D1B2",
     description: "Cline AI Coding Assistant CLI",
     configType: "custom",
+    defaultCommand: "cline",
   },
   kilo: {
     id: "kilo",
@@ -103,6 +109,7 @@ export const CLI_TOOLS = {
     color: "#FF6B6B",
     description: "Kilo Code AI Assistant CLI",
     configType: "custom",
+    defaultCommand: "kilocode",
   },
   continue: {
     id: "continue",
@@ -180,12 +187,47 @@ export const CLI_TOOLS = {
     color: "#FF6B35",
     description: "OpenCode AI coding agent (Terminal)",
     configType: "guide",
+    defaultCommand: "opencode",
+    notes: [
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.config/opencode/opencode.json • Windows %APPDATA%\\\\opencode\\\\opencode.json",
+      },
+      {
+        type: "warning",
+        text: 'Thinking variant example: opencode run "implement this feature" --model omniroute/claude-sonnet-4-5-thinking --variant high',
+      },
+    ],
     guideSteps: [
       { step: 1, title: "Install OpenCode", desc: "Install via npm: npm install -g opencode-ai" },
       { step: 2, title: "API Key", type: "apiKeySelector" },
       { step: 3, title: "Set Base URL", desc: "opencode config set baseUrl {{baseUrl}}" },
       { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Use Thinking Variant",
+        desc: "For thinking models, run with --variant high/low/max (example command below).",
+      },
     ],
+    codeBlock: {
+      language: "json",
+      code: `{
+  "providers": {
+    "omniroute": {
+      "name": "OmniRoute",
+      "api": "openai",
+      "baseURL": "{{baseUrl}}",
+      "apiKey": "{{apiKey}}",
+      "models": [
+        "{{model}}",
+        "claude-sonnet-4-5-thinking",
+        "gemini-3.1-pro-high",
+        "gemini-3-flash"
+      ]
+    }
+  }
+}`,
+    },
   },
   kiro: {
     id: "kiro",

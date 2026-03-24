@@ -8,7 +8,11 @@ import {
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { updateProxyConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
+import {
+  createErrorResponse,
+  createErrorResponseFromUnknown,
+  type ApiErrorType,
+} from "@/lib/api/errorResponse";
 import type { z } from "zod";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
@@ -174,7 +178,8 @@ export async function PUT(request: Request) {
   } catch (error) {
     const routeError = toApiRouteError(error);
     const status = Number(routeError.status) || 500;
-    const type = routeError.type || (status === 400 ? "invalid_request" : "server_error");
+    const type = (routeError.type ||
+      (status === 400 ? "invalid_request" : "server_error")) as ApiErrorType;
     return createErrorResponse({ status, message: routeError.message, type });
   }
 }

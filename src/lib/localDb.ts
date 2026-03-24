@@ -23,6 +23,15 @@ export {
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,
+
+  // T05: Rate-limit DB persistence (survives token refresh)
+  setConnectionRateLimitUntil,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
+
+  // T13: Stale quota display fix (zero out usage after window resets)
+  getEffectiveQuotaUsage,
+  formatResetCountdown,
 } from "./db/providers";
 
 export {
@@ -138,3 +147,27 @@ export {
   getCachedProviderConnections,
   invalidateDbCache,
 } from "./db/readCache";
+
+export {
+  // Registered Keys Provisioning (#464)
+  issueRegisteredKey,
+  getRegisteredKey,
+  listRegisteredKeys,
+  revokeRegisteredKey,
+  validateRegisteredKey,
+  incrementRegisteredKeyUsage,
+  checkQuota,
+  setProviderKeyLimit,
+  setAccountKeyLimit,
+  getProviderKeyLimit,
+  getAccountKeyLimit,
+} from "./db/registeredKeys";
+
+export type {
+  RegisteredKey,
+  RegisteredKeyWithSecret,
+  ProviderKeyLimit,
+  AccountKeyLimit,
+  QuotaCheckResult,
+  IssueKeyParams,
+} from "./db/registeredKeys";

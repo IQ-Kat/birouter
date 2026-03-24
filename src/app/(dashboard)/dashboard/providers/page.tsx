@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 import PropTypes from "prop-types";
 import {
   Card,
@@ -99,6 +100,7 @@ export default function ProvidersPage() {
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
   const [testingMode, setTestingMode] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<any>(null);
+  const [importingZed, setImportingZed] = useState(false);
   const notify = useNotificationStore();
   const t = useTranslations("providers");
   const tc = useTranslations("common");
@@ -122,6 +124,33 @@ export default function ProvidersPage() {
     };
     fetchData();
   }, []);
+
+  const handleZedImport = async () => {
+    setImportingZed(true);
+    try {
+      const res = await fetch("/api/providers/zed/import", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.count > 0) {
+          notify.success(
+            `Imported ${data.count} credentials from Zed IDE (${data.providers.join(", ")}).`
+          );
+          // Refresh connections silently
+          const connectionsRes = await fetch("/api/providers");
+          const connectionsData = await connectionsRes.json();
+          if (connectionsRes.ok) setConnections(connectionsData.connections || []);
+        } else {
+          notify.info("No supported OAuth credentials found in Zed IDE.");
+        }
+      } else {
+        notify.error(data.error || "Failed to import from Zed IDE.");
+      }
+    } catch (error) {
+      notify.error("Network error while trying to import from Zed.");
+    } finally {
+      setImportingZed(false);
+    }
+  };
 
   const getProviderStats = (providerId, authType) => {
     const providerConnections = connections.filter(
@@ -269,6 +298,19 @@ export default function ProvidersPage() {
           </h2>
           <div className="flex items-center gap-2">
             <ModelAvailabilityBadge />
+            <button
+              onClick={handleZedImport}
+              disabled={importingZed}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40`}
+              title="Import credentials from Zed IDE"
+            >
+              <span
+                className={`material-symbols-outlined text-[14px] ${importingZed ? "animate-spin" : ""}`}
+              >
+                {importingZed ? "sync" : "download"}
+              </span>
+              {importingZed ? "Importing..." : "Import from Zed"}
+            </button>
             <button
               onClick={() => handleBatchTest("oauth")}
               disabled={!!testingMode}
@@ -490,16 +532,8 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
-  const [imgSrc, setImgSrc] = useState(`/providers/${provider.id}.png`);
-  const [imgError, setImgError] = useState(false);
 
-  const handleImgError = () => {
-    if (imgSrc.endsWith(".png")) {
-      setImgSrc(`/providers/${provider.id}.svg`);
-    } else {
-      setImgError(true);
-    }
-  };
+  // (#529) Icon state replaced by ProviderIcon component (Lobehub + PNG + generic fallback)
 
   const dotColors = {
     free: "bg-green-500",
@@ -526,21 +560,8 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
               className="size-8 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: `${provider.color}15` }}
             >
-              {imgError ? (
-                <span className="text-xs font-bold" style={{ color: provider.color }}>
-                  {provider.textIcon || provider.id.slice(0, 2).toUpperCase()}
-                </span>
-              ) : (
-                <Image
-                  src={imgSrc}
-                  alt={provider.name}
-                  width={30}
-                  height={30}
-                  className="object-contain rounded-lg max-w-[32px] max-h-[32px]"
-                  sizes="32px"
-                  onError={handleImgError}
-                />
-              )}
+              {/* (#529) ProviderIcon: Lobehub icons → PNG fallback → generic icon */}
+              <ProviderIcon providerId={provider.id} size={28} type="color" />
             </div>
             <div>
               <h3 className="font-semibold flex items-center gap-1.5">
@@ -633,28 +654,15 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
     compatible: t("compatibleLabel"),
   };
 
-  // Determine icon path: OpenAI Compatible providers use specialized icons
-  const getIconPath = () => {
+  // (#529) Icon state replaced by ProviderIcon component
+  // For compatible/anthropic providers, continue using static PNGs via the icon path
+  const staticIconPath = (() => {
     if (isCompatible) {
       return provider.apiType === "responses" ? "/providers/oai-r.png" : "/providers/oai-cc.png";
     }
-    if (isAnthropicCompatible) {
-      return "/providers/anthropic-m.png"; // Use Anthropic icon as base
-    }
-    return `/providers/${provider.id}.png`;
-  };
-
-  const [imgSrc, setImgSrc] = useState<string>(() => getIconPath());
-  const [imgError, setImgError] = useState(false);
-
-  const handleImgError = () => {
-    const basePath = getIconPath();
-    if (imgSrc.endsWith(".png") && !isCompatible && !isAnthropicCompatible) {
-      setImgSrc(`/providers/${provider.id}.svg`);
-    } else {
-      setImgError(true);
-    }
-  };
+    if (isAnthropicCompatible) return "/providers/anthropic-m.png";
+    return null; // ProviderIcon will handle it
+  })();
 
   return (
     <Link href={`/dashboard/providers/${providerId}`} className="group">
@@ -668,20 +676,18 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
               className="size-8 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: `${provider.color}15` }}
             >
-              {imgError ? (
-                <span className="text-xs font-bold" style={{ color: provider.color }}>
-                  {provider.textIcon || provider.id.slice(0, 2).toUpperCase()}
-                </span>
-              ) : (
+              {/* (#529) ProviderIcon with static override for compatible providers */}
+              {staticIconPath ? (
                 <Image
-                  src={imgSrc || getIconPath()}
+                  src={staticIconPath}
                   alt={provider.name}
                   width={30}
                   height={30}
                   className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
                   sizes="30px"
-                  onError={handleImgError}
                 />
+              ) : (
+                <ProviderIcon providerId={provider.id} size={28} type="color" />
               )}
             </div>
             <div>

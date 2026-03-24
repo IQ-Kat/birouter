@@ -2,6 +2,291 @@
 
 ## [Unreleased]
 
+> **Coming next** — see [3.0.0-rc branch](https://github.com/diegosouzapw/OmniRoute/tree/3.0.0-rc).
+
+---
+
+## [3.0.0-rc.13] — 2026-03-23
+
+### 🔧 Bug Fixes
+
+- **config:** resolve real API key from `keyId` in CLI settings routes (`codex-settings`, `droid-settings`, `kilo-settings`) to prevent writing masked strings (#549)
+
+---
+
+## [3.0.0-rc.12] — 2026-03-23
+
+### 🔀 Community PRs Merged
+
+| PR       | Author   | Summary                                                                                                                                                       |
+| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **#546** | @k0valik | fix(cli): `--version` returning `unknown` on Windows — use `JSON.parse(readFileSync)` instead of ESM import                                                   |
+| **#555** | @k0valik | fix(sse): centralized `resolveDataDir()` for path resolution in credentials, autoCombo, responses logger, and request logger                                  |
+| **#544** | @k0valik | fix(cli): secure CLI tool detection via known installation paths (8 tools) with symlink validation, file-type checks, size bounds, minimal env in healthcheck |
+| **#542** | @rdself  | fix(ui): improve light mode contrast — add missing CSS theme variables (`bg-primary`, `bg-subtle`, `text-primary`) and fix dark-only colors in log detail     |
+
+### 🔧 Bug Fixes
+
+- **TDZ fix in `cliRuntime.ts`** — `validateEnvPath` was used before initialization at module startup by `getExpectedParentPaths()`. Reordered declarations to fix `ReferenceError`.
+- **Build fixes** — Added `pino` and `pino-pretty` to `serverExternalPackages` to prevent Turbopack from breaking Pino's internal worker loading.
+
+### 🧪 Tests
+
+- Test suite: **905 tests, 0 failures**
+
+---
+
+## [3.0.0-rc.10] — 2026-03-23
+
+### 🔧 Bug Fixes
+
+- **#509 / #508** — Electron build regression: downgraded Next.js from `16.1.x` to `16.0.10` to eliminate Turbopack module-hashing instability that caused blank screens in the Electron desktop bundle.
+- **Unit test fixes** — Corrected two stale test assertions (`nanobanana-image-handler` aspect ratio/resolution, `thinking-budget` Gemini `thinkingConfig` field mapping) that had drifted after recent implementation changes.
+- **#541** — Responded to user feedback about installation complexity; no code changes required.
+
+---
+
+## [3.0.0-rc.9] — 2026-03-23
+
+### ✨ New Features
+
+- **T29** — Vertex AI SA JSON Executor: implemented using the `jose` library to handle JWT/Service Account auth, along with configurable regions in the UI and automatic partner model URL building.
+- **T42** — Image generation aspect ratio mapping: created `sizeMapper` logic for generic OpenAI formats (`size`), added native `imagen3` handling, and updated NanoBanana endpoints to utilize mapped aspect ratios automatically.
+- **T38** — Centralized model specifications: `modelSpecs.ts` created for limits and parameters per model.
+
+### 🔧 Improvements
+
+- **T40** — OpenCode CLI tools integration: native `opencode-zen` and `opencode-go` integration completed in earlier PR.
+
+---
+
+## [3.0.0-rc.8] — 2026-03-23
+
+### 🔧 Bug Fixes & Improvements (Fallback, Quota & Budget)
+
+- **T24** — `503` cooldown await fix + `406` mapping: mapped `406 Not Acceptable` to `503 Service Unavailable` with proper cooldown intervals.
+- **T25** — Provider validation fallback: graceful fallback to standard validation models when a specific `validationModelId` is not present.
+- **T36** — `403` vs `429` provider handling refinement: extracted into `errorClassifier.ts` to properly segregate hard permissions failures (`403`) from rate limits (`429`).
+- **T39** — Endpoint Fallback for `fetchAvailableModels`: implemented a tri-tier mechanism (`/models` -> `/v1/models` -> local generic catalog) + `list_models_catalog` MCP tool updates to reflect `source` and `warning`.
+- **T33** — Thinking level to budget conversion: translates qualitative thinking levels into precise budget allocations.
+- **T41** — Background task auto redirect: routes heavy background evaluation tasks to flash/efficient models automatically.
+- **T23** — Intelligent quota reset fallback: accurately extracts `x-ratelimit-reset` / `retry-after` header values or maps static cooldowns.
+
+---
+
+## [3.0.0-rc.7] — 2026-03-23 _(What's New vs v2.9.5 — will be released as v3.0.0)_
+
+> **Upgrade from v2.9.5:** 16 issues resolved · 2 community PRs merged · 2 new providers · 7 new API endpoints · 3 new features · DB migration 008+009 · 832 tests passing · 15 sub2api gap improvements (T01–T15 complete).
+
+### 🆕 New Providers
+
+| Provider         | Alias          | Tier | Notes                                                          |
+| ---------------- | -------------- | ---- | -------------------------------------------------------------- |
+| **OpenCode Zen** | `opencode-zen` | Free | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon)    |
+| **OpenCode Go**  | `opencode-go`  | Paid | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon) |
+
+Both providers use the new `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`, `/models/{model}:generateContent`).
+
+---
+
+### ✨ New Features
+
+#### 🔑 Registered Keys Provisioning API (#464)
+
+Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+
+| Endpoint                              | Method    | Description                                      |
+| ------------------------------------- | --------- | ------------------------------------------------ |
+| `/api/v1/registered-keys`             | `POST`    | Issue a new key — raw key returned **once only** |
+| `/api/v1/registered-keys`             | `GET`     | List registered keys (masked)                    |
+| `/api/v1/registered-keys/{id}`        | `GET`     | Get key metadata                                 |
+| `/api/v1/registered-keys/{id}`        | `DELETE`  | Revoke a key                                     |
+| `/api/v1/registered-keys/{id}/revoke` | `POST`    | Revoke (for clients without DELETE support)      |
+| `/api/v1/quotas/check`                | `GET`     | Pre-validate quota before issuing                |
+| `/api/v1/providers/{id}/limits`       | `GET/PUT` | Configure per-provider issuance limits           |
+| `/api/v1/accounts/{id}/limits`        | `GET/PUT` | Configure per-account issuance limits            |
+| `/api/v1/issues/report`               | `POST`    | Report quota events to GitHub Issues             |
+
+**DB — Migration 008:** Three new tables: `registered_keys`, `provider_key_limits`, `account_key_limits`.
+**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
+**Quota types:** `maxActiveKeys`, `dailyIssueLimit`, `hourlyIssueLimit` per provider and per account.
+**Idempotency:** `idempotency_key` field prevents duplicate issuance. Returns `409 IDEMPOTENCY_CONFLICT` if key was already used.
+**Budget per key:** `dailyBudget` / `hourlyBudget` — limits how many requests a key can route per window.
+**GitHub reporting:** Optional. Set `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` to auto-create GitHub issues on quota exceeded or issuance failures.
+
+#### 🎨 Provider Icons — @lobehub/icons (#529)
+
+All provider icons in the dashboard now use `@lobehub/icons` React components (130+ providers with SVG).
+Fallback chain: **Lobehub SVG → existing `/providers/{id}.png` → generic icon**. Uses a proper React `ErrorBoundary` pattern.
+
+#### 🔄 Model Auto-Sync Scheduler (#488)
+
+OmniRoute now automatically refreshes model lists for connected providers every **24 hours**.
+
+- Runs on server startup via the existing `/api/sync/initialize` hook
+- Configurable via `MODEL_SYNC_INTERVAL_HOURS` environment variable
+- Covers 16 major providers
+- Records last sync time in the settings database
+
+---
+
+### 🔧 Bug Fixes
+
+#### OAuth & Auth
+
+- **#537 — Gemini CLI OAuth:** Clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments. Previously showed cryptic `client_secret is missing` from Google. Now provides specific `docker-compose.yml` and `~/.omniroute/.env` instructions.
+
+#### Providers & Routing
+
+- **#536 — LongCat AI:** Fixed `baseUrl` (`api.longcat.chat/openai`) and `authHeader` (`Authorization: Bearer`).
+- **#535 — Pinned model override:** `body.model` is now correctly set to `pinnedModel` when context-cache protection is active.
+- **#532 — OpenCode Go key validation:** Now uses the `zen/v1` test endpoint (`testKeyBaseUrl`) — same key works for both tiers.
+
+#### CLI & Tools
+
+- **#527 — Claude Code + Codex loop:** `tool_result` blocks are now converted to text instead of dropped, stopping infinite tool-result loops.
+- **#524 — OpenCode config save:** Added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML).
+- **#521 — Login stuck:** Login no longer freezes after skipping password setup — redirects correctly to onboarding.
+- **#522 — API Manager:** Removed misleading "Copy masked key" button (replaced with a lock icon tooltip).
+- **#532 — OpenCode Go config:** Guide settings handler now handles `opencode` toolId.
+
+#### Developer Experience
+
+- **#489 — Antigravity:** Missing `googleProjectId` returns a structured 422 error with reconnect guidance instead of a cryptic crash.
+- **#510 — Windows paths:** MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...` automatically.
+- **#492 — CLI startup:** `omniroute` CLI now detects `mise`/`nvm`-managed Node when `app/server.js` is missing and shows targeted fix instructions.
+
+---
+
+### 📖 Documentation Updates
+
+- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
+- **#520** — pnpm: `pnpm approve-builds better-sqlite3` step documented
+
+---
+
+### ✅ Issues Resolved in v3.0.0
+
+`#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#536` `#537`
+
+---
+
+### 🔀 Community PRs Merged
+
+| PR       | Author       | Summary                                                                |
+| -------- | ------------ | ---------------------------------------------------------------------- |
+| **#530** | @kang-heewon | OpenCode Zen + Go providers with `OpencodeExecutor` and improved tests |
+
+---
+
+## [3.0.0-rc.7] - 2026-03-23
+
+### 🔧 Improvements (sub2api Gap Analysis — T05, T08, T09, T13, T14)
+
+- **T05** — Rate-limit DB persistence: `setConnectionRateLimitUntil()`, `isConnectionRateLimited()`, `getRateLimitedConnections()` in `providers.ts`. The existing `rate_limited_until` column is now exposed as a dedicated API — OAuth token refresh must NOT touch this field to prevent rate-limit loops.
+- **T08** — Per-API-key session limit: `max_sessions INTEGER DEFAULT 0` added to `api_keys` via auto-migration. `sessionManager.ts` gains `registerKeySession()`, `unregisterKeySession()`, `checkSessionLimit()`, and `getActiveSessionCountForKey()`. Callers in `chatCore.js` can enforce the limit and decrement on `req.close`.
+- **T09** — Codex vs Spark rate-limit scopes: `getCodexModelScope()` and `getCodexRateLimitKey()` in `codex.ts`. Standard models (`gpt-5.x-codex`, `codex-mini`) get scope `"codex"`; spark models (`codex-spark*`) get scope `"spark"`. Rate-limit keys should be `${accountId}:${scope}` so exhausting one pool doesn't block the other.
+- **T13** — Stale quota display fix: `getEffectiveQuotaUsage(used, resetAt)` returns `0` when the reset window has passed; `formatResetCountdown(resetAt)` returns a human-readable countdown string (e.g. `"2h 35m"`). Both exported from `providers.ts` + `localDb.ts` for dashboard consumption.
+- **T14** — Proxy fast-fail: new `src/lib/proxyHealth.ts` with `isProxyReachable(proxyUrl, timeoutMs=2000)` (TCP check, ≤2s instead of 30s timeout), `getCachedProxyHealth()`, `invalidateProxyHealth()`, and `getAllProxyHealthStatuses()`. Results cached 30s by default; configurable via `PROXY_FAST_FAIL_TIMEOUT_MS` / `PROXY_HEALTH_CACHE_TTL_MS`.
+
+### 🧪 Tests
+
+- Test suite: **832 tests, 0 failures**
+
+---
+
+## [3.0.0-rc.6] - 2026-03-23
+
+### 🔧 Bug Fixes & Improvements (sub2api Gap Analysis — T01–T15)
+
+- **T01** — `requested_model` column in `call_logs` (migration 009): track which model the client originally requested vs the actual routed model. Enables fallback rate analytics.
+- **T02** — Strip empty text blocks from nested `tool_result.content`: prevents Anthropic 400 errors (`text content blocks must be non-empty`) when Claude Code chains tool results.
+- **T03** — Parse `x-codex-5h-*` / `x-codex-7d-*` headers: `parseCodexQuotaHeaders()` + `getCodexResetTime()` extract Codex quota windows for precise cooldown scheduling instead of generic 5-min fallback.
+- **T04** — `X-Session-Id` header for external sticky routing: `extractExternalSessionId()` in `sessionManager.ts` reads `x-session-id` / `x-omniroute-session` headers with `ext:` prefix to avoid collision with internal SHA-256 session IDs. Nginx-compatible (hyphenated header).
+- **T06** — Account deactivated → permanent block: `isAccountDeactivated()` in `accountFallback.ts` detects 401 deactivation signals and applies a 1-year cooldown to prevent retrying permanently dead accounts.
+- **T07** — X-Forwarded-For IP validation: new `src/lib/ipUtils.ts` with `extractClientIp()` and `getClientIpFromRequest()` — skips `unknown`/non-IP entries in `X-Forwarded-For` chains (Nginx/proxy-forwarded requests).
+- **T10** — Credits exhausted → distinct fallback: `isCreditsExhausted()` in `accountFallback.ts` returns 1h cooldown with `creditsExhausted` flag, distinct from generic 429 rate limiting.
+- **T11** — `max` reasoning effort → 131072 budget tokens: `EFFORT_BUDGETS` and `THINKING_LEVEL_MAP` updated; reverse mapping now returns `"max"` for full-budget responses. Unit test updated.
+- **T12** — MiniMax M2.7 pricing entries added: `minimax-m2.7`, `MiniMax-M2.7`, `minimax-m2.7-highspeed` added to pricing table (sub2api PR #1120). M2.5/GLM-4.7/GLM-5/Kimi pricing already existed.
+- **T15** — Array content normalization: `normalizeContentToString()` helper in `openai-to-claude.ts` correctly collapses array-formatted system/tool messages to string before sending to Anthropic.
+
+### 🧪 Tests
+
+- Test suite: **832 tests, 0 failures** (unchanged from rc.5)
+
+---
+
+## [3.0.0-rc.5] - 2026-03-22
+
+### ✨ New Features
+
+- **#464** — Registered Keys Provisioning API: auto-issue API keys with per-provider & per-account quota enforcement
+  - `POST /api/v1/registered-keys` — issue keys with idempotency support
+  - `GET /api/v1/registered-keys` — list (masked) registered keys
+  - `GET /api/v1/registered-keys/{id}` — get key metadata
+  - `DELETE /api/v1/registered-keys/{id}` / `POST ../{id}/revoke` — revoke keys
+  - `GET /api/v1/quotas/check` — pre-validate before issuing
+  - `PUT /api/v1/providers/{id}/limits` — set provider issuance limits
+  - `PUT /api/v1/accounts/{id}/limits` — set account issuance limits
+  - `POST /api/v1/issues/report` — optional GitHub issue reporting
+  - DB migration 008: `registered_keys`, `provider_key_limits`, `account_key_limits` tables
+
+---
+
+## [3.0.0-rc.4] - 2026-03-22
+
+### ✨ New Features
+
+- **#530 (PR)** — OpenCode Zen and OpenCode Go providers added (by @kang-heewon)
+  - New `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`)
+  - 7 models across both tiers
+
+---
+
+## [3.0.0-rc.3] - 2026-03-22
+
+### ✨ New Features
+
+- **#529** — Provider icons now use [@lobehub/icons](https://github.com/lobehub/lobe-icons) with graceful PNG fallback and a `ProviderIcon` component (130+ providers supported)
+- **#488** — Auto-update model lists every 24h via `modelSyncScheduler` (configurable via `MODEL_SYNC_INTERVAL_HOURS`)
+
+### 🔧 Bug Fixes
+
+- **#537** — Gemini CLI OAuth: now shows clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments
+
+---
+
+## [3.0.0-rc.2] - 2026-03-22
+
+### 🔧 Bug Fixes
+
+- **#536** — LongCat AI key validation: fixed baseUrl (`api.longcat.chat/openai`) and authHeader (`Authorization: Bearer`)
+- **#535** — Pinned model override: `body.model` is now set to `pinnedModel` when context-cache protection detects a pinned model
+- **#524** — OpenCode config now saved correctly: added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML)
+
+---
+
+## [3.0.0-rc.1] - 2026-03-22
+
+### 🔧 Bug Fixes
+
+- **#521** — Login no longer gets stuck after skipping password setup (redirects to onboarding)
+- **#522** — API Manager: Removed misleading "Copy masked key" button (replaced with lock icon tooltip)
+- **#527** — Claude Code + Codex superpowers loop: `tool_result` blocks now converted to text instead of dropped
+- **#532** — OpenCode GO API key validation now uses the correct `zen/v1` endpoint (`testKeyBaseUrl`)
+- **#489** — Antigravity: missing `googleProjectId` returns structured 422 error with reconnect guidance
+- **#510** — Windows: MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...`
+- **#492** — `omniroute` CLI now detects `mise`/`nvm` when `app/server.js` is missing and shows targeted fix
+
+### 📖 Documentation
+
+- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
+- **#520** — pnpm: `pnpm approve-builds better-sqlite3` documented
+
+### ✅ Closed Issues
+
+#489, #492, #510, #513, #520, #521, #522, #525, #527, #532
+
 ---
 
 ## [2.9.5] — 2026-03-22

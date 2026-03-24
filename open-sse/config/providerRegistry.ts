@@ -6,6 +6,8 @@
  * is auto-generated from this registry.
  */
 
+import { platform, arch } from "os";
+
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export interface RegistryModel {
@@ -47,6 +49,8 @@ export interface RegistryEntry {
   executor: string;
   baseUrl?: string;
   baseUrls?: string[];
+  /** Override base URL used only for API key validation (e.g., opencode-go validates on zen/v1) */
+  testKeyBaseUrl?: string;
   responsesBaseUrl?: string;
   urlSuffix?: string;
   urlBuilder?: (base: string, model: string, stream: boolean) => string;
@@ -94,6 +98,32 @@ const KIMI_CODING_SHARED = {
   ] as RegistryModel[],
 } as const;
 
+function mapStainlessOs() {
+  switch (platform()) {
+    case "darwin":
+      return "MacOS";
+    case "win32":
+      return "Windows";
+    case "linux":
+      return "Linux";
+    default:
+      return `Other::${platform()}`;
+  }
+}
+
+function mapStainlessArch() {
+  switch (arch()) {
+    case "x64":
+      return "x64";
+    case "arm64":
+      return "arm64";
+    case "ia32":
+      return "x86";
+    default:
+      return `other::${arch()}`;
+  }
+}
+
 // ── Registry ──────────────────────────────────────────────────────────────
 
 export const REGISTRY: Record<string, RegistryEntry> = {
@@ -110,19 +140,19 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     headers: {
       "Anthropic-Version": "2023-06-01",
       "Anthropic-Beta":
-        "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14,context-management-2025-06-27",
+        "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05",
       "Anthropic-Dangerous-Direct-Browser-Access": "true",
-      "User-Agent": "claude-cli/1.0.83 (external, cli)",
+      "User-Agent": "claude-cli/2.1.63 (external, cli)",
       "X-App": "cli",
       "X-Stainless-Helper-Method": "stream",
       "X-Stainless-Retry-Count": "0",
       "X-Stainless-Runtime-Version": "v24.3.0",
-      "X-Stainless-Package-Version": "0.55.1",
+      "X-Stainless-Package-Version": "0.74.0",
       "X-Stainless-Runtime": "node",
       "X-Stainless-Lang": "js",
-      "X-Stainless-Arch": "arm64",
-      "X-Stainless-Os": "MacOS",
-      "X-Stainless-Timeout": "60",
+      "X-Stainless-Arch": mapStainlessArch(),
+      "X-Stainless-Os": mapStainlessOs(),
+      "X-Stainless-Timeout": "600",
     },
     oauth: {
       clientIdEnv: "CLAUDE_OAUTH_CLIENT_ID",
@@ -157,9 +187,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: "",
     },
     models: [
+      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High" },
+      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low" },
       { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
       { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro (Alt ID)" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
+      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
@@ -189,9 +223,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: "",
     },
     models: [
+      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High" },
+      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low" },
       { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
       { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro (Alt ID)" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
+      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
@@ -320,7 +358,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "ag",
     format: "antigravity",
     executor: "antigravity",
-    baseUrls: ["https://daily-cloudcode-pa.googleapis.com", "https://cloudcode-pa.googleapis.com"],
+    baseUrls: [
+      "https://daily-cloudcode-pa.googleapis.com",
+      "https://daily-cloudcode-pa.sandbox.googleapis.com",
+      "https://cloudcode-pa.googleapis.com",
+    ],
     urlBuilder: (base, model, stream) => {
       const path = stream
         ? "/v1internal:streamGenerateContent?alt=sse"
@@ -330,7 +372,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     headers: {
-      "User-Agent": "antigravity/1.104.0 darwin/arm64",
+      "User-Agent": `antigravity/1.107.0 ${platform()}/${arch()}`,
     },
     oauth: {
       clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
@@ -359,9 +401,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     headers: {
       "copilot-integration-id": "vscode-chat",
-      "editor-version": "vscode/1.107.1",
-      "editor-plugin-version": "copilot-chat/0.26.7",
-      "user-agent": "GitHubCopilotChat/0.26.7",
+      "editor-version": "vscode/1.110.0",
+      "editor-plugin-version": "copilot-chat/0.38.0",
+      "user-agent": "GitHubCopilotChat/0.38.0",
       "openai-intent": "conversation-panel",
       "x-github-api-version": "2025-04-01",
       "x-vscode-user-agent-library-version": "electron-fetch",
@@ -501,6 +543,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     format: "openai",
     executor: "opencode",
     baseUrl: "https://opencode.ai/zen/go/v1",
+    // (#532) Key validation must hit the main zen endpoint (same key works for both tiers)
+    testKeyBaseUrl: "https://opencode.ai/zen/v1",
     authType: "apikey",
     authHeader: "Authorization",
     authPrefix: "Bearer",
@@ -742,6 +786,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
     },
     models: [
+      // T12/T28: MiniMax default upgraded from M2.5 to M2.7
+      { id: "minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "MiniMax-M2.7", name: "MiniMax M2.7 (Legacy Alias)" },
+      { id: "minimax-m2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5 (Legacy Alias)" },
       { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
@@ -763,6 +811,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
+      { id: "minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "MiniMax-M2.7", name: "MiniMax M2.7 (Legacy Alias)" },
+      { id: "minimax-m2.7-highspeed", name: "MiniMax M2.7 Highspeed" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5 (Legacy Alias)" },
       { id: "MiniMax-M2.1", name: "MiniMax M2.1" },
@@ -1142,7 +1193,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "vertex",
     // Vertex AI uses Google's generateContent format (same as Gemini)
     format: "gemini",
-    executor: "default",
+    executor: "vertex",
     // URL uses {project_id} and {region} from providerSpecificData — handled by custom executor or fallback
     // Default to us-central1 / generic endpoint; users configure project via providerSpecificData
     baseUrl: "https://us-central1-aiplatform.googleapis.com/v1/projects",
@@ -1156,10 +1207,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview (Vertex)" },
+      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview (Vertex)" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview (Vertex)" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (Vertex)" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Vertex)" },
       { id: "gemini-2.0-flash-thinking-exp", name: "Gemini 2.0 Flash Thinking Exp (Vertex)" },
       { id: "gemma-2-27b-it", name: "Gemma 2 27B (Vertex)" },
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2 (Vertex Partner)" },
+      { id: "qwen3-next-80b", name: "Qwen3 Next 80B (Vertex Partner)" },
+      { id: "glm-5", name: "GLM-5 (Vertex Partner)" },
       { id: "claude-opus-4-5@20251101", name: "Claude Opus 4.5 (Vertex)" },
       { id: "claude-sonnet-4-5@20251101", name: "Claude Sonnet 4.5 (Vertex)" },
     ],
@@ -1201,9 +1258,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "lc",
     format: "openai",
     executor: "default",
-    baseUrl: "https://longcat.chat/api/v1/chat/completions",
+    // (#536) Correct OpenAI-compatible base URL — was longcat.chat/api/v1/chat/completions
+    // which is the chat endpoint directly, not the base. Key validation and routing must
+    // use https://api.longcat.chat/openai which resolves /v1/models and /v1/chat/completions
+    baseUrl: "https://api.longcat.chat/openai",
     authType: "apikey",
-    authHeader: "bearer",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
     // Free tier: 50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta
     models: [
       { id: "LongCat-Flash-Lite", name: "LongCat Flash-Lite (50M tok/day 🆓)" },
@@ -1231,6 +1292,68 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "llama", name: "Llama 4 via Pollinations (🆓)" },
       { id: "mistral", name: "Mistral via Pollinations (🆓)" },
     ],
+  },
+
+  puter: {
+    id: "puter",
+    alias: "pu",
+    format: "openai",
+    executor: "puter",
+    // OpenAI-compatible gateway with 500+ models (GPT, Claude, Gemini, Grok, DeepSeek, Qwen…)
+    // Auth: Bearer <puter_auth_token> from puter.com/dashboard → Copy Auth Token
+    // Model IDs use provider/model-name format for non-OpenAI models.
+    // Only chat completions (incl. streaming) are available via REST.
+    // Image gen, TTS, STT, video are puter.js SDK-only (browser).
+    baseUrl: "https://api.puter.com/puterai/openai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      // OpenAI — use bare IDs
+      { id: "gpt-4o-mini", name: "GPT-4o Mini (🆓 Puter)" },
+      { id: "gpt-4o", name: "GPT-4o (Puter)" },
+      { id: "gpt-4.1", name: "GPT-4.1 (Puter)" },
+      { id: "gpt-4.1-mini", name: "GPT-4.1 Mini (Puter)" },
+      { id: "gpt-5-nano", name: "GPT-5 Nano (Puter)" },
+      { id: "gpt-5-mini", name: "GPT-5 Mini (Puter)" },
+      { id: "gpt-5", name: "GPT-5 (Puter)" },
+      { id: "o3-mini", name: "OpenAI o3-mini (Puter)" },
+      { id: "o3", name: "OpenAI o3 (Puter)" },
+      { id: "o4-mini", name: "OpenAI o4-mini (Puter)" },
+      // Anthropic Claude — use bare IDs (confirmed working)
+      { id: "claude-haiku-4-5", name: "Claude Haiku 4.5 (Puter)" },
+      { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5 (Puter)" },
+      { id: "claude-opus-4-5", name: "Claude Opus 4.5 (Puter)" },
+      { id: "claude-sonnet-4", name: "Claude Sonnet 4 (Puter)" },
+      { id: "claude-opus-4", name: "Claude Opus 4 (Puter)" },
+      // Google Gemini — use google/ prefix (confirmed working)
+      { id: "google/gemini-2.0-flash", name: "Gemini 2.0 Flash (Puter)" },
+      { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash (Puter)" },
+      { id: "google/gemini-2.5-pro", name: "Gemini 2.5 Pro (Puter)" },
+      { id: "google/gemini-3-flash", name: "Gemini 3 Flash (Puter)" },
+      { id: "google/gemini-3-pro", name: "Gemini 3 Pro (Puter)" },
+      // DeepSeek — use deepseek/ prefix (confirmed working)
+      { id: "deepseek/deepseek-chat", name: "DeepSeek Chat (Puter)" },
+      { id: "deepseek/deepseek-r1", name: "DeepSeek R1 (Puter)" },
+      { id: "deepseek/deepseek-v3.2", name: "DeepSeek V3.2 (Puter)" },
+      // xAI Grok — use x-ai/ prefix
+      { id: "x-ai/grok-3", name: "Grok 3 (Puter)" },
+      { id: "x-ai/grok-3-mini", name: "Grok 3 Mini (Puter)" },
+      { id: "x-ai/grok-4", name: "Grok 4 (Puter)" },
+      { id: "x-ai/grok-4-fast", name: "Grok 4 Fast (Puter)" },
+      // Meta Llama — bare IDs (confirmed ✅)
+      { id: "llama-4-scout", name: "Llama 4 Scout (Puter)" },
+      { id: "llama-4-maverick", name: "Llama 4 Maverick (Puter)" },
+      { id: "llama-3.3-70b-instruct", name: "Llama 3.3 70B (Puter)" },
+      // Mistral — bare IDs (confirmed ✅)
+      { id: "mistral-small-latest", name: "Mistral Small (Puter)" },
+      { id: "mistral-medium-latest", name: "Mistral Medium (Puter)" },
+      { id: "open-mistral-nemo", name: "Mistral Nemo (Puter)" },
+      // Qwen — use qwen/ prefix (confirmed ✅)
+      { id: "qwen/qwen3-235b-a22b", name: "Qwen3 235B (Puter)" },
+      { id: "qwen/qwen3-32b", name: "Qwen3 32B (Puter)" },
+      { id: "qwen/qwen3-coder", name: "Qwen3 Coder 480B (Puter)" },
+    ],
+    passthroughModels: true, // 500+ models available — users can type any Puter model ID
   },
 
   "cloudflare-ai": {
