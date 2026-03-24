@@ -6,18 +6,277 @@
 
 ## [3.0.0] — 2026-03-24
 
-### 🎉 v3.0.0 — Major Release
+### 🎉 OmniRoute v3.0.0 — The Free AI Gateway, Now with 67+ Providers
 
-- All RC changes from v3.0.0-rc.1 through rc.17 finalized
-- **PR #587**: fix(sse): revert `resolveDataDir` import in responsesTransformer for Cloudflare Workers compat (@k0valik)
-- **67+ AI providers** with automatic format translation
-- **9 routing strategies** including auto-combo with self-healing
-- **MCP Server** (16 tools, 3 transports: stdio/SSE/streamable-HTTP)
-- **A2A Server** (Agent-to-Agent v0.3 protocol)
-- **Provider Icons** via `@lobehub/icons` (130+ SVG with PNG fallback)
-- **926 tests** with 0 failures
-- **CodeQL security** — 10+ alerts remediated
-- **Route validation** — 176/176 routes validated with Zod schemas
+> **The biggest release ever.** From 36 providers in v2.9.5 to **67+ providers** in v3.0.0 — with MCP Server, A2A Protocol, auto-combo engine, Provider Icons, Registered Keys API, 926 tests, and contributions from **12 community members** across **10 merged PRs**.
+>
+> Consolidated from v3.0.0-rc.1 through rc.17 (17 release candidates over 3 days of intense development).
+
+---
+
+### 🆕 New Providers (+31 since v2.9.5)
+
+| Provider | Alias | Tier | Notes |
+|----------|-------|------|-------|
+| **OpenCode Zen** | `opencode-zen` | Free | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon) |
+| **OpenCode Go** | `opencode-go` | Paid | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon) |
+| **LongCat AI** | `lc` | Free | 50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) during public beta |
+| **Pollinations AI** | `pol` | Free | No API key needed — GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 req/15s) |
+| **Cloudflare Workers AI** | `cf` | Free | 10K Neurons/day — ~150 LLM responses or 500s Whisper audio, edge inference |
+| **Scaleway AI** | `scw` | Free | 1M free tokens for new accounts — EU/GDPR compliant (Paris) |
+| **AI/ML API** | `aiml` | Free | $0.025/day free credits — 200+ models via single endpoint |
+| **Puter AI** | `pu` | Free | 500+ models (GPT-5, Claude Opus 4, Gemini 3 Pro, Grok 4, DeepSeek V3) |
+| **Alibaba Cloud (DashScope)** | `ali` | Paid | International + China endpoints via `alicode`/`alicode-intl` |
+| **Alibaba Coding Plan** | `bcp` | Paid | Alibaba Model Studio with Anthropic-compatible API |
+| **Kimi Coding (API Key)** | `kmca` | Paid | Dedicated API-key-based Kimi access (separate from OAuth) |
+| **MiniMax Coding** | `minimax` | Paid | International endpoint |
+| **MiniMax (China)** | `minimax-cn` | Paid | China-specific endpoint |
+| **Z.AI (GLM-5)** | `zai` | Paid | Zhipu AI next-gen GLM models |
+| **Vertex AI** | `vertex` | Paid | Google Cloud — Service Account JSON or OAuth access_token |
+| **Ollama Cloud** | `ollamacloud` | Paid | Ollama's hosted API service |
+| **Synthetic** | `synthetic` | Paid | Passthrough models gateway |
+| **Kilo Gateway** | `kg` | Paid | Passthrough models gateway |
+| **Perplexity Search** | `pplx-search` | Paid | Dedicated search-grounded endpoint |
+| **Serper Search** | `serper-search` | Paid | Web search API integration |
+| **Brave Search** | `brave-search` | Paid | Brave Search API integration |
+| **Exa Search** | `exa-search` | Paid | Neural search API integration |
+| **Tavily Search** | `tavily-search` | Paid | AI search API integration |
+| **NanoBanana** | `nb` | Paid | Image generation API |
+| **ElevenLabs** | `el` | Paid | Text-to-speech voice synthesis |
+| **Cartesia** | `cartesia` | Paid | Ultra-fast TTS voice synthesis |
+| **PlayHT** | `playht` | Paid | Voice cloning and TTS |
+| **Inworld** | `inworld` | Paid | AI character voice chat |
+| **SD WebUI** | `sdwebui` | Self-hosted | Stable Diffusion local image generation |
+| **ComfyUI** | `comfyui` | Self-hosted | ComfyUI local workflow node-based generation |
+| **GLM Coding** | `glm` | Paid | BigModel/Zhipu coding-specific endpoint |
+
+**Total: 67+ providers** (4 Free, 8 OAuth, 55 API Key) + unlimited OpenAI/Anthropic-Compatible custom providers.
+
+---
+
+### ✨ Major Features
+
+#### 🔑 Registered Keys Provisioning API (#464)
+
+Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/registered-keys` | `POST` | Issue a new key — raw key returned **once only** |
+| `/api/v1/registered-keys` | `GET` | List registered keys (masked) |
+| `/api/v1/registered-keys/{id}` | `GET/DELETE` | Get metadata / Revoke |
+| `/api/v1/quotas/check` | `GET` | Pre-validate quota before issuing |
+| `/api/v1/providers/{id}/limits` | `GET/PUT` | Configure per-provider issuance limits |
+| `/api/v1/accounts/{id}/limits` | `GET/PUT` | Configure per-account issuance limits |
+| `/api/v1/issues/report` | `POST` | Report quota events to GitHub Issues |
+
+**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
+
+#### 🎨 Provider Icons via @lobehub/icons (#529)
+
+130+ provider logos using `@lobehub/icons` React components (SVG). Fallback chain: **Lobehub SVG → existing PNG → generic icon**. Applied across Dashboard, Providers, and Agents pages with standardized `ProviderIcon` component.
+
+#### 🔄 Model Auto-Sync Scheduler (#488)
+
+Auto-refreshes model lists for connected providers every **24 hours**. Runs on server startup. Configurable via `MODEL_SYNC_INTERVAL_HOURS`.
+
+#### 🔀 Per-Model Combo Routing (#563)
+
+Map model name patterns (glob) to specific combos for automatic routing:
+- `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
+- New `model_combo_mappings` table with glob-to-regex matching
+- Dashboard UI section: "Model Routing Rules" with inline add/edit/toggle/delete
+
+#### 🧭 API Endpoints Dashboard
+
+Interactive catalog, webhooks management, OpenAPI viewer — all in one tabbed page at `/dashboard/endpoint`.
+
+#### 🔍 Web Search Providers
+
+5 new search provider integrations: **Perplexity Search**, **Serper**, **Brave Search**, **Exa**, **Tavily** — enabling grounded AI responses with real-time web data.
+
+#### 📊 Search Analytics
+
+New tab in `/dashboard/analytics` — provider breakdown, cache hit rate, cost tracking. API: `GET /api/v1/search/analytics`.
+
+#### 🛡️ Per-API-Key Rate Limits (#452)
+
+`max_requests_per_day` and `max_requests_per_minute` columns with in-memory sliding-window enforcement returning HTTP 429.
+
+#### 🎵 Media Playground
+
+Full media generation playground at `/dashboard/media`: Image Generation, Video, Music, Audio Transcription (2GB upload limit), and Text-to-Speech.
+
+---
+
+### 🔒 Security & CI/CD
+
+- **CodeQL remediation** — Fixed 10+ alerts: 6 polynomial-redos, 1 insecure-randomness (`Math.random()` → `crypto.randomUUID()`), 1 shell-command-injection
+- **Route validation** — Zod schemas + `validateBody()` on **176/176 API routes** — CI enforced
+- **CVE fix** — dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) resolved via npm overrides
+- **Flatted** — Bumped 3.3.3 → 3.4.2 (CWE-1321 prototype pollution)
+- **Docker** — Upgraded `docker/setup-buildx-action` v3 → v4
+
+---
+
+### 🐛 Bug Fixes (40+)
+
+#### OAuth & Auth
+- **#537** — Gemini CLI OAuth: clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` missing in Docker
+- **#549** — CLI settings routes now resolve real API key from `keyId` (not masked strings)
+- **#574** — Login no longer freezes after skipping wizard password setup
+- **#506** — Cross-platform `machineId` rewritten (Windows REG.exe → macOS ioreg → Linux → hostname fallback)
+
+#### Providers & Routing
+- **#536** — LongCat AI: fixed `baseUrl` and `authHeader`
+- **#535** — Pinned model override: `body.model` correctly set to `pinnedModel`
+- **#570** — Unprefixed Claude models now resolve to Anthropic provider
+- **#585** — `<omniModel>` internal tags no longer leak to clients in SSE streaming
+- **#493** — Custom provider model naming no longer mangled by prefix stripping
+- **#490** — Streaming + context cache protection via `TransformStream` injection
+- **#511** — `<omniModel>` tag injected into first content chunk (not after `[DONE]`)
+
+#### CLI & Tools
+- **#527** — Claude Code + Codex loop: `tool_result` blocks now converted to text
+- **#524** — OpenCode config saved correctly (XDG_CONFIG_HOME, TOML format)
+- **#522** — API Manager: removed misleading "Copy masked key" button
+- **#546** — `--version` returning `unknown` on Windows (PR by @k0valik)
+- **#544** — Secure CLI tool detection via known installation paths (PR by @k0valik)
+- **#510** — Windows MSYS2/Git-Bash paths normalized automatically
+- **#492** — CLI detects `mise`/`nvm`-managed Node when `app/server.js` missing
+
+#### Streaming & SSE
+- **PR #587** — Revert `resolveDataDir` import in responsesTransformer for Cloudflare Workers compat (@k0valik)
+- **PR #495** — Bottleneck 429 infinite wait: drop waiting jobs on rate limit (@xandr0s)
+- **#483** — Stop trailing `data: null` after `[DONE]` signal
+- **#473** — Zombie SSE streams: timeout reduced 300s → 120s for faster fallback
+
+#### Media & Transcription
+- **Transcription** — Deepgram `video/mp4` → `audio/mp4` MIME mapping, auto language detection, punctuation
+- **TTS** — `[object Object]` error display fixed for ElevenLabs-style nested errors
+- **Upload limits** — Media transcription increased to 2GB (nginx `client_max_body_size 2g` + `maxDuration=300`)
+
+---
+
+### 🔧 Infrastructure & Improvements
+
+#### Sub2api Gap Analysis (T01–T15 + T23–T42)
+
+- **T01** — `requested_model` column in call logs (migration 009)
+- **T02** — Strip empty text blocks from nested `tool_result.content`
+- **T03** — Parse `x-codex-5h-*` / `x-codex-7d-*` quota headers
+- **T04** — `X-Session-Id` header for external sticky routing
+- **T05** — Rate-limit DB persistence with dedicated API
+- **T06** — Account deactivated → permanent block (1-year cooldown)
+- **T07** — X-Forwarded-For IP validation (`extractClientIp()`)
+- **T08** — Per-API-key session limits with sliding-window enforcement
+- **T09** — Codex vs Spark rate-limit scopes (separate pools)
+- **T10** — Credits exhausted → distinct 1h cooldown fallback
+- **T11** — `max` reasoning effort → 131072 budget tokens
+- **T12** — MiniMax M2.7 pricing entries
+- **T13** — Stale quota display fix (reset window awareness)
+- **T14** — Proxy fast-fail TCP check (≤2s, cached 30s)
+- **T15** — Array content normalization for Anthropic
+- **T23** — Intelligent quota reset fallback (header extraction)
+- **T24** — `503` cooldown + `406` mapping
+- **T25** — Provider validation fallback
+- **T29** — Vertex AI Service Account JWT auth
+- **T33** — Thinking level to budget conversion
+- **T36** — `403` vs `429` error classification
+- **T38** — Centralized model specifications (`modelSpecs.ts`)
+- **T39** — Endpoint fallback for `fetchAvailableModels`
+- **T41** — Background task auto-redirect to flash models
+- **T42** — Image generation aspect ratio mapping
+
+#### Other Improvements
+
+- **Per-model upstream custom headers** — via configuration UI (PR #575 by @zhangqiang8vip)
+- **Model context length** — configurable in model metadata (PR #578 by @hijak)
+- **Model prefix stripping** — option to remove provider prefix from model names (PR #582 by @jay77721)
+- **Gemini CLI deprecation** — marked deprecated with Google OAuth restriction warning
+- **YAML parser** — replaced custom parser with `js-yaml` for correct OpenAPI spec parsing
+- **ZWS v5** — HMR leak fix (485 DB connections → 1, memory 2.4GB → 195MB)
+- **Log export** — New JSON export button on dashboard with time range dropdown
+- **Update notification banner** — dashboard homepage shows when new versions are available
+
+---
+
+### 🌐 i18n & Documentation
+
+- **30 languages** at 100% parity — 2,788 missing keys synced
+- **Czech** — Full translation: 22 docs, 2,606 UI strings (PR by @zen0bit)
+- **Chinese (zh-CN)** — Complete retranslation (PR by @only4copilot)
+- **VM Deployment Guide** — Translated to English as source document
+- **API Reference** — Added `/v1/embeddings` and `/v1/audio/speech` endpoints
+- **Provider count** — Updated from 36+/40+/44+ to **67+** across README and all 30 i18n READMEs
+
+---
+
+### 🔀 Community PRs Merged (10)
+
+| PR | Author | Summary |
+|----|--------|---------|
+| **#587** | @k0valik | fix(sse): revert resolveDataDir import for Cloudflare Workers compat |
+| **#582** | @jay77721 | feat(proxy): model name prefix stripping option |
+| **#581** | @jay77721 | fix(npm): link electron-release to npm-publish workflow |
+| **#578** | @hijak | feat: configurable context length in model metadata |
+| **#575** | @zhangqiang8vip | feat: per-model upstream headers, compat PATCH, chat alignment |
+| **#562** | @coobabm | fix: MCP session management, Claude passthrough, detectFormat |
+| **#561** | @zen0bit | fix(i18n): Czech translation corrections |
+| **#555** | @k0valik | fix(sse): centralized `resolveDataDir()` for path resolution |
+| **#546** | @k0valik | fix(cli): `--version` returning `unknown` on Windows |
+| **#544** | @k0valik | fix(cli): secure CLI tool detection via installation paths |
+| **#542** | @rdself | fix(ui): light mode contrast CSS theme variables |
+| **#530** | @kang-heewon | feat: OpenCode Zen + Go providers with `OpencodeExecutor` |
+| **#512** | @zhangqiang8vip | feat: per-protocol model compatibility (`compatByProtocol`) |
+| **#497** | @zhangqiang8vip | fix: dev-mode HMR resource leaks (ZWS v5) |
+| **#495** | @xandr0s | fix: Bottleneck 429 infinite wait (drop waiting jobs) |
+| **#494** | @zhangqiang8vip | feat: MiniMax developer→system role fix |
+| **#480** | @prakersh | fix: stream flush usage extraction |
+| **#479** | @prakersh | feat: Codex 5.3/5.4 and Anthropic pricing entries |
+| **#475** | @only4copilot | feat(i18n): improved Chinese translation |
+
+**Thank you to all contributors!** 🙏
+
+---
+
+### 📋 Issues Resolved (50+)
+
+`#452` `#458` `#462` `#464` `#466` `#473` `#474` `#481` `#483` `#487` `#488` `#489` `#490` `#491` `#492` `#493` `#506` `#508` `#509` `#510` `#511` `#513` `#520` `#521` `#522` `#524` `#525` `#527` `#529` `#531` `#532` `#535` `#536` `#537` `#541` `#546` `#549` `#563` `#570` `#574` `#585`
+
+---
+
+### 🧪 Tests
+
+- **926 tests, 0 failures** (up from 821 in v2.9.5)
+- +105 new tests covering: model-combo mappings, registered keys, OpencodeExecutor, Bailian provider, route validation, error classification, aspect ratio mapping, and more
+
+---
+
+### 📦 Database Migrations
+
+| Migration | Description |
+|-----------|-------------|
+| **008** | `registered_keys`, `provider_key_limits`, `account_key_limits` tables |
+| **009** | `requested_model` column in `call_logs` |
+| **010** | `model_combo_mappings` table for per-model combo routing |
+
+---
+
+### ⬆️ Upgrading from v2.9.5
+
+```bash
+# npm
+npm install -g omniroute@3.0.0
+
+# Docker
+docker pull diegosouzapw/omniroute:3.0.0
+
+# Migrations run automatically on first startup
+```
+
+> **Breaking changes:** None. All existing configurations, combos, and API keys are preserved.
+> Database migrations 008-010 run automatically on startup.
 
 ---
 
