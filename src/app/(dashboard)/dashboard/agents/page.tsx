@@ -137,8 +137,9 @@ export default function AgentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+        <p className="text-sm text-text-muted">{t("scanning")}</p>
       </div>
     );
   }
@@ -327,22 +328,18 @@ export default function AgentsPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-base font-semibold">OpenCode Integration</h3>
+                <h3 className="text-base font-semibold">{t("opencodeIntegration")}</h3>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
-                  opencode {agents.find((a) => a.id === "opencode")?.version} detected
+                  {t("opencodeDetected", {
+                    version: agents.find((a) => a.id === "opencode")?.version || "",
+                  })}
                 </span>
               </div>
               <p className="text-sm text-text-muted mb-3">
-                Generate a ready-to-use{" "}
-                <code className="text-xs bg-black/[0.06] dark:bg-white/[0.08] px-1 py-0.5 rounded">
-                  opencode.json
-                </code>{" "}
-                with your OmniRoute base URL and all available models — drop it in your project root
-                and run{" "}
-                <code className="text-xs bg-black/[0.06] dark:bg-white/[0.08] px-1 py-0.5 rounded">
-                  opencode
-                </code>
-                .
+                {t("opencodeDesc", {
+                  configFile: "opencode.json",
+                  command: "opencode",
+                })}
               </p>
               <Button
                 variant="secondary"
@@ -399,7 +396,9 @@ export default function AgentsPage() {
                 <span className="material-symbols-outlined text-[16px] mr-1">
                   {opencodeConfigDone ? "check" : "download"}
                 </span>
-                {opencodeConfigDone ? "Downloaded!" : "Download opencode.json"}
+                {opencodeConfigDone
+                  ? t("downloaded")
+                  : t("downloadConfig", { file: "opencode.json" })}
               </Button>
             </div>
           </div>

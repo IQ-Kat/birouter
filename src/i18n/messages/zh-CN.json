@@ -290,7 +290,8 @@
     "permissionsTitle": "权限：{name}",
     "allowAllDesc": "该密钥可访问所有可用模型。",
     "restrictDesc": "该密钥可访问 {totalModels} 个模型中的 {selectedCount} 个。",
-    "selectedCount": "已选择 {count} 个"
+    "selectedCount": "已选择 {count} 个",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "审核日志",
@@ -606,7 +607,12 @@
           }
         }
       }
-    }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied."
   },
   "combos": {
     "title": "组合",
@@ -2593,7 +2599,13 @@
     "binaryName": "可执行文件名",
     "versionCommand": "版本命令",
     "spawnArgs": "启动参数",
-    "addAgent": "添加智能体"
+    "addAgent": "添加智能体",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!"
   },
   "autoCombo": {
     "title": "自动组合引擎",

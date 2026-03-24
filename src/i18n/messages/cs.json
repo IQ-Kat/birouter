@@ -2599,7 +2599,13 @@
     "binaryName": "Binární název",
     "versionCommand": "Příkaz verze",
     "spawnArgs": "Spawn Arguments",
-    "addAgent": "Přidat agenta"
+    "addAgent": "Přidat agenta",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!"
   },
   "autoCombo": {
     "title": "Auto-Kombo Engine",

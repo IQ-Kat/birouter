@@ -103,7 +103,9 @@
     "endpoints": "エンドポイント",
     "playground": "プレイグラウンド",
     "agents": "エージェント",
-    "cliToolsShort": "ツール"
+    "cliToolsShort": "ツール",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools"
   },
   "themesPage": {
     "title": "Themes",
@@ -268,7 +270,28 @@
     "permissionsTitle": "権限: {name}",
     "allowAllDesc": "このキーは、利用可能なすべてのモデルにアクセスできます。",
     "restrictDesc": "このキーは、{totalModels} モデルの {selectedCount} にアクセスできます。",
-    "selectedCount": "{count} が選択されました"
+    "selectedCount": "{count} が選択されました",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "監査ログ",
@@ -548,7 +571,12 @@
           }
         }
       }
-    }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied."
   },
   "combos": {
     "title": "コンボ",
@@ -864,7 +892,12 @@
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
     "a2aQuickStartStep3": "Track and control tasks using `tasks/get` and `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1396,7 +1429,24 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed"
   },
   "settings": {
     "title": "設定",
@@ -2216,7 +2266,8 @@
     "orRemovePasswordHashField": "または、passwordHash フィールドを削除します",
     "restartServerWithNewPassword": "サーバーを再起動すると新しいパスワードが適用されます",
     "backToLogin": "ログインに戻る",
-    "forgotPassword": "パスワードをお忘れですか?"
+    "forgotPassword": "パスワードをお忘れですか?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
   },
   "landing": {
     "brandName": "オムニルート",
@@ -2414,7 +2465,16 @@
     "troubleshootingCodexFamily": "GitHub Codex ファミリ モデルの場合、モデルを gh/codex-model として保持します。ルーターは自動的に選択/応答します。",
     "troubleshootingTestConnection": "IDE または外部クライアントからテストする前に、[ダッシュボード] > [プロバイダー] > [接続のテスト] を使用します。",
     "troubleshootingCircuitBreaker": "プロバイダーがサーキット ブレーカーが開いていることを示している場合は、クールダウンするまで待つか、詳細について [ヘルス] ページを確認してください。",
-    "troubleshootingOAuth": "OAuth プロバイダーの場合、トークンの有効期限が切れた場合は再認証します。プロバイダー カードのステータス インジケーターを確認します。"
+    "troubleshootingOAuth": "OAuth プロバイダーの場合、トークンの有効期限が切れた場合は再認証します。プロバイダー カードのステータス インジケーターを確認します。",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
   },
   "legal": {
     "privacyPolicy": "プライバシーポリシー",
@@ -2503,7 +2563,13 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!"
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2527,5 +2593,41 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results"
   }
 }

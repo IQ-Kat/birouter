@@ -104,7 +104,8 @@
     "endpoints": "Endpoints",
     "playground": "Playground",
     "agents": "Agentes",
-    "cliToolsShort": "Ferramentas"
+    "cliToolsShort": "Ferramentas",
+    "searchTools": "Search Tools"
   },
   "themesPage": {
     "title": "Themes",
@@ -289,7 +290,8 @@
     "permissionsTitle": "Permissões: {name}",
     "allowAllDesc": "Esta chave pode acessar todos os modelos disponíveis.",
     "restrictDesc": "Esta chave pode acessar {selectedCount} de {totalModels} modelos.",
-    "selectedCount": "{count} selecionados"
+    "selectedCount": "{count} selecionados",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "Log de Auditoria",
@@ -569,7 +571,12 @@
           }
         }
       }
-    }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied."
   },
   "combos": {
     "title": "Combos",
@@ -897,7 +904,12 @@
     "a2aQuickStartStep2": "Envie requisições JSON-RPC para `POST /a2a` usando `message/send` ou `message/stream`.",
     "a2aQuickStartStep3": "Acompanhe e controle tarefas com `tasks/get` e `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Carregando painel MCP...",
@@ -1429,7 +1441,24 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed"
   },
   "settings": {
     "title": "Configurações",
@@ -2249,7 +2278,8 @@
     "orRemovePasswordHashField": "ou remova o campo passwordHash",
     "restartServerWithNewPassword": "Reinicie o servidor - ele usará a nova senha",
     "backToLogin": "Voltar para o Login",
-    "forgotPassword": "Esqueceu a senha?"
+    "forgotPassword": "Esqueceu a senha?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2447,7 +2477,16 @@
     "troubleshootingCodexFamily": "Para modelos da família GitHub Codex, mantenha o modelo como gh/codex-model; o roteador seleciona /responses automaticamente.",
     "troubleshootingTestConnection": "Use Painel > Provedores > Testar Conexão antes de testar por IDEs ou clientes externos.",
     "troubleshootingCircuitBreaker": "Se um provedor mostrar circuit breaker aberto, aguarde o cooldown ou verifique a página Health para detalhes.",
-    "troubleshootingOAuth": "Para provedores OAuth, autentique novamente se os tokens expirarem. Verifique o indicador de status no card do provedor."
+    "troubleshootingOAuth": "Para provedores OAuth, autentique novamente se os tokens expirarem. Verifique o indicador de status no card do provedor.",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
   },
   "legal": {
     "privacyPolicy": "Política de Privacidade",
@@ -2536,7 +2575,13 @@
     "binaryName": "Nome do Binário",
     "versionCommand": "Comando de Versão",
     "spawnArgs": "Argumentos",
-    "addAgent": "Adicionar Agente"
+    "addAgent": "Adicionar Agente",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!"
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2560,5 +2605,41 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results"
   }
 }
