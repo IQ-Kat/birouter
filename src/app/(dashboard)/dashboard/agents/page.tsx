@@ -205,6 +205,10 @@ export default function AgentsPage() {
                 "kilocode",
                 "cline",
                 "qwen",
+                "droid",
+                "openclaw",
+                "copilot",
+                "opencode",
               ] as const
             ).map((providerId) => {
               const providerMeta = Object.values(AI_PROVIDERS).find(
