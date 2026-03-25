@@ -259,11 +259,19 @@ export function openaiToClaudeRequest(model, body, stream) {
         toolNameMap.set(toolName, originalName);
       }
 
+      // Normalize input_schema: Anthropic requires `properties` when type is "object" (#595).
+      // MCP tools (e.g. pencil, computer_use) may omit properties on object-type schemas.
+      const rawSchema: Record<string, unknown> =
+        toolData.parameters || toolData.input_schema || { type: "object", properties: {}, required: [] };
+      const normalizedSchema =
+        rawSchema.type === "object" && !rawSchema.properties
+          ? { ...rawSchema, properties: {} }
+          : rawSchema;
+
       return {
         name: toolName,
         description: toolData.description || "",
-        input_schema: toolData.parameters ||
-          toolData.input_schema || { type: "object", properties: {}, required: [] },
+        input_schema: normalizedSchema,
       };
     });
 

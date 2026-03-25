@@ -68,11 +68,14 @@ function findBestMessageText(output: unknown[]): {
 /**
  * Translate non-streaming response to OpenAI format
  * Handles different provider response formats (Gemini, Claude, etc.)
+ *
+ * @param toolNameMap - Optional Map<prefixedName, originalName> for Claude OAuth tool name stripping
  */
 export function translateNonStreamingResponse(
   responseBody: unknown,
   targetFormat: string,
-  sourceFormat: string
+  sourceFormat: string,
+  toolNameMap?: Map<string, string> | null
 ): unknown {
   // If already in source format (usually OpenAI), return as-is
   if (targetFormat === sourceFormat || targetFormat === FORMATS.OPENAI) {
@@ -334,11 +337,15 @@ export function translateNonStreamingResponse(
       } else if (blockObj.type === "thinking") {
         thinkingContent += toString(blockObj.thinking);
       } else if (blockObj.type === "tool_use") {
+        // Strip Claude OAuth tool name prefix (proxy_) using the map from request translation.
+        // Fallback to raw name if block wasn't prefixed (disableToolPrefix path).
+        const rawName = toString(blockObj.name);
+        const strippedName = toolNameMap?.get(rawName) ?? rawName;
         toolCalls.push({
           id: toString(blockObj.id, `call_${Date.now()}_${toolCalls.length}`),
           type: "function",
           function: {
-            name: toString(blockObj.name),
+            name: strippedName,
             arguments: JSON.stringify(blockObj.input || {}),
           },
         });
