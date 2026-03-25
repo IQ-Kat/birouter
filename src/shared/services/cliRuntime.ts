@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import fsSync from "fs";
 import os from "os";
 import path from "path";
 import { spawn, execFileSync } from "child_process";
@@ -419,8 +420,13 @@ const getKnownToolPaths = (toolId: string): string[] => {
       }
 
       paths.push(path.join(home, ".local", "bin", posixName));
-      paths.push(path.join("/usr", "local", "bin", posixName));
-      paths.push(path.join("/usr", "bin", posixName));
+      // Only add system paths if they exist (avoids unnecessary stat calls)
+      if (fsSync.existsSync("/usr/local/bin")) {
+        paths.push(path.join("/usr", "local", "bin", posixName));
+      }
+      if (fsSync.existsSync("/usr/bin")) {
+        paths.push(path.join("/usr", "bin", posixName));
+      }
 
       if (toolId === "opencode") {
         paths.push(path.join(home, ".opencode", "bin", posixName));

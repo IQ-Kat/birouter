@@ -61,10 +61,27 @@ describe("Size threshold — checkKnownPath", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it("should reject files under 30 bytes as suspicious_size", async () => {
-    const tinyFile = createFile(tmpDir, "tiny-cmd", "a".repeat(20));
-    const result = await getCliRuntimeStatus("opencode");
-    assert.ok(result.reason !== "suspicious_size" || !result.installed);
+  it("should detect files >= 30 bytes via env var", async () => {
+    const prev = process.env.CLI_DROID_BIN;
+    // Create a valid 30-byte+ script
+    const content =
+      process.platform === "win32"
+        ? "@echo off\r\necho 1.0.0\r\nexit 0\r\n"
+        : "#!/bin/sh\r\necho 1.0.0\r\nexit 0\r\n";
+    const script = createFile(tmpDir, "droid-valid", content);
+    // Verify it's at least 30 bytes
+    const stat = fs.statSync(script);
+    assert.ok(stat.size >= 30, `File should be >= 30 bytes, got ${stat.size}`);
+
+    process.env.CLI_DROID_BIN = script;
+    try {
+      const result = await getCliRuntimeStatus("droid");
+      assert.ok(result.installed, `Expected installed=true, got reason=${result.reason}`);
+      assert.ok(result.commandPath === script, `Expected commandPath=${script}`);
+    } finally {
+      if (prev !== undefined) process.env.CLI_DROID_BIN = prev;
+      else delete process.env.CLI_DROID_BIN;
+    }
   });
 
   it("should detect a valid CLI script (>= 30 bytes) via env var", async () => {
