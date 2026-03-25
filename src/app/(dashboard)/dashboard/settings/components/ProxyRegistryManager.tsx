@@ -9,6 +9,8 @@ type ProxyItem = {
   type: string;
   host: string;
   port: number;
+  username?: string | null;
+  password?: string | null;
   region?: string | null;
   notes?: string | null;
   status?: string;
@@ -211,6 +213,8 @@ export default function ProxyRegistryManager() {
             type: item.type || "http",
             host: item.host,
             port: String(item.port || 8080),
+            username: item.username,
+            password: item.password,
           },
         }),
       });

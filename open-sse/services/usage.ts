@@ -856,7 +856,7 @@ async function getCodexUsage(accessToken, providerSpecificData: Record<string, u
       quotas,
     };
   } catch (error) {
-    throw new Error(`Failed to fetch Codex usage: ${error.message}`);
+    return { message: `Failed to fetch Codex usage: ${(error as Error).message}` };
   }
 }
 

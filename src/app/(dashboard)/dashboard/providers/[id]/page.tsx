@@ -3847,10 +3847,9 @@ function ConnectionRow({
             {connection.lastError && connection.isActive !== false && (
               <span
                 className={`text-xs truncate max-w-[300px] ${statusPresentation.errorTextClass}`}
-                title={connection.lastError}
-              >
-                {connection.lastError}
-              </span>
+                title={connection.lastError.replace(/<[^>]*>?/gm, "")}
+                dangerouslySetInnerHTML={{ __html: connection.lastError }}
+              />
             )}
             <span className="text-xs text-text-muted">#{connection.priority}</span>
             {connection.globalPriority && (
