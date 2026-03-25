@@ -190,7 +190,7 @@ function ImageResultsInline({ data }: { data: any }) {
 export default function PlaygroundPage() {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [providers, setProviders] = useState<ProviderOption[]>([]);
-  const [connections, setConnections] = useState<ConnectionOption[]>([]);
+  const [allConnections, setAllConnections] = useState<ConnectionOption[]>([]);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedConnection, setSelectedConnection] = useState("");
@@ -215,40 +215,16 @@ export default function PlaygroundPage() {
   const isImageEndpoint = selectedEndpoint === "images";
   const supportsVision = isChatEndpoint && isVisionModel(selectedModel);
 
-  // Load connections for a given provider (called imperatively)
-  const loadConnections = useCallback((provider: string) => {
-    if (!provider) {
-      setConnections([]);
-      setSelectedConnection("");
-      return;
-    }
-    fetch("/api/providers/client")
-      .then((res) => res.json())
-      .then((data) => {
-        const allConns: ConnectionOption[] = [];
-        // Resolve alias → ID (e.g. cx → codex, kr → kiro)
-        const resolvedProvider = ALIAS_TO_ID[provider] || provider;
-        // API returns flat { connections: [...] } — each has a .provider field
-        for (const conn of data?.connections || []) {
-          if (conn.provider !== resolvedProvider && conn.provider !== provider) continue;
-          allConns.push({
-            id: conn.id,
-            name: conn.name || conn.email || conn.id,
-            provider: conn.provider,
-            authType: conn.authType || "apiKey",
-          });
-        }
-        setConnections(allConns);
-        setSelectedConnection("");
-      })
-      .catch(() => {
-        setConnections([]);
-        setSelectedConnection("");
-      });
-  }, []);
+  // Load connections for a given provider — filtered from allConnections
+  const providerConnections = allConnections.filter((c) => {
+    if (!selectedProvider) return false;
+    const resolvedProvider = ALIAS_TO_ID[selectedProvider] || selectedProvider;
+    return c.provider === resolvedProvider || c.provider === selectedProvider;
+  });
 
-  // Fetch models and initialize first provider
+  // Fetch models and ALL connections at startup
   useEffect(() => {
+    // Fetch models
     fetch("/v1/models")
       .then((res) => res.json())
       .then((data) => {
@@ -266,11 +242,27 @@ export default function PlaygroundPage() {
         setProviders(providerOpts);
         if (providerOpts.length > 0) {
           setSelectedProvider(providerOpts[0].value);
-          loadConnections(providerOpts[0].value);
         }
       })
       .catch(() => {});
-  }, [loadConnections]);
+
+    // Fetch ALL connections (once)
+    fetch("/api/providers/client")
+      .then((res) => res.json())
+      .then((data) => {
+        const conns: ConnectionOption[] = [];
+        for (const conn of data?.connections || []) {
+          conns.push({
+            id: conn.id,
+            name: conn.name || conn.email || conn.id,
+            provider: conn.provider,
+            authType: conn.authType || "apiKey",
+          });
+        }
+        setAllConnections(conns);
+      })
+      .catch(() => {});
+  }, []);
 
   const filteredModels = models
     .filter((m) => !selectedProvider || m.id.startsWith(selectedProvider + "/"))
@@ -287,7 +279,6 @@ export default function PlaygroundPage() {
   const handleProviderChange = (newProvider: string) => {
     setSelectedProvider(newProvider);
     setSelectedConnection("");
-    loadConnections(newProvider);
     const providerModels = models
       .filter((m) => !newProvider || m.id.startsWith(newProvider + "/"))
       .map((m) => m.id);
@@ -529,18 +520,24 @@ export default function PlaygroundPage() {
             </div>
           )}
 
-          {/* Account/Connection — shown when provider has multiple connections */}
-          {!isSearchEndpoint && connections.length >= 1 && (
+          {/* Account/Key — always shown when provider is selected */}
+          {!isSearchEndpoint && (
             <div className="flex-1 w-full">
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
-                Account
+                Account / Key
               </label>
               <Select
                 value={selectedConnection}
                 onChange={(e: any) => setSelectedConnection(e.target.value)}
                 options={[
-                  { value: "", label: `All (${connections.length} accounts)` },
-                  ...connections.map((c) => ({
+                  {
+                    value: "",
+                    label:
+                      providerConnections.length > 0
+                        ? `Auto (${providerConnections.length} accounts)`
+                        : "No accounts",
+                  },
+                  ...providerConnections.map((c) => ({
                     value: c.id,
                     label: c.name,
                   })),
