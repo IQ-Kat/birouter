@@ -275,7 +275,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
                     passthroughHasToolCalls = true;
                     for (const tc of delta.tool_calls) {
-                      const key = tc?.id ? `id:${tc.id}` : Number.isInteger(tc?.index) ? `idx:${tc.index}` : `seq:${++passthroughToolCallSeq}`;
+                      // Key by index first — id only appears on the first delta in OpenAI streaming
+                      const key = Number.isInteger(tc?.index)
+                        ? `idx:${tc.index}`
+                        : tc?.id
+                          ? `id:${tc.id}`
+                          : `seq:${++passthroughToolCallSeq}`;
                       const existing = passthroughToolCalls.get(key);
                       const deltaArgs = typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
                       if (!existing) {
@@ -290,7 +295,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                         });
                       } else {
                         if (tc?.id) existing.id = existing.id || tc.id;
-                        if (tc?.function?.name) existing.function.name = tc.function.name;
+                        if (tc?.function?.name && !existing.function.name) existing.function.name = tc.function.name;
                         existing.function.arguments += deltaArgs;
                       }
                     }
@@ -678,8 +683,15 @@ export function createSSEStream(options: StreamOptions = {}) {
               };
               const hasToolCalls = state?.toolCalls?.size > 0;
               if (hasToolCalls) {
+                // Normalize shape — translators may store different structures
                 message.tool_calls = [...state.toolCalls.values()]
-                  .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+                  .map((tc: any) => ({
+                    id: tc.id ?? null,
+                    index: tc.index ?? tc.blockIndex ?? 0,
+                    type: tc.type ?? "function",
+                    function: tc.function ?? { name: tc.name ?? "", arguments: "" },
+                  }))
+                  .sort((a, b) => a.index - b.index);
               }
               const responseBody = {
                 choices: [
