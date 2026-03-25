@@ -131,34 +131,53 @@ export async function GET(
       return Response.json({ message: "Usage not available for API key connections" });
     }
 
-    // Refresh credentials if needed using executor
-    let refreshed = false;
-    try {
-      const result = await refreshAndUpdateCredentials(connection);
-      connection = result.connection;
-      refreshed = result.refreshed;
+    // Resolve proxy for this connection FIRST (key → combo → provider → global → direct)
+    // so that both credential refresh AND usage fetch go through the proxy.
+    const proxyInfo = await resolveProxyForConnection(connectionId);
 
-      // Sync to cloud only if token was refreshed
-      if (refreshed) {
-        await syncToCloudIfEnabled();
+    // Wrap BOTH credential refresh and usage fetch inside proxy context.
+    // Codex accounts behind SOCKS5 proxies need the proxy active during token refresh too.
+    const { usage, refreshed } = (await runWithProxyContext(proxyInfo?.proxy || null, async () => {
+      let conn = connection;
+      let wasRefreshed = false;
+
+      // Refresh credentials if needed using executor
+      try {
+        const result = await refreshAndUpdateCredentials(conn);
+        conn = result.connection;
+        wasRefreshed = result.refreshed;
+
+        // Sync to cloud only if token was refreshed
+        if (wasRefreshed) {
+          await syncToCloudIfEnabled();
+        }
+      } catch (refreshError) {
+        console.error("[Usage API] Credential refresh failed:", refreshError);
+        throw refreshError;
       }
-    } catch (refreshError) {
-      console.error("[Usage API] Credential refresh failed:", refreshError);
+
+      // Fetch usage from provider API
+      const usageData = await getUsageForProvider(conn);
+      connection = conn; // propagate updated connection for status sync below
+      return { usage: usageData, refreshed: wasRefreshed };
+    }).catch((refreshError: any) => {
+      // If error originated from credential refresh, return 401
+      if (
+        refreshError?.message?.includes?.("refresh") ||
+        refreshError?.message?.includes?.("Credential")
+      ) {
+        return { __authError: true, message: refreshError.message };
+      }
+      throw refreshError;
+    })) as any;
+
+    // Handle auth errors from credential refresh
+    if (usage?.__authError) {
       return Response.json(
-        {
-          error: `Credential refresh failed: ${(refreshError as any).message}`,
-        },
+        { error: `Credential refresh failed: ${usage.message}` },
         { status: 401 }
       );
     }
-
-    // Resolve proxy for this connection (key → combo → provider → global → direct)
-    const proxyInfo = await resolveProxyForConnection(connectionId);
-
-    // Fetch usage from provider API, wrapped in proxy context
-    const usage = await runWithProxyContext(proxyInfo?.proxy || null, () =>
-      getUsageForProvider(connection)
-    );
 
     // Populate quota cache for quota-aware account selection
     if (isRecord(usage?.quotas)) {

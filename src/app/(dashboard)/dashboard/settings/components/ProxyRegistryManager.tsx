@@ -467,12 +467,7 @@ export default function ProxyRegistryManager() {
                       </td>
                       <td className="py-2 pr-3 text-xs text-text-muted">
                         <div className="flex flex-col gap-0.5">
-                          {health ? (
-                            <>
-                              <span>{health.successRate ?? 0}% success</span>
-                              <span>{health.avgLatencyMs ?? "-"} ms avg</span>
-                            </>
-                          ) : testById[item.id] ? (
+                          {testById[item.id] ? (
                             testById[item.id]!.success ? (
                               <>
                                 <span className="text-emerald-400">
@@ -484,9 +479,14 @@ export default function ProxyRegistryManager() {
                               </>
                             ) : (
                               <span className="text-red-400">
-                                {testById[item.id]!.error || "failed"}
+                                ✗ {testById[item.id]!.error || "failed"}
                               </span>
                             )
+                          ) : health ? (
+                            <>
+                              <span>{health.successRate ?? 0}% success</span>
+                              <span>{health.avgLatencyMs ?? "-"} ms avg</span>
+                            </>
                           ) : (
                             <span>—</span>
                           )}
