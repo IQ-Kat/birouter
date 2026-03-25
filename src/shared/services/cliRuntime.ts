@@ -1,7 +1,8 @@
 import fs from "fs/promises";
+import fsSync from "fs";
 import os from "os";
 import path from "path";
-import { spawn } from "child_process";
+import { spawn, execFileSync } from "child_process";
 
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
@@ -259,6 +260,42 @@ const validateEnvPath = (value: string | undefined, allowedParents: string[]): s
 };
 
 /**
+ * Detect the npm global bin directory.
+ * Cached on first call — `execFileSync` is expensive, only run once.
+ */
+let _npmGlobalPrefix: string | undefined;
+const getNpmGlobalPrefix = (): string => {
+  if (_npmGlobalPrefix !== undefined) return _npmGlobalPrefix;
+
+  const envPrefix = String(process.env.npm_config_prefix || "").trim();
+  if (envPrefix && path.isAbsolute(envPrefix)) {
+    _npmGlobalPrefix = envPrefix;
+    return _npmGlobalPrefix;
+  }
+
+  try {
+    const result = execFileSync("npm", ["config", "get", "prefix"], {
+      timeout: 5000,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      ...(isWindows() ? { shell: true } : {}),
+    });
+    const prefix = result.trim();
+    if (
+      prefix &&
+      path.isAbsolute(prefix) &&
+      !DANGEROUS_PATH_CHARS.some((c) => prefix.includes(c))
+    ) {
+      _npmGlobalPrefix = prefix;
+      return _npmGlobalPrefix;
+    }
+  } catch {}
+
+  _npmGlobalPrefix = "";
+  return _npmGlobalPrefix;
+};
+
+/**
  * Pre-compute expected parent directories at module startup for performance.
  * These are the allowed directories for CLI binary installation locations.
  */
@@ -281,6 +318,8 @@ const getExpectedParentPaths = (): string[] => {
     "C:\\Program Files (x86)",
   ]);
 
+  const npmPrefix = getNpmGlobalPrefix();
+
   return [
     home,
     userProfile,
@@ -288,6 +327,7 @@ const getExpectedParentPaths = (): string[] => {
     validatedLocalAppData,
     validatedProgramFiles,
     validatedProgramFilesX86,
+    npmPrefix,
   ].filter(Boolean);
 };
 
@@ -310,86 +350,94 @@ const getExtraPaths = () =>
     });
 
 /**
- * Get known installation paths for a specific CLI tool on Windows.
- * Returns ONLY verified, tool-specific paths - NOT generic user bin directories.
- * This is more secure than searching PATH as it checks known locations only.
+ * Get known installation paths for a specific CLI tool.
+ * Checks npm global prefix, NVM locations, standalone installer paths.
+ * Works on all platforms — Windows checks .cmd wrappers, Linux/macOS checks bare names.
  */
 const getKnownToolPaths = (toolId: string): string[] => {
-  if (!isWindows()) return [];
-
   const home = os.homedir();
-  const userProfile = process.env.USERPROFILE || home;
+  const paths: string[] = [];
 
-  // Validate environment paths against allowed parent directories
-  const appData = validateEnvPath(process.env.APPDATA, [home, userProfile]);
-  const localAppData = validateEnvPath(process.env.LOCALAPPDATA, [
-    path.join(home, "AppData", "Local"),
-    path.join(userProfile, "AppData", "Local"),
-    userProfile,
-  ]);
-
-  // Cache nvm node path to avoid duplicate detection calls
+  const npmPrefix = getNpmGlobalPrefix();
   const nvmNodePath = getNvmNodePath();
 
-  // Tool-specific known installation paths (verified locations only)
-  const knownPaths: Record<string, string[]> = {
+  const toolBins: Record<string, [string, string][]> = {
     claude: [
-      // Official Claude Code standalone installer locations
-      path.join(home, ".local", "bin", "claude.exe"),
-      ...(localAppData ? [path.join(localAppData, "Programs", "Claude", "claude.exe")] : []),
-      ...(localAppData ? [path.join(localAppData, "claude-code", "claude.exe")] : []),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "claude-code.cmd")] : []),
+      ["claude.cmd", "claude"],
+      ["claude.exe", "claude"],
     ],
-    codex: [
-      path.join(home, ".local", "bin", "codex"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "codex.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "codex.cmd")] : []),
-    ],
-    droid: [
-      path.join(home, ".local", "bin", "droid"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "droid.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "droid.cmd")] : []),
-    ],
-    openclaw: [
-      path.join(home, ".local", "bin", "openclaw"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "openclaw.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "openclaw.cmd")] : []),
-    ],
+    codex: [["codex.cmd", "codex"]],
+    droid: [["droid.cmd", "droid"]],
+    openclaw: [["openclaw.cmd", "openclaw"]],
     cursor: [
-      path.join(home, ".local", "bin", "agent"),
-      path.join(home, ".local", "bin", "cursor"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "agent.cmd")] : []),
-      ...(nvmNodePath ? [path.join(nvmNodePath, "cursor.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "agent.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "cursor.cmd")] : []),
+      ["agent.cmd", "agent"],
+      ["cursor.cmd", "cursor"],
     ],
-    cline: [
-      path.join(home, ".local", "bin", "cline"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "cline.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "cline.cmd")] : []),
-    ],
-    kilo: [
-      path.join(home, ".local", "bin", "kilocode"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "kilocode.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "kilocode.cmd")] : []),
-    ],
-    opencode: [
-      path.join(home, ".local", "bin", "opencode"),
-      // npm global (only if nvm-windows is detected)
-      ...(nvmNodePath ? [path.join(nvmNodePath, "opencode.cmd")] : []),
-      ...(appData ? [path.join(appData, "npm", "opencode.cmd")] : []),
-    ],
-    // Add other tools as needed with their specific known paths
+    cline: [["cline.cmd", "cline"]],
+    kilo: [["kilocode.cmd", "kilocode"]],
+    opencode: [["opencode.cmd", "opencode"]],
   };
 
-  return knownPaths[toolId] || [];
+  const bins = toolBins[toolId] || [];
+
+  if (isWindows()) {
+    const userProfile = process.env.USERPROFILE || home;
+    const appData = validateEnvPath(process.env.APPDATA, [home, userProfile]);
+    const localAppData = validateEnvPath(process.env.LOCALAPPDATA, [
+      path.join(home, "AppData", "Local"),
+      path.join(userProfile, "AppData", "Local"),
+      userProfile,
+    ]);
+
+    if (toolId === "claude") {
+      paths.push(path.join(home, ".local", "bin", "claude.exe"));
+      if (localAppData) {
+        paths.push(path.join(localAppData, "Programs", "Claude", "claude.exe"));
+        paths.push(path.join(localAppData, "claude-code", "claude.exe"));
+      }
+    }
+
+    for (const [winName] of bins) {
+      if (npmPrefix) paths.push(path.join(npmPrefix, winName));
+      if (appData) {
+        const appDataPath = path.join(appData, "npm", winName);
+        if (
+          !npmPrefix ||
+          path.normalize(appDataPath) !== path.normalize(path.join(npmPrefix, winName))
+        ) {
+          paths.push(appDataPath);
+        }
+      }
+      if (nvmNodePath) paths.push(path.join(nvmNodePath, winName));
+    }
+  } else {
+    for (const [, posixName] of bins) {
+      const nodeBinDir = path.dirname(process.execPath);
+      paths.push(path.join(nodeBinDir, posixName));
+
+      if (npmPrefix) {
+        paths.push(path.join(npmPrefix, "bin", posixName));
+      }
+
+      paths.push(path.join(home, ".local", "bin", posixName));
+      // Only add system paths if they exist (avoids unnecessary stat calls)
+      if (fsSync.existsSync("/usr/local/bin")) {
+        paths.push(path.join("/usr", "local", "bin", posixName));
+      }
+      if (fsSync.existsSync("/usr/bin")) {
+        paths.push(path.join("/usr", "bin", posixName));
+      }
+
+      if (toolId === "opencode") {
+        paths.push(path.join(home, ".opencode", "bin", posixName));
+      }
+      if (toolId === "claude") {
+        paths.push(path.join(home, ".claude", "bin", posixName));
+      }
+    }
+  }
+
+  return paths;
 };
 
 /**
@@ -492,7 +540,7 @@ const locateCommand = async (command: string, env: Record<string, string | undef
  * Security hardening:
  * - Resolves symlinks and verifies target stays within expected directories
  * - Verifies file is a regular file (not directory, pipe, or device)
- * - Checks file size bounds (1KB - 100MB) to detect suspicious binaries
+ * - Checks file size bounds (30B - 100MB) to detect suspicious binaries
  */
 const checkKnownPath = async (commandPath: string) => {
   if (!path.isAbsolute(commandPath)) {
@@ -521,9 +569,10 @@ const checkKnownPath = async (commandPath: string) => {
       return { installed: false, commandPath: null, reason: "not_file" };
     }
 
-    // CLI binaries should be > 1KB and < 100MB
-    // This catches suspicious files while allowing for wrapper scripts
-    if (stat.size < 1024 || stat.size > 100 * 1024 * 1024) {
+    // CLI binaries should be > 30 bytes and < 100MB
+    // npm .cmd wrappers on Windows are ~300-500 bytes, JS wrappers on Linux can be ~44 bytes
+    // Minimum catches empty/suspicious files while allowing legitimate thin wrappers
+    if (stat.size < 30 || stat.size > 100 * 1024 * 1024) {
       return { installed: false, commandPath: null, reason: "suspicious_size" };
     }
   } catch (error) {
@@ -556,7 +605,7 @@ const locateCommandCandidate = async (
 
   // SECURITY: First check known installation paths for this specific tool
   // This avoids searching PATH and reduces attack surface
-  if (toolId && isWindows()) {
+  if (toolId) {
     const knownPaths = getKnownToolPaths(toolId);
     for (const knownPath of knownPaths) {
       const result = await checkKnownPath(knownPath);
@@ -592,6 +641,7 @@ const checkRunnable = async (
     PATH: env.PATH,
     HOME: env.HOME || env.USERPROFILE,
     SystemRoot: env.SystemRoot, // Windows needs this
+    PATHEXT: env.PATHEXT, // Windows cmd.exe needs this to resolve .cmd/.bat/.exe extensions
   };
 
   for (const args of [["--version"], ["-v"]]) {
