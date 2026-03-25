@@ -33,6 +33,7 @@ export default function CLIToolsPageClient({ machineId }) {
   const [apiKeys, setApiKeys] = useState([]);
   const [toolStatuses, setToolStatuses] = useState({});
   const [statusesLoaded, setStatusesLoaded] = useState(false);
+  const [dynamicModels, setDynamicModels] = useState([]);
   const translateOrFallback = useCallback(
     (key, fallback, values = undefined) => {
       try {
@@ -49,6 +50,7 @@ export default function CLIToolsPageClient({ machineId }) {
     loadCloudSettings();
     fetchApiKeys();
     fetchToolStatuses();
+    fetchDynamicModels();
   }, []);
 
   const loadCloudSettings = async () => {
@@ -107,6 +109,18 @@ export default function CLIToolsPageClient({ machineId }) {
     }
   };
 
+  const fetchDynamicModels = async () => {
+    try {
+      const res = await fetch("/v1/models");
+      if (res.ok) {
+        const data = await res.json();
+        setDynamicModels(data?.data || []);
+      }
+    } catch (error) {
+      console.log("Error fetching dynamic models:", error);
+    }
+  };
+
   const getActiveProviders = () => {
     return connections.filter((c) => c.isActive !== false);
   };
@@ -116,6 +130,7 @@ export default function CLIToolsPageClient({ machineId }) {
     const models = [];
     const seenModels = new Set();
 
+    // First: add static models from the constants
     activeProviders.forEach((conn) => {
       const alias = PROVIDER_ID_TO_ALIAS[conn.provider] || conn.provider;
       const providerModels = getModelsByProviderId(conn.provider);
@@ -132,6 +147,31 @@ export default function CLIToolsPageClient({ machineId }) {
             modelId: m.id,
           });
         }
+      });
+    });
+
+    // Second: add dynamic models from /v1/models (fills gaps for Kiro, OpenCode, custom providers)
+    const activeProviderIds = new Set(activeProviders.map((c) => c.provider));
+    const activeAliases = new Set(
+      activeProviders.map((c) => PROVIDER_ID_TO_ALIAS[c.provider] || c.provider)
+    );
+    dynamicModels.forEach((dm) => {
+      const modelId = dm.id || dm;
+      if (seenModels.has(modelId)) return;
+      // Parse alias/model format
+      const slashIdx = modelId.indexOf("/");
+      if (slashIdx === -1) return;
+      const alias = modelId.substring(0, slashIdx);
+      const bareModel = modelId.substring(slashIdx + 1);
+      if (!activeAliases.has(alias) && !activeProviderIds.has(alias)) return;
+      seenModels.add(modelId);
+      models.push({
+        value: modelId,
+        label: modelId,
+        provider: alias,
+        alias: alias,
+        connectionName: "",
+        modelId: bareModel,
       });
     });
 

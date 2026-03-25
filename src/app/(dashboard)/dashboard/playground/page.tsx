@@ -225,16 +225,15 @@ export default function PlaygroundPage() {
       .then((res) => res.json())
       .then((data) => {
         const allConns: ConnectionOption[] = [];
-        for (const p of data?.providers || []) {
-          if (p.id !== provider) continue;
-          for (const conn of p.connections || []) {
-            allConns.push({
-              id: conn.id,
-              name: conn.name || conn.id,
-              provider: p.id,
-              authType: conn.authType || "apiKey",
-            });
-          }
+        // API returns flat { connections: [...] } — each has a .provider field
+        for (const conn of data?.connections || []) {
+          if (conn.provider !== provider) continue;
+          allConns.push({
+            id: conn.id,
+            name: conn.name || conn.email || conn.id,
+            provider: conn.provider,
+            authType: conn.authType || "apiKey",
+          });
         }
         setConnections(allConns);
         setSelectedConnection("");
@@ -528,7 +527,7 @@ export default function PlaygroundPage() {
           )}
 
           {/* Account/Connection — shown when provider has multiple connections */}
-          {!isSearchEndpoint && connections.length > 1 && (
+          {!isSearchEndpoint && connections.length >= 1 && (
             <div className="flex-1 w-full">
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                 Account
