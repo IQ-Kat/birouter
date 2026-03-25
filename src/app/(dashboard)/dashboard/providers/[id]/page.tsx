@@ -1600,29 +1600,6 @@ export default function ProviderDetailPage() {
   };
 
   const renderModelsSection = () => {
-    if (isCompatible) {
-      return (
-        <CompatibleModelsSection
-          providerStorageAlias={providerStorageAlias}
-          providerDisplayAlias={providerDisplayAlias}
-          modelAliases={modelAliases}
-          copied={copied}
-          onCopy={copy}
-          onSetAlias={handleSetAlias}
-          onDeleteAlias={handleDeleteAlias}
-          connections={connections}
-          isAnthropic={isAnthropicCompatible}
-          onImportWithProgress={handleCompatibleImportWithProgress}
-          t={t}
-          effectiveModelNormalize={effectiveModelNormalize}
-          effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-          getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
-          saveModelCompatFlags={saveModelCompatFlags}
-          compatSavingModelId={compatSavingModelId}
-          onModelsChanged={fetchProviderModelMeta}
-        />
-      );
-    }
     const autoSyncToggle = canImportModels && (
       <button
         onClick={handleToggleAutoSync}
@@ -1639,6 +1616,33 @@ export default function ProviderDetailPage() {
         <span className="text-text-main">{t("autoSync")}</span>
       </button>
     );
+
+    if (isCompatible) {
+      return (
+        <div>
+          <div className="flex items-center gap-2 mb-4">{autoSyncToggle}</div>
+          <CompatibleModelsSection
+            providerStorageAlias={providerStorageAlias}
+            providerDisplayAlias={providerDisplayAlias}
+            modelAliases={modelAliases}
+            copied={copied}
+            onCopy={copy}
+            onSetAlias={handleSetAlias}
+            onDeleteAlias={handleDeleteAlias}
+            connections={connections}
+            isAnthropic={isAnthropicCompatible}
+            onImportWithProgress={handleCompatibleImportWithProgress}
+            t={t}
+            effectiveModelNormalize={effectiveModelNormalize}
+            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+            getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
+            saveModelCompatFlags={saveModelCompatFlags}
+            compatSavingModelId={compatSavingModelId}
+            onModelsChanged={fetchProviderModelMeta}
+          />
+        </div>
+      );
+    }
 
     if (providerInfo.passthroughModels) {
       return (
