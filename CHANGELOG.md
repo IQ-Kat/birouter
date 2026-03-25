@@ -4,6 +4,17 @@
 
 ---
 
+## [3.0.4] — 2026-03-25
+
+### 🐛 Bug Fixes
+
+- **Streaming:** Fixed `TextDecoder` state corruption inside combo `sanitize` TransformStream which caused SSE garbled output matching multibyte characters (PR #614)
+- **Providers UI:** Safely render HTML tags inside provider connection error tooltips using `dangerouslySetInnerHTML`
+- **Proxy Settings:** Added missing `username` and `password` payload body properties allowing authenticated proxies to be successfully verified from the Dashboard.
+- **Provider API:** Bound soft exception returns to `getCodexUsage` preventing API HTTP 500 failures when token fetch fails
+
+---
+
 ## [3.0.3] — 2026-03-25
 
 ### ✨ New Features
