@@ -245,6 +245,7 @@ export default function ProxyConfigModal({
         setSelectedProxyId("");
       }
       onSaved?.();
+      onClose();
     } catch (error) {
       console.error("Error saving proxy:", error);
       setFormError(error.message || "Failed to save proxy configuration");
@@ -281,6 +282,7 @@ export default function ProxyConfigModal({
       setSelectedProxyId("");
       setTestResult(null);
       onSaved?.();
+      onClose();
     } catch (error) {
       console.error("Error clearing proxy:", error);
       setFormError(error.message || "Failed to clear proxy configuration");
@@ -290,22 +292,49 @@ export default function ProxyConfigModal({
   };
 
   const handleTest = async () => {
-    if (mode === "saved") {
-      setFormError("Use custom mode to run manual connection test.");
-      return;
-    }
-    if (!host.trim()) return;
     setFormError(null);
     setTesting(true);
     setTestResult(null);
     try {
-      const proxy = {
-        type: proxyType,
-        host: host.trim(),
-        port: port.trim() || getDefaultPort(proxyType),
-        username: username.trim(),
-        password: password.trim(),
-      };
+      let proxy: {
+        type: string;
+        host: string;
+        port: string;
+        username?: string;
+        password?: string;
+      } | null = null;
+
+      if (mode === "saved") {
+        if (!selectedProxyId) {
+          setFormError("Select a saved proxy first.");
+          setTesting(false);
+          return;
+        }
+        const found = (savedProxies as any[]).find((p: any) => p.id === selectedProxyId);
+        if (!found) {
+          setFormError("Selected proxy not found.");
+          setTesting(false);
+          return;
+        }
+        proxy = {
+          type: found.type || "http",
+          host: found.host || "",
+          port: String(found.port || 8080),
+        };
+      } else {
+        if (!host.trim()) {
+          setTesting(false);
+          return;
+        }
+        proxy = {
+          type: proxyType,
+          host: host.trim(),
+          port: port.trim() || getDefaultPort(proxyType),
+          username: username.trim(),
+          password: password.trim(),
+        };
+      }
+
       const res = await fetch("/api/settings/proxy/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -550,7 +579,7 @@ export default function ProxyConfigModal({
                 icon="speed"
                 onClick={handleTest}
                 loading={testing}
-                disabled={mode !== "custom" || !host.trim()}
+                disabled={mode === "saved" ? !selectedProxyId : !host.trim()}
               >
                 Test Connection
               </Button>

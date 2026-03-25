@@ -802,6 +802,9 @@ export default function ProviderDetailPage() {
   const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
+  const [connProxyMap, setConnProxyMap] = useState<
+    Record<string, { proxy: any; level: string } | null>
+  >({});
   const [importingModels, setImportingModels] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importProgress, setImportProgress] = useState({
@@ -938,17 +941,47 @@ export default function ProviderDetailPage() {
   useEffect(() => {
     fetchConnections();
     fetchAliases();
-    // Load proxy config for visual indicators
+    // Load proxy config for visual indicators (provider-level button)
     fetch("/api/settings/proxy")
       .then((r) => (r.ok ? r.json() : null))
       .then((c) => setProxyConfig(c))
       .catch(() => {});
   }, [fetchConnections, fetchAliases]);
 
+  const loadConnProxies = useCallback(async (conns: { id?: string }[]) => {
+    if (!conns.length) return;
+    try {
+      const results = await Promise.all(
+        conns
+          .filter((c) => c.id)
+          .map((c) =>
+            fetch(`/api/settings/proxy?resolve=${encodeURIComponent(c.id!)}`, { cache: "no-store" })
+              .then((r) => (r.ok ? r.json() : null))
+              .then((data) => [c.id!, data] as [string, any])
+              .catch(() => [c.id!, null] as [string, any])
+          )
+      );
+      const map: Record<string, { proxy: any; level: string } | null> = {};
+      for (const [id, data] of results) {
+        map[id] = data?.proxy ? data : null;
+      }
+      setConnProxyMap(map);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     if (loading || isSearchProvider) return;
     fetchProviderModelMeta();
   }, [loading, isSearchProvider, fetchProviderModelMeta]);
+
+  // Load per-connection effective proxy (handles registry assignments)
+  useEffect(() => {
+    if (!loading && connections.length > 0) {
+      void loadConnProxies(connections);
+    }
+  }, [loading, connections, loadConnProxies]);
 
   // Auto-open Add Connection modal when no connections exist (better UX)
   // Only fires once on initial load, not on HMR remounts or after user dismissal
@@ -1930,68 +1963,153 @@ export default function ProviderDetailPage() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
-            {connections
-              .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-              .map((conn, index) => (
-                <ConnectionRow
-                  key={conn.id}
-                  connection={conn}
-                  isOAuth={isOAuth}
-                  isFirst={index === 0}
-                  isLast={index === connections.length - 1}
-                  onMoveUp={() => handleSwapPriority(conn, connections[index - 1])}
-                  onMoveDown={() => handleSwapPriority(conn, connections[index + 1])}
-                  onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
-                  onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
-                  isCodex={providerId === "codex"}
-                  onToggleCodex5h={(enabled) => handleToggleCodexLimit(conn.id, "use5h", enabled)}
-                  onToggleCodexWeekly={(enabled) =>
-                    handleToggleCodexLimit(conn.id, "useWeekly", enabled)
-                  }
-                  onRetest={() => handleRetestConnection(conn.id)}
-                  isRetesting={retestingId === conn.id}
-                  onEdit={() => {
-                    setSelectedConnection(conn);
-                    setShowEditModal(true);
-                  }}
-                  onDelete={() => handleDelete(conn.id)}
-                  onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
-                  onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
-                  isRefreshing={refreshingId === conn.id}
-                  onProxy={() =>
-                    setProxyTarget({
-                      level: "key",
-                      id: conn.id,
-                      label: conn.name || conn.email || conn.id,
-                    })
-                  }
-                  hasProxy={
-                    !!(
-                      proxyConfig?.keys?.[conn.id] ||
-                      proxyConfig?.providers?.[providerId] ||
-                      proxyConfig?.global
-                    )
-                  }
-                  proxySource={
-                    proxyConfig?.keys?.[conn.id]
-                      ? "key"
-                      : proxyConfig?.providers?.[providerId]
-                        ? "provider"
-                        : proxyConfig?.global
-                          ? "global"
-                          : null
-                  }
-                  proxyHost={
-                    (
-                      proxyConfig?.keys?.[conn.id] ||
-                      proxyConfig?.providers?.[providerId] ||
-                      proxyConfig?.global
-                    )?.host || null
-                  }
-                />
-              ))}
-          </div>
+          (() => {
+            // Group connections by tag (providerSpecificData.tag)
+            const sorted = [...connections].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+            const hasAnyTag = sorted.some((c) => c.providerSpecificData?.tag as string | undefined);
+
+            if (!hasAnyTag) {
+              // No tags — render flat list as before
+              return (
+                <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                  {sorted.map((conn, index) => (
+                    <ConnectionRow
+                      key={conn.id}
+                      connection={conn}
+                      isOAuth={isOAuth}
+                      isFirst={index === 0}
+                      isLast={index === sorted.length - 1}
+                      onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
+                      onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
+                      onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
+                      onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                      isCodex={providerId === "codex"}
+                      onToggleCodex5h={(enabled) =>
+                        handleToggleCodexLimit(conn.id, "use5h", enabled)
+                      }
+                      onToggleCodexWeekly={(enabled) =>
+                        handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                      }
+                      onRetest={() => handleRetestConnection(conn.id)}
+                      isRetesting={retestingId === conn.id}
+                      onEdit={() => {
+                        setSelectedConnection(conn);
+                        setShowEditModal(true);
+                      }}
+                      onDelete={() => handleDelete(conn.id)}
+                      onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
+                      onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
+                      isRefreshing={refreshingId === conn.id}
+                      onProxy={() =>
+                        setProxyTarget({
+                          level: "key",
+                          id: conn.id,
+                          label: conn.name || conn.email || conn.id,
+                        })
+                      }
+                      hasProxy={!!connProxyMap[conn.id]?.proxy}
+                      proxySource={connProxyMap[conn.id]?.level || null}
+                      proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                    />
+                  ))}
+                </div>
+              );
+            }
+
+            // Build ordered tag groups: untagged first, then alphabetically
+            const groupMap = new Map<string, typeof sorted>();
+            for (const conn of sorted) {
+              const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim() || "";
+              if (!groupMap.has(tag)) groupMap.set(tag, []);
+              groupMap.get(tag)!.push(conn);
+            }
+            const groupKeys = Array.from(groupMap.keys()).sort((a, b) => {
+              if (a === "") return -1;
+              if (b === "") return 1;
+              return a.localeCompare(b);
+            });
+
+            return (
+              <div className="flex flex-col gap-0">
+                {groupKeys.map((tag, gi) => {
+                  const groupConns = groupMap.get(tag)!;
+                  return (
+                    <div
+                      key={tag || "__untagged__"}
+                      className={
+                        gi > 0
+                          ? "border-t border-black/[0.06] dark:border-white/[0.06] mt-1 pt-1"
+                          : ""
+                      }
+                    >
+                      {tag && (
+                        <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+                          <span className="material-symbols-outlined text-[13px] text-text-muted/50">
+                            label
+                          </span>
+                          <span className="text-[11px] font-semibold uppercase tracking-widest text-text-muted/60 select-none">
+                            {tag}
+                          </span>
+                          <div className="flex-1 h-px bg-black/[0.04] dark:bg-white/[0.04]" />
+                          <span className="text-[10px] text-text-muted/40">
+                            {groupConns.length}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                        {groupConns.map((conn, index) => (
+                          <ConnectionRow
+                            key={conn.id}
+                            connection={conn}
+                            isOAuth={isOAuth}
+                            isFirst={gi === 0 && index === 0}
+                            isLast={gi === groupKeys.length - 1 && index === groupConns.length - 1}
+                            onMoveUp={() =>
+                              handleSwapPriority(conn, sorted[sorted.indexOf(conn) - 1])
+                            }
+                            onMoveDown={() =>
+                              handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])
+                            }
+                            onToggleActive={(isActive) =>
+                              handleUpdateConnectionStatus(conn.id, isActive)
+                            }
+                            onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                            isCodex={providerId === "codex"}
+                            onToggleCodex5h={(enabled) =>
+                              handleToggleCodexLimit(conn.id, "use5h", enabled)
+                            }
+                            onToggleCodexWeekly={(enabled) =>
+                              handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                            }
+                            onRetest={() => handleRetestConnection(conn.id)}
+                            isRetesting={retestingId === conn.id}
+                            onEdit={() => {
+                              setSelectedConnection(conn);
+                              setShowEditModal(true);
+                            }}
+                            onDelete={() => handleDelete(conn.id)}
+                            onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
+                            onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
+                            isRefreshing={refreshingId === conn.id}
+                            onProxy={() =>
+                              setProxyTarget({
+                                level: "key",
+                                id: conn.id,
+                                label: conn.name || conn.email || conn.id,
+                              })
+                            }
+                            hasProxy={!!connProxyMap[conn.id]?.proxy}
+                            proxySource={connProxyMap[conn.id]?.level || null}
+                            proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
       </Card>
 
@@ -2188,6 +2306,7 @@ export default function ProviderDetailPage() {
           level={proxyTarget.level}
           levelId={proxyTarget.id}
           levelLabel={proxyTarget.label}
+          onSaved={() => void loadConnProxies(connections)}
         />
       )}
       {/* Import Progress Modal */}
@@ -4130,6 +4249,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     baseUrl: "",
     region: "",
     validationModelId: "",
+    tag: "",
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -4159,6 +4279,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         baseUrl: existingBaseUrl || (isBailian ? defaultBailianUrl : ""),
         region: existingRegion || (isVertex ? defaultRegion : ""),
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
+        tag: (connection.providerSpecificData?.tag as string) || "",
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -4282,6 +4403,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
+          tag: formData.tag.trim() || undefined,
         };
         if (formData.validationModelId) {
           updates.providerSpecificData.validationModelId = formData.validationModelId;
@@ -4292,6 +4414,12 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         } else if (isVertex) {
           updates.providerSpecificData.region = formData.region;
         }
+      } else {
+        // Also persist tag for OAuth accounts
+        updates.providerSpecificData = {
+          ...(connection.providerSpecificData || {}),
+          tag: formData.tag.trim() || undefined,
+        };
       }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
@@ -4321,6 +4449,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder={isOAuth ? t("accountName") : t("productionKey")}
+        />
+        <Input
+          label="Tag / Group"
+          value={formData.tag}
+          onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+          placeholder="e.g. personal, work, team-a"
+          hint="Used to group accounts in the provider view"
         />
         {isOAuth && connection.email && (
           <div className="bg-sidebar/50 p-3 rounded-lg">
