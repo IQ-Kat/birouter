@@ -652,6 +652,27 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
+    // LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
+    longcat: async ({ apiKey }: any) => {
+      try {
+        const res = await fetch("https://longcat.chat/api/v1/chat/completions", {
+          method: "POST",
+          headers: buildBearerHeaders(apiKey),
+          body: JSON.stringify({
+            model: "longcat",
+            messages: [{ role: "user", content: "test" }],
+            max_tokens: 1,
+          }),
+        });
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        // Any non-auth response (200, 400, 422) means auth passed
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return { valid: false, error: error.message || "Connection failed" };
+      }
+    },
     // Search providers — use factored validator
     ...Object.fromEntries(
       Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [

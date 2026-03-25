@@ -223,7 +223,8 @@ export async function handleChatCore({
 
   const endpointPath = String(clientRawRequest?.endpoint || "");
   const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
-  const isResponsesEndpoint = /\/responses(?=\/|$)/i.test(endpointPath) || /^responses(?=\/|$)/i.test(endpointPath);
+  const isResponsesEndpoint =
+    /\/responses(?=\/|$)/i.test(endpointPath) || /^responses(?=\/|$)/i.test(endpointPath);
   const nativeCodexPassthrough = shouldUseNativeCodexPassthrough({
     provider,
     sourceFormat,
@@ -1067,8 +1068,14 @@ export async function handleChatCore({
     }
 
     // Translate response to client's expected format (usually OpenAI)
+    // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
     let translatedResponse = needsTranslation(targetFormat, sourceFormat)
-      ? translateNonStreamingResponse(responseBody, targetFormat, sourceFormat)
+      ? translateNonStreamingResponse(
+          responseBody,
+          targetFormat,
+          sourceFormat,
+          toolNameMap as Map<string, string> | null
+        )
       : responseBody;
 
     // T26: Strip markdown code blocks if provider format is Claude
