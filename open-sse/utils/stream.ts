@@ -57,6 +57,13 @@ type TranslateState = ReturnType<typeof initState> & {
   accumulatedContent?: string;
 };
 
+type ToolCall = {
+  id: string | null;
+  index: number;
+  type: string;
+  function: { name: string; arguments: string };
+};
+
 type UsageTokenRecord = Record<string, number>;
 
 function getOpenAIIntermediateChunks(value: unknown): unknown[] {
@@ -114,7 +121,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   /** Passthrough (OpenAI CC shape): saw tool_calls in stream before finish_reason */
   let passthroughHasToolCalls = false;
   /** Passthrough: accumulate tool_calls deltas for call log responseBody */
-  const passthroughToolCalls = new Map<string, { id: string | null; index: number; type: string; function: { name: string; arguments: string } }>();
+  const passthroughToolCalls = new Map<string, ToolCall>();
   let passthroughToolCallSeq = 0;
 
   // State for translate mode (accumulatedContent for call log response body)
@@ -276,13 +283,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                     passthroughHasToolCalls = true;
                     for (const tc of delta.tool_calls) {
                       // Key by index first — id only appears on the first delta in OpenAI streaming
-                      const key = Number.isInteger(tc?.index)
-                        ? `idx:${tc.index}`
-                        : tc?.id
-                          ? `id:${tc.id}`
-                          : `seq:${++passthroughToolCallSeq}`;
+                      let key: string;
+                      if (Number.isInteger(tc?.index)) {
+                        key = `idx:${tc.index}`;
+                      } else if (tc?.id) {
+                        key = `id:${tc.id}`;
+                      } else {
+                        key = `seq:${++passthroughToolCallSeq}`;
+                      }
                       const existing = passthroughToolCalls.get(key);
-                      const deltaArgs = typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
+                      const deltaArgs =
+                        typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
                       if (!existing) {
                         passthroughToolCalls.set(key, {
                           id: tc?.id ?? null,
@@ -295,7 +306,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                         });
                       } else {
                         if (tc?.id) existing.id = existing.id || tc.id;
-                        if (tc?.function?.name && !existing.function.name) existing.function.name = tc.function.name;
+                        if (tc?.function?.name && !existing.function.name)
+                          existing.function.name = tc.function.name;
                         existing.function.arguments += deltaArgs;
                       }
                     }
@@ -549,8 +561,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   content: content || null,
                 };
                 if (passthroughToolCalls.size > 0) {
-                  message.tool_calls = [...passthroughToolCalls.values()]
-                    .sort((a, b) => a.index - b.index);
+                  message.tool_calls = [...passthroughToolCalls.values()].sort(
+                    (a, b) => a.index - b.index
+                  );
                 }
                 const responseBody = {
                   choices: [
@@ -685,12 +698,17 @@ export function createSSEStream(options: StreamOptions = {}) {
               if (hasToolCalls) {
                 // Normalize shape — translators may store different structures
                 message.tool_calls = [...state.toolCalls.values()]
-                  .map((tc: any) => ({
-                    id: tc.id ?? null,
-                    index: tc.index ?? tc.blockIndex ?? 0,
-                    type: tc.type ?? "function",
-                    function: tc.function ?? { name: tc.name ?? "", arguments: "" },
-                  }))
+                  .map(
+                    (tc: Record<string, unknown>): ToolCall => ({
+                      id: (tc.id as string) ?? null,
+                      index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
+                      type: (tc.type as string) ?? "function",
+                      function: (tc.function as ToolCall["function"]) ?? {
+                        name: (tc.name as string) ?? "",
+                        arguments: "",
+                      },
+                    })
+                  )
                   .sort((a, b) => a.index - b.index);
               }
               const responseBody = {
