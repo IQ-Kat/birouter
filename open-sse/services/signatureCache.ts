@@ -132,6 +132,11 @@ export function detectAndLearn(
     }
   }
 
+  // Collapse excessive consecutive newlines left after tag removal (fixes #626)
+  if (found.length > 0) {
+    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+  }
+
   return { found, cleaned: cleaned.trim() || cleaned };
 }
 
