@@ -1275,10 +1275,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "lc",
     format: "openai",
     executor: "default",
-    // (#536) Correct OpenAI-compatible base URL — was longcat.chat/api/v1/chat/completions
-    // which is the chat endpoint directly, not the base. Key validation and routing must
-    // use https://api.longcat.chat/openai which resolves /v1/models and /v1/chat/completions
-    baseUrl: "https://api.longcat.chat/openai",
+    baseUrl: "https://api.longcat.chat/openai/v1/chat/completions",
     authType: "apikey",
     authHeader: "Authorization",
     authPrefix: "Bearer",

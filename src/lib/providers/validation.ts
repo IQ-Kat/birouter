@@ -655,7 +655,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     // LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
     longcat: async ({ apiKey }: any) => {
       try {
-        const res = await fetch("https://longcat.chat/api/v1/chat/completions", {
+        const res = await fetch("https://api.longcat.chat/openai/v1/chat/completions", {
           method: "POST",
           headers: buildBearerHeaders(apiKey),
           body: JSON.stringify({
