@@ -113,6 +113,9 @@ export function createSSEStream(options: StreamOptions = {}) {
   let usage: UsageTokenRecord | null = null;
   /** Passthrough (OpenAI CC shape): saw tool_calls in stream before finish_reason */
   let passthroughHasToolCalls = false;
+  /** Passthrough: accumulate tool_calls deltas for call log responseBody */
+  const passthroughToolCalls = new Map<string, { id: string | null; index: number; type: string; function: { name: string; arguments: string } }>();
+  let passthroughToolCallSeq = 0;
 
   // State for translate mode (accumulatedContent for call log response body)
   const state: TranslateState | null =
@@ -268,9 +271,29 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
                   }
 
-                  // T18: Track if we saw tool calls
+                  // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
                     passthroughHasToolCalls = true;
+                    for (const tc of delta.tool_calls) {
+                      const key = tc?.id ? `id:${tc.id}` : Number.isInteger(tc?.index) ? `idx:${tc.index}` : `seq:${++passthroughToolCallSeq}`;
+                      const existing = passthroughToolCalls.get(key);
+                      const deltaArgs = typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
+                      if (!existing) {
+                        passthroughToolCalls.set(key, {
+                          id: tc?.id ?? null,
+                          index: Number.isInteger(tc?.index) ? tc.index : passthroughToolCalls.size,
+                          type: tc?.type || "function",
+                          function: {
+                            name: tc?.function?.name || "",
+                            arguments: deltaArgs,
+                          },
+                        });
+                      } else {
+                        if (tc?.id) existing.id = existing.id || tc.id;
+                        if (tc?.function?.name) existing.function.name = tc.function.name;
+                        existing.function.arguments += deltaArgs;
+                      }
+                    }
                   }
 
                   const content = delta?.content || delta?.reasoning_content;
@@ -516,13 +539,19 @@ export function createSSEStream(options: StreamOptions = {}) {
                 const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
                 const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
                 const content = passthroughAccumulatedContent.trim() || "";
+                const message: Record<string, unknown> = {
+                  role: "assistant",
+                  content: content || null,
+                };
+                if (passthroughToolCalls.size > 0) {
+                  message.tool_calls = [...passthroughToolCalls.values()]
+                    .sort((a, b) => a.index - b.index);
+                }
                 const responseBody = {
                   choices: [
                     {
-                      message: {
-                        role: "assistant",
-                        content,
-                      },
+                      message,
+                      finish_reason: passthroughHasToolCalls ? "tool_calls" : "stop",
                     },
                   ],
                   usage: {
@@ -643,13 +672,20 @@ export function createSSEStream(options: StreamOptions = {}) {
               const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
               const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
               const content = (state?.accumulatedContent ?? "").trim() || "";
+              const message: Record<string, unknown> = {
+                role: "assistant",
+                content: content || null,
+              };
+              const hasToolCalls = state?.toolCalls?.size > 0;
+              if (hasToolCalls) {
+                message.tool_calls = [...state.toolCalls.values()]
+                  .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+              }
               const responseBody = {
                 choices: [
                   {
-                    message: {
-                      role: "assistant",
-                      content,
-                    },
+                    message,
+                    finish_reason: hasToolCalls ? "tool_calls" : "stop",
                   },
                 ],
                 usage: {
