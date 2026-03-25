@@ -94,7 +94,9 @@ async function runSyncCycle(apiBaseUrl: string): Promise<void> {
     console.log(`[ModelSync] Starting model sync cycle — ${connections.length} connection(s)`);
 
     const results = await Promise.allSettled(
-      connections.map((conn) => syncConnectionModels(conn.id, conn.provider, apiBaseUrl))
+      connections.map((conn) =>
+        syncConnectionModels(conn.id, conn.name || conn.provider, apiBaseUrl)
+      )
     );
 
     const succeeded = results.filter((r) => r.status === "fulfilled" && r.value === true).length;

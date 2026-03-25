@@ -31,6 +31,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
+    // Use a human-readable provider name for logs
+    const providerLabel = connection.name || connection.provider || "unknown";
+
     // Fetch models from the existing /api/providers/[id]/models endpoint
     const origin = new URL(request.url).origin;
     const modelsUrl = `${origin}/api/providers/${id}/models`;
@@ -52,7 +55,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         path: `/api/providers/${id}/models`,
         status: modelsRes.status,
         model: "model-sync",
-        provider: connection.provider || "unknown",
+        provider: providerLabel,
         connectionId: id,
         duration,
         error: modelsData.error || `HTTP ${modelsRes.status}`,
@@ -84,7 +87,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       path: `/api/providers/${id}/models`,
       status: 200,
       model: "model-sync",
-      provider: connection.provider || "unknown",
+      provider: providerLabel,
       connectionId: id,
       duration: Date.now() - start,
       requestType: "model-sync",
