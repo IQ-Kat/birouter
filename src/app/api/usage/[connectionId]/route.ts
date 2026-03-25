@@ -135,49 +135,97 @@ export async function GET(
     // so that both credential refresh AND usage fetch go through the proxy.
     const proxyInfo = await resolveProxyForConnection(connectionId);
 
-    // Wrap BOTH credential refresh and usage fetch inside proxy context.
-    // Codex accounts behind SOCKS5 proxies need the proxy active during token refresh too.
-    const { usage, refreshed } = (await runWithProxyContext(proxyInfo?.proxy || null, async () => {
-      let conn = connection;
-      let wasRefreshed = false;
+    // Helper: perform credential refresh + usage fetch
+    const fetchUsageWithContext = async (proxyConfig: unknown) => {
+      return runWithProxyContext(proxyConfig, async () => {
+        let conn = connection;
+        let wasRefreshed = false;
 
-      // Refresh credentials if needed using executor
-      try {
-        const result = await refreshAndUpdateCredentials(conn);
-        conn = result.connection;
-        wasRefreshed = result.refreshed;
+        // Refresh credentials if needed using executor
+        try {
+          const result = await refreshAndUpdateCredentials(conn);
+          conn = result.connection;
+          wasRefreshed = result.refreshed;
 
-        // Sync to cloud only if token was refreshed
-        if (wasRefreshed) {
-          await syncToCloudIfEnabled();
+          // Sync to cloud only if token was refreshed
+          if (wasRefreshed) {
+            await syncToCloudIfEnabled();
+          }
+        } catch (refreshError) {
+          console.error("[Usage API] Credential refresh failed:", refreshError);
+          throw refreshError;
         }
-      } catch (refreshError) {
-        console.error("[Usage API] Credential refresh failed:", refreshError);
-        throw refreshError;
-      }
 
-      // Fetch usage from provider API
-      const usageData = await getUsageForProvider(conn);
-      connection = conn; // propagate updated connection for status sync below
-      return { usage: usageData, refreshed: wasRefreshed };
-    }).catch((refreshError: any) => {
-      // If error originated from credential refresh, return 401
-      if (
-        refreshError?.message?.includes?.("refresh") ||
-        refreshError?.message?.includes?.("Credential")
-      ) {
-        return { __authError: true, message: refreshError.message };
-      }
-      throw refreshError;
-    })) as any;
+        // Fetch usage from provider API
+        const usageData = await getUsageForProvider(conn);
+        connection = conn; // propagate updated connection for status sync below
+        return { usage: usageData, refreshed: wasRefreshed };
+      });
+    };
 
-    // Handle auth errors from credential refresh
-    if (usage?.__authError) {
-      return Response.json(
-        { error: `Credential refresh failed: ${usage.message}` },
-        { status: 401 }
+    // Check if a usage result indicates a network-level error (proxy can't relay)
+    const isNetworkFailure = (usageResult: any): boolean => {
+      const msg = usageResult?.usage?.message;
+      if (typeof msg !== "string") return false;
+      return (
+        msg.includes("fetch failed") ||
+        msg.includes("ECONNREFUSED") ||
+        msg.includes("ETIMEDOUT") ||
+        msg.includes("Proxy unreachable") ||
+        msg.includes("UND_ERR_CONNECT_TIMEOUT")
       );
+    };
+
+    let result: any;
+    const proxyConfig = proxyInfo?.proxy || null;
+    try {
+      result = await fetchUsageWithContext(proxyConfig);
+    } catch (proxyError: any) {
+      const isAuthError =
+        proxyError?.message?.includes?.("refresh") || proxyError?.message?.includes?.("Credential");
+
+      if (isAuthError) {
+        return Response.json(
+          { error: `Credential refresh failed: ${proxyError.message}` },
+          { status: 401 }
+        );
+      }
+
+      // If proxy was active and it's a network error (thrown), retry without proxy
+      const isThrownNetworkError =
+        proxyError?.message === "fetch failed" ||
+        proxyError?.code === "PROXY_UNREACHABLE" ||
+        proxyError?.code === "UND_ERR_CONNECT_TIMEOUT" ||
+        proxyError?.cause?.code === "ECONNREFUSED";
+
+      if (proxyConfig && isThrownNetworkError) {
+        console.warn(
+          `[Usage API] Proxy fetch threw for ${connectionId}, retrying without proxy:`,
+          proxyError?.message
+        );
+        result = await fetchUsageWithContext(null);
+      } else {
+        throw proxyError;
+      }
     }
+
+    // If the usage result contains a network error AND a proxy was active,
+    // retry without proxy. getCodexUsage() catches fetch errors internally
+    // and returns {message: "Failed to fetch..."} instead of throwing.
+    if (proxyConfig && isNetworkFailure(result)) {
+      console.warn(
+        `[Usage API] Proxy usage returned network error for ${connectionId}, retrying without proxy:`,
+        result.usage?.message
+      );
+      try {
+        result = await fetchUsageWithContext(null);
+      } catch (directError: any) {
+        console.error("[Usage API] Direct fetch also failed:", directError?.message);
+        throw directError;
+      }
+    }
+
+    const { usage, refreshed } = result;
 
     // Populate quota cache for quota-aware account selection
     if (isRecord(usage?.quotas)) {
