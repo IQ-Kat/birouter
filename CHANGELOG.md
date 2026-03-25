@@ -4,6 +4,14 @@
 
 ---
 
+## [3.0.5] — 2026-03-25
+
+### ✨ New Features
+
+- **Limits UI:** Added tag grouping feature to the connections dashboard to improve visual organization for accounts with custom tags.
+
+---
+
 ## [3.0.4] — 2026-03-25
 
 ### 🐛 Bug Fixes
