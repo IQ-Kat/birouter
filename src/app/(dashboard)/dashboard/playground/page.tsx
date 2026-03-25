@@ -20,6 +20,13 @@ interface ProviderOption {
   label: string;
 }
 
+interface ConnectionOption {
+  id: string;
+  name: string;
+  provider: string;
+  authType: string;
+}
+
 const ENDPOINT_OPTIONS = [
   { value: "chat", label: "Chat Completions" },
   { value: "responses", label: "Responses" },
@@ -182,8 +189,10 @@ function ImageResultsInline({ data }: { data: any }) {
 export default function PlaygroundPage() {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [providers, setProviders] = useState<ProviderOption[]>([]);
+  const [connections, setConnections] = useState<ConnectionOption[]>([]);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
+  const [selectedConnection, setSelectedConnection] = useState("");
   const [selectedEndpoint, setSelectedEndpoint] = useState("chat");
   const [requestBody, setRequestBody] = useState("");
   const [responseBody, setResponseBody] = useState("");
@@ -205,7 +214,38 @@ export default function PlaygroundPage() {
   const isImageEndpoint = selectedEndpoint === "images";
   const supportsVision = isChatEndpoint && isVisionModel(selectedModel);
 
-  // Fetch models
+  // Load connections for a given provider (called imperatively)
+  const loadConnections = useCallback((provider: string) => {
+    if (!provider) {
+      setConnections([]);
+      setSelectedConnection("");
+      return;
+    }
+    fetch("/api/providers/client")
+      .then((res) => res.json())
+      .then((data) => {
+        const allConns: ConnectionOption[] = [];
+        for (const p of data?.providers || []) {
+          if (p.id !== provider) continue;
+          for (const conn of p.connections || []) {
+            allConns.push({
+              id: conn.id,
+              name: conn.name || conn.id,
+              provider: p.id,
+              authType: conn.authType || "apiKey",
+            });
+          }
+        }
+        setConnections(allConns);
+        setSelectedConnection("");
+      })
+      .catch(() => {
+        setConnections([]);
+        setSelectedConnection("");
+      });
+  }, []);
+
+  // Fetch models and initialize first provider
   useEffect(() => {
     fetch("/v1/models")
       .then((res) => res.json())
@@ -222,10 +262,13 @@ export default function PlaygroundPage() {
           .sort()
           .map((p) => ({ value: p, label: p }));
         setProviders(providerOpts);
-        if (providerOpts.length > 0) setSelectedProvider(providerOpts[0].value);
+        if (providerOpts.length > 0) {
+          setSelectedProvider(providerOpts[0].value);
+          loadConnections(providerOpts[0].value);
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [loadConnections]);
 
   const filteredModels = models
     .filter((m) => !selectedProvider || m.id.startsWith(selectedProvider + "/"))
@@ -241,6 +284,8 @@ export default function PlaygroundPage() {
 
   const handleProviderChange = (newProvider: string) => {
     setSelectedProvider(newProvider);
+    setSelectedConnection("");
+    loadConnections(newProvider);
     const providerModels = models
       .filter((m) => !newProvider || m.id.startsWith(newProvider + "/"))
       .map((m) => m.id);
@@ -334,8 +379,13 @@ export default function PlaygroundPage() {
         } catch {
           /* ignore parse errors */
         }
+        const fetchHeaders: Record<string, string> = {};
+        if (selectedConnection) {
+          fetchHeaders["X-OmniRoute-Connection"] = selectedConnection;
+        }
         res = await fetch(`/api${path}`, {
           method: "POST",
+          headers: fetchHeaders,
           body: form,
           signal: controller.signal,
         });
@@ -345,9 +395,13 @@ export default function PlaygroundPage() {
         if (supportsVision && uploadedImages.length > 0) {
           parsed = buildChatBodyWithImages(parsed, uploadedImages);
         }
+        const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
+        if (selectedConnection) {
+          fetchHeaders["X-OmniRoute-Connection"] = selectedConnection;
+        }
         res = await fetch(`/api${path}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: fetchHeaders,
           body: JSON.stringify(parsed),
           signal: controller.signal,
         });
@@ -468,6 +522,27 @@ export default function PlaygroundPage() {
                 value={selectedModel}
                 onChange={(e: any) => handleModelChange(e.target.value)}
                 options={filteredModels}
+                className="w-full"
+              />
+            </div>
+          )}
+
+          {/* Account/Connection — shown when provider has multiple connections */}
+          {!isSearchEndpoint && connections.length > 1 && (
+            <div className="flex-1 w-full">
+              <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+                Account
+              </label>
+              <Select
+                value={selectedConnection}
+                onChange={(e: any) => setSelectedConnection(e.target.value)}
+                options={[
+                  { value: "", label: `All (${connections.length} accounts)` },
+                  ...connections.map((c) => ({
+                    value: c.id,
+                    label: c.name,
+                  })),
+                ]}
                 className="w-full"
               />
             </div>

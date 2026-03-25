@@ -4,6 +4,24 @@
 
 ---
 
+## [3.0.6] — 2026-03-25
+
+### 🐛 Bug Fixes
+
+- **Limits/Proxy:** Fixed Codex limit fetching for accounts behind SOCKS5 proxies — token refresh now runs inside proxy context
+- **CI:** Fixed integration test `v1/models` assertion failure in CI environments without provider connections
+- **Settings:** Proxy test button now shows success/failure results immediately (previously hidden behind health data)
+
+### ✨ New Features
+
+- **Playground:** Added Account selector dropdown — test specific connections individually when a provider has multiple accounts
+
+### 🔧 Maintenance
+
+- Merged PR #623 — LongCat API base URL path correction
+
+---
+
 ## [3.0.5] — 2026-03-25
 
 ### ✨ New Features
