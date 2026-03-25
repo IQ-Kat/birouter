@@ -14,8 +14,8 @@ import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
-import { getAllVideoModels, getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
-import { getAllMusicModels, getMusicProvider } from "@omniroute/open-sse/config/musicRegistry.ts";
+import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
+import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
@@ -315,10 +315,9 @@ export async function getUnifiedModelsResponse(
       });
     }
 
-    // Add video models (local providers always listed, cloud filtered by active)
+    // Add video models (filtered by active providers)
     for (const videoModel of getAllVideoModels()) {
-      const vConfig = getVideoProvider(videoModel.provider);
-      if (vConfig?.authType !== "none" && !isProviderActive(videoModel.provider)) continue;
+      if (!isProviderActive(videoModel.provider)) continue;
       models.push({
         id: videoModel.id,
         object: "model",
@@ -328,10 +327,9 @@ export async function getUnifiedModelsResponse(
       });
     }
 
-    // Add music models (local providers always listed, cloud filtered by active)
+    // Add music models (filtered by active providers)
     for (const musicModel of getAllMusicModels()) {
-      const mConfig = getMusicProvider(musicModel.provider);
-      if (mConfig?.authType !== "none" && !isProviderActive(musicModel.provider)) continue;
+      if (!isProviderActive(musicModel.provider)) continue;
       models.push({
         id: musicModel.id,
         object: "model",
