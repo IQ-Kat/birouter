@@ -209,12 +209,11 @@ export default function ProxyRegistryManager() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          proxyId: item.id,
           proxy: {
             type: item.type || "http",
             host: item.host,
             port: String(item.port || 8080),
-            username: item.username,
-            password: item.password,
           },
         }),
       });
