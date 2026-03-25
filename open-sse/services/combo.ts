@@ -526,18 +526,30 @@ export async function handleComboChat({
         // visible content so they don't leak to the user. The tag is still
         // present in the full response for round-trip context pinning, but
         // we clean it from each SSE chunk's content field before delivery.
+        //
+        // IMPORTANT: Use a SEPARATE TextDecoder from the transform stream above.
+        // The transform stream's decoder accumulates UTF-8 state; reusing it here
+        // would corrupt multi-byte characters split across chunk boundaries.
+        const sanitizeDecoder = new TextDecoder();
         const sanitize = new TransformStream({
           transform(chunk, controller) {
-            const text = decoder.decode(chunk, { stream: true });
-            // Only run replacement if the chunk actually contains the tag
+            const text = sanitizeDecoder.decode(chunk, { stream: true });
             if (text.includes("<omniModel>")) {
-              const cleaned = text.replace(
-                /(?:\\\\n|\\n)?<omniModel>[^<]+<\/omniModel>(?:\\\\n|\\n)?/g,
-                ""
-              );
+              const cleaned = text.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
               controller.enqueue(encoder.encode(cleaned));
             } else {
-              controller.enqueue(chunk);
+              controller.enqueue(encoder.encode(text));
+            }
+          },
+          flush(controller) {
+            const tail = sanitizeDecoder.decode();
+            if (tail) {
+              if (tail.includes("<omniModel>")) {
+                const cleaned = tail.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                if (cleaned) controller.enqueue(encoder.encode(cleaned));
+              } else {
+                controller.enqueue(encoder.encode(tail));
+              }
             }
           },
         });
