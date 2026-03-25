@@ -534,11 +534,13 @@ export async function handleComboChat({
         const sanitize = new TransformStream({
           transform(chunk, controller) {
             const text = sanitizeDecoder.decode(chunk, { stream: true });
-            if (text.includes("<omniModel>")) {
-              const cleaned = text.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
-              controller.enqueue(encoder.encode(cleaned));
-            } else {
-              controller.enqueue(encoder.encode(text));
+            if (text) {
+              if (text.includes("<omniModel>")) {
+                const cleaned = text.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                if (cleaned) controller.enqueue(encoder.encode(cleaned));
+              } else {
+                controller.enqueue(encoder.encode(text));
+              }
             }
           },
           flush(controller) {
