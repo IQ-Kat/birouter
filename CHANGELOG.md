@@ -4,6 +4,19 @@
 
 ---
 
+## [3.1.2] — 2026-03-26
+
+### 🐛 Bug Fixes
+
+- **Critical: Tool Calling Regression** — Fixed `proxy_Bash` errors by disabling the `proxy_` tool name prefix in the Claude passthrough path. Tools like `Bash`, `Read`, `Write` were being renamed to `proxy_Bash`, `proxy_Read`, etc., causing Claude to reject them (#618)
+- **Kiro Account Ban Documentation** — Documented as upstream AWS anti-fraud false positive, not an OmniRoute issue (#649)
+
+### 🧪 Tests
+
+- **936 tests, 0 failures**
+
+---
+
 ## [3.1.1] — 2026-03-26
 
 ### ✨ New Features
