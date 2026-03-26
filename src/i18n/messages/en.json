@@ -607,6 +607,9 @@
             "title": "Add Model Config",
             "desc": "Add the following configuration to your models array:"
           }
+        },
+        "notes": {
+          "0": "Continue uses JSON config file."
         }
       },
       "opencode": {
@@ -625,6 +628,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode requires API key configuration.",
+          "1": "Set the base URL to your OmniRoute endpoint."
         }
       },
       "kiro": {
@@ -643,6 +650,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro requires Amazon account."
         }
       }
     }
