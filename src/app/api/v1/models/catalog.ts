@@ -33,6 +33,47 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
   qw: "qwen",
 };
 
+const VISION_MODEL_KEYWORDS = [
+  "gpt-4o",
+  "gpt-4.1",
+  "gpt-4-vision",
+  "gpt-4-turbo",
+  "claude-3",
+  "claude-3.5",
+  "claude-3-5",
+  "claude-4",
+  "claude-opus",
+  "claude-sonnet",
+  "claude-haiku",
+  "gemini",
+  "gemma",
+  "llava",
+  "bakllava",
+  "pixtral",
+  "mistral-pixtral",
+  "qwen-vl",
+  "qvq",
+  "glm-4.6v",
+  "glm-4.5v",
+  "vision",
+  "multimodal",
+];
+
+function isVisionModelId(modelId: string): boolean {
+  const normalized = String(modelId || "").toLowerCase();
+  if (!normalized) return false;
+  return VISION_MODEL_KEYWORDS.some((keyword) => normalized.includes(keyword));
+}
+
+function getVisionCapabilityFields(modelId: string) {
+  if (!isVisionModelId(modelId)) return null;
+  return {
+    capabilities: { vision: true },
+    input_modalities: ["text", "image"],
+    output_modalities: ["text"],
+  };
+}
+
 function buildAliasMaps() {
   const aliasToProviderId: Record<string, string> = {};
   const providerIdToAlias: Record<string, string> = {};
@@ -214,6 +255,8 @@ export async function getUnifiedModelsResponse(
 
       for (const model of providerModels) {
         const aliasId = `${alias}/${model.id}`;
+        const visionFields =
+          getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
         // Model-level context length overrides provider default
         const contextLength = model.contextLength || defaultContextLength;
 
@@ -226,13 +269,17 @@ export async function getUnifiedModelsResponse(
           root: model.id,
           parent: null,
           ...(contextLength ? { context_length: contextLength } : {}),
+          ...(visionFields || {}),
         });
 
         // Add provider-id prefix in addition to short alias (ex: kiro/model + kr/model).
         // This improves compatibility for clients that expect full provider names.
         if (canonicalProviderId !== alias) {
+          const providerIdModel = `${canonicalProviderId}/${model.id}`;
+          const providerVisionFields =
+            getVisionCapabilityFields(providerIdModel) || getVisionCapabilityFields(model.id);
           models.push({
-            id: `${canonicalProviderId}/${model.id}`,
+            id: providerIdModel,
             object: "model",
             created: timestamp,
             owned_by: canonicalProviderId,
@@ -240,6 +287,7 @@ export async function getUnifiedModelsResponse(
             root: model.id,
             parent: aliasId,
             ...(contextLength ? { context_length: contextLength } : {}),
+            ...(providerVisionFields || {}),
           });
         }
       }
@@ -383,6 +431,10 @@ export async function getUnifiedModelsResponse(
           if (endpoints.includes("embeddings")) modelType = "embedding";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
+          const visionFields =
+            modelType === "chat"
+              ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)
+              : null;
 
           models.push({
             id: aliasId,
@@ -398,12 +450,18 @@ export async function getUnifiedModelsResponse(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
+            ...(visionFields || {}),
           });
 
           // Only add provider-prefixed version if different from alias
           if (canonicalProviderId !== alias && !prefix) {
             const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
             if (models.some((m) => m.id === providerPrefixedId)) continue;
+            const providerVisionFields =
+              modelType === "chat"
+                ? getVisionCapabilityFields(providerPrefixedId) ||
+                  getVisionCapabilityFields(modelId)
+                : null;
             models.push({
               id: providerPrefixedId,
               object: "model",
@@ -414,6 +472,7 @@ export async function getUnifiedModelsResponse(
               parent: aliasId,
               custom: true,
               ...(modelType ? { type: modelType } : {}),
+              ...(providerVisionFields || {}),
             });
           }
         }
