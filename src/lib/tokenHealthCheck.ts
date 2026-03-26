@@ -187,11 +187,18 @@ async function checkConnection(conn) {
   const intervalMs = intervalMin * 60 * 1000;
   const lastCheck = conn.lastHealthCheckAt ? new Date(conn.lastHealthCheckAt).getTime() : 0;
 
-  // Not yet due
-  if (Date.now() - lastCheck < intervalMs) return;
+  // Proactive pre-expiry check (#631): if token is about to expire, refresh immediately
+  // regardless of the health check interval — prevents request failures between checks
+  const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
+  const tokenExpiresAt = conn.tokenExpiresAt ? new Date(conn.tokenExpiresAt).getTime() : 0;
+  const isAboutToExpire = tokenExpiresAt > 0 && tokenExpiresAt - Date.now() < TOKEN_EXPIRY_BUFFER;
 
+  // Not yet due: skip if (a) interval hasn't elapsed AND (b) token is not about to expire
+  if (Date.now() - lastCheck < intervalMs && !isAboutToExpire) return;
+
+  const reason = isAboutToExpire ? "token expiring soon" : `interval: ${intervalMin}min`;
   log(
-    `${LOG_PREFIX} Refreshing ${conn.provider}/${conn.name || conn.email || conn.id} (interval: ${intervalMin}min)`
+    `${LOG_PREFIX} Refreshing ${conn.provider}/${conn.name || conn.email || conn.id} (${reason})`
   );
 
   const credentials = {
