@@ -3,6 +3,7 @@ import {
   getAllCustomModels,
   addCustomModel,
   removeCustomModel,
+  replaceCustomModels,
   updateCustomModel,
   getModelCompatOverrides,
   mergeModelCompatOverride,
@@ -242,11 +243,30 @@ export async function DELETE(request) {
     const provider = searchParams.get("provider");
     const modelId = searchParams.get("model");
 
-    if (!provider || !modelId) {
+    if (!provider) {
       return Response.json(
         {
           error: {
-            message: "provider and model query params are required",
+            message: "provider query param is required",
+            type: "validation_error",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // DELETE /api/provider-models?provider=<id>&all=true — clear all models
+    const all = searchParams.get("all");
+    if (all === "true") {
+      await replaceCustomModels(provider, []);
+      return Response.json({ cleared: true });
+    }
+
+    if (!modelId) {
+      return Response.json(
+        {
+          error: {
+            message: "model query param is required (or use all=true)",
             type: "validation_error",
           },
         },
