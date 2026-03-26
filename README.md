@@ -1238,6 +1238,8 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 | 🎮 **Model Playground**       | Test any provider/model/endpoint from the dashboard      |
 | 🔏 **CLI Fingerprint Toggle** | Per-provider fingerprint matching in Settings > Security |
 | 🌐 **i18n (30 languages)**    | Full dashboard + docs language support with RTL coverage |
+| 🧹 **Clear All Models**       | One-click model list clearing in provider details        |
+| 📋 **Issue Templates**        | Standardized GitHub templates for bugs and features      |
 | 📂 **Custom Data Directory**  | `DATA_DIR` override for storage location                 |
 
 ### Feature Deep Dive
