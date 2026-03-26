@@ -36,6 +36,13 @@ function toNumber(value: unknown): number | undefined {
 // Matches <think>...</think> blocks (greedy, dotAll)
 const THINK_TAG_REGEX = /<think>([\s\S]*?)<\/think>/gi;
 
+// #638: Collapse runs of 3+ consecutive newlines into \n\n
+// Tool call responses from thinking models often accumulate excessive newlines
+const EXCESSIVE_NEWLINES = /\n{3,}/g;
+function collapseExcessiveNewlines(text: string): string {
+  return text.replace(EXCESSIVE_NEWLINES, "\n\n");
+}
+
 /**
  * Extract <think> blocks from text content and return separated parts.
  * @returns {{ content: string, thinking: string | null }}
@@ -157,7 +164,7 @@ function sanitizeMessage(msg: unknown): unknown {
   // Handle content — extract <think> tags
   if (typeof msgRecord.content === "string") {
     const { content, thinking } = extractThinkingFromContent(msgRecord.content);
-    sanitized.content = content;
+    sanitized.content = collapseExcessiveNewlines(content);
 
     // Set reasoning_content from <think> tags (if not already set)
     if (thinking && !msgRecord.reasoning_content) {
@@ -304,7 +311,12 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
         if (deltaRecord) {
           const delta: JsonRecord = {};
           if (deltaRecord.role !== undefined) delta.role = deltaRecord.role;
-          if (deltaRecord.content !== undefined) delta.content = deltaRecord.content;
+          if (deltaRecord.content !== undefined) {
+            delta.content =
+              typeof deltaRecord.content === "string"
+                ? collapseExcessiveNewlines(deltaRecord.content)
+                : deltaRecord.content;
+          }
           if (deltaRecord.reasoning_content !== undefined) {
             delta.reasoning_content = deltaRecord.reasoning_content;
           } else if (typeof deltaRecord.reasoning === "string" && deltaRecord.reasoning) {

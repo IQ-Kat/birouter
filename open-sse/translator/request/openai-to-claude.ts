@@ -261,8 +261,8 @@ export function openaiToClaudeRequest(model, body, stream) {
 
       // Normalize input_schema: Anthropic requires `properties` when type is "object" (#595).
       // MCP tools (e.g. pencil, computer_use) may omit properties on object-type schemas.
-      const rawSchema: Record<string, unknown> =
-        toolData.parameters || toolData.input_schema || { type: "object", properties: {}, required: [] };
+      const rawSchema: Record<string, unknown> = toolData.parameters ||
+        toolData.input_schema || { type: "object", properties: {}, required: [] };
       const normalizedSchema =
         rawSchema.type === "object" && !rawSchema.properties
           ? { ...rawSchema, properties: {} }
@@ -317,6 +317,33 @@ export function openaiToClaudeRequest(model, body, stream) {
       ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
       ...(body.thinking.max_tokens && { max_tokens: body.thinking.max_tokens }),
     };
+  } else if (body.reasoning_effort) {
+    // Convert OpenAI reasoning_effort to Claude thinking format (#627)
+    // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
+    const effortBudgetMap: Record<string, number> = {
+      low: 1024,
+      medium: 10240,
+      high: 131072,
+      max: 131072,
+    };
+    const effort = String(body.reasoning_effort).toLowerCase();
+    const budget = effortBudgetMap[effort];
+    if (budget !== undefined && budget > 0) {
+      result.thinking = {
+        type: "enabled",
+        budget_tokens: budget,
+      };
+      // Claude requires max_tokens > budget_tokens
+      if (result.max_tokens <= budget) {
+        result.max_tokens = budget + 8192;
+      }
+    }
+  }
+
+  // Ensure max_tokens > budget_tokens for all thinking configurations (#627)
+  const budgetTokens = Number(result.thinking?.budget_tokens) || 0;
+  if (budgetTokens > 0 && result.max_tokens <= budgetTokens) {
+    result.max_tokens = budgetTokens + 8192;
   }
 
   // Attach toolNameMap to result for response translation

@@ -4,6 +4,27 @@
 
 ---
 
+## [3.1.0] — 2026-03-26
+
+### ✨ New Features
+
+- **GitHub Issue Templates**: Added standardized bug report, feature request, and config/proxy issue templates (#641)
+- **Clear All Models**: Added a "Clear All Models" button to the provider detail page with i18n support in 29 languages (#634)
+
+### 🐛 Bug Fixes
+
+- **Locale Conflict (`in.json`)**: Renamed the Hindi locale file from `in.json` (Indonesian ISO code) to `hi.json` to fix translation conflicts in Weblate (#642)
+- **Codex Empty Tool Names**: Moved tool name sanitization before the native Codex passthrough, fixing 400 errors from upstream providers when tools had empty names (#637)
+- **Streaming Newline Artifacts**: Added `collapseExcessiveNewlines` to the response sanitizer, collapsing runs of 3+ consecutive newlines from thinking models into a standard double newline (#638)
+- **Claude Reasoning Effort**: Converted OpenAI `reasoning_effort` param to Claude's native `thinking` budget block across all request paths, including automatic `max_tokens` adjustment (#627)
+- **Qwen Token Refresh**: Implemented proactive pre-expiry OAuth token refreshes (5-minute buffer) to prevent requests from failing when using short-lived tokens (#631)
+
+### 🧪 Tests
+
+- **936 tests, 0 failures** (+10 tests since 3.0.9)
+
+---
+
 ## [3.0.9] — 2026-03-26
 
 ### 🐛 Bug Fixes

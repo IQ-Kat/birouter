@@ -20,35 +20,31 @@ _Váš univerzální API proxy – jeden endpoint, více než 44 poskytovatelů,
 
 ### 🆕 What's New in v3.0.0
 
-| Area | Change |
-| --- | --- |
-| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
-| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
-| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
 | 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
-| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
-| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
-| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
-| 🔧 **926 Tests** | Full test suite passes with 0 failures |
-
-
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ### 🆕 What's New in v3.0.0
 
-| Area | Change |
-| --- | --- |
-| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
-| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
-| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
 | 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
-| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
-| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
-| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
-| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ---
-
-
 
 ## 🖼️ Hlavní ovládací panel
 
@@ -1071,6 +1067,8 @@ OmniRoute v2.0 je navržen jako operační platforma, nikoli pouze jako proxy pr
 | 🎮 **Modelové hřiště**                          | Otestujte libovolného poskytovatele/model/koncový bod z řídicího panelu   |
 | 🔏 **Přepínač otisků prstů v příkazovém řádku** | Porovnávání otisků prstů podle poskytovatele v Nastavení &gt; Zabezpečení |
 | 🌐 **i18n (30 jazyků)**                         | Plná jazyková podpora dashboardu a dokumentace s psaním zprava doleva     |
+| 🧹 **Clear All Models**                         | One-click model list clearing in provider details                         |
+| 📋 **Issue Templates**                          | Standardized GitHub templates for bugs and features                       |
 | 📂 **Adresář vlastních dat**                    | Přepsání `DATA_DIR` pro umístění úložiště                                 |
 
 ### Hluboký pohled na funkce

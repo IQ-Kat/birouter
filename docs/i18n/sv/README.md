@@ -98,35 +98,31 @@ _Anslut alla AI-drivna IDE- eller CLI-verktyg via OmniRoute — gratis API-gatew
 
 ### 🆕 What's New in v3.0.0
 
-| Area | Change |
-| --- | --- |
-| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
-| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
-| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
 | 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
-| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
-| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
-| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
-| 🔧 **926 Tests** | Full test suite passes with 0 failures |
-
-
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ### 🆕 What's New in v3.0.0
 
-| Area | Change |
-| --- | --- |
-| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
-| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
-| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
 | 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
-| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
-| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
-| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
-| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ---
-
-
 
 [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
@@ -939,6 +935,8 @@ npm run electron:build:linux   # Linux (.AppImage)
 | 🔄 **DB-säkerhetskopior**        | Automatisk säkerhetskopiering, återställning, export och import för alla inställningar |
 | 🌐 **Internationalisering**      | Fullständig i18n med nästa-intl — stöd för engelska + portugisiska (Brasilien)         |
 | 🌍 **Språkväljare**              | Globikon i rubriken för språkväxling i realtid (🇺🇸/🇧🇷)                                 |
+| 🧹 **Clear All Models**          | One-click model list clearing in provider details                                      |
+| 📋 **Issue Templates**           | Standardized GitHub templates for bugs and features                                    |
 | 📂 **Anpassad datakatalog**      | `DATA_DIR` env var för att åsidosätta standard `~/.omniroute` lagringssökväg           |
 
 <details>
