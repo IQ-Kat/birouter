@@ -231,6 +231,17 @@ function sanitizeUsage(usage: unknown): unknown {
   if (!usageRecord) return usage;
 
   const sanitized: JsonRecord = {};
+
+  // Cross-map Claude-style → OpenAI-style field names.
+  // Some providers return input_tokens/output_tokens instead of prompt_tokens/completion_tokens.
+  // Without this mapping, the whitelist filter below strips them, resulting in NaN/0 tokens (#617).
+  if (usageRecord.input_tokens !== undefined && usageRecord.prompt_tokens === undefined) {
+    usageRecord.prompt_tokens = usageRecord.input_tokens;
+  }
+  if (usageRecord.output_tokens !== undefined && usageRecord.completion_tokens === undefined) {
+    usageRecord.completion_tokens = usageRecord.output_tokens;
+  }
+
   for (const key of ALLOWED_USAGE_FIELDS) {
     if (usageRecord[key] !== undefined) {
       sanitized[key] = usageRecord[key];
