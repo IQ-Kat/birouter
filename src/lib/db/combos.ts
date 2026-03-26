@@ -27,21 +27,21 @@ export async function getCombos() {
     .map((row) => JSON.parse(row));
 }
 
-export async function getComboById(id) {
+export async function getComboById(id: string) {
   const db = getDbInstance();
   const row = db.prepare("SELECT data FROM combos WHERE id = ?").get(id);
   const payload = getSerializedData(row);
   return payload ? JSON.parse(payload) : null;
 }
 
-export async function getComboByName(name) {
+export async function getComboByName(name: string) {
   const db = getDbInstance();
   const row = db.prepare("SELECT data FROM combos WHERE name = ?").get(name);
   const payload = getSerializedData(row);
   return payload ? JSON.parse(payload) : null;
 }
 
-export async function createCombo(data) {
+export async function createCombo(data: JsonRecord) {
   const db = getDbInstance();
   const now = new Date().toISOString();
 
@@ -63,7 +63,7 @@ export async function createCombo(data) {
   return combo;
 }
 
-export async function updateCombo(id, data) {
+export async function updateCombo(id: string, data: JsonRecord) {
   const db = getDbInstance();
   const existing = db.prepare("SELECT data FROM combos WHERE id = ?").get(id);
   if (!existing) return null;
@@ -84,7 +84,7 @@ export async function updateCombo(id, data) {
   return merged;
 }
 
-export async function deleteCombo(id) {
+export async function deleteCombo(id: string) {
   const db = getDbInstance();
   const result = db.prepare("DELETE FROM combos WHERE id = ?").run(id);
   if (result.changes === 0) return false;

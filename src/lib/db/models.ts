@@ -247,7 +247,7 @@ export async function getModelAliases() {
   return result;
 }
 
-export async function setModelAlias(alias, model) {
+export async function setModelAlias(alias: string, model: unknown) {
   const db = getDbInstance();
   db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('modelAliases', ?, ?)"
@@ -255,7 +255,7 @@ export async function setModelAlias(alias, model) {
   backupDbFile("pre-write");
 }
 
-export async function deleteModelAlias(alias) {
+export async function deleteModelAlias(alias: string) {
   const db = getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace = 'modelAliases' AND key = ?").run(alias);
   backupDbFile("pre-write");
@@ -263,7 +263,7 @@ export async function deleteModelAlias(alias) {
 
 // ──────────────── MITM Alias ────────────────
 
-export async function getMitmAlias(toolName) {
+export async function getMitmAlias(toolName?: string) {
   const db = getDbInstance();
   if (toolName) {
     const row = db
@@ -282,7 +282,7 @@ export async function getMitmAlias(toolName) {
   return result;
 }
 
-export async function setMitmAliasAll(toolName, mappings) {
+export async function setMitmAliasAll(toolName: string, mappings: unknown) {
   const db = getDbInstance();
   db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('mitmAlias', ?, ?)"
@@ -292,7 +292,7 @@ export async function setMitmAliasAll(toolName, mappings) {
 
 // ──────────────── Custom Models ────────────────
 
-export async function getCustomModels(providerId) {
+export async function getCustomModels(providerId?: string) {
   const db = getDbInstance();
   if (providerId) {
     const row = db
@@ -342,7 +342,7 @@ export async function addCustomModel(
   const value = getKeyValue(row).value;
   const models = value ? JSON.parse(value) : [];
 
-  const exists = models.find((m) => m.id === modelId);
+  const exists = models.find((m: JsonRecord) => m.id === modelId);
   if (exists) return exists;
 
   const model = {
@@ -430,7 +430,7 @@ export async function replaceCustomModels(
   return merged;
 }
 
-export async function removeCustomModel(providerId, modelId) {
+export async function removeCustomModel(providerId: string, modelId: string) {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
@@ -441,7 +441,7 @@ export async function removeCustomModel(providerId, modelId) {
   if (!value) return false;
   const models = JSON.parse(value);
   const before = models.length;
-  const filtered = models.filter((m) => m.id !== modelId);
+  const filtered = models.filter((m: JsonRecord) => m.id !== modelId);
 
   if (filtered.length === before) return false;
 
@@ -476,7 +476,7 @@ export async function updateCustomModel(
   if (!value) return null;
 
   const models = JSON.parse(value);
-  const index = models.findIndex((m) => m.id === modelId);
+  const index = models.findIndex((m: JsonRecord) => m.id === modelId);
   if (index === -1) return null;
 
   const current = models[index];

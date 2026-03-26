@@ -172,6 +172,44 @@ function sanitizeMessage(msg: unknown): unknown {
     sanitized.reasoning_content = msgRecord.reasoning_content;
   }
 
+  // Handle 'reasoning' field alias (some providers use this instead of reasoning_content)
+  if (
+    msgRecord.reasoning &&
+    typeof msgRecord.reasoning === "string" &&
+    !sanitized.reasoning_content
+  ) {
+    sanitized.reasoning_content = msgRecord.reasoning;
+  }
+
+  // Handle reasoning_details[] array (StepFun/OpenRouter format)
+  // Structure: [{ type: "reasoning.text", text: "...", format: "unknown", index: 0 }]
+  if (Array.isArray(msgRecord.reasoning_details) && !sanitized.reasoning_content) {
+    const reasoningParts: string[] = [];
+    for (const detail of msgRecord.reasoning_details) {
+      const detailObj = detail && typeof detail === "object" ? (detail as JsonRecord) : null;
+      if (!detailObj) continue;
+      const detailType = typeof detailObj.type === "string" ? detailObj.type : "";
+      const detailText =
+        typeof detailObj.text === "string"
+          ? detailObj.text
+          : typeof detailObj.content === "string"
+            ? detailObj.content
+            : "";
+      if (
+        detailText &&
+        (detailType === "reasoning" ||
+          detailType === "reasoning.text" ||
+          detailType === "thinking" ||
+          detailType === "")
+      ) {
+        reasoningParts.push(detailText);
+      }
+    }
+    if (reasoningParts.length > 0) {
+      sanitized.reasoning_content = reasoningParts.join("");
+    }
+  }
+
   // Preserve tool_calls
   if (msgRecord.tool_calls) {
     sanitized.tool_calls = msgRecord.tool_calls;
@@ -258,6 +296,26 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
           if (deltaRecord.content !== undefined) delta.content = deltaRecord.content;
           if (deltaRecord.reasoning_content !== undefined) {
             delta.reasoning_content = deltaRecord.reasoning_content;
+          } else if (typeof deltaRecord.reasoning === "string" && deltaRecord.reasoning) {
+            // Alias: some providers use 'reasoning' instead of 'reasoning_content'
+            delta.reasoning_content = deltaRecord.reasoning;
+          } else if (Array.isArray(deltaRecord.reasoning_details)) {
+            // StepFun/OpenRouter: reasoning_details[{type:"reasoning.text", text:"..."}]
+            const parts: string[] = [];
+            for (const detail of deltaRecord.reasoning_details) {
+              const d = detail && typeof detail === "object" ? (detail as JsonRecord) : null;
+              if (!d) continue;
+              const text =
+                typeof d.text === "string"
+                  ? d.text
+                  : typeof d.content === "string"
+                    ? d.content
+                    : "";
+              if (text) parts.push(text);
+            }
+            if (parts.length > 0) {
+              delta.reasoning_content = parts.join("");
+            }
           }
           if (deltaRecord.tool_calls !== undefined) delta.tool_calls = deltaRecord.tool_calls;
           if (deltaRecord.function_call !== undefined)
