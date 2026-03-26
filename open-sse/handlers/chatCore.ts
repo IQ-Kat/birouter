@@ -426,10 +426,12 @@ export async function handleChatCore({
     } else {
       translatedBody = { ...body };
 
-      // Issue #199: Disable tool name prefix when routing Claude-format requests
-      // to non-Claude backends (prefix causes tool name mismatches)
-      const claudeProviders = ["claude", "anthropic"];
-      if (targetFormat === FORMATS.CLAUDE && !claudeProviders.includes(provider?.toLowerCase?.())) {
+      // Issue #199 + #618: Always disable tool name prefix in Claude passthrough.
+      // The proxy_ prefix was designed for OpenAI→Claude translation to avoid
+      // conflicts with Claude OAuth tools, but in the passthrough path the tools
+      // are already in Claude format. Applying the prefix turns "Bash" into
+      // "proxy_Bash", which Claude rejects ("No such tool available: proxy_Bash").
+      if (targetFormat === FORMATS.CLAUDE) {
         translatedBody._disableToolPrefix = true;
       }
 
