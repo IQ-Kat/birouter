@@ -1542,6 +1542,29 @@ export default function ProviderDetailPage() {
     }
   };
 
+  const [clearingModels, setClearingModels] = useState(false);
+  const handleClearAllModels = async () => {
+    if (clearingModels) return;
+    if (!confirm(t("clearAllModelsConfirm"))) return;
+    setClearingModels(true);
+    try {
+      const res = await fetch(
+        `/api/provider-models?provider=${encodeURIComponent(providerStorageAlias)}&all=true`,
+        { method: "DELETE" }
+      );
+      if (res.ok) {
+        await fetchProviderModelMeta();
+        notify.success(t("clearAllModelsSuccess"));
+      } else {
+        notify.error(t("clearAllModelsFailed"));
+      }
+    } catch {
+      notify.error(t("clearAllModelsFailed"));
+    } finally {
+      setClearingModels(false);
+    }
+  };
+
   const customMap = useMemo(() => buildCompatMap(modelMeta.customModels), [modelMeta.customModels]);
   const overrideMap = useMemo(
     () => buildCompatMap(modelMeta.modelCompatOverrides),
@@ -1650,10 +1673,25 @@ export default function ProviderDetailPage() {
       </button>
     );
 
+    const clearAllButton = modelMeta.customModels.length > 0 && (
+      <button
+        onClick={handleClearAllModels}
+        disabled={clearingModels}
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-red-300 dark:border-red-800 bg-transparent cursor-pointer text-[12px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+        title={t("clearAllModels")}
+      >
+        <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
+        <span>{t("clearAllModels")}</span>
+      </button>
+    );
+
     if (isCompatible) {
       return (
         <div>
-          <div className="flex items-center gap-2 mb-4">{autoSyncToggle}</div>
+          <div className="flex items-center gap-2 mb-4">
+            {autoSyncToggle}
+            {clearAllButton}
+          </div>
           <CompatibleModelsSection
             providerStorageAlias={providerStorageAlias}
             providerDisplayAlias={providerDisplayAlias}
@@ -1691,6 +1729,7 @@ export default function ProviderDetailPage() {
               {importingModels ? t("importingModels") : t("importFromModels")}
             </Button>
             {autoSyncToggle}
+            {clearAllButton}
             {!canImportModels && (
               <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
             )}
