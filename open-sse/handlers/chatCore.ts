@@ -347,6 +347,38 @@ export async function handleChatCore({
 
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
 
+  // ── Common input sanitization (runs for ALL paths including passthrough) ──
+  // #291: Strip empty name fields from messages/input items
+  // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
+  if (Array.isArray(body.messages)) {
+    body.messages = body.messages.map((msg: Record<string, unknown>) => {
+      if (msg.name === "") {
+        const { name: _n, ...rest } = msg;
+        return rest;
+      }
+      return msg;
+    });
+  }
+  if (Array.isArray(body.input)) {
+    body.input = body.input.map((item: Record<string, unknown>) => {
+      if (item.name === "") {
+        const { name: _n, ...rest } = item;
+        return rest;
+      }
+      return item;
+    });
+  }
+  // #346/#637: Strip tools with empty name
+  // Clients sometimes forward tool definitions with empty names, causing
+  // upstream providers to reject with 400 "Invalid 'tools[0].name': empty string."
+  if (Array.isArray(body.tools)) {
+    body.tools = body.tools.filter((tool: Record<string, unknown>) => {
+      const fn = tool.function as Record<string, unknown> | undefined;
+      const name = fn?.name ?? tool.name;
+      return name && String(name).trim().length > 0;
+    });
+  }
+
   // Translate request (pass reqLogger for intermediate logging)
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
@@ -399,40 +431,6 @@ export async function handleChatCore({
       const claudeProviders = ["claude", "anthropic"];
       if (targetFormat === FORMATS.CLAUDE && !claudeProviders.includes(provider?.toLowerCase?.())) {
         translatedBody._disableToolPrefix = true;
-      }
-
-      // ── #291: Strip empty name fields from messages/input items ──
-      // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
-      // Clients like PocketPaw may forward empty name fields from assistant turns.
-      if (Array.isArray(translatedBody.messages)) {
-        translatedBody.messages = translatedBody.messages.map((msg: Record<string, unknown>) => {
-          if (msg.name === "") {
-            const { name: _n, ...rest } = msg;
-            return rest;
-          }
-          return msg;
-        });
-      }
-      if (Array.isArray(translatedBody.input)) {
-        translatedBody.input = translatedBody.input.map((item: Record<string, unknown>) => {
-          if (item.name === "") {
-            const { name: _n, ...rest } = item;
-            return rest;
-          }
-          return item;
-        });
-      }
-      // ── #346: Strip tools with empty name ──
-      // Claude Code sometimes forwards tool definitions with empty names, causing
-      // OpenAI-compatible upstream providers to reject with:
-      // "Invalid 'input[N].name': empty string. Expected minimum length 1."
-      // Handles both OpenAI format ({ function: { name } }) and Anthropic format ({ name }).
-      if (Array.isArray(translatedBody.tools)) {
-        translatedBody.tools = translatedBody.tools.filter((tool: Record<string, unknown>) => {
-          const fn = tool.function as Record<string, unknown> | undefined;
-          const name = fn?.name ?? tool.name;
-          return name && String(name).trim().length > 0;
-        });
       }
 
       // Strip empty text content blocks from messages.
