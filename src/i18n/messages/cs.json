@@ -607,6 +607,9 @@
             "title": "Přidat nastavení modelu",
             "desc": "Přidejte do pole modely následující nastavení:"
           }
+        },
+        "notes": {
+          "0": "Continue používá konfigurační soubor JSON."
         }
       },
       "opencode": {
@@ -625,6 +628,10 @@
           "4": {
             "title": "Vybrat model"
           }
+        },
+        "notes": {
+          "0": "OpenCode vyžaduje konfiguraci API klíče.",
+          "1": "Nastavte základní URL na váš OmniRoute endpoint."
         }
       },
       "kiro": {
@@ -643,6 +650,9 @@
           "4": {
             "title": "Vyberte model"
           }
+        },
+        "notes": {
+          "0": "Kiro vyžaduje Amazon účet."
         }
       }
     }
@@ -1540,7 +1550,16 @@
     "chatPathHint": "Vlastní chat cesta pro poskytovatele s nestandardí API (např. /v4/chat/completions)",
     "modelsPathLabel": "Cesta koncového bodu modelu",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Cesta k vlastním modelům pro validaci (např. /v4/models)"
+    "modelsPathHint": "Cesta k vlastním modelům pro validaci (např. /v4/models)",
+    "autoSync": "Automatická synchronizace",
+    "autoSyncTooltip": "Automaticky obnovuje seznam modelů každých 24 hodin (lze konfigurovat přes MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatická synchronizace povolena – modely se budou pravidelně obnovovat",
+    "autoSyncDisabled": "Automatická synchronizace zakázána",
+    "autoSyncToggleFailed": "Nepodařilo se přepnout automatickou synchronizaci",
+    "clearAllModels": "Vymazat všechny modely",
+    "clearAllModelsConfirm": "Opravdu chcete odstranit všechny modely pro tohoto poskytovatele?",
+    "clearAllModelsSuccess": "Všechny modely vymazány",
+    "clearAllModelsFailed": "Nepodařilo se vymazat modely"
   },
   "settings": {
     "title": "Nastavení",
