@@ -260,17 +260,19 @@ export class CodexExecutor extends BaseExecutor {
       body.service_tier = CODEX_FAST_WIRE_VALUE;
     }
 
-    if (nativeCodexPassthrough) {
-      return body;
-    }
-
     // If no instructions provided, inject default Codex instructions
+    // NOTE: must run before the passthrough return — Codex upstream rejects
+    // requests without instructions even when the body is forwarded as-is.
     if (!body.instructions || body.instructions.trim() === "") {
       body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
     }
 
     // Ensure store is false (Codex requirement)
     body.store = false;
+
+    if (nativeCodexPassthrough) {
+      return body;
+    }
 
     // Extract thinking level from model name suffix
     // e.g., gpt-5.3-codex-high → high, gpt-5.3-codex → medium (default)
