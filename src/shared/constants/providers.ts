@@ -439,7 +439,7 @@ export const APIKEY_PROVIDERS = {
   zai: {
     id: "zai",
     alias: "zai",
-    name: "Z.AI (GLM-5)",
+    name: "Z.AI",
     icon: "psychology",
     color: "#2563EB",
     textIcon: "ZA",
