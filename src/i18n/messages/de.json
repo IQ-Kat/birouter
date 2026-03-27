@@ -2406,12 +2406,12 @@
     "backToLogin": "Zurück zum Anmelden",
     "forgotPassword": "Passwort vergessen?",
     "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
-    "waitingForAuthorization": "Waiting for authorization...",
-    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
-    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
-    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
-    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "waitingForAuthorization": "Warte auf Autorisierung...",
+    "waitingForGoogleAuthorization": "Warte auf Google-Autorisierung...",
+    "waitingForOpenAIAuthorization": "Warte auf OpenAI-Autorisierung...",
+    "waitingForAntigravityAuthorization": "Warte auf Antigravity-Autorisierung...",
+    "waitingForIFlowAuthorization": "Warte auf iFlow-Autorisierung...",
+    "exchangingCodeForTokens": "Tausche Code gegen Token aus..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2800,19 +2800,19 @@
     "networkError": "Network error"
   },
   "templateNames": {
-    "simple-chat": "Simple Chat",
+    "simple-chat": "Einfacher Chat",
     "streaming": "Streaming",
-    "system-prompt": "System Prompt",
-    "thinking": "Thinking",
-    "tool-calling": "Tool Calling",
-    "multi-turn": "Multi-turn"
+    "system-prompt": "System-Prompt",
+    "thinking": "Denken",
+    "tool-calling": "Werkzeugaufruf",
+    "multi-turn": "Mehrere Runden"
   },
   "templateDescriptions": {
-    "simple-chat": "Basic chat template",
-    "streaming": "Streaming template",
-    "system-prompt": "System prompt template",
-    "thinking": "Thinking template",
-    "tool-calling": "Tool calling template",
-    "multi-turn": "Multi-turn template"
+    "simple-chat": "Einfache Chat-Vorlage mit Systemnachricht",
+    "streaming": "Vorlage für Streaming-Antworten",
+    "system-prompt": "Vorlage mit benutzerdefiniertem System-Prompt",
+    "thinking": "Vorlage mit Denk-/Argumentationsbudget",
+    "tool-calling": "Vorlage für Werkzeug-/Funktionsaufrufe",
+    "multi-turn": "Vorlage für mehrstufige Konversationen"
   }
 }

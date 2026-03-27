@@ -2800,19 +2800,19 @@
     "modePackOfflineFriendly": "Offline přátelské"
   },
   "templateNames": {
-    "simple-chat": "Simple Chat",
-    "streaming": "Streaming",
-    "system-prompt": "System Prompt",
-    "thinking": "Thinking",
-    "tool-calling": "Tool Calling",
-    "multi-turn": "Multi-turn"
+    "simple-chat": "Jednoduchý chat",
+    "streaming": "Streamování",
+    "system-prompt": "Systémový prompt",
+    "thinking": "Přemýšlení",
+    "tool-calling": "Volání nástrojů",
+    "multi-turn": "Více tahů"
   },
   "templateDescriptions": {
-    "simple-chat": "Basic chat template",
-    "streaming": "Streaming template",
-    "system-prompt": "System prompt template",
-    "thinking": "Thinking template",
-    "tool-calling": "Tool calling template",
-    "multi-turn": "Multi-turn template"
+    "simple-chat": "Základní šablona chatu se systémovou zprávou",
+    "streaming": "Šablona pro streamování odpovědí",
+    "system-prompt": "Šablona s vlastním systémovým promptem",
+    "thinking": "Šablona s rozpočtem na přemýšlení/odůvodňování",
+    "tool-calling": "Šablona pro volání nástrojů/funkcí",
+    "multi-turn": "Šablona pro konverzace s více tahy"
   }
 }
