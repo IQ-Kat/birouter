@@ -568,6 +568,15 @@ export async function handleComboChat({
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────
 
+  // Route to pinned model if context caching specifies one (Fix #679)
+  if (pinnedModel) {
+    log.info(
+      "COMBO",
+      `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
+    );
+    return handleSingleModelWrapped(body, pinnedModel);
+  }
+
   // Route to round-robin handler if strategy matches
   if (strategy === "round-robin") {
     return handleRoundRobinCombo({

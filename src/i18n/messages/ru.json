@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "Гугл",
+    "TOOL_ALLOWLIST": "Белый список инструментов",
+    "TOOL_DENYLIST": "Список запрещенных инструментов",
+    "Failed to save pricing": "Не удалось сохранить цену.",
+    "Failed to reset pricing": "Не удалось сбросить цены.",
+    "apikey": "API-ключ",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Главная",
@@ -2403,7 +2411,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "Авторизация",
+    "Content-Disposition": "Содержание-Расположение"
   },
   "landing": {
     "brandName": "ОмниРоут",
@@ -2806,5 +2816,32 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Вы полезный помощник искусственного интеллекта.",
+      "userGreeting": "Здравствуйте! Чем я могу помочь вам сегодня?"
+    },
+    "streaming": {
+      "prompt": "Напишите рассказ о"
+    },
+    "systemPrompt": {
+      "question": "В чем смысл жизни?",
+      "systemInstruction": "Дайте вдумчивый, философский ответ."
+    },
+    "thinking": {
+      "question": "Объясните квантовые вычисления"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Название города, для которого нужно узнать погоду",
+      "toolDescription": "Получить текущую погоду для местоположения",
+      "userWeather": "Какая погода в Токио?"
+    },
+    "multiTurn": {
+      "system": "Вы полезный помощник.",
+      "assistantExample": "Я был бы рад помочь вам в этом.",
+      "userInitial": "мне нужна помощь с",
+      "userFollowUp": "Можете ли вы рассказать об этом подробнее?"
+    }
   }
 }

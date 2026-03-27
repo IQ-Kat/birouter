@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Liste autorisée des outils",
+    "TOOL_DENYLIST": "Liste de refus d'outils",
+    "Failed to save pricing": "Échec de l'enregistrement des prix",
+    "Failed to reset pricing": "Échec de la réinitialisation des prix",
+    "apikey": "Clé API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Accueil",
@@ -2403,7 +2411,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "Autorisation",
+    "Content-Disposition": "Disposition du contenu"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2806,5 +2816,32 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Vous êtes un assistant IA utile.",
+      "userGreeting": "Bonjour ! Comment puis-je vous aider aujourd'hui ?"
+    },
+    "streaming": {
+      "prompt": "Écrire une histoire sur"
+    },
+    "systemPrompt": {
+      "question": "Quel est le sens de la vie ?",
+      "systemInstruction": "Fournissez une réponse réfléchie et philosophique."
+    },
+    "thinking": {
+      "question": "Expliquer l'informatique quantique"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Le nom de la ville pour laquelle obtenir la météo",
+      "toolDescription": "Obtenir la météo actuelle pour un emplacement",
+      "userWeather": "Quel temps fait-il à Tokyo ?"
+    },
+    "multiTurn": {
+      "system": "Vous êtes un assistant utile.",
+      "assistantExample": "Je serais heureux de vous aider avec cela.",
+      "userInitial": "J'ai besoin d'aide pour",
+      "userFollowUp": "Pouvez-vous développer cela ?"
+    }
   }
 }

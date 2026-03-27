@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Daftar Alat yang Diizinkan",
+    "TOOL_DENYLIST": "Daftar Penolakan Alat",
+    "Failed to save pricing": "Gagal menyimpan harga",
+    "Failed to reset pricing": "Gagal menyetel ulang harga",
+    "apikey": "Kunci API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Rumah",
@@ -2403,7 +2411,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "Otorisasi",
+    "Content-Disposition": "Disposisi Konten"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2806,5 +2816,32 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Anda adalah asisten AI yang membantu.",
+      "userGreeting": "Halo! Apa yang bisa saya bantu hari ini?"
+    },
+    "streaming": {
+      "prompt": "Tulis cerita tentang"
+    },
+    "systemPrompt": {
+      "question": "Apa arti hidup?",
+      "systemInstruction": "Berikan jawaban yang bijaksana dan filosofis."
+    },
+    "thinking": {
+      "question": "Jelaskan komputasi kuantum"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Nama kota untuk mengetahui cuaca",
+      "toolDescription": "Dapatkan cuaca terkini untuk suatu lokasi",
+      "userWeather": "Bagaimana cuaca di Tokyo?"
+    },
+    "multiTurn": {
+      "system": "Anda adalah asisten yang membantu.",
+      "assistantExample": "Saya akan dengan senang hati membantu Anda dalam hal itu.",
+      "userInitial": "Saya butuh bantuan",
+      "userFollowUp": "Bisakah Anda menjelaskannya lebih lanjut?"
+    }
   }
 }

@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "Google'a",
+    "TOOL_ALLOWLIST": "Lista dozwolonych narzędzi",
+    "TOOL_DENYLIST": "Lista odrzuconych narzędzi",
+    "Failed to save pricing": "Nie udało się zapisać cen",
+    "Failed to reset pricing": "Nie udało się zresetować cen",
+    "apikey": "Klucz API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Dom",
@@ -2403,7 +2411,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "Autoryzacja",
+    "Content-Disposition": "Dyspozycja treści"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2806,5 +2816,32 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Jesteś pomocnym asystentem AI.",
+      "userGreeting": "Witam! Jak mogę Ci dzisiaj pomóc?"
+    },
+    "streaming": {
+      "prompt": "Napisz opowiadanie o"
+    },
+    "systemPrompt": {
+      "question": "Jaki jest sens życia?",
+      "systemInstruction": "Podaj przemyślaną, filozoficzną odpowiedź."
+    },
+    "thinking": {
+      "question": "Wyjaśnij obliczenia kwantowe"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Nazwa miasta, dla którego chcesz uzyskać pogodę",
+      "toolDescription": "Uzyskaj aktualną pogodę dla danej lokalizacji",
+      "userWeather": "Jaka jest pogoda w Tokio?"
+    },
+    "multiTurn": {
+      "system": "Jesteś pomocnym asystentem.",
+      "assistantExample": "Chętnie Ci w tym pomogę.",
+      "userInitial": "Potrzebuję pomocy",
+      "userFollowUp": "Możesz to rozwinąć?"
+    }
   }
 }
