@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [3.1.7] - 2026-03-27
+
+### 🐛 Bug Fixes
+
+- **Streaming Stability:** Fixed `hasValuableContent` returning `undefined` for empty chunks in SSE streams (#676).
+- **Tool Calling:** Fixed an issue in `sseParser.ts` where non-streaming Claude responses with multiple tool calls dropped the `id` of subsequent tool calls due to incorrect index-based deduplication (#671).
+
 ---
 
 ## [3.1.6] — 2026-03-27
