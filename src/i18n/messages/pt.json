@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Lista de permissões de ferramentas",
+    "TOOL_DENYLIST": "Lista de bloqueios de ferramentas",
+    "Failed to save pricing": "Falha ao salvar o preço",
+    "Failed to reset pricing": "Falha ao redefinir o preço",
+    "apikey": "Chave de API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Página inicial",
@@ -2415,7 +2423,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "Autorização",
+    "Content-Disposition": "Disposição de conteúdo"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2806,5 +2816,32 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Você é um assistente de IA útil.",
+      "userGreeting": "Olá! Como posso ajudá-lo hoje?"
+    },
+    "streaming": {
+      "prompt": "Escreva uma história sobre"
+    },
+    "systemPrompt": {
+      "question": "Qual é o sentido da vida?",
+      "systemInstruction": "Forneça uma resposta ponderada e filosófica."
+    },
+    "thinking": {
+      "question": "Explique a computação quântica"
+    },
+    "toolCalling": {
+      "cityNameDescription": "O nome da cidade para obter o clima",
+      "toolDescription": "Obtenha o clima atual para um local",
+      "userWeather": "Qual é o clima em Tóquio?"
+    },
+    "multiTurn": {
+      "system": "Você é um assistente útil.",
+      "assistantExample": "Ficarei feliz em ajudá-lo com isso.",
+      "userInitial": "preciso de ajuda com",
+      "userFollowUp": "Você pode explicar isso?"
+    }
   }
 }

@@ -2474,7 +2474,9 @@
     "waitingForOpenAIAuthorization": "Čekám na OpenAI autorizaci...",
     "waitingForAntigravityAuthorization": "Čekám na Antigravity autorizaci...",
     "waitingForIFlowAuthorization": "Čekám na iFlow autorizaci...",
-    "exchangingCodeForTokens": "Vyměňuji kód za tokeny..."
+    "exchangingCodeForTokens": "Vyměňuji kód za tokeny...",
+    "Authorization": "Autorizace",
+    "Content-Disposition": "Obsah-Dispozice"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2814,5 +2816,32 @@
     "thinking": "Šablona s rozpočtem na přemýšlení/odůvodňování",
     "tool-calling": "Šablona pro volání nástrojů/funkcí",
     "multi-turn": "Šablona pro konverzace s Multitahy"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Jste užitečný asistent AI.",
+      "userGreeting": "Dobrý den! Jak vám dnes mohu pomoci?"
+    },
+    "streaming": {
+      "prompt": "Napište příběh o"
+    },
+    "systemPrompt": {
+      "question": "Jaký je smysl života?",
+      "systemInstruction": "Poskytněte promyšlenou, filozofickou odpověď."
+    },
+    "thinking": {
+      "question": "Vysvětlete kvantové výpočty"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Název města, pro které se má zjistit počasí",
+      "toolDescription": "Získejte aktuální počasí pro místo",
+      "userWeather": "Jaké je počasí v Tokiu?"
+    },
+    "multiTurn": {
+      "system": "Jste užitečný pomocník.",
+      "assistantExample": "Rád vám s tím pomohu.",
+      "userInitial": "Potřebuji pomoct",
+      "userFollowUp": "Můžete to upřesnit?"
+    }
   }
 }

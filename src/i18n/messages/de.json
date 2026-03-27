@@ -2411,7 +2411,9 @@
     "waitingForOpenAIAuthorization": "Warte auf OpenAI-Autorisierung...",
     "waitingForAntigravityAuthorization": "Warte auf Antigravity-Autorisierung...",
     "waitingForIFlowAuthorization": "Warte auf iFlow-Autorisierung...",
-    "exchangingCodeForTokens": "Tausche Code gegen Token aus..."
+    "exchangingCodeForTokens": "Tausche Code gegen Token aus...",
+    "Authorization": "Autorisierung",
+    "Content-Disposition": "Inhaltliche Disposition"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2814,5 +2816,32 @@
     "thinking": "Vorlage mit Denk-/Argumentationsbudget",
     "tool-calling": "Vorlage für Werkzeug-/Funktionsaufrufe",
     "multi-turn": "Vorlage für mehrstufige Konversationen"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Sie sind ein hilfreicher KI-Assistent.",
+      "userGreeting": "Hallo! Wie kann ich Ihnen heute helfen?"
+    },
+    "streaming": {
+      "prompt": "Schreiben Sie eine Geschichte darüber"
+    },
+    "systemPrompt": {
+      "question": "Was ist der Sinn des Lebens?",
+      "systemInstruction": "Geben Sie eine nachdenkliche, philosophische Antwort."
+    },
+    "thinking": {
+      "question": "Erklären Sie Quantencomputing"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Der Name der Stadt, für die das Wetter ermittelt werden soll",
+      "toolDescription": "Erhalten Sie das aktuelle Wetter für einen Standort",
+      "userWeather": "Wie ist das Wetter in Tokio?"
+    },
+    "multiTurn": {
+      "system": "Sie sind ein hilfreicher Assistent.",
+      "assistantExample": "Gerne helfe ich Ihnen dabei.",
+      "userInitial": "Ich brauche Hilfe dabei",
+      "userFollowUp": "Können Sie das näher erläutern?"
+    }
   }
 }

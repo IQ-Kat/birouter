@@ -128,7 +128,15 @@
     "idc": "idc",
     "cloud-status-changed": "cloud-status-changed",
     "where_used": "where_used",
-    "windowMs": "windowMs"
+    "windowMs": "windowMs",
+    "social-github": "GitHub",
+    "social-google": "google",
+    "TOOL_ALLOWLIST": "Lista de herramientas permitidas",
+    "TOOL_DENYLIST": "Lista de denegaciones de herramientas",
+    "Failed to save pricing": "No se pudo guardar el precio",
+    "Failed to reset pricing": "No se pudo restablecer el precio",
+    "apikey": "Clave API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Inicio",
@@ -2403,7 +2411,9 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "Authorization": "Autorización",
+    "Content-Disposition": "Disposición de contenido"
   },
   "landing": {
     "brandName": "OmniRuta",
@@ -2806,5 +2816,32 @@
     "thinking": "Thinking template",
     "tool-calling": "Tool calling template",
     "multi-turn": "Multi-turn template"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Eres un útil asistente de IA.",
+      "userGreeting": "¡Hola! ¿Cómo puedo ayudarte hoy?"
+    },
+    "streaming": {
+      "prompt": "Escribe una historia sobre"
+    },
+    "systemPrompt": {
+      "question": "¿Cuál es el significado de la vida?",
+      "systemInstruction": "Proporcione una respuesta reflexiva y filosófica."
+    },
+    "thinking": {
+      "question": "Explicar la computación cuántica"
+    },
+    "toolCalling": {
+      "cityNameDescription": "El nombre de la ciudad para obtener el clima.",
+      "toolDescription": "Obtener el clima actual para una ubicación",
+      "userWeather": "¿Cuál es el clima en Tokio?"
+    },
+    "multiTurn": {
+      "system": "Eres un asistente útil.",
+      "assistantExample": "Estaré encantado de ayudarte con eso.",
+      "userInitial": "necesito ayuda con",
+      "userFollowUp": "¿Puedes dar más detalles sobre eso?"
+    }
   }
 }

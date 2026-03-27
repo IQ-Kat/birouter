@@ -65,8 +65,8 @@ export function hasValuableContent(chunk, format) {
     return true;
   }
 
-  // Gemini format: filter chunks with no actual content parts
-  if (format === FORMATS.GEMINI && chunk.candidates?.[0]) {
+  // Gemini / Antigravity format: filter chunks with no actual content parts
+  if ((format === FORMATS.GEMINI || format === FORMATS.ANTIGRAVITY) && chunk.candidates?.[0]) {
     const candidate = chunk.candidates[0];
     // Keep chunks with finish reason or safety ratings (they signal completion)
     if (candidate.finishReason) return true;

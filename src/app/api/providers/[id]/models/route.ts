@@ -5,6 +5,7 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
+import { getModelIsHidden } from "@/lib/localDb";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -322,9 +323,18 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
 /**
  * GET /api/providers/[id]/models - Get models list from provider
  */
-export async function GET(request, { params }) {
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
-    const { id } = await params;
+    const params = await context.params;
+    const { id } = params;
+
+    // Check if we should exclude hidden models (used by MCP tools to prevent hidden model leaks)
+    const { searchParams } = new URL(request.url);
+    const excludeHidden = searchParams.get("excludeHidden") === "true";
+
     const connection = await getProviderConnectionById(id);
 
     if (!connection) {
@@ -338,6 +348,13 @@ export async function GET(request, { params }) {
     if (!provider) {
       return NextResponse.json({ error: "Invalid connection provider" }, { status: 400 });
     }
+
+    const buildResponse = (payload: any, statusConfig?: ResponseInit) => {
+      if (excludeHidden && payload.models && Array.isArray(payload.models)) {
+        payload.models = payload.models.filter((m: any) => !getModelIsHidden(provider, m.id));
+      }
+      return NextResponse.json(payload, statusConfig);
+    };
 
     const connectionId = typeof connection.id === "string" ? connection.id : id;
     const apiKey = typeof connection.apiKey === "string" ? connection.apiKey : "";
@@ -423,7 +440,7 @@ export async function GET(request, { params }) {
           ? "local_catalog"
           : "api";
 
-      return NextResponse.json({
+      return buildResponse({
         provider,
         connectionId,
         models,
@@ -435,7 +452,7 @@ export async function GET(request, { params }) {
     }
 
     if (provider === "claude") {
-      return NextResponse.json({
+      return buildResponse({
         provider,
         connectionId,
         models: STATIC_MODEL_PROVIDERS.claude(),
@@ -480,7 +497,7 @@ export async function GET(request, { params }) {
       const data = await response.json();
       const models = data.data || data.models || [];
 
-      return NextResponse.json({
+      return buildResponse({
         provider,
         connectionId,
         models,
@@ -493,7 +510,7 @@ export async function GET(request, { params }) {
         ? STATIC_MODEL_PROVIDERS[provider as keyof typeof STATIC_MODEL_PROVIDERS]
         : undefined;
     if (staticModelsFn) {
-      return NextResponse.json({
+      return buildResponse({
         provider,
         connectionId,
         models: staticModelsFn(),
@@ -559,7 +576,7 @@ export async function GET(request, { params }) {
     const data = await response.json();
     const models = config.parseResponse(data);
 
-    return NextResponse.json({
+    return buildResponse({
       provider,
       connectionId,
       models,
