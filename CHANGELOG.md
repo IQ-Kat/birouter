@@ -4,6 +4,15 @@
 
 ---
 
+## [3.1.6] — 2026-03-27
+
+### 🐛 Bug Fixes
+
+- **Claude Native Tool Name Restoration** — Tool names like `TodoWrite` are no longer prefixed with `proxy_` in Claude passthrough responses (both streaming and non-streaming). Includes unit test coverage (PR #663 by @coobabm)
+- **Clear All Models Alias Cleanup** — "Clear All Models" button now also removes associated model aliases, preventing ghost models in the UI (PR #664 by @rdself)
+
+---
+
 ## [3.1.5] — 2026-03-27
 
 ### 🐛 Bug Fixes
