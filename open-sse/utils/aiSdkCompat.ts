@@ -13,10 +13,17 @@ export function clientWantsJsonResponse(acceptHeader: unknown): boolean {
 
 /**
  * Resolves stream behavior from request body + Accept header.
- * OpenAI-compatible behavior: stream only when `stream: true` and client did not force JSON.
+ * Priority: explicit `stream: true/false` in body wins.
+ * Accept header only acts as fallback when stream is not explicitly set.
+ * Fixes #656: clients sending both `stream: true` and `Accept: application/json`
+ * should still get streaming responses — body intent takes precedence.
  */
 export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): boolean {
-  return bodyStream === true && !clientWantsJsonResponse(acceptHeader);
+  // Explicit body value always wins
+  if (bodyStream === true) return true;
+  if (bodyStream === false) return false;
+  // No explicit stream param — fall back to Accept header heuristic
+  return !clientWantsJsonResponse(acceptHeader);
 }
 
 /**

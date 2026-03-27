@@ -4,9 +4,10 @@ import assert from "node:assert/strict";
 const { clientWantsJsonResponse, resolveStreamFlag, stripMarkdownCodeFence } =
   await import("../../open-sse/utils/aiSdkCompat.ts");
 
-test("T26: Accept application/json disables SSE stream mode", () => {
+test("T26: explicit stream:true takes priority over Accept application/json (#656)", () => {
   assert.equal(clientWantsJsonResponse("application/json"), true);
-  assert.equal(resolveStreamFlag(true, "application/json"), false);
+  // Body stream:true always wins — even with Accept: application/json
+  assert.equal(resolveStreamFlag(true, "application/json"), true);
 });
 
 test("T26: text/event-stream keeps SSE behavior", () => {
@@ -27,4 +28,17 @@ test("T26: markdown code fence stripping unwraps Claude JSON blocks", () => {
 test("T26: non-fenced content is returned unchanged", () => {
   const plain = '{"name":"omniroute"}';
   assert.equal(stripMarkdownCodeFence(plain), plain);
+});
+
+test("T26: undefined stream falls back to Accept header heuristic (#656)", () => {
+  // No explicit stream param — Accept: application/json means no streaming
+  assert.equal(resolveStreamFlag(undefined, "application/json"), false);
+  // No explicit stream param + no JSON accept = stream by default
+  assert.equal(resolveStreamFlag(undefined, "text/event-stream"), true);
+  assert.equal(resolveStreamFlag(undefined, undefined), true);
+});
+
+test("T26: explicit stream:false always prevents streaming", () => {
+  assert.equal(resolveStreamFlag(false, "text/event-stream"), false);
+  assert.equal(resolveStreamFlag(false, undefined), false);
 });

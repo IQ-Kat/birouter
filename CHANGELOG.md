@@ -4,6 +4,18 @@
 
 ---
 
+## [3.1.4] — 2026-03-27
+
+### 🐛 Bug Fixes
+
+- **Streaming Override Fix** — Explicit `stream: true` in request body now takes priority over `Accept: application/json` header. Clients sending both will correctly receive SSE streaming responses (#656)
+
+### 🌍 i18n
+
+- **Czech string improvements** — Refined terminology across `cs.json` (PR #655 by @zen0bit)
+
+---
+
 ## [3.1.3] — 2026-03-26
 
 ### 🌍 i18n & Community
