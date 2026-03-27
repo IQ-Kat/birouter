@@ -2,7 +2,13 @@
 
 ## [Unreleased]
 
-## [3.1.7] - 2026-03-27
+## [3.1.8] - 2026-03-27
+
+### 🐛 Bug Fixes & Features
+
+- **Platform Core:** Implemented global state handling for Hidden Models & Combos preventing them from cluttering the catalog or leaking into connected MCP agents (#681).
+- **Stability:** Patched streaming crashes related to the native Antigravity provider integration failing due to unhandled undefined state arrays (#684).
+- **Localization Sync:** Deployed a fully overhauled `i18n` synchronizer detecting missing nested JSON properties and retro-fitting 30 locales sequentially (#685).## [3.1.7] - 2026-03-27
 
 ### 🐛 Bug Fixes
 
