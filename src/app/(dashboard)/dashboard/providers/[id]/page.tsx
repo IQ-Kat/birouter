@@ -1553,7 +1553,19 @@ export default function ProviderDetailPage() {
         { method: "DELETE" }
       );
       if (res.ok) {
+        // Also delete all aliases that belong to this provider
+        const aliasEntries = Object.entries(modelAliases).filter(([, model]) =>
+          (model as string).startsWith(`${providerStorageAlias}/`)
+        );
+        await Promise.all(
+          aliasEntries.map(([alias]) =>
+            fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
+              method: "DELETE",
+            }).catch(() => {})
+          )
+        );
         await fetchProviderModelMeta();
+        await fetchAliases();
         notify.success(t("clearAllModelsSuccess"));
       } else {
         notify.error(t("clearAllModelsFailed"));
