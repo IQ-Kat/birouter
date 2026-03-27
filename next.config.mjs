@@ -14,6 +14,8 @@ const nextConfig = {
   output: "standalone",
   serverExternalPackages: [
     "better-sqlite3",
+    "keytar",
+    "wreq-js",
     "zod",
     "child_process",
     "fs",
@@ -59,6 +61,8 @@ const nextConfig = {
 
       const KNOWN_EXTERNALS = new Set([
         "better-sqlite3",
+        "keytar",
+        "wreq-js",
         "zod",
         "pino",
         "pino-pretty",

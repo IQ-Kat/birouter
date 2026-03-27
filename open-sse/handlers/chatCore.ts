@@ -23,6 +23,7 @@ import {
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
+import { getLoggedInputTokens, getLoggedOutputTokens } from "@/lib/usage/tokenAccounting";
 import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
@@ -108,6 +109,154 @@ function restoreClaudePassthroughToolNames(
   return {
     ...responseBody,
     content,
+  };
+}
+
+function getHeaderValueCaseInsensitive(
+  headers: Record<string, unknown> | null | undefined,
+  targetName: string
+) {
+  if (!headers || typeof headers !== "object") return null;
+  const lowered = targetName.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === lowered && typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function buildClaudePromptCacheLogMeta(
+  targetFormat: string,
+  finalBody: Record<string, unknown> | null | undefined,
+  providerHeaders: Record<string, unknown> | null | undefined
+) {
+  if (targetFormat !== FORMATS.CLAUDE || !finalBody || typeof finalBody !== "object") return null;
+
+  const describeCacheControl = (cacheControl: Record<string, unknown> | undefined, extra = {}) => ({
+    type:
+      cacheControl && typeof cacheControl.type === "string" && cacheControl.type.trim()
+        ? cacheControl.type.trim()
+        : "ephemeral",
+    ttl:
+      cacheControl && typeof cacheControl.ttl === "string" && cacheControl.ttl.trim()
+        ? cacheControl.ttl.trim()
+        : null,
+    ...extra,
+  });
+
+  const systemBreakpoints = Array.isArray(finalBody.system)
+    ? finalBody.system.flatMap((block, index) => {
+        if (!block || typeof block !== "object") return [];
+        const cacheControl =
+          block.cache_control && typeof block.cache_control === "object" ? block.cache_control : null;
+        return cacheControl ? [describeCacheControl(cacheControl, { index })] : [];
+      })
+    : [];
+
+  const toolBreakpoints = Array.isArray(finalBody.tools)
+    ? finalBody.tools.flatMap((tool, index) => {
+        if (!tool || typeof tool !== "object") return [];
+        const cacheControl =
+          tool.cache_control && typeof tool.cache_control === "object" ? tool.cache_control : null;
+        const name = typeof tool.name === "string" && tool.name.trim() ? tool.name.trim() : null;
+        return cacheControl ? [describeCacheControl(cacheControl, { index, name })] : [];
+      })
+    : [];
+
+  const messageBreakpoints = Array.isArray(finalBody.messages)
+    ? finalBody.messages.flatMap((message, messageIndex) => {
+        if (!message || typeof message !== "object" || !Array.isArray(message.content)) return [];
+        const role =
+          typeof message.role === "string" && message.role.trim() ? message.role.trim() : "unknown";
+        return message.content.flatMap((block, contentIndex) => {
+          if (!block || typeof block !== "object") return [];
+          const cacheControl =
+            block.cache_control && typeof block.cache_control === "object" ? block.cache_control : null;
+          if (!cacheControl) return [];
+          return [
+            describeCacheControl(cacheControl, {
+              messageIndex,
+              contentIndex,
+              role,
+              blockType:
+                typeof block.type === "string" && block.type.trim() ? block.type.trim() : "unknown",
+            }),
+          ];
+        });
+      })
+    : [];
+
+  const totalBreakpoints =
+    systemBreakpoints.length + toolBreakpoints.length + messageBreakpoints.length;
+  const anthropicBeta = getHeaderValueCaseInsensitive(providerHeaders, "Anthropic-Beta");
+
+  if (totalBreakpoints === 0 && !anthropicBeta) return null;
+
+  return {
+    applied: totalBreakpoints > 0,
+    totalBreakpoints,
+    anthropicBeta,
+    systemBreakpoints,
+    toolBreakpoints,
+    messageBreakpoints,
+  };
+}
+
+function toPositiveNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function buildCacheUsageLogMeta(usage: Record<string, unknown> | null | undefined) {
+  if (!usage || typeof usage !== "object") return null;
+  const promptTokenDetails =
+    usage.prompt_tokens_details && typeof usage.prompt_tokens_details === "object"
+      ? (usage.prompt_tokens_details as Record<string, unknown>)
+      : undefined;
+  const hasCacheFields =
+    "cache_read_input_tokens" in usage ||
+    "cached_tokens" in usage ||
+    "cache_creation_input_tokens" in usage ||
+    !!promptTokenDetails &&
+      ("cached_tokens" in promptTokenDetails || "cache_creation_tokens" in promptTokenDetails);
+  const cacheReadTokens = toPositiveNumber(
+    usage.cache_read_input_tokens ??
+      usage.cached_tokens ??
+      promptTokenDetails?.cached_tokens
+  );
+  const cacheCreationTokens = toPositiveNumber(
+    usage.cache_creation_input_tokens ??
+      promptTokenDetails?.cache_creation_tokens
+  );
+  if (!hasCacheFields) return null;
+  return {
+    cacheReadTokens,
+    cacheCreationTokens,
+  };
+}
+
+function attachLogMeta(
+  payload: Record<string, unknown> | null | undefined,
+  meta: Record<string, unknown> | null | undefined
+) {
+  if (!meta || typeof meta !== "object") return payload;
+  const compactMeta = Object.fromEntries(
+    Object.entries(meta).filter(([, value]) => value !== null && value !== undefined)
+  );
+  if (Object.keys(compactMeta).length === 0) return payload;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return { _omniroute: compactMeta, _payload: payload ?? null };
+  }
+  const existing =
+    payload._omniroute && typeof payload._omniroute === "object" && !Array.isArray(payload._omniroute)
+      ? payload._omniroute
+      : {};
+  return {
+    ...payload,
+    _omniroute: {
+      ...existing,
+      ...compactMeta,
+    },
   };
 }
 
@@ -562,6 +711,7 @@ export async function handleChatCore({
   let providerUrl;
   let providerHeaders;
   let finalBody;
+  let claudePromptCacheLogMeta = null;
 
   try {
     const result = await executeProviderRequest(effectiveModel, true);
@@ -570,6 +720,11 @@ export async function handleChatCore({
     providerUrl = result.url;
     providerHeaders = result.headers;
     finalBody = result.transformedBody;
+    claudePromptCacheLogMeta = buildClaudePromptCacheLogMeta(
+      targetFormat,
+      finalBody,
+      providerHeaders
+    );
 
     // Log target request (final request to provider)
     reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
@@ -598,7 +753,9 @@ export async function handleChatCore({
       provider,
       connectionId,
       duration: Date.now() - startTime,
-      requestBody: body,
+      requestBody: attachLogMeta(body, {
+        claudePromptCache: claudePromptCacheLogMeta,
+      }),
       error: error.message,
       sourceFormat,
       targetFormat,
@@ -684,7 +841,9 @@ export async function handleChatCore({
       provider,
       connectionId,
       duration: Date.now() - startTime,
-      requestBody: body,
+      requestBody: attachLogMeta(body, {
+        claudePromptCache: claudePromptCacheLogMeta,
+      }),
       error: message,
       sourceFormat,
       targetFormat,
@@ -870,6 +1029,7 @@ export async function handleChatCore({
     );
 
     // Save structured call log with full payloads
+    const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     saveCallLog({
       method: "POST",
       path: clientRawRequest?.endpoint || "/v1/chat/completions",
@@ -879,8 +1039,19 @@ export async function handleChatCore({
       connectionId,
       duration: Date.now() - startTime,
       tokens: usage,
-      requestBody: body,
-      responseBody,
+      requestBody: attachLogMeta(body, {
+        claudePromptCache: claudePromptCacheLogMeta,
+      }),
+      responseBody: attachLogMeta(responseBody, {
+        claudePromptCache: claudePromptCacheLogMeta
+          ? {
+              applied: claudePromptCacheLogMeta.applied,
+              totalBreakpoints: claudePromptCacheLogMeta.totalBreakpoints,
+              anthropicBeta: claudePromptCacheLogMeta.anthropicBeta,
+            }
+          : null,
+        claudePromptCacheUsage: cacheUsageLogMeta,
+      }),
       sourceFormat,
       targetFormat,
       comboName,
@@ -889,7 +1060,7 @@ export async function handleChatCore({
       noLog: apiKeyInfo?.noLog === true,
     }).catch(() => {});
     if (usage && typeof usage === "object") {
-      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | in=${usage?.prompt_tokens || 0} | out=${usage?.completion_tokens || 0}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
+      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | in=${getLoggedInputTokens(usage)} | out=${getLoggedOutputTokens(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
       console.log(`${COLORS.green}${msg}${COLORS.reset}`);
 
       saveRequestUsage({
@@ -983,6 +1154,7 @@ export async function handleChatCore({
     usage: streamUsage,
     responseBody: streamResponseBody,
   }) => {
+    const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
     saveCallLog({
       method: "POST",
       path: clientRawRequest?.endpoint || "/v1/chat/completions",
@@ -992,8 +1164,19 @@ export async function handleChatCore({
       connectionId,
       duration: Date.now() - startTime,
       tokens: streamUsage || {},
-      requestBody: body,
-      responseBody: streamResponseBody ?? undefined,
+      requestBody: attachLogMeta(body, {
+        claudePromptCache: claudePromptCacheLogMeta,
+      }),
+      responseBody: attachLogMeta(streamResponseBody ?? undefined, {
+        claudePromptCache: claudePromptCacheLogMeta
+          ? {
+              applied: claudePromptCacheLogMeta.applied,
+              totalBreakpoints: claudePromptCacheLogMeta.totalBreakpoints,
+              anthropicBeta: claudePromptCacheLogMeta.anthropicBeta,
+            }
+          : null,
+        claudePromptCacheUsage: cacheUsageLogMeta,
+      }),
       sourceFormat,
       targetFormat,
       comboName,

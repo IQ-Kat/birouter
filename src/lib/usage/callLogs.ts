@@ -11,6 +11,7 @@ import path from "path";
 import fs from "fs";
 import { getDbInstance } from "../db/core";
 import { shouldPersistToDisk, CALL_LOGS_DIR } from "./migrations";
+import { getLoggedInputTokens, getLoggedOutputTokens } from "./tokenAccounting";
 import { isNoLog } from "../compliance";
 import { sanitizePII } from "../piiSanitizer";
 
@@ -184,12 +185,8 @@ export async function saveCallLog(entry: any) {
       account,
       connectionId: entry.connectionId || null,
       duration: entry.duration || 0,
-      tokensIn: toNumber(
-        (entry.tokens?.prompt_tokens ?? entry.tokens?.input_tokens ?? 0) +
-          (entry.tokens?.cache_read_input_tokens ?? entry.tokens?.cached_tokens ?? 0) +
-          (entry.tokens?.cache_creation_input_tokens ?? 0)
-      ),
-      tokensOut: toNumber(entry.tokens?.completion_tokens ?? entry.tokens?.output_tokens ?? 0),
+      tokensIn: toNumber(getLoggedInputTokens(entry.tokens)),
+      tokensOut: toNumber(getLoggedOutputTokens(entry.tokens)),
       requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
       targetFormat: entry.targetFormat || null,
