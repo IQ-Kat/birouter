@@ -89,6 +89,14 @@ export default function OnboardingWizard() {
 
   const handleSetPassword = async () => {
     if (skipSecurity) {
+      // (#574) Explicitly disable requireLogin when skipping password setup
+      try {
+        await fetch("/api/settings/require-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requireLogin: false }),
+        });
+      } catch {}
       handleNext();
       return;
     }
@@ -176,6 +184,19 @@ export default function OnboardingWizard() {
 
   const handleFinish = async () => {
     try {
+      // (#574) If no password was set during wizard, disable requireLogin
+      // to prevent the user from being locked out on the login page
+      const settings = await fetch("/api/settings/require-login")
+        .then((r) => r.json())
+        .catch(() => ({}));
+      if (!settings.hasPassword) {
+        await fetch("/api/settings/require-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requireLogin: false }),
+        }).catch(() => {});
+      }
+
       await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

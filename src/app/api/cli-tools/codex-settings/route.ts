@@ -12,6 +12,7 @@ import { createMultiBackup } from "@/shared/services/backupService";
 import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { getApiKeyById } from "@/lib/localDb";
 
 const getCodexConfigPath = () => getCliConfigPaths("codex").config;
 const getCodexAuthPath = () => getCliConfigPaths("codex").auth;
@@ -166,12 +167,28 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { baseUrl, apiKey, model } = validation.data;
+    const { baseUrl, model } = validation.data;
+    let { apiKey } = validation.data;
     if (!apiKey) {
       return NextResponse.json(
         { error: "baseUrl, apiKey and model are required" },
         { status: 400 }
       );
+    }
+
+    // (#549) Resolve real key from DB if keyId was provided.
+    // The dashboard sends masked key strings — resolving by ID guarantees
+    // we always write the full key value to the config file.
+    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+    if (keyId) {
+      try {
+        const keyRecord = await getApiKeyById(keyId);
+        if (keyRecord?.key) {
+          apiKey = keyRecord.key as string;
+        }
+      } catch {
+        // Non-critical: fall back to whatever value was in apiKey
+      }
     }
 
     const codexDir = getCodexDir();

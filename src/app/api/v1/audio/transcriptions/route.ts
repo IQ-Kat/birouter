@@ -1,4 +1,7 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
+
+// Allow large audio/video file uploads — 5min for processing large files (up to 2GB)
+export const maxDuration = 300;
 import { handleAudioTranscription } from "@omniroute/open-sse/handlers/audioTranscription.ts";
 import {
   getProviderCredentials,
@@ -63,7 +66,7 @@ export async function POST(request) {
   let dynamicProviders: ReturnType<typeof buildDynamicAudioProvider>[] = [];
   try {
     const nodes = await getProviderNodes();
-    dynamicProviders = (Array.isArray(nodes) ? nodes : [])
+    dynamicProviders = (Array.isArray(nodes) ? (nodes as unknown as ProviderNodeRow[]) : [])
       .filter((n: ProviderNodeRow) => {
         if (n.apiType !== "chat" && n.apiType !== "responses") return false;
         try {

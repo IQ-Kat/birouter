@@ -11,28 +11,6 @@ _Universaali API-välityspalvelin – yksi päätepiste, yli 36 palveluntarjoaja
 
 ---
 
-### 🆕 What's New in v2.7.0
-
-- **Pluggable RouterStrategy** — rules, cost, and latency routing strategies
-- **Multilingual intent detection** — routing scoring in 30+ languages
-- **Request deduplication** — prevent duplicate API calls via content hash
-- **New providers:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
-- **Updated pricing:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
-
----
-
-### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
-
-| Feature                                    | What It Does                                                                                                                                  |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                        |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved** |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw), process spawner, `/api/acp/agents` endpoint                                 |
-| 🤖 **ACP Agents Dashboard**                | Debug > Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool                                      |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                               |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                   |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                      |
-
 ### 🤖 Ilmainen AI Provider suosikkikoodaajillesi
 
 _Yhdistä mikä tahansa tekoälyllä toimiva IDE- tai CLI-työkalu OmniRouten kautta – ilmainen API-yhdyskäytävä rajoittamattomaan koodaukseen._
@@ -115,6 +93,34 @@ _Yhdistä mikä tahansa tekoälyllä toimiva IDE- tai CLI-työkalu OmniRouten ka
   </table>
 
 <sub>📡 Kaikki agentit muodostavat yhteyden kautta <code>http://localhost:20128/v1</code> tai <code>http://cloud.omniroute_EN_2NI4/v_1_TO_OM. konfiguraatio, rajattomat mallit ja kiintiö</sub>
+
+---
+
+### 🆕 What's New in v3.0.0
+
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
+
+### 🆕 What's New in v3.0.0
+
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ---
 
@@ -928,6 +934,8 @@ npm run electron:build:linux   # Linux (.AppImage)
 | 🔄 **DB-varmuuskopiot**             | Automaattinen varmuuskopiointi, palautus, vienti ja tuonti kaikille asetuksille  |
 | 🌐 **Kansainvälistyminen**          | Täysi i18n next-intl:llä — Englanti + portugali (Brasilia) tuki                  |
 | 🌍 **Kielenvalitsin**               | Maapallokuvake otsikossa reaaliaikaista kielenvaihtoa varten (🇺🇸/🇧🇷)             |
+| 🧹 **Clear All Models**             | One-click model list clearing in provider details                                |
+| 📋 **Issue Templates**              | Standardized GitHub templates for bugs and features                              |
 | 📂 **Muokattu tietohakemisto**      | `DATA_DIR` env var ohittaa oletusarvoisen `~/.omniroute`-tallennuspolun          |
 
 <details>

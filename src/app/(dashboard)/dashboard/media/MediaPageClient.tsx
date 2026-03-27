@@ -358,6 +358,14 @@ function parseApiError(raw: any, statusCode: number): { message: string; isCrede
   return { message: String(msg), isCredentials };
 }
 
+/** Format file size to human-readable string */
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
 /** Render image result thumbnails */
 function ImageResults({ data }: { data: any }) {
   const images: Array<{ url?: string; b64_json?: string; revised_prompt?: string }> =
@@ -427,7 +435,9 @@ export default function MediaPageClient() {
   const [speechFormat, setSpeechFormat] = useState("mp3");
 
   // Transcription-specific
+  const MAX_TRANSCRIPTION_FILE_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
   const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
 
   // Fix #390: Track which local providers (sdwebui, comfyui) are actually configured
   // so we can hide them when they haven't been set up in the providers page
@@ -743,18 +753,35 @@ export default function MediaPageClient() {
         {/* Transcription: file upload */}
         {activeTab === "transcription" ? (
           <div>
-            <label className="block text-sm font-medium text-text-main mb-2">Audio File</label>
+            <label className="block text-sm font-medium text-text-main mb-2">Audio / Video File</label>
             <input
               type="file"
               accept="audio/*,video/*"
-              onChange={(e) => setAudioFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                setFileSizeError(null);
+                if (file && file.size > MAX_TRANSCRIPTION_FILE_SIZE) {
+                  setFileSizeError(`File too large (${formatFileSize(file.size)}). Maximum allowed: 4 GB.`);
+                  setAudioFile(null);
+                  e.target.value = "";
+                  return;
+                }
+                setAudioFile(file);
+              }}
               className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-sm"
             />
-            {audioFile && (
-              <p className="text-xs text-text-muted mt-1">
-                {audioFile.name} ({(audioFile.size / 1024).toFixed(0)} KB)
+            {fileSizeError && (
+              <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px]">error</span>
+                {fileSizeError}
               </p>
             )}
+            {audioFile && !fileSizeError && (
+              <p className="text-xs text-text-muted mt-1">
+                {audioFile.name} ({formatFileSize(audioFile.size)})
+              </p>
+            )}
+            <p className="text-[10px] text-text-muted/60 mt-1">Supports audio and video files up to 4 GB</p>
           </div>
         ) : (
           /* Prompt / Text */

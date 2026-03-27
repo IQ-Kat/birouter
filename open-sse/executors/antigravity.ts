@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { BaseExecutor } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
 
 const MAX_RETRY_AFTER_MS = 10000;
@@ -44,12 +44,28 @@ export class AntigravityExecutor extends BaseExecutor {
     // stale/wrong client-side values causing 404/403 from Cloud Code endpoints.
     // Opt-in escape hatch: set OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE=1.
     const projectId =
-      allowBodyProjectOverride && bodyProjectId ? bodyProjectId : credentialsProjectId || bodyProjectId;
+      allowBodyProjectOverride && bodyProjectId
+        ? bodyProjectId
+        : credentialsProjectId || bodyProjectId;
 
     if (!projectId) {
-      throw new Error(
-        "Missing Google projectId for Antigravity account. Please reconnect OAuth so OmniRoute can fetch your real Cloud Code project (loadCodeAssist)."
-      );
+      // (#489) Return a structured error instead of throwing — gives the client a clear signal
+      // to show a "Reconnect OAuth" prompt rather than an opaque "Internal Server Error".
+      const errorMsg =
+        "Missing Google projectId for Antigravity account. Please reconnect OAuth in Providers → Antigravity so OmniRoute can fetch your Cloud Code project.";
+      const errorBody = {
+        error: {
+          message: errorMsg,
+          type: "oauth_missing_project_id",
+          code: "missing_project_id",
+        },
+      };
+      const resp = new Response(JSON.stringify(errorBody), {
+        status: 422,
+        headers: { "Content-Type": "application/json" },
+      });
+      // Returning a Response object signals the executor to stop and forward it
+      return resp as unknown as never;
     }
 
     // Fix contents for Claude models via Antigravity
@@ -182,7 +198,7 @@ export class AntigravityExecutor extends BaseExecutor {
     return totalMs > 0 ? totalMs : null;
   }
 
-  async execute({ model, body, stream, credentials, signal, log }) {
+  async execute({ model, body, stream, credentials, signal, log, upstreamExtraHeaders }) {
     const fallbackCount = this.getFallbackCount();
     let lastError = null;
     let lastStatus = 0;
@@ -192,6 +208,7 @@ export class AntigravityExecutor extends BaseExecutor {
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, stream, urlIndex);
       const headers = this.buildHeaders(credentials, stream);
+      mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
       const transformedBody = this.transformRequest(model, body, stream, credentials);
 
       // Initialize retry counter for this URL

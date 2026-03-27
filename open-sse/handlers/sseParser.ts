@@ -23,8 +23,24 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
   const first = chunks[0];
   const contentParts = [];
   const reasoningParts = [];
+  type AccumulatedToolCall = {
+    id: string | null;
+    index: number;
+    type: string;
+    function: { name: string; arguments: string };
+  };
+
+  const accumulatedToolCalls = new Map<string, AccumulatedToolCall>();
+  let unknownToolCallSeq = 0;
   let finishReason = "stop";
   let usage = null;
+
+  const getToolCallKey = (toolCall: Record<string, unknown>) => {
+    if (toolCall?.id) return `id:${toolCall.id}`;
+    if (Number.isInteger(toolCall?.index)) return `idx:${toolCall.index}`;
+    unknownToolCallSeq += 1;
+    return `seq:${unknownToolCallSeq}`;
+  };
 
   for (const chunk of chunks) {
     const choice = chunk?.choices?.[0];
@@ -36,6 +52,40 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
     if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0) {
       reasoningParts.push(delta.reasoning_content);
     }
+
+    // T18: Accumulate tool calls correctly across streamed chunks
+    if (delta.tool_calls) {
+      for (const tc of delta.tool_calls) {
+        const key = getToolCallKey(tc);
+        const existing = accumulatedToolCalls.get(key);
+        const deltaArgs = typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
+
+        if (!existing) {
+          accumulatedToolCalls.set(key, {
+            id: tc?.id ?? null,
+            index: Number.isInteger(tc?.index) ? tc.index : accumulatedToolCalls.size,
+            type: tc?.type || "function",
+            function: {
+              name: tc?.function?.name || "unknown",
+              arguments: deltaArgs,
+            },
+          });
+        } else {
+          existing.id = existing.id || tc?.id || null;
+          if (!Number.isInteger(existing.index) && Number.isInteger(tc?.index)) {
+            existing.index = tc.index;
+          }
+          if (tc?.function?.name && !existing.function?.name) {
+            existing.function = existing.function || {};
+            existing.function.name = tc.function.name;
+          }
+          existing.function = existing.function || {};
+          existing.function.arguments = `${existing.function.arguments || ""}${deltaArgs}`;
+          accumulatedToolCalls.set(key, existing);
+        }
+      }
+    }
+
     if (choice?.finish_reason) {
       finishReason = choice.finish_reason;
     }
@@ -46,10 +96,20 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
 
   const message: Record<string, unknown> = {
     role: "assistant",
-    content: contentParts.join(""),
+    content: contentParts.length > 0 ? contentParts.join("") : null,
   };
   if (reasoningParts.length > 0) {
     message.reasoning_content = reasoningParts.join("");
+  }
+
+  const finalToolCalls = [...accumulatedToolCalls.values()].filter(Boolean).sort((a, b) => {
+    const ai = Number.isInteger(a?.index) ? a.index : 0;
+    const bi = Number.isInteger(b?.index) ? b.index : 0;
+    return ai - bi;
+  });
+  if (finalToolCalls.length > 0) {
+    finishReason = "tool_calls"; // T18 normalization
+    message.tool_calls = finalToolCalls;
   }
 
   const result: Record<string, unknown> = {

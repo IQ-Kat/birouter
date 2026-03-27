@@ -522,10 +522,47 @@ export async function handleComboChat({
           },
         });
 
-        const transformedStream = res.body.pipeThrough(transform);
+        // FIX #585: Sanitize outbound stream — strip <omniModel> tags from
+        // visible content so they don't leak to the user. The tag is still
+        // present in the full response for round-trip context pinning, but
+        // we clean it from each SSE chunk's content field before delivery.
+        //
+        // IMPORTANT: Use a SEPARATE TextDecoder from the transform stream above.
+        // The transform stream's decoder accumulates UTF-8 state; reusing it here
+        // would corrupt multi-byte characters split across chunk boundaries.
+        const sanitizeDecoder = new TextDecoder();
+        const sanitize = new TransformStream({
+          transform(chunk, controller) {
+            const text = sanitizeDecoder.decode(chunk, { stream: true });
+            if (text) {
+              if (text.includes("<omniModel>")) {
+                const cleaned = text.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                if (cleaned) controller.enqueue(encoder.encode(cleaned));
+              } else {
+                controller.enqueue(encoder.encode(text));
+              }
+            }
+          },
+          flush(controller) {
+            const tail = sanitizeDecoder.decode();
+            if (tail) {
+              if (tail.includes("<omniModel>")) {
+                const cleaned = tail.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                if (cleaned) controller.enqueue(encoder.encode(cleaned));
+              } else {
+                controller.enqueue(encoder.encode(tail));
+              }
+            }
+          },
+        });
+
+        const transformedStream = res.body.pipeThrough(transform).pipeThrough(sanitize);
+        // Add model info as response header for clients that support it
+        const headers = new Headers(res.headers);
+        headers.set("X-OmniRoute-Model", modelStr);
         return new Response(transformedStream, {
           status: res.status,
-          headers: res.headers,
+          headers,
         });
       }
     : handleSingleModel;
@@ -841,7 +878,8 @@ export async function handleComboChat({
         errorText,
         0,
         null,
-        provider
+        provider,
+        result.headers
       );
 
       // Record failure in circuit breaker for transient errors
@@ -865,6 +903,12 @@ export async function handleComboChat({
       if (!lastStatus) lastStatus = result.status;
       if (i > 0) fallbackCount++;
       log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
+
+      if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
+        log.info("COMBO", `Waiting ${cooldownMs}ms before fallback to next model`);
+        await new Promise((r) => setTimeout(r, cooldownMs));
+      }
+
       break; // Move to next model
     }
   }
@@ -886,7 +930,20 @@ export async function handleComboChat({
     );
   }
 
-  const status = lastStatus || 406;
+  if (!lastStatus) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Service temporarily unavailable: all upstream accounts are inactive",
+          type: "service_unavailable",
+          code: "ALL_ACCOUNTS_INACTIVE",
+        },
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const status = lastStatus;
   const msg = lastError || "All combo models unavailable";
 
   if (earliestRetryAfter) {
@@ -941,7 +998,7 @@ async function handleRoundRobinCombo({
 
   const modelCount = orderedModels.length;
   if (modelCount === 0) {
-    return unavailableResponse(406, "Round-robin combo has no models");
+    return unavailableResponse(503, "Round-robin combo has no models");
   }
 
   // Get and increment atomic counter
@@ -1077,7 +1134,8 @@ async function handleRoundRobinCombo({
           errorText,
           0,
           null,
-          provider
+          provider,
+          result.headers
         );
 
         // Transient errors → mark in semaphore AND record circuit breaker failure
@@ -1106,6 +1164,12 @@ async function handleRoundRobinCombo({
         if (!lastStatus) lastStatus = result.status;
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
+
+        if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
+          log.info("COMBO-RR", `Waiting ${cooldownMs}ms before fallback to next model`);
+          await new Promise((r) => setTimeout(r, cooldownMs));
+        }
+
         break;
       }
     } finally {
@@ -1136,7 +1200,20 @@ async function handleRoundRobinCombo({
     );
   }
 
-  const status = lastStatus || 406;
+  if (!lastStatus) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Service temporarily unavailable: all upstream accounts are inactive",
+          type: "service_unavailable",
+          code: "ALL_ACCOUNTS_INACTIVE",
+        },
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const status = lastStatus;
   const msg = lastError || "All round-robin combo models unavailable";
 
   if (earliestRetryAfter) {

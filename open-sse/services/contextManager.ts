@@ -5,13 +5,33 @@
  * 3 layers: trim tool messages, compress thinking, aggressive purification.
  */
 
-// Default token limits per provider (rough estimates based on model context windows)
-const DEFAULT_LIMITS = {
+import { REGISTRY } from "../config/providerRegistry.ts";
+
+// Default token limits per provider (fallbacks when not in registry)
+const DEFAULT_LIMITS: Record<string, number> = {
   claude: 200000,
   openai: 128000,
   gemini: 1000000,
+  codex: 400000,
   default: 128000,
 };
+
+// Environment variable overrides (highest priority)
+function getEnvOverride(provider: string): number | null {
+  const envKey = `CONTEXT_LENGTH_${provider.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
+  const envValue = process.env[envKey];
+  if (envValue) {
+    const parsed = parseInt(envValue, 10);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+  // Global override
+  const globalValue = process.env.CONTEXT_LENGTH_DEFAULT;
+  if (globalValue) {
+    const parsed = parseInt(globalValue, 10);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+  return null;
+}
 
 // Rough chars-per-token ratio for quick estimation
 const CHARS_PER_TOKEN = 4;
@@ -27,9 +47,20 @@ export function estimateTokens(text) {
 
 /**
  * Get token limit for a provider/model combination
+ * Priority: Env override > Registry defaultContextLength > DEFAULT_LIMITS
  */
 export function getTokenLimit(provider, model = null) {
-  // Check if model has a known limit
+  // 1. Check environment variable override first
+  const envOverride = getEnvOverride(provider);
+  if (envOverride) return envOverride;
+
+  // 2. Check registry for provider default
+  const registryEntry = REGISTRY[provider];
+  if (registryEntry?.defaultContextLength) {
+    return registryEntry.defaultContextLength;
+  }
+
+  // 3. Check if model name hints at a known limit
   if (model) {
     const lower = model.toLowerCase();
     if (lower.includes("claude")) return DEFAULT_LIMITS.claude;
@@ -38,10 +69,13 @@ export function getTokenLimit(provider, model = null) {
       lower.includes("gpt") ||
       lower.includes("o1") ||
       lower.includes("o3") ||
-      lower.includes("o4")
+      lower.includes("o4") ||
+      lower.includes("codex")
     )
-      return DEFAULT_LIMITS.openai;
+      return DEFAULT_LIMITS.codex;
   }
+
+  // 4. Fallback to DEFAULT_LIMITS or default
   return DEFAULT_LIMITS[provider] || DEFAULT_LIMITS.default;
 }
 

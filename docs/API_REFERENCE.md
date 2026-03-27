@@ -38,15 +38,20 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| Header                   | Direction | Description                       |
-| ------------------------ | --------- | --------------------------------- |
-| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache     |
-| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events |
-| `Idempotency-Key`        | Request   | Dedup key (5s window)             |
-| `X-Request-Id`           | Request   | Alternative dedup key             |
-| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)   |
-| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated            |
-| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on |
+| Header                   | Direction | Description                                      |
+| ------------------------ | --------- | ------------------------------------------------ |
+| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
+| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
+| `X-Session-Id`           | Request   | Sticky session key for external session affinity |
+| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
+| `Idempotency-Key`        | Request   | Dedup key (5s window)                            |
+| `X-Request-Id`           | Request   | Alternative dedup key                            |
+| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                  |
+| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
+| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
+| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
+
+> Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
 
 ---
 
@@ -137,10 +142,10 @@ The provider prefix is auto-added if missing. Mismatched models return `400`.
 
 ```bash
 # Get cache stats
-GET /api/cache
+GET /api/cache/stats
 
 # Clear all caches
-DELETE /api/cache
+DELETE /api/cache/stats
 ```
 
 Response example:
@@ -213,7 +218,7 @@ Response example:
 
 | Endpoint                        | Method  | Description            |
 | ------------------------------- | ------- | ---------------------- |
-| `/api/settings`                 | GET/PUT | General settings       |
+| `/api/settings`                 | GET/PUT/PATCH | General settings  |
 | `/api/settings/proxy`           | GET/PUT | Network proxy config   |
 | `/api/settings/proxy/test`      | POST    | Test proxy connection  |
 | `/api/settings/ip-filter`       | GET/PUT | IP allowlist/blocklist |
@@ -226,8 +231,8 @@ Response example:
 | ------------------------ | ---------- | ----------------------- |
 | `/api/sessions`          | GET        | Active session tracking |
 | `/api/rate-limits`       | GET        | Per-account rate limits |
-| `/api/monitoring/health` | GET        | Health check            |
-| `/api/cache`             | GET/DELETE | Cache stats / clear     |
+| `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
+| `/api/cache/stats`       | GET/DELETE | Cache stats / clear     |
 
 ### Backup & Export/Import
 
@@ -274,7 +279,7 @@ GET response includes `agents[]` (id, name, binary, version, installed, protocol
 
 | Endpoint                | Method  | Description                     |
 | ----------------------- | ------- | ------------------------------- |
-| `/api/resilience`       | GET/PUT | Get/update resilience profiles  |
+| `/api/resilience`       | GET/PATCH | Get/update resilience profiles |
 | `/api/resilience/reset` | POST    | Reset circuit breakers          |
 | `/api/rate-limits`      | GET     | Per-account rate limit status   |
 | `/api/rate-limit`       | GET     | Global rate limit configuration |

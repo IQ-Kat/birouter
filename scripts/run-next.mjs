@@ -9,15 +9,15 @@ import { bootstrapEnv } from "./bootstrap-env.mjs";
 
 const mode = process.argv[2] === "start" ? "start" : "dev";
 
-const runtimePorts = resolveRuntimePorts();
+// Load .env / server.env first so PORT / DASHBOARD_PORT from files affect --port below.
+const env = bootstrapEnv();
+const runtimePorts = resolveRuntimePorts(env);
 const { dashboardPort } = runtimePorts;
 
-// Auto-generate secrets on first run, merge .env + process.env
-const env = bootstrapEnv();
-
 const args = ["./node_modules/next/dist/bin/next", mode, "--port", String(dashboardPort)];
-// Default: use webpack (stable). Set OMNIROUTE_USE_TURBOPACK=1 to use Turbopack (faster dev).
-if (mode === "dev" && process.env.OMNIROUTE_USE_TURBOPACK !== "1") {
+// Default: use webpack (stable). Set OMNIROUTE_USE_TURBOPACK=1 in .env for Turbopack (faster dev).
+// Must read merged `env` from bootstrap — .env is not applied to process.env in the launcher.
+if (mode === "dev" && env.OMNIROUTE_USE_TURBOPACK !== "1") {
   args.splice(2, 0, "--webpack");
 }
 

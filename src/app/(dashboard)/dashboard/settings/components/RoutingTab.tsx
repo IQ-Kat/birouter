@@ -3,31 +3,20 @@
 import { useState, useEffect } from "react";
 import { Card, Input, Button } from "@/shared/components";
 import FallbackChainsEditor from "./FallbackChainsEditor";
+import {
+  ROUTING_STRATEGIES,
+  SETTINGS_FALLBACK_STRATEGY_VALUES,
+} from "@/shared/constants/routingStrategies";
 import { useTranslations } from "next-intl";
 
-const STRATEGIES = [
-  {
-    value: "fill-first",
-    labelKey: "fillFirst",
-    descKey: "fillFirstDesc",
-    icon: "vertical_align_top",
-  },
-  { value: "round-robin", labelKey: "roundRobin", descKey: "roundRobinDesc", icon: "loop" },
-  { value: "p2c", labelKey: "p2c", descKey: "p2cDesc", icon: "balance" },
-  { value: "random", labelKey: "random", descKey: "randomDesc", icon: "shuffle" },
-  {
-    value: "least-used",
-    labelKey: "leastUsed",
-    descKey: "leastUsedDesc",
-    icon: "low_priority",
-  },
-  {
-    value: "cost-optimized",
-    labelKey: "costOpt",
-    descKey: "costOptDesc",
-    icon: "savings",
-  },
-];
+const STRATEGIES = ROUTING_STRATEGIES.filter((strategy) =>
+  SETTINGS_FALLBACK_STRATEGY_VALUES.includes(strategy.value)
+).map((strategy) => ({
+  value: strategy.value,
+  labelKey: strategy.labelKey,
+  descKey: strategy.settingsDescKey,
+  icon: strategy.icon,
+}));
 
 export default function RoutingTab() {
   const [settings, setSettings] = useState<any>({ fallbackStrategy: "fill-first" });
@@ -36,14 +25,10 @@ export default function RoutingTab() {
   const [newPattern, setNewPattern] = useState("");
   const [newTarget, setNewTarget] = useState("");
   const t = useTranslations("settings");
-  const strategyHintKeyByValue: Record<string, string> = {
-    "fill-first": "fillFirstDesc",
-    "round-robin": "roundRobinDesc",
-    p2c: "p2cDesc",
-    random: "randomDesc",
-    "least-used": "leastUsedDesc",
-    "cost-optimized": "costOptDesc",
-  };
+  const strategyHintKeyByValue = STRATEGIES.reduce<Record<string, string>>((acc, strategy) => {
+    acc[strategy.value] = strategy.descKey;
+    return acc;
+  }, {});
 
   useEffect(() => {
     fetch("/api/settings")
@@ -97,6 +82,14 @@ export default function RoutingTab() {
             </span>
           </div>
           <h3 className="text-lg font-semibold">{t("routingStrategy")}</h3>
+        </div>
+
+        <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
+          <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+            {t("routingAdvancedGuideTitle")}
+          </p>
+          <p className="text-xs text-text-muted mt-1">{t("routingAdvancedGuideHint1")}</p>
+          <p className="text-xs text-text-muted">{t("routingAdvancedGuideHint2")}</p>
         </div>
 
         <div

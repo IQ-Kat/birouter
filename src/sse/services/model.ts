@@ -1,5 +1,6 @@
 // Re-export from open-sse with localDb integration
 import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
+import { getSettings } from "@/lib/localDb";
 import {
   parseModel,
   resolveModelAliasFromMap,
@@ -77,6 +78,18 @@ export async function getModelInfo(modelStr) {
         ...(apiFormat && { apiFormat }),
       };
     }
+
+    // stripModelPrefix: if enabled, strip provider prefix and re-resolve
+    // the bare model name using existing heuristics (claude-* → anthropic, etc.)
+    try {
+      const settings = await getSettings();
+      if (settings.stripModelPrefix === true) {
+        const strippedResult = await getModelInfoCore(parsed.model, getModelAliases);
+        return { ...strippedResult, extendedContext };
+      }
+    } catch {
+      // If settings read fails, fall through to normal resolution
+    }
   }
 
   if (!parsed.isAlias) {
@@ -96,6 +109,34 @@ export async function getCombo(modelStr) {
   if (combo && combo.models && combo.models.length > 0) {
     return combo;
   }
+  return null;
+}
+
+/**
+ * Check if model matches a combo by name OR by model-combo mapping pattern.
+ * This augments getCombo() with glob-based model-to-combo resolution (#563).
+ *
+ * Resolution order:
+ * 1. Exact combo name match (existing behavior)
+ * 2. Model-combo mapping pattern match (new — glob patterns by priority)
+ * 3. null (no combo — single-model request)
+ */
+export async function getComboForModel(modelStr) {
+  // 1. Existing behavior — exact combo name match
+  const combo = await getCombo(modelStr);
+  if (combo) return combo;
+
+  // 2. NEW — check model-combo mappings table (pattern match)
+  try {
+    const { resolveComboForModel } = await import("@/lib/localDb");
+    const mapped = await resolveComboForModel(modelStr);
+    if (mapped && (mapped as any).models?.length > 0) {
+      return mapped;
+    }
+  } catch {
+    // If the mappings table doesn't exist yet (pre-migration), continue gracefully
+  }
+
   return null;
 }
 

@@ -1,5 +1,5 @@
 import { getCorsOrigin } from "../utils/cors.ts";
-import { detectFormat, getTargetFormat } from "../services/provider.ts";
+import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import {
@@ -16,6 +16,9 @@ import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { createErrorResult, parseUpstreamError, formatProviderError } from "../utils/error.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
+import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
+import { updateProviderConnection } from "@/lib/db/providers";
+import { logAuditEvent } from "@/lib/compliance";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
   saveRequestUsage,
@@ -27,6 +30,17 @@ import { getLoggedInputTokens, getLoggedOutputTokens } from "@/lib/usage/tokenAc
 import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
+import {
+  getModelNormalizeToolCallId,
+  getModelPreserveOpenAIDeveloperRole,
+  getModelUpstreamExtraHeaders,
+} from "@/lib/localDb";
+import { getExecutor } from "../executors/index.ts";
+import {
+  parseCodexQuotaHeaders,
+  getCodexResetTime,
+  getCodexModelScope,
+} from "../executors/codex.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "./sseParser.ts";
@@ -47,10 +61,16 @@ import { createProgressTransform, wantsProgress } from "../utils/progressTracker
 import { isModelUnavailableError, getNextFamilyFallback } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 import {
+  getBackgroundTaskReason,
+  getDegradedModel,
+  getBackgroundDegradationConfig,
+} from "../services/backgroundTaskDetector.ts";
+import {
   shouldUseFallback,
   isFallbackDecision,
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
+import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -64,7 +84,8 @@ export function shouldUseNativeCodexPassthrough({
   if (provider !== "codex") return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
   const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
-  return /(?:^|\/)responses(?:\/.*)?$/i.test(normalizedEndpoint);
+  const segments = normalizedEndpoint.split("/");
+  return segments.includes("responses");
 }
 
 function buildClaudePassthroughToolNameMap(body: Record<string, unknown> | null | undefined) {
@@ -288,7 +309,9 @@ export async function handleChatCore({
   userAgent,
   comboName,
 }) {
-  const { provider, model, extendedContext } = modelInfo;
+  let { provider, model, extendedContext } = modelInfo;
+  const requestedModel =
+    typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
   const startTime = Date.now();
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
@@ -305,6 +328,67 @@ export async function handleChatCore({
       apiKeyId: apiKeyInfo?.id || undefined,
       apiKeyName: apiKeyInfo?.name || undefined,
     }).catch(() => {});
+  };
+
+  const persistCodexQuotaState = async (
+    headers: Headers | Record<string, string> | null,
+    status = 0
+  ) => {
+    if (provider !== "codex" || !connectionId || !headers) return;
+
+    try {
+      const quota = parseCodexQuotaHeaders(headers as Headers);
+      if (!quota) return;
+
+      const existingProviderData =
+        credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
+          ? credentials.providerSpecificData
+          : {};
+      const scope = getCodexModelScope(model || requestedModel || "");
+      const quotaState = {
+        usage5h: quota.usage5h,
+        limit5h: quota.limit5h,
+        resetAt5h: quota.resetAt5h,
+        usage7d: quota.usage7d,
+        limit7d: quota.limit7d,
+        resetAt7d: quota.resetAt7d,
+        scope,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const nextProviderData: Record<string, unknown> = {
+        ...existingProviderData,
+        codexQuotaState: quotaState,
+      };
+
+      // T03/T09: on 429, persist exact reset time per scope to avoid global over-blocking.
+      if (status === 429) {
+        const resetTimeMs = getCodexResetTime(quota);
+        if (resetTimeMs && resetTimeMs > Date.now()) {
+          const scopeUntil = new Date(resetTimeMs).toISOString();
+          const scopeMapRaw =
+            existingProviderData &&
+            typeof existingProviderData === "object" &&
+            existingProviderData.codexScopeRateLimitedUntil &&
+            typeof existingProviderData.codexScopeRateLimitedUntil === "object"
+              ? existingProviderData.codexScopeRateLimitedUntil
+              : {};
+
+          nextProviderData.codexScopeRateLimitedUntil = {
+            ...(scopeMapRaw as Record<string, unknown>),
+            [scope]: scopeUntil,
+          };
+        }
+      }
+
+      await updateProviderConnection(connectionId, {
+        providerSpecificData: nextProviderData,
+      });
+
+      credentials.providerSpecificData = nextProviderData;
+    } catch (err) {
+      log?.debug?.("CODEX", `Failed to persist codex quota state: ${err?.message || err}`);
+    }
   };
 
   // ── Phase 9.2: Idempotency check ──
@@ -334,9 +418,10 @@ export async function handleChatCore({
     credentials.connectionId = connectionId;
   }
 
-  const sourceFormat = detectFormat(body);
   const endpointPath = String(clientRawRequest?.endpoint || "");
-  const isResponsesEndpoint = /(?:^|\/)responses(?:\/.*)?$/i.test(endpointPath);
+  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
+  const isResponsesEndpoint =
+    /\/responses(?=\/|$)/i.test(endpointPath) || /^responses(?=\/|$)/i.test(endpointPath);
   const nativeCodexPassthrough = shouldUseNativeCodexPassthrough({
     provider,
     sourceFormat,
@@ -351,6 +436,37 @@ export async function handleChatCore({
 
   // Detect source format and get target format
   // Model-specific targetFormat takes priority over provider default
+
+  // ── Background Task Redirection (T41) ──
+  const bgConfig = getBackgroundDegradationConfig();
+  const backgroundReason = bgConfig.enabled
+    ? getBackgroundTaskReason(body, clientRawRequest?.headers)
+    : null;
+  if (backgroundReason) {
+    const degradedModel = getDegradedModel(model);
+    if (degradedModel !== model) {
+      const originalModel = model;
+      log?.info?.(
+        "BACKGROUND",
+        `Background task redirect (${backgroundReason}): ${originalModel} → ${degradedModel}`
+      );
+      model = degradedModel;
+      if (body && typeof body === "object") {
+        body.model = model;
+      }
+
+      logAuditEvent({
+        action: "routing.background_task_redirect",
+        actor: apiKeyInfo?.name || "system",
+        target: connectionId || provider || "chat",
+        details: {
+          original_model: originalModel,
+          redirected_to: degradedModel,
+          reason: backgroundReason,
+        },
+      });
+    }
+  }
 
   // Apply custom model aliases (Settings → Model Aliases → Pattern→Target) before routing (#315, #472)
   // Custom aliases take priority over built-in and must be resolved here so the
@@ -367,8 +483,30 @@ export async function handleChatCore({
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat = modelTargetFormat || getTargetFormat(provider);
 
+  // Primary path: merge client model id + alias target so config on either key applies; resolved
+  // id wins on same header name. T5 family fallback uses only (nextModel, resolveModelAlias(next))
+  // so A-model headers are not sent to B — see buildUpstreamHeadersForExecute.
+  const buildUpstreamHeadersForExecute = (modelToCall: string): Record<string, string> => {
+    if (modelToCall === effectiveModel) {
+      return {
+        ...getModelUpstreamExtraHeaders(provider || "", model || "", sourceFormat),
+        ...getModelUpstreamExtraHeaders(provider || "", resolvedModel || "", sourceFormat),
+      };
+    }
+    const r = resolveModelAlias(modelToCall);
+    return {
+      ...getModelUpstreamExtraHeaders(provider || "", modelToCall || "", sourceFormat),
+      ...getModelUpstreamExtraHeaders(provider || "", r || "", sourceFormat),
+    };
+  };
+
   // Default to false unless client explicitly sets stream: true (OpenAI spec compliant)
-  const stream = body.stream === true;
+  const acceptHeader =
+    clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
+      ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
+      : (clientRawRequest?.headers || {})["accept"] || (clientRawRequest?.headers || {})["Accept"];
+
+  const stream = resolveStreamFlag(body?.stream, acceptHeader);
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
   if (isCacheable(body, clientRawRequest?.headers)) {
@@ -405,6 +543,38 @@ export async function handleChatCore({
   reqLogger.logRawRequest(body);
 
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
+
+  // ── Common input sanitization (runs for ALL paths including passthrough) ──
+  // #291: Strip empty name fields from messages/input items
+  // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
+  if (Array.isArray(body.messages)) {
+    body.messages = body.messages.map((msg: Record<string, unknown>) => {
+      if (msg.name === "") {
+        const { name: _n, ...rest } = msg;
+        return rest;
+      }
+      return msg;
+    });
+  }
+  if (Array.isArray(body.input)) {
+    body.input = body.input.map((item: Record<string, unknown>) => {
+      if (item.name === "") {
+        const { name: _n, ...rest } = item;
+        return rest;
+      }
+      return item;
+    });
+  }
+  // #346/#637: Strip tools with empty name
+  // Clients sometimes forward tool definitions with empty names, causing
+  // upstream providers to reject with 400 "Invalid 'tools[0].name': empty string."
+  if (Array.isArray(body.tools)) {
+    body.tools = body.tools.filter((tool: Record<string, unknown>) => {
+      const fn = tool.function as Record<string, unknown> | undefined;
+      const name = fn?.name ?? tool.name;
+      return name && String(name).trim().length > 0;
+    });
+  }
 
   // Translate request (pass reqLogger for intermediate logging)
   let translatedBody = body;
@@ -443,6 +613,7 @@ export async function handleChatCore({
         FORMATS.CLAUDE,
         model,
         { ...translatedBody, _disableToolPrefix: true },
+        translatedBody,
         stream,
         credentials,
         provider,
@@ -453,45 +624,13 @@ export async function handleChatCore({
     } else {
       translatedBody = { ...body };
 
-      // Issue #199: Disable tool name prefix when routing Claude-format requests
-      // to non-Claude backends (prefix causes tool name mismatches)
-      const claudeProviders = ["claude", "anthropic"];
-      if (targetFormat === FORMATS.CLAUDE && !claudeProviders.includes(provider?.toLowerCase?.())) {
+      // Issue #199 + #618: Always disable tool name prefix in Claude passthrough.
+      // The proxy_ prefix was designed for OpenAI→Claude translation to avoid
+      // conflicts with Claude OAuth tools, but in the passthrough path the tools
+      // are already in Claude format. Applying the prefix turns "Bash" into
+      // "proxy_Bash", which Claude rejects ("No such tool available: proxy_Bash").
+      if (targetFormat === FORMATS.CLAUDE) {
         translatedBody._disableToolPrefix = true;
-      }
-
-      // ── #291: Strip empty name fields from messages/input items ──
-      // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
-      // Clients like PocketPaw may forward empty name fields from assistant turns.
-      if (Array.isArray(translatedBody.messages)) {
-        translatedBody.messages = translatedBody.messages.map((msg: Record<string, unknown>) => {
-          if (msg.name === "") {
-            const { name: _n, ...rest } = msg;
-            return rest;
-          }
-          return msg;
-        });
-      }
-      if (Array.isArray(translatedBody.input)) {
-        translatedBody.input = translatedBody.input.map((item: Record<string, unknown>) => {
-          if (item.name === "") {
-            const { name: _n, ...rest } = item;
-            return rest;
-          }
-          return item;
-        });
-      }
-      // ── #346: Strip tools with empty name ──
-      // Claude Code sometimes forwards tool definitions with empty names, causing
-      // OpenAI-compatible upstream providers to reject with:
-      // "Invalid 'input[N].name': empty string. Expected minimum length 1."
-      // Handles both OpenAI format ({ function: { name } }) and Anthropic format ({ name }).
-      if (Array.isArray(translatedBody.tools)) {
-        translatedBody.tools = translatedBody.tools.filter((tool: Record<string, unknown>) => {
-          const fn = tool.function as Record<string, unknown> | undefined;
-          const name = fn?.name ?? tool.name;
-          return name && String(name).trim().length > 0;
-        });
       }
 
       // Strip empty text content blocks from messages.
@@ -531,6 +670,27 @@ export async function handleChatCore({
                     (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
                   if (typeof fileContent === "string" && fileContent.length > 0) {
                     return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
+                  }
+                  return [];
+                }
+                // (#527) tool_result → convert to text instead of dropping.
+                // When Claude Code + superpowers routes through Codex, it sends tool_result
+                // blocks in user messages. Silently dropping them causes Codex to loop
+                // because it never receives the tool response and keeps re-requesting it.
+                if (block.type === "tool_result") {
+                  const toolId = block.tool_use_id ?? block.id ?? "unknown";
+                  const resultContent = block.content ?? block.text ?? block.output ?? "";
+                  const resultText =
+                    typeof resultContent === "string"
+                      ? resultContent
+                      : Array.isArray(resultContent)
+                        ? resultContent
+                            .filter((c: Record<string, unknown>) => c.type === "text")
+                            .map((c: Record<string, unknown>) => c.text)
+                            .join("\n")
+                        : JSON.stringify(resultContent);
+                  if (resultText.length > 0) {
+                    return [{ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }];
                   }
                   return [];
                 }
@@ -661,6 +821,7 @@ export async function handleChatCore({
           signal: streamController.signal,
           log,
           extendedContext,
+          upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
         })
       );
 
@@ -669,7 +830,7 @@ export async function handleChatCore({
       // Non-stream responses need cloning for shared dedup consumers.
       const status = rawResult.response.status;
       const statusText = rawResult.response.statusText;
-      const headers = Array.from(rawResult.response.headers.entries());
+      const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
       const payload = await rawResult.response.text();
 
       return {
@@ -750,6 +911,7 @@ export async function handleChatCore({
       path: clientRawRequest?.endpoint || "/v1/chat/completions",
       status: error.name === "AbortError" ? 499 : HTTP_STATUS.BAD_GATEWAY,
       model,
+      requestedModel,
       provider,
       connectionId,
       duration: Date.now() - startTime,
@@ -799,16 +961,19 @@ export async function handleChatCore({
         await onCredentialsRefreshed(newCredentials);
       }
 
-      // Retry with new credentials
+      // Retry with new credentials — model + extra headers follow translatedBody.model so they
+      // stay aligned if this block ever runs after a path that mutates body.model (e.g. fallback).
       try {
+        const retryModelId = String(translatedBody.model || effectiveModel);
         const retryResult = await executor.execute({
-          model,
+          model: retryModelId,
           body: translatedBody,
           stream,
           credentials: getExecutionCredentials(),
           signal: streamController.signal,
           log,
           extendedContext,
+          upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
         });
 
         if (retryResult.response.ok) {
@@ -823,6 +988,8 @@ export async function handleChatCore({
     }
   }
 
+  await persistCodexQuotaState(providerResponse.headers, providerResponse.status);
+
   // Check provider response - return error info for fallback handling
   if (!providerResponse.ok) {
     trackPendingRequest(model, provider, connectionId, false);
@@ -830,6 +997,54 @@ export async function handleChatCore({
       providerResponse,
       provider
     );
+
+    // T06/T10/T36: classify provider errors and persist terminal account states.
+    const errorType = classifyProviderError(statusCode, message);
+    if (connectionId && errorType) {
+      try {
+        if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
+          await updateProviderConnection(connectionId, {
+            isActive: false,
+            testStatus: "banned",
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${connectionId} banned (${statusCode}) — disabling permanently`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
+          await updateProviderConnection(connectionId, {
+            testStatus: "credits_exhausted",
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
+        } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
+          await updateProviderConnection(connectionId, {
+            isActive: false,
+            testStatus: "expired",
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${connectionId} account deactivated (${statusCode}) — marked expired`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
+          // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
+          await updateProviderConnection(connectionId, {
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+        }
+      } catch {
+        // Best-effort state update; request flow should continue with fallback handling.
+      }
+    }
+
     appendRequestLog({ model, provider, connectionId, status: `FAILED ${statusCode}` }).catch(
       () => {}
     );
@@ -838,6 +1053,7 @@ export async function handleChatCore({
       path: clientRawRequest?.endpoint || "/v1/chat/completions",
       status: statusCode,
       model,
+      requestedModel,
       provider,
       connectionId,
       duration: Date.now() - startTime,
@@ -1035,6 +1251,7 @@ export async function handleChatCore({
       path: clientRawRequest?.endpoint || "/v1/chat/completions",
       status: 200,
       model,
+      requestedModel,
       provider,
       connectionId,
       duration: Date.now() - startTime,
@@ -1082,9 +1299,37 @@ export async function handleChatCore({
     }
 
     // Translate response to client's expected format (usually OpenAI)
+    // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
     let translatedResponse = needsTranslation(targetFormat, sourceFormat)
-      ? translateNonStreamingResponse(responseBody, targetFormat, sourceFormat)
+      ? translateNonStreamingResponse(
+          responseBody,
+          targetFormat,
+          sourceFormat,
+          toolNameMap as Map<string, string> | null
+        )
       : responseBody;
+
+    // T26: Strip markdown code blocks if provider format is Claude
+    if (sourceFormat === "claude" && !stream) {
+      if (typeof translatedResponse?.choices?.[0]?.message?.content === "string") {
+        translatedResponse.choices[0].message.content = stripMarkdownCodeFence(
+          translatedResponse.choices[0].message.content
+        ) as string;
+      }
+    }
+
+    // T18: Normalize finish_reason to 'tool_calls' if tool calls are present
+    if (translatedResponse?.choices) {
+      for (const choice of translatedResponse.choices) {
+        if (
+          choice.message?.tool_calls &&
+          choice.message.tool_calls.length > 0 &&
+          choice.finish_reason !== "tool_calls"
+        ) {
+          choice.finish_reason = "tool_calls";
+        }
+      }
+    }
 
     // Sanitize response for OpenAI SDK compatibility
     // Strips non-standard fields (x_groq, usage_breakdown, service_tier, etc.)
@@ -1160,6 +1405,7 @@ export async function handleChatCore({
       path: clientRawRequest?.endpoint || "/v1/chat/completions",
       status: streamStatus || 200,
       model,
+      requestedModel,
       provider,
       connectionId,
       duration: Date.now() - startTime,

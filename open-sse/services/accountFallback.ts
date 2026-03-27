@@ -8,6 +8,46 @@ import {
 } from "../config/constants.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 
+// T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
+// When a 401 body contains these strings, the account is permanently dead
+// and should NOT be retried after token refresh.
+export const ACCOUNT_DEACTIVATED_SIGNALS = [
+  "account_deactivated",
+  "account has been deactivated",
+  "account has been disabled",
+  "your account has been suspended",
+  "this account is deactivated",
+];
+
+// T10 (sub2api PR #1169): Signals that indicate billing credits are exhausted.
+// Distinct from rate-limit 429 — the account won't recover until credits are added.
+export const CREDITS_EXHAUSTED_SIGNALS = [
+  "insufficient_quota",
+  "billing_hard_limit_reached",
+  "exceeded your current quota",
+  "credit_balance_too_low",
+  "your credit balance is too low",
+  "credits exhausted",
+  "out of credits",
+  "payment required",
+];
+
+/**
+ * T06: Returns true if response body indicates the account is permanently deactivated.
+ */
+export function isAccountDeactivated(errorText: string): boolean {
+  const lower = String(errorText || "").toLowerCase();
+  return ACCOUNT_DEACTIVATED_SIGNALS.some((sig) => lower.includes(sig));
+}
+
+/**
+ * T10: Returns true if response body indicates credits/quota are permanently exhausted.
+ */
+export function isCreditsExhausted(errorText: string): boolean {
+  const lower = String(errorText || "").toLowerCase();
+  return CREDITS_EXHAUSTED_SIGNALS.some((sig) => lower.includes(sig));
+}
+
 // ─── Provider Profile Helper ────────────────────────────────────────────────
 
 /**
@@ -201,6 +241,14 @@ export function classifyErrorText(errorText) {
   ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
   }
+  // T10: credits_exhausted signals
+  if (isCreditsExhausted(errorText)) {
+    return RateLimitReason.QUOTA_EXHAUSTED;
+  }
+  // T06: account_deactivated signals
+  if (isAccountDeactivated(errorText)) {
+    return RateLimitReason.AUTH_ERROR;
+  }
   if (
     lower.includes("rate limit") ||
     lower.includes("too many requests") ||
@@ -294,12 +342,66 @@ export function checkFallbackError(
   errorText,
   backoffLevel = 0,
   model = null,
-  provider = null
+  provider = null,
+  headers = null
 ) {
+  const errorStr = (errorText || "").toString();
+
+  function parseResetFromHeaders(headers, errorStr = "") {
+    if (!headers) return null;
+
+    // Retry-After header
+    const retryAfter =
+      typeof headers.get === "function"
+        ? headers.get("retry-after")
+        : headers["retry-after"] || headers["Retry-After"];
+
+    if (retryAfter) {
+      const seconds = parseInt(retryAfter, 10);
+      if (!isNaN(seconds) && String(seconds) === String(retryAfter).trim()) {
+        return Date.now() + seconds * 1000;
+      }
+      const date = new Date(retryAfter);
+      if (!isNaN(date.getTime())) return date.getTime();
+    }
+
+    // X-RateLimit-Reset
+    const rlReset =
+      typeof headers.get === "function"
+        ? headers.get("x-ratelimit-reset")
+        : headers["x-ratelimit-reset"] || headers["X-RateLimit-Reset"];
+
+    if (rlReset) {
+      const ts = parseInt(rlReset, 10);
+      if (!isNaN(ts)) {
+        return ts > 10000000000 ? ts : ts * 1000;
+      }
+    }
+    return null;
+  }
   // Check error message FIRST - specific patterns take priority over status codes
   if (errorText) {
-    const errorStr = typeof errorText === "string" ? errorText : JSON.stringify(errorText);
     const lowerError = errorStr.toLowerCase();
+
+    // T06 (sub2api #1037): Permanent account deactivation — do NOT retry, mark as permanent failure
+    if (isAccountDeactivated(errorStr)) {
+      return {
+        shouldFallback: true,
+        cooldownMs: 365 * 24 * 60 * 60 * 1000, // 1 year = effectively permanent
+        reason: RateLimitReason.AUTH_ERROR,
+        permanent: true,
+      };
+    }
+
+    // T10 (sub2api #1169): Credits/quota exhausted — long cooldown, distinct from rate limit
+    if (isCreditsExhausted(errorStr)) {
+      return {
+        shouldFallback: true,
+        cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
+        reason: RateLimitReason.QUOTA_EXHAUSTED,
+        creditsExhausted: true,
+      };
+    }
 
     if (lowerError.includes("no credentials")) {
       return {
@@ -325,6 +427,18 @@ export function checkFallbackError(
       lowerError.includes("capacity") ||
       lowerError.includes("overloaded")
     ) {
+      const resetTime = parseResetFromHeaders(headers);
+      if (resetTime) {
+        const waitMs = resetTime - Date.now();
+        if (waitMs > 60_000) {
+          return {
+            shouldFallback: true,
+            cooldownMs: waitMs,
+            newBackoffLevel: 0,
+            reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+          };
+        }
+      }
       const newLevel = Math.min(backoffLevel + 1, BACKOFF_CONFIG.maxLevel);
       const reason = classifyErrorText(errorStr);
       return {
@@ -362,6 +476,19 @@ export function checkFallbackError(
 
   // 429 - Rate limit with exponential backoff
   if (status === HTTP_STATUS.RATE_LIMITED) {
+    const resetTime = parseResetFromHeaders(headers);
+    if (resetTime) {
+      const waitMs = resetTime - Date.now();
+      if (waitMs > 60_000) {
+        return {
+          shouldFallback: true,
+          cooldownMs: waitMs,
+          newBackoffLevel: 0,
+          reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+        };
+      }
+    }
+
     const newLevel = Math.min(backoffLevel + 1, BACKOFF_CONFIG.maxLevel);
     return {
       shouldFallback: true,
@@ -381,6 +508,19 @@ export function checkFallbackError(
     HTTP_STATUS.GATEWAY_TIMEOUT,
   ];
   if (transientStatuses.includes(status)) {
+    const resetTime = parseResetFromHeaders(headers, errorStr);
+    if (resetTime) {
+      const waitMs = resetTime - Date.now();
+      if (waitMs > 60_000) {
+        return {
+          shouldFallback: true,
+          cooldownMs: waitMs,
+          newBackoffLevel: 0,
+          reason: RateLimitReason.SERVER_ERROR,
+        };
+      }
+    }
+
     const profile = provider ? getProviderProfile(provider) : null;
     const baseCooldown = profile?.transientCooldown ?? COOLDOWN_MS.transientInitial;
     const maxLevel = profile?.maxBackoffLevel ?? BACKOFF_CONFIG.maxLevel;

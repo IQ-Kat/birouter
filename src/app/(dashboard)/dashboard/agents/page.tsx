@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Card, Button, Input } from "@/shared/components";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 import { useTranslations } from "next-intl";
 import { AI_PROVIDERS } from "@/shared/constants/config";
+import { CLI_COMPAT_PROVIDER_IDS } from "@/shared/constants/cliCompatProviders";
 
 interface AgentInfo {
   id: string;
@@ -21,6 +24,35 @@ interface AgentSummary {
   notFound: number;
   builtIn: number;
   custom: number;
+}
+
+// Map agent binary IDs to provider icon IDs for ProviderIcon component
+const AGENT_ICON_MAP: Record<string, string> = {
+  claude: "anthropic",
+  "claude-code": "anthropic",
+  codex: "openai",
+  "gemini-cli": "google",
+  gemini: "google",
+  opencode: "opencode",
+  openclaw: "openclaw",
+  cline: "cline",
+  kilocode: "kilocode",
+  kilo: "kilocode",
+  cursor: "cursor",
+  antigravity: "antigravity",
+  droid: "droid",
+  goose: "goose",
+  aider: "aider",
+  iflow: "iflow",
+  kiro: "kiro",
+  nanobot: "nanobot",
+  picoclaw: "picoclaw",
+  zeroclaw: "zeroclaw",
+  ironclaw: "ironclaw",
+};
+
+function getAgentIconId(agentId: string): string | null {
+  return AGENT_ICON_MAP[agentId] || null;
 }
 
 export default function AgentsPage() {
@@ -137,8 +169,9 @@ export default function AgentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+        <p className="text-sm text-text-muted">{t("scanning")}</p>
       </div>
     );
   }
@@ -179,6 +212,51 @@ export default function AgentsPage() {
         </div>
       )}
 
+      {/* Setup Guide */}
+      <Card>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                support
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold">{t("setupGuideTitle")}</h3>
+          </div>
+          <Link
+            href="/dashboard/cli-tools"
+            className="text-xs px-2.5 py-1.5 rounded-lg border border-border/60 hover:bg-surface/40 transition-colors"
+          >
+            {t("openCliTools")}
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="material-symbols-outlined text-[16px] text-blue-500">radar</span>
+              <p className="text-sm font-medium">{t("setupGuideDetectCliTitle")}</p>
+            </div>
+            <p className="text-xs text-text-muted">{t("setupGuideDetectCliDesc")}</p>
+          </div>
+          <div className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="material-symbols-outlined text-[16px] text-amber-500">build</span>
+              <p className="text-sm font-medium">{t("setupGuideCustomAgentTitle")}</p>
+            </div>
+            <p className="text-xs text-text-muted">{t("setupGuideCustomAgentDesc")}</p>
+          </div>
+          <div className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="material-symbols-outlined text-[16px] text-emerald-500">
+                terminal
+              </span>
+              <p className="text-sm font-medium">{t("setupGuideCommandMissingTitle")}</p>
+            </div>
+            <p className="text-xs text-text-muted">{t("setupGuideCommandMissingDesc")}</p>
+          </div>
+        </div>
+      </Card>
+
       {/* CLI Fingerprint Matching */}
       <Card>
         <div className="flex items-center gap-3 mb-4">
@@ -192,20 +270,7 @@ export default function AgentsPage() {
         <div className="flex flex-col gap-4">
           <p className="text-sm text-text-muted">{ts("cliFingerprintDesc")}</p>
           <div className="flex flex-wrap gap-2">
-            {(
-              [
-                "codex",
-                "claude",
-                "github",
-                "antigravity",
-                "kiro",
-                "cursor",
-                "kimi-coding",
-                "kilocode",
-                "cline",
-                "qwen",
-              ] as const
-            ).map((providerId) => {
+            {CLI_COMPAT_PROVIDER_IDS.map((providerId) => {
               const providerMeta = Object.values(AI_PROVIDERS).find(
                 (p: any) => p.id === providerId
               ) as any;
@@ -269,9 +334,13 @@ export default function AgentsPage() {
                       : "bg-zinc-500/10 text-zinc-400"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[20px]">
-                    {agent.installed ? "smart_toy" : "block"}
-                  </span>
+                  {getAgentIconId(agent.id) ? (
+                    <ProviderIcon providerId={getAgentIconId(agent.id)!} size={20} type="color" />
+                  ) : (
+                    <span className="material-symbols-outlined text-[20px]">
+                      {agent.installed ? "smart_toy" : "block"}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <div className="font-semibold text-sm flex items-center gap-1.5">
@@ -327,22 +396,18 @@ export default function AgentsPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-base font-semibold">OpenCode Integration</h3>
+                <h3 className="text-base font-semibold">{t("opencodeIntegration")}</h3>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
-                  opencode {agents.find((a) => a.id === "opencode")?.version} detected
+                  {t("opencodeDetected", {
+                    version: agents.find((a) => a.id === "opencode")?.version || "",
+                  })}
                 </span>
               </div>
               <p className="text-sm text-text-muted mb-3">
-                Generate a ready-to-use{" "}
-                <code className="text-xs bg-black/[0.06] dark:bg-white/[0.08] px-1 py-0.5 rounded">
-                  opencode.json
-                </code>{" "}
-                with your OmniRoute base URL and all available models — drop it in your project root
-                and run{" "}
-                <code className="text-xs bg-black/[0.06] dark:bg-white/[0.08] px-1 py-0.5 rounded">
-                  opencode
-                </code>
-                .
+                {t("opencodeDesc", {
+                  configFile: "opencode.json",
+                  command: "opencode",
+                })}
               </p>
               <Button
                 variant="secondary"
@@ -399,7 +464,9 @@ export default function AgentsPage() {
                 <span className="material-symbols-outlined text-[16px] mr-1">
                   {opencodeConfigDone ? "check" : "download"}
                 </span>
-                {opencodeConfigDone ? "Downloaded!" : "Download opencode.json"}
+                {opencodeConfigDone
+                  ? t("downloaded")
+                  : t("downloadConfig", { file: "opencode.json" })}
               </Button>
             </div>
           </div>

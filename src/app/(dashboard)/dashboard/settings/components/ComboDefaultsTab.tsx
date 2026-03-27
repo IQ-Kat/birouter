@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
+import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
 import { useTranslations } from "next-intl";
 
 export default function ComboDefaultsTab() {
@@ -21,14 +22,11 @@ export default function ComboDefaultsTab() {
   const [saving, setSaving] = useState(false);
   const t = useTranslations("settings");
   const tc = useTranslations("common");
-  const strategyOptions = [
-    { value: "priority", label: t("priority"), icon: "sort" },
-    { value: "weighted", label: t("weighted"), icon: "percent" },
-    { value: "round-robin", label: t("roundRobin"), icon: "autorenew" },
-    { value: "random", label: t("random"), icon: "shuffle" },
-    { value: "least-used", label: t("leastUsed"), icon: "low_priority" },
-    { value: "cost-optimized", label: t("costOpt"), icon: "savings" },
-  ];
+  const strategyOptions = ROUTING_STRATEGIES.map((strategy) => ({
+    value: strategy.value,
+    label: t(strategy.labelKey),
+    icon: strategy.icon,
+  }));
   const numericSettings = [
     { key: "maxRetries", label: t("maxRetriesLabel"), min: 0, max: 5 },
     { key: "retryDelayMs", label: t("retryDelayLabel"), min: 500, max: 10000, step: 500 },
@@ -87,6 +85,13 @@ export default function ComboDefaultsTab() {
         <h3 className="text-lg font-semibold">{t("comboDefaultsTitle")}</h3>
         <span className="text-xs text-text-muted ml-auto">{t("globalComboConfig")}</span>
       </div>
+      <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+        <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+          {t("comboDefaultsGuideTitle")}
+        </p>
+        <p className="text-xs text-text-muted mt-1">{t("comboDefaultsGuideHint1")}</p>
+        <p className="text-xs text-text-muted">{t("comboDefaultsGuideHint2")}</p>
+      </div>
       <div className="flex flex-col gap-4">
         {/* Default Strategy */}
         <div className="flex items-center justify-between">
@@ -97,7 +102,7 @@ export default function ComboDefaultsTab() {
           <div
             role="tablist"
             aria-label={t("comboStrategyAria")}
-            className="grid grid-cols-3 gap-1 p-0.5 rounded-md bg-black/5 dark:bg-white/5"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 p-0.5 rounded-md bg-black/5 dark:bg-white/5"
           >
             {strategyOptions.map((s) => (
               <button

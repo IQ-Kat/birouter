@@ -56,7 +56,9 @@
     "warning": "אזהרה",
     "note": "הערה",
     "free": "חינם",
-    "skipToContent": "דלג לתוכן"
+    "skipToContent": "דלג לתוכן",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "בית",
@@ -103,7 +105,9 @@
     "endpoints": "נקודות קצה",
     "playground": "Playground",
     "agents": "סוכנים",
-    "cliToolsShort": "כלים"
+    "cliToolsShort": "כלים",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools"
   },
   "themesPage": {
     "title": "Themes",
@@ -268,7 +272,28 @@
     "permissionsTitle": "הרשאות: {name}",
     "allowAllDesc": "מפתח זה יכול לגשת לכל הדגמים הזמינים.",
     "restrictDesc": "מפתח זה יכול לגשת ל-{selectedCount} מתוך דגמי {totalModels}.",
-    "selectedCount": "{count} נבחר"
+    "selectedCount": "{count} נבחר",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "יומן ביקורת",
@@ -548,6 +573,27 @@
           }
         }
       }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "מתי להשתמש",
+    "openToolDocs": "פתח את מסמכי הכלים",
+    "toolUseCases": {
+      "claude": "השתמש כאשר אתה רוצה זרימות עבודה תכנון חזקות וריפקטורים ארוכים מרובי קבצים עם Claude Code.",
+      "codex": "השתמש כאשר הצוות שלך סטנדרטי על זרימות OpenAI Codex CLI ואימות מבוסס פרופיל.",
+      "droid": "השתמש כאשר אתה צריך סוכן מסוף קל משקל המתמקד בלולאות קידוד מהיר וביצוע פקודות.",
+      "openclaw": "השתמש כאשר אתה רוצה סוכן קידוד בסגנון Open Claw אך מנותב דרך מדיניות OmniRoute.",
+      "cline": "השתמש כאשר אתה מגדיר סוכני קידוד בתוך עורכים ורוצה הגדרה מודרכת עם דגמי OmniRoute.",
+      "kilo": "השתמש כאשר זרימת העבודה שלך תלויה בפקודות Kilo Code ועריכות איטרטיביות מהירות.",
+      "cursor": "השתמש בעת קידוד בסמן ואתה צריך מודלים מותאמים אישית תואמי OpenAI דרך OmniRoute.",
+      "continue": "השתמש בעת הפעלת Continue ב-IDEs ואתה זקוק לתצורת ספק ניידת מבוססת JSON.",
+      "opencode": "השתמש כאשר אתה מעדיף ריצות סוכנים מקוריים ומאוטומציה של סקריפטים באמצעות OpenCode.",
+      "kiro": "השתמש בעת שילוב Kiro ושליטה בניתוב מודלים באופן מרכזי מ- OmniRoute.",
+      "antigravity": "השתמש כאשר יש ליירט תעבורת Antigravity/Kiro דרך MITM ולנתב אל OmniRoute.",
+      "copilot": "השתמש כאשר אתה רוצה UX בסגנון צ'אט Copilot תוך אכיפת מפתחות וכללי ניתוב OmniRoute."
     }
   },
   "combos": {
@@ -864,7 +910,12 @@
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
     "a2aQuickStartStep3": "Track and control tasks using `tasks/get` and `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1054,7 +1105,13 @@
     "resetAllTitle": "אפס את כל המפסקים למצב תקין",
     "resetting": "מאפס...",
     "resetAll": "אפס הכל",
-    "until": "עד {time}"
+    "until": "עד {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "מוגדר בלוח המחוונים",
+    "configuredProvidersHint": "ספקים עם אישורים שנשמרו ב-/dashboard/ספקים, ללא קשר למצב זמן הריצה.",
+    "activeProvidersHint": "ספקים מוגדרים מופעלים כעת עבור בקשות ניתוב.",
+    "monitoredProvidersHint": "ספקים שנמצאים כעת במעקב על-ידי מסכי תקינות מפסקים."
   },
   "limits": {
     "title": "מגבלות ומכסות",
@@ -1396,7 +1453,31 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "הגדרות",
@@ -1799,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "הנחיית ניתוב מתקדמת",
+    "routingAdvancedGuideHint1": "השתמש ב-Fill First לקבלת עדיפות צפויה, ב-Round Robin להגינות, וב-P2C עבור חוסן חביון.",
+    "routingAdvancedGuideHint2": "אם הספקים משתנים באיכות/עלות, התחל עם Cost Opt עבור עבודת רקע והפחות בשימוש עבור בלאי מאוזן.",
+    "comboDefaultsGuideTitle": "כיצד לכוונן ברירות מחדל משולבות",
+    "comboDefaultsGuideHint1": "שמור על ניסיונות חוזרים נמוכים בזרימות עם אחזור נמוך; להגדיל את הזמן הקצוב רק עבור משימות דור ארוך.",
+    "comboDefaultsGuideHint2": "השתמש בעקיפות ספק כאשר ספק אחד זקוק להתנהגות שונה של זמן קצוב/ניסיון חוזר מאשר ברירות מחדל גלובליות."
   },
   "translator": {
     "title": "מתרגם",
@@ -2216,7 +2303,8 @@
     "orRemovePasswordHashField": "או הסר את שדה passwordHash",
     "restartServerWithNewPassword": "הפעל מחדש את השרת - הוא ישתמש בסיסמה החדשה",
     "backToLogin": "חזרה לכניסה",
-    "forgotPassword": "שכחת סיסמה?"
+    "forgotPassword": "שכחת סיסמה?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2414,7 +2502,16 @@
     "troubleshootingCodexFamily": "עבור מודלים של משפחת GitHub Codex, שמור את הדגם בתור gh/codex-model; הנתב בוחר / תגובות באופן אוטומטי.",
     "troubleshootingTestConnection": "השתמש בלוח מחוונים > ספקים > בדוק חיבור לפני בדיקה מ-IDEs או לקוחות חיצוניים.",
     "troubleshootingCircuitBreaker": "אם ספק מציג מפסק פתוח, המתן להתקררות או בדוק את דף הבריאות לפרטים.",
-    "troubleshootingOAuth": "עבור ספקי OAuth, בצע אימות מחדש אם פג תוקפם של אסימונים. בדוק את מחוון מצב כרטיס הספק."
+    "troubleshootingOAuth": "עבור ספקי OAuth, בצע אימות מחדש אם פג תוקפם של אסימונים. בדוק את מחוון מצב כרטיס הספק.",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
   },
   "legal": {
     "privacyPolicy": "מדיניות פרטיות",
@@ -2503,7 +2600,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2527,5 +2638,56 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

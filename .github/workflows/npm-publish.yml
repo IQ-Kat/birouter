@@ -6,9 +6,31 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version tag to publish (e.g. 2.6.0)"
+        description: "Version to publish (e.g. 2.9.5 or 3.0.0-rc.15)"
         required: true
         type: string
+      tag:
+        description: "npm dist-tag (latest / next)"
+        required: false
+        default: "latest"
+        type: choice
+        options:
+          - latest
+          - next
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to publish (without v prefix)"
+        required: true
+        type: string
+      tag:
+        description: "npm dist-tag (latest / next)"
+        required: false
+        default: "latest"
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
 
 permissions:
   contents: read
@@ -31,16 +53,35 @@ jobs:
       - name: Install dependencies (skip scripts to avoid heavy build)
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Sync version from release tag or input
+      - name: Resolve version and dist-tag
+        id: resolve
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ inputs.version }}"
-          else
-            VERSION="${GITHUB_REF_NAME}"
-            VERSION="${VERSION#v}"
+          case "${{ github.event_name }}" in
+            workflow_dispatch|workflow_call)
+              VERSION="${{ inputs.version }}"
+              TAG="${{ inputs.tag }}"
+              ;;
+            release)
+              VERSION="${GITHUB_REF_NAME}"
+              ;;
+          esac
+          # Strip v prefix if present
+          VERSION="${VERSION#v}"
+          # Default dist-tag logic
+          if [ -z "$TAG" ]; then
+            if [[ "$VERSION" == *-* ]]; then
+              TAG="next"
+            else
+              TAG="latest"
+            fi
           fi
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
-          echo "Publishing version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "📦 Publishing omniroute@$VERSION with tag=$TAG"
+
+      - name: Sync package.json version
+        run: |
+          npm version "${{ steps.resolve.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Build CLI bundle (standalone app)
         env:
@@ -49,12 +90,18 @@ jobs:
 
       - name: Publish to npm
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION="${{ steps.resolve.outputs.version }}"
+          TAG="${{ steps.resolve.outputs.tag }}"
           # Check if this version is already published — skip instead of failing with E403
           if npm view "omniroute@${VERSION}" version --silent 2>/dev/null | grep -q "^${VERSION}$"; then
-            echo "️⚠️ Version ${VERSION} is already published on npm — skipping."
+            echo "⚠️ Version ${VERSION} is already published on npm — skipping."
             exit 0
           fi
-          npm publish --access public
+          if [ "$TAG" = "latest" ]; then
+            npm publish --access public
+          else
+            npm publish --access public --tag "$TAG"
+          fi
+          echo "✅ Published omniroute@$VERSION (tag: $TAG)"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
