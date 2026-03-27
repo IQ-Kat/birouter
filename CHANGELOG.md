@@ -4,6 +4,18 @@
 
 ---
 
+## [3.1.5] — 2026-03-27
+
+### 🐛 Bug Fixes
+
+- **Backoff Auto-Decay** — Rate-limited accounts now auto-recover when their cooldown window expires, fixing a deadlock where high `backoffLevel` permanently deprioritized accounts (PR #657 by @brendandebeasi)
+
+### 🌍 i18n
+
+- **Chinese translation overhaul** — Comprehensive rewrite of `zh-CN.json` with improved accuracy (PR #658 by @only4copilot)
+
+---
+
 ## [3.1.4] — 2026-03-27
 
 ### 🐛 Bug Fixes
