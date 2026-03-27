@@ -4,6 +4,16 @@
 
 ---
 
+## [3.1.3] — 2026-03-26
+
+### 🌍 i18n & Community
+
+- **~70 missing translation keys** added to `en.json` and 12 languages (PR #652 by @zen0bit)
+- **Czech documentation updated** — CLI-TOOLS, API_REFERENCE, VM_DEPLOYMENT guides (PR #652)
+- **Translation validation scripts** — `check_translations.py` and `validate_translation.py` for CI/QA (PR #651 by @zen0bit)
+
+---
+
 ## [3.1.2] — 2026-03-26
 
 ### 🐛 Bug Fixes
