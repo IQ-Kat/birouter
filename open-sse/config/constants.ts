@@ -1,12 +1,12 @@
 import { loadProviderCredentials } from "./credentialLoader.ts";
 
 // Timeout for non-streaming fetch requests (ms). Prevents stalled connections.
-export const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS || "120000", 10);
+export const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS || "600000", 10);
 
 // Idle timeout for SSE streams (ms). Closes stream if no data for this duration.
 // Default: 120s balances deep-reasoning pauses with fast zombie stream detection (#473).
 // Extended-thinking models rarely pause >90s between chunks. Override with STREAM_IDLE_TIMEOUT_MS env var.
-export const STREAM_IDLE_TIMEOUT_MS = parseInt(process.env.STREAM_IDLE_TIMEOUT_MS || "120000", 10);
+export const STREAM_IDLE_TIMEOUT_MS = parseInt(process.env.STREAM_IDLE_TIMEOUT_MS || "600000", 10);
 
 // Provider configurations
 // OAuth credentials read from env vars with hardcoded fallbacks for backward compatibility.

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
   getProviderConnectionById,
   updateProviderConnection,
@@ -91,6 +93,11 @@ const CLI_RUNTIME_PROVIDER_MAP = {
   cline: "cline",
   kilocode: "kilo",
 };
+
+/** POST body is optional; when present, only known fields are validated. */
+const providerConnectionTestBodySchema = z.object({
+  validationModelId: z.string().max(500).optional(),
+});
 
 function toSafeMessage(value: any, fallback = "Unknown error"): string {
   if (typeof value !== "string") return fallback;
@@ -516,6 +523,7 @@ async function testApiKeyConnection(connection: any) {
   return {
     valid: !!result.valid,
     error,
+    warning: result.warning || null,
     diagnosis,
   };
 }
@@ -523,9 +531,10 @@ async function testApiKeyConnection(connection: any) {
 /**
  * Core test logic — reusable by test-batch without HTTP self-calls.
  * @param {string} connectionId
+ * @param {string} validationModelId Optional custom model ID to test connection with
  * @returns {Promise<object>} Test result (same shape as the JSON response)
  */
-export async function testSingleConnection(connectionId: string) {
+export async function testSingleConnection(connectionId: string, validationModelId?: string) {
   const connection = await getProviderConnectionById(connectionId);
 
   if (!connection) {
@@ -567,8 +576,17 @@ export async function testSingleConnection(connectionId: string) {
       diagnosis: (runtime as any).diagnosis,
     };
   } else if (connection.authType === "apikey") {
+    const enrichedConnection = validationModelId
+      ? {
+          ...connection,
+          providerSpecificData: {
+            ...((connection.providerSpecificData as any) || {}),
+            validationModelId,
+          },
+        }
+      : connection;
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
-      testApiKeyConnection(connection)
+      testApiKeyConnection(enrichedConnection)
     );
   } else {
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
@@ -657,6 +675,7 @@ export async function testSingleConnection(connectionId: string) {
   return {
     valid: result.valid,
     error: result.error,
+    warning: result.warning || null,
     refreshed: result.refreshed || false,
     diagnosis,
     latencyMs,
@@ -670,7 +689,20 @@ export async function testSingleConnection(connectionId: string) {
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const data = await testSingleConnection(id);
+
+    let rawBody: unknown = {};
+    try {
+      rawBody = await request.json();
+    } catch {
+      // Empty or non-JSON body — treat as {}
+    }
+    const validation = validateBody(providerConnectionTestBodySchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+    const { validationModelId } = validation.data;
+
+    const data = await testSingleConnection(id, validationModelId);
 
     if (data.error === "Connection not found") {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });

@@ -513,3 +513,98 @@ export async function deleteProviderNode(id: string) {
   backupDbFile("pre-write");
   return rowToCamel(existing);
 }
+
+// ──────────────── T05: Rate-Limit DB Persistence ──────────────────────────
+// Allows rate-limit state to survive token refresh without being accidentally
+// cleared. DB column rate_limited_until already exists in schema.
+// Ref: sub2api PR #1218 (fix(openai): prevent rescheduling rate-limited accounts)
+
+/**
+ * T05: Persist when a connection is rate-limited, directly in DB.
+ * This survives token refresh — OAuth flows must NOT override this field.
+ *
+ * @param connectionId - The provider_connections.id
+ * @param until - Epoch ms when the rate limit expires (null to clear)
+ */
+export function setConnectionRateLimitUntil(connectionId: string, until: number | null): void {
+  const db = getDbInstance() as unknown as DbLike;
+  db.prepare(
+    "UPDATE provider_connections SET rate_limited_until = ?, updated_at = ? WHERE id = ?"
+  ).run(until, new Date().toISOString(), connectionId);
+  invalidateDbCache("connections");
+}
+
+/**
+ * T05: Check if a connection is currently rate-limited (DB-backed).
+ * Use this before account selection to skip transiently rate-limited accounts.
+ *
+ * @returns true if rate_limited_until is set and in the future
+ */
+export function isConnectionRateLimited(connectionId: string): boolean {
+  const db = getDbInstance() as unknown as DbLike;
+  const row = db
+    .prepare("SELECT rate_limited_until FROM provider_connections WHERE id = ?")
+    .get(connectionId) as { rate_limited_until?: number | null } | undefined;
+  if (!row?.rate_limited_until) return false;
+  return Date.now() < row.rate_limited_until;
+}
+
+/**
+ * T05: Get all connections for a provider that are currently rate-limited.
+ * Returns an array of { id, rateLimitedUntil } for dashboard display.
+ */
+export function getRateLimitedConnections(
+  provider: string
+): Array<{ id: string; rateLimitedUntil: number }> {
+  const db = getDbInstance() as unknown as DbLike;
+  const now = Date.now();
+  const rows = db
+    .prepare(
+      "SELECT id, rate_limited_until FROM provider_connections WHERE provider = ? AND rate_limited_until > ?"
+    )
+    .all(provider, now) as Array<{ id: string; rate_limited_until: number }>;
+  return rows.map((r) => ({ id: r.id, rateLimitedUntil: r.rate_limited_until }));
+}
+
+// ──────────────── T13: Stale Quota Display Fix ─────────────────────────────
+// Codex/Claude quotas display stale cumulative usage after the window resets.
+// By comparing resetAt timestamp to now(), we can show 0 when window has passed.
+// Ref: sub2api PR #1171 (fix: quota display shows stale cumulative usage after reset)
+
+/**
+ * T13: Get effective quota usage, zeroing it out if the window has already reset.
+ *
+ * @param used - Stored usage value (tokens used in the window)
+ * @param resetAt - ISO-8601 string or epoch ms when the window resets, or null
+ * @returns Effective usage: 0 if window expired, original value otherwise
+ */
+export function getEffectiveQuotaUsage(
+  used: number,
+  resetAt: string | number | null | undefined
+): number {
+  if (!resetAt) return used;
+  const resetTime = typeof resetAt === "number" ? resetAt : new Date(resetAt).getTime();
+  if (isNaN(resetTime)) return used;
+  // Window has passed — display should show 0 (pending next snapshot)
+  if (Date.now() >= resetTime) return 0;
+  return used;
+}
+
+/**
+ * T13: Format a reset countdown as a human-readable string: "2h 35m" or "4m 30s".
+ * Returns null if resetAt is in the past or not set.
+ */
+export function formatResetCountdown(resetAt: string | number | null | undefined): string | null {
+  if (!resetAt) return null;
+  const resetTime = typeof resetAt === "number" ? resetAt : new Date(resetAt).getTime();
+  if (isNaN(resetTime)) return null;
+  const diffMs = resetTime - Date.now();
+  if (diffMs <= 0) return null;
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}

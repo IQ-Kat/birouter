@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import initializeCloudSync from "@/shared/services/initializeCloudSync";
+import { startModelSyncScheduler } from "@/shared/services/modelSyncScheduler";
 
 let syncInitialized = false;
+let modelSyncInitialized = false;
 
 // POST /api/sync/initialize - Initialize cloud sync scheduler
 export async function POST(request) {
@@ -15,9 +17,17 @@ export async function POST(request) {
     await initializeCloudSync();
     syncInitialized = true;
 
+    // (#488) Start model auto-sync scheduler (24h, configurable via MODEL_SYNC_INTERVAL_HOURS)
+    if (!modelSyncInitialized) {
+      const origin = request.headers.get("origin") || "http://localhost:20128";
+      startModelSyncScheduler(origin);
+      modelSyncInitialized = true;
+    }
+
     return NextResponse.json({
       success: true,
       message: "Cloud sync initialized successfully",
+      modelSyncEnabled: true,
     });
   } catch (error) {
     console.log("Error initializing cloud sync:", error);
@@ -34,6 +44,7 @@ export async function POST(request) {
 export async function GET(request) {
   return NextResponse.json({
     initialized: syncInitialized,
+    modelSyncInitialized,
     message: syncInitialized ? "Cloud sync is running" : "Cloud sync not initialized",
   });
 }

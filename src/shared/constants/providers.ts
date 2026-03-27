@@ -546,6 +546,20 @@ export const APIKEY_PROVIDERS = {
     freeNote:
       "No API key needed — access GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 free (1 req/15s)",
   },
+  puter: {
+    id: "puter",
+    alias: "pu",
+    name: "Puter AI",
+    icon: "cloud_circle",
+    color: "#6366F1",
+    textIcon: "PU",
+    website: "https://puter.com",
+    hasFree: true,
+    freeNote:
+      "500+ models (GPT-5, Claude Opus 4, Gemini 3 Pro, Grok 4, DeepSeek V3...) — Users pay via free Puter account",
+    passthroughModels: true,
+    authHint: "Get token at puter.com/dashboard → Copy Auth Token",
+  },
   "cloudflare-ai": {
     id: "cloudflare-ai",
     alias: "cf",

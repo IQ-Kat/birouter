@@ -56,7 +56,79 @@
     "warning": "Peringatan",
     "note": "Catatan",
     "free": "Gratis",
-    "skipToContent": "Lewati ke konten"
+    "skipToContent": "Lewati ke konten",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "accept",
+    "accountId": "accountId",
+    "alias": "alias",
+    "apiKeyId": "apiKeyId",
+    "apiKeyName": "apiKeyName",
+    "apiKeySecret": "apiKeySecret",
+    "authorization": "authorization",
+    "content-type": "content-type",
+    "content-length": "content-length",
+    "cookie": "cookie",
+    "file": "file",
+    "host": "host",
+    "id": "id",
+    "import": "import",
+    "limit": "limit",
+    "offset": "offset",
+    "open": "open",
+    "origin": "origin",
+    "promptTokens": "promptTokens",
+    "completionTokens": "completionTokens",
+    "totalTokens": "totalTokens",
+    "rawModel": "rawModel",
+    "scope": "scope",
+    "skill": "skill",
+    "sortBy": "sortBy",
+    "sortOrder": "sortOrder",
+    "tab": "tab",
+    "text": "text",
+    "textarea": "textarea",
+    "tool": "tool",
+    "toolId": "toolId",
+    "web": "web",
+    "whereUsed": "whereUsed",
+    "whitelist": "whitelist",
+    "blacklist": "blacklist",
+    "resolve": "resolve",
+    "force": "force",
+    "base64url": "base64url",
+    "hex": "hex",
+    "range": "range",
+    "component": "component",
+    "redirect_uri": "redirect_uri",
+    "idempotency-key": "idempotency-key",
+    "error_description": "error_description",
+    "code": "code",
+    "compatible": "compatible",
+    "chat-completions": "chat-completions",
+    "oauth": "oauth",
+    "auth_token": "auth_token",
+    "crypto": "crypto",
+    "hours": "hours",
+    "selfsigned": "selfsigned",
+    "proxy_id": "proxy_id",
+    "proxyId": "proxyId",
+    "connectionId": "connectionId",
+    "resolveConnectionId": "resolveConnectionId",
+    "resolve_connection_id": "resolve_connection_id",
+    "scope_id": "scope_id",
+    "scopeId": "scopeId",
+    "jwtSecret": "jwtSecret",
+    "keytar": "keytar",
+    "better-sqlite3": "better-sqlite3",
+    "undici": "undici",
+    "builder-id": "builder-id",
+    "musicDesc": "musicDesc",
+    "musicGeneration": "musicGeneration",
+    "idc": "idc",
+    "cloud-status-changed": "cloud-status-changed",
+    "where_used": "where_used",
+    "windowMs": "windowMs"
   },
   "sidebar": {
     "home": "Rumah",
@@ -103,7 +175,9 @@
     "endpoints": "Endpoint",
     "playground": "Playground",
     "agents": "Agen",
-    "cliToolsShort": "Alat"
+    "cliToolsShort": "Alat",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools"
   },
   "themesPage": {
     "title": "Themes",
@@ -175,7 +249,11 @@
     "requestsShort": "{count} permintaan",
     "providerModelsTitle": "{provider} - Model",
     "copiedModel": "Disalin: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Perbarui sekarang",
+    "updating": "Memperbarui...",
+    "updateAvailableDesc": "Versi baru tersedia. Klik untuk memperbarui.",
+    "updateStarted": "Pembaruan dimulai..."
   },
   "analytics": {
     "title": "Analisis",
@@ -268,7 +346,28 @@
     "permissionsTitle": "Izin: {name}",
     "allowAllDesc": "Kunci ini dapat mengakses semua model yang tersedia.",
     "restrictDesc": "Kunci ini dapat mengakses {selectedCount} dari {totalModels} model.",
-    "selectedCount": "{count} dipilih"
+    "selectedCount": "{count} dipilih",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "Catatan Audit",
@@ -510,6 +609,9 @@
             "title": "Tambahkan Konfigurasi Model",
             "desc": "Tambahkan konfigurasi berikut ke array model Anda:"
           }
+        },
+        "notes": {
+          "0": "Continue menggunakan file konfigurasi JSON."
         }
       },
       "opencode": {
@@ -528,6 +630,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode memerlukan konfigurasi API key.",
+          "1": "Setel base URL ke endpoint OmniRoute Anda."
         }
       },
       "kiro": {
@@ -546,8 +652,32 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro memerlukan akun Amazon."
         }
       }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Kapan harus digunakan",
+    "openToolDocs": "Buka dokumen alat",
+    "toolUseCases": {
+      "claude": "Gunakan saat Anda menginginkan alur kerja perencanaan yang kuat dan pemfaktoran ulang multi-file yang panjang dengan Claude Code.",
+      "codex": "Gunakan saat tim Anda terstandarisasi pada alur OpenAI Codex CLI dan autentikasi berbasis profil.",
+      "droid": "Gunakan saat Anda membutuhkan agen terminal ringan yang berfokus pada pengkodean cepat dan loop eksekusi perintah.",
+      "openclaw": "Gunakan saat Anda menginginkan agen pengkodean gaya Open Claw tetapi dirutekan melalui kebijakan OmniRoute.",
+      "cline": "Gunakan saat Anda mengonfigurasi agen pengkodean di dalam editor dan ingin penyiapan terpandu dengan model OmniRoute.",
+      "kilo": "Gunakan ketika alur kerja Anda bergantung pada perintah Kode Kilo dan pengeditan berulang yang cepat.",
+      "cursor": "Gunakan saat membuat kode di Cursor dan Anda memerlukan model khusus yang kompatibel dengan OpenAI melalui OmniRoute.",
+      "continue": "Gunakan saat menjalankan Lanjutkan di IDE dan Anda memerlukan konfigurasi penyedia portabel berbasis JSON.",
+      "opencode": "Gunakan saat Anda lebih suka menjalankan agen terminal-asli dan otomatisasi skrip melalui OpenCode.",
+      "kiro": "Gunakan saat mengintegrasikan Kiro dan mengontrol perutean model secara terpusat dari OmniRoute.",
+      "antigravity": "Gunakan ketika lalu lintas Antigravitasi/Kiro harus dicegat melalui MITM dan dialihkan ke OmniRoute.",
+      "copilot": "Gunakan saat Anda menginginkan UX gaya obrolan kopilot sambil menerapkan kunci OmniRoute dan aturan perutean."
     }
   },
   "combos": {
@@ -864,7 +994,12 @@
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
     "a2aQuickStartStep3": "Track and control tasks using `tasks/get` and `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1054,7 +1189,13 @@
     "resetAllTitle": "Setel ulang semua pemutus sirkuit ke kondisi sehat",
     "resetting": "Menyetel ulang...",
     "resetAll": "Atur Ulang Semua",
-    "until": "Sampai {time}"
+    "until": "Sampai {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Dikonfigurasi di dasbor",
+    "configuredProvidersHint": "Penyedia dengan kredensial yang disimpan di /dashboard/providers, apa pun status runtimenya.",
+    "activeProvidersHint": "Penyedia yang dikonfigurasi saat ini diaktifkan untuk permintaan perutean.",
+    "monitoredProvidersHint": "Penyedia saat ini dilacak oleh monitor kesehatan pemutus sirkuit."
   },
   "limits": {
     "title": "Batas & Kuota",
@@ -1396,7 +1537,40 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Sinkronisasi Otomatis",
+    "autoSyncTooltip": "Segarkan daftar model secara otomatis setiap 24 jam (dapat dikonfigurasi melalui MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Sinkronisasi otomatis diaktifkan — model akan disegarkan secara berkala",
+    "autoSyncDisabled": "Sinkronisasi otomatis dinonaktifkan",
+    "autoSyncToggleFailed": "Gagal mengaktifkan sinkronisasi otomatis",
+    "clearAllModels": "Hapus Semua Model",
+    "clearAllModelsConfirm": "Apakah Anda yakin ingin menghapus semua model untuk penyedia ini?",
+    "clearAllModelsSuccess": "Semua model dihapus",
+    "clearAllModelsFailed": "Gagal menghapus model"
   },
   "settings": {
     "title": "Pengaturan",
@@ -1799,7 +1973,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Panduan perutean tingkat lanjut",
+    "routingAdvancedGuideHint1": "Gunakan Fill First untuk prioritas yang dapat diprediksi, Round Robin untuk keadilan, dan P2C untuk ketahanan latensi.",
+    "routingAdvancedGuideHint2": "Jika penyedia memiliki kualitas/biaya yang berbeda-beda, mulailah dengan Cost Opt (Pilihan Biaya) untuk pekerjaan latar belakang dan Paling Sedikit Digunakan untuk pemakaian yang seimbang.",
+    "comboDefaultsGuideTitle": "Cara menyetel default kombo",
+    "comboDefaultsGuideHint1": "Jaga agar percobaan ulang tetap rendah dalam aliran latensi rendah; menambah waktu tunggu hanya untuk tugas-tugas generasi panjang.",
+    "comboDefaultsGuideHint2": "Gunakan penggantian penyedia ketika satu penyedia memerlukan perilaku batas waktu/coba lagi yang berbeda dari default global."
   },
   "translator": {
     "title": "Penerjemah",
@@ -2216,7 +2396,14 @@
     "orRemovePasswordHashField": "atau hapus bidang passwordHash",
     "restartServerWithNewPassword": "Mulai ulang server - server akan menggunakan kata sandi baru",
     "backToLogin": "Kembali ke Masuk",
-    "forgotPassword": "Lupa kata sandi?"
+    "forgotPassword": "Lupa kata sandi?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2423,7 +2610,9 @@
     "troubleshootingCodexFamily": "Untuk model keluarga GitHub Codex, pertahankan model sebagai gh/codex-model; router memilih / merespons secara otomatis.",
     "troubleshootingTestConnection": "Gunakan Dasbor > Penyedia > Uji Koneksi sebelum menguji dari IDE atau klien eksternal.",
     "troubleshootingCircuitBreaker": "Jika penyedia menunjukkan pemutus sirkuit terbuka, tunggu hingga cooldown atau periksa halaman Kesehatan untuk detailnya.",
-    "troubleshootingOAuth": "Untuk penyedia OAuth, autentikasi ulang jika masa berlaku token habis. Periksa indikator status kartu penyedia."
+    "troubleshootingOAuth": "Untuk penyedia OAuth, autentikasi ulang jika masa berlaku token habis. Periksa indikator status kartu penyedia.",
+    "endpointSpeechNote": "Generasi text-to-speech (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Generasi embedding teks (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Kebijakan Privasi",
@@ -2512,7 +2701,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2536,5 +2739,72 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Simple Chat",
+    "streaming": "Streaming",
+    "system-prompt": "System Prompt",
+    "thinking": "Thinking",
+    "tool-calling": "Tool Calling",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Basic chat template",
+    "streaming": "Streaming template",
+    "system-prompt": "System prompt template",
+    "thinking": "Thinking template",
+    "tool-calling": "Tool calling template",
+    "multi-turn": "Multi-turn template"
   }
 }

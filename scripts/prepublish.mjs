@@ -240,7 +240,7 @@ if (existsSync(mitmSrc)) {
   writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
 
   try {
-    execSync(`npx tsc -p ${tmpTsconfigPath}`, { cwd: ROOT, stdio: "inherit" });
+    execSync("npx tsc -p " + JSON.stringify(tmpTsconfigPath), { cwd: ROOT, stdio: "inherit" });
     console.log("  ✅ MITM utilities compiled to app/src/mitm/");
   } catch (err) {
     console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);

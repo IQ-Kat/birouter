@@ -8,6 +8,7 @@ import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
+import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -19,12 +20,51 @@ export { MODEL_COMPAT_PROTOCOL_KEYS, type ModelCompatProtocolKey };
 export type ModelCompatPerProtocol = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
+  /** Merged into upstream HTTP requests for this model (after default auth headers). */
+  upstreamHeaders?: Record<string, string>;
 };
 
 type CompatByProtocolMap = Partial<Record<ModelCompatProtocolKey, ModelCompatPerProtocol>>;
 
 function isCompatProtocolKey(p: string): p is ModelCompatProtocolKey {
   return (MODEL_COMPAT_PROTOCOL_KEYS as readonly string[]).includes(p);
+}
+
+const UPSTREAM_HEADERS_MAX = 16;
+const UPSTREAM_HEADER_NAME_MAX = 128;
+const UPSTREAM_HEADER_VALUE_MAX = 4096;
+
+function isValidUpstreamHeaderName(k: string): boolean {
+  if (!k || k.length > UPSTREAM_HEADER_NAME_MAX) return false;
+  if (isForbiddenUpstreamHeaderName(k)) return false;
+  if (/[\r\n\0]/.test(k)) return false;
+  if (/\s/.test(k)) return false;
+  if (k.includes(":")) return false;
+  return true;
+}
+
+/** Sanitize user-provided upstream header map (used when persisting and when reading for requests). */
+export function sanitizeUpstreamHeadersMap(
+  raw: Record<string, unknown> | null | undefined
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const [k0, v0] of Object.entries(raw)) {
+    const k = String(k0).trim();
+    if (!k || !isValidUpstreamHeaderName(k)) {
+      continue;
+    }
+    const v =
+      typeof v0 === "string"
+        ? v0.trim().slice(0, UPSTREAM_HEADER_VALUE_MAX)
+        : String(v0 ?? "")
+            .trim()
+            .slice(0, UPSTREAM_HEADER_VALUE_MAX);
+    if (v.includes("\r") || v.includes("\n")) continue;
+    out[k] = v;
+    if (Object.keys(out).length >= UPSTREAM_HEADERS_MAX) break;
+  }
+  return out;
 }
 
 function deepMergeCompatByProtocol(
@@ -38,7 +78,8 @@ function deepMergeCompatByProtocol(
     if (!deltas || typeof deltas !== "object") continue;
     const hasDelta =
       Object.prototype.hasOwnProperty.call(deltas, "normalizeToolCallId") ||
-      Object.prototype.hasOwnProperty.call(deltas, "preserveOpenAIDeveloperRole");
+      Object.prototype.hasOwnProperty.call(deltas, "preserveOpenAIDeveloperRole") ||
+      Object.prototype.hasOwnProperty.call(deltas, "upstreamHeaders");
     if (!hasDelta) continue;
     const cur: ModelCompatPerProtocol = { ...(out[key] || {}) };
     if ("normalizeToolCallId" in deltas) {
@@ -46,6 +87,16 @@ function deepMergeCompatByProtocol(
     }
     if ("preserveOpenAIDeveloperRole" in deltas) {
       cur.preserveOpenAIDeveloperRole = Boolean(deltas.preserveOpenAIDeveloperRole);
+    }
+    if ("upstreamHeaders" in deltas) {
+      const uh = deltas.upstreamHeaders;
+      if (uh === undefined) {
+        /* skip */
+      } else {
+        const s = sanitizeUpstreamHeadersMap(uh as Record<string, unknown>);
+        if (Object.keys(s).length === 0) delete cur.upstreamHeaders;
+        else cur.upstreamHeaders = s;
+      }
     }
     if (Object.keys(cur).length === 0) delete out[key];
     else out[key] = cur;
@@ -58,6 +109,7 @@ export type ModelCompatOverride = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
   compatByProtocol?: CompatByProtocolMap;
+  upstreamHeaders?: Record<string, string>;
 };
 
 function readCompatList(providerId: string): ModelCompatOverride[] {
@@ -100,6 +152,8 @@ export type ModelCompatPatch = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean | null;
   compatByProtocol?: CompatByProtocolMap;
+  /** Replace top-level extra headers for override-only rows; omit to leave unchanged. */
+  upstreamHeaders?: Record<string, string> | null;
 };
 
 function compatByProtocolHasEntries(map: CompatByProtocolMap | undefined): boolean {
@@ -135,12 +189,23 @@ export function mergeModelCompatOverride(
     if (compatByProtocolHasEntries(merged)) next.compatByProtocol = merged;
     else delete next.compatByProtocol;
   }
+  if ("upstreamHeaders" in patch) {
+    if (patch.upstreamHeaders === null) {
+      delete next.upstreamHeaders;
+    } else if (patch.upstreamHeaders && typeof patch.upstreamHeaders === "object") {
+      const s = sanitizeUpstreamHeadersMap(patch.upstreamHeaders as Record<string, unknown>);
+      if (Object.keys(s).length === 0) delete next.upstreamHeaders;
+      else next.upstreamHeaders = s;
+    }
+  }
   const filtered = list.filter((e) => e.id !== modelId);
   const hasPreserveFlag = Object.prototype.hasOwnProperty.call(next, "preserveOpenAIDeveloperRole");
+  const hasTopUpstream = next.upstreamHeaders && Object.keys(next.upstreamHeaders).length > 0;
   if (
     next.normalizeToolCallId ||
     hasPreserveFlag ||
-    compatByProtocolHasEntries(next.compatByProtocol)
+    compatByProtocolHasEntries(next.compatByProtocol) ||
+    hasTopUpstream
   ) {
     filtered.push(next);
   }
@@ -182,7 +247,7 @@ export async function getModelAliases() {
   return result;
 }
 
-export async function setModelAlias(alias, model) {
+export async function setModelAlias(alias: string, model: unknown) {
   const db = getDbInstance();
   db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('modelAliases', ?, ?)"
@@ -190,7 +255,7 @@ export async function setModelAlias(alias, model) {
   backupDbFile("pre-write");
 }
 
-export async function deleteModelAlias(alias) {
+export async function deleteModelAlias(alias: string) {
   const db = getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace = 'modelAliases' AND key = ?").run(alias);
   backupDbFile("pre-write");
@@ -198,7 +263,7 @@ export async function deleteModelAlias(alias) {
 
 // ──────────────── MITM Alias ────────────────
 
-export async function getMitmAlias(toolName) {
+export async function getMitmAlias(toolName?: string) {
   const db = getDbInstance();
   if (toolName) {
     const row = db
@@ -217,7 +282,7 @@ export async function getMitmAlias(toolName) {
   return result;
 }
 
-export async function setMitmAliasAll(toolName, mappings) {
+export async function setMitmAliasAll(toolName: string, mappings: unknown) {
   const db = getDbInstance();
   db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('mitmAlias', ?, ?)"
@@ -227,7 +292,7 @@ export async function setMitmAliasAll(toolName, mappings) {
 
 // ──────────────── Custom Models ────────────────
 
-export async function getCustomModels(providerId) {
+export async function getCustomModels(providerId?: string) {
   const db = getDbInstance();
   if (providerId) {
     const row = db
@@ -277,7 +342,7 @@ export async function addCustomModel(
   const value = getKeyValue(row).value;
   const models = value ? JSON.parse(value) : [];
 
-  const exists = models.find((m) => m.id === modelId);
+  const exists = models.find((m: JsonRecord) => m.id === modelId);
   if (exists) return exists;
 
   const model = {
@@ -295,7 +360,77 @@ export async function addCustomModel(
   return model;
 }
 
-export async function removeCustomModel(providerId, modelId) {
+/**
+ * Replace the entire custom models list for a provider (used by auto-sync).
+ * Preserves per-model compatibility overrides for models that still exist.
+ */
+export async function replaceCustomModels(
+  providerId: string,
+  models: Array<{
+    id: string;
+    name?: string;
+    source?: string;
+    apiFormat?: string;
+    supportedEndpoints?: string[];
+  }>
+) {
+  const db = getDbInstance();
+  const existing = await getCustomModels(providerId);
+  const existingMap = new Map<string, JsonRecord>();
+  if (Array.isArray(existing)) {
+    for (const m of existing) {
+      if (m && typeof m === "object" && m.id) existingMap.set(m.id, m);
+    }
+  }
+
+  // Merge: keep existing per-model compat flags if model still exists
+  const merged = models.map((m) => {
+    const prev = existingMap.get(m.id);
+    return {
+      id: m.id,
+      name: m.name || m.id,
+      source: m.source || "auto-sync",
+      apiFormat: m.apiFormat || (prev as any)?.apiFormat || "chat-completions",
+      supportedEndpoints: m.supportedEndpoints || (prev as any)?.supportedEndpoints || ["chat"],
+      // Preserve existing compat flags
+      ...(prev && (prev as any).normalizeToolCallId !== undefined
+        ? { normalizeToolCallId: (prev as any).normalizeToolCallId }
+        : {}),
+      ...(prev && (prev as any).preserveOpenAIDeveloperRole !== undefined
+        ? { preserveOpenAIDeveloperRole: (prev as any).preserveOpenAIDeveloperRole }
+        : {}),
+      ...(prev && (prev as any).compatByProtocol
+        ? { compatByProtocol: (prev as any).compatByProtocol }
+        : {}),
+      ...(prev && (prev as any).upstreamHeaders
+        ? { upstreamHeaders: (prev as any).upstreamHeaders }
+        : {}),
+    };
+  });
+
+  if (merged.length === 0) {
+    db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(
+      providerId
+    );
+  } else {
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
+    ).run(providerId, JSON.stringify(merged));
+  }
+
+  // Remove compat overrides for models that no longer exist
+  const newIds = new Set(models.map((m) => m.id));
+  const compatList = readCompatList(providerId);
+  const filteredCompat = compatList.filter((e) => newIds.has(e.id));
+  if (filteredCompat.length !== compatList.length) {
+    writeCompatList(providerId, filteredCompat);
+  }
+
+  backupDbFile("pre-write");
+  return merged;
+}
+
+export async function removeCustomModel(providerId: string, modelId: string) {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
@@ -306,7 +441,7 @@ export async function removeCustomModel(providerId, modelId) {
   if (!value) return false;
   const models = JSON.parse(value);
   const before = models.length;
-  const filtered = models.filter((m) => m.id !== modelId);
+  const filtered = models.filter((m: JsonRecord) => m.id !== modelId);
 
   if (filtered.length === before) return false;
 
@@ -341,7 +476,7 @@ export async function updateCustomModel(
   if (!value) return null;
 
   const models = JSON.parse(value);
-  const index = models.findIndex((m) => m.id === modelId);
+  const index = models.findIndex((m: JsonRecord) => m.id === modelId);
   if (index === -1) return null;
 
   const current = models[index];
@@ -385,6 +520,17 @@ export async function updateCustomModel(
       next.compatByProtocol = mergedCompat;
     } else {
       delete next.compatByProtocol;
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(updates, "upstreamHeaders")) {
+    const uh = updates.upstreamHeaders;
+    if (uh === null || uh === undefined) {
+      delete next.upstreamHeaders;
+    } else if (typeof uh === "object" && !Array.isArray(uh)) {
+      const s = sanitizeUpstreamHeadersMap(uh as Record<string, unknown>);
+      if (Object.keys(s).length === 0) delete next.upstreamHeaders;
+      else next.upstreamHeaders = s;
     }
   }
 
@@ -490,4 +636,62 @@ export function getModelPreserveOpenAIDeveloperRole(
     return Boolean(co.preserveOpenAIDeveloperRole);
   }
   return undefined;
+}
+
+function readUpstreamFromJsonRecord(
+  row: JsonRecord | null | undefined,
+  key: "upstreamHeaders"
+): Record<string, string> | undefined {
+  if (!row) return undefined;
+  const raw = row[key];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const s = sanitizeUpstreamHeadersMap(raw as Record<string, unknown>);
+  return Object.keys(s).length > 0 ? s : undefined;
+}
+
+/**
+ * Extra HTTP headers to send to the upstream provider for this model (after executor auth headers).
+ * Order: top-level `upstreamHeaders` on the custom model row (override list merged under custom),
+ * then per-protocol `compatByProtocol[sourceFormat].upstreamHeaders` (wins on key conflict).
+ * Use for gateways that expect `Authentication`, `X-API-Key`, etc. alongside Bearer.
+ *
+ * `modelId` should be the **canonical** model id when known. Callers that accept client aliases
+ * (e.g. chat proxy) should merge results for both alias and `resolveModelAlias(alias)` so UI
+ * config on the resolved id still applies — see `chatCore` merge.
+ */
+export function getModelUpstreamExtraHeaders(
+  providerId: string,
+  modelId: string,
+  sourceFormat?: string | null
+): Record<string, string> {
+  const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
+  const m = getCustomModelRow(providerId, modelId);
+
+  const base: Record<string, string> = {};
+  if (m) {
+    const fromModel = readUpstreamFromJsonRecord(m, "upstreamHeaders");
+    if (fromModel) Object.assign(base, fromModel);
+    if (protocol) {
+      const pc = (m.compatByProtocol as CompatByProtocolMap | undefined)?.[protocol];
+      const fromProto = pc?.upstreamHeaders;
+      if (fromProto && typeof fromProto === "object") {
+        Object.assign(base, sanitizeUpstreamHeadersMap(fromProto as Record<string, unknown>));
+      }
+    }
+    return base;
+  }
+
+  const co = readCompatList(providerId).find((e) => e.id === modelId);
+  if (co?.upstreamHeaders) {
+    Object.assign(base, sanitizeUpstreamHeadersMap(co.upstreamHeaders as Record<string, unknown>));
+  }
+  if (protocol && co?.compatByProtocol?.[protocol]?.upstreamHeaders) {
+    Object.assign(
+      base,
+      sanitizeUpstreamHeadersMap(
+        co.compatByProtocol[protocol]!.upstreamHeaders as Record<string, unknown>
+      )
+    );
+  }
+  return base;
 }

@@ -41,7 +41,13 @@ const SESSION_TTL_MS = 30 * 60 * 1000;
 const _cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of sessions) {
-    if (now - entry.lastActive > SESSION_TTL_MS) sessions.delete(key);
+    if (now - entry.lastActive > SESSION_TTL_MS) {
+      sessions.delete(key);
+      for (const [apiKeyId, sessionSet] of activeSessionsByKey) {
+        sessionSet.delete(key);
+        if (sessionSet.size === 0) activeSessionsByKey.delete(apiKeyId);
+      }
+    }
   }
 }, 60_000);
 _cleanupTimer.unref();
@@ -173,6 +179,114 @@ export function getActiveSessions(): Array<SessionEntry & { sessionId: string; a
  */
 export function clearSessions(): void {
   sessions.clear();
+  activeSessionsByKey.clear();
+}
+
+// ─── T08: Per-API-Key Session Limit ─────────────────────────────────────────
+// Tracks concurrent sticky sessions per API key and enforces max_sessions limits.
+// Ref: sub2api PR #634 (fix: stabilize session hash + add user-level session limit)
+
+// Map: apiKeyId → Set<sessionId>
+const activeSessionsByKey = new Map<string, Set<string>>();
+
+/**
+ * T08: Get the number of currently active sessions for an API key.
+ * @param apiKeyId - The API key's UUID from the database
+ */
+export function getActiveSessionCountForKey(apiKeyId: string): number {
+  return activeSessionsByKey.get(apiKeyId)?.size ?? 0;
+}
+
+/**
+ * Snapshot of active session counts per API key.
+ */
+export function getAllActiveSessionCountsByKey(): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [apiKeyId, sessionIds] of activeSessionsByKey) {
+    out[apiKeyId] = sessionIds.size;
+  }
+  return out;
+}
+
+/**
+ * T08: Register a session as belonging to an API key.
+ * Call this after session creation is allowed (i.e., limit check passed).
+ */
+export function registerKeySession(apiKeyId: string, sessionId: string): void {
+  if (!activeSessionsByKey.has(apiKeyId)) {
+    activeSessionsByKey.set(apiKeyId, new Set());
+  }
+  activeSessionsByKey.get(apiKeyId)!.add(sessionId);
+}
+
+/**
+ * Check whether a given session is already registered for an API key.
+ */
+export function isSessionRegisteredForKey(apiKeyId: string, sessionId: string): boolean {
+  return activeSessionsByKey.get(apiKeyId)?.has(sessionId) === true;
+}
+
+/**
+ * T08: Unregister a session from an API key's active set.
+ * Call this when the request closes or the session TTL expires.
+ */
+export function unregisterKeySession(apiKeyId: string, sessionId: string): void {
+  activeSessionsByKey.get(apiKeyId)?.delete(sessionId);
+  // Clean up empty sets to avoid memory leaks
+  if (activeSessionsByKey.get(apiKeyId)?.size === 0) {
+    activeSessionsByKey.delete(apiKeyId);
+  }
+}
+
+/**
+ * T08: Check whether adding a new session would exceed the key's max_sessions limit.
+ * Returns null if allowed, or an error object to return as a 429 response.
+ *
+ * @param apiKeyId - The API key's UUID
+ * @param maxSessions - The limit from the DB (0 = unlimited)
+ */
+export function checkSessionLimit(
+  apiKeyId: string,
+  maxSessions: number
+): { code: "SESSION_LIMIT_EXCEEDED"; message: string; limit: number; current: number } | null {
+  if (!maxSessions || maxSessions <= 0) return null; // unlimited
+  const current = getActiveSessionCountForKey(apiKeyId);
+  if (current < maxSessions) return null;
+  return {
+    code: "SESSION_LIMIT_EXCEEDED",
+    message:
+      `You have reached the maximum number of active sessions (${maxSessions}). ` +
+      `Please close unused sessions or wait for them to expire.`,
+    limit: maxSessions,
+    current,
+  };
+}
+
+/**
+ * T04: Extract an external session ID from request headers.
+ * Accepts both hyphenated and underscore forms for Nginx compatibility.
+ * Nginx drops headers with underscores by default — use `underscores_in_headers on`
+ * in nginx.conf, or use X-Session-Id (hyphenated) which passes cleanly.
+ *
+ * Ref: sub2api README + PR #634
+ *
+ * @param headers - Request headers (Headers object or plain object with .get())
+ * @returns External session ID with "ext:" prefix, or null
+ */
+export function extractExternalSessionId(
+  headers: Headers | { get?: (n: string) => string | null } | null | undefined
+): string | null {
+  if (!headers || typeof (headers as Headers).get !== "function") return null;
+  const h = headers as Headers;
+  const raw =
+    h.get("x-session-id") ?? // Preferred: hyphenated (passes through Nginx)
+    h.get("x_session_id") ?? // Underscore variant (direct HTTP / custom clients)
+    h.get("x-omniroute-session") ?? // OmniRoute-specific form
+    h.get("session-id") ?? // Bare session-id
+    null;
+  if (!raw || !raw.trim()) return null;
+  // Prefix "ext:" to ensure no collision with internal SHA-256 hash IDs
+  return `ext:${raw.trim().slice(0, 64)}`; // max 64 chars to avoid abuse
 }
 
 // ─── Internal Helpers ───────────────────────────────────────────────────────

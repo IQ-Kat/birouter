@@ -9,27 +9,46 @@
  */
 
 import { useState, useEffect } from "react";
+import { useRef } from "react";
+import { useTranslations } from "next-intl";
 
 export default function MaintenanceBanner() {
   const [show, setShow] = useState(false);
   const [message, setMessage] = useState("");
+  const consecutiveFailuresRef = useRef(0);
+  const dismissedUntilRecoveryRef = useRef(false);
+  const t = useTranslations("common");
 
   useEffect(() => {
     const checkHealth = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       try {
         const res = await fetch("/api/monitoring/health", {
-          signal: AbortSignal.timeout(3000),
+          signal: controller.signal,
+          cache: "no-store",
         });
         if (res.ok) {
+          consecutiveFailuresRef.current = 0;
+          dismissedUntilRecoveryRef.current = false;
           setShow(false);
           setMessage("");
         } else {
-          setShow(true);
-          setMessage("Server is experiencing issues. Some features may be unavailable.");
+          consecutiveFailuresRef.current += 1;
+          // Require at least 2 failed checks to avoid transient false positives.
+          if (consecutiveFailuresRef.current >= 2 && !dismissedUntilRecoveryRef.current) {
+            setShow(true);
+            setMessage(t("maintenanceServerIssues"));
+          }
         }
       } catch {
-        setShow(true);
-        setMessage("Server is unreachable. Reconnecting...");
+        consecutiveFailuresRef.current += 1;
+        if (consecutiveFailuresRef.current >= 2 && !dismissedUntilRecoveryRef.current) {
+          setShow(true);
+          setMessage(t("maintenanceServerUnreachable"));
+        }
+      } finally {
+        clearTimeout(timeoutId);
       }
     };
 
@@ -37,7 +56,7 @@ export default function MaintenanceBanner() {
     checkHealth();
     const interval = setInterval(checkHealth, 10000);
     return () => clearInterval(interval);
-  }, []); // empty deps — checkHealth is defined inside effect, no stale closure
+  }, [t]);
 
   if (!show) return null;
 
@@ -50,9 +69,12 @@ export default function MaintenanceBanner() {
         <span className="text-sm text-amber-200">{message}</span>
       </div>
       <button
-        onClick={() => setShow(false)}
+        onClick={() => {
+          dismissedUntilRecoveryRef.current = true;
+          setShow(false);
+        }}
         className="p-1 rounded hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-        aria-label="Dismiss"
+        aria-label={t("close")}
       >
         <span className="material-symbols-outlined text-[16px]">close</span>
       </button>

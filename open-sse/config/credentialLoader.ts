@@ -16,6 +16,7 @@
 
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { resolveDataDir } from "../../src/lib/dataPaths";
 
 // Fields that can be overridden per provider
 const CREDENTIAL_FIELDS = ["clientId", "clientSecret", "tokenUrl", "authUrl", "refreshUrl"];
@@ -25,13 +26,21 @@ const CONFIG_TTL_MS = 60_000;
 let lastLoadTime = 0;
 let cachedProviders = null;
 
+// Survives Next.js dev HMR: module-level cache resets but process is the same (V4 pattern).
+type CredGlobals = typeof globalThis & { __omnirouteCredNoFileLogged?: boolean };
+function credGlobals(): CredGlobals {
+  return globalThis as CredGlobals;
+}
+
 /**
- * Resolve the path to provider-credentials.json
- * Priority: DATA_DIR env → ./data (project root)
+ * Resolves the path to provider-credentials.json using the application's
+ * data directory. Delegates to resolveDataDir() which handles DATA_DIR env,
+ * platform-specific defaults, and fallback logic.
+ *
+ * previous: Priority: DATA_DIR env → ./data (project root)
  */
 function resolveCredentialsPath() {
-  const dataDir = process.env.DATA_DIR || join(process.cwd(), "data");
-  return join(dataDir, "provider-credentials.json");
+  return join(resolveDataDir(), "provider-credentials.json");
 }
 
 /**
@@ -51,8 +60,9 @@ export function loadProviderCredentials(providers) {
   const credPath = resolveCredentialsPath();
 
   if (!existsSync(credPath)) {
-    if (!cachedProviders) {
+    if (!credGlobals().__omnirouteCredNoFileLogged) {
       console.log("[CREDENTIALS] No external credentials file found, using defaults.");
+      credGlobals().__omnirouteCredNoFileLogged = true;
     }
     cachedProviders = providers;
     lastLoadTime = Date.now();
@@ -93,7 +103,11 @@ export function loadProviderCredentials(providers) {
       `[CREDENTIALS] ${isReload ? "Reloaded" : "Loaded"} external credentials: ${overrideCount} field(s) from ${credPath}`
     );
   } catch (err) {
-    console.log(`[CREDENTIALS] Error reading credentials file: ${err.message}. Using defaults.`);
+    const reason =
+      err instanceof SyntaxError
+        ? "Invalid JSON format"
+        : (err as NodeJS.ErrnoException).code || "read error";
+    console.log(`[CREDENTIALS] Error reading credentials file (${reason}). Using defaults.`);
   }
 
   cachedProviders = providers;

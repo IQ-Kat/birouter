@@ -56,7 +56,9 @@
     "warning": "Waarschuwing",
     "note": "Let op",
     "free": "Gratis",
-    "skipToContent": "Ga naar de inhoud"
+    "skipToContent": "Ga naar de inhoud",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting..."
   },
   "sidebar": {
     "home": "Thuis",
@@ -103,7 +105,9 @@
     "endpoints": "Eindpunten",
     "playground": "Speeltuin",
     "agents": "Agenten",
-    "cliToolsShort": "Gereedschap"
+    "cliToolsShort": "Gereedschap",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools"
   },
   "themesPage": {
     "title": "Themes",
@@ -268,7 +272,28 @@
     "permissionsTitle": "Machtigingen: {name}",
     "allowAllDesc": "Met deze sleutel heeft u toegang tot alle beschikbare modellen.",
     "restrictDesc": "Deze sleutel heeft toegang tot {selectedCount} van {totalModels} modellen.",
-    "selectedCount": "{count} geselecteerd"
+    "selectedCount": "{count} geselecteerd",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "Auditlogboek",
@@ -548,6 +573,27 @@
           }
         }
       }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Wanneer te gebruiken",
+    "openToolDocs": "Gereedschapsdocumentatie openen",
+    "toolUseCases": {
+      "claude": "Gebruik deze optie als u krachtige planningsworkflows en lange refactoren van meerdere bestanden wilt met Claude Code.",
+      "codex": "Gebruik wanneer uw team is gestandaardiseerd op OpenAI Codex CLI-stromen en op profielen gebaseerde authenticatie.",
+      "droid": "Gebruik deze wanneer u een lichtgewicht terminalagent nodig heeft die zich richt op snelle codering en opdrachtuitvoeringslussen.",
+      "openclaw": "Gebruik dit wanneer u een codeeragent in Open Claw-stijl wilt, maar gerouteerd via OmniRoute-beleid.",
+      "cline": "Gebruik deze optie wanneer u codeeragenten in editors configureert en begeleide installatie wilt met OmniRoute-modellen.",
+      "kilo": "Gebruik dit wanneer uw workflow afhankelijk is van Kilo Code-opdrachten en snelle iteratieve bewerkingen.",
+      "cursor": "Gebruik dit bij het coderen in Cursor en u hebt aangepaste OpenAI-compatibele modellen nodig via OmniRoute.",
+      "continue": "Gebruik dit wanneer u Doorgaan in IDE's uitvoert en u een draagbare, op JSON gebaseerde providerconfiguratie nodig hebt.",
+      "opencode": "Gebruik dit wanneer u de voorkeur geeft aan terminal-native agentruns en scriptautomatisering via OpenCode.",
+      "kiro": "Te gebruiken bij het integreren van Kiro en het centraal beheren van modelrouting vanuit OmniRoute.",
+      "antigravity": "Gebruik wanneer Antigravity/Kiro-verkeer moet worden onderschept via MITM en naar OmniRoute moet worden gerouteerd.",
+      "copilot": "Gebruik wanneer u UX in Copilot-chatstijl wilt terwijl u OmniRoute-sleutels en routeringsregels afdwingt."
     }
   },
   "combos": {
@@ -864,7 +910,12 @@
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
     "a2aQuickStartStep3": "Track and control tasks using `tasks/get` and `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1054,7 +1105,13 @@
     "resetAllTitle": "Reset alle stroomonderbrekers naar de gezonde status",
     "resetting": "Resetten...",
     "resetAll": "Alles resetten",
-    "until": "Tot {time}"
+    "until": "Tot {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Geconfigureerd in dashboard",
+    "configuredProvidersHint": "Providers met inloggegevens opgeslagen in /dashboard/providers, ongeacht de runtimestatus.",
+    "activeProvidersHint": "Geconfigureerde providers die momenteel zijn ingeschakeld voor het routeren van verzoeken.",
+    "monitoredProvidersHint": "Providers worden momenteel gevolgd door gezondheidsmonitors van stroomonderbrekers."
   },
   "limits": {
     "title": "Limieten en quota's",
@@ -1396,7 +1453,31 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row"
   },
   "settings": {
     "title": "Instellingen",
@@ -1799,7 +1880,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Geavanceerde routebegeleiding",
+    "routingAdvancedGuideHint1": "Gebruik Fill First voor voorspelbare prioriteit, Round Robin voor eerlijkheid en P2C voor latency-veerkracht.",
+    "routingAdvancedGuideHint2": "Als aanbieders variëren in kwaliteit/kosten, begin dan met Kosten Opt voor achtergrondwerk en Minst Gebruikt voor evenwichtige slijtage.",
+    "comboDefaultsGuideTitle": "Combo-standaardinstellingen afstemmen",
+    "comboDefaultsGuideHint1": "Houd het aantal nieuwe pogingen laag bij stromen met lage latentie; verhoog de time-out alleen voor lange generatietaken.",
+    "comboDefaultsGuideHint2": "Gebruik provideroverschrijvingen wanneer een provider ander time-out/opnieuw gedrag nodig heeft dan de algemene standaardwaarden."
   },
   "translator": {
     "title": "Vertaler",
@@ -2216,7 +2303,8 @@
     "orRemovePasswordHashField": "of verwijder het wachtwoordHash-veld",
     "restartServerWithNewPassword": "Start de server opnieuw op. Deze gebruikt het nieuwe wachtwoord",
     "backToLogin": "Terug naar Inloggen",
-    "forgotPassword": "Wachtwoord vergeten?"
+    "forgotPassword": "Wachtwoord vergeten?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2414,7 +2502,16 @@
     "troubleshootingCodexFamily": "Voor modellen uit de GitHub Codex-familie behoudt u het model als gh/codex-model; router selecteert /responses automatisch.",
     "troubleshootingTestConnection": "Gebruik Dashboard > Providers > Verbinding testen voordat u gaat testen vanaf IDE's of externe clients.",
     "troubleshootingCircuitBreaker": "Als een provider aangeeft dat de stroomonderbreker open is, wacht dan op de cooldown of kijk op de Gezondheidspagina voor meer informatie.",
-    "troubleshootingOAuth": "Voor OAuth-providers geldt dat u opnieuw moet verifiëren als tokens verlopen. Controleer de statusindicator van de providerkaart."
+    "troubleshootingOAuth": "Voor OAuth-providers geldt dat u opnieuw moet verifiëren als tokens verlopen. Controleer de statusindicator van de providerkaart.",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments."
   },
   "legal": {
     "privacyPolicy": "Privacybeleid",
@@ -2503,7 +2600,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2527,5 +2638,56 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
   }
 }

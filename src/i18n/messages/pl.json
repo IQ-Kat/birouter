@@ -56,7 +56,79 @@
     "warning": "Ostrzeżenie",
     "note": "Uwaga",
     "free": "Bezpłatny",
-    "skipToContent": "Przejdź do treści"
+    "skipToContent": "Przejdź do treści",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "accept",
+    "accountId": "accountId",
+    "alias": "alias",
+    "apiKeyId": "apiKeyId",
+    "apiKeyName": "apiKeyName",
+    "apiKeySecret": "apiKeySecret",
+    "authorization": "authorization",
+    "content-type": "content-type",
+    "content-length": "content-length",
+    "cookie": "cookie",
+    "file": "file",
+    "host": "host",
+    "id": "id",
+    "import": "import",
+    "limit": "limit",
+    "offset": "offset",
+    "open": "open",
+    "origin": "origin",
+    "promptTokens": "promptTokens",
+    "completionTokens": "completionTokens",
+    "totalTokens": "totalTokens",
+    "rawModel": "rawModel",
+    "scope": "scope",
+    "skill": "skill",
+    "sortBy": "sortBy",
+    "sortOrder": "sortOrder",
+    "tab": "tab",
+    "text": "text",
+    "textarea": "textarea",
+    "tool": "tool",
+    "toolId": "toolId",
+    "web": "web",
+    "whereUsed": "whereUsed",
+    "whitelist": "whitelist",
+    "blacklist": "blacklist",
+    "resolve": "resolve",
+    "force": "force",
+    "base64url": "base64url",
+    "hex": "hex",
+    "range": "range",
+    "component": "component",
+    "redirect_uri": "redirect_uri",
+    "idempotency-key": "idempotency-key",
+    "error_description": "error_description",
+    "code": "code",
+    "compatible": "compatible",
+    "chat-completions": "chat-completions",
+    "oauth": "oauth",
+    "auth_token": "auth_token",
+    "crypto": "crypto",
+    "hours": "hours",
+    "selfsigned": "selfsigned",
+    "proxy_id": "proxy_id",
+    "proxyId": "proxyId",
+    "connectionId": "connectionId",
+    "resolveConnectionId": "resolveConnectionId",
+    "resolve_connection_id": "resolve_connection_id",
+    "scope_id": "scope_id",
+    "scopeId": "scopeId",
+    "jwtSecret": "jwtSecret",
+    "keytar": "keytar",
+    "better-sqlite3": "better-sqlite3",
+    "undici": "undici",
+    "builder-id": "builder-id",
+    "musicDesc": "musicDesc",
+    "musicGeneration": "musicGeneration",
+    "idc": "idc",
+    "cloud-status-changed": "cloud-status-changed",
+    "where_used": "where_used",
+    "windowMs": "windowMs"
   },
   "sidebar": {
     "home": "Dom",
@@ -103,7 +175,9 @@
     "endpoints": "Punkty końcowe",
     "playground": "Plac zabaw",
     "agents": "Agenci",
-    "cliToolsShort": "Narzędzia"
+    "cliToolsShort": "Narzędzia",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools"
   },
   "themesPage": {
     "title": "Themes",
@@ -175,7 +249,11 @@
     "requestsShort": "{count} wymagania",
     "providerModelsTitle": "{provider} - Modele",
     "copiedModel": "Skopiowano: {model}",
-    "aliasLabel": "pseudonim"
+    "aliasLabel": "pseudonim",
+    "updateNow": "Zaktualizuj",
+    "updating": "Aktualizowanie...",
+    "updateAvailableDesc": "Dostępna jest nowa wersja. Kliknij, aby zaktualizować.",
+    "updateStarted": "Aktualizacja rozpoczęta..."
   },
   "analytics": {
     "title": "Analityka",
@@ -268,7 +346,28 @@
     "permissionsTitle": "Uprawnienia: {name}",
     "allowAllDesc": "Ten klucz umożliwia dostęp do wszystkich dostępnych modeli.",
     "restrictDesc": "Ten klucz umożliwia dostęp do {selectedCount} z {totalModels} modeli.",
-    "selectedCount": "Wybrano {count}"
+    "selectedCount": "Wybrano {count}",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "Dziennik audytu",
@@ -510,6 +609,9 @@
             "title": "Dodaj konfigurację modelu",
             "desc": "Dodaj następującą konfigurację do tablicy modeli:"
           }
+        },
+        "notes": {
+          "0": "Continue używa pliku konfiguracyjnego JSON."
         }
       },
       "opencode": {
@@ -528,6 +630,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode wymaga konfiguracji klucza API.",
+          "1": "Ustaw URL bazowy na swój endpoint OmniRoute."
         }
       },
       "kiro": {
@@ -546,8 +652,32 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro wymaga konta Amazon."
         }
       }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Kiedy używać",
+    "openToolDocs": "Otwórz dokumentację narzędzi",
+    "toolUseCases": {
+      "claude": "Użyj, jeśli chcesz mieć silne przepływy pracy związane z planowaniem i długie refaktoryzacje wielu plików za pomocą Claude Code.",
+      "codex": "Użyj, gdy Twój zespół jest ujednolicony w zakresie przepływów CLI OpenAI Codex i uwierzytelniania opartego na profilach.",
+      "droid": "Użyj, gdy potrzebujesz lekkiego agenta terminalowego skupionego na szybkim kodowaniu i pętlach wykonywania poleceń.",
+      "openclaw": "Użyj, jeśli chcesz agenta kodującego w stylu Open Claw, ale kierowanego przez zasady OmniRoute.",
+      "cline": "Użyj, gdy konfigurujesz agentów kodujących w edytorach i chcesz przeprowadzić konfigurację z pomocą modeli OmniRoute.",
+      "kilo": "Użyj, gdy przepływ pracy zależy od poleceń Kilo Code i szybkich edycji iteracyjnych.",
+      "cursor": "Użyj podczas kodowania w programie Cursor, jeśli potrzebujesz niestandardowych modeli zgodnych z OpenAI za pośrednictwem OmniRoute.",
+      "continue": "Użyj podczas uruchamiania Kontynuuj w środowiskach IDE, jeśli potrzebujesz przenośnej konfiguracji dostawcy opartej na formacie JSON.",
+      "opencode": "Użyj, jeśli wolisz uruchamianie agentów natywnych w terminalu i automatyzację skryptów za pośrednictwem OpenCode.",
+      "kiro": "Użyj podczas integracji Kiro i centralnego sterowania routingiem modeli z OmniRoute.",
+      "antigravity": "Użyj, gdy ruch antygrawitacyjny/Kiro musi zostać przechwycony przez MITM i skierowany do OmniRoute.",
+      "copilot": "Użyj, jeśli chcesz mieć UX w stylu czatu Copilot, jednocześnie wymuszając klucze OmniRoute i reguły routingu."
     }
   },
   "combos": {
@@ -864,7 +994,12 @@
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
     "a2aQuickStartStep3": "Track and control tasks using `tasks/get` and `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1054,7 +1189,13 @@
     "resetAllTitle": "Zresetuj wszystkie wyłączniki automatyczne do stanu prawidłowego",
     "resetting": "Resetuję...",
     "resetAll": "Zresetuj wszystko",
-    "until": "Do {time}"
+    "until": "Do {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Skonfigurowane w panelu kontrolnym",
+    "configuredProvidersHint": "Dostawcy z poświadczeniami zapisanymi w /dashboard/providers, niezależnie od stanu środowiska wykonawczego.",
+    "activeProvidersHint": "Skonfigurowani dostawcy aktualnie obsługują żądania routingu.",
+    "monitoredProvidersHint": "Dostawcy są obecnie śledzeni przez monitory stanu wyłączników."
   },
   "limits": {
     "title": "Limity i kwoty",
@@ -1396,7 +1537,40 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Automatyczna synchronizacja",
+    "autoSyncTooltip": "Automatycznie odświeża listę modeli co 24 godziny (konfigurowalne przez MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatyczna synchronizacja włączona — modele będą okresowo odświeżane",
+    "autoSyncDisabled": "Automatyczna synchronizacja wyłączona",
+    "autoSyncToggleFailed": "Nie udało się przełączyć automatycznej synchronizacji",
+    "clearAllModels": "Wyczyść wszystkie modele",
+    "clearAllModelsConfirm": "Czy na pewno chcesz usunąć wszystkie modele dla tego dostawcy?",
+    "clearAllModelsSuccess": "Wszystkie modele wyczyszczone",
+    "clearAllModelsFailed": "Nie udało się wyczyścić modeli"
   },
   "settings": {
     "title": "Ustawienia",
@@ -1799,7 +1973,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Zaawansowane wskazówki dotyczące tras",
+    "routingAdvancedGuideHint1": "Użyj opcji Fill First, aby uzyskać przewidywalny priorytet, Round Robin, aby zapewnić uczciwość, i P2C, aby zapewnić odporność na opóźnienia.",
+    "routingAdvancedGuideHint2": "Jeśli dostawcy różnią się jakością/kosztami, zacznij od opcji Koszt w przypadku pracy w tle i opcji Najmniej używane w celu zapewnienia zrównoważonego zużycia.",
+    "comboDefaultsGuideTitle": "Jak dostroić domyślne ustawienia kombinacji",
+    "comboDefaultsGuideHint1": "Utrzymuj niską liczbę ponownych prób w przepływach o małych opóźnieniach; zwiększaj limit czasu tylko dla zadań o długim generowaniu.",
+    "comboDefaultsGuideHint2": "Użyj zastąpienia dostawcy, gdy jeden z dostawców wymaga innego zachowania związanego z przekroczeniem limitu czasu/ponownej próby niż globalne ustawienia domyślne."
   },
   "translator": {
     "title": "Tłumacz",
@@ -2216,7 +2396,14 @@
     "orRemovePasswordHashField": "lub usuń pole hasłoHash",
     "restartServerWithNewPassword": "Zrestartuj serwer - będzie używał nowego hasła",
     "backToLogin": "Powrót do logowania",
-    "forgotPassword": "Zapomniałeś hasła?"
+    "forgotPassword": "Zapomniałeś hasła?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2414,7 +2601,18 @@
     "troubleshootingCodexFamily": "W przypadku modeli z rodziny GitHub Codex zachowaj model jako gh/codex-model; router wybiera opcję /odpowiada automatycznie.",
     "troubleshootingTestConnection": "Użyj Panelu sterowania > Dostawcy > Testuj połączenie przed testowaniem z IDE lub klientów zewnętrznych.",
     "troubleshootingCircuitBreaker": "Jeśli dostawca pokazuje, że wyłącznik jest otwarty, poczekaj na ochłodzenie lub sprawdź stronę Zdrowie, aby uzyskać szczegółowe informacje.",
-    "troubleshootingOAuth": "W przypadku dostawców OAuth należy ponownie uwierzytelnić, jeśli tokeny wygasną. Sprawdź wskaźnik stanu karty dostawcy."
+    "troubleshootingOAuth": "W przypadku dostawców OAuth należy ponownie uwierzytelnić, jeśli tokeny wygasną. Sprawdź wskaźnik stanu karty dostawcy.",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Generowanie mowy tekstowej (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Generowanie osadzeń tekstu (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Polityka prywatności",
@@ -2503,7 +2701,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2527,5 +2739,72 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Simple Chat",
+    "streaming": "Streaming",
+    "system-prompt": "System Prompt",
+    "thinking": "Thinking",
+    "tool-calling": "Tool Calling",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Basic chat template",
+    "streaming": "Streaming template",
+    "system-prompt": "System prompt template",
+    "thinking": "Thinking template",
+    "tool-calling": "Tool calling template",
+    "multi-turn": "Multi-turn template"
   }
 }

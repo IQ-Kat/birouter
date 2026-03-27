@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getSettings } from "@/lib/localDb";
+import { getProviderConnections, getSettings } from "@/lib/localDb";
 import { APP_CONFIG } from "@/shared/constants/config";
+import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 /**
  * GET /api/monitoring/health — System health overview
@@ -16,6 +17,7 @@ export async function GET() {
     const { getInflightCount } = await import("@omniroute/open-sse/services/requestDedup.ts");
 
     const settings = await getSettings();
+    const connections = await getProviderConnections();
     const circuitBreakers = getAllCircuitBreakerStatuses();
     const rateLimitStatus = getAllRateLimitStatus();
     const lockouts = getAllModelLockouts();
@@ -43,11 +45,22 @@ export async function GET() {
       };
     }
 
+    const configuredProviders = new Set(connections.map((c: any) => c.provider));
+    const activeProviders = new Set(
+      connections.filter((c: any) => c.isActive !== false).map((c: any) => c.provider)
+    );
+
     return NextResponse.json({
       status: "healthy",
       timestamp: new Date().toISOString(),
       system,
       providerHealth,
+      providerSummary: {
+        catalogCount: Object.keys(AI_PROVIDERS).length,
+        configuredCount: configuredProviders.size,
+        activeCount: activeProviders.size,
+        monitoredCount: Object.keys(providerHealth).length,
+      },
       localProviders: getAllHealthStatuses(),
       rateLimitStatus,
       lockouts,

@@ -7,10 +7,8 @@ import {
 } from "./runtime-env.mjs";
 import { bootstrapEnv } from "./bootstrap-env.mjs";
 
-const runtimePorts = resolveRuntimePorts();
-
-// Auto-generate secrets on first run, merge .env + process.env
 const env = bootstrapEnv();
+const runtimePorts = resolveRuntimePorts(env);
 
 spawnWithForwardedSignals("node", ["server.js"], {
   stdio: "inherit",

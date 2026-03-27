@@ -23,6 +23,15 @@ export {
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,
+
+  // T05: Rate-limit DB persistence (survives token refresh)
+  setConnectionRateLimitUntil,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
+
+  // T13: Stale quota display fix (zero out usage after window resets)
+  getEffectiveQuotaUsage,
+  formatResetCountdown,
 } from "./db/providers";
 
 export {
@@ -39,6 +48,7 @@ export {
   getCustomModels,
   getAllCustomModels,
   addCustomModel,
+  replaceCustomModels,
   removeCustomModel,
   updateCustomModel,
   getModelCompatOverrides,
@@ -46,6 +56,7 @@ export {
   removeModelCompatOverride,
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
+  getModelUpstreamExtraHeaders,
 } from "./db/models";
 
 export type { ModelCompatPerProtocol, ModelCompatPatch } from "./db/models";
@@ -138,3 +149,53 @@ export {
   getCachedProviderConnections,
   invalidateDbCache,
 } from "./db/readCache";
+
+export {
+  // Registered Keys Provisioning (#464)
+  issueRegisteredKey,
+  getRegisteredKey,
+  listRegisteredKeys,
+  revokeRegisteredKey,
+  validateRegisteredKey,
+  incrementRegisteredKeyUsage,
+  checkQuota,
+  setProviderKeyLimit,
+  setAccountKeyLimit,
+  getProviderKeyLimit,
+  getAccountKeyLimit,
+} from "./db/registeredKeys";
+
+export type {
+  RegisteredKey,
+  RegisteredKeyWithSecret,
+  ProviderKeyLimit,
+  AccountKeyLimit,
+  QuotaCheckResult,
+  IssueKeyParams,
+} from "./db/registeredKeys";
+
+export {
+  // Model-Combo Mappings (#563)
+  getModelComboMappings,
+  getModelComboMappingById,
+  createModelComboMapping,
+  updateModelComboMapping,
+  deleteModelComboMapping,
+  resolveComboForModel,
+} from "./db/modelComboMappings";
+
+export type { ModelComboMapping } from "./db/modelComboMappings";
+
+export {
+  // Webhooks
+  getWebhooks,
+  getWebhook,
+  getEnabledWebhooks,
+  createWebhook,
+  updateWebhook as updateWebhookRecord,
+  deleteWebhook,
+  recordWebhookDelivery,
+  disableWebhooksWithHighFailures,
+} from "./db/webhooks";
+
+export type { Webhook } from "./db/webhooks";

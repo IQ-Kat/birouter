@@ -33,6 +33,7 @@ interface SearchFormProps {
 
 export default function SearchForm({ onSearch, loading, onCancel, providers }: SearchFormProps) {
   const t = useTranslations("search");
+  const tc = useTranslations("common");
   const [query, setQuery] = useState("");
   const [provider, setProvider] = useState("auto");
   const [searchType, setSearchType] = useState("web");
@@ -92,7 +93,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
         <textarea
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter search query..."
+          placeholder={t("queryPlaceholder")}
           className="w-full bg-surface border border-border rounded-lg p-2.5 text-sm text-text-main resize-none h-16 focus:outline-none focus:ring-2 focus:ring-primary/30"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -114,7 +115,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
               value={provider}
               onChange={(e: any) => setProvider(e.target.value)}
               options={[
-                { value: "auto", label: "auto (cheapest)" },
+                { value: "auto", label: t("providerAuto") },
                 ...activeProviders.map((p) => ({
                   value: p.id,
                   label: p.name,
@@ -131,8 +132,8 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
               value={searchType}
               onChange={(e: any) => setSearchType(e.target.value)}
               options={[
-                { value: "web", label: "web" },
-                { value: "news", label: "news" },
+                { value: "web", label: t("searchTypeWeb") },
+                { value: "news", label: t("searchTypeNews") },
               ]}
               className="w-full"
             />
@@ -172,7 +173,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
                 <input
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  placeholder="any"
+                  placeholder={t("optionAny")}
                   className="w-full bg-surface border border-border rounded-md px-2 py-1.5 text-xs text-text-main focus:outline-none"
                 />
               </div>
@@ -181,7 +182,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
                 <input
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  placeholder="any"
+                  placeholder={t("optionAny")}
                   className="w-full bg-surface border border-border rounded-md px-2 py-1.5 text-xs text-text-main focus:outline-none"
                 />
               </div>
@@ -192,11 +193,11 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
                 value={timeRange}
                 onChange={(e: any) => setTimeRange(e.target.value)}
                 options={[
-                  { value: "", label: "any" },
-                  { value: "day", label: "Past day" },
-                  { value: "week", label: "Past week" },
-                  { value: "month", label: "Past month" },
-                  { value: "year", label: "Past year" },
+                  { value: "", label: t("optionAny") },
+                  { value: "day", label: t("timeRangeDay") },
+                  { value: "week", label: t("timeRangeWeek") },
+                  { value: "month", label: t("timeRangeMonth") },
+                  { value: "year", label: t("timeRangeYear") },
                 ]}
                 className="w-full"
               />
@@ -209,7 +210,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
                 <input
                   value={domainInput}
                   onChange={(e) => setDomainInput(e.target.value)}
-                  placeholder="example.com"
+                  placeholder={t("domainPlaceholder")}
                   className="flex-1 bg-surface border border-border rounded-md px-2 py-1.5 text-xs text-text-main focus:outline-none"
                   onKeyDown={(e) => e.key === "Enter" && addDomain("include")}
                 />
@@ -244,7 +245,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
                 <input
                   value={excludeDomainInput}
                   onChange={(e) => setExcludeDomainInput(e.target.value)}
-                  placeholder="example.com"
+                  placeholder={t("domainPlaceholder")}
                   className="flex-1 bg-surface border border-border rounded-md px-2 py-1.5 text-xs text-text-main focus:outline-none"
                   onKeyDown={(e) => e.key === "Enter" && addDomain("exclude")}
                 />
@@ -274,9 +275,9 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
                 value={safeSearch}
                 onChange={(e: any) => setSafeSearch(e.target.value)}
                 options={[
-                  { value: "off", label: "Off" },
-                  { value: "moderate", label: "Moderate" },
-                  { value: "strict", label: "Strict" },
+                  { value: "off", label: t("safeSearchOff") },
+                  { value: "moderate", label: t("safeSearchModerate") },
+                  { value: "strict", label: t("safeSearchStrict") },
                 ]}
                 className="w-full"
               />
@@ -289,7 +290,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
       <div className="p-4 border-b border-border">
         {loading ? (
           <Button variant="danger" onClick={onCancel} className="w-full">
-            Cancel
+            {tc("cancel")}
           </Button>
         ) : (
           <Button
@@ -298,7 +299,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
             disabled={noProviders || !query.trim()}
             className="w-full"
           >
-            Search
+            {tc("search")}
           </Button>
         )}
         {noProviders && <p className="text-xs text-text-muted mt-2">{t("noSearchProviders")}</p>}

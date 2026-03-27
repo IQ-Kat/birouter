@@ -3,6 +3,8 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import { getRuntimePorts } from "@/lib/runtime/ports";
+import { getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
+import { mergeOpenCodeConfig } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -10,7 +12,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
  * POST /api/cli-tools/guide-settings/:toolId
  *
  * Save configuration for guide-based tools that have config files.
- * Currently supports: continue
+ * Currently supports: continue, opencode
  */
 export async function POST(request, { params }) {
   let rawBody;
@@ -39,6 +41,10 @@ export async function POST(request, { params }) {
     switch (toolId) {
       case "continue":
         return await saveContinueConfig({ baseUrl, apiKey, model });
+      case "opencode":
+        // (#524) OpenCode config was never saved because only 'continue' was handled here.
+        // opencode reads ~/.config/opencode/config.toml — write the OmniRoute settings there.
+        return await saveOpenCodeConfig({ baseUrl, apiKey, model });
       default:
         return NextResponse.json(
           { error: `Direct config save not supported for: ${toolId}` },
@@ -122,6 +128,48 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
   return NextResponse.json({
     success: true,
     message: `Continue config saved to ${configPath}`,
+    configPath,
+  });
+}
+
+/**
+ * Save OpenCode config to:
+ * - Linux/macOS: ~/.config/opencode/opencode.json (XDG_CONFIG_HOME aware)
+ * - Windows: %APPDATA%/opencode/opencode.json
+ *
+ * (#524) OpenCode was silently failing because this handler was missing.
+ */
+async function saveOpenCodeConfig({ baseUrl, apiKey, model }) {
+  const configPath = getOpenCodeConfigPath();
+  const configDir = path.dirname(configPath);
+
+  // Ensure config directory exists
+  await fs.mkdir(configDir, { recursive: true });
+
+  const normalizedBaseUrl = String(baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
+
+  // Read existing JSON to preserve other provider entries
+  let existingConfig: Record<string, any> = {};
+  try {
+    const raw = await fs.readFile(configPath, "utf-8");
+    existingConfig = JSON.parse(raw);
+  } catch {
+    // File doesn't exist or invalid JSON — start fresh
+  }
+
+  const nextConfig = mergeOpenCodeConfig(existingConfig, {
+    baseUrl: normalizedBaseUrl,
+    apiKey,
+    model,
+  });
+
+  await fs.writeFile(configPath, JSON.stringify(nextConfig, null, 2), "utf-8");
+
+  return NextResponse.json({
+    success: true,
+    message: `OpenCode config saved to ${configPath}`,
     configPath,
   });
 }

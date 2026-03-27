@@ -57,6 +57,15 @@ type TranslateState = ReturnType<typeof initState> & {
   accumulatedContent?: string;
 };
 
+type ToolCall = {
+  id: string | null;
+  index: number;
+  type: string;
+  function: { name: string; arguments: string };
+};
+
+type UsageTokenRecord = Record<string, number>;
+
 function getOpenAIIntermediateChunks(value: unknown): unknown[] {
   if (!value || typeof value !== "object") return [];
   const candidate = (value as JsonRecord)._openaiIntermediate;
@@ -124,7 +133,12 @@ export function createSSEStream(options: StreamOptions = {}) {
   } = options;
 
   let buffer = "";
-  let usage = null;
+  let usage: UsageTokenRecord | null = null;
+  /** Passthrough (OpenAI CC shape): saw tool_calls in stream before finish_reason */
+  let passthroughHasToolCalls = false;
+  /** Passthrough: accumulate tool_calls deltas for call log responseBody */
+  const passthroughToolCalls = new Map<string, ToolCall>();
+  let passthroughToolCallSeq = 0;
 
   // State for translate mode (accumulatedContent for call log response body)
   const state: TranslateState | null =
@@ -238,16 +252,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                   const extracted = extractUsage(parsed);
                   if (extracted) {
                     // Non-destructive merge: never overwrite a positive value with 0
-                    // message_start carries input_tokens, message_delta carries output_tokens
+                    // message_start carries input_tokens, message_delta carries output_tokens;
                     if (!usage) usage = {};
-                    if (extracted.prompt_tokens > 0) usage.prompt_tokens = extracted.prompt_tokens;
-                    if (extracted.completion_tokens > 0)
-                      usage.completion_tokens = extracted.completion_tokens;
-                    if (extracted.total_tokens > 0) usage.total_tokens = extracted.total_tokens;
-                    if (extracted.cache_read_input_tokens)
-                      usage.cache_read_input_tokens = extracted.cache_read_input_tokens;
-                    if (extracted.cache_creation_input_tokens)
-                      usage.cache_creation_input_tokens = extracted.cache_creation_input_tokens;
+                    const u = usage;
+                    const eu = extracted as UsageTokenRecord;
+                    if (eu.prompt_tokens > 0) u.prompt_tokens = eu.prompt_tokens;
+                    if (eu.completion_tokens > 0) u.completion_tokens = eu.completion_tokens;
+                    if (eu.total_tokens > 0) u.total_tokens = eu.total_tokens;
+                    if (eu.cache_read_input_tokens)
+                      u.cache_read_input_tokens = eu.cache_read_input_tokens;
+                    if (eu.cache_creation_input_tokens)
+                      u.cache_creation_input_tokens = eu.cache_creation_input_tokens;
                   }
                   const restoredToolName = restoreClaudePassthroughToolUseName(parsed, toolNameMap);
                   // Track content length and accumulate from Claude format
@@ -285,6 +300,41 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
                   }
 
+                  // T18: Track if we saw tool calls & accumulate for call log
+                  if (delta?.tool_calls && delta.tool_calls.length > 0) {
+                    passthroughHasToolCalls = true;
+                    for (const tc of delta.tool_calls) {
+                      // Key by index first — id only appears on the first delta in OpenAI streaming
+                      let key: string;
+                      if (Number.isInteger(tc?.index)) {
+                        key = `idx:${tc.index}`;
+                      } else if (tc?.id) {
+                        key = `id:${tc.id}`;
+                      } else {
+                        key = `seq:${++passthroughToolCallSeq}`;
+                      }
+                      const existing = passthroughToolCalls.get(key);
+                      const deltaArgs =
+                        typeof tc?.function?.arguments === "string" ? tc.function.arguments : "";
+                      if (!existing) {
+                        passthroughToolCalls.set(key, {
+                          id: tc?.id ?? null,
+                          index: Number.isInteger(tc?.index) ? tc.index : passthroughToolCalls.size,
+                          type: tc?.type || "function",
+                          function: {
+                            name: tc?.function?.name || "",
+                            arguments: deltaArgs,
+                          },
+                        });
+                      } else {
+                        if (tc?.id) existing.id = existing.id || tc.id;
+                        if (tc?.function?.name && !existing.function.name)
+                          existing.function.name = tc.function.name;
+                        existing.function.arguments += deltaArgs;
+                      }
+                    }
+                  }
+
                   const content = delta?.content || delta?.reasoning_content;
                   if (content && typeof content === "string") {
                     totalContentLength += content.length;
@@ -300,6 +350,20 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   const isFinishChunk = parsed.choices?.[0]?.finish_reason;
+
+                  // T18: Normalize finish_reason to 'tool_calls' if tool calls were used
+                  if (
+                    isFinishChunk &&
+                    passthroughHasToolCalls &&
+                    parsed.choices[0].finish_reason !== "tool_calls"
+                  ) {
+                    parsed.choices[0].finish_reason = "tool_calls";
+                    // If we modify it, we must output the modified object
+                    if (!injectedUsage && hasValidUsage(parsed.usage)) {
+                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      injectedUsage = true;
+                    }
+                  }
                   if (isFinishChunk && !hasValidUsage(parsed.usage)) {
                     const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
                     parsed.usage = filterUsageForFormat(estimated, FORMATS.OPENAI);
@@ -514,13 +578,20 @@ export function createSSEStream(options: StreamOptions = {}) {
                 const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
                 const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
                 const content = passthroughAccumulatedContent.trim() || "";
+                const message: Record<string, unknown> = {
+                  role: "assistant",
+                  content: content || null,
+                };
+                if (passthroughToolCalls.size > 0) {
+                  message.tool_calls = [...passthroughToolCalls.values()].sort(
+                    (a, b) => a.index - b.index
+                  );
+                }
                 const responseBody = {
                   choices: [
                     {
-                      message: {
-                        role: "assistant",
-                        content,
-                      },
+                      message,
+                      finish_reason: passthroughHasToolCalls ? "tool_calls" : "stop",
                     },
                   ],
                   usage: {
@@ -551,19 +622,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                 if (!state.usage) {
                   state.usage = extracted;
                 } else {
-                  if (extracted.prompt_tokens > 0)
-                    state.usage.prompt_tokens = extracted.prompt_tokens;
-                  if (extracted.completion_tokens > 0)
-                    state.usage.completion_tokens = extracted.completion_tokens;
-                  if (extracted.total_tokens > 0) state.usage.total_tokens = extracted.total_tokens;
-                  if (extracted.cache_read_input_tokens > 0)
-                    state.usage.cache_read_input_tokens = extracted.cache_read_input_tokens;
-                  if (extracted.cache_creation_input_tokens > 0)
-                    state.usage.cache_creation_input_tokens = extracted.cache_creation_input_tokens;
-                  if (extracted.cached_tokens > 0)
-                    state.usage.cached_tokens = extracted.cached_tokens;
-                  if (extracted.reasoning_tokens > 0)
-                    state.usage.reasoning_tokens = extracted.reasoning_tokens;
+                  const su = state.usage as Record<string, number>;
+                  const eu = extracted as Record<string, number>;
+                  if (eu.prompt_tokens > 0) su.prompt_tokens = eu.prompt_tokens;
+                  if (eu.completion_tokens > 0) su.completion_tokens = eu.completion_tokens;
+                  if (eu.total_tokens > 0) su.total_tokens = eu.total_tokens;
+                  if (eu.cache_read_input_tokens > 0)
+                    su.cache_read_input_tokens = eu.cache_read_input_tokens;
+                  if (eu.cache_creation_input_tokens > 0)
+                    su.cache_creation_input_tokens = eu.cache_creation_input_tokens;
+                  if (eu.cached_tokens > 0) su.cached_tokens = eu.cached_tokens;
+                  if (eu.reasoning_tokens > 0) su.reasoning_tokens = eu.reasoning_tokens;
                 }
               }
 
@@ -643,13 +712,32 @@ export function createSSEStream(options: StreamOptions = {}) {
               const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
               const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
               const content = (state?.accumulatedContent ?? "").trim() || "";
+              const message: Record<string, unknown> = {
+                role: "assistant",
+                content: content || null,
+              };
+              const hasToolCalls = state?.toolCalls?.size > 0;
+              if (hasToolCalls) {
+                // Normalize shape — translators may store different structures
+                message.tool_calls = [...state.toolCalls.values()]
+                  .map(
+                    (tc: Record<string, unknown>): ToolCall => ({
+                      id: (tc.id as string) ?? null,
+                      index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
+                      type: (tc.type as string) ?? "function",
+                      function: (tc.function as ToolCall["function"]) ?? {
+                        name: (tc.name as string) ?? "",
+                        arguments: "",
+                      },
+                    })
+                  )
+                  .sort((a, b) => a.index - b.index);
+              }
               const responseBody = {
                 choices: [
                   {
-                    message: {
-                      role: "assistant",
-                      content,
-                    },
+                    message,
+                    finish_reason: hasToolCalls ? "tool_calls" : "stop",
                   },
                 ],
                 usage: {

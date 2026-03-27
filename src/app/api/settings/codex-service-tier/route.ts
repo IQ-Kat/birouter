@@ -1,4 +1,4 @@
-import { NextResponse, type Request } from "next/server";
+import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import { setDefaultFastServiceTierEnabled } from "@omniroute/open-sse/executors/codex.ts";
 import { updateCodexServiceTierSchema } from "@/shared/validation/schemas";
@@ -35,7 +35,7 @@ export async function PUT(request: Request) {
       },
       { status: 400 }
     );
-    }
+  }
 
   try {
     const validation = validateBody(updateCodexServiceTierSchema, rawBody);

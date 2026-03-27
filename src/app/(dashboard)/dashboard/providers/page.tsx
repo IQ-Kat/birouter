@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 import PropTypes from "prop-types";
 import {
   Card,
@@ -531,16 +532,8 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
-  const [imgSrc, setImgSrc] = useState(`/providers/${provider.id}.png`);
-  const [imgError, setImgError] = useState(false);
 
-  const handleImgError = () => {
-    if (imgSrc.endsWith(".png")) {
-      setImgSrc(`/providers/${provider.id}.svg`);
-    } else {
-      setImgError(true);
-    }
-  };
+  // (#529) Icon state replaced by ProviderIcon component (Lobehub + PNG + generic fallback)
 
   const dotColors = {
     free: "bg-green-500",
@@ -567,21 +560,8 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
               className="size-8 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: `${provider.color}15` }}
             >
-              {imgError ? (
-                <span className="text-xs font-bold" style={{ color: provider.color }}>
-                  {provider.textIcon || provider.id.slice(0, 2).toUpperCase()}
-                </span>
-              ) : (
-                <Image
-                  src={imgSrc}
-                  alt={provider.name}
-                  width={30}
-                  height={30}
-                  className="object-contain rounded-lg max-w-[32px] max-h-[32px]"
-                  sizes="32px"
-                  onError={handleImgError}
-                />
-              )}
+              {/* (#529) ProviderIcon: Lobehub icons → PNG fallback → generic icon */}
+              <ProviderIcon providerId={provider.id} size={28} type="color" />
             </div>
             <div>
               <h3 className="font-semibold flex items-center gap-1.5">
@@ -674,28 +654,15 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
     compatible: t("compatibleLabel"),
   };
 
-  // Determine icon path: OpenAI Compatible providers use specialized icons
-  const getIconPath = () => {
+  // (#529) Icon state replaced by ProviderIcon component
+  // For compatible/anthropic providers, continue using static PNGs via the icon path
+  const staticIconPath = (() => {
     if (isCompatible) {
       return provider.apiType === "responses" ? "/providers/oai-r.png" : "/providers/oai-cc.png";
     }
-    if (isAnthropicCompatible) {
-      return "/providers/anthropic-m.png"; // Use Anthropic icon as base
-    }
-    return `/providers/${provider.id}.png`;
-  };
-
-  const [imgSrc, setImgSrc] = useState<string>(() => getIconPath());
-  const [imgError, setImgError] = useState(false);
-
-  const handleImgError = () => {
-    const basePath = getIconPath();
-    if (imgSrc.endsWith(".png") && !isCompatible && !isAnthropicCompatible) {
-      setImgSrc(`/providers/${provider.id}.svg`);
-    } else {
-      setImgError(true);
-    }
-  };
+    if (isAnthropicCompatible) return "/providers/anthropic-m.png";
+    return null; // ProviderIcon will handle it
+  })();
 
   return (
     <Link href={`/dashboard/providers/${providerId}`} className="group">
@@ -709,20 +676,18 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
               className="size-8 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: `${provider.color}15` }}
             >
-              {imgError ? (
-                <span className="text-xs font-bold" style={{ color: provider.color }}>
-                  {provider.textIcon || provider.id.slice(0, 2).toUpperCase()}
-                </span>
-              ) : (
+              {/* (#529) ProviderIcon with static override for compatible providers */}
+              {staticIconPath ? (
                 <Image
-                  src={imgSrc || getIconPath()}
+                  src={staticIconPath}
                   alt={provider.name}
                   width={30}
                   height={30}
                   className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
                   sizes="30px"
-                  onError={handleImgError}
                 />
+              ) : (
+                <ProviderIcon providerId={provider.id} size={28} type="color" />
               )}
             </div>
             <div>

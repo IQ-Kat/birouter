@@ -56,7 +56,87 @@
     "warning": "Warning",
     "note": "Note",
     "free": "Free",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Accept",
+    "accountId": "Account ID",
+    "alias": "Alias",
+    "apiKeyId": "API Key ID",
+    "apiKeyName": "API Key Name",
+    "apiKeySecret": "API Key Secret",
+    "authorization": "Authorization",
+    "content-type": "Content Type",
+    "content-length": "Content Length",
+    "cookie": "Cookie",
+    "file": "File",
+    "host": "Host",
+    "id": "ID",
+    "import": "Import",
+    "limit": "Limit",
+    "offset": "Offset",
+    "open": "Open",
+    "origin": "Origin",
+    "promptTokens": "Prompt Tokens",
+    "completionTokens": "Completion Tokens",
+    "totalTokens": "Total Tokens",
+    "rawModel": "Raw Model",
+    "scope": "Scope",
+    "skill": "Skill",
+    "sortBy": "Sort By",
+    "sortOrder": "Sort Order",
+    "tab": "Tab",
+    "text": "Text",
+    "textarea": "Textarea",
+    "tool": "Tool",
+    "toolId": "Tool ID",
+    "web": "Web",
+    "whereUsed": "Where Used",
+    "whitelist": "Whitelist",
+    "blacklist": "Blacklist",
+    "resolve": "Resolve",
+    "force": "Force",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Range",
+    "component": "Component",
+    "redirect_uri": "Redirect URI",
+    "idempotency-key": "Idempotency Key",
+    "error_description": "Error Description",
+    "code": "Code",
+    "compatible": "Compatible",
+    "chat-completions": "Chat Completions",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "Crypto",
+    "hours": "Hours",
+    "selfsigned": "Self-signed",
+    "proxy_id": "Proxy ID",
+    "proxyId": "Proxy ID",
+    "connectionId": "Connection ID",
+    "resolveConnectionId": "Resolve Connection ID",
+    "resolve_connection_id": "Resolve Connection ID",
+    "scope_id": "Scope ID",
+    "scopeId": "Scope ID",
+    "jwtSecret": "JWT Secret",
+    "keytar": "Keytar",
+    "better-sqlite3": "better-sqlite3",
+    "undici": "undici",
+    "builder-id": "Builder ID",
+    "musicDesc": "Music Description",
+    "musicGeneration": "Music Generation",
+    "idc": "IDC",
+    "cloud-status-changed": "Cloud status changed",
+    "where_used": "Where Used",
+    "windowMs": "Window (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Tool Allowlist",
+    "TOOL_DENYLIST": "Tool Denylist",
+    "Failed to save pricing": "Failed to save pricing",
+    "Failed to reset pricing": "Failed to reset pricing",
+    "apikey": "API Key",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Home",
@@ -177,7 +257,11 @@
     "requestsShort": "{count} reqs",
     "providerModelsTitle": "{provider} - Models",
     "copiedModel": "Copied: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Update Now",
+    "updating": "Updating...",
+    "updateAvailableDesc": "A new version is available. Click to update.",
+    "updateStarted": "Update started..."
   },
   "analytics": {
     "title": "Analytics",
@@ -281,6 +365,7 @@
     "failedUpdatePermissionsRetry": "Failed to update permissions. Please try again.",
     "unknownProvider": "unknown",
     "copyMaskedKey": "Copy masked key",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key",
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "lastUsedOn": "Last: {date}",
     "editPermissions": "Edit permissions",
@@ -353,6 +438,21 @@
     "includeDomains": "Include Domains",
     "excludeDomains": "Exclude Domains",
     "safeSearch": "Safe Search",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error",
     "formatted": "Formatted",
     "rawJson": "JSON",
     "cacheMiss": "cache miss",
@@ -514,6 +614,22 @@
     "openClawManualConfiguration": "Open Claw - Manual Configuration",
     "clineManualConfiguration": "Cline Manual Configuration",
     "kiloManualConfiguration": "Kilo Code Manual Configuration",
+    "whenToUseLabel": "When to use",
+    "openToolDocs": "Open tool docs",
+    "toolUseCases": {
+      "claude": "Use when you want strong planning workflows and long multi-file refactors with Claude Code.",
+      "codex": "Use when your team is standardized on OpenAI Codex CLI flows and profile-based auth.",
+      "droid": "Use when you need a lightweight terminal agent focused on fast coding and command execution loops.",
+      "openclaw": "Use when you want an Open Claw style coding agent but routed through OmniRoute policies.",
+      "cline": "Use when you configure coding agents inside editors and want guided setup with OmniRoute models.",
+      "kilo": "Use when your workflow depends on Kilo Code commands and fast iterative edits.",
+      "cursor": "Use when coding in Cursor and you need custom OpenAI-compatible models through OmniRoute.",
+      "continue": "Use when running Continue in IDEs and you need portable JSON-based provider configuration.",
+      "opencode": "Use when you prefer terminal-native agent runs and scripted automation via OpenCode.",
+      "kiro": "Use when integrating Kiro and controlling model routing centrally from OmniRoute.",
+      "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
+      "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules."
+    },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE with MITM",
       "claude": "Anthropic Claude Code CLI",
@@ -573,6 +689,9 @@
             "title": "Add Model Config",
             "desc": "Add the following configuration to your models array:"
           }
+        },
+        "notes": {
+          "0": "Continue uses JSON config file."
         }
       },
       "opencode": {
@@ -591,6 +710,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode requires API key configuration.",
+          "1": "Set the base URL to your OmniRoute endpoint."
         }
       },
       "kiro": {
@@ -609,6 +732,9 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro requires Amazon account."
         }
       }
     }
@@ -1116,6 +1242,12 @@
     "issuesLabel": "Issues Detected",
     "operational": "Operational",
     "providers": "Providers",
+    "configuredProvidersLabel": "Configured in dashboard",
+    "configuredProvidersHint": "Providers with credentials saved in /dashboard/providers, regardless of runtime state.",
+    "activeProviders": "{count} active",
+    "activeProvidersHint": "Configured providers currently enabled for routing requests.",
+    "monitoredProviders": "{count} monitored",
+    "monitoredProvidersHint": "Providers currently tracked by circuit-breaker health monitors.",
     "healthyCount": "{count} healthy",
     "nodeVersion": "Node {version}",
     "failures": "{count} failure",
@@ -1338,6 +1470,15 @@
     "chatCompletions": "Chat Completions",
     "importingModels": "Importing...",
     "importFromModels": "Import from /models",
+    "autoSync": "Auto-Sync",
+    "autoSyncTooltip": "Automatically refresh model list every 24h (configurable via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Auto-sync enabled — models will refresh periodically",
+    "autoSyncDisabled": "Auto-sync disabled",
+    "autoSyncToggleFailed": "Failed to toggle auto-sync",
+    "clearAllModels": "Clear All Models",
+    "clearAllModelsConfirm": "Are you sure you want to remove all models for this provider? This cannot be undone.",
+    "clearAllModelsSuccess": "All models cleared",
+    "clearAllModelsFailed": "Failed to clear models",
     "addConnectionToImport": "Add a connection to enable importing.",
     "noModelsConfigured": "No models configured",
     "connectionCount": "{count} connection(s)",
@@ -1442,6 +1583,13 @@
     "compatProtocolOpenAI": "OpenAI Chat Completions",
     "compatProtocolOpenAIResponses": "OpenAI Responses API",
     "compatProtocolClaude": "Anthropic Messages",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamRemoveRow": "Remove row",
+    "compatBadgeUpstreamHeaders": "Headers",
     "modelId": "Model ID",
     "customModelPlaceholder": "e.g. gpt-4.5-turbo",
     "loading": "Loading...",
@@ -1644,6 +1792,9 @@
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
     "routingStrategy": "Routing Strategy",
+    "routingAdvancedGuideTitle": "Advanced routing guidance",
+    "routingAdvancedGuideHint1": "Use Fill First for predictable priority, Round Robin for fairness, and P2C for latency resilience.",
+    "routingAdvancedGuideHint2": "If providers vary in quality/cost, start with Cost Opt for background work and Least Used for balanced wear.",
     "fillFirst": "Fill First",
     "fillFirstDesc": "Use accounts in priority order",
     "roundRobin": "Round Robin",
@@ -1738,6 +1889,9 @@
     "fillModelAndProviders": "Please fill model name and providers",
     "addAtLeastOneProvider": "Add at least one provider",
     "comboDefaultsTitle": "Combo Defaults",
+    "comboDefaultsGuideTitle": "How to tune combo defaults",
+    "comboDefaultsGuideHint1": "Keep retries low in low-latency flows; increase timeout only for long generation tasks.",
+    "comboDefaultsGuideHint2": "Use provider overrides when one provider needs different timeout/retry behavior than global defaults.",
     "globalComboConfig": "Global combo configuration",
     "defaultStrategy": "Default Strategy",
     "defaultStrategyDesc": "Applied to new combos without explicit strategy",
@@ -2314,7 +2468,15 @@
     "restartServerWithNewPassword": "Restart the server - it will use the new password",
     "backToLogin": "Back to Login",
     "forgotPassword": "Forgot password?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)"
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Authorization",
+    "Content-Disposition": "Content-Disposition",
+    "waitingForAuthorization": "Waiting for authorization...",
+    "waitingForGoogleAuthorization": "Waiting for Google authorization...",
+    "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
+    "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
+    "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
+    "exchangingCodeForTokens": "Exchanging code for tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2501,6 +2663,8 @@
     "endpointResponsesNote": "Responses API endpoint (Codex, o-series).",
     "endpointModelsNote": "Model catalog for all connected providers.",
     "endpointAudioNote": "Audio transcription (Deepgram, AssemblyAI).",
+    "endpointSpeechNote": "Text-to-speech generation (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Text embedding generation (OpenAI, Cohere, Voyage).",
     "endpointImagesNote": "Image generation (NanoBanana).",
     "endpointRewriteChatNote": "Rewrite helper for clients without /v1.",
     "endpointRewriteResponsesNote": "Rewrite helper for Responses without /v1.",
@@ -2598,7 +2762,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2622,5 +2800,48 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "templateNames": {
+    "simple-chat": "Simple Chat",
+    "streaming": "Streaming",
+    "system-prompt": "System Prompt",
+    "thinking": "Thinking",
+    "tool-calling": "Tool Calling",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Basic chat template with system message",
+    "streaming": "Template for streaming responses",
+    "system-prompt": "Template with custom system prompt",
+    "thinking": "Template with reasoning/thinking budget",
+    "tool-calling": "Template for tool/function calling",
+    "multi-turn": "Template for multi-turn conversations"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "You are a helpful AI assistant.",
+      "userGreeting": "Hello! How can I help you today?"
+    },
+    "streaming": {
+      "prompt": "Write a story about"
+    },
+    "systemPrompt": {
+      "question": "What is the meaning of life?",
+      "systemInstruction": "Provide a thoughtful, philosophical answer."
+    },
+    "thinking": {
+      "question": "Explain quantum computing"
+    },
+    "toolCalling": {
+      "cityNameDescription": "The name of the city to get weather for",
+      "toolDescription": "Get current weather for a location",
+      "userWeather": "What's the weather in Tokyo?"
+    },
+    "multiTurn": {
+      "system": "You are a helpful assistant.",
+      "assistantExample": "I'd be happy to help you with that.",
+      "userInitial": "I need help with",
+      "userFollowUp": "Can you elaborate on that?"
+    }
   }
 }

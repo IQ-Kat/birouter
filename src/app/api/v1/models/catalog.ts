@@ -14,8 +14,9 @@ import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
-import { getAllVideoModels, getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
-import { getAllMusicModels, getMusicProvider } from "@omniroute/open-sse/config/musicRegistry.ts";
+import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
+import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -31,6 +32,47 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
   kr: "kiro",
   qw: "qwen",
 };
+
+const VISION_MODEL_KEYWORDS = [
+  "gpt-4o",
+  "gpt-4.1",
+  "gpt-4-vision",
+  "gpt-4-turbo",
+  "claude-3",
+  "claude-3.5",
+  "claude-3-5",
+  "claude-4",
+  "claude-opus",
+  "claude-sonnet",
+  "claude-haiku",
+  "gemini",
+  "gemma",
+  "llava",
+  "bakllava",
+  "pixtral",
+  "mistral-pixtral",
+  "qwen-vl",
+  "qvq",
+  "glm-4.6v",
+  "glm-4.5v",
+  "vision",
+  "multimodal",
+];
+
+function isVisionModelId(modelId: string): boolean {
+  const normalized = String(modelId || "").toLowerCase();
+  if (!normalized) return false;
+  return VISION_MODEL_KEYWORDS.some((keyword) => normalized.includes(keyword));
+}
+
+function getVisionCapabilityFields(modelId: string) {
+  if (!isVisionModelId(modelId)) return null;
+  return {
+    capabilities: { vision: true },
+    input_modalities: ["text", "image"],
+    output_modalities: ["text"],
+  };
+}
 
 function buildAliasMaps() {
   const aliasToProviderId: Record<string, string> = {};
@@ -190,6 +232,7 @@ export async function getUnifiedModelsResponse(
         permission: [],
         root: combo.name,
         parent: null,
+        ...(combo.context_length ? { context_length: combo.context_length } : {}),
       });
     }
 
@@ -206,8 +249,17 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
+      // Get default context length from registry (provider-level default)
+      const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
+      const defaultContextLength = registryEntry?.defaultContextLength;
+
       for (const model of providerModels) {
         const aliasId = `${alias}/${model.id}`;
+        const visionFields =
+          getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
+        // Model-level context length overrides provider default
+        const contextLength = model.contextLength || defaultContextLength;
+
         models.push({
           id: aliasId,
           object: "model",
@@ -216,19 +268,26 @@ export async function getUnifiedModelsResponse(
           permission: [],
           root: model.id,
           parent: null,
+          ...(contextLength ? { context_length: contextLength } : {}),
+          ...(visionFields || {}),
         });
 
         // Add provider-id prefix in addition to short alias (ex: kiro/model + kr/model).
         // This improves compatibility for clients that expect full provider names.
         if (canonicalProviderId !== alias) {
+          const providerIdModel = `${canonicalProviderId}/${model.id}`;
+          const providerVisionFields =
+            getVisionCapabilityFields(providerIdModel) || getVisionCapabilityFields(model.id);
           models.push({
-            id: `${canonicalProviderId}/${model.id}`,
+            id: providerIdModel,
             object: "model",
             created: timestamp,
             owned_by: canonicalProviderId,
             permission: [],
             root: model.id,
             parent: aliasId,
+            ...(contextLength ? { context_length: contextLength } : {}),
+            ...(providerVisionFields || {}),
           });
         }
       }
@@ -304,10 +363,9 @@ export async function getUnifiedModelsResponse(
       });
     }
 
-    // Add video models (local providers always listed, cloud filtered by active)
+    // Add video models (filtered by active providers)
     for (const videoModel of getAllVideoModels()) {
-      const vConfig = getVideoProvider(videoModel.provider);
-      if (vConfig?.authType !== "none" && !isProviderActive(videoModel.provider)) continue;
+      if (!isProviderActive(videoModel.provider)) continue;
       models.push({
         id: videoModel.id,
         object: "model",
@@ -317,10 +375,9 @@ export async function getUnifiedModelsResponse(
       });
     }
 
-    // Add music models (local providers always listed, cloud filtered by active)
+    // Add music models (filtered by active providers)
     for (const musicModel of getAllMusicModels()) {
-      const mConfig = getMusicProvider(musicModel.provider);
-      if (mConfig?.authType !== "none" && !isProviderActive(musicModel.provider)) continue;
+      if (!isProviderActive(musicModel.provider)) continue;
       models.push({
         id: musicModel.id,
         object: "model",
@@ -374,6 +431,10 @@ export async function getUnifiedModelsResponse(
           if (endpoints.includes("embeddings")) modelType = "embedding";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
+          const visionFields =
+            modelType === "chat"
+              ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)
+              : null;
 
           models.push({
             id: aliasId,
@@ -389,12 +450,18 @@ export async function getUnifiedModelsResponse(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
+            ...(visionFields || {}),
           });
 
           // Only add provider-prefixed version if different from alias
           if (canonicalProviderId !== alias && !prefix) {
             const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
             if (models.some((m) => m.id === providerPrefixedId)) continue;
+            const providerVisionFields =
+              modelType === "chat"
+                ? getVisionCapabilityFields(providerPrefixedId) ||
+                  getVisionCapabilityFields(modelId)
+                : null;
             models.push({
               id: providerPrefixedId,
               object: "model",
@@ -405,6 +472,7 @@ export async function getUnifiedModelsResponse(
               parent: aliasId,
               custom: true,
               ...(modelType ? { type: modelType } : {}),
+              ...(providerVisionFields || {}),
             });
           }
         }

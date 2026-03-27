@@ -8,61 +8,6 @@ _Ihr universeller API-Proxy – ein Endpunkt, mehr als 36 Anbieter, keine Ausfal
 
 ---
 
-### 🆕 Neu in v2.7.0
-
-- **Erweiterbare RouterStrategy** — Regeln-, Kosten- und Latenzstrategien
-- **Mehrsprachige Absichtserkennung** — Routing-Scoring in 30+ Sprachen
-- **Anfrage-Deduplizierung** — doppelte API-Aufrufe per Content-Hash vermeiden
-- **Neue Anbieter:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
-- **Aktualisierte Preise:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
-
----
-
-<div align="center">
-
-[![npm-Version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-[![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
-[![Lizenz](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
-[![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
-[![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
-
-[🌐 Website](https://omniroute.online) • [🚀 Schnellstart](#-quick-start) • [💡 Funktionen](#-key-features) • [📖 Dokumente](#-documentation) • [💰 Preise](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
-
-</div>
-
-🌐 **Verfügbar in:** 🇺🇸 [Englisch](../../README.md) | 🇧🇷 [Português (Brasilien)](../pt-BR/README.md) | 🇪🇸 [Español](../es/README.md) | 🇫🇷 [Français](../fr/README.md) | 🇮🇹 [Italienisch](../it/README.md) | 🇷🇺 [Русский](../ru/README.md) | 🇨🇳 [中文 (简体)](../zh-CN/README.md) | 🇩🇪 [Deutsch](../de/README.md) | 🇮🇳 [हिन्दी](../in/README.md) | 🇹🇭 [ไทย](../th/README.md) | 🇺🇦 [Українська](../uk-UA/README.md) | 🇸🇦 [العربية](../ar/README.md) | 🇯🇵 [日本語](../ja/README.md) | 🇻🇳 [Tiếng Việt](../vi/README.md) | 🇧🇬 [Български](../bg/README.md) | 🇩🇰 [Dänisch](../da/README.md) | 🇫🇮 [Suomi](../fi/README.md) | 🇮🇱 [עברית](../he/README.md) | 🇭🇺 [Magyar](../hu/README.md) | 🇮🇩 [Bahasa Indonesia](../id/README.md) | 🇰🇷 [한국어](../ko/README.md) | 🇲🇾 [Bahasa Melayu](../ms/README.md) | 🇳🇱 [Niederlande](../nl/README.md) | 🇳🇴 [Norsk](../no/README.md) | 🇵🇹 [Português (Portugal)](../pt/README.md) | 🇷🇴 [Română](../ro/README.md) | 🇵🇱 [Polski](../pl/README.md) | 🇸🇰 [Slovenčina](../sk/README.md) | 🇸🇪 [Svenska](../sv/README.md) | 🇵🇭 [Philippinisch](../phi/README.md)
-
----
-
-## 🖼️ Haupt-Dashboard
-
-<div align="center">
-  <img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="800"/>
-</div>
-
----
-
-## 📸 Dashboard-Vorschau
-
-<details>
-<summary><b>Klicken Sie hier, um Dashboard-Screenshots anzuzeigen</b></summary>
-
-| Seite                  | Screenshot                                         |
-| ---------------------- | -------------------------------------------------- |
-| **Anbieter**           | ![Anbieter](docs/screenshots/01-providers.png)     |
-| **Kombinationen**      | ![Combos](docs/screenshots/02-combos.png)          |
-| **Analytik**           | ![Analytics](docs/screenshots/03-analytics.png)    |
-| **Gesundheit**         | ![Gesundheit](docs/screenshots/04-health.png)      |
-| **Übersetzer**         | ![Übersetzer](docs/screenshots/05-translator.png)  |
-| **Einstellungen**      | ![Einstellungen](docs/screenshots/06-settings.png) |
-| **CLI-Tools**          | ![CLI-Tools](docs/screenshots/07-cli-tools.png)    |
-| **Nutzungsprotokolle** | ![Verwendung](docs/screenshots/08-usage.png)       |
-| **Endpunkt**           | ![Endpunkt](docs/screenshots/09-endpoint.png)      |
-
-</details>
-
----
-
 ### 🤖 Kostenloser KI-Anbieter für Ihre bevorzugten Programmieragenten
 
 _Verbinden Sie jedes KI-gestützte IDE- oder CLI-Tool über OmniRoute – kostenloses API-Gateway für unbegrenzte Codierung._
@@ -144,6 +89,34 @@ _Verbinden Sie jedes KI-gestützte IDE- oder CLI-Tool über OmniRoute – kosten
   </table>
 
 <sub>📡 Alle Agenten verbinden sich über <code>http://localhost:20128/v1</code> oder quote</sub>
+
+---
+
+### 🆕 What's New in v3.0.0
+
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
+
+### 🆕 What's New in v3.0.0
+
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ---
 
@@ -890,18 +863,6 @@ Wenn OmniRoute minimiert ist, befindet es sich mit schnellen Aktionen in Ihrer T
 
 OmniRoute v2.0 ist als Betriebsplattform konzipiert und nicht nur als Relay-Proxy.
 
-### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
-
-| Feature                                    | What It Does                                                                                                                                  |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                        |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved** |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw), process spawner, `/api/acp/agents` endpoint                                 |
-| 🤖 **ACP Agents Dashboard**                | Debug > Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool                                      |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                               |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                   |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                      |
-
 ### 🤖 Agenten- und Protokolloperationen (v2.0)| Funktion | Was es tut |
 
 | ------------------------------------ | -------------------------------------------------------------------------------- |
@@ -981,6 +942,8 @@ OmniRoute v2.0 ist als Betriebsplattform konzipiert und nicht nur als Relay-Prox
 | 🧙 **Onboarding-Assistent**                 | Erstmaliges geführtes Setup                                                    |
 | 🔧 **CLI-Tools-Dashboard**                  | Ein-Klick-Setup für beliebte Codierungstools                                   |
 | 🌐 **i18n (30 Sprachen)**                   | Vollständige Sprachunterstützung für Dashboard und Dokumente mit RTL-Abdeckung |
+| 🧹 **Clear All Models**                     | One-click model list clearing in provider details                              |
+| 📋 **Issue Templates**                      | Standardized GitHub templates for bugs and features                            |
 | 📂 **Benutzerdefiniertes Datenverzeichnis** | `DATA_DIR`-Überschreibung für Speicherort                                      |
 
 ### Feature Deep Dive

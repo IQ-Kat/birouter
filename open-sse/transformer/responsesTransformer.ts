@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 /**
  * Responses API Transformer
  * Converts OpenAI Chat Completions SSE to Codex Responses API SSE format
@@ -40,6 +40,7 @@ export function createResponsesLogger(model, logsDir = null) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "").slice(0, 15);
   const uniqueId = Math.random().toString(36).slice(2, 8);
   const baseDir = logsDir || (typeof process !== "undefined" ? process.cwd() : ".");
+  // previous: const baseDir = logsDir || resolveDataDir(); — reverted in #555 for Workers compat
   const logDir = path.join(baseDir, "logs", `responses_${model}_${timestamp}_${uniqueId}`);
 
   try {
@@ -401,6 +402,16 @@ export function createResponsesApiTransformStream(logger = null) {
             const tcIdx = tc.index ?? 0;
             const newCallId = tc.id;
             const funcName = tc.function?.name;
+
+            // T37: Prevent merging if a new tool_call uses the same index
+            if (state.funcCallIds[tcIdx] && newCallId && state.funcCallIds[tcIdx] !== newCallId) {
+              closeToolCall(controller, tcIdx);
+              delete state.funcCallIds[tcIdx];
+              delete state.funcNames[tcIdx];
+              delete state.funcArgsBuf[tcIdx];
+              delete state.funcArgsDone[tcIdx];
+              delete state.funcItemDone[tcIdx];
+            }
 
             if (funcName) state.funcNames[tcIdx] = funcName;
 

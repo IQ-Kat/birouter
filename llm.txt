@@ -1,6 +1,6 @@
 # OmniRoute
 
-> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 36+ AI providers — all through a single OpenAI-compatible endpoint.
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 67+ AI providers — all through a single OpenAI-compatible endpoint.
 
 ## Overview
 
@@ -8,19 +8,19 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 **Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
 
-**Current version:** 2.0.13
+**Current version:** 3.0.0
 
 ## Tech Stack
 
 - **Runtime:** Node.js >= 18
-- **Framework:** Next.js 16 (App Router) with TypeScript
+- **Framework:** Next.js 16 (App Router) with TypeScript 5.9
 - **Database:** SQLite via better-sqlite3 (local, zero-config)
-- **State management:** Zustand (client), lowdb (server JSON persistence)
-- **UI:** React 19, Tailwind CSS 4, Recharts for analytics
+- **State management:** Zustand (client), SQLite (server persistence)
+- **UI:** React 19, Tailwind CSS 4, Recharts for analytics, @lobehub/icons for 130+ provider SVG icons
 - **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
-- **Background jobs:** Custom token health check scheduler
+- **Background jobs:** Custom token health check scheduler, 24h model auto-sync
 - **Streaming:** Server-Sent Events (SSE) for real-time proxy responses
-- **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting
+- **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting, auto-combo engine
 - **i18n:** next-intl with 30 languages
 - **Package:** Published on npm (`omniroute`) and Docker Hub (`diegosouzapw/omniroute`)
 
@@ -35,14 +35,14 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │       ├── agents/       # ACP Agents dashboard (CLI agent detection + custom agents)
 │   │   │       ├── analytics/    # Usage analytics and charts
 │   │   │       ├── api-manager/  # API key management
-│   │   │       ├── cli-tools/    # CLI tool configuration (Claude, Codex, Gemini, etc.)
-│   │   │       ├── combos/       # Model combo management
-│   │   │       ├── costs/        # Cost tracking
-│   │   │       ├── endpoint/     # Endpoint info and cloud proxy
-│   │   │       ├── health/       # System health monitoring
+│   │   │       ├── cli-tools/    # CLI tool configuration (Claude Code, Codex, Gemini CLI, etc.)
+│   │   │       ├── combos/       # Model combo management (9 strategies + 4 templates)
+│   │   │       ├── costs/        # Cost tracking per provider/model
+│   │   │       ├── endpoint/     # Unified: Endpoint Proxy, MCP, A2A, API Endpoints tabs
+│   │   │       ├── health/       # System health (uptime, circuit breakers, latency)
 │   │   │       ├── limits/       # Rate limits dashboard
-│   │   │       ├── logs/         # Request logs viewer
-│   │   │       ├── media/        # Image/video/music generation
+│   │   │       ├── logs/         # Request, Proxy, Audit, Console logs (tabbed)
+│   │   │       ├── media/        # Image/video/music generation + transcription
 │   │   │       ├── playground/   # Model playground (Monaco editor, streaming)
 │   │   │       ├── providers/    # Provider management (OAuth + API key + free)
 │   │   │       ├── settings/     # Settings tabs (General, Appearance, Security, Routing, Resilience, Advanced)
@@ -51,7 +51,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── api/                  # REST API endpoints
 │   │   │   ├── v1/               # OpenAI-compatible API (chat, models, embeddings, images, audio)
 │   │   │   ├── acp/              # ACP agent management API
-│   │   │   ├── oauth/            # OAuth flows per provider (authorize, exchange, callback)
+│   │   │   ├── oauth/            # OAuth flows per provider
 │   │   │   ├── providers/        # Provider CRUD and batch testing
 │   │   │   ├── models/           # Dashboard model listing and aliases
 │   │   │   ├── combos/           # Combo CRUD (multi-model fallback chains)
@@ -59,131 +59,143 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   └── login/                # Login page
 │   ├── domain/                   # Domain types and business logic interfaces
 │   ├── i18n/                     # Internationalization
-│   │   └── messages/             # 30 language JSON files (ar, bg, cs, da, de, en, es, fi, fr, he, hu, id, in, it, ja, ko, ms, nl, no, phi, pl, pt, pt-BR, ro, ru, sk, sv, th, uk-UA, vi, zh-CN)
+│   │   └── messages/             # 30 language JSON files
 │   ├── lib/                      # Core libraries
-│   │   ├── acp/                  # ACP agent registry and manager (14 built-in agents + custom)
-│   │   ├── db/                   # SQLite database layer (providers, combos, prompts, logs)
+│   │   ├── a2a/                  # Agent-to-Agent v0.3 protocol server
+│   │   ├── acp/                  # ACP agent registry and manager (14 built-in + custom)
+│   │   ├── db/                   # SQLite database layer (core, providers, models, combos, apiKeys, settings, backup)
 │   │   ├── oauth/                # OAuth providers, services, and utilities
-│   │   │   ├── providers/        # Provider-specific OAuth configs (GitHub, Google, Claude, etc.)
+│   │   │   ├── constants/        # Default OAuth credentials (overridable via env)
+│   │   │   ├── providers/        # Provider-specific OAuth configs
 │   │   │   ├── services/         # Provider-specific token exchange logic
 │   │   │   └── utils/            # PKCE, callback server, token helpers
 │   │   ├── cloudSync.ts          # Cloud sync via Cloudflare Workers
 │   │   ├── tokenHealthCheck.ts   # Background OAuth token refresh scheduler
-│   │   └── localDb.ts            # Unified database access layer
+│   │   └── localDb.ts            # Unified re-export layer for all DB modules
 │   ├── shared/                   # Shared utilities, components, and constants
-│   │   ├── components/           # Reusable UI components (Card, Badge, Button, Modal, Sidebar, etc.)
-│   │   ├── constants/            # Provider definitions, model lists, pricing
-│   │   ├── validation/           # Zod schemas (settings, providers, etc.)
+│   │   ├── components/           # Reusable UI components (Card, Badge, Button, Modal, Sidebar, ProviderIcon, etc.)
+│   │   ├── constants/            # Provider definitions, model lists, pricing, upstream headers
+│   │   ├── validation/           # Zod schemas (settings, providers, routes)
 │   │   └── utils/                # Helpers (auth, CORS, error codes, machine ID)
 │   ├── sse/                      # SSE proxy pipeline
 │   │   ├── services/             # Auth resolution, format translation, response handling
 │   │   └── middleware/           # Rate limiting, circuit breaker, caching, idempotency
 │   ├── store/                    # Zustand client-side stores (theme, providers, etc.)
-│   ├── types/                    # TypeScript type definitions
-│   ├── proxy.ts                  # Main proxy request handler
-│   └── server-init.ts            # Server initialization (DB, health checks)
+│   └── types/                    # TypeScript type definitions
 ├── open-sse/                     # Standalone SSE server (npm workspace)
 │   ├── config/                   # Model registries (embedding, image, audio, rerank, moderation, CLI fingerprints)
-│   ├── handlers/                 # Request handlers per API type
-│   ├── mcp-server/               # Built-in MCP server (16 tools, audit logging, scope auth)
-│   └── translators/              # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── tests/                        # Test suites
+│   ├── handlers/                 # Request handlers per API type (chat, responses, embeddings, images, audio, search)
+│   ├── mcp-server/               # Built-in MCP server (16 tools, 3 transports: stdio/SSE/streamable-HTTP)
+│   ├── services/                 # Auto-combo engine (6-factor scoring, 4 mode packs, bandit exploration)
+│   └── translator/               # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama ↔ DeepSeek)
+├── tests/                        # Test suites (926 assertions)
 │   ├── unit/                     # Unit tests (32+ test files)
 │   └── integration/              # Integration tests
-├── docs/                         # Documentation (with 29-language i18n subdirectories)
-│   ├── i18n/                     # Translated docs (ar, bg, cs, da, de, es, fi, fr, he, hu, id, in, it, ja, ko, ms, nl, no, phi, pl, pt, pt-BR, ro, ru, sk, sv, th, uk-UA, vi, zh-CN)
+├── docs/                         # Documentation
+│   ├── i18n/                     # 30-language translated READMEs
 │   ├── screenshots/              # Dashboard screenshots
 │   ├── a2a-server.md             # A2A agent protocol documentation
 │   ├── auto-combo.md             # Auto-combo engine (6-factor scoring)
 │   └── mcp-server.md             # MCP server (16 tools)
-├── electron/                     # Electron desktop app
 ├── bin/                          # CLI entry points (omniroute, reset-password)
 └── .env.example                  # Environment variable template
 ```
 
-## Key Features (v2.0.13)
+## Key Features (v3.0.0)
 
 ### Core Proxy
-- **36+ AI providers** with automatic format translation
+- **67+ AI providers** with automatic format translation
 - **6 routing strategies**: priority, weighted, round-robin, random, least-used, cost-optimized
 - **4-tier fallback**: Subscription → API Key → Cheap → Free
+- **Auto-combo engine**: Self-healing routing optimization with 6-factor scoring, bandit exploration, progressive cooldown
 - **Semantic caching** with cache hit/miss headers
 - **Idempotency** with configurable dedup window
 - **Circuit breaker** per provider with configurable thresholds
+- **Provider Icons**: 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback
+- **Model Auto-Sync**: 24h scheduler refreshes model lists for 16 providers
+- **Registered Keys API**: Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement
+- **926 tests** with 0 failures
 
-### Anti-Ban Protection
+### Security
+- **CodeQL security**: Fixed 10+ CodeQL alerts (polynomial-redos, insecure-randomness, shell-injection)
+- **Route validation**: All 176 API routes validated with Zod schemas + `validateBody()`
+- **omniModel tag sanitization**: Internal `<omniModel>` tags never leak to clients in SSE streams
 - **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint to reduce bot detection
-- **CLI Fingerprint Matching** — Per-provider request signature matching (headers/body ordering) to match native CLI tools. Proxy IP is preserved.
+- **CLI Fingerprint Matching** — Per-provider request signature matching
 
 ### Dashboard Pages
-- **Providers** — OAuth, API key, and free provider management
-- **Combos** — Multi-model fallback chain builder with templates
+- **Providers** — OAuth, API key, and free provider management with ProviderIcon SVG icons
+- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 9 strategies
 - **Analytics** — Token consumption, cost, heatmaps, distributions
 - **Health** — Uptime, memory, latency percentiles, circuit breakers
-- **Logs** — Real-time request log viewer with filtering
+- **Logs** — Request, Proxy, Audit, Console (tabbed)
 - **Costs** — Cost tracking per provider/model
 - **Limits** — Rate limit monitoring
 - **CLI Tools** — One-click configuration for 10+ AI CLI tools
-- **CLI Agents** — Grid of 14 built-in agents with install detection + custom agent registration
+- **CLI Agents** — Grid of 14+ built-in agents with ProviderIcon and install detection + custom agent registration
 - **Playground** — Test any model with Monaco editor, streaming responses
-- **Media** — Image/video/music generation (DALL-E, FLUX, AnimateDiff, etc.)
+- **Media** — Image/video/music generation (DALL-E, FLUX, etc.) + audio transcription (up to 2GB files)
 - **Translator** — Format debugging: playground, chat tester, test bench, live monitor
 - **Settings** — General, Appearance (7 color themes), Security (TLS/CLI fingerprint, IP filter), Routing, Resilience, Advanced
-- **Endpoint** — Unified API endpoint info + cloud proxy
-
-### Sidebar Organization
-- **Main**: Home, Endpoints, API Manager, Providers, Combos, Costs, Analytics, Limits
-- **CLI**: Tools, Agents
-- **Debug**: Translator, Playground, Media
-- **System**: Health, Logs, Settings
-- **Help**: Docs, Issues
+- **Endpoint** — Unified: Endpoint Proxy, MCP Server, A2A Server, API Endpoints (tabbed)
 
 ### Protocol Support
-- **OpenAI-compatible** — `/v1/chat/completions`, `/v1/models`, `/v1/embeddings`, `/v1/images/generations`, `/v1/audio/transcriptions`
+- **OpenAI-compatible** — `/v1/chat/completions`, `/v1/models`, `/v1/embeddings`, `/v1/images/generations`, `/v1/audio/transcriptions`, `/v1/audio/speech`
 - **Anthropic** — `/v1/messages`, `/v1/messages/count_tokens`
 - **OpenAI Responses** — `/v1/responses`
 - **Gemini** — `/v1beta/models`, `/v1beta/models/{...path}`
 - **Ollama** — `/v1/api/chat`, `/api/tags`
-- **MCP** — 16-tool MCP server with scope-based auth
-- **A2A** — Agent-to-Agent protocol (smart-routing, quota-management skills)
+- **MCP** — 16-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
+- **A2A** — Agent-to-Agent v0.3 protocol (JSON-RPC 2.0, smart-routing + quota-management skills)
 - **ACP** — Agent detection, custom agent registry
 
+### MCP Server (16 Tools)
+| Category  | Tools |
+|-----------|-------|
+| Essential | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog` |
+| Advanced  | `simulate_route`, `set_budget_guard`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot` |
+
 ### Internationalization
-- 30 languages for UI (sidebar, settings, agents, and all dashboard pages)
-- 30 READMEs (root README.md + 29 translated README.*.md)
-- 29 translated doc sets in docs/i18n/
+- 30 languages for UI (all dashboard pages)
+- 30 translated READMEs in docs/i18n/
+- Language switcher in documentation
 
 ## Key Architectural Decisions
 
-1. **OpenAI-compatible API surface:** All incoming requests follow the OpenAI API format (`/v1/chat/completions`, `/v1/models`, etc.). This makes OmniRoute a drop-in replacement for any tool that supports custom OpenAI endpoints.
+1. **OpenAI-compatible API surface:** All incoming requests follow the OpenAI API format. This makes OmniRoute a drop-in replacement for any tool that supports custom OpenAI endpoints.
 
-2. **Provider abstraction via format translators:** Each AI provider (Claude, Gemini, etc.) has a translator in `open-sse/translators/` that converts between the OpenAI format and the provider's native format. This happens transparently.
+2. **Provider abstraction via format translators:** Each AI provider has a translator in `open-sse/translator/` that converts between OpenAI format and the provider's native format transparently.
 
-3. **Connection-based provider model:** Providers are stored as "connections" in SQLite. Each connection has an `id`, `provider`, `authType` (oauth/apikey/free), `isActive` flag, and credentials. Multiple connections per provider are supported for multi-account rotation.
+3. **Connection-based provider model:** Providers are stored as "connections" in SQLite. Each connection has an `id`, `provider`, `authType` (oauth/apikey/free), `isActive` flag, and credentials. Multiple connections per provider for multi-account rotation.
 
-4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 6 strategies.
+4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 9 strategies including auto-combo with self-healing.
 
-5. **SSE proxy pipeline (`src/sse/`):** The proxy pipeline is middleware-based: request → auth resolution → rate limiting → circuit breaker → format translation → upstream call → response translation → SSE streaming back to client.
+5. **SSE proxy pipeline:** The proxy pipeline is middleware-based: request → auth resolution → rate limiting → circuit breaker → format translation → upstream call → response translation → SSE streaming back to client.
 
-6. **SQLite for persistence:** All state (providers, combos, logs, settings) is stored in a single SQLite database file at `data/omniroute.db`. This keeps the app self-contained and zero-config.
+6. **SQLite for persistence:** All state (providers, combos, logs, settings, API keys) stored in a single SQLite database. All DB operations go through `src/lib/db/` modules, never raw SQL in routes.
 
-7. **OAuth with PKCE:** OAuth flows use PKCE for security. A local callback server handles the redirect. Token refresh is handled by a background job (`tokenHealthCheck.ts`).
+7. **OAuth with PKCE:** OAuth flows use PKCE for security. Token refresh handled by background job (`tokenHealthCheck.ts`).
 
-8. **ACP Agent Registry:** 14 built-in CLI agents with dynamic detection and a 60-second cache. Custom agents can be added via dashboard or API, stored in settings DB.
+8. **ProviderIcon component:** Unified icon system using `@lobehub/icons` (130+ SVG) with PNG fallback and generic icon fallback chain. Used on providers, dashboard, and agents pages.
+
+9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in `src/lib/db/` modules (core, providers, models, combos, apiKeys, settings, backup).
+
+10. **Upstream headers:** Custom headers merged in executors after default auth; same header name replaces executor value. Forbidden header names in `src/shared/constants/upstreamHeaders.ts`.
 
 ## Main Flows
 
 ### Proxy Request Flow
 1. Client sends OpenAI-format request to `/v1/chat/completions`
-2. API key validation (`src/shared/utils/apiAuth.ts`)
+2. API key validation
 3. Model resolution: direct model or combo lookup
-4. For combos: iterate through models in fallback order
+4. For combos: iterate through models with selected strategy
 5. Auth resolution: get credentials for the target provider
 6. Format translation: OpenAI → provider native format
 7. CLI fingerprint matching (if enabled for provider)
 8. Upstream request with circuit breaker and rate limiting
 9. Response translation: provider → OpenAI format
-10. SSE streaming back to client
+10. omniModel tag sanitization (strip internal tags)
+11. SSE streaming back to client
 
 ### OAuth Flow
 1. Dashboard initiates `/api/oauth/[provider]/authorize`
@@ -192,31 +204,27 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 4. Tokens stored as a provider connection in SQLite
 5. Background job refreshes tokens before expiry
 
-### Model Listing
-- `/api/models` — Dashboard endpoint, lists all defined models with aliases
-- `/v1/models` — OpenAI-compatible endpoint, lists only models from active providers
-
 ## Important Notes for LLMs
 
-1. **Two model endpoints exist:** `/api/models` (dashboard, all models) and `/v1/models` (OpenAI-compatible, active only). Don't confuse them.
+1. **Two model endpoints exist:** `/api/models` (dashboard, all models) and `/v1/models` (OpenAI-compatible, active only).
 
 2. **Provider IDs vs aliases:** Providers have both an ID (`claude`, `github`) and a short alias (`cc`, `gh`). Models are referenced as `alias/model-name` (e.g., `cc/claude-opus-4-6`).
 
-3. **The `open-sse/` directory is a separate npm workspace** with its own config, handlers, and translators. It handles the actual SSE streaming and format translation.
+3. **The `open-sse/` directory is a separate npm workspace** with its own config, handlers, and translators.
 
 4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
 
-5. **Database migrations:** SQLite schema is managed inline in `src/lib/db/core.ts` and `src/lib/db/providers.ts`. No migration framework — schema changes are applied on startup.
+5. **Database layer:** Operations go through `src/lib/db/` modules. `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
 
-6. **Tests use Node.js built-in test runner:** Run `npm test` or `node --test tests/unit/*.test.mjs`. Playwright is used for E2E tests.
+6. **Tests use Node.js built-in test runner:** 926 assertions across 32+ test files. Run `npm test`.
 
-7. **The proxy pipeline is in `src/sse/`**, not in `src/app/api/v1/`. The API routes in `src/app/api/v1/` delegate to the SSE server running on a separate Express instance.
+7. **MCP and A2A pages are embedded as tabs inside `/dashboard/endpoint`**, not standalone routes.
 
-8. **Sidebar sections:** Main nav, CLI (Tools + Agents), Debug (Translator + Playground + Media), System (Health + Logs + Settings), Help (Docs + Issues).
+8. **ACP agents** are in `src/lib/acp/registry.ts` (14 built-in) with a 60s detection cache. Custom agents stored via settings DB.
 
-9. **ACP agents** are in `src/lib/acp/registry.ts` (14 built-in) with a 60s detection cache. Custom agents stored via `src/shared/validation/settingsSchemas.ts`.
+9. **Auto-combo engine** in `open-sse/services/autoCombo/` — 6-factor scoring, 4 mode packs, bandit exploration, progressive cooldown.
 
-10. **CLI fingerprint configs** are in `open-sse/config/cliFingerprints.ts`. They match native CLI request patterns per provider.
+10. **Docker:** Dockerfile has two targets: `runner-base` and `runner-cli`. `docker-compose.yml` for dev (3 profiles), `docker-compose.prod.yml` for production (port 20130).
 
 ## Links
 
