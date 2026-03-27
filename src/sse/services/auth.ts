@@ -368,6 +368,29 @@ export async function getProviderCredentials(
       return null;
     }
 
+    // Auto-decay backoffLevel for accounts whose rateLimitedUntil has passed.
+    // Without this, high backoffLevel permanently deprioritizes accounts even
+    // after the rate limit window expires, creating a deadlock where the account
+    // needs a successful request to reset but never gets selected.
+    for (const c of connections) {
+      if (
+        c.backoffLevel > 0 &&
+        !isTerminalConnectionStatus(c) &&
+        !isAccountUnavailable(c.rateLimitedUntil)
+      ) {
+        c.backoffLevel = 0;
+        updateProviderConnection(c.id, {
+          backoffLevel: 0,
+          testStatus: "active",
+          lastError: null,
+          lastErrorAt: null,
+          lastErrorType: null,
+          lastErrorSource: null,
+          errorCode: null,
+        }).catch(() => {});
+      }
+    }
+
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
       if (excludeConnectionId && c.id === excludeConnectionId) return false;
