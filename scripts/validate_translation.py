@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """
 OmniRoute i18n Translation Validator
-Script for comparing source (en.json) with Czech translation (cs.json)
+Script for comparing source (en.json) with any translation
 Detects missing translations and source changes needing updates
+
+Usage:
+    python validate_translation.py              # Uses TRANSLATION_LANG env or --lang argument
+    python validate_translation.py --lang cs    # Validate Czech (cs.json)
+    python validate_translation.py -l de       # Validate German (de.json)
+    TRANSLATION_LANG=fr python validate_translation.py  # Validate French
+
+Environment variables:
+    TRANSLATION_LANG    Target language code (e.g., cs, de, fr)
 """
 
 import json
@@ -10,6 +19,7 @@ import sys
 import os
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Any
+import argparse
 
 # Colors (ANSI)
 RED = '\033[0;31m'
@@ -28,7 +38,21 @@ else:
 
 MESSAGES_DIR = SCRIPT_DIR / "src" / "i18n" / "messages"
 SOURCE_FILE = MESSAGES_DIR / "en.json"
-TRANSLATION_FILE = MESSAGES_DIR / "cs.json"
+
+# Get target language from env or argument
+def get_target_lang() -> str:
+    """Get target language from ENV or CLI argument."""
+    # First check environment variable
+    env_lang = os.environ.get('TRANSLATION_LANG')
+    if env_lang:
+        return env_lang
+    
+    # Then check command line argument (will be set in main)
+    if hasattr(get_target_lang, 'cli_lang'):
+        return get_target_lang.cli_lang
+    
+    # Default to cs for backwards compatibility
+    return "cs"
 
 # Keys that should NOT be translated (technical terms, proper names, etc.)
 UNTRANSLATABLE_KEYS = {
@@ -233,14 +257,21 @@ def compare_category(source: Dict, trans: Dict, category: str) -> Tuple[bool, Li
     return len(missing) == 0, list(missing)
 
 
+def get_translation_file() -> Path:
+    """Get the translation file path based on target language."""
+    lang = get_target_lang()
+    return MESSAGES_DIR / f"{lang}.json"
+
+
 def generate_report():
     """Generate full translation report"""
+    translation_file = get_translation_file()
     print_header("OmniRoute Translation Report")
     print(f"Source: {SOURCE_FILE}")
-    print(f"Translation: {TRANSLATION_FILE}\n")
+    print(f"Translation: {translation_file}\n")
     
     source = load_json(SOURCE_FILE)
-    trans = load_json(TRANSLATION_FILE)
+    trans = load_json(translation_file)
     
     # Count keys
     source_count = len(get_all_keys(source))
@@ -308,8 +339,9 @@ def generate_report():
 
 def quick_check() -> int:
     """Quick check - just show counts"""
+    translation_file = get_translation_file()
     source = load_json(SOURCE_FILE)
-    trans = load_json(TRANSLATION_FILE)
+    trans = load_json(translation_file)
     
     missing = find_missing_keys(source, trans)
     untranslated = find_untranslated(source, trans)
@@ -322,8 +354,9 @@ def quick_check() -> int:
 
 def show_diff(category: str) -> int:
     """Show detailed diff for a category"""
+    translation_file = get_translation_file()
     source = load_json(SOURCE_FILE)
-    trans = load_json(TRANSLATION_FILE)
+    trans = load_json(translation_file)
     
     if category not in source:
         print_error(f"Category '{category}' not found in source")
@@ -361,8 +394,9 @@ def show_diff(category: str) -> int:
 
 def export_csv(output_file: str) -> int:
     """Export to CSV"""
+    translation_file = get_translation_file()
     source = load_json(SOURCE_FILE)
-    trans = load_json(TRANSLATION_FILE)
+    trans = load_json(translation_file)
     
     print_header(f"Exporting to CSV: {output_file}")
     
@@ -394,8 +428,9 @@ def export_csv(output_file: str) -> int:
 
 def export_markdown(output_file: str) -> int:
     """Export all keys to separate Markdown files - translated and untranslated"""
+    translation_file = get_translation_file()
     source = load_json(SOURCE_FILE)
-    trans = load_json(TRANSLATION_FILE)
+    trans = load_json(translation_file)
     
     print_header(f"Exporting to Markdown: {output_file}")
     
@@ -441,9 +476,10 @@ def export_markdown(output_file: str) -> int:
     
     # Export translated to separate file
     translated_file = output_file.replace('.md', '_translated.md')
+    translation_filename = translation_file.name
     with open(translated_file, 'w', encoding='utf-8') as f:
         f.write("# Přeložené klíče (Translated Keys)\n\n")
-        f.write(f"Zdroj: `{SOURCE_FILE.name}` | Překlad: `{TRANSLATION_FILE.name}`\n\n")
+        f.write(f"Zdroj: `{SOURCE_FILE.name}` | Překlad: `{translation_filename}`\n\n")
         
         f.write(f"**Celkem: {translated_count} přeložených klíčů**\n\n")
         
@@ -470,6 +506,10 @@ OmniRoute i18n Translation Validator
 
 Usage: validate_translation.py [command] [options]
 
+Options:
+  -l, --lang <code>    Target language code (e.g., cs, de, fr)
+                      Default: cs or TRANSLATION_LANG env variable
+
 Commands:
   (default)        Generate full report
   quick            Quick check - just show counts
@@ -478,39 +518,64 @@ Commands:
   md [file]        Export to Markdown (default: translation_report.md)
 
 Examples:
-  python validate_translation.py        # Full report
-  python validate_translation.py quick   # Quick status check
-  python validate_translation.py diff common   # Diff common category
-  python validate_translation.py csv     # Export to CSV
-  python validate_translation.py md      # Export to Markdown
+  python validate_translation.py                 # Full report (default: cs)
+  python validate_translation.py --lang de        # Validate German
+  python validate_translation.py -l fr            # Validate French
+  TRANSLATION_LANG=es python validate_translation.py  # Validate Spanish
+  python validate_translation.py quick            # Quick status check
+  python validate_translation.py diff common      # Diff common category
+  python validate_translation.py csv              # Export to CSV
+  python validate_translation.py md               # Export to Markdown
 """)
 
 
 def main():
-    if len(sys.argv) < 2:
+    # Parse global arguments first
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('-l', '--lang', dest='lang', default=None)
+    parser.add_argument('command', nargs='?')
+    parser.add_argument('arg', nargs='?')
+    
+    # Parse known args only to allow commands to handle their own args
+    args, _ = parser.parse_known_args()
+    
+    # Set language from argument or use default
+    if args.lang:
+        get_target_lang.cli_lang = args.lang
+    elif not os.environ.get('TRANSLATION_LANG'):
+        # Default to cs for backwards compatibility
+        get_target_lang.cli_lang = "cs"
+    
+    # Check if translation file exists
+    translation_file = get_translation_file()
+    if not translation_file.exists():
+        print_error(f"Translation file not found: {translation_file}")
+        print(f"Available languages:")
+        for f in sorted(MESSAGES_DIR.glob("*.json")):
+            if f.name != "en.json":
+                print(f"  - {f.stem}")
+        return 1
+    
+    # Execute command
+    if not args.command or args.command in ('help', '--help', '-h'):
         return generate_report()
     
-    cmd = sys.argv[1]
-    
-    if cmd == "quick":
+    if args.command == "quick":
         return quick_check()
-    elif cmd == "diff":
-        if len(sys.argv) < 3:
+    elif args.command == "diff":
+        if not args.arg:
             print_error("Please specify category")
             usage()
             return 1
-        return show_diff(sys.argv[2])
-    elif cmd == "csv":
-        output = sys.argv[2] if len(sys.argv) > 2 else "translation_report.csv"
+        return show_diff(args.arg)
+    elif args.command == "csv":
+        output = args.arg if args.arg else "translation_report.csv"
         return export_csv(output)
-    elif cmd == "md":
-        output = sys.argv[2] if len(sys.argv) > 2 else "translation_report.md"
+    elif args.command == "md":
+        output = args.arg if args.arg else "translation_report.md"
         return export_markdown(output)
-    elif cmd in ("help", "--help", "-h"):
-        usage()
-        return 0
     else:
-        print_error(f"Unknown command: {cmd}")
+        print_error(f"Unknown command: {args.command}")
         usage()
         return 1
 
