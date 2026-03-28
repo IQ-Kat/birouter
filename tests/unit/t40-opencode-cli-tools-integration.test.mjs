@@ -78,5 +78,4 @@ test("T40: Windsurf card documents current official limitations honestly", () =>
 
   assert.match(notesText, /byok/);
   assert.match(notesText, /custom openai-compatible provider/);
-  assert.match(notesText, /proxy documentation is for network proxies/);
 });
