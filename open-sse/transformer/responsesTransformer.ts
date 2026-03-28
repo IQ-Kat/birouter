@@ -377,7 +377,7 @@ export function createResponsesApiTransformStream(logger = null) {
 
           if (content.includes("<think>")) {
             state.inThinking = true;
-            content = content.replace("<think>", "");
+            content = content.replaceAll("<think>", "");
             startReasoning(controller, idx);
           }
 

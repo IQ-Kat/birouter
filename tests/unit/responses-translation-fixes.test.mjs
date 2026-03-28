@@ -403,3 +403,20 @@ test("Responses→Chat streaming: reasoning delta emits reasoning_content in Cha
   assert.ok(result, "should return a chunk");
   assert.equal(result.choices[0].delta.reasoning_content, "thinking step...");
 });
+
+test("Chat→Responses streaming: multiple <think> tags in one chunk handled", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+
+  // Chunk with multiple think tags
+  const chunk = {
+    choices: [{ index: 0, delta: { content: "<think>first</think>middle<think>second</think>end" }, finish_reason: null }],
+    id: "c1",
+  };
+  const events = openaiToOpenAIResponsesResponse(chunk, state);
+  // Should not have literal <think> in any text delta
+  const textDeltas = events
+    .filter((e) => e.event === "response.output_text.delta")
+    .map((e) => e.data.delta);
+  const combined = textDeltas.join("");
+  assert.ok(!combined.includes("<think>"), `text should not contain <think> tag, got: ${combined}`);
+});
