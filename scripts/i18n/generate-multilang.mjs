@@ -110,6 +110,15 @@ const LOCALE_SPECS = [
     docsName: "ไทย",
   },
   {
+    code: "tr",
+    googleTl: "tr",
+    label: "TR",
+    flag: "🇹🇷",
+    languageName: "Türkçe",
+    readmeName: "Türkçe",
+    docsName: "Türkçe",
+  },
+  {
     code: "uk-UA",
     googleTl: "uk",
     label: "UK-UA",
