@@ -462,7 +462,6 @@ export async function handleChatCore({
         FORMATS.CLAUDE,
         model,
         { ...translatedBody, _disableToolPrefix: true },
-        translatedBody,
         stream,
         credentials,
         provider,
