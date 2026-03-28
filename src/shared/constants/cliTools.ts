@@ -98,6 +98,47 @@ export const CLI_TOOLS = {
       { step: 6, title: "Select Model", type: "modelSelector" },
     ],
   },
+  windsurf: {
+    id: "windsurf",
+    name: "Windsurf",
+    icon: "airwave",
+    color: "#06B6D4",
+    description: "Windsurf IDE guide with current official limitations",
+    docsUrl: "https://docs.windsurf.com/windsurf/models",
+    configType: "guide",
+    notes: [
+      {
+        type: "warning",
+        text: "Official Windsurf docs currently describe BYOK for select Claude models plus enterprise URL/token settings, not a generic custom OpenAI-compatible provider.",
+      },
+      {
+        type: "warning",
+        text: "The official proxy documentation is for network proxies. Verify the latest Windsurf docs before attempting to point it at OmniRoute as a model provider.",
+      },
+    ],
+    guideSteps: [
+      {
+        step: 1,
+        title: "Open AI settings",
+        desc: "Open Windsurf settings and review the current AI model or subscription configuration.",
+      },
+      {
+        step: 2,
+        title: "Review BYOK",
+        desc: "Check the official BYOK/models page for the currently supported provider and model options.",
+      },
+      {
+        step: 3,
+        title: "Check enterprise setup",
+        desc: "If your organization uses Windsurf enterprise features, follow the official enterprise URL/token flow from Windsurf docs.",
+      },
+      {
+        step: 4,
+        title: "Re-verify support",
+        desc: "Only use OmniRoute directly if Windsurf ships official custom provider or base URL support in a later release.",
+      },
+    ],
+  },
   cline: {
     id: "cline",
     name: "Cline",

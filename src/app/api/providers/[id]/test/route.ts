@@ -59,8 +59,8 @@ const OAUTH_TEST_CONFIG = {
     refreshable: true,
   },
   qwen: {
-    // portal.qwen.ai/v1/models returns 404 — endpoint no longer exists.
-    // Use checkExpiry instead — actual connectivity is validated via real requests.
+    // Qwen OAuth is validated via token expiry; model import uses DashScope /models.
+    // Use checkExpiry here — actual request connectivity is validated via real calls.
     checkExpiry: true,
     refreshable: true,
   },
