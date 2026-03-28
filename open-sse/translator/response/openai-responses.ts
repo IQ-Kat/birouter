@@ -602,10 +602,21 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
     return null;
   }
 
-  // Reasoning events (convert to content or skip)
+  // Reasoning events — emit as reasoning_content in Chat format
   if (eventType === "response.reasoning_summary_text.delta") {
-    // Optionally include reasoning as content, or skip
-    return null;
+    const reasoningDelta = data.delta || "";
+    if (!reasoningDelta) return null;
+    return {
+      id: state.chatId,
+      object: "chat.completion.chunk",
+      created: state.created,
+      model: state.model || "gpt-4",
+      choices: [{
+        index: 0,
+        delta: { reasoning_content: reasoningDelta },
+        finish_reason: null,
+      }],
+    };
   }
 
   // Ignore other events

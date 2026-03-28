@@ -342,7 +342,7 @@ test("Chat→Responses: deprecated function role message converted to function_c
   assert.equal(fcOutput.call_id, fcItem.call_id);
 });
 
-const { openaiToOpenAIResponsesResponse } = await import(
+const { openaiToOpenAIResponsesResponse, openaiResponsesToOpenAIResponse } = await import(
   "../../open-sse/translator/response/openai-responses.ts"
 );
 const { initState } = await import("../../open-sse/translator/index.ts");
@@ -387,4 +387,19 @@ test("Chat→Responses streaming: completed event includes accumulated output", 
   assert.ok(completedEvent.data.response.output.length > 0, "output should not be empty");
   const msgOutput = completedEvent.data.response.output.find((o) => o.type === "message");
   assert.ok(msgOutput, "should have message output item");
+});
+
+test("Responses→Chat streaming: reasoning delta emits reasoning_content in Chat chunk", () => {
+  const state = { started: false, chatId: null, created: null, toolCallIndex: 0, finishReasonSent: false };
+
+  const chunk = {
+    type: "response.reasoning_summary_text.delta",
+    delta: "thinking step...",
+    item_id: "rs_1",
+    output_index: 0,
+    summary_index: 0,
+  };
+  const result = openaiResponsesToOpenAIResponse(chunk, state);
+  assert.ok(result, "should return a chunk");
+  assert.equal(result.choices[0].delta.reasoning_content, "thinking step...");
 });
