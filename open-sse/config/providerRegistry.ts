@@ -632,7 +632,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
     },
     models: [
-      { id: "glm-5.1", name: "GLM 5.1" },
+      { id: "glm-5.1", name: "GLM 5.1", contextLength: 204800 },
       { id: "glm-5", name: "GLM 5" },
       { id: "glm-5-turbo", name: "GLM 5 Turbo" },
       { id: "glm-4.7-flashx", name: "GLM 4.7 FlashX" },
