@@ -3,6 +3,11 @@ import { ensureToolCallIds, fixMissingToolResponses } from "./helpers/toolCallHe
 import { coerceToolSchemas, sanitizeToolDescriptions } from "./helpers/schemaCoercion.ts";
 import { prepareClaudeRequest } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
+import {
+  coerceToolSchemas,
+  injectEmptyReasoningContentForToolCalls,
+  sanitizeToolDescriptions,
+} from "./helpers/schemaCoercion.ts";
 import { getRequestTranslator, getResponseTranslator } from "./registry.ts";
 import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
 import { normalizeThinkingConfig } from "../services/provider.ts";
@@ -170,6 +175,15 @@ export function translateRequest(
       targetFormat,
       preserveDeveloperRole
     );
+  }
+
+  if (result.tools !== undefined) {
+    result.tools = coerceToolSchemas(result.tools);
+    result.tools = sanitizeToolDescriptions(result.tools);
+  }
+
+  if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {
+    result.messages = injectEmptyReasoningContentForToolCalls(result.messages, provider);
   }
 
   // Ensure unique tool_call ids on final payload (translators may have introduced duplicates)

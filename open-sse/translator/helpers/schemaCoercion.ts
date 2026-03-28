@@ -1,8 +1,9 @@
 /**
- * Coerce string-encoded numeric JSON Schema constraints to their proper types.
- * Some clients (Cursor, Cline, etc.) send e.g. "minimum": "1" instead of "minimum": 1,
- * which causes 400 errors on strict providers like Claude and OpenAI.
+ * Shared sanitizers for tool payloads that arrive from IDEs/SDKs with
+ * JSON Schema numeric constraints encoded as strings or invalid descriptions.
  */
+
+type JsonRecord = Record<string, unknown>;
 
 const NUMERIC_SCHEMA_FIELDS = [
   "minimum",
@@ -18,117 +19,189 @@ const NUMERIC_SCHEMA_FIELDS = [
   "multipleOf",
 ] as const;
 
-export function coerceSchemaNumericFields(schema: any): any {
-  if (!schema || typeof schema !== "object") return schema;
-  if (Array.isArray(schema)) return schema.map(coerceSchemaNumericFields);
+function isPlainObject(value: unknown): value is JsonRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
 
-  const result = { ...schema };
+function coerceNumericString(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return value;
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : value;
+}
+
+function mapRecordValues(record: JsonRecord): JsonRecord {
+  return Object.fromEntries(
+    Object.entries(record).map(([key, value]) => [key, coerceSchemaNumericFields(value)])
+  );
+}
+
+function sanitizeDescriptionValue(value: unknown): string | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return "";
+  return typeof value === "string" ? value : String(value);
+}
+
+export function coerceSchemaNumericFields(schema: unknown): unknown {
+  if (Array.isArray(schema)) {
+    return schema.map((entry) => coerceSchemaNumericFields(entry));
+  }
+  if (!isPlainObject(schema)) return schema;
+
+  const result: JsonRecord = { ...schema };
 
   for (const field of NUMERIC_SCHEMA_FIELDS) {
-    if (field in result && typeof result[field] === "string") {
-      const num = Number(result[field]);
-      if (!isNaN(num) && isFinite(num)) {
-        result[field] = num;
-      }
+    if (field in result) {
+      result[field] = coerceNumericString(result[field]);
     }
   }
 
-  // Recurse into nested schema structures
-  if (result.properties && typeof result.properties === "object") {
-    result.properties = Object.fromEntries(
-      Object.entries(result.properties).map(([key, val]) => [key, coerceSchemaNumericFields(val)])
-    );
+  if (isPlainObject(result.properties)) {
+    result.properties = mapRecordValues(result.properties);
   }
-  if (result.items) {
+  if (isPlainObject(result.patternProperties)) {
+    result.patternProperties = mapRecordValues(result.patternProperties);
+  }
+  if (isPlainObject(result.definitions)) {
+    result.definitions = mapRecordValues(result.definitions);
+  }
+  if (isPlainObject(result.$defs)) {
+    result.$defs = mapRecordValues(result.$defs);
+  }
+  if (isPlainObject(result.dependentSchemas)) {
+    result.dependentSchemas = mapRecordValues(result.dependentSchemas);
+  }
+
+  if (result.items !== undefined) {
     result.items = coerceSchemaNumericFields(result.items);
   }
   if (result.additionalProperties && typeof result.additionalProperties === "object") {
     result.additionalProperties = coerceSchemaNumericFields(result.additionalProperties);
   }
+  if (result.unevaluatedProperties && typeof result.unevaluatedProperties === "object") {
+    result.unevaluatedProperties = coerceSchemaNumericFields(result.unevaluatedProperties);
+  }
+  if (Array.isArray(result.prefixItems)) {
+    result.prefixItems = result.prefixItems.map((entry) => coerceSchemaNumericFields(entry));
+  }
   if (Array.isArray(result.anyOf)) {
-    result.anyOf = result.anyOf.map(coerceSchemaNumericFields);
+    result.anyOf = result.anyOf.map((entry) => coerceSchemaNumericFields(entry));
   }
   if (Array.isArray(result.oneOf)) {
-    result.oneOf = result.oneOf.map(coerceSchemaNumericFields);
+    result.oneOf = result.oneOf.map((entry) => coerceSchemaNumericFields(entry));
   }
   if (Array.isArray(result.allOf)) {
-    result.allOf = result.allOf.map(coerceSchemaNumericFields);
+    result.allOf = result.allOf.map((entry) => coerceSchemaNumericFields(entry));
   }
-  if (result.not && typeof result.not === "object") {
+  if (isPlainObject(result.not)) {
     result.not = coerceSchemaNumericFields(result.not);
+  }
+  if (isPlainObject(result.if)) {
+    result.if = coerceSchemaNumericFields(result.if);
+  }
+  if (isPlainObject(result.then)) {
+    result.then = coerceSchemaNumericFields(result.then);
+  }
+  if (isPlainObject(result.else)) {
+    result.else = coerceSchemaNumericFields(result.else);
   }
 
   return result;
 }
 
-/**
- * Apply schema coercion to all tools in a request body.
- * Handles both OpenAI format (function.parameters) and Claude format (input_schema).
- */
-export function coerceToolSchemas(tools: any[]): any[] {
+export function sanitizeToolDescription(tool: unknown): unknown {
+  if (!isPlainObject(tool)) return tool;
+
+  const result: JsonRecord = { ...tool };
+
+  if (isPlainObject(result.function) && "description" in result.function) {
+    const description = sanitizeDescriptionValue(result.function.description);
+    if (description !== undefined) {
+      result.function = { ...result.function, description };
+    }
+  }
+
+  if (!isPlainObject(result.function) && "description" in result) {
+    const description = sanitizeDescriptionValue(result.description);
+    if (description !== undefined) {
+      result.description = description;
+    }
+  }
+
+  if (Array.isArray(result.functionDeclarations)) {
+    result.functionDeclarations = result.functionDeclarations.map((declaration) => {
+      if (!isPlainObject(declaration) || !("description" in declaration)) return declaration;
+      const description = sanitizeDescriptionValue(declaration.description);
+      return description === undefined ? declaration : { ...declaration, description };
+    });
+  }
+
+  return result;
+}
+
+export function coerceToolSchemas(tools: unknown): unknown {
   if (!Array.isArray(tools)) return tools;
 
   return tools.map((tool) => {
-    if (!tool || typeof tool !== "object") return tool;
+    if (!isPlainObject(tool)) return tool;
 
-    const result = { ...tool };
+    const result: JsonRecord = { ...tool };
 
-    // OpenAI format: tool.function.parameters
-    if (result.function?.parameters) {
+    if (isPlainObject(result.function) && "parameters" in result.function) {
       result.function = {
         ...result.function,
         parameters: coerceSchemaNumericFields(result.function.parameters),
       };
     }
 
-    // Claude format: tool.input_schema
-    if (result.input_schema) {
+    if (result.input_schema !== undefined) {
       result.input_schema = coerceSchemaNumericFields(result.input_schema);
     }
 
-    // Direct parameters (some formats)
-    if (result.parameters && !result.function) {
+    if ("parameters" in result && !isPlainObject(result.function)) {
       result.parameters = coerceSchemaNumericFields(result.parameters);
+    }
+
+    if (Array.isArray(result.functionDeclarations)) {
+      result.functionDeclarations = result.functionDeclarations.map((declaration) => {
+        if (!isPlainObject(declaration) || !("parameters" in declaration)) return declaration;
+        return {
+          ...declaration,
+          parameters: coerceSchemaNumericFields(declaration.parameters),
+        };
+      });
     }
 
     return result;
   });
 }
 
-/**
- * Ensure tool.description is always a string.
- * Some clients send null, undefined, or numeric descriptions.
- */
-export function sanitizeToolDescription(tool: any): any {
-  if (!tool || typeof tool !== "object") return tool;
-
-  const result = { ...tool };
-
-  // OpenAI format: tool.function.description
-  if (result.function && result.function.description !== undefined) {
-    if (result.function.description === null) {
-      result.function = { ...result.function, description: "" };
-    } else if (typeof result.function.description !== "string") {
-      result.function = { ...result.function, description: String(result.function.description) };
-    }
-  }
-
-  // Claude format: tool.description (direct)
-  if ("description" in result && !result.function) {
-    if (result.description === null) {
-      result.description = "";
-    } else if (typeof result.description !== "string") {
-      result.description = String(result.description);
-    }
-  }
-
-  return result;
+export function sanitizeToolDescriptions(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+  return tools.map((tool) => sanitizeToolDescription(tool));
 }
 
-/**
- * Apply description sanitization to all tools in a request body.
- */
-export function sanitizeToolDescriptions(tools: any[]): any[] {
-  if (!Array.isArray(tools)) return tools;
-  return tools.map(sanitizeToolDescription);
+export function injectEmptyReasoningContentForToolCalls(
+  messages: unknown,
+  provider: unknown
+): unknown {
+  if (!Array.isArray(messages) || String(provider || "").toLowerCase() !== "deepseek") {
+    return messages;
+  }
+
+  return messages.map((message) => {
+    if (!isPlainObject(message)) return message;
+    if (
+      message.role !== "assistant" ||
+      !Array.isArray(message.tool_calls) ||
+      message.tool_calls.length === 0 ||
+      message.reasoning_content !== undefined
+    ) {
+      return message;
+    }
+
+    return { ...message, reasoning_content: "" };
+  });
 }

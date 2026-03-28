@@ -106,6 +106,12 @@ export const CLI_TOOLS = {
     description: "Windsurf AI-first IDE by Codeium",
     docsUrl: "https://windsurf.com/",
     configType: "guide",
+    notes: [
+      {
+        type: "warning",
+        text: "Official Windsurf docs currently describe BYOK for select Claude models plus enterprise URL/token settings, not a generic custom OpenAI-compatible provider.",
+      },
+    ],
     guideSteps: [
       {
         step: 1,

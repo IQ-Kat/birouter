@@ -50,18 +50,7 @@ function hasTruncatedFlag(value: unknown): boolean {
 }
 
 const DEFAULT_MAX_CALL_LOGS = 10000;
-
-async function getMaxCallLogs(): Promise<number> {
-  try {
-    const settings = await getSettings();
-    const setting = settings.maxCallLogs;
-    if (setting) {
-      const num = parseInt(String(setting), 10);
-      if (!isNaN(num) && num > 0) return num;
-    }
-  } catch {}
-  return DEFAULT_MAX_CALL_LOGS;
-}
+const CALL_LOGS_MAX_CACHE_TTL_MS = 30_000;
 
 const LOG_RETENTION_DAYS = parseInt(process.env.LOG_RETENTION_DAYS || "7", 10);
 const CALL_LOG_PAYLOAD_MODE = (() => {
@@ -70,6 +59,55 @@ const CALL_LOG_PAYLOAD_MODE = (() => {
 })();
 const shouldLogPayloadInDb = CALL_LOG_PAYLOAD_MODE !== "none";
 const shouldLogPayloadOnDisk = CALL_LOG_PAYLOAD_MODE === "full";
+
+let callLogsMaxCache = {
+  value: resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS,
+  expiresAt: 0,
+};
+
+function resolveCallLogsMaxValue(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  }
+  return null;
+}
+
+async function getMaxCallLogs(): Promise<number> {
+  const now = Date.now();
+  if (callLogsMaxCache.expiresAt > now) {
+    return callLogsMaxCache.value;
+  }
+
+  let value = resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS;
+
+  try {
+    const { getSettings } = await import("@/lib/localDb");
+    const settings = await getSettings();
+    const configured =
+      resolveCallLogsMaxValue(settings.maxCallLogs) ??
+      resolveCallLogsMaxValue(settings.MAX_CALL_LOGS);
+    if (configured !== null) {
+      value = configured;
+    }
+  } catch {
+    // Fall back to env/default cap when settings are unavailable.
+  }
+
+  callLogsMaxCache = {
+    value,
+    expiresAt: now + CALL_LOGS_MAX_CACHE_TTL_MS,
+  };
+  return value;
+}
+
+export function invalidateCallLogsMaxCache(): void {
+  callLogsMaxCache = {
+    value: resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS,
+    expiresAt: 0,
+  };
+}
 
 /** Fields that should always be redacted from logged payloads */
 const SENSITIVE_KEYS = new Set([
