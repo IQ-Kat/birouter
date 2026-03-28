@@ -405,6 +405,20 @@ export function openaiToOpenAIResponsesRequest(
           });
         }
       }
+
+      // Handle deprecated function_call field (pre-tool_calls API)
+      if (msg.function_call && !msg.tool_calls) {
+        const fc = toRecord(msg.function_call);
+        const fnName = toString(fc.name).trim();
+        if (fnName) {
+          input.push({
+            type: "function_call",
+            call_id: `call_${fnName}`,
+            name: fnName,
+            arguments: toString(fc.arguments, "{}"),
+          });
+        }
+      }
     }
 
     // Convert tool results
@@ -421,6 +435,15 @@ export function openaiToOpenAIResponsesRequest(
                 return c;
               })
             : String(msg.content ?? ""),
+      });
+    }
+
+    // Handle deprecated function role messages
+    if (role === "function") {
+      input.push({
+        type: "function_call_output",
+        call_id: `call_${toString(msg.name)}`,
+        output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
       });
     }
   }

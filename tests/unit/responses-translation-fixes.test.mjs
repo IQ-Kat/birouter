@@ -299,3 +299,45 @@ test("Responses→Chat: function tool type passes through", () => {
   assert.equal(result.tools.length, 1);
   assert.equal(result.tools[0].type, "function");
 });
+
+test("Chat→Responses: deprecated function_call field on assistant converted to function_call item", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [
+      { role: "user", content: "weather?" },
+      {
+        role: "assistant",
+        content: null,
+        function_call: { name: "get_weather", arguments: '{"city":"NYC"}' },
+      },
+    ],
+  };
+  const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
+  const fcItem = result.input.find((i) => i.type === "function_call");
+  assert.ok(fcItem, "should have function_call input item");
+  assert.equal(fcItem.name, "get_weather");
+  assert.equal(fcItem.arguments, '{"city":"NYC"}');
+  assert.ok(fcItem.call_id, "should have a call_id");
+});
+
+test("Chat→Responses: deprecated function role message converted to function_call_output", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [
+      { role: "user", content: "weather?" },
+      {
+        role: "assistant",
+        content: null,
+        function_call: { name: "get_weather", arguments: '{"city":"NYC"}' },
+      },
+      { role: "function", name: "get_weather", content: '{"temp":72}' },
+    ],
+  };
+  const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
+  const fcOutput = result.input.find((i) => i.type === "function_call_output");
+  assert.ok(fcOutput, "should have function_call_output item");
+  assert.equal(fcOutput.output, '{"temp":72}');
+  // The call_ids should match between function_call and function_call_output
+  const fcItem = result.input.find((i) => i.type === "function_call");
+  assert.equal(fcOutput.call_id, fcItem.call_id);
+});
