@@ -117,3 +117,44 @@ test("Chat→Responses: image_url without detail omits detail", () => {
   assert.ok(imgPart);
   assert.equal(imgPart.detail, undefined);
 });
+
+test("Responses→Chat: input_file converted to file content part", () => {
+  const body = {
+    model: "gpt-4",
+    input: [
+      {
+        type: "message",
+        role: "user",
+        content: [
+          { type: "input_file", file_id: "file-abc", filename: "data.csv" },
+        ],
+      },
+    ],
+  };
+  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
+  const userMsg = result.messages.find((m) => m.role === "user");
+  const filePart = userMsg.content.find((c) => c.type === "file");
+  assert.ok(filePart, "should have file content part");
+  assert.equal(filePart.file.file_id, "file-abc");
+  assert.equal(filePart.file.filename, "data.csv");
+});
+
+test("Chat→Responses: file content part converted to input_file", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "file", file: { file_id: "file-abc", filename: "data.csv" } },
+        ],
+      },
+    ],
+  };
+  const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
+  const userItem = result.input.find((i) => i.type === "message" && i.role === "user");
+  const filePart = userItem.content.find((c) => c.type === "input_file");
+  assert.ok(filePart, "should have input_file content part");
+  assert.equal(filePart.file_id, "file-abc");
+  assert.equal(filePart.filename, "data.csv");
+});

@@ -122,6 +122,14 @@ export function openaiResponsesToOpenAIRequest(
               }
               return imgResult;
             }
+            if (contentItem.type === "input_file") {
+              const fileObj: JsonRecord = {};
+              if (contentItem.file_data !== undefined) fileObj.file_data = contentItem.file_data;
+              if (contentItem.file_id !== undefined) fileObj.file_id = contentItem.file_id;
+              if (contentItem.file_url !== undefined) fileObj.file_url = contentItem.file_url;
+              if (contentItem.filename !== undefined) fileObj.filename = contentItem.filename;
+              return { type: "file", file: fileObj };
+            }
             return contentValue;
           })
         : item.content;
@@ -307,6 +315,15 @@ export function openaiToOpenAIResponsesRequest(
                     imgResult.detail = imgUrl.detail;
                   }
                   return imgResult;
+                }
+                if (contentItem.type === "file") {
+                  const file = toRecord(contentItem.file);
+                  const fileResult: JsonRecord = { type: "input_file" };
+                  if (file.file_data !== undefined) fileResult.file_data = file.file_data;
+                  if (file.file_id !== undefined) fileResult.file_id = file.file_id;
+                  if (file.file_url !== undefined) fileResult.file_url = file.file_url;
+                  if (file.filename !== undefined) fileResult.filename = file.filename;
+                  return fileResult;
                 }
                 return contentValue;
               })
