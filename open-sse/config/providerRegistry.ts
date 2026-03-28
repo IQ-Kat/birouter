@@ -640,8 +640,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "glm-4.6v", name: "GLM 4.6V (Vision)" },
       { id: "glm-4.6", name: "GLM 4.6" },
       { id: "glm-4.5v", name: "GLM 4.5V (Vision)" },
-      { id: "glm-4.5", name: "GLM 4.5" },
-      { id: "glm-4.5-air", name: "GLM 4.5 Air" },
+      { id: "glm-4.5", name: "GLM 4.5", contextLength: 128000 },
+      { id: "glm-4.5-air", name: "GLM 4.5 Air", contextLength: 128000 },
     ],
   },
 
