@@ -112,6 +112,16 @@ export function openaiResponsesToOpenAIRequest(
             if (contentItem.type === "output_text") {
               return { type: "text", text: toString(contentItem.text) };
             }
+            if (contentItem.type === "input_image") {
+              const imgResult: JsonRecord = {
+                type: "image_url",
+                image_url: { url: toString(contentItem.image_url) },
+              };
+              if (contentItem.detail !== undefined) {
+                (imgResult.image_url as JsonRecord).detail = contentItem.detail;
+              }
+              return imgResult;
+            }
             return contentValue;
           })
         : item.content;
@@ -288,11 +298,15 @@ export function openaiToOpenAIResponsesRequest(
                   return { type: "input_text", text: toString(contentItem.text) };
                 }
                 if (contentItem.type === "image_url") {
-                  const imgUrl = contentItem.image_url as string | { url?: string };
-                  return {
+                  const imgUrl = contentItem.image_url as string | { url?: string; detail?: string };
+                  const imgResult: JsonRecord = {
                     type: "input_image",
                     image_url: typeof imgUrl === "string" ? imgUrl : imgUrl?.url || "",
                   };
+                  if (typeof imgUrl === "object" && imgUrl?.detail !== undefined) {
+                    imgResult.detail = imgUrl.detail;
+                  }
+                  return imgResult;
                 }
                 return contentValue;
               })

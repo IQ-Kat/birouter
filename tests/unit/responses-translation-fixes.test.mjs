@@ -4,6 +4,9 @@ import assert from "node:assert/strict";
 const { convertResponsesApiFormat } = await import(
   "../../open-sse/translator/helpers/responsesApiHelper.ts"
 );
+const { openaiResponsesToOpenAIRequest, openaiToOpenAIResponsesRequest } = await import(
+  "../../open-sse/translator/request/openai-responses.ts"
+);
 
 test("convertResponsesApiFormat filters orphaned function_call_output items", () => {
   const body = {
@@ -32,4 +35,85 @@ test("convertResponsesApiFormat skips function_call items with empty names", () 
   const result = convertResponsesApiFormat(body);
   const assistantMsgs = result.messages.filter((m) => m.role === "assistant");
   assert.equal(assistantMsgs.length, 0);
+});
+
+test("Responses→Chat: input_image converted to image_url with detail", () => {
+  const body = {
+    model: "gpt-4",
+    input: [
+      {
+        type: "message",
+        role: "user",
+        content: [
+          { type: "input_text", text: "What is this?" },
+          { type: "input_image", image_url: "https://example.com/img.png", detail: "high" },
+        ],
+      },
+    ],
+  };
+  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
+  const userMsg = result.messages.find((m) => m.role === "user");
+  const imgPart = userMsg.content.find((c) => c.type === "image_url");
+  assert.ok(imgPart, "should have image_url content part");
+  assert.equal(imgPart.image_url.url, "https://example.com/img.png");
+  assert.equal(imgPart.image_url.detail, "high");
+});
+
+test("Responses→Chat: input_image without detail omits detail field", () => {
+  const body = {
+    model: "gpt-4",
+    input: [
+      {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_image", image_url: "https://example.com/img.png" }],
+      },
+    ],
+  };
+  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
+  const userMsg = result.messages.find((m) => m.role === "user");
+  const imgPart = userMsg.content.find((c) => c.type === "image_url");
+  assert.ok(imgPart);
+  assert.equal(imgPart.image_url.url, "https://example.com/img.png");
+  assert.equal(imgPart.image_url.detail, undefined);
+});
+
+test("Chat→Responses: image_url detail preserved as input_image", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Describe" },
+          { type: "image_url", image_url: { url: "https://example.com/img.png", detail: "low" } },
+        ],
+      },
+    ],
+  };
+  const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
+  const userItem = result.input.find((i) => i.type === "message" && i.role === "user");
+  const imgPart = userItem.content.find((c) => c.type === "input_image");
+  assert.ok(imgPart, "should have input_image content part");
+  assert.equal(imgPart.image_url, "https://example.com/img.png");
+  assert.equal(imgPart.detail, "low");
+});
+
+test("Chat→Responses: image_url without detail omits detail", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: "https://example.com/img.png" } },
+        ],
+      },
+    ],
+  };
+  const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
+  const userItem = result.input.find((i) => i.type === "message" && i.role === "user");
+  const imgPart = userItem.content.find((c) => c.type === "input_image");
+  assert.ok(imgPart);
+  assert.equal(imgPart.detail, undefined);
 });
