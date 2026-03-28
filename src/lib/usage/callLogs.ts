@@ -10,6 +10,7 @@
 import path from "path";
 import fs from "fs";
 import { getDbInstance } from "../db/core";
+import { getSettings } from "../db/settings";
 import { shouldPersistToDisk, CALL_LOGS_DIR } from "./migrations";
 import { getLoggedInputTokens, getLoggedOutputTokens } from "./tokenAccounting";
 import { isNoLog } from "../compliance";
@@ -48,7 +49,9 @@ function hasTruncatedFlag(value: unknown): boolean {
   return (value as Record<string, unknown>)._truncated === true;
 }
 
-const CALL_LOGS_MAX = parseInt(process.env.CALL_LOGS_MAX || "200", 10);
+const DEFAULT_MAX_CALL_LOGS = 10000;
+const CALL_LOGS_MAX_CACHE_TTL_MS = 30_000;
+
 const LOG_RETENTION_DAYS = parseInt(process.env.LOG_RETENTION_DAYS || "7", 10);
 const CALL_LOG_PAYLOAD_MODE = (() => {
   const value = (process.env.CALL_LOG_PAYLOAD_MODE || "full").toLowerCase();
@@ -56,6 +59,55 @@ const CALL_LOG_PAYLOAD_MODE = (() => {
 })();
 const shouldLogPayloadInDb = CALL_LOG_PAYLOAD_MODE !== "none";
 const shouldLogPayloadOnDisk = CALL_LOG_PAYLOAD_MODE === "full";
+
+let callLogsMaxCache = {
+  value: resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS,
+  expiresAt: 0,
+};
+
+function resolveCallLogsMaxValue(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  }
+  return null;
+}
+
+async function getMaxCallLogs(): Promise<number> {
+  const now = Date.now();
+  if (callLogsMaxCache.expiresAt > now) {
+    return callLogsMaxCache.value;
+  }
+
+  let value = resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS;
+
+  try {
+    const { getSettings } = await import("@/lib/localDb");
+    const settings = await getSettings();
+    const configured =
+      resolveCallLogsMaxValue(settings.maxCallLogs) ??
+      resolveCallLogsMaxValue(settings.MAX_CALL_LOGS);
+    if (configured !== null) {
+      value = configured;
+    }
+  } catch {
+    // Fall back to env/default cap when settings are unavailable.
+  }
+
+  callLogsMaxCache = {
+    value,
+    expiresAt: now + CALL_LOGS_MAX_CACHE_TTL_MS,
+  };
+  return value;
+}
+
+export function invalidateCallLogsMaxCache(): void {
+  callLogsMaxCache = {
+    value: resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS,
+    expiresAt: 0,
+  };
+}
 
 /** Fields that should always be redacted from logged payloads */
 const SENSITIVE_KEYS = new Set([
@@ -212,17 +264,18 @@ export async function saveCallLog(entry: any) {
     `
     ).run(logEntry);
 
-    // 2. Trim old entries beyond CALL_LOGS_MAX
+    // 2. Trim old entries beyond max
+    const maxLogs = await getMaxCallLogs();
     const countRow = asRecord(db.prepare("SELECT COUNT(*) as cnt FROM call_logs").get());
     const count = toNumber(countRow.cnt);
-    if (count > CALL_LOGS_MAX) {
+    if (count > maxLogs) {
       db.prepare(
         `
         DELETE FROM call_logs WHERE id IN (
           SELECT id FROM call_logs ORDER BY timestamp ASC LIMIT ?
         )
       `
-      ).run(count - CALL_LOGS_MAX);
+      ).run(count - maxLogs);
     }
 
     // 3. Write full payload to disk file (untruncated)
