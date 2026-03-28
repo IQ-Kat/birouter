@@ -10,8 +10,6 @@ import { generateToolCallId } from "../helpers/toolCallHelper.ts";
 
 type JsonRecord = Record<string, unknown>;
 
-const UNSUPPORTED_TOOLS = ["file_search", "code_interpreter", "web_search_preview"];
-
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -47,14 +45,16 @@ export function openaiResponsesToOpenAIRequest(
   const root = toRecord(body);
   if (root.input === undefined) return body;
 
-  // Validate unsupported features - return clear errors instead of silent failure
+  // Validate tool types — only function tools can be translated to Chat Completions
   const tools = toArray(root.tools);
   if (tools.length > 0) {
     for (const toolValue of tools) {
       const tool = toRecord(toolValue);
-      if (UNSUPPORTED_TOOLS.includes(toString(tool.type))) {
+      const toolType = toString(tool.type);
+      // Allow: function tools, and tools already in Chat format (have .function property)
+      if (toolType && toolType !== "function" && !tool.function) {
         throw unsupportedFeature(
-          `Unsupported Responses API feature: ${toString(tool.type)} tool type is not supported by omniroute`
+          `Unsupported Responses API feature: ${toolType} tool type is not supported by omniroute`
         );
       }
     }

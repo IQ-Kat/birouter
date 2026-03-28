@@ -214,3 +214,50 @@ test("Responses→Chat: built-in tool_choice type throws unsupported error", () 
     (err) => err.message.includes("web_search_preview")
   );
 });
+
+test("Responses→Chat: web_search tool type throws unsupported error", () => {
+  const body = {
+    model: "gpt-4",
+    input: "search for cats",
+    tools: [{ type: "web_search", search_context_size: "medium" }],
+  };
+  assert.throws(
+    () => openaiResponsesToOpenAIRequest(null, body, null, null),
+    (err) => err.message.includes("web_search")
+  );
+});
+
+test("Responses→Chat: computer tool type throws unsupported error", () => {
+  const body = {
+    model: "gpt-4",
+    input: "click button",
+    tools: [{ type: "computer" }],
+  };
+  assert.throws(
+    () => openaiResponsesToOpenAIRequest(null, body, null, null),
+    (err) => err.message.includes("computer")
+  );
+});
+
+test("Responses→Chat: mcp tool type throws unsupported error", () => {
+  const body = {
+    model: "gpt-4",
+    input: "hello",
+    tools: [{ type: "mcp", server_label: "test", server_url: "https://example.com" }],
+  };
+  assert.throws(
+    () => openaiResponsesToOpenAIRequest(null, body, null, null),
+    (err) => err.message.includes("mcp")
+  );
+});
+
+test("Responses→Chat: function tool type passes through", () => {
+  const body = {
+    model: "gpt-4",
+    input: "hello",
+    tools: [{ type: "function", name: "greet", parameters: {} }],
+  };
+  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
+  assert.equal(result.tools.length, 1);
+  assert.equal(result.tools[0].type, "function");
+});
