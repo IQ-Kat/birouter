@@ -341,3 +341,50 @@ test("Chat→Responses: deprecated function role message converted to function_c
   const fcItem = result.input.find((i) => i.type === "function_call");
   assert.equal(fcOutput.call_id, fcItem.call_id);
 });
+
+const { openaiToOpenAIResponsesResponse } = await import(
+  "../../open-sse/translator/response/openai-responses.ts"
+);
+const { initState } = await import("../../open-sse/translator/index.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+
+test("Chat→Responses streaming: usage-only chunk is captured (not dropped)", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+
+  // First chunk with content
+  const chunk1 = { choices: [{ index: 0, delta: { content: "hello" }, finish_reason: null }], id: "c1" };
+  openaiToOpenAIResponsesResponse(chunk1, state);
+
+  // Usage-only chunk (empty choices, has usage)
+  const usageChunk = {
+    choices: [],
+    usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+  };
+  const usageEvents = openaiToOpenAIResponsesResponse(usageChunk, state);
+  assert.ok(Array.isArray(usageEvents));
+
+  // Finish chunk
+  const finishChunk = { choices: [{ index: 0, delta: {}, finish_reason: "stop" }] };
+  const finishEvents = openaiToOpenAIResponsesResponse(finishChunk, state);
+  const completedEvent = finishEvents.find((e) => e.event === "response.completed");
+  assert.ok(completedEvent, "should have completed event");
+  assert.ok(completedEvent.data.response.usage, "completed event should include usage");
+  assert.equal(completedEvent.data.response.usage.prompt_tokens, 10);
+});
+
+test("Chat→Responses streaming: completed event includes accumulated output", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+
+  // Text content
+  const chunk = { choices: [{ index: 0, delta: { content: "hello world" }, finish_reason: null }], id: "c1" };
+  openaiToOpenAIResponsesResponse(chunk, state);
+
+  // Finish
+  const finishChunk = { choices: [{ index: 0, delta: {}, finish_reason: "stop" }] };
+  const events = openaiToOpenAIResponsesResponse(finishChunk, state);
+  const completedEvent = events.find((e) => e.event === "response.completed");
+  assert.ok(completedEvent.data.response.output, "completed should have output");
+  assert.ok(completedEvent.data.response.output.length > 0, "output should not be empty");
+  const msgOutput = completedEvent.data.response.output.find((o) => o.type === "message");
+  assert.ok(msgOutput, "should have message output item");
+});
