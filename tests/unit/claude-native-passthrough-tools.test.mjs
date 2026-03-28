@@ -39,3 +39,11 @@ test("Claude native passthrough normalization keeps original tool names", () => 
     structuredClone(body),
     false,
     null,
+    null,
+    null
+  );
+
+  // Verify the OpenAI body was created
+  assert.ok(openaiBody);
+  assert.ok(Array.isArray(openaiBody.messages) || openaiBody.messages === undefined);
+});

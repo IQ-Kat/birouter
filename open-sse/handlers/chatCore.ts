@@ -27,8 +27,6 @@ import {
   saveCallLog,
 } from "@/lib/usageDb";
 import { getLoggedInputTokens, getLoggedOutputTokens } from "@/lib/usage/tokenAccounting";
-import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
-import { getExecutor } from "../executors/index.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
 import {
   getModelNormalizeToolCallId,
@@ -170,7 +168,9 @@ function buildClaudePromptCacheLogMeta(
     ? finalBody.system.flatMap((block, index) => {
         if (!block || typeof block !== "object") return [];
         const cacheControl =
-          block.cache_control && typeof block.cache_control === "object" ? block.cache_control : null;
+          block.cache_control && typeof block.cache_control === "object"
+            ? block.cache_control
+            : null;
         return cacheControl ? [describeCacheControl(cacheControl, { index })] : [];
       })
     : [];
@@ -193,7 +193,9 @@ function buildClaudePromptCacheLogMeta(
         return message.content.flatMap((block, contentIndex) => {
           if (!block || typeof block !== "object") return [];
           const cacheControl =
-            block.cache_control && typeof block.cache_control === "object" ? block.cache_control : null;
+            block.cache_control && typeof block.cache_control === "object"
+              ? block.cache_control
+              : null;
           if (!cacheControl) return [];
           return [
             describeCacheControl(cacheControl, {
@@ -238,16 +240,13 @@ function buildCacheUsageLogMeta(usage: Record<string, unknown> | null | undefine
     "cache_read_input_tokens" in usage ||
     "cached_tokens" in usage ||
     "cache_creation_input_tokens" in usage ||
-    !!promptTokenDetails &&
-      ("cached_tokens" in promptTokenDetails || "cache_creation_tokens" in promptTokenDetails);
+    (!!promptTokenDetails &&
+      ("cached_tokens" in promptTokenDetails || "cache_creation_tokens" in promptTokenDetails));
   const cacheReadTokens = toPositiveNumber(
-    usage.cache_read_input_tokens ??
-      usage.cached_tokens ??
-      promptTokenDetails?.cached_tokens
+    usage.cache_read_input_tokens ?? usage.cached_tokens ?? promptTokenDetails?.cached_tokens
   );
   const cacheCreationTokens = toPositiveNumber(
-    usage.cache_creation_input_tokens ??
-      promptTokenDetails?.cache_creation_tokens
+    usage.cache_creation_input_tokens ?? promptTokenDetails?.cache_creation_tokens
   );
   if (!hasCacheFields) return null;
   return {
@@ -269,7 +268,9 @@ function attachLogMeta(
     return { _omniroute: compactMeta, _payload: payload ?? null };
   }
   const existing =
-    payload._omniroute && typeof payload._omniroute === "object" && !Array.isArray(payload._omniroute)
+    payload._omniroute &&
+    typeof payload._omniroute === "object" &&
+    !Array.isArray(payload._omniroute)
       ? payload._omniroute
       : {};
   return {
@@ -613,7 +614,6 @@ export async function handleChatCore({
         FORMATS.CLAUDE,
         model,
         { ...translatedBody, _disableToolPrefix: true },
-        translatedBody,
         stream,
         credentials,
         provider,
