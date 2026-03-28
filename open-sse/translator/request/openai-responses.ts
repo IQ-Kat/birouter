@@ -244,6 +244,20 @@ export function openaiResponsesToOpenAIRequest(
     return true;
   });
 
+  // Translate tool_choice object format: Responses {type,name} → Chat {type,function:{name}}
+  if (result.tool_choice && typeof result.tool_choice === "object" && !Array.isArray(result.tool_choice)) {
+    const tc = toRecord(result.tool_choice);
+    const tcType = toString(tc.type);
+    if (tcType === "function" && tc.name !== undefined && !tc.function) {
+      result.tool_choice = { type: "function", function: { name: tc.name } };
+    } else if (tcType && tcType !== "function" && tcType !== "allowed_tools") {
+      // Built-in tool types (web_search_preview, file_search, etc.) have no Chat equivalent
+      throw unsupportedFeature(
+        `Unsupported Responses API feature: tool_choice type '${tcType}' is not supported by omniroute`
+      );
+    }
+  }
+
   // Cleanup Responses API specific fields
   // Note: prompt_cache_key is intentionally preserved — it is used by Codex and other
   // providers as a cache-affinity signal. Stripping it breaks prompt caching (#517).
@@ -438,6 +452,23 @@ export function openaiToOpenAIResponsesRequest(
       }
       return toolValue;
     });
+  }
+
+  // Translate tool_choice: Chat {type,function:{name}} → Responses {type,name}
+  if (root.tool_choice !== undefined) {
+    if (typeof root.tool_choice === "string") {
+      result.tool_choice = root.tool_choice;
+    } else if (typeof root.tool_choice === "object" && !Array.isArray(root.tool_choice)) {
+      const tc = toRecord(root.tool_choice);
+      if (tc.type === "function" && tc.function) {
+        const fn = toRecord(tc.function);
+        result.tool_choice = { type: "function", name: fn.name };
+      } else {
+        result.tool_choice = root.tool_choice;
+      }
+    } else {
+      result.tool_choice = root.tool_choice;
+    }
   }
 
   // Pass through relevant fields

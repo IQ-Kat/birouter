@@ -158,3 +158,59 @@ test("Chat→Responses: file content part converted to input_file", () => {
   assert.equal(filePart.file_id, "file-abc");
   assert.equal(filePart.filename, "data.csv");
 });
+
+test("Responses→Chat: tool_choice {type:'function', name} wrapped to {type:'function', function:{name}}", () => {
+  const body = {
+    model: "gpt-4",
+    input: "hello",
+    tool_choice: { type: "function", name: "get_weather" },
+    tools: [{ type: "function", name: "get_weather", parameters: {} }],
+  };
+  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
+  assert.deepEqual(result.tool_choice, {
+    type: "function",
+    function: { name: "get_weather" },
+  });
+});
+
+test("Chat→Responses: tool_choice {type:'function', function:{name}} unwrapped to {type:'function', name}", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [{ role: "user", content: "hello" }],
+    tool_choice: { type: "function", function: { name: "get_weather" } },
+    tools: [{ type: "function", function: { name: "get_weather", parameters: {} } }],
+  };
+  const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
+  assert.deepEqual(result.tool_choice, {
+    type: "function",
+    name: "get_weather",
+  });
+});
+
+test("Responses→Chat: string tool_choice passes through unchanged", () => {
+  const body = { model: "gpt-4", input: "hello", tool_choice: "auto" };
+  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
+  assert.equal(result.tool_choice, "auto");
+});
+
+test("Chat→Responses: string tool_choice passes through unchanged", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [{ role: "user", content: "hello" }],
+    tool_choice: "required",
+  };
+  const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
+  assert.equal(result.tool_choice, "required");
+});
+
+test("Responses→Chat: built-in tool_choice type throws unsupported error", () => {
+  const body = {
+    model: "gpt-4",
+    input: "hello",
+    tool_choice: { type: "web_search_preview" },
+  };
+  assert.throws(
+    () => openaiResponsesToOpenAIRequest(null, body, null, null),
+    (err) => err.message.includes("web_search_preview")
+  );
+});
