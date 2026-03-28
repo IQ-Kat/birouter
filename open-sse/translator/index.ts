@@ -144,8 +144,10 @@ export function translateRequest(
   }
 
   // Final step: prepare request for Claude format endpoints
+  // In Claude passthrough mode (Claude → Claude), preserve cache_control markers
   if (targetFormat === FORMATS.CLAUDE) {
-    result = prepareClaudeRequest(result, provider);
+    const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE;
+    result = prepareClaudeRequest(result, provider, isClaudePassthrough);
   }
 
   // Normalize openai-responses input shape for providers that require list input.
