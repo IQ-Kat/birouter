@@ -162,7 +162,9 @@ export function openaiResponsesToOpenAIRequest(
         type: "function",
         function: {
           name: fnName,
-          arguments: item.arguments,
+          arguments: typeof item.arguments === "string"
+            ? item.arguments
+            : JSON.stringify(item.arguments ?? {}),
         },
       });
       currentAssistantMsg.tool_calls = toolCalls;
@@ -410,7 +412,15 @@ export function openaiToOpenAIResponsesRequest(
       input.push({
         type: "function_call_output",
         call_id: toString(msg.tool_call_id),
-        output: msg.content,
+        output: typeof msg.content === "string"
+          ? msg.content
+          : Array.isArray(msg.content)
+            ? msg.content.map((c) => {
+                const part = toRecord(c);
+                if (part.type === "text") return { type: "input_text", text: toString(part.text) };
+                return c;
+              })
+            : String(msg.content ?? ""),
       });
     }
   }

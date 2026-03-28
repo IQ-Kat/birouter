@@ -251,6 +251,44 @@ test("Responses→Chat: mcp tool type throws unsupported error", () => {
   );
 });
 
+test("Responses→Chat: non-string arguments are JSON-stringified", () => {
+  const body = {
+    model: "gpt-4",
+    input: [
+      { type: "function_call", call_id: "c1", name: "fn", arguments: { key: "val" } },
+      { type: "function_call_output", call_id: "c1", output: "ok" },
+    ],
+  };
+  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  assert.equal(typeof assistantMsg.tool_calls[0].function.arguments, "string");
+  assert.equal(assistantMsg.tool_calls[0].function.arguments, '{"key":"val"}');
+});
+
+test("Chat→Responses: array tool content converts text→input_text types", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [
+      { role: "user", content: "hello" },
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [{ id: "c1", type: "function", function: { name: "fn", arguments: "{}" } }],
+      },
+      {
+        role: "tool",
+        tool_call_id: "c1",
+        content: [{ type: "text", text: "result data" }],
+      },
+    ],
+  };
+  const result = openaiToOpenAIResponsesRequest("gpt-4", body, true, null);
+  const outputItem = result.input.find((i) => i.type === "function_call_output");
+  assert.ok(Array.isArray(outputItem.output), "output should be array");
+  assert.equal(outputItem.output[0].type, "input_text");
+  assert.equal(outputItem.output[0].text, "result data");
+});
+
 test("Responses→Chat: function tool type passes through", () => {
   const body = {
     model: "gpt-4",
