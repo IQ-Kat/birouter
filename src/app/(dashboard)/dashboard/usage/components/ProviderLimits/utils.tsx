@@ -204,7 +204,6 @@ export function parseQuotaData(provider, data) {
         break;
 
       default:
-        // Generic fallback for unknown providers
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push(normalizeQuotaEntry(name, quota));

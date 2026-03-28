@@ -4289,6 +4289,7 @@ function AddApiKeyModal({
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
   const isVertex = provider === "vertex";
   const defaultRegion = "us-central1";
+  const isGlm = provider === "glm";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -4296,6 +4297,7 @@ function AddApiKeyModal({
     priority: 1,
     baseUrl: isBailian ? defaultBailianUrl : "",
     region: isVertex ? defaultRegion : "",
+    apiRegion: "international",
     validationModelId: "",
   });
   const [validating, setValidating] = useState(false);
@@ -4384,6 +4386,10 @@ function AddApiKeyModal({
       } else if (isVertex) {
         payload.providerSpecificData = {
           region: formData.region,
+        };
+      } else if (isGlm) {
+        payload.providerSpecificData = {
+          apiRegion: formData.apiRegion,
         };
       }
 
@@ -4484,6 +4490,22 @@ function AddApiKeyModal({
             hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
           />
         )}
+        {isGlm && (
+          <div>
+            <label className="text-sm font-medium text-text-main mb-1 block">API Region</label>
+            <select
+              value={formData.apiRegion}
+              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            >
+              <option value="international">International (api.z.ai)</option>
+              <option value="china">China Mainland (open.bigmodel.cn)</option>
+            </select>
+            <p className="text-xs text-text-muted mt-1">
+              Select the endpoint region for API access and quota tracking.
+            </p>
+          </div>
+        )}
         <div className="flex gap-2">
           <Button
             onClick={handleSubmit}
@@ -4533,6 +4555,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     healthCheckInterval: 60,
     baseUrl: "",
     region: "",
+    apiRegion: "international",
     validationModelId: "",
     tag: "",
   });
@@ -4548,6 +4571,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isBailian = connection?.provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
   const isVertex = connection?.provider === "vertex";
+  const isGlm = connection?.provider === "glm";
   const defaultRegion = "us-central1";
 
   useEffect(() => {
@@ -4563,6 +4587,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || (isBailian ? defaultBailianUrl : ""),
         region: existingRegion || (isVertex ? defaultRegion : ""),
+        apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
       });
@@ -4698,6 +4723,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           updates.providerSpecificData.baseUrl = validatedBailianBaseUrl;
         } else if (isVertex) {
           updates.providerSpecificData.region = formData.region;
+        } else if (isGlm) {
+          updates.providerSpecificData.apiRegion = formData.apiRegion;
         }
       } else {
         // Also persist tag for OAuth accounts
@@ -4830,6 +4857,23 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             placeholder={defaultRegion}
             hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
           />
+        )}
+
+        {isGlm && (
+          <div>
+            <label className="text-sm font-medium text-text-main mb-1 block">API Region</label>
+            <select
+              value={formData.apiRegion}
+              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            >
+              <option value="international">International (api.z.ai)</option>
+              <option value="china">China Mainland (open.bigmodel.cn)</option>
+            </select>
+            <p className="text-xs text-text-muted mt-1">
+              Select the endpoint region for API access and quota tracking.
+            </p>
+          </div>
         )}
 
         {/* T07: Extra API Keys for round-robin rotation */}
