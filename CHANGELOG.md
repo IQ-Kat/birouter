@@ -4,6 +4,12 @@
 
 ---
 
+## [3.2.5] — 2026-03-29
+
+### ✨ Enhancements & Refactoring
+
+- **Void Linux Deployment Support (#732)** — Integrated `xbps-src` packaging template and instructions to natively compile and install OmniRoute with `better-sqlite3` bindings via cross-compilation target.
+
 ## [3.2.4] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
