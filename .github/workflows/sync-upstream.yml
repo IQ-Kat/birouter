@@ -1,0 +1,42 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync with upstream
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/diegosouzapw/OmniRoute.git || true
+          git fetch upstream
+
+      - name: Sync main branch
+        run: |
+          git checkout main
+          git merge upstream/main --no-edit || {
+            echo "Merge conflict detected. Manual intervention required."
+            exit 1
+          }
+
+      - name: Push changes
+        run: git push origin main
