@@ -1411,7 +1411,7 @@
     "clearAllModels": "Ryd alle modeller",
     "clearAllModelsConfirm": "Er du sikker på, at du vil fjerne alle modeller for denne udbyder? Dette kan ikke fortrydes.",
     "clearAllModelsSuccess": "Alle modeller ryddet",
-    "clearAllModelsFailed": "Kunne ikke rydde modeller",
+    "clearAllModelsFailed": "Det lykkedes ikke at rydde modeller",
     "addConnectionToImport": "Tilføj en forbindelse for at aktivere import.",
     "noModelsConfigured": "Ingen modeller konfigureret",
     "connectionCount": "{count} forbindelse(r)",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Automatisk synkronisering aktiveret - modellerne opdateres med jævne mellemrum",
     "autoSyncDisabled": "Automatisk synkronisering deaktiveret",
     "autoSyncToggleFailed": "Automatisk synkronisering kunne ikke slås til eller fra",
-    "clearAllModels": "Ryd alle modeller",
-    "clearAllModelsConfirm": "Er du sikker på, at du vil fjerne alle modeller for denne udbyder? Dette kan ikke fortrydes.",
-    "clearAllModelsSuccess": "Alle modeller ryddet",
-    "clearAllModelsFailed": "Det lykkedes ikke at rydde modeller"
+    "allModelsAlreadyImported": "Alle modeller er allerede importeret",
+    "noNewModelsToImport": "Ingen nye modeller at importere — alle modeller findes allerede i registreret eller brugerdefineret liste",
+    "skippingExistingModels": "Springer {count} eksisterende modeller over"
   },
   "settings": {
     "title": "Indstillinger",

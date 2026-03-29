@@ -1408,10 +1408,10 @@
     "chatCompletions": "Chat-voltooiingen",
     "importingModels": "Importeren...",
     "importFromModels": "Importeren uit /modellen",
-    "clearAllModels": "Alle modellen wissen",
-    "clearAllModelsConfirm": "Weet je zeker dat je alle modellen voor deze provider wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "clearAllModels": "Wis alle modellen",
+    "clearAllModelsConfirm": "Weet u zeker dat u alle modellen voor deze aanbieder wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
     "clearAllModelsSuccess": "Alle modellen gewist",
-    "clearAllModelsFailed": "Kon modellen niet wissen",
+    "clearAllModelsFailed": "Kan modellen niet wissen",
     "addConnectionToImport": "Voeg een verbinding toe om importeren mogelijk te maken.",
     "noModelsConfigured": "Geen modellen geconfigureerd",
     "connectionCount": "{count} verbinding(en)",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Automatische synchronisatie ingeschakeld: modellen worden periodiek vernieuwd",
     "autoSyncDisabled": "Automatische synchronisatie uitgeschakeld",
     "autoSyncToggleFailed": "Kan automatische synchronisatie niet in- of uitschakelen",
-    "clearAllModels": "Wis alle modellen",
-    "clearAllModelsConfirm": "Weet u zeker dat u alle modellen voor deze aanbieder wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
-    "clearAllModelsSuccess": "Alle modellen gewist",
-    "clearAllModelsFailed": "Kan modellen niet wissen"
+    "allModelsAlreadyImported": "Alle modellen zijn al geïmporteerd",
+    "noNewModelsToImport": "Geen nieuwe modellen om te importeren — alle modellen staan al in het register of de lijst met aangepaste modellen",
+    "skippingExistingModels": "{count} bestaande modellen overgeslagen"
   },
   "settings": {
     "title": "Instellingen",

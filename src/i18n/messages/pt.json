@@ -1420,10 +1420,10 @@
     "chatCompletions": "Conclusões de bate-papo",
     "importingModels": "Importando...",
     "importFromModels": "Importar de /modelos",
-    "clearAllModels": "Limpar Todos os Modelos",
-    "clearAllModelsConfirm": "Tem a certeza de que quer remover todos os modelos deste fornecedor? Esta ação não pode ser revertida.",
-    "clearAllModelsSuccess": "Todos os modelos foram limpos",
-    "clearAllModelsFailed": "Falha ao limpar os modelos",
+    "clearAllModels": "Limpar todos os modelos",
+    "clearAllModelsConfirm": "Tem certeza que deseja remover todos os modelos deste provedor?",
+    "clearAllModelsSuccess": "Todos os modelos limpos",
+    "clearAllModelsFailed": "Falha ao limpar modelos",
     "addConnectionToImport": "Adicione uma conexão para permitir a importação.",
     "noModelsConfigured": "Nenhum modelo configurado",
     "connectionCount": "{count} conexões",
@@ -1593,10 +1593,9 @@
     "autoSyncEnabled": "Sincronização automática ativada — modelos serão atualizados periodicamente",
     "autoSyncDisabled": "Sincronização automática desativada",
     "autoSyncToggleFailed": "Falha ao alternar sincronização automática",
-    "clearAllModels": "Limpar todos os modelos",
-    "clearAllModelsConfirm": "Tem certeza que deseja remover todos os modelos deste provedor?",
-    "clearAllModelsSuccess": "Todos os modelos limpos",
-    "clearAllModelsFailed": "Falha ao limpar modelos"
+    "allModelsAlreadyImported": "Todos os modelos já foram importados",
+    "noNewModelsToImport": "Nenhum modelo novo para importar — todos os modelos já estão no registo ou na lista de modelos personalizados",
+    "skippingExistingModels": "A ignorar {count} modelos existentes"
   },
   "settings": {
     "title": "Configurações",

@@ -1409,9 +1409,9 @@
     "importingModels": "Importuje sa...",
     "importFromModels": "Importovať z /models",
     "clearAllModels": "Vymazať všetky modely",
-    "clearAllModelsConfirm": "Ste si istý, že chcete odstrániť všetky modely pre tohto poskytovateľa? Túto akciu nie je možné vrátiť.",
-    "clearAllModelsSuccess": "Všetky modely vymazané",
-    "clearAllModelsFailed": "Nepodarilo sa vymazať modely",
+    "clearAllModelsConfirm": "Naozaj chcete odstrániť všetky modely tohto poskytovateľa? Toto sa nedá vrátiť späť.",
+    "clearAllModelsSuccess": "Všetky modely sú vymazané",
+    "clearAllModelsFailed": "Nepodarilo sa vyčistiť modely",
     "addConnectionToImport": "Ak chcete povoliť import, pridajte pripojenie.",
     "noModelsConfigured": "Nie sú nakonfigurované žiadne modely",
     "connectionCount": "{count} pripojení",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Automatická synchronizácia povolená – modely sa budú pravidelne obnovovať",
     "autoSyncDisabled": "Automatická synchronizácia je zakázaná",
     "autoSyncToggleFailed": "Nepodarilo sa prepnúť automatickú synchronizáciu",
-    "clearAllModels": "Vymazať všetky modely",
-    "clearAllModelsConfirm": "Naozaj chcete odstrániť všetky modely tohto poskytovateľa? Toto sa nedá vrátiť späť.",
-    "clearAllModelsSuccess": "Všetky modely sú vymazané",
-    "clearAllModelsFailed": "Nepodarilo sa vyčistiť modely"
+    "allModelsAlreadyImported": "Všetky modely sú už importované",
+    "noNewModelsToImport": "Žiadne nové modely na import — všetky modely sú už v registri alebo v zozname vlastných modelov",
+    "skippingExistingModels": "Preskakujem {count} existujúcich modelov"
   },
   "settings": {
     "title": "Nastavenia",

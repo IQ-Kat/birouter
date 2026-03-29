@@ -1641,7 +1641,10 @@
     "chatPathHint": "Standart dışı API'lere sahip sağlayıcılar için özel sohbet yolu (ör. /v4/chat/completions)",
     "modelsPathLabel": "Model Uç Noktası Yolu",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Doğrulama için özel model yolu (ör. /v4/models)"
+    "modelsPathHint": "Doğrulama için özel model yolu (ör. /v4/models)",
+    "allModelsAlreadyImported": "Tüm modeller zaten içe aktarıldı",
+    "noNewModelsToImport": "İçe aktarılacak yeni model yok — tüm modeller zaten kayıt defterinde veya özel modeller listesinde",
+    "skippingExistingModels": "{count} mevcut model atlanıyor"
   },
   "settings": {
     "title": "Ayarlar",

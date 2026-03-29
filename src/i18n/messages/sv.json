@@ -1409,9 +1409,9 @@
     "importingModels": "Importerar...",
     "importFromModels": "Importera från /models",
     "clearAllModels": "Rensa alla modeller",
-    "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för denna leverantör? Detta kan inte ångras.",
+    "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för den här leverantören? Detta kan inte ångras.",
     "clearAllModelsSuccess": "Alla modeller rensade",
-    "clearAllModelsFailed": "Kunde inte rensa modeller",
+    "clearAllModelsFailed": "Det gick inte att rensa modeller",
     "addConnectionToImport": "Lägg till en anslutning för att aktivera import.",
     "noModelsConfigured": "Inga modeller har konfigurerats",
     "connectionCount": "{count} anslutning(ar)",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Automatisk synkronisering aktiverad — modeller uppdateras regelbundet",
     "autoSyncDisabled": "Automatisk synkronisering inaktiverad",
     "autoSyncToggleFailed": "Det gick inte att växla automatisk synkronisering",
-    "clearAllModels": "Rensa alla modeller",
-    "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för den här leverantören? Detta kan inte ångras.",
-    "clearAllModelsSuccess": "Alla modeller rensade",
-    "clearAllModelsFailed": "Det gick inte att rensa modeller"
+    "allModelsAlreadyImported": "Alla modeller är redan importerade",
+    "noNewModelsToImport": "Inga nya modeller att importera — alla modeller finns redan i registret eller listan över anpassade modeller",
+    "skippingExistingModels": "Hoppar över {count} befintliga modeller"
   },
   "settings": {
     "title": "Inställningar",

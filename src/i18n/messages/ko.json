@@ -1408,10 +1408,10 @@
     "chatCompletions": "채팅 완료",
     "importingModels": "가져오는 중...",
     "importFromModels": "/models에서 가져오기",
-    "clearAllModels": "모든 모델 지우기",
-    "clearAllModelsConfirm": "이 제공자의 모든 모델을 제거하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
-    "clearAllModelsSuccess": "모든 모델이 지워졌습니다",
-    "clearAllModelsFailed": "모델 지우기 실패",
+    "clearAllModels": "모든 모델 삭제",
+    "clearAllModelsConfirm": "이 공급자의 모든 모델을 제거하시겠습니까?",
+    "clearAllModelsSuccess": "모든 모델 삭제됨",
+    "clearAllModelsFailed": "모델 삭제 실패",
     "addConnectionToImport": "가져오기를 활성화하려면 연결을 추가하세요.",
     "noModelsConfigured": "구성된 모델이 없습니다.",
     "connectionCount": "{count} 연결",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "자동 동기화 활성화 — 모델이 주기적으로 업데이트됩니다",
     "autoSyncDisabled": "자동 동기화 비활성화",
     "autoSyncToggleFailed": "자동 동기화 전환 실패",
-    "clearAllModels": "모든 모델 삭제",
-    "clearAllModelsConfirm": "이 공급자의 모든 모델을 제거하시겠습니까?",
-    "clearAllModelsSuccess": "모든 모델 삭제됨",
-    "clearAllModelsFailed": "모델 삭제 실패"
+    "allModelsAlreadyImported": "모든 모델이 이미 가져왔습니다",
+    "noNewModelsToImport": "가져올 새 모델 없음 — 모든 모델이 이미 레지스트리 또는 사용자 정의 모델 목록에 있습니다",
+    "skippingExistingModels": "{count}개의 기존 모델 건너뛰기"
   },
   "settings": {
     "title": "설정",

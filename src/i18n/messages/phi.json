@@ -1408,10 +1408,10 @@
     "chatCompletions": "Mga Pagkumpleto ng Chat",
     "importingModels": "Ini-import...",
     "importFromModels": "Mag-import mula sa /models",
-    "clearAllModels": "Burahin Lahat ng Modelo",
-    "clearAllModelsConfirm": "Sigurado ka bang gusto mong alisin lahat ng modelo para sa provider na ito? Hindi na ito mababawi.",
-    "clearAllModelsSuccess": "Lahat ng modelo ay nabura",
-    "clearAllModelsFailed": "Nabigong burahin ang mga modelo",
+    "clearAllModels": "I-clear ang Lahat ng Modelo",
+    "clearAllModelsConfirm": "Sigurado ka bang gusto mong alisin ang lahat ng modelo para sa provider na ito? Hindi na ito maaaring bawiin.",
+    "clearAllModelsSuccess": "Na-clear ang lahat ng mga modelo",
+    "clearAllModelsFailed": "Nabigong i-clear ang mga modelo",
     "addConnectionToImport": "Magdagdag ng koneksyon upang paganahin ang pag-import.",
     "noModelsConfigured": "Walang mga modelong na-configure",
     "connectionCount": "{count} (mga) koneksyon",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Pinagana ang auto-sync — pana-panahong magre-refresh ang mga modelo",
     "autoSyncDisabled": "Na-disable ang auto-sync",
     "autoSyncToggleFailed": "Nabigong i-toggle ang auto-sync",
-    "clearAllModels": "I-clear ang Lahat ng Modelo",
-    "clearAllModelsConfirm": "Sigurado ka bang gusto mong alisin ang lahat ng modelo para sa provider na ito? Hindi na ito maaaring bawiin.",
-    "clearAllModelsSuccess": "Na-clear ang lahat ng mga modelo",
-    "clearAllModelsFailed": "Nabigong i-clear ang mga modelo"
+    "allModelsAlreadyImported": "Lahat ng mga modelo ay nai-import na",
+    "noNewModelsToImport": "Walang bagong modelo na i-import — lahat ng mga modelo ay nasa registry o custom na listahan na",
+    "skippingExistingModels": "Pinapalampas ang {count} na umiiral na mga modelo"
   },
   "settings": {
     "title": "Mga setting",

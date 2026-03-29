@@ -1409,7 +1409,7 @@
     "importingModels": "Mengimpor...",
     "importFromModels": "Impor dari /models",
     "clearAllModels": "Hapus Semua Model",
-    "clearAllModelsConfirm": "Apakah Anda yakin ingin menghapus semua model untuk penyedia ini? Tindakan ini tidak dapat dibatalkan.",
+    "clearAllModelsConfirm": "Apakah Anda yakin ingin menghapus semua model untuk penyedia ini?",
     "clearAllModelsSuccess": "Semua model dihapus",
     "clearAllModelsFailed": "Gagal menghapus model",
     "addConnectionToImport": "Tambahkan koneksi untuk mengaktifkan impor.",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Sinkronisasi otomatis diaktifkan — model akan disegarkan secara berkala",
     "autoSyncDisabled": "Sinkronisasi otomatis dinonaktifkan",
     "autoSyncToggleFailed": "Gagal mengaktifkan sinkronisasi otomatis",
-    "clearAllModels": "Hapus Semua Model",
-    "clearAllModelsConfirm": "Apakah Anda yakin ingin menghapus semua model untuk penyedia ini?",
-    "clearAllModelsSuccess": "Semua model dihapus",
-    "clearAllModelsFailed": "Gagal menghapus model"
+    "allModelsAlreadyImported": "Semua model sudah diimpor",
+    "noNewModelsToImport": "Tidak ada model baru untuk diimpor — semua model sudah ada di registri atau daftar model kustom",
+    "skippingExistingModels": "Melewatkan {count} model yang sudah ada"
   },
   "settings": {
     "title": "Pengaturan",

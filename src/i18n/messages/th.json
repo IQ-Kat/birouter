@@ -1408,9 +1408,9 @@
     "chatCompletions": "เสร็จสิ้นการแชท",
     "importingModels": "กำลังนำเข้า...",
     "importFromModels": "นำเข้าจาก /models",
-    "clearAllModels": "ล้างโมเดลทั้งหมด",
-    "clearAllModelsConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบโมเดลทั้งหมดของผู้ให้บริการนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้",
-    "clearAllModelsSuccess": "ล้างโมเดลทั้งหมดแล้ว",
+    "clearAllModels": "ล้างทุกรุ่น",
+    "clearAllModelsConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบโมเดลทั้งหมดสำหรับผู้ให้บริการรายนี้ สิ่งนี้ไม่สามารถยกเลิกได้",
+    "clearAllModelsSuccess": "เคลียร์ทุกรุ่น",
     "clearAllModelsFailed": "ไม่สามารถล้างโมเดลได้",
     "addConnectionToImport": "เพิ่มการเชื่อมต่อเพื่อเปิดใช้งานการนำเข้า",
     "noModelsConfigured": "ไม่มีโมเดลที่กำหนดค่าไว้",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "เปิดใช้งานการซิงค์อัตโนมัติ — โมเดลจะรีเฟรชเป็นระยะ",
     "autoSyncDisabled": "ปิดใช้งานการซิงค์อัตโนมัติแล้ว",
     "autoSyncToggleFailed": "ไม่สามารถสลับการซิงค์อัตโนมัติ",
-    "clearAllModels": "ล้างทุกรุ่น",
-    "clearAllModelsConfirm": "คุณแน่ใจหรือไม่ว่าต้องการลบโมเดลทั้งหมดสำหรับผู้ให้บริการรายนี้ สิ่งนี้ไม่สามารถยกเลิกได้",
-    "clearAllModelsSuccess": "เคลียร์ทุกรุ่น",
-    "clearAllModelsFailed": "ไม่สามารถล้างโมเดลได้"
+    "allModelsAlreadyImported": "นำเข้าโมเดลทั้งหมดแล้ว",
+    "noNewModelsToImport": "ไม่มีโมเดลใหม่ที่จะนำเข้า — โมเดลทั้งหมดมีอยู่แล้วในรีจิสทรีหรือรายการโมเดลที่กำหนดเอง",
+    "skippingExistingModels": "ข้าม {count} โมเดลที่มีอยู่"
   },
   "settings": {
     "title": "การตั้งค่า",

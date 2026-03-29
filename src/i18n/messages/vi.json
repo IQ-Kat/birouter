@@ -1408,10 +1408,10 @@
     "chatCompletions": "Hoàn thành cuộc trò chuyện",
     "importingModels": "Đang nhập khẩu...",
     "importFromModels": "Nhập từ /model",
-    "clearAllModels": "Xóa tất cả mô hình",
-    "clearAllModelsConfirm": "Bạn có chắc chắn muốn xóa tất cả mô hình của nhà cung cấp này? Hành động này không thể hoàn tác.",
-    "clearAllModelsSuccess": "Đã xóa tất cả mô hình",
-    "clearAllModelsFailed": "Không thể xóa mô hình",
+    "clearAllModels": "Xóa tất cả các mẫu",
+    "clearAllModelsConfirm": "Bạn có chắc chắn muốn xóa tất cả mô hình của nhà cung cấp này không? Điều này không thể hoàn tác được.",
+    "clearAllModelsSuccess": "Tất cả các mô hình đã bị xóa",
+    "clearAllModelsFailed": "Không xóa được mô hình",
     "addConnectionToImport": "Thêm kết nối để cho phép nhập.",
     "noModelsConfigured": "Không có mô hình nào được định cấu hình",
     "connectionCount": "{count} kết nối",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Đã bật tự động đồng bộ hóa - các mô hình sẽ làm mới định kỳ",
     "autoSyncDisabled": "Tự động đồng bộ hóa đã bị tắt",
     "autoSyncToggleFailed": "Không chuyển đổi được tính năng tự động đồng bộ hóa",
-    "clearAllModels": "Xóa tất cả các mẫu",
-    "clearAllModelsConfirm": "Bạn có chắc chắn muốn xóa tất cả mô hình của nhà cung cấp này không? Điều này không thể hoàn tác được.",
-    "clearAllModelsSuccess": "Tất cả các mô hình đã bị xóa",
-    "clearAllModelsFailed": "Không xóa được mô hình"
+    "allModelsAlreadyImported": "Tất cả mô hình đã được nhập",
+    "noNewModelsToImport": "Không có mô hình mới để nhập — tất cả mô hình đã có trong danh mục hoặc danh sách mô hình tùy chỉnh",
+    "skippingExistingModels": "Bỏ qua {count} mô hình hiện có"
   },
   "settings": {
     "title": "Cài đặt",

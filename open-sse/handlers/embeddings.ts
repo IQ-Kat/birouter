@@ -80,7 +80,7 @@ export async function handleEmbedding({
     };
   }
 
-  // Build upstream request — start with standard fields, then forward any extras
+  // Build upstream request — start with standard fields, then forward extra fields
   // the client sent (e.g. input_type, user, truncate for NVIDIA NIM asymmetric models).
   const KNOWN_FIELDS = new Set(["model", "input", "dimensions", "encoding_format"]);
 

@@ -1408,10 +1408,10 @@
     "chatCompletions": "Selesai Sembang",
     "importingModels": "Mengimport...",
     "importFromModels": "Import daripada /models",
-    "clearAllModels": "Padam Semua Model",
-    "clearAllModelsConfirm": "Adakah anda pasti mahu membuang semua model untuk pembekal ini? Tindakan ini tidak boleh dibuat asal.",
-    "clearAllModelsSuccess": "Semua model dipadamkan",
-    "clearAllModelsFailed": "Gagal memadamkan model",
+    "clearAllModels": "Kosongkan Semua Model",
+    "clearAllModelsConfirm": "Adakah anda pasti mahu mengalih keluar semua model untuk pembekal ini? Ini tidak boleh dibuat asal.",
+    "clearAllModelsSuccess": "Semua model dibersihkan",
+    "clearAllModelsFailed": "Gagal mengosongkan model",
     "addConnectionToImport": "Tambahkan sambungan untuk mendayakan pengimportan.",
     "noModelsConfigured": "Tiada model yang dikonfigurasikan",
     "connectionCount": "{count} sambungan",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Autosegerak didayakan — model akan dimuat semula secara berkala",
     "autoSyncDisabled": "Autosegerak dilumpuhkan",
     "autoSyncToggleFailed": "Gagal untuk menogol autosegerak",
-    "clearAllModels": "Kosongkan Semua Model",
-    "clearAllModelsConfirm": "Adakah anda pasti mahu mengalih keluar semua model untuk pembekal ini? Ini tidak boleh dibuat asal.",
-    "clearAllModelsSuccess": "Semua model dibersihkan",
-    "clearAllModelsFailed": "Gagal mengosongkan model"
+    "allModelsAlreadyImported": "Semua model sudah diimport",
+    "noNewModelsToImport": "Tiada model baru untuk diimport — semua model sudah ada dalam registri atau senarai model tersuai",
+    "skippingExistingModels": "Melangkau {count} model sedia ada"
   },
   "settings": {
     "title": "tetapan",

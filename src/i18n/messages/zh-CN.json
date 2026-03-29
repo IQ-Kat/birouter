@@ -1648,7 +1648,10 @@
     "chatPathHint": "为非标准 API 的提供商自定义聊天路径（例如：/v4/chat/completions）",
     "modelsPathLabel": "模型端点路径",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "为验证流程自定义模型路径（例如：/v4/models）"
+    "modelsPathHint": "为验证流程自定义模型路径（例如：/v4/models）",
+    "allModelsAlreadyImported": "所有模型已导入",
+    "noNewModelsToImport": "没有新模型可导入 — 所有模型已在注册表或自定义模型列表中",
+    "skippingExistingModels": "跳过 {count} 个已有模型"
   },
   "settings": {
     "title": "设置",

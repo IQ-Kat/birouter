@@ -1408,10 +1408,10 @@
     "chatCompletions": "Csevegés befejezése",
     "importingModels": "Importálás...",
     "importFromModels": "Importálás a /models-ből",
-    "clearAllModels": "Összes modell törlése",
-    "clearAllModelsConfirm": "Biztosan el szeretné távolítani az összes modellt ehhez a szolgáltatóhoz? Ez a művelet nem vonható vissza.",
-    "clearAllModelsSuccess": "Összes modell törölve",
-    "clearAllModelsFailed": "A modellek törlése sikertelen",
+    "clearAllModels": "Minden modell törlése",
+    "clearAllModelsConfirm": "Biztosan eltávolítja ennek a szolgáltatónak az összes modelljét? Ezt nem lehet visszavonni.",
+    "clearAllModelsSuccess": "Minden modell törölve",
+    "clearAllModelsFailed": "Nem sikerült törölni a modelleket",
     "addConnectionToImport": "Adjon hozzá egy kapcsolatot az importálás engedélyezéséhez.",
     "noModelsConfigured": "Nincsenek konfigurálva modellek",
     "connectionCount": "{count} kapcsolat",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Automatikus szinkronizálás engedélyezve – a modellek rendszeresen frissülnek",
     "autoSyncDisabled": "Az automatikus szinkronizálás letiltva",
     "autoSyncToggleFailed": "Failed to toggle auto-sync",
-    "clearAllModels": "Minden modell törlése",
-    "clearAllModelsConfirm": "Biztosan eltávolítja ennek a szolgáltatónak az összes modelljét? Ezt nem lehet visszavonni.",
-    "clearAllModelsSuccess": "Minden modell törölve",
-    "clearAllModelsFailed": "Nem sikerült törölni a modelleket"
+    "allModelsAlreadyImported": "Minden modell már importálva van",
+    "noNewModelsToImport": "Nincs új modell az importáláshoz — minden modell már a nyilvántartásban vagy az egyéni modellek listájában van",
+    "skippingExistingModels": "{count} meglévő modell kihagyása"
   },
   "settings": {
     "title": "Beállítások elemre",

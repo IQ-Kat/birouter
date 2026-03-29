@@ -1409,9 +1409,9 @@
     "importingModels": "Importieren...",
     "importFromModels": "Import aus /models",
     "clearAllModels": "Alle Modelle löschen",
-    "clearAllModelsConfirm": "Sind Sie sicher, dass Sie alle Modelle für diesen Anbieter entfernen möchten? Dies kann nicht rückgängig gemacht werden.",
+    "clearAllModelsConfirm": "Möchten Sie wirklich alle Modelle für diesen Anbieter löschen?",
     "clearAllModelsSuccess": "Alle Modelle gelöscht",
-    "clearAllModelsFailed": "Modelle konnten nicht gelöscht werden",
+    "clearAllModelsFailed": "Modelle löschen fehlgeschlagen",
     "addConnectionToImport": "Fügen Sie eine Verbindung hinzu, um den Import zu ermöglichen.",
     "noModelsConfigured": "Keine Modelle konfiguriert",
     "connectionCount": "{count} Verbindung(en)",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Auto-Sync aktiviert — Modelle werden regelmäßig aktualisiert",
     "autoSyncDisabled": "Auto-Sync deaktiviert",
     "autoSyncToggleFailed": "Auto-Sync umschalten fehlgeschlagen",
-    "clearAllModels": "Alle Modelle löschen",
-    "clearAllModelsConfirm": "Möchten Sie wirklich alle Modelle für diesen Anbieter löschen?",
-    "clearAllModelsSuccess": "Alle Modelle gelöscht",
-    "clearAllModelsFailed": "Modelle löschen fehlgeschlagen"
+    "allModelsAlreadyImported": "Alle Modelle sind bereits importiert",
+    "noNewModelsToImport": "Keine neuen Modelle zum Importieren — alle Modelle sind bereits in der Registry oder der Liste benutzerdefinierter Modelle",
+    "skippingExistingModels": "Überspringe {count} vorhandene Modelle"
   },
   "settings": {
     "title": "Einstellungen",

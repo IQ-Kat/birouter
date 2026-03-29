@@ -1409,9 +1409,9 @@
     "importingModels": "インポート中...",
     "importFromModels": "/models からインポート",
     "clearAllModels": "すべてのモデルを削除",
-    "clearAllModelsConfirm": "このプロバイダーのすべてのモデルを削除してもよろしいですか？この操作は元に戻せません。",
+    "clearAllModelsConfirm": "このプロバイダーのすべてのモデルを削除してもよろしいですか？",
     "clearAllModelsSuccess": "すべてのモデルを削除しました",
-    "clearAllModelsFailed": "モデルの削除に失敗しました",
+    "clearAllModelsFailed": "モデルの削除に失敗",
     "addConnectionToImport": "接続を追加してインポートを有効にします。",
     "noModelsConfigured": "モデルが設定されていません",
     "connectionCount": "{count} 接続",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "自動同期有効 — モデルは定期的に更新されます",
     "autoSyncDisabled": "自動同期無効",
     "autoSyncToggleFailed": "自動同期の切り替えに失敗",
-    "clearAllModels": "すべてのモデルを削除",
-    "clearAllModelsConfirm": "このプロバイダーのすべてのモデルを削除してもよろしいですか？",
-    "clearAllModelsSuccess": "すべてのモデルを削除しました",
-    "clearAllModelsFailed": "モデルの削除に失敗"
+    "allModelsAlreadyImported": "すべてのモデルは既にインポート済みです",
+    "noNewModelsToImport": "インポートする新しいモデルはありません — すべてのモデルは既にレジストリまたはカスタムモデルリストにあります",
+    "skippingExistingModels": "{count}件の既存モデルをスキップ"
   },
   "settings": {
     "title": "設定",

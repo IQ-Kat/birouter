@@ -525,8 +525,8 @@ export async function handleChatCore({
     providerRequest?: unknown;
     providerResponse?: unknown;
     clientResponse?: unknown;
-    claudeCacheMeta?: any;
-    claudeCacheUsageMeta?: any;
+    claudeCacheMeta?: Record<string, unknown>;
+    claudeCacheUsageMeta?: Record<string, unknown>;
   }) => {
     const callLogId = generateRequestId();
 
@@ -1440,11 +1440,11 @@ export async function handleChatCore({
       const cachedTokens = toPositiveNumber(
         usage.cache_read_input_tokens ??
           usage.cached_tokens ??
-          (usage as any).prompt_tokens_details?.cached_tokens
+          ((usage as Record<string, unknown>).prompt_tokens_details as Record<string, unknown> | undefined)?.cached_tokens
       );
       const cacheCreationTokens = toPositiveNumber(
         usage.cache_creation_input_tokens ??
-          (usage as any).prompt_tokens_details?.cache_creation_tokens
+          ((usage as Record<string, unknown>).prompt_tokens_details as Record<string, unknown> | undefined)?.cache_creation_tokens
       );
 
       saveRequestUsage({
@@ -1600,11 +1600,11 @@ export async function handleChatCore({
       const cachedTokens = toPositiveNumber(
         streamUsage.cache_read_input_tokens ??
           streamUsage.cached_tokens ??
-          (streamUsage as any).prompt_tokens_details?.cached_tokens
+          ((streamUsage as Record<string, unknown>).prompt_tokens_details as Record<string, unknown> | undefined)?.cached_tokens
       );
       const cacheCreationTokens = toPositiveNumber(
         streamUsage.cache_creation_input_tokens ??
-          (streamUsage as any).prompt_tokens_details?.cache_creation_tokens
+          ((streamUsage as Record<string, unknown>).prompt_tokens_details as Record<string, unknown> | undefined)?.cache_creation_tokens
       );
 
       saveRequestUsage({

@@ -1473,7 +1473,7 @@
     "importingModels": "Importuji...",
     "importFromModels": "Import z /models",
     "clearAllModels": "Vymazat všechny modely",
-    "clearAllModelsConfirm": "Opravdu chcete odebrat všechny modely pro tohoto poskytovatele? Tuto akci nelze vrátit.",
+    "clearAllModelsConfirm": "Opravdu chcete odstranit všechny modely pro tohoto poskytovatele?",
     "clearAllModelsSuccess": "Všechny modely vymazány",
     "clearAllModelsFailed": "Nepodařilo se vymazat modely",
     "addConnectionToImport": "Přidejte připojení pro povolení importu.",
@@ -1644,10 +1644,9 @@
     "autoSyncEnabled": "Automatická synchronizace povolena – modely se budou pravidelně obnovovat",
     "autoSyncDisabled": "Automatická synchronizace zakázána",
     "autoSyncToggleFailed": "Nepodařilo se přepnout automatickou synchronizaci",
-    "clearAllModels": "Vymazat všechny modely",
-    "clearAllModelsConfirm": "Opravdu chcete odstranit všechny modely pro tohoto poskytovatele?",
-    "clearAllModelsSuccess": "Všechny modely vymazány",
-    "clearAllModelsFailed": "Nepodařilo se vymazat modely"
+    "allModelsAlreadyImported": "Všechny modely jsou již importovány",
+    "noNewModelsToImport": "Žádné nové modely k importu — všechny modely jsou již v registru nebo v seznamu vlastních modelů",
+    "skippingExistingModels": "Přeskakování {count} existujících modelů"
   },
   "settings": {
     "title": "Nastavení",

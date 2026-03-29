@@ -1408,10 +1408,10 @@
     "chatCompletions": "Finalizări de chat",
     "importingModels": "Se importă...",
     "importFromModels": "Import din /modele",
-    "clearAllModels": "Șterge toate modelele",
-    "clearAllModelsConfirm": "Ești sigur că vrei să elimini toate modelele pentru acest furnizor? Această acțiune nu poate fi anulată.",
-    "clearAllModelsSuccess": "Toate modelele au fost șterse",
-    "clearAllModelsFailed": "Ștergerea modelelor a eșuat",
+    "clearAllModels": "Ștergeți toate modelele",
+    "clearAllModelsConfirm": "Sigur doriți să eliminați toate modelele pentru acest furnizor? Acest lucru nu poate fi anulat.",
+    "clearAllModelsSuccess": "Toate modelele au fost eliminate",
+    "clearAllModelsFailed": "Nu s-au șters modelele",
     "addConnectionToImport": "Adăugați o conexiune pentru a activa importul.",
     "noModelsConfigured": "Nu au fost configurate modele",
     "connectionCount": "{count} conexiuni",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Sincronizare automată activată — modelele se vor reîmprospăta periodic",
     "autoSyncDisabled": "Sincronizarea automată a fost dezactivată",
     "autoSyncToggleFailed": "Nu s-a putut comuta sincronizarea automată",
-    "clearAllModels": "Ștergeți toate modelele",
-    "clearAllModelsConfirm": "Sigur doriți să eliminați toate modelele pentru acest furnizor? Acest lucru nu poate fi anulat.",
-    "clearAllModelsSuccess": "Toate modelele au fost eliminate",
-    "clearAllModelsFailed": "Nu s-au șters modelele"
+    "allModelsAlreadyImported": "Toate modelele sunt deja importate",
+    "noNewModelsToImport": "Niciun model nou de importat — toate modelele sunt deja în registru sau în lista de modele personalizate",
+    "skippingExistingModels": "Se omit {count} modele existente"
   },
   "settings": {
     "title": "Setări",

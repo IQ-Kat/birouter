@@ -3,12 +3,7 @@ import { parseModel } from "./model.ts";
 
 // Conservative denylist fallback used when registry metadata is absent.
 // Keep small and explicit to avoid false negatives.
-const TOOL_CALLING_UNSUPPORTED_PATTERNS = [
-  "gpt-oss-120b",
-  "deepseek-reasoner",
-  "glm-4.7",
-  "glm4.7",
-];
+const TOOL_CALLING_UNSUPPORTED_PATTERNS = ["gpt-oss-120b", "deepseek-reasoner"];
 
 function getRegistryToolCallingFlag(providerIdOrAlias: string, modelId: string): boolean | null {
   const providerAlias = PROVIDER_ID_TO_ALIAS[providerIdOrAlias] || providerIdOrAlias;

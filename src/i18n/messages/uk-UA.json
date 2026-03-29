@@ -1409,8 +1409,8 @@
     "importingModels": "Імпорт...",
     "importFromModels": "Імпортувати з /models",
     "clearAllModels": "Очистити всі моделі",
-    "clearAllModelsConfirm": "Ви впевнені, що хочете видалити всі моделі для цього провайдера? Цю дію неможливо скасувати.",
-    "clearAllModelsSuccess": "Усі моделі очищено",
+    "clearAllModelsConfirm": "Ви впевнені, що хочете видалити всі моделі цього постачальника? Це неможливо скасувати.",
+    "clearAllModelsSuccess": "Всі моделі розмитнені",
     "clearAllModelsFailed": "Не вдалося очистити моделі",
     "addConnectionToImport": "Додайте підключення, щоб увімкнути імпорт.",
     "noModelsConfigured": "Немає налаштованих моделей",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Автоматична синхронізація ввімкнена — моделі періодично оновлюватимуться",
     "autoSyncDisabled": "Автоматична синхронізація вимкнена",
     "autoSyncToggleFailed": "Не вдалося вимкнути автоматичну синхронізацію",
-    "clearAllModels": "Очистити всі моделі",
-    "clearAllModelsConfirm": "Ви впевнені, що хочете видалити всі моделі цього постачальника? Це неможливо скасувати.",
-    "clearAllModelsSuccess": "Всі моделі розмитнені",
-    "clearAllModelsFailed": "Не вдалося очистити моделі"
+    "allModelsAlreadyImported": "Усі моделі вже імпортовано",
+    "noNewModelsToImport": "Немає нових моделей для імпорту — усі моделі вже є в реєстрі або списку користувацьких моделей",
+    "skippingExistingModels": "Пропуск {count} наявних моделей"
   },
   "settings": {
     "title": "Налаштування",

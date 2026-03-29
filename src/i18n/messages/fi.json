@@ -1411,7 +1411,7 @@
     "clearAllModels": "Tyhjennä kaikki mallit",
     "clearAllModelsConfirm": "Haluatko varmasti poistaa kaikki tämän palveluntarjoajan mallit? Tätä ei voi kumota.",
     "clearAllModelsSuccess": "Kaikki mallit tyhjennetty",
-    "clearAllModelsFailed": "Mallien tyhjentäminen epäonnistui",
+    "clearAllModelsFailed": "Mallien tyhjennys epäonnistui",
     "addConnectionToImport": "Lisää yhteys ottaaksesi tuonnin käyttöön.",
     "noModelsConfigured": "Ei malleja määritetty",
     "connectionCount": "{count} yhteyttä",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Automaattinen synkronointi käytössä – mallit päivittyvät säännöllisesti",
     "autoSyncDisabled": "Automaattinen synkronointi poistettu käytöstä",
     "autoSyncToggleFailed": "Automaattisen synkronoinnin vaihtaminen epäonnistui",
-    "clearAllModels": "Tyhjennä kaikki mallit",
-    "clearAllModelsConfirm": "Haluatko varmasti poistaa kaikki tämän palveluntarjoajan mallit? Tätä ei voi kumota.",
-    "clearAllModelsSuccess": "Kaikki mallit tyhjennetty",
-    "clearAllModelsFailed": "Mallien tyhjennys epäonnistui"
+    "allModelsAlreadyImported": "Kaikki mallit on jo tuotu",
+    "noNewModelsToImport": "Ei uusia malleja tuotavaksi — kaikki mallit ovat jo rekisterissä tai mukautetulla mallilistalla",
+    "skippingExistingModels": "Ohitetaan {count} olemassa olevaa mallia"
   },
   "settings": {
     "title": "Asetukset",

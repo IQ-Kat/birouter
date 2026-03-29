@@ -1460,17 +1460,44 @@ export default function ProviderDetailPage() {
         return;
       }
 
+      const existingIds = new Set([
+        ...(modelMeta.customModels || []).map((m: any) => m.id),
+        ...models.map((m: any) => m.id),
+      ]);
+      const newModels = fetchedModels.filter(
+        (model: any) => !existingIds.has(model.id || model.name || model.model)
+      );
+
+      if (newModels.length === 0) {
+        setImportProgress((prev) => ({
+          ...prev,
+          phase: "done",
+          status: t("allModelsAlreadyImported") || "All models already imported",
+          logs: [t("noNewModelsToImport") || "No new models to import"],
+          importedCount: 0,
+          total: 0,
+          current: 0,
+        }));
+        return;
+      }
+
       setImportProgress((prev) => ({
         ...prev,
         phase: "importing",
-        total: fetchedModels.length,
-        status: t("importingModelsProgress", { current: 0, total: fetchedModels.length }),
-        logs: [t("foundModelsStartingImport", { count: fetchedModels.length })],
+        total: newModels.length,
+        current: 0,
+        status: t("importingModelsProgress", { current: 0, total: newModels.length }),
+        logs: [
+          t("foundModelsStartingImport", { count: newModels.length }),
+          ...(newModels.length < fetchedModels.length
+            ? [t("skippingExistingModels", { count: fetchedModels.length - newModels.length }) || `Skipping ${fetchedModels.length - newModels.length} existing models`]
+            : []),
+        ],
       }));
 
       let importedCount = 0;
-      for (let i = 0; i < fetchedModels.length; i++) {
-        const model = fetchedModels[i];
+      for (let i = 0; i < newModels.length; i++) {
+        const model = newModels[i];
         const modelId = model.id || model.name || model.model;
         if (!modelId) continue;
         const parts = modelId.split("/");
@@ -1479,7 +1506,7 @@ export default function ProviderDetailPage() {
         setImportProgress((prev) => ({
           ...prev,
           current: i + 1,
-          status: t("importingModelsProgress", { current: i + 1, total: fetchedModels.length }),
+          status: t("importingModelsProgress", { current: i + 1, total: newModels.length }),
           logs: [...prev.logs, t("importingModelById", { modelId })],
         }));
 
@@ -1506,7 +1533,7 @@ export default function ProviderDetailPage() {
       setImportProgress((prev) => ({
         ...prev,
         phase: "done",
-        current: fetchedModels.length,
+        current: newModels.length,
         status:
           importedCount > 0
             ? t("importSuccessCount", { count: importedCount })
