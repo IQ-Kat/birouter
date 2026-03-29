@@ -304,6 +304,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
                 } else {
                   // Chat Completions: full sanitization pipeline
+
+                  // Detect reasoning alias before sanitization strips it
+                  const hadReasoningAlias = !!(
+                    parsed.choices?.[0]?.delta?.reasoning &&
+                    typeof parsed.choices[0].delta.reasoning === "string" &&
+                    !parsed.choices[0].delta.reasoning_content
+                  );
+
                   parsed = sanitizeStreamingChunk(parsed);
 
                   const idFixed = fixInvalidId(parsed);
@@ -314,12 +322,6 @@ export function createSSEStream(options: StreamOptions = {}) {
 
                   const delta = parsed.choices?.[0]?.delta;
 
-                  // Normalize `reasoning` alias → `reasoning_content` (NVIDIA kimi-k2.5 etc.)
-                  if (delta?.reasoning && typeof delta.reasoning === "string" && !delta.reasoning_content) {
-                    delta.reasoning_content = delta.reasoning;
-                    delete delta.reasoning;
-                  }
-
                   // Extract <think> tags from streaming content
                   if (delta?.content && typeof delta.content === "string") {
                     const { content, thinking } = extractThinkingFromContent(delta.content);
@@ -329,13 +331,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
                   }
 
-                  // If reasoning was normalized (reasoning → reasoning_content) or <think>
-                  // tags were extracted, force re-serialization so the client sees
-                  // the standard `reasoning_content` field instead of the raw provider line.
-                  if (delta?.reasoning_content && !injectedUsage) {
-                    output = `data: ${JSON.stringify(parsed)}\n`;
-                    injectedUsage = true;
-                  }
+                  // Track whether we need to re-serialize (separate from injectedUsage
+                  // to avoid blocking subsequent finish_reason / usage mutations)
+                  const needsReserialization =
+                    hadReasoningAlias || (delta?.content === "" && delta?.reasoning_content);
 
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
@@ -412,7 +411,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.usage = filterUsageForFormat(buffered, FORMATS.OPENAI);
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
-                  } else if (idFixed) {
+                  } else if (idFixed || needsReserialization) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
@@ -498,7 +497,10 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
           }
           // Normalize `reasoning` alias → `reasoning_content` (NVIDIA kimi-k2.5 etc.)
-          if (parsed.choices?.[0]?.delta?.reasoning && !parsed.choices?.[0]?.delta?.reasoning_content) {
+          if (
+            parsed.choices?.[0]?.delta?.reasoning &&
+            !parsed.choices?.[0]?.delta?.reasoning_content
+          ) {
             const r = parsed.choices[0].delta.reasoning;
             if (typeof r === "string") {
               parsed.choices[0].delta.reasoning_content = r;

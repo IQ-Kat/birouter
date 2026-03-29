@@ -503,3 +503,29 @@ test("parseSSEToOpenAIResponse merges split tool call chunks by id without dupli
   assert.equal(parsed.choices[0].message.tool_calls[0].function.name, "sum");
   assert.equal(parsed.choices[0].message.tool_calls[0].function.arguments, '{"a":1}');
 });
+
+test("parseSSEToOpenAIResponse normalizes delta.reasoning alias to reasoning_content", () => {
+  const rawSSE = [
+    `data: ${JSON.stringify({
+      id: "chatcmpl_2",
+      object: "chat.completion.chunk",
+      choices: [{ index: 0, delta: { reasoning: "Let me think..." } }],
+    })}`,
+    `data: ${JSON.stringify({
+      id: "chatcmpl_2",
+      object: "chat.completion.chunk",
+      choices: [{ index: 0, delta: { reasoning: " The answer is 4." } }],
+    })}`,
+    `data: ${JSON.stringify({
+      id: "chatcmpl_2",
+      object: "chat.completion.chunk",
+      choices: [{ index: 0, delta: { content: "2+2=4" }, finish_reason: "stop" }],
+    })}`,
+    "data: [DONE]",
+  ].join("\n");
+
+  const parsed = parseSSEToOpenAIResponse(rawSSE, "moonshotai/kimi-k2.5");
+  assert.ok(parsed);
+  assert.equal(parsed.choices[0].message.reasoning_content, "Let me think... The answer is 4.");
+  assert.equal(parsed.choices[0].message.content, "2+2=4");
+});
