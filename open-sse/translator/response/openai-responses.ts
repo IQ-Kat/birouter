@@ -14,7 +14,13 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     return flushEvents(state);
   }
 
-  if (!chunk.choices?.length) return [];
+  if (!chunk.choices?.length) {
+    // Capture usage from usage-only chunks (stream_options.include_usage)
+    if (chunk.usage) {
+      state.usage = chunk.usage;
+    }
+    return [];
+  }
 
   const events = [];
   const nextSeq = () => ++state.seq;
@@ -69,7 +75,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
 
     if (content.includes("<think>")) {
       state.inThinking = true;
-      content = content.replace("<think>", "");
+      content = content.replaceAll("<think>", "");
       startReasoning(state, emit, idx);
     }
 
@@ -334,16 +340,52 @@ function closeToolCall(state, emit, idx) {
 function sendCompleted(state, emit) {
   if (!state.completedSent) {
     state.completedSent = true;
+
+    // Build output from accumulated state
+    const output = [];
+    if (state.reasoningId) {
+      output.push({
+        id: state.reasoningId,
+        type: "reasoning",
+        summary: [{ type: "summary_text", text: state.reasoningBuf }],
+      });
+    }
+    for (const idx in state.msgItemAdded) {
+      output.push({
+        id: `msg_${state.responseId}_${idx}`,
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", annotations: [], text: state.msgTextBuf[idx] || "" }],
+      });
+    }
+    for (const idx in state.funcCallIds) {
+      const callId = state.funcCallIds[idx];
+      output.push({
+        id: `fc_${callId}`,
+        type: "function_call",
+        call_id: callId,
+        name: state.funcNames[idx] || "",
+        arguments: state.funcArgsBuf[idx] || "{}",
+      });
+    }
+
+    const response: Record<string, unknown> = {
+      id: state.responseId,
+      object: "response",
+      created_at: state.created,
+      status: "completed",
+      background: false,
+      error: null,
+      output,
+    };
+
+    if (state.usage) {
+      response.usage = state.usage;
+    }
+
     emit("response.completed", {
       type: "response.completed",
-      response: {
-        id: state.responseId,
-        object: "response",
-        created_at: state.created,
-        status: "completed",
-        background: false,
-        error: null,
-      },
+      response,
     });
   }
 }
@@ -560,10 +602,21 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
     return null;
   }
 
-  // Reasoning events (convert to content or skip)
+  // Reasoning events — emit as reasoning_content in Chat format
   if (eventType === "response.reasoning_summary_text.delta") {
-    // Optionally include reasoning as content, or skip
-    return null;
+    const reasoningDelta = data.delta || "";
+    if (!reasoningDelta) return null;
+    return {
+      id: state.chatId,
+      object: "chat.completion.chunk",
+      created: state.created,
+      model: state.model || "gpt-4",
+      choices: [{
+        index: 0,
+        delta: { reasoning_content: reasoningDelta },
+        finish_reason: null,
+      }],
+    };
   }
 
   // Ignore other events

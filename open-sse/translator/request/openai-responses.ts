@@ -10,8 +10,6 @@ import { generateToolCallId } from "../helpers/toolCallHelper.ts";
 
 type JsonRecord = Record<string, unknown>;
 
-const UNSUPPORTED_TOOLS = ["file_search", "code_interpreter", "web_search_preview"];
-
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -47,14 +45,16 @@ export function openaiResponsesToOpenAIRequest(
   const root = toRecord(body);
   if (root.input === undefined) return body;
 
-  // Validate unsupported features - return clear errors instead of silent failure
+  // Validate tool types — only function tools can be translated to Chat Completions
   const tools = toArray(root.tools);
   if (tools.length > 0) {
     for (const toolValue of tools) {
       const tool = toRecord(toolValue);
-      if (UNSUPPORTED_TOOLS.includes(toString(tool.type))) {
+      const toolType = toString(tool.type);
+      // Allow: function tools, and tools already in Chat format (have .function property)
+      if (toolType && toolType !== "function" && !tool.function) {
         throw unsupportedFeature(
-          `Unsupported Responses API feature: ${toString(tool.type)} tool type is not supported by omniroute`
+          `Unsupported Responses API feature: ${toolType} tool type is not supported by omniroute`
         );
       }
     }
@@ -112,6 +112,24 @@ export function openaiResponsesToOpenAIRequest(
             if (contentItem.type === "output_text") {
               return { type: "text", text: toString(contentItem.text) };
             }
+            if (contentItem.type === "input_image") {
+              const imgResult: JsonRecord = {
+                type: "image_url",
+                image_url: { url: toString(contentItem.image_url) },
+              };
+              if (contentItem.detail !== undefined) {
+                (imgResult.image_url as JsonRecord).detail = contentItem.detail;
+              }
+              return imgResult;
+            }
+            if (contentItem.type === "input_file") {
+              const fileObj: JsonRecord = {};
+              if (contentItem.file_data !== undefined) fileObj.file_data = contentItem.file_data;
+              if (contentItem.file_id !== undefined) fileObj.file_id = contentItem.file_id;
+              if (contentItem.file_url !== undefined) fileObj.file_url = contentItem.file_url;
+              if (contentItem.filename !== undefined) fileObj.filename = contentItem.filename;
+              return { type: "file", file: fileObj };
+            }
             return contentValue;
           })
         : item.content;
@@ -144,7 +162,9 @@ export function openaiResponsesToOpenAIRequest(
         type: "function",
         function: {
           name: fnName,
-          arguments: item.arguments,
+          arguments: typeof item.arguments === "string"
+            ? item.arguments
+            : JSON.stringify(item.arguments ?? {}),
         },
       });
       currentAssistantMsg.tool_calls = toolCalls;
@@ -226,6 +246,20 @@ export function openaiResponsesToOpenAIRequest(
     return true;
   });
 
+  // Translate tool_choice object format: Responses {type,name} → Chat {type,function:{name}}
+  if (result.tool_choice && typeof result.tool_choice === "object" && !Array.isArray(result.tool_choice)) {
+    const tc = toRecord(result.tool_choice);
+    const tcType = toString(tc.type);
+    if (tcType === "function" && tc.name !== undefined && !tc.function) {
+      result.tool_choice = { type: "function", function: { name: tc.name } };
+    } else if (tcType && tcType !== "function" && tcType !== "allowed_tools") {
+      // Built-in tool types (web_search_preview, file_search, etc.) have no Chat equivalent
+      throw unsupportedFeature(
+        `Unsupported Responses API feature: tool_choice type '${tcType}' is not supported by omniroute`
+      );
+    }
+  }
+
   // Cleanup Responses API specific fields
   // Note: prompt_cache_key is intentionally preserved — it is used by Codex and other
   // providers as a cache-affinity signal. Stripping it breaks prompt caching (#517).
@@ -288,11 +322,24 @@ export function openaiToOpenAIResponsesRequest(
                   return { type: "input_text", text: toString(contentItem.text) };
                 }
                 if (contentItem.type === "image_url") {
-                  const imgUrl = contentItem.image_url as string | { url?: string };
-                  return {
+                  const imgUrl = contentItem.image_url as string | { url?: string; detail?: string };
+                  const imgResult: JsonRecord = {
                     type: "input_image",
                     image_url: typeof imgUrl === "string" ? imgUrl : imgUrl?.url || "",
                   };
+                  if (typeof imgUrl === "object" && imgUrl?.detail !== undefined) {
+                    imgResult.detail = imgUrl.detail;
+                  }
+                  return imgResult;
+                }
+                if (contentItem.type === "file") {
+                  const file = toRecord(contentItem.file);
+                  const fileResult: JsonRecord = { type: "input_file" };
+                  if (file.file_data !== undefined) fileResult.file_data = file.file_data;
+                  if (file.file_id !== undefined) fileResult.file_id = file.file_id;
+                  if (file.file_url !== undefined) fileResult.file_url = file.file_url;
+                  if (file.filename !== undefined) fileResult.filename = file.filename;
+                  return fileResult;
                 }
                 return contentValue;
               })
@@ -358,6 +405,20 @@ export function openaiToOpenAIResponsesRequest(
           });
         }
       }
+
+      // Handle deprecated function_call field (pre-tool_calls API)
+      if (msg.function_call && !msg.tool_calls) {
+        const fc = toRecord(msg.function_call);
+        const fnName = toString(fc.name).trim();
+        if (fnName) {
+          input.push({
+            type: "function_call",
+            call_id: `call_${fnName}`,
+            name: fnName,
+            arguments: toString(fc.arguments, "{}"),
+          });
+        }
+      }
     }
 
     // Convert tool results
@@ -365,7 +426,24 @@ export function openaiToOpenAIResponsesRequest(
       input.push({
         type: "function_call_output",
         call_id: toString(msg.tool_call_id),
-        output: msg.content,
+        output: typeof msg.content === "string"
+          ? msg.content
+          : Array.isArray(msg.content)
+            ? msg.content.map((c) => {
+                const part = toRecord(c);
+                if (part.type === "text") return { type: "input_text", text: toString(part.text) };
+                return c;
+              })
+            : String(msg.content ?? ""),
+      });
+    }
+
+    // Handle deprecated function role messages
+    if (role === "function") {
+      input.push({
+        type: "function_call_output",
+        call_id: `call_${toString(msg.name)}`,
+        output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
       });
     }
   }
@@ -407,6 +485,23 @@ export function openaiToOpenAIResponsesRequest(
       }
       return toolValue;
     });
+  }
+
+  // Translate tool_choice: Chat {type,function:{name}} → Responses {type,name}
+  if (root.tool_choice !== undefined) {
+    if (typeof root.tool_choice === "string") {
+      result.tool_choice = root.tool_choice;
+    } else if (typeof root.tool_choice === "object" && !Array.isArray(root.tool_choice)) {
+      const tc = toRecord(root.tool_choice);
+      if (tc.type === "function" && tc.function) {
+        const fn = toRecord(tc.function);
+        result.tool_choice = { type: "function", name: fn.name };
+      } else {
+        result.tool_choice = root.tool_choice;
+      }
+    } else {
+      result.tool_choice = root.tool_choice;
+    }
   }
 
   // Pass through relevant fields

@@ -98,6 +98,7 @@ export function createResponsesApiTransformStream(logger = null) {
     funcItemDone: {},
     buffer: "",
     completedSent: false,
+    usage: null,
   };
 
   const encoder = new TextEncoder();
@@ -249,16 +250,52 @@ export function createResponsesApiTransformStream(logger = null) {
   const sendCompleted = (controller) => {
     if (!state.completedSent) {
       state.completedSent = true;
+
+      // Build output from accumulated state
+      const output = [];
+      if (state.reasoningId) {
+        output.push({
+          id: state.reasoningId,
+          type: "reasoning",
+          summary: [{ type: "summary_text", text: state.reasoningBuf }],
+        });
+      }
+      for (const idx in state.msgItemAdded) {
+        output.push({
+          id: `msg_${state.responseId}_${idx}`,
+          type: "message",
+          role: "assistant",
+          content: [{ type: "output_text", annotations: [], text: state.msgTextBuf[idx] || "" }],
+        });
+      }
+      for (const idx in state.funcCallIds) {
+        const callId = state.funcCallIds[idx];
+        output.push({
+          id: `fc_${callId}`,
+          type: "function_call",
+          call_id: callId,
+          name: state.funcNames[idx] || "",
+          arguments: state.funcArgsBuf[idx] || "{}",
+        });
+      }
+
+      const response: Record<string, unknown> = {
+        id: state.responseId,
+        object: "response",
+        created_at: state.created,
+        status: "completed",
+        background: false,
+        error: null,
+        output,
+      };
+
+      if (state.usage) {
+        response.usage = state.usage;
+      }
+
       emit(controller, "response.completed", {
         type: "response.completed",
-        response: {
-          id: state.responseId,
-          object: "response",
-          created_at: state.created,
-          status: "completed",
-          background: false,
-          error: null,
-        },
+        response,
       });
     }
   };
@@ -288,7 +325,12 @@ export function createResponsesApiTransformStream(logger = null) {
           continue;
         }
 
-        if (!parsed.choices?.length) continue;
+        if (!parsed.choices?.length) {
+          if (parsed.usage) {
+            state.usage = parsed.usage;
+          }
+          continue;
+        }
 
         const choice = parsed.choices[0];
         const idx = choice.index || 0;
@@ -335,7 +377,7 @@ export function createResponsesApiTransformStream(logger = null) {
 
           if (content.includes("<think>")) {
             state.inThinking = true;
-            content = content.replace("<think>", "");
+            content = content.replaceAll("<think>", "");
             startReasoning(controller, idx);
           }
 
