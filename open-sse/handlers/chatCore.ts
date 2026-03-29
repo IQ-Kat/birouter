@@ -43,7 +43,7 @@ import {
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
-import { shouldPreserveCacheControl, recordCacheHit } from "../utils/cacheControlPolicy.ts";
+import { shouldPreserveCacheControl } from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 
 import {
@@ -1554,11 +1554,6 @@ export async function handleChatCore({
       claudeCacheUsageMeta: cacheUsageLogMeta,
     });
 
-    // Persist cache metrics to database
-    updateCacheMetrics(currentMetrics).catch((err) => {
-      log?.debug?.("CACHE", `Failed to persist cache metrics: ${err?.message || "unknown"}`);
-    });
-
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
@@ -1595,6 +1590,7 @@ export async function handleChatCore({
     responseBody: streamResponseBody,
     providerPayload,
     clientPayload,
+    ttft,
   }) => {
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
 
