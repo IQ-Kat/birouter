@@ -1644,9 +1644,9 @@
     "modelsPathLabel": "मॉडल समापन बिंदु पथ",
     "modelsPathPlaceholder": "/मॉडल",
     "modelsPathHint": "सत्यापन के लिए कस्टम मॉडल पथ (जैसे /v4/मॉडल)",
-    "allModelsAlreadyImported": "सभी मॉडल पहले से ही आयातित हैं",
-    "noNewModelsToImport": "आयात करने के लिए कोई नए मॉडल नहीं — सभी मॉडल पहले से ही रजिस्ट्री या कस्टम मॉडल सूची में हैं",
-    "skippingExistingModels": "{count} मौजूदा मॉडल छोड़े जा रहे हैं"
+    "allModelsAlreadyImported": "Semua model sudah diimpor",
+    "noNewModelsToImport": "Tidak ada model baru untuk diimpor — semua model sudah ada di registri atau daftar model kustom",
+    "skippingExistingModels": "Melewatkan {count} model yang sudah ada"
   },
   "settings": {
     "title": "सेटिंग्स",

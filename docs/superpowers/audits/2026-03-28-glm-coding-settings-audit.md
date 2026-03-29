@@ -18,10 +18,10 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 ## Local sources consulted
 
-- `repo-derived`: `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/config/providerRegistry.ts`
-- `repo-derived`: `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/config/providerModels.ts`
-- `repo-derived`: `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/services/modelCapabilities.ts`
-- `repo-derived`: `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/src/shared/constants/pricing.ts`
+- `repo-derived`: `open-sse/config/providerRegistry.ts`
+- `repo-derived`: `open-sse/config/providerModels.ts`
+- `repo-derived`: `open-sse/services/modelCapabilities.ts`
+- `repo-derived`: `src/shared/constants/pricing.ts`
 
 ## Provider snapshot
 
@@ -103,9 +103,9 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 ### Exact repo lines affected
 
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/config/providerRegistry.ts:629` — GLM `glm-5.1` model entry context window override
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:43-50` — regression test for the `glm-5.1` context window override
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:96-153` — GLM-5 audit record
+- `open-sse/config/providerRegistry.ts:629` — GLM `glm-5.1` model entry context window override
+- `open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:43-50` — regression test for the `glm-5.1` context window override
+- `docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:96-153` — GLM-5 audit record
 
 ### Mismatch list
 
@@ -161,7 +161,7 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 ### Exact repo lines affected
 
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:154-215` — dedicated GLM-5 Turbo audit record
+- `docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:154-215` — dedicated GLM-5 Turbo audit record
 
 ### Mismatch list
 
@@ -227,15 +227,15 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 ### Exact repo lines affected
 
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/config/providerRegistry.ts:614-640` — compared GLM Coding transport metadata, default context length, and GLM-4.7 family inventory
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/services/modelCapabilities.ts:4-45` — compared current tool-calling behavior used for GLM models
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/src/shared/constants/pricing.ts:731-808` — compared GLM-4.7 family pricing rows, including zero pricing for `glm-4.7-flash`
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:8-86` — shared regression file used for focused verification evidence in this worktree
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:216-281` — added GLM-4.7 family audit record and focused test evidence
+- `open-sse/config/providerRegistry.ts:614-640` — compared GLM Coding transport metadata, default context length, and GLM-4.7 family inventory
+- `open-sse/services/modelCapabilities.ts:4-45` — compared current tool-calling behavior used for GLM models
+- `src/shared/constants/pricing.ts:731-808` — compared GLM-4.7 family pricing rows, including zero pricing for `glm-4.7-flash`
+- `open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:8-86` — shared regression file used for focused verification evidence in this worktree
+- `docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:216-281` — added GLM-4.7 family audit record and focused test evidence
 
 ### Focused regression verification
 
-- Command run from `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit`: `npm exec vitest run open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts`
+- Command run from ``: `npm exec vitest run open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts`
 - Result: passed successfully in the GLM audit worktree (`1` test file passed, `5` tests passed, duration `164ms`)
 
 ### Mismatch list
@@ -326,15 +326,15 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 ### Exact repo lines affected
 
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/config/providerRegistry.ts:613-639` — compared GLM Coding transport metadata, default context length, and GLM-4.6 family inventory
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/services/modelCapabilities.ts:4-45` — compared current tool-calling behavior used for GLM models
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/src/shared/constants/pricing.ts:730-786` — compared GLM-4.6 family pricing rows
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:8-86` — shared regression file used for focused verification evidence in this worktree
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:300-372` — added GLM-4.6 family audit record and focused verification evidence
+- `open-sse/config/providerRegistry.ts:613-639` — compared GLM Coding transport metadata, default context length, and GLM-4.6 family inventory
+- `open-sse/services/modelCapabilities.ts:4-45` — compared current tool-calling behavior used for GLM models
+- `src/shared/constants/pricing.ts:730-786` — compared GLM-4.6 family pricing rows
+- `open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:8-86` — shared regression file used for focused verification evidence in this worktree
+- `docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:300-372` — added GLM-4.6 family audit record and focused verification evidence
 
 ### Focused regression verification
 
-- Command run from `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit`: `node_modules/.bin/vitest --root /home/overmind/Projects/omniroute/.worktrees/glm-coding-audit run /home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts`
+- Command run from ``: `node_modules/.bin/vitest --root  run open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts`
 - Result: passed successfully in the GLM audit worktree (`1` test file passed, `5` tests passed, duration `165ms`)
 
 ### Mismatch list
@@ -419,15 +419,15 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 ### Exact repo lines inspected
 
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/config/providerRegistry.ts:614-640` — compared GLM Coding transport metadata and GLM-4.5 family model inventory
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/services/modelCapabilities.ts:4-45` — compared current GLM tool-calling behavior
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/src/shared/constants/pricing.ts:730-808` — compared GLM-4.5 family pricing rows
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:8-86` — shared regression file used for focused verification evidence in this worktree
-- `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:387-478` — changed audit worksheet lines for the GLM-4.5 family record and focused verification evidence
+- `open-sse/config/providerRegistry.ts:614-640` — compared GLM Coding transport metadata and GLM-4.5 family model inventory
+- `open-sse/services/modelCapabilities.ts:4-45` — compared current GLM tool-calling behavior
+- `src/shared/constants/pricing.ts:730-808` — compared GLM-4.5 family pricing rows
+- `open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:8-86` — shared regression file used for focused verification evidence in this worktree
+- `docs/superpowers/audits/2026-03-28-glm-coding-settings-audit.md:387-478` — changed audit worksheet lines for the GLM-4.5 family record and focused verification evidence
 
 ### Focused regression verification
 
-- Command run from `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit`: `node_modules/.bin/vitest --root /home/overmind/Projects/omniroute/.worktrees/glm-coding-audit run /home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts`
+- Command run from ``: `node_modules/.bin/vitest --root  run open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts`
 - Result: passed successfully in the GLM audit worktree (`1` test file passed, `5` tests passed, duration `168ms`)
 
 ### Mismatch list
@@ -515,8 +515,8 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 ## Final cross-family verification
 
-- Focused GLM regression: `"/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/node_modules/.bin/vitest" --root "/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit" run "/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts"` → PASS (`1` file, `5` tests)
-- Broader Vitest suite: `rtk npm --prefix "/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit" run test:vitest` → PASS (`7` files, `63` tests)
+- Focused GLM regression: `"node_modules/.bin/vitest" --root "" run "open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts"` → PASS (`1` file, `5` tests)
+- Broader Vitest suite: `rtk npm --prefix "" run test:vitest` → PASS (`7` files, `63` tests)
 - Worksheet review result: no additional unresolved worksheet rows were found beyond the items summarized below; one explicit `repo-only` item remains (`glm-4.5v`, pending a supplied hosted API source)
 - Live transport verification: Anthropic-compatible repo path (`https://api.z.ai/api/anthropic/v1/messages?beta=true` with `x-api-key` + Anthropic headers) returned `200` and a valid `glm-5` response; documented OpenAI-compatible path (`https://api.z.ai/api/paas/v4/chat/completions` with Bearer auth) returned `429` / `Insufficient balance or no resource package`, so it remains an available documented alternative but not a superior replacement proven by this session
 - Live model smoke verification on the repo path: `glm-5.1`, `glm-5`, `glm-5-turbo`, `glm-4.7`, `glm-4.6v`, `glm-4.6`, `glm-4.5v`, `glm-4.5`, and `glm-4.5-air` all returned hello responses; `glm-4.7-flashx` returned `429` insufficient balance / no resource package twice; `glm-4.7-flash` returned `500` provider-side network/internal failure twice
@@ -528,7 +528,7 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 | Change | Repo files | Supporting source link | Verification |
 | --- | --- | --- | --- |
-| Added an explicit `glm-5.1` context-length override from `200000` to `204800` | `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/config/providerRegistry.ts:629`, `/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit/open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:43-50` | `https://docs.z.ai/devpack/using5.1` (`contextWindow: 204800`) | focused GLM regression PASS; broader Vitest suite PASS |
+| Added an explicit `glm-5.1` context-length override from `200000` to `204800` | `open-sse/config/providerRegistry.ts:629`, `open-sse/mcp-server/__tests__/glmCodingProviderConfig.test.ts:43-50` | `https://docs.z.ai/devpack/using5.1` (`contextWindow: 204800`) | focused GLM regression PASS; broader Vitest suite PASS |
 
 ### Pending more docs or separate transport validation
 
