@@ -29,18 +29,34 @@ export async function POST(request: Request) {
   let tmpPath: string | null = null;
 
   try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File | null;
+    let fileBuffer: Buffer | null = null;
+    let fileName = "";
+    const contentType = request.headers.get("content-type") || "";
 
-    if (!file) {
-      return NextResponse.json(
-        { error: "No file provided. Upload a .sqlite file." },
-        { status: 400 }
-      );
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const file = formData.get("file") as File | null;
+      if (!file) {
+        return NextResponse.json(
+          { error: "No file provided. Upload a .sqlite file." },
+          { status: 400 }
+        );
+      }
+      fileName = file.name;
+      fileBuffer = Buffer.from(await file.arrayBuffer());
+    } else {
+      // Direct binary transfer to bypass Reverse Proxy / Next.js FormData parsing errors under chunked encoding (Bug #770)
+      const buffer = await request.arrayBuffer();
+      if (!buffer || buffer.byteLength === 0) {
+        return NextResponse.json({ error: "No file content provided." }, { status: 400 });
+      }
+      fileBuffer = Buffer.from(buffer);
+      const url = new URL(request.url);
+      fileName = url.searchParams.get("filename") || "import.sqlite";
     }
 
     // Validate filename extension
-    if (!file.name.endsWith(".sqlite")) {
+    if (!fileName.endsWith(".sqlite")) {
       return NextResponse.json(
         { error: "Invalid file type. Only .sqlite files are accepted." },
         { status: 400 }
@@ -48,14 +64,15 @@ export async function POST(request: Request) {
     }
 
     // Validate file size
-    if (file.size > MAX_UPLOAD_SIZE) {
+    const fileSize = fileBuffer.length;
+    if (fileSize > MAX_UPLOAD_SIZE) {
       return NextResponse.json(
         { error: `File too large. Maximum allowed size is ${MAX_UPLOAD_SIZE / (1024 * 1024)} MB.` },
         { status: 400 }
       );
     }
 
-    if (file.size < 4096) {
+    if (fileSize < 4096) {
       return NextResponse.json(
         { error: "File too small to be a valid SQLite database." },
         { status: 400 }
@@ -63,10 +80,8 @@ export async function POST(request: Request) {
     }
 
     // Write uploaded file to temp location
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
     tmpPath = path.join(os.tmpdir(), `omniroute-import-${Date.now()}.sqlite`);
-    fs.writeFileSync(tmpPath, buffer);
+    fs.writeFileSync(tmpPath, fileBuffer!);
 
     // Validate SQLite integrity
     let testDb: InstanceType<typeof Database> | null = null;
@@ -141,7 +156,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       imported: true,
-      filename: file.name,
+      filename: fileName,
       connectionCount: connCount,
       nodeCount,
       comboCount,

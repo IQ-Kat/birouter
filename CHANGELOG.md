@@ -4,6 +4,17 @@
 
 ---
 
+## [3.3.1] - 2026-03-29
+
+### 🐛 Bug Fixes
+
+- **OpenAI Codex:** Fallback processing fix for `type: "text"` elements carrying null or empty datasets that caused 400 rejection (#742).
+- **Opencode:** Update schema alignment to singular `provider` to match official spec (#774).
+- **Gemini CLI:** Inject missing end-user quota headers preventing 403 authorization lockouts (#775).
+- **DB Recovery:** Refactor multipart payload imports into raw binary buffered arrays to bypass reverse proxy max body limits (#770).
+
+---
+
 ## [3.3.0] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring

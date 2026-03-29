@@ -21,6 +21,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
       "User-Agent": `GeminiCLI/0.31.0/${this._currentModel || "unknown"} (linux; x64)`,
       "X-Goog-Api-Client": "google-genai-sdk/1.41.0 gl-node/v22.19.0",
       ...(stream && { Accept: "text/event-stream" }),
+      ...(credentials?.projectId && { "x-goog-user-project": credentials.projectId }),
     };
   }
 
