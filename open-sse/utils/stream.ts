@@ -159,8 +159,9 @@ export function createSSEStream(options: StreamOptions = {}) {
 
   // Track content length for usage estimation (both modes)
   let totalContentLength = 0;
-  // Passthrough: accumulate content for call log response body
+  // Passthrough: accumulate content and reasoning separately for call log response body
   let passthroughAccumulatedContent = "";
+  let passthroughAccumulatedReasoning = "";
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
@@ -378,7 +379,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (typeof delta?.content === "string")
                     passthroughAccumulatedContent += delta.content;
                   if (typeof delta?.reasoning_content === "string")
-                    passthroughAccumulatedContent += delta.reasoning_content;
+                    passthroughAccumulatedReasoning += delta.reasoning_content;
 
                   const extracted = extractUsage(parsed);
                   if (extracted) {
@@ -661,6 +662,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                   role: "assistant",
                   content: content || null,
                 };
+                const reasoning = passthroughAccumulatedReasoning.trim();
+                if (reasoning) {
+                  message.reasoning_content = reasoning;
+                }
                 if (passthroughToolCalls.size > 0) {
                   message.tool_calls = [...passthroughToolCalls.values()].sort(
                     (a, b) => a.index - b.index
