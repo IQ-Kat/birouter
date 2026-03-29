@@ -78,6 +78,9 @@ const comboStrategySchema = z.enum([
   "cost-optimized",
   "strict-random",
   "auto",
+  "fill-first",
+  // #729 schema fixes for combo edit/save
+  "p2c",
 ]);
 
 const comboRuntimeConfigSchema = z
@@ -884,6 +887,7 @@ export const updateComboSchema = z
     system_message: z.string().max(50000).optional(),
     tool_filter_regex: z.string().max(1000).optional(),
     context_cache_protection: z.boolean().optional(),
+    context_length: z.number().int().min(1000).max(2000000).optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -895,7 +899,8 @@ export const updateComboSchema = z
       value.allowedProviders === undefined &&
       value.system_message === undefined &&
       value.tool_filter_regex === undefined &&
-      value.context_cache_protection === undefined
+      value.context_cache_protection === undefined &&
+      value.context_length === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

@@ -47,3 +47,12 @@ AGENTS.md
 # Build artifacts (pre-built goes inside app/)
 .next/
 node_modules/
+
+# Ignore large binary files and other build directories
+*.tgz
+*.AppImage
+*.deb
+*.rpm
+electron/
+app/electron/
+app/vscode-extension/
