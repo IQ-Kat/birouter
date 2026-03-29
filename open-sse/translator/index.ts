@@ -73,6 +73,7 @@ function normalizeOpenAIResponsesRequest(body) {
 
 /** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
 /** @param options.preserveDeveloperRole - undefined/true: keep developer for OpenAI format (default); false: map to system */
+/** @param options.preserveCacheControl - When true, preserve client-side cache_control markers (for Claude Code, etc.) */
 // Translate request: source -> openai -> target
 export function translateRequest(
   sourceFormat,
@@ -83,7 +84,7 @@ export function translateRequest(
   credentials = null,
   provider = null,
   reqLogger = null,
-  options?: { normalizeToolCallId?: boolean; preserveDeveloperRole?: boolean }
+  options?: { normalizeToolCallId?: boolean; preserveDeveloperRole?: boolean; preserveCacheControl?: boolean }
 ) {
   let result = body;
   const use9CharId = options?.normalizeToolCallId === true;
@@ -149,10 +150,13 @@ export function translateRequest(
   }
 
   // Final step: prepare request for Claude format endpoints
-  // In Claude passthrough mode (Claude → Claude), preserve cache_control markers
+  // Preserve cache_control when:
+  // 1. Claude passthrough mode (Claude → Claude), OR
+  // 2. Explicitly requested via options (for caching-aware clients like Claude Code)
   if (targetFormat === FORMATS.CLAUDE) {
     const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE;
-    result = prepareClaudeRequest(result, provider, isClaudePassthrough);
+    const preserveCache = isClaudePassthrough || options?.preserveCacheControl === true;
+    result = prepareClaudeRequest(result, provider, preserveCache);
   }
 
   // Normalize openai-responses input shape for providers that require list input.

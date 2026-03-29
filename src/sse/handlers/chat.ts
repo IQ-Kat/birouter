@@ -275,7 +275,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       handleSingleModel: (b: any, m: string) =>
         handleSingleModelChat(b, m, clientRawRequest, request, combo.name, apiKeyInfo, telemetry, {
           sessionId,
-        }),
+        }, combo.strategy, true),
       isModelAvailable: checkModelAvailable,
       log,
       settings,
@@ -304,7 +304,9 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           combo.name,
           apiKeyInfo,
           telemetry,
-          { sessionId, emergencyFallbackTried: true }
+          { sessionId, emergencyFallbackTried: true },
+          combo.strategy,
+          true
         );
         if (fallbackResponse.ok) {
           log.info("GLOBAL_FALLBACK", `Global fallback ${fallbackModel} succeeded`);
@@ -336,7 +338,9 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     null,
     apiKeyInfo,
     telemetry,
-    { sessionId }
+    { sessionId },
+    null,
+    false
   );
   recordTelemetry(telemetry);
   return withSessionHeader(response, sessionId);
@@ -366,7 +370,9 @@ async function handleSingleModelChat(
   comboName: string | null = null,
   apiKeyInfo: any = null,
   telemetry: any = null,
-  runtimeOptions: { emergencyFallbackTried?: boolean; sessionId?: string | null } = {}
+  runtimeOptions: { emergencyFallbackTried?: boolean; sessionId?: string | null } = {},
+  comboStrategy: string | null = null,
+  isCombo: boolean = false
 ) {
   // 1. Resolve model → provider/model
   const resolved = await resolveModelOrError(modelStr, body, clientRawRequest?.endpoint);
@@ -443,6 +449,8 @@ async function handleSingleModelChat(
       apiKeyInfo,
       userAgent,
       comboName,
+      comboStrategy,
+      isCombo,
       extendedContext,
     });
     if (telemetry) telemetry.endPhase();
@@ -512,7 +520,9 @@ async function handleSingleModelChat(
             comboName,
             apiKeyInfo,
             telemetry,
-            { ...runtimeOptions, emergencyFallbackTried: true }
+            { ...runtimeOptions, emergencyFallbackTried: true },
+            null, // no strategy for emergency fallback
+            Boolean(comboName) // isCombo if comboName exists
           );
 
           if (fallbackResponse.ok) {
@@ -648,6 +658,8 @@ async function executeChatWithBreaker({
   apiKeyInfo,
   userAgent,
   comboName,
+  comboStrategy,
+  isCombo,
   extendedContext,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
@@ -665,6 +677,8 @@ async function executeChatWithBreaker({
           apiKeyInfo,
           userAgent,
           comboName,
+          comboStrategy,
+          isCombo,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,

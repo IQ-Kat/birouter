@@ -46,6 +46,7 @@ export async function getSettings() {
     stickyRoundRobinLimit: 3,
     requireLogin: true,
     hiddenSidebarItems: [],
+    alwaysPreserveClientCache: "auto",
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -485,4 +486,178 @@ export async function setProxyConfig(config: Record<string, unknown>) {
 
   backupDbFile("pre-write");
   return current;
+}
+
+// ──────────────── Cache Control Metrics ────────────────
+// Cache metrics are now computed from usage_history table on-the-fly
+// This avoids race conditions and keeps a single source of truth for token data
+
+export async function getCacheMetrics() {
+  const db = getDbInstance();
+
+  try {
+    // Aggregate totals from usage_history
+    const totalsRow = db
+      .prepare(
+        `
+      SELECT
+        COUNT(*) as totalRequests,
+        SUM(tokens_input) as totalInputTokens,
+        SUM(tokens_cache_read) as totalCachedTokens,
+        SUM(tokens_cache_creation) as totalCacheCreationTokens
+      FROM usage_history
+      WHERE tokens_cache_read > 0 OR tokens_cache_creation > 0
+    `
+      )
+      .get() as
+      | {
+          totalRequests: number;
+          totalInputTokens: number | null;
+          totalCachedTokens: number | null;
+          totalCacheCreationTokens: number | null;
+        }
+      | undefined;
+
+    // Get all requests count (including those without cache activity)
+    const allRequestsRow = db
+      .prepare(
+        `
+      SELECT COUNT(*) as totalRequests
+      FROM usage_history
+    `
+      )
+      .get() as { totalRequests: number } | undefined;
+
+    // Aggregate by provider
+    const byProviderRows = db
+      .prepare(
+        `
+      SELECT
+        provider,
+        COUNT(*) as requests,
+        SUM(tokens_input) as inputTokens,
+        SUM(tokens_cache_read) as cachedTokens,
+        SUM(tokens_cache_creation) as cacheCreationTokens
+      FROM usage_history
+      WHERE (tokens_cache_read > 0 OR tokens_cache_creation > 0)
+        AND provider IS NOT NULL
+      GROUP BY provider
+    `
+      )
+      .all() as Array<{
+      provider: string;
+      requests: number;
+      inputTokens: number | null;
+      cachedTokens: number | null;
+      cacheCreationTokens: number | null;
+    }>;
+
+    // Aggregate by strategy
+    // Since combo_strategy isn't tracked in usage_history yet, we use 'direct' for all requests
+    // TODO: Add combo_strategy column to usage_history for proper strategy tracking
+    const byStrategyRows = db
+      .prepare(
+        `
+      SELECT
+        'direct' as strategy,
+        COUNT(*) as requests,
+        SUM(tokens_input) as inputTokens,
+        SUM(tokens_cache_read) as cachedTokens,
+        SUM(tokens_cache_creation) as cacheCreationTokens
+      FROM usage_history
+      WHERE (tokens_cache_read > 0 OR tokens_cache_creation > 0)
+      GROUP BY 'direct'
+    `
+      )
+      .all() as Array<{
+      strategy: string;
+      requests: number;
+      inputTokens: number | null;
+      cachedTokens: number | null;
+      cacheCreationTokens: number | null;
+    }>;
+
+    // Calculate tokens saved (cached tokens are reused, not charged at full price)
+    const tokensSaved = totalsRow?.totalCachedTokens || 0;
+
+    // Build byProvider object
+    const byProvider: Record<
+      string,
+      {
+        requests: number;
+        inputTokens: number;
+        cachedTokens: number;
+        cacheCreationTokens: number;
+      }
+    > = {};
+    for (const row of byProviderRows) {
+      byProvider[row.provider] = {
+        requests: row.requests,
+        inputTokens: row.inputTokens || 0,
+        cachedTokens: row.cachedTokens || 0,
+        cacheCreationTokens: row.cacheCreationTokens || 0,
+      };
+    }
+
+    // Build byStrategy object
+    const byStrategy: Record<
+      string,
+      {
+        requests: number;
+        inputTokens: number;
+        cachedTokens: number;
+        cacheCreationTokens: number;
+      }
+    > = {};
+    for (const row of byStrategyRows) {
+      byStrategy[row.strategy] = {
+        requests: row.requests,
+        inputTokens: row.inputTokens || 0,
+        cachedTokens: row.cachedTokens || 0,
+        cacheCreationTokens: row.cacheCreationTokens || 0,
+      };
+    }
+
+    return {
+      totalRequests: allRequestsRow?.totalRequests || totalsRow?.totalRequests || 0,
+      requestsWithCacheControl: totalsRow?.totalRequests || 0,
+      totalInputTokens: totalsRow?.totalInputTokens || 0,
+      totalCachedTokens: totalsRow?.totalCachedTokens || 0,
+      totalCacheCreationTokens: totalsRow?.totalCacheCreationTokens || 0,
+      tokensSaved,
+      estimatedCostSaved: 0, // Would need pricing data to calculate
+      byProvider,
+      byStrategy,
+      lastUpdated: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error("Failed to fetch cache metrics from usage_history:", error);
+    return {
+      totalRequests: 0,
+      requestsWithCacheControl: 0,
+      totalInputTokens: 0,
+      totalCachedTokens: 0,
+      totalCacheCreationTokens: 0,
+      tokensSaved: 0,
+      estimatedCostSaved: 0,
+      byProvider: {},
+      byStrategy: {},
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+}
+
+export async function updateCacheMetrics(_metrics: Record<string, unknown>) {
+  // No-op: metrics are now computed from usage_history on-the-fly
+  // The usage_history table is the single source of truth
+  return getCacheMetrics();
+}
+
+export async function resetCacheMetrics() {
+  // No-op: cannot delete historical usage data
+  // Cache metrics are computed from usage_history, so they reflect actual request history
+  console.warn(
+    "resetCacheMetrics is deprecated - cache metrics are now computed from usage_history"
+  );
+  return getCacheMetrics();
 }

@@ -4,69 +4,190 @@ import { useState, useEffect } from "react";
 import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
+interface CacheMetrics {
+  totalRequests: number;
+  requestsWithCacheControl: number;
+  totalInputTokens: number;
+  totalCachedTokens: number;
+  totalCacheCreationTokens: number;
+  tokensSaved: number;
+  estimatedCostSaved: number;
+  byProvider: Record<
+    string,
+    {
+      requests: number;
+      inputTokens: number;
+      cachedTokens: number;
+      cacheCreationTokens: number;
+    }
+  >;
+  byStrategy: Record<
+    string,
+    {
+      requests: number;
+      inputTokens: number;
+      cachedTokens: number;
+      cacheCreationTokens: number;
+    }
+  >;
+  lastUpdated: string;
+}
+
 export default function CacheStatsCard() {
-  const [cache, setCache] = useState(null);
-  const [flushing, setFlushing] = useState(false);
+  const [metrics, setMetrics] = useState<CacheMetrics | null>(null);
+  const [resetting, setResetting] = useState(false);
   const t = useTranslations("settings");
 
-  const fetchStats = () => {
-    fetch("/api/cache/stats")
+  const fetchMetrics = () => {
+    fetch("/api/settings/cache-metrics")
       .then((r) => r.json())
-      .then(setCache)
+      .then(setMetrics)
       .catch(() => {});
   };
 
-  useEffect(fetchStats, []);
+  useEffect(fetchMetrics, []);
 
-  const handleFlush = async () => {
-    setFlushing(true);
+  const handleReset = async () => {
+    setResetting(true);
     try {
-      await fetch("/api/cache/stats", { method: "DELETE" });
-      fetchStats();
+      await fetch("/api/settings/cache-metrics", { method: "DELETE" });
+      fetchMetrics();
     } finally {
-      setFlushing(false);
+      setResetting(false);
     }
   };
+
+  const cacheHitRate =
+    metrics && metrics.totalInputTokens > 0
+      ? (metrics.totalCachedTokens / metrics.totalInputTokens) * 100
+      : 0;
 
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-text-main flex items-center gap-2">
-          <span className="material-symbols-outlined text-[20px]">cached</span>
-          {t("promptCache")}
+          <span className="material-symbols-outlined text-[20px]">insights</span>
+          Prompt Cache Metrics
         </h3>
         <button
-          onClick={handleFlush}
-          disabled={flushing}
+          onClick={handleReset}
+          disabled={resetting}
           className="px-3 py-1.5 text-xs rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
         >
-          {flushing ? t("flushing") : t("flushCache")}
+          {resetting ? "Resetting..." : "Reset Metrics"}
         </button>
       </div>
 
-      {cache ? (
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-text-muted">{t("size")}</p>
-            <p className="font-mono text-lg text-text-main">
-              {cache.size}/{cache.maxSize}
-            </p>
+      {metrics ? (
+        <div className="space-y-4">
+          {/* Overview Stats */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-text-muted">Total Requests</p>
+              <p className="font-mono text-lg text-text-main">{metrics.totalRequests}</p>
+            </div>
+            <div>
+              <p className="text-text-muted">With Cache Control</p>
+              <p className="font-mono text-lg text-text-main">{metrics.requestsWithCacheControl}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-text-muted">{t("hitRate")}</p>
-            <p className="font-mono text-lg text-text-main">{cache.hitRate?.toFixed(1) ?? 0}%</p>
+
+          {/* Token Stats */}
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <p className="text-text-muted">Input Tokens</p>
+              <p className="font-mono text-lg text-text-main">
+                {metrics.totalInputTokens.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-text-muted">Cached Tokens (Read)</p>
+              <p className="font-mono text-lg text-green-400">
+                {metrics.totalCachedTokens.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-text-muted">Cache Creation (Write)</p>
+              <p className="font-mono text-lg text-blue-400">
+                {metrics.totalCacheCreationTokens.toLocaleString()}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-text-muted">{t("hits")}</p>
-            <p className="font-mono text-text-main">{cache.hits ?? 0}</p>
+
+          {/* Cache Ratio */}
+          <div className="rounded-lg bg-surface/50 border border-border/30 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-text-main">Cache Reuse Ratio</p>
+                <p className="text-xs text-text-muted">Cached tokens / Total input tokens</p>
+              </div>
+              <p className="font-mono text-xl text-green-400">{cacheHitRate.toFixed(1)}%</p>
+            </div>
+            {/* Progress bar */}
+            <div className="mt-2 h-2 rounded-full bg-border/30 overflow-hidden">
+              <div
+                className="h-full bg-green-500 transition-all duration-300"
+                style={{ width: `${Math.min(cacheHitRate, 100)}%` }}
+              />
+            </div>
           </div>
-          <div>
-            <p className="text-text-muted">{t("evictions")}</p>
-            <p className="font-mono text-text-main">{cache.evictions ?? 0}</p>
+
+          {/* Savings */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-text-muted">Tokens Saved</p>
+              <p className="font-mono text-lg text-green-400">
+                {metrics.tokensSaved.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-text-muted">Est. Cost Saved</p>
+              <p className="font-mono text-lg text-green-400">
+                ${metrics.estimatedCostSaved.toFixed(4)}
+              </p>
+            </div>
           </div>
+
+          {/* By Provider */}
+          {Object.keys(metrics.byProvider).length > 0 && (
+            <div className="pt-3 border-t border-border/30">
+              <p className="text-xs font-medium text-text-muted mb-2">By Provider</p>
+              <div className="space-y-2">
+                {Object.entries(metrics.byProvider).map(([provider, stats]) => {
+                  const providerCacheRate =
+                    stats.inputTokens > 0 ? (stats.cachedTokens / stats.inputTokens) * 100 : 0;
+                  return (
+                    <div
+                      key={provider}
+                      className="flex items-center justify-between px-3 py-2 rounded bg-surface/30 text-xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-text-main capitalize w-24">{provider}</span>
+                        <span className="text-text-muted">{stats.requests} reqs</span>
+                      </div>
+                      <div className="flex items-center gap-4 font-mono">
+                        <span className="text-text-muted" title="Input tokens">
+                          In: {stats.inputTokens.toLocaleString()}
+                        </span>
+                        <span className="text-green-400" title="Cached tokens (reads)">
+                          Cached: {stats.cachedTokens.toLocaleString()}
+                        </span>
+                        <span className="text-blue-400" title="Cache creation tokens (writes)">
+                          Write: {stats.cacheCreationTokens.toLocaleString()}
+                        </span>
+                        <span className="text-green-400 w-12 text-right">
+                          {providerCacheRate.toFixed(0)}%
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
-        <p className="text-sm text-text-muted">{t("loadingCacheStats")}</p>
+        <p className="text-sm text-text-muted">Loading cache metrics...</p>
       )}
     </Card>
   );
