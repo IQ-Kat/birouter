@@ -67,7 +67,17 @@ export function injectModelTag(messages: Message[], providerModel: string): Mess
   }
 
   const msg = cleaned[lastAssistantIdx];
-  if (typeof msg.content !== "string") return cleaned;
+  // Fix #721: Handle messages where content is not a string (tool_calls responses).
+  // In this case, append a synthetic assistant message with the tag so the pin
+  // roundtrips through the conversation history.
+  if (typeof msg.content !== "string") {
+    // If the message has tool_calls but no string content, append a new assistant
+    // message with the tag rather than silently failing.
+    return [
+      ...cleaned,
+      { role: "assistant", content: `\n<omniModel>${providerModel}</omniModel>` },
+    ];
+  }
 
   const tagged = [...cleaned];
   tagged[lastAssistantIdx] = {
@@ -169,7 +179,11 @@ export function applyComboAgentMiddleware(
   if (comboConfig.context_cache_protection) {
     pinnedModel = extractPinnedModel(messages);
     if (pinnedModel) {
-      // Model is pinned — caller should override model selection
+      // (#535) Model is pinned via <omniModel> tag — override body.model so the combo
+      // router uses exactly this model instead of picking a different one. Without this,
+      // the extracted pinnedModel is returned but body.model is unchanged, breaking
+      // context cache sessions by sending subsequent turns to a different model.
+      body = { ...body, model: pinnedModel };
     }
   }
 

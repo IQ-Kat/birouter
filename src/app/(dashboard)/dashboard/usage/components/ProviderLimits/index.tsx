@@ -4,7 +4,13 @@ import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
-import { parseQuotaData, calculatePercentage, normalizePlanTier } from "./utils";
+import {
+  parseQuotaData,
+  calculatePercentage,
+  formatQuotaLabel,
+  normalizePlanTier,
+  resolvePlanValue,
+} from "./utils";
 import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -16,6 +22,8 @@ const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
 
 const REFRESH_INTERVAL_MS = 120000;
 const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
+const QUOTA_BAR_GREEN_THRESHOLD = 50;
+const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 
 // Provider display config
 const PROVIDER_CONFIG = {
@@ -40,33 +48,14 @@ const TIER_FILTERS = [
   { key: "unknown", labelKey: "tierUnknown" },
 ];
 
-// Short model display names for quota bars
-function getShortModelName(name) {
-  const map = {
-    "gemini-3-pro-high": "G3 Pro",
-    "gemini-3-pro-low": "G3 Pro Low",
-    "gemini-3-flash": "G3 Flash",
-    "gemini-2.5-flash": "G2.5 Flash",
-    "claude-opus-4-6-thinking": "Opus 4.6 Tk",
-    "claude-opus-4-5-thinking": "Opus 4.5 Tk",
-    "claude-opus-4-5": "Opus 4.5",
-    "claude-sonnet-4-5-thinking": "Sonnet 4.5 Tk",
-    "claude-sonnet-4-5": "Sonnet 4.5",
-    chat: "Chat",
-    completions: "Completions",
-    premium_interactions: "Premium",
-    session: "Session",
-    weekly: "Weekly",
-    agentic_request: "Agentic",
-    agentic_request_freetrial: "Agentic (Trial)",
-  };
-  return map[name] || name;
-}
-
 // Get bar color based on remaining percentage
-function getBarColor(remaining) {
-  if (remaining > 70) return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
-  if (remaining >= 30) return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
+function getBarColor(remainingPercentage) {
+  if (remainingPercentage > QUOTA_BAR_GREEN_THRESHOLD) {
+    return { bar: "#22c55e", text: "#22c55e", bg: "rgba(34,197,94,0.12)" };
+  }
+  if (remainingPercentage > QUOTA_BAR_YELLOW_THRESHOLD) {
+    return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
+  }
   return { bar: "#ef4444", text: "#ef4444", bg: "rgba(239,68,68,0.12)" };
 }
 
@@ -122,6 +111,7 @@ export default function ProviderLimits() {
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
   const lastFetchTimeRef = useRef({});
+  const staleProbeRef = useRef({});
 
   const fetchConnections = useCallback(async () => {
     try {
@@ -137,52 +127,70 @@ export default function ProviderLimits() {
     }
   }, []);
 
-  const fetchQuota = useCallback(async (connectionId, provider) => {
-    // Debounce: skip if last fetch was < MIN_FETCH_INTERVAL_MS ago
-    const now = Date.now();
-    const lastFetch = lastFetchTimeRef.current[connectionId] || 0;
-    if (now - lastFetch < MIN_FETCH_INTERVAL_MS) {
-      return; // Skip, data is still fresh
-    }
-    lastFetchTimeRef.current[connectionId] = now;
-
-    setLoading((prev) => ({ ...prev, [connectionId]: true }));
-    setErrors((prev) => ({ ...prev, [connectionId]: null }));
-    try {
-      const response = await fetch(`/api/usage/${connectionId}`);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMsg = errorData.error || response.statusText;
-        if (response.status === 404) return;
-        if (response.status === 401) {
-          setQuotaData((prev) => ({
-            ...prev,
-            [connectionId]: { quotas: [], message: errorMsg },
-          }));
-          return;
-        }
-        throw new Error(`HTTP ${response.status}: ${errorMsg}`);
+  const fetchQuota = useCallback(
+    async (connectionId, provider, options: { force?: boolean } = {}) => {
+      const force = options?.force === true;
+      // Debounce: skip if last fetch was < MIN_FETCH_INTERVAL_MS ago
+      const now = Date.now();
+      const lastFetch = lastFetchTimeRef.current[connectionId] || 0;
+      if (!force && now - lastFetch < MIN_FETCH_INTERVAL_MS) {
+        return; // Skip, data is still fresh
       }
-      const data = await response.json();
-      const parsedQuotas = parseQuotaData(provider, data);
-      setQuotaData((prev) => ({
-        ...prev,
-        [connectionId]: {
-          quotas: parsedQuotas,
-          plan: data.plan || null,
-          message: data.message || null,
-          raw: data,
-        },
-      }));
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        [connectionId]: error.message || "Failed to fetch quota",
-      }));
-    } finally {
-      setLoading((prev) => ({ ...prev, [connectionId]: false }));
-    }
-  }, []);
+      lastFetchTimeRef.current[connectionId] = now;
+
+      setLoading((prev) => ({ ...prev, [connectionId]: true }));
+      setErrors((prev) => ({ ...prev, [connectionId]: null }));
+      try {
+        const response = await fetch(`/api/usage/${connectionId}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMsg = errorData.error || response.statusText;
+          if (response.status === 404) return;
+          if (response.status === 401) {
+            setQuotaData((prev) => ({
+              ...prev,
+              [connectionId]: { quotas: [], message: errorMsg },
+            }));
+            return;
+          }
+          throw new Error(`HTTP ${response.status}: ${errorMsg}`);
+        }
+        const data = await response.json();
+        const parsedQuotas = parseQuotaData(provider, data);
+
+        // T13: If resetAt already passed but provider still returned stale cumulative usage,
+        // display 0 immediately and trigger a background probe to refresh snapshot.
+        const hasStaleAfterReset = parsedQuotas.some((q) => q?.staleAfterReset === true);
+        if (hasStaleAfterReset) {
+          const lastProbeAt = staleProbeRef.current[connectionId] || 0;
+          if (Date.now() - lastProbeAt >= MIN_FETCH_INTERVAL_MS) {
+            staleProbeRef.current[connectionId] = Date.now();
+            setTimeout(() => {
+              fetchQuota(connectionId, provider, { force: true }).catch(() => {});
+            }, 5000);
+          }
+        }
+
+        setQuotaData((prev) => ({
+          ...prev,
+          [connectionId]: {
+            quotas: parsedQuotas,
+            plan: data.plan || null,
+            message: data.message || null,
+            raw: data,
+          },
+        }));
+      } catch (error) {
+        setErrors((prev) => ({
+          ...prev,
+          [connectionId]: error.message || "Failed to fetch quota",
+        }));
+      } finally {
+        setLoading((prev) => ({ ...prev, [connectionId]: false }));
+      }
+    },
+    []
+  );
 
   const refreshProvider = useCallback(
     async (connectionId, provider) => {
@@ -278,13 +286,21 @@ export default function ProviderLimits() {
     );
   }, [filteredConnections]);
 
-  const tierByConnection = useMemo(() => {
+  const resolvedPlanByConnection = useMemo(() => {
     const out = {};
     for (const conn of sortedConnections) {
-      out[conn.id] = normalizePlanTier(quotaData[conn.id]?.plan);
+      out[conn.id] = resolvePlanValue(quotaData[conn.id]?.plan, conn.providerSpecificData);
     }
     return out;
   }, [sortedConnections, quotaData]);
+
+  const tierByConnection = useMemo(() => {
+    const out = {};
+    for (const conn of sortedConnections) {
+      out[conn.id] = normalizePlanTier(resolvedPlanByConnection[conn.id]);
+    }
+    return out;
+  }, [sortedConnections, resolvedPlanByConnection]);
 
   const tierCounts = useMemo(() => {
     const counts = {
@@ -294,6 +310,7 @@ export default function ProviderLimits() {
       business: 0,
       ultra: 0,
       pro: 0,
+      plus: 0,
       free: 0,
       unknown: 0,
     };
@@ -315,11 +332,21 @@ export default function ProviderLimits() {
     if (groupBy !== "environment") return null;
     const groups = new Map();
     for (const conn of visibleConnections) {
-      const key = conn.group || t("ungrouped");
+      const key = (conn.providerSpecificData?.tag as string | undefined)?.trim() || t("ungrouped");
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(conn);
     }
-    return groups;
+
+    // Convert to sorted array based on tag string (ungrouped at the end)
+    const sortedGroups = new Map(
+      [...groups.entries()].sort(([a], [b]) => {
+        if (a === t("ungrouped")) return 1;
+        if (b === t("ungrouped")) return -1;
+        return a.localeCompare(b);
+      })
+    );
+
+    return sortedGroups;
   }, [groupBy, visibleConnections, t]);
 
   const handleSetGroupBy = (value: "none" | "environment") => {
@@ -340,7 +367,10 @@ export default function ProviderLimits() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hasSaved = localStorage.getItem(LS_GROUP_BY) !== null;
-    if (!hasSaved && connections.some((c) => c.group)) {
+    if (
+      !hasSaved &&
+      connections.some((c) => (c.providerSpecificData?.tag as string | undefined)?.trim())
+    ) {
       setGroupBy("environment");
     }
   }, [connections]);
@@ -393,24 +423,25 @@ export default function ProviderLimits() {
 
         <div className="flex items-center gap-2">
           {/* Group by toggle */}
-          <div className="flex rounded-lg border border-white/[0.08] overflow-hidden">
+          <div className="flex rounded-lg border border-border overflow-hidden">
             <button
               onClick={() => handleSetGroupBy("none")}
               className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none"
               style={{
-                background: groupBy === "none" ? "rgba(255,255,255,0.1)" : "transparent",
-                color: groupBy === "none" ? "var(--text-main)" : "var(--text-muted)",
+                background: groupBy === "none" ? "var(--color-bg-subtle)" : "transparent",
+                color: groupBy === "none" ? "var(--color-text-main)" : "var(--color-text-muted)",
               }}
             >
               {t("viewFlat")}
             </button>
             <button
               onClick={() => handleSetGroupBy("environment")}
-              className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none border-l border-white/[0.08]"
+              className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none"
               style={{
-                background: groupBy === "environment" ? "rgba(255,255,255,0.1)" : "transparent",
-                color: groupBy === "environment" ? "var(--text-main)" : "var(--text-muted)",
-                borderLeft: "1px solid rgba(255,255,255,0.08)",
+                background: groupBy === "environment" ? "var(--color-bg-subtle)" : "transparent",
+                color:
+                  groupBy === "environment" ? "var(--color-text-main)" : "var(--color-text-muted)",
+                borderLeft: "1px solid var(--color-border)",
               }}
             >
               {t("viewByEnvironment")}
@@ -423,7 +454,7 @@ export default function ProviderLimits() {
               setAutoRefresh(next);
               localStorage.setItem(LS_AUTO_REFRESH, String(next));
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.08] bg-transparent cursor-pointer text-text-main text-[13px]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-transparent cursor-pointer text-text-main text-[13px]"
           >
             <span
               className="material-symbols-outlined text-[18px]"
@@ -440,7 +471,7 @@ export default function ProviderLimits() {
           <button
             onClick={refreshAll}
             disabled={refreshingAll}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white/[0.06] border border-white/10 text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <span
               className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
@@ -464,10 +495,10 @@ export default function ProviderLimits() {
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
               style={{
                 border: active
-                  ? "1px solid var(--primary, #E54D5E)"
-                  : "1px solid rgba(255,255,255,0.12)",
-                background: active ? "rgba(249,120,21,0.14)" : "transparent",
-                color: active ? "var(--primary, #E54D5E)" : "var(--text-muted)",
+                  ? "1px solid var(--color-primary, #E54D5E)"
+                  : "1px solid var(--color-border)",
+                background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
               }}
             >
               <span>{t(tier.labelKey)}</span>
@@ -478,10 +509,10 @@ export default function ProviderLimits() {
       </div>
 
       {/* Account rows */}
-      <div className="rounded-xl border border-white/[0.06] overflow-hidden bg-black/15">
+      <div className="rounded-xl border border-border overflow-hidden bg-surface">
         {/* Table header */}
         <div
-          className="items-center px-4 py-2.5 border-b border-white/[0.06] text-[11px] font-semibold uppercase tracking-wider text-text-muted"
+          className="items-center px-4 py-2.5 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-text-muted"
           style={{ display: "grid", gridTemplateColumns: "280px 1fr 100px 48px" }}
         >
           <div>{t("account")}</div>
@@ -500,15 +531,16 @@ export default function ProviderLimits() {
               color: "#666",
             };
             const tierMeta = tierByConnection[conn.id] || normalizePlanTier(null);
+            const resolvedPlan = resolvedPlanByConnection[conn.id];
 
             return (
               <div
                 key={conn.id}
-                className="items-center px-4 py-3.5 transition-[background] duration-150 hover:bg-white/[0.02]"
+                className="items-center px-4 py-3.5 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02]"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "280px 1fr 100px 48px",
-                  borderBottom: !isLast ? "1px solid rgba(255,255,255,0.04)" : "none",
+                  borderBottom: !isLast ? "1px solid var(--color-border)" : "none",
                 }}
               >
                 {/* Account Info */}
@@ -525,21 +557,29 @@ export default function ProviderLimits() {
                   </div>
                   <div className="min-w-0">
                     <div className="text-[13px] font-semibold text-text-main truncate">
-                      {conn.name || config.label}
+                      {conn.name || conn.displayName || conn.email || config.label}
                     </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-1.5 mt-1 min-h-5">
                       <span
                         title={
-                          quota?.plan
-                            ? t("rawPlanWithValue", { plan: quota.plan })
+                          resolvedPlan
+                            ? t("rawPlanWithValue", { plan: resolvedPlan })
                             : t("noPlanFromProvider")
                         }
+                        className="inline-flex items-center shrink-0"
                       >
-                        <Badge variant={tierMeta.variant} size="sm" dot>
+                        <Badge
+                          variant={tierMeta.variant}
+                          size="sm"
+                          dot
+                          className="h-5 leading-none"
+                        >
                           {tierMeta.label}
                         </Badge>
                       </span>
-                      <span className="text-[11px] text-text-muted">{config.label}</span>
+                      <span className="text-[11px] leading-none text-text-muted">
+                        {config.label}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -564,16 +604,19 @@ export default function ProviderLimits() {
                     <div className="text-xs text-text-muted italic">{quota.message}</div>
                   ) : quota?.quotas?.length > 0 ? (
                     quota.quotas.map((q, i) => {
-                      const remaining =
-                        q.remainingPercentage !== undefined
-                          ? Math.round(q.remainingPercentage)
-                          : calculatePercentage(q.used, q.total);
-                      const colors = getBarColor(remaining);
+                      const remainingPercentage = calculatePercentage(q.used, q.total);
+                      const colors = getBarColor(remainingPercentage);
                       const cd = formatCountdown(q.resetAt);
-                      const shortName = getShortModelName(q.name);
+                      const shortName = formatQuotaLabel(q.name);
+                      const staleAfterReset = q.staleAfterReset === true;
 
                       return (
-                        <div key={i} className="flex items-center gap-1.5 min-w-[200px] shrink-0">
+                        <div
+                          key={i}
+                          className={`flex items-center gap-1.5 min-w-[200px] shrink-0 ${
+                            i > 0 ? "border-l border-border/80 pl-3 ml-1" : ""
+                          }`}
+                        >
                           {/* Model label */}
                           <span
                             className="text-[11px] font-semibold py-0.5 px-2 rounded whitespace-nowrap min-w-[60px] text-center"
@@ -583,18 +626,22 @@ export default function ProviderLimits() {
                           </span>
 
                           {/* Countdown */}
-                          {cd && (
+                          {staleAfterReset ? (
+                            <span className="text-[10px] text-text-muted whitespace-nowrap">
+                              ⟳ Refreshing...
+                            </span>
+                          ) : cd ? (
                             <span className="text-[10px] text-text-muted whitespace-nowrap">
                               ⏱ {cd}
                             </span>
-                          )}
+                          ) : null}
 
                           {/* Progress bar */}
-                          <div className="flex-1 h-1.5 rounded-sm bg-white/[0.06] min-w-[60px] overflow-hidden">
+                          <div className="flex-1 h-1.5 rounded-sm bg-black/[0.06] dark:bg-white/[0.06] min-w-[60px] overflow-hidden">
                             <div
                               className="h-full rounded-sm transition-[width] duration-300 ease-out"
                               style={{
-                                width: `${Math.min(remaining, 100)}%`,
+                                width: `${Math.min(remainingPercentage, 100)}%`,
                                 background: colors.bar,
                               }}
                             />
@@ -605,7 +652,7 @@ export default function ProviderLimits() {
                             className="text-[11px] font-semibold min-w-[32px] text-right"
                             style={{ color: colors.text }}
                           >
-                            {remaining}%
+                            {remainingPercentage}%
                           </span>
                         </div>
                       );
@@ -648,13 +695,10 @@ export default function ProviderLimits() {
           if (groupedConnections) {
             const entries = [...groupedConnections.entries()];
             return entries.map(([groupName, conns]) => (
-              <div
-                key={groupName}
-                className="border border-white/[0.08] rounded-lg overflow-hidden mb-2"
-              >
+              <div key={groupName} className="border border-border rounded-lg overflow-hidden mb-2">
                 <button
                   onClick={() => toggleGroup(groupName)}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] transition-colors text-left border-none cursor-pointer"
+                  className="w-full flex items-center gap-2 px-4 py-2.5 bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors text-left border-none cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[16px] text-text-muted">
                     {expandedGroups.has(groupName) ? "expand_less" : "expand_more"}
@@ -665,7 +709,7 @@ export default function ProviderLimits() {
                   <span className="text-[12px] font-semibold text-text-main uppercase tracking-wider flex-1">
                     {groupName}
                   </span>
-                  <span className="text-[11px] text-text-muted bg-white/[0.06] px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] text-text-muted bg-black/[0.04] dark:bg-white/[0.06] px-2 py-0.5 rounded-full">
                     {conns.length}
                   </span>
                 </button>

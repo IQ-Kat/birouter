@@ -20,14 +20,62 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function extractMessageOutputText(item: JsonRecord): string {
+  if (!Array.isArray(item.content)) return "";
+  let text = "";
+  for (const part of item.content) {
+    if (!part || typeof part !== "object") continue;
+    const partObj = toRecord(part);
+    if (partObj.type === "output_text" && typeof partObj.text === "string") {
+      text += partObj.text;
+    }
+  }
+  return text;
+}
+
+/**
+ * T19: Pick the last non-empty message output text from Responses API output.
+ * Falls back to the last message item even when all message texts are empty.
+ */
+function findBestMessageText(output: unknown[]): {
+  text: string;
+  selectedMessageIndex: number;
+  messageItems: JsonRecord[];
+} {
+  const messageItems = output
+    .map((item) => toRecord(item))
+    .filter((item) => item.type === "message" && Array.isArray(item.content));
+
+  for (let i = messageItems.length - 1; i >= 0; i -= 1) {
+    const text = extractMessageOutputText(messageItems[i]);
+    if (text.trim().length > 0) {
+      return { text, selectedMessageIndex: i, messageItems };
+    }
+  }
+
+  if (messageItems.length > 0) {
+    const lastIndex = messageItems.length - 1;
+    return {
+      text: extractMessageOutputText(messageItems[lastIndex]),
+      selectedMessageIndex: lastIndex,
+      messageItems,
+    };
+  }
+
+  return { text: "", selectedMessageIndex: -1, messageItems: [] };
+}
+
 /**
  * Translate non-streaming response to OpenAI format
  * Handles different provider response formats (Gemini, Claude, etc.)
+ *
+ * @param toolNameMap - Optional Map<prefixedName, originalName> for Claude OAuth tool name stripping
  */
 export function translateNonStreamingResponse(
   responseBody: unknown,
   targetFormat: string,
-  sourceFormat: string
+  sourceFormat: string,
+  toolNameMap?: Map<string, string> | null
 ): unknown {
   // If already in source format (usually OpenAI), return as-is
   if (targetFormat === sourceFormat || targetFormat === FORMATS.OPENAI) {
@@ -44,7 +92,8 @@ export function translateNonStreamingResponse(
     const output = Array.isArray(response.output) ? response.output : [];
     const usage = toRecord(response.usage ?? responseRoot.usage);
 
-    let textContent = "";
+    const messageSelection = findBestMessageText(output);
+    let textContent = messageSelection.text;
     let reasoningContent = "";
     const toolCalls: JsonRecord[] = [];
 
@@ -56,9 +105,7 @@ export function translateNonStreamingResponse(
         for (const part of itemObj.content) {
           if (!part || typeof part !== "object") continue;
           const partObj = toRecord(part);
-          if (partObj.type === "output_text" && typeof partObj.text === "string") {
-            textContent += partObj.text;
-          } else if (partObj.type === "summary_text" && typeof partObj.text === "string") {
+          if (partObj.type === "summary_text" && typeof partObj.text === "string") {
             reasoningContent += partObj.text;
           }
         }
@@ -78,11 +125,14 @@ export function translateNonStreamingResponse(
           typeof itemObj.arguments === "string"
             ? itemObj.arguments
             : JSON.stringify(itemObj.arguments || {});
+        const rawName = toString(itemObj.name);
+        // Strip Claude OAuth proxy_ prefix using toolNameMap (mirrors tool_use fix for #605)
+        const resolvedName = toolNameMap?.get(rawName) ?? rawName;
         toolCalls.push({
           id: callId,
           type: "function",
           function: {
-            name: toString(itemObj.name),
+            name: resolvedName,
             arguments: fnArgs,
           },
         });
@@ -101,6 +151,18 @@ export function translateNonStreamingResponse(
     }
     if (!message.content && !message.tool_calls) {
       message.content = "";
+    }
+
+    if (process.env.DEBUG_RESPONSES_SSE_TO_JSON === "true") {
+      console.log(
+        `[ResponsesSSE] ${output.length} output items, ${messageSelection.messageItems.length} message items`
+      );
+      messageSelection.messageItems.forEach((item, idx) => {
+        const textLen = extractMessageOutputText(item).length;
+        console.log(`  [${idx}] text length: ${textLen}`);
+      });
+      console.log(`  → Selected message index: ${messageSelection.selectedMessageIndex}`);
+      console.log(`  → Final text content length: ${textContent.length}`);
     }
 
     const createdAt = toNumber(response.created_at, Math.floor(Date.now() / 1000));
@@ -278,11 +340,15 @@ export function translateNonStreamingResponse(
       } else if (blockObj.type === "thinking") {
         thinkingContent += toString(blockObj.thinking);
       } else if (blockObj.type === "tool_use") {
+        // Strip Claude OAuth tool name prefix (proxy_) using the map from request translation.
+        // Fallback to raw name if block wasn't prefixed (disableToolPrefix path).
+        const rawName = toString(blockObj.name);
+        const strippedName = toolNameMap?.get(rawName) ?? rawName;
         toolCalls.push({
           id: toString(blockObj.id, `call_${Date.now()}_${toolCalls.length}`),
           type: "function",
           function: {
-            name: toString(blockObj.name),
+            name: strippedName,
             arguments: JSON.stringify(blockObj.input || {}),
           },
         });

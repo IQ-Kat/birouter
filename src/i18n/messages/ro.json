@@ -56,7 +56,87 @@
     "warning": "Avertisment",
     "note": "Notă",
     "free": "Gratuit",
-    "skipToContent": "Treci la conținut"
+    "skipToContent": "Treci la conținut",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Acceptați",
+    "accountId": "ID contului",
+    "alias": "Alias",
+    "apiKeyId": "ID-ul cheii API",
+    "apiKeyName": "Nume cheie API",
+    "apiKeySecret": "Secretul cheii API",
+    "authorization": "Autorizare",
+    "content-type": "Tip de conținut",
+    "content-length": "Lungimea conținutului",
+    "cookie": "Cookie",
+    "file": "Fișier",
+    "host": "Gazdă",
+    "id": "ID",
+    "import": "Import",
+    "limit": "Limită",
+    "offset": "Offset",
+    "open": "Deschide",
+    "origin": "Originea",
+    "promptTokens": "Jetoane prompte",
+    "completionTokens": "Jetoane de finalizare",
+    "totalTokens": "Total de jetoane",
+    "rawModel": "Model brut",
+    "scope": "Domeniul de aplicare",
+    "skill": "Îndemânare",
+    "sortBy": "Sortare după",
+    "sortOrder": "Ordine de sortare",
+    "tab": "Tab",
+    "text": "Text",
+    "textarea": "Textarea",
+    "tool": "Instrument",
+    "toolId": "ID instrument",
+    "web": "Web",
+    "whereUsed": "Unde este folosit",
+    "whitelist": "Lista albă",
+    "blacklist": "Lista neagră",
+    "resolve": "Rezolvați",
+    "force": "Forța",
+    "base64url": "URL Base64",
+    "hex": "Hex",
+    "range": "Gama",
+    "component": "Componentă",
+    "redirect_uri": "URI de redirecționare",
+    "idempotency-key": "Cheia Idempotnței",
+    "error_description": "Descrierea erorii",
+    "code": "Cod",
+    "compatible": "Compatibil",
+    "chat-completions": "Finalizări de chat",
+    "oauth": "OAuth",
+    "auth_token": "Jeton de autentificare",
+    "crypto": "Cripto",
+    "hours": "Ore",
+    "selfsigned": "Autosemnat",
+    "proxy_id": "ID proxy",
+    "proxyId": "ID proxy",
+    "connectionId": "ID conexiune",
+    "resolveConnectionId": "Rezolvați ID-ul conexiunii",
+    "resolve_connection_id": "Rezolvați ID-ul conexiunii",
+    "scope_id": "ID domeniului",
+    "scopeId": "ID domeniului",
+    "jwtSecret": "Secretul JWT",
+    "keytar": "Keytar",
+    "better-sqlite3": "mai bine-sqlite3",
+    "undici": "undici",
+    "builder-id": "ID constructor",
+    "musicDesc": "Descrierea muzicii",
+    "musicGeneration": "Generația muzicală",
+    "idc": "IDC",
+    "cloud-status-changed": "Starea cloudului s-a schimbat",
+    "where_used": "Unde este folosit",
+    "windowMs": "Fereastra (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Lista de instrumente permise",
+    "TOOL_DENYLIST": "Lista de refulare a instrumentelor",
+    "Failed to save pricing": "Nu s-a salvat prețul",
+    "Failed to reset pricing": "Nu s-a resetat prețul",
+    "apikey": "Cheia API",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Acasă",
@@ -103,7 +183,11 @@
     "endpoints": "Puncte finale",
     "playground": "Playground",
     "agents": "Agenți",
-    "cliToolsShort": "Instrumente"
+    "cliToolsShort": "Instrumente",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -175,7 +259,11 @@
     "requestsShort": "{count} solicită",
     "providerModelsTitle": "{provider} - Modele",
     "copiedModel": "Copiat: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Actualizați acum",
+    "updating": "Se actualizează...",
+    "updateAvailableDesc": "Este disponibilă o nouă versiune. Faceți clic pentru a actualiza.",
+    "updateStarted": "Actualizarea a început..."
   },
   "analytics": {
     "title": "Analytics",
@@ -268,7 +356,28 @@
     "permissionsTitle": "Permisiuni: {name}",
     "allowAllDesc": "Această cheie poate accesa toate modelele disponibile.",
     "restrictDesc": "Această cheie poate accesa {selectedCount} din {totalModels} modele.",
-    "selectedCount": "{count} selectat"
+    "selectedCount": "{count} selectat",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "Jurnal de audit",
@@ -510,6 +619,9 @@
             "title": "Adăugați configurația modelului",
             "desc": "Adăugați următoarea configurație la matricea dvs. de modele:"
           }
+        },
+        "notes": {
+          "0": "Continuați folosește fișierul de configurare JSON."
         }
       },
       "opencode": {
@@ -528,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode necesită configurarea cheii API.",
+          "1": "Setați adresa URL de bază la punctul final OmniRoute."
         }
       },
       "kiro": {
@@ -546,8 +662,32 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro necesită un cont Amazon."
         }
       }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Când să utilizați",
+    "openToolDocs": "Deschideți documentele instrumentului",
+    "toolUseCases": {
+      "claude": "Utilizați atunci când doriți fluxuri de lucru puternice de planificare și refactorări lungi cu mai multe fișiere cu Claude Code.",
+      "codex": "Utilizați atunci când echipa dvs. este standardizată pe fluxurile OpenAI Codex CLI și pe autentificarea bazată pe profil.",
+      "droid": "Utilizați atunci când aveți nevoie de un agent terminal ușor, concentrat pe codificarea rapidă și buclele de execuție a comenzilor.",
+      "openclaw": "Utilizați atunci când doriți un agent de codare în stil Open Claw, dar direcționat prin politicile OmniRoute.",
+      "cline": "Utilizați atunci când configurați agenți de codare în cadrul editorilor și doriți o configurare ghidată cu modelele OmniRoute.",
+      "kilo": "Utilizați atunci când fluxul dvs. de lucru depinde de comenzile Kilo Code și de editările iterative rapide.",
+      "cursor": "Utilizați când codați în Cursor și aveți nevoie de modele personalizate compatibile cu OpenAI prin OmniRoute.",
+      "continue": "Utilizați atunci când rulați Continue în IDE-uri și aveți nevoie de o configurație portabilă a furnizorului bazată pe JSON.",
+      "opencode": "Utilizați atunci când preferați rulările de agent nativ terminal și automatizarea prin script prin OpenCode.",
+      "kiro": "Utilizați atunci când integrați Kiro și controlați rutarea modelului central din OmniRoute.",
+      "antigravity": "Utilizați atunci când traficul Antigravity/Kiro trebuie interceptat prin MITM și direcționat către OmniRoute.",
+      "copilot": "Utilizați atunci când doriți UX în stilul de chat Copilot, în timp ce aplicați cheile și regulile de rutare OmniRoute."
     }
   },
   "combos": {
@@ -864,7 +1004,12 @@
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
     "a2aQuickStartStep3": "Track and control tasks using `tasks/get` and `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1054,7 +1199,13 @@
     "resetAllTitle": "Resetați toate întreruptoarele la starea sănătoasă",
     "resetting": "Se resetează...",
     "resetAll": "Resetați toate",
-    "until": "Până la {time}"
+    "until": "Până la {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Configurat în tabloul de bord",
+    "configuredProvidersHint": "Furnizorii cu acreditări salvate în /dashboard/providers, indiferent de starea de rulare.",
+    "activeProvidersHint": "Furnizorii configurați activați în prezent pentru solicitările de rutare.",
+    "monitoredProvidersHint": "Furnizorii sunt urmăriți în prezent de monitoarele de sănătate ale întreruptoarelor."
   },
   "limits": {
     "title": "Limite și cote",
@@ -1257,6 +1408,10 @@
     "chatCompletions": "Finalizări de chat",
     "importingModels": "Se importă...",
     "importFromModels": "Import din /modele",
+    "clearAllModels": "Șterge toate modelele",
+    "clearAllModelsConfirm": "Ești sigur că vrei să elimini toate modelele pentru acest furnizor? Această acțiune nu poate fi anulată.",
+    "clearAllModelsSuccess": "Toate modelele au fost șterse",
+    "clearAllModelsFailed": "Ștergerea modelelor a eșuat",
     "addConnectionToImport": "Adăugați o conexiune pentru a activa importul.",
     "noModelsConfigured": "Nu au fost configurate modele",
     "connectionCount": "{count} conexiuni",
@@ -1396,7 +1551,40 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Sincronizare automată",
+    "autoSyncTooltip": "Actualizează automat lista de modele la fiecare 24 de ore (configurabil prin MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Sincronizare automată activată — modelele se vor reîmprospăta periodic",
+    "autoSyncDisabled": "Sincronizarea automată a fost dezactivată",
+    "autoSyncToggleFailed": "Nu s-a putut comuta sincronizarea automată",
+    "clearAllModels": "Ștergeți toate modelele",
+    "clearAllModelsConfirm": "Sigur doriți să eliminați toate modelele pentru acest furnizor? Acest lucru nu poate fi anulat.",
+    "clearAllModelsSuccess": "Toate modelele au fost eliminate",
+    "clearAllModelsFailed": "Nu s-au șters modelele"
   },
   "settings": {
     "title": "Setări",
@@ -1799,7 +1987,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Ghid avansat de rutare",
+    "routingAdvancedGuideHint1": "Folosiți Fill First pentru o prioritate previzibilă, Round Robin pentru corectitudine și P2C pentru rezistență la latență.",
+    "routingAdvancedGuideHint2": "Dacă furnizorii variază în ceea ce privește calitatea/costul, începeți cu Cost Opt pentru munca de fundal și Least Used pentru uzura echilibrată.",
+    "comboDefaultsGuideTitle": "Cum să reglați setările implicite de combo",
+    "comboDefaultsGuideHint1": "Menține reîncercările scăzute în fluxurile cu latență scăzută; crește timpul de expirare numai pentru sarcini de generație lungă.",
+    "comboDefaultsGuideHint2": "Folosiți suprascrierile furnizorului atunci când un furnizor are nevoie de un comportament de timeout/reîncercare diferit față de valorile prestabilite globale."
   },
   "translator": {
     "title": "Traducător",
@@ -2216,7 +2410,16 @@
     "orRemovePasswordHashField": "sau eliminați câmpul passwordHash",
     "restartServerWithNewPassword": "Reporniți serverul - va folosi noua parolă",
     "backToLogin": "Înapoi la Logare",
-    "forgotPassword": "Ai uitat parola?"
+    "forgotPassword": "Ai uitat parola?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Autorizare",
+    "Content-Disposition": "Conținut-Dispoziție",
+    "waitingForAuthorization": "Se așteaptă autorizația...",
+    "waitingForGoogleAuthorization": "Se așteaptă autorizarea Google...",
+    "waitingForOpenAIAuthorization": "Se așteaptă autorizarea OpenAI...",
+    "waitingForAntigravityAuthorization": "Se așteaptă autorizația antigravitație...",
+    "waitingForIFlowAuthorization": "Se așteaptă autorizarea iFlow...",
+    "exchangingCodeForTokens": "Se schimbă codul pentru jetoane..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2414,7 +2617,18 @@
     "troubleshootingCodexFamily": "Pentru modelele din familia GitHub Codex, păstrați modelul ca gh/codex-model; routerul selectează/răspunde automat.",
     "troubleshootingTestConnection": "Utilizați Tabloul de bord > Furnizori > Testați conexiunea înainte de a testa de la IDE-uri sau clienți externi.",
     "troubleshootingCircuitBreaker": "Dacă un furnizor arată întrerupătorul deschis, așteptați răcirea sau verificați pagina Sănătate pentru detalii.",
-    "troubleshootingOAuth": "Pentru furnizorii OAuth, re-autentificați-vă dacă tokenurile expiră. Verificați indicatorul de stare a cardului furnizorului."
+    "troubleshootingOAuth": "Pentru furnizorii OAuth, re-autentificați-vă dacă tokenurile expiră. Verificați indicatorul de stare a cardului furnizorului.",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Generarea text-to-speech (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Generarea de încorporare a textului (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Politica de confidențialitate",
@@ -2503,7 +2717,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2527,5 +2755,131 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Chat simplu",
+    "streaming": "Streaming",
+    "system-prompt": "Prompt de sistem",
+    "thinking": "Gândirea",
+    "tool-calling": "Apelarea instrumentului",
+    "multi-turn": "Multi-turn"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Șablon de chat de bază cu mesaj de sistem",
+    "streaming": "Șablon pentru răspunsuri în flux",
+    "system-prompt": "Șablon cu prompt de sistem personalizat",
+    "thinking": "Șablon cu buget de raționament/gândire",
+    "tool-calling": "Șablon pentru apelarea instrumentului/funcției",
+    "multi-turn": "Șablon pentru conversații în mai multe rânduri"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Sunteți un asistent AI util.",
+      "userGreeting": "Bună ziua! Cum te pot ajuta azi?"
+    },
+    "streaming": {
+      "prompt": "Scrie o poveste despre"
+    },
+    "systemPrompt": {
+      "question": "Care este sensul vieții?",
+      "systemInstruction": "Oferă un răspuns gânditor, filozofic."
+    },
+    "thinking": {
+      "question": "Explicați calculul cuantic"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Numele orașului pentru care să aflați vremea",
+      "toolDescription": "Obțineți vremea actuală pentru o locație",
+      "userWeather": "Care este vremea în Tokyo?"
+    },
+    "multiTurn": {
+      "system": "Ești un asistent util.",
+      "assistantExample": "Aș fi bucuros să te ajut cu asta.",
+      "userInitial": "Am nevoie de ajutor cu",
+      "userFollowUp": "Puteți detalia asta?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

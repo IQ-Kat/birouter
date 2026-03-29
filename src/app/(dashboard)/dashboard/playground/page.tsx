@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
+import { ALIAS_TO_ID } from "@/shared/constants/providers";
 import dynamic from "next/dynamic";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
@@ -18,6 +19,13 @@ interface ModelInfo {
 interface ProviderOption {
   value: string;
   label: string;
+}
+
+interface ConnectionOption {
+  id: string;
+  name: string;
+  provider: string;
+  authType: string;
 }
 
 const ENDPOINT_OPTIONS = [
@@ -182,8 +190,10 @@ function ImageResultsInline({ data }: { data: any }) {
 export default function PlaygroundPage() {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [providers, setProviders] = useState<ProviderOption[]>([]);
+  const [allConnections, setAllConnections] = useState<ConnectionOption[]>([]);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
+  const [selectedConnection, setSelectedConnection] = useState("");
   const [selectedEndpoint, setSelectedEndpoint] = useState("chat");
   const [requestBody, setRequestBody] = useState("");
   const [responseBody, setResponseBody] = useState("");
@@ -205,8 +215,16 @@ export default function PlaygroundPage() {
   const isImageEndpoint = selectedEndpoint === "images";
   const supportsVision = isChatEndpoint && isVisionModel(selectedModel);
 
-  // Fetch models
+  // Load connections for a given provider — filtered from allConnections
+  const providerConnections = allConnections.filter((c) => {
+    if (!selectedProvider) return false;
+    const resolvedProvider = ALIAS_TO_ID[selectedProvider] || selectedProvider;
+    return c.provider === resolvedProvider || c.provider === selectedProvider;
+  });
+
+  // Fetch models and ALL connections at startup
   useEffect(() => {
+    // Fetch models
     fetch("/v1/models")
       .then((res) => res.json())
       .then((data) => {
@@ -222,7 +240,26 @@ export default function PlaygroundPage() {
           .sort()
           .map((p) => ({ value: p, label: p }));
         setProviders(providerOpts);
-        if (providerOpts.length > 0) setSelectedProvider(providerOpts[0].value);
+        if (providerOpts.length > 0) {
+          setSelectedProvider(providerOpts[0].value);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch ALL connections (once)
+    fetch("/api/providers/client")
+      .then((res) => res.json())
+      .then((data) => {
+        const conns: ConnectionOption[] = [];
+        for (const conn of data?.connections || []) {
+          conns.push({
+            id: conn.id,
+            name: conn.name || conn.email || conn.id,
+            provider: conn.provider,
+            authType: conn.authType || "apiKey",
+          });
+        }
+        setAllConnections(conns);
       })
       .catch(() => {});
   }, []);
@@ -241,6 +278,7 @@ export default function PlaygroundPage() {
 
   const handleProviderChange = (newProvider: string) => {
     setSelectedProvider(newProvider);
+    setSelectedConnection("");
     const providerModels = models
       .filter((m) => !newProvider || m.id.startsWith(newProvider + "/"))
       .map((m) => m.id);
@@ -334,8 +372,13 @@ export default function PlaygroundPage() {
         } catch {
           /* ignore parse errors */
         }
+        const fetchHeaders: Record<string, string> = {};
+        if (selectedConnection) {
+          fetchHeaders["X-OmniRoute-Connection"] = selectedConnection;
+        }
         res = await fetch(`/api${path}`, {
           method: "POST",
+          headers: fetchHeaders,
           body: form,
           signal: controller.signal,
         });
@@ -345,9 +388,13 @@ export default function PlaygroundPage() {
         if (supportsVision && uploadedImages.length > 0) {
           parsed = buildChatBodyWithImages(parsed, uploadedImages);
         }
+        const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
+        if (selectedConnection) {
+          fetchHeaders["X-OmniRoute-Connection"] = selectedConnection;
+        }
         res = await fetch(`/api${path}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: fetchHeaders,
           body: JSON.stringify(parsed),
           signal: controller.signal,
         });
@@ -468,6 +515,33 @@ export default function PlaygroundPage() {
                 value={selectedModel}
                 onChange={(e: any) => handleModelChange(e.target.value)}
                 options={filteredModels}
+                className="w-full"
+              />
+            </div>
+          )}
+
+          {/* Account/Key — always shown when provider is selected */}
+          {!isSearchEndpoint && (
+            <div className="flex-1 w-full">
+              <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+                Account / Key
+              </label>
+              <Select
+                value={selectedConnection}
+                onChange={(e: any) => setSelectedConnection(e.target.value)}
+                options={[
+                  {
+                    value: "",
+                    label:
+                      providerConnections.length > 0
+                        ? `Auto (${providerConnections.length} accounts)`
+                        : "No accounts",
+                  },
+                  ...providerConnections.map((c) => ({
+                    value: c.id,
+                    label: c.name,
+                  })),
+                ]}
                 className="w-full"
               />
             </div>

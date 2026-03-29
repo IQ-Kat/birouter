@@ -1,6 +1,10 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { DEFAULT_SAFETY_SETTINGS, tryParseJSON } from "../helpers/geminiHelper.ts";
+import {
+  DEFAULT_SAFETY_SETTINGS,
+  tryParseJSON,
+  cleanJSONSchemaForAntigravity,
+} from "../helpers/geminiHelper.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 
 /**
@@ -88,8 +92,10 @@ export function claudeToGeminiRequest(model, body, stream) {
               break;
 
             case "tool_use":
+              // Do NOT include thoughtSignature on functionCall parts — it is only valid
+              // on thinking/reasoning parts and causes HTTP 400 "invalid argument" from the
+              // Gemini API when present on a functionCall part.
               parts.push({
-                thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
                 functionCall: {
                   id: block.id,
                   name: block.name,
@@ -154,7 +160,9 @@ export function claudeToGeminiRequest(model, body, stream) {
         functionDeclarations.push({
           name: tool.name,
           description: tool.description || "",
-          parameters: tool.input_schema || { type: "object", properties: {} },
+          parameters: cleanJSONSchemaForAntigravity(
+            tool.input_schema || { type: "object", properties: {} }
+          ),
         });
       }
     }

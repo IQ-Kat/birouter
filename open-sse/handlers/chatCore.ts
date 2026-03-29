@@ -1,5 +1,5 @@
 import { getCorsOrigin } from "../utils/cors.ts";
-import { detectFormat, getTargetFormat } from "../services/provider.ts";
+import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import {
@@ -14,8 +14,17 @@ import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
-import { createErrorResult, parseUpstreamError, formatProviderError } from "../utils/error.ts";
-import { HTTP_STATUS } from "../config/constants.ts";
+import {
+  buildErrorBody,
+  createErrorResult,
+  parseUpstreamError,
+  formatProviderError,
+} from "../utils/error.ts";
+import { HTTP_STATUS, PROVIDER_MAX_TOKENS } from "../config/constants.ts";
+import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
+import { updateProviderConnection } from "@/lib/db/providers";
+import { isDetailedLoggingEnabled, saveRequestDetailLog } from "@/lib/db/detailedLogs";
+import { logAuditEvent } from "@/lib/compliance";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
   saveRequestUsage,
@@ -23,8 +32,30 @@ import {
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
-import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
+import { getLoggedInputTokens, getLoggedOutputTokens } from "@/lib/usage/tokenAccounting";
+import { recordCost } from "@/domain/costRules";
+import { calculateCost } from "@/lib/usage/costCalculator";
+import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
+import {
+  getModelNormalizeToolCallId,
+  getModelPreserveOpenAIDeveloperRole,
+  getModelUpstreamExtraHeaders,
+} from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
+import { getCacheControlSettings } from "@/lib/cacheControlSettings";
+import {
+  shouldPreserveCacheControl,
+  trackCacheMetrics,
+  recordCacheHit,
+  type CacheControlMetrics,
+} from "../utils/cacheControlPolicy.ts";
+import { getCacheMetrics, updateCacheMetrics } from "@/lib/db/settings.ts";
+
+import {
+  parseCodexQuotaHeaders,
+  getCodexResetTime,
+  getCodexModelScope,
+} from "../executors/codex.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "./sseParser.ts";
@@ -45,10 +76,18 @@ import { createProgressTransform, wantsProgress } from "../utils/progressTracker
 import { isModelUnavailableError, getNextFamilyFallback } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 import {
+  getBackgroundTaskReason,
+  getDegradedModel,
+  getBackgroundDegradationConfig,
+} from "../services/backgroundTaskDetector.ts";
+import {
   shouldUseFallback,
   isFallbackDecision,
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
+import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
+import { generateRequestId } from "@/shared/utils/requestId";
+import { normalizePayloadForLog } from "@/lib/logPayloads";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -62,7 +101,204 @@ export function shouldUseNativeCodexPassthrough({
   if (provider !== "codex") return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
   const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
-  return /(?:^|\/)responses(?:\/.*)?$/i.test(normalizedEndpoint);
+  const segments = normalizedEndpoint.split("/");
+  return segments.includes("responses");
+}
+
+function buildClaudePassthroughToolNameMap(body: Record<string, unknown> | null | undefined) {
+  if (!body || !Array.isArray(body.tools)) return null;
+
+  const toolNameMap = new Map<string, string>();
+  for (const tool of body.tools) {
+    const toolRecord = tool as Record<string, unknown>;
+    const toolData =
+      toolRecord?.type === "function" &&
+      toolRecord.function &&
+      typeof toolRecord.function === "object"
+        ? (toolRecord.function as Record<string, unknown>)
+        : toolRecord;
+    const originalName = typeof toolData?.name === "string" ? toolData.name.trim() : "";
+    if (!originalName) continue;
+    toolNameMap.set(`${CLAUDE_OAUTH_TOOL_PREFIX}${originalName}`, originalName);
+  }
+
+  return toolNameMap.size > 0 ? toolNameMap : null;
+}
+
+function restoreClaudePassthroughToolNames(
+  responseBody: Record<string, unknown>,
+  toolNameMap: Map<string, string> | null
+) {
+  if (!toolNameMap || !Array.isArray(responseBody?.content)) return responseBody;
+
+  let changed = false;
+  const content = responseBody.content.map((block: Record<string, unknown>) => {
+    if (block?.type !== "tool_use" || typeof block?.name !== "string") return block;
+    const restoredName = toolNameMap.get(block.name) ?? block.name;
+    if (restoredName === block.name) return block;
+    changed = true;
+    return {
+      ...block,
+      name: restoredName,
+    };
+  });
+
+  if (!changed) return responseBody;
+  return {
+    ...responseBody,
+    content,
+  };
+}
+
+function getHeaderValueCaseInsensitive(
+  headers: Record<string, unknown> | null | undefined,
+  targetName: string
+) {
+  if (!headers || typeof headers !== "object") return null;
+  const lowered = targetName.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === lowered && typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function buildClaudePromptCacheLogMeta(
+  targetFormat: string,
+  finalBody: Record<string, unknown> | null | undefined,
+  providerHeaders: Record<string, unknown> | null | undefined
+) {
+  if (targetFormat !== FORMATS.CLAUDE || !finalBody || typeof finalBody !== "object") return null;
+
+  const describeCacheControl = (cacheControl: Record<string, unknown> | undefined, extra = {}) => ({
+    type:
+      cacheControl && typeof cacheControl.type === "string" && cacheControl.type.trim()
+        ? cacheControl.type.trim()
+        : "ephemeral",
+    ttl:
+      cacheControl && typeof cacheControl.ttl === "string" && cacheControl.ttl.trim()
+        ? cacheControl.ttl.trim()
+        : null,
+    ...extra,
+  });
+
+  const systemBreakpoints = Array.isArray(finalBody.system)
+    ? finalBody.system.flatMap((block, index) => {
+        if (!block || typeof block !== "object") return [];
+        const cacheControl =
+          block.cache_control && typeof block.cache_control === "object"
+            ? block.cache_control
+            : null;
+        return cacheControl ? [describeCacheControl(cacheControl, { index })] : [];
+      })
+    : [];
+
+  const toolBreakpoints = Array.isArray(finalBody.tools)
+    ? finalBody.tools.flatMap((tool, index) => {
+        if (!tool || typeof tool !== "object") return [];
+        const cacheControl =
+          tool.cache_control && typeof tool.cache_control === "object" ? tool.cache_control : null;
+        const name = typeof tool.name === "string" && tool.name.trim() ? tool.name.trim() : null;
+        return cacheControl ? [describeCacheControl(cacheControl, { index, name })] : [];
+      })
+    : [];
+
+  const messageBreakpoints = Array.isArray(finalBody.messages)
+    ? finalBody.messages.flatMap((message, messageIndex) => {
+        if (!message || typeof message !== "object" || !Array.isArray(message.content)) return [];
+        const role =
+          typeof message.role === "string" && message.role.trim() ? message.role.trim() : "unknown";
+        return message.content.flatMap((block, contentIndex) => {
+          if (!block || typeof block !== "object") return [];
+          const cacheControl =
+            block.cache_control && typeof block.cache_control === "object"
+              ? block.cache_control
+              : null;
+          if (!cacheControl) return [];
+          return [
+            describeCacheControl(cacheControl, {
+              messageIndex,
+              contentIndex,
+              role,
+              blockType:
+                typeof block.type === "string" && block.type.trim() ? block.type.trim() : "unknown",
+            }),
+          ];
+        });
+      })
+    : [];
+
+  const totalBreakpoints =
+    systemBreakpoints.length + toolBreakpoints.length + messageBreakpoints.length;
+  const anthropicBeta = getHeaderValueCaseInsensitive(providerHeaders, "Anthropic-Beta");
+
+  if (totalBreakpoints === 0 && !anthropicBeta) return null;
+
+  return {
+    applied: totalBreakpoints > 0,
+    totalBreakpoints,
+    anthropicBeta,
+    systemBreakpoints,
+    toolBreakpoints,
+    messageBreakpoints,
+  };
+}
+
+function toPositiveNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function buildCacheUsageLogMeta(usage: Record<string, unknown> | null | undefined) {
+  if (!usage || typeof usage !== "object") return null;
+  const promptTokenDetails =
+    usage.prompt_tokens_details && typeof usage.prompt_tokens_details === "object"
+      ? (usage.prompt_tokens_details as Record<string, unknown>)
+      : undefined;
+  const hasCacheFields =
+    "cache_read_input_tokens" in usage ||
+    "cached_tokens" in usage ||
+    "cache_creation_input_tokens" in usage ||
+    (!!promptTokenDetails &&
+      ("cached_tokens" in promptTokenDetails || "cache_creation_tokens" in promptTokenDetails));
+  const cacheReadTokens = toPositiveNumber(
+    usage.cache_read_input_tokens ?? usage.cached_tokens ?? promptTokenDetails?.cached_tokens
+  );
+  const cacheCreationTokens = toPositiveNumber(
+    usage.cache_creation_input_tokens ?? promptTokenDetails?.cache_creation_tokens
+  );
+  if (!hasCacheFields) return null;
+  return {
+    cacheReadTokens,
+    cacheCreationTokens,
+  };
+}
+
+function attachLogMeta(
+  payload: Record<string, unknown> | null | undefined,
+  meta: Record<string, unknown> | null | undefined
+) {
+  if (!meta || typeof meta !== "object") return payload;
+  const compactMeta = Object.fromEntries(
+    Object.entries(meta).filter(([, value]) => value !== null && value !== undefined)
+  );
+  if (Object.keys(compactMeta).length === 0) return payload;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return { _omniroute: compactMeta, _payload: payload ?? null };
+  }
+  const existing =
+    payload._omniroute &&
+    typeof payload._omniroute === "object" &&
+    !Array.isArray(payload._omniroute)
+      ? payload._omniroute
+      : {};
+  return {
+    ...payload,
+    _omniroute: {
+      ...existing,
+      ...compactMeta,
+    },
+  };
 }
 
 /**
@@ -78,6 +314,11 @@ export function shouldUseNativeCodexPassthrough({
  * @param {function} options.onDisconnect - Callback when client disconnects
  * @param {string} options.connectionId - Connection ID for usage tracking
  * @param {object} options.apiKeyInfo - API key metadata for usage attribution
+ * @param {string} options.userAgent - Client user agent for caching decisions
+ * @param {string} options.comboName - Combo name if this is a combo request
+ * @param {string} options.comboStrategy - Combo routing strategy (e.g., 'priority', 'cost-optimized')
+ * @param {boolean} options.isCombo - Whether this request is from a combo
+ * @param {string} options.connectionId - Connection ID for settings lookup
  */
 export async function handleChatCore({
   body,
@@ -92,8 +333,12 @@ export async function handleChatCore({
   apiKeyInfo = null,
   userAgent,
   comboName,
+  comboStrategy = null,
+  isCombo = false,
 }) {
-  const { provider, model, extendedContext } = modelInfo;
+  let { provider, model, extendedContext } = modelInfo;
+  const requestedModel =
+    typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
   const startTime = Date.now();
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
@@ -110,6 +355,68 @@ export async function handleChatCore({
       apiKeyId: apiKeyInfo?.id || undefined,
       apiKeyName: apiKeyInfo?.name || undefined,
     }).catch(() => {});
+  };
+
+  const persistCodexQuotaState = async (
+    headers: Headers | Record<string, string> | null,
+    status = 0
+  ) => {
+    if (provider !== "codex" || !connectionId || !headers) return;
+
+    try {
+      const quota = parseCodexQuotaHeaders(headers as Headers);
+      if (!quota) return;
+
+      const existingProviderData =
+        credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
+          ? credentials.providerSpecificData
+          : {};
+      const scope = getCodexModelScope(model || requestedModel || "");
+      const quotaState = {
+        usage5h: quota.usage5h,
+        limit5h: quota.limit5h,
+        resetAt5h: quota.resetAt5h,
+        usage7d: quota.usage7d,
+        limit7d: quota.limit7d,
+        resetAt7d: quota.resetAt7d,
+        scope,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const nextProviderData: Record<string, unknown> = {
+        ...existingProviderData,
+        codexQuotaState: quotaState,
+      };
+
+      // T03/T09: on 429, persist exact reset time per scope to avoid global over-blocking.
+      if (status === 429) {
+        const resetTimeMs = getCodexResetTime(quota);
+        if (resetTimeMs && resetTimeMs > Date.now()) {
+          const scopeUntil = new Date(resetTimeMs).toISOString();
+          const scopeMapRaw =
+            existingProviderData &&
+            typeof existingProviderData === "object" &&
+            existingProviderData.codexScopeRateLimitedUntil &&
+            typeof existingProviderData.codexScopeRateLimitedUntil === "object"
+              ? existingProviderData.codexScopeRateLimitedUntil
+              : {};
+
+          nextProviderData.codexScopeRateLimitedUntil = {
+            ...(scopeMapRaw as Record<string, unknown>),
+            [scope]: scopeUntil,
+          };
+        }
+      }
+
+      await updateProviderConnection(connectionId, {
+        providerSpecificData: nextProviderData,
+      });
+
+      credentials.providerSpecificData = nextProviderData;
+    } catch (err) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+      log?.debug?.("CODEX", `Failed to persist codex quota state: ${errMessage}`);
+    }
   };
 
   // ── Phase 9.2: Idempotency check ──
@@ -139,9 +446,10 @@ export async function handleChatCore({
     credentials.connectionId = connectionId;
   }
 
-  const sourceFormat = detectFormat(body);
   const endpointPath = String(clientRawRequest?.endpoint || "");
-  const isResponsesEndpoint = /(?:^|\/)responses(?:\/.*)?$/i.test(endpointPath);
+  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
+  const isResponsesEndpoint =
+    /\/responses(?=\/|$)/i.test(endpointPath) || /^responses(?=\/|$)/i.test(endpointPath);
   const nativeCodexPassthrough = shouldUseNativeCodexPassthrough({
     provider,
     sourceFormat,
@@ -157,6 +465,37 @@ export async function handleChatCore({
   // Detect source format and get target format
   // Model-specific targetFormat takes priority over provider default
 
+  // ── Background Task Redirection (T41) ──
+  const bgConfig = getBackgroundDegradationConfig();
+  const backgroundReason = bgConfig.enabled
+    ? getBackgroundTaskReason(body, clientRawRequest?.headers)
+    : null;
+  if (backgroundReason) {
+    const degradedModel = getDegradedModel(model);
+    if (degradedModel !== model) {
+      const originalModel = model;
+      log?.info?.(
+        "BACKGROUND",
+        `Background task redirect (${backgroundReason}): ${originalModel} → ${degradedModel}`
+      );
+      model = degradedModel;
+      if (body && typeof body === "object") {
+        body.model = model;
+      }
+
+      logAuditEvent({
+        action: "routing.background_task_redirect",
+        actor: apiKeyInfo?.name || "system",
+        target: connectionId || provider || "chat",
+        details: {
+          original_model: originalModel,
+          redirected_to: degradedModel,
+          reason: backgroundReason,
+        },
+      });
+    }
+  }
+
   // Apply custom model aliases (Settings → Model Aliases → Pattern→Target) before routing (#315, #472)
   // Custom aliases take priority over built-in and must be resolved here so the
   // downstream getModelTargetFormat() lookup AND the actual provider request use
@@ -171,9 +510,113 @@ export async function handleChatCore({
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat = modelTargetFormat || getTargetFormat(provider);
+  const noLogEnabled = apiKeyInfo?.noLog === true;
+  const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
+  const persistAttemptLogs = ({
+    status,
+    tokens,
+    responseBody,
+    error,
+    providerRequest,
+    providerResponse,
+    clientResponse,
+    claudeCacheMeta,
+    claudeCacheUsageMeta,
+  }: {
+    status: number;
+    tokens?: unknown;
+    responseBody?: unknown;
+    error?: string | null;
+    providerRequest?: unknown;
+    providerResponse?: unknown;
+    clientResponse?: unknown;
+    claudeCacheMeta?: any;
+    claudeCacheUsageMeta?: any;
+  }) => {
+    const callLogId = generateRequestId();
+
+    saveCallLog({
+      id: callLogId,
+      method: "POST",
+      path: clientRawRequest?.endpoint || "/v1/chat/completions",
+      status,
+      model,
+      requestedModel,
+      provider,
+      connectionId,
+      duration: Date.now() - startTime,
+      tokens: tokens || {},
+      requestBody: attachLogMeta((body as Record<string, unknown>) ?? undefined, {
+        claudePromptCache: claudeCacheMeta,
+      }),
+      responseBody: attachLogMeta((responseBody as Record<string, unknown>) ?? undefined, {
+        claudePromptCache: claudeCacheMeta
+          ? {
+              applied: claudeCacheMeta.applied,
+              totalBreakpoints: claudeCacheMeta.totalBreakpoints,
+              anthropicBeta: claudeCacheMeta.anthropicBeta,
+            }
+          : null,
+        claudePromptCacheUsage: claudeCacheUsageMeta,
+      }),
+      error: error || null,
+      sourceFormat,
+      targetFormat,
+      comboName,
+      apiKeyId: apiKeyInfo?.id || null,
+      apiKeyName: apiKeyInfo?.name || null,
+      noLog: noLogEnabled,
+    }).catch(() => {});
+
+    if (!detailedLoggingEnabled) {
+      return;
+    }
+
+    try {
+      saveRequestDetailLog({
+        call_log_id: callLogId,
+        client_request: clientRawRequest?.body ?? body,
+        translated_request: providerRequest ?? null,
+        provider_response: providerResponse ?? null,
+        client_response: clientResponse ?? null,
+        provider,
+        model,
+        source_format: sourceFormat,
+        target_format: targetFormat,
+        duration_ms: Date.now() - startTime,
+        api_key_id: apiKeyInfo?.id || null,
+        no_log: noLogEnabled,
+      });
+    } catch (err) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+      log?.debug?.("DETAIL_LOG", `Failed to save detailed log: ${errMessage}`);
+    }
+  };
+
+  // Primary path: merge client model id + alias target so config on either key applies; resolved
+  // id wins on same header name. T5 family fallback uses only (nextModel, resolveModelAlias(next))
+  // so A-model headers are not sent to B — see buildUpstreamHeadersForExecute.
+  const buildUpstreamHeadersForExecute = (modelToCall: string): Record<string, string> => {
+    if (modelToCall === effectiveModel) {
+      return {
+        ...getModelUpstreamExtraHeaders(provider || "", model || "", sourceFormat),
+        ...getModelUpstreamExtraHeaders(provider || "", resolvedModel || "", sourceFormat),
+      };
+    }
+    const r = resolveModelAlias(modelToCall);
+    return {
+      ...getModelUpstreamExtraHeaders(provider || "", modelToCall || "", sourceFormat),
+      ...getModelUpstreamExtraHeaders(provider || "", r || "", sourceFormat),
+    };
+  };
 
   // Default to false unless client explicitly sets stream: true (OpenAI spec compliant)
-  const stream = body.stream === true;
+  const acceptHeader =
+    clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
+      ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
+      : (clientRawRequest?.headers || {})["accept"] || (clientRawRequest?.headers || {})["Accept"];
+
+  const stream = resolveStreamFlag(body?.stream, acceptHeader);
 
   // ── Phase 9.1: Semantic cache check (non-streaming, temp=0 only) ──
   if (isCacheable(body, clientRawRequest?.headers)) {
@@ -211,61 +654,132 @@ export async function handleChatCore({
 
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
 
+  // ── Common input sanitization (runs for ALL paths including passthrough) ──
+  // #291: Strip empty name fields from messages/input items
+  // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
+  if (Array.isArray(body.messages)) {
+    body.messages = body.messages.map((msg: Record<string, unknown>) => {
+      if (msg.name === "") {
+        const { name: _n, ...rest } = msg;
+        return rest;
+      }
+      return msg;
+    });
+  }
+  if (Array.isArray(body.input)) {
+    body.input = body.input.map((item: Record<string, unknown>) => {
+      if (item.name === "") {
+        const { name: _n, ...rest } = item;
+        return rest;
+      }
+      return item;
+    });
+  }
+  // #346/#637: Strip tools with empty name
+  // Clients sometimes forward tool definitions with empty names, causing
+  // upstream providers to reject with 400 "Invalid 'tools[0].name': empty string."
+  if (Array.isArray(body.tools)) {
+    body.tools = body.tools.filter((tool: Record<string, unknown>) => {
+      const fn = tool.function as Record<string, unknown> | undefined;
+      const name = fn?.name ?? tool.name;
+      return name && String(name).trim().length > 0;
+    });
+  }
+
   // Translate request (pass reqLogger for intermediate logging)
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
+
+  // Determine if we should preserve client-side cache_control headers
+  // Fetch settings from DB to get user preference
+  const cacheControlMode = await getCacheControlSettings().catch(() => "auto" as const);
+  const preserveCacheControl = shouldPreserveCacheControl({
+    userAgent,
+    isCombo,
+    comboStrategy,
+    targetProvider: provider,
+    settings: { alwaysPreserveClientCache: cacheControlMode },
+  });
+
+  // Track cache metrics for this request
+  let currentMetrics = await getCacheMetrics().catch(() => ({
+    totalRequests: 0,
+    requestsWithCacheControl: 0,
+    totalInputTokens: 0,
+    totalCachedTokens: 0,
+    totalCacheCreationTokens: 0,
+    tokensSaved: 0,
+    estimatedCostSaved: 0,
+    byProvider: {},
+    byStrategy: {},
+    lastUpdated: new Date().toISOString(),
+  }));
+
+  currentMetrics = trackCacheMetrics({
+    preserved: preserveCacheControl,
+    provider,
+    strategy: comboStrategy,
+    metrics: currentMetrics,
+  });
+
+  if (preserveCacheControl) {
+    log?.debug?.(
+      "CACHE",
+      `Preserving client cache_control (client=${userAgent?.substring(0, 20)}, combo=${isCombo}, strategy=${comboStrategy}, provider=${provider})`
+    );
+  }
+
   try {
     if (nativeCodexPassthrough) {
       translatedBody = { ...body, _nativeCodexPassthrough: true };
       log?.debug?.("FORMAT", "native codex passthrough enabled");
     } else if (isClaudePassthrough) {
-      // Claude-to-Claude passthrough: forward body completely untouched.
-      // No translation, no field stripping, no thinking normalization.
-      // We are just a gateway -- do not interfere with the request in the slightest.
-      translatedBody = { ...body };
-      log?.debug?.("FORMAT", "claude->claude passthrough -- forwarding untouched");
+      // Claude OAuth expects the same Claude Code prompt + structural normalization
+      // as the OpenAI-compatible chat path. Round-trip through OpenAI to reuse the
+      // working Claude translator instead of forwarding raw Messages payloads.
+      const normalizeToolCallId = getModelNormalizeToolCallId(
+        provider || "",
+        model || "",
+        sourceFormat
+      );
+      const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
+        provider || "",
+        model || "",
+        sourceFormat
+      );
+      translatedBody = translateRequest(
+        FORMATS.CLAUDE,
+        FORMATS.OPENAI,
+        model,
+        { ...body },
+        stream,
+        credentials,
+        provider,
+        reqLogger,
+        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+      );
+      translatedBody = translateRequest(
+        FORMATS.OPENAI,
+        FORMATS.CLAUDE,
+        model,
+        { ...translatedBody, _disableToolPrefix: true },
+        stream,
+        credentials,
+        provider,
+        reqLogger,
+        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+      );
+      log?.debug?.("FORMAT", "claude->openai->claude normalized passthrough");
     } else {
       translatedBody = { ...body };
 
-      // Issue #199: Disable tool name prefix when routing Claude-format requests
-      // to non-Claude backends (prefix causes tool name mismatches)
-      const claudeProviders = ["claude", "anthropic"];
-      if (targetFormat === FORMATS.CLAUDE && !claudeProviders.includes(provider?.toLowerCase?.())) {
+      // Issue #199 + #618: Always disable tool name prefix in Claude passthrough.
+      // The proxy_ prefix was designed for OpenAI→Claude translation to avoid
+      // conflicts with Claude OAuth tools, but in the passthrough path the tools
+      // are already in Claude format. Applying the prefix turns "Bash" into
+      // "proxy_Bash", which Claude rejects ("No such tool available: proxy_Bash").
+      if (targetFormat === FORMATS.CLAUDE) {
         translatedBody._disableToolPrefix = true;
-      }
-
-      // ── #291: Strip empty name fields from messages/input items ──
-      // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
-      // Clients like PocketPaw may forward empty name fields from assistant turns.
-      if (Array.isArray(translatedBody.messages)) {
-        translatedBody.messages = translatedBody.messages.map((msg: Record<string, unknown>) => {
-          if (msg.name === "") {
-            const { name: _n, ...rest } = msg;
-            return rest;
-          }
-          return msg;
-        });
-      }
-      if (Array.isArray(translatedBody.input)) {
-        translatedBody.input = translatedBody.input.map((item: Record<string, unknown>) => {
-          if (item.name === "") {
-            const { name: _n, ...rest } = item;
-            return rest;
-          }
-          return item;
-        });
-      }
-      // ── #346: Strip tools with empty name ──
-      // Claude Code sometimes forwards tool definitions with empty names, causing
-      // OpenAI-compatible upstream providers to reject with:
-      // "Invalid 'input[N].name': empty string. Expected minimum length 1."
-      // Handles both OpenAI format ({ function: { name } }) and Anthropic format ({ name }).
-      if (Array.isArray(translatedBody.tools)) {
-        translatedBody.tools = translatedBody.tools.filter((tool: Record<string, unknown>) => {
-          const fn = tool.function as Record<string, unknown> | undefined;
-          const name = fn?.name ?? tool.name;
-          return name && String(name).trim().length > 0;
-        });
       }
 
       // Strip empty text content blocks from messages.
@@ -308,6 +822,27 @@ export async function handleChatCore({
                   }
                   return [];
                 }
+                // (#527) tool_result → convert to text instead of dropping.
+                // When Claude Code + superpowers routes through Codex, it sends tool_result
+                // blocks in user messages. Silently dropping them causes Codex to loop
+                // because it never receives the tool response and keeps re-requesting it.
+                if (block.type === "tool_result") {
+                  const toolId = block.tool_use_id ?? block.id ?? "unknown";
+                  const resultContent = block.content ?? block.text ?? block.output ?? "";
+                  const resultText =
+                    typeof resultContent === "string"
+                      ? resultContent
+                      : Array.isArray(resultContent)
+                        ? resultContent
+                            .filter((c: Record<string, unknown>) => c.type === "text")
+                            .map((c: Record<string, unknown>) => c.text)
+                            .join("\n")
+                        : JSON.stringify(resultContent);
+                  if (resultText.length > 0) {
+                    return [{ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }];
+                  }
+                  return [];
+                }
                 // Unknown types: drop silently
                 log?.debug?.("CONTENT", `Dropped unsupported content part type="${block.type}"`);
                 return [];
@@ -336,7 +871,7 @@ export async function handleChatCore({
         credentials,
         provider,
         reqLogger,
-        { normalizeToolCallId, preserveDeveloperRole }
+        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
       );
     }
   } catch (error) {
@@ -378,7 +913,14 @@ export async function handleChatCore({
   }
 
   // Extract toolNameMap for response translation (Claude OAuth)
-  const toolNameMap = translatedBody._toolNameMap;
+  const translatedToolNameMap = translatedBody._toolNameMap;
+  const nativeClaudeToolNameMap = isClaudePassthrough
+    ? buildClaudePassthroughToolNameMap(body)
+    : null;
+  const toolNameMap =
+    translatedToolNameMap instanceof Map && translatedToolNameMap.size > 0
+      ? translatedToolNameMap
+      : nativeClaudeToolNameMap;
   delete translatedBody._toolNameMap;
   delete translatedBody._disableToolPrefix;
 
@@ -397,6 +939,22 @@ export async function handleChatCore({
     }
     if (stripped.length > 0) {
       log?.warn?.("PARAMS", `Stripped unsupported params for ${model}: ${stripped.join(", ")}`);
+    }
+  }
+
+  // Provider-specific max_tokens caps (#711)
+  // Some providers reject requests when max_tokens exceeds their API limit.
+  // Cap before sending to avoid upstream HTTP 400 errors.
+  const providerCap = PROVIDER_MAX_TOKENS[provider];
+  if (providerCap) {
+    for (const field of ["max_tokens", "max_completion_tokens"] as const) {
+      if (typeof translatedBody[field] === "number" && translatedBody[field] > providerCap) {
+        log?.debug?.(
+          "PARAMS",
+          `Capping ${field} from ${translatedBody[field]} to ${providerCap} for ${provider}`
+        );
+        translatedBody[field] = providerCap;
+      }
     }
   }
 
@@ -428,6 +986,7 @@ export async function handleChatCore({
           signal: streamController.signal,
           log,
           extendedContext,
+          upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
         })
       );
 
@@ -436,7 +995,7 @@ export async function handleChatCore({
       // Non-stream responses need cloning for shared dedup consumers.
       const status = rawResult.response.status;
       const statusText = rawResult.response.statusText;
-      const headers = Array.from(rawResult.response.headers.entries());
+      const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
       const payload = await rawResult.response.text();
 
       return {
@@ -478,6 +1037,7 @@ export async function handleChatCore({
   let providerUrl;
   let providerHeaders;
   let finalBody;
+  let claudePromptCacheLogMeta = null;
 
   try {
     const result = await executeProviderRequest(effectiveModel, true);
@@ -486,6 +1046,11 @@ export async function handleChatCore({
     providerUrl = result.url;
     providerHeaders = result.headers;
     finalBody = result.transformedBody;
+    claudePromptCacheLogMeta = buildClaudePromptCacheLogMeta(
+      targetFormat,
+      finalBody,
+      providerHeaders
+    );
 
     // Log target request (final request to provider)
     reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
@@ -500,37 +1065,34 @@ export async function handleChatCore({
     );
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
+    const failureStatus = error.name === "AbortError" ? 499 : HTTP_STATUS.BAD_GATEWAY;
+    const failureMessage =
+      error.name === "AbortError"
+        ? "Request aborted"
+        : formatProviderError(error, provider, model, HTTP_STATUS.BAD_GATEWAY);
     appendRequestLog({
       model,
       provider,
       connectionId,
-      status: `FAILED ${error.name === "AbortError" ? 499 : HTTP_STATUS.BAD_GATEWAY}`,
+      status: `FAILED ${failureStatus}`,
     }).catch(() => {});
-    saveCallLog({
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
-      status: error.name === "AbortError" ? 499 : HTTP_STATUS.BAD_GATEWAY,
-      model,
-      provider,
-      connectionId,
-      duration: Date.now() - startTime,
-      requestBody: body,
-      error: error.message,
-      sourceFormat,
-      targetFormat,
-      comboName,
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: apiKeyInfo?.noLog === true,
-    }).catch(() => {});
+    persistAttemptLogs({
+      status: failureStatus,
+      error: failureMessage,
+      providerRequest: finalBody || translatedBody,
+      clientResponse: buildErrorBody(failureStatus, failureMessage),
+      claudeCacheMeta: claudePromptCacheLogMeta,
+    });
     if (error.name === "AbortError") {
       streamController.handleError(error);
       return createErrorResult(499, "Request aborted");
     }
-    persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, error?.name || "upstream_error");
-    const errMsg = formatProviderError(error, provider, model, HTTP_STATUS.BAD_GATEWAY);
-    console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
-    return createErrorResult(HTTP_STATUS.BAD_GATEWAY, errMsg);
+    persistFailureUsage(
+      HTTP_STATUS.BAD_GATEWAY,
+      error instanceof Error && error.name ? error.name : "upstream_error"
+    );
+    console.log(`${COLORS.red}[ERROR] ${failureMessage}${COLORS.reset}`);
+    return createErrorResult(HTTP_STATUS.BAD_GATEWAY, failureMessage);
   }
 
   // Handle 401/403 - try token refresh using executor
@@ -558,23 +1120,29 @@ export async function handleChatCore({
         await onCredentialsRefreshed(newCredentials);
       }
 
-      // Retry with new credentials
+      // Retry with new credentials — model + extra headers follow translatedBody.model so they
+      // stay aligned if this block ever runs after a path that mutates body.model (e.g. fallback).
       try {
+        const retryModelId = String(translatedBody.model || effectiveModel);
         const retryResult = await executor.execute({
-          model,
+          model: retryModelId,
           body: translatedBody,
           stream,
           credentials: getExecutionCredentials(),
           signal: streamController.signal,
           log,
           extendedContext,
+          upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
         });
 
         if (retryResult.response.ok) {
           providerResponse = retryResult.response;
           providerUrl = retryResult.url;
+          providerHeaders = retryResult.headers;
+          finalBody = retryResult.transformedBody;
+          reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
         }
-      } catch (retryError) {
+      } catch {
         log?.warn?.("TOKEN", `${provider.toUpperCase()} | retry after refresh failed`);
       }
     } else {
@@ -582,33 +1150,69 @@ export async function handleChatCore({
     }
   }
 
+  await persistCodexQuotaState(providerResponse.headers, providerResponse.status);
+
   // Check provider response - return error info for fallback handling
   if (!providerResponse.ok) {
     trackPendingRequest(model, provider, connectionId, false);
-    const { statusCode, message, retryAfterMs } = await parseUpstreamError(
-      providerResponse,
-      provider
-    );
+    const {
+      statusCode,
+      message,
+      retryAfterMs,
+      responseBody: upstreamErrorBody,
+    } = await parseUpstreamError(providerResponse, provider);
+
+    // T06/T10/T36: classify provider errors and persist terminal account states.
+    const errorType = classifyProviderError(statusCode, message);
+    if (connectionId && errorType) {
+      try {
+        if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
+          await updateProviderConnection(connectionId, {
+            isActive: false,
+            testStatus: "banned",
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${connectionId} banned (${statusCode}) — disabling permanently`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
+          await updateProviderConnection(connectionId, {
+            testStatus: "credits_exhausted",
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
+        } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
+          await updateProviderConnection(connectionId, {
+            isActive: false,
+            testStatus: "expired",
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${connectionId} account deactivated (${statusCode}) — marked expired`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
+          // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
+          await updateProviderConnection(connectionId, {
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+        }
+      } catch {
+        // Best-effort state update; request flow should continue with fallback handling.
+      }
+    }
+
     appendRequestLog({ model, provider, connectionId, status: `FAILED ${statusCode}` }).catch(
       () => {}
     );
-    saveCallLog({
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
-      status: statusCode,
-      model,
-      provider,
-      connectionId,
-      duration: Date.now() - startTime,
-      requestBody: body,
-      error: message,
-      sourceFormat,
-      targetFormat,
-      comboName,
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: apiKeyInfo?.noLog === true,
-    }).catch(() => {});
+
     const errMsg = formatProviderError(new Error(message), provider, model, statusCode);
     console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
 
@@ -620,6 +1224,12 @@ export async function handleChatCore({
 
     // Log error with full request body for debugging
     reqLogger.logError(new Error(message), finalBody || translatedBody);
+    reqLogger.logProviderResponse(
+      providerResponse.status,
+      providerResponse.statusText,
+      providerResponse.headers,
+      upstreamErrorBody
+    );
 
     // Update rate limiter from error response headers
     updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
@@ -643,24 +1253,53 @@ export async function handleChatCore({
             providerUrl = fallbackResult.url;
             providerHeaders = fallbackResult.headers;
             finalBody = fallbackResult.transformedBody;
+            reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
             // Continue processing with the fallback response — skip error return
             log?.info?.("MODEL_FALLBACK", `Serving ${nextModel} as fallback for ${model}`);
             // Jump to streaming/non-streaming handling below
             // We fall through by NOT returning here
           } else {
             // Fallback also failed — return original error
+            persistAttemptLogs({
+              status: statusCode,
+              error: errMsg,
+              providerRequest: finalBody || translatedBody,
+              providerResponse: upstreamErrorBody,
+              clientResponse: buildErrorBody(statusCode, errMsg),
+            });
             persistFailureUsage(statusCode, "model_unavailable");
             return createErrorResult(statusCode, errMsg, retryAfterMs);
           }
         } catch {
+          persistAttemptLogs({
+            status: statusCode,
+            error: errMsg,
+            providerRequest: finalBody || translatedBody,
+            providerResponse: upstreamErrorBody,
+            clientResponse: buildErrorBody(statusCode, errMsg),
+          });
           persistFailureUsage(statusCode, "model_unavailable");
           return createErrorResult(statusCode, errMsg, retryAfterMs);
         }
       } else {
+        persistAttemptLogs({
+          status: statusCode,
+          error: errMsg,
+          providerRequest: finalBody || translatedBody,
+          providerResponse: upstreamErrorBody,
+          clientResponse: buildErrorBody(statusCode, errMsg),
+        });
         persistFailureUsage(statusCode, "model_unavailable");
         return createErrorResult(statusCode, errMsg, retryAfterMs);
       }
     } else {
+      persistAttemptLogs({
+        status: statusCode,
+        error: errMsg,
+        providerRequest: finalBody || translatedBody,
+        providerResponse: upstreamErrorBody,
+        clientResponse: buildErrorBody(statusCode, errMsg),
+      });
       persistFailureUsage(statusCode, `upstream_${statusCode}`);
       return createErrorResult(statusCode, errMsg, retryAfterMs);
     }
@@ -705,6 +1344,10 @@ export async function handleChatCore({
           });
           if (fbResult.response.ok) {
             providerResponse = fbResult.response;
+            providerUrl = fbResult.url;
+            providerHeaders = fbResult.headers;
+            finalBody = fbResult.transformedBody;
+            reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
             log?.info?.(
               "EMERGENCY_FALLBACK",
               `Serving ${fbDecision.provider}/${fbDecision.model} as budget fallback for ${provider}/${model}`
@@ -717,7 +1360,8 @@ export async function handleChatCore({
             );
           }
         } catch (fbErr) {
-          log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${fbErr?.message}`);
+          const errMessage = fbErr instanceof Error ? fbErr.message : String(fbErr);
+          log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${errMessage}`);
         }
       }
     }
@@ -730,6 +1374,7 @@ export async function handleChatCore({
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
     const rawBody = await providerResponse.text();
+    const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
       contentType.includes("text/event-stream") || /(^|\n)\s*(event|data):/m.test(rawBody);
 
@@ -747,11 +1392,16 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
+        const invalidSseMessage = "Invalid SSE response for non-streaming request";
+        persistAttemptLogs({
+          status: HTTP_STATUS.BAD_GATEWAY,
+          error: invalidSseMessage,
+          providerRequest: finalBody || translatedBody,
+          providerResponse: normalizedProviderPayload,
+          clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage),
+        });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
-        return createErrorResult(
-          HTTP_STATUS.BAD_GATEWAY,
-          "Invalid SSE response for non-streaming request"
-        );
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
       }
 
       responseBody = parsedFromSSE;
@@ -765,10 +1415,34 @@ export async function handleChatCore({
           connectionId,
           status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
         }).catch(() => {});
+        const invalidJsonMessage = "Invalid JSON response from provider";
+        persistAttemptLogs({
+          status: HTTP_STATUS.BAD_GATEWAY,
+          error: invalidJsonMessage,
+          providerRequest: finalBody || translatedBody,
+          providerResponse: normalizedProviderPayload,
+          clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
+        });
         persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
-        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, "Invalid JSON response from provider");
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
       }
     }
+
+    if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) {
+      responseBody = restoreClaudePassthroughToolNames(responseBody, toolNameMap);
+    }
+    reqLogger.logProviderResponse(
+      providerResponse.status,
+      providerResponse.statusText,
+      providerResponse.headers,
+      looksLikeSSE
+        ? {
+            _streamed: true,
+            _format: "sse-json",
+            summary: responseBody,
+          }
+        : responseBody
+    );
 
     // Notify success - caller can clear error status if needed
     if (onRequestSuccess) {
@@ -782,27 +1456,34 @@ export async function handleChatCore({
     );
 
     // Save structured call log with full payloads
-    saveCallLog({
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
-      status: 200,
-      model,
-      provider,
-      connectionId,
-      duration: Date.now() - startTime,
-      tokens: usage,
-      requestBody: body,
-      responseBody,
-      sourceFormat,
-      targetFormat,
-      comboName,
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: apiKeyInfo?.noLog === true,
-    }).catch(() => {});
+    const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     if (usage && typeof usage === "object") {
-      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | in=${usage?.prompt_tokens || 0} | out=${usage?.completion_tokens || 0}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
+      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | in=${getLoggedInputTokens(usage)} | out=${getLoggedOutputTokens(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
       console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+
+      // Track cache token metrics
+      const inputTokens = usage.prompt_tokens || 0;
+      const cachedTokens = toPositiveNumber(
+        usage.cache_read_input_tokens ??
+          usage.cached_tokens ??
+          (usage as any).prompt_tokens_details?.cached_tokens
+      );
+      const cacheCreationTokens = toPositiveNumber(
+        usage.cache_creation_input_tokens ??
+          (usage as any).prompt_tokens_details?.cache_creation_tokens
+      );
+
+      if (cachedTokens > 0 || cacheCreationTokens > 0) {
+        currentMetrics = updateCacheTokenMetrics({
+          metrics: currentMetrics,
+          provider,
+          strategy: comboStrategy,
+          inputTokens,
+          cachedTokens,
+          cacheCreationTokens,
+          costSaved: 0, // Will be calculated based on pricing
+        });
+      }
 
       saveRequestUsage({
         provider: provider || "unknown",
@@ -822,15 +1503,49 @@ export async function handleChatCore({
       });
     }
 
+    if (apiKeyInfo?.id && usage) {
+      const estimatedCost = await calculateCost(provider, model, usage);
+      if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
+    }
+
     // Translate response to client's expected format (usually OpenAI)
+    // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
     let translatedResponse = needsTranslation(targetFormat, sourceFormat)
-      ? translateNonStreamingResponse(responseBody, targetFormat, sourceFormat)
+      ? translateNonStreamingResponse(
+          responseBody,
+          targetFormat,
+          sourceFormat,
+          toolNameMap as Map<string, string> | null
+        )
       : responseBody;
+
+    // T26: Strip markdown code blocks if provider format is Claude
+    if (sourceFormat === "claude" && !stream) {
+      if (typeof translatedResponse?.choices?.[0]?.message?.content === "string") {
+        translatedResponse.choices[0].message.content = stripMarkdownCodeFence(
+          translatedResponse.choices[0].message.content
+        ) as string;
+      }
+    }
+
+    // T18: Normalize finish_reason to 'tool_calls' if tool calls are present
+    if (translatedResponse?.choices) {
+      for (const choice of translatedResponse.choices) {
+        if (
+          choice.message?.tool_calls &&
+          choice.message.tool_calls.length > 0 &&
+          choice.finish_reason !== "tool_calls"
+        ) {
+          choice.finish_reason = "tool_calls";
+        }
+      }
+    }
 
     // Sanitize response for OpenAI SDK compatibility
     // Strips non-standard fields (x_groq, usage_breakdown, service_tier, etc.)
-    // Extracts <think> tags into reasoning_content
-    if (sourceFormat === FORMATS.OPENAI) {
+    // Extracts <think> and <thinking> tags into reasoning_content
+    // Target format determines output shape. If we are outputting OpenAI shape or pseudo-OpenAI shape, sanitize.
+    if (targetFormat === FORMATS.OPENAI || targetFormat === FORMATS.OPENAI_RESPONSES) {
       translatedResponse = sanitizeOpenAIResponse(translatedResponse);
     }
 
@@ -859,6 +1574,28 @@ export async function handleChatCore({
 
     // ── Phase 9.2: Save for idempotency ──
     saveIdempotency(idempotencyKey, translatedResponse, 200);
+    reqLogger.logConvertedResponse(translatedResponse);
+    persistAttemptLogs({
+      status: 200,
+      tokens: usage,
+      responseBody,
+      providerRequest: finalBody || translatedBody,
+      providerResponse: looksLikeSSE
+        ? {
+            _streamed: true,
+            _format: "sse-json",
+            summary: responseBody,
+          }
+        : responseBody,
+      clientResponse: translatedResponse,
+      claudeCacheMeta: claudePromptCacheLogMeta,
+      claudeCacheUsageMeta: cacheUsageLogMeta,
+    });
+
+    // Persist cache metrics to database
+    updateCacheMetrics(currentMetrics).catch((err) => {
+      log?.debug?.("CACHE", `Failed to persist cache metrics: ${err?.message || "unknown"}`);
+    });
 
     return {
       success: true,
@@ -894,41 +1631,75 @@ export async function handleChatCore({
     status: streamStatus,
     usage: streamUsage,
     responseBody: streamResponseBody,
+    providerPayload,
+    clientPayload,
   }) => {
-    saveCallLog({
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
+    const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
+
+    // Track cache token metrics for streaming responses
+    if (streamUsage && typeof streamUsage === "object") {
+      const inputTokens = streamUsage.prompt_tokens || 0;
+      const cachedTokens = toPositiveNumber(
+        streamUsage.cache_read_input_tokens ??
+          streamUsage.cached_tokens ??
+          (streamUsage as any).prompt_tokens_details?.cached_tokens
+      );
+      const cacheCreationTokens = toPositiveNumber(
+        streamUsage.cache_creation_input_tokens ??
+          (streamUsage as any).prompt_tokens_details?.cache_creation_tokens
+      );
+
+      if (cachedTokens > 0 || cacheCreationTokens > 0) {
+        currentMetrics = updateCacheTokenMetrics({
+          metrics: currentMetrics,
+          provider,
+          strategy: comboStrategy,
+          inputTokens,
+          cachedTokens,
+          cacheCreationTokens,
+          costSaved: 0,
+        });
+      }
+    }
+
+    persistAttemptLogs({
       status: streamStatus || 200,
-      model,
-      provider,
-      connectionId,
-      duration: Date.now() - startTime,
       tokens: streamUsage || {},
-      requestBody: body,
       responseBody: streamResponseBody ?? undefined,
-      sourceFormat,
-      targetFormat,
-      comboName,
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: apiKeyInfo?.noLog === true,
-    }).catch(() => {});
+      providerRequest: finalBody || translatedBody,
+      providerResponse: providerPayload,
+      clientResponse: clientPayload ?? streamResponseBody ?? undefined,
+      claudeCacheMeta: claudePromptCacheLogMeta,
+      claudeCacheUsageMeta: cacheUsageLogMeta,
+    });
+
+    // Persist cache metrics to database
+    updateCacheMetrics(currentMetrics).catch((err) => {
+      log?.debug?.("CACHE", `Failed to persist cache metrics: ${err?.message || "unknown"}`);
+    });
+
+    if (apiKeyInfo?.id && streamUsage) {
+      calculateCost(provider, model, streamUsage)
+        .then((estimatedCost) => {
+          if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
+        })
+        .catch(() => {});
+    }
   };
 
-  // For Codex provider, translate response from openai-responses to openai (Chat Completions) format
+  // For providers using Responses API format, translate stream back to openai (Chat Completions) format
   // UNLESS client is Droid CLI which expects openai-responses format back
   const isDroidCLI =
     userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");
-  const needsCodexTranslation =
-    provider === "codex" &&
+  const needsResponsesTranslation =
     targetFormat === FORMATS.OPENAI_RESPONSES &&
     sourceFormat === FORMATS.OPENAI &&
     !isResponsesEndpoint &&
     !isDroidCLI;
 
-  if (needsCodexTranslation) {
-    // Codex returns openai-responses, translate to openai (Chat Completions) that clients expect
-    log?.debug?.("STREAM", `Codex translation mode: openai-responses → openai`);
+  if (needsResponsesTranslation) {
+    // Provider returns openai-responses, translate to openai (Chat Completions) that clients expect
+    log?.debug?.("STREAM", `Responses translation mode: openai-responses → openai`);
     transformStream = createSSETransformStreamWithLogger(
       "openai-responses",
       "openai",
@@ -961,6 +1732,7 @@ export async function handleChatCore({
     transformStream = createPassthroughStreamWithLogger(
       provider,
       reqLogger,
+      toolNameMap,
       model,
       connectionId,
       body,

@@ -20,6 +20,15 @@ import { supportsToolCalling } from "./modelCapabilities.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
 const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];
+const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
+  /\bprohibited_content\b/i,
+  /request blocked by .*api/i,
+  /provided message roles? is not valid/i,
+  /unsupported .*message role/i,
+  /no such tool available/i,
+  /unsupported content part type/i,
+  /tool(?:_call|_use)? .* not (?:available|found)/i,
+];
 
 const MAX_COMBO_DEPTH = 3;
 
@@ -258,6 +267,12 @@ function extractPromptForIntent(body) {
   return "";
 }
 
+export function shouldFallbackComboBadRequest(status, errorText) {
+  if (status !== 400 || !errorText) return false;
+  const message = String(errorText);
+  return COMBO_BAD_REQUEST_FALLBACK_PATTERNS.some((pattern) => pattern.test(message));
+}
+
 function mapIntentToTaskType(intent) {
   switch (intent) {
     case "code":
@@ -449,14 +464,23 @@ export async function handleComboChat({
         const res = await handleSingleModel(b, modelStr);
         if (!res.ok) return res;
 
-        // Non-streaming: inject tag into JSON response (existing logic)
+        // Non-streaming: inject tag into JSON response
+        // Fix #721: Use OpenAI choices format (json.choices[0].message) not json.messages
         if (!b.stream) {
           try {
             const json = await res.clone().json();
-            const msgs = Array.isArray(json?.messages) ? json.messages : [];
-            if (msgs.length > 0) {
-              const tagged = injectModelTag(msgs, modelStr);
-              return new Response(JSON.stringify({ ...json, messages: tagged }), {
+            const choice = json?.choices?.[0];
+            if (choice?.message) {
+              // Wrap single message in array for injectModelTag, then unwrap
+              const tagged = injectModelTag([choice.message], modelStr);
+              // If the message had tool_calls but no string content, injectModelTag
+              // appends a synthetic assistant message — use the last one
+              const taggedMsg = tagged[tagged.length - 1];
+              const updatedJson = {
+                ...json,
+                choices: [{ ...choice, message: taggedMsg }, ...(json.choices?.slice(1) || [])],
+              };
+              return new Response(JSON.stringify(updatedJson), {
                 status: res.status,
                 headers: res.headers,
               });
@@ -487,8 +511,9 @@ export async function handleComboChat({
 
             const text = decoder.decode(chunk, { stream: true });
 
-            // Look for the first SSE data line with non-empty content
-            // Pattern: "content":"<non-empty>" — we inject tag at the start
+            // Fix #721: Look for either non-empty content OR tool_calls in the
+            // SSE data. Tool-call-only responses have content:null, so we inject
+            // the tag when we see a finish_reason approaching, or on first content.
             const contentMatch = text.match(/"content":"([^"]+)/);
             if (contentMatch) {
               // Inject tag at the beginning of the first content value
@@ -498,6 +523,27 @@ export async function handleComboChat({
               );
               tagInjected = true;
               controller.enqueue(encoder.encode(injected));
+              return;
+            }
+
+            // Fix #721: For tool-call-only streams, inject the tag when we see
+            // the finish_reason chunk (before it reaches the client SDK which
+            // would close the connection). This ensures the tag roundtrips
+            // through the conversation history even when there's no text content.
+            if (text.includes('"finish_reason"') && !text.includes('"finish_reason":null')) {
+              // Inject a content chunk with the tag just before this finish chunk
+              const tagChunk = `data: ${JSON.stringify({
+                choices: [
+                  {
+                    delta: { content: tagContent },
+                    index: 0,
+                    finish_reason: null,
+                  },
+                ],
+              })}\n\n`;
+              tagInjected = true;
+              controller.enqueue(encoder.encode(tagChunk));
+              controller.enqueue(chunk);
               return;
             }
 
@@ -522,14 +568,60 @@ export async function handleComboChat({
           },
         });
 
-        const transformedStream = res.body.pipeThrough(transform);
+        // FIX #585: Sanitize outbound stream — strip <omniModel> tags from
+        // visible content so they don't leak to the user. The tag is still
+        // present in the full response for round-trip context pinning, but
+        // we clean it from each SSE chunk's content field before delivery.
+        //
+        // IMPORTANT: Use a SEPARATE TextDecoder from the transform stream above.
+        // The transform stream's decoder accumulates UTF-8 state; reusing it here
+        // would corrupt multi-byte characters split across chunk boundaries.
+        const sanitizeDecoder = new TextDecoder();
+        const sanitize = new TransformStream({
+          transform(chunk, controller) {
+            const text = sanitizeDecoder.decode(chunk, { stream: true });
+            if (text) {
+              if (text.includes("<omniModel>")) {
+                const cleaned = text.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                if (cleaned) controller.enqueue(encoder.encode(cleaned));
+              } else {
+                controller.enqueue(encoder.encode(text));
+              }
+            }
+          },
+          flush(controller) {
+            const tail = sanitizeDecoder.decode();
+            if (tail) {
+              if (tail.includes("<omniModel>")) {
+                const cleaned = tail.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                if (cleaned) controller.enqueue(encoder.encode(cleaned));
+              } else {
+                controller.enqueue(encoder.encode(tail));
+              }
+            }
+          },
+        });
+
+        const transformedStream = res.body.pipeThrough(transform).pipeThrough(sanitize);
+        // Add model info as response header for clients that support it
+        const headers = new Headers(res.headers);
+        headers.set("X-OmniRoute-Model", modelStr);
         return new Response(transformedStream, {
           status: res.status,
-          headers: res.headers,
+          headers,
         });
       }
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────
+
+  // Route to pinned model if context caching specifies one (Fix #679)
+  if (pinnedModel) {
+    log.info(
+      "COMBO",
+      `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
+    );
+    return handleSingleModelWrapped(body, pinnedModel);
+  }
 
   // Route to round-robin handler if strategy matches
   if (strategy === "round-robin") {
@@ -841,17 +933,26 @@ export async function handleComboChat({
         errorText,
         0,
         null,
-        provider
+        provider,
+        result.headers
       );
+      const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
       // Record failure in circuit breaker for transient errors
       if (TRANSIENT_FOR_BREAKER.includes(result.status)) {
         breaker._onFailure();
       }
 
-      if (!shouldFallback) {
+      if (!shouldFallback && !comboBadRequestFallback) {
         log.warn("COMBO", `Model ${modelStr} failed (no fallback)`, { status: result.status });
         return result;
+      }
+
+      if (comboBadRequestFallback) {
+        log.info(
+          "COMBO",
+          `Treating provider-scoped 400 from ${modelStr} as model-local failure; trying next combo target`
+        );
       }
 
       // Check if this is a transient error worth retrying on same model
@@ -865,6 +966,12 @@ export async function handleComboChat({
       if (!lastStatus) lastStatus = result.status;
       if (i > 0) fallbackCount++;
       log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
+
+      if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
+        log.info("COMBO", `Waiting ${cooldownMs}ms before fallback to next model`);
+        await new Promise((r) => setTimeout(r, cooldownMs));
+      }
+
       break; // Move to next model
     }
   }
@@ -886,7 +993,20 @@ export async function handleComboChat({
     );
   }
 
-  const status = lastStatus || 406;
+  if (!lastStatus) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Service temporarily unavailable: all upstream accounts are inactive",
+          type: "service_unavailable",
+          code: "ALL_ACCOUNTS_INACTIVE",
+        },
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const status = lastStatus;
   const msg = lastError || "All combo models unavailable";
 
   if (earliestRetryAfter) {
@@ -941,7 +1061,7 @@ async function handleRoundRobinCombo({
 
   const modelCount = orderedModels.length;
   if (modelCount === 0) {
-    return unavailableResponse(406, "Round-robin combo has no models");
+    return unavailableResponse(503, "Round-robin combo has no models");
   }
 
   // Get and increment atomic counter
@@ -1077,8 +1197,10 @@ async function handleRoundRobinCombo({
           errorText,
           0,
           null,
-          provider
+          provider,
+          result.headers
         );
+        const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
         // Transient errors → mark in semaphore AND record circuit breaker failure
         if (TRANSIENT_FOR_BREAKER.includes(result.status) && cooldownMs > 0) {
@@ -1090,9 +1212,16 @@ async function handleRoundRobinCombo({
           );
         }
 
-        if (!shouldFallback) {
+        if (!shouldFallback && !comboBadRequestFallback) {
           log.warn("COMBO-RR", `${modelStr} failed (no fallback)`, { status: result.status });
           return result;
+        }
+
+        if (comboBadRequestFallback) {
+          log.info(
+            "COMBO-RR",
+            `Treating provider-scoped 400 from ${modelStr} as model-local failure; trying next model`
+          );
         }
 
         // Transient error → retry same model
@@ -1106,6 +1235,12 @@ async function handleRoundRobinCombo({
         if (!lastStatus) lastStatus = result.status;
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
+
+        if ([502, 503, 504].includes(result.status) && cooldownMs > 0 && cooldownMs <= 5000) {
+          log.info("COMBO-RR", `Waiting ${cooldownMs}ms before fallback to next model`);
+          await new Promise((r) => setTimeout(r, cooldownMs));
+        }
+
         break;
       }
     } finally {
@@ -1136,7 +1271,20 @@ async function handleRoundRobinCombo({
     );
   }
 
-  const status = lastStatus || 406;
+  if (!lastStatus) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Service temporarily unavailable: all upstream accounts are inactive",
+          type: "service_unavailable",
+          code: "ALL_ACCOUNTS_INACTIVE",
+        },
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const status = lastStatus;
   const msg = lastError || "All round-robin combo models unavailable";
 
   if (earliestRetryAfter) {

@@ -89,6 +89,7 @@ docs/*
 !docs/MCP-SERVER.md
 !docs/CLI-TOOLS.md
 
+
 # open-sse tests
 open-sse/test/*
 
@@ -111,6 +112,7 @@ app.log
 
 # Backup directories
 app.__qa_backup/
+.app-build-backup-*/
 
 # Production standalone build (created by scripts/prepublish.mjs)
 # Conflicts with Next.js App Router detection in dev (root app/ shadows src/app/)
@@ -130,3 +132,6 @@ vscode-extension/
 *.sqlite-shm
 *.sqlite-wal
 *.sqlite-journal
+
+# Compiled npm-package build artifact (not source, should not be in git)
+/app

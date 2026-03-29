@@ -14,7 +14,13 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     return flushEvents(state);
   }
 
-  if (!chunk.choices?.length) return [];
+  if (!chunk.choices?.length) {
+    // Capture usage from usage-only chunks (stream_options.include_usage)
+    if (chunk.usage) {
+      state.usage = chunk.usage;
+    }
+    return [];
+  }
 
   const events = [];
   const nextSeq = () => ++state.seq;
@@ -69,7 +75,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
 
     if (content.includes("<think>")) {
       state.inThinking = true;
-      content = content.replace("<think>", "");
+      content = content.replaceAll("<think>", "");
       startReasoning(state, emit, idx);
     }
 
@@ -257,6 +263,17 @@ function emitToolCall(state, emit, tc) {
   const newCallId = tc.id;
   const funcName = tc.function?.name;
 
+  // T37: If we already have a tool call at this index but the ID changed,
+  // we must close the current one and start a new one to prevent merging.
+  if (state.funcCallIds[tcIdx] && newCallId && state.funcCallIds[tcIdx] !== newCallId) {
+    closeToolCall(state, emit, tcIdx);
+    delete state.funcCallIds[tcIdx];
+    delete state.funcNames[tcIdx];
+    delete state.funcArgsBuf[tcIdx];
+    delete state.funcArgsDone[tcIdx];
+    delete state.funcItemDone[tcIdx];
+  }
+
   if (funcName) state.funcNames[tcIdx] = funcName;
 
   if (!state.funcCallIds[tcIdx] && newCallId) {
@@ -323,16 +340,52 @@ function closeToolCall(state, emit, idx) {
 function sendCompleted(state, emit) {
   if (!state.completedSent) {
     state.completedSent = true;
+
+    // Build output from accumulated state
+    const output = [];
+    if (state.reasoningId) {
+      output.push({
+        id: state.reasoningId,
+        type: "reasoning",
+        summary: [{ type: "summary_text", text: state.reasoningBuf }],
+      });
+    }
+    for (const idx in state.msgItemAdded) {
+      output.push({
+        id: `msg_${state.responseId}_${idx}`,
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", annotations: [], text: state.msgTextBuf[idx] || "" }],
+      });
+    }
+    for (const idx in state.funcCallIds) {
+      const callId = state.funcCallIds[idx];
+      output.push({
+        id: `fc_${callId}`,
+        type: "function_call",
+        call_id: callId,
+        name: state.funcNames[idx] || "",
+        arguments: state.funcArgsBuf[idx] || "{}",
+      });
+    }
+
+    const response: Record<string, unknown> = {
+      id: state.responseId,
+      object: "response",
+      created_at: state.created,
+      status: "completed",
+      background: false,
+      error: null,
+      output,
+    };
+
+    if (state.usage) {
+      response.usage = state.usage;
+    }
+
     emit("response.completed", {
       type: "response.completed",
-      response: {
-        id: state.responseId,
-        object: "response",
-        created_at: state.created,
-        status: "completed",
-        background: false,
-        error: null,
-      },
+      response,
     });
   }
 }
@@ -453,6 +506,9 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
   }
 
   // Function call arguments delta
+  // NOTE: Do NOT include `id` or `type` here - only first chunk (response.output_item.added)
+  // should have them. Including `id` on every chunk causes openai-to-claude.ts to emit
+  // a new content_block_start for each delta, breaking Claude Code ACP sessions.
   if (eventType === "response.function_call_arguments.delta") {
     const argsDelta = data.delta || "";
     if (!argsDelta) return null;
@@ -469,8 +525,6 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
             tool_calls: [
               {
                 index: state.toolCallIndex,
-                id: state.currentToolCallId,
-                type: "function",
                 function: { arguments: argsDelta },
               },
             ],
@@ -548,10 +602,21 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
     return null;
   }
 
-  // Reasoning events (convert to content or skip)
+  // Reasoning events — emit as reasoning_content in Chat format
   if (eventType === "response.reasoning_summary_text.delta") {
-    // Optionally include reasoning as content, or skip
-    return null;
+    const reasoningDelta = data.delta || "";
+    if (!reasoningDelta) return null;
+    return {
+      id: state.chatId,
+      object: "chat.completion.chunk",
+      created: state.created,
+      model: state.model || "gpt-4",
+      choices: [{
+        index: 0,
+        delta: { reasoning_content: reasoningDelta },
+        finish_reason: null,
+      }],
+    };
   }
 
   // Ignore other events

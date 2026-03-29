@@ -36,7 +36,7 @@ function PayloadSection({ title, json, onCopy }) {
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <pre className="p-4 rounded-xl bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-primary max-h-[600px] overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
+      <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-[600px] overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
         {json}
       </pre>
     </div>
@@ -80,8 +80,42 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
     }
   };
 
-  const requestJson = detail?.requestBody ? JSON.stringify(detail.requestBody, null, 2) : null;
-  const responseJson = detail?.responseBody ? JSON.stringify(detail.responseBody, null, 2) : null;
+  const toPrettyJson = (payload) => {
+    if (payload === null || payload === undefined) return null;
+    try {
+      return JSON.stringify(payload, null, 2);
+    } catch {
+      return String(payload);
+    }
+  };
+
+  const pipelinePayloads = detail?.pipelinePayloads || null;
+  const payloadSections = pipelinePayloads
+    ? [
+        {
+          key: "client-request",
+          title: "Client Request",
+          json: toPrettyJson(pipelinePayloads.clientRequest),
+        },
+        {
+          key: "provider-request",
+          title: "Provider Request",
+          json: toPrettyJson(pipelinePayloads.providerRequest),
+        },
+        {
+          key: "provider-response",
+          title: "Provider Response",
+          json: toPrettyJson(pipelinePayloads.providerResponse),
+        },
+        {
+          key: "client-response",
+          title: "Client Response",
+          json: toPrettyJson(pipelinePayloads.clientResponse),
+        },
+      ].filter((section) => section.json)
+    : [];
+  const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
+  const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
 
   return (
     <div
@@ -138,7 +172,7 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
                 <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-bold">
                   In: {(detail?.tokens?.in || log.tokens?.in || 0).toLocaleString()}
                 </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
                   Out: {(detail?.tokens?.out || log.tokens?.out || 0).toLocaleString()}
                 </span>
               </div>
@@ -146,6 +180,21 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Model</div>
               <div className="text-sm font-medium text-primary font-mono">{log.model}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                Requested Model
+              </div>
+              <div
+                className={`text-sm font-medium font-mono ${
+                  (detail?.requestedModel || log.requestedModel) &&
+                  (detail?.requestedModel || log.requestedModel) !== log.model
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-text-muted"
+                }`}
+              >
+                {detail?.requestedModel || log.requestedModel || "—"}
+              </div>
             </div>
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
@@ -198,7 +247,7 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             <div>
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Combo</div>
               {detail?.comboName || log.comboName ? (
-                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30">
                   {detail?.comboName || log.comboName}
                 </span>
               ) : (
@@ -210,10 +259,12 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
           {/* Error Message */}
           {(detail?.error || log.error) && (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-              <div className="text-[10px] text-red-400 uppercase tracking-wider mb-1 font-bold">
+              <div className="text-[10px] text-red-600 dark:text-red-400 uppercase tracking-wider mb-1 font-bold">
                 Error
               </div>
-              <div className="text-sm text-red-300 font-mono">{detail?.error || log.error}</div>
+              <div className="text-sm text-red-600 dark:text-red-300 font-mono">
+                {detail?.error || log.error}
+              </div>
             </div>
           )}
 
@@ -223,33 +274,41 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
             </div>
           ) : (
             <>
-              {/* Response Payload (返回) — show first */}
-              {responseJson && (
+              {payloadSections.length > 0 &&
+                payloadSections.map((section) => (
+                  <PayloadSection
+                    key={section.key}
+                    title={section.title}
+                    json={section.json}
+                    onCopy={() => onCopy(section.json)}
+                  />
+                ))}
+
+              {payloadSections.length === 0 && responseJson && (
                 <PayloadSection
-                  title="Response Payload (返回)"
+                  title="Response Payload (Legacy)"
                   json={responseJson}
                   onCopy={() => onCopy(responseJson)}
                 />
               )}
 
-              {/* Request Payload (请求) */}
-              {requestJson && (
+              {payloadSections.length === 0 && requestJson && (
                 <PayloadSection
-                  title="Request Payload (请求)"
+                  title="Request Payload (Legacy)"
                   json={requestJson}
                   onCopy={() => onCopy(requestJson)}
                 />
               )}
 
-              {!requestJson && !responseJson && !loading && (
+              {payloadSections.length === 0 && !requestJson && !responseJson && !loading && (
                 <div className="p-6 text-center text-text-muted">
                   <span className="material-symbols-outlined text-[32px] mb-2 block opacity-40">
                     info
                   </span>
                   <p className="text-sm">No payload data available for this log entry.</p>
                   <p className="text-xs mt-1">
-                    Request/response bodies are only captured for non-streaming calls or when
-                    streaming completes normally.
+                    Enable detailed logging first if you want the four-stage client/provider payload
+                    view for new requests.
                   </p>
                 </div>
               )}

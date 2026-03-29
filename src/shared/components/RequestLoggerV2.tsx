@@ -29,6 +29,7 @@ const STATUS_FILTERS = [
 const COLUMNS = [
   { key: "status", label: "Status" },
   { key: "model", label: "Model" },
+  { key: "requestedModel", label: "Requested" },
   { key: "provider", label: "Provider" },
   { key: "protocol", label: "Protocol" },
   { key: "account", label: "Account" },
@@ -92,6 +93,9 @@ export default function RequestLoggerV2() {
   const [selectedLog, setSelectedLog] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailData, setDetailData] = useState(null);
+  const [detailLoggingEnabled, setDetailLoggingEnabled] = useState(false);
+  const [detailLoggingLoading, setDetailLoggingLoading] = useState(false);
+  const [detailLoggingReady, setDetailLoggingReady] = useState(false);
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
   const [providerNodes, setProviderNodes] = useState([]);
@@ -157,6 +161,20 @@ export default function RequestLoggerV2() {
     fetch("/api/provider-nodes")
       .then((r) => (r.ok ? r.json() : { nodes: [] }))
       .then((d) => setProviderNodes(d.nodes || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/logs/detail?limit=1")
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return await res.json();
+      })
+      .then((data) => {
+        if (!data) return;
+        setDetailLoggingEnabled(data.enabled === true);
+        setDetailLoggingReady(true);
+      })
       .catch(() => {});
   }, []);
 
@@ -231,10 +249,31 @@ export default function RequestLoggerV2() {
     setDetailData(null);
   };
 
+  const toggleDetailLogging = async () => {
+    setDetailLoggingLoading(true);
+    try {
+      const nextEnabled = !detailLoggingEnabled;
+      const res = await fetch("/api/logs/detail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: nextEnabled }),
+      });
+      if (!res.ok) throw new Error("Failed to update detailed logging");
+      setDetailLoggingEnabled(nextEnabled);
+      setDetailLoggingReady(true);
+    } catch (error) {
+      console.error("Failed to toggle detailed logging:", error);
+    } finally {
+      setDetailLoggingLoading(false);
+    }
+  };
+
   // Unique accounts and providers for dropdowns
 
   const uniqueAccounts = [...new Set(logs.map((l) => l.account).filter((a) => a && a !== "-"))];
-  const uniqueModels = [...new Set(logs.map((l) => l.model).filter(Boolean))].sort();
+  const uniqueModels = [
+    ...new Set(logs.flatMap((l) => [l.model, l.requestedModel]).filter((value) => Boolean(value))),
+  ].sort();
   const uniqueProviders = [
     ...new Set(logs.map((l) => l.provider).filter((p) => p && p !== "-")),
   ].sort();
@@ -267,6 +306,33 @@ export default function RequestLoggerV2() {
           />
           {recording ? "Recording" : "Paused"}
         </button>
+
+        <button
+          onClick={toggleDetailLogging}
+          disabled={detailLoggingLoading}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors disabled:opacity-60 ${
+            detailLoggingEnabled
+              ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
+              : "bg-bg-subtle border-border text-text-muted"
+          }`}
+          title="Capture four-stage pipeline payloads for new requests"
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${detailLoggingEnabled ? "bg-amber-500" : "bg-text-muted"}`}
+          />
+          {detailLoggingLoading
+            ? "Updating detailed logs..."
+            : detailLoggingEnabled
+              ? "Detailed Logs On"
+              : "Detailed Logs Off"}
+        </button>
+
+        {detailLoggingReady && (
+          <span className="text-[11px] text-text-muted">
+            New requests will {detailLoggingEnabled ? "" : "not "}capture client/provider pipeline
+            payloads.
+          </span>
+        )}
 
         {/* Search */}
         <div className="flex-1 min-w-[200px] relative">
@@ -514,6 +580,11 @@ export default function RequestLoggerV2() {
                       Model
                     </th>
                   )}
+                  {visibleColumns.requestedModel && (
+                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                      Requested
+                    </th>
+                  )}
                   {visibleColumns.provider && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
                       Provider
@@ -594,6 +665,28 @@ export default function RequestLoggerV2() {
                       {visibleColumns.model && (
                         <td className="px-3 py-2 font-medium text-primary font-mono text-[11px]">
                           {log.model}
+                        </td>
+                      )}
+                      {visibleColumns.requestedModel && (
+                        <td className="px-3 py-2 font-mono text-[11px]">
+                          {log.requestedModel ? (
+                            <span
+                              className={
+                                log.requestedModel !== log.model
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : "text-text-muted"
+                              }
+                              title={
+                                log.requestedModel !== log.model
+                                  ? `Requested ${log.requestedModel}, routed as ${log.model}`
+                                  : log.requestedModel
+                              }
+                            >
+                              {log.requestedModel}
+                            </span>
+                          ) : (
+                            <span className="text-text-muted text-[10px]">—</span>
+                          )}
                         </td>
                       )}
                       {visibleColumns.provider && (

@@ -6,6 +6,7 @@
  * at runtime (see: https://github.com/vercel/next.js/issues/12557).
  */
 import { z } from "zod";
+import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
@@ -18,12 +19,14 @@ export const updateSettingsSchema = z.object({
   instanceName: z.string().max(100).optional(),
   corsOrigins: z.string().max(500).optional(),
   logRetentionDays: z.number().int().min(1).max(365).optional(),
+  maxCallLogs: z.number().int().min(1).max(1_000_000).optional(),
   cloudUrl: z.string().max(500).optional(),
   baseUrl: z.string().max(500).optional(),
   setupComplete: z.boolean().optional(),
   requireAuthForModels: z.boolean().optional(),
   blockedProviders: z.array(z.string().max(100)).optional(),
   hideHealthCheckLogs: z.boolean().optional(),
+  hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   // Routing settings (#134)
   fallbackStrategy: z
     .enum(["fill-first", "round-robin", "p2c", "random", "least-used", "cost-optimized"])
@@ -42,6 +45,10 @@ export const updateSettingsSchema = z.object({
   a2aEnabled: z.boolean().optional(),
   // CLI Fingerprint compatibility (per-provider)
   cliCompatProviders: z.array(z.string().max(100)).optional(),
+  // Strip provider/model prefix at proxy layer (e.g. "openai/gpt-4" → "gpt-4")
+  stripModelPrefix: z.boolean().optional(),
+  // Cache control preservation mode
+  alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
   // Custom CLI agent definitions for ACP
   customAgents: z
     .array(

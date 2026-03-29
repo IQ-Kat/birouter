@@ -1,12 +1,12 @@
 import { loadProviderCredentials } from "./credentialLoader.ts";
 
 // Timeout for non-streaming fetch requests (ms). Prevents stalled connections.
-export const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS || "120000", 10);
+export const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS || "600000", 10);
 
 // Idle timeout for SSE streams (ms). Closes stream if no data for this duration.
 // Default: 120s balances deep-reasoning pauses with fast zombie stream detection (#473).
 // Extended-thinking models rarely pause >90s between chunks. Override with STREAM_IDLE_TIMEOUT_MS env var.
-export const STREAM_IDLE_TIMEOUT_MS = parseInt(process.env.STREAM_IDLE_TIMEOUT_MS || "120000", 10);
+export const STREAM_IDLE_TIMEOUT_MS = parseInt(process.env.STREAM_IDLE_TIMEOUT_MS || "600000", 10);
 
 // Provider configurations
 // OAuth credentials read from env vars with hardcoded fallbacks for backward compatibility.
@@ -65,6 +65,15 @@ export const DEFAULT_MAX_TOKENS = 64000;
 
 // Minimum max tokens for tool calling (to prevent truncated arguments)
 export const DEFAULT_MIN_TOKENS = 32000;
+
+export const PROVIDER_MAX_TOKENS: Record<string, number> = {
+  groq: 16384, // Groq strict per-model enforcement
+  openai: 16384, // GPT-4/4o standard
+  anthropic: 65536, // Claude models
+  gemini: 65536, // Gemini Studio
+};
+
+export const DEFAULT_PROVIDER_MAX_TOKENS = 32000;
 
 // HTTP status codes
 export const HTTP_STATUS = {

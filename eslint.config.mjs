@@ -29,6 +29,7 @@ const eslintConfig = [
     ignores: [
       // Next.js build output
       ".next/**",
+      "src/.next/**",
       "out/**",
       "build/**",
       "next-env.d.ts",

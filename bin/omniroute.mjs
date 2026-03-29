@@ -116,10 +116,8 @@ if (args.includes("--help") || args.includes("-h")) {
 
 if (args.includes("--version") || args.includes("-v")) {
   try {
-    const pkg = await import(join(ROOT, "package.json"), {
-      with: { type: "json" },
-    });
-    console.log(pkg.default.version);
+    const { version } = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+    console.log(version);
   } catch {
     console.log("unknown");
   }
@@ -189,8 +187,27 @@ const serverJs = join(APP_DIR, "server.js");
 
 if (!existsSync(serverJs)) {
   console.error("\x1b[31m✖ Server not found at:\x1b[0m", serverJs);
-  console.error("  This usually means the package was not built correctly.");
-  console.error("  Try reinstalling: npm install -g omniroute");
+  console.error("  The package may not have been built correctly.");
+  console.error("");
+  // (#492) Detect common non-standard Node managers that cause this issue
+  const nodeExec = process.execPath || "";
+  const isMise = nodeExec.includes("mise") || nodeExec.includes(".local/share/mise");
+  const isNvm = nodeExec.includes(".nvm") || nodeExec.includes("nvm");
+  if (isMise) {
+    console.error(
+      "  \x1b[33m⚠ mise detected:\x1b[0m If you installed via `npm install -g omniroute`,"
+    );
+    console.error("    try: \x1b[36mnpx omniroute@latest\x1b[0m  (downloads a fresh copy)");
+    console.error("    or:  \x1b[36mmise exec -- npx omniroute\x1b[0m");
+  } else if (isNvm) {
+    console.error(
+      "  \x1b[33m⚠ nvm detected:\x1b[0m Try reinstalling after loading the correct Node version:"
+    );
+    console.error("    \x1b[36mnvm use --lts && npm install -g omniroute\x1b[0m");
+  } else {
+    console.error("  Try: \x1b[36mnpm install -g omniroute\x1b[0m  (reinstall)");
+    console.error("  Or:  \x1b[36mnpx omniroute@latest\x1b[0m");
+  }
   process.exit(1);
 }
 

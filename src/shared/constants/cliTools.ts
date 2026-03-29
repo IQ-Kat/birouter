@@ -6,6 +6,7 @@ export const CLI_TOOLS = {
     icon: "terminal",
     color: "#D97757",
     description: "Anthropic Claude Code CLI",
+    docsUrl: "https://docs.anthropic.com/en/docs/claude-code/overview",
     configType: "env",
     envVars: {
       baseUrl: "ANTHROPIC_BASE_URL",
@@ -16,6 +17,7 @@ export const CLI_TOOLS = {
     },
     modelAliases: ["default", "sonnet", "opus", "haiku", "opusplan"],
     settingsFile: "~/.claude/settings.json",
+    defaultCommand: "claude",
     defaultModels: [
       {
         id: "opus",
@@ -46,7 +48,9 @@ export const CLI_TOOLS = {
     image: "/providers/codex.png",
     color: "#10A37F",
     description: "OpenAI Codex CLI",
+    docsUrl: "https://github.com/openai/codex",
     configType: "custom",
+    defaultCommand: "codex",
   },
   droid: {
     id: "droid",
@@ -54,7 +58,9 @@ export const CLI_TOOLS = {
     image: "/providers/droid.png",
     color: "#00D4FF",
     description: "Factory Droid AI Assistant",
+    docsUrl: "/docs?section=cli-tools&tool=droid",
     configType: "custom",
+    defaultCommand: "droid",
   },
   openclaw: {
     id: "openclaw",
@@ -62,7 +68,9 @@ export const CLI_TOOLS = {
     image: "/providers/openclaw.png",
     color: "#FF6B35",
     description: "Open Claw AI Assistant",
+    docsUrl: "/docs?section=cli-tools&tool=openclaw",
     configType: "custom",
+    defaultCommand: "openclaw",
   },
   cursor: {
     id: "cursor",
@@ -70,8 +78,10 @@ export const CLI_TOOLS = {
     image: "/providers/cursor.png",
     color: "#000000",
     description: "Cursor AI Code Editor",
+    docsUrl: "https://docs.cursor.com/settings/models",
     configType: "guide",
     requiresCloud: true,
+    defaultCommands: ["agent", "cursor"],
     notes: [
       { type: "warning", text: "Requires Cursor Pro account to use this feature." },
       {
@@ -88,13 +98,45 @@ export const CLI_TOOLS = {
       { step: 6, title: "Select Model", type: "modelSelector" },
     ],
   },
+  windsurf: {
+    id: "windsurf",
+    name: "Windsurf",
+    image: "/providers/windsurf.svg",
+    color: "#4A90E2",
+    description: "Windsurf AI-first IDE by Codeium",
+    docsUrl: "https://windsurf.com/",
+    configType: "guide",
+    notes: [
+      {
+        type: "warning",
+        text: "Official Windsurf docs currently describe BYOK for select Claude models plus enterprise URL/token settings, not a generic custom OpenAI-compatible provider.",
+      },
+    ],
+    guideSteps: [
+      {
+        step: 1,
+        title: "Open AI Settings",
+        desc: "Click the AI Settings icon in Windsurf or go to Settings",
+      },
+      {
+        step: 2,
+        title: "Add Custom Provider",
+        desc: 'Select "Add custom provider" (OpenAI-compatible)',
+      },
+      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "API Key", type: "apiKeySelector" },
+      { step: 5, title: "Select Model", type: "modelSelector" },
+    ],
+  },
   cline: {
     id: "cline",
     name: "Cline",
     image: "/providers/cline.png",
     color: "#00D1B2",
     description: "Cline AI Coding Assistant CLI",
+    docsUrl: "https://docs.cline.bot/",
     configType: "custom",
+    defaultCommand: "cline",
   },
   kilo: {
     id: "kilo",
@@ -102,7 +144,9 @@ export const CLI_TOOLS = {
     image: "/providers/kilocode.png",
     color: "#FF6B6B",
     description: "Kilo Code AI Assistant CLI",
+    docsUrl: "/docs?section=cli-tools&tool=kilocode",
     configType: "custom",
+    defaultCommand: "kilocode",
   },
   continue: {
     id: "continue",
@@ -110,6 +154,7 @@ export const CLI_TOOLS = {
     image: "/providers/continue.png",
     color: "#7C3AED",
     description: "Continue AI Assistant",
+    docsUrl: "https://docs.continue.dev/",
     configType: "guide",
     guideSteps: [
       { step: 1, title: "Open Config", desc: "Open Continue configuration file" },
@@ -138,6 +183,7 @@ export const CLI_TOOLS = {
     image: "/providers/antigravity.png",
     color: "#4285F4",
     description: "Google Antigravity IDE with MITM",
+    docsUrl: "/docs?section=cli-tools&tool=antigravity",
     configType: "mitm",
     modelAliases: [
       "claude-opus-4-6-thinking",
@@ -170,6 +216,7 @@ export const CLI_TOOLS = {
     image: "/providers/copilot.png",
     color: "#1F6FEB",
     description: "GitHub Copilot Chat — VS Code Extension",
+    docsUrl: "https://code.visualstudio.com/docs/copilot/overview",
     configType: "custom",
   },
   opencode: {
@@ -179,13 +226,49 @@ export const CLI_TOOLS = {
     icon: "terminal",
     color: "#FF6B35",
     description: "OpenCode AI coding agent (Terminal)",
+    docsUrl: "/docs?section=cli-tools&tool=opencode",
     configType: "guide",
+    defaultCommand: "opencode",
+    notes: [
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.config/opencode/opencode.json • Windows %APPDATA%\\\\opencode\\\\opencode.json",
+      },
+      {
+        type: "warning",
+        text: 'Thinking variant example: opencode run "implement this feature" --model omniroute/claude-sonnet-4-5-thinking --variant high',
+      },
+    ],
     guideSteps: [
       { step: 1, title: "Install OpenCode", desc: "Install via npm: npm install -g opencode-ai" },
       { step: 2, title: "API Key", type: "apiKeySelector" },
       { step: 3, title: "Set Base URL", desc: "opencode config set baseUrl {{baseUrl}}" },
       { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Use Thinking Variant",
+        desc: "For thinking models, run with --variant high/low/max (example command below).",
+      },
     ],
+    codeBlock: {
+      language: "json",
+      code: `{
+  "providers": {
+    "omniroute": {
+      "name": "OmniRoute",
+      "api": "openai",
+      "baseURL": "{{baseUrl}}",
+      "apiKey": "{{apiKey}}",
+      "models": [
+        "{{model}}",
+        "claude-sonnet-4-5-thinking",
+        "gemini-3.1-pro-high",
+        "gemini-3-flash"
+      ]
+    }
+  }
+}`,
+    },
   },
   kiro: {
     id: "kiro",
@@ -194,6 +277,7 @@ export const CLI_TOOLS = {
     icon: "psychology_alt",
     color: "#FF6B35",
     description: "Amazon Kiro — AI-powered IDE with MITM",
+    docsUrl: "/docs?section=cli-tools&tool=kiro",
     configType: "mitm",
     guideSteps: [
       { step: 1, title: "Open Kiro Settings", desc: "Go to Settings → AI Provider" },

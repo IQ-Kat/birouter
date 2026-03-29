@@ -32,9 +32,15 @@ function toNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-// ── Think tag regex ────────────────────────────────────────────────────────
-// Matches <think>...</think> blocks (greedy, dotAll)
-const THINK_TAG_REGEX = /<think>([\s\S]*?)<\/think>/gi;
+// Matches <think>...</think> blocks and <thinking>...</thinking> (greedy, dotAll)
+const THINK_TAG_REGEX = /<(?:think|thinking)>([\s\S]*?)<\/(?:think|thinking)>/gi;
+
+// #638, #727: Collapse runs of 2+ consecutive newlines into \n\n
+// Tool call responses from thinking models often accumulate excessive newlines
+const EXCESSIVE_NEWLINES = /\n{2,}/g;
+function collapseExcessiveNewlines(text: string): string {
+  return text.replace(EXCESSIVE_NEWLINES, "\n\n");
+}
 
 /**
  * Extract <think> blocks from text content and return separated parts.
@@ -157,7 +163,7 @@ function sanitizeMessage(msg: unknown): unknown {
   // Handle content — extract <think> tags
   if (typeof msgRecord.content === "string") {
     const { content, thinking } = extractThinkingFromContent(msgRecord.content);
-    sanitized.content = content;
+    sanitized.content = collapseExcessiveNewlines(content);
 
     // Set reasoning_content from <think> tags (if not already set)
     if (thinking && !msgRecord.reasoning_content) {
@@ -170,6 +176,44 @@ function sanitizeMessage(msg: unknown): unknown {
   // Preserve existing reasoning_content (from providers that natively support it)
   if (msgRecord.reasoning_content && !sanitized.reasoning_content) {
     sanitized.reasoning_content = msgRecord.reasoning_content;
+  }
+
+  // Handle 'reasoning' field alias (some providers use this instead of reasoning_content)
+  if (
+    msgRecord.reasoning &&
+    typeof msgRecord.reasoning === "string" &&
+    !sanitized.reasoning_content
+  ) {
+    sanitized.reasoning_content = msgRecord.reasoning;
+  }
+
+  // Handle reasoning_details[] array (StepFun/OpenRouter format)
+  // Structure: [{ type: "reasoning.text", text: "...", format: "unknown", index: 0 }]
+  if (Array.isArray(msgRecord.reasoning_details) && !sanitized.reasoning_content) {
+    const reasoningParts: string[] = [];
+    for (const detail of msgRecord.reasoning_details) {
+      const detailObj = detail && typeof detail === "object" ? (detail as JsonRecord) : null;
+      if (!detailObj) continue;
+      const detailType = typeof detailObj.type === "string" ? detailObj.type : "";
+      const detailText =
+        typeof detailObj.text === "string"
+          ? detailObj.text
+          : typeof detailObj.content === "string"
+            ? detailObj.content
+            : "";
+      if (
+        detailText &&
+        (detailType === "reasoning" ||
+          detailType === "reasoning.text" ||
+          detailType === "thinking" ||
+          detailType === "")
+      ) {
+        reasoningParts.push(detailText);
+      }
+    }
+    if (reasoningParts.length > 0) {
+      sanitized.reasoning_content = reasoningParts.join("");
+    }
   }
 
   // Preserve tool_calls
@@ -193,6 +237,17 @@ function sanitizeUsage(usage: unknown): unknown {
   if (!usageRecord) return usage;
 
   const sanitized: JsonRecord = {};
+
+  // Cross-map Claude-style → OpenAI-style field names.
+  // Some providers return input_tokens/output_tokens instead of prompt_tokens/completion_tokens.
+  // Without this mapping, the whitelist filter below strips them, resulting in NaN/0 tokens (#617).
+  if (usageRecord.input_tokens !== undefined && usageRecord.prompt_tokens === undefined) {
+    usageRecord.prompt_tokens = usageRecord.input_tokens;
+  }
+  if (usageRecord.output_tokens !== undefined && usageRecord.completion_tokens === undefined) {
+    usageRecord.completion_tokens = usageRecord.output_tokens;
+  }
+
   for (const key of ALLOWED_USAGE_FIELDS) {
     if (usageRecord[key] !== undefined) {
       sanitized[key] = usageRecord[key];
@@ -255,9 +310,34 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
         if (deltaRecord) {
           const delta: JsonRecord = {};
           if (deltaRecord.role !== undefined) delta.role = deltaRecord.role;
-          if (deltaRecord.content !== undefined) delta.content = deltaRecord.content;
+          if (deltaRecord.content !== undefined) {
+            delta.content =
+              typeof deltaRecord.content === "string"
+                ? collapseExcessiveNewlines(deltaRecord.content)
+                : deltaRecord.content;
+          }
           if (deltaRecord.reasoning_content !== undefined) {
             delta.reasoning_content = deltaRecord.reasoning_content;
+          } else if (typeof deltaRecord.reasoning === "string" && deltaRecord.reasoning) {
+            // Alias: some providers use 'reasoning' instead of 'reasoning_content'
+            delta.reasoning_content = deltaRecord.reasoning;
+          } else if (Array.isArray(deltaRecord.reasoning_details)) {
+            // StepFun/OpenRouter: reasoning_details[{type:"reasoning.text", text:"..."}]
+            const parts: string[] = [];
+            for (const detail of deltaRecord.reasoning_details) {
+              const d = detail && typeof detail === "object" ? (detail as JsonRecord) : null;
+              if (!d) continue;
+              const text =
+                typeof d.text === "string"
+                  ? d.text
+                  : typeof d.content === "string"
+                    ? d.content
+                    : "";
+              if (text) parts.push(text);
+            }
+            if (parts.length > 0) {
+              delta.reasoning_content = parts.join("");
+            }
           }
           if (deltaRecord.tool_calls !== undefined) delta.tool_calls = deltaRecord.tool_calls;
           if (deltaRecord.function_call !== undefined)

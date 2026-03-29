@@ -3,6 +3,7 @@ import {
   getAllCustomModels,
   addCustomModel,
   removeCustomModel,
+  replaceCustomModels,
   updateCustomModel,
   getModelCompatOverrides,
   mergeModelCompatOverride,
@@ -130,6 +131,7 @@ export async function PUT(request) {
       supportedEndpoints,
       normalizeToolCallId,
       preserveOpenAIDeveloperRole,
+      upstreamHeaders,
       compatByProtocol,
     } = validation.data;
 
@@ -141,6 +143,7 @@ export async function PUT(request) {
     if ("normalizeToolCallId" in raw) updates.normalizeToolCallId = normalizeToolCallId;
     if ("preserveOpenAIDeveloperRole" in raw)
       updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
+    if ("upstreamHeaders" in raw) updates.upstreamHeaders = upstreamHeaders;
     if ("compatByProtocol" in raw && compatByProtocol !== undefined) {
       updates.compatByProtocol = compatByProtocol;
     }
@@ -157,11 +160,13 @@ export async function PUT(request) {
             "modelId",
             "normalizeToolCallId",
             "preserveOpenAIDeveloperRole",
+            "upstreamHeaders",
             "compatByProtocol",
           ].includes(k)
         ) &&
         ("normalizeToolCallId" in raw ||
           "preserveOpenAIDeveloperRole" in raw ||
+          "upstreamHeaders" in raw ||
           "compatByProtocol" in raw);
       if (compatOnly) {
         const knownProvider =
@@ -190,6 +195,12 @@ export async function PUT(request) {
         }
         if ("compatByProtocol" in raw && compatByProtocol && typeof compatByProtocol === "object") {
           patch.compatByProtocol = compatByProtocol;
+        }
+        if ("upstreamHeaders" in raw) {
+          patch.upstreamHeaders =
+            upstreamHeaders === null || typeof upstreamHeaders === "object"
+              ? upstreamHeaders
+              : undefined;
         }
         if (Object.keys(patch).length > 0) {
           mergeModelCompatOverride(provider, modelId, patch);
@@ -232,11 +243,30 @@ export async function DELETE(request) {
     const provider = searchParams.get("provider");
     const modelId = searchParams.get("model");
 
-    if (!provider || !modelId) {
+    if (!provider) {
       return Response.json(
         {
           error: {
-            message: "provider and model query params are required",
+            message: "provider query param is required",
+            type: "validation_error",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // DELETE /api/provider-models?provider=<id>&all=true — clear all models
+    const all = searchParams.get("all");
+    if (all === "true") {
+      await replaceCustomModels(provider, []);
+      return Response.json({ cleared: true });
+    }
+
+    if (!modelId) {
+      return Response.json(
+        {
+          error: {
+            message: "model query param is required (or use all=true)",
             type: "validation_error",
           },
         },

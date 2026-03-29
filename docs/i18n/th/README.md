@@ -11,28 +11,6 @@ _พร็อกซี API สากลของคุณ — จุดสิ้
 
 ---
 
-### 🆕 What's New in v2.7.0
-
-- **Pluggable RouterStrategy** — rules, cost, and latency routing strategies
-- **Multilingual intent detection** — routing scoring in 30+ languages
-- **Request deduplication** — prevent duplicate API calls via content hash
-- **New providers:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
-- **Updated pricing:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
-
----
-
-### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
-
-| Feature                                    | What It Does                                                                                                                                  |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                        |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved** |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw), process spawner, `/api/acp/agents` endpoint                                 |
-| 🤖 **ACP Agents Dashboard**                | Debug > Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool                                      |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                               |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                   |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                      |
-
 ### 🤖 ผู้ให้บริการ AI ฟรีสำหรับตัวแทนการเขียนโค้ดที่คุณชื่นชอบ
 
 _เชื่อมต่อเครื่องมือ IDE หรือ CLI ที่ขับเคลื่อนด้วย AI ผ่าน OmniRoute — เกตเวย์ API ฟรีสำหรับการเข้ารหัสไม่จำกัด_
@@ -115,6 +93,35 @@ _เชื่อมต่อเครื่องมือ IDE หรือ CLI 
   </table>
 
 <sub>📡 ตัวแทนทั้งหมดเชื่อมต่อผ่าน <code>http://localhost:20128/v1</code> หรือ <code>http://cloud.omniroute.online/v1</code> — การกำหนดค่าเดียว โมเดลไม่จำกัด และ โควต้า</sub>
+
+---
+
+### 🆕 What's New in v3.0.0
+
+| Area                            | Change                                                                            |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**          | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**         | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**       | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
+| 🔑 **Registered Keys API**      | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 👁️ **Scoped API Key Reveal** 🆕 | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                            |
+| 🎨 **Provider Icons**           | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**          | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**          | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**                | Full test suite passes with 0 failures                                            |
+
+### 🆕 What's New in v3.0.0
+
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ---
 
@@ -902,19 +909,20 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 📊 ความสามารถในการสังเกตและการวิเคราะห์
 
-| คุณสมบัติ                   | มันทำอะไร                                                                      |
-| --------------------------- | ------------------------------------------------------------------------------ |
-| 📝 **ขอบันทึก**             | โหมดแก้ไขข้อบกพร่องพร้อมบันทึกคำขอ/การตอบกลับแบบเต็ม                           |
-| 💾 **บันทึกพร็อกซี SQLite** | บันทึกพร็อกซีถาวรยังคงอยู่เซิร์ฟเวอร์รีสตาร์ท                                  |
-| 📊 **แดชบอร์ดการวิเคราะห์** | ขับเคลื่อนโดย Recharts: การ์ดสถิติ แผนภูมิการใช้งานโมเดล ตารางผู้ให้บริการ     |
-| 📈 **ติดตามความคืบหน้า**    | เลือกใช้กิจกรรมความคืบหน้าของ SSE สำหรับการสตรีม                               |
-| 🧪 **การประเมิน LLM**       | การทดสอบชุดทองด้วย 4 กลยุทธ์การจับคู่                                          |
-| 🔍 **ขอโทรมาตร**            | การรวมเวลาแฝง p50/p95/p99 + การติดตาม X-Request-Id                             |
-| 📋 **แดชบอร์ดบันทึก**       | หน้าแท็บ 4 แบบรวม: บันทึกคำขอ บันทึกพร็อกซี บันทึกการตรวจสอบ คอนโซล            |
-| 🖥️ **ผู้ดูบันทึกคอนโซล**    | โปรแกรมดูสไตล์เทอร์มินัลแบบเรียลไทม์พร้อมตัวกรองระดับ การค้นหา เลื่อนอัตโนมัติ |
-| 📑 **การบันทึกตามไฟล์**     | ตัวดักจับคอนโซลจับเอาต์พุตทั้งหมดไปยังไฟล์บันทึก JSON พร้อมการหมุน             |
-| 🏥 **แดชบอร์ดสุขภาพ**       | เวลาทำงานของระบบ, สถานะของเซอร์กิตเบรกเกอร์, การล็อกเอาต์, สถิติแคช            |
-| 💰 **ติดตามต้นทุน**         | การจัดการงบประมาณ + การกำหนดค่าราคาต่อรุ่น                                     |
+| คุณสมบัติ                        | มันทำอะไร                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| 📝 **ขอบันทึก**                  | โหมดแก้ไขข้อบกพร่องพร้อมบันทึกคำขอ/การตอบกลับแบบเต็ม                           |
+| 📉 **Streamed Detailed Logs** 🆕 | Reconstructs SSE payload streams cleanly into the UI                           |
+| 💾 **บันทึกพร็อกซี SQLite**      | บันทึกพร็อกซีถาวรยังคงอยู่เซิร์ฟเวอร์รีสตาร์ท                                  |
+| 📊 **แดชบอร์ดการวิเคราะห์**      | ขับเคลื่อนโดย Recharts: การ์ดสถิติ แผนภูมิการใช้งานโมเดล ตารางผู้ให้บริการ     |
+| 📈 **ติดตามความคืบหน้า**         | เลือกใช้กิจกรรมความคืบหน้าของ SSE สำหรับการสตรีม                               |
+| 🧪 **การประเมิน LLM**            | การทดสอบชุดทองด้วย 4 กลยุทธ์การจับคู่                                          |
+| 🔍 **ขอโทรมาตร**                 | การรวมเวลาแฝง p50/p95/p99 + การติดตาม X-Request-Id                             |
+| 📋 **แดชบอร์ดบันทึก**            | หน้าแท็บ 4 แบบรวม: บันทึกคำขอ บันทึกพร็อกซี บันทึกการตรวจสอบ คอนโซล            |
+| 🖥️ **ผู้ดูบันทึกคอนโซล**         | โปรแกรมดูสไตล์เทอร์มินัลแบบเรียลไทม์พร้อมตัวกรองระดับ การค้นหา เลื่อนอัตโนมัติ |
+| 📑 **การบันทึกตามไฟล์**          | ตัวดักจับคอนโซลจับเอาต์พุตทั้งหมดไปยังไฟล์บันทึก JSON พร้อมการหมุน             |
+| 🏥 **แดชบอร์ดสุขภาพ**            | เวลาทำงานของระบบ, สถานะของเซอร์กิตเบรกเกอร์, การล็อกเอาต์, สถิติแคช            |
+| 💰 **ติดตามต้นทุน**              | การจัดการงบประมาณ + การกำหนดค่าราคาต่อรุ่น                                     |
 
 ### ☁️ การปรับใช้และการซิงค์
 
@@ -928,6 +936,9 @@ npm run electron:build:linux   # Linux (.AppImage)
 | 🔄 **การสำรองฐานข้อมูล**             | สำรองข้อมูล กู้คืน ส่งออก & นำเข้าอัตโนมัติสำหรับการตั้งค่าทั้งหมด          |
 | 🌐 **ความเป็นสากล**                  | i18n เต็มรูปแบบพร้อม next-intl — รองรับภาษาอังกฤษ + โปรตุเกส (บราซิล)       |
 | 🌍 **ตัวเลือกภาษา**                  | ไอคอนลูกโลกในส่วนหัวสำหรับการสลับภาษาแบบเรียลไทม์ (USA/🇧🇷)                  |
+| 🧹 **Clear All Models**              | One-click model list clearing in provider details                           |
+| 👁️ **Sidebar Controls** 🆕           | Hide components and integrations from Appearance Settings                   |
+| 📋 **Issue Templates**               | Standardized GitHub templates for bugs and features                         |
 | 📂 **ไดเรกทอรีข้อมูลที่กำหนดเอง**    | `DATA_DIR` env var เพื่อแทนที่ค่าเริ่มต้น `~/.omniroute` พาธหน่วยเก็บข้อมูล |
 
 <details>

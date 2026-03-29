@@ -10,9 +10,13 @@
 import path from "path";
 import fs from "fs";
 import { getDbInstance } from "../db/core";
+import { getSettings } from "../db/settings";
+import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk, CALL_LOGS_DIR } from "./migrations";
+import { getLoggedInputTokens, getLoggedOutputTokens } from "./tokenAccounting";
 import { isNoLog } from "../compliance";
 import { sanitizePII } from "../piiSanitizer";
+import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -33,21 +37,14 @@ function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
-function parseJsonString(value: unknown): unknown | null {
-  if (typeof value !== "string" || value.trim().length === 0) return null;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
-}
-
 function hasTruncatedFlag(value: unknown): boolean {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   return (value as Record<string, unknown>)._truncated === true;
 }
 
-const CALL_LOGS_MAX = parseInt(process.env.CALL_LOGS_MAX || "200", 10);
+const DEFAULT_MAX_CALL_LOGS = 10000;
+const CALL_LOGS_MAX_CACHE_TTL_MS = 30_000;
+
 const LOG_RETENTION_DAYS = parseInt(process.env.LOG_RETENTION_DAYS || "7", 10);
 const CALL_LOG_PAYLOAD_MODE = (() => {
   const value = (process.env.CALL_LOG_PAYLOAD_MODE || "full").toLowerCase();
@@ -56,79 +53,54 @@ const CALL_LOG_PAYLOAD_MODE = (() => {
 const shouldLogPayloadInDb = CALL_LOG_PAYLOAD_MODE !== "none";
 const shouldLogPayloadOnDisk = CALL_LOG_PAYLOAD_MODE === "full";
 
-/** Fields that should always be redacted from logged payloads */
-const SENSITIVE_KEYS = new Set([
-  "api_key",
-  "apiKey",
-  "api-key",
-  "authorization",
-  "Authorization",
-  "x-api-key",
-  "X-Api-Key",
-  "access_token",
-  "accessToken",
-  "refresh_token",
-  "refreshToken",
-  "password",
-  "secret",
-  "token",
-]);
+let callLogsMaxCache = {
+  value: resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS,
+  expiresAt: 0,
+};
 
-/**
- * Redact sensitive fields from a payload before persistence.
- */
-function redactPayload(obj: any): any {
-  if (!obj || typeof obj !== "object") return obj;
-  if (Array.isArray(obj)) return obj.map(redactPayload);
+function resolveCallLogsMaxValue(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  }
+  return null;
+}
 
-  const redacted: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (SENSITIVE_KEYS.has(key)) {
-      redacted[key] = "[REDACTED]";
-    } else if (typeof value === "string" && value.startsWith("Bearer ")) {
-      redacted[key] = "Bearer [REDACTED]";
-    } else if (typeof value === "object" && value !== null) {
-      redacted[key] = redactPayload(value);
-    } else {
-      redacted[key] = value;
+async function getMaxCallLogs(): Promise<number> {
+  const now = Date.now();
+  if (callLogsMaxCache.expiresAt > now) {
+    return callLogsMaxCache.value;
+  }
+
+  let value = resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS;
+
+  try {
+    const { getSettings } = await import("@/lib/localDb");
+    const settings = await getSettings();
+    const configured =
+      resolveCallLogsMaxValue(settings.maxCallLogs) ??
+      resolveCallLogsMaxValue(settings.MAX_CALL_LOGS);
+    if (configured !== null) {
+      value = configured;
     }
+  } catch {
+    // Fall back to env/default cap when settings are unavailable.
   }
-  return redacted;
+
+  callLogsMaxCache = {
+    value,
+    expiresAt: now + CALL_LOGS_MAX_CACHE_TTL_MS,
+  };
+  return value;
 }
 
-/**
- * Recursively sanitize PII from string fields in a payload.
- * Uses lib/piiSanitizer config flags to determine if redaction is enabled.
- */
-function sanitizePayloadPII(obj: any): any {
-  if (typeof obj === "string") {
-    return sanitizePII(obj).text;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(sanitizePayloadPII);
-  }
-  if (!obj || typeof obj !== "object") {
-    return obj;
-  }
-
-  const sanitized: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    sanitized[key] = sanitizePayloadPII(value);
-  }
-  return sanitized;
+export function invalidateCallLogsMaxCache(): void {
+  callLogsMaxCache = {
+    value: resolveCallLogsMaxValue(process.env.CALL_LOGS_MAX) ?? DEFAULT_MAX_CALL_LOGS,
+    expiresAt: 0,
+  };
 }
-
-/**
- * Apply payload protection chain before persistence.
- * 1) Optional PII sanitization
- * 2) Mandatory key/token redaction
- */
-function protectPayloadForLog(payload: any): any {
-  if (!payload || !shouldLogPayloadInDb) return null;
-  const piiSanitized = sanitizePayloadPII(payload);
-  return redactPayload(piiSanitized);
-}
-
 let logIdCounter = 0;
 function generateLogId() {
   logIdCounter++;
@@ -145,8 +117,10 @@ export async function saveCallLog(entry: any) {
     const apiKeyId = entry.apiKeyId || null;
     const noLogEnabled = Boolean(entry.noLog) || (apiKeyId ? isNoLog(apiKeyId) : false);
 
-    const protectedRequestBody = noLogEnabled ? null : protectPayloadForLog(entry.requestBody);
-    const protectedResponseBody = noLogEnabled ? null : protectPayloadForLog(entry.responseBody);
+    const protectedRequestBody =
+      noLogEnabled || !shouldLogPayloadInDb ? null : protectPayloadForLog(entry.requestBody);
+    const protectedResponseBody =
+      noLogEnabled || !shouldLogPayloadInDb ? null : protectPayloadForLog(entry.responseBody);
 
     // Resolve account name
     let account = entry.connectionId ? entry.connectionId.slice(0, 8) : "-";
@@ -174,22 +148,19 @@ export async function saveCallLog(entry: any) {
     };
 
     const logEntry = {
-      id: generateLogId(),
+      id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: new Date().toISOString(),
       method: entry.method || "POST",
       path: entry.path || "/v1/chat/completions",
       status: entry.status || 0,
       model: entry.model || "-",
+      requestedModel: entry.requestedModel || null, // T01: model the client asked for
       provider: entry.provider || "-",
       account,
       connectionId: entry.connectionId || null,
       duration: entry.duration || 0,
-      tokensIn: toNumber(
-        (entry.tokens?.prompt_tokens ?? entry.tokens?.input_tokens ?? 0) +
-          (entry.tokens?.cache_read_input_tokens ?? entry.tokens?.cached_tokens ?? 0) +
-          (entry.tokens?.cache_creation_input_tokens ?? 0)
-      ),
-      tokensOut: toNumber(entry.tokens?.completion_tokens ?? entry.tokens?.output_tokens ?? 0),
+      tokensIn: toNumber(getLoggedInputTokens(entry.tokens)),
+      tokensOut: toNumber(getLoggedOutputTokens(entry.tokens)),
       requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
       targetFormat: entry.targetFormat || null,
@@ -205,26 +176,27 @@ export async function saveCallLog(entry: any) {
     const db = getDbInstance();
     db.prepare(
       `
-      INSERT INTO call_logs (id, timestamp, method, path, status, model, provider,
+      INSERT INTO call_logs (id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out, request_type, source_format, target_format,
         api_key_id, api_key_name, combo_name, request_body, response_body, error)
-      VALUES (@id, @timestamp, @method, @path, @status, @model, @provider,
+      VALUES (@id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
         @account, @connectionId, @duration, @tokensIn, @tokensOut, @requestType, @sourceFormat, @targetFormat,
         @apiKeyId, @apiKeyName, @comboName, @requestBody, @responseBody, @error)
     `
     ).run(logEntry);
 
-    // 2. Trim old entries beyond CALL_LOGS_MAX
+    // 2. Trim old entries beyond max
+    const maxLogs = await getMaxCallLogs();
     const countRow = asRecord(db.prepare("SELECT COUNT(*) as cnt FROM call_logs").get());
     const count = toNumber(countRow.cnt);
-    if (count > CALL_LOGS_MAX) {
+    if (count > maxLogs) {
       db.prepare(
         `
         DELETE FROM call_logs WHERE id IN (
           SELECT id FROM call_logs ORDER BY timestamp ASC LIMIT ?
         )
       `
-      ).run(count - CALL_LOGS_MAX);
+      ).run(count - maxLogs);
     }
 
     // 3. Write full payload to disk file (untruncated)
@@ -329,7 +301,7 @@ export async function getCallLogs(filter: any = {}) {
   }
 
   if (filter.model) {
-    conditions.push("model LIKE @modelQ");
+    conditions.push("(model LIKE @modelQ OR requested_model LIKE @modelQ)");
     params.modelQ = `%${filter.model}%`;
   }
   if (filter.provider) {
@@ -350,7 +322,8 @@ export async function getCallLogs(filter: any = {}) {
   if (filter.search) {
     conditions.push(`(
       model LIKE @searchQ OR path LIKE @searchQ OR account LIKE @searchQ OR
-      provider LIKE @searchQ OR api_key_name LIKE @searchQ OR api_key_id LIKE @searchQ OR
+      requested_model LIKE @searchQ OR provider LIKE @searchQ OR
+      api_key_name LIKE @searchQ OR api_key_id LIKE @searchQ OR
       combo_name LIKE @searchQ OR CAST(status AS TEXT) LIKE @searchQ
     )`);
     params.searchQ = `%${filter.search}%`;
@@ -374,6 +347,7 @@ export async function getCallLogs(filter: any = {}) {
       path: toStringOrNull(l.path),
       status: toNumber(l.status),
       model: toStringOrNull(l.model),
+      requestedModel: toStringOrNull(l.requested_model), // T01: original model from client
       provider: toStringOrNull(l.provider),
       account: toStringOrNull(l.account),
       duration: toNumber(l.duration),
@@ -406,6 +380,7 @@ export async function getCallLogById(id: string) {
     path: toStringOrNull(entryRow.path),
     status: toNumber(entryRow.status),
     model: toStringOrNull(entryRow.model),
+    requestedModel: toStringOrNull(entryRow.requested_model),
     provider: toStringOrNull(entryRow.provider),
     account: toStringOrNull(entryRow.account),
     connectionId: toStringOrNull(entryRow.connection_id),
@@ -416,8 +391,8 @@ export async function getCallLogById(id: string) {
     apiKeyId: toStringOrNull(entryRow.api_key_id),
     apiKeyName: toStringOrNull(entryRow.api_key_name),
     comboName: toStringOrNull(entryRow.combo_name),
-    requestBody: parseJsonString(entryRow.request_body),
-    responseBody: parseJsonString(entryRow.response_body),
+    requestBody: parseStoredPayload(entryRow.request_body),
+    responseBody: parseStoredPayload(entryRow.response_body),
     error: toStringOrNull(entryRow.error),
   };
 
@@ -438,7 +413,20 @@ export async function getCallLogById(id: string) {
     }
   }
 
-  return entry;
+  const detailed = getRequestDetailLogByCallLogId(id);
+  if (!detailed) {
+    return entry;
+  }
+
+  return {
+    ...entry,
+    pipelinePayloads: {
+      clientRequest: detailed.client_request ?? null,
+      providerRequest: detailed.translated_request ?? null,
+      providerResponse: detailed.provider_response ?? null,
+      clientResponse: detailed.client_response ?? null,
+    },
+  };
 }
 
 /**

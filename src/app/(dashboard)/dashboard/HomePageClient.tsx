@@ -319,7 +319,6 @@ export default function HomePageClient({ machineId }) {
           setUpdatePhase("idle");
           return;
         }
-
         notify.success(data.message || "Update started.");
         await pollBackgroundUpdate({
           channel: data.channel || "docker-compose",

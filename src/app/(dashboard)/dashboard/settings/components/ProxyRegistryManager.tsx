@@ -9,6 +9,8 @@ type ProxyItem = {
   type: string;
   host: string;
   port: number;
+  username?: string | null;
+  password?: string | null;
   region?: string | null;
   notes?: string | null;
   status?: string;
@@ -25,6 +27,14 @@ type HealthInfo = {
   successRate: number | null;
   avgLatencyMs: number | null;
   lastSeenAt: string | null;
+};
+
+type TestResult = {
+  success: boolean;
+  publicIp?: string;
+  latencyMs?: number;
+  country?: string;
+  error?: string;
 };
 
 const EMPTY_FORM = {
@@ -51,6 +61,8 @@ export default function ProxyRegistryManager() {
 
   const [usageById, setUsageById] = useState<Record<string, UsageInfo>>({});
   const [healthById, setHealthById] = useState<Record<string, HealthInfo>>({});
+  const [testById, setTestById] = useState<Record<string, TestResult | null>>({});
+  const [testingId, setTestingId] = useState<string | null>(null);
   const [migrating, setMigrating] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkSaving, setBulkSaving] = useState(false);
@@ -75,6 +87,36 @@ export default function ProxyRegistryManager() {
     }
   }, []);
 
+  const loadAllUsage = useCallback(async (proxyIds: string[]) => {
+    if (!proxyIds.length) return;
+    try {
+      const results = await Promise.all(
+        proxyIds.map((id) =>
+          fetch(`/api/settings/proxies/assignments?proxyId=${encodeURIComponent(id)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+              const rawAssignments: Array<{ scope: string; scopeId: string | null }> =
+                Array.isArray(data?.items) ? data.items : [];
+              // Deduplicate by scope+scopeId — prevents double-counting when both
+              // a provider-scope and account-scope row exist for the same proxy
+              const seen = new Set<string>();
+              const assignments = rawAssignments.filter((a) => {
+                const key = `${a.scope}:${a.scopeId ?? ""}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
+              return [id, { count: assignments.length, assignments }] as [string, UsageInfo];
+            })
+            .catch(() => [id, { count: 0, assignments: [] }] as [string, UsageInfo])
+        )
+      );
+      setUsageById(Object.fromEntries(results));
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -86,15 +128,18 @@ export default function ProxyRegistryManager() {
         setItems([]);
         return;
       }
-      setItems(Array.isArray(data?.items) ? data.items : []);
+      const loaded: ProxyItem[] = Array.isArray(data?.items) ? data.items : [];
+      setItems(loaded);
+      const ids = loaded.map((p) => p.id).filter(Boolean);
       void loadHealth();
+      void loadAllUsage(ids);
     } catch (e: any) {
       setError(e?.message || "Failed to load proxy registry");
       setItems([]);
     } finally {
       setLoading(false);
     }
-  }, [loadHealth]);
+  }, [loadHealth, loadAllUsage]);
 
   useEffect(() => {
     void load();
@@ -130,19 +175,61 @@ export default function ProxyRegistryManager() {
   const loadUsage = async (proxyId: string) => {
     try {
       const res = await fetch(
-        `/api/settings/proxies?id=${encodeURIComponent(proxyId)}&whereUsed=1`
+        `/api/settings/proxies/assignments?proxyId=${encodeURIComponent(proxyId)}`
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return;
+      const rawAssignments: Array<{ scope: string; scopeId: string | null }> = Array.isArray(
+        data?.items
+      )
+        ? data.items
+        : [];
+      const seen = new Set<string>();
+      const assignments = rawAssignments.filter((a) => {
+        const key = `${a.scope}:${a.scopeId ?? ""}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
       setUsageById((prev) => ({
         ...prev,
-        [proxyId]: {
-          count: Number(data?.count || 0),
-          assignments: Array.isArray(data?.assignments) ? data.assignments : [],
-        },
+        [proxyId]: { count: assignments.length, assignments },
       }));
     } catch {
       // ignore usage loading errors in UI
+    }
+  };
+
+  const handleTestProxy = async (item: ProxyItem) => {
+    if (testingId) return;
+    setTestingId(item.id);
+    setTestById((prev) => ({ ...prev, [item.id]: null }));
+    try {
+      const res = await fetch("/api/settings/proxy/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          proxyId: item.id,
+          proxy: {
+            type: item.type || "http",
+            host: item.host,
+            port: String(item.port || 8080),
+          },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setTestById((prev) => ({
+          ...prev,
+          [item.id]: { success: false, error: data?.error?.message || "Test failed" },
+        }));
+        return;
+      }
+      setTestById((prev) => ({ ...prev, [item.id]: { success: true, ...data } }));
+    } catch (e: any) {
+      setTestById((prev) => ({ ...prev, [item.id]: { success: false, error: e?.message } }));
+    } finally {
+      setTestingId(null);
     }
   };
 
@@ -378,27 +465,47 @@ export default function ProxyRegistryManager() {
                         </span>
                       </td>
                       <td className="py-2 pr-3 text-xs text-text-muted">
-                        {health ? (
-                          <div className="flex flex-col gap-0.5">
-                            <span>{health.successRate ?? 0}% success</span>
-                            <span>{health.avgLatencyMs ?? "-"} ms avg</span>
-                          </div>
-                        ) : (
-                          "-"
-                        )}
+                        <div className="flex flex-col gap-0.5">
+                          {testById[item.id] ? (
+                            testById[item.id]!.success ? (
+                              <>
+                                <span className="text-emerald-400">
+                                  ✓ {testById[item.id]!.publicIp}
+                                </span>
+                                {testById[item.id]!.latencyMs && (
+                                  <span>{testById[item.id]!.latencyMs}ms</span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-red-400">
+                                ✗ {testById[item.id]!.error || "failed"}
+                              </span>
+                            )
+                          ) : health ? (
+                            <>
+                              <span>{health.successRate ?? 0}% success</span>
+                              <span>{health.avgLatencyMs ?? "-"} ms avg</span>
+                            </>
+                          ) : (
+                            <span>—</span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-2 pr-3 text-xs text-text-muted">
-                        {usage ? `${usage.count} assignment(s)` : "-"}
+                        {usageById[item.id] != null
+                          ? `${usageById[item.id].count} assignment(s)`
+                          : "—"}
                       </td>
                       <td className="py-2">
                         <div className="flex items-center gap-1">
                           <Button
                             size="sm"
                             variant="ghost"
-                            icon="visibility"
-                            onClick={() => void loadUsage(item.id)}
+                            icon="speed"
+                            onClick={() => void handleTestProxy(item)}
+                            loading={testingId === item.id}
                           >
-                            Usage
+                            Test
                           </Button>
                           <Button
                             size="sm"

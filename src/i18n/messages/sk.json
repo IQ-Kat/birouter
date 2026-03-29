@@ -56,7 +56,87 @@
     "warning": "Upozornenie",
     "note": "Poznámka",
     "free": "Zadarmo",
-    "skipToContent": "Preskočiť na obsah"
+    "skipToContent": "Preskočiť na obsah",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Prijať",
+    "accountId": "ID účtu",
+    "alias": "Alias",
+    "apiKeyId": "ID kľúča API",
+    "apiKeyName": "Názov kľúča API",
+    "apiKeySecret": "Tajný kľúč API",
+    "authorization": "Autorizácia",
+    "content-type": "Typ obsahu",
+    "content-length": "Dĺžka obsahu",
+    "cookie": "Cookie",
+    "file": "Súbor",
+    "host": "Hostiteľ",
+    "id": "ID",
+    "import": "Importovať",
+    "limit": "Limit",
+    "offset": "Offset",
+    "open": "Otvorte",
+    "origin": "Pôvod",
+    "promptTokens": "Prompt Tokeny",
+    "completionTokens": "Žetóny dokončenia",
+    "totalTokens": "Celkový počet tokenov",
+    "rawModel": "Surový model",
+    "scope": "Rozsah",
+    "skill": "Zručnosť",
+    "sortBy": "Zoradiť podľa",
+    "sortOrder": "Poradie zoradenia",
+    "tab": "Tab",
+    "text": "Text",
+    "textarea": "Textarea",
+    "tool": "Nástroj",
+    "toolId": "ID nástroja",
+    "web": "Web",
+    "whereUsed": "Kde sa používa",
+    "whitelist": "Whitelist",
+    "blacklist": "Čierna listina",
+    "resolve": "Vyriešiť",
+    "force": "sila",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Rozsah",
+    "component": "Komponent",
+    "redirect_uri": "Presmerovať URI",
+    "idempotency-key": "Kľúč idempotencie",
+    "error_description": "Popis chyby",
+    "code": "kód",
+    "compatible": "Kompatibilné",
+    "chat-completions": "Dokončenia četu",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "Crypto",
+    "hours": "hodiny",
+    "selfsigned": "Vlastne podpísaný",
+    "proxy_id": "ID proxy",
+    "proxyId": "ID proxy",
+    "connectionId": "ID pripojenia",
+    "resolveConnectionId": "Vyriešiť ID pripojenia",
+    "resolve_connection_id": "Vyriešiť ID pripojenia",
+    "scope_id": "ID rozsahu",
+    "scopeId": "ID rozsahu",
+    "jwtSecret": "Tajomstvo JWT",
+    "keytar": "Keytar",
+    "better-sqlite3": "lepší-sqlite3",
+    "undici": "undici",
+    "builder-id": "ID staviteľa",
+    "musicDesc": "Popis hudby",
+    "musicGeneration": "Hudobná generácia",
+    "idc": "IDC",
+    "cloud-status-changed": "Stav cloudu sa zmenil",
+    "where_used": "Kde sa používa",
+    "windowMs": "okno (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Zoznam povolených nástrojov",
+    "TOOL_DENYLIST": "Nástroj Denylist",
+    "Failed to save pricing": "Cenu sa nepodarilo uložiť",
+    "Failed to reset pricing": "Cenu sa nepodarilo resetovať",
+    "apikey": "API kľúč",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Domov",
@@ -103,7 +183,11 @@
     "endpoints": "Koncové body",
     "playground": "Ihrisko",
     "agents": "Agenti",
-    "cliToolsShort": "Nástroje"
+    "cliToolsShort": "Nástroje",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -175,7 +259,11 @@
     "requestsShort": "{count} req",
     "providerModelsTitle": "{provider} - Modely",
     "copiedModel": "Skopírované: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Aktualizovať teraz",
+    "updating": "Aktualizuje sa...",
+    "updateAvailableDesc": "K dispozícii je nová verzia. Kliknutím aktualizujte.",
+    "updateStarted": "Aktualizácia spustená..."
   },
   "analytics": {
     "title": "Analytics",
@@ -268,7 +356,28 @@
     "permissionsTitle": "Povolenia: {name}",
     "allowAllDesc": "Tento kľúč umožňuje prístup ku všetkým dostupným modelom.",
     "restrictDesc": "Tento kľúč má prístup k {selectedCount} z {totalModels} modelov.",
-    "selectedCount": "{count} vybraté"
+    "selectedCount": "{count} vybraté",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "Audit Log",
@@ -510,6 +619,9 @@
             "title": "Pridať konfiguráciu modelu",
             "desc": "Pridajte do poľa modelov nasledujúcu konfiguráciu:"
           }
+        },
+        "notes": {
+          "0": "Pokračovať používa konfiguračný súbor JSON."
         }
       },
       "opencode": {
@@ -528,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode vyžaduje konfiguráciu kľúča API.",
+          "1": "Nastavte základnú URL na váš koncový bod OmniRoute."
         }
       },
       "kiro": {
@@ -546,8 +662,32 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro vyžaduje účet Amazon."
         }
       }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Kedy použiť",
+    "openToolDocs": "Otvorte dokumentáciu nástroja",
+    "toolUseCases": {
+      "claude": "Použite, keď chcete silné plánovacie pracovné postupy a dlhé viacsúborové refaktory s Claude Code.",
+      "codex": "Použite, keď je váš tím štandardizovaný na tokoch OpenAI Codex CLI a autentifikácii založenej na profile.",
+      "droid": "Použite, keď potrebujete ľahkého terminálového agenta zameraného na rýchle kódovanie a slučky vykonávania príkazov.",
+      "openclaw": "Použite, keď chcete kódovacieho agenta v štýle Open Claw, ale smerovaného cez zásady OmniRoute.",
+      "cline": "Použite, keď konfigurujete kódovacích agentov v editoroch a chcete riadiť nastavenie s modelmi OmniRoute.",
+      "kilo": "Použite, keď váš pracovný postup závisí od príkazov Kilo Code a rýchlych iteračných úprav.",
+      "cursor": "Použite pri kódovaní v Cursore a potrebujete vlastné modely kompatibilné s OpenAI cez OmniRoute.",
+      "continue": "Použite pri spustení Continue in IDE a potrebujete prenosnú konfiguráciu poskytovateľa založenú na JSON.",
+      "opencode": "Použite, ak uprednostňujete spúšťanie natívneho agenta a skriptovanú automatizáciu cez OpenCode.",
+      "kiro": "Použite pri integrácii Kiro a centrálnom riadení smerovania modelu z OmniRoute.",
+      "antigravity": "Použite, keď musí byť premávka Antigravity/Kiro zachytená cez MITM a nasmerovaná na OmniRoute.",
+      "copilot": "Použite, keď chcete UX v štýle chatu Copilot pri presadzovaní kľúčov OmniRoute a pravidiel smerovania."
     }
   },
   "combos": {
@@ -864,7 +1004,12 @@
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
     "a2aQuickStartStep3": "Track and control tasks using `tasks/get` and `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1054,7 +1199,13 @@
     "resetAllTitle": "Resetujte všetky ističe do zdravého stavu",
     "resetting": "Resetovanie...",
     "resetAll": "Obnoviť všetko",
-    "until": "Do {time}"
+    "until": "Do {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Nakonfigurované na ovládacom paneli",
+    "configuredProvidersHint": "Poskytovatelia s povereniami uloženými v /dashboard/providers, bez ohľadu na stav runtime.",
+    "activeProvidersHint": "Konfigurovaní poskytovatelia majú momentálne povolené požiadavky na smerovanie.",
+    "monitoredProvidersHint": "Poskytovatelia v súčasnosti sledovaní monitormi zdravia ističov."
   },
   "limits": {
     "title": "Limity a kvóty",
@@ -1257,6 +1408,10 @@
     "chatCompletions": "Dokončenia četu",
     "importingModels": "Importuje sa...",
     "importFromModels": "Importovať z /models",
+    "clearAllModels": "Vymazať všetky modely",
+    "clearAllModelsConfirm": "Ste si istý, že chcete odstrániť všetky modely pre tohto poskytovateľa? Túto akciu nie je možné vrátiť.",
+    "clearAllModelsSuccess": "Všetky modely vymazané",
+    "clearAllModelsFailed": "Nepodarilo sa vymazať modely",
     "addConnectionToImport": "Ak chcete povoliť import, pridajte pripojenie.",
     "noModelsConfigured": "Nie sú nakonfigurované žiadne modely",
     "connectionCount": "{count} pripojení",
@@ -1396,7 +1551,40 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Automatická synchronizácia",
+    "autoSyncTooltip": "Automaticky obnovovať zoznam modelov každých 24 hodín (konfigurovateľné cez MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatická synchronizácia povolená – modely sa budú pravidelne obnovovať",
+    "autoSyncDisabled": "Automatická synchronizácia je zakázaná",
+    "autoSyncToggleFailed": "Nepodarilo sa prepnúť automatickú synchronizáciu",
+    "clearAllModels": "Vymazať všetky modely",
+    "clearAllModelsConfirm": "Naozaj chcete odstrániť všetky modely tohto poskytovateľa? Toto sa nedá vrátiť späť.",
+    "clearAllModelsSuccess": "Všetky modely sú vymazané",
+    "clearAllModelsFailed": "Nepodarilo sa vyčistiť modely"
   },
   "settings": {
     "title": "Nastavenia",
@@ -1799,7 +1987,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Pokročilé vedenie trasy",
+    "routingAdvancedGuideHint1": "Použite Fill First pre predvídateľnú prioritu, Round Robin pre spravodlivosť a P2C pre odolnosť latencie.",
+    "routingAdvancedGuideHint2": "Ak sa poskytovatelia líšia v kvalite/nákladoch, začnite s Cost Opt pre prácu na pozadí a Najmenej používané pre vyvážené opotrebovanie.",
+    "comboDefaultsGuideTitle": "Ako vyladiť predvolené nastavenia komba",
+    "comboDefaultsGuideHint1": "Udržujte počet opakovaní na nízkej úrovni v tokoch s nízkou latenciou; zvýšiť časový limit iba pre úlohy s dlhým generovaním.",
+    "comboDefaultsGuideHint2": "Použite prepísania poskytovateľa, keď jeden poskytovateľ potrebuje iné správanie pri uplynutí časového limitu/opakovania, ako sú globálne predvolené hodnoty."
   },
   "translator": {
     "title": "Prekladateľ",
@@ -2216,7 +2410,16 @@
     "orRemovePasswordHashField": "alebo odstráňte pole passwordHash",
     "restartServerWithNewPassword": "Reštartujte server - použije nové heslo",
     "backToLogin": "Späť na Prihlásenie",
-    "forgotPassword": "Zabudli ste heslo?"
+    "forgotPassword": "Zabudli ste heslo?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Autorizácia",
+    "Content-Disposition": "Obsah-Dispozícia",
+    "waitingForAuthorization": "Čaká sa na autorizáciu...",
+    "waitingForGoogleAuthorization": "Čaká sa na autorizáciu Google...",
+    "waitingForOpenAIAuthorization": "Čaká sa na autorizáciu OpenAI...",
+    "waitingForAntigravityAuthorization": "Čaká sa na antigravitačné povolenie...",
+    "waitingForIFlowAuthorization": "Čaká sa na autorizáciu iFlow...",
+    "exchangingCodeForTokens": "Výmena kódu za tokeny..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2414,7 +2617,18 @@
     "troubleshootingCodexFamily": "Pre modely rodiny GitHub Codex ponechajte model ako gh/codex-model; router vyberá / odpovedá automaticky.",
     "troubleshootingTestConnection": "Pred testovaním z IDE alebo externých klientov použite Dashboard > Providers > Test Connection.",
     "troubleshootingCircuitBreaker": "Ak poskytovateľ zobrazí istič otvorený, počkajte na vychladnutie alebo skontrolujte stránku Zdravie, kde nájdete podrobnosti.",
-    "troubleshootingOAuth": "V prípade poskytovateľov OAuth znova overte, ak platnosť tokenov vyprší. Skontrolujte indikátor stavu karty poskytovateľa."
+    "troubleshootingOAuth": "V prípade poskytovateľov OAuth znova overte, ak platnosť tokenov vyprší. Skontrolujte indikátor stavu karty poskytovateľa.",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Generovanie prevodu textu na reč (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Generovanie vkladania textu (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Zásady ochrany osobných údajov",
@@ -2503,7 +2717,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2527,5 +2755,131 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Jednoduchý chat",
+    "streaming": "Streamovanie",
+    "system-prompt": "Systémová výzva",
+    "thinking": "Myslenie",
+    "tool-calling": "Vyvolanie nástroja",
+    "multi-turn": "Viacotáčkový"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Základná šablóna chatu so systémovou správou",
+    "streaming": "Šablóna pre odpovede na streamovanie",
+    "system-prompt": "Šablóna s vlastnou systémovou výzvou",
+    "thinking": "Šablóna s rozpočtom na uvažovanie/premýšľanie",
+    "tool-calling": "Šablóna na volanie nástroja/funkcie",
+    "multi-turn": "Šablóna pre konverzácie s viacerými odbočkami"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Ste užitočný asistent AI.",
+      "userGreeting": "Dobrý deň! Ako ti dnes môžem pomôcť?"
+    },
+    "streaming": {
+      "prompt": "Napíšte príbeh o"
+    },
+    "systemPrompt": {
+      "question": "Aký je zmysel života?",
+      "systemInstruction": "Poskytnite premyslenú, filozofickú odpoveď."
+    },
+    "thinking": {
+      "question": "Vysvetlite kvantové výpočty"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Názov mesta, pre ktoré sa má zistiť počasie",
+      "toolDescription": "Získajte aktuálne počasie pre miesto",
+      "userWeather": "Aké je počasie v Tokiu?"
+    },
+    "multiTurn": {
+      "system": "Ste užitočný pomocník.",
+      "assistantExample": "Rád vám s tým pomôžem.",
+      "userInitial": "Potrebujem pomoc s",
+      "userFollowUp": "Môžete to upresniť?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

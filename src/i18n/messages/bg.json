@@ -56,7 +56,87 @@
     "warning": "Предупреждение",
     "note": "Забележка",
     "free": "безплатно",
-    "skipToContent": "Преминете към съдържанието"
+    "skipToContent": "Преминете към съдържанието",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Приеми",
+    "accountId": "ID на акаунта",
+    "alias": "Псевдоним",
+    "apiKeyId": "ID на API ключ",
+    "apiKeyName": "Име на API ключ",
+    "apiKeySecret": "API Key Secret",
+    "authorization": "Упълномощаване",
+    "content-type": "Тип съдържание",
+    "content-length": "Дължина на съдържанието",
+    "cookie": "бисквитка",
+    "file": "Файл",
+    "host": "Домакин",
+    "id": "ID",
+    "import": "Импортиране",
+    "limit": "Лимит",
+    "offset": "Офсет",
+    "open": "Отворете",
+    "origin": "Произход",
+    "promptTokens": "Подкани токени",
+    "completionTokens": "Токени за завършване",
+    "totalTokens": "Общо токени",
+    "rawModel": "Суров модел",
+    "scope": "Обхват",
+    "skill": "Умение",
+    "sortBy": "Сортиране по",
+    "sortOrder": "Ред на сортиране",
+    "tab": "Таб",
+    "text": "Текст",
+    "textarea": "Текстово поле",
+    "tool": "Инструмент",
+    "toolId": "ID на инструмента",
+    "web": "Мрежа",
+    "whereUsed": "Къде се използва",
+    "whitelist": "Бял списък",
+    "blacklist": "Черен списък",
+    "resolve": "Разрешете",
+    "force": "Сила",
+    "base64url": "Base64 URL",
+    "hex": "шестнадесетичен",
+    "range": "Обхват",
+    "component": "Компонент",
+    "redirect_uri": "URI за пренасочване",
+    "idempotency-key": "Ключ за идемпотентност",
+    "error_description": "Описание на грешката",
+    "code": "Код",
+    "compatible": "Съвместим",
+    "chat-completions": "Чат завършвания",
+    "oauth": "OAuth",
+    "auth_token": "Токен за удостоверяване",
+    "crypto": "Крипто",
+    "hours": "часове",
+    "selfsigned": "Самоподписан",
+    "proxy_id": "ID на прокси",
+    "proxyId": "ID на прокси",
+    "connectionId": "ID на връзката",
+    "resolveConnectionId": "Разрешете ИД на връзката",
+    "resolve_connection_id": "Разрешете ИД на връзката",
+    "scope_id": "ID на обхвата",
+    "scopeId": "ID на обхвата",
+    "jwtSecret": "JWT Secret",
+    "keytar": "Keytar",
+    "better-sqlite3": "по-добре-sqlite3",
+    "undici": "undici",
+    "builder-id": "ID на строителя",
+    "musicDesc": "Описание на музиката",
+    "musicGeneration": "Музикално поколение",
+    "idc": "IDC",
+    "cloud-status-changed": "Състоянието на облака е променено",
+    "where_used": "Къде се използва",
+    "windowMs": "Прозорец (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Списък с разрешени инструменти",
+    "TOOL_DENYLIST": "Списък за отказ на инструмента",
+    "Failed to save pricing": "Неуспешно запазване на цената",
+    "Failed to reset pricing": "Неуспешно нулиране на цените",
+    "apikey": "API ключ",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Начало",
@@ -103,7 +183,11 @@
     "endpoints": "Крайни точки",
     "playground": "Площадка",
     "agents": "Агенти",
-    "cliToolsShort": "Инструменти"
+    "cliToolsShort": "Инструменти",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Теми",
@@ -175,7 +259,11 @@
     "requestsShort": "{count} изискване",
     "providerModelsTitle": "{provider} - Модели",
     "copiedModel": "Копирано: {model}",
-    "aliasLabel": "псевдоним"
+    "aliasLabel": "псевдоним",
+    "updateNow": "Актуализирайте сега",
+    "updating": "Актуализиране...",
+    "updateAvailableDesc": "Налична е нова версия. Кликнете, за да актуализирате.",
+    "updateStarted": "Актуализацията започна..."
   },
   "analytics": {
     "title": "Анализ",
@@ -268,7 +356,28 @@
     "permissionsTitle": "Разрешения: {name}",
     "allowAllDesc": "Този ключ има достъп до всички налични модели.",
     "restrictDesc": "Този ключ има достъп до {selectedCount} от {totalModels} модели.",
-    "selectedCount": "{count} избран"
+    "selectedCount": "{count} избран",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "Дневник за одит",
@@ -510,6 +619,9 @@
             "title": "Добавяне на конфигурация на модела",
             "desc": "Добавете следната конфигурация към вашия масив от модели:"
           }
+        },
+        "notes": {
+          "0": "Продължаване използва JSON конфигурационен файл."
         }
       },
       "opencode": {
@@ -528,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode изисква конфигурация на API ключ.",
+          "1": "Задайте основния URL адрес на вашата крайна точка OmniRoute."
         }
       },
       "kiro": {
@@ -546,8 +662,32 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Киро изисква акаунт в Amazon."
         }
       }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "Кога да използвате",
+    "openToolDocs": "Отворете документите на инструмента",
+    "toolUseCases": {
+      "claude": "Използвайте, когато искате силни работни потоци за планиране и дълги многофайлови рефактори с Claude Code.",
+      "codex": "Използвайте, когато вашият екип е стандартизиран на OpenAI Codex CLI потоци и базирано на профил удостоверяване.",
+      "droid": "Използвайте, когато имате нужда от лек терминален агент, фокусиран върху цикли за бързо кодиране и изпълнение на команди.",
+      "openclaw": "Използвайте, когато искате агент за кодиране в стил Open Claw, но насочен през политиките на OmniRoute.",
+      "cline": "Използвайте, когато конфигурирате кодиращи агенти вътре в редактори и искате насочвана настройка с OmniRoute модели.",
+      "kilo": "Използвайте, когато вашият работен процес зависи от команди на Kilo Code и бързи итеративни редакции.",
+      "cursor": "Използвайте, когато кодирате в Cursor и имате нужда от персонализирани OpenAI-съвместими модели чрез OmniRoute.",
+      "continue": "Използвайте, когато изпълнявате Continue в IDE и имате нужда от преносима JSON-базирана конфигурация на доставчик.",
+      "opencode": "Използвайте, когато предпочитате нативни за терминални агенти и скриптова автоматизация чрез OpenCode.",
+      "kiro": "Използвайте, когато интегрирате Kiro и контролирате маршрутизирането на модела централно от OmniRoute.",
+      "antigravity": "Използвайте, когато трафикът на Antigravity/Kiro трябва да бъде прихванат чрез MITM и насочен към OmniRoute.",
+      "copilot": "Използвайте, когато искате UX в стил на чат Copilot, като същевременно налагате OmniRoute ключове и правила за маршрутизиране."
     }
   },
   "combos": {
@@ -864,7 +1004,12 @@
     "a2aQuickStartStep2": "Изпратете JSON - RPC заявки до@@ PH0 @@, като използвате @@ PH1 @@ или @@ PH2 @@.",
     "a2aQuickStartStep3": "Проследяване и контрол на задачите с помощта на @@ PH0 @@ и @@ PH1 @@.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Зареждане на таблото за управление на MCP...",
@@ -1054,7 +1199,13 @@
     "resetAllTitle": "Нулирайте всички прекъсвачи в изправно състояние",
     "resetting": "Нулиране...",
     "resetAll": "Нулиране на всички",
-    "until": "До {time}"
+    "until": "До {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Конфигуриран в таблото за управление",
+    "configuredProvidersHint": "Доставчици с идентификационни данни, записани в /dashboard/providers, независимо от състоянието на изпълнение.",
+    "activeProvidersHint": "Конфигурираните доставчици в момента са активирани за заявки за маршрутизиране.",
+    "monitoredProvidersHint": "Доставчиците в момента се проследяват от монитори за изправност на прекъсвачи."
   },
   "limits": {
     "title": "Ограничения и квоти",
@@ -1257,6 +1408,10 @@
     "chatCompletions": "Чат завършвания",
     "importingModels": "Импортиране...",
     "importFromModels": "Импортиране от /models",
+    "clearAllModels": "Изчисти всички модели",
+    "clearAllModelsConfirm": "Сигурни ли сте, че искате да премахнете всички модели за този доставчик? Това не може да бъде отменено.",
+    "clearAllModelsSuccess": "Всички модели са изчистени",
+    "clearAllModelsFailed": "Неуспешно изчистване на моделите",
     "addConnectionToImport": "Добавете връзка, за да активирате импортирането.",
     "noModelsConfigured": "Няма конфигурирани модели",
     "connectionCount": "{count} връзка(и)",
@@ -1396,7 +1551,40 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Автоматично синхронизиране",
+    "autoSyncTooltip": "Автоматично опресняване на списъка с модели на всеки 24 часа (може да се конфигурира чрез MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Автоматичното синхронизиране е активирано — моделите ще се опресняват периодично",
+    "autoSyncDisabled": "Автоматичното синхронизиране е деактивирано",
+    "autoSyncToggleFailed": "Неуспешно превключване на автоматичното синхронизиране",
+    "clearAllModels": "Изчистване на всички модели",
+    "clearAllModelsConfirm": "Сигурни ли сте, че искате да премахнете всички модели за този доставчик? Това не може да бъде отменено.",
+    "clearAllModelsSuccess": "Всички модели изчистени",
+    "clearAllModelsFailed": "Неуспешно изчистване на моделите"
   },
   "settings": {
     "title": "Настройки",
@@ -1799,7 +1987,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Разширено ръководство за маршрутизиране",
+    "routingAdvancedGuideHint1": "Използвайте Fill First за предвидим приоритет, Round Robin за справедливост и P2C за устойчивост на забавяне.",
+    "routingAdvancedGuideHint2": "Ако доставчиците се различават по отношение на качество/цена, започнете с Cost Opt за фонова работа и Least Used за балансирано износване.",
+    "comboDefaultsGuideTitle": "Как да настроите настройките по подразбиране на комбинацията",
+    "comboDefaultsGuideHint1": "Поддържайте ниски повторни опити в потоци с ниска латентност; увеличете времето за изчакване само за задачи с дълго генериране.",
+    "comboDefaultsGuideHint2": "Използвайте замени на доставчика, когато един доставчик се нуждае от различно поведение при изчакване/повторен опит от глобалните настройки по подразбиране."
   },
   "translator": {
     "title": "Преводач",
@@ -2216,7 +2410,16 @@
     "orRemovePasswordHashField": "или премахнете полето passwordHash",
     "restartServerWithNewPassword": "Рестартирайте сървъра - той ще използва новата парола",
     "backToLogin": "Назад към Вход",
-    "forgotPassword": "Забравена парола?"
+    "forgotPassword": "Забравена парола?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Упълномощаване",
+    "Content-Disposition": "Съдържание-разположение",
+    "waitingForAuthorization": "Чака се оторизация...",
+    "waitingForGoogleAuthorization": "Изчаква се разрешение от Google...",
+    "waitingForOpenAIAuthorization": "Изчаква се разрешение за OpenAI...",
+    "waitingForAntigravityAuthorization": "Изчаква се разрешение за антигравитация...",
+    "waitingForIFlowAuthorization": "Изчаква се разрешение за iFlow...",
+    "exchangingCodeForTokens": "Размяна на код за токени..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2414,7 +2617,18 @@
     "troubleshootingCodexFamily": "За модели от семейството на GitHub Codex, запазете модела като gh/codex-model; рутерът избира /отговаря автоматично.",
     "troubleshootingTestConnection": "Използвайте Табло > Доставчици > Тестване на връзката, преди да тествате от IDE или външни клиенти.",
     "troubleshootingCircuitBreaker": "Ако доставчикът покаже отворен прекъсвач, изчакайте охлаждането или проверете страницата Health за подробности.",
-    "troubleshootingOAuth": "За доставчици на OAuth, повторно удостоверяване, ако токените изтекат. Проверете индикатора за състояние на картата на доставчика."
+    "troubleshootingOAuth": "За доставчици на OAuth, повторно удостоверяване, ако токените изтекат. Проверете индикатора за състояние на картата на доставчика.",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Генериране на текст към реч (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Генериране на вграждане на текст (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Политика за поверителност",
@@ -2503,7 +2717,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2527,5 +2755,131 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Обикновен чат",
+    "streaming": "Поточно предаване",
+    "system-prompt": "Системен ред",
+    "thinking": "Мислене",
+    "tool-calling": "Извикване на инструмент",
+    "multi-turn": "Многооборотен"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Основен шаблон за чат със системно съобщение",
+    "streaming": "Шаблон за поточно предаване на отговори",
+    "system-prompt": "Шаблон с персонализирана системна подкана",
+    "thinking": "Шаблон с бюджет за разсъждения/мислене",
+    "tool-calling": "Шаблон за извикване на инструмент/функция",
+    "multi-turn": "Шаблон за многооборотни разговори"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Вие сте полезен AI помощник.",
+      "userGreeting": "здравей Как мога да ви помогна днес?"
+    },
+    "streaming": {
+      "prompt": "Напишете история за"
+    },
+    "systemPrompt": {
+      "question": "Какъв е смисълът на живота?",
+      "systemInstruction": "Дайте обмислен, философски отговор."
+    },
+    "thinking": {
+      "question": "Обяснете квантовите изчисления"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Името на града, за който да получите прогноза за времето",
+      "toolDescription": "Вземете текущото време за местоположение",
+      "userWeather": "Какво е времето в Токио?"
+    },
+    "multiTurn": {
+      "system": "Вие сте полезен помощник.",
+      "assistantExample": "Ще се радвам да ви помогна с това.",
+      "userInitial": "Имам нужда от помощ за",
+      "userFollowUp": "Можете ли да разкажете по-подробно за това?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

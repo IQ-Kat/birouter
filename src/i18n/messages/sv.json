@@ -56,7 +56,87 @@
     "warning": "Varning",
     "note": "Obs",
     "free": "Gratis",
-    "skipToContent": "Hoppa till innehållet"
+    "skipToContent": "Hoppa till innehållet",
+    "maintenanceServerIssues": "Server is experiencing issues. Some features may be unavailable.",
+    "maintenanceServerUnreachable": "Server is unreachable. Reconnecting...",
+    "accept": "Acceptera",
+    "accountId": "Konto-ID",
+    "alias": "Alias",
+    "apiKeyId": "API-nyckel-ID",
+    "apiKeyName": "API-nyckelnamn",
+    "apiKeySecret": "API-nyckelhemlighet",
+    "authorization": "Auktorisation",
+    "content-type": "Innehållstyp",
+    "content-length": "Innehållslängd",
+    "cookie": "Cookie",
+    "file": "Arkiv",
+    "host": "Värd",
+    "id": "ID",
+    "import": "Importera",
+    "limit": "Begränsa",
+    "offset": "Offset",
+    "open": "Öppna",
+    "origin": "Ursprung",
+    "promptTokens": "Fråga tokens",
+    "completionTokens": "Kompletteringstokens",
+    "totalTokens": "Totala tokens",
+    "rawModel": "Rå modell",
+    "scope": "Omfattning",
+    "skill": "Skicklighet",
+    "sortBy": "Sortera efter",
+    "sortOrder": "Sorteringsordning",
+    "tab": "Tab",
+    "text": "Text",
+    "textarea": "Textområde",
+    "tool": "Verktyg",
+    "toolId": "Verktygs-ID",
+    "web": "Webb",
+    "whereUsed": "Där den används",
+    "whitelist": "Vitlista",
+    "blacklist": "Svartlista",
+    "resolve": "Lös",
+    "force": "Force",
+    "base64url": "Base64 URL",
+    "hex": "Hex",
+    "range": "Räckvidd",
+    "component": "Komponent",
+    "redirect_uri": "Omdirigera URI",
+    "idempotency-key": "Idempotensnyckel",
+    "error_description": "Felbeskrivning",
+    "code": "Kod",
+    "compatible": "Kompatibel",
+    "chat-completions": "Chattavslut",
+    "oauth": "OAuth",
+    "auth_token": "Auth Token",
+    "crypto": "Krypto",
+    "hours": "Timmar",
+    "selfsigned": "Självsignerad",
+    "proxy_id": "Proxy-ID",
+    "proxyId": "Proxy-ID",
+    "connectionId": "Anslutnings-ID",
+    "resolveConnectionId": "Lös anslutnings-ID",
+    "resolve_connection_id": "Lös anslutnings-ID",
+    "scope_id": "Omfattning ID",
+    "scopeId": "Omfattning ID",
+    "jwtSecret": "JWT hemlighet",
+    "keytar": "Keytar",
+    "better-sqlite3": "bättre-sqlite3",
+    "undici": "undici",
+    "builder-id": "Byggar-ID",
+    "musicDesc": "Musikbeskrivning",
+    "musicGeneration": "Musikgeneration",
+    "idc": "IDC",
+    "cloud-status-changed": "Molnstatus ändrad",
+    "where_used": "Där den används",
+    "windowMs": "Fönster (ms)",
+    "social-github": "GitHub",
+    "social-google": "Google",
+    "TOOL_ALLOWLIST": "Tillståndslista för verktyg",
+    "TOOL_DENYLIST": "Verktyg Denylist",
+    "Failed to save pricing": "Det gick inte att spara pris",
+    "Failed to reset pricing": "Det gick inte att återställa prissättningen",
+    "apikey": "API-nyckel",
+    "http": "HTTP"
   },
   "sidebar": {
     "home": "Hem",
@@ -103,7 +183,11 @@
     "endpoints": "Ändpunkter",
     "playground": "Lekplats",
     "agents": "Agenter",
-    "cliToolsShort": "Verktyg"
+    "cliToolsShort": "Verktyg",
+    "autoCombo": "Auto Combo",
+    "searchTools": "Search Tools",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Themes",
@@ -175,7 +259,11 @@
     "requestsShort": "{count} krav",
     "providerModelsTitle": "{provider} - Modeller",
     "copiedModel": "Kopierat: {model}",
-    "aliasLabel": "alias"
+    "aliasLabel": "alias",
+    "updateNow": "Uppdatera nu",
+    "updating": "Uppdaterar...",
+    "updateAvailableDesc": "En ny version finns tillgänglig. Klicka för att uppdatera.",
+    "updateStarted": "Uppdatering startade..."
   },
   "analytics": {
     "title": "Analytics",
@@ -268,7 +356,28 @@
     "permissionsTitle": "Behörigheter: {name}",
     "allowAllDesc": "Denna nyckel kan komma åt alla tillgängliga modeller.",
     "restrictDesc": "Denna nyckel kan komma åt {selectedCount} av {totalModels} modeller.",
-    "selectedCount": "{count} har valts"
+    "selectedCount": "{count} har valts",
+    "autoResolve": "Auto-Resolve",
+    "autoResolveDesc": "Auto-resolve ambiguous model names to native provider for this API key.",
+    "keyActive": "Key Active",
+    "keyActiveDesc": "Enable or disable this API key. Disabled keys are immediately rejected with 403.",
+    "accessSchedule": "Access Schedule",
+    "accessScheduleDesc": "Restrict access to specific hours and days of the week.",
+    "scheduleFrom": "From",
+    "scheduleUntil": "Until",
+    "scheduleDays": "Days",
+    "scheduleTimezone": "Timezone",
+    "scheduleTimezoneHint": "Use IANA timezone names, e.g. America/New_York, Europe/Berlin",
+    "scheduleActive": "Schedule",
+    "disabled": "Disabled",
+    "daySun": "Sun",
+    "dayMon": "Mon",
+    "dayTue": "Tue",
+    "dayWed": "Wed",
+    "dayThu": "Thu",
+    "dayFri": "Fri",
+    "daySat": "Sat",
+    "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key"
   },
   "auditLog": {
     "title": "Revisionslogg",
@@ -510,6 +619,9 @@
             "title": "Lägg till Model Config",
             "desc": "Lägg till följande konfiguration till din modellarray:"
           }
+        },
+        "notes": {
+          "0": "Continue använder JSON-konfigurationsfilen."
         }
       },
       "opencode": {
@@ -528,6 +640,10 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "OpenCode kräver API-nyckelkonfiguration.",
+          "1": "Ställ in basadressen till din OmniRoute-slutpunkt."
         }
       },
       "kiro": {
@@ -546,8 +662,32 @@
           "4": {
             "title": "Select Model"
           }
+        },
+        "notes": {
+          "0": "Kiro kräver Amazon-konto."
         }
       }
+    },
+    "mitmHowWorksDesc": "{toolName} sends requests to its provider endpoint. MITM intercepts and redirects them to OmniRoute.",
+    "mitmStep1": "1. Start MITM to route requests through OmniRoute.",
+    "mitmStep2Prefix": "2. Add",
+    "mitmStep2Suffix": "to your hosts file as 127.0.0.1.",
+    "mitmStep3": "3. Open {toolName} and requests will be proxied.",
+    "whenToUseLabel": "När du ska använda",
+    "openToolDocs": "Öppna verktygsdokument",
+    "toolUseCases": {
+      "claude": "Använd när du vill ha starka planeringsarbetsflöden och långa flerfilsrefaktorer med Claude Code.",
+      "codex": "Använd när ditt team är standardiserat på OpenAI Codex CLI-flöden och profilbaserad autentisering.",
+      "droid": "Använd när du behöver en lätt terminalagent fokuserad på snabb kodning och kommandokörningsloopar.",
+      "openclaw": "Använd när du vill ha en Open Claw-kodningsagent men dirigerad genom OmniRoute-policyer.",
+      "cline": "Använd när du konfigurerar kodningsagenter i redigerare och vill ha guidad installation med OmniRoute-modeller.",
+      "kilo": "Använd när ditt arbetsflöde beror på Kilo Code-kommandon och snabba iterativa redigeringar.",
+      "cursor": "Använd när du kodar i Cursor och du behöver anpassade OpenAI-kompatibla modeller genom OmniRoute.",
+      "continue": "Använd när du kör Continue i IDE och du behöver portabel JSON-baserad leverantörskonfiguration.",
+      "opencode": "Använd när du föredrar terminalbaserade agentkörningar och skriptautomation via OpenCode.",
+      "kiro": "Använd när du integrerar Kiro och styr modelldirigering centralt från OmniRoute.",
+      "antigravity": "Använd när Antigravity/Kiro-trafik måste avlyssnas genom MITM och dirigeras till OmniRoute.",
+      "copilot": "Använd när du vill ha Copilot chattstil UX samtidigt som du upprätthåller OmniRoute-nycklar och routingregler."
     }
   },
   "combos": {
@@ -864,7 +1004,12 @@
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
     "a2aQuickStartStep3": "Track and control tasks using `tasks/get` and `tasks/cancel`.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "categorySearch": "Search & Discovery",
+    "webSearch": "Web Search",
+    "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
+    "searchProvider": "Search Provider",
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1054,7 +1199,13 @@
     "resetAllTitle": "Återställ alla strömbrytare till friskt tillstånd",
     "resetting": "Återställer...",
     "resetAll": "Återställ alla",
-    "until": "Tills {time}"
+    "until": "Tills {time}",
+    "activeProviders": "{count} active",
+    "monitoredProviders": "{count} monitored",
+    "configuredProvidersLabel": "Konfigurerad i instrumentpanelen",
+    "configuredProvidersHint": "Leverantörer med autentiseringsuppgifter sparade i /dashboard/providers, oavsett körtidstillstånd.",
+    "activeProvidersHint": "Konfigurerade leverantörer som för närvarande är aktiverade för routingförfrågningar.",
+    "monitoredProvidersHint": "Leverantörer spåras för närvarande av strömbrytare hälsoövervakare."
   },
   "limits": {
     "title": "Gränser och kvoter",
@@ -1257,6 +1408,10 @@
     "chatCompletions": "Chattavslut",
     "importingModels": "Importerar...",
     "importFromModels": "Importera från /models",
+    "clearAllModels": "Rensa alla modeller",
+    "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för denna leverantör? Detta kan inte ångras.",
+    "clearAllModelsSuccess": "Alla modeller rensade",
+    "clearAllModelsFailed": "Kunde inte rensa modeller",
     "addConnectionToImport": "Lägg till en anslutning för att aktivera import.",
     "noModelsConfigured": "Inga modeller har konfigurerats",
     "connectionCount": "{count} anslutning(ar)",
@@ -1396,7 +1551,40 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "builtInModels": "Built-in models",
+    "builtInModelsHint": "Registry models for this provider. Use the pencil to set compatibility options.",
+    "normalizeToolCallIdLabel": "Normalize tool call IDs to 9 characters (e.g. Mistral)",
+    "preserveDeveloperRoleLabel": "Keep OpenAI Responses developer role (do not map to system)",
+    "compatAdjustmentsTitle": "Compatibility",
+    "compatButtonLabel": "Compatibility",
+    "compatToolIdShort": "Tool ID 9",
+    "compatDeveloperShort": "Developer role",
+    "compatDoNotPreserveDeveloper": "Do not preserve developer role",
+    "compatBadgeNoPreserve": "No preserve",
+    "compatProtocolLabel": "Client request protocol",
+    "compatProtocolHint": "These options apply when OmniRoute detects this request shape (OpenAI Chat, Responses API, or Anthropic Messages).",
+    "compatProtocolOpenAI": "OpenAI Chat Completions",
+    "compatProtocolOpenAIResponses": "OpenAI Responses API",
+    "compatProtocolClaude": "Anthropic Messages",
+    "tokenRefreshed": "Token refreshed successfully",
+    "tokenRefreshFailed": "Token refresh failed",
+    "compatBadgeUpstreamHeaders": "Headers",
+    "compatUpstreamAddRow": "Add header",
+    "compatUpstreamHeaderName": "Header name",
+    "compatUpstreamHeaderValue": "Value",
+    "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
+    "compatUpstreamHeadersLabel": "Extra upstream headers",
+    "compatUpstreamRemoveRow": "Remove row",
+    "autoSync": "Automatisk synkronisering",
+    "autoSyncTooltip": "Uppdatera modelllistan automatiskt var 24:e timme (konfigurerbar via MODEL_SYNC_INTERVAL_HOURS)",
+    "autoSyncEnabled": "Automatisk synkronisering aktiverad — modeller uppdateras regelbundet",
+    "autoSyncDisabled": "Automatisk synkronisering inaktiverad",
+    "autoSyncToggleFailed": "Det gick inte att växla automatisk synkronisering",
+    "clearAllModels": "Rensa alla modeller",
+    "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för den här leverantören? Detta kan inte ångras.",
+    "clearAllModelsSuccess": "Alla modeller rensade",
+    "clearAllModelsFailed": "Det gick inte att rensa modeller"
   },
   "settings": {
     "title": "Inställningar",
@@ -1799,7 +1987,13 @@
     "cliFingerprintDesc": "Match native CLI binary signatures when proxying requests. Reorders headers and body fields to look identical to the official CLI tools. Your proxy IP is preserved.",
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
-    "disableFingerprintTitle": "Disable fingerprint for {provider}"
+    "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "routingAdvancedGuideTitle": "Avancerad vägledning",
+    "routingAdvancedGuideHint1": "Använd Fill First för förutsägbar prioritet, Round Robin för rättvisa och P2C för latensförmåga.",
+    "routingAdvancedGuideHint2": "Om leverantörer varierar i kvalitet/kostnad, börja med Cost Opt för bakgrundsarbete och Minst Används för balanserat slitage.",
+    "comboDefaultsGuideTitle": "Hur man ställer in kombinationsinställningar",
+    "comboDefaultsGuideHint1": "Håll låga omförsök i flöden med låg latens; öka timeout endast för långa generationsuppgifter.",
+    "comboDefaultsGuideHint2": "Använd åsidosättande av leverantörer när en leverantör behöver ett annat beteende för timeout/försök igen än globala standardinställningar."
   },
   "translator": {
     "title": "Översättare",
@@ -2216,7 +2410,16 @@
     "orRemovePasswordHashField": "eller ta bort fältet passwordHash",
     "restartServerWithNewPassword": "Starta om servern - den kommer att använda det nya lösenordet",
     "backToLogin": "Tillbaka till inloggning",
-    "forgotPassword": "Glömt lösenordet?"
+    "forgotPassword": "Glömt lösenordet?",
+    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "Authorization": "Auktorisation",
+    "Content-Disposition": "Innehåll-Disposition",
+    "waitingForAuthorization": "Väntar på auktorisation...",
+    "waitingForGoogleAuthorization": "Väntar på Google-auktorisering...",
+    "waitingForOpenAIAuthorization": "Väntar på OpenAI-auktorisering...",
+    "waitingForAntigravityAuthorization": "Väntar på antigravitationstillstånd...",
+    "waitingForIFlowAuthorization": "Väntar på iFlow-auktorisering...",
+    "exchangingCodeForTokens": "Byter ut kod för tokens..."
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -2414,7 +2617,18 @@
     "troubleshootingCodexFamily": "För GitHub Codex-familjens modeller, behåll modellen som gh/codex-model; routern väljer /svarar automatiskt.",
     "troubleshootingTestConnection": "Använd Dashboard > Leverantörer > Testa anslutning innan du testar från IDE:er eller externa klienter.",
     "troubleshootingCircuitBreaker": "Om en leverantör visar att strömbrytaren är öppen, vänta på nedkylning eller kolla Health-sidan för detaljer.",
-    "troubleshootingOAuth": "För OAuth-leverantörer, autentisera på nytt om tokens löper ut. Kontrollera leverantörskortets statusindikator."
+    "troubleshootingOAuth": "För OAuth-leverantörer, autentisera på nytt om tokens löper ut. Kontrollera leverantörskortets statusindikator.",
+    "managementApiReference": "Management API Reference",
+    "managementApiDescription": "Automation endpoints for proxy registry, scope assignments, and legacy proxy migration.",
+    "mgmtProxiesListNote": "List saved proxy registry items (supports pagination).",
+    "mgmtProxiesCreateNote": "Create a reusable proxy item in the registry.",
+    "mgmtProxiesHealthNote": "Get 24h/rolling health metrics per saved proxy from proxy logs.",
+    "mgmtProxiesBulkAssignNote": "Assign or clear one proxy across many scope IDs in one request.",
+    "mgmtAssignmentsListNote": "List proxy assignments by scope, scope_id, or proxy_id.",
+    "mgmtAssignmentsUpdateNote": "Assign or clear proxy for global/provider/account/combo scope.",
+    "mgmtLegacyMigrationNote": "Import legacy proxyConfig maps into registry assignments.",
+    "endpointSpeechNote": "Text-till-tal-generering (ElevenLabs, OpenAI TTS).",
+    "endpointEmbeddingsNote": "Generering av textinbäddning (OpenAI, Cohere, Voyage)."
   },
   "legal": {
     "privacyPolicy": "Sekretesspolicy",
@@ -2503,7 +2717,21 @@
     "binaryName": "Binary Name",
     "versionCommand": "Version Command",
     "spawnArgs": "Spawn Args",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "scanning": "Scanning system for CLI agents...",
+    "opencodeIntegration": "OpenCode Integration",
+    "opencodeDetected": "opencode {version} detected",
+    "opencodeDesc": "Generate a ready-to-use {configFile} with your OmniRoute base URL and all available models — drop it in your project root and run {command}.",
+    "downloadConfig": "Download {file}",
+    "downloaded": "Downloaded!",
+    "setupGuideTitle": "Setup guide",
+    "openCliTools": "Open CLI Tools",
+    "setupGuideDetectCliTitle": "Detect installed CLIs",
+    "setupGuideDetectCliDesc": "Click Refresh after installing or updating a CLI so OmniRoute can rescan binaries and versions.",
+    "setupGuideCustomAgentTitle": "Register custom binary",
+    "setupGuideCustomAgentDesc": "Use Add Custom Agent when your CLI is not in the built-in list. Provide binary name and version command.",
+    "setupGuideCommandMissingTitle": "Fix 'command not found'",
+    "setupGuideCommandMissingDesc": "Ensure the CLI command exists in PATH, open a new terminal session, and rerun Refresh."
   },
   "autoCombo": {
     "title": "Auto-Combo Engine",
@@ -2527,5 +2755,131 @@
     "modePackCostSaver": "Cost Saver",
     "modePackQualityFirst": "Quality First",
     "modePackOfflineFriendly": "Offline Friendly"
+  },
+  "search": {
+    "searchQuery": "Search Query",
+    "searchResults": "Search Results",
+    "cachedResult": "Cached",
+    "searchCost": "Cost",
+    "searchTools": "Search Tools",
+    "searchToolsDesc": "Advanced search testing with provider comparison",
+    "compareProviders": "Compare Providers",
+    "rerankResults": "Rerank Results",
+    "searchHistory": "Search History",
+    "urlOverlap": "URL Overlap",
+    "noSearchProviders": "No search providers configured. Add providers in Settings.",
+    "noRerankModels": "No rerank model available",
+    "webSearch": "Web Search",
+    "provider": "Provider",
+    "searchType": "Search Type",
+    "maxResults": "Max Results",
+    "filters": "Filters",
+    "country": "Country",
+    "language": "Language",
+    "timeRange": "Time Range",
+    "includeDomains": "Include Domains",
+    "excludeDomains": "Exclude Domains",
+    "safeSearch": "Safe Search",
+    "formatted": "Formatted",
+    "rawJson": "JSON",
+    "cacheMiss": "cache miss",
+    "cacheHit": "cache hit",
+    "latency": "Latency",
+    "cost": "Cost",
+    "results": "Results",
+    "rerank": "Rerank",
+    "rerankModel": "Rerank Model",
+    "positionDelta": "Position Change",
+    "emptyState": "Send a search query to see results",
+    "safeSearchOff": "Off",
+    "safeSearchModerate": "Moderate",
+    "safeSearchStrict": "Strict",
+    "queryPlaceholder": "Enter search query...",
+    "providerAuto": "auto (cheapest)",
+    "searchTypeWeb": "web",
+    "searchTypeNews": "news",
+    "optionAny": "any",
+    "timeRangeDay": "Past day",
+    "timeRangeWeek": "Past week",
+    "timeRangeMonth": "Past month",
+    "timeRangeYear": "Past year",
+    "domainPlaceholder": "example.com",
+    "requestTimedOut": "Request timed out ({seconds}s)",
+    "networkError": "Network error"
+  },
+  "templateNames": {
+    "simple-chat": "Enkel chatt",
+    "streaming": "Streaming",
+    "system-prompt": "Systemprompt",
+    "thinking": "Tänker",
+    "tool-calling": "Verktygsanrop",
+    "multi-turn": "Flervarv"
+  },
+  "templateDescriptions": {
+    "simple-chat": "Grundläggande chattmall med systemmeddelande",
+    "streaming": "Mall för strömmande svar",
+    "system-prompt": "Mall med anpassad systemprompt",
+    "thinking": "Mall med resonemang/tänkebudget",
+    "tool-calling": "Mall för verktyg/funktionsanrop",
+    "multi-turn": "Mall för konversationer med flera svängar"
+  },
+  "templatePayloads": {
+    "simpleChat": {
+      "system": "Du är en hjälpsam AI-assistent.",
+      "userGreeting": "Hej! Hur kan jag hjälpa dig idag?"
+    },
+    "streaming": {
+      "prompt": "Skriv en berättelse om"
+    },
+    "systemPrompt": {
+      "question": "Vad är meningen med livet?",
+      "systemInstruction": "Ge ett genomtänkt, filosofiskt svar."
+    },
+    "thinking": {
+      "question": "Förklara kvantberäkning"
+    },
+    "toolCalling": {
+      "cityNameDescription": "Namnet på staden att få väder för",
+      "toolDescription": "Få aktuellt väder för en plats",
+      "userWeather": "Hur är vädret i Tokyo?"
+    },
+    "multiTurn": {
+      "system": "Du är en hjälpsam assistent.",
+      "assistantExample": "Jag hjälper dig gärna med det.",
+      "userInitial": "Jag behöver hjälp med",
+      "userFollowUp": "Kan du utveckla det?"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "memoryEntries": "Memory Entries",
+    "dbEntries": "DB Entries",
+    "cacheHits": "Cache Hits",
+    "tokensSaved": "Tokens Saved",
+    "hitRate": "Hit Rate",
+    "performance": "Cache Performance",
+    "behavior": "Cache Behavior",
+    "idempotency": "Idempotency Layer",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "clearError": "Failed to clear cache.",
+    "unavailable": "Cache unavailable",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntriesSub": "In-memory LRU",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "cacheHitsSub": "of {total} total",
+    "tokensSavedSub": "Estimated from hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "hits": "Hits",
+    "misses": "Misses",
+    "total": "Total",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached.",
+    "behaviorBypass": "Bypass with header {header}.",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "activeDedupKeys": "Active Dedup Keys",
+    "dedupWindow": "Dedup Window"
   }
 }

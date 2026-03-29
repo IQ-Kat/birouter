@@ -110,14 +110,14 @@ omniroute/
 
 Jediný **zdroj pravdivých informací** pro všechny konfigurace poskytovatelů.
 
-Soubor | Účel
---- | ---
-`constants.ts` | Objekt `PROVIDERS` se základními URL adresami, přihlašovacími údaji OAuth (výchozí), záhlavími a výchozími systémovými výzvami pro každého poskytovatele. Definuje také `HTTP_STATUS` , `ERROR_TYPES` , `COOLDOWN_MS` , `BACKOFF_CONFIG` a `SKIP_PATTERNS` .
-`credentialLoader.ts` | Načte externí přihlašovací údaje z `data/provider-credentials.json` a sloučí je s pevně zakódovanými výchozími hodnotami v `PROVIDERS` . Uchovává tajné údaje mimo kontrolu zdrojového kódu a zároveň zachovává zpětnou kompatibilitu.
-`providerModels.ts` | Centrální registr modelů: mapuje aliasy poskytovatelů → ID modelů. Funkce jako `getModels()` , `getProviderByAlias()` .
-`codexInstructions.ts` | Systémové instrukce vložené do požadavků Codexu (omezení úprav, pravidla sandboxu, zásady schvalování).
-`defaultThinkingSignature.ts` | Výchozí „myšlenkové“ podpisy pro modely Claude a Gemini.
-`ollamaModels.ts` | Definice schématu pro lokální Ollama modely (název, velikost, rodina, kvantizace).
+| Soubor                        | Účel                                                                                                                                                                                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `constants.ts`                | Objekt `PROVIDERS` se základními URL adresami, přihlašovacími údaji OAuth (výchozí), záhlavími a výchozími systémovými výzvami pro každého poskytovatele. Definuje také `HTTP_STATUS` , `ERROR_TYPES` , `COOLDOWN_MS` , `BACKOFF_CONFIG` a `SKIP_PATTERNS` . |
+| `credentialLoader.ts`         | Načte externí přihlašovací údaje z `data/provider-credentials.json` a sloučí je s pevně zakódovanými výchozími hodnotami v `PROVIDERS` . Uchovává tajné údaje mimo kontrolu zdrojového kódu a zároveň zachovává zpětnou kompatibilitu.                       |
+| `providerModels.ts`           | Centrální registr modelů: mapuje aliasy poskytovatelů → ID modelů. Funkce jako `getModels()` , `getProviderByAlias()` .                                                                                                                                      |
+| `codexInstructions.ts`        | Systémové instrukce vložené do požadavků Codexu (omezení úprav, pravidla sandboxu, zásady schvalování).                                                                                                                                                      |
+| `defaultThinkingSignature.ts` | Výchozí „myšlenkové“ podpisy pro modely Claude a Gemini.                                                                                                                                                                                                     |
+| `ollamaModels.ts`             | Definice schématu pro lokální Ollama modely (název, velikost, rodina, kvantizace).                                                                                                                                                                           |
 
 #### Postup načítání přihlašovacích údajů
 
@@ -194,17 +194,17 @@ classDiagram
     BaseExecutor <|-- GithubExecutor
 ```
 
-Vykonavatel | Poskytovatel | Klíčové specializace
---- | --- | ---
-`base.ts` | — | Abstraktní základ: tvorba URL adres, hlavičky, logika opakování, aktualizace přihlašovacích údajů
-`default.ts` | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Aktualizace generického tokenu OAuth pro standardní poskytovatele
-`antigravity.ts` | Kód Google Cloud | Generování ID projektu/relace, záložní více URL adres, vlastní analýza opakovaných pokusů z chybových zpráv („reset po 2h7m23s“)
-`cursor.ts` | IDE kurzoru | **Nejsložitější** : autorizace kontrolního součtu SHA-256, kódování požadavků Protobuf, analýza binárních EventStream → SSE odpovědí
-`codex.ts` | Kodex OpenAI | Vkládá systémové instrukce, spravuje úrovně myšlení, odstraňuje nepodporované parametry
-`gemini-cli.ts` | Rozhraní příkazového řádku Google Gemini | Vytvoření vlastní URL adresy ( `streamGenerateContent` ), aktualizace tokenu Google OAuth
-`github.ts` | GitHub Copilot | Systém duálních tokenů (GitHub OAuth + Copilot token), napodobování hlaviček VSCode
-`kiro.ts` | AWS CodeWhisperer | Binární parsování AWS EventStream, rámce událostí AMZN, odhad tokenů
-`index.ts` | — | Továrna: název poskytovatele map → třída exekutoru s výchozím záložním nastavením
+| Vykonavatel      | Poskytovatel                               | Klíčové specializace                                                                                                                 |
+| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `base.ts`        | —                                          | Abstraktní základ: tvorba URL adres, hlavičky, logika opakování, aktualizace přihlašovacích údajů                                    |
+| `default.ts`     | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Aktualizace generického tokenu OAuth pro standardní poskytovatele                                                                    |
+| `antigravity.ts` | Kód Google Cloud                           | Generování ID projektu/relace, záložní více URL adres, vlastní analýza opakovaných pokusů z chybových zpráv („reset po 2h7m23s“)     |
+| `cursor.ts`      | IDE kurzoru                                | **Nejsložitější** : autorizace kontrolního součtu SHA-256, kódování požadavků Protobuf, analýza binárních EventStream → SSE odpovědí |
+| `codex.ts`       | OpenAI Codex                               | Vkládá systémové instrukce, spravuje úrovně myšlení, odstraňuje nepodporované parametry                                              |
+| `gemini-cli.ts`  | Google Gemini CLI                          | Vytvoření vlastní URL adresy ( `streamGenerateContent` ), aktualizace tokenu Google OAuth                                            |
+| `github.ts`      | GitHub Copilot                             | Systém duálních tokenů (GitHub OAuth + Copilot token), napodobování hlaviček VSCode                                                  |
+| `kiro.ts`        | AWS CodeWhisperer                          | Binární parsování AWS EventStream, rámce událostí AMZN, odhad tokenů                                                                 |
+| `index.ts`       | —                                          | Továrna: název poskytovatele map → třída exekutoru s výchozím záložním nastavením                                                    |
 
 ---
 
@@ -212,12 +212,12 @@ Vykonavatel | Poskytovatel | Klíčové specializace
 
 **Orchestrační vrstva** – koordinuje překlad, provádění, streamování a zpracování chyb.
 
-Soubor | Účel
---- | ---
-`chatCore.ts` | **Centrální orchestrátor** (~600 řádků). Zvládá kompletní životní cyklus požadavku: detekce formátu → překlad → odeslání exekutoru → streamovaná/nestreamovaná odpověď → aktualizace tokenu → zpracování chyb → protokolování využití.
-`responsesHandler.ts` | Adaptér pro OpenAI Responses API: převádí formát odpovědí → Dokončení chatu → odesílá do `chatCore` → převádí SSE zpět do formátu odpovědí.
-`embeddings.ts` | Obslužná rutina generování embeddingu: řeší model embeddingu → poskytovatele, odesílá do API poskytovatele, vrací odpověď na embedding kompatibilní s OpenAI. Podporuje 6+ poskytovatelů.
-`imageGeneration.ts` | Obslužná rutina generování obrázků: řeší model obrázku → poskytovatele, podporuje režimy kompatibilní s OpenAI, Gemini-image (Antigravity) a fallback (Nebius). Vrací obrázky v base64 nebo URL.
+| Soubor                | Účel                                                                                                                                                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chatCore.ts`         | **Centrální orchestrátor** (~600 řádků). Zvládá kompletní životní cyklus požadavku: detekce formátu → překlad → odeslání exekutoru → streamovaná/nestreamovaná odpověď → aktualizace tokenu → zpracování chyb → protokolování využití. |
+| `responsesHandler.ts` | Adaptér pro OpenAI Responses API: převádí formát odpovědí → Dokončení chatu → odesílá do `chatCore` → převádí SSE zpět do formátu odpovědí.                                                                                            |
+| `embeddings.ts`       | Obslužná rutina generování embeddingu: řeší model embeddingu → poskytovatele, odesílá do API poskytovatele, vrací odpověď na embedding kompatibilní s OpenAI. Podporuje 6+ poskytovatelů.                                              |
+| `imageGeneration.ts`  | Obslužná rutina generování obrázků: řeší model obrázku → poskytovatele, podporuje režimy kompatibilní s OpenAI, Gemini-image (Antigravity) a fallback (Nebius). Vrací obrázky v base64 nebo URL.                                       |
 
 #### Životní cyklus požadavku (chatCore.ts)
 
@@ -262,22 +262,22 @@ sequenceDiagram
 
 Obchodní logika, která podporuje obslužné rutiny a vykonavatele.
 
-Soubor | Účel
---- | ---
-`provider.ts` | **Detekce formátu** ( `detectFormat` ): analyzuje strukturu těla požadavku a identifikuje formáty Claude/OpenAI/Gemini/Antigravity/Responses (včetně heuristiky `max_tokens` pro Claude). Dále: tvorba URL, tvorba hlaviček, normalizace konfigurace thinking. Podporuje dynamické poskytovatele kompatibilní `openai-compatible-*` a `anthropic-compatible-*` .
-`model.ts` | Analýza řetězců modelu ( `claude/model-name` → `{provider: "claude", model: "model-name"}` ), rozlišení aliasů s detekcí kolizí, sanitizace vstupu (odmítá průchod cestou/řídicí znaky) a rozlišení informací o modelu s podporou asynchronních metod pro získávání aliasů.
-`accountFallback.ts` | Ovládání limitů rychlosti: exponenciální upomínka (1 s → 2 s → 4 s → max. 2 min), správa doby zpoždění účtu, klasifikace chyb (které chyby spouštějí fallback a které ne).
-`tokenRefresh.ts` | Aktualizace tokenu OAuth pro **všechny poskytovatele** : Google (Gemini, Antigravity), Claude, Codex, Qwen, iFlow, GitHub (duální token OAuth + Copilot), Kiro (AWS SSO OIDC + sociální ověřování). Zahrnuje mezipaměť deduplikace promise za provozu a opakování s exponenciálním zpožděním.
-`combo.ts` | **Kombinované modely** : řetězce záložních modelů. Pokud model A selže s chybou způsobilou pro záložní model, zkuste model B, poté C atd. Vrací skutečné stavové kódy upstreamu.
-`usage.ts` | Načítá data o kvótách/využití z API poskytovatelů (kvóty GitHub Copilot, kvóty modelu Antigravity, limity rychlosti Codexu, rozpisy využití Kiro, nastavení Claude).
-`accountSelector.ts` | Inteligentní výběr účtu s algoritmem bodování: pro výběr optimálního účtu pro každý požadavek se zohledňuje priorita, zdravotní stav, pozice v systému round robin a stav ochlazování.
-`contextManager.ts` | Správa životního cyklu kontextu požadavku: vytváří a sleduje objekty kontextu pro každý požadavek s metadaty (ID požadavku, časová razítka, informace o poskytovateli) pro ladění a protokolování.
-`ipFilter.ts` | Řízení přístupu založené na IP adrese: podporuje režimy povolených seznamů a blokovaných seznamů. Před zpracováním požadavků API ověřuje IP adresu klienta podle nakonfigurovaných pravidel.
-`sessionManager.ts` | Sledování relací s otisky prstů klientů: sleduje aktivní relace pomocí hašovaných identifikátorů klientů, monitoruje počty požadavků a poskytuje metriky relací.
-`signatureCache.ts` | Mezipaměť deduplikace na základě signatur požadavků: zabraňuje duplicitním požadavkům ukládáním nedávných signatur požadavků do mezipaměti a vrácením odpovědí z mezipaměti pro identické požadavky v rámci časového okna.
-`systemPrompt.ts` | Globální vložení systémového výzvy: přidá konfigurovatelnou systémovou výzvu ke všem požadavkům s možností kompatibility pro jednotlivé poskytovatele.
-`thinkingBudget.ts` | Správa rozpočtu tokenů uvažování: podporuje režimy průchodu, automatický (konfigurace strip thinking), vlastní (pevný rozpočet) a adaptivní (měřítko složitosti) pro řízení tokenů myšlení/uvažování.
-`wildcardRouter.ts` | Směrování podle vzorů zástupných znaků: rozpoznává vzory zástupných znaků (např. `*/claude-*` ) na konkrétní páry poskytovatel/model na základě dostupnosti a priority.
+| Soubor               | Účel                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `provider.ts`        | **Detekce formátu** ( `detectFormat` ): analyzuje strukturu těla požadavku a identifikuje formáty Claude/OpenAI/Gemini/Antigravity/Responses (včetně heuristiky `max_tokens` pro Claude). Dále: tvorba URL, tvorba hlaviček, normalizace konfigurace thinking. Podporuje dynamické poskytovatele kompatibilní `openai-compatible-*` a `anthropic-compatible-*` . |
+| `model.ts`           | Analýza řetězců modelu ( `claude/model-name` → `{provider: "claude", model: "model-name"}` ), rozlišení aliasů s detekcí kolizí, sanitizace vstupu (odmítá průchod cestou/řídicí znaky) a rozlišení informací o modelu s podporou asynchronních metod pro získávání aliasů.                                                                                      |
+| `accountFallback.ts` | Ovládání limitů rychlosti: exponenciální upomínka (1 s → 2 s → 4 s → max. 2 min), správa doby zpoždění účtu, klasifikace chyb (které chyby spouštějí fallback a které ne).                                                                                                                                                                                       |
+| `tokenRefresh.ts`    | Aktualizace tokenu OAuth pro **všechny poskytovatele** : Google (Gemini, Antigravity), Claude, Codex, Qwen, iFlow, GitHub (duální token OAuth + Copilot), Kiro (AWS SSO OIDC + sociální ověřování). Zahrnuje mezipaměť deduplikace promise za provozu a opakování s exponenciálním zpožděním.                                                                    |
+| `combo.ts`           | **Kombinované modely** : řetězce záložních modelů. Pokud model A selže s chybou způsobilou pro záložní model, zkuste model B, poté C atd. Vrací skutečné stavové kódy upstreamu.                                                                                                                                                                                 |
+| `usage.ts`           | Načítá data o kvótách/využití z API poskytovatelů (kvóty GitHub Copilot, kvóty modelu Antigravity, limity rychlosti Codexu, rozpisy využití Kiro, nastavení Claude).                                                                                                                                                                                             |
+| `accountSelector.ts` | Inteligentní výběr účtu s algoritmem bodování: pro výběr optimálního účtu pro každý požadavek se zohledňuje priorita, zdravotní stav, pozice v systému round robin a stav ochlazování.                                                                                                                                                                           |
+| `contextManager.ts`  | Správa životního cyklu kontextu požadavku: vytváří a sleduje objekty kontextu pro každý požadavek s metadaty (ID požadavku, časová razítka, informace o poskytovateli) pro ladění a protokolování.                                                                                                                                                               |
+| `ipFilter.ts`        | Řízení přístupu založené na IP adrese: podporuje režimy povolených seznamů a blokovaných seznamů. Před zpracováním požadavků API ověřuje IP adresu klienta podle nakonfigurovaných pravidel.                                                                                                                                                                     |
+| `sessionManager.ts`  | Sledování relací s otisky prstů klientů: sleduje aktivní relace pomocí hašovaných identifikátorů klientů, monitoruje počty požadavků a poskytuje metriky relací.                                                                                                                                                                                                 |
+| `signatureCache.ts`  | Mezipaměť deduplikace na základě signatur požadavků: zabraňuje duplicitním požadavkům ukládáním nedávných signatur požadavků do mezipaměti a vrácením odpovědí z mezipaměti pro identické požadavky v rámci časového okna.                                                                                                                                       |
+| `systemPrompt.ts`    | Globální vložení systémového výzvy: přidá konfigurovatelnou systémovou výzvu ke všem požadavkům s možností kompatibility pro jednotlivé poskytovatele.                                                                                                                                                                                                           |
+| `thinkingBudget.ts`  | Správa rozpočtu tokenů uvažování: podporuje režimy průchodu, automatický (konfigurace strip thinking), vlastní (pevný rozpočet) a adaptivní (měřítko složitosti) pro řízení tokenů myšlení/uvažování.                                                                                                                                                            |
+| `wildcardRouter.ts`  | Směrování podle vzorů zástupných znaků: rozpoznává vzory zástupných znaků (např. `*/claude-*` ) na konkrétní páry poskytovatel/model na základě dostupnosti a priority.                                                                                                                                                                                          |
 
 #### Deduplikace obnovení tokenů
 
@@ -374,13 +374,13 @@ graph TD
     end
 ```
 
-Adresář | Soubory | Popis
---- | --- | ---
-`request/` | 8 překladatelů | Převod těl požadavků mezi formáty. Každý soubor se při importu sám zaregistruje pomocí `register(from, to, fn)` .
-`response/` | 7 překladatelů | Převádí bloky odpovědí streamovaných dat mezi formáty. Zpracovává typy událostí SSE, myšlenkové bloky a volání nástrojů.
-`helpers/` | 6 pomocníků | Sdílené utility: `claudeHelper` (extrakce systémových prompts, thinking config), `geminiHelper` (mapování částí/obsahu), `openaiHelper` (filtrování formátů), `toolCallHelper` (generování ID, vkládání chybějících odpovědí), `maxTokensHelper` , `responsesApiHelper` .
-`index.ts` | — | Překladový engine: `translateRequest()` , `translateResponse()` , správa stavu, registr.
-`formats.ts` | — | Formátovací konstanty: `OPENAI` , `CLAUDE` , `GEMINI` , `ANTIGRAVITY` , `KIRO` , `CURSOR` , `OPENAI_RESPONSES` .
+| Adresář      | Soubory        | Popis                                                                                                                                                                                                                                                                     |
+| ------------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `request/`   | 8 překladatelů | Převod těl požadavků mezi formáty. Každý soubor se při importu sám zaregistruje pomocí `register(from, to, fn)` .                                                                                                                                                         |
+| `response/`  | 7 překladatelů | Převádí bloky odpovědí streamovaných dat mezi formáty. Zpracovává typy událostí SSE, myšlenkové bloky a volání nástrojů.                                                                                                                                                  |
+| `helpers/`   | 6 pomocníků    | Sdílené utility: `claudeHelper` (extrakce systémových prompts, thinking config), `geminiHelper` (mapování částí/obsahu), `openaiHelper` (filtrování formátů), `toolCallHelper` (generování ID, vkládání chybějících odpovědí), `maxTokensHelper` , `responsesApiHelper` . |
+| `index.ts`   | —              | Překladový engine: `translateRequest()` , `translateResponse()` , správa stavu, registr.                                                                                                                                                                                  |
+| `formats.ts` | —              | Formátovací konstanty: `OPENAI` , `CLAUDE` , `GEMINI` , `ANTIGRAVITY` , `KIRO` , `CURSOR` , `OPENAI_RESPONSES` .                                                                                                                                                          |
 
 #### Klíčový design: Samoregistrující se pluginy
 
@@ -397,15 +397,15 @@ import "./request/claude-to-openai.js"; // ← self-registers
 
 ### 4.6 Nástroje ( `open-sse/utils/` )
 
-Soubor | Účel
---- | ---
-`error.ts` | Vytváření chybové odezvy (formát kompatibilní s OpenAI), parsování chyb v upstreamu, extrakce doby opakování Antigravity z chybových zpráv, streamování chyb SSE.
-`stream.ts` | **SSE Transform Stream** — základní streamovací kanál. Dva režimy: `TRANSLATE` (plný překlad formátu) a `PASSTHROUGH` (normalizace + extrakce využití). Zpracovává ukládání bloků do vyrovnávací paměti, odhad využití a sledování délky obsahu. Instance kodéru/dekodéru pro každý stream se vyhýbají sdílenému stavu.
-`streamHelpers.ts` | Nízkoúrovňové utility SSE: `parseSSELine` (tolerantní k bílým znakům), `hasValuableContent` (filtruje prázdné segmenty pro OpenAI/Claude/Gemini), `fixInvalidId` , `formatSSE` (serializace SSE s ohledem na formát s čištěním `perf_metrics` ).
-`usageTracking.ts` | Extrakce využití tokenů z libovolného formátu (Claude/OpenAI/Gemini/Responses), odhad s oddělenými poměry znaků na token pro jednotlivé nástroje/zprávy, přidání vyrovnávací paměti (bezpečnostní rezerva 2000 tokenů), filtrování polí specifických pro formát, protokolování konzole s barvami ANSI.
-`requestLogger.ts` | Protokolování požadavků na základě souborů (přihlášení pomocí `ENABLE_REQUEST_LOGS=true` ). Vytváří složky relací s očíslovanými soubory: `1_req_client.json` → `7_res_client.txt` . Veškeré I/O operace jsou asynchronní (aktivní a zapomenutý). Maskuje citlivé hlavičky.
-`bypassHandler.ts` | Zachycuje specifické vzory z Claude CLI (extrakce názvu, zahřívání, počet) a vrací falešné odpovědi bez volání jakéhokoli poskytovatele. Podporuje streamování i nestreamování. Záměrně omezeno na rozsah Claude CLI.
-`networkProxy.ts` | Rozpozná URL odchozí proxy pro daného poskytovatele s prioritou: konfigurace specifická pro poskytovatele → globální konfigurace → proměnné prostředí ( `HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` ). Podporuje výjimky `NO_PROXY` . Ukládá konfiguraci do mezipaměti po dobu 30 sekund.
+| Soubor             | Účel                                                                                                                                                                                                                                                                                                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `error.ts`         | Vytváření chybové odezvy (formát kompatibilní s OpenAI), parsování chyb v upstreamu, extrakce doby opakování Antigravity z chybových zpráv, streamování chyb SSE.                                                                                                                                                       |
+| `stream.ts`        | **SSE Transform Stream** — základní streamovací kanál. Dva režimy: `TRANSLATE` (plný překlad formátu) a `PASSTHROUGH` (normalizace + extrakce využití). Zpracovává ukládání bloků do vyrovnávací paměti, odhad využití a sledování délky obsahu. Instance kodéru/dekodéru pro každý stream se vyhýbají sdílenému stavu. |
+| `streamHelpers.ts` | Nízkoúrovňové utility SSE: `parseSSELine` (tolerantní k bílým znakům), `hasValuableContent` (filtruje prázdné segmenty pro OpenAI/Claude/Gemini), `fixInvalidId` , `formatSSE` (serializace SSE s ohledem na formát s čištěním `perf_metrics` ).                                                                        |
+| `usageTracking.ts` | Extrakce využití tokenů z libovolného formátu (Claude/OpenAI/Gemini/Responses), odhad s oddělenými poměry znaků na token pro jednotlivé nástroje/zprávy, přidání vyrovnávací paměti (bezpečnostní rezerva 2000 tokenů), filtrování polí specifických pro formát, protokolování konzole s barvami ANSI.                  |
+| `requestLogger.ts` | Protokolování požadavků na základě souborů (přihlášení pomocí `ENABLE_REQUEST_LOGS=true` ). Vytváří složky relací s očíslovanými soubory: `1_req_client.json` → `7_res_client.txt` . Veškeré I/O operace jsou asynchronní (aktivní a zapomenutý). Maskuje citlivé hlavičky.                                             |
+| `bypassHandler.ts` | Zachycuje specifické vzory z Claude CLI (extrakce názvu, zahřívání, počet) a vrací falešné odpovědi bez volání jakéhokoli poskytovatele. Podporuje streamování i nestreamování. Záměrně omezeno na rozsah Claude CLI.                                                                                                   |
+| `networkProxy.ts`  | Rozpozná URL odchozí proxy pro daného poskytovatele s prioritou: konfigurace specifická pro poskytovatele → globální konfigurace → proměnné prostředí ( `HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` ). Podporuje výjimky `NO_PROXY` . Ukládá konfiguraci do mezipaměti po dobu 30 sekund.                                |
 
 #### Streamovací kanál SSE
 
@@ -449,32 +449,32 @@ logs/
 
 ### 4.7 Aplikační vrstva ( `src/` )
 
-Adresář | Účel
---- | ---
-`src/app/` | Webové uživatelské rozhraní, trasy API, middleware Express, obslužné rutiny zpětných volání OAuth
-`src/lib/` | Přístup k databázi ( `localDb.ts` , `usageDb.ts` ), ověřování, sdílení
-`src/mitm/` | Nástroje proxy typu „man-in-the-middle“ pro zachycení provozu poskytovatelů
-`src/models/` | Definice modelů databáze
-`src/shared/` | Obálky kolem funkcí open-sse (provider, stream, error atd.)
-`src/sse/` | Obslužné rutiny koncových bodů SSE, které propojují knihovnu open-sse s trasami Express
-`src/store/` | Správa stavu aplikací
+| Adresář       | Účel                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| `src/app/`    | Webové uživatelské rozhraní, trasy API, middleware Express, obslužné rutiny zpětných volání OAuth |
+| `src/lib/`    | Přístup k databázi ( `localDb.ts` , `usageDb.ts` ), ověřování, sdílení                            |
+| `src/mitm/`   | Nástroje proxy typu „man-in-the-middle“ pro zachycení provozu poskytovatelů                       |
+| `src/models/` | Definice modelů databáze                                                                          |
+| `src/shared/` | Obálky kolem funkcí open-sse (provider, stream, error atd.)                                       |
+| `src/sse/`    | Obslužné rutiny koncových bodů SSE, které propojují knihovnu open-sse s trasami Express           |
+| `src/store/`  | Správa stavu aplikací                                                                             |
 
 #### Významné trasy API
 
-Trasa | Metody | Účel
---- | --- | ---
-`/api/provider-models` | ZÍSKAT/ODESLAT/SMAZAT | CRUD pro vlastní modely na poskytovatele
-`/api/models/catalog` | ZÍSKAT | Agregovaný katalog všech modelů (chat, embedding, image, custom) seskupených podle poskytovatele
-`/api/settings/proxy` | ZÍSKAT/VLOŽIT/ODSTRANIT | Konfigurace hierarchické odchozí proxy ( `global/providers/combos/keys` )
-`/api/settings/proxy/test` | ZVEŘEJNIT | Ověřuje připojení proxy a vrací veřejnou IP adresu/latenci
-`/v1/providers/[provider]/chat/completions` | ZVEŘEJNIT | Vyhrazené dokončování chatu pro jednotlivé poskytovatele s ověřováním modelu
-`/v1/providers/[provider]/embeddings` | ZVEŘEJNIT | Vyhrazené vkládání pro jednotlivé poskytovatele s ověřováním modelu
-`/v1/providers/[provider]/images/generations` | ZVEŘEJNIT | Vyhrazené generování obrázků pro každého poskytovatele s ověřováním modelu
-`/api/settings/ip-filter` | ZÍSKAT/VLOŽIT | Správa povolených/blokovaných IP adres
-`/api/settings/thinking-budget` | ZÍSKAT/VLOŽIT | Konfigurace rozpočtu tokenů zdůvodnění (průchozí/automatická/vlastní/adaptivní)
-`/api/settings/system-prompt` | ZÍSKAT/VLOŽIT | Globální vložení systémového promptu pro všechny požadavky
-`/api/sessions` | ZÍSKAT | Sledování a metriky aktivních relací
-`/api/rate-limits` | ZÍSKAT | Stav limitu sazby na účet
+| Trasa                                         | Metody          | Účel                                                                                             |
+| --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------ |
+| `/api/provider-models`                        | GET/POST/DELETE | CRUD pro vlastní modely na poskytovatele                                                         |
+| `/api/models/catalog`                         | GET             | Agregovaný katalog všech modelů (chat, embedding, image, custom) seskupených podle poskytovatele |
+| `/api/settings/proxy`                         | GET/PUT/DELETE  | Konfigurace hierarchické odchozí proxy ( `global/providers/combos/keys` )                        |
+| `/api/settings/proxy/test`                    | POST            | Ověřuje připojení proxy a vrací veřejnou IP adresu/latenci                                       |
+| `/v1/providers/[provider]/chat/completions`   | POST            | Vyhrazené dokončování chatu pro jednotlivé poskytovatele s ověřováním modelu                     |
+| `/v1/providers/[provider]/embeddings`         | POST            | Vyhrazené vkládání pro jednotlivé poskytovatele s ověřováním modelu                              |
+| `/v1/providers/[provider]/images/generations` | POST            | Vyhrazené generování obrázků pro každého poskytovatele s ověřováním modelu                       |
+| `/api/settings/ip-filter`                     | GET/PUT         | Správa povolených/blokovaných IP adres                                                           |
+| `/api/settings/thinking-budget`               | GET/PUT         | Konfigurace rozpočtu tokenů zdůvodnění (průchozí/automatická/vlastní/adaptivní)                  |
+| `/api/settings/system-prompt`                 | GET/PUT         | Globální vložení systémového promptu pro všechny požadavky                                       |
+| `/api/sessions`                               | GET             | Sledování a metriky aktivních relací                                                             |
+| `/api/rate-limits`                            | GET             | Stav limitu sazby na účet                                                                        |
 
 ---
 
@@ -512,38 +512,38 @@ K hlášenému využití je přidána vyrovnávací paměť o kapacitě 2000 tok
 
 ## 6. Podporované formáty
 
-Formát | Směr | Identifikátor
---- | --- | ---
-Dokončení chatu OpenAI | zdroj + cíl | `openai`
-API pro odpovědi OpenAI | zdroj + cíl | `openai-responses`
-Antropický Claude | zdroj + cíl | `claude`
-Google Gemini | zdroj + cíl | `gemini`
-Rozhraní příkazového řádku Google Gemini | pouze cíl | `gemini-cli`
-Antigravitace | zdroj + cíl | `antigravity`
-AWS Kiro | pouze cíl | `kiro`
-Kurzor | pouze cíl | `cursor`
+| Formát                  | Směr        | Identifikátor      |
+| ----------------------- | ----------- | ------------------ |
+| OpenAI Chat Completions | zdroj + cíl | `openai`           |
+| OpenAI Responses API    | zdroj + cíl | `openai-responses` |
+| Anthropic Claude        | zdroj + cíl | `claude`           |
+| Google Gemini           | zdroj + cíl | `gemini`           |
+| Google Gemini CLI       | jen cíl     | `gemini-cli`       |
+| Antigravity             | zdroj + cíl | `antigravity`      |
+| AWS Kiro                | jen cíl     | `kiro`             |
+| Cursor                  | jen cíl     | `cursor`           |
 
 ---
 
 ## 7. Podporovaní poskytovatelé
 
-Poskytovatel | Metoda ověřování | Vykonavatel | Klíčové poznámky
---- | --- | --- | ---
-Antropický Claude | Klíč API nebo OAuth | Výchozí | Používá hlavičku `x-api-key`
-Google Gemini | Klíč API nebo OAuth | Výchozí | Používá hlavičku `x-goog-api-key`
-Rozhraní příkazového řádku Google Gemini | OAuth | GeminiCLI | Používá koncový bod `streamGenerateContent`
-Antigravitace | OAuth | Antigravitace | Záložní více URL adres, vlastní analýza opakovaných pokusů
-OpenAI | Klíč API | Výchozí | Autorizace standardního nosiče
-Kodex | OAuth | Kodex | Vkládá systémové instrukce, řídí myšlení
-GitHub Copilot | OAuth + token Copilot | Github | Duální token, napodobování záhlaví VSCode
-Kiro (AWS) | AWS SSO OIDC nebo sociální sítě | Kiro | Analýza binárního EventStreamu
-IDE kurzoru | Autorizace kontrolního součtu | Kurzor | Kódování Protobuf, kontrolní součty SHA-256
-Qwen | OAuth | Výchozí | Standardní ověřování
-iFlow | OAuth (základní + nosič) | Výchozí | Duální hlavička pro autorizaci
-OpenRouter | Klíč API | Výchozí | Autorizace standardního nosiče
-GLM, Kimi, MiniMax | Klíč API | Výchozí | Kompatibilní s Claude, použijte `x-api-key`
-`openai-compatible-*` | Klíč API | Výchozí | Dynamické: jakýkoli koncový bod kompatibilní s OpenAI
-`anthropic-compatible-*` | Klíč API | Výchozí | Dynamický: jakýkoli koncový bod kompatibilní s Claude
+| Poskytovatel             | Metoda ověřování         | Vykonavatel | Klíčové poznámky                             |
+| ------------------------ | ------------------------ | ----------- | -------------------------------------------- |
+| Anthropic Claude         | API klíč nebo OAuth      | Výchozí     | Používá hlavičku `x-api-key`                 |
+| Google Gemini            | API klíč nebo OAuth      | Výchozí     | Používá hlavičku `x-goog-api-key`            |
+| Google Gemini CLI        | OAuth                    | GeminiCLI   | Používá koncový bod `streamGenerateContent`  |
+| Antigravity              | OAuth                    | Antigravity | Záložní více URL, analýza opakovaných pokusů |
+| OpenAI                   | API klíč                 | Výchozí     | Autorizace standardního nosiče               |
+| Codex                    | OAuth                    | Codex       | Vkládá systémové instrukce, řídí myšlení     |
+| GitHub Copilot           | OAuth + Copilot token    | Github      | Duální token, napodobování záhlaví VSCode    |
+| Kiro (AWS)               | AWS SSO OIDC nebo Social | Kiro        | Analýza binárního EventStreamu               |
+| Cursor IDE               | Checksum auth            | Cursor      | Kódování Protobuf, kontrolní součty SHA-256  |
+| Qwen                     | OAuth                    | Výchozí     | Standardní ověřování                         |
+| iFlow                    | OAuth (Basic + Bearer)   | Výchozí     | Duální hlavička pro autorizaci               |
+| OpenRouter               | API klíč                 | Výchozí     | Autorizace standardního nosiče               |
+| GLM, Kimi, MiniMax       | API klíč                 | Výchozí     | Kompatibilní s Claude, použijte `x-api-key`  |
+| `openai-compatible-*`    | API klíč                 | Výchozí     | Dynamické: jakýkoli OpenAI kompatibilní      |
+| `anthropic-compatible-*` | API klíč                 | Výchozí     | Dynamické: jakýkoli Claude kompatibilní      |
 
 ---
 

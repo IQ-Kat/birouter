@@ -93,7 +93,18 @@ export function openaiToClaudeResponse(chunk, state) {
   }
 
   // Handle reasoning_content (thinking) - GLM, DeepSeek, etc.
-  const reasoningContent = delta?.reasoning_content || delta?.reasoning;
+  // Also supports 'reasoning' field alias and reasoning_details[] (StepFun/OpenRouter)
+  let reasoningContent = delta?.reasoning_content || delta?.reasoning;
+  if (!reasoningContent && Array.isArray(delta?.reasoning_details)) {
+    const parts: string[] = [];
+    for (const detail of delta.reasoning_details) {
+      if (detail && typeof detail === "object") {
+        const text = detail.text || detail.content;
+        if (typeof text === "string" && text) parts.push(text);
+      }
+    }
+    if (parts.length > 0) reasoningContent = parts.join("");
+  }
   if (reasoningContent) {
     stopTextBlock(state, results);
 

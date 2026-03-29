@@ -11,28 +11,6 @@ _Din universelle API-proxy – ett endepunkt, 36+ leverandører, null nedetid._
 
 ---
 
-### 🆕 What's New in v2.7.0
-
-- **Pluggable RouterStrategy** — rules, cost, and latency routing strategies
-- **Multilingual intent detection** — routing scoring in 30+ languages
-- **Request deduplication** — prevent duplicate API calls via content hash
-- **New providers:** Grok-4 Fast (xAI), GLM-5 / Z.AI, MiniMax M2.5, Kimi K2.5
-- **Updated pricing:** Grok-4 Fast $0.20/$0.50/M, GLM-5 $0.50/M, MiniMax M2.5 $0.30/M
-
----
-
-### 🚀 New in v2.0.9+ — Playground, CLI Fingerprints & ACP
-
-| Feature                                    | What It Does                                                                                                                                  |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                        |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved** |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw), process spawner, `/api/acp/agents` endpoint                                 |
-| 🤖 **ACP Agents Dashboard**                | Debug > Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool                                      |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                               |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                   |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                      |
-
 ### 🤖 Gratis AI-leverandør for dine favorittkodeagenter
 
 _Koble til ethvert AI-drevet IDE- eller CLI-verktøy gjennom OmniRoute – gratis API-gateway for ubegrenset koding._
@@ -115,6 +93,35 @@ _Koble til ethvert AI-drevet IDE- eller CLI-verktøy gjennom OmniRoute – grati
   </table>
 
 <sub>📡 Alle agenter kobler til via <code>http://localhost:20128/v1</code> eller <code>http://cloud.omniroute.online/v1</code>, —limited one models_245 kvote</sub>
+
+---
+
+### 🆕 What's New in v3.0.0
+
+| Area                            | Change                                                                            |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**          | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**         | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**       | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
+| 🔑 **Registered Keys API**      | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 👁️ **Scoped API Key Reveal** 🆕 | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                            |
+| 🎨 **Provider Icons**           | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**          | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**          | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**                | Full test suite passes with 0 failures                                            |
+
+### 🆕 What's New in v3.0.0
+
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
+| 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ---
 
@@ -902,19 +909,20 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### 📊 Observerbarhet og analyse
 
-| Funksjon                   | Hva det gjør                                                                        |
-| -------------------------- | ----------------------------------------------------------------------------------- |
-| 📝 **Be om logging**       | Feilsøkingsmodus med fullstendige forespørsels-/svarlogger                          |
-| 💾 **SQLite proxy-logger** | Vedvarende proxy-logger overlever omstart av server                                 |
-| 📊 **Analytics Dashboard** | Recharts-drevet: statistikkkort, modellbruksdiagram, leverandørtabell               |
-| 📈 **Fremdriftssporing**   | Opt-in SSE-fremdriftshendelser for streaming                                        |
-| 🧪 **LLM-evalueringer**    | Gylden sett-testing med 4 kampstrategier                                            |
-| 🔍 **Be om telemetri**     | p50/p95/p99 latensaggregering + X-Request-Id-sporing                                |
-| 📋 **Logger Dashboard**    | Samlet side med 4 faner: Forespørselslogger, proxy-logger, revisjonslogger, konsoll |
-| 🖥️ **Konsollloggvisning**  | Viser i sanntid i terminalstil med nivåfilter, søk, automatisk rulling              |
-| 📑 **Filbasert logging**   | Console interceptor fanger opp all utgang til JSON-loggfil med rotasjon             |
-| 🏥 **Helse Dashboard**     | Systemoppetid, strømbrytertilstander, sperringer, cachestatistikk                   |
-| 💰 **Kostnadssporing**     | Budsjettadministrasjon + priskonfigurasjon per modell                               |
+| Funksjon                         | Hva det gjør                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------------------- |
+| 📝 **Be om logging**             | Feilsøkingsmodus med fullstendige forespørsels-/svarlogger                          |
+| 📉 **Streamed Detailed Logs** 🆕 | Reconstructs SSE payload streams cleanly into the UI                                |
+| 💾 **SQLite proxy-logger**       | Vedvarende proxy-logger overlever omstart av server                                 |
+| 📊 **Analytics Dashboard**       | Recharts-drevet: statistikkkort, modellbruksdiagram, leverandørtabell               |
+| 📈 **Fremdriftssporing**         | Opt-in SSE-fremdriftshendelser for streaming                                        |
+| 🧪 **LLM-evalueringer**          | Gylden sett-testing med 4 kampstrategier                                            |
+| 🔍 **Be om telemetri**           | p50/p95/p99 latensaggregering + X-Request-Id-sporing                                |
+| 📋 **Logger Dashboard**          | Samlet side med 4 faner: Forespørselslogger, proxy-logger, revisjonslogger, konsoll |
+| 🖥️ **Konsollloggvisning**        | Viser i sanntid i terminalstil med nivåfilter, søk, automatisk rulling              |
+| 📑 **Filbasert logging**         | Console interceptor fanger opp all utgang til JSON-loggfil med rotasjon             |
+| 🏥 **Helse Dashboard**           | Systemoppetid, strømbrytertilstander, sperringer, cachestatistikk                   |
+| 💰 **Kostnadssporing**           | Budsjettadministrasjon + priskonfigurasjon per modell                               |
 
 ### ☁️ Implementering og synkronisering
 
@@ -928,6 +936,9 @@ npm run electron:build:linux   # Linux (.AppImage)
 | 🔄 **DB-sikkerhetskopier**       | Automatisk sikkerhetskopiering, gjenoppretting, eksport og import for alle innstillinger |
 | 🌐 **Internasjonalisering**      | Full i18n med neste-intl — støtte for engelsk + portugisisk (Brasil)                     |
 | 🌍 **Språkvelger**               | Globusikon i overskriften for sanntids språkbytte (🇺🇸/🇧🇷)                                |
+| 🧹 **Clear All Models**          | One-click model list clearing in provider details                                        |
+| 👁️ **Sidebar Controls** 🆕       | Hide components and integrations from Appearance Settings                                |
+| 📋 **Issue Templates**           | Standardized GitHub templates for bugs and features                                      |
 | 📂 **Tilpasset datakatalog**     | `DATA_DIR` env var for å overstyre standard `~/.omniroute` lagringsbane                  |
 
 <details>

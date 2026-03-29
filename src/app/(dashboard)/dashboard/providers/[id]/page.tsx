@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useNotificationStore } from "@/store/notificationStore";
 import PropTypes from "prop-types";
 import { useParams, useRouter } from "next/navigation";
@@ -39,9 +40,22 @@ import {
 type CompatByProtocolMap = Partial<
   Record<
     ModelCompatProtocolKey,
-    { normalizeToolCallId?: boolean; preserveOpenAIDeveloperRole?: boolean }
+    {
+      normalizeToolCallId?: boolean;
+      preserveOpenAIDeveloperRole?: boolean;
+      upstreamHeaders?: Record<string, string>;
+    }
   >
 >;
+
+/** PATCH fields for provider model compat (matches API + `ModelCompatPerProtocol` shape). */
+type ModelCompatSavePatch = {
+  normalizeToolCallId?: boolean;
+  preserveOpenAIDeveloperRole?: boolean;
+  upstreamHeaders?: Record<string, string>;
+  compatByProtocol?: CompatByProtocolMap;
+};
+
 type CompatModelRow = {
   id?: string;
   name?: string;
@@ -50,6 +64,7 @@ type CompatModelRow = {
   supportedEndpoints?: string[];
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
+  upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
 };
 
@@ -155,24 +170,115 @@ function anyNoPreserveCompatBadge(
   return false;
 }
 
+function upstreamHeadersRecordsEqual(
+  a: Record<string, string>,
+  b: Record<string, string>
+): boolean {
+  const ka = Object.keys(a).sort();
+  const kb = Object.keys(b).sort();
+  if (ka.length !== kb.length) return false;
+  return ka.every((k, i) => k === kb[i] && a[k] === b[k]);
+}
+
+type HeaderDraftRow = { id: string; name: string; value: string };
+
+const UPSTREAM_HEADERS_UI_MAX = 16;
+
+function recordToHeaderRows(rec: Record<string, string>, genId: () => string): HeaderDraftRow[] {
+  const entries = Object.entries(rec).filter(([k]) => k.trim());
+  if (entries.length === 0) return [{ id: genId(), name: "", value: "" }];
+  return entries.map(([name, value]) => ({ id: genId(), name, value }));
+}
+
+function headerRowsToRecord(rows: HeaderDraftRow[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const r of rows) {
+    const k = r.name.trim();
+    if (!k) continue;
+    out[k] = r.value;
+  }
+  return out;
+}
+
+type ProviderModelsApiErrorBody = {
+  error?: {
+    message?: string;
+    details?: Array<{ field?: string; message?: string }>;
+  };
+};
+
+async function formatProviderModelsErrorResponse(res: Response): Promise<string> {
+  try {
+    const data = (await res.json()) as ProviderModelsApiErrorBody;
+    const err = data?.error;
+    if (Array.isArray(err?.details) && err.details.length > 0) {
+      return err.details
+        .map((d) => {
+          const f = typeof d.field === "string" && d.field ? d.field : "?";
+          const m = typeof d.message === "string" ? d.message : "";
+          return m ? `${f}: ${m}` : f;
+        })
+        .join("; ");
+    }
+    if (typeof err?.message === "string" && err.message.trim()) {
+      return err.message.trim();
+    }
+  } catch {
+    /* ignore */
+  }
+  const st = res.statusText?.trim();
+  return st || `HTTP ${res.status}`;
+}
+
+function effectiveUpstreamHeadersForProtocol(
+  modelId: string,
+  protocol: string,
+  customMap: CompatModelMap,
+  overrideMap: CompatModelMap
+): Record<string, string> {
+  const c = customMap.get(modelId);
+  const o = overrideMap.get(modelId);
+  const base: Record<string, string> = {};
+  if (c?.upstreamHeaders && typeof c.upstreamHeaders === "object") {
+    Object.assign(base, c.upstreamHeaders);
+  } else if (o?.upstreamHeaders && typeof o.upstreamHeaders === "object") {
+    Object.assign(base, o.upstreamHeaders);
+  }
+  const pc = getProtoSlice(c, o, protocol);
+  if (pc?.upstreamHeaders && typeof pc.upstreamHeaders === "object") {
+    Object.assign(base, pc.upstreamHeaders);
+  }
+  return base;
+}
+
+function anyUpstreamHeadersBadge(
+  modelId: string,
+  customMap: CompatModelMap,
+  overrideMap: CompatModelMap
+): boolean {
+  const c = customMap.get(modelId);
+  const o = overrideMap.get(modelId);
+  const nonempty = (u: unknown) =>
+    u && typeof u === "object" && !Array.isArray(u) && Object.keys(u as object).length > 0;
+  if (nonempty(c?.upstreamHeaders) || nonempty(o?.upstreamHeaders)) return true;
+  for (const p of MODEL_COMPAT_PROTOCOL_KEYS) {
+    const pc = getProtoSlice(c, o, p);
+    if (nonempty(pc?.upstreamHeaders)) return true;
+  }
+  return false;
+}
+
 interface ModelRowProps {
   model: { id: string };
   fullModel: string;
-  alias?: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   t: (key: string, values?: Record<string, unknown>) => string;
   showDeveloperToggle?: boolean;
   effectiveModelNormalize: (modelId: string, protocol?: string) => boolean;
   effectiveModelPreserveDeveloper: (modelId: string, protocol?: string) => boolean;
-  saveModelCompatFlags: (
-    modelId: string,
-    patch: {
-      normalizeToolCallId?: boolean;
-      preserveOpenAIDeveloperRole?: boolean;
-      compatByProtocol?: CompatByProtocolMap;
-    }
-  ) => void;
+  saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => void;
+  getUpstreamHeadersRecord: (protocol: string) => Record<string, string>;
   compatDisabled?: boolean;
 }
 
@@ -186,14 +292,8 @@ interface PassthroughModelRowProps {
   showDeveloperToggle?: boolean;
   effectiveModelNormalize: (modelId: string, protocol?: string) => boolean;
   effectiveModelPreserveDeveloper: (modelId: string, protocol?: string) => boolean;
-  saveModelCompatFlags: (
-    modelId: string,
-    patch: {
-      normalizeToolCallId?: boolean;
-      preserveOpenAIDeveloperRole?: boolean;
-      compatByProtocol?: CompatByProtocolMap;
-    }
-  ) => void;
+  saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => void;
+  getUpstreamHeadersRecord: (protocol: string) => Record<string, string>;
   compatDisabled?: boolean;
 }
 
@@ -207,6 +307,7 @@ interface PassthroughModelsSectionProps {
   t: (key: string, values?: Record<string, unknown>) => string;
   effectiveModelNormalize: (alias: string) => boolean;
   effectiveModelPreserveDeveloper: (alias: string) => boolean;
+  getUpstreamHeadersRecord: (modelId: string, protocol: string) => Record<string, string>;
   saveModelCompatFlags: (
     modelId: string,
     flags: {
@@ -243,6 +344,7 @@ interface CompatibleModelsSectionProps {
   t: (key: string, values?: Record<string, unknown>) => string;
   effectiveModelNormalize: (alias: string) => boolean;
   effectiveModelPreserveDeveloper: (alias: string) => boolean;
+  getUpstreamHeadersRecord: (modelId: string, protocol: string) => Record<string, string>;
   saveModelCompatFlags: (
     modelId: string,
     flags: {
@@ -301,6 +403,10 @@ interface ConnectionRowProps {
   proxyHost?: string;
   onRefreshToken?: () => void;
   isRefreshing?: boolean;
+  onApplyCodexAuthLocal?: () => void;
+  isApplyingCodexAuthLocal?: boolean;
+  onExportCodexAuthFile?: () => void;
+  isExportingCodexAuthFile?: boolean;
 }
 
 interface AddApiKeyModalProps {
@@ -376,6 +482,7 @@ function ModelCompatPopover({
   t,
   effectiveModelNormalize,
   effectiveModelPreserveDeveloper,
+  getUpstreamHeadersRecord,
   onCompatPatch,
   showDeveloperToggle = true,
   disabled,
@@ -383,11 +490,13 @@ function ModelCompatPopover({
   t: (key: string) => string;
   effectiveModelNormalize: (protocol: string) => boolean;
   effectiveModelPreserveDeveloper: (protocol: string) => boolean;
+  getUpstreamHeadersRecord: (protocol: string) => Record<string, string>;
   onCompatPatch: (
     protocol: string,
     payload: {
       normalizeToolCallId?: boolean;
       preserveOpenAIDeveloperRole?: boolean;
+      upstreamHeaders?: Record<string, string>;
     }
   ) => void;
   showDeveloperToggle?: boolean;
@@ -395,15 +504,85 @@ function ModelCompatPopover({
 }) {
   const [open, setOpen] = useState(false);
   const [protocol, setProtocol] = useState<string>(MODEL_COMPAT_PROTOCOL_KEYS[0]);
+  const [headerRows, setHeaderRows] = useState<HeaderDraftRow[]>([]);
+  const [valuePeekRowId, setValuePeekRowId] = useState<string | null>(null);
+  const [valueFocusRowId, setValueFocusRowId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const [portalPanelRect, setPortalPanelRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+  const headerRowIdRef = useRef(0);
+  const headerRowsRef = useRef<HeaderDraftRow[]>([]);
+  headerRowsRef.current = headerRows;
+
+  const genHeaderRowId = () => {
+    headerRowIdRef.current += 1;
+    return `uh-${headerRowIdRef.current}`;
+  };
 
   const normalizeToolCallId = effectiveModelNormalize(protocol);
   const preserveDeveloperRole = effectiveModelPreserveDeveloper(protocol);
   const devToggle = showDeveloperToggle && protocol !== "claude";
 
-  // Click-outside: check both trigger and panel so that if the panel is ever rendered
-  // in a portal (outside this subtree), clicks inside the panel still do not close it.
+  const tryCommitHeaderRows = useCallback(
+    (rows: HeaderDraftRow[]) => {
+      const parsed = headerRowsToRecord(rows);
+      const current = getUpstreamHeadersRecord(protocol);
+      if (upstreamHeadersRecordsEqual(parsed, current)) return;
+      onCompatPatch(protocol, { upstreamHeaders: parsed });
+    },
+    [getUpstreamHeadersRecord, onCompatPatch, protocol]
+  );
+
+  const onHeaderFieldBlur = useCallback(() => {
+    queueMicrotask(() => tryCommitHeaderRows(headerRowsRef.current));
+  }, [tryCommitHeaderRows]);
+
+  useEffect(() => {
+    if (!open) return;
+    return () => {
+      tryCommitHeaderRows(headerRowsRef.current);
+    };
+  }, [open, tryCommitHeaderRows]);
+
+  useEffect(() => {
+    if (!open) return;
+    const rec = getUpstreamHeadersRecord(protocol);
+    setHeaderRows(recordToHeaderRows(rec, genHeaderRowId));
+    // Only re-load rows when opening or switching protocol — not when the parent passes a new
+    // inline callback every render (would wipe in-progress edits).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+  }, [open, protocol]);
+
+  useEffect(() => {
+    setValuePeekRowId(null);
+    setValueFocusRowId(null);
+  }, [open, protocol]);
+
+  const namedHeaderCount = headerRows.filter((r) => r.name.trim()).length;
+  const canAddHeaderRow = namedHeaderCount < UPSTREAM_HEADERS_UI_MAX;
+
+  const updateHeaderRow = (id: string, patch: Partial<Pick<HeaderDraftRow, "name" | "value">>) => {
+    setHeaderRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  };
+
+  const addHeaderRow = () => {
+    if (!canAddHeaderRow) return;
+    setHeaderRows((prev) => [...prev, { id: genHeaderRowId(), name: "", value: "" }]);
+  };
+
+  const removeHeaderRow = (id: string) => {
+    setHeaderRows((prev) => {
+      const next = prev.filter((r) => r.id !== id);
+      const normalized = next.length === 0 ? [{ id: genHeaderRowId(), name: "", value: "" }] : next;
+      queueMicrotask(() => tryCommitHeaderRows(normalized));
+      return normalized;
+    });
+  };
+
   useEffect(() => {
     if (!open) return;
     const onDocClick = (e: MouseEvent) => {
@@ -416,66 +595,189 @@ function ModelCompatPopover({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
+  const updatePortalPanelRect = useCallback(() => {
+    if (!open || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const margin = 10;
+    const width = Math.min(window.innerWidth - 2 * margin, 24 * 16);
+    let left = rect.right - width;
+    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+    setPortalPanelRect({ top: rect.bottom + 8, left, width });
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPortalPanelRect(null);
+      return;
+    }
+    updatePortalPanelRect();
+    window.addEventListener("resize", updatePortalPanelRect);
+    window.addEventListener("scroll", updatePortalPanelRect, true);
+    return () => {
+      window.removeEventListener("resize", updatePortalPanelRect);
+      window.removeEventListener("scroll", updatePortalPanelRect, true);
+    };
+  }, [open, updatePortalPanelRect]);
+
+  const panelChromeClass =
+    "flex max-h-[min(82vh,42rem)] flex-col overflow-hidden rounded-xl border-2 border-zinc-200 bg-white shadow-2xl dark:border-zinc-600 dark:bg-zinc-950";
+
   return (
-    <div className="relative inline-block" ref={ref}>
+    <div className="relative inline-flex" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={disabled}
-        className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md border border-border bg-sidebar/50 hover:bg-sidebar text-text-muted hover:text-text-main disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background text-text-muted hover:bg-muted hover:text-text-main disabled:opacity-50 transition-colors"
         title={t("compatAdjustmentsTitle")}
       >
-        <span className="material-symbols-outlined text-sm">tune</span>
+        <span className="material-symbols-outlined text-base leading-none">tune</span>
         {t("compatButtonLabel")}
       </button>
-      {open && (
-        <div
-          ref={panelRef}
-          className="absolute left-0 top-full mt-1 z-50 min-w-[220px] max-w-[92vw] p-3 rounded-lg border border-border bg-white dark:bg-zinc-900 shadow-xl ring-1 ring-black/5 dark:ring-white/10"
-        >
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-text-muted mb-1">
-            {t("compatAdjustmentsTitle")}
-          </p>
-          <p className="text-[10px] text-text-muted mb-2 leading-snug">{t("compatProtocolHint")}</p>
-          <label className="block text-[10px] font-medium text-text-muted mb-1">
-            {t("compatProtocolLabel")}
-          </label>
-          <select
-            value={protocol}
-            onChange={(e) => setProtocol(e.target.value)}
-            disabled={disabled}
-            className="w-full mb-3 px-2 py-1.5 text-xs rounded-md border border-border bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-primary/50"
+      {open &&
+        typeof document !== "undefined" &&
+        portalPanelRect &&
+        createPortal(
+          <div
+            ref={panelRef}
+            className={panelChromeClass}
+            style={{
+              position: "fixed",
+              top: portalPanelRect.top,
+              left: portalPanelRect.left,
+              width: portalPanelRect.width,
+              zIndex: 10040,
+            }}
           >
-            {MODEL_COMPAT_PROTOCOL_KEYS.map((p) => (
-              <option key={p} value={p}>
-                {t(compatProtocolLabelKey(p))}
-              </option>
-            ))}
-          </select>
-          <div className="flex flex-col gap-3">
-            <Toggle
-              size="sm"
-              label={t("compatToolIdShort")}
-              title={t("normalizeToolCallIdLabel")}
-              checked={normalizeToolCallId}
-              onChange={(v) => onCompatPatch(protocol, { normalizeToolCallId: v })}
-              disabled={disabled}
-            />
-            {devToggle && (
-              <Toggle
-                size="sm"
-                label={t("compatDoNotPreserveDeveloper")}
-                title={t("preserveDeveloperRoleLabel")}
-                checked={preserveDeveloperRole === false}
-                onChange={(checked) =>
-                  onCompatPatch(protocol, { preserveOpenAIDeveloperRole: !checked })
-                }
+            <div className="shrink-0 border-b-2 border-zinc-200 bg-zinc-100 px-3 py-2.5 dark:border-zinc-600 dark:bg-zinc-900">
+              <p className="text-xs font-semibold text-text-main">{t("compatAdjustmentsTitle")}</p>
+              <p className="text-[11px] text-text-muted mt-1 leading-relaxed">
+                {t("compatProtocolHint")}
+              </p>
+            </div>
+            <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-white p-3 [scrollbar-gutter:stable] [scrollbar-width:thin] dark:bg-zinc-950">
+              <label className="block text-[11px] font-medium text-text-muted mb-1.5">
+                {t("compatProtocolLabel")}
+              </label>
+              <select
+                value={protocol}
+                onChange={(e) => setProtocol(e.target.value)}
                 disabled={disabled}
-              />
-            )}
-          </div>
-        </div>
-      )}
+                className="mb-4 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-xs text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
+              >
+                {MODEL_COMPAT_PROTOCOL_KEYS.map((p) => (
+                  <option key={p} value={p}>
+                    {t(compatProtocolLabelKey(p))}
+                  </option>
+                ))}
+              </select>
+              <div className="flex flex-col gap-3.5">
+                <Toggle
+                  size="sm"
+                  label={t("compatToolIdShort")}
+                  title={t("normalizeToolCallIdLabel")}
+                  checked={normalizeToolCallId}
+                  onChange={(v) => onCompatPatch(protocol, { normalizeToolCallId: v })}
+                  disabled={disabled}
+                />
+                {devToggle && (
+                  <Toggle
+                    size="sm"
+                    label={t("compatDoNotPreserveDeveloper")}
+                    title={t("preserveDeveloperRoleLabel")}
+                    checked={preserveDeveloperRole === false}
+                    onChange={(checked) =>
+                      onCompatPatch(protocol, { preserveOpenAIDeveloperRole: !checked })
+                    }
+                    disabled={disabled}
+                  />
+                )}
+              </div>
+
+              <div className="mt-4 rounded-lg border-2 border-zinc-200 bg-zinc-100 p-3 dark:border-zinc-600 dark:bg-zinc-900">
+                <label className="block text-[11px] font-semibold text-text-main mb-1">
+                  {t("compatUpstreamHeadersLabel")}
+                </label>
+                <p className="text-[11px] text-text-muted mb-3 leading-relaxed">
+                  {t("compatUpstreamHeadersHint")}
+                </p>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-1.5 items-end text-[10px] font-medium uppercase tracking-wide text-text-muted px-0.5">
+                    <span>{t("compatUpstreamHeaderName")}</span>
+                    <span className="col-span-1">{t("compatUpstreamHeaderValue")}</span>
+                    <span className="w-8 shrink-0" aria-hidden />
+                  </div>
+                  {headerRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-1.5 items-center"
+                    >
+                      <Input
+                        value={row.name}
+                        onChange={(e) => updateHeaderRow(row.id, { name: e.target.value })}
+                        onBlur={onHeaderFieldBlur}
+                        disabled={disabled}
+                        placeholder="Authentication"
+                        className="gap-0 min-w-0"
+                        inputClassName="h-9 bg-white py-1.5 px-2 text-xs font-mono dark:bg-zinc-900"
+                        autoComplete="off"
+                      />
+                      <div
+                        className="min-w-0"
+                        onMouseEnter={() => setValuePeekRowId(row.id)}
+                        onMouseLeave={() =>
+                          setValuePeekRowId((cur) => (cur === row.id ? null : cur))
+                        }
+                      >
+                        <Input
+                          type={
+                            valuePeekRowId === row.id || valueFocusRowId === row.id
+                              ? "text"
+                              : "password"
+                          }
+                          value={row.value}
+                          onChange={(e) => updateHeaderRow(row.id, { value: e.target.value })}
+                          onFocus={() => setValueFocusRowId(row.id)}
+                          onBlur={() => {
+                            setValueFocusRowId((cur) => (cur === row.id ? null : cur));
+                            onHeaderFieldBlur();
+                          }}
+                          disabled={disabled}
+                          placeholder="•••"
+                          className="gap-0 min-w-0"
+                          inputClassName="h-9 bg-white py-1.5 px-2 text-xs dark:bg-zinc-900"
+                          autoComplete="off"
+                          spellCheck={false}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        disabled={disabled || headerRows.length <= 1}
+                        onClick={() => removeHeaderRow(row.id)}
+                        title={t("compatUpstreamRemoveRow")}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/80 text-text-muted hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-muted transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-lg leading-none">
+                          close
+                        </span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={disabled || !canAddHeaderRow}
+                  onClick={addHeaderRow}
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-xs font-medium text-primary hover:bg-primary/5 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base leading-none">add</span>
+                  {t("compatUpstreamAddRow")}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
@@ -504,6 +806,9 @@ export default function ProviderDetailPage() {
   const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
+  const [connProxyMap, setConnProxyMap] = useState<
+    Record<string, { proxy: any; level: string } | null>
+  >({});
   const [importingModels, setImportingModels] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importProgress, setImportProgress] = useState({
@@ -520,6 +825,8 @@ export default function ProviderDetailPage() {
     modelCompatOverrides: Array<CompatModelRow & { id: string }>;
   }>({ customModels: [], modelCompatOverrides: [] });
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
+  const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
+  const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
 
   const providerInfo = providerNode
     ? {
@@ -640,17 +947,47 @@ export default function ProviderDetailPage() {
   useEffect(() => {
     fetchConnections();
     fetchAliases();
-    // Load proxy config for visual indicators
+    // Load proxy config for visual indicators (provider-level button)
     fetch("/api/settings/proxy")
       .then((r) => (r.ok ? r.json() : null))
       .then((c) => setProxyConfig(c))
       .catch(() => {});
   }, [fetchConnections, fetchAliases]);
 
+  const loadConnProxies = useCallback(async (conns: { id?: string }[]) => {
+    if (!conns.length) return;
+    try {
+      const results = await Promise.all(
+        conns
+          .filter((c) => c.id)
+          .map((c) =>
+            fetch(`/api/settings/proxy?resolve=${encodeURIComponent(c.id!)}`, { cache: "no-store" })
+              .then((r) => (r.ok ? r.json() : null))
+              .then((data) => [c.id!, data] as [string, any])
+              .catch(() => [c.id!, null] as [string, any])
+          )
+      );
+      const map: Record<string, { proxy: any; level: string } | null> = {};
+      for (const [id, data] of results) {
+        map[id] = data?.proxy ? data : null;
+      }
+      setConnProxyMap(map);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     if (loading || isSearchProvider) return;
     fetchProviderModelMeta();
   }, [loading, isSearchProvider, fetchProviderModelMeta]);
+
+  // Load per-connection effective proxy (handles registry assignments)
+  useEffect(() => {
+    if (!loading && connections.length > 0) {
+      void loadConnProxies(connections);
+    }
+  }, [loading, connections, loadConnProxies]);
 
   // Auto-open Add Connection modal when no connections exist (better UX)
   // Only fires once on initial load, not on HMR remounts or after user dismissal
@@ -917,6 +1254,39 @@ export default function ProviderDetailPage() {
 
   // T12: Manual token refresh
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
+
+  const parseApiErrorMessage = async (res: Response, fallback: string) => {
+    const contentType = res.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const data = await res.json().catch(() => ({}));
+      if (typeof data?.error === "string" && data.error.trim()) {
+        return data.error;
+      }
+      if (data?.error?.message) {
+        return data.error.message;
+      }
+    }
+
+    const text = await res.text().catch(() => "");
+    return text.trim() || fallback;
+  };
+
+  const getAttachmentFilename = (res: Response, fallback: string) => {
+    const disposition = res.headers.get("content-disposition") || "";
+    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match?.[1]) {
+      return decodeURIComponent(utf8Match[1]);
+    }
+
+    const plainMatch = disposition.match(/filename="([^"]+)"/i);
+    if (plainMatch?.[1]) {
+      return plainMatch[1];
+    }
+
+    return fallback;
+  };
+
   const handleRefreshToken = async (connectionId: string) => {
     if (refreshingId) return;
     setRefreshingId(connectionId);
@@ -934,6 +1304,82 @@ export default function ProviderDetailPage() {
       notify.error(t("tokenRefreshFailed"));
     } finally {
       setRefreshingId(null);
+    }
+  };
+
+  const handleApplyCodexAuthLocal = async (connectionId: string) => {
+    if (applyingCodexAuthId) return;
+    setApplyingCodexAuthId(connectionId);
+
+    const defaultSuccess =
+      typeof t.has === "function" && t.has("codexAuthAppliedLocal")
+        ? t("codexAuthAppliedLocal")
+        : "Codex auth.json applied locally";
+    const defaultError =
+      typeof t.has === "function" && t.has("codexAuthApplyFailed")
+        ? t("codexAuthApplyFailed")
+        : "Failed to apply Codex auth.json locally";
+
+    try {
+      const res = await fetch(`/api/providers/${connectionId}/codex-auth/apply-local`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        notify.error(await parseApiErrorMessage(res, defaultError));
+        return;
+      }
+
+      notify.success(defaultSuccess);
+    } catch (error) {
+      console.error("Error applying Codex auth locally:", error);
+      notify.error(defaultError);
+    } finally {
+      setApplyingCodexAuthId(null);
+    }
+  };
+
+  const handleExportCodexAuthFile = async (connectionId: string) => {
+    if (exportingCodexAuthId) return;
+    setExportingCodexAuthId(connectionId);
+
+    const defaultSuccess =
+      typeof t.has === "function" && t.has("codexAuthExported")
+        ? t("codexAuthExported")
+        : "Codex auth.json exported";
+    const defaultError =
+      typeof t.has === "function" && t.has("codexAuthExportFailed")
+        ? t("codexAuthExportFailed")
+        : "Failed to export Codex auth.json";
+
+    try {
+      const res = await fetch(`/api/providers/${connectionId}/codex-auth/export`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        notify.error(await parseApiErrorMessage(res, defaultError));
+        return;
+      }
+
+      const blob = await res.blob();
+      const filename = getAttachmentFilename(res, "codex-auth.json");
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+
+      notify.success(defaultSuccess);
+    } catch (error) {
+      console.error("Error exporting Codex auth file:", error);
+      notify.error(defaultError);
+    } finally {
+      setExportingCodexAuthId(null);
     }
   };
 
@@ -1182,6 +1628,70 @@ export default function ProviderDetailPage() {
 
   const canImportModels = connections.some((conn) => conn.isActive !== false);
 
+  // Auto-sync toggle state: read from first active connection's providerSpecificData
+  const autoSyncConnection = connections.find((conn: any) => conn.isActive !== false);
+  const isAutoSyncEnabled = !!(autoSyncConnection as any)?.providerSpecificData?.autoSync;
+  const [togglingAutoSync, setTogglingAutoSync] = useState(false);
+
+  const handleToggleAutoSync = async () => {
+    if (!autoSyncConnection || togglingAutoSync) return;
+    setTogglingAutoSync(true);
+    try {
+      const newValue = !isAutoSyncEnabled;
+      await fetch(`/api/providers/${(autoSyncConnection as any).id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSpecificData: { autoSync: newValue },
+        }),
+      });
+      await fetchConnections();
+      notify[newValue ? "success" : "info"](
+        newValue ? t("autoSyncEnabled") : t("autoSyncDisabled")
+      );
+    } catch (error) {
+      console.log("Error toggling auto-sync:", error);
+      notify.error(t("autoSyncToggleFailed"));
+    } finally {
+      setTogglingAutoSync(false);
+    }
+  };
+
+  const [clearingModels, setClearingModels] = useState(false);
+  const handleClearAllModels = async () => {
+    if (clearingModels) return;
+    if (!confirm(t("clearAllModelsConfirm"))) return;
+    setClearingModels(true);
+    try {
+      const res = await fetch(
+        `/api/provider-models?provider=${encodeURIComponent(providerStorageAlias)}&all=true`,
+        { method: "DELETE" }
+      );
+      if (res.ok) {
+        // Also delete all aliases that belong to this provider
+        const aliasEntries = Object.entries(modelAliases).filter(([, model]) =>
+          (model as string).startsWith(`${providerStorageAlias}/`)
+        );
+        await Promise.all(
+          aliasEntries.map(([alias]) =>
+            fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
+              method: "DELETE",
+            }).catch(() => {})
+          )
+        );
+        await fetchProviderModelMeta();
+        await fetchAliases();
+        notify.success(t("clearAllModelsSuccess"));
+      } else {
+        notify.error(t("clearAllModelsFailed"));
+      }
+    } catch {
+      notify.error(t("clearAllModelsFailed"));
+    } finally {
+      setClearingModels(false);
+    }
+  };
+
   const customMap = useMemo(() => buildCompatMap(modelMeta.customModels), [modelMeta.customModels]);
   const overrideMap = useMemo(
     () => buildCompatMap(modelMeta.modelCompatOverrides),
@@ -1196,14 +1706,13 @@ export default function ProviderDetailPage() {
     protocol = MODEL_COMPAT_PROTOCOL_KEYS[0]
   ) => effectivePreserveForProtocol(modelId, protocol, customMap, overrideMap);
 
-  const saveModelCompatFlags = async (
-    modelId: string,
-    patch: {
-      normalizeToolCallId?: boolean;
-      preserveOpenAIDeveloperRole?: boolean;
-      compatByProtocol?: CompatByProtocolMap;
-    }
-  ) => {
+  const getUpstreamHeadersRecordForModel = useCallback(
+    (modelId: string, protocol: string) =>
+      effectiveUpstreamHeadersForProtocol(modelId, protocol, customMap, overrideMap),
+    [customMap, overrideMap]
+  );
+
+  const saveModelCompatFlags = async (modelId: string, patch: ModelCompatSavePatch) => {
     setCompatSavingModelId(modelId);
     try {
       const c = customMap.get(modelId) as Record<string, unknown> | undefined;
@@ -1211,7 +1720,8 @@ export default function ProviderDetailPage() {
       const onlyCompatByProtocol =
         patch.compatByProtocol &&
         patch.normalizeToolCallId === undefined &&
-        patch.preserveOpenAIDeveloperRole === undefined;
+        patch.preserveOpenAIDeveloperRole === undefined &&
+        !("upstreamHeaders" in patch);
 
       if (c) {
         if (onlyCompatByProtocol) {
@@ -1253,7 +1763,10 @@ export default function ProviderDetailPage() {
         body: JSON.stringify(body),
       });
       if (!res.ok) {
-        notify.error(t("failedSaveCustomModel"));
+        const detail = await formatProviderModelsErrorResponse(res);
+        notify.error(
+          detail ? `${t("failedSaveCustomModel")} — ${detail}` : t("failedSaveCustomModel")
+        );
         return;
       }
     } catch {
@@ -1270,28 +1783,65 @@ export default function ProviderDetailPage() {
   };
 
   const renderModelsSection = () => {
+    const autoSyncToggle = canImportModels && (
+      <button
+        onClick={handleToggleAutoSync}
+        disabled={togglingAutoSync}
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-transparent cursor-pointer text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+        title={t("autoSyncTooltip")}
+      >
+        <span
+          className="material-symbols-outlined text-[16px]"
+          style={{ color: isAutoSyncEnabled ? "#22c55e" : "var(--color-text-muted)" }}
+        >
+          {isAutoSyncEnabled ? "toggle_on" : "toggle_off"}
+        </span>
+        <span className="text-text-main">{t("autoSync")}</span>
+      </button>
+    );
+
+    const clearAllButton = modelMeta.customModels.length > 0 && (
+      <button
+        onClick={handleClearAllModels}
+        disabled={clearingModels}
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-red-300 dark:border-red-800 bg-transparent cursor-pointer text-[12px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+        title={t("clearAllModels")}
+      >
+        <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
+        <span>{t("clearAllModels")}</span>
+      </button>
+    );
+
     if (isCompatible) {
       return (
-        <CompatibleModelsSection
-          providerStorageAlias={providerStorageAlias}
-          providerDisplayAlias={providerDisplayAlias}
-          modelAliases={modelAliases}
-          copied={copied}
-          onCopy={copy}
-          onSetAlias={handleSetAlias}
-          onDeleteAlias={handleDeleteAlias}
-          connections={connections}
-          isAnthropic={isAnthropicCompatible}
-          onImportWithProgress={handleCompatibleImportWithProgress}
-          t={t}
-          effectiveModelNormalize={effectiveModelNormalize}
-          effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-          saveModelCompatFlags={saveModelCompatFlags}
-          compatSavingModelId={compatSavingModelId}
-          onModelsChanged={fetchProviderModelMeta}
-        />
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            {autoSyncToggle}
+            {clearAllButton}
+          </div>
+          <CompatibleModelsSection
+            providerStorageAlias={providerStorageAlias}
+            providerDisplayAlias={providerDisplayAlias}
+            modelAliases={modelAliases}
+            copied={copied}
+            onCopy={copy}
+            onSetAlias={handleSetAlias}
+            onDeleteAlias={handleDeleteAlias}
+            connections={connections}
+            isAnthropic={isAnthropicCompatible}
+            onImportWithProgress={handleCompatibleImportWithProgress}
+            t={t}
+            effectiveModelNormalize={effectiveModelNormalize}
+            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+            getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
+            saveModelCompatFlags={saveModelCompatFlags}
+            compatSavingModelId={compatSavingModelId}
+            onModelsChanged={fetchProviderModelMeta}
+          />
+        </div>
       );
     }
+
     if (providerInfo.passthroughModels) {
       return (
         <div>
@@ -1305,6 +1855,8 @@ export default function ProviderDetailPage() {
             >
               {importingModels ? t("importingModels") : t("importFromModels")}
             </Button>
+            {autoSyncToggle}
+            {clearAllButton}
             {!canImportModels && (
               <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
             )}
@@ -1319,6 +1871,7 @@ export default function ProviderDetailPage() {
             t={t}
             effectiveModelNormalize={effectiveModelNormalize}
             effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+            getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
             saveModelCompatFlags={saveModelCompatFlags}
             compatSavingModelId={compatSavingModelId}
           />
@@ -1337,6 +1890,7 @@ export default function ProviderDetailPage() {
         >
           {importingModels ? t("importingModels") : t("importFromModels")}
         </Button>
+        {autoSyncToggle}
         {!canImportModels && (
           <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
         )}
@@ -1356,23 +1910,18 @@ export default function ProviderDetailPage() {
         {importButton}
         <div className="flex flex-wrap gap-3">
           {models.map((model) => {
-            const fullModel = `${providerStorageAlias}/${model.id}`;
-            const oldFormatModel = `${providerId}/${model.id}`;
-            const existingAlias = Object.entries(modelAliases).find(
-              ([, m]) => m === fullModel || m === oldFormatModel
-            )?.[0];
             return (
               <ModelRow
                 key={model.id}
                 model={model}
                 fullModel={`${providerDisplayAlias}/${model.id}`}
-                alias={existingAlias}
                 copied={copied}
                 onCopy={copy}
                 t={t}
                 showDeveloperToggle
                 effectiveModelNormalize={effectiveModelNormalize}
                 effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecordForModel(model.id, p)}
                 saveModelCompatFlags={saveModelCompatFlags}
                 compatDisabled={compatSavingModelId === model.id}
               />
@@ -1632,68 +2181,177 @@ export default function ProviderDetailPage() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
-            {connections
-              .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-              .map((conn, index) => (
-                <ConnectionRow
-                  key={conn.id}
-                  connection={conn}
-                  isOAuth={isOAuth}
-                  isFirst={index === 0}
-                  isLast={index === connections.length - 1}
-                  onMoveUp={() => handleSwapPriority(conn, connections[index - 1])}
-                  onMoveDown={() => handleSwapPriority(conn, connections[index + 1])}
-                  onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
-                  onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
-                  isCodex={providerId === "codex"}
-                  onToggleCodex5h={(enabled) => handleToggleCodexLimit(conn.id, "use5h", enabled)}
-                  onToggleCodexWeekly={(enabled) =>
-                    handleToggleCodexLimit(conn.id, "useWeekly", enabled)
-                  }
-                  onRetest={() => handleRetestConnection(conn.id)}
-                  isRetesting={retestingId === conn.id}
-                  onEdit={() => {
-                    setSelectedConnection(conn);
-                    setShowEditModal(true);
-                  }}
-                  onDelete={() => handleDelete(conn.id)}
-                  onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
-                  onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
-                  isRefreshing={refreshingId === conn.id}
-                  onProxy={() =>
-                    setProxyTarget({
-                      level: "key",
-                      id: conn.id,
-                      label: conn.name || conn.email || conn.id,
-                    })
-                  }
-                  hasProxy={
-                    !!(
-                      proxyConfig?.keys?.[conn.id] ||
-                      proxyConfig?.providers?.[providerId] ||
-                      proxyConfig?.global
-                    )
-                  }
-                  proxySource={
-                    proxyConfig?.keys?.[conn.id]
-                      ? "key"
-                      : proxyConfig?.providers?.[providerId]
-                        ? "provider"
-                        : proxyConfig?.global
-                          ? "global"
-                          : null
-                  }
-                  proxyHost={
-                    (
-                      proxyConfig?.keys?.[conn.id] ||
-                      proxyConfig?.providers?.[providerId] ||
-                      proxyConfig?.global
-                    )?.host || null
-                  }
-                />
-              ))}
-          </div>
+          (() => {
+            // Group connections by tag (providerSpecificData.tag)
+            const sorted = [...connections].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+            const hasAnyTag = sorted.some((c) => c.providerSpecificData?.tag as string | undefined);
+
+            if (!hasAnyTag) {
+              // No tags — render flat list as before
+              return (
+                <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                  {sorted.map((conn, index) => (
+                    <ConnectionRow
+                      key={conn.id}
+                      connection={conn}
+                      isOAuth={isOAuth}
+                      isFirst={index === 0}
+                      isLast={index === sorted.length - 1}
+                      onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
+                      onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
+                      onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
+                      onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                      isCodex={providerId === "codex"}
+                      onToggleCodex5h={(enabled) =>
+                        handleToggleCodexLimit(conn.id, "use5h", enabled)
+                      }
+                      onToggleCodexWeekly={(enabled) =>
+                        handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                      }
+                      onRetest={() => handleRetestConnection(conn.id)}
+                      isRetesting={retestingId === conn.id}
+                      onEdit={() => {
+                        setSelectedConnection(conn);
+                        setShowEditModal(true);
+                      }}
+                      onDelete={() => handleDelete(conn.id)}
+                      onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
+                      onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
+                      isRefreshing={refreshingId === conn.id}
+                      onApplyCodexAuthLocal={
+                        providerId === "codex"
+                          ? () => handleApplyCodexAuthLocal(conn.id)
+                          : undefined
+                      }
+                      isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                      onExportCodexAuthFile={
+                        providerId === "codex"
+                          ? () => handleExportCodexAuthFile(conn.id)
+                          : undefined
+                      }
+                      isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
+                      onProxy={() =>
+                        setProxyTarget({
+                          level: "key",
+                          id: conn.id,
+                          label: conn.name || conn.email || conn.id,
+                        })
+                      }
+                      hasProxy={!!connProxyMap[conn.id]?.proxy}
+                      proxySource={connProxyMap[conn.id]?.level || null}
+                      proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                    />
+                  ))}
+                </div>
+              );
+            }
+
+            // Build ordered tag groups: untagged first, then alphabetically
+            const groupMap = new Map<string, typeof sorted>();
+            for (const conn of sorted) {
+              const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim() || "";
+              if (!groupMap.has(tag)) groupMap.set(tag, []);
+              groupMap.get(tag)!.push(conn);
+            }
+            const groupKeys = Array.from(groupMap.keys()).sort((a, b) => {
+              if (a === "") return -1;
+              if (b === "") return 1;
+              return a.localeCompare(b);
+            });
+
+            return (
+              <div className="flex flex-col gap-0">
+                {groupKeys.map((tag, gi) => {
+                  const groupConns = groupMap.get(tag)!;
+                  return (
+                    <div
+                      key={tag || "__untagged__"}
+                      className={
+                        gi > 0
+                          ? "border-t border-black/[0.06] dark:border-white/[0.06] mt-1 pt-1"
+                          : ""
+                      }
+                    >
+                      {tag && (
+                        <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+                          <span className="material-symbols-outlined text-[13px] text-text-muted/50">
+                            label
+                          </span>
+                          <span className="text-[11px] font-semibold uppercase tracking-widest text-text-muted/60 select-none">
+                            {tag}
+                          </span>
+                          <div className="flex-1 h-px bg-black/[0.04] dark:bg-white/[0.04]" />
+                          <span className="text-[10px] text-text-muted/40">
+                            {groupConns.length}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                        {groupConns.map((conn, index) => (
+                          <ConnectionRow
+                            key={conn.id}
+                            connection={conn}
+                            isOAuth={isOAuth}
+                            isFirst={gi === 0 && index === 0}
+                            isLast={gi === groupKeys.length - 1 && index === groupConns.length - 1}
+                            onMoveUp={() =>
+                              handleSwapPriority(conn, sorted[sorted.indexOf(conn) - 1])
+                            }
+                            onMoveDown={() =>
+                              handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])
+                            }
+                            onToggleActive={(isActive) =>
+                              handleUpdateConnectionStatus(conn.id, isActive)
+                            }
+                            onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                            isCodex={providerId === "codex"}
+                            onToggleCodex5h={(enabled) =>
+                              handleToggleCodexLimit(conn.id, "use5h", enabled)
+                            }
+                            onToggleCodexWeekly={(enabled) =>
+                              handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                            }
+                            onRetest={() => handleRetestConnection(conn.id)}
+                            isRetesting={retestingId === conn.id}
+                            onEdit={() => {
+                              setSelectedConnection(conn);
+                              setShowEditModal(true);
+                            }}
+                            onDelete={() => handleDelete(conn.id)}
+                            onReauth={isOAuth ? () => setShowOAuthModal(true) : undefined}
+                            onRefreshToken={isOAuth ? () => handleRefreshToken(conn.id) : undefined}
+                            isRefreshing={refreshingId === conn.id}
+                            onApplyCodexAuthLocal={
+                              providerId === "codex"
+                                ? () => handleApplyCodexAuthLocal(conn.id)
+                                : undefined
+                            }
+                            isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                            onExportCodexAuthFile={
+                              providerId === "codex"
+                                ? () => handleExportCodexAuthFile(conn.id)
+                                : undefined
+                            }
+                            isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
+                            onProxy={() =>
+                              setProxyTarget({
+                                level: "key",
+                                id: conn.id,
+                                label: conn.name || conn.email || conn.id,
+                              })
+                            }
+                            hasProxy={!!connProxyMap[conn.id]?.proxy}
+                            proxySource={connProxyMap[conn.id]?.level || null}
+                            proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
       </Card>
 
@@ -1890,6 +2548,7 @@ export default function ProviderDetailPage() {
           level={proxyTarget.level}
           levelId={proxyTarget.id}
           levelLabel={proxyTarget.label}
+          onSaved={() => void loadConnProxies(connections)}
         />
       )}
       {/* Import Progress Modal */}
@@ -2008,28 +2667,28 @@ export default function ProviderDetailPage() {
 function ModelRow({
   model,
   fullModel,
-  alias,
   copied,
   onCopy,
   t,
   showDeveloperToggle = true,
   effectiveModelNormalize,
   effectiveModelPreserveDeveloper,
+  getUpstreamHeadersRecord,
   saveModelCompatFlags,
   compatDisabled,
 }: ModelRowProps) {
   return (
-    <div className="flex flex-col px-3 py-2 rounded-lg border border-border hover:bg-sidebar/50 min-w-[220px] max-w-md">
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="material-symbols-outlined text-base text-text-muted shrink-0">
+    <div className="flex min-w-[220px] max-w-md items-center gap-2 rounded-lg border border-border px-3 py-2 hover:bg-sidebar/50">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+        <span className="material-symbols-outlined shrink-0 text-base text-text-muted">
           smart_toy
         </span>
-        <code className="text-xs text-text-muted font-mono bg-sidebar px-1.5 py-0.5 rounded">
+        <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
           {fullModel}
         </code>
         <button
           onClick={() => onCopy(fullModel, `model-${model.id}`)}
-          className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
+          className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
           title={t("copyModel")}
         >
           <span className="material-symbols-outlined text-sm">
@@ -2037,16 +2696,19 @@ function ModelRow({
           </span>
         </button>
       </div>
-      <ModelCompatPopover
-        t={t}
-        effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
-        effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(model.id, p)}
-        onCompatPatch={(protocol, payload) =>
-          saveModelCompatFlags(model.id, { compatByProtocol: { [protocol]: payload } })
-        }
-        showDeveloperToggle={showDeveloperToggle}
-        disabled={compatDisabled}
-      />
+      <div className="shrink-0">
+        <ModelCompatPopover
+          t={t}
+          effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
+          effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(model.id, p)}
+          getUpstreamHeadersRecord={getUpstreamHeadersRecord}
+          onCompatPatch={(protocol, payload) =>
+            saveModelCompatFlags(model.id, { compatByProtocol: { [protocol]: payload } })
+          }
+          showDeveloperToggle={showDeveloperToggle}
+          disabled={compatDisabled}
+        />
+      </div>
     </div>
   );
 }
@@ -2056,13 +2718,13 @@ ModelRow.propTypes = {
     id: PropTypes.string.isRequired,
   }).isRequired,
   fullModel: PropTypes.string.isRequired,
-  alias: PropTypes.string,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
   t: PropTypes.func,
   showDeveloperToggle: PropTypes.bool,
   effectiveModelNormalize: PropTypes.func.isRequired,
   effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
+  getUpstreamHeadersRecord: PropTypes.func.isRequired,
   saveModelCompatFlags: PropTypes.func.isRequired,
   compatDisabled: PropTypes.bool,
 };
@@ -2077,6 +2739,7 @@ function PassthroughModelsSection({
   t,
   effectiveModelNormalize,
   effectiveModelPreserveDeveloper,
+  getUpstreamHeadersRecord,
   saveModelCompatFlags,
   compatSavingModelId,
 }: PassthroughModelsSectionProps) {
@@ -2161,6 +2824,7 @@ function PassthroughModelsSection({
               showDeveloperToggle
               effectiveModelNormalize={effectiveModelNormalize}
               effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+              getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
               saveModelCompatFlags={saveModelCompatFlags}
               compatDisabled={compatSavingModelId === modelId}
             />
@@ -2181,6 +2845,7 @@ PassthroughModelsSection.propTypes = {
   t: PropTypes.func.isRequired,
   effectiveModelNormalize: PropTypes.func.isRequired,
   effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
+  getUpstreamHeadersRecord: PropTypes.func.isRequired,
   saveModelCompatFlags: PropTypes.func.isRequired,
   compatSavingModelId: PropTypes.string,
 };
@@ -2195,24 +2860,25 @@ function PassthroughModelRow({
   showDeveloperToggle = true,
   effectiveModelNormalize,
   effectiveModelPreserveDeveloper,
+  getUpstreamHeadersRecord,
   saveModelCompatFlags,
   compatDisabled,
 }: PassthroughModelRowProps) {
   return (
-    <div className="flex flex-col gap-0 p-3 rounded-lg border border-border hover:bg-sidebar/50">
-      <div className="flex items-start gap-3">
-        <span className="material-symbols-outlined text-base text-text-muted shrink-0">
+    <div className="flex gap-0 rounded-lg border border-border p-3 hover:bg-sidebar/50">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <span className="material-symbols-outlined shrink-0 text-base text-text-muted">
           smart_toy
         </span>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{modelId}</p>
-          <div className="flex items-center gap-1 mt-1 flex-wrap">
-            <code className="text-xs text-text-muted font-mono bg-sidebar px-1.5 py-0.5 rounded">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{modelId}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1">
+            <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
               {fullModel}
             </code>
             <button
               onClick={() => onCopy(fullModel, `model-${modelId}`)}
-              className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
+              className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
               title={t("copyModel")}
             >
               <span className="material-symbols-outlined text-sm">
@@ -2221,25 +2887,26 @@ function PassthroughModelRow({
             </button>
           </div>
         </div>
-        <button
-          onClick={onDeleteAlias}
-          className="p-1 hover:bg-red-50 rounded text-red-500 shrink-0"
-          title={t("removeModel")}
-        >
-          <span className="material-symbols-outlined text-sm">delete</span>
-        </button>
       </div>
-      <div className="pl-9">
+      <div className="flex shrink-0 items-center gap-1 self-start">
         <ModelCompatPopover
           t={t}
           effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
           effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(modelId, p)}
+          getUpstreamHeadersRecord={getUpstreamHeadersRecord}
           onCompatPatch={(protocol, payload) =>
             saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
           }
           showDeveloperToggle={showDeveloperToggle}
           disabled={compatDisabled}
         />
+        <button
+          onClick={onDeleteAlias}
+          className="rounded p-1 text-red-500 hover:bg-red-50"
+          title={t("removeModel")}
+        >
+          <span className="material-symbols-outlined text-sm">delete</span>
+        </button>
       </div>
     </div>
   );
@@ -2255,6 +2922,7 @@ PassthroughModelRow.propTypes = {
   showDeveloperToggle: PropTypes.bool,
   effectiveModelNormalize: PropTypes.func.isRequired,
   effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
+  getUpstreamHeadersRecord: PropTypes.func.isRequired,
   saveModelCompatFlags: PropTypes.func.isRequired,
   compatDisabled: PropTypes.bool,
 };
@@ -2381,7 +3049,10 @@ function CustomModelsSection({
         body: JSON.stringify({ provider: providerId, modelId, ...patch }),
       });
       if (!res.ok) {
-        notify.error(t("failedSaveCustomModel"));
+        const detail = await formatProviderModelsErrorResponse(res);
+        notify.error(
+          detail ? `${t("failedSaveCustomModel")} — ${detail}` : t("failedSaveCustomModel")
+        );
         return;
       }
     } catch {
@@ -2422,7 +3093,8 @@ function CustomModelsSection({
       });
 
       if (!res.ok) {
-        throw new Error("Failed to save model endpoint settings");
+        const detail = await formatProviderModelsErrorResponse(res);
+        throw new Error(detail || "Failed to save model endpoint settings");
       }
 
       await fetchCustomModels();
@@ -2431,7 +3103,9 @@ function CustomModelsSection({
       cancelEdit();
     } catch (e) {
       console.error("Failed to save custom model:", e);
-      notify.error("Failed to save model endpoint settings");
+      notify.error(
+        e instanceof Error && e.message ? e.message : "Failed to save model endpoint settings"
+      );
     } finally {
       setSavingModelId(null);
     }
@@ -2542,10 +3216,14 @@ function CustomModelsSection({
             return (
               <div
                 key={model.id}
-                className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-sidebar/50"
+                className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-sidebar/50"
               >
-                <span className="material-symbols-outlined text-base text-primary">tune</span>
-                <div className="flex-1 min-w-0">
+                {editingModelId !== model.id && (
+                  <span className="material-symbols-outlined text-base text-primary shrink-0">
+                    tune
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{model.name || model.id}</p>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
                     <code className="text-xs text-text-muted font-mono bg-sidebar px-1.5 py-0.5 rounded">
@@ -2596,32 +3274,39 @@ function CustomModelsSection({
                         {t("compatBadgeNoPreserve")}
                       </span>
                     )}
+                    {anyUpstreamHeadersBadge(model.id, customMap, overrideMap) && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-400 font-medium"
+                        title={t("compatUpstreamHeadersLabel")}
+                      >
+                        {t("compatBadgeUpstreamHeaders")}
+                      </span>
+                    )}
                   </div>
 
                   {editingModelId === model.id && (
-                    <div className="mt-3 p-3 rounded-lg border border-border bg-sidebar/40">
-                      <div className="flex items-end gap-3 flex-wrap">
-                        <div className="w-44">
+                    <div className="mt-3 min-w-0 max-w-full rounded-lg border border-border bg-muted p-3 dark:bg-zinc-900">
+                      <div className="flex min-w-0 flex-wrap items-end gap-x-3 gap-y-2">
+                        <div className="w-[11rem] shrink-0 min-w-0">
                           <label className="text-xs text-text-muted mb-1 block">API Format</label>
                           <select
                             value={editingApiFormat}
                             onChange={(e) => setEditingApiFormat(e.target.value)}
-                            className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+                            className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background text-text-main focus:outline-none focus:border-primary"
                           >
                             <option value="chat-completions">Chat Completions</option>
                             <option value="responses">Responses API</option>
                           </select>
                         </div>
-
-                        <div className="flex-1 min-w-[240px]">
-                          <span className="text-xs text-text-muted mb-1 block">
+                        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">
+                          <span className="text-xs text-text-muted shrink-0">
                             Supported Endpoints
                           </span>
-                          <div className="flex items-center gap-3 flex-wrap">
+                          <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 min-w-0">
                             {["chat", "embeddings", "images", "audio"].map((ep) => (
                               <label
                                 key={ep}
-                                className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
+                                className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap"
                               >
                                 <input
                                   type="checkbox"
@@ -2648,51 +3333,52 @@ function CustomModelsSection({
                             ))}
                           </div>
                         </div>
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-border/80 w-full">
-                        <ModelCompatPopover
-                          t={t}
-                          effectiveModelNormalize={(p) =>
-                            effectiveNormalizeForProtocol(model.id, p, customMap, overrideMap)
-                          }
-                          effectiveModelPreserveDeveloper={(p) =>
-                            effectivePreserveForProtocol(model.id, p, customMap, overrideMap)
-                          }
-                          onCompatPatch={(protocol, payload) =>
-                            saveCustomCompat(model.id, {
-                              compatByProtocol: { [protocol]: payload },
-                            })
-                          }
-                          showDeveloperToggle
-                          disabled={savingModelId === model.id}
-                        />
-                      </div>
-                      <div className="mt-3 flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => saveEdit(model.id)}
-                          disabled={savingModelId === model.id}
-                        >
-                          {savingModelId === model.id ? t("saving") : t("save")}
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={cancelEdit}>
-                          {t("cancel")}
-                        </Button>
+                        <div className="flex shrink-0 flex-wrap items-center gap-2 pb-0.5">
+                          <Button
+                            size="sm"
+                            onClick={() => saveEdit(model.id)}
+                            disabled={savingModelId === model.id}
+                          >
+                            {savingModelId === model.id ? t("saving") : t("save")}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={cancelEdit}>
+                            {t("cancel")}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   <button
                     onClick={() => beginEdit(model)}
-                    className="p-1 hover:bg-sidebar rounded text-text-muted hover:text-primary"
+                    className="rounded p-1 text-text-muted hover:bg-sidebar hover:text-primary"
                     title={t("edit")}
                   >
                     <span className="material-symbols-outlined text-sm">edit</span>
                   </button>
+                  <ModelCompatPopover
+                    t={t}
+                    effectiveModelNormalize={(p) =>
+                      effectiveNormalizeForProtocol(model.id, p, customMap, overrideMap)
+                    }
+                    effectiveModelPreserveDeveloper={(p) =>
+                      effectivePreserveForProtocol(model.id, p, customMap, overrideMap)
+                    }
+                    getUpstreamHeadersRecord={(p) =>
+                      effectiveUpstreamHeadersForProtocol(model.id, p, customMap, overrideMap)
+                    }
+                    onCompatPatch={(protocol, payload) =>
+                      saveCustomCompat(model.id, {
+                        compatByProtocol: { [protocol]: payload },
+                      })
+                    }
+                    showDeveloperToggle
+                    disabled={savingModelId === model.id}
+                  />
                   <button
                     onClick={() => handleRemove(model.id)}
-                    className="p-1 hover:bg-red-50 rounded text-red-500"
+                    className="rounded p-1 text-red-500 hover:bg-red-50"
                     title={t("removeCustomModel")}
                   >
                     <span className="material-symbols-outlined text-sm">delete</span>
@@ -2731,6 +3417,7 @@ function CompatibleModelsSection({
   t,
   effectiveModelNormalize,
   effectiveModelPreserveDeveloper,
+  getUpstreamHeadersRecord,
   saveModelCompatFlags,
   compatSavingModelId,
   onModelsChanged,
@@ -2944,6 +3631,7 @@ function CompatibleModelsSection({
               showDeveloperToggle={!isAnthropic}
               effectiveModelNormalize={effectiveModelNormalize}
               effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+              getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
               saveModelCompatFlags={saveModelCompatFlags}
               compatDisabled={compatSavingModelId === modelId}
             />
@@ -2973,6 +3661,7 @@ CompatibleModelsSection.propTypes = {
   t: PropTypes.func.isRequired,
   effectiveModelNormalize: PropTypes.func.isRequired,
   effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
+  getUpstreamHeadersRecord: PropTypes.func.isRequired,
   saveModelCompatFlags: PropTypes.func.isRequired,
   compatSavingModelId: PropTypes.string,
   onModelsChanged: PropTypes.func,
@@ -3017,6 +3706,7 @@ CooldownTimer.propTypes = {
 const ERROR_TYPE_LABELS = {
   runtime_error: { labelKey: "errorTypeRuntime", variant: "warning" },
   upstream_auth_error: { labelKey: "errorTypeUpstreamAuth", variant: "error" },
+  account_deactivated: { labelKey: "Account Deactivated", variant: "error" },
   auth_missing: { labelKey: "errorTypeMissingCredential", variant: "warning" },
   token_refresh_failed: { labelKey: "errorTypeRefreshFailed", variant: "warning" },
   token_expired: { labelKey: "errorTypeTokenExpired", variant: "warning" },
@@ -3025,10 +3715,14 @@ const ERROR_TYPE_LABELS = {
   network_error: { labelKey: "errorTypeNetworkError", variant: "warning" },
   unsupported: { labelKey: "errorTypeTestUnsupported", variant: "default" },
   upstream_error: { labelKey: "errorTypeUpstreamError", variant: "error" },
+  banned: { labelKey: "403 Banned", variant: "error" },
+  credits_exhausted: { labelKey: "No Credits", variant: "warning" },
 };
 
 function inferErrorType(connection, isCooldown) {
   if (isCooldown) return "upstream_rate_limited";
+  if (connection.testStatus === "banned") return "banned";
+  if (connection.testStatus === "credits_exhausted") return "credits_exhausted";
   if (connection.lastErrorType) return connection.lastErrorType;
 
   const code = Number(connection.errorCode);
@@ -3108,6 +3802,16 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
     };
   }
 
+  if (errorType === "account_deactivated") {
+    return {
+      statusVariant: "error",
+      statusLabel: t("statusDeactivated", "Deactivated"),
+      errorType,
+      errorBadge,
+      errorTextClass: "text-red-600 font-bold",
+    };
+  }
+
   if (
     errorType === "upstream_auth_error" ||
     errorType === "auth_missing" ||
@@ -3153,6 +3857,26 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
     };
   }
 
+  if (errorType === "banned") {
+    return {
+      statusVariant: "error",
+      statusLabel: t("statusBanned", "Banned (403)"),
+      errorType,
+      errorBadge,
+      errorTextClass: "text-red-600 font-bold",
+    };
+  }
+
+  if (errorType === "credits_exhausted") {
+    return {
+      statusVariant: "warning",
+      statusLabel: t("statusCreditsExhausted", "Out of Credits"),
+      errorType,
+      errorBadge,
+      errorTextClass: "text-amber-500",
+    };
+  }
+
   const fallbackStatusMap = {
     unavailable: t("statusUnavailable"),
     failed: t("statusFailed"),
@@ -3191,11 +3915,23 @@ function ConnectionRow({
   proxyHost,
   onRefreshToken,
   isRefreshing,
+  onApplyCodexAuthLocal,
+  isApplyingCodexAuthLocal,
+  onExportCodexAuthFile,
+  isExportingCodexAuthFile,
 }: ConnectionRowProps) {
   const t = useTranslations("providers");
   const displayName = isOAuth
     ? connection.name || connection.email || connection.displayName || t("oauthAccount")
     : connection.name;
+  const applyCodexAuthLabel =
+    typeof t.has === "function" && t.has("applyCodexAuthLocal")
+      ? t("applyCodexAuthLocal")
+      : "Apply auth";
+  const exportCodexAuthLabel =
+    typeof t.has === "function" && t.has("exportCodexAuthFile")
+      ? t("exportCodexAuthFile")
+      : "Export auth";
 
   // Use useState + useEffect for impure Date.now() to avoid calling during render
   const [isCooldown, setIsCooldown] = useState(false);
@@ -3313,10 +4049,9 @@ function ConnectionRow({
             {connection.lastError && connection.isActive !== false && (
               <span
                 className={`text-xs truncate max-w-[300px] ${statusPresentation.errorTextClass}`}
-                title={connection.lastError}
-              >
-                {connection.lastError}
-              </span>
+                title={connection.lastError.replace(/<[^>]*>?/gm, "")}
+                dangerouslySetInnerHTML={{ __html: connection.lastError }}
+              />
             )}
             <span className="text-xs text-text-muted">#{connection.priority}</span>
             {connection.globalPriority && (
@@ -3430,6 +4165,34 @@ function ConnectionRow({
             Token
           </Button>
         )}
+        {isCodex && onApplyCodexAuthLocal && (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon="download_done"
+            loading={isApplyingCodexAuthLocal}
+            disabled={isApplyingCodexAuthLocal}
+            onClick={onApplyCodexAuthLocal}
+            className="!h-7 !px-2 text-xs text-emerald-500 hover:text-emerald-400"
+            title={applyCodexAuthLabel}
+          >
+            {applyCodexAuthLabel}
+          </Button>
+        )}
+        {isCodex && onExportCodexAuthFile && (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon="download"
+            loading={isExportingCodexAuthFile}
+            disabled={isExportingCodexAuthFile}
+            onClick={onExportCodexAuthFile}
+            className="!h-7 !px-2 text-xs text-sky-500 hover:text-sky-400"
+            title={exportCodexAuthLabel}
+          >
+            {exportCodexAuthLabel}
+          </Button>
+        )}
         <Toggle
           size="sm"
           checked={connection.isActive ?? true}
@@ -3506,6 +4269,10 @@ ConnectionRow.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onReauth: PropTypes.func,
+  onApplyCodexAuthLocal: PropTypes.func,
+  isApplyingCodexAuthLocal: PropTypes.bool,
+  onExportCodexAuthFile: PropTypes.func,
+  isExportingCodexAuthFile: PropTypes.bool,
 };
 
 function AddApiKeyModal({
@@ -3520,12 +4287,18 @@ function AddApiKeyModal({
   const t = useTranslations("providers");
   const isBailian = provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+  const isVertex = provider === "vertex";
+  const defaultRegion = "us-central1";
+  const isGlm = provider === "glm";
 
   const [formData, setFormData] = useState({
     name: "",
     apiKey: "",
     priority: 1,
     baseUrl: isBailian ? defaultBailianUrl : "",
+    region: isVertex ? defaultRegion : "",
+    apiRegion: "international",
+    validationModelId: "",
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -3539,7 +4312,11 @@ function AddApiKeyModal({
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, apiKey: formData.apiKey }),
+        body: JSON.stringify({
+          provider,
+          apiKey: formData.apiKey,
+          validationModelId: formData.validationModelId || undefined,
+        }),
       });
       const data = await res.json();
       setValidationResult(data.valid ? "success" : "failed");
@@ -3573,7 +4350,11 @@ function AddApiKeyModal({
         const res = await fetch("/api/providers/validate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ provider, apiKey: formData.apiKey }),
+          body: JSON.stringify({
+            provider,
+            apiKey: formData.apiKey,
+            validationModelId: formData.validationModelId || undefined,
+          }),
         });
         const data = await res.json();
         isValid = !!data.valid;
@@ -3601,6 +4382,14 @@ function AddApiKeyModal({
       if (isBailian) {
         payload.providerSpecificData = {
           baseUrl: validatedBailianBaseUrl,
+        };
+      } else if (isVertex) {
+        payload.providerSpecificData = {
+          region: formData.region,
+        };
+      } else if (isGlm) {
+        payload.providerSpecificData = {
+          apiRegion: formData.apiRegion,
         };
       }
 
@@ -3635,6 +4424,7 @@ function AddApiKeyModal({
             value={formData.apiKey}
             onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
             className="flex-1"
+            placeholder={isVertex ? "Cole o Service Account JSON aqui" : undefined}
           />
           <div className="pt-6">
             <Button
@@ -3668,6 +4458,13 @@ function AddApiKeyModal({
           </p>
         )}
         <Input
+          label="Model ID (opcional)"
+          placeholder="ex: grok-3 ou meta-llama/Llama-3.1-8B-Instruct"
+          value={formData.validationModelId}
+          onChange={(e) => setFormData({ ...formData, validationModelId: e.target.value })}
+          hint="Usado como fallback se a listagem de models não estiver disponível"
+        />
+        <Input
           label={t("priorityLabel")}
           type="number"
           value={formData.priority}
@@ -3683,6 +4480,31 @@ function AddApiKeyModal({
             placeholder={defaultBailianUrl}
             hint="Optional: Custom base URL for bailian-coding-plan provider"
           />
+        )}
+        {isVertex && (
+          <Input
+            label="Região (Region)"
+            value={formData.region}
+            onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+            placeholder={defaultRegion}
+            hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
+          />
+        )}
+        {isGlm && (
+          <div>
+            <label className="text-sm font-medium text-text-main mb-1 block">API Region</label>
+            <select
+              value={formData.apiRegion}
+              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            >
+              <option value="international">International (api.z.ai)</option>
+              <option value="china">China Mainland (open.bigmodel.cn)</option>
+            </select>
+            <p className="text-xs text-text-muted mt-1">
+              Select the endpoint region for API access and quota tracking.
+            </p>
+          </div>
         )}
         <div className="flex gap-2">
           <Button
@@ -3732,6 +4554,10 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     apiKey: "",
     healthCheckInterval: 60,
     baseUrl: "",
+    region: "",
+    apiRegion: "international",
+    validationModelId: "",
+    tag: "",
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -3744,17 +4570,26 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 
   const isBailian = connection?.provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+  const isVertex = connection?.provider === "vertex";
+  const isGlm = connection?.provider === "glm";
+  const defaultRegion = "us-central1";
 
   useEffect(() => {
     if (connection) {
       const rawBaseUrl = connection.providerSpecificData?.baseUrl;
       const existingBaseUrl = typeof rawBaseUrl === "string" ? rawBaseUrl : "";
+      const rawRegion = connection.providerSpecificData?.region;
+      const existingRegion = typeof rawRegion === "string" ? rawRegion : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
         apiKey: "",
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || (isBailian ? defaultBailianUrl : ""),
+        region: existingRegion || (isVertex ? defaultRegion : ""),
+        apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
+        validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
+        tag: (connection.providerSpecificData?.tag as string) || "",
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -3771,7 +4606,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch(`/api/providers/${connection.id}/test`, { method: "POST" });
+      const res = await fetch(`/api/providers/${connection.id}/test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          validationModelId: formData.validationModelId || undefined,
+        }),
+      });
       const data = await res.json();
       setTestResult({
         valid: !!data.valid,
@@ -3797,7 +4638,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: connection.provider, apiKey: formData.apiKey }),
+        body: JSON.stringify({
+          provider: connection.provider,
+          apiKey: formData.apiKey,
+          validationModelId: formData.validationModelId || undefined,
+        }),
       });
       const data = await res.json();
       setValidationResult(data.valid ? "success" : "failed");
@@ -3838,7 +4683,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             const res = await fetch("/api/providers/validate", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ provider: connection.provider, apiKey: formData.apiKey }),
+              body: JSON.stringify({
+                provider: connection.provider,
+                apiKey: formData.apiKey,
+                validationModelId: formData.validationModelId || undefined,
+              }),
             });
             const data = await res.json();
             isValid = !!data.valid;
@@ -3864,11 +4713,25 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
+          tag: formData.tag.trim() || undefined,
         };
+        if (formData.validationModelId) {
+          updates.providerSpecificData.validationModelId = formData.validationModelId;
+        }
         // Update baseUrl for bailian-coding-plan
         if (isBailian) {
           updates.providerSpecificData.baseUrl = validatedBailianBaseUrl;
+        } else if (isVertex) {
+          updates.providerSpecificData.region = formData.region;
+        } else if (isGlm) {
+          updates.providerSpecificData.apiRegion = formData.apiRegion;
         }
+      } else {
+        // Also persist tag for OAuth accounts
+        updates.providerSpecificData = {
+          ...(connection.providerSpecificData || {}),
+          tag: formData.tag.trim() || undefined,
+        };
       }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
@@ -3898,6 +4761,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder={isOAuth ? t("accountName") : t("productionKey")}
+        />
+        <Input
+          label="Tag / Group"
+          value={formData.tag}
+          onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+          placeholder="e.g. personal, work, team-a"
+          hint="Used to group accounts in the provider view"
         />
         {isOAuth && connection.email && (
           <div className="bg-sidebar/50 p-3 rounded-lg">
@@ -3935,7 +4805,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 type="password"
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                placeholder={t("enterNewApiKey")}
+                placeholder={isVertex ? "Cole o Service Account JSON aqui" : t("enterNewApiKey")}
                 hint={t("leaveBlankKeepCurrentApiKey")}
                 className="flex-1"
               />
@@ -3959,6 +4829,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 {saveError}
               </div>
             )}
+            <Input
+              label="Model ID (opcional)"
+              placeholder="ex: grok-3 ou meta-llama/Llama-3.1-8B-Instruct"
+              value={formData.validationModelId}
+              onChange={(e) => setFormData({ ...formData, validationModelId: e.target.value })}
+              hint="Usado como fallback se a listagem de models não estiver disponível"
+            />
           </>
         )}
 
@@ -3970,6 +4847,33 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             placeholder={defaultBailianUrl}
             hint="Custom base URL for bailian-coding-plan provider"
           />
+        )}
+
+        {isVertex && (
+          <Input
+            label="Região (Region)"
+            value={formData.region}
+            onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+            placeholder={defaultRegion}
+            hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
+          />
+        )}
+
+        {isGlm && (
+          <div>
+            <label className="text-sm font-medium text-text-main mb-1 block">API Region</label>
+            <select
+              value={formData.apiRegion}
+              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            >
+              <option value="international">International (api.z.ai)</option>
+              <option value="china">China Mainland (open.bigmodel.cn)</option>
+            </select>
+            <p className="text-xs text-text-muted mt-1">
+              Select the endpoint region for API access and quota tracking.
+            </p>
+          </div>
         )}
 
         {/* T07: Extra API Keys for round-robin rotation */}

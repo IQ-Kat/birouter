@@ -69,6 +69,7 @@ interface ApiKey {
   noLog?: boolean;
   autoResolve?: boolean;
   isActive?: boolean;
+  maxSessions?: number;
   accessSchedule?: AccessSchedule | null;
   createdAt: string;
 }
@@ -109,6 +110,8 @@ export default function ApiManagerPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
+  const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
+  const [allowKeyReveal, setAllowKeyReveal] = useState(false);
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -148,8 +151,10 @@ export default function ApiManagerPageClient() {
       if (res.ok) {
         const data = await res.json();
         setKeys(data.keys || []);
+        setAllowKeyReveal(data.allowKeyReveal === true);
         // Fetch usage stats after keys are loaded
         fetchUsageStats(data.keys || []);
+        fetchSessionCounts(data.keys || []);
       }
     } catch (error) {
       console.log("Error fetching keys:", error);
@@ -184,6 +189,31 @@ export default function ApiManagerPageClient() {
       setUsageStats(stats);
     } catch (e) {
       console.log("Error fetching usage stats:", e);
+    }
+  };
+
+  const fetchSessionCounts = async (apiKeys: ApiKey[]) => {
+    if (apiKeys.length === 0) {
+      setSessionCounts({});
+      return;
+    }
+    try {
+      const res = await fetch("/api/sessions");
+      if (!res.ok) return;
+      const data = await res.json();
+      const byApiKeyRaw =
+        data && typeof data.byApiKey === "object" && !Array.isArray(data.byApiKey)
+          ? data.byApiKey
+          : {};
+      const normalized: Record<string, number> = {};
+      for (const key of apiKeys) {
+        const value = byApiKeyRaw[key.id];
+        normalized[key.id] =
+          typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
+      }
+      setSessionCounts(normalized);
+    } catch (error) {
+      console.log("Error fetching session counts:", error);
     }
   };
 
@@ -260,12 +290,32 @@ export default function ApiManagerPageClient() {
     setShowPermissionsModal(true);
   };
 
+  const handleCopyExistingKey = async (keyId: string) => {
+    if (!keyId) return;
+
+    try {
+      const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}/reveal`);
+      if (!res.ok) {
+        console.log("Error revealing key:", await res.text());
+        return;
+      }
+
+      const data = await res.json();
+      if (typeof data?.key === "string") {
+        await copy(data.key, `existing_key_${keyId}`);
+      }
+    } catch (error) {
+      console.log("Error copying existing key:", error);
+    }
+  };
+
   const handleUpdatePermissions = async (
     allowedModels: string[],
     noLog: boolean,
     allowedConnections: string[],
     autoResolve: boolean,
     isActive: boolean,
+    maxSessions: number,
     accessSchedule: AccessSchedule | null
   ) => {
     if (!editingKey || !editingKey.id) return;
@@ -291,6 +341,10 @@ export default function ApiManagerPageClient() {
     const validConnections = allowedConnections.filter(
       (id) => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id)
     );
+    const normalizedMaxSessions =
+      typeof maxSessions === "number" && Number.isFinite(maxSessions)
+        ? Math.max(0, Math.floor(maxSessions))
+        : 0;
 
     setIsSubmitting(true);
     clearError();
@@ -305,6 +359,7 @@ export default function ApiManagerPageClient() {
           noLog,
           autoResolve,
           isActive,
+          maxSessions: normalizedMaxSessions,
           accessSchedule,
         }),
       });
@@ -505,6 +560,9 @@ export default function ApiManagerPageClient() {
                 Array.isArray(key.allowedConnections) && key.allowedConnections.length > 0;
               const noLogEnabled = key.noLog === true;
               const keyIsActive = key.isActive !== false; // default true
+              const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
+              const hasSessionLimit = maxSessions > 0;
+              const activeSessions = sessionCounts[key.id] || 0;
               const hasSchedule = key.accessSchedule?.enabled === true;
               return (
                 <div
@@ -523,15 +581,25 @@ export default function ApiManagerPageClient() {
                   </div>
                   <div className="col-span-3 flex items-center gap-1.5">
                     <code className="text-sm text-text-muted font-mono truncate">{key.key}</code>
-                    <button
-                      onClick={() => copy(key.key, key.id)}
-                      className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                      title={t("copyMaskedKey")}
-                    >
-                      <span className="material-symbols-outlined text-[14px]">
-                        {copied === key.id ? "check" : "content_copy"}
+                    {allowKeyReveal ? (
+                      <button
+                        onClick={() => handleCopyExistingKey(key.id)}
+                        className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
+                        title={tc("copy")}
+                        aria-label={tc("copy")}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">
+                          {copied === `existing_key_${key.id}` ? "check" : "content_copy"}
+                        </span>
+                      </button>
+                    ) : (
+                      <span
+                        className="p-1 text-text-muted/40 opacity-0 group-hover:opacity-100 transition-all shrink-0 cursor-help"
+                        title={t("keyOnlyAvailableAtCreation")}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">lock</span>
                       </span>
-                    </button>
+                    )}
                   </div>
                   <div className="col-span-2 flex items-center">
                     <div className="flex flex-col items-start gap-1">
@@ -575,6 +643,12 @@ export default function ApiManagerPageClient() {
                             auto_fix_high
                           </span>
                           Auto-Resolve
+                        </span>
+                      )}
+                      {hasSessionLimit && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">group</span>
+                          Sessions: {activeSessions}/{maxSessions}
                         </span>
                       )}
                       {!keyIsActive && (
@@ -781,6 +855,7 @@ const PermissionsModal = memo(function PermissionsModal({
     connections: string[],
     autoResolve: boolean,
     isActive: boolean,
+    maxSessions: number,
     accessSchedule: AccessSchedule | null
   ) => void;
 }) {
@@ -797,6 +872,9 @@ const PermissionsModal = memo(function PermissionsModal({
   const [noLogEnabled, setNoLogEnabled] = useState(apiKey?.noLog === true);
   const [autoResolveEnabled, setAutoResolveEnabled] = useState(apiKey?.autoResolve === true);
   const [keyIsActive, setKeyIsActive] = useState(apiKey?.isActive !== false);
+  const [maxSessions, setMaxSessions] = useState(
+    typeof apiKey?.maxSessions === "number" && apiKey.maxSessions > 0 ? apiKey.maxSessions : 0
+  );
   const [scheduleEnabled, setScheduleEnabled] = useState(apiKey?.accessSchedule?.enabled === true);
   const [scheduleFrom, setScheduleFrom] = useState(apiKey?.accessSchedule?.from ?? "08:00");
   const [scheduleUntil, setScheduleUntil] = useState(apiKey?.accessSchedule?.until ?? "18:00");
@@ -908,6 +986,7 @@ const PermissionsModal = memo(function PermissionsModal({
       allowAllConnections ? [] : selectedConnections,
       autoResolveEnabled,
       keyIsActive,
+      maxSessions,
       schedule
     );
   }, [
@@ -919,6 +998,7 @@ const PermissionsModal = memo(function PermissionsModal({
     selectedConnections,
     autoResolveEnabled,
     keyIsActive,
+    maxSessions,
     scheduleEnabled,
     scheduleFrom,
     scheduleUntil,
@@ -1008,6 +1088,28 @@ const PermissionsModal = memo(function PermissionsModal({
             </span>
             {keyIsActive ? tc("enabled") : tc("disabled")}
           </button>
+        </div>
+
+        {/* Max Sessions Limit (T08) */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">Max Active Sessions</p>
+            <p className="text-xs text-text-muted">
+              0 = unlimited. Return 429 when this key exceeds concurrent sticky sessions.
+            </p>
+          </div>
+          <div className="w-32">
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={String(maxSessions)}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value || "0", 10);
+                setMaxSessions(Number.isFinite(parsed) && parsed > 0 ? parsed : 0);
+              }}
+            />
+          </div>
         </div>
 
         {/* Access Schedule */}

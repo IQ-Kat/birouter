@@ -86,7 +86,8 @@ function toDisplayLabel(value: string): string {
     .filter(Boolean)
     .map((part) => {
       if (/^pro\+$/i.test(part)) return "Pro+";
-      if (/^[a-z]{2,}$/.test(part)) return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+      if (/^[a-z]{2,}$/.test(part))
+        return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
       return part;
     })
     .join(" ")
@@ -99,13 +100,66 @@ function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota
   return quota.total > 0 || quota.remainingPercentage !== undefined;
 }
 
+// GLM (Z.AI) quota API config
+const GLM_QUOTA_URLS: Record<string, string> = {
+  international: "https://api.z.ai/api/monitor/usage/quota/limit",
+  china: "https://open.bigmodel.cn/api/monitor/usage/quota/limit",
+};
+
+async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
+  const region = providerSpecificData?.apiRegion || "international";
+  const quotaUrl = GLM_QUOTA_URLS[region] || GLM_QUOTA_URLS.international;
+
+  const res = await fetch(quotaUrl, {
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) throw new Error("Invalid API key");
+    throw new Error(`GLM quota API error (${res.status})`);
+  }
+
+  const json = await res.json();
+  const data = toRecord(json.data);
+  const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
+  const quotas: Record<string, UsageQuota> = {};
+
+  for (const limit of limits) {
+    const src = toRecord(limit);
+    if (src.type !== "TOKENS_LIMIT") continue;
+
+    const usedPercent = toNumber(src.percentage, 0);
+    const resetMs = toNumber(src.nextResetTime, 0);
+    const remaining = Math.max(0, 100 - usedPercent);
+
+    quotas["session"] = {
+      used: usedPercent,
+      total: 100,
+      remaining,
+      remainingPercentage: remaining,
+      resetAt: resetMs > 0 ? new Date(resetMs).toISOString() : null,
+      unlimited: false,
+    };
+  }
+
+  const levelRaw = typeof data.level === "string" ? data.level : "";
+  const plan = levelRaw
+    ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase()
+    : "Unknown";
+
+  return { plan, quotas };
+}
+
 /**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
  */
 export async function getUsageForProvider(connection) {
-  const { provider, accessToken, providerSpecificData } = connection;
+  const { provider, accessToken, apiKey, providerSpecificData } = connection;
 
   switch (provider) {
     case "github":
@@ -126,6 +180,8 @@ export async function getUsageForProvider(connection) {
       return await getQwenUsage(accessToken, providerSpecificData);
     case "iflow":
       return await getIflowUsage(accessToken);
+    case "glm":
+      return await getGlmUsage(apiKey, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -200,7 +256,9 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
     if (dataRecord.quota_snapshots) {
       // Paid plan format
       const snapshots = toRecord(dataRecord.quota_snapshots);
-      const resetAt = parseResetTime(getFieldValue(dataRecord, "quota_reset_date", "quotaResetDate"));
+      const resetAt = parseResetTime(
+        getFieldValue(dataRecord, "quota_reset_date", "quotaResetDate")
+      );
       const premiumQuota = formatGitHubQuotaSnapshot(snapshots.premium_interactions, resetAt);
       const chatQuota = formatGitHubQuotaSnapshot(snapshots.chat, resetAt);
       const completionsQuota = formatGitHubQuotaSnapshot(snapshots.completions, resetAt);
@@ -225,7 +283,11 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
       // Free/limited plan format
       const monthlyQuotas = toRecord(dataRecord.monthly_quotas);
       const usedQuotas = toRecord(dataRecord.limited_user_quotas);
-      const resetDate = getFieldValue(dataRecord, "limited_user_reset_date", "limitedUserResetDate");
+      const resetDate = getFieldValue(
+        dataRecord,
+        "limited_user_reset_date",
+        "limitedUserResetDate"
+      );
       const resetAt = parseResetTime(resetDate);
       const quotas: Record<string, UsageQuota> = {};
 
@@ -327,11 +389,7 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
     toNumber(getFieldValue(monthlyQuotas, "premium_interactions", "premiumInteractions"), 0);
   const chatTotal = toNumber(getFieldValue(monthlyQuotas, "chat", "chat"), 0);
 
-  if (
-    combined.includes("PRO+") ||
-    combined.includes("PRO_PLUS") ||
-    combined.includes("PROPLUS")
-  ) {
+  if (combined.includes("PRO+") || combined.includes("PRO_PLUS") || combined.includes("PROPLUS")) {
     return "Copilot Pro+";
   }
   if (combined.includes("ENTERPRISE")) return "Copilot Enterprise";
@@ -655,8 +713,18 @@ async function getClaudeUsage(accessToken) {
         }
       }
 
+      // Try to extract plan tier from the OAuth response
+      const planRaw =
+        typeof data.tier === "string"
+          ? data.tier
+          : typeof data.plan === "string"
+            ? data.plan
+            : typeof data.subscription_type === "string"
+              ? data.subscription_type
+              : null;
+
       return {
-        plan: "Claude Code",
+        plan: planRaw || "Claude Code",
         quotas,
         extraUsage: data.extra_usage ?? null,
       };
@@ -843,7 +911,7 @@ async function getCodexUsage(accessToken, providerSpecificData: Record<string, u
       quotas,
     };
   } catch (error) {
-    throw new Error(`Failed to fetch Codex usage: ${error.message}`);
+    return { message: `Failed to fetch Codex usage: ${(error as Error).message}` };
   }
 }
 

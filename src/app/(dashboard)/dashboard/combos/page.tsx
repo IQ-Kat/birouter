@@ -13,29 +13,21 @@ import {
   EmptyState,
 } from "@/shared/components";
 import Tooltip from "@/shared/components/Tooltip";
+import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useNotificationStore } from "@/store/notificationStore";
+import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
 import { useTranslations } from "next-intl";
 
 // Validate combo name: letters, numbers, -, _, /, .
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.-]+$/;
 
-const STRATEGY_OPTIONS = [
-  { value: "priority", labelKey: "priority", descKey: "priorityDesc", icon: "sort" },
-  { value: "weighted", labelKey: "weighted", descKey: "weightedDesc", icon: "percent" },
-  { value: "round-robin", labelKey: "roundRobin", descKey: "roundRobinDesc", icon: "autorenew" },
-  { value: "random", labelKey: "random", descKey: "randomDesc", icon: "shuffle" },
-  { value: "least-used", labelKey: "leastUsed", descKey: "leastUsedDesc", icon: "low_priority" },
-  { value: "cost-optimized", labelKey: "costOpt", descKey: "costOptimizedDesc", icon: "savings" },
-  {
-    value: "fill-first",
-    labelKey: "fillFirst",
-    descKey: "fillFirstDesc",
-    icon: "stacked_bar_chart",
-  },
-  { value: "p2c", labelKey: "p2c", descKey: "p2cDesc", icon: "compare_arrows" },
-  { value: "strict-random", labelKey: "strictRandom", descKey: "strictRandomDesc", icon: "casino" },
-];
+const STRATEGY_OPTIONS = ROUTING_STRATEGIES.map((strategy) => ({
+  value: strategy.value,
+  labelKey: strategy.labelKey,
+  descKey: strategy.combosDescKey,
+  icon: strategy.icon,
+}));
 
 const STRATEGY_GUIDANCE_FALLBACK = {
   priority: {
@@ -598,6 +590,9 @@ export default function CombosPage() {
         </Card>
       )}
 
+      {/* Model Routing Rules (#563) */}
+      <ModelRoutingSection combos={combos} />
+
       {/* Combos List */}
       {combos.length === 0 ? (
         <EmptyState
@@ -1127,6 +1122,7 @@ function TestResultsView({ results }) {
       {results.results?.map((r, i) => (
         <div
           key={i}
+          title={r.error || undefined}
           className="flex items-center gap-2 text-xs px-2 py-1.5 rounded bg-black/[0.02] dark:bg-white/[0.02]"
         >
           <span

@@ -3,47 +3,35 @@
 import { useState, useEffect } from "react";
 import { Card, Input, Button } from "@/shared/components";
 import FallbackChainsEditor from "./FallbackChainsEditor";
+import {
+  ROUTING_STRATEGIES,
+  SETTINGS_FALLBACK_STRATEGY_VALUES,
+} from "@/shared/constants/routingStrategies";
 import { useTranslations } from "next-intl";
 
-const STRATEGIES = [
-  {
-    value: "fill-first",
-    labelKey: "fillFirst",
-    descKey: "fillFirstDesc",
-    icon: "vertical_align_top",
-  },
-  { value: "round-robin", labelKey: "roundRobin", descKey: "roundRobinDesc", icon: "loop" },
-  { value: "p2c", labelKey: "p2c", descKey: "p2cDesc", icon: "balance" },
-  { value: "random", labelKey: "random", descKey: "randomDesc", icon: "shuffle" },
-  {
-    value: "least-used",
-    labelKey: "leastUsed",
-    descKey: "leastUsedDesc",
-    icon: "low_priority",
-  },
-  {
-    value: "cost-optimized",
-    labelKey: "costOpt",
-    descKey: "costOptDesc",
-    icon: "savings",
-  },
-];
+const STRATEGIES = ROUTING_STRATEGIES.filter((strategy) =>
+  SETTINGS_FALLBACK_STRATEGY_VALUES.includes(strategy.value)
+).map((strategy) => ({
+  value: strategy.value,
+  labelKey: strategy.labelKey,
+  descKey: strategy.settingsDescKey,
+  icon: strategy.icon,
+}));
 
 export default function RoutingTab() {
-  const [settings, setSettings] = useState<any>({ fallbackStrategy: "fill-first" });
+  const [settings, setSettings] = useState<any>({
+    fallbackStrategy: "fill-first",
+    alwaysPreserveClientCache: "auto",
+  });
   const [loading, setLoading] = useState(true);
   const [aliases, setAliases] = useState([]);
   const [newPattern, setNewPattern] = useState("");
   const [newTarget, setNewTarget] = useState("");
   const t = useTranslations("settings");
-  const strategyHintKeyByValue: Record<string, string> = {
-    "fill-first": "fillFirstDesc",
-    "round-robin": "roundRobinDesc",
-    p2c: "p2cDesc",
-    random: "randomDesc",
-    "least-used": "leastUsedDesc",
-    "cost-optimized": "costOptDesc",
-  };
+  const strategyHintKeyByValue = STRATEGIES.reduce<Record<string, string>>((acc, strategy) => {
+    acc[strategy.value] = strategy.descKey;
+    return acc;
+  }, {});
 
   useEffect(() => {
     fetch("/api/settings")
@@ -97,6 +85,14 @@ export default function RoutingTab() {
             </span>
           </div>
           <h3 className="text-lg font-semibold">{t("routingStrategy")}</h3>
+        </div>
+
+        <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
+          <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+            {t("routingAdvancedGuideTitle")}
+          </p>
+          <p className="text-xs text-text-muted mt-1">{t("routingAdvancedGuideHint1")}</p>
+          <p className="text-xs text-text-muted">{t("routingAdvancedGuideHint2")}</p>
         </div>
 
         <div
@@ -225,6 +221,74 @@ export default function RoutingTab() {
 
       {/* Fallback Chains */}
       <FallbackChainsEditor />
+
+      {/* Client Cache Control */}
+      <Card>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              cached
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">Client Cache Control</h3>
+            <p className="text-sm text-text-muted">
+              Configure how client-side cache_control headers are handled
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            {
+              value: "auto",
+              label: "Auto (Recommended)",
+              desc: "Preserve cache_control only for caching-aware clients (Claude Code) with deterministic routing",
+            },
+            {
+              value: "always",
+              label: "Always Preserve",
+              desc: "Always forward client cache_control headers to upstream providers",
+            },
+            {
+              value: "never",
+              label: "Never Preserve",
+              desc: "Always remove client cache_control headers, let OmniRoute manage caching",
+            },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => updateSetting({ alwaysPreserveClientCache: option.value })}
+              disabled={loading}
+              className={`w-full flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-all ${
+                settings.alwaysPreserveClientCache === option.value
+                  ? "border-green-500/50 bg-green-500/5 ring-1 ring-green-500/20"
+                  : "border-border/50 hover:border-border hover:bg-surface/30"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={`material-symbols-outlined text-[16px] ${
+                    settings.alwaysPreserveClientCache === option.value
+                      ? "text-green-400"
+                      : "text-text-muted"
+                  }`}
+                >
+                  {settings.alwaysPreserveClientCache === option.value
+                    ? "check_circle"
+                    : "radio_button_unchecked"}
+                </span>
+                <span
+                  className={`text-sm font-medium ${settings.alwaysPreserveClientCache === option.value ? "text-green-400" : ""}`}
+                >
+                  {option.label}
+                </span>
+              </div>
+              <p className="text-xs text-text-muted ml-7">{option.desc}</p>
+            </button>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
