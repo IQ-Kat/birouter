@@ -46,6 +46,7 @@ export async function getSettings() {
     stickyRoundRobinLimit: 3,
     requireLogin: true,
     hiddenSidebarItems: [],
+    alwaysPreserveClientCache: "auto",
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -485,4 +486,57 @@ export async function setProxyConfig(config: Record<string, unknown>) {
 
   backupDbFile("pre-write");
   return current;
+}
+
+// ──────────────── Cache Control Metrics ────────────────
+
+export async function getCacheMetrics() {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'cacheMetrics'")
+    .get() as { value?: string } | undefined;
+
+  if (!row || !row.value) {
+    return {
+      totalRequests: 0,
+      requestsWithCacheControl: 0,
+      totalInputTokens: 0,
+      totalCachedTokens: 0,
+      totalCacheCreationTokens: 0,
+      tokensSaved: 0,
+      estimatedCostSaved: 0,
+      byProvider: {},
+      byStrategy: {},
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+
+  return JSON.parse(row.value);
+}
+
+export async function updateCacheMetrics(metrics: Record<string, unknown>) {
+  const db = getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'cacheMetrics', ?)"
+  ).run(JSON.stringify(metrics));
+  backupDbFile("pre-write");
+  return metrics;
+}
+
+export async function resetCacheMetrics() {
+  const db = getDbInstance();
+  db.prepare("DELETE FROM key_value WHERE namespace = 'settings' AND key = 'cacheMetrics'").run();
+  backupDbFile("pre-write");
+  return {
+    totalRequests: 0,
+    requestsWithCacheControl: 0,
+    totalInputTokens: 0,
+    totalCachedTokens: 0,
+    totalCacheCreationTokens: 0,
+    tokensSaved: 0,
+    estimatedCostSaved: 0,
+    byProvider: {},
+    byStrategy: {},
+    lastUpdated: new Date().toISOString(),
+  };
 }
