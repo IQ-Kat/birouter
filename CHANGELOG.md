@@ -4,6 +4,18 @@
 
 ---
 
+## [3.2.4] — 2026-03-29
+
+### ✨ Enhancements & Refactoring
+
+- **Qoder AI Migration (#660)** — Completely migrated the legacy `iFlow` core provider onto `Qoder AI` maintaining stable API routing capabilities.
+
+### 🐛 Bug Fixes
+
+- **Gemini Tools HTTP 400 Payload Invalid Argument (#731)** — Prevented `thoughtSignature` array injections inside standard Gemini `functionCall` sequences blocking agentic routing flows.
+
+---
+
 ## [3.2.3] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
