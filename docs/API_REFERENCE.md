@@ -216,23 +216,23 @@ Response example:
 
 ### Settings
 
-| Endpoint                        | Method  | Description            |
-| ------------------------------- | ------- | ---------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings  |
-| `/api/settings/proxy`           | GET/PUT | Network proxy config   |
-| `/api/settings/proxy/test`      | POST    | Test proxy connection  |
-| `/api/settings/ip-filter`       | GET/PUT | IP allowlist/blocklist |
-| `/api/settings/thinking-budget` | GET/PUT | Reasoning token budget |
-| `/api/settings/system-prompt`   | GET/PUT | Global system prompt   |
+| Endpoint                        | Method        | Description            |
+| ------------------------------- | ------------- | ---------------------- |
+| `/api/settings`                 | GET/PUT/PATCH | General settings       |
+| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
+| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
+| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
+| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
+| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
 
 ### Monitoring
 
-| Endpoint                 | Method     | Description             |
-| ------------------------ | ---------- | ----------------------- |
-| `/api/sessions`          | GET        | Active session tracking |
-| `/api/rate-limits`       | GET        | Per-account rate limits |
+| Endpoint                 | Method     | Description                                                                                          |
+| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
+| `/api/sessions`          | GET        | Active session tracking                                                                              |
+| `/api/rate-limits`       | GET        | Per-account rate limits                                                                              |
 | `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
-| `/api/cache/stats`       | GET/DELETE | Cache stats / clear     |
+| `/api/cache/stats`       | GET/DELETE | Cache stats / clear                                                                                  |
 
 ### Backup & Export/Import
 
@@ -252,6 +252,13 @@ Response example:
 | `/api/sync/cloud`      | Various | Cloud sync operations |
 | `/api/sync/initialize` | POST    | Initialize sync       |
 | `/api/cloud/*`         | Various | Cloud management      |
+
+### Tunnels
+
+| Endpoint                   | Method | Description                                                             |
+| -------------------------- | ------ | ----------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
+| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
 
 ### CLI Tools
 
@@ -277,12 +284,12 @@ GET response includes `agents[]` (id, name, binary, version, installed, protocol
 
 ### Resilience & Rate Limits
 
-| Endpoint                | Method  | Description                     |
-| ----------------------- | ------- | ------------------------------- |
-| `/api/resilience`       | GET/PATCH | Get/update resilience profiles |
-| `/api/resilience/reset` | POST    | Reset circuit breakers          |
-| `/api/rate-limits`      | GET     | Per-account rate limit status   |
-| `/api/rate-limit`       | GET     | Global rate limit configuration |
+| Endpoint                | Method    | Description                     |
+| ----------------------- | --------- | ------------------------------- |
+| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
+| `/api/resilience/reset` | POST      | Reset circuit breakers          |
+| `/api/rate-limits`      | GET       | Per-account rate limit status   |
+| `/api/rate-limit`       | GET       | Global rate limit configuration |
 
 ### Evals
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import Link from "next/link";
 import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/shared/components";
@@ -10,6 +10,36 @@ import { useTranslations } from "next-intl";
 
 const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
+
+type TranslationValues = Record<string, string | number | boolean | Date>;
+type CloudflaredTunnelPhase =
+  | "unsupported"
+  | "not_installed"
+  | "stopped"
+  | "starting"
+  | "running"
+  | "error";
+
+type CloudflaredTunnelStatus = {
+  supported: boolean;
+  installed: boolean;
+  managedInstall: boolean;
+  installSource: string | null;
+  binaryPath: string | null;
+  running: boolean;
+  pid: number | null;
+  publicUrl: string | null;
+  apiUrl: string | null;
+  targetUrl: string;
+  phase: CloudflaredTunnelPhase;
+  lastError: string | null;
+  logPath: string;
+};
+
+type TunnelNotice = {
+  type: "success" | "error" | "info";
+  message: string;
+};
 
 export default function APIPageClient({ machineId }) {
   const [resolvedMachineId, setResolvedMachineId] = useState(machineId || "");
@@ -36,8 +66,26 @@ export default function APIPageClient({ machineId }) {
   const [mcpStatus, setMcpStatus] = useState<any>(null);
   const [a2aStatus, setA2aStatus] = useState<any>(null);
   const [searchProviders, setSearchProviders] = useState<any[]>([]);
+  const [cloudflaredStatus, setCloudflaredStatus] = useState<CloudflaredTunnelStatus | null>(null);
+  const [cloudflaredBusy, setCloudflaredBusy] = useState(false);
+  const [cloudflaredNotice, setCloudflaredNotice] = useState<TunnelNotice | null>(null);
 
   const { copied, copy } = useCopyToClipboard();
+
+  const translateOrFallback = useCallback(
+    (key: string, fallback: string, values?: TranslationValues) => {
+      try {
+        const message = values ? t(key as never, values as never) : t(key as never);
+        if (!message || message === key || message === `endpoint.${key}`) {
+          return fallback;
+        }
+        return message;
+      } catch {
+        return fallback;
+      }
+    },
+    [t]
+  );
 
   const fetchSearchProviders = async () => {
     try {
@@ -51,16 +99,53 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
+  const fetchCloudflaredStatus = useCallback(
+    async (silent = false) => {
+      try {
+        const res = await fetch("/api/tunnels/cloudflared", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(
+            data?.error ||
+              translateOrFallback(
+                "cloudflaredRequestFailed",
+                "Failed to load Cloudflare tunnel status"
+              )
+          );
+        }
+
+        setCloudflaredStatus(data);
+        return data as CloudflaredTunnelStatus;
+      } catch (error) {
+        if (!silent) {
+          setCloudflaredNotice({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : translateOrFallback(
+                    "cloudflaredRequestFailed",
+                    "Failed to load Cloudflare tunnel status"
+                  ),
+          });
+        }
+        return null;
+      }
+    },
+    [translateOrFallback]
+  );
+
   useEffect(() => {
     Promise.allSettled([
       loadCloudSettings(),
       fetchModels(),
       fetchProtocolStatus(),
       fetchSearchProviders(),
+      fetchCloudflaredStatus(true),
     ]).finally(() => {
       setLoading(false);
     });
-  }, []);
+  }, [fetchCloudflaredStatus]);
 
   const fetchModels = async () => {
     try {
@@ -177,9 +262,19 @@ export default function APIPageClient({ machineId }) {
   }, [cloudStatus]);
 
   useEffect(() => {
-    const interval = setInterval(fetchProtocolStatus, 30000);
+    if (cloudflaredNotice) {
+      const timer = setTimeout(() => setCloudflaredNotice(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [cloudflaredNotice]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      void fetchProtocolStatus();
+      void fetchCloudflaredStatus(true);
+    }, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchCloudflaredStatus]);
 
   const dispatchCloudChange = () => {
     globalThis.dispatchEvent(new Event("cloud-status-changed"));
@@ -275,6 +370,50 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
+  const handleCloudflaredAction = async (action: "enable" | "disable") => {
+    setCloudflaredBusy(true);
+    setCloudflaredNotice(null);
+
+    try {
+      const res = await fetch("/api/tunnels/cloudflared", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            translateOrFallback("cloudflaredRequestFailed", "Failed to update Cloudflare tunnel")
+        );
+      }
+
+      if (data?.status) {
+        setCloudflaredStatus(data.status);
+      }
+
+      setCloudflaredNotice({
+        type: "success",
+        message:
+          action === "enable"
+            ? translateOrFallback("cloudflaredStarted", "Cloudflare tunnel started")
+            : translateOrFallback("cloudflaredStopped", "Cloudflare tunnel stopped"),
+      });
+    } catch (error) {
+      setCloudflaredNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("cloudflaredRequestFailed", "Failed to update Cloudflare tunnel"),
+      });
+    } finally {
+      setCloudflaredBusy(false);
+      await fetchCloudflaredStatus(true);
+    }
+  };
+
   const [baseUrl, setBaseUrl] = useState("/v1");
   const normalizedCloudBaseUrl = cloudBaseUrl
     ? resolvedMachineId && !cloudBaseUrl.endsWith(`/${resolvedMachineId}`)
@@ -305,6 +444,43 @@ export default function APIPageClient({ machineId }) {
   const a2aOnline = a2aStatus?.status === "ok";
   const mcpToolCount = Number(mcpStatus?.heartbeat?.toolCount || 0);
   const a2aActiveStreams = Number(a2aStatus?.tasks?.activeStreams || 0);
+  const cloudflaredPhase = cloudflaredStatus?.phase || "not_installed";
+  const cloudflaredPhaseMeta: Record<CloudflaredTunnelPhase, { label: string; className: string }> =
+    {
+      running: {
+        label: translateOrFallback("cloudflaredRunning", "Running"),
+        className: "bg-green-500/10 border-green-500/30 text-green-400",
+      },
+      starting: {
+        label: translateOrFallback("cloudflaredStarting", "Starting"),
+        className: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+      },
+      stopped: {
+        label: translateOrFallback("cloudflaredStoppedState", "Stopped"),
+        className: "bg-surface border-border/70 text-text-muted",
+      },
+      not_installed: {
+        label: translateOrFallback("cloudflaredNotInstalled", "Not installed"),
+        className: "bg-surface border-border/70 text-text-muted",
+      },
+      unsupported: {
+        label: translateOrFallback("cloudflaredUnsupported", "Unsupported"),
+        className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+      },
+      error: {
+        label: translateOrFallback("cloudflaredError", "Error"),
+        className: "bg-red-500/10 border-red-500/30 text-red-400",
+      },
+    };
+  const cloudflaredActionLabel = cloudflaredStatus?.running
+    ? translateOrFallback("cloudflaredDisable", "Stop Tunnel")
+    : cloudflaredStatus?.installed
+      ? translateOrFallback("cloudflaredEnable", "Enable Tunnel")
+      : translateOrFallback("cloudflaredInstallAndEnable", "Install & Enable");
+  const cloudflaredUrlNotice = translateOrFallback(
+    "cloudflaredUrlNotice",
+    "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+  );
 
   return (
     <div className="flex flex-col gap-8">
@@ -406,6 +582,99 @@ export default function APIPageClient({ machineId }) {
           >
             {copied === "endpoint_url" ? tc("copied") : tc("copy")}
           </Button>
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-semibold">
+                    {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
+                  </h3>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
+                  >
+                    {cloudflaredPhaseMeta[cloudflaredPhase].label}
+                  </span>
+                </div>
+              </div>
+
+              {cloudflaredStatus?.supported !== false && (
+                <Button
+                  size="sm"
+                  variant={cloudflaredStatus?.running ? "secondary" : "primary"}
+                  icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
+                  onClick={() =>
+                    handleCloudflaredAction(cloudflaredStatus?.running ? "disable" : "enable")
+                  }
+                  loading={cloudflaredBusy}
+                  className={
+                    cloudflaredStatus?.running
+                      ? "border-border/70! text-text-muted! hover:text-text!"
+                      : "bg-linear-to-r from-primary to-cyan-500 hover:from-primary-hover hover:to-cyan-600"
+                  }
+                >
+                  {cloudflaredActionLabel}
+                </Button>
+              )}
+            </div>
+
+            {cloudflaredNotice && (
+              <div
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                  cloudflaredNotice.type === "success"
+                    ? "border-green-500/30 bg-green-500/10 text-green-400"
+                    : cloudflaredNotice.type === "info"
+                      ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                      : "border-red-500/30 bg-red-500/10 text-red-400"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {cloudflaredNotice.type === "success"
+                    ? "check_circle"
+                    : cloudflaredNotice.type === "info"
+                      ? "info"
+                      : "error"}
+                </span>
+                <span className="flex-1">{cloudflaredNotice.message}</span>
+                <button
+                  onClick={() => setCloudflaredNotice(null)}
+                  className="rounded p-0.5 transition-colors hover:bg-white/10"
+                >
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+            )}
+
+            <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                value={cloudflaredStatus?.apiUrl || ""}
+                readOnly
+                placeholder="https://*.trycloudflare.com/v1"
+                className="flex-1 min-w-0 font-mono text-sm"
+              />
+              <Button
+                variant="secondary"
+                icon={copied === "cloudflared_url" ? "check" : "content_copy"}
+                onClick={() =>
+                  cloudflaredStatus?.apiUrl && copy(cloudflaredStatus.apiUrl, "cloudflared_url")
+                }
+                disabled={!cloudflaredStatus?.apiUrl}
+                className="shrink-0 self-start sm:self-auto"
+              >
+                {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
+              </Button>
+            </div>
+            {cloudflaredStatus?.lastError && (
+              <p className="text-xs text-red-400">
+                {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
+                  error: cloudflaredStatus.lastError,
+                })}
+              </p>
+            )}
+          </div>
         </div>
       </Card>
 

@@ -507,24 +507,25 @@ post_install() {
 
 ### Environment Variables
 
-| Variable                  | Default                              | Description                                             |
-| ------------------------- | ------------------------------------ | ------------------------------------------------------- |
-| `JWT_SECRET`              | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)           |
-| `INITIAL_PASSWORD`        | `123456`                             | First login password                                    |
-| `DATA_DIR`                | `~/.omniroute`                       | Data directory (db, usage, logs)                        |
-| `PORT`                    | framework default                    | Service port (`20128` in examples)                      |
-| `HOSTNAME`                | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                |
-| `NODE_ENV`                | runtime default                      | Set `production` for deploy                             |
-| `BASE_URL`                | `http://localhost:20128`             | Server-side internal base URL                           |
-| `CLOUD_URL`               | `https://omniroute.dev`              | Cloud sync endpoint base URL                            |
-| `API_KEY_SECRET`          | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                      |
-| `REQUIRE_API_KEY`         | `false`                              | Enforce Bearer API key on `/v1/*`                       |
-| `ALLOW_API_KEY_REVEAL`    | `false`                              | Allow Api Manager to copy full API keys on demand       |
-| `ENABLE_REQUEST_LOGS`     | `false`                              | Enables request/response logs                           |
-| `AUTH_COOKIE_SECURE`      | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy) |
-| `OMNIROUTE_MEMORY_MB`     | `512`                                | Node.js heap limit in MB                                |
-| `PROMPT_CACHE_MAX_SIZE`   | `50`                                 | Max prompt cache entries                                |
-| `SEMANTIC_CACHE_MAX_SIZE` | `100`                                | Max semantic cache entries                              |
+| Variable                  | Default                              | Description                                                      |
+| ------------------------- | ------------------------------------ | ---------------------------------------------------------------- |
+| `JWT_SECRET`              | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                    |
+| `INITIAL_PASSWORD`        | `123456`                             | First login password                                             |
+| `DATA_DIR`                | `~/.omniroute`                       | Data directory (db, usage, logs)                                 |
+| `PORT`                    | framework default                    | Service port (`20128` in examples)                               |
+| `HOSTNAME`                | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                         |
+| `NODE_ENV`                | runtime default                      | Set `production` for deploy                                      |
+| `BASE_URL`                | `http://localhost:20128`             | Server-side internal base URL                                    |
+| `CLOUD_URL`               | `https://omniroute.dev`              | Cloud sync endpoint base URL                                     |
+| `API_KEY_SECRET`          | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                               |
+| `REQUIRE_API_KEY`         | `false`                              | Enforce Bearer API key on `/v1/*`                                |
+| `ALLOW_API_KEY_REVEAL`    | `false`                              | Allow Api Manager to copy full API keys on demand                |
+| `ENABLE_REQUEST_LOGS`     | `false`                              | Enables request/response logs                                    |
+| `AUTH_COOKIE_SECURE`      | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)          |
+| `CLOUDFLARED_BIN`         | unset                                | Use an existing `cloudflared` binary instead of managed download |
+| `OMNIROUTE_MEMORY_MB`     | `512`                                | Node.js heap limit in MB                                         |
+| `PROMPT_CACHE_MAX_SIZE`   | `50`                                 | Max prompt cache entries                                         |
+| `SEMANTIC_CACHE_MAX_SIZE` | `100`                                | Max semantic cache entries                                       |
 
 For the full environment variable reference, see the [README](../README.md).
 
@@ -638,6 +639,14 @@ Returns models grouped by provider with types (`chat`, `embedding`, `image`).
 - Sync providers, combos, and settings across devices
 - Automatic background sync with timeout + fail-fast
 - Prefer server-side `BASE_URL`/`CLOUD_URL` in production
+
+### Cloudflare Quick Tunnel
+
+- Available in **Dashboard → Endpoints** for Docker and other self-hosted deployments
+- Creates a temporary `https://*.trycloudflare.com` URL that forwards to your current OpenAI-compatible `/v1` endpoint
+- First enable installs `cloudflared` only when needed; later restarts reuse the same managed binary
+- Tunnel URLs are ephemeral and change every time you stop/start the tunnel
+- Set `CLOUDFLARED_BIN` if you prefer using a preinstalled `cloudflared` binary instead of the managed download
 
 ### LLM Gateway Intelligence (Phase 9)
 
