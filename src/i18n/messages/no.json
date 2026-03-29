@@ -1408,9 +1408,9 @@
     "chatCompletions": "Chatfullføringer",
     "importingModels": "Importerer...",
     "importFromModels": "Importer fra /models",
-    "clearAllModels": "Slett alle modeller",
-    "clearAllModelsConfirm": "Er du sikker på at du vil fjerne alle modeller for denne leverandøren? Dette kan ikke angres.",
-    "clearAllModelsSuccess": "Alle modeller slettet",
+    "clearAllModels": "Fjern alle modeller",
+    "clearAllModelsConfirm": "Er du sikker på at du vil fjerne alle modellene for denne leverandøren? Dette kan ikke angres.",
+    "clearAllModelsSuccess": "Alle modeller ryddet",
     "clearAllModelsFailed": "Kunne ikke slette modeller",
     "addConnectionToImport": "Legg til en tilkobling for å aktivere import.",
     "noModelsConfigured": "Ingen modeller er konfigurert",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "Automatisk synkronisering aktivert – modellene oppdateres med jevne mellomrom",
     "autoSyncDisabled": "Automatisk synkronisering er deaktivert",
     "autoSyncToggleFailed": "Kunne ikke slå på automatisk synkronisering",
-    "clearAllModels": "Fjern alle modeller",
-    "clearAllModelsConfirm": "Er du sikker på at du vil fjerne alle modellene for denne leverandøren? Dette kan ikke angres.",
-    "clearAllModelsSuccess": "Alle modeller ryddet",
-    "clearAllModelsFailed": "Kunne ikke slette modeller"
+    "allModelsAlreadyImported": "All models already imported",
+    "noNewModelsToImport": "No new models to import",
+    "skippingExistingModels": "Skipping {count} existing models"
   },
   "settings": {
     "title": "Innstillinger",

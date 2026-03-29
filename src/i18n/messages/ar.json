@@ -1408,8 +1408,8 @@
     "chatCompletions": "استكمالات الدردشة",
     "importingModels": "جارٍ الاستيراد...",
     "importFromModels": "الاستيراد من / النماذج",
-    "clearAllModels": "مسح جميع النماذج",
-    "clearAllModelsConfirm": "هل أنت متأكد أنك تريد إزالة جميع النماذج لهذا المزود؟ لا يمكن التراجع عن هذا.",
+    "clearAllModels": "مسح كافة النماذج",
+    "clearAllModelsConfirm": "هل أنت متأكد أنك تريد إزالة كافة النماذج لهذا الموفر؟ لا يمكن التراجع عن هذا.",
     "clearAllModelsSuccess": "تم مسح جميع النماذج",
     "clearAllModelsFailed": "فشل في مسح النماذج",
     "addConnectionToImport": "أضف اتصالاً لتمكين الاستيراد.",
@@ -1581,10 +1581,9 @@
     "autoSyncEnabled": "تم تمكين المزامنة التلقائية — سيتم تحديث النماذج بشكل دوري",
     "autoSyncDisabled": "تم تعطيل المزامنة التلقائية",
     "autoSyncToggleFailed": "فشل في تبديل المزامنة التلقائية",
-    "clearAllModels": "مسح كافة النماذج",
-    "clearAllModelsConfirm": "هل أنت متأكد أنك تريد إزالة كافة النماذج لهذا الموفر؟ لا يمكن التراجع عن هذا.",
-    "clearAllModelsSuccess": "تم مسح جميع النماذج",
-    "clearAllModelsFailed": "فشل في مسح النماذج"
+    "allModelsAlreadyImported": "All models already imported",
+    "noNewModelsToImport": "No new models to import",
+    "skippingExistingModels": "Skipping {count} existing models"
   },
   "settings": {
     "title": "الإعدادات",
