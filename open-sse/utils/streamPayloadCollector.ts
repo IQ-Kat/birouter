@@ -157,6 +157,10 @@ function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string
     if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0) {
       reasoningParts.push(delta.reasoning_content);
     }
+    // Normalize `reasoning` alias (NVIDIA kimi-k2.5 etc.)
+    if (typeof delta.reasoning === "string" && delta.reasoning.length > 0 && !delta.reasoning_content) {
+      reasoningParts.push(delta.reasoning);
+    }
 
     if (Array.isArray(delta.tool_calls)) {
       for (const item of delta.tool_calls) {
@@ -203,12 +207,14 @@ function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string
     }
   }
 
+  const joinedContent = contentParts.length > 0 ? contentParts.join("").trim() : null;
+  const joinedReasoning = reasoningParts.length > 0 ? reasoningParts.join("").trim() : null;
   const message: JsonRecord = {
     role: "assistant",
-    content: contentParts.length > 0 ? contentParts.join("") : null,
+    content: joinedContent || null,
   };
-  if (reasoningParts.length > 0) {
-    message.reasoning_content = reasoningParts.join("");
+  if (joinedReasoning) {
+    message.reasoning_content = joinedReasoning;
   }
 
   const finalToolCalls = [...toolCalls.values()].sort((a, b) => a.index - b.index);

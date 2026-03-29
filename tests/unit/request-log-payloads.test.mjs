@@ -155,3 +155,51 @@ test("builds compact Claude stream summary for detailed logs", () => {
   assert.equal(compact.usage.output_tokens, 7);
   assert.equal(compact._omniroute_stream.eventCount, 4);
 });
+
+test("builds compact OpenAI summary with reasoning alias (delta.reasoning)", () => {
+  const collector = createStructuredSSECollector({ stage: "provider_response" });
+
+  collector.push({
+    id: "chatcmpl_r1",
+    object: "chat.completion.chunk",
+    created: 100,
+    model: "moonshotai/kimi-k2.5",
+    choices: [{ index: 0, delta: { role: "assistant" } }],
+  });
+  collector.push({
+    id: "chatcmpl_r1",
+    object: "chat.completion.chunk",
+    created: 100,
+    model: "moonshotai/kimi-k2.5",
+    choices: [{ index: 0, delta: { reasoning: "Let me think..." } }],
+  });
+  collector.push({
+    id: "chatcmpl_r1",
+    object: "chat.completion.chunk",
+    created: 100,
+    model: "moonshotai/kimi-k2.5",
+    choices: [{ index: 0, delta: { content: "The answer is 4." } }],
+  });
+  collector.push({
+    id: "chatcmpl_r1",
+    object: "chat.completion.chunk",
+    created: 100,
+    model: "moonshotai/kimi-k2.5",
+    choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+    usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 },
+  });
+
+  const summary = buildStreamSummaryFromEvents(
+    collector.getEvents(),
+    FORMATS.OPENAI,
+    "moonshotai/kimi-k2.5"
+  );
+  const compact = compactStructuredStreamPayload(
+    collector.build(summary, { includeEvents: false })
+  );
+
+  assert.equal(compact.object, "chat.completion");
+  assert.equal(compact.choices[0].message.content, "The answer is 4.");
+  assert.equal(compact.choices[0].message.reasoning_content, "Let me think...");
+  assert.equal(compact.choices[0].finish_reason, "stop");
+});

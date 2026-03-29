@@ -159,8 +159,9 @@ export function createSSEStream(options: StreamOptions = {}) {
 
   // Track content length for usage estimation (both modes)
   let totalContentLength = 0;
-  // Passthrough: accumulate content for call log response body
+  // Passthrough: accumulate content and reasoning separately for call log response body
   let passthroughAccumulatedContent = "";
+  let passthroughAccumulatedReasoning = "";
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
@@ -304,6 +305,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
                 } else {
                   // Chat Completions: full sanitization pipeline
+
+                  // Detect reasoning alias before sanitization strips it
+                  const hadReasoningAlias = !!(
+                    parsed.choices?.[0]?.delta?.reasoning &&
+                    typeof parsed.choices[0].delta.reasoning === "string" &&
+                    !parsed.choices[0].delta.reasoning_content
+                  );
+
                   parsed = sanitizeStreamingChunk(parsed);
 
                   const idFixed = fixInvalidId(parsed);
@@ -322,6 +331,31 @@ export function createSSEStream(options: StreamOptions = {}) {
                       delta.reasoning_content = thinking;
                     }
                   }
+
+                  // Split combined reasoning+content deltas into separate SSE events.
+                  // Standard OpenAI streaming never mixes both fields in one delta;
+                  // clients (e.g. LobeChat) may skip content when reasoning_content
+                  // is present, causing the first content token to be lost.
+                  if (delta?.reasoning_content && delta?.content) {
+                    const reasoningChunk = JSON.parse(JSON.stringify(parsed));
+                    const rDelta = reasoningChunk.choices[0].delta;
+                    delete rDelta.content;
+                    reasoningChunk.choices[0].finish_reason = null;
+                    delete reasoningChunk.usage;
+                    const rOutput = `data: ${JSON.stringify(reasoningChunk)}\n`;
+                    passthroughAccumulatedReasoning += delta.reasoning_content;
+                    totalContentLength += delta.reasoning_content.length;
+                    clientPayloadCollector.push(reasoningChunk);
+                    reqLogger?.appendConvertedChunk?.(rOutput);
+                    controller.enqueue(encoder.encode(rOutput));
+                    controller.enqueue(encoder.encode("\n"));
+                    delete delta.reasoning_content;
+                  }
+
+                  // Track whether we need to re-serialize (separate from injectedUsage
+                  // to avoid blocking subsequent finish_reason / usage mutations)
+                  const needsReserialization =
+                    hadReasoningAlias || (delta?.content === "" && delta?.reasoning_content);
 
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
@@ -365,7 +399,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (typeof delta?.content === "string")
                     passthroughAccumulatedContent += delta.content;
                   if (typeof delta?.reasoning_content === "string")
-                    passthroughAccumulatedContent += delta.reasoning_content;
+                    passthroughAccumulatedReasoning += delta.reasoning_content;
 
                   const extracted = extractUsage(parsed);
                   if (extracted) {
@@ -398,7 +432,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.usage = filterUsageForFormat(buffered, FORMATS.OPENAI);
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
-                  } else if (idFixed) {
+                  } else if (idFixed || needsReserialization) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   }
@@ -479,6 +513,19 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (parsed.choices?.[0]?.delta?.reasoning_content) {
             const r = parsed.choices[0].delta.reasoning_content;
             if (typeof r === "string") {
+              totalContentLength += r.length;
+              if (state?.accumulatedContent !== undefined) state.accumulatedContent += r;
+            }
+          }
+          // Normalize `reasoning` alias → `reasoning_content` (NVIDIA kimi-k2.5 etc.)
+          if (
+            parsed.choices?.[0]?.delta?.reasoning &&
+            !parsed.choices?.[0]?.delta?.reasoning_content
+          ) {
+            const r = parsed.choices[0].delta.reasoning;
+            if (typeof r === "string") {
+              parsed.choices[0].delta.reasoning_content = r;
+              delete parsed.choices[0].delta.reasoning;
               totalContentLength += r.length;
               if (state?.accumulatedContent !== undefined) state.accumulatedContent += r;
             }
@@ -635,6 +682,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                   role: "assistant",
                   content: content || null,
                 };
+                const reasoning = passthroughAccumulatedReasoning.trim();
+                if (reasoning) {
+                  message.reasoning_content = reasoning;
+                }
                 if (passthroughToolCalls.size > 0) {
                   message.tool_calls = [...passthroughToolCalls.values()].sort(
                     (a, b) => a.index - b.index

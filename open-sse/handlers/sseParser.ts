@@ -52,6 +52,10 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
     if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0) {
       reasoningParts.push(delta.reasoning_content);
     }
+    // Normalize `reasoning` alias (NVIDIA kimi-k2.5 etc.)
+    if (typeof delta.reasoning === "string" && delta.reasoning.length > 0 && !delta.reasoning_content) {
+      reasoningParts.push(delta.reasoning);
+    }
 
     // T18: Accumulate tool calls correctly across streamed chunks
     if (delta.tool_calls) {
@@ -94,12 +98,14 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
     }
   }
 
+  const joinedContent = contentParts.length > 0 ? contentParts.join("").trim() : null;
+  const joinedReasoning = reasoningParts.length > 0 ? reasoningParts.join("").trim() : null;
   const message: Record<string, unknown> = {
     role: "assistant",
-    content: contentParts.length > 0 ? contentParts.join("") : null,
+    content: joinedContent || null,
   };
-  if (reasoningParts.length > 0) {
-    message.reasoning_content = reasoningParts.join("");
+  if (joinedReasoning) {
+    message.reasoning_content = joinedReasoning;
   }
 
   const finalToolCalls = [...accumulatedToolCalls.values()].filter(Boolean).sort((a, b) => {
