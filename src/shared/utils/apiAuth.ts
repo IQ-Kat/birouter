@@ -89,6 +89,10 @@ export async function verifyAuth(request: any): Promise<string | null> {
  * need to conditionally skip auth should check that separately.
  */
 export async function isAuthenticated(request: Request): Promise<boolean> {
+  // If settings say login/auth is disabled, treat all requests as authenticated
+  if (!(await isAuthRequired())) {
+    return true;
+  }
   // 1. Check API key (for external clients)
   const authHeader = request.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
