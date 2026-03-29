@@ -3,6 +3,7 @@ import {
   validateApiKey,
   updateProviderConnection,
   getSettings,
+  getCachedSettings,
 } from "@/lib/localDb";
 import { getQuotaWindowStatus, isAccountQuotaExhausted } from "@/domain/quotaCache";
 import {
@@ -823,17 +824,19 @@ export async function markAccountUnavailable(
 
     // T-AUTODISABLE: If auto-disable setting is enabled and error is permanent/terminal,
     // mark account as inactive so it is never retried again.
+    // Uses getCachedSettings() to avoid DB overhead on hot error path.
+    // NOTE: For permanent bans we disable immediately — no threshold needed,
+    // because a permanent ban (403 "Verify your account" / ToS violation) will
+    // NEVER recover, so retrying is pointless regardless of attempt count.
     if (result.permanent) {
       try {
-        const settings = await getSettings();
+        const settings = await getCachedSettings();
         const autoDisableEnabled = settings.autoDisableBannedAccounts ?? false;
-        const threshold = Number(settings.autoDisableBannedThreshold ?? 3);
-        const newBackoff = newBackoffLevel ?? backoffLevel;
-        if (autoDisableEnabled && newBackoff >= threshold) {
+        if (autoDisableEnabled) {
           await updateProviderConnection(connectionId, { isActive: false });
           log.info(
             "AUTH",
-            `Auto-disabled ${connectionId.slice(0, 8)} — permanent error after ${newBackoff} failures (autoDisableBannedAccounts=true)`
+            `Auto-disabled ${connectionId.slice(0, 8)} — permanent ban detected (autoDisableBannedAccounts=true)`
           );
         }
       } catch (e) {
