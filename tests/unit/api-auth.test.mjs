@@ -120,7 +120,11 @@ test("isAuthenticated accepts bearer API keys", async () => {
   assert.equal(result, true);
 });
 
-test("isAuthenticated returns false without valid credentials", async () => {
+test("isAuthenticated returns false when auth is required without valid credentials", async () => {
+  // Force requireLogin to be active
+  process.env.INITIAL_PASSWORD = "bootstrap-password";
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
   const request = new Request("https://example.com/api/providers");
 
   const result = await apiAuth.isAuthenticated(request);

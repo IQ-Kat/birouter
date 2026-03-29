@@ -26,7 +26,7 @@ function mockLog() {
 function mockHandler(statusSequence) {
   let callIndex = 0;
   return async (body, modelStr) => {
-    const status = statusSequence[callIndex] ?? 200;
+    const status = statusSequence[callIndex] ?? statusSequence[statusSequence.length - 1] ?? 200;
     callIndex++;
     if (status === 200) {
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
@@ -55,6 +55,7 @@ test("handleComboChat: circuit breaker opens after repeated 502 errors", async (
     name: "test-combo",
     models: [{ model: "groq/llama-3.3-70b", weight: 0 }],
     strategy: "priority",
+    config: { maxRetries: 0 },
   };
 
   const log = mockLog();
@@ -74,6 +75,7 @@ test("handleComboChat: circuit breaker opens after repeated 502 errors", async (
 
   // Breaker should now be OPEN
   const status = breaker.getStatus();
+  console.log("=== BREAKER STATUS AFTER 3 CALLS ===", status);
   assert.equal(status.state, STATE.OPEN, "Breaker should be OPEN after 3 failures");
   assert.equal(status.failureCount, 3, "Failure count should be 3");
 });

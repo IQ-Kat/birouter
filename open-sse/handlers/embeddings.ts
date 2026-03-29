@@ -80,15 +80,23 @@ export async function handleEmbedding({
     };
   }
 
-  // Build upstream request
+  // Build upstream request — start with standard fields, then forward any extras
+  // the client sent (e.g. input_type, user, truncate for NVIDIA NIM asymmetric models).
+  const KNOWN_FIELDS = new Set(["model", "input", "dimensions", "encoding_format"]);
+
   const upstreamBody: Record<string, unknown> = {
     model: model,
     input: body.input,
   };
 
-  // Pass optional parameters
   if (body.dimensions !== undefined) upstreamBody.dimensions = body.dimensions;
   if (body.encoding_format !== undefined) upstreamBody.encoding_format = body.encoding_format;
+
+  for (const [key, value] of Object.entries(body)) {
+    if (!KNOWN_FIELDS.has(key) && value !== undefined) {
+      upstreamBody[key] = value;
+    }
+  }
 
   // Build headers
   const headers = {
@@ -104,6 +112,12 @@ export async function handleEmbedding({
     } else if (providerConfig.authHeader === "x-api-key") {
       headers["x-api-key"] = token;
     }
+  } else if (providerConfig.authType !== "none") {
+    return {
+      success: false,
+      status: 401,
+      error: `No valid authentication token for provider ${provider}. Check provider credentials.`,
+    };
   }
 
   if (log) {

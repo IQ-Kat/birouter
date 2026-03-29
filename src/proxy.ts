@@ -9,7 +9,7 @@ import { isModelSyncInternalRequest } from "./shared/services/modelSyncScheduler
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "");
 
-export async function proxy(request) {
+export async function proxy(request: any) {
   const { pathname } = request.nextUrl;
 
   // Pipeline: Add request ID header for end-to-end tracing

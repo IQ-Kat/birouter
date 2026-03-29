@@ -239,7 +239,7 @@ test("CodexExecutor preserves native responses payloads for Codex passthrough", 
   assert.equal(transformed.stream, true);
   assert.equal(transformed.service_tier, "priority");
   assert.equal(transformed.instructions, "custom system prompt");
-  assert.equal(transformed.store, true);
+  assert.equal(transformed.store, false);
   assert.deepEqual(transformed.metadata, { source: "codex-client" });
   assert.equal(transformed.reasoning_effort, "high");
   assert.ok(!("_nativeCodexPassthrough" in transformed));

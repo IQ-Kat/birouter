@@ -97,7 +97,7 @@ describe("buildDockerComposeUpdateScript", () => {
 
     assert.match(script, /git fetch --tags/);
     assert.match(script, /git config --global --add safe\.directory/);
-    assert.match(script, /git checkout -B "autoupdate\/3\.2\.6" "v3\.2\.6"/);
+    assert.match(script, /git checkout -B "autoupdate\/\$\{TARGET_TAG#v\}" "\$TARGET_TAG"/);
     assert.match(script, /git cherry-pick --keep-redundant-commits '1501a87' 'e569e1c'/);
     assert.match(script, /docker compose -f "\$COMPOSE_FILE" up -d --build "\$SERVICE"/);
   });
