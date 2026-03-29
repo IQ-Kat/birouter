@@ -327,8 +327,15 @@ const getExpectedParentPaths = (): string[] => {
 
   const npmPrefix = getNpmGlobalPrefix();
 
+  // Add common user bin directories
+  const userBinPaths = [
+    path.join(home, "bin"),
+    path.join(home, ".local", "bin"),
+  ];
+
   return [
     home,
+    ...userBinPaths,
     userProfile,
     validatedAppData,
     validatedLocalAppData,
@@ -374,7 +381,10 @@ const getKnownToolPaths = (toolId: string): string[] => {
       ["claude.exe", "claude"],
     ],
     codex: [["codex.cmd", "codex"]],
-    droid: [["droid.cmd", "droid"]],
+    droid: [
+      ["droid.cmd", "droid"],
+      ["droid.exe", "droid"],
+    ],
     openclaw: [["openclaw.cmd", "openclaw"]],
     cursor: [
       ["agent.cmd", "agent"],
@@ -402,6 +412,10 @@ const getKnownToolPaths = (toolId: string): string[] => {
         paths.push(path.join(localAppData, "Programs", "Claude", "claude.exe"));
         paths.push(path.join(localAppData, "claude-code", "claude.exe"));
       }
+    }
+
+    if (toolId === "droid") {
+      paths.push(path.join(home, "bin", "droid.exe"));
     }
 
     for (const [winName] of bins) {
