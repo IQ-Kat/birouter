@@ -1,0 +1,74 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
+import {
+  getCloudflaredTunnelStatus,
+  startCloudflaredTunnel,
+  stopCloudflaredTunnel,
+} from "@/lib/cloudflaredTunnel";
+
+export const dynamic = "force-dynamic";
+
+const actionSchema = z.object({
+  action: z.enum(["enable", "disable"]),
+});
+
+function unauthorized() {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
+
+export async function GET(request: NextRequest) {
+  if (!(await isAuthenticated(request))) {
+    return unauthorized();
+  }
+
+  try {
+    const status = await getCloudflaredTunnelStatus();
+    return NextResponse.json(status);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to load cloudflared tunnel status",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  if (!(await isAuthenticated(request))) {
+    return unauthorized();
+  }
+
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const parsed = actionSchema.safeParse(payload);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  try {
+    const status =
+      parsed.data.action === "enable"
+        ? await startCloudflaredTunnel()
+        : await stopCloudflaredTunnel();
+
+    return NextResponse.json({
+      success: true,
+      action: parsed.data.action,
+      status,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to update cloudflared tunnel",
+      },
+      { status: 500 }
+    );
+  }
+}

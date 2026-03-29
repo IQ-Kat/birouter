@@ -1,0 +1,559 @@
+import { spawn, execFile } from "child_process";
+import { promisify } from "util";
+import fs from "fs/promises";
+import fsSync from "fs";
+import path from "path";
+import { resolveDataDir } from "@/lib/dataPaths";
+import { getRuntimePorts } from "@/lib/runtime/ports";
+
+const execFileAsync = promisify(execFile);
+
+const CLOUDFLARED_RELEASE_BASE =
+  "https://github.com/cloudflare/cloudflared/releases/latest/download";
+const START_TIMEOUT_MS = 30000;
+const STOP_TIMEOUT_MS = 5000;
+
+type CloudflaredInstallSource = "managed" | "path" | "env";
+type TunnelPhase = "unsupported" | "not_installed" | "stopped" | "starting" | "running" | "error";
+
+type AssetSpec = {
+  assetName: string;
+  binaryName: string;
+  archive: "none" | "tgz";
+  downloadUrl: string;
+};
+
+type BinaryResolution = {
+  binaryPath: string | null;
+  source: CloudflaredInstallSource | null;
+  managed: boolean;
+};
+
+type PersistedTunnelState = {
+  binaryPath?: string | null;
+  installSource?: CloudflaredInstallSource | null;
+  pid?: number | null;
+  publicUrl?: string | null;
+  apiUrl?: string | null;
+  targetUrl?: string | null;
+  status?: TunnelPhase;
+  lastError?: string | null;
+  startedAt?: string | null;
+  installedAt?: string | null;
+};
+
+export type CloudflaredTunnelStatus = {
+  supported: boolean;
+  installed: boolean;
+  managedInstall: boolean;
+  installSource: CloudflaredInstallSource | null;
+  binaryPath: string | null;
+  running: boolean;
+  pid: number | null;
+  publicUrl: string | null;
+  apiUrl: string | null;
+  targetUrl: string;
+  phase: TunnelPhase;
+  lastError: string | null;
+  logPath: string;
+};
+
+let tunnelProcess: ReturnType<typeof spawn> | null = null;
+let tunnelPid: number | null = null;
+let installPromise: Promise<string> | null = null;
+let startPromise: Promise<CloudflaredTunnelStatus> | null = null;
+
+function getTunnelDir() {
+  return path.join(resolveDataDir(), "cloudflared");
+}
+
+function getManagedBinaryPath(platform = process.platform) {
+  return path.join(getTunnelDir(), "bin", platform === "win32" ? "cloudflared.exe" : "cloudflared");
+}
+
+function getStateFilePath() {
+  return path.join(getTunnelDir(), "quick-tunnel-state.json");
+}
+
+function getPidFilePath() {
+  return path.join(getTunnelDir(), ".quick-tunnel.pid");
+}
+
+function getLogFilePath() {
+  return path.join(getTunnelDir(), "quick-tunnel.log");
+}
+
+function getLocalTargetUrl() {
+  const { apiPort } = getRuntimePorts();
+  return `http://127.0.0.1:${apiPort}`;
+}
+
+function getTunnelApiUrl(publicUrl: string | null) {
+  return publicUrl ? `${publicUrl.replace(/\/$/, "")}/v1` : null;
+}
+
+async function ensureTunnelDir() {
+  await fs.mkdir(path.join(getTunnelDir(), "bin"), { recursive: true });
+}
+
+async function readStateFile(): Promise<PersistedTunnelState> {
+  try {
+    const content = await fs.readFile(getStateFilePath(), "utf8");
+    return JSON.parse(content) as PersistedTunnelState;
+  } catch {
+    return {};
+  }
+}
+
+async function writeStateFile(state: PersistedTunnelState) {
+  await ensureTunnelDir();
+  await fs.writeFile(getStateFilePath(), JSON.stringify(state, null, 2) + "\n", "utf8");
+}
+
+async function updateStateFile(patch: PersistedTunnelState) {
+  const current = await readStateFile();
+  await writeStateFile({ ...current, ...patch });
+}
+
+async function clearPidFile() {
+  try {
+    await fs.unlink(getPidFilePath());
+  } catch {
+    // Ignore missing/stale pid files.
+  }
+}
+
+async function writePidFile(pid: number) {
+  await ensureTunnelDir();
+  await fs.writeFile(getPidFilePath(), String(pid), "utf8");
+}
+
+async function readPidFile() {
+  try {
+    const content = await fs.readFile(getPidFilePath(), "utf8");
+    const pid = Number.parseInt(content.trim(), 10);
+    return Number.isFinite(pid) ? pid : null;
+  } catch {
+    return null;
+  }
+}
+
+function isProcessAlive(pid: number | null) {
+  if (!pid || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function appendTunnelLog(source: "stdout" | "stderr", message: string) {
+  await ensureTunnelDir();
+  const timestamp = new Date().toISOString();
+  await fs.appendFile(getLogFilePath(), `[${timestamp}] [${source}] ${message}\n`, "utf8");
+}
+
+export function extractTryCloudflareUrl(text: string) {
+  const match = text.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com\b/i);
+  return match ? match[0] : null;
+}
+
+export function getCloudflaredAssetSpec(
+  platform = process.platform,
+  arch = process.arch
+): AssetSpec | null {
+  const matrix: Record<string, Record<string, Omit<AssetSpec, "downloadUrl">>> = {
+    linux: {
+      x64: {
+        assetName: "cloudflared-linux-amd64",
+        binaryName: "cloudflared",
+        archive: "none",
+      },
+      arm64: {
+        assetName: "cloudflared-linux-arm64",
+        binaryName: "cloudflared",
+        archive: "none",
+      },
+    },
+    darwin: {
+      x64: {
+        assetName: "cloudflared-darwin-amd64.tgz",
+        binaryName: "cloudflared",
+        archive: "tgz",
+      },
+      arm64: {
+        assetName: "cloudflared-darwin-arm64.tgz",
+        binaryName: "cloudflared",
+        archive: "tgz",
+      },
+    },
+    win32: {
+      x64: {
+        assetName: "cloudflared-windows-amd64.exe",
+        binaryName: "cloudflared.exe",
+        archive: "none",
+      },
+      arm64: {
+        assetName: "cloudflared-windows-arm64.exe",
+        binaryName: "cloudflared.exe",
+        archive: "none",
+      },
+    },
+  };
+
+  const spec = matrix[platform]?.[arch];
+  if (!spec) return null;
+
+  return {
+    ...spec,
+    downloadUrl: `${CLOUDFLARED_RELEASE_BASE}/${spec.assetName}`,
+  };
+}
+
+async function resolvePathCommand(command: string) {
+  const lookupCommand = process.platform === "win32" ? "where" : "which";
+  const args = [command];
+
+  try {
+    const { stdout } = await execFileAsync(lookupCommand, args, { timeout: 3000 });
+    const first = stdout
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find(Boolean);
+    return first || null;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveBinary(): Promise<BinaryResolution> {
+  const envPath = String(process.env.CLOUDFLARED_BIN || "").trim();
+  if (envPath && fsSync.existsSync(envPath)) {
+    return { binaryPath: envPath, source: "env", managed: false };
+  }
+
+  const managedPath = getManagedBinaryPath();
+  if (fsSync.existsSync(managedPath)) {
+    return { binaryPath: managedPath, source: "managed", managed: true };
+  }
+
+  const pathBinary = await resolvePathCommand("cloudflared");
+  if (pathBinary) {
+    return { binaryPath: pathBinary, source: "path", managed: false };
+  }
+
+  return { binaryPath: null, source: null, managed: false };
+}
+
+async function extractArchive(archivePath: string, destinationDir: string) {
+  await execFileAsync("tar", ["-xzf", archivePath, "-C", destinationDir], { timeout: 15000 });
+}
+
+async function downloadToFile(url: string, destinationPath: string) {
+  const response = await fetch(url, { redirect: "follow" });
+  if (!response.ok) {
+    throw new Error(`Download failed with status ${response.status}`);
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  await fs.writeFile(destinationPath, buffer);
+}
+
+async function ensureExecutable(binaryPath: string) {
+  if (process.platform !== "win32") {
+    await fs.chmod(binaryPath, 0o755);
+  }
+}
+
+async function installManagedBinary() {
+  if (installPromise) return installPromise;
+
+  installPromise = (async () => {
+    const spec = getCloudflaredAssetSpec();
+    if (!spec) {
+      throw new Error(
+        `Unsupported platform for managed cloudflared install: ${process.platform}/${process.arch}`
+      );
+    }
+
+    await ensureTunnelDir();
+    const managedBinaryPath = getManagedBinaryPath();
+    const tempDownloadPath = path.join(getTunnelDir(), `${spec.assetName}.download`);
+
+    await updateStateFile({
+      status: "starting",
+      lastError: null,
+    });
+
+    try {
+      await downloadToFile(spec.downloadUrl, tempDownloadPath);
+
+      if (spec.archive === "tgz") {
+        await extractArchive(tempDownloadPath, path.dirname(managedBinaryPath));
+      } else {
+        await fs.rename(tempDownloadPath, managedBinaryPath);
+      }
+
+      await ensureExecutable(managedBinaryPath);
+      await updateStateFile({
+        binaryPath: managedBinaryPath,
+        installSource: "managed",
+        installedAt: new Date().toISOString(),
+        lastError: null,
+      });
+
+      return managedBinaryPath;
+    } finally {
+      try {
+        await fs.unlink(tempDownloadPath);
+      } catch {
+        // Ignore temp cleanup issues.
+      }
+      installPromise = null;
+    }
+  })();
+
+  return installPromise;
+}
+
+async function ensureBinary() {
+  const resolved = await resolveBinary();
+  if (resolved.binaryPath) {
+    return resolved;
+  }
+
+  const binaryPath = await installManagedBinary();
+  return {
+    binaryPath,
+    source: "managed" as const,
+    managed: true,
+  };
+}
+
+async function finalizeProcessExit(code: number | null, signal: NodeJS.Signals | null) {
+  const currentState = await readStateFile();
+  const lastError =
+    code === 0 || signal === "SIGTERM" || signal === "SIGINT"
+      ? null
+      : `cloudflared exited unexpectedly (${code ?? "signal"}${signal ? `/${signal}` : ""})`;
+
+  tunnelProcess = null;
+  tunnelPid = null;
+  await clearPidFile();
+  await writeStateFile({
+    ...currentState,
+    pid: null,
+    publicUrl: null,
+    apiUrl: null,
+    status: lastError ? "error" : "stopped",
+    lastError,
+  });
+}
+
+async function killPid(pid: number) {
+  process.kill(pid, "SIGTERM");
+  const start = Date.now();
+  while (Date.now() - start < STOP_TIMEOUT_MS) {
+    if (!isProcessAlive(pid)) return;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+
+  if (isProcessAlive(pid)) {
+    process.kill(pid, "SIGKILL");
+  }
+}
+
+async function stopExistingTunnel() {
+  if (tunnelProcess && tunnelPid && !tunnelProcess.killed) {
+    const pid = tunnelPid;
+    tunnelProcess.kill("SIGTERM");
+    await killPid(pid);
+    return;
+  }
+
+  const pid = await readPidFile();
+  if (pid && isProcessAlive(pid)) {
+    await killPid(pid);
+  }
+}
+
+export async function getCloudflaredTunnelStatus(): Promise<CloudflaredTunnelStatus> {
+  const state = await readStateFile();
+  const resolved = await resolveBinary();
+  const pidFromState = tunnelPid || state.pid || (await readPidFile());
+  const running = isProcessAlive(pidFromState);
+  const publicUrl = running ? state.publicUrl || null : null;
+  const phase =
+    !getCloudflaredAssetSpec() && !resolved.binaryPath
+      ? "unsupported"
+      : running
+        ? publicUrl
+          ? "running"
+          : "starting"
+        : resolved.binaryPath
+          ? state.lastError
+            ? "error"
+            : "stopped"
+          : "not_installed";
+
+  if (!running && state.pid) {
+    await clearPidFile();
+  }
+
+  return {
+    supported: !!(getCloudflaredAssetSpec() || resolved.binaryPath),
+    installed: !!resolved.binaryPath,
+    managedInstall: resolved.managed,
+    installSource: resolved.source,
+    binaryPath: resolved.binaryPath,
+    running,
+    pid: running ? pidFromState : null,
+    publicUrl,
+    apiUrl: publicUrl ? getTunnelApiUrl(publicUrl) : null,
+    targetUrl: state.targetUrl || getLocalTargetUrl(),
+    phase,
+    lastError: running ? null : state.lastError || null,
+    logPath: getLogFilePath(),
+  };
+}
+
+export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus> {
+  const current = await getCloudflaredTunnelStatus();
+  if (current.running) return current;
+  if (startPromise) return startPromise;
+
+  startPromise = (async () => {
+    const spec = getCloudflaredAssetSpec();
+    if (!spec && !(await resolveBinary()).binaryPath) {
+      throw new Error(
+        `Unsupported platform for cloudflared tunnel: ${process.platform}/${process.arch}`
+      );
+    }
+
+    const binary = await ensureBinary();
+    const targetUrl = getLocalTargetUrl();
+
+    await stopExistingTunnel();
+    await ensureTunnelDir();
+    await fs.writeFile(getLogFilePath(), "", "utf8");
+
+    await writeStateFile({
+      binaryPath: binary.binaryPath,
+      installSource: binary.source,
+      pid: null,
+      publicUrl: null,
+      apiUrl: null,
+      targetUrl,
+      status: "starting",
+      lastError: null,
+      startedAt: new Date().toISOString(),
+    });
+
+    const child = spawn(
+      binary.binaryPath as string,
+      ["tunnel", "--url", targetUrl, "--no-autoupdate", "--protocol", "http2"],
+      {
+        stdio: ["ignore", "pipe", "pipe"],
+        env: process.env,
+      }
+    );
+
+    tunnelProcess = child;
+    tunnelPid = child.pid ?? null;
+
+    if (!child.pid) {
+      throw new Error("cloudflared failed to start");
+    }
+
+    await writePidFile(child.pid);
+    await updateStateFile({ pid: child.pid, status: "starting" });
+
+    const ready = await new Promise<CloudflaredTunnelStatus>((resolve, reject) => {
+      let settled = false;
+      let timeout: ReturnType<typeof setTimeout> | null = null;
+
+      const settle = (handler: () => void) => {
+        if (settled) return;
+        settled = true;
+        if (timeout) clearTimeout(timeout);
+        handler();
+      };
+
+      const handleOutput = async (source: "stdout" | "stderr", chunk: Buffer) => {
+        const text = chunk.toString("utf8").trim();
+        if (!text) return;
+
+        await appendTunnelLog(source, text);
+        const url = extractTryCloudflareUrl(text);
+        if (!url) return;
+
+        const apiUrl = getTunnelApiUrl(url);
+        await updateStateFile({
+          pid: child.pid,
+          publicUrl: url,
+          apiUrl,
+          status: "running",
+          lastError: null,
+        });
+
+        const status = await getCloudflaredTunnelStatus();
+        settle(() => resolve(status));
+      };
+
+      child.stdout.on("data", (chunk: Buffer) => {
+        void handleOutput("stdout", chunk);
+      });
+      child.stderr.on("data", (chunk: Buffer) => {
+        void handleOutput("stderr", chunk);
+      });
+
+      child.once("exit", (code, signal) => {
+        void finalizeProcessExit(code, signal);
+        settle(() =>
+          reject(
+            new Error(
+              `cloudflared exited before tunnel URL was ready (${code ?? "signal"}${signal ? `/${signal}` : ""})`
+            )
+          )
+        );
+      });
+
+      timeout = setTimeout(async () => {
+        await stopExistingTunnel();
+        settle(() => reject(new Error("Timed out while waiting for Cloudflare tunnel URL")));
+      }, START_TIMEOUT_MS);
+    });
+
+    return ready;
+  })();
+
+  try {
+    return await startPromise;
+  } catch (error) {
+    await updateStateFile({
+      status: "error",
+      lastError: error instanceof Error ? error.message : "Failed to start cloudflared tunnel",
+    });
+    throw error;
+  } finally {
+    startPromise = null;
+  }
+}
+
+export async function stopCloudflaredTunnel() {
+  await stopExistingTunnel();
+  const current = await readStateFile();
+  await writeStateFile({
+    ...current,
+    pid: null,
+    publicUrl: null,
+    apiUrl: null,
+    status: "stopped",
+    lastError: null,
+  });
+  tunnelProcess = null;
+  tunnelPid = null;
+  await clearPidFile();
+  return getCloudflaredTunnelStatus();
+}
