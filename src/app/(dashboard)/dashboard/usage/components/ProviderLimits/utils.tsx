@@ -10,6 +10,26 @@ const PROVIDER_PLAN_FALLBACKS = new Set([
   "github copilot",
 ]);
 
+const QUOTA_LABEL_MAP: Record<string, string> = {
+  "gemini-3-pro-high": "G3 Pro",
+  "gemini-3-pro-low": "G3 Pro Low",
+  "gemini-3-flash": "G3 Flash",
+  "gemini-2.5-flash": "G2.5 Flash",
+  "claude-opus-4-6-thinking": "Opus 4.6 Tk",
+  "claude-opus-4-5-thinking": "Opus 4.5 Tk",
+  "claude-opus-4-5": "Opus 4.5",
+  "claude-sonnet-4-5-thinking": "Sonnet 4.5 Tk",
+  "claude-sonnet-4-5": "Sonnet 4.5",
+  chat: "Chat",
+  completions: "Completions",
+  premium_interactions: "Premium",
+  session: "Session",
+  weekly: "Weekly",
+  code_review: "Code Review",
+  agentic_request: "Agentic",
+  agentic_request_freetrial: "Agentic (Trial)",
+};
+
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -22,6 +42,37 @@ function normalizePlanCandidate(value: unknown) {
   if (!trimmed) return null;
   if (trimmed.toLowerCase() === "unknown") return null;
   if (PROVIDER_PLAN_FALLBACKS.has(trimmed.toLowerCase())) return null;
+  return trimmed;
+}
+
+function toTitleCaseWords(value: string) {
+  return value
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+export function formatQuotaLabel(name: string) {
+  const trimmed = typeof name === "string" ? name.trim() : "";
+  if (!trimmed) return "";
+
+  const mapped = QUOTA_LABEL_MAP[trimmed];
+  if (mapped) return mapped;
+
+  if (/^session\s*\(\d+[hm]\)$/i.test(trimmed)) {
+    return "Session";
+  }
+
+  if (/^weekly\s*\(\d+d\)$/i.test(trimmed)) {
+    return "Weekly";
+  }
+
+  const weeklyModelMatch = trimmed.match(/^weekly\s+(.+?)\s*\(\d+d\)$/i);
+  if (weeklyModelMatch) {
+    return `Weekly ${toTitleCaseWords(weeklyModelMatch[1])}`;
+  }
+
   return trimmed;
 }
 
@@ -204,6 +255,7 @@ export function parseQuotaData(provider, data) {
         break;
 
       default:
+        // Generic fallback for unknown providers
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push(normalizeQuotaEntry(name, quota));

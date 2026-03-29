@@ -4,7 +4,13 @@ import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
-import { parseQuotaData, calculatePercentage, normalizePlanTier, resolvePlanValue } from "./utils";
+import {
+  parseQuotaData,
+  calculatePercentage,
+  formatQuotaLabel,
+  normalizePlanTier,
+  resolvePlanValue,
+} from "./utils";
 import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -26,7 +32,7 @@ const PROVIDER_CONFIG = {
   kiro: { label: "Kiro AI", color: "#FF6B35" },
   codex: { label: "OpenAI Codex", color: "#10A37F" },
   claude: { label: "Claude Code", color: "#D97757" },
-  glm: { label: "GLM Coding", color: "#4A90D9" },
+  glm: { label: "GLM (Z.AI)", color: "#4A90D9" },
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
 };
 
@@ -41,29 +47,6 @@ const TIER_FILTERS = [
   { key: "free", labelKey: "tierFree" },
   { key: "unknown", labelKey: "tierUnknown" },
 ];
-
-// Short model display names for quota bars
-function getShortModelName(name) {
-  const map = {
-    "gemini-3-pro-high": "G3 Pro",
-    "gemini-3-pro-low": "G3 Pro Low",
-    "gemini-3-flash": "G3 Flash",
-    "gemini-2.5-flash": "G2.5 Flash",
-    "claude-opus-4-6-thinking": "Opus 4.6 Tk",
-    "claude-opus-4-5-thinking": "Opus 4.5 Tk",
-    "claude-opus-4-5": "Opus 4.5",
-    "claude-sonnet-4-5-thinking": "Sonnet 4.5 Tk",
-    "claude-sonnet-4-5": "Sonnet 4.5",
-    chat: "Chat",
-    completions: "Completions",
-    premium_interactions: "Premium",
-    session: "Session",
-    weekly: "Weekly",
-    agentic_request: "Agentic",
-    agentic_request_freetrial: "Agentic (Trial)",
-  };
-  return map[name] || name;
-}
 
 // Get bar color based on remaining percentage
 function getBarColor(remainingPercentage) {
@@ -624,7 +607,7 @@ export default function ProviderLimits() {
                       const remainingPercentage = calculatePercentage(q.used, q.total);
                       const colors = getBarColor(remainingPercentage);
                       const cd = formatCountdown(q.resetAt);
-                      const shortName = getShortModelName(q.name);
+                      const shortName = formatQuotaLabel(q.name);
                       const staleAfterReset = q.staleAfterReset === true;
 
                       return (

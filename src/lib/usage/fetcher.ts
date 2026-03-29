@@ -157,13 +157,15 @@ async function getAntigravityUsage(accessToken) {
 }
 
 /**
- * Claude Usage
+ * Claude Usage (legacy fallback)
+ * Real Claude OAuth quota windows are fetched in @omniroute/open-sse/services/usage.ts.
  */
-async function getClaudeUsage(accessToken) {
+async function getClaudeUsage() {
   try {
-    // Claude OAuth doesn't expose usage API directly
-    // Could potentially check via inference endpoint
-    return { message: "Claude connected. Usage tracked per request." };
+    return {
+      message:
+        "Claude connected. Detailed quota windows are handled by the open-sse usage service.",
+    };
   } catch (error) {
     return { message: "Unable to fetch Claude usage." };
   }
