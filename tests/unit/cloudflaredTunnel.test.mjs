@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildCloudflaredChildEnv,
   extractTryCloudflareUrl,
   getCloudflaredAssetSpec,
 } from "../../src/lib/cloudflaredTunnel.ts";
@@ -44,4 +45,20 @@ test("getCloudflaredAssetSpec resolves darwin arm64 archive", () => {
 
 test("getCloudflaredAssetSpec returns null for unsupported platforms", () => {
   assert.equal(getCloudflaredAssetSpec("freebsd", "x64"), null);
+});
+
+test("buildCloudflaredChildEnv keeps runtime essentials but drops secrets", () => {
+  const env = buildCloudflaredChildEnv({
+    PATH: "/usr/bin",
+    HOME: "/tmp/home",
+    HTTPS_PROXY: "http://proxy.internal:8080",
+    JWT_SECRET: "top-secret",
+    API_KEY_SECRET: "another-secret",
+  });
+
+  assert.deepEqual(env, {
+    PATH: "/usr/bin",
+    HOME: "/tmp/home",
+    HTTPS_PROXY: "http://proxy.internal:8080",
+  });
 });

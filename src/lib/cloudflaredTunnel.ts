@@ -3,6 +3,7 @@ import { promisify } from "util";
 import fs from "fs/promises";
 import fsSync from "fs";
 import path from "path";
+import proxyFetch from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveDataDir } from "@/lib/dataPaths";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
@@ -57,6 +58,47 @@ export type CloudflaredTunnelStatus = {
   lastError: string | null;
   logPath: string;
 };
+
+const CLOUDFLARED_SAFE_ENV_KEYS = [
+  "PATH",
+  "HOME",
+  "USERPROFILE",
+  "APPDATA",
+  "LOCALAPPDATA",
+  "PROGRAMDATA",
+  "ProgramData",
+  "SYSTEMROOT",
+  "SystemRoot",
+  "WINDIR",
+  "ComSpec",
+  "COMSPEC",
+  "PATHEXT",
+  "TMPDIR",
+  "TMP",
+  "TEMP",
+  "USER",
+  "USERNAME",
+  "LOGNAME",
+  "SHELL",
+  "LANG",
+  "LC_ALL",
+  "LC_CTYPE",
+  "SSL_CERT_FILE",
+  "SSL_CERT_DIR",
+  "NODE_EXTRA_CA_CERTS",
+  "XDG_CONFIG_HOME",
+  "XDG_CACHE_HOME",
+  "XDG_DATA_HOME",
+  "XDG_RUNTIME_DIR",
+  "HTTP_PROXY",
+  "HTTPS_PROXY",
+  "ALL_PROXY",
+  "NO_PROXY",
+  "http_proxy",
+  "https_proxy",
+  "all_proxy",
+  "no_proxy",
+] as const;
 
 let tunnelProcess: ReturnType<typeof spawn> | null = null;
 let tunnelPid: number | null = null;
@@ -159,6 +201,21 @@ export function extractTryCloudflareUrl(text: string) {
   return match ? match[0] : null;
 }
 
+export function buildCloudflaredChildEnv(
+  sourceEnv: NodeJS.ProcessEnv = process.env
+): NodeJS.ProcessEnv {
+  const childEnv: NodeJS.ProcessEnv = {};
+
+  for (const key of CLOUDFLARED_SAFE_ENV_KEYS) {
+    const value = sourceEnv[key];
+    if (typeof value === "string" && value.length > 0) {
+      childEnv[key] = value;
+    }
+  }
+
+  return childEnv;
+}
+
 export function getCloudflaredAssetSpec(
   platform = process.platform,
   arch = process.arch
@@ -251,7 +308,7 @@ async function extractArchive(archivePath: string, destinationDir: string) {
 }
 
 async function downloadToFile(url: string, destinationPath: string) {
-  const response = await fetch(url, { redirect: "follow" });
+  const response = await proxyFetch(url, { redirect: "follow" });
   if (!response.ok) {
     throw new Error(`Download failed with status ${response.status}`);
   }
@@ -455,7 +512,7 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
       ["tunnel", "--url", targetUrl, "--no-autoupdate", "--protocol", "http2"],
       {
         stdio: ["ignore", "pipe", "pipe"],
-        env: process.env,
+        env: buildCloudflaredChildEnv(),
       }
     );
 
