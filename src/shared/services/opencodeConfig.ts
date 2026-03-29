@@ -56,8 +56,8 @@ export const mergeOpenCodeConfig = (
 
   return {
     ...safeConfig,
-    providers: {
-      ...((safeConfig as any).providers || {}),
+    provider: {
+      ...((safeConfig as any).provider || {}),
       omniroute: buildOpenCodeProviderConfig(input),
     },
   };

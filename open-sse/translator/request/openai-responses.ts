@@ -162,9 +162,10 @@ export function openaiResponsesToOpenAIRequest(
         type: "function",
         function: {
           name: fnName,
-          arguments: typeof item.arguments === "string"
-            ? item.arguments
-            : JSON.stringify(item.arguments ?? {}),
+          arguments:
+            typeof item.arguments === "string"
+              ? item.arguments
+              : JSON.stringify(item.arguments ?? {}),
         },
       });
       currentAssistantMsg.tool_calls = toolCalls;
@@ -247,7 +248,11 @@ export function openaiResponsesToOpenAIRequest(
   });
 
   // Translate tool_choice object format: Responses {type,name} → Chat {type,function:{name}}
-  if (result.tool_choice && typeof result.tool_choice === "object" && !Array.isArray(result.tool_choice)) {
+  if (
+    result.tool_choice &&
+    typeof result.tool_choice === "object" &&
+    !Array.isArray(result.tool_choice)
+  ) {
     const tc = toRecord(result.tool_choice);
     const tcType = toString(tc.type);
     if (tcType === "function" && tc.name !== undefined && !tc.function) {
@@ -322,7 +327,9 @@ export function openaiToOpenAIResponsesRequest(
                   return { type: "input_text", text: toString(contentItem.text) };
                 }
                 if (contentItem.type === "image_url") {
-                  const imgUrl = contentItem.image_url as string | { url?: string; detail?: string };
+                  const imgUrl = contentItem.image_url as
+                    | string
+                    | { url?: string; detail?: string };
                   const imgResult: JsonRecord = {
                     type: "input_image",
                     image_url: typeof imgUrl === "string" ? imgUrl : imgUrl?.url || "",
@@ -367,7 +374,7 @@ export function openaiToOpenAIResponsesRequest(
       } else if (Array.isArray(msg.content)) {
         for (const contentValue of msg.content) {
           const contentItem = toRecord(contentValue);
-          if (contentItem.type === "text" && contentItem.text) {
+          if (contentItem.type === "text") {
             outputContent.push({ type: "output_text", text: toString(contentItem.text) });
           } else if (contentItem.type === "thinking" || contentItem.type === "redacted_thinking") {
             // Reasoning already moved above
@@ -426,15 +433,17 @@ export function openaiToOpenAIResponsesRequest(
       input.push({
         type: "function_call_output",
         call_id: toString(msg.tool_call_id),
-        output: typeof msg.content === "string"
-          ? msg.content
-          : Array.isArray(msg.content)
-            ? msg.content.map((c) => {
-                const part = toRecord(c);
-                if (part.type === "text") return { type: "input_text", text: toString(part.text) };
-                return c;
-              })
-            : String(msg.content ?? ""),
+        output:
+          typeof msg.content === "string"
+            ? msg.content
+            : Array.isArray(msg.content)
+              ? msg.content.map((c) => {
+                  const part = toRecord(c);
+                  if (part.type === "text")
+                    return { type: "input_text", text: toString(part.text) };
+                  return c;
+                })
+              : String(msg.content ?? ""),
       });
     }
 

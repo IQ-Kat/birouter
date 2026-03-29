@@ -244,12 +244,15 @@ export default function SystemStorageTab() {
     setImportStatus({ type: "", message: "" });
     setConfirmImport(false);
     try {
-      const formData = new FormData();
-      formData.append("file", pendingImportFile);
-      const res = await fetch("/api/db-backups/import", {
-        method: "POST",
-        body: formData,
-      });
+      const arrayBuffer = await pendingImportFile.arrayBuffer();
+      const res = await fetch(
+        `/api/db-backups/import?filename=${encodeURIComponent(pendingImportFile.name)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: arrayBuffer,
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         setImportStatus({
