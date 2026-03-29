@@ -2,6 +2,7 @@ import { getCorsOrigin } from "../utils/cors.ts";
 import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
+import { shouldPreserveCacheControl } from "../utils/cacheControlPolicy.ts";
 import {
   createSSETransformStreamWithLogger,
   createPassthroughStreamWithLogger,
@@ -306,6 +307,10 @@ function attachLogMeta(
  * @param {function} options.onDisconnect - Callback when client disconnects
  * @param {string} options.connectionId - Connection ID for usage tracking
  * @param {object} options.apiKeyInfo - API key metadata for usage attribution
+ * @param {string} options.userAgent - Client user agent for caching decisions
+ * @param {string} options.comboName - Combo name if this is a combo request
+ * @param {string} options.comboStrategy - Combo routing strategy (e.g., 'priority', 'cost-optimized')
+ * @param {boolean} options.isCombo - Whether this request is from a combo
  */
 export async function handleChatCore({
   body,
@@ -320,6 +325,8 @@ export async function handleChatCore({
   apiKeyInfo = null,
   userAgent,
   comboName,
+  comboStrategy = null,
+  isCombo = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   const requestedModel =
@@ -674,6 +681,22 @@ export async function handleChatCore({
   // Translate request (pass reqLogger for intermediate logging)
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
+
+  // Determine if we should preserve client-side cache_control headers
+  const preserveCacheControl = shouldPreserveCacheControl({
+    userAgent,
+    isCombo,
+    comboStrategy,
+    targetProvider: provider,
+  });
+
+  if (preserveCacheControl) {
+    log?.debug?.(
+      "CACHE",
+      `Preserving client cache_control (client=${userAgent?.substring(0, 20)}, combo=${isCombo}, strategy=${comboStrategy}, provider=${provider})`
+    );
+  }
+
   try {
     if (nativeCodexPassthrough) {
       translatedBody = { ...body, _nativeCodexPassthrough: true };
@@ -701,7 +724,7 @@ export async function handleChatCore({
         credentials,
         provider,
         reqLogger,
-        { normalizeToolCallId, preserveDeveloperRole }
+        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
       );
       translatedBody = translateRequest(
         FORMATS.OPENAI,
@@ -712,7 +735,7 @@ export async function handleChatCore({
         credentials,
         provider,
         reqLogger,
-        { normalizeToolCallId, preserveDeveloperRole }
+        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
       );
       log?.debug?.("FORMAT", "claude->openai->claude normalized passthrough");
     } else {
@@ -816,7 +839,7 @@ export async function handleChatCore({
         credentials,
         provider,
         reqLogger,
-        { normalizeToolCallId, preserveDeveloperRole }
+        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
       );
     }
   } catch (error) {
