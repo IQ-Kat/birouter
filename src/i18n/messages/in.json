@@ -643,7 +643,9 @@
       "cursor": "कर्सर एआई कोड संपादक",
       "continue": "एआई असिस्टेंट जारी रखें",
       "opencode": "ओपनकोड एआई कोडिंग एजेंट (टर्मिनल)",
-      "kiro": "अमेज़ॅन किरो - एआई-संचालित आईडीई"
+      "kiro": "अमेज़ॅन किरो - एआई-संचालित आईडीई",
+      "windsurf": "Windsurf AI Code Editor",
+      "copilot": "GitHub Copilot AI Assistant"
     },
     "guides": {
       "cursor": {

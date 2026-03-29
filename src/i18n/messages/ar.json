@@ -571,7 +571,9 @@
       "cursor": "محرر كود المؤشر AI",
       "continue": "تابع مساعد الذكاء الاصطناعي",
       "opencode": "OpenCode AI coding agent (Terminal)",
-      "kiro": "Amazon Kiro — AI-powered IDE"
+      "kiro": "Amazon Kiro — AI-powered IDE",
+      "windsurf": "Windsurf AI Code Editor",
+      "copilot": "GitHub Copilot AI Assistant"
     },
     "guides": {
       "cursor": {

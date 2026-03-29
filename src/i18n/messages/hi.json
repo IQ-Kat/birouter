@@ -489,7 +489,9 @@
       "cursor": "कर्सर एआई कोड संपादक",
       "continue": "एआई असिस्टेंट जारी रखें",
       "opencode": "OpenCode AI coding agent (Terminal)",
-      "kiro": "Amazon Kiro — AI-powered IDE"
+      "kiro": "Amazon Kiro — AI-powered IDE",
+      "windsurf": "Windsurf AI Code Editor",
+      "copilot": "GitHub Copilot AI Assistant"
     },
     "guides": {
       "cursor": {

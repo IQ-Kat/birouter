@@ -571,7 +571,9 @@
       "cursor": "커서 AI 코드 편집기",
       "continue": "AI 어시스턴트 계속하기",
       "opencode": "OpenCode AI coding agent (Terminal)",
-      "kiro": "Amazon Kiro — AI-powered IDE"
+      "kiro": "Amazon Kiro — AI-powered IDE",
+      "windsurf": "Windsurf AI Code Editor",
+      "copilot": "GitHub Copilot AI Assistant"
     },
     "guides": {
       "cursor": {

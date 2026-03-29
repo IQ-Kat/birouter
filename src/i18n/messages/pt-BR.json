@@ -571,7 +571,9 @@
       "cursor": "Editor de código com IA Cursor",
       "continue": "Assistente de IA Continue",
       "opencode": "OpenCode AI coding agent (Terminal)",
-      "kiro": "Amazon Kiro — AI-powered IDE"
+      "kiro": "Amazon Kiro — IDE com IA",
+      "windsurf": "Windsurf — Editor de Código com IA",
+      "copilot": "GitHub Copilot — Assistente de IA"
     },
     "guides": {
       "cursor": {
