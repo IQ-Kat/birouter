@@ -29,6 +29,25 @@ function toNumber(value: unknown, fallback = 0): number {
   return fallback;
 }
 
+function getHeaderValue(
+  headers: { get?: (name: string) => string | null } | Record<string, unknown> | null | undefined,
+  name: string
+): string | null {
+  if (!headers) return null;
+
+  if (typeof headers.get === "function") {
+    return headers.get(name);
+  }
+
+  const needle = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() !== needle) continue;
+    return typeof value === "string" ? value : null;
+  }
+
+  return null;
+}
+
 // ─── Singleton ─────────────────
 
 let memoryCache: LRUCache | null = null;
@@ -309,7 +328,9 @@ export function getCacheStats() {
  * Only non-streaming, deterministic (temperature=0) requests.
  */
 export function isCacheable(body, headers) {
-  if (headers?.get?.("x-omniroute-no-cache") === "true") return false;
+  if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
+    return false;
+  }
   if (body.stream !== false) return false;
   if ((body.temperature ?? 0) !== 0) return false;
   return true;
