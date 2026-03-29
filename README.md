@@ -1264,12 +1264,14 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 | 💰 **Cost Tracking**             | Budget controls and per-model pricing visibility      |
 | 📈 **Analytics Visualizations**  | Model/provider usage insights and trend views         |
 | 🧪 **Evaluation Framework**      | Golden set testing with configurable match strategies |
+| 📡 **Live Diagnostics** 🆕       | Semantic cache bypass for accurate combo live testing |
 
 ### ☁️ Deployment & Platform
 
 | Feature                       | What It Does                                              |
 | ----------------------------- | --------------------------------------------------------- |
 | 🌐 **Deploy Anywhere**        | Localhost, VPS, Docker, Cloud environments                |
+| 🚇 **Cloudflare Tunnel** 🆕   | One-click Quick Tunnel integration from the dashboard     |
 | 💾 **Cloud Sync**             | Configuration sync via cloud worker                       |
 | 🔄 **Backup/Restore**         | Export/import and disaster recovery flows                 |
 | 🧙 **Onboarding Wizard**      | First-run guided setup                                    |

@@ -108,7 +108,7 @@ Real-time request logging with filtering by provider, model, account, and API ke
 
 ## 🌐 API Endpoint
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloud proxy support for remote access.
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
 
 ![Endpoint Dashboard](screenshots/09-endpoint.png)
 

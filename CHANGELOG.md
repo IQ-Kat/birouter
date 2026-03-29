@@ -4,6 +4,21 @@
 
 ---
 
+## [3.3.2] - 2026-03-29
+
+### ✨ New Features
+
+- **Cloudflare Tunnels:** Cloudflare Quick Tunnel integration with dashboard controls (PR #772).
+- **Diagnostics:** Semantic cache bypass for combo live tests (PR #773).
+
+### 🐛 Bug Fixes
+
+- **Streaming Stability:** Apply `FETCH_TIMEOUT_MS` to streaming requests' initial `fetch()` call to prevent 300s Node.js TCP timeout causing silent task failures (#769).
+- **i18n:** Add missing `windsurf` and `copilot` entries to `toolDescriptions` across all 33 locale files (#748).
+- **GLM Coding Audit:** Complete provider audit fixing ReDoS vulnerabilities, context window sizing (128k/16k), and model registry syncing (PR #778).
+
+---
+
 ## [3.3.1] - 2026-03-29
 
 ### 🐛 Bug Fixes
