@@ -29,7 +29,6 @@ describe("GLM Coding provider registry surfaces", () => {
       "glm-5.1",
       "glm-5",
       "glm-5-turbo",
-      "glm-4.7-flashx",
       "glm-4.7-flash",
       "glm-4.7",
       "glm-4.6v",
@@ -51,7 +50,7 @@ describe("GLM Coding provider registry surfaces", () => {
 
   it("keeps representative GLM Coding models tool-call capable and priced", () => {
     expect(supportsToolCalling("glm/glm-5")).toBe(true);
-    expect(supportsToolCalling("glm/glm-4.7-flashx")).toBe(true);
+    expect(supportsToolCalling("glm/glm-4.7-flash")).toBe(true);
     expect(supportsToolCalling("glm/glm-4.5-air")).toBe(true);
 
     expect(getPricingForModel("glm", "glm-5")).toEqual({
@@ -61,12 +60,12 @@ describe("GLM Coding provider registry surfaces", () => {
       reasoning: 4.8,
       cache_creation: 1.0,
     });
-    expect(getPricingForModel("glm", "glm-4.7-flashx")).toEqual({
-      input: 0.3,
-      output: 1.1,
-      cached: 0.06,
-      reasoning: 1.1,
-      cache_creation: 0.3,
+    expect(getPricingForModel("glm", "glm-4.7-flash")).toEqual({
+      input: 0,
+      output: 0,
+      cached: 0,
+      reasoning: 0,
+      cache_creation: 0,
     });
     expect(getPricingForModel("glm", "glm-4.5-air")).toEqual({
       input: 0.2,

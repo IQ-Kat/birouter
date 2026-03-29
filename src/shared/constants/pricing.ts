@@ -750,13 +750,6 @@ export const DEFAULT_PRICING = {
       reasoning: 4.0,
       cache_creation: 1.2,
     },
-    "glm-4.7-flashx": {
-      input: 0.3,
-      output: 1.1,
-      cached: 0.06,
-      reasoning: 1.1,
-      cache_creation: 0.3,
-    },
     "glm-4.7-flash": {
       input: 0,
       output: 0,
