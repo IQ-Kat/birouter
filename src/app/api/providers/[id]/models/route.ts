@@ -19,6 +19,16 @@ function getProviderBaseUrl(providerSpecificData: unknown): string | null {
   return typeof baseUrl === "string" && baseUrl.trim().length > 0 ? baseUrl : null;
 }
 
+const GLM_MODELS_URLS = {
+  international: "https://api.z.ai/api/coding/paas/v4/models",
+  china: "https://open.bigmodel.cn/api/coding/paas/v4/models",
+} as const;
+
+function getGlmApiRegion(providerSpecificData: unknown): keyof typeof GLM_MODELS_URLS {
+  const data = asRecord(providerSpecificData);
+  return data.apiRegion === "china" ? "china" : "international";
+}
+
 type ProviderModelsConfigEntry = {
   url: string;
   method: "GET" | "POST";
@@ -467,6 +477,32 @@ export async function GET(
         connectionId,
         models: STATIC_MODEL_PROVIDERS.claude(),
       });
+    }
+
+    if (provider === "glm") {
+      const region = getGlmApiRegion(connection.providerSpecificData);
+      const url = GLM_MODELS_URLS[region];
+      const token = apiKey || accessToken;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        return NextResponse.json(
+          { error: `Failed to fetch models: ${response.status}` },
+          { status: response.status }
+        );
+      }
+
+      const data = await response.json();
+      const models = data.data || data.models || [];
+
+      return buildResponse({ provider, connectionId, models });
     }
 
     if (isAnthropicCompatibleProvider(provider)) {
