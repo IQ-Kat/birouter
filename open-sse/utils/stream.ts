@@ -314,6 +314,12 @@ export function createSSEStream(options: StreamOptions = {}) {
 
                   const delta = parsed.choices?.[0]?.delta;
 
+                  // Normalize `reasoning` alias → `reasoning_content` (NVIDIA kimi-k2.5 etc.)
+                  if (delta?.reasoning && typeof delta.reasoning === "string" && !delta.reasoning_content) {
+                    delta.reasoning_content = delta.reasoning;
+                    delete delta.reasoning;
+                  }
+
                   // Extract <think> tags from streaming content
                   if (delta?.content && typeof delta.content === "string") {
                     const { content, thinking } = extractThinkingFromContent(delta.content);
@@ -321,6 +327,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                     if (thinking && !delta.reasoning_content) {
                       delta.reasoning_content = thinking;
                     }
+                  }
+
+                  // If reasoning was normalized (reasoning → reasoning_content) or <think>
+                  // tags were extracted, force re-serialization so the client sees
+                  // the standard `reasoning_content` field instead of the raw provider line.
+                  if (delta?.reasoning_content && !injectedUsage) {
+                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    injectedUsage = true;
                   }
 
                   // T18: Track if we saw tool calls & accumulate for call log
@@ -479,6 +493,16 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (parsed.choices?.[0]?.delta?.reasoning_content) {
             const r = parsed.choices[0].delta.reasoning_content;
             if (typeof r === "string") {
+              totalContentLength += r.length;
+              if (state?.accumulatedContent !== undefined) state.accumulatedContent += r;
+            }
+          }
+          // Normalize `reasoning` alias → `reasoning_content` (NVIDIA kimi-k2.5 etc.)
+          if (parsed.choices?.[0]?.delta?.reasoning && !parsed.choices?.[0]?.delta?.reasoning_content) {
+            const r = parsed.choices[0].delta.reasoning;
+            if (typeof r === "string") {
+              parsed.choices[0].delta.reasoning_content = r;
+              delete parsed.choices[0].delta.reasoning;
               totalContentLength += r.length;
               if (state?.accumulatedContent !== undefined) state.accumulatedContent += r;
             }
