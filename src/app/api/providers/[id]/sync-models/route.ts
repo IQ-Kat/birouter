@@ -7,6 +7,7 @@ import {
   buildModelSyncInternalHeaders,
   isModelSyncInternalRequest,
 } from "@/shared/services/modelSyncScheduler";
+import { getModelsByProviderId } from "@/shared/constants/models";
 
 /**
  * POST /api/providers/[id]/sync-models
@@ -75,6 +76,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const fetchedModels = modelsData.models || [];
 
+    // Filter out models already in the built-in registry
+    const registryIds = new Set(
+      getModelsByProviderId(connection.provider).map((m: any) => m.id)
+    );
+
     // Replace the full model list
     const models = fetchedModels
       .map((m: any) => ({
@@ -82,7 +88,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         name: m.name || m.displayName || m.id || m.model,
         source: "auto-sync",
       }))
-      .filter((m: any) => m.id);
+      .filter((m: any) => m.id && !registryIds.has(m.id));
 
     const replaced = await replaceCustomModels(connection.provider, models);
 

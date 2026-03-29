@@ -1460,14 +1460,6 @@ export default function ProviderDetailPage() {
         return;
       }
 
-      setImportProgress((prev) => ({
-        ...prev,
-        phase: "importing",
-        total: fetchedModels.length,
-        status: t("importingModelsProgress", { current: 0, total: fetchedModels.length }),
-        logs: [t("foundModelsStartingImport", { count: fetchedModels.length })],
-      }));
-
       const existingIds = new Set([
         ...(modelMeta.customModels || []).map((m: any) => m.id),
         ...models.map((m: any) => m.id),
@@ -1483,6 +1475,8 @@ export default function ProviderDetailPage() {
           status: t("allModelsAlreadyImported") || "All models already imported",
           logs: [t("noNewModelsToImport") || "No new models to import"],
           importedCount: 0,
+          total: 0,
+          current: 0,
         }));
         return;
       }
@@ -1490,7 +1484,8 @@ export default function ProviderDetailPage() {
       setImportProgress((prev) => ({
         ...prev,
         phase: "importing",
-        total: fetchedModels.length,
+        total: newModels.length,
+        current: 0,
         status: t("importingModelsProgress", { current: 0, total: newModels.length }),
         logs: [
           t("foundModelsStartingImport", { count: newModels.length }),
