@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
 import { getComboByName } from "@/lib/localDb";
@@ -67,6 +68,10 @@ export async function POST(request) {
               // Internal dashboard tests still use the normal /v1 pipeline but
               // bypass REQUIRE_API_KEY so admins can test with local session auth.
               "X-Internal-Test": "combo-health-check",
+              // Force a fresh execution path so combo tests cannot be satisfied by
+              // OmniRoute's semantic cache or other request reuse layers.
+              "X-OmniRoute-No-Cache": "true",
+              "X-Request-Id": `combo-test-${randomUUID()}`,
             },
             body: JSON.stringify(testBody),
             signal: controller.signal,
