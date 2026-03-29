@@ -32,13 +32,12 @@ function toNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-// ── Think tag regex ────────────────────────────────────────────────────────
-// Matches <think>...</think> blocks (greedy, dotAll)
-const THINK_TAG_REGEX = /<think>([\s\S]*?)<\/think>/gi;
+// Matches <think>...</think> blocks and <thinking>...</thinking> (greedy, dotAll)
+const THINK_TAG_REGEX = /<(?:think|thinking)>([\s\S]*?)<\/(?:think|thinking)>/gi;
 
-// #638: Collapse runs of 3+ consecutive newlines into \n\n
+// #638, #727: Collapse runs of 2+ consecutive newlines into \n\n
 // Tool call responses from thinking models often accumulate excessive newlines
-const EXCESSIVE_NEWLINES = /\n{3,}/g;
+const EXCESSIVE_NEWLINES = /\n{2,}/g;
 function collapseExcessiveNewlines(text: string): string {
   return text.replace(EXCESSIVE_NEWLINES, "\n\n");
 }

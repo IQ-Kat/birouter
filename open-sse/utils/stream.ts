@@ -528,31 +528,47 @@ export function createSSEStream(options: StreamOptions = {}) {
               // Content for call log is accumulated only from parsed (above) to avoid double-counting;
               // do not add again from item here.
 
+              // #723, #727: Sanitize intermediate stream chunks if target is OpenAI format loop
+              let itemSanitized: Record<string, unknown> = item;
+              if (targetFormat === FORMATS.OPENAI || targetFormat === FORMATS.OPENAI_RESPONSES) {
+                itemSanitized = sanitizeStreamingChunk(itemSanitized) as Record<string, unknown>;
+
+                // Extract reasoning tags from content if translation generated them
+                const delta = itemSanitized?.choices?.[0]?.delta;
+                if (delta?.content && typeof delta.content === "string") {
+                  const { content, thinking } = extractThinkingFromContent(delta.content);
+                  delta.content = content;
+                  if (thinking && !delta.reasoning_content) {
+                    delta.reasoning_content = thinking;
+                  }
+                }
+              }
+
               // Filter empty chunks
-              if (!hasValuableContent(item, sourceFormat)) {
+              if (!hasValuableContent(itemSanitized, sourceFormat)) {
                 continue; // Skip this empty chunk
               }
 
               // Inject estimated usage if finish chunk has no valid usage
               const isFinishChunk =
-                item.type === "message_delta" || item.choices?.[0]?.finish_reason;
+                itemSanitized.type === "message_delta" || itemSanitized.choices?.[0]?.finish_reason;
               if (
                 state.finishReason &&
                 isFinishChunk &&
-                !hasValidUsage(item.usage) &&
+                !hasValidUsage(itemSanitized.usage) &&
                 totalContentLength > 0
               ) {
                 const estimated = estimateUsage(body, totalContentLength, sourceFormat);
-                item.usage = filterUsageForFormat(estimated, sourceFormat); // Filter + already has buffer
+                itemSanitized.usage = filterUsageForFormat(estimated, sourceFormat); // Filter + already has buffer
                 state.usage = estimated;
               } else if (state.finishReason && isFinishChunk && state.usage) {
                 // Add buffer and filter usage for client (but keep original in state.usage for logging)
                 const buffered = addBufferToUsage(state.usage);
-                item.usage = filterUsageForFormat(buffered, sourceFormat);
+                itemSanitized.usage = filterUsageForFormat(buffered, sourceFormat);
               }
 
-              const output = formatSSE(item, sourceFormat);
-              clientPayloadCollector.push(item);
+              const output = formatSSE(itemSanitized, sourceFormat);
+              clientPayloadCollector.push(itemSanitized);
               reqLogger?.appendConvertedChunk?.(output);
               controller.enqueue(encoder.encode(output));
             }

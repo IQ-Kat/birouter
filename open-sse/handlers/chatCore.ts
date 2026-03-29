@@ -531,10 +531,10 @@ export async function handleChatCore({
       connectionId,
       duration: Date.now() - startTime,
       tokens: tokens || {},
-      requestBody: attachLogMeta(body, {
+      requestBody: attachLogMeta((body as Record<string, unknown>) ?? undefined, {
         claudePromptCache: claudeCacheMeta,
       }),
-      responseBody: attachLogMeta(responseBody ?? undefined, {
+      responseBody: attachLogMeta((responseBody as Record<string, unknown>) ?? undefined, {
         claudePromptCache: claudeCacheMeta
           ? {
               applied: claudeCacheMeta.applied,
@@ -1464,8 +1464,9 @@ export async function handleChatCore({
 
     // Sanitize response for OpenAI SDK compatibility
     // Strips non-standard fields (x_groq, usage_breakdown, service_tier, etc.)
-    // Extracts <think> tags into reasoning_content
-    if (sourceFormat === FORMATS.OPENAI) {
+    // Extracts <think> and <thinking> tags into reasoning_content
+    // Target format determines output shape. If we are outputting OpenAI shape or pseudo-OpenAI shape, sanitize.
+    if (targetFormat === FORMATS.OPENAI || targetFormat === FORMATS.OPENAI_RESPONSES) {
       translatedResponse = sanitizeOpenAIResponse(translatedResponse);
     }
 
