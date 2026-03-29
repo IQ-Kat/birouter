@@ -59,7 +59,7 @@ const MIN_HISTORY_SAMPLES = 10;
 async function validateResponseQuality(
   response: Response,
   isStreaming: boolean,
-  log: { warn?: (...args: any[]) => void }
+  log: { warn?: (...args: unknown[]) => void }
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
   if (isStreaming) return { valid: true };
 
@@ -86,7 +86,7 @@ async function validateResponseQuality(
     return { valid: false, reason: "empty response body" };
   }
 
-  let json: any;
+  let json: Record<string, unknown>;
   try {
     json = JSON.parse(text);
   } catch {
@@ -97,7 +97,10 @@ async function validateResponseQuality(
   const choices = json?.choices;
   if (!Array.isArray(choices) || choices.length === 0) {
     if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
-    if (json?.error) return { valid: false, reason: `upstream error in 200 body: ${json.error?.message || JSON.stringify(json.error).substring(0, 200)}` };
+    if (json?.error) {
+      const err = json.error as Record<string, unknown>;
+      return { valid: false, reason: `upstream error in 200 body: ${err?.message || JSON.stringify(json.error).substring(0, 200)}` };
+    }
     return { valid: true };
   }
 
