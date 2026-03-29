@@ -44,3 +44,12 @@ test("remaining percentage helpers reflect remaining quota and stale resets refi
   assert.equal(parsed.length, 1);
   assert.equal(providerLimitUtils.calculatePercentage(parsed[0].used, parsed[0].total), 100);
 });
+
+test("quota labels normalize session and weekly windows while preserving readable titles", () => {
+  assert.equal(providerLimitUtils.formatQuotaLabel("session"), "Session");
+  assert.equal(providerLimitUtils.formatQuotaLabel("session (5h)"), "Session");
+  assert.equal(providerLimitUtils.formatQuotaLabel("weekly"), "Weekly");
+  assert.equal(providerLimitUtils.formatQuotaLabel("weekly (7d)"), "Weekly");
+  assert.equal(providerLimitUtils.formatQuotaLabel("weekly sonnet (7d)"), "Weekly Sonnet");
+  assert.equal(providerLimitUtils.formatQuotaLabel("code_review"), "Code Review");
+});
