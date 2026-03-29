@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Pinagana ang auto-sync — pana-panahong magre-refresh ang mga modelo",
     "autoSyncDisabled": "Na-disable ang auto-sync",
     "autoSyncToggleFailed": "Nabigong i-toggle ang auto-sync",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Lahat ng mga modelo ay nai-import na",
+    "noNewModelsToImport": "Walang bagong modelo na i-import — lahat ng mga modelo ay nasa registry o custom na listahan na",
+    "skippingExistingModels": "Pinapalampas ang {count} na umiiral na mga modelo"
   },
   "settings": {
     "title": "Mga setting",

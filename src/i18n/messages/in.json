@@ -1644,9 +1644,9 @@
     "modelsPathLabel": "मॉडल समापन बिंदु पथ",
     "modelsPathPlaceholder": "/मॉडल",
     "modelsPathHint": "सत्यापन के लिए कस्टम मॉडल पथ (जैसे /v4/मॉडल)",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "सभी मॉडल पहले से ही आयातित हैं",
+    "noNewModelsToImport": "आयात करने के लिए कोई नए मॉडल नहीं — सभी मॉडल पहले से ही रजिस्ट्री या कस्टम मॉडल सूची में हैं",
+    "skippingExistingModels": "{count} मौजूदा मॉडल छोड़े जा रहे हैं"
   },
   "settings": {
     "title": "सेटिंग्स",

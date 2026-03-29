@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Sinkronisasi otomatis diaktifkan — model akan disegarkan secara berkala",
     "autoSyncDisabled": "Sinkronisasi otomatis dinonaktifkan",
     "autoSyncToggleFailed": "Gagal mengaktifkan sinkronisasi otomatis",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Semua model sudah diimpor",
+    "noNewModelsToImport": "Tidak ada model baru untuk diimpor — semua model sudah ada di registri atau daftar model kustom",
+    "skippingExistingModels": "Melewatkan {count} model yang sudah ada"
   },
   "settings": {
     "title": "Pengaturan",

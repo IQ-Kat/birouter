@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Sincronizare automată activată — modelele se vor reîmprospăta periodic",
     "autoSyncDisabled": "Sincronizarea automată a fost dezactivată",
     "autoSyncToggleFailed": "Nu s-a putut comuta sincronizarea automată",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Toate modelele sunt deja importate",
+    "noNewModelsToImport": "Niciun model nou de importat — toate modelele sunt deja în registru sau în lista de modele personalizate",
+    "skippingExistingModels": "Se omit {count} modele existente"
   },
   "settings": {
     "title": "Setări",

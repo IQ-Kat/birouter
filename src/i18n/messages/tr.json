@@ -1642,9 +1642,9 @@
     "modelsPathLabel": "Model Uç Noktası Yolu",
     "modelsPathPlaceholder": "/models",
     "modelsPathHint": "Doğrulama için özel model yolu (ör. /v4/models)",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Tüm modeller zaten içe aktarıldı",
+    "noNewModelsToImport": "İçe aktarılacak yeni model yok — tüm modeller zaten kayıt defterinde veya özel modeller listesinde",
+    "skippingExistingModels": "{count} mevcut model atlanıyor"
   },
   "settings": {
     "title": "Ayarlar",

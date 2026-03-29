@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Automatisk synkronisering aktiverad — modeller uppdateras regelbundet",
     "autoSyncDisabled": "Automatisk synkronisering inaktiverad",
     "autoSyncToggleFailed": "Det gick inte att växla automatisk synkronisering",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Alla modeller är redan importerade",
+    "noNewModelsToImport": "Inga nya modeller att importera — alla modeller finns redan i registret eller listan över anpassade modeller",
+    "skippingExistingModels": "Hoppar över {count} befintliga modeller"
   },
   "settings": {
     "title": "Inställningar",

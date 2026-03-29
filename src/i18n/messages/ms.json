@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Autosegerak didayakan — model akan dimuat semula secara berkala",
     "autoSyncDisabled": "Autosegerak dilumpuhkan",
     "autoSyncToggleFailed": "Gagal untuk menogol autosegerak",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Semua model sudah diimport",
+    "noNewModelsToImport": "Tiada model baru untuk diimport — semua model sudah ada dalam registri atau senarai model tersuai",
+    "skippingExistingModels": "Melangkau {count} model sedia ada"
   },
   "settings": {
     "title": "tetapan",

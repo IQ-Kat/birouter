@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Sincronización automática activada — los modelos se actualizarán periódicamente",
     "autoSyncDisabled": "Sincronización automática desactivada",
     "autoSyncToggleFailed": "Error al alternar sincronización automática",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Todos los modelos ya están importados",
+    "noNewModelsToImport": "No hay modelos nuevos para importar — todos los modelos ya están en el registro o en la lista de modelos personalizados",
+    "skippingExistingModels": "Omitiendo {count} modelos existentes"
   },
   "settings": {
     "title": "Configuración",

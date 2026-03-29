@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Automatische synchronisatie ingeschakeld: modellen worden periodiek vernieuwd",
     "autoSyncDisabled": "Automatische synchronisatie uitgeschakeld",
     "autoSyncToggleFailed": "Kan automatische synchronisatie niet in- of uitschakelen",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Alle modellen zijn al geïmporteerd",
+    "noNewModelsToImport": "Geen nieuwe modellen om te importeren — alle modellen staan al in het register of de lijst met aangepaste modellen",
+    "skippingExistingModels": "{count} bestaande modellen overgeslagen"
   },
   "settings": {
     "title": "Instellingen",

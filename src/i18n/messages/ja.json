@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "自動同期有効 — モデルは定期的に更新されます",
     "autoSyncDisabled": "自動同期無効",
     "autoSyncToggleFailed": "自動同期の切り替えに失敗",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "すべてのモデルは既にインポート済みです",
+    "noNewModelsToImport": "インポートする新しいモデルはありません — すべてのモデルは既にレジストリまたはカスタムモデルリストにあります",
+    "skippingExistingModels": "{count}件の既存モデルをスキップ"
   },
   "settings": {
     "title": "設定",

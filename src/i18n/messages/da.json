@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Automatisk synkronisering aktiveret - modellerne opdateres med jævne mellemrum",
     "autoSyncDisabled": "Automatisk synkronisering deaktiveret",
     "autoSyncToggleFailed": "Automatisk synkronisering kunne ikke slås til eller fra",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Alle modeller er allerede importeret",
+    "noNewModelsToImport": "Ingen nye modeller at importere — alle modeller findes allerede i registreret eller brugerdefineret liste",
+    "skippingExistingModels": "Springer {count} eksisterende modeller over"
   },
   "settings": {
     "title": "Indstillinger",

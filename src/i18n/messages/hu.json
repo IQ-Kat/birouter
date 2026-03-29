@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Automatikus szinkronizálás engedélyezve – a modellek rendszeresen frissülnek",
     "autoSyncDisabled": "Az automatikus szinkronizálás letiltva",
     "autoSyncToggleFailed": "Failed to toggle auto-sync",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Minden modell már importálva van",
+    "noNewModelsToImport": "Nincs új modell az importáláshoz — minden modell már a nyilvántartásban vagy az egyéni modellek listájában van",
+    "skippingExistingModels": "{count} meglévő modell kihagyása"
   },
   "settings": {
     "title": "Beállítások elemre",

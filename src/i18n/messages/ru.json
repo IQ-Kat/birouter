@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "Автосинхронизация включена — модели будут периодически обновляться",
     "autoSyncDisabled": "Автосинхронизация отключена",
     "autoSyncToggleFailed": "Не удалось переключить автосинхронизацию",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "Все модели уже импортированы",
+    "noNewModelsToImport": "Нет новых моделей для импорта — все модели уже есть в реестре или списке пользовательских моделей",
+    "skippingExistingModels": "Пропуск {count} существующих моделей"
   },
   "settings": {
     "title": "Настройки",

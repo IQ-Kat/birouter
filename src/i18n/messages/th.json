@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "เปิดใช้งานการซิงค์อัตโนมัติ — โมเดลจะรีเฟรชเป็นระยะ",
     "autoSyncDisabled": "ปิดใช้งานการซิงค์อัตโนมัติแล้ว",
     "autoSyncToggleFailed": "ไม่สามารถสลับการซิงค์อัตโนมัติ",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "นำเข้าโมเดลทั้งหมดแล้ว",
+    "noNewModelsToImport": "ไม่มีโมเดลใหม่ที่จะนำเข้า — โมเดลทั้งหมดมีอยู่แล้วในรีจิสทรีหรือรายการโมเดลที่กำหนดเอง",
+    "skippingExistingModels": "ข้าม {count} โมเดลที่มีอยู่"
   },
   "settings": {
     "title": "การตั้งค่า",

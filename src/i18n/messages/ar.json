@@ -1581,9 +1581,9 @@
     "autoSyncEnabled": "تم تمكين المزامنة التلقائية — سيتم تحديث النماذج بشكل دوري",
     "autoSyncDisabled": "تم تعطيل المزامنة التلقائية",
     "autoSyncToggleFailed": "فشل في تبديل المزامنة التلقائية",
-    "allModelsAlreadyImported": "All models already imported",
-    "noNewModelsToImport": "No new models to import",
-    "skippingExistingModels": "Skipping {count} existing models"
+    "allModelsAlreadyImported": "جميع النماذج مستوردة بالفعل",
+    "noNewModelsToImport": "لا توجد نماذج جديدة للاستيراد — جميع النماذج موجودة بالفعل في السجل أو قائمة النماذج المخصصة",
+    "skippingExistingModels": "تخطي {count} نماذج موجودة"
   },
   "settings": {
     "title": "الإعدادات",
