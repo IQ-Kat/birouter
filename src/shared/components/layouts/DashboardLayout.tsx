@@ -57,8 +57,8 @@ export default function DashboardLayout({ children }) {
       >
         <Header onMenuClick={() => setSidebarOpen(true)} />
         <MaintenanceBanner />
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10">
-          <div className="max-w-7xl mx-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
+          <div className="max-w-7xl mx-auto w-full">
             <Breadcrumbs />
             {children}
           </div>
