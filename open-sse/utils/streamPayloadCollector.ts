@@ -207,12 +207,14 @@ function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string
     }
   }
 
+  const joinedContent = contentParts.length > 0 ? contentParts.join("").trim() : null;
+  const joinedReasoning = reasoningParts.length > 0 ? reasoningParts.join("").trim() : null;
   const message: JsonRecord = {
     role: "assistant",
-    content: contentParts.length > 0 ? contentParts.join("") : null,
+    content: joinedContent || null,
   };
-  if (reasoningParts.length > 0) {
-    message.reasoning_content = reasoningParts.join("");
+  if (joinedReasoning) {
+    message.reasoning_content = joinedReasoning;
   }
 
   const finalToolCalls = [...toolCalls.values()].sort((a, b) => a.index - b.index);
