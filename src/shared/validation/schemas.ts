@@ -1313,3 +1313,11 @@ export const v1SearchResponseSchema = z.object({
     )
     .optional(),
 });
+
+// ─── Auto-disable banned/error accounts ───────────────────────────────────
+export const updateAutoDisableAccountsSchema = z
+  .object({
+    enabled: z.boolean(),
+    threshold: z.number().int().min(1).max(10).optional(),
+  })
+  .strict();

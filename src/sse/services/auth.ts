@@ -3,6 +3,7 @@ import {
   validateApiKey,
   updateProviderConnection,
   getSettings,
+  getCachedSettings,
 } from "@/lib/localDb";
 import { getQuotaWindowStatus, isAccountQuotaExhausted } from "@/domain/quotaCache";
 import {
@@ -773,13 +774,14 @@ export async function markAccountUnavailable(
       }
     }
 
-    const { shouldFallback, cooldownMs, newBackoffLevel, reason } = checkFallbackError(
+    const result = checkFallbackError(
       status,
       errorText,
       backoffLevel,
       model,
       provider // ← Now passes provider for profile-aware cooldowns
     );
+    const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
     // ── Local provider 404: model-only lockout, connection stays active ──
@@ -844,6 +846,28 @@ export async function markAccountUnavailable(
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
     });
+
+    // T-AUTODISABLE: If auto-disable setting is enabled and error is permanent/terminal,
+    // mark account as inactive so it is never retried again.
+    // Uses getCachedSettings() to avoid DB overhead on hot error path.
+    // NOTE: For permanent bans we disable immediately — no threshold needed,
+    // because a permanent ban (403 "Verify your account" / ToS violation) will
+    // NEVER recover, so retrying is pointless regardless of attempt count.
+    if (result.permanent) {
+      try {
+        const settings = await getCachedSettings();
+        const autoDisableEnabled = settings.autoDisableBannedAccounts ?? false;
+        if (autoDisableEnabled) {
+          await updateProviderConnection(connectionId, { isActive: false });
+          log.info(
+            "AUTH",
+            `Auto-disabled ${connectionId.slice(0, 8)} — permanent ban detected (autoDisableBannedAccounts=true)`
+          );
+        }
+      } catch (e) {
+        log.info("AUTH", `Auto-disable check failed (non-fatal): ${e}`);
+      }
+    }
 
     // Per-model lockout: lock the specific model if known
     if (provider && model && cooldownMs > 0) {
