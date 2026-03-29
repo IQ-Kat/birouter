@@ -59,6 +59,11 @@ services:
     ports:
       - "${DASHBOARD_PORT:-${PORT:-20128}}:${DASHBOARD_PORT:-${PORT:-20128}}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
+    volumes:
+      - omniroute-data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins:ro
+      - ${AUTO_UPDATE_HOST_REPO_DIR:-.}:/workspace/omniroute:rw
     profiles:
       - cli
 
