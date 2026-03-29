@@ -67,7 +67,17 @@ export function injectModelTag(messages: Message[], providerModel: string): Mess
   }
 
   const msg = cleaned[lastAssistantIdx];
-  if (typeof msg.content !== "string") return cleaned;
+  // Fix #721: Handle messages where content is not a string (tool_calls responses).
+  // In this case, append a synthetic assistant message with the tag so the pin
+  // roundtrips through the conversation history.
+  if (typeof msg.content !== "string") {
+    // If the message has tool_calls but no string content, append a new assistant
+    // message with the tag rather than silently failing.
+    return [
+      ...cleaned,
+      { role: "assistant", content: `\n<omniModel>${providerModel}</omniModel>` },
+    ];
+  }
 
   const tagged = [...cleaned];
   tagged[lastAssistantIdx] = {

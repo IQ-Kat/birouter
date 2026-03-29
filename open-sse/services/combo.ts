@@ -464,14 +464,23 @@ export async function handleComboChat({
         const res = await handleSingleModel(b, modelStr);
         if (!res.ok) return res;
 
-        // Non-streaming: inject tag into JSON response (existing logic)
+        // Non-streaming: inject tag into JSON response
+        // Fix #721: Use OpenAI choices format (json.choices[0].message) not json.messages
         if (!b.stream) {
           try {
             const json = await res.clone().json();
-            const msgs = Array.isArray(json?.messages) ? json.messages : [];
-            if (msgs.length > 0) {
-              const tagged = injectModelTag(msgs, modelStr);
-              return new Response(JSON.stringify({ ...json, messages: tagged }), {
+            const choice = json?.choices?.[0];
+            if (choice?.message) {
+              // Wrap single message in array for injectModelTag, then unwrap
+              const tagged = injectModelTag([choice.message], modelStr);
+              // If the message had tool_calls but no string content, injectModelTag
+              // appends a synthetic assistant message — use the last one
+              const taggedMsg = tagged[tagged.length - 1];
+              const updatedJson = {
+                ...json,
+                choices: [{ ...choice, message: taggedMsg }, ...(json.choices?.slice(1) || [])],
+              };
+              return new Response(JSON.stringify(updatedJson), {
                 status: res.status,
                 headers: res.headers,
               });
@@ -502,8 +511,9 @@ export async function handleComboChat({
 
             const text = decoder.decode(chunk, { stream: true });
 
-            // Look for the first SSE data line with non-empty content
-            // Pattern: "content":"<non-empty>" — we inject tag at the start
+            // Fix #721: Look for either non-empty content OR tool_calls in the
+            // SSE data. Tool-call-only responses have content:null, so we inject
+            // the tag when we see a finish_reason approaching, or on first content.
             const contentMatch = text.match(/"content":"([^"]+)/);
             if (contentMatch) {
               // Inject tag at the beginning of the first content value
@@ -513,6 +523,27 @@ export async function handleComboChat({
               );
               tagInjected = true;
               controller.enqueue(encoder.encode(injected));
+              return;
+            }
+
+            // Fix #721: For tool-call-only streams, inject the tag when we see
+            // the finish_reason chunk (before it reaches the client SDK which
+            // would close the connection). This ensures the tag roundtrips
+            // through the conversation history even when there's no text content.
+            if (text.includes('"finish_reason"') && !text.includes('"finish_reason":null')) {
+              // Inject a content chunk with the tag just before this finish chunk
+              const tagChunk = `data: ${JSON.stringify({
+                choices: [
+                  {
+                    delta: { content: tagContent },
+                    index: 0,
+                    finish_reason: null,
+                  },
+                ],
+              })}\n\n`;
+              tagInjected = true;
+              controller.enqueue(encoder.encode(tagChunk));
+              controller.enqueue(chunk);
               return;
             }
 
