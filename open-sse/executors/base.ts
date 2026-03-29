@@ -264,13 +264,12 @@ export class BaseExecutor {
       const transformedBody = this.transformRequest(model, body, stream, credentials);
 
       try {
-        // For non-streaming requests, apply a fetch timeout to prevent stalled connections.
-        // Streaming requests skip the timeout — they use stream idle detection instead.
-        const timeoutSignal = !stream ? AbortSignal.timeout(FETCH_TIMEOUT_MS) : null;
-        const combinedSignal =
-          signal && timeoutSignal
-            ? mergeAbortSignals(signal, timeoutSignal)
-            : signal || timeoutSignal;
+        // Apply timeout to all requests. Non-streaming requests need this to prevent
+        // stalled connections. Streaming requests also need it for the initial fetch() call
+        // to prevent hanging on unresponsive providers (e.g. 300s TCP default timeout — #769).
+        // Stream idle detection (STREAM_IDLE_TIMEOUT_MS) handles stalls after data starts flowing.
+        const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+        const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
 
         // Apply CLI fingerprint ordering if enabled for this provider
         let finalHeaders = headers;

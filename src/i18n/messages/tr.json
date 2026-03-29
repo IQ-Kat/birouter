@@ -641,7 +641,9 @@
       "cursor": "Cursor AI Kod Düzenleyici",
       "continue": "Continue AI Asistanı",
       "opencode": "OpenCode AI kodlama ajanı (Terminal)",
-      "kiro": "Amazon Kiro - AI destekli IDE"
+      "kiro": "Amazon Kiro - AI destekli IDE",
+      "windsurf": "Windsurf AI Code Editor",
+      "copilot": "GitHub Copilot AI Assistant"
     },
     "guides": {
       "cursor": {

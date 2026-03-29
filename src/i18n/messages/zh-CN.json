@@ -627,7 +627,9 @@
       "cursor": "Cursor AI 代码编辑器",
       "continue": "继续AI助手",
       "opencode": "OpenCode AI 编码智能体（终端）",
-      "kiro": "Amazon Kiro - AI 驱动 IDE"
+      "kiro": "Amazon Kiro - AI 驱动 IDE",
+      "windsurf": "Windsurf AI Code Editor",
+      "copilot": "GitHub Copilot AI Assistant"
     },
     "guides": {
       "cursor": {
