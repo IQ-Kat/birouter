@@ -92,8 +92,10 @@ export function claudeToGeminiRequest(model, body, stream) {
               break;
 
             case "tool_use":
+              // Do NOT include thoughtSignature on functionCall parts — it is only valid
+              // on thinking/reasoning parts and causes HTTP 400 "invalid argument" from the
+              // Gemini API when present on a functionCall part.
               parts.push({
-                thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
                 functionCall: {
                   id: block.id,
                   name: block.name,
