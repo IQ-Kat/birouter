@@ -105,13 +105,14 @@ function markMessageCacheControl(msg, ttl) {
 }
 
 // Prepare request for Claude format endpoints
-// - Cleanup cache_control
+// - Cleanup cache_control (unless preserveCacheControl=true for passthrough)
 // - Filter empty messages
 // - Add thinking block for Anthropic endpoint (provider === "claude")
 // - Fix tool_use/tool_result ordering
-export function prepareClaudeRequest(body, provider = null) {
+export function prepareClaudeRequest(body, provider = null, preserveCacheControl = false) {
   // 1. System: remove all cache_control, add only to last block with ttl 1h
-  if (body.system && Array.isArray(body.system)) {
+  // In passthrough mode, preserve existing cache_control markers
+  if (body.system && Array.isArray(body.system) && !preserveCacheControl) {
     body.system = body.system.map((block, i) => {
       const { cache_control, ...rest } = block;
       if (i === body.system.length - 1) {
@@ -127,11 +128,12 @@ export function prepareClaudeRequest(body, provider = null) {
     let filtered = [];
 
     // Pass 1: remove cache_control + filter empty messages
+    // In passthrough mode, preserve existing cache_control markers
     for (let i = 0; i < len; i++) {
       const msg = body.messages[i];
 
-      // Remove cache_control from content blocks
-      if (Array.isArray(msg.content)) {
+      // Remove cache_control from content blocks (skip in passthrough mode)
+      if (Array.isArray(msg.content) && !preserveCacheControl) {
         for (const block of msg.content) {
           delete block.cache_control;
         }
@@ -177,14 +179,17 @@ export function prepareClaudeRequest(body, provider = null) {
     // Claude Code-style prompt caching:
     // - cache the second-to-last user turn for conversation reuse
     // - cache the last assistant turn so the next user turn can reuse it
-    const userMessageIndexes = filtered.reduce((indexes, msg, index) => {
-      if (msg?.role === "user") indexes.push(index);
-      return indexes;
-    }, []);
-    const secondToLastUserIndex =
-      userMessageIndexes.length >= 2 ? userMessageIndexes[userMessageIndexes.length - 2] : -1;
-    if (secondToLastUserIndex >= 0) {
-      markMessageCacheControl(filtered[secondToLastUserIndex]);
+    // Skip in passthrough mode to preserve client's cache_control markers
+    if (!preserveCacheControl) {
+      const userMessageIndexes = filtered.reduce((indexes, msg, index) => {
+        if (msg?.role === "user") indexes.push(index);
+        return indexes;
+      }, []);
+      const secondToLastUserIndex =
+        userMessageIndexes.length >= 2 ? userMessageIndexes[userMessageIndexes.length - 2] : -1;
+      if (secondToLastUserIndex >= 0) {
+        markMessageCacheControl(filtered[secondToLastUserIndex]);
+      }
     }
 
     // Pass 2 (reverse): add cache_control to last assistant + handle thinking for Anthropic
@@ -194,7 +199,8 @@ export function prepareClaudeRequest(body, provider = null) {
 
       if (msg.role === "assistant" && Array.isArray(ensureMessageContentArray(msg))) {
         // Add cache_control to last block of first (from end) assistant with content
-        if (!lastAssistantProcessed && markMessageCacheControl(msg)) {
+        // Skip in passthrough mode to preserve client's cache_control markers
+        if (!preserveCacheControl && !lastAssistantProcessed && markMessageCacheControl(msg)) {
           lastAssistantProcessed = true;
         }
 
@@ -227,7 +233,8 @@ export function prepareClaudeRequest(body, provider = null) {
 
   // 3. Tools: remove all cache_control, add only to last non-deferred tool with ttl 1h
   // Tools with defer_loading=true cannot have cache_control (API rejects it)
-  if (body.tools && Array.isArray(body.tools)) {
+  // In passthrough mode, preserve existing cache_control markers
+  if (body.tools && Array.isArray(body.tools) && !preserveCacheControl) {
     body.tools = body.tools.map((tool) => {
       const { cache_control, ...rest } = tool;
       return rest;
