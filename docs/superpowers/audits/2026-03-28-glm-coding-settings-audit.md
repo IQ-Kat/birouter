@@ -220,7 +220,8 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 
 - The supplied GLM-4.7 guide explicitly covers `GLM-4.7`, `GLM-4.7-FlashX`, and `GLM-4.7-Flash`, and states `200K` context length, `128K` maximum output, streaming support, function calling, structured output, and thinking-mode support across that family.
 - Repo inventory, default context length, tool-calling behavior, and the zero-priced `glm-4.7-flash` row are all consistent with the doc-backed facts that can be validated from the allowed sources.
-- The only clear mismatch remains transport and compatibility mode: the supplied docs show a Z.AI OpenAI-compatible `/chat/completions` surface with Bearer auth, while OmniRoute's GLM Coding provider is still wired as Anthropic Messages-compatible with `x-api-key`. That mismatch is explicit but not safe to change in this task.
+- The only clear doc-backed repo mismatch remains transport and compatibility mode: the supplied docs show a Z.AI OpenAI-compatible `/chat/completions` surface with Bearer auth, while OmniRoute's GLM Coding provider is still wired as Anthropic Messages-compatible with `x-api-key`. That mismatch is explicit but not safe to change in this task.
+- Separate from the doc-backed comparison, later user-requested live smoke checks found runtime failures for `glm-4.7-flashx` and `glm-4.7-flash`, but those failures do not by themselves prove a registry/config mismatch.
 - The supplied Hugging Face page corroborates GLM-4.7 reasoning and tool-use support and confirms a separate open-weights offering, but it does not provide exact hosted API model IDs for `FlashX` or `Flash`.
 - The supplied `z.ai/blog/glm-4.7` link yielded no extractable source content through the allowed fetch path, so no validated facts were taken from that page.
 
@@ -264,11 +265,22 @@ This worksheet captures the current GLM Coding inventory directly from repositor
    - Docs used here: no authoritative token pricing table in the allowed sources; only `glm-4.7-flash` is described as free
    - Action: leave repo pricing unchanged.
 
+### Live smoke verification
+
+- Anthropic-compatible repo path test (`https://api.z.ai/api/anthropic/v1/messages?beta=true` with `x-api-key` + Anthropic headers):
+  - `glm-4.7` → `200`, returned hello text
+  - `glm-4.7-flashx` → `429`, `Insufficient balance or no resource package. Please recharge.`
+  - `glm-4.7-flash` → `500`, `Internal Network Failure`
+- OpenAI-compatible documented path test (`https://api.z.ai/api/paas/v4/chat/completions` with `Authorization: Bearer ...`):
+  - `glm-4.7-flashx` → `429`, `Insufficient balance or no resource package. Please recharge.`
+  - `glm-4.7-flash` → `500`, `Network error, error id: 20260329072102e5577289b3884348, please contact customer service`
+
 ### Safe next action list
 
 - If a later approved task wants to revisit GLM transport, validate whether OmniRoute's GLM Coding provider should remain Anthropic-compatible or migrate to Z.AI's OpenAI-compatible `/chat/completions` contract.
 - If that transport follow-up is approved, verify auth headers, request schema mapping, streaming deltas, and tool/thinking payload translation before changing `format`, `baseUrl`, headers, or `urlSuffix`.
 - Obtain a supplied source that explicitly shows the hosted API request model IDs for `GLM-4.7-FlashX` and `GLM-4.7-Flash` before changing those registry IDs.
+- Treat current `glm-4.7-flashx` and `glm-4.7-flash` runtime failures as live-provider/account issues rather than registry-ID proof, because the two variants fail consistently across both endpoint families but with provider-side billing/network errors rather than `model_not_found`-style rejections.
 - Obtain a supplied source with authoritative API token pricing before changing the `glm-4.7` or `glm-4.7-flashx` pricing rows.
 
 ### GLM-4.7 field-by-field comparison
@@ -293,6 +305,10 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 | GLM-4.7 family | Streaming support | supplied guide lists streaming output and examples use `stream: true` | current provider supports streaming transport | no mismatch found | medium | No model-specific flag required in scoped files |
 | GLM-4.7 family | Function/tool calling support | supplied guide lists function call; Hugging Face card says tool calling is supported with OpenAI-style tool descriptions | repo currently treats GLM models as tool-call capable | match | high | Repo support comes from registry fallback behavior |
 | GLM-4.7 family | Structured output support | supplied guide lists structured output | no contradictory audited-file flag exists | doc-only fact recorded | medium | No safe repo field to change |
+| GLM-4.7 FlashX | Live hello probe on repo path | no doc claim; live verification requested by user | Anthropic-compatible repo path returned `429` with insufficient balance / no resource package | undocumented / needs live verification | verified-live | Runtime availability/billing failure observed live; not proof that the registry model ID is wrong |
+| GLM-4.7 FlashX | Live hello probe on documented OpenAI-compatible path | no doc claim; live verification requested by user | OpenAI-compatible path also returned `429` with insufficient balance / no resource package | undocumented / needs live verification | verified-live | Same failure across both endpoint families suggests account/package gating rather than path-specific breakage |
+| GLM-4.7 Flash | Live hello probe on repo path | no doc claim; live verification requested by user | Anthropic-compatible repo path returned `500` `Internal Network Failure` | undocumented / needs live verification | verified-live | Provider-side runtime failure; not evidence of an invalid model ID |
+| GLM-4.7 Flash | Live hello probe on documented OpenAI-compatible path | no doc claim; live verification requested by user | OpenAI-compatible path returned `500` `Network error, error id: 20260329072102e5577289b3884348` | undocumented / needs live verification | verified-live | Cross-endpoint provider-side failure still does not prove the registry model ID is wrong |
 | GLM-4.7 family | `glm-4.7-flash` pricing status | supplied guide describes Flash as completely free | repo pricing row is all zeroes | match | medium | Free-plan wording is not a token-pricing table, but it supports leaving row zeroed |
 | GLM-4.7 family | `glm-4.7` pricing | no authoritative token pricing stated in allowed sources | repo row exists in `pricing.ts` | no mismatch found | high | Lack of supplied pricing evidence blocks a change |
 | GLM-4.7 family | `glm-4.7-flashx` pricing | no authoritative token pricing stated in allowed sources | repo row exists in `pricing.ts` | no mismatch found | high | Lack of supplied pricing evidence blocks a change |
@@ -503,6 +519,8 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 - Broader Vitest suite: `rtk npm --prefix "/home/overmind/Projects/omniroute/.worktrees/glm-coding-audit" run test:vitest` → PASS (`7` files, `63` tests)
 - Worksheet review result: no additional unresolved worksheet rows were found beyond the items summarized below; one explicit `repo-only` item remains (`glm-4.5v`, pending a supplied hosted API source)
 - Live transport verification: Anthropic-compatible repo path (`https://api.z.ai/api/anthropic/v1/messages?beta=true` with `x-api-key` + Anthropic headers) returned `200` and a valid `glm-5` response; documented OpenAI-compatible path (`https://api.z.ai/api/paas/v4/chat/completions` with Bearer auth) returned `429` / `Insufficient balance or no resource package`, so it remains an available documented alternative but not a superior replacement proven by this session
+- Live model smoke verification on the repo path: `glm-5.1`, `glm-5`, `glm-5-turbo`, `glm-4.7`, `glm-4.6v`, `glm-4.6`, `glm-4.5v`, `glm-4.5`, and `glm-4.5-air` all returned hello responses; `glm-4.7-flashx` returned `429` insufficient balance / no resource package twice; `glm-4.7-flash` returned `500` provider-side network/internal failure twice
+- Cross-endpoint check for the two failing 4.7 variants: `glm-4.7-flashx` also returned `429` on the documented OpenAI-compatible path, and `glm-4.7-flash` also returned `500`, so the observed failures are not unique to the repo's Anthropic-compatible transport
 
 ## Final summary
 
@@ -517,7 +535,7 @@ This worksheet captures the current GLM Coding inventory directly from repositor
 | Pending item | Why it remains pending | Supporting source link(s) |
 | --- | --- | --- |
 | Whether OmniRoute should keep the current Anthropic-compatible GLM Coding transport or add/migrate to the documented OpenAI-compatible surface | Live verification showed the current repo transport works for `glm-5`, so this is no longer a broken-path concern; it remains pending as a product/compatibility decision because docs also advertise OpenAI-compatible `/chat/completions` usage with Bearer auth | live probe against `https://api.z.ai/api/anthropic/v1/messages?beta=true`; supplied GLM-5 guide and migration page; `https://docs.z.ai/devpack/using5.1`; supplied GLM-5-Turbo page; supplied GLM-4.7 guide; supplied GLM-4.6 guide; supplied GLM-4.5 guide (`https://docs.z.ai/guides/llm/glm-4.5`) |
-| `glm-4.7-flashx` and `glm-4.7-flash` hosted API request IDs | Allowed GLM-4.7 sources name the families but do not provide extracted hosted request `model` strings for those variants | supplied GLM-4.7 guide; supplied Hugging Face GLM-4.7 page |
+| `glm-4.7-flashx` and `glm-4.7-flash` hosted API request IDs | Allowed GLM-4.7 sources name the families but do not provide extracted hosted request `model` strings for those variants; live smoke checks failed with billing/provider errors instead of `model_not_found`-style rejections, so the runtime results still do not prove the IDs are wrong | supplied GLM-4.7 guide; supplied Hugging Face GLM-4.7 page; live probes on both `https://api.z.ai/api/anthropic/v1/messages?beta=true` and `https://api.z.ai/api/paas/v4/chat/completions` |
 | `glm-4.6v` hosted API contract, including whether the hosted context limit matches the open-weights `128K` documentation | The supplied `GLM-V` material is open-weights/self-hosted evidence, not a hosted GLM Coding API contract | supplied GLM-4.6 guide; supplied `zai-org/GLM-V` repository |
 | `glm-4.5v` repo-only inventory entry | None of the supplied GLM-4.5 hosted/open-weights sources documented a hosted `GLM-4.5V` contract, so the repo entry cannot be safely removed or renamed | supplied GLM-4.5 guide (`https://docs.z.ai/guides/llm/glm-4.5`); `https://huggingface.co/zai-org/GLM-4.5`; `https://github.com/zai-org/GLM-4.5` |
 | Per-model pricing for `glm-5.1`, GLM-5, GLM-5 Turbo, GLM-4.7, GLM-4.6, and GLM-4.5 families | The supplied sources did not provide authoritative per-model hosted API pricing tables that were specific enough to rewrite repo pricing rows safely | supplied family docs used in the sections above; GLM-4.5 guide only states family-level pricing minimums |

@@ -39,13 +39,23 @@ describe("GLM Coding provider registry surfaces", () => {
     ]);
   });
 
-  it("applies the doc-backed GLM-5.1 context window override", () => {
-    const glm51 = getModelsByProviderId("glm").find((model) => model.id === "glm-5.1");
-    const glm5 = getModelsByProviderId("glm").find((model) => model.id === "glm-5");
+  it("applies doc-backed context window overrides for GLM models", () => {
+    const models = getModelsByProviderId("glm");
+    const get = (id: string) => models.find((m) => m.id === id);
 
-    expect(glm51).toBeDefined();
-    expect(glm51?.contextLength).toBe(204800);
-    expect(glm5?.contextLength).toBeUndefined();
+    // Models with explicit overrides (Z.AI docs)
+    expect(get("glm-5.1")?.contextLength).toBe(204800);
+    expect(get("glm-4.6v")?.contextLength).toBe(128000);
+    expect(get("glm-4.5v")?.contextLength).toBe(16000);
+    expect(get("glm-4.5")?.contextLength).toBe(128000);
+    expect(get("glm-4.5-air")?.contextLength).toBe(128000);
+
+    // Models inheriting the 200K provider default
+    expect(get("glm-5")?.contextLength).toBeUndefined();
+    expect(get("glm-5-turbo")?.contextLength).toBeUndefined();
+    expect(get("glm-4.7-flash")?.contextLength).toBeUndefined();
+    expect(get("glm-4.7")?.contextLength).toBeUndefined();
+    expect(get("glm-4.6")?.contextLength).toBeUndefined();
   });
 
   it("keeps representative GLM Coding models tool-call capable and priced", () => {
