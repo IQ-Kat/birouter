@@ -284,6 +284,45 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       allCombos,
     });
 
+    // ── Global Fallback Provider (#689) ────────────────────────────────────
+    // If combo exhausted all models, try the global fallback before giving up.
+    if (
+      !response.ok &&
+      [502, 503].includes(response.status) &&
+      typeof (settings as any)?.globalFallbackModel === "string" &&
+      (settings as any).globalFallbackModel.trim()
+    ) {
+      const fallbackModel = (settings as any).globalFallbackModel.trim();
+      log.info(
+        "GLOBAL_FALLBACK",
+        `Combo "${combo.name}" exhausted — attempting global fallback: ${fallbackModel}`
+      );
+      try {
+        const fallbackResponse = await handleSingleModelChat(
+          body,
+          fallbackModel,
+          clientRawRequest,
+          request,
+          combo.name,
+          apiKeyInfo,
+          telemetry,
+          { sessionId, emergencyFallbackTried: true }
+        );
+        if (fallbackResponse.ok) {
+          log.info("GLOBAL_FALLBACK", `Global fallback ${fallbackModel} succeeded`);
+          recordTelemetry(telemetry);
+          return withSessionHeader(fallbackResponse, sessionId);
+        }
+        log.warn(
+          "GLOBAL_FALLBACK",
+          `Global fallback ${fallbackModel} also failed (${fallbackResponse.status})`
+        );
+      } catch (err: any) {
+        log.warn("GLOBAL_FALLBACK", `Global fallback error: ${err?.message || "unknown"}`);
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Record telemetry
     recordTelemetry(telemetry);
     return withSessionHeader(response, sessionId);
