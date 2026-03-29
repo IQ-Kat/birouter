@@ -171,7 +171,7 @@ _Verbinden Sie jedes KI-gestützte IDE- oder CLI-Tool über OmniRoute – kosten
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -235,7 +235,7 @@ Nicht jeder kann 20–200 $/Monat für KI-Abonnements bezahlen. Studenten, Entwi
 
 **So löst OmniRoute das Problem:**
 
-- **Integrierte kostenlose Anbieter** – Native Unterstützung für 100 % kostenlose Anbieter: iFlow (8 unbegrenzte Modelle), Qwen (3 unbegrenzte Modelle), Kiro (Claude kostenlos), Gemini CLI (180.000/Monat kostenlos)
+- **Integrierte kostenlose Anbieter** – Native Unterstützung für 100 % kostenlose Anbieter: Qoder (8 unbegrenzte Modelle), Qwen (3 unbegrenzte Modelle), Kiro (Claude kostenlos), Gemini CLI (180.000/Monat kostenlos)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Nur kostenlose Combos** – Kette `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 $/Monat ohne Ausfallzeit
 - **NVIDIA NIM Free Credits** – 1000 kostenlose Credits integriert
@@ -298,7 +298,7 @@ Claude Code, Codex, Gemini CLI, Copilot – alle verwenden OAuth 2.0 mit ablaufe
 **So löst OmniRoute das Problem:**
 
 - **Automatische Token-Aktualisierung** – OAuth-Tokens werden vor Ablauf im Hintergrund aktualisiert
-- **OAuth 2.0 (PKCE) integriert** – Automatischer Ablauf für Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) integriert** – Automatischer Ablauf für Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** – Mehrere Konten pro Anbieter über JWT/ID-Token-Extraktion
 - **OAuth LAN/Remote Fix** – Private IP-Erkennung für `redirect_uri` + manueller URL-Modus für Remote-Server
 - **OAuth Behind Nginx** – Verwendet `window.location.origin` für Reverse-Proxy-Kompatibilität
@@ -851,11 +851,11 @@ Wenn OmniRoute minimiert ist, befindet es sich mit schnellen Aktionen in Ihrer T
 | **💰 GÜNSTIG**       | GLM-4.7           | 0,6 $/1 Mio.                             | Täglich 10 Uhr            | Budgetsicherung        |
 |                      | MiniMax M2.1      | 0,2 $/1 Mio.                             | 5-Stunden-Rollen          | Günstigste Option      |
 |                      | Kimi K2           | $9/Monat pauschal                        | 10 Millionen Token/Monat  | Vorhersehbare Kosten   |
-| **🆓 KOSTENLOS**     | iFlow             | $0                                       | Unbegrenzt                | 8 Modelle kostenlos    |
+| **🆓 KOSTENLOS**     | Qoder             | $0                                       | Unbegrenzt                | 8 Modelle kostenlos    |
 |                      | Qwen              | $0                                       | Unbegrenzt                | 3 Modelle kostenlos    |
 |                      | Kiro              | $0                                       | Unbegrenzt                | Claude frei            |
 
-**💡 Profi-Tipp:** Beginnen Sie mit der Kombination Gemini CLI (180.000 kostenlos/Monat) + iFlow (unbegrenzt kostenlos) = 0 $ Kosten!
+**💡 Profi-Tipp:** Beginnen Sie mit der Kombination Gemini CLI (180.000 kostenlos/Monat) + Qoder (unbegrenzt kostenlos) = 0 $ Kosten!
 
 ---
 
@@ -1220,10 +1220,10 @@ Models:
 <details>
 <summary><b>🆓 KOSTENLOSE Anbieter (Notfall-Backup)</b></summary>
 
-### iFlow (8 KOSTENLOSE Modelle)```bash
+### Qoder (8 KOSTENLOSE Modelle)```bash
 
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1422,7 +1422,7 @@ opencode
 
 - Überprüfen Sie die Nutzungsstatistiken im Dashboard → Kosten
 - Primärmodell auf GLM/MiniMax umstellen
-- Nutzen Sie das kostenlose Kontingent (Gemini CLI, iFlow) für unkritische Aufgaben
+- Nutzen Sie das kostenlose Kontingent (Gemini CLI, Qoder) für unkritische Aufgaben
 
 **Dashboard-/API-Ports sind falsch**
 

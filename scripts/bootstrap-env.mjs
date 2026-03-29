@@ -29,7 +29,7 @@ const require = createRequire(import.meta.url);
 // ── OAuth secrets that are optional but warn if missing ─────────────────────
 const OPTIONAL_OAUTH_SECRETS = [
   { key: "ANTIGRAVITY_OAUTH_CLIENT_SECRET", label: "Antigravity OAuth" },
-  { key: "IFLOW_OAUTH_CLIENT_SECRET", label: "iFlow OAuth" },
+  { key: "QODER_OAUTH_CLIENT_SECRET", label: "Qoder OAuth" },
   { key: "GEMINI_OAUTH_CLIENT_SECRET", label: "Gemini OAuth" },
 ];
 

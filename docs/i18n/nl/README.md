@@ -219,7 +219,7 @@ _Verbind elke AI-aangedreven IDE- of CLI-tool via OmniRoute: gratis API-gateway 
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Niet iedereen kan $ 20-200 per maand betalen voor AI-abonnementen. Studenten, on
 
 **Hoe OmniRoute het oplost:**
 
-- **Free Tier Providers ingebouwd** — Native ondersteuning voor 100% gratis providers: iFlow (8 onbeperkte modellen), Qwen (3 onbeperkte modellen), Kiro (Claude gratis), Gemini CLI (180K/maand gratis)
+- **Free Tier Providers ingebouwd** — Native ondersteuning voor 100% gratis providers: Qoder (8 onbeperkte modellen), Qwen (3 onbeperkte modellen), Kiro (Claude gratis), Gemini CLI (180K/maand gratis)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Alleen gratis combo's** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $ 0/maand zonder downtime
 - **NVIDIA NIM Free Credits** — 1000 gratis credits geïntegreerd
@@ -349,7 +349,7 @@ Claude Code, Codex, Gemini CLI, Copilot: ze gebruiken allemaal OAuth 2.0 met afl
 **Hoe OmniRoute het oplost:**
 
 - **Automatische tokenvernieuwing**: OAuth-tokens worden op de achtergrond vernieuwd voordat ze verlopen
-- **OAuth 2.0 (PKCE) ingebouwd** — Automatische stroom voor Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) ingebouwd** — Automatische stroom voor Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** — Meerdere accounts per provider via JWT/ID-tokenextractie
 - **OAuth LAN/Remote Fix** — Privé-IP-detectie voor `redirect_uri` + handmatige URL-modus voor externe servers
 - **OAuth achter Nginx** — gebruikt `window.location.origin` voor reverse proxy-compatibiliteit
@@ -849,11 +849,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰GOEDKOOP**     | GLM-4.7           | $ 0,6/1 miljoen           | Dagelijks 10.00 uur      | Budgetback-up              |
 |                    | MiniMax M2.1      | $ 0,2/1 miljoen           | 5-uurs rollen            | Goedkoopste optie          |
 |                    | Kimi K2           | $ 9/maand plat            | 10 miljoen tokens/maand  | Voorspelbare kosten        |
-| **🆓 GRATIS**      | iFlow             | $0                        | Onbeperkt                | 8 modellen gratis          |
+| **🆓 GRATIS**      | Qoder             | $0                        | Onbeperkt                | 8 modellen gratis          |
 |                    | Qwen              | $0                        | Onbeperkt                | 3 modellen gratis          |
 |                    | Kiro              | $0                        | Onbeperkt                | Claude vrij                |
 
-**💡 Pro-tip:** Begin met Gemini CLI (180K gratis/maand) + iFlow (onbeperkt gratis) combo = $ 0 kosten!
+**💡 Pro-tip:** Begin met Gemini CLI (180K gratis/maand) + Qoder (onbeperkt gratis) combo = $ 0 kosten!
 
 ---
 
@@ -1187,11 +1187,11 @@ Models:
 <details>
 <summary><b>🆓 GRATIS providers (noodback-up)</b></summary>
 
-### iFlow (8 GRATIS modellen)
+### Qoder (8 GRATIS modellen)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1348,7 +1348,7 @@ Settings → API Configuration:
 
 - Controleer gebruiksstatistieken in Dashboard → Kosten
 - Schakel het primaire model over naar GLM/MiniMax
-- Gebruik de gratis laag (Gemini CLI, iFlow) voor niet-kritieke taken
+- Gebruik de gratis laag (Gemini CLI, Qoder) voor niet-kritieke taken
 
 **Dashboard opent op verkeerde poort**
 

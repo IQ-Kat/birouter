@@ -219,7 +219,7 @@ _Conecte qualquer IDE ou ferramenta CLI com IA através do OmniRoute — gateway
        │   ↓ limite de orçamento
        ├─→ [Tier 3: BARATO] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ limite de orçamento
-       └─→ [Tier 4: GRATUITO] iFlow, Qwen, Kiro (ilimitado)
+       └─→ [Tier 4: GRATUITO] Qoder, Qwen, Kiro (ilimitado)
 
 Resultado: Nunca pare de programar, custo mínimo
 ```
@@ -285,7 +285,7 @@ Nem todo mundo pode pagar $20–200/mês em assinaturas de IA. Estudantes, devs 
 
 **Como o OmniRoute resolve isso:**
 
-- **Provedores Gratuitos nativos** — Suporte nativo a provedores 100% free: iFlow (8 modelos ilimitados), Qwen (3 ilimitados), Kiro (Claude grátis), Gemini CLI (180K/mês grátis)
+- **Provedores Gratuitos nativos** — Suporte nativo a provedores 100% free: Qoder (8 modelos ilimitados), Qwen (3 ilimitados), Kiro (Claude grátis), Gemini CLI (180K/mês grátis)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Combos Apenas Gratuitos** — Cadeia `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/mês com zero downtime
 - **Créditos Gratuitos NVIDIA NIM** — 1000 créditos free integrados
@@ -349,7 +349,7 @@ Claude Code, Codex, Gemini CLI e Copilot usam OAuth 2.0 com tokens que expiram. 
 **Como o OmniRoute resolve isso:**
 
 - **Auto Token Refresh** — Tokens OAuth renovados em background antes da expiração
-- **OAuth 2.0 (PKCE) nativo** — Fluxo automático para Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen e iFlow
+- **OAuth 2.0 (PKCE) nativo** — Fluxo automático para Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen e Qoder
 - **OAuth Multi-Conta** — Múltiplas contas por provedor via extração de JWT/ID token
 - **Correções OAuth LAN/Remoto** — Detecção de IP privado para `redirect_uri` + modo manual de URL para servidores remotos
 - **OAuth atrás de Nginx** — Usa `window.location.origin` para compatibilidade com reverse proxy
@@ -840,7 +840,7 @@ Quando minimizado, o OmniRoute fica na bandeja do sistema com ações rápidas:
 | **💰 BARATO**     | GLM-4.7           | $0.6/1M                      | Diário 10h        | Backup econômico               |
 |                   | MiniMax M2.1      | $0.2/1M                      | Rotativo 5h       | Opção mais barata              |
 |                   | Kimi K2           | $9/mês fixo                  | 10M tokens/mês    | Custo previsível               |
-| **🆓 GRATUITO**   | iFlow             | $0                           | Ilimitado         | 8 modelos gratuitos            |
+| **🆓 GRATUITO**   | Qoder             | $0                           | Ilimitado         | 8 modelos gratuitos            |
 |                   | Qwen              | $0                           | Ilimitado         | 3 modelos gratuitos            |
 |                   | Kiro              | $0                           | Ilimitado         | Claude gratuito                |
 |                   | LongCat 🆕        | **$0** (50M tok/dia 🔥)      | 1 req/s           | Maior cota grátis do mundo     |
@@ -848,7 +848,7 @@ Quando minimizado, o OmniRoute fica na bandeja do sistema com ações rápidas:
 |                   | Cloudflare AI 🆕  | **$0** (10K Neurons/dia)     | ~150 resp/dia     | 50+ modelos, edge global       |
 |                   | Scaleway AI 🆕    | **$0** (1M tokens total)     | Limitado por taxa | EU/GDPR, Qwen3 235B, Llama 70B |
 
-**💡 Dica Pro:** Comece com Gemini CLI (180K grátis/mês) + iFlow (ilimitado grátis) = $0 de custo!
+**💡 Dica Pro:** Comece com Gemini CLI (180K grátis/mês) + Qoder (ilimitado grátis) = $0 de custo!
 
 ---
 
@@ -1196,11 +1196,11 @@ Modelos:
 <details>
 <summary><b>🆓 Provedores GRATUITOS (Backup de Emergência)</b></summary>
 
-### iFlow (8 modelos GRATUITOS)
+### Qoder (8 modelos GRATUITOS)
 
 ```bash
-Dashboard → Conectar iFlow
-→ Login OAuth iFlow
+Dashboard → Conectar Qoder
+→ Login OAuth Qoder
 → Uso ilimitado
 
 Modelos:
@@ -1404,7 +1404,7 @@ Configurações → Configuração de API:
 
 - Verifique estatísticas de uso em Dashboard → Custos
 - Mude modelo primário para GLM/MiniMax
-- Use tier gratuito (Gemini CLI, iFlow) para tarefas não-críticas
+- Use tier gratuito (Gemini CLI, Qoder) para tarefas não-críticas
 
 **Dashboard abre na porta errada**
 

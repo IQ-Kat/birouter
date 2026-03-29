@@ -1,7 +1,7 @@
 import { AntigravityExecutor } from "./antigravity.ts";
 import { GeminiCLIExecutor } from "./gemini-cli.ts";
 import { GithubExecutor } from "./github.ts";
-import { IFlowExecutor } from "./iflow.ts";
+import { QoderExecutor } from "./qoder.ts";
 import { KiroExecutor } from "./kiro.ts";
 import { CodexExecutor } from "./codex.ts";
 import { CursorExecutor } from "./cursor.ts";
@@ -16,7 +16,7 @@ const executors = {
   antigravity: new AntigravityExecutor(),
   "gemini-cli": new GeminiCLIExecutor(),
   github: new GithubExecutor(),
-  iflow: new IFlowExecutor(),
+  qoder: new QoderExecutor(),
   kiro: new KiroExecutor(),
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
@@ -48,7 +48,7 @@ export { BaseExecutor } from "./base.ts";
 export { AntigravityExecutor } from "./antigravity.ts";
 export { GeminiCLIExecutor } from "./gemini-cli.ts";
 export { GithubExecutor } from "./github.ts";
-export { IFlowExecutor } from "./iflow.ts";
+export { QoderExecutor } from "./qoder.ts";
 export { KiroExecutor } from "./kiro.ts";
 export { CodexExecutor } from "./codex.ts";
 export { CursorExecutor } from "./cursor.ts";

@@ -3,36 +3,36 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 
 // ═══════════════════════════════════════════════════════════════
-//  IFlowExecutor Unit Tests
+//  QoderExecutor Unit Tests
 //  Tests for HMAC-SHA256 signature, headers, URL building
 //  Fixes: https://github.com/diegosouzapw/OmniRoute/issues/114
 // ═══════════════════════════════════════════════════════════════
 
-const { IFlowExecutor } = await import("../../open-sse/executors/iflow.ts");
+const { QoderExecutor } = await import("../../open-sse/executors/qoder.ts");
 
 // ─── Constructor ──────────────────────────────────────────────
 
-test("IFlowExecutor: constructor sets provider to 'iflow'", () => {
-  const executor = new IFlowExecutor();
-  assert.equal(executor.getProvider(), "iflow");
+test("QoderExecutor: constructor sets provider to 'qoder'", () => {
+  const executor = new QoderExecutor();
+  assert.equal(executor.getProvider(), "qoder");
 });
 
-// ─── createIFlowSignature ─────────────────────────────────────
+// ─── createQoderSignature ─────────────────────────────────────
 
-test("IFlowExecutor: createIFlowSignature returns valid HMAC-SHA256 hex", () => {
-  const executor = new IFlowExecutor();
-  const userAgent = "iFlow-Cli";
+test("QoderExecutor: createQoderSignature returns valid HMAC-SHA256 hex", () => {
+  const executor = new QoderExecutor();
+  const userAgent = "Qoder-Cli";
   const sessionID = "session-test-123";
   const timestamp = 1700000000000;
   const apiKey = "test-api-key-secret";
 
-  const signature = executor.createIFlowSignature(userAgent, sessionID, timestamp, apiKey);
+  const signature = executor.createQoderSignature(userAgent, sessionID, timestamp, apiKey);
 
   // Verify it's a valid hex string (64 chars for SHA256)
   assert.match(signature, /^[0-9a-f]{64}$/);
 
   // Verify reproducibility — same inputs produce same signature
-  const signature2 = executor.createIFlowSignature(userAgent, sessionID, timestamp, apiKey);
+  const signature2 = executor.createQoderSignature(userAgent, sessionID, timestamp, apiKey);
   assert.equal(signature, signature2);
 
   // Verify against manual HMAC computation
@@ -41,30 +41,30 @@ test("IFlowExecutor: createIFlowSignature returns valid HMAC-SHA256 hex", () => 
   assert.equal(signature, expected);
 });
 
-test("IFlowExecutor: createIFlowSignature returns empty string when apiKey is empty", () => {
-  const executor = new IFlowExecutor();
-  const result = executor.createIFlowSignature("agent", "session", 123, "");
+test("QoderExecutor: createQoderSignature returns empty string when apiKey is empty", () => {
+  const executor = new QoderExecutor();
+  const result = executor.createQoderSignature("agent", "session", 123, "");
   assert.equal(result, "");
 });
 
-test("IFlowExecutor: createIFlowSignature returns empty string when apiKey is null", () => {
-  const executor = new IFlowExecutor();
-  const result = executor.createIFlowSignature("agent", "session", 123, null);
+test("QoderExecutor: createQoderSignature returns empty string when apiKey is null", () => {
+  const executor = new QoderExecutor();
+  const result = executor.createQoderSignature("agent", "session", 123, null);
   assert.equal(result, "");
 });
 
 // ─── buildHeaders ─────────────────────────────────────────────
 
-test("IFlowExecutor: buildHeaders includes iflow-specific headers", () => {
-  const executor = new IFlowExecutor();
+test("QoderExecutor: buildHeaders includes qoder-specific headers", () => {
+  const executor = new QoderExecutor();
   const credentials = { apiKey: "test-key-123" };
 
   const headers = executor.buildHeaders(credentials, true);
 
-  // Must include required iflow headers
+  // Must include required qoder headers
   assert.ok(headers["session-id"], "Missing session-id header");
-  assert.ok(headers["x-iflow-timestamp"], "Missing x-iflow-timestamp header");
-  assert.ok(headers["x-iflow-signature"], "Missing x-iflow-signature header");
+  assert.ok(headers["x-qoder-timestamp"], "Missing x-qoder-timestamp header");
+  assert.ok(headers["x-qoder-signature"], "Missing x-qoder-signature header");
 
   // session-id format
   assert.ok(
@@ -73,10 +73,10 @@ test("IFlowExecutor: buildHeaders includes iflow-specific headers", () => {
   );
 
   // timestamp is a number string
-  assert.match(headers["x-iflow-timestamp"], /^\d+$/);
+  assert.match(headers["x-qoder-timestamp"], /^\d+$/);
 
   // signature is hex
-  assert.match(headers["x-iflow-signature"], /^[0-9a-f]{64}$/);
+  assert.match(headers["x-qoder-signature"], /^[0-9a-f]{64}$/);
 
   // Authorization
   assert.equal(headers["Authorization"], "Bearer test-key-123");
@@ -88,8 +88,8 @@ test("IFlowExecutor: buildHeaders includes iflow-specific headers", () => {
   assert.equal(headers["Accept"], "text/event-stream");
 });
 
-test("IFlowExecutor: buildHeaders omits Accept header when stream is false", () => {
-  const executor = new IFlowExecutor();
+test("QoderExecutor: buildHeaders omits Accept header when stream is false", () => {
+  const executor = new QoderExecutor();
   const credentials = { apiKey: "test-key" };
 
   const headers = executor.buildHeaders(credentials, false);
@@ -97,19 +97,19 @@ test("IFlowExecutor: buildHeaders omits Accept header when stream is false", () 
   assert.equal(headers["Accept"], undefined);
 });
 
-test("IFlowExecutor: buildHeaders uses accessToken when apiKey is missing", () => {
-  const executor = new IFlowExecutor();
+test("QoderExecutor: buildHeaders uses accessToken when apiKey is missing", () => {
+  const executor = new QoderExecutor();
   const credentials = { accessToken: "oauth-token-123" };
 
   const headers = executor.buildHeaders(credentials);
 
   assert.equal(headers["Authorization"], "Bearer oauth-token-123");
   // Signature should still be generated using the accessToken
-  assert.ok(headers["x-iflow-signature"].length > 0);
+  assert.ok(headers["x-qoder-signature"].length > 0);
 });
 
-test("IFlowExecutor: buildHeaders generates unique session IDs per call", () => {
-  const executor = new IFlowExecutor();
+test("QoderExecutor: buildHeaders generates unique session IDs per call", () => {
+  const executor = new QoderExecutor();
   const credentials = { apiKey: "key" };
 
   const headers1 = executor.buildHeaders(credentials);
@@ -120,17 +120,17 @@ test("IFlowExecutor: buildHeaders generates unique session IDs per call", () => 
 
 // ─── buildUrl ─────────────────────────────────────────────────
 
-test("IFlowExecutor: buildUrl returns config baseUrl", () => {
-  const executor = new IFlowExecutor();
+test("QoderExecutor: buildUrl returns config baseUrl", () => {
+  const executor = new QoderExecutor();
   const url = executor.buildUrl("qwen3-coder-plus", true);
 
-  assert.equal(url, "https://apis.iflow.cn/v1/chat/completions");
+  assert.equal(url, "https://apis.qoder.cn/v1/chat/completions");
 });
 
 // ─── transformRequest ─────────────────────────────────────────
 
-test("IFlowExecutor: transformRequest passes body through unchanged", () => {
-  const executor = new IFlowExecutor();
+test("QoderExecutor: transformRequest passes body through unchanged", () => {
+  const executor = new QoderExecutor();
   const body = {
     model: "deepseek-r1",
     messages: [{ role: "user", content: "Hello" }],
@@ -143,8 +143,8 @@ test("IFlowExecutor: transformRequest passes body through unchanged", () => {
 
 // ─── Integration: executor registry ───────────────────────────
 
-test("IFlowExecutor: getExecutor('iflow') returns IFlowExecutor instance", async () => {
+test("QoderExecutor: getExecutor('qoder') returns QoderExecutor instance", async () => {
   const { getExecutor } = await import("../../open-sse/executors/index.ts");
-  const executor = getExecutor("iflow");
-  assert.ok(executor instanceof IFlowExecutor, "Should return IFlowExecutor instance");
+  const executor = getExecutor("qoder");
+  assert.ok(executor instanceof QoderExecutor, "Should return QoderExecutor instance");
 });

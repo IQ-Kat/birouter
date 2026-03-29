@@ -219,7 +219,7 @@ _Yhdistä mikä tahansa tekoälyllä toimiva IDE- tai CLI-työkalu OmniRouten ka
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Kaikki eivät voi maksaa 20–200 dollaria kuukaudessa tekoälytilauksista. Opis
 
 **Kuinka OmniRoute ratkaisee sen:**
 
-- **Free Tier Providers -sisäänrakennettu** - Natiivituki 100 % ilmaisille palveluntarjoajille: iFlow (8 rajatonta mallia), Qwen (3 rajoittamatonta mallia), Kiro (Claude ilmaiseksi), Gemini CLI (180 000/kk ilmaiseksi)
+- **Free Tier Providers -sisäänrakennettu** - Natiivituki 100 % ilmaisille palveluntarjoajille: Qoder (8 rajatonta mallia), Qwen (3 rajoittamatonta mallia), Kiro (Claude ilmaiseksi), Gemini CLI (180 000/kk ilmaiseksi)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Vain ilmaiset yhdistelmät** — Ketju `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 $/kk ilman seisonta-aikaa
 - **NVIDIA NIM Free Credits** - 1000 ilmaista saldoa integroituna
@@ -350,7 +350,7 @@ Claude Code, Codex, Gemini CLI, Copilot – kaikki käyttävät OAuth 2.0:aa van
 **Kuinka OmniRoute ratkaisee sen:**
 
 - **Automaattinen tunnuksen päivitys** - OAuth-tunnukset päivittyvät taustalla ennen vanhenemista
-- **Sisäänrakennettu OAuth 2.0 (PKCE)** - Automaattinen kulku Claude Codelle, Codexille, Gemini CLI:lle, Copilotille, Kirolle, Qwenille, iFlowille
+- **Sisäänrakennettu OAuth 2.0 (PKCE)** - Automaattinen kulku Claude Codelle, Codexille, Gemini CLI:lle, Copilotille, Kirolle, Qwenille, Qoderille
 - **Multi-Account OAuth** - Useita tilejä palveluntarjoajaa kohden JWT/ID-tunnuksen purkamisen kautta
 - **OAuth LAN/Remote Fix** — Yksityinen IP-tunnistus `redirect_uri`:lle + manuaalinen URL-tila etäpalvelimille
 - **OAuth Nginxin takana** - Käyttää `window.location.origin`-protokollaa käänteisen välityspalvelimen yhteensopivuuteen
@@ -850,11 +850,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 EDULLISET** | GLM-4.7           | 0,6 $/1 milj.                  | Päivittäin klo 10      | Budjetin varmuuskopio      |
 |                  | MiniMax M2.1      | 0,2 $/1 milj.                  | 5 tunnin rullaus       | Halvin vaihtoehto          |
 |                  | Kimi K2           | 9 dollaria/kk asunto           | 10 milj. rahakkeita/kk | Ennustettavat kustannukset |
-| **🆓 ILMAINEN**  | iFlow             | 0 dollaria                     | Rajoittamaton          | 8 mallia ilmaiseksi        |
+| **🆓 ILMAINEN**  | Qoder             | 0 dollaria                     | Rajoittamaton          | 8 mallia ilmaiseksi        |
 |                  | Qwen              | 0 dollaria                     | Rajoittamaton          | 3 mallia ilmaiseksi        |
 |                  | Kiro              | 0 dollaria                     | Rajoittamaton          | Claude ilmaiseksi          |
 
-**💡 Pro-vinkki:** Aloita Gemini CLI:llä (180 000 ilmaista kuukaudessa) + iFlow (rajoittamaton ilmainen) -yhdistelmä = 0 dollarin hinta!
+**💡 Pro-vinkki:** Aloita Gemini CLI:llä (180 000 ilmaista kuukaudessa) + Qoder (rajoittamaton ilmainen) -yhdistelmä = 0 dollarin hinta!
 
 ---
 
@@ -1188,11 +1188,11 @@ Models:
 <details>
 <summary><b>🆓 ILMAISIA palveluntarjoajia (hätävarmuuskopio)</b></summary>
 
-### iFlow (8 ILMAISTA mallia)
+### Qoder (8 ILMAISTA mallia)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1349,7 +1349,7 @@ Settings → API Configuration:
 
 - Tarkista käyttötilastot kohdassa Dashboard → Costs
 - Vaihda ensisijaiseksi malliksi GLM/MiniMax
-- Käytä ilmaista tasoa (Gemini CLI, iFlow) ei-kriittisiin tehtäviin
+- Käytä ilmaista tasoa (Gemini CLI, Qoder) ei-kriittisiin tehtäviin
 
 **Kojelauta avautuu väärään porttiin**
 

@@ -8,13 +8,13 @@ Běžné problémy a řešení pro OmniRoute.
 
 ## Rychlé opravy
 
-Problém | Řešení
---- | ---
-První přihlášení nefunguje | Nastavit `INITIAL_PASSWORD` v `.env` (bez pevně zakódovaného výchozího nastavení)
-Dashboard se otevírá na nesprávném portu | Nastavte `PORT=20128` a `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
-Žádné protokoly požadavků v sekci `logs/` | Nastavte `ENABLE_REQUEST_LOGS=true`
-PŘÍSTUP: povolení zamítnuto | Nastavením `DATA_DIR=/path/to/writable/dir` přepíšete `~/.omniroute`
-Strategie směrování se neukládá | Aktualizace na v1.4.11+ (oprava schématu Zod pro perzistenci nastavení)
+| Problém                                   | Řešení                                                                            |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| První přihlášení nefunguje                | Nastavit `INITIAL_PASSWORD` v `.env` (bez pevně zakódovaného výchozího nastavení) |
+| Dashboard se otevírá na nesprávném portu  | Nastavte `PORT=20128` a `NEXT_PUBLIC_BASE_URL=http://localhost:20128`             |
+| Žádné protokoly požadavků v sekci `logs/` | Nastavte `ENABLE_REQUEST_LOGS=true`                                               |
+| PŘÍSTUP: povolení zamítnuto               | Nastavením `DATA_DIR=/path/to/writable/dir` přepíšete `~/.omniroute`              |
+| Strategie směrování se neukládá           | Aktualizace na v1.4.11+ (oprava schématu Zod pro perzistenci nastavení)           |
 
 ---
 
@@ -97,7 +97,7 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 1. Zkontrolujte statistiky využití v sekci Nástěnka → Využití
 2. Přepnout primární model na GLM/MiniMax
-3. Pro nekritické úlohy použijte bezplatnou úroveň (Gemini CLI, iFlow).
+3. Pro nekritické úlohy použijte bezplatnou úroveň (Gemini CLI, Qoder).
 4. Nastavení rozpočtů nákladů pro každý klíč API: Dashboard → API klíče → Rozpočet
 
 ---
@@ -169,12 +169,12 @@ Pokud poskytovatel opakovaně přechází do stavu OTEVŘENO:
 
 Pro ladění problémů s překladem formátu použijte **Dashboard → Translator** :
 
-Režim | Kdy použít
---- | ---
-**Dětské hřiště** | Porovnejte vstupní/výstupní formáty vedle sebe – vložte neúspěšný požadavek a podívejte se, jak se přeloží
-**Tester chatu** | Odesílejte živé zprávy a kontrolujte kompletní datovou část požadavků/odpovědí včetně záhlaví
-**Zkušební stolice** | Spusťte dávkové testy napříč kombinacemi formátů a zjistěte, které překlady jsou poškozené.
-**Živý monitor** | Sledujte tok požadavků v reálném čase a zachyťte občasné problémy s překladem
+| Režim                | Kdy použít                                                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Dětské hřiště**    | Porovnejte vstupní/výstupní formáty vedle sebe – vložte neúspěšný požadavek a podívejte se, jak se přeloží |
+| **Tester chatu**     | Odesílejte živé zprávy a kontrolujte kompletní datovou část požadavků/odpovědí včetně záhlaví              |
+| **Zkušební stolice** | Spusťte dávkové testy napříč kombinacemi formátů a zjistěte, které překlady jsou poškozené.                |
+| **Živý monitor**     | Sledujte tok požadavků v reálném čase a zachyťte občasné problémy s překladem                              |
 
 ### Běžné problémy s formátováním
 
@@ -230,9 +230,9 @@ Pokud chcete sdílenou slovní zásobu pro popis těchto selhání, můžete pou
 Myšlenka je jednoduchá:
 
 1. Při vyšetřování špatné odpovědi zaznamenejte:
-    - úkol a požadavek uživatele
-    - Kombinace trasy nebo poskytovatele v OmniRoute
-    - jakýkoli kontext RAG použitý v následných fázích (načtené dokumenty, volání nástrojů atd.)
+   - úkol a požadavek uživatele
+   - Kombinace trasy nebo poskytovatele v OmniRoute
+   - jakýkoli kontext RAG použitý v následných fázích (načtené dokumenty, volání nástrojů atd.)
 2. Namapujte incident na jedno nebo dvě čísla z WFGY ProblemMap ( `No.1` … `No.16` ).
 3. Uložte číslo do vlastního řídicího panelu, runbooku nebo sledovače incidentů vedle protokolů OmniRoute.
 4. Pro rozhodnutí, zda je potřeba změnit RAG stack, retriever nebo směrovací strategii, použijte odpovídající stránku WFGY.

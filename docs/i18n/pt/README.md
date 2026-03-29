@@ -219,7 +219,7 @@ _Conecte qualquer ferramenta IDE ou CLI com tecnologia de IA por meio do OmniRou
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Nem todos podem pagar US$ 20–200/mês por assinaturas de IA. Estudantes, desen
 
 **Como o OmniRoute resolve isso:**
 
-- **Provedores de nível gratuito integrados** — Suporte nativo para provedores 100% gratuitos: iFlow (8 modelos ilimitados), Qwen (3 modelos ilimitados), Kiro (Claude grátis), Gemini CLI (180 mil/mês grátis)
+- **Provedores de nível gratuito integrados** — Suporte nativo para provedores 100% gratuitos: Qoder (8 modelos ilimitados), Qwen (3 modelos ilimitados), Kiro (Claude grátis), Gemini CLI (180 mil/mês grátis)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Combos somente gratuitos** — Cadeia `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = US$ 0/mês com tempo de inatividade zero
 - **Créditos gratuitos NVIDIA NIM** — 1.000 créditos gratuitos integrados
@@ -350,7 +350,7 @@ Claude Code, Codex, Gemini CLI, Copilot — todos usam OAuth 2.0 com tokens expi
 **Como o OmniRoute resolve isso:**
 
 - **Atualização automática de token** — Os tokens OAuth são atualizados em segundo plano antes da expiração
-- **OAuth 2.0 (PKCE) integrado ** — Fluxo automático para Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) integrado ** — Fluxo automático para Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **OAuth de várias contas** — Várias contas por provedor por meio de extração de token JWT/ID
 - **OAuth LAN/Remote Fix** — Detecção de IP privado para `redirect_uri` + modo URL manual para servidores remotos
 - **OAuth Behind Nginx** — Usa `window.location.origin` para compatibilidade de proxy reverso
@@ -850,11 +850,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 BARATO**       | GLM-4.7             | US$ 0,6/1 milhão           | Diariamente 10h          | Backup de orçamento     |
 |                     | MiniMax M2.1        | US$ 0,2/1 milhão           | Rolamento de 5 horas     | Opção mais barata       |
 |                     | Kimi K2             | $ 9 / mês fixo             | 10 milhões de tokens/mês | Custo previsível        |
-| **🆓 GRÁTIS**       | iFlow               | $0                         | Ilimitado                | 8 modelos grátis        |
+| **🆓 GRÁTIS**       | Qoder               | $0                         | Ilimitado                | 8 modelos grátis        |
 |                     | Qwen                | $0                         | Ilimitado                | 3 modelos grátis        |
 |                     | Kiro                | $0                         | Ilimitado                | Cláudio grátis          |
 
-**💡 Dica profissional:** Comece com Gemini CLI (180 mil grátis/mês) + combo iFlow (gratuito ilimitado) = custo de $ 0!
+**💡 Dica profissional:** Comece com Gemini CLI (180 mil grátis/mês) + combo Qoder (gratuito ilimitado) = custo de $ 0!
 
 ---
 
@@ -1188,11 +1188,11 @@ Models:
 <details>
 <summary><b>🆓 Provedores GRATUITOS (backup de emergência)</b></summary>
 
-### iFlow (8 modelos GRATUITOS)
+### Qoder (8 modelos GRATUITOS)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1349,7 +1349,7 @@ Settings → API Configuration:
 
 - Verifique as estatísticas de uso em Painel → Custos
 - Mude o modelo primário para GLM/MiniMax
-- Use o nível gratuito (Gemini CLI, iFlow) para tarefas não críticas
+- Use o nível gratuito (Gemini CLI, Qoder) para tarefas não críticas
 
 **Painel abre na porta errada**
 

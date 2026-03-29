@@ -219,7 +219,7 @@ _Підключіть будь-який інструмент IDE або CLI на
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ OpenAI використовує один формат, Claude (Anthropic) вик
 
 **Як це вирішує OmniRoute:**
 
-- **Вбудовані безкоштовні постачальники рівня** — Вбудована підтримка 100% безкоштовних постачальників: iFlow (8 необмежених моделей), Qwen (3 необмежені моделі), Kiro (Claude безкоштовно), Gemini CLI (180K/місяць безкоштовно)
+- **Вбудовані безкоштовні постачальники рівня** — Вбудована підтримка 100% безкоштовних постачальників: Qoder (8 необмежених моделей), Qwen (3 необмежені моделі), Kiro (Claude безкоштовно), Gemini CLI (180K/місяць безкоштовно)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Безкоштовні комбінації** — ланцюжок `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 доларів США/місяць без простоїв
 - **Безкоштовні кредити NVIDIA NIM** — інтегровано 1000 безкоштовних кредитів
@@ -350,7 +350,7 @@ Claude Code, Codex, Gemini CLI, Copilot — усі використовують 
 **Як це вирішує OmniRoute:**
 
 - **Auto Token Refresh** — маркери OAuth оновлюються у фоновому режимі до завершення терміну дії
-- **Вбудований OAuth 2.0 (PKCE)** — автоматичний потік для Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **Вбудований OAuth 2.0 (PKCE)** — автоматичний потік для Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** — кілька облікових записів на постачальника за допомогою вилучення токенів JWT/ID
 - **OAuth LAN/Remote Fix** — виявлення приватної IP-адреси для `redirect_uri` + ручний режим URL-адреси для віддалених серверів
 - **OAuth за Nginx** — використовує `window.location.origin` для зворотної сумісності проксі
@@ -854,11 +854,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 ДЕШЕВО**      | GLM-4.7          | $0,6/1 млн                      | Щодня о 10 ранку              | Резервне копіювання бюджету  |
 |                    | MiniMax M2.1     | $0,2/1 млн                      | 5-годинний роликовий          | Найдешевший варіант          |
 |                    | Кімі К2          | 9 $/міс квартира                | 10 млн токенів/міс            | Передбачувана вартість       |
-| **🆓 БЕЗКОШТОВНО** | iFlow            | $0                              | Необмежений                   | 8 моделей безкоштовно        |
+| **🆓 БЕЗКОШТОВНО** | Qoder            | $0                              | Необмежений                   | 8 моделей безкоштовно        |
 |                    | Квен             | $0                              | Необмежений                   | 3 моделі безкоштовно         |
 |                    | Кіро             | $0                              | Необмежений                   | Клод безкоштовно             |
 
-**💡 Порада професіонала:** Почніть із Gemini CLI (180 тис. безкоштовно/місяць) + iFlow (необмежено безкоштовно) = 0 доларів США!
+**💡 Порада професіонала:** Почніть із Gemini CLI (180 тис. безкоштовно/місяць) + Qoder (необмежено безкоштовно) = 0 доларів США!
 
 ---
 
@@ -1192,11 +1192,11 @@ Models:
 <details>
 <summary><b>🆓 БЕЗКОШТОВНІ постачальники (аварійне резервне копіювання)</b></summary>
 
-### iFlow (8 БЕЗКОШТОВНИХ моделей)
+### Qoder (8 БЕЗКОШТОВНИХ моделей)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1355,7 +1355,7 @@ Settings → API Configuration:
 
 - Перевірте статистику використання в Інформаційній панелі → Витрати
 - Переключіть основну модель на GLM/MiniMax
-- Використовуйте безкоштовний рівень (Gemini CLI, iFlow) для некритичних завдань
+- Використовуйте безкоштовний рівень (Gemini CLI, Qoder) для некритичних завдань
 
 **Інформаційна панель відкривається через неправильний порт**
 

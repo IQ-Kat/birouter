@@ -219,7 +219,7 @@ _Kết nối mọi công cụ IDE hoặc CLI được hỗ trợ bởi AI thông
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Không phải ai cũng có thể trả 20–200 USD/tháng để đăng ký AI. 
 
 **Cách OmniRoute giải quyết vấn đề này:**
 
-- **Tích hợp sẵn nhà cung cấp cấp miễn phí** — Hỗ trợ riêng cho các nhà cung cấp miễn phí 100%: iFlow (8 mẫu không giới hạn), Qwen (3 mẫu không giới hạn), Kiro (Claude miễn phí), Gemini CLI (miễn phí 180K/tháng)
+- **Tích hợp sẵn nhà cung cấp cấp miễn phí** — Hỗ trợ riêng cho các nhà cung cấp miễn phí 100%: Qoder (8 mẫu không giới hạn), Qwen (3 mẫu không giới hạn), Kiro (Claude miễn phí), Gemini CLI (miễn phí 180K/tháng)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Combo chỉ miễn phí** — Chuỗi `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/tháng mà không có thời gian ngừng hoạt động
 - **Tín dụng miễn phí NVIDIA NIM** — Tích hợp 1000 tín dụng miễn phí
@@ -350,7 +350,7 @@ Claude Code, Codex, Gemini CLI, Copilot — tất cả đều sử dụng OAuth 
 **Cách OmniRoute giải quyết vấn đề này:**
 
 - **Tự động làm mới mã thông báo** — Làm mới mã thông báo OAuth ở chế độ nền trước khi hết hạn
-- **Tích hợp OAuth 2.0 (PKCE)** — Luồng tự động cho Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **Tích hợp OAuth 2.0 (PKCE)** — Luồng tự động cho Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **OAuth nhiều tài khoản** — Nhiều tài khoản cho mỗi nhà cung cấp thông qua trích xuất mã thông báo JWT/ID
 - **OAuth LAN/Remote Fix** — Phát hiện IP riêng cho `redirect_uri` + chế độ URL thủ công cho máy chủ từ xa
 - **OAuth đằng sau Nginx** — Sử dụng `window.location.origin` để tương thích với proxy ngược
@@ -850,11 +850,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 RẺ**       | GLM-4.7             | 0,6 USD/1 triệu USD          | 10 giờ sáng hàng ngày | Dự phòng ngân sách      |
 |                 | MiniMax M2.1        | 0,2 USD/1 triệu USD          | lăn 5 giờ             | Lựa chọn rẻ nhất        |
 |                 | Kimi K2             | $9/tháng căn hộ              | 10 triệu token/tháng  | Chi phí dự đoán         |
-| **🆓 MIỄN PHÍ** | iFlow               | $0                           | Không giới hạn        | 8 mẫu miễn phí          |
+| **🆓 MIỄN PHÍ** | Qoder               | $0                           | Không giới hạn        | 8 mẫu miễn phí          |
 |                 | Qwen                | $0                           | Không giới hạn        | 3 mẫu miễn phí          |
 |                 | Kiro                | $0                           | Không giới hạn        | Claude miễn phí         |
 
-**💡 Mẹo chuyên nghiệp:** Bắt đầu với Gemini CLI (180K miễn phí/tháng) + combo iFlow (miễn phí không giới hạn) = chi phí $0!
+**💡 Mẹo chuyên nghiệp:** Bắt đầu với Gemini CLI (180K miễn phí/tháng) + combo Qoder (miễn phí không giới hạn) = chi phí $0!
 
 ---
 
@@ -1188,11 +1188,11 @@ Models:
 <details>
 <summary><b>🆓 Nhà cung cấp MIỄN PHÍ (Dự phòng khẩn cấp)</b></summary>
 
-### iFlow (8 mẫu MIỄN PHÍ)
+### Qoder (8 mẫu MIỄN PHÍ)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1349,7 +1349,7 @@ Settings → API Configuration:
 
 - Kiểm tra số liệu thống kê sử dụng trong Bảng điều khiển → Chi phí
 - Chuyển mô hình chính sang GLM/MiniMax
-- Sử dụng bậc miễn phí (Gemini CLI, iFlow) cho các tác vụ không quan trọng
+- Sử dụng bậc miễn phí (Gemini CLI, Qoder) cho các tác vụ không quan trọng
 
 **Bảng điều khiển mở sai cổng**
 

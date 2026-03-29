@@ -219,7 +219,7 @@ _Koble til ethvert AI-drevet IDE- eller CLI-verktøy gjennom OmniRoute – grati
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Ikke alle kan betale $20–200 per måned for AI-abonnementer. Studenter, utvikl
 
 **Hvordan OmniRoute løser det:**
 
-- **Gratis-tilbydere innebygd** — Innebygd støtte for 100 % gratisleverandører: iFlow (8 ubegrensede modeller), Qwen (3 ubegrensede modeller), Kiro (Claude gratis), Gemini CLI (180K/mnd gratis)
+- **Gratis-tilbydere innebygd** — Innebygd støtte for 100 % gratisleverandører: Qoder (8 ubegrensede modeller), Qwen (3 ubegrensede modeller), Kiro (Claude gratis), Gemini CLI (180K/mnd gratis)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Kun gratis kombinasjoner** — Kjede `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/måned med null nedetid
 - **NVIDIA NIM gratis kreditter** — 1000 gratis kreditter integrert
@@ -349,7 +349,7 @@ Claude Code, Codex, Gemini CLI, Copilot – alle bruker OAuth 2.0 med tokens som
 **Hvordan OmniRoute løser det:**
 
 - **Automatisk oppdatering av token** — OAuth-tokener oppdateres i bakgrunnen før utløp
-- **OAuth 2.0 (PKCE) innebygd** — Automatisk flyt for Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) innebygd** — Automatisk flyt for Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** - Flere kontoer per leverandør via JWT/ID-tokenutvinning
 - **OAuth LAN/Remote Fix** — Privat IP-deteksjon for `redirect_uri` + manuell URL-modus for eksterne servere
 - **OAuth Behind Nginx** — Bruker `window.location.origin` for omvendt proxy-kompatibilitet
@@ -849,11 +849,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 BILLIG**     | GLM-4.7           | $0,6/1M                       | Daglig 10:00            | Budsjett backup      |
 |                   | MiniMax M2.1      | $0,2/1M                       | 5-timers rullende       | Billigste alternativ |
 |                   | Kimi K2           | $9/md leilighet               | 10 millioner tokens/mnd | Forutsigbar kostnad  |
-| **🆓 GRATIS**     | iFlow             | $0                            | Ubegrenset              | 8 modeller gratis    |
+| **🆓 GRATIS**     | Qoder             | $0                            | Ubegrenset              | 8 modeller gratis    |
 |                   | Qwen              | $0                            | Ubegrenset              | 3 modeller gratis    |
 |                   | Kiro              | $0                            | Ubegrenset              | Claude gratis        |
 
-**💡 Profftips:** Start med Gemini CLI (180K gratis/måned) + iFlow (ubegrenset gratis) kombinasjon = $0 kostnad!
+**💡 Profftips:** Start med Gemini CLI (180K gratis/måned) + Qoder (ubegrenset gratis) kombinasjon = $0 kostnad!
 
 ---
 
@@ -1188,11 +1188,11 @@ Models:
 <details>
 <summary><b>🆓 GRATIS Leverandører (Emergency Backup)</b></summary>
 
-### iFlow (8 GRATIS modeller)
+### Qoder (8 GRATIS modeller)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1349,7 +1349,7 @@ Settings → API Configuration:
 
 - Sjekk bruksstatistikk i Dashboard → Kostnader
 - Bytt primærmodell til GLM/MiniMax
-- Bruk gratis nivå (Gemini CLI, iFlow) for ikke-kritiske oppgaver
+- Bruk gratis nivå (Gemini CLI, Qoder) for ikke-kritiske oppgaver
 
 **Dashboard åpnes på feil port**
 

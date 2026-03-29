@@ -2,34 +2,34 @@ import crypto from "crypto";
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 
-type IFlowCredentials = {
+type QoderCredentials = {
   apiKey?: string;
   accessToken?: string;
 };
 
 /**
- * IFlowExecutor - Executor for iFlow API with HMAC-SHA256 signature.
+ * QoderExecutor - Executor for Qoder API with HMAC-SHA256 signature.
  *
- * iFlow requires custom headers including a session ID, timestamp,
+ * Qoder requires custom headers including a session ID, timestamp,
  * and an HMAC-SHA256 signature for request authentication.
  * Without these headers, the API returns a 406 error.
  *
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/114
  */
-export class IFlowExecutor extends BaseExecutor {
+export class QoderExecutor extends BaseExecutor {
   constructor() {
-    super("iflow", PROVIDERS.iflow);
+    super("qoder", PROVIDERS.qoder);
   }
 
   /**
-   * Create iFlow signature using HMAC-SHA256
+   * Create Qoder signature using HMAC-SHA256
    * @param userAgent - User agent string
    * @param sessionID - Session ID
    * @param timestamp - Unix timestamp in milliseconds
    * @param apiKey - API key for signing
    * @returns Hex-encoded signature
    */
-  createIFlowSignature(
+  createQoderSignature(
     userAgent: string,
     sessionID: string,
     timestamp: number,
@@ -43,30 +43,30 @@ export class IFlowExecutor extends BaseExecutor {
   }
 
   /**
-   * Build headers with iFlow-specific HMAC-SHA256 signature.
-   * Includes session-id, x-iflow-timestamp, and x-iflow-signature.
+   * Build headers with Qoder-specific HMAC-SHA256 signature.
+   * Includes session-id, x-qoder-timestamp, and x-qoder-signature.
    */
-  buildHeaders(credentials: IFlowCredentials, stream = true) {
+  buildHeaders(credentials: QoderCredentials, stream = true) {
     // Generate session ID and timestamp
     const sessionID = `session-${crypto.randomUUID()}`;
     const timestamp = Date.now();
 
     // Get user agent from config
-    const userAgent = this.config.headers?.["User-Agent"] || "iFlow-Cli";
+    const userAgent = this.config.headers?.["User-Agent"] || "Qoder-Cli";
 
     // Get API key (prefer apiKey, fallback to accessToken)
     const apiKey = credentials.apiKey || credentials.accessToken || "";
 
     // Create HMAC-SHA256 signature
-    const signature = this.createIFlowSignature(userAgent, sessionID, timestamp, apiKey);
+    const signature = this.createQoderSignature(userAgent, sessionID, timestamp, apiKey);
 
     // Build headers
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.config.headers,
       "session-id": sessionID,
-      "x-iflow-timestamp": timestamp.toString(),
-      "x-iflow-signature": signature,
+      "x-qoder-timestamp": timestamp.toString(),
+      "x-qoder-signature": signature,
     };
 
     // Add authorization
@@ -85,13 +85,13 @@ export class IFlowExecutor extends BaseExecutor {
   }
 
   /**
-   * Build URL for iFlow API — uses baseUrl directly.
+   * Build URL for Qoder API — uses baseUrl directly.
    */
   buildUrl(
     model: string,
     stream: boolean,
     urlIndex = 0,
-    credentials: IFlowCredentials | null = null
+    credentials: QoderCredentials | null = null
   ) {
     void model;
     void stream;
@@ -101,9 +101,9 @@ export class IFlowExecutor extends BaseExecutor {
   }
 
   /**
-   * Transform request body (passthrough for iFlow).
+   * Transform request body (passthrough for Qoder).
    */
-  transformRequest(model: string, body: unknown, stream: boolean, credentials: IFlowCredentials) {
+  transformRequest(model: string, body: unknown, stream: boolean, credentials: QoderCredentials) {
     void model;
     void stream;
     void credentials;
@@ -111,4 +111,4 @@ export class IFlowExecutor extends BaseExecutor {
   }
 }
 
-export default IFlowExecutor;
+export default QoderExecutor;

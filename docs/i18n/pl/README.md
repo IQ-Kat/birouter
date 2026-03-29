@@ -219,7 +219,7 @@ _Połącz dowolne narzędzie IDE lub CLI oparte na sztucznej inteligencji poprze
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Nie każdy może zapłacić 20–200 USD miesięcznie za subskrypcje AI. Studenc
 
 **Jak rozwiązuje to OmniRoute:**
 
-- **Wbudowani dostawcy bezpłatnych poziomów** — Natywne wsparcie dla w 100% darmowych dostawców: iFlow (8 nielimitowanych modeli), Qwen (3 nieograniczone modele), Kiro (Claude za darmo), Gemini CLI (180 tys./miesiąc za darmo)
+- **Wbudowani dostawcy bezpłatnych poziomów** — Natywne wsparcie dla w 100% darmowych dostawców: Qoder (8 nielimitowanych modeli), Qwen (3 nieograniczone modele), Kiro (Claude za darmo), Gemini CLI (180 tys./miesiąc za darmo)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Kombinacje dostępne wyłącznie bezpłatnie** — Łańcuch `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/miesiąc z zerowymi przestojami
 - **Darmowe kredyty NVIDIA NIM** — zintegrowane 1000 darmowych kredytów
@@ -349,7 +349,7 @@ Claude Code, Codex, Gemini CLI, Copilot — wszystkie korzystają z OAuth 2.0 z 
 **Jak rozwiązuje to OmniRoute:**
 
 - **Automatyczne odświeżanie tokenu** — tokeny OAuth odświeżają się w tle przed wygaśnięciem
-- **Wbudowany OAuth 2.0 (PKCE)** — Automatyczny przepływ dla Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **Wbudowany OAuth 2.0 (PKCE)** — Automatyczny przepływ dla Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Wielokontowy OAuth** — wiele kont na dostawcę poprzez ekstrakcję tokenów JWT/ID
 - **OAuth LAN/remote fix** — wykrywanie prywatnego adresu IP dla `redirect_uri` + ręczny tryb adresu URL dla serwerów zdalnych
 - **OAuth Behind Nginx** — wykorzystuje `window.location.origin` w celu zapewnienia zgodności z odwrotnym proxy
@@ -849,11 +849,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 TANIO**       | GLM-4.7             | 0,6 USD/1 mln                 | Codziennie 10:00              | Kopia zapasowa budżetu           |
 |                    | MiniMax M2.1        | 0,2 USD/1 mln                 | 5-godzinne toczenie           | Najtańsza opcja                  |
 |                    | Kimi K2             | 9 USD miesięcznie             | 10 mln tokenów/mies.          | Przewidywalny koszt              |
-| **🆓 DARMOWE**     | iFlow               | 0 dolarów                     | Nieograniczony                | 8 modeli za darmo                |
+| **🆓 DARMOWE**     | Qoder               | 0 dolarów                     | Nieograniczony                | 8 modeli za darmo                |
 |                    | Qwen                | 0 dolarów                     | Nieograniczony                | 3 modele za darmo                |
 |                    | Kiro                | 0 dolarów                     | Nieograniczony                | Claude wolny                     |
 
-**💡 Wskazówka dla profesjonalistów:** Zacznij od zestawu Gemini CLI (180 tys. za darmo/miesiąc) + iFlow (bez ograniczeń za darmo) = koszt 0 USD!
+**💡 Wskazówka dla profesjonalistów:** Zacznij od zestawu Gemini CLI (180 tys. za darmo/miesiąc) + Qoder (bez ograniczeń za darmo) = koszt 0 USD!
 
 ---
 
@@ -1187,11 +1187,11 @@ Models:
 <details>
 <summary><b>🆓 BEZPŁATNI dostawcy (awaryjna kopia zapasowa)</b></summary>
 
-### iFlow (8 DARMOWYCH modeli)
+### Qoder (8 DARMOWYCH modeli)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1348,7 +1348,7 @@ Settings → API Configuration:
 
 - Sprawdź statystyki użytkowania w Panelu → Koszty
 - Zmień model podstawowy na GLM/MiniMax
-- Korzystaj z bezpłatnej warstwy (Gemini CLI, iFlow) do zadań niekrytycznych
+- Korzystaj z bezpłatnej warstwy (Gemini CLI, Qoder) do zadań niekrytycznych
 
 ** Panel otwiera się na złym porcie **
 

@@ -219,7 +219,7 @@ _Pripojte akýkoľvek nástroj IDE alebo CLI poháňaný AI cez OmniRoute – be
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Nie každý môže platiť 20 – 200 $ mesačne za predplatné AI. Študenti, v
 
 **Ako to rieši OmniRoute:**
 
-- **Zabudovaní poskytovatelia bezplatnej úrovne** — Natívna podpora pre 100 % bezplatných poskytovateľov: iFlow (8 neobmedzených modelov), Qwen (3 neobmedzené modely), Kiro (Claude zdarma), Gemini CLI (180 000/mesiac zdarma)
+- **Zabudovaní poskytovatelia bezplatnej úrovne** — Natívna podpora pre 100 % bezplatných poskytovateľov: Qoder (8 neobmedzených modelov), Qwen (3 neobmedzené modely), Kiro (Claude zdarma), Gemini CLI (180 000/mesiac zdarma)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Len bezplatné kombá** — Reťaz `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/mesiac s nulovými prestojmi
 - **Bezplatné kredity NVIDIA NIM** – integrovaných 1 000 bezplatných kreditov
@@ -351,7 +351,7 @@ Claude Code, Codex, Gemini CLI, Copilot – všetky používajú OAuth 2.0 s tok
 **Ako to rieši OmniRoute:**
 
 - **Automatická obnova tokenov** – Tokeny OAuth sa pred vypršaním platnosti obnovujú na pozadí
-- **Vstavaný OAuth 2.0 (PKCE)** – Automatický tok pre Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **Vstavaný OAuth 2.0 (PKCE)** – Automatický tok pre Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
   – **Multi-Auth OAuth** – Viaceré účty na poskytovateľa prostredníctvom extrakcie tokenov JWT/ID
 - **Oprava OAuth LAN/Remote** — Detekcia súkromnej adresy IP pre `redirect_uri` + manuálny režim adresy URL pre vzdialené servery
 - **OAuth Behind Nginx** - Používa `window.location.origin` na reverznú kompatibilitu proxy
@@ -853,11 +853,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 LACNO**      | GLM-4,7           | 0,6 USD/1 milión            | Denne 10:00                  | Záloha rozpočtu             |
 |                   | MiniMax M2.1      | 0,2 USD/1 milión            | 5-hodinové valcovanie        | Najlacnejšia možnosť        |
 |                   | Kimi K2           | 9 USD/mesiac byt            | 10 miliónov tokenov/mesiac   | Predvídateľné náklady       |
-| **🆓 ZDARMA**     | iFlow             | 0 USD                       | Neobmedzené                  | 8 modelov zadarmo           |
+| **🆓 ZDARMA**     | Qoder             | 0 USD                       | Neobmedzené                  | 8 modelov zadarmo           |
 |                   | Qwen              | 0 USD                       | Neobmedzené                  | 3 modely zadarmo            |
 |                   | Kiro              | 0 USD                       | Neobmedzené                  | Claude zadarmo              |
 
-**💡 Tip pre profesionálov:** Začnite s kombináciou Gemini CLI (180 000 zadarmo/mesiac) + iFlow (neobmedzene zadarmo) = cena 0 $!
+**💡 Tip pre profesionálov:** Začnite s kombináciou Gemini CLI (180 000 zadarmo/mesiac) + Qoder (neobmedzene zadarmo) = cena 0 $!
 
 ---
 
@@ -1192,11 +1192,11 @@ Models:
 <details>
 <summary><b>🆓 BEZPLATNÍ poskytovatelia (núdzové zálohovanie)</b></summary>
 
-### iFlow (8 modelov ZDARMA)
+### Qoder (8 modelov ZDARMA)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1353,7 +1353,7 @@ Settings → API Configuration:
 
 - Skontrolujte štatistiky používania v hlavnom paneli → Náklady
 - Prepnite primárny model na GLM/MiniMax
-- Používajte bezplatnú vrstvu (Gemini CLI, iFlow) pre nekritické úlohy
+- Používajte bezplatnú vrstvu (Gemini CLI, Qoder) pre nekritické úlohy
 
 **Palubná doska sa otvára na nesprávnom porte**
 

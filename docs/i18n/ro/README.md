@@ -219,7 +219,7 @@ _Conectați orice instrument IDE sau CLI alimentat de AI prin OmniRoute — gate
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Nu toată lumea poate plăti 20–200 USD/lună pentru abonamentele AI. Studenț
 
 **Cum o rezolvă OmniRoute:**
 
-- **Free Tier Providers Built-in** — Suport nativ pentru furnizori 100% gratuiti: iFlow (8 modele nelimitate), Qwen (3 modele nelimitate), Kiro (Claude gratuit), Gemini CLI (180K/lună gratuit)
+- **Free Tier Providers Built-in** — Suport nativ pentru furnizori 100% gratuiti: Qoder (8 modele nelimitate), Qwen (3 modele nelimitate), Kiro (Claude gratuit), Gemini CLI (180K/lună gratuit)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Combinații numai gratuite** — Lanțul `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/lună fără timp de nefuncționare
 - **Credite gratuite NVIDIA NIM** — 1000 de credite gratuite integrate
@@ -351,7 +351,7 @@ Claude Code, Codex, Gemini CLI, Copilot - toate folosesc OAuth 2.0 cu token-uri 
 **Cum o rezolvă OmniRoute:**
 
 - **Reîmprospătare automată a simbolurilor** — jetoanele OAuth se reîmprospătează în fundal înainte de expirare
-- **OAuth 2.0 (PKCE) încorporat** — Flux automat pentru Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) încorporat** — Flux automat pentru Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **OAuth cu mai multe conturi** — Conturi multiple per furnizor prin extragerea jetonului JWT/ID
 - **OAuth LAN/Remediere la distanță** — Detectare IP privată pentru `redirect_uri` + modul URL manual pentru servere la distanță
 - **OAuth în spatele Nginx** — Utilizează `window.location.origin` pentru compatibilitatea cu proxy invers
@@ -851,11 +851,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 IEFTIN**    | GLM-4.7           | 0,6 USD/1 milion             | Zilnic 10:00                | Backup buget              |
 |                  | MiniMax M2.1      | 0,2 USD/1 milion             | rulare de 5 ore             | Cea mai ieftină opțiune   |
 |                  | Kimi K2           | 9 USD/lună plat              | 10 milioane de jetoane/lună | Cost previzibil           |
-| **🆓 GRATUIT**   | iFlow             | $0                           | Nelimitat                   | 8 modele gratuite         |
+| **🆓 GRATUIT**   | Qoder             | $0                           | Nelimitat                   | 8 modele gratuite         |
 |                  | Qwen              | $0                           | Nelimitat                   | 3 modele gratuite         |
 |                  | Kiro              | $0                           | Nelimitat                   | Claude liber              |
 
-**💡 Sfat profesionist:** Începeți cu Gemini CLI (180K gratuit/lună) + iFlow (gratuit nelimitat) combo = cost 0 USD!
+**💡 Sfat profesionist:** Începeți cu Gemini CLI (180K gratuit/lună) + Qoder (gratuit nelimitat) combo = cost 0 USD!
 
 ---
 
@@ -1190,11 +1190,11 @@ Models:
 <details>
 <summary><b>🆓 Furnizori GRATUITI (Backup de urgență)</b></summary>
 
-### iFlow (8 modele GRATUITE)
+### Qoder (8 modele GRATUITE)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1351,7 +1351,7 @@ Settings → API Configuration:
 
 - Verificați statisticile de utilizare în Tabloul de bord → Costuri
 - Comutați modelul principal la GLM/MiniMax
-- Utilizați nivelul gratuit (Gemini CLI, iFlow) pentru sarcini necritice
+- Utilizați nivelul gratuit (Gemini CLI, Qoder) pentru sarcini necritice
 
 **Tabloul de bord se deschide pe portul greșit**
 

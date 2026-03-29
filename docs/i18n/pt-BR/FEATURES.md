@@ -12,7 +12,7 @@ Visual guide to every section of the OmniRoute dashboard.
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (iFlow, Qwen, Kiro).
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro).
 
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` (free "Light usage" tier); use `ollamacloud/<model>` prefix
 

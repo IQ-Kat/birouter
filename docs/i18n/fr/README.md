@@ -98,35 +98,31 @@ _Connectez n'importe quel IDE ou outil CLI alimenté par l'IA via OmniRoute — 
 
 ### 🆕 What's New in v3.0.0
 
-| Area | Change |
-| --- | --- |
-| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
-| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
-| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
 | 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
-| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
-| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
-| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
-| 🔧 **926 Tests** | Full test suite passes with 0 failures |
-
-
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ### 🆕 What's New in v3.0.0
 
-| Area | Change |
-| --- | --- |
-| 🔒 **CodeQL Security** | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection |
-| ✅ **Route Validation** | All 176 API routes validated with Zod schemas + `validateBody()` |
-| 🐛 **omniModel Tag Leak** | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585) |
+| Area                       | Change                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| 🔒 **CodeQL Security**     | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection   |
+| ✅ **Route Validation**    | All 176 API routes validated with Zod schemas + `validateBody()`                  |
+| 🐛 **omniModel Tag Leak**  | Internal `<omniModel>` tags no longer leak to clients in SSE streams (#585)       |
 | 🔑 **Registered Keys API** | Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement |
-| 🎨 **Provider Icons** | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback |
-| 🔄 **Model Auto-Sync** | 24h scheduler refreshes model lists for 16 providers |
-| 🌐 **OpenCode Zen/Go** | Two new providers: free tier + subscription tier |
-| 🔧 **926 Tests** | Full test suite passes with 0 failures |
+| 🎨 **Provider Icons**      | 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback                  |
+| 🔄 **Model Auto-Sync**     | 24h scheduler refreshes model lists for 16 providers                              |
+| 🌐 **OpenCode Zen/Go**     | Two new providers: free tier + subscription tier                                  |
+| 🔧 **926 Tests**           | Full test suite passes with 0 failures                                            |
 
 ---
-
-
 
 [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
@@ -223,7 +219,7 @@ _Connectez n'importe quel IDE ou outil CLI alimenté par l'IA via OmniRoute — 
        │   ↓ limite de budget
        ├─→ [Tier 3: ÉCONOMIQUE] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ limite de budget
-       └─→ [Tier 4: GRATUIT] iFlow, Qwen, Kiro (illimité)
+       └─→ [Tier 4: GRATUIT] Qoder, Qwen, Kiro (illimité)
 
 Résultat : Ne jamais arrêter de coder, coût minimal
 ```
@@ -289,7 +285,7 @@ Tout le monde ne peut pas payer entre 20 et 200 $/mois pour des abonnements à 
 
 **Comment OmniRoute le résout :**
 
-- **Fournisseurs gratuits intégrés** — Prise en charge native des fournisseurs 100 % gratuits : iFlow (8 modèles illimités), Qwen (3 modèles illimités), Kiro (Claude gratuit), Gemini CLI (180 000 /mois gratuits)
+- **Fournisseurs gratuits intégrés** — Prise en charge native des fournisseurs 100 % gratuits : Qoder (8 modèles illimités), Qwen (3 modèles illimités), Kiro (Claude gratuit), Gemini CLI (180 000 /mois gratuits)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Combos gratuits uniquement** — Chaîne `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 $/mois sans temps d'arrêt
 - **Crédits gratuits NVIDIA NIM** — 1 000 crédits gratuits intégrés
@@ -353,7 +349,7 @@ Claude Code, Codex, Gemini CLI, Copilot — tous utilisent OAuth 2.0 avec des je
 **Comment OmniRoute le résout :**
 
 - **Actualisation automatique des jetons** : les jetons OAuth sont actualisés en arrière-plan avant leur expiration.
-- **OAuth 2.0 (PKCE) intégré** — Flux automatique pour Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) intégré** — Flux automatique pour Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** — Plusieurs comptes par fournisseur via l'extraction de jetons JWT/ID
 - **OAuth LAN/Remote Fix** — Détection IP privée pour `redirect_uri` + mode URL manuel pour les serveurs distants
 - **OAuth derrière Nginx** — Utilise `window.location.origin` pour la compatibilité du proxy inverse
@@ -855,11 +851,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 ÉCONOMIQUE** | GLM-4.7           | 0,6 $/1M                   | Quotidien 10h       | Backup économique             |
 |                   | MiniMax M2.1      | 0,2 $/1M                   | Rotatif 5h          | Option la moins chère         |
 |                   | Kimi K2           | 9 $/mois fixe              | 10M tokens/mois     | Coût prévisible               |
-| **🆓 GRATUIT**    | iFlow             | 0 $                        | Illimité            | 8 modèles gratuits            |
+| **🆓 GRATUIT**    | Qoder             | 0 $                        | Illimité            | 8 modèles gratuits            |
 |                   | Qwen              | 0 $                        | Illimité            | 3 modèles gratuits            |
 |                   | Kiro              | 0 $                        | Illimité            | Claude gratuit                |
 
-**💡 Conseil Pro :** Commencez avec Gemini CLI (180K gratuits/mois) + iFlow (illimité gratuit) = 0 $ de coût !
+**💡 Conseil Pro :** Commencez avec Gemini CLI (180K gratuits/mois) + Qoder (illimité gratuit) = 0 $ de coût !
 
 ---
 
@@ -1174,11 +1170,11 @@ Modèles :
 <details>
 <summary><b>🆓 Fournisseurs GRATUITS (Backup d'urgence)</b></summary>
 
-### iFlow (8 modèles GRATUITS)
+### Qoder (8 modèles GRATUITS)
 
 ```bash
-Tableau de bord → Connecter iFlow
-→ Connexion OAuth iFlow
+Tableau de bord → Connecter Qoder
+→ Connexion OAuth Qoder
 → Utilisation illimitée
 
 Modèles :
@@ -1335,7 +1331,7 @@ Paramètres → Configuration API :
 
 - Vérifiez les statistiques d'utilisation dans Tableau de bord → Coûts
 - Changez le modèle principal pour GLM/MiniMax
-- Utilisez le niveau gratuit (Gemini CLI, iFlow) pour les tâches non critiques
+- Utilisez le niveau gratuit (Gemini CLI, Qoder) pour les tâches non critiques
 
 **Le tableau de bord s'ouvre sur le mauvais port**
 

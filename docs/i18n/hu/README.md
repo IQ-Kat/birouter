@@ -219,7 +219,7 @@ _Csatlakoztasson bármilyen mesterséges intelligencia-alapú IDE-t vagy CLI-esz
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Nem mindenki fizethet havi 20–200 dollárt az AI-előfizetésekért. A feltör
 
 **Hogyan oldja meg az OmniRoute:**
 
-- **Beépített ingyenes szolgáltatók** - Natív támogatás 100%-ban ingyenes szolgáltatókhoz: iFlow (8 korlátlan modell), Qwen (3 korlátlan modell), Kiro (Claude ingyenes), Gemini CLI (180 000/hónap ingyenes)
+- **Beépített ingyenes szolgáltatók** - Natív támogatás 100%-ban ingyenes szolgáltatókhoz: Qoder (8 korlátlan modell), Qwen (3 korlátlan modell), Kiro (Claude ingyenes), Gemini CLI (180 000/hónap ingyenes)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Csak ingyenes kombók** — `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` lánc = 0 USD/hó nulla állásidővel
 - **NVIDIA NIM ingyenes kreditek** – 1000 ingyenes kredit integrálva
@@ -350,7 +350,7 @@ Claude Code, Codex, Gemini CLI, Copilot – mindegyik az OAuth 2.0-t használja 
 **Hogyan oldja meg az OmniRoute:**
 
 - **Automatikus tokenfrissítés** - Az OAuth-tokenek a háttérben frissülnek a lejárat előtt
-- **OAuth 2.0 (PKCE) beépített** - Automatikus áramlás Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow számára
+- **OAuth 2.0 (PKCE) beépített** - Automatikus áramlás Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder számára
 - **Multi-Account OAuth** - Több fiók szolgáltatónként a JWT/ID token kivonattal
 - **OAuth LAN/Távoli javítás** - Privát IP-észlelés `redirect_uri`-hez + kézi URL mód távoli szerverekhez
 - **OAuth az Nginx mögött** - `window.location.origin`-t használ a fordított proxy kompatibilitás érdekében
@@ -850,11 +850,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 OLCSÓ**      | GLM-4.7            | 0,6 USD/1M                  | Naponta 10:00          | Költségvetési biztonsági mentés |
 |                   | MiniMax M2.1       | 0,2 USD/1M                  | 5 órás gurulás         | Legolcsóbb lehetőség            |
 |                   | Kimi K2            | 9 USD/hó lakás              | 10 millió token/hó     | Előrelátható költség            |
-| **🆓 INGYENES**   | iFlow              | $0                          | Korlátlan              | 8 modell ingyenes               |
+| **🆓 INGYENES**   | Qoder              | $0                          | Korlátlan              | 8 modell ingyenes               |
 |                   | Qwen               | $0                          | Korlátlan              | 3 modell ingyenes               |
 |                   | Kiro               | $0                          | Korlátlan              | Claude ingyen                   |
 
-**💡 Pro tipp:** Kezdje a Gemini CLI-vel (180 000 ingyenes/hónap) + iFlow (korlátlan ingyenes) kombináció = 0 USD költség!
+**💡 Pro tipp:** Kezdje a Gemini CLI-vel (180 000 ingyenes/hónap) + Qoder (korlátlan ingyenes) kombináció = 0 USD költség!
 
 ---
 
@@ -1188,11 +1188,11 @@ Models:
 <details>
 <summary><b>🆓 INGYENES szolgáltatók (vészhelyzeti biztonsági mentés)</b></summary>
 
-### iFlow (8 INGYENES modell)
+### Qoder (8 INGYENES modell)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1349,7 +1349,7 @@ Settings → API Configuration:
 
 - Ellenőrizze a használati statisztikákat az Irányítópult → Költségek menüpontban
 - Állítsa át az elsődleges modellt GLM/MiniMax-ra
-- Használjon ingyenes réteget (Gemini CLI, iFlow) a nem kritikus feladatokhoz
+- Használjon ingyenes réteget (Gemini CLI, Qoder) a nem kritikus feladatokhoz
 
 **A műszerfal rossz porton nyílik meg**
 

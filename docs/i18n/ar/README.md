@@ -171,7 +171,7 @@ _قم بتوصيل أي أداة IDE أو CLI مدعومة بالذكاء الا
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -235,7 +235,7 @@ Result: Never stop coding, minimal cost
 
 **كيف يحل OmniRoute المشكلة:**
 
-- **موفرو الطبقة المجانية المضمنون** — دعم أصلي لمقدمي الخدمات المجانيين بنسبة 100%: iFlow (8 نماذج غير محدودة)، Qwen (3 نماذج غير محدودة)، Kiro (Claude مجانًا)، Gemini CLI (180 ألف/شهر مجانًا)
+- **موفرو الطبقة المجانية المضمنون** — دعم أصلي لمقدمي الخدمات المجانيين بنسبة 100%: Qoder (8 نماذج غير محدودة)، Qwen (3 نماذج غير محدودة)، Kiro (Claude مجانًا)، Gemini CLI (180 ألف/شهر مجانًا)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **المجموعات المجانية فقط** — السلسلة `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/الشهر بدون أي توقف عن العمل
 - **أرصدة NVIDIA NIM المجانية** — 1000 رصيد مجاني مدمج
@@ -298,7 +298,7 @@ Claude Code، وCodex، وGemini CLI، وCopilot — جميعهم يستخدمو
 **كيف يحل OmniRoute المشكلة:**
 
 - **التحديث التلقائي للرمز المميز** — يتم تحديث رموز OAuth المميزة في الخلفية قبل انتهاء الصلاحية
-- **OAuth 2.0 (PKCE) مدمج** — التدفق التلقائي لـ Claude Code وCodex وGemini CLI وCopilot وKiro وQwen وiFlow
+- **OAuth 2.0 (PKCE) مدمج** — التدفق التلقائي لـ Claude Code وCodex وGemini CLI وCopilot وKiro وQwen وQoder
 - **OAuth متعدد الحسابات** — حسابات متعددة لكل مزود عبر استخراج الرمز المميز JWT/ID
 - **OAuth LAN/Remote Fix** — اكتشاف IP الخاص لـ `redirect_uri` + وضع URL اليدوي للخوادم البعيدة
 - **OAuth Behind Nginx** — يستخدم `window.location.origin` للتوافق مع الوكيل العكسي
@@ -848,7 +848,7 @@ npm run electron:build:linux   # Linux (.AppImage)
 |                                    | كوين                         | $0                     | غير محدود               | 3 نماذج مجانية            |
 |                                    | كيرو                         | $0                     | غير محدود               | كلود مجاني                |
 
-**💡 نصيحة احترافية:** ابدأ مع Gemini CLI (180 ألفًا مجانًا شهريًا) + مجموعة iFlow (مجانية غير محدودة) = تكلفة 0 دولار!
+**💡 نصيحة احترافية:** ابدأ مع Gemini CLI (180 ألفًا مجانًا شهريًا) + مجموعة Qoder (مجانية غير محدودة) = تكلفة 0 دولار!
 
 ---
 
@@ -1207,10 +1207,10 @@ Models:
 <details>
 <summary><b>🆓 موفري الخدمة المجانية (النسخ الاحتياطي في حالات الطوارئ)</b></summary>
 
-### iFlow (8 نماذج مجانية)```bash
+### Qoder (8 نماذج مجانية)```bash
 
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1409,7 +1409,7 @@ opencode
 
 - التحقق من إحصائيات الاستخدام في لوحة المعلومات → التكاليف
 - تبديل النموذج الأساسي إلى GLM/MiniMax
-- استخدم الطبقة المجانية (Gemini CLI، iFlow) للمهام غير الحرجة
+- استخدم الطبقة المجانية (Gemini CLI، Qoder) للمهام غير الحرجة
 
 **منافذ لوحة المعلومات/واجهة برمجة التطبيقات غير صحيحة**
 

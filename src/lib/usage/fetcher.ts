@@ -25,7 +25,7 @@ export async function getUsageForProvider(connection) {
       return await getCodexUsage(accessToken, providerSpecificData);
     case "qwen":
       return await getQwenUsage(accessToken, providerSpecificData);
-    case "iflow":
+    case "qoder":
       return await getIflowUsage(accessToken);
     case "kiro":
       return await getKiroUsage(accessToken);
@@ -209,14 +209,14 @@ async function getQwenUsage(accessToken, providerSpecificData) {
 }
 
 /**
- * iFlow Usage
+ * Qoder Usage
  */
 async function getIflowUsage(accessToken) {
   try {
-    // iFlow may have usage endpoint
-    return { message: "iFlow connected. Usage tracked per request." };
+    // Qoder may have usage endpoint
+    return { message: "Qoder connected. Usage tracked per request." };
   } catch (error) {
-    return { message: "Unable to fetch iFlow usage." };
+    return { message: "Unable to fetch Qoder usage." };
   }
 }
 

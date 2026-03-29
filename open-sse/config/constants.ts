@@ -43,9 +43,9 @@ export const OAUTH_ENDPOINTS = {
     token: "https://chat.qwen.ai/api/v1/oauth2/token", // From CLIProxyAPI
     auth: "https://chat.qwen.ai/api/v1/oauth2/device/code", // From CLIProxyAPI
   },
-  iflow: {
-    token: "https://iflow.cn/oauth/token",
-    auth: "https://iflow.cn/oauth",
+  qoder: {
+    token: "https://qoder.cn/oauth/token",
+    auth: "https://qoder.cn/oauth",
   },
   github: {
     token: "https://github.com/login/oauth/access_token",

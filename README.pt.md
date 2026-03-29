@@ -199,7 +199,7 @@ Ao abrir um problema, execute o comando system-info e anexe o arquivo gerado:
 npm run system-info
 ```
 
-Isso gera um `system-info.txt` com sua versão do Node.js, versão do OmniRoute, detalhes do sistema operacional, ferramentas CLI instaladas (iflow, gemini, claude, codex, antigravity, droid, etc.), status do Docker/PM2 e pacotes do sistema — tudo o que precisamos para reproduzir seu problema rapidamente. Anexe o arquivo diretamente ao seu problema do GitHub.
+Isso gera um `system-info.txt` com sua versão do Node.js, versão do OmniRoute, detalhes do sistema operacional, ferramentas CLI instaladas (qoder, gemini, claude, codex, antigravity, droid, etc.), status do Docker/PM2 e pacotes do sistema — tudo o que precisamos para reproduzir seu problema rapidamente. Anexe o arquivo diretamente ao seu problema do GitHub.
 
 ---
 
@@ -225,7 +225,7 @@ Isso gera um `system-info.txt` com sua versão do Node.js, versão do OmniRoute,
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -292,7 +292,7 @@ Nem todos podem pagar US$ 20–200/mês por assinaturas de IA. Estudantes, desen
 
 **Como o OmniRoute resolve isso:**
 
-- **Provedores de nível gratuito integrados** — Suporte nativo para provedores 100% gratuitos: iFlow (5 modelos ilimitados via OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 modelos ilimitados: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID gratuitamente), Gemini CLI (180 mil tokens/mês grátis)
+- **Provedores de nível gratuito integrados** — Suporte nativo para provedores 100% gratuitos: Qoder (5 modelos ilimitados via OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 modelos ilimitados: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID gratuitamente), Gemini CLI (180 mil tokens/mês grátis)
 - **Ollama Cloud** — Modelos Ollama hospedados na nuvem em `api.ollama.com` com nível gratuito de "uso leve"; use o prefixo `ollamacloud/<model>`
 - **Combos somente gratuitos** — Cadeia `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = US$ 0/mês com tempo de inatividade zero
 - **NVIDIA NIM Free Access** — ~40 RPM de acesso gratuito para desenvolvedores para sempre a mais de 70 modelos em build.nvidia.com (transição de créditos para limites de taxa pura)
@@ -356,7 +356,7 @@ Claude Code, Codex, Gemini CLI, Copilot — todos usam OAuth 2.0 com tokens expi
 **Como o OmniRoute resolve isso:**
 
 - **Atualização automática de token** — Os tokens OAuth são atualizados em segundo plano antes da expiração
-- **OAuth 2.0 (PKCE) integrado ** — Fluxo automático para Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) integrado ** — Fluxo automático para Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **OAuth de várias contas** — Várias contas por provedor por meio de extração de token JWT/ID
 - **OAuth LAN/Remote Fix** — Detecção de IP privado para `redirect_uri` + modo URL manual para servidores remotos
 - **OAuth por trás do Nginx** — Usa `window.location.origin` para compatibilidade de proxy reverso
@@ -733,7 +733,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | Etapa | Ação                                               | Provedores desbloqueados                                           |
 | ----- | -------------------------------------------------- | ------------------------------------------------------------------ |
 | 1     | Conectar **Kiro** (ID do AWS Builder OAuth)        | Claude Soneto 4.5, Haiku 4.5 — **ilimitado**                       |
-| 2     | Conecte **iFlow** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **ilimitado** |
+| 2     | Conecte **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **ilimitado** |
 | 3     | Conecte **Qwen** (código do dispositivo)           | qwen3-coder-plus, qwen3-coder-flash... — **ilimitado**             |
 | 4     | Conecte **Gemini CLI** (Google OAuth)              | gemini-3-flash, gemini-2.5-pro — **180K/mês grátis**               |
 | 5     | `/dashboard/combos` → **Pilha grátis ($0)** modelo | Round-robin todos os provedores gratuitos automaticamente          |
@@ -942,7 +942,7 @@ Quando minimizado, o OmniRoute fica na bandeja do sistema com ações rápidas:
 |                     | MiniMax M2.1                          | US$ 0,2/1 milhão                       | Rolamento de 5 horas     | Opção mais barata                               |
 |                     | Kimi K2.5 (API Moonshot) 🆕           | Pagamento conforme uso                 | Nenhum                   | Acesso direto à API Moonshot                    |
 |                     | Kimi K2                               | $ 9 / mês fixo                         | 10 milhões de tokens/mês | Custo previsível                                |
-| **🆓 GRÁTIS**       | iFlow                                 | **$0**                                 | Ilimitado                | 5 modelos ilimitados                            |
+| **🆓 GRÁTIS**       | Qoder                                 | **$0**                                 | Ilimitado                | 5 modelos ilimitados                            |
 |                     | Qwen                                  | **$0**                                 | Ilimitado                | 4 modelos ilimitados                            |
 |                     | Kiro                                  | **$0**                                 | Ilimitado                | Claude Sonnet/Haiku (Construtor AWS)            |
 |                     | LongCat Flash Lite 🆕                 | **$0** (50 milhões de dólares/dia 🔥)  | 1RPS                     | Maior cota gratuita do planeta                  |
@@ -957,7 +957,7 @@ Quando minimizado, o OmniRoute fica na bandeja do sistema com ações rápidas:
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -987,7 +987,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`   | **Ilimitado** | Nenhum limite diário comunicado |
 | `claude-opus-4.6`   | `kr/`   | **Ilimitado** | Último Opus via Kiro            |
 
-### 🟢 MODELOS IFLOW (OAuth grátis — sem cartão de crédito)
+### 🟢 MODELOS QODER (OAuth grátis — sem cartão de crédito)
 
 | Modelo             | Prefixo | Limite        | Limite de taxa                  |
 | ------------------ | ------- | ------------- | ------------------------------- |
@@ -1086,7 +1086,7 @@ Disponível gratuitamente: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1534,11 +1534,11 @@ Models:
 <details>
 <summary><b>🆓 Provedores GRATUITOS (backup de emergência)</b></summary>
 
-### iFlow (5 modelos GRATUITOS via OAuth)
+### Qoder (5 modelos GRATUITOS via OAuth)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1736,7 +1736,7 @@ opencode
 
 - Verifique as estatísticas de uso em Painel → Custos
 - Mude o modelo primário para GLM/MiniMax
-- Use o nível gratuito (Gemini CLI, iFlow) para tarefas não críticas
+- Use o nível gratuito (Gemini CLI, Qoder) para tarefas não críticas
 
 **As portas do painel/API estão erradas**
 

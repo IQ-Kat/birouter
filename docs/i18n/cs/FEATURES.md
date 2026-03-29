@@ -8,7 +8,7 @@ Vizuální průvodce všemi částmi ovládacího panelu OmniRoute.
 
 ## 🔌 Poskytovatelé
 
-Spravujte připojení poskytovatelů AI: poskytovatelé OAuth (Claude Code, Codex, Gemini CLI), poskytovatelé klíčů API (Groq, DeepSeek, OpenRouter) a bezplatní poskytovatelé (iFlow, Qwen, Kiro). Účty Kiro zahrnují sledování zůstatku kreditů – zbývající kredity, celkový limit a datum obnovení jsou viditelné v Dashboard → Usage.
+Spravujte připojení poskytovatelů AI: poskytovatelé OAuth (Claude Code, Codex, Gemini CLI), poskytovatelé klíčů API (Groq, DeepSeek, OpenRouter) a bezplatní poskytovatelé (Qoder, Qwen, Kiro). Účty Kiro zahrnují sledování zůstatku kreditů – zbývající kredity, celkový limit a datum obnovení jsou viditelné v Dashboard → Usage.
 
 ![Dashboard poskytovatelů](screenshots/01-providers.png)
 
@@ -46,13 +46,13 @@ Monitorování v reálném čase: dostupnost, paměť, verze, percentily latence
 
 ---
 
-## 🎮 Modelové hřiště *(v2.0.9+)*
+## 🎮 Modelové hřiště _(v2.0.9+)_
 
 Otestujte libovolný model přímo z řídicího panelu. Vyberte poskytovatele, model a koncový bod, pište výzvy pomocí editoru Monaco, streamujte odpovědi v reálném čase, přerušte stream a zobrazte metriky časování.
 
 ---
 
-## 🎨 Témata *(v2.0.5+)*
+## 🎨 Témata _(v2.0.5+)_
 
 Přizpůsobitelná barevná témata pro celý dashboard. Vyberte si ze 7 přednastavených barev (korálová, modrá, červená, zelená, fialová, oranžová, azurová) nebo si vytvořte vlastní téma výběrem libovolné hexadecimální barvy. Podporuje světlý, tmavý a systémový režim.
 
@@ -81,7 +81,7 @@ Konfigurace nástrojů pro kódování s umělou inteligencí jedním kliknutím
 
 ---
 
-## 🤖 Agenti CLI *(v2.0.11+)*
+## 🤖 Agenti CLI _(v2.0.11+)_
 
 Ovládací panel pro vyhledávání a správu agentů CLI. Zobrazuje mřížku 14 vestavěných agentů (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) s:
 
@@ -92,7 +92,7 @@ Ovládací panel pro vyhledávání a správu agentů CLI. Zobrazuje mřížku 1
 
 ---
 
-## 🖼️ Média *(v2.0.3+)*
+## 🖼️ Média _(v2.0.3+)_
 
 Generujte obrázky, videa a hudbu z řídicího panelu. Podporuje OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open a MusicGen.
 

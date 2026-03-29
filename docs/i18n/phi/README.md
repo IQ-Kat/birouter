@@ -219,7 +219,7 @@ _Ikonekta ang anumang AI-powered IDE o CLI tool sa pamamagitan ng OmniRoute — 
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -285,7 +285,7 @@ Hindi lahat ay maaaring magbayad ng $20–200/buwan para sa mga subscription sa 
 
 **Paano ito niresolba ng OmniRoute:**
 
-- **Libreng Tier Provider Built-in** — Native na suporta para sa 100% libreng provider: iFlow (8 unlimited na modelo), Qwen (3 unlimited na modelo), Kiro (Claude nang libre), Gemini CLI (180K/buwan libre)
+- **Libreng Tier Provider Built-in** — Native na suporta para sa 100% libreng provider: Qoder (8 unlimited na modelo), Qwen (3 unlimited na modelo), Kiro (Claude nang libre), Gemini CLI (180K/buwan libre)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Free-Only Combos** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/buwan na walang downtime
 - **NVIDIA NIM Free Credits** — 1000 libreng credits na isinama
@@ -349,7 +349,7 @@ Claude Code, Codex, Gemini CLI, Copilot — lahat ay gumagamit ng OAuth 2.0 na m
 **Paano ito niresolba ng OmniRoute:**
 
 - **Auto Token Refresh** — Ang mga token ng OAuth ay nagre-refresh sa background bago mag-expire
-- **OAuth 2.0 (PKCE) Built-in** — Awtomatikong daloy para sa Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) Built-in** — Awtomatikong daloy para sa Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** — Maramihang account bawat provider sa pamamagitan ng pagkuha ng token ng JWT/ID
 - **OAuth LAN/Remote Fix** — Pribadong IP detection para sa `redirect_uri` + manual URL mode para sa mga malalayong server
 - **OAuth Behind Nginx** — Gumagamit ng `window.location.origin` para sa reverse proxy compatibility
@@ -849,11 +849,11 @@ npm run electron:build:linux   # Linux (.AppImage)
 | **💰 MURA**         | GLM-4.7           | $0.6/1M                  | Araw-araw 10AM       | Backup ng badyet                |
 |                     | MiniMax M2.1      | $0.2/1M                  | 5 oras na rolling    | Pinaka murang opsyon            |
 |                     | Kimi K2           | $9/buwan flat            | 10M token/buwan      | Nahuhulaang gastos              |
-| **🆓 LIBRE**        | iFlow             | $0                       | Walang limitasyong   | 8 mga modelong libre            |
+| **🆓 LIBRE**        | Qoder             | $0                       | Walang limitasyong   | 8 mga modelong libre            |
 |                     | Qwen              | $0                       | Walang limitasyong   | 3 mga modelong libre            |
 |                     | Kiro              | $0                       | Walang limitasyong   | Claude libre                    |
 
-**💡 Pro Tip:** Magsimula sa Gemini CLI (180K libre/buwan) + iFlow (walang limitasyong libre) combo = $0 na halaga!
+**💡 Pro Tip:** Magsimula sa Gemini CLI (180K libre/buwan) + Qoder (walang limitasyong libre) combo = $0 na halaga!
 
 ---
 
@@ -1189,11 +1189,11 @@ Models:
 <details>
 <summary><b>🆓 LIBRENG Provider (Emergency Backup)</b></summary>
 
-### iFlow (8 LIBRENG modelo)
+### Qoder (8 LIBRENG modelo)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1350,7 +1350,7 @@ Settings → API Configuration:
 
 - Suriin ang mga istatistika ng paggamit sa Dashboard → Mga Gastos
 - Ilipat ang pangunahing modelo sa GLM/MiniMax
-- Gumamit ng libreng tier (Gemini CLI, iFlow) para sa mga hindi kritikal na gawain
+- Gumamit ng libreng tier (Gemini CLI, Qoder) para sa mga hindi kritikal na gawain
 
 **Nagbubukas ang dashboard sa maling port**
 

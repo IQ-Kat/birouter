@@ -14,7 +14,7 @@ import { claude } from "./claude";
 import { codex } from "./codex";
 import { gemini } from "./gemini";
 import { antigravity } from "./antigravity";
-import { iflow } from "./iflow";
+import { qoder } from "./qoder";
 import { qwen } from "./qwen";
 import { kimiCoding } from "./kimi-coding";
 import { github } from "./github";
@@ -28,7 +28,7 @@ export const PROVIDERS = {
   codex,
   "gemini-cli": gemini,
   antigravity,
-  iflow,
+  qoder,
   qwen,
   "kimi-coding": kimiCoding,
   github,

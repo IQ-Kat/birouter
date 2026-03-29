@@ -532,12 +532,12 @@ export async function refreshKiroToken(refreshToken, providerSpecificData, log) 
 }
 
 /**
- * Specialized refresh for iFlow OAuth tokens
+ * Specialized refresh for Qoder OAuth tokens
  */
 export async function refreshIflowToken(refreshToken, log) {
-  const basicAuth = btoa(`${PROVIDERS.iflow.clientId}:${PROVIDERS.iflow.clientSecret}`);
+  const basicAuth = btoa(`${PROVIDERS.qoder.clientId}:${PROVIDERS.qoder.clientSecret}`);
 
-  const response = await fetch(OAUTH_ENDPOINTS.iflow.token, {
+  const response = await fetch(OAUTH_ENDPOINTS.qoder.token, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -547,14 +547,14 @@ export async function refreshIflowToken(refreshToken, log) {
     body: new URLSearchParams({
       grant_type: "refresh_token",
       refresh_token: refreshToken,
-      client_id: PROVIDERS.iflow.clientId,
-      client_secret: PROVIDERS.iflow.clientSecret,
+      client_id: PROVIDERS.qoder.clientId,
+      client_secret: PROVIDERS.qoder.clientSecret,
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    log?.error?.("TOKEN_REFRESH", "Failed to refresh iFlow token", {
+    log?.error?.("TOKEN_REFRESH", "Failed to refresh Qoder token", {
       status: response.status,
       error: errorText,
     });
@@ -563,7 +563,7 @@ export async function refreshIflowToken(refreshToken, log) {
 
   const tokens = await response.json();
 
-  log?.info?.("TOKEN_REFRESH", "Successfully refreshed iFlow token", {
+  log?.info?.("TOKEN_REFRESH", "Successfully refreshed Qoder token", {
     hasNewAccessToken: !!tokens.access_token,
     hasNewRefreshToken: !!tokens.refresh_token,
     expiresIn: tokens.expires_in,
@@ -685,7 +685,7 @@ async function _getAccessTokenInternal(provider, credentials, log) {
     case "qwen":
       return await refreshQwenToken(credentials.refreshToken, log);
 
-    case "iflow":
+    case "qoder":
       return await refreshIflowToken(credentials.refreshToken, log);
 
     case "github":
@@ -721,7 +721,7 @@ export function supportsTokenRefresh(provider) {
     "claude",
     "codex",
     "qwen",
-    "iflow",
+    "qoder",
     "github",
     "kiro",
     "cline",
@@ -808,7 +808,7 @@ export function formatProviderCredentials(provider, credentials, log) {
 
     case "codex":
     case "qwen":
-    case "iflow":
+    case "qoder":
     case "openai":
     case "openrouter":
       return {

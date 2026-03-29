@@ -10,7 +10,7 @@
  *   - OmniRoute version
  *   - OS info
  *   - Relevant system packages (if apt available)
- *   - Agent CLI tools (iflow, gemini, claude, codex, antigravity, droid, etc.)
+ *   - Agent CLI tools (qoder, gemini, claude, codex, antigravity, droid, etc.)
  *   - Docker / PM2 status
  */
 
@@ -89,7 +89,7 @@ lines.push(`PM2 status: ${pm2Status || "not running via PM2"}`);
 lines.push(section("Agent CLI Tools"));
 
 const cliTools = [
-  { name: "iflow-cli", cmd: "iflow", args: "--version" },
+  { name: "qoder-cli", cmd: "qoder", args: "--version" },
   { name: "gemini-cli", cmd: "gemini", args: "--version" },
   { name: "claude-code", cmd: "claude", args: "--version" },
   { name: "openai-codex", cmd: "codex", args: "--version" },
