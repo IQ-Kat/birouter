@@ -748,13 +748,14 @@ export async function markAccountUnavailable(
       }
     }
 
-    const { shouldFallback, cooldownMs, newBackoffLevel, reason } = checkFallbackError(
+    const result = checkFallbackError(
       status,
       errorText,
       backoffLevel,
       model,
       provider // ← Now passes provider for profile-aware cooldowns
     );
+    const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
 
     // ── Local provider 404: model-only lockout, connection stays active ──
@@ -819,6 +820,26 @@ export async function markAccountUnavailable(
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
     });
+
+    // T-AUTODISABLE: If auto-disable setting is enabled and error is permanent/terminal,
+    // mark account as inactive so it is never retried again.
+    if (result.permanent) {
+      try {
+        const settings = await getSettings();
+        const autoDisableEnabled = settings.autoDisableBannedAccounts ?? false;
+        const threshold = Number(settings.autoDisableBannedThreshold ?? 3);
+        const newBackoff = newBackoffLevel ?? backoffLevel;
+        if (autoDisableEnabled && newBackoff >= threshold) {
+          await updateProviderConnection(connectionId, { isActive: false });
+          log.info(
+            "AUTH",
+            `Auto-disabled ${connectionId.slice(0, 8)} — permanent error after ${newBackoff} failures (autoDisableBannedAccounts=true)`
+          );
+        }
+      } catch (e) {
+        log.info("AUTH", `Auto-disable check failed (non-fatal): ${e}`);
+      }
+    }
 
     // Per-model lockout: lock the specific model if known
     if (provider && model && cooldownMs > 0) {

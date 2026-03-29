@@ -17,6 +17,10 @@ export const ACCOUNT_DEACTIVATED_SIGNALS = [
   "account has been disabled",
   "your account has been suspended",
   "this account is deactivated",
+  // AG (Antigravity/Google Cloud Code) permanent ban signals
+  "verify your account to continue",
+  "this service has been disabled in this account for violation",
+  "this service has been disabled in this account",
 ];
 
 // T10 (sub2api PR #1169): Signals that indicate billing credits are exhausted.
