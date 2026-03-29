@@ -1,10 +1,10 @@
-🌐 **Languages:** 🇺🇸 [English](../../README.md) · 🇧🇷 [pt-BR](../pt-BR/USER_GUIDE.md) · 🇪🇸 [es](../es/USER_GUIDE.md) · 🇫🇷 [fr](../fr/USER_GUIDE.md) · 🇩🇪 [de](../de/USER_GUIDE.md) · 🇮🇹 [it](../it/USER_GUIDE.md) · 🇷🇺 [ru](../ru/USER_GUIDE.md) · 🇨🇳 [zh-CN](../zh-CN/USER_GUIDE.md) · 🇯🇵 [ja](../ja/USER_GUIDE.md) · 🇰🇷 [ko](../ko/USER_GUIDE.md) · 🇸🇦 [ar](../ar/USER_GUIDE.md) · 🇮🇳 [in](../in/USER_GUIDE.md) · 🇹🇭 [th](../th/USER_GUIDE.md) · 🇻🇳 [vi](../vi/USER_GUIDE.md) · 🇮🇩 [id](../id/USER_GUIDE.md) · 🇲🇾 [ms](../ms/USER_GUIDE.md) · 🇳🇱 [nl](../nl/USER_GUIDE.md) · 🇵🇱 [pl](../pl/USER_GUIDE.md) · 🇸🇪 [sv](../sv/USER_GUIDE.md) · 🇳🇴 [no](../no/USER_GUIDE.md) · 🇩🇰 [da](../da/USER_GUIDE.md) · 🇫🇮 [fi](../fi/USER_GUIDE.md) · 🇵🇹 [pt](../pt/USER_GUIDE.md) · 🇷🇴 [ro](../ro/USER_GUIDE.md) · 🇭🇺 [hu](../hu/USER_GUIDE.md) · 🇧🇬 [bg](../bg/USER_GUIDE.md) · 🇸🇰 [sk](../sk/USER_GUIDE.md) · 🇺🇦 [uk-UA](../uk-UA/USER_GUIDE.md) · 🇮🇱 [he](../he/USER_GUIDE.md) · 🇵🇭 [phi](../phi/USER_GUIDE.md)
+# User Guide (العربية)
+
+🌐 **Languages:** 🇺🇸 [English](../../USER_GUIDE.md) · 🇧🇷 [pt-BR](../pt-BR/USER_GUIDE.md) · 🇪🇸 [es](../es/USER_GUIDE.md) · 🇫🇷 [fr](../fr/USER_GUIDE.md) · 🇩🇪 [de](../de/USER_GUIDE.md) · 🇮🇹 [it](../it/USER_GUIDE.md) · 🇷🇺 [ru](../ru/USER_GUIDE.md) · 🇨🇳 [zh-CN](../zh-CN/USER_GUIDE.md) · 🇯🇵 [ja](../ja/USER_GUIDE.md) · 🇰🇷 [ko](../ko/USER_GUIDE.md) · 🇸🇦 [ar](../ar/USER_GUIDE.md) · 🇮🇳 [in](../in/USER_GUIDE.md) · 🇹🇭 [th](../th/USER_GUIDE.md) · 🇻🇳 [vi](../vi/USER_GUIDE.md) · 🇮🇩 [id](../id/USER_GUIDE.md) · 🇲🇾 [ms](../ms/USER_GUIDE.md) · 🇳🇱 [nl](../nl/USER_GUIDE.md) · 🇵🇱 [pl](../pl/USER_GUIDE.md) · 🇸🇪 [sv](../sv/USER_GUIDE.md) · 🇳🇴 [no](../no/USER_GUIDE.md) · 🇩🇰 [da](../da/USER_GUIDE.md) · 🇫🇮 [fi](../fi/USER_GUIDE.md) · 🇵🇹 [pt](../pt/USER_GUIDE.md) · 🇷🇴 [ro](../ro/USER_GUIDE.md) · 🇭🇺 [hu](../hu/USER_GUIDE.md) · 🇧🇬 [bg](../bg/USER_GUIDE.md) · 🇸🇰 [sk](../sk/USER_GUIDE.md) · 🇺🇦 [uk-UA](../uk-UA/USER_GUIDE.md) · 🇮🇱 [he](../he/USER_GUIDE.md) · 🇵🇭 [phi](../phi/USER_GUIDE.md)
+
+> 🇺🇸 [English](../../USER_GUIDE.md)
 
 ---
-
-# User Guide
-
-🌐 **Languages:** 🇺🇸 [English](USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/USER_GUIDE.md) | 🇪🇸 [Español](i18n/es/USER_GUIDE.md) | 🇫🇷 [Français](i18n/fr/USER_GUIDE.md) | 🇮🇹 [Italiano](i18n/it/USER_GUIDE.md) | 🇷🇺 [Русский](i18n/ru/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/USER_GUIDE.md) | 🇩🇪 [Deutsch](i18n/de/USER_GUIDE.md) | 🇮🇳 [हिन्दी](i18n/in/USER_GUIDE.md) | 🇹🇭 [ไทย](i18n/th/USER_GUIDE.md) | 🇺🇦 [Українська](i18n/uk-UA/USER_GUIDE.md) | 🇸🇦 [العربية](i18n/ar/USER_GUIDE.md) | 🇯🇵 [日本語](i18n/ja/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](i18n/vi/USER_GUIDE.md) | 🇧🇬 [Български](i18n/bg/USER_GUIDE.md) | 🇩🇰 [Dansk](i18n/da/USER_GUIDE.md) | 🇫🇮 [Suomi](i18n/fi/USER_GUIDE.md) | 🇮🇱 [עברית](i18n/he/USER_GUIDE.md) | 🇭🇺 [Magyar](i18n/hu/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/USER_GUIDE.md) | 🇰🇷 [한국어](i18n/ko/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/USER_GUIDE.md) | 🇳🇱 [Nederlands](i18n/nl/USER_GUIDE.md) | 🇳🇴 [Norsk](i18n/no/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](i18n/pt/USER_GUIDE.md) | 🇷🇴 [Română](i18n/ro/USER_GUIDE.md) | 🇵🇱 [Polski](i18n/pl/USER_GUIDE.md) | 🇸🇰 [Slovenčina](i18n/sk/USER_GUIDE.md) | 🇸🇪 [Svenska](i18n/sv/USER_GUIDE.md) | 🇵🇭 [Filipino](i18n/phi/USER_GUIDE.md)
 
 Complete guide for configuring providers, creating combos, integrating CLI tools, and deploying OmniRoute.
 
@@ -409,6 +409,106 @@ docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-dat
 
 For host-integrated mode with CLI binaries, see the Docker section in the main docs.
 
+### Void Linux (xbps-src)
+
+Void Linux users can package and install OmniRoute natively using the `xbps-src` cross-compilation framework. This automates the Node.js standalone build along with the required `better-sqlite3` native bindings.
+
+<details>
+<summary><b>View xbps-src template</b></summary>
+
+```bash
+# Template file for 'omniroute'
+pkgname=omniroute
+version=3.2.4
+revision=1
+hostmakedepends="nodejs python3 make"
+depends="openssl"
+short_desc="Universal AI gateway with smart routing for multiple LLM providers"
+maintainer="zenobit <zenobit@disroot.org>"
+license="MIT"
+homepage="https://github.com/diegosouzapw/OmniRoute"
+distfiles="https://github.com/diegosouzapw/OmniRoute/archive/refs/tags/v${version}.tar.gz"
+checksum=009400afee90a9f32599d8fe734145cfd84098140b7287990183dde45ae2245b
+system_accounts="_omniroute"
+omniroute_homedir="/var/lib/omniroute"
+export NODE_ENV=production
+export npm_config_engine_strict=false
+export npm_config_loglevel=error
+export npm_config_fund=false
+export npm_config_audit=false
+
+do_build() {
+	# Determine target CPU arch for node-gyp
+	local _gyp_arch
+	case "$XBPS_TARGET_MACHINE" in
+		aarch64*) _gyp_arch=arm64 ;;
+		armv7*|armv6*) _gyp_arch=arm ;;
+		i686*) _gyp_arch=ia32 ;;
+		*) _gyp_arch=x64 ;;
+	esac
+
+	# 1) Install all deps – skip scripts
+	NODE_ENV=development npm ci --ignore-scripts
+
+	# 2) Build the Next.js standalone bundle
+	npm run build
+
+	# 3) Copy static assets into standalone
+	cp -r .next/static .next/standalone/.next/static
+	[ -d public ] && cp -r public .next/standalone/public || true
+
+	# 4) Compile better-sqlite3 native binding
+	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
+	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
+
+	# 5) Place the compiled binding into the standalone bundle
+	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
+	mkdir -p "$_bs3_release"
+	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
+
+	# 6) Remove arch-specific sharp bundles
+	rm -rf .next/standalone/node_modules/@img
+
+	# 7) Copy pino runtime deps omitted by Next.js static analysis:
+	for _mod in pino-abstract-transport split2 process-warning; do
+		cp -r "node_modules/$_mod" .next/standalone/node_modules/
+	done
+}
+
+do_check() {
+	npm run test:unit
+}
+
+do_install() {
+	vmkdir usr/lib/omniroute/.next
+	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
+
+	# Prevent removal of empty Next.js app router dirs by the post-install hook
+	for _d in \
+		.next/standalone/.next/server/app/dashboard \
+		.next/standalone/.next/server/app/dashboard/settings \
+		.next/standalone/.next/server/app/dashboard/providers; do
+		touch "${DESTDIR}/usr/lib/omniroute/${_d}/.keep"
+	done
+
+	cat > "${WRKDIR}/omniroute" <<'EOF'
+#!/bin/sh
+export PORT="${PORT:-20128}"
+export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
+export LOG_TO_FILE="${LOG_TO_FILE:-false}"
+mkdir -p "${DATA_DIR}"
+exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
+EOF
+	vbin "${WRKDIR}/omniroute"
+}
+
+post_install() {
+	vlicense LICENSE
+}
+```
+
+</details>
+
 ### Environment Variables
 
 | Variable                  | Default                              | Description                                             |
@@ -581,6 +681,22 @@ Configure via **Dashboard → Settings → Routing**.
 | **Random**                     | Randomly selects an account for each request using Fisher-Yates shuffle                          |
 | **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
 | **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
+
+#### External Sticky Session Header
+
+For external session affinity (for example, Claude Code/Codex agents behind reverse proxies), send:
+
+```http
+X-Session-Id: your-session-key
+```
+
+OmniRoute also accepts `x_session_id` and returns the effective session key in `X-OmniRoute-Session-Id`.
+
+If you use Nginx and send underscore-form headers, enable:
+
+```nginx
+underscores_in_headers on;
+```
 
 #### Wildcard Model Aliases
 
@@ -766,7 +882,7 @@ Access via **Dashboard → Health**. Real-time system health overview with 6 car
 
 OmniRoute is available as a native desktop application for Windows, macOS, and Linux.
 
-### Installation
+### تثبيت
 
 ```bash
 # From the electron directory:
