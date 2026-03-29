@@ -504,7 +504,7 @@ async function handleSingleModelChat(
             `${currentModelStr} -> ${fallbackModelStr} | reason=${fallbackDecision.reason}`
           );
 
-          return handleSingleModelChat(
+          const fallbackResponse = await handleSingleModelChat(
             fallbackBody,
             fallbackModelStr,
             clientRawRequest,
@@ -513,6 +513,15 @@ async function handleSingleModelChat(
             apiKeyInfo,
             telemetry,
             { ...runtimeOptions, emergencyFallbackTried: true }
+          );
+
+          if (fallbackResponse.ok) {
+            return fallbackResponse;
+          }
+
+          log.warn(
+            "EMERGENCY_FALLBACK",
+            `Emergency fallback to ${fallbackModelStr} failed with status ${fallbackResponse.status}. Resuming original provider account fallback.`
           );
         }
       }
