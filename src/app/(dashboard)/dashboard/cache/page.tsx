@@ -5,6 +5,7 @@ import { Card, Button, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import CacheEntriesTab from "./components/CacheEntriesTab";
+import CacheStatsCard from "../settings/components/CacheStatsCard";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -371,7 +372,9 @@ export default function CachePage() {
                         <div className="text-lg font-semibold tabular-nums text-green-500">
                           {promptCacheHitRate.toFixed(1)}%
                         </div>
-                        <div className="text-xs text-text-muted mt-0.5">{t("cacheHitRate")}</div>
+                        <div className="text-xs text-text-muted mt-0.5">
+                          {t("cacheHitRate")} ({pc.requestsWithCacheControl}/{pc.totalRequests})
+                        </div>
                       </div>
                       <div className="p-3 rounded-lg bg-surface/50">
                         <div className="text-lg font-semibold tabular-nums text-blue-400">
@@ -431,6 +434,9 @@ export default function CachePage() {
                   </div>
                 </Card>
               )}
+
+              {/* Prompt Cache Metrics (cumulative with reset) */}
+              <CacheStatsCard />
 
               {/* Cache Trend (24h) */}
               {trend.length > 0 && (

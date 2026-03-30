@@ -63,132 +63,141 @@ export default function CacheStatsCard() {
       : 0;
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-text-main flex items-center gap-2">
-          <span className="material-symbols-outlined text-[20px]">insights</span>
-          Prompt Cache Metrics
-        </h3>
-        <button
-          onClick={handleReset}
-          disabled={resetting}
-          className="px-3 py-1.5 text-xs rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
-        >
-          {resetting ? "Resetting..." : "Reset Metrics"}
-        </button>
-      </div>
-
-      {metrics ? (
-        <div className="space-y-4">
-          {/* Overview Stats */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-text-muted">Total Requests</p>
-              <p className="font-mono text-lg text-text-main">{metrics.totalRequests}</p>
-            </div>
-            <div>
-              <p className="text-text-muted">With Cache Control</p>
-              <p className="font-mono text-lg text-text-main">{metrics.requestsWithCacheControl}</p>
-            </div>
+    <Card>
+      <div className="p-5 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span
+              className="material-symbols-outlined text-base text-text-muted"
+              aria-hidden="true"
+            >
+              insights
+            </span>
+            <h2 className="font-medium text-sm">Prompt Cache Metrics</h2>
           </div>
-
-          {/* Token Stats */}
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-text-muted">Input Tokens</p>
-              <p className="font-mono text-lg text-text-main">
-                {metrics.totalInputTokens.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-text-muted">Cached Tokens (Read)</p>
-              <p className="font-mono text-lg text-green-400">
-                {metrics.totalCachedTokens.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-text-muted">Cache Creation (Write)</p>
-              <p className="font-mono text-lg text-blue-400">
-                {metrics.totalCacheCreationTokens.toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          {/* Cache Ratio */}
-          <div className="rounded-lg bg-surface/50 border border-border/30 p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-text-main">Cache Reuse Ratio</p>
-                <p className="text-xs text-text-muted">Cached tokens / Total input tokens</p>
-              </div>
-              <p className="font-mono text-xl text-green-400">{cacheHitRate.toFixed(1)}%</p>
-            </div>
-            {/* Progress bar */}
-            <div className="mt-2 h-2 rounded-full bg-border/30 overflow-hidden">
-              <div
-                className="h-full bg-green-500 transition-all duration-300"
-                style={{ width: `${Math.min(cacheHitRate, 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Savings */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-text-muted">Tokens Saved</p>
-              <p className="font-mono text-lg text-green-400">
-                {metrics.tokensSaved.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-text-muted">Est. Cost Saved</p>
-              <p className="font-mono text-lg text-green-400">
-                ${metrics.estimatedCostSaved.toFixed(4)}
-              </p>
-            </div>
-          </div>
-
-          {/* By Provider */}
-          {Object.keys(metrics.byProvider).length > 0 && (
-            <div className="pt-3 border-t border-border/30">
-              <p className="text-xs font-medium text-text-muted mb-2">By Provider</p>
-              <div className="space-y-2">
-                {Object.entries(metrics.byProvider).map(([provider, stats]) => {
-                  const providerCacheRate =
-                    stats.inputTokens > 0 ? (stats.cachedTokens / stats.inputTokens) * 100 : 0;
-                  return (
-                    <div
-                      key={provider}
-                      className="flex items-center justify-between px-3 py-2 rounded bg-surface/30 text-xs"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-text-main capitalize w-24">{provider}</span>
-                        <span className="text-text-muted">{stats.requests} reqs</span>
-                      </div>
-                      <div className="flex items-center gap-4 font-mono">
-                        <span className="text-text-muted" title="Input tokens">
-                          In: {stats.inputTokens.toLocaleString()}
-                        </span>
-                        <span className="text-green-400" title="Cached tokens (reads)">
-                          Cached: {stats.cachedTokens.toLocaleString()}
-                        </span>
-                        <span className="text-blue-400" title="Cache creation tokens (writes)">
-                          Write: {stats.cacheCreationTokens.toLocaleString()}
-                        </span>
-                        <span className="text-green-400 w-12 text-right">
-                          {providerCacheRate.toFixed(0)}%
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <button
+            onClick={handleReset}
+            disabled={resetting}
+            className="px-3 py-1.5 text-xs rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+          >
+            {resetting ? "Resetting..." : "Reset Metrics"}
+          </button>
         </div>
-      ) : (
-        <p className="text-sm text-text-muted">Loading cache metrics...</p>
-      )}
+
+        {metrics ? (
+          <div className="flex flex-col gap-4">
+            {/* Overview Stats */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-text-muted">Total Requests</p>
+                <p className="font-mono text-lg text-text-main">{metrics.totalRequests}</p>
+              </div>
+              <div>
+                <p className="text-text-muted">With Cache Control</p>
+                <p className="font-mono text-lg text-text-main">
+                  {metrics.requestsWithCacheControl}
+                </p>
+              </div>
+            </div>
+
+            {/* Token Stats */}
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-text-muted">Input Tokens</p>
+                <p className="font-mono text-lg text-text-main">
+                  {metrics.totalInputTokens.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-text-muted">Cached Tokens (Read)</p>
+                <p className="font-mono text-lg text-green-400">
+                  {metrics.totalCachedTokens.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-text-muted">Cache Creation (Write)</p>
+                <p className="font-mono text-lg text-blue-400">
+                  {metrics.totalCacheCreationTokens.toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            {/* Cache Ratio */}
+            <div className="rounded-lg bg-surface/50 border border-border/30 p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-text-main">Cache Reuse Ratio</p>
+                  <p className="text-xs text-text-muted">Cached tokens / Total input tokens</p>
+                </div>
+                <p className="font-mono text-xl text-green-400">{cacheHitRate.toFixed(1)}%</p>
+              </div>
+              {/* Progress bar */}
+              <div className="mt-2 h-2 rounded-full bg-border/30 overflow-hidden">
+                <div
+                  className="h-full bg-green-500 transition-all duration-300"
+                  style={{ width: `${Math.min(cacheHitRate, 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Savings */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-text-muted">Tokens Saved</p>
+                <p className="font-mono text-lg text-green-400">
+                  {metrics.tokensSaved.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-text-muted">Est. Cost Saved</p>
+                <p className="font-mono text-lg text-green-400">
+                  ${metrics.estimatedCostSaved.toFixed(4)}
+                </p>
+              </div>
+            </div>
+
+            {/* By Provider */}
+            {Object.keys(metrics.byProvider).length > 0 && (
+              <div className="pt-3 border-t border-border/30">
+                <p className="text-xs font-medium text-text-muted mb-2">By Provider</p>
+                <div className="space-y-2">
+                  {Object.entries(metrics.byProvider).map(([provider, stats]) => {
+                    const providerCacheRate =
+                      stats.inputTokens > 0 ? (stats.cachedTokens / stats.inputTokens) * 100 : 0;
+                    return (
+                      <div
+                        key={provider}
+                        className="flex items-center justify-between px-3 py-2 rounded bg-surface/30 text-xs"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-text-main capitalize w-24">{provider}</span>
+                          <span className="text-text-muted">{stats.requests} reqs</span>
+                        </div>
+                        <div className="flex items-center gap-4 font-mono">
+                          <span className="text-text-muted" title="Input tokens">
+                            In: {stats.inputTokens.toLocaleString()}
+                          </span>
+                          <span className="text-green-400" title="Cached tokens (reads)">
+                            Cached: {stats.cachedTokens.toLocaleString()}
+                          </span>
+                          <span className="text-blue-400" title="Cache creation tokens (writes)">
+                            Write: {stats.cacheCreationTokens.toLocaleString()}
+                          </span>
+                          <span className="text-green-400 w-12 text-right">
+                            {providerCacheRate.toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-text-muted">Loading cache metrics...</p>
+        )}
+      </div>
     </Card>
   );
 }
