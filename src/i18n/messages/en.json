@@ -2920,6 +2920,19 @@
     "clearSuccess": "Cache cleared. {count} expired entries removed.",
     "clearError": "Failed to clear cache.",
     "unavailable": "Cache unavailable",
-    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running."
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "promptCache": "Prompt Cache (Provider-Side)",
+    "cachedRequests": "Cached Requests",
+    "cacheHitRate": "Cache Hit Rate",
+    "cachedTokens": "Cached Tokens",
+    "cacheCreationTokens": "Cache Creation Tokens",
+    "byProvider": "Breakdown by Provider",
+    "provider": "Provider",
+    "requests": "Requests",
+    "inputTokens": "Input Tokens",
+    "cachedTokensCol": "Cached",
+    "cacheCreation": "Creation",
+    "trend24h": "Cache Trend (24h)",
+    "cached": "Cached"
   }
 }
