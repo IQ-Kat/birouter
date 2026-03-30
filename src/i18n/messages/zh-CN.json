@@ -1672,7 +1672,13 @@
     "modelsPathHint": "为验证流程自定义模型路径（例如：/v4/models）",
     "allModelsAlreadyImported": "所有模型已导入",
     "noNewModelsToImport": "没有新模型可导入 — 所有模型已在注册表或自定义模型列表中",
-    "skippingExistingModels": "跳过 {count} 个已有模型"
+    "skippingExistingModels": "跳过 {count} 个已有模型",
+    "applyCodexAuthLocal": "Apply auth",
+    "exportCodexAuthFile": "Export auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExported": "Codex auth.json exported",
+    "codexAuthExportFailed": "Failed to export Codex auth.json"
   },
   "settings": {
     "title": "设置",
@@ -2084,7 +2090,18 @@
     "routingAdvancedGuideHint2": "如果提供商的质量/成本各不相同，请从“成本选择”开始进行后台工作，并从“最少使用”开始进行平衡磨损。",
     "comboDefaultsGuideTitle": "如何调整组合默认值",
     "comboDefaultsGuideHint1": "在低延迟流中保持较低的重试次数；仅增加长生成任务的超时。",
-    "comboDefaultsGuideHint2": "当一个提供程序需要与全局默认值不同的超时/重试行为时，请使用提供程序覆盖。"
+    "comboDefaultsGuideHint2": "当一个提供程序需要与全局默认值不同的超时/重试行为时，请使用提供程序覆盖。",
+    "debugToggle": "Enable Debug Mode",
+    "sidebarVisibilityToggle": "Show Sidebar Items",
+    "cacheSettings": "Cache Settings",
+    "semanticCache": "Semantic Cache",
+    "maxEntries": "Max Entries",
+    "ttlMinutes": "TTL (minutes)",
+    "strategy": "Strategy",
+    "preserveClientCache": "Preserve Client Cache",
+    "enabled": "Enabled",
+    "loading": "Loading...",
+    "save": "Save"
   },
   "translator": {
     "title": "翻译者",
@@ -2908,6 +2925,30 @@
     "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
     "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
     "activeDedupKeys": "Active Dedup Keys",
-    "dedupWindow": "Dedup Window"
+    "dedupWindow": "Dedup Window",
+    "promptCache": "Prompt Cache (Provider-Side)",
+    "cachedRequests": "Cached Requests",
+    "cacheHitRate": "Cache Hit Rate",
+    "cachedTokens": "Cached Tokens",
+    "cacheCreationTokens": "Cache Creation Tokens",
+    "byProvider": "Breakdown by Provider",
+    "provider": "Provider",
+    "requests": "Requests",
+    "inputTokens": "Input Tokens",
+    "cachedTokensCol": "Cached",
+    "cacheCreation": "Creation",
+    "trend24h": "Cache Trend (24h)",
+    "cached": "Cached",
+    "overview": "Overview",
+    "entries": "Entries",
+    "searchEntries": "Search entries...",
+    "search": "Search",
+    "loading": "Loading...",
+    "noEntries": "No cache entries found",
+    "signature": "Signature",
+    "model": "Model",
+    "created": "Created",
+    "expires": "Expires",
+    "actions": "Actions"
   }
 }

@@ -16,6 +16,8 @@ import CodexServiceTierTab from "./components/CodexServiceTierTab";
 import SystemPromptTab from "./components/SystemPromptTab";
 import ModelAliasesTab from "./components/ModelAliasesTab";
 import BackgroundDegradationTab from "./components/BackgroundDegradationTab";
+
+import CacheStatsCard from "./components/CacheStatsCard";
 import CacheSettingsTab from "./components/CacheSettingsTab";
 import ResilienceTab from "./components/ResilienceTab";
 
@@ -87,6 +89,7 @@ export default function SettingsPage() {
               <ThinkingBudgetTab />
               <CodexServiceTierTab />
               <SystemPromptTab />
+              <CacheStatsCard />
               <CacheSettingsTab />
             </div>
           )}
