@@ -211,7 +211,12 @@ export default function ProviderLimits() {
           USAGE_SUPPORTED_PROVIDERS.includes(conn.provider) &&
           (conn.authType === "oauth" || conn.authType === "apikey")
       );
-      await Promise.all(usageConnections.map((conn) => fetchQuota(conn.id, conn.provider)));
+      // Fix Issue #784: Fetch quotas in chunks of 5 to avoid spamming the backend/provider APIs and hanging the UI.
+      const chunkSize = 5;
+      for (let i = 0; i < usageConnections.length; i += chunkSize) {
+        const chunk = usageConnections.slice(i, i + chunkSize);
+        await Promise.all(chunk.map((conn) => fetchQuota(conn.id, conn.provider)));
+      }
       setLastUpdated(new Date());
     } catch (error) {
       console.error("Error refreshing all:", error);

@@ -151,7 +151,7 @@ export function translateNonStreamingResponse(
     if (toolCalls.length > 0) {
       message.tool_calls = toolCalls;
     }
-    if (!message.content && !message.tool_calls) {
+    if (message.content === undefined) {
       message.content = "";
     }
 
@@ -352,7 +352,7 @@ export function translateNonStreamingResponse(
       if (toolCalls.length > 0) {
         message.tool_calls = toolCalls;
       }
-      if (!message.content && !message.tool_calls) {
+      if (message.content === undefined) {
         message.content = "";
       }
 
@@ -410,17 +410,30 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
 
   const content = [];
 
+  let hasTextOrReasoning = false;
+
   if (messageObj.reasoning_content) {
+    hasTextOrReasoning = true;
     content.push({
       type: "thinking",
       thinking: toString(messageObj.reasoning_content),
     });
   }
 
-  if (messageObj.content) {
+  // Always include text if it exists (even empty string), or if there are no tool calls and no reasoning
+  const hasToolCalls = Array.isArray(messageObj.tool_calls) && messageObj.tool_calls.length > 0;
+
+  if (messageObj.content !== undefined && messageObj.content !== null) {
+    hasTextOrReasoning = true;
     content.push({
       type: "text",
       text: toString(messageObj.content),
+    });
+  } else if (!hasTextOrReasoning) {
+    // Claude format expects a text block even before tool calls (or if empty)
+    content.push({
+      type: "text",
+      text: "",
     });
   }
 
