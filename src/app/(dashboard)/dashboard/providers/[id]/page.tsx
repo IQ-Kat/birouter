@@ -36,6 +36,7 @@ import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
+import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -331,6 +332,10 @@ interface CompatibleModelsSectionProps {
   providerStorageAlias: string;
   providerDisplayAlias: string;
   modelAliases: Record<string, string>;
+  fallbackModels?: CompatModelRow[];
+  description: string;
+  inputLabel: string;
+  inputPlaceholder: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onSetAlias: (modelId: string, alias: string, providerStorageAlias?: string) => Promise<void>;
@@ -850,6 +855,7 @@ export default function ProviderDetailPage() {
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible;
+  const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
 
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
@@ -1469,7 +1475,10 @@ export default function ProviderDetailPage() {
         logs: [
           t("foundModelsStartingImport", { count: newModels.length }),
           ...(newModels.length < fetchedModels.length
-            ? [t("skippingExistingModels", { count: fetchedModels.length - newModels.length }) || `Skipping ${fetchedModels.length - newModels.length} existing models`]
+            ? [
+                t("skippingExistingModels", { count: fetchedModels.length - newModels.length }) ||
+                  `Skipping ${fetchedModels.length - newModels.length} existing models`,
+              ]
             : []),
         ],
       }));
@@ -1664,6 +1673,14 @@ export default function ProviderDetailPage() {
   };
 
   const [clearingModels, setClearingModels] = useState(false);
+  const providerAliasEntries = useMemo(
+    () =>
+      Object.entries(modelAliases).filter(([, model]) =>
+        (model as string).startsWith(`${providerStorageAlias}/`)
+      ),
+    [modelAliases, providerStorageAlias]
+  );
+
   const handleClearAllModels = async () => {
     if (clearingModels) return;
     if (!confirm(t("clearAllModelsConfirm"))) return;
@@ -1675,11 +1692,8 @@ export default function ProviderDetailPage() {
       );
       if (res.ok) {
         // Also delete all aliases that belong to this provider
-        const aliasEntries = Object.entries(modelAliases).filter(([, model]) =>
-          (model as string).startsWith(`${providerStorageAlias}/`)
-        );
         await Promise.all(
-          aliasEntries.map(([alias]) =>
+          providerAliasEntries.map(([alias]) =>
             fetch(`/api/models/alias?alias=${encodeURIComponent(alias)}`, {
               method: "DELETE",
             }).catch(() => {})
@@ -1806,7 +1820,8 @@ export default function ProviderDetailPage() {
       </button>
     );
 
-    const clearAllButton = modelMeta.customModels.length > 0 && (
+    const clearAllButton = (modelMeta.customModels.length > 0 ||
+      providerAliasEntries.length > 0) && (
       <button
         onClick={handleClearAllModels}
         disabled={clearingModels}
@@ -1818,7 +1833,21 @@ export default function ProviderDetailPage() {
       </button>
     );
 
-    if (isCompatible) {
+    if (isManagedAvailableModelsProvider) {
+      const description =
+        providerId === "openrouter"
+          ? t("openRouterAnyModelHint")
+          : t("compatibleModelsDescription", {
+              type: isAnthropicCompatible ? t("anthropic") : t("openai"),
+            });
+      const inputLabel = providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
+      const inputPlaceholder =
+        providerId === "openrouter"
+          ? t("openRouterModelPlaceholder")
+          : isAnthropicCompatible
+            ? t("anthropicCompatibleModelPlaceholder")
+            : t("openaiCompatibleModelPlaceholder");
+
       return (
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -1829,6 +1858,10 @@ export default function ProviderDetailPage() {
             providerStorageAlias={providerStorageAlias}
             providerDisplayAlias={providerDisplayAlias}
             modelAliases={modelAliases}
+            fallbackModels={providerId === "openrouter" ? modelMeta.customModels : undefined}
+            description={description}
+            inputLabel={inputLabel}
+            inputPlaceholder={inputPlaceholder}
             copied={copied}
             onCopy={copy}
             onSetAlias={handleSetAlias}
@@ -2367,8 +2400,8 @@ export default function ProviderDetailPage() {
           <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
           {renderModelsSection()}
 
-          {/* Custom Models — available for non-compatible, non-search providers */}
-          {!isCompatible && (
+          {/* Custom Models — available for providers without managed available-model metadata */}
+          {!isManagedAvailableModelsProvider && (
             <CustomModelsSection
               providerId={providerId}
               providerAlias={providerDisplayAlias}
@@ -3410,6 +3443,10 @@ function CompatibleModelsSection({
   providerStorageAlias,
   providerDisplayAlias,
   modelAliases,
+  fallbackModels = [],
+  description,
+  inputLabel,
+  inputPlaceholder,
   copied,
   onCopy,
   onSetAlias,
@@ -3430,33 +3467,45 @@ function CompatibleModelsSection({
   const [importing, setImporting] = useState(false);
   const notify = useNotificationStore();
 
-  const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
-    (model as string).startsWith(`${providerStorageAlias}/`)
+  const providerAliases = useMemo(
+    () =>
+      Object.entries(modelAliases).filter(([, model]: [string, any]) =>
+        (model as string).startsWith(`${providerStorageAlias}/`)
+      ),
+    [modelAliases, providerStorageAlias]
   );
 
-  const allModels = providerAliases.map(([alias, fullModel]: [string, any]) => ({
-    modelId: (fullModel as string).replace(`${providerStorageAlias}/`, ""),
-    fullModel,
-    alias,
-  }));
+  const allModels = useMemo(() => {
+    const rows = providerAliases.map(([alias, fullModel]: [string, any]) => ({
+      modelId: (fullModel as string).replace(`${providerStorageAlias}/`, ""),
+      alias,
+    }));
 
-  const generateDefaultAlias = (modelId) => {
-    const parts = modelId.split("/");
-    return parts[parts.length - 1];
-  };
+    const seenModelIds = new Set(rows.map((row) => row.modelId));
+    for (const model of fallbackModels) {
+      if (!model?.id || seenModelIds.has(model.id)) continue;
+      rows.push({ modelId: model.id, alias: null });
+      seenModelIds.add(model.id);
+    }
 
-  const resolveAlias = (modelId) => {
-    const baseAlias = generateDefaultAlias(modelId);
-    if (!modelAliases[baseAlias]) return baseAlias;
-    const prefixedAlias = `${providerDisplayAlias}-${baseAlias}`;
-    if (!modelAliases[prefixedAlias]) return prefixedAlias;
-    return null;
-  };
+    return rows;
+  }, [fallbackModels, providerAliases, providerStorageAlias]);
+
+  const resolveAlias = useCallback(
+    (modelId: string, workingAliases: Record<string, string>) =>
+      resolveManagedModelAlias({
+        modelId,
+        fullModel: `${providerStorageAlias}/${modelId}`,
+        providerDisplayAlias,
+        existingAliases: workingAliases,
+      }),
+    [providerDisplayAlias, providerStorageAlias]
+  );
 
   const handleAdd = async () => {
     if (!newModel.trim() || adding) return;
     const modelId = newModel.trim();
-    const resolvedAlias = resolveAlias(modelId);
+    const resolvedAlias = resolveAlias(modelId, modelAliases);
     if (!resolvedAlias) {
       notify.error(t("allSuggestedAliasesExist"));
       return;
@@ -3506,6 +3555,7 @@ function CompatibleModelsSection({
 
     setImporting(true);
     try {
+      const workingAliases = { ...modelAliases };
       await onImportWithProgress(
         // fetchModels callback
         async () => {
@@ -3518,7 +3568,7 @@ function CompatibleModelsSection({
         async (model: any) => {
           const modelId = model.id || model.name || model.model;
           if (!modelId) return false;
-          const resolvedAlias = resolveAlias(modelId);
+          const resolvedAlias = resolveAlias(modelId, workingAliases);
           if (!resolvedAlias) return false;
 
           // Save to customModels DB FIRST - only create alias if this succeeds
@@ -3540,6 +3590,7 @@ function CompatibleModelsSection({
 
           // Only create alias after customModel is saved successfully
           await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
+          workingAliases[resolvedAlias] = `${providerStorageAlias}/${modelId}`;
           return true;
         }
       );
@@ -3554,7 +3605,7 @@ function CompatibleModelsSection({
   const canImport = connections.some((conn) => conn.isActive !== false);
 
   // Handle delete: remove from both alias and customModels DB
-  const handleDeleteModel = async (modelId: string, alias: string) => {
+  const handleDeleteModel = async (modelId: string, alias?: string | null) => {
     try {
       // Remove from customModels DB
       const res = await fetch(
@@ -3565,7 +3616,9 @@ function CompatibleModelsSection({
         throw new Error(t("failedRemoveModelFromDatabase"));
       }
       // Also delete the alias
-      await onDeleteAlias(alias);
+      if (alias) {
+        await onDeleteAlias(alias);
+      }
       notify.success(t("modelRemovedSuccess"));
       onModelsChanged?.();
     } catch (error) {
@@ -3576,11 +3629,7 @@ function CompatibleModelsSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-text-muted">
-        {t("compatibleModelsDescription", {
-          type: isAnthropic ? t("anthropic") : t("openai"),
-        })}
-      </p>
+      <p className="text-sm text-text-muted">{description}</p>
 
       <div className="flex items-end gap-2 flex-wrap">
         <div className="flex-1 min-w-[240px]">
@@ -3588,7 +3637,7 @@ function CompatibleModelsSection({
             htmlFor="new-compatible-model-input"
             className="text-xs text-text-muted mb-1 block"
           >
-            {t("modelId")}
+            {inputLabel}
           </label>
           <input
             id="new-compatible-model-input"
@@ -3596,11 +3645,7 @@ function CompatibleModelsSection({
             value={newModel}
             onChange={(e) => setNewModel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder={
-              isAnthropic
-                ? t("anthropicCompatibleModelPlaceholder")
-                : t("openaiCompatibleModelPlaceholder")
-            }
+            placeholder={inputPlaceholder}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
           />
         </div>
@@ -3622,9 +3667,9 @@ function CompatibleModelsSection({
 
       {allModels.length > 0 && (
         <div className="flex flex-col gap-3">
-          {allModels.map(({ modelId, fullModel, alias }) => (
+          {allModels.map(({ modelId, alias }) => (
             <PassthroughModelRow
-              key={fullModel as string}
+              key={`${providerStorageAlias}:${modelId}`}
               modelId={modelId}
               fullModel={`${providerDisplayAlias}/${modelId}`}
               copied={copied}
@@ -3649,6 +3694,10 @@ CompatibleModelsSection.propTypes = {
   providerStorageAlias: PropTypes.string.isRequired,
   providerDisplayAlias: PropTypes.string.isRequired,
   modelAliases: PropTypes.object.isRequired,
+  fallbackModels: PropTypes.array,
+  description: PropTypes.string.isRequired,
+  inputLabel: PropTypes.string.isRequired,
+  inputPlaceholder: PropTypes.string.isRequired,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
   onSetAlias: PropTypes.func.isRequired,
