@@ -187,7 +187,12 @@
     "cliToolsShort": "Ferramentas",
     "searchTools": "Search Tools",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System"
   },
   "themesPage": {
     "title": "Themes",
@@ -1032,7 +1037,25 @@
     "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
     "searchProvider": "Search Provider",
     "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected.",
-    "cloudflaredUrlNotice": "Cria um Quick Tunnel temporário do Cloudflare. A URL muda a cada reinício."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "mcpDashboard": {
     "loading": "Carregando painel MCP...",
@@ -2021,7 +2044,10 @@
     "routingAdvancedGuideHint2": "Se os fornecedores variarem em qualidade/custo, comece com Opção de custo para trabalho em segundo plano e Menos usado para desgaste equilibrado.",
     "comboDefaultsGuideTitle": "Como ajustar os padrões de combinação",
     "comboDefaultsGuideHint1": "Mantenha as tentativas baixas em fluxos de baixa latência; aumente o tempo limite apenas para tarefas de geração longa.",
-    "comboDefaultsGuideHint2": "Use substituições de provedor quando um provedor precisar de um comportamento de tempo limite/nova tentativa diferente dos padrões globais."
+    "comboDefaultsGuideHint2": "Use substituições de provedor quando um provedor precisar de um comportamento de tempo limite/nova tentativa diferente dos padrões globais.",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a..."
   },
   "translator": {
     "title": "Tradutor",

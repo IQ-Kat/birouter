@@ -109,7 +109,12 @@
     "autoCombo": "Auto Combo",
     "searchTools": "Search Tools",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System"
   },
   "themesPage": {
     "title": "Themes",
@@ -712,6 +717,11 @@
         "when": "Cost reduction is your top priority.",
         "avoid": "Pricing data is missing or outdated.",
         "example": "Background or batch jobs where lower cost is preferred."
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -805,6 +815,13 @@
         "tip1": "Ensure pricing coverage for all selected models.",
         "tip2": "Keep a quality fallback for hard prompts.",
         "tip3": "Use for batch/background jobs where cost is the main KPI."
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "Free Stack ($0)",
@@ -928,7 +945,25 @@
     "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
     "searchProvider": "Search Provider",
     "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected.",
-    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "mcpDashboard": {
     "loading": "Loading MCP dashboard...",
@@ -1493,7 +1528,13 @@
     "compatUpstreamRemoveRow": "Remove row",
     "allModelsAlreadyImported": "सभी मॉडल पहले से ही आयातित हैं",
     "noNewModelsToImport": "आयात करने के लिए कोई नए मॉडल नहीं — सभी मॉडल पहले से ही रजिस्ट्री या कस्टम मॉडल सूची में हैं",
-    "skippingExistingModels": "{count} मौजूदा मॉडल छोड़े जा रहे हैं"
+    "skippingExistingModels": "{count} मौजूदा मॉडल छोड़े जा रहे हैं",
+    "applyCodexAuthLocal": "Apply auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
+    "codexAuthExported": "Codex auth.json exported",
+    "exportCodexAuthFile": "Export auth"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -1902,7 +1943,10 @@
     "routingAdvancedGuideHint2": "यदि प्रदाता गुणवत्ता/लागत में भिन्न हैं, तो पृष्ठभूमि कार्य के लिए कॉस्ट ऑप्ट और संतुलित पहनावे के लिए कम से कम उपयोग से शुरुआत करें।",
     "comboDefaultsGuideTitle": "कॉम्बो डिफॉल्ट्स को कैसे ट्यून करें",
     "comboDefaultsGuideHint1": "कम-विलंबता प्रवाह में पुनः प्रयास कम रखें; केवल लंबी पीढ़ी के कार्यों के लिए टाइमआउट बढ़ाएँ।",
-    "comboDefaultsGuideHint2": "जब एक प्रदाता को वैश्विक डिफ़ॉल्ट की तुलना में अलग टाइमआउट/पुनः प्रयास व्यवहार की आवश्यकता होती है तो प्रदाता ओवरराइड का उपयोग करें।"
+    "comboDefaultsGuideHint2": "जब एक प्रदाता को वैश्विक डिफ़ॉल्ट की तुलना में अलग टाइमआउट/पुनः प्रयास व्यवहार की आवश्यकता होती है तो प्रदाता ओवरराइड का उपयोग करें।",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a..."
   },
   "translator": {
     "title": "अनुवादक",

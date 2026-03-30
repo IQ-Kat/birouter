@@ -187,7 +187,12 @@
     "autoCombo": "Auto Combo",
     "searchTools": "Search Tools",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System"
   },
   "themesPage": {
     "title": "Temaer",
@@ -804,6 +809,11 @@
         "when": "Omkostningsreduktion er din højeste prioritet.",
         "avoid": "Prissætningsdata mangler eller er forældede.",
         "example": "Baggrunds- eller batchjob, hvor lavere omkostninger foretrækkes."
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -897,6 +907,13 @@
         "tip1": "Ensure pricing coverage for all selected models.",
         "tip2": "Keep a quality fallback for hard prompts.",
         "tip3": "Use for batch/background jobs where cost is the main KPI."
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "Free Stack ($0)",
@@ -1020,7 +1037,25 @@
     "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
     "searchProvider": "Search Provider",
     "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected.",
-    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "mcpDashboard": {
     "loading": "Indlæser MCP-dashboard...",
@@ -1594,7 +1629,13 @@
     "autoSyncToggleFailed": "Automatisk synkronisering kunne ikke slås til eller fra",
     "allModelsAlreadyImported": "Alle modeller er allerede importeret",
     "noNewModelsToImport": "Ingen nye modeller at importere — alle modeller findes allerede i registreret eller brugerdefineret liste",
-    "skippingExistingModels": "Springer {count} eksisterende modeller over"
+    "skippingExistingModels": "Springer {count} eksisterende modeller over",
+    "applyCodexAuthLocal": "Apply auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
+    "codexAuthExported": "Codex auth.json exported",
+    "exportCodexAuthFile": "Export auth"
   },
   "settings": {
     "title": "Indstillinger",
@@ -2003,7 +2044,10 @@
     "routingAdvancedGuideHint2": "Hvis udbydere varierer i kvalitet/omkostninger, start med Cost Opt for baggrundsarbejde og Mindst brugt for balanceret slid.",
     "comboDefaultsGuideTitle": "Sådan indstiller du combo-standarder",
     "comboDefaultsGuideHint1": "Hold lave genforsøg i flows med lav latens; øg kun timeout for lange generationsopgaver.",
-    "comboDefaultsGuideHint2": "Brug udbydertilsidesættelser, når en udbyder har brug for en anden timeout-/genforsøgsadfærd end globale standardindstillinger."
+    "comboDefaultsGuideHint2": "Brug udbydertilsidesættelser, når en udbyder har brug for en anden timeout-/genforsøgsadfærd end globale standardindstillinger.",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a..."
   },
   "translator": {
     "title": "Oversætter",
