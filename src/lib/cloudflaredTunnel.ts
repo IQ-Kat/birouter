@@ -24,6 +24,18 @@ type AssetSpec = {
   downloadUrl: string;
 };
 
+type CloudflaredRuntimeDirs = {
+  runtimeRoot: string;
+  homeDir: string;
+  configDir: string;
+  cacheDir: string;
+  dataDir: string;
+  tempDir: string;
+  userProfileDir: string;
+  appDataDir: string;
+  localAppDataDir: string;
+};
+
 type BinaryResolution = {
   binaryPath: string | null;
   source: CloudflaredInstallSource | null;
@@ -125,6 +137,24 @@ function getLogFilePath() {
   return path.join(getTunnelDir(), "quick-tunnel.log");
 }
 
+export function getCloudflaredRuntimeDirs(): CloudflaredRuntimeDirs {
+  const runtimeRoot = path.join(getTunnelDir(), "runtime");
+  const homeDir = path.join(runtimeRoot, "home");
+  const userProfileDir = path.join(runtimeRoot, "userprofile");
+
+  return {
+    runtimeRoot,
+    homeDir,
+    configDir: path.join(runtimeRoot, "config"),
+    cacheDir: path.join(runtimeRoot, "cache"),
+    dataDir: path.join(runtimeRoot, "data"),
+    tempDir: path.join(runtimeRoot, "tmp"),
+    userProfileDir,
+    appDataDir: path.join(userProfileDir, "AppData", "Roaming"),
+    localAppDataDir: path.join(userProfileDir, "AppData", "Local"),
+  };
+}
+
 function getLocalTargetUrl() {
   const { apiPort } = getRuntimePorts();
   return `http://127.0.0.1:${apiPort}`;
@@ -136,6 +166,13 @@ function getTunnelApiUrl(publicUrl: string | null) {
 
 async function ensureTunnelDir() {
   await fs.mkdir(path.join(getTunnelDir(), "bin"), { recursive: true });
+}
+
+async function ensureTunnelRuntimeDirs() {
+  const runtimeDirs = getCloudflaredRuntimeDirs();
+  await Promise.all(
+    Object.values(runtimeDirs).map((dirPath) => fs.mkdir(dirPath, { recursive: true }))
+  );
 }
 
 async function readStateFile(): Promise<PersistedTunnelState> {
@@ -202,7 +239,8 @@ export function extractTryCloudflareUrl(text: string) {
 }
 
 export function buildCloudflaredChildEnv(
-  sourceEnv: NodeJS.ProcessEnv = process.env
+  sourceEnv: NodeJS.ProcessEnv = process.env,
+  runtimeDirs: CloudflaredRuntimeDirs = getCloudflaredRuntimeDirs()
 ): NodeJS.ProcessEnv {
   const childEnv: NodeJS.ProcessEnv = {};
 
@@ -213,7 +251,23 @@ export function buildCloudflaredChildEnv(
     }
   }
 
+  childEnv.HOME = runtimeDirs.homeDir;
+  childEnv.XDG_CONFIG_HOME = runtimeDirs.configDir;
+  childEnv.XDG_CACHE_HOME = runtimeDirs.cacheDir;
+  childEnv.XDG_DATA_HOME = runtimeDirs.dataDir;
+  childEnv.USERPROFILE = runtimeDirs.userProfileDir;
+  childEnv.APPDATA = runtimeDirs.appDataDir;
+  childEnv.LOCALAPPDATA = runtimeDirs.localAppDataDir;
+
+  if (!childEnv.TMPDIR) childEnv.TMPDIR = runtimeDirs.tempDir;
+  if (!childEnv.TMP) childEnv.TMP = runtimeDirs.tempDir;
+  if (!childEnv.TEMP) childEnv.TEMP = runtimeDirs.tempDir;
+
   return childEnv;
+}
+
+export function getCloudflaredStartArgs(targetUrl: string) {
+  return ["tunnel", "--url", targetUrl, "--no-autoupdate"];
 }
 
 export function getCloudflaredAssetSpec(
@@ -493,6 +547,7 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
 
     await stopExistingTunnel();
     await ensureTunnelDir();
+    await ensureTunnelRuntimeDirs();
     await fs.writeFile(getLogFilePath(), "", "utf8");
 
     await writeStateFile({
@@ -509,7 +564,7 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
 
     const child = spawn(
       binary.binaryPath as string,
-      ["tunnel", "--url", targetUrl, "--no-autoupdate", "--protocol", "http2"],
+      getCloudflaredStartArgs(targetUrl),
       {
         stdio: ["ignore", "pipe", "pipe"],
         env: buildCloudflaredChildEnv(),
