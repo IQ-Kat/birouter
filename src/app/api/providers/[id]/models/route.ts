@@ -139,19 +139,7 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
         name: m.displayName || (m.name || "").replace(/^models\//, ""),
       })),
   },
-  "gemini-cli": {
-    url: "https://generativelanguage.googleapis.com/v1beta/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) =>
-      (data.models || []).map((m) => ({
-        ...m,
-        id: (m.name || m.id || "").replace(/^models\//, ""),
-        name: m.displayName || (m.name || "").replace(/^models\//, ""),
-      })),
-  },
+  // gemini-cli handled via retrieveUserQuota (see GET handler)
   qwen: {
     url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
     method: "GET",
@@ -503,6 +491,71 @@ export async function GET(
       const models = data.data || data.models || [];
 
       return buildResponse({ provider, connectionId, models });
+    }
+
+    if (provider === "gemini-cli") {
+      // Gemini CLI doesn't have a /models endpoint. Instead, query the quota
+      // endpoint to discover available models from the quota buckets.
+      if (!accessToken) {
+        return NextResponse.json(
+          { error: "No access token for Gemini CLI. Please reconnect OAuth." },
+          { status: 400 }
+        );
+      }
+
+      const psd = asRecord(connection.providerSpecificData);
+      const projectId =
+        connection.projectId || psd.projectId || null;
+
+      if (!projectId) {
+        return NextResponse.json(
+          { error: "Gemini CLI project ID not available. Please reconnect OAuth." },
+          { status: 400 }
+        );
+      }
+
+      try {
+        const quotaRes = await fetch(
+          "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ project: projectId }),
+          }
+        );
+
+        if (!quotaRes.ok) {
+          const errText = await quotaRes.text();
+          console.log(`[models] Gemini CLI quota fetch failed (${quotaRes.status}):`, errText);
+          return NextResponse.json(
+            { error: `Failed to fetch Gemini CLI models: ${quotaRes.status}` },
+            { status: quotaRes.status }
+          );
+        }
+
+        const quotaData = await quotaRes.json();
+        const buckets: Array<{ modelId?: string; tokenType?: string }> =
+          quotaData.buckets || [];
+
+        const models = buckets
+          .filter((b) => b.modelId)
+          .map((b) => ({
+            id: b.modelId,
+            name: b.modelId,
+            owned_by: "google",
+          }));
+
+        return buildResponse({ provider, connectionId, models });
+      } catch (err: any) {
+        console.log("[models] Gemini CLI model fetch error:", err.message);
+        return NextResponse.json(
+          { error: "Failed to fetch Gemini CLI models" },
+          { status: 500 }
+        );
+      }
     }
 
     if (isAnthropicCompatibleProvider(provider)) {
