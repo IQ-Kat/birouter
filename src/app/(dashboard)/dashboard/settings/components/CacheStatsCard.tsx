@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -33,19 +33,26 @@ interface CacheMetrics {
   lastUpdated: string;
 }
 
+const REFRESH_INTERVAL_MS = 10_000;
+const REFRESH_INTERVAL_SECONDS = REFRESH_INTERVAL_MS / 1000;
+
 export default function CacheStatsCard() {
   const [metrics, setMetrics] = useState<CacheMetrics | null>(null);
   const [resetting, setResetting] = useState(false);
-  const t = useTranslations("settings");
+  const t = useTranslations("cache");
 
-  const fetchMetrics = () => {
+  const fetchMetrics = useCallback(() => {
     fetch("/api/settings/cache-metrics")
       .then((r) => r.json())
       .then(setMetrics)
       .catch(() => {});
-  };
+  }, []);
 
-  useEffect(fetchMetrics, []);
+  useEffect(() => {
+    void fetchMetrics();
+    const id = setInterval(() => void fetchMetrics(), REFRESH_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [fetchMetrics]);
 
   const handleReset = async () => {
     setResetting(true);
@@ -73,15 +80,20 @@ export default function CacheStatsCard() {
             >
               insights
             </span>
-            <h2 className="font-medium text-sm">Prompt Cache Metrics</h2>
+            <h2 className="font-medium text-sm">{t("cacheMetrics")}</h2>
           </div>
-          <button
-            onClick={handleReset}
-            disabled={resetting}
-            className="px-3 py-1.5 text-xs rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
-          >
-            {resetting ? "Resetting..." : "Reset Metrics"}
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-text-muted">
+              {t("autoRefresh", { seconds: REFRESH_INTERVAL_SECONDS })}
+            </span>
+            <button
+              onClick={handleReset}
+              disabled={resetting}
+              className="px-3 py-1.5 text-xs rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+            >
+              {resetting ? t("resetting") : t("resetMetrics")}
+            </button>
+          </div>
         </div>
 
         {metrics ? (
@@ -89,11 +101,11 @@ export default function CacheStatsCard() {
             {/* Overview Stats */}
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-text-muted">Total Requests</p>
+                <p className="text-text-muted">{t("totalRequests")}</p>
                 <p className="font-mono text-lg text-text-main">{metrics.totalRequests}</p>
               </div>
               <div>
-                <p className="text-text-muted">With Cache Control</p>
+                <p className="text-text-muted">{t("withCacheControl")}</p>
                 <p className="font-mono text-lg text-text-main">
                   {metrics.requestsWithCacheControl}
                 </p>
@@ -103,19 +115,19 @@ export default function CacheStatsCard() {
             {/* Token Stats */}
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
-                <p className="text-text-muted">Input Tokens</p>
+                <p className="text-text-muted">{t("inputTokens")}</p>
                 <p className="font-mono text-lg text-text-main">
                   {metrics.totalInputTokens.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-text-muted">Cached Tokens (Read)</p>
+                <p className="text-text-muted">{t("cachedTokensRead")}</p>
                 <p className="font-mono text-lg text-green-400">
                   {metrics.totalCachedTokens.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-text-muted">Cache Creation (Write)</p>
+                <p className="text-text-muted">{t("cacheCreationWrite")}</p>
                 <p className="font-mono text-lg text-blue-400">
                   {metrics.totalCacheCreationTokens.toLocaleString()}
                 </p>
@@ -126,8 +138,8 @@ export default function CacheStatsCard() {
             <div className="rounded-lg bg-surface/50 border border-border/30 p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-text-main">Cache Reuse Ratio</p>
-                  <p className="text-xs text-text-muted">Cached tokens / Total input tokens</p>
+                  <p className="text-sm font-medium text-text-main">{t("cacheReuseRatio")}</p>
+                  <p className="text-xs text-text-muted">{t("cacheReuseRatioDesc")}</p>
                 </div>
                 <p className="font-mono text-xl text-green-400">{cacheHitRate.toFixed(1)}%</p>
               </div>
@@ -143,13 +155,13 @@ export default function CacheStatsCard() {
             {/* Savings */}
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-text-muted">Tokens Saved</p>
+                <p className="text-text-muted">{t("tokensSaved")}</p>
                 <p className="font-mono text-lg text-green-400">
                   {metrics.tokensSaved.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-text-muted">Est. Cost Saved</p>
+                <p className="text-text-muted">{t("estCostSaved")}</p>
                 <p className="font-mono text-lg text-green-400">
                   ${metrics.estimatedCostSaved.toFixed(4)}
                 </p>
@@ -159,7 +171,7 @@ export default function CacheStatsCard() {
             {/* By Provider */}
             {Object.keys(metrics.byProvider).length > 0 && (
               <div className="pt-3 border-t border-border/30">
-                <p className="text-xs font-medium text-text-muted mb-2">By Provider</p>
+                <p className="text-xs font-medium text-text-muted mb-2">{t("byProvider")}</p>
                 <div className="space-y-2">
                   {Object.entries(metrics.byProvider).map(([provider, stats]) => {
                     const providerCacheRate =
@@ -171,17 +183,19 @@ export default function CacheStatsCard() {
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-text-main capitalize w-24">{provider}</span>
-                          <span className="text-text-muted">{stats.requests} reqs</span>
+                          <span className="text-text-muted">
+                            {stats.requests} {t("requestsShort")}
+                          </span>
                         </div>
                         <div className="flex items-center gap-4 font-mono">
-                          <span className="text-text-muted" title="Input tokens">
-                            In: {stats.inputTokens.toLocaleString()}
+                          <span className="text-text-muted" title={t("inputTokens")}>
+                            {t("inputShort")}: {stats.inputTokens.toLocaleString()}
                           </span>
-                          <span className="text-green-400" title="Cached tokens (reads)">
-                            Cached: {stats.cachedTokens.toLocaleString()}
+                          <span className="text-green-400" title={t("cachedTokensRead")}>
+                            {t("cachedShort")}: {stats.cachedTokens.toLocaleString()}
                           </span>
-                          <span className="text-blue-400" title="Cache creation tokens (writes)">
-                            Write: {stats.cacheCreationTokens.toLocaleString()}
+                          <span className="text-blue-400" title={t("cacheCreationWrite")}>
+                            {t("writeShort")}: {stats.cacheCreationTokens.toLocaleString()}
                           </span>
                           <span className="text-green-400 w-12 text-right">
                             {providerCacheRate.toFixed(0)}%
@@ -195,7 +209,7 @@ export default function CacheStatsCard() {
             )}
           </div>
         ) : (
-          <p className="text-sm text-text-muted">Loading cache metrics...</p>
+          <p className="text-sm text-text-muted">{t("loading")}</p>
         )}
       </div>
     </Card>
