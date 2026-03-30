@@ -485,10 +485,31 @@ export async function getUnifiedModelsResponse(
       console.log("Could not fetch custom models");
     }
 
+    // Filter by API key permissions if requested
+    const authHeader = request.headers.get("authorization");
+    let finalModels = models;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const apiKey = authHeader.slice(7);
+      const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
+
+      const filtered = [];
+      for (const m of models) {
+        // m.id is the full identifier (e.g. openai/gpt-4o), m.root is the raw model string
+        // check either one as the config could use either patterns
+        if (
+          (await isModelAllowedForKey(apiKey, m.id)) ||
+          (await isModelAllowedForKey(apiKey, m.root))
+        ) {
+          filtered.push(m);
+        }
+      }
+      finalModels = filtered;
+    }
+
     return Response.json(
       {
         object: "list",
-        data: models,
+        data: finalModels,
       },
       {
         headers: corsHeaders,
