@@ -18,6 +18,7 @@ import ModelAliasesTab from "./components/ModelAliasesTab";
 import BackgroundDegradationTab from "./components/BackgroundDegradationTab";
 
 import CacheStatsCard from "./components/CacheStatsCard";
+import CacheSettingsTab from "./components/CacheSettingsTab";
 import ResilienceTab from "./components/ResilienceTab";
 
 const tabs = [
@@ -89,6 +90,7 @@ export default function SettingsPage() {
               <CodexServiceTierTab />
               <SystemPromptTab />
               <CacheStatsCard />
+              <CacheSettingsTab />
             </div>
           )}
 
