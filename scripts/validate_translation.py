@@ -242,6 +242,42 @@ def find_untranslated(source: Dict, trans: Dict) -> Set[str]:
     return untranslated
 
 
+def find_placeholder_issues(source: Dict, trans: Dict) -> List[Tuple[str, str, str]]:
+    """
+    Find placeholder mismatches between source and translation.
+    Returns list of (key, source_placeholder, trans_placeholder)
+    """
+    source_keys = get_all_keys(source)
+    issues = []
+    
+    for key in source_keys:
+        source_val = get_value_by_path(source, key)
+        trans_val = get_value_by_path(trans, key)
+        
+        if source_val is None or trans_val is None:
+            continue
+            
+        if not isinstance(source_val, str) or not isinstance(trans_val, str):
+            continue
+        
+        # Extract placeholders: {name}, {count}, {0}, etc.
+        import re
+        source_placeholders = set(re.findall(r'\{[^}]+\}', source_val))
+        trans_placeholders = set(re.findall(r'\{[^}]+\}', trans_val))
+        
+        # Also check ICU plural formats
+        icu_pattern = r'\{[^,]+,\s*(plural|select|selectordinal)'
+        source_icu = set(re.findall(icu_pattern, source_val))
+        trans_icu = set(re.findall(icu_pattern, trans_val))
+        
+        # Check for missing placeholders
+        missing = source_placeholders - trans_placeholders
+        if missing:
+            issues.append((key, str(source_placeholders), str(trans_placeholders)))
+    
+    return issues
+
+
 def compare_category(source: Dict, trans: Dict, category: str) -> Tuple[bool, List[str]]:
     """Compare a specific category, return (complete, missing_keys)"""
     if category not in source:
@@ -314,6 +350,20 @@ def generate_report():
             print(f"  ... and {len(untranslated) - 50} more")
     else:
         print_success("All keys appear to be translated!")
+    
+    # Placeholder issues
+    print_header("Placeholder Mismatches")
+    placeholder_issues = find_placeholder_issues(source, trans)
+    if placeholder_issues:
+        print(f"{YELLOW}Found {len(placeholder_issues)} placeholder mismatches:{NC}")
+        for key, src_ph, trans_ph in placeholder_issues[:20]:
+            print(f"  - {key}")
+            print(f"    Source: {src_ph}")
+            print(f"    Trans:  {trans_ph}")
+        if len(placeholder_issues) > 20:
+            print(f"  ... and {len(placeholder_issues) - 20} more")
+    else:
+        print_success("All placeholders match!")
     
     # Per-category status
     print_header("Per-Category Status")
