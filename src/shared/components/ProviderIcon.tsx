@@ -114,6 +114,99 @@ function GenericProviderIcon({ size }: { size: number }) {
   );
 }
 
+const KNOWN_PNGS = new Set([
+  "aimlapi",
+  "alibaba",
+  "alicode-intl",
+  "alicode",
+  "anthropic-m",
+  "anthropic",
+  "antigravity",
+  "bailian-coding-plan",
+  "blackbox",
+  "brave-search",
+  "brave",
+  "cerebras",
+  "claude",
+  "cline",
+  "codex",
+  "cohere",
+  "continue",
+  "copilot",
+  "cursor",
+  "deepgram",
+  "deepseek",
+  "droid",
+  "exa-search",
+  "fireworks",
+  "gemini-cli",
+  "gemini",
+  "github",
+  "glm",
+  "groq",
+  "iflow",
+  "ironclaw",
+  "kilo-gateway",
+  "kilocode",
+  "kimi-coding-apikey",
+  "kimi-coding",
+  "kimi",
+  "kiro",
+  "longcat",
+  "minimax-cn",
+  "minimax",
+  "mistral",
+  "nanobot",
+  "nebius",
+  "nvidia",
+  "oai-cc",
+  "oai-r",
+  "ollama-cloud",
+  "openai",
+  "openclaw",
+  "openrouter",
+  "perplexity-search",
+  "perplexity",
+  "pollinations",
+  "qwen",
+  "roo",
+  "serper-search",
+  "serper",
+  "siliconflow",
+  "tavily-search",
+  "tavily",
+  "together",
+  "xai",
+  "zeroclaw",
+]);
+const KNOWN_SVGS = new Set([
+  "apikey",
+  "assemblyai",
+  "brave",
+  "cartesia",
+  "cloudflare-ai",
+  "comfyui",
+  "elevenlabs",
+  "exa-search",
+  "exa",
+  "huggingface",
+  "hyperbolic",
+  "inworld",
+  "nanobanana",
+  "oauth",
+  "opencode-go",
+  "opencode-zen",
+  "opencode",
+  "playht",
+  "puter",
+  "scaleway",
+  "sdwebui",
+  "synthetic",
+  "vertex",
+  "windsurf",
+  "zai",
+]);
+
 const ProviderIcon = memo(function ProviderIcon({
   providerId,
   size = 24,
@@ -121,10 +214,14 @@ const ProviderIcon = memo(function ProviderIcon({
   className,
   style,
 }: ProviderIconProps) {
-  const lobehubId = LOBEHUB_PROVIDER_MAP[providerId.toLowerCase()] ?? null;
+  const normalizedId = providerId.toLowerCase();
+  const lobehubId = LOBEHUB_PROVIDER_MAP[normalizedId] ?? null;
+  const hasPng = KNOWN_PNGS.has(normalizedId);
+  const hasSvg = KNOWN_SVGS.has(normalizedId);
+
   const [useLobehub, setUseLobehub] = useState(lobehubId !== null);
-  const [usePng, setUsePng] = useState(true);
-  const [useSvg, setUseSvg] = useState(true);
+  const [usePng, setUsePng] = useState(hasPng);
+  const [useSvg, setUseSvg] = useState(!hasPng && hasSvg);
 
   if (useLobehub && lobehubId) {
     return (
@@ -146,12 +243,15 @@ const ProviderIcon = memo(function ProviderIcon({
         style={{ display: "inline-flex", alignItems: "center", ...style }}
       >
         <Image
-          src={`/providers/${providerId}.png`}
+          src={`/providers/${normalizedId}.png`}
           alt={providerId}
           width={size}
           height={size}
           style={{ objectFit: "contain" }}
-          onError={() => setUsePng(false)}
+          onError={() => {
+            setUsePng(false);
+            setUseSvg(hasSvg);
+          }}
           unoptimized
         />
       </span>
@@ -165,7 +265,7 @@ const ProviderIcon = memo(function ProviderIcon({
         style={{ display: "inline-flex", alignItems: "center", ...style }}
       >
         <Image
-          src={`/providers/${providerId}.svg`}
+          src={`/providers/${normalizedId}.svg`}
           alt={providerId}
           width={size}
           height={size}

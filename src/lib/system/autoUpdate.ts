@@ -55,15 +55,26 @@ function shellQuote(value: string): string {
 }
 
 function parsePatchCommits(raw: string | undefined): string[] {
-  return (raw || "").split(/[\s,]+/).map((value) => value.trim()).filter(Boolean);
+  return (raw || "")
+    .split(/[\s,]+/)
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 
 export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoUpdateConfig {
   const dataDir = env.DATA_DIR || "/tmp/omniroute";
   const repoDir = env.AUTO_UPDATE_REPO_DIR || "/workspace/omniroute";
 
+  let mode = normalizeMode(env.AUTO_UPDATE_MODE);
+  if (mode === "npm") {
+    const fs = require("node:fs");
+    if (fs.existsSync(path.join(process.cwd(), ".git"))) {
+      mode = "source" as any;
+    }
+  }
+
   return {
-    mode: normalizeMode(env.AUTO_UPDATE_MODE),
+    mode,
     repoDir,
     composeFile: env.AUTO_UPDATE_COMPOSE_FILE || path.join(repoDir, "docker-compose.yml"),
     composeProfile: env.AUTO_UPDATE_COMPOSE_PROFILE || "cli",
@@ -97,6 +108,15 @@ export async function validateAutoUpdateRuntime(
   execFileImpl: ExecFileLike = execFileAsync,
   existsImpl: (targetPath: string) => Promise<boolean> = pathExists
 ): Promise<AutoUpdateValidation> {
+  if (config.mode === ("source" as any)) {
+    return {
+      supported: false,
+      reason:
+        "Manual 'git pull && npm install && npm run build' is required for source installations.",
+      composeCommand: null,
+    };
+  }
+
   if (config.mode !== "docker-compose") {
     return { supported: true, reason: null, composeCommand: null };
   }
@@ -139,7 +159,8 @@ export async function validateAutoUpdateRuntime(
   if (!composeCommand) {
     return {
       supported: false,
-      reason: "Neither docker compose nor docker-compose is available inside the OmniRoute container.",
+      reason:
+        "Neither docker compose nor docker-compose is available inside the OmniRoute container.",
       composeCommand: null,
     };
   }
@@ -150,7 +171,7 @@ export async function validateAutoUpdateRuntime(
 export function buildNpmUpdateScript(latest: string): string {
   return [
     "set -eu",
-    `npm install -g omniroute@${latest} --ignore-scripts`,
+    `npm install -g omniroute@${latest} --ignore-scripts --legacy-peer-deps`,
     "if command -v pm2 >/dev/null 2>&1; then",
     "  pm2 restart omniroute || true",
     "fi",
@@ -173,7 +194,7 @@ export function buildDockerComposeUpdateScript({
       ? 'docker compose -f "$COMPOSE_FILE" up -d --build "$SERVICE"'
       : 'docker-compose -f "$COMPOSE_FILE" up -d --build "$SERVICE"';
   const patchLines = config.patchCommits.length
-    ? [`git cherry-pick --keep-redundant-commits ${config.patchCommits.map(shellQuote).join(' ')}`]
+    ? [`git cherry-pick --keep-redundant-commits ${config.patchCommits.map(shellQuote).join(" ")}`]
     : [];
 
   return [
@@ -189,13 +210,13 @@ export function buildDockerComposeUpdateScript({
     'git config --global --add safe.directory "$REPO_DIR" >/dev/null 2>&1 || true',
     'if [ -n "$(git status --porcelain)" ]; then',
     '  echo "[AutoUpdate] Refusing update: git worktree has local changes." >&2',
-    '  exit 1',
-    'fi',
+    "  exit 1",
+    "fi",
     'git fetch --tags "$REMOTE"',
     'if ! git rev-parse -q --verify "refs/tags/$TARGET_TAG" >/dev/null 2>&1; then',
     '  echo "[AutoUpdate] Tag $TARGET_TAG not found on remote $REMOTE." >&2',
-    '  exit 1',
-    'fi',
+    "  exit 1",
+    "fi",
     'backup_branch="autoupdate/pre-${TARGET_TAG#v}-$(date +%Y%m%d-%H%M%S)"',
     'git branch "$backup_branch" >/dev/null 2>&1 || true',
     'git checkout -B "autoupdate/${TARGET_TAG#v}" "$TARGET_TAG"',

@@ -43,10 +43,10 @@ jobs:
     environment: NPM_TOKEN
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
@@ -111,11 +111,11 @@ jobs:
         run: |
           VERSION="${{ steps.resolve.outputs.version }}"
           TAG="${{ steps.resolve.outputs.tag }}"
-          
+
           echo "Configuring for GitHub Packages..."
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
           npm pkg set name="@diegosouzapw/omniroute"
-          
+
           if [ "$TAG" = "latest" ]; then
             npm publish --registry=https://npm.pkg.github.com || echo "⚠️ Version ${VERSION} might already be published on GitHub."
           else
