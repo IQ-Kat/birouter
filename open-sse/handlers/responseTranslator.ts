@@ -77,10 +77,12 @@ export function translateNonStreamingResponse(
   sourceFormat: string,
   toolNameMap?: Map<string, string> | null
 ): unknown {
-  // If already in source format (usually OpenAI), return as-is
-  if (targetFormat === sourceFormat || targetFormat === FORMATS.OPENAI) {
+  // If already in source format, return as-is
+  if (targetFormat === sourceFormat) {
     return responseBody;
   }
+
+  let intermediateOpenAI = responseBody;
 
   // Handle OpenAI Responses API format
   if (targetFormat === FORMATS.OPENAI_RESPONSES) {
@@ -126,7 +128,7 @@ export function translateNonStreamingResponse(
             ? itemObj.arguments
             : JSON.stringify(itemObj.arguments || {});
         const rawName = toString(itemObj.name);
-        // Strip Claude OAuth proxy_ prefix using toolNameMap (mirrors tool_use fix for #605)
+        // Strip Claude OAuth proxy_ prefix using toolNameMap
         const resolvedName = toolNameMap?.get(rawName) ?? rawName;
         toolCalls.push({
           id: callId,
@@ -212,11 +214,11 @@ export function translateNonStreamingResponse(
       }
     }
 
-    return result;
+    intermediateOpenAI = result;
   }
 
   // Handle Gemini/Antigravity format
-  if (
+  else if (
     targetFormat === FORMATS.GEMINI ||
     targetFormat === FORMATS.ANTIGRAVITY ||
     targetFormat === FORMATS.GEMINI_CLI
@@ -224,183 +226,236 @@ export function translateNonStreamingResponse(
     const root = toRecord(responseBody);
     const response = toRecord(root.response ?? root);
     const candidates = Array.isArray(response.candidates) ? response.candidates : [];
-    if (!candidates[0]) {
-      return responseBody; // Can't translate, return raw
+    if (candidates[0]) {
+      const candidate = toRecord(candidates[0]);
+      const content = toRecord(candidate.content);
+      const usage = toRecord(response.usageMetadata ?? root.usageMetadata);
+
+      let textContent = "";
+      const toolCalls: JsonRecord[] = [];
+      let reasoningContent = "";
+
+      if (Array.isArray(content.parts)) {
+        for (const part of content.parts) {
+          const partObj = toRecord(part);
+          if (partObj.thought === true && typeof partObj.text === "string") {
+            reasoningContent += partObj.text;
+          } else if (typeof partObj.text === "string") {
+            textContent += partObj.text;
+          }
+          if (partObj.functionCall) {
+            const fn = toRecord(partObj.functionCall);
+            toolCalls.push({
+              id: `call_${toString(fn.name, "unknown")}_${Date.now()}_${toolCalls.length}`,
+              type: "function",
+              function: {
+                name: toString(fn.name),
+                arguments: JSON.stringify(fn.args || {}),
+              },
+            });
+          }
+        }
+      }
+
+      const message: JsonRecord = { role: "assistant" };
+      if (textContent) {
+        message.content = textContent;
+      }
+      if (reasoningContent) {
+        message.reasoning_content = reasoningContent;
+      }
+      if (toolCalls.length > 0) {
+        message.tool_calls = toolCalls;
+      }
+      if (!message.content && !message.tool_calls) {
+        message.content = "";
+      }
+
+      let finishReason = toString(candidate.finishReason, "stop").toLowerCase();
+      if (finishReason === "stop" && toolCalls.length > 0) {
+        finishReason = "tool_calls";
+      }
+
+      const createdMs = Date.parse(toString(response.createTime));
+      const created = Number.isFinite(createdMs)
+        ? Math.floor(createdMs / 1000)
+        : Math.floor(Date.now() / 1000);
+
+      const result: JsonRecord = {
+        id: `chatcmpl-${toString(response.responseId, String(Date.now()))}`,
+        object: "chat.completion",
+        created,
+        model: toString(response.modelVersion, "gemini"),
+        choices: [
+          {
+            index: 0,
+            message,
+            finish_reason: finishReason,
+          },
+        ],
+      };
+
+      if (Object.keys(usage).length > 0) {
+        result.usage = {
+          prompt_tokens:
+            toNumber(usage.promptTokenCount, 0) + toNumber(usage.thoughtsTokenCount, 0),
+          completion_tokens: toNumber(usage.candidatesTokenCount, 0),
+          total_tokens: toNumber(usage.totalTokenCount, 0),
+        };
+        if (toNumber(usage.thoughtsTokenCount, 0) > 0) {
+          (result.usage as JsonRecord).completion_tokens_details = {
+            reasoning_tokens: toNumber(usage.thoughtsTokenCount, 0),
+          };
+        }
+      }
+
+      intermediateOpenAI = result;
     }
+  }
 
-    const candidate = toRecord(candidates[0]);
-    const content = toRecord(candidate.content);
-    const usage = toRecord(response.usageMetadata ?? root.usageMetadata);
+  // Handle Claude format
+  else if (targetFormat === FORMATS.CLAUDE) {
+    const root = toRecord(responseBody);
+    const contentBlocks = Array.isArray(root.content) ? root.content : [];
+    if (contentBlocks.length > 0) {
+      let textContent = "";
+      let thinkingContent = "";
+      const toolCalls: JsonRecord[] = [];
 
-    // Build message content
-    let textContent = "";
-    const toolCalls: JsonRecord[] = [];
-    let reasoningContent = "";
-
-    if (Array.isArray(content.parts)) {
-      for (const part of content.parts) {
-        const partObj = toRecord(part);
-        // Handle thinking/reasoning
-        if (partObj.thought === true && typeof partObj.text === "string") {
-          reasoningContent += partObj.text;
-        }
-        // Regular text
-        else if (typeof partObj.text === "string") {
-          textContent += partObj.text;
-        }
-        // Function calls
-        if (partObj.functionCall) {
-          const fn = toRecord(partObj.functionCall);
+      for (const block of contentBlocks) {
+        const blockObj = toRecord(block);
+        if (blockObj.type === "text") {
+          textContent += toString(blockObj.text);
+        } else if (blockObj.type === "thinking") {
+          thinkingContent += toString(blockObj.thinking);
+        } else if (blockObj.type === "tool_use") {
+          const rawName = toString(blockObj.name);
+          const strippedName = toolNameMap?.get(rawName) ?? rawName;
           toolCalls.push({
-            id: `call_${toString(fn.name, "unknown")}_${Date.now()}_${toolCalls.length}`,
+            id: toString(blockObj.id, `call_${Date.now()}_${toolCalls.length}`),
             type: "function",
             function: {
-              name: toString(fn.name),
-              arguments: JSON.stringify(fn.args || {}),
+              name: strippedName,
+              arguments: JSON.stringify(blockObj.input || {}),
             },
           });
         }
       }
-    }
 
-    // Build OpenAI format message
-    const message: JsonRecord = { role: "assistant" };
-    if (textContent) {
-      message.content = textContent;
-    }
-    if (reasoningContent) {
-      message.reasoning_content = reasoningContent;
-    }
-    if (toolCalls.length > 0) {
-      message.tool_calls = toolCalls;
-    }
-    // If no content at all, set content to empty string
-    if (!message.content && !message.tool_calls) {
-      message.content = "";
-    }
+      const message: JsonRecord = { role: "assistant" };
+      if (textContent) {
+        message.content = textContent;
+      }
+      if (thinkingContent) {
+        message.reasoning_content = thinkingContent;
+      }
+      if (toolCalls.length > 0) {
+        message.tool_calls = toolCalls;
+      }
+      if (!message.content && !message.tool_calls) {
+        message.content = "";
+      }
 
-    // Determine finish reason
-    let finishReason = toString(candidate.finishReason, "stop").toLowerCase();
-    if (finishReason === "stop" && toolCalls.length > 0) {
-      finishReason = "tool_calls";
-    }
+      let finishReason = toString(root.stop_reason, "stop");
+      if (finishReason === "end_turn") finishReason = "stop";
+      if (finishReason === "tool_use") finishReason = "tool_calls";
 
-    const createdMs = Date.parse(toString(response.createTime));
-    const created = Number.isFinite(createdMs)
-      ? Math.floor(createdMs / 1000)
-      : Math.floor(Date.now() / 1000);
-
-    const result: JsonRecord = {
-      id: `chatcmpl-${toString(response.responseId, String(Date.now()))}`,
-      object: "chat.completion",
-      created,
-      model: toString(response.modelVersion, "gemini"),
-      choices: [
-        {
-          index: 0,
-          message,
-          finish_reason: finishReason,
-        },
-      ],
-    };
-
-    // Add usage if available (match streaming translator: add thoughtsTokenCount to prompt_tokens)
-    if (Object.keys(usage).length > 0) {
-      result.usage = {
-        prompt_tokens: toNumber(usage.promptTokenCount, 0) + toNumber(usage.thoughtsTokenCount, 0),
-        completion_tokens: toNumber(usage.candidatesTokenCount, 0),
-        total_tokens: toNumber(usage.totalTokenCount, 0),
+      const result: JsonRecord = {
+        id: `chatcmpl-${toString(root.id, String(Date.now()))}`,
+        object: "chat.completion",
+        created: Math.floor(Date.now() / 1000),
+        model: toString(root.model, "claude"),
+        choices: [
+          {
+            index: 0,
+            message,
+            finish_reason: finishReason,
+          },
+        ],
       };
-      if (toNumber(usage.thoughtsTokenCount, 0) > 0) {
-        (result.usage as JsonRecord).completion_tokens_details = {
-          reasoning_tokens: toNumber(usage.thoughtsTokenCount, 0),
+
+      const usage = toRecord(root.usage);
+      if (Object.keys(usage).length > 0) {
+        const promptTokens = toNumber(usage.input_tokens, 0);
+        const completionTokens = toNumber(usage.output_tokens, 0);
+        result.usage = {
+          prompt_tokens: promptTokens,
+          completion_tokens: completionTokens,
+          total_tokens: promptTokens + completionTokens,
         };
       }
-    }
 
-    return result;
+      intermediateOpenAI = result;
+    }
   }
 
-  // Handle Claude format
-  if (targetFormat === FORMATS.CLAUDE) {
-    const root = toRecord(responseBody);
-    const contentBlocks = Array.isArray(root.content) ? root.content : [];
-    if (contentBlocks.length === 0) {
-      return responseBody; // Can't translate, return raw
-    }
-
-    let textContent = "";
-    let thinkingContent = "";
-    const toolCalls: JsonRecord[] = [];
-
-    for (const block of contentBlocks) {
-      const blockObj = toRecord(block);
-      if (blockObj.type === "text") {
-        textContent += toString(blockObj.text);
-      } else if (blockObj.type === "thinking") {
-        thinkingContent += toString(blockObj.thinking);
-      } else if (blockObj.type === "tool_use") {
-        // Strip Claude OAuth tool name prefix (proxy_) using the map from request translation.
-        // Fallback to raw name if block wasn't prefixed (disableToolPrefix path).
-        const rawName = toString(blockObj.name);
-        const strippedName = toolNameMap?.get(rawName) ?? rawName;
-        toolCalls.push({
-          id: toString(blockObj.id, `call_${Date.now()}_${toolCalls.length}`),
-          type: "function",
-          function: {
-            name: strippedName,
-            arguments: JSON.stringify(blockObj.input || {}),
-          },
-        });
-      }
-    }
-
-    const message: JsonRecord = { role: "assistant" };
-    if (textContent) {
-      message.content = textContent;
-    }
-    if (thinkingContent) {
-      message.reasoning_content = thinkingContent;
-    }
-    if (toolCalls.length > 0) {
-      message.tool_calls = toolCalls;
-    }
-    if (!message.content && !message.tool_calls) {
-      message.content = "";
-    }
-
-    let finishReason = toString(root.stop_reason, "stop");
-    if (finishReason === "end_turn") finishReason = "stop";
-    if (finishReason === "tool_use") finishReason = "tool_calls";
-
-    const result: JsonRecord = {
-      id: `chatcmpl-${toString(root.id, String(Date.now()))}`,
-      object: "chat.completion",
-      created: Math.floor(Date.now() / 1000),
-      model: toString(root.model, "claude"),
-      choices: [
-        {
-          index: 0,
-          message,
-          finish_reason: finishReason,
-        },
-      ],
-    };
-
-    const usage = toRecord(root.usage);
-    if (Object.keys(usage).length > 0) {
-      const promptTokens = toNumber(usage.input_tokens, 0);
-      const completionTokens = toNumber(usage.output_tokens, 0);
-      result.usage = {
-        prompt_tokens: promptTokens,
-        completion_tokens: completionTokens,
-        total_tokens: promptTokens + completionTokens,
-      };
-    }
-
-    return result;
+  // Phase 3: Translate from OpenAI back to Client Source format
+  if (sourceFormat === FORMATS.CLAUDE && sourceFormat !== targetFormat) {
+    return convertOpenAINonStreamingToClaude(toRecord(intermediateOpenAI));
   }
 
-  // Unknown format, return as-is
-  return responseBody;
+  // Return intermediateOpenAI (which is either the raw response if unknown targetFormat, or an OpenAI compatible payload)
+  return intermediateOpenAI;
+}
+
+/**
+ * Helper to convert an OpenAI chat.completion JSON object to Claude format for non-streaming.
+ */
+function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonRecord {
+  const choice = Array.isArray(openaiResponse.choices) ? openaiResponse.choices[0] : null;
+  if (!choice) return openaiResponse; // If it doesn't look like OpenAI, return as-is
+
+  const choiceObj = toRecord(choice);
+  const messageObj = toRecord(choiceObj.message);
+
+  const content = [];
+
+  if (messageObj.reasoning_content) {
+    content.push({
+      type: "thinking",
+      thinking: toString(messageObj.reasoning_content),
+    });
+  }
+
+  if (messageObj.content) {
+    content.push({
+      type: "text",
+      text: toString(messageObj.content),
+    });
+  }
+
+  if (Array.isArray(messageObj.tool_calls)) {
+    for (const tool of messageObj.tool_calls) {
+      const toolObj = toRecord(tool);
+      const fn = toRecord(toolObj.function);
+      content.push({
+        type: "tool_use",
+        id: toString(toolObj.id, `call_${Date.now()}`),
+        name: toString(fn.name),
+        input:
+          typeof fn.arguments === "string" ? JSON.parse(fn.arguments || "{}") : fn.arguments || {},
+      });
+    }
+  }
+
+  let stopReason = toString(choiceObj.finish_reason, "end_turn");
+  if (stopReason === "stop") stopReason = "end_turn";
+  if (stopReason === "tool_calls") stopReason = "tool_use";
+
+  const usageSrc = toRecord(openaiResponse.usage);
+  const claudeResponse: JsonRecord = {
+    id: toString(openaiResponse.id, `msg_${Date.now()}`),
+    type: "message",
+    role: "assistant",
+    model: toString(openaiResponse.model, "claude"),
+    content,
+    stop_reason: stopReason,
+    stop_sequence: null,
+    usage: {
+      input_tokens: toNumber(usageSrc.prompt_tokens, 0),
+      output_tokens: toNumber(usageSrc.completion_tokens, 0),
+    },
+  };
+
+  return claudeResponse;
 }

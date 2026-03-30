@@ -19,11 +19,21 @@ This workflow fetches all open issues from the project's GitHub repository, clas
 
 ### 2. Fetch All Open Issues
 
-// turbo
+// turbo-all
 
-- Run: `gh issue list --repo <owner>/<repo> --state open --limit 500 --json number,title,labels,body,comments,createdAt,author`
-- Parse the JSON output to get a list of **all** open issues
-- Sort by oldest first (FIFO)
+**⚠️ CRITICAL**: The JSON output of `gh issue list` can be truncated by the tool, silently hiding issues. You MUST use the two-step approach below to guarantee **all** issues are fetched.
+
+**Step 2a — Get Issue numbers only** (small output, never truncated):
+
+- Run: `gh issue list --repo <owner>/<repo> --state open --limit 500 --json number --jq '.[].number'`
+- This outputs one issue number per line. Count them and confirm total.
+
+**Step 2b — Fetch full metadata for each Issue** (one call per issue):
+
+- For each issue number from step 2a, run:
+  `gh issue view <NUMBER> --repo <owner>/<repo> --json number,title,labels,body,comments,createdAt,author`
+- You may batch these into parallel calls (up to 4 at a time).
+- Sort by oldest first (FIFO).
 
 ### 3. Classify Each Issue
 

@@ -18,16 +18,34 @@ This workflow fetches all open PRs from the project's GitHub repository, perform
 
 ### 2. Fetch Open Pull Requests
 
-// turbo
+// turbo-all
 
-- Run: `gh pr list --repo <owner>/<repo> --state open --limit 500 --json number,title,author,headRefName,body,createdAt,additions,deletions,files`
-- This fetches **all** open PRs without restriction. Get the diff for each with:
-  `gh pr diff <NUMBER> --repo <owner>/<repo>`
+**⚠️ CRITICAL**: The JSON output of `gh pr list` can be truncated by the tool, silently hiding PRs. You MUST use the two-step approach below to guarantee **all** PRs are fetched.
+
+**Step 2a — Get PR numbers only** (small output, never truncated):
+
+- Run: `gh pr list --repo <owner>/<repo> --state open --limit 500 --json number --jq '.[].number'`
+- This outputs one PR number per line. Count them and confirm total.
+
+**Step 2b — Fetch full metadata for each PR** (one call per PR):
+
+- For each PR number from step 2a, run:
+  `gh pr view <NUMBER> --repo <owner>/<repo> --json number,title,author,headRefName,body,createdAt,additions,deletions,files`
+- You may batch these into parallel calls (up to 4 at a time).
+
+**Step 2c — Fetch diffs for each PR** (one call per PR, saved to /tmp):
+
+- For each PR number, run:
+  `gh pr diff <NUMBER> --repo <owner>/<repo> > /tmp/pr<NUMBER>.diff`
+- Then read each diff file with `view_file`.
+
 - For each open PR, collect:
   - PR number, title, author, branch, number of commits, date
   - PR description/body
   - Files changed (diff)
   - Existing review comments (from bots or humans)
+
+**Verification**: Confirm the count of PRs analyzed matches the count from step 2a before proceeding.
 
 ### 3. Analyze Each PR — For each open PR, perform the following analysis:
 
