@@ -1678,6 +1678,8 @@
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
     "systemTheme": "System Theme",
+    "debugToggle": "Enable Debug Mode",
+    "sidebarVisibilityToggle": "Show Sidebar Items",
     "enableCache": "Enable Cache",
     "cacheTTL": "Cache TTL",
     "maxCacheSize": "Max Cache Size",
