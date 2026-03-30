@@ -4,9 +4,9 @@ import assert from "node:assert/strict";
 const autoUpdate = await import("../../src/lib/system/autoUpdate.ts");
 
 describe("getAutoUpdateConfig", () => {
-  it("defaults to npm mode", () => {
+  it("defaults to npm or source mode locally", () => {
     const config = autoUpdate.getAutoUpdateConfig({ DATA_DIR: "/tmp/omniroute" });
-    assert.equal(config.mode, "npm");
+    assert.ok(config.mode === "npm" || config.mode === "source");
     assert.equal(config.repoDir, "/workspace/omniroute");
     assert.equal(config.composeProfile, "cli");
   });

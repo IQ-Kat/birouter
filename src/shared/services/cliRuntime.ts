@@ -328,10 +328,7 @@ const getExpectedParentPaths = (): string[] => {
   const npmPrefix = getNpmGlobalPrefix();
 
   // Add common user bin directories
-  const userBinPaths = [
-    path.join(home, "bin"),
-    path.join(home, ".local", "bin"),
-  ];
+  const userBinPaths = [path.join(home, "bin"), path.join(home, ".local", "bin")];
 
   return [
     home,
@@ -531,11 +528,15 @@ const locateCommand = async (command: string, env: Record<string, string | undef
     if (!located.ok || !located.stdout) {
       return { installed: false, commandPath: null, reason: "not_found" };
     }
-    const first =
-      located.stdout
-        .split(/\r?\n/)
-        .map((line) => normalizeMsys2Path(line.trim()))
-        .find(Boolean) || null;
+    const lines = located.stdout
+      .split(/\r?\n/)
+      .map((line) => normalizeMsys2Path(line.trim()))
+      .filter(Boolean);
+
+    // Issue #809: Prioritize executable wrappers (.cmd, .exe, .bat) over extensionless bash scripts
+    // that NPM often drops alongside the wrappers in global installs.
+    const first = lines.find((line) => /\.(cmd|exe|bat)$/i.test(line)) || lines[0] || null;
+
     return { installed: !!first, commandPath: first, reason: first ? null : "not_found" };
   }
 

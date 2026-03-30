@@ -1,5 +1,5 @@
 import { execFile, spawn } from "node:child_process";
-import { closeSync, mkdirSync, openSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, existsSync } from "node:fs";
 import { access } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -67,8 +67,13 @@ export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoU
 
   let mode = normalizeMode(env.AUTO_UPDATE_MODE);
   if (mode === "npm") {
-    const fs = require("node:fs");
-    if (fs.existsSync(path.join(process.cwd(), ".git"))) {
+    const isGitRepo = existsSync(path.join(process.cwd(), ".git"));
+    const currentDir = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+    const isGlobalNodeModules = currentDir.includes("node_modules");
+
+    // If we are not in a global node_modules directory, we are likely a local source install/build.
+    // Even if .git is missing (downloaded zip), we should treat it as source.
+    if (isGitRepo || !isGlobalNodeModules) {
       mode = "source" as any;
     }
   }

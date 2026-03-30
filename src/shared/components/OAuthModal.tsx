@@ -211,6 +211,8 @@ export default function OAuthModal({
         return;
       }
 
+      let forceManual = false;
+
       // Codex: on localhost use callback server on port 1455,
       // on remote use standard auth code flow (callback server is unreachable)
       if (provider === "codex") {
@@ -252,11 +254,13 @@ export default function OAuthModal({
             setPolling(false);
             throw new Error("Authorization timeout");
           } catch (codexErr) {
+            console.warn(
+              "Codex callback server failed, falling back to standard manual flow",
+              codexErr
+            );
             setPolling(false);
-            setStep("input");
-            setError(codexErr.message + " — You can paste the callback URL manually below.");
+            forceManual = true;
           }
-          return;
         }
         // Remote: fall through to standard auth code flow below
       }
@@ -306,8 +310,8 @@ export default function OAuthModal({
 
       setAuthData({ ...data, redirectUri });
 
-      // For non-true-localhost (LAN IPs, remote): use manual input mode (user pastes callback URL)
-      if (!isTrueLocalhost) {
+      // For non-true-localhost (LAN IPs, remote) or manual fallback: use manual input mode (user pastes callback URL)
+      if (!isTrueLocalhost || forceManual) {
         setStep("input");
         window.open(data.authUrl, "oauth_auth");
       } else {
