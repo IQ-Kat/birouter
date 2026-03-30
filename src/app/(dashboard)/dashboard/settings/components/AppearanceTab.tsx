@@ -221,9 +221,7 @@ export default function AppearanceTab() {
 
         <div className="pt-4 border-t border-border">
           <div className="mb-3">
-            <p className="font-medium">
-              {getSettingsLabel("sidebarVisibility", "Hide sidebar items")}
-            </p>
+            <p className="font-medium">{t("sidebarVisibilityToggle")}</p>
             <p className="text-sm text-text-muted">
               {getSettingsLabel(
                 "sidebarVisibilityDesc",
@@ -249,7 +247,7 @@ export default function AppearanceTab() {
                     >
                       <p className="font-medium">{item.label}</p>
                       <Toggle
-                        checked={hiddenSidebarSet.has(item.id)}
+                        checked={!hiddenSidebarSet.has(item.id)}
                         onChange={() => toggleSidebarItem(item.id)}
                         disabled={loading}
                       />

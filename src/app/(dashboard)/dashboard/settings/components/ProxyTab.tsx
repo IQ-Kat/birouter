@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, ProxyConfigModal } from "@/shared/components";
+import { Card, Button, ProxyConfigModal, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import ProxyRegistryManager from "./ProxyRegistryManager";
 
@@ -11,6 +11,8 @@ export default function ProxyTab() {
   const mountedRef = useRef(true);
   const t = useTranslations("settings");
   const tc = useTranslations("common");
+  const [debugMode, setDebugMode] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadGlobalProxy = async () => {
     try {
@@ -20,6 +22,21 @@ export default function ProxyTab() {
         setGlobalProxy(data.proxy || null);
       }
     } catch {}
+  };
+
+  const updateDebugMode = async (value: boolean) => {
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ debugMode: value }),
+      });
+      if (res.ok) {
+        setDebugMode(value);
+      }
+    } catch (err) {
+      console.error("Failed to update debugMode:", err);
+    }
   };
 
   useEffect(() => {
@@ -38,6 +55,19 @@ export default function ProxyTab() {
     return () => {
       mountedRef.current = false;
     };
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setDebugMode(data.debugMode === true);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   return (
@@ -78,6 +108,18 @@ export default function ProxyTab() {
         </Card>
 
         <ProxyRegistryManager />
+        <Card className="p-6 mt-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">{t("debugToggle")}</p>
+            </div>
+            <Toggle
+              checked={debugMode}
+              onChange={() => updateDebugMode(!debugMode)}
+              disabled={loading}
+            />
+          </div>
+        </Card>
       </div>
 
       <ProxyConfigModal
