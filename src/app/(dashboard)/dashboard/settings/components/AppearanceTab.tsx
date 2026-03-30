@@ -106,7 +106,10 @@ export default function AppearanceTab() {
     { id: "cyan", color: COLOR_THEMES.cyan, label: t("themeCyan") },
   ];
 
-  const sidebarSections = SIDEBAR_SECTIONS.map((section) => ({
+  const showDebug = settings.debugMode === true;
+  const sidebarSections = SIDEBAR_SECTIONS.filter(
+    (section) => section.visibility !== "debug" || showDebug
+  ).map((section) => ({
     ...section,
     title: getSidebarLabel(section.titleKey, section.titleFallback),
     items: section.items.map((item) => ({ ...item, label: tSidebar(item.i18nKey) })),

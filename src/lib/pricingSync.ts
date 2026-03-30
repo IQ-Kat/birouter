@@ -75,9 +75,9 @@ const LITELLM_PRICING_URL =
 const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   openai: ["openai", "cx"],
   anthropic: ["anthropic", "cc"],
-  vertex_ai: ["gemini", "gc"],
+  vertex_ai: ["gemini", "gemini-cli"],
   "vertex_ai-anthropic_models": ["anthropic"],
-  google: ["gemini", "gc"],
+  google: ["gemini", "gemini-cli"],
   deepseek: ["if"],
   groq: ["groq"],
   together_ai: ["openrouter"],
