@@ -141,10 +141,10 @@ export function detectVolumeSignals(body: Record<string, unknown>): VolumeSignal
  * @param currentStrategy - The combo's configured strategy
  * @returns Override recommendation
  */
-export function recommendStrategyOverride(
+export async function recommendStrategyOverride(
   signals: VolumeSignals,
   currentStrategy: string
-): StrategyOverride {
+): Promise<StrategyOverride> {
   const noOverride: StrategyOverride = {
     shouldOverride: false,
     strategy: null,
@@ -152,6 +152,18 @@ export function recommendStrategyOverride(
     forcePremium: false,
     reason: "no override needed",
   };
+
+  // Check if adaptive routing is enabled globally
+  try {
+    const { getSettings } = await import("@/lib/localDb");
+    const settings = await getSettings();
+    if (!settings.adaptiveVolumeRouting) {
+      return noOverride;
+    }
+  } catch (error) {
+    console.error("Failed to check adaptiveVolumeRouting setting:", error);
+    return noOverride;
+  }
 
   // Rule 1: Large batch → round-robin to distribute load
   if (signals.batchSize >= 50) {

@@ -78,6 +78,26 @@ export default function UsageAnalytics() {
     return (analytics?.byProvider || []).length;
   }, [analytics]);
 
+  const providerDiversity = useMemo(() => {
+    const providers = analytics?.byProvider || [];
+    if (providers.length <= 1) return 0;
+
+    let totalCalls = 0;
+    for (const p of providers) {
+      totalCalls += p.totalRequests || p.apiCalls || 0;
+    }
+    if (totalCalls === 0) return 0;
+
+    let h = 0;
+    for (const p of providers) {
+      const p_i = (p.totalRequests || p.apiCalls || 0) / totalCalls;
+      if (p_i > 0) h -= p_i * Math.log2(p_i);
+    }
+
+    const maxH = Math.log2(providers.length);
+    return maxH > 0 ? (h / maxH) * 100 : 0;
+  }, [analytics]);
+
   if (loading && !analytics) return <CardSkeleton />;
   if (error) return <Card className="p-6 text-center text-red-500">Error: {error}</Card>;
 
@@ -176,9 +196,9 @@ export default function UsageAnalytics() {
         <StatCard icon="today" label="Busiest Day" value={busiestDay} color="text-rose-500" />
         <StatCard icon="dns" label="Providers" value={providerCount} color="text-indigo-500" />
         <StatCard
-          icon="rule"
-          label="Requested Coverage"
-          value={`${Number(s.requestedModelCoveragePct || 0).toFixed(1)}%`}
+          icon="network_node"
+          label="Diversity Score"
+          value={`${providerDiversity.toFixed(1)}%`}
           color="text-sky-500"
         />
       </div>
