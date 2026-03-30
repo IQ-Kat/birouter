@@ -68,10 +68,8 @@ jobs:
         id: langs
         run: |
           LANG_DIR="src/i18n/messages"
-          LANGS=$(ls "$LANG_DIR"/*.json | xargs -n1 basename | sed 's/.json$//' | grep -v '^en$' | jq -R . | jq -s .)
+          LANGS=$(ls "$LANG_DIR"/*.json | xargs -n1 basename | sed 's/.json$//' | grep -v '^en$' | jq -R . | jq -s . | jq -c .)
           echo "langs=${LANGS}" >> $GITHUB_OUTPUT
-          echo "Found languages:"
-          echo "$LANGS"
 
   security:
     name: Security Audit
