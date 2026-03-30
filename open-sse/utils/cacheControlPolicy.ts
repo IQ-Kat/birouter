@@ -72,12 +72,7 @@ const DETERMINISTIC_STRATEGIES: Set<RoutingStrategyValue> = new Set(["priority",
 /**
  * Providers that support prompt caching
  */
-const CACHING_PROVIDERS = new Set([
-  "claude",
-  "anthropic",
-  "zai",
-  "qwen", // Alibaba Qwen Coding Plan International
-]);
+const CACHING_PROVIDERS = new Set(["claude", "anthropic", "zai", "qwen", "deepseek"]);
 
 /**
  * Detect if the client is Claude Code or another caching-aware client
