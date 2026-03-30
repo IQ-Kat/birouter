@@ -1222,6 +1222,9 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 | 🔀 **Model Aliases**               | Built-in + custom model aliasing and migration safety                    |
 | ⚡ **Background Degradation**      | Route low-priority background tasks to cheaper models                    |
 | 🧪 **Task-Aware Smart Routing**    | Auto-select model by content type (coding/vision/analysis/summarization) |
+| 🔄 **A2A Agent Workflows**         | Deterministic FSM orchestrator for stateful multi-step agent executions  |
+| 🔀 **Adaptive Routing**            | Dynamic strategy override based on token volume and prompt complexity    |
+| 🎲 **Provider Diversity**          | Shannon entropy scoring balancing auto-combo traffic distribution        |
 | 💬 **System Prompt Injection**     | Global behavior controls applied consistently                            |
 | 📄 **Responses API Compatibility** | Full `/v1/responses` support for Codex and advanced agentic workflows    |
 
@@ -1252,6 +1255,10 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 | 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP** |
 | 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                    |
 | 📊 **Editable Rate Limits**         | Configurable global/provider-level limits with persistence                             |
+| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                    |
+| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks          |
+| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures  |
+| 🚪 **Auto-Disable Banned Accounts** | Operational circuit breaker sealing permanently blocked token accounts automatically   |
 | 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                               |
 | 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                 |
 | 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                             |

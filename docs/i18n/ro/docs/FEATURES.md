@@ -68,8 +68,8 @@ Comprehensive settings panel with tabs:
 - **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
 - **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
 - **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning
-- **Advanced** — Configuration overrides
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
 
 ![Settings Dashboard](screenshots/06-settings.png)
 
