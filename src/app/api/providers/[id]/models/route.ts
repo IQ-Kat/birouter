@@ -524,6 +524,7 @@ export async function GET(
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ project: projectId }),
+            signal: AbortSignal.timeout(10000),
           }
         );
 
@@ -549,8 +550,9 @@ export async function GET(
           }));
 
         return buildResponse({ provider, connectionId, models });
-      } catch (err: any) {
-        console.log("[models] Gemini CLI model fetch error:", err.message);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.log("[models] Gemini CLI model fetch error:", msg);
         return NextResponse.json(
           { error: "Failed to fetch Gemini CLI models" },
           { status: 500 }

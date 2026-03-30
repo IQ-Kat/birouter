@@ -417,7 +417,7 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
 
 // ── Gemini CLI subscription info cache ──────────────────────────────────────
 // Prevents duplicate loadCodeAssist calls within the same quota cycle.
-// Key: truncated accessToken → { data, fetchedAt }
+// Key: accessToken → { data, fetchedAt }
 const _geminiCliSubCache = new Map();
 const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -427,6 +427,10 @@ const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
  * so this follows the same pattern as getAntigravityUsage().
  */
 async function getGeminiUsage(accessToken, providerSpecificData?, connectionProjectId?) {
+  if (!accessToken) {
+    return { plan: "Free", message: "Gemini CLI access token not available." };
+  }
+
   try {
     const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
     const projectId =
@@ -452,6 +456,7 @@ async function getGeminiUsage(accessToken, providerSpecificData?, connectionProj
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ project: projectId }),
+        signal: AbortSignal.timeout(10000),
       }
     );
 
@@ -471,7 +476,7 @@ async function getGeminiUsage(accessToken, providerSpecificData?, connectionProj
         const QUOTA_NORMALIZED_BASE = 1000;
         const total = QUOTA_NORMALIZED_BASE;
         const remaining = Math.round(total * remainingFraction);
-        const used = total - remaining;
+        const used = Math.max(0, total - remaining);
 
         quotas[bucket.modelId] = {
           used,
@@ -493,7 +498,7 @@ async function getGeminiUsage(accessToken, providerSpecificData?, connectionProj
  * Get Gemini CLI subscription info (cached, 5 min TTL)
  */
 async function getGeminiCliSubscriptionInfoCached(accessToken) {
-  const cacheKey = accessToken.substring(0, 16);
+  const cacheKey = accessToken;
   const cached = _geminiCliSubCache.get(cacheKey);
 
   if (cached && Date.now() - cached.fetchedAt < GEMINI_CLI_CACHE_TTL_MS) {
