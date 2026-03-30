@@ -2265,7 +2265,7 @@
     "sendMessageToSeePipeline": "Odešlete zprávu a zobrazte si proces překladu",
     "chatMessageHintPrefix": "Vaše zpráva bude formátována jako",
     "chatMessageHintSuffix": "požadavek, přeložený kanálem a odeslaný vybranému poskytovateli.",
-    "youWithFormat": "Vy ({formát})",
+    "youWithFormat": "Vy ({format})",
     "assistant": "Asistent",
     "typeMessage": "Napište zprávu...",
     "send": "Poslat",
