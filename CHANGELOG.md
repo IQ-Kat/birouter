@@ -4,6 +4,15 @@
 
 ---
 
+## [3.3.7] - 2026-03-30
+
+### 🐛 Bug Fixes
+
+- **OpenCode Config:** Restructured generated `opencode.json` to use the `@ai-sdk/openai-compatible` record-based schema with `options` and `models` as object maps instead of flat arrays, fixing config validation failures (#816)
+- **i18n Missing Keys:** Added missing `cloudflaredUrlNotice` translation key across all 30 language files to prevent `MISSING_MESSAGE` console errors in the Endpoint page (#823)
+
+---
+
 ## [3.3.6] - 2026-03-30
 
 ### 🐛 Bug Fixes
