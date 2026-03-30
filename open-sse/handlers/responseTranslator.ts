@@ -408,7 +408,7 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
   const choiceObj = toRecord(choice);
   const messageObj = toRecord(choiceObj.message);
 
-  const content = [];
+  const content: JsonRecord[] = [];
 
   let hasTextOrReasoning = false;
 

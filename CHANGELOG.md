@@ -4,6 +4,16 @@
 
 ---
 
+## [3.3.6] - 2026-03-30
+
+### 🐛 Bug Fixes
+
+- **Token Accounting:** Included prompt cache tokens safely in historical usage inputs calculations for correct quota deductions (PR #822)
+- **Combo Test Probes:** Fixed combo testing logic false negatives by resolving parsing for reasoning-only responses and enabled massive parallelization via Promise.all (PR #828)
+- **Docker Quick Tunnels:** Embedded required ca-certificates inside the base runtime container to resolve Cloudflared TLS startup failures, and surfaced stdout network errors replacing generic exit codes (PR #829)
+
+---
+
 ## [3.3.5] - 2026-03-30
 
 ### ✨ New Features
@@ -13,7 +23,6 @@
 
 ### 🐛 Bug Fixes
 
-- **Token Accounting:** Included prompt cache tokens safely in historical usage inputs calculations for correct quota deductions (PR #822)
 - **User Experience:** Removed invasive auto-opening OAuth modal loops on barren provider detailed pages (PR #820)
 - **Dependency Updates:** Bumped and locked down dependencies for development and production trees including Next.js 16.2.1, Recharts, and TailwindCSS 4.2.2 (PR #826, #827)
 
