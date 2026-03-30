@@ -16,13 +16,44 @@ interface SemanticCacheStats {
   tokensSaved: number;
 }
 
+interface PromptCacheProviderStats {
+  requests: number;
+  inputTokens: number;
+  cachedTokens: number;
+  cacheCreationTokens: number;
+}
+
+interface PromptCacheMetrics {
+  totalRequests: number;
+  requestsWithCacheControl: number;
+  totalInputTokens: number;
+  totalCachedTokens: number;
+  totalCacheCreationTokens: number;
+  tokensSaved: number;
+  estimatedCostSaved: number;
+  byProvider: Record<string, PromptCacheProviderStats>;
+  byStrategy: Record<string, PromptCacheProviderStats>;
+  lastUpdated: string;
+}
+
 interface IdempotencyStats {
   activeKeys: number;
   windowMs: number;
 }
 
+interface CacheTrendPoint {
+  timestamp: string;
+  requests: number;
+  cachedRequests: number;
+  inputTokens: number;
+  cachedTokens: number;
+  cacheCreationTokens: number;
+}
+
 interface CacheStats {
   semanticCache: SemanticCacheStats;
+  promptCache: PromptCacheMetrics | null;
+  trend: CacheTrendPoint[];
   idempotency: IdempotencyStats;
 }
 
@@ -136,26 +167,31 @@ export default function CachePage() {
       const res = await fetch("/api/cache", { method: "DELETE" });
       if (res.ok) {
         const data = await res.json();
-        notify.add({
-          type: "success",
-          message: t("clearSuccess", { count: data.expiredRemoved ?? 0 }),
-        });
+        notify.success(t("clearSuccess", { count: data.expiredRemoved ?? 0 }));
         await fetchStats();
       } else {
-        notify.add({ type: "error", message: t("clearError") });
+        notify.error(t("clearError"));
       }
     } catch (error) {
       console.error("[CachePage] Failed to clear cache:", error);
-      notify.add({ type: "error", message: t("clearError") });
+      notify.error(t("clearError"));
     } finally {
       setClearing(false);
     }
   };
 
   const sc = stats?.semanticCache;
+  const pc = stats?.promptCache;
+  const trend = stats?.trend ?? [];
   const idp = stats?.idempotency;
   const hitRate = sc ? parseFloat(sc.hitRate) : 0;
   const totalRequests = sc ? sc.hits + sc.misses : 0;
+
+  const promptCacheHitRate =
+    pc && pc.totalRequests > 0 ? (pc.requestsWithCacheControl / pc.totalRequests) * 100 : 0;
+  const providerEntries = pc ? Object.entries(pc.byProvider) : [];
+
+  const maxTrendRequests = Math.max(1, ...trend.map((p) => p.requests));
 
   return (
     <div className="flex flex-col gap-6">
@@ -277,6 +313,153 @@ export default function CachePage() {
               </div>
             </div>
           </Card>
+
+          {/* Prompt Cache Stats */}
+          {pc && (
+            <Card>
+              <div className="p-5 flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="material-symbols-outlined text-base text-text-muted"
+                    aria-hidden="true"
+                  >
+                    bolt
+                  </span>
+                  <h2 className="font-medium text-sm">{t("promptCache")}</h2>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-3 rounded-lg bg-surface/50">
+                    <div className="text-lg font-semibold tabular-nums">
+                      {pc.requestsWithCacheControl.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-text-muted mt-0.5">{t("cachedRequests")}</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-surface/50">
+                    <div className="text-lg font-semibold tabular-nums text-green-500">
+                      {promptCacheHitRate.toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-text-muted mt-0.5">{t("cacheHitRate")}</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-surface/50">
+                    <div className="text-lg font-semibold tabular-nums text-blue-400">
+                      {pc.totalCachedTokens.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-text-muted mt-0.5">{t("cachedTokens")}</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-surface/50">
+                    <div className="text-lg font-semibold tabular-nums text-purple-400">
+                      {pc.totalCacheCreationTokens.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-text-muted mt-0.5">{t("cacheCreationTokens")}</div>
+                  </div>
+                </div>
+
+                {providerEntries.length > 0 && (
+                  <div className="pt-3 border-t border-border/30">
+                    <h3 className="text-xs font-medium text-text-muted mb-3">{t("byProvider")}</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-xs text-text-muted border-b border-border/30">
+                            <th className="pb-2 pr-4">{t("provider")}</th>
+                            <th className="pb-2 pr-4">{t("requests")}</th>
+                            <th className="pb-2 pr-4">{t("inputTokens")}</th>
+                            <th className="pb-2 pr-4">{t("cachedTokensCol")}</th>
+                            <th className="pb-2">{t("cacheCreation")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {providerEntries.map(([provider, data]) => (
+                            <tr key={provider} className="border-b border-border/20">
+                              <td className="py-2 pr-4 font-medium">{provider}</td>
+                              <td className="py-2 pr-4 tabular-nums">
+                                {data.requests.toLocaleString()}
+                              </td>
+                              <td className="py-2 pr-4 tabular-nums">
+                                {data.inputTokens.toLocaleString()}
+                              </td>
+                              <td className="py-2 pr-4 tabular-nums text-green-500">
+                                {data.cachedTokens.toLocaleString()}
+                              </td>
+                              <td className="py-2 tabular-nums text-purple-400">
+                                {data.cacheCreationTokens.toLocaleString()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Cache Trend (24h) */}
+          {trend.length > 0 && (
+            <Card>
+              <div className="p-5 flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="material-symbols-outlined text-base text-text-muted"
+                    aria-hidden="true"
+                  >
+                    timeline
+                  </span>
+                  <h2 className="font-medium text-sm">{t("trend24h")}</h2>
+                </div>
+                <div className="flex items-end gap-1 h-32">
+                  {trend.map((point) => {
+                    const height = Math.max(4, (point.requests / maxTrendRequests) * 100);
+                    const cachedHeight =
+                      point.requests > 0
+                        ? Math.max(2, (point.cachedRequests / point.requests) * height)
+                        : 0;
+                    const hour = new Date(point.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    });
+                    return (
+                      <div
+                        key={point.timestamp}
+                        className="flex-1 flex flex-col items-center gap-1 group relative"
+                      >
+                        <div className="absolute bottom-full mb-1 hidden group-hover:block bg-surface-raised border border-border rounded px-2 py-1 text-xs whitespace-nowrap z-10">
+                          {hour}: {point.requests} {t("requests").toLowerCase()},{" "}
+                          {point.cachedRequests} {t("cached").toLowerCase()}
+                        </div>
+                        <div className="w-full flex flex-col justify-end h-full gap-px">
+                          <div
+                            className="w-full bg-green-500/30 rounded-t"
+                            style={{ height: `${cachedHeight}%` }}
+                          />
+                          <div
+                            className="w-full bg-text-muted/20 rounded-t"
+                            style={{ height: `${height - cachedHeight}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] text-text-muted truncate w-full text-center">
+                          {hour.split(":")[0]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-4 text-xs text-text-muted">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded bg-text-muted/20" />
+                    <span>{t("total")}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded bg-green-500/30" />
+                    <span>{t("cached")}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Cache behavior */}
           <Card>
