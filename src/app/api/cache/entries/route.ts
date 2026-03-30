@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbInstance } from "@/lib/db/core";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 interface CacheEntry {
   id: string;
@@ -12,6 +13,10 @@ interface CacheEntry {
 }
 
 export async function GET(req: NextRequest) {
+  if (!(await isAuthenticated(req))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
@@ -71,6 +76,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!(await isAuthenticated(req))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const signature = searchParams.get("signature");
