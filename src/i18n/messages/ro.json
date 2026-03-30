@@ -892,7 +892,7 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), iFlow (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
   },
   "costs": {
     "title": "Costuri",
@@ -2420,7 +2420,7 @@
     "waitingForGoogleAuthorization": "Se așteaptă autorizarea Google...",
     "waitingForOpenAIAuthorization": "Se așteaptă autorizarea OpenAI...",
     "waitingForAntigravityAuthorization": "Se așteaptă autorizația antigravitație...",
-    "waitingForIFlowAuthorization": "Se așteaptă autorizarea iFlow...",
+    "waitingForQoderAuthorization": "Se așteaptă autorizarea Qoder...",
     "exchangingCodeForTokens": "Se schimbă codul pentru jetoane..."
   },
   "landing": {

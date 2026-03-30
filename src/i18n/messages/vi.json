@@ -892,7 +892,7 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), iFlow (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
   },
   "costs": {
     "title": "Chi phí",
@@ -2420,7 +2420,7 @@
     "waitingForGoogleAuthorization": "Đang chờ Google ủy quyền...",
     "waitingForOpenAIAuthorization": "Đang chờ ủy quyền OpenAI...",
     "waitingForAntigravityAuthorization": "Đang chờ ủy quyền chống hấp dẫn...",
-    "waitingForIFlowAuthorization": "Đang chờ ủy quyền iFlow...",
+    "waitingForQoderAuthorization": "Đang chờ ủy quyền Qoder...",
     "exchangingCodeForTokens": "Đổi mã lấy token..."
   },
   "landing": {

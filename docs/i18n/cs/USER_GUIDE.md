@@ -39,11 +39,11 @@ Kompletní průvodce konfigurací poskytovatelů, vytvářením kombinací, inte
 | **💰 LEVNÉ**      | GLM-4.7           | $0.6/1M          | Denně 10:00         | Levná záloha               |
 |                   | MiniMax M2.1      | $0.2/1M          | 5hodinové válcování | Nejlevnější varianta       |
 |                   | Kimi K2           | 9 USD měsíc      | 10M tokens/měsíc    | Předvídatelné náklady      |
-| **🆓 ZDARMA**     | iFlow             | $0               | Neomezený           | 8 modelů zdarma            |
+| **🆓 ZDARMA**     | Qoder             | $0               | Neomezený           | 8 modelů zdarma            |
 |                   | Qwen              | $0               | Neomezený           | 3 modely zdarma            |
 |                   | Kiro              | $0               | Neomezený           | Claude zdarma              |
 
-**💡 Pro Tip:** Začněte s kombinací Gemini CLI (180K zdarma/měsíc) + iFlow (neomezeně zdarma) = $0!
+**💡 Pro Tip:** Začněte s kombinací Gemini CLI (180K zdarma/měsíc) + Qoder (neomezeně zdarma) = $0!
 
 ---
 
@@ -193,10 +193,10 @@ Models:
 
 ### 🆓 Poskytovatelé ZDARMA
 
-#### iFlow (8 modelů ZDARMA)
+#### Qoder (8 modelů ZDARMA)
 
 ```bash
-Dashboard → Connect iFlow → OAuth login → Unlimited usage
+Dashboard → Connect Qoder → OAuth login → Unlimited usage
 
 Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
 ```
@@ -447,7 +447,7 @@ Informace o režimu integrovaném s hostitelem s binárními soubory CLI nalezne
 
 **MiniMax ( `minimax/` )** — 0,2 USD/1 milion: `minimax/MiniMax-M2.1`
 
-**iFlow ( `if/` )** — ZDARMA: `if/kimi-k2-thinking` , `if/qwen3-coder-plus` , `if/deepseek-r1`
+**Qoder ( `if/` )** — ZDARMA: `if/kimi-k2-thinking` , `if/qwen3-coder-plus` , `if/deepseek-r1`
 
 **Qwen ( `qw/` )** — ZDARMA: `qw/qwen3-coder-plus` , `qw/qwen3-coder-flash`
 

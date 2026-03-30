@@ -2483,7 +2483,7 @@
     "waitingForGoogleAuthorization": "Google प्राधिकरण की प्रतीक्षा की जा रही है...",
     "waitingForOpenAIAuthorization": "OpenAI प्राधिकरण की प्रतीक्षा की जा रही है...",
     "waitingForAntigravityAuthorization": "एंटीग्रेविटी प्राधिकरण की प्रतीक्षा की जा रही है...",
-    "waitingForIFlowAuthorization": "iFlow प्राधिकरण की प्रतीक्षा की जा रही है...",
+    "waitingForQoderAuthorization": "Qoder प्राधिकरण की प्रतीक्षा की जा रही है...",
     "exchangingCodeForTokens": "टोकन के लिए कोड का आदान-प्रदान..."
   },
   "landing": {

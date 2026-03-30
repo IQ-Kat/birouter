@@ -200,7 +200,7 @@ Când deschideți o problemă, rulați comanda system-info și atașați fișier
 npm run system-info
 ```
 
-Aceasta generează un `system-info.txt` cu versiunea dvs. Node.js, versiunea OmniRoute, detaliile sistemului de operare, instrumentele CLI instalate (iflow, gemini, claude, codex, antigravity, droid etc.), starea Docker/PM2 și pachetele de sistem - tot ce avem nevoie pentru a reproduce problema rapid. Atașați fișierul direct la problema dvs. GitHub.
+Aceasta generează un `system-info.txt` cu versiunea dvs. Node.js, versiunea OmniRoute, detaliile sistemului de operare, instrumentele CLI instalate (qoder, gemini, claude, codex, antigravity, droid etc.), starea Docker/PM2 și pachetele de sistem - tot ce avem nevoie pentru a reproduce problema rapid. Atașați fișierul direct la problema dvs. GitHub.
 
 ---
 
@@ -226,7 +226,7 @@ Aceasta generează un `system-info.txt` cu versiunea dvs. Node.js, versiunea Omn
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -293,7 +293,7 @@ Nu toată lumea poate plăti 20–200 USD/lună pentru abonamentele AI. Studenț
 
 **Cum o rezolvă OmniRoute:**
 
-- **Free Tier Providers Built-in** — Suport nativ pentru furnizori 100% gratuiti: iFlow (5 modele nelimitate prin OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 modele nelimitate: q-coder-3-fwen: qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID gratuit), Gemini CLI (180.000 de jetoane/lună gratuit)
+- **Free Tier Providers Built-in** — Suport nativ pentru furnizori 100% gratuiti: Qoder (5 modele nelimitate prin OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 modele nelimitate: q-coder-3-fwen: qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID gratuit), Gemini CLI (180.000 de jetoane/lună gratuit)
 - **Ollama Cloud** — Modele Ollama găzduite în cloud la `api.ollama.com` cu nivelul gratuit „Utilizare ușoară”; utilizați prefixul `ollamacloud/<model>`
 - **Combo-uri numai gratuite** — Lanț `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/lună fără timp de nefuncționare
 - **NVIDIA NIM Free Access** — ~40 RPM dev-forever acces gratuit la peste 70 de modele la build.nvidia.com (tranziție de la credite la limitele de rate pur)
@@ -357,7 +357,7 @@ Claude Code, Codex, Gemini CLI, Copilot - toate folosesc OAuth 2.0 cu token-uri 
 **Cum o rezolvă OmniRoute:**
 
 - **Reîmprospătare automată a simbolurilor** — jetoanele OAuth se reîmprospătează în fundal înainte de expirare
-- **OAuth 2.0 (PKCE) încorporat** — Flux automat pentru Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) încorporat** — Flux automat pentru Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **OAuth cu mai multe conturi** — Conturi multiple per furnizor prin extragerea jetonului JWT/ID
 - **OAuth LAN/Remediere la distanță** — Detectare IP privată pentru `redirect_uri` + modul URL manual pentru servere la distanță
 - **OAuth în spatele Nginx** — Utilizează `window.location.origin` pentru compatibilitatea cu proxy invers
@@ -734,7 +734,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | Pasul | Acțiune                                              | Furnizori deblocați                                                |
 | ----- | ---------------------------------------------------- | ------------------------------------------------------------------ |
 | 1     | Conectați **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **nelimitat**                       |
-| 2     | Conectați **iFlow** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **nelimitat** |
+| 2     | Conectați **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **nelimitat** |
 | 3     | Conectați **Qwen** (Codul dispozitivului)            | qwen3-coder-plus, qwen3-coder-flash... — **nelimitat**             |
 | 4     | Conectați **Gemini CLI** (Google OAuth)              | gemini-3-flash, gemini-2.5-pro — **180K/lună gratuit**             |
 | 5     | `/dashboard/combos` → șablon **Stiva gratuită ($0)** | Round-robin toți furnizorii gratuiti în mod automat                |
@@ -943,7 +943,7 @@ Când este minimizat, OmniRoute se află în bara de sistem cu acțiuni rapide:
 |                  | MiniMax M2.1                | 0,2 USD/1 milion                      | rulare de 5 ore             | Cea mai ieftină opțiune                       |
 |                  | Kimi K2.5 (API Moonshot) 🆕 | Plată-pe-utilizare                    | Niciuna                     | Acces direct API Moonshot                     |
 |                  | Kimi K2                     | 9 USD/lună plat                       | 10 milioane de jetoane/lună | Cost previzibil                               |
-| **🆓 GRATUIT**   | iFlow                       | **$0**                                | Nelimitat                   | 5 modele nelimitat                            |
+| **🆓 GRATUIT**   | Qoder                       | **$0**                                | Nelimitat                   | 5 modele nelimitat                            |
 |                  | Qwen                        | **$0**                                | Nelimitat                   | 4 modele nelimitat                            |
 |                  | Kiro                        | **$0**                                | Nelimitat                   | Claude Sonnet/Haiku (AWS Builder)             |
 |                  | LongCat Flash-Lite 🆕       | **$0** (50 M tok/zi 🔥)               | 1 RPS                       | Cea mai mare cotă gratuită de pe Pământ       |
@@ -958,7 +958,7 @@ Când este minimizat, OmniRoute se află în bara de sistem cu acțiuni rapide:
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -988,7 +988,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`  | **Nelimitat** | Niciun plafon zilnic raportat |
 | `claude-opus-4.6`   | `kr/`  | **Nelimitat** | Ultimul Opus prin Kiro        |
 
-### 🟢 MODELE IFLOW (OAuth gratuit — fără card de credit)
+### 🟢 MODELE QODER (OAuth gratuit — fără card de credit)
 
 | Model              | Prefix | Limită        | Limită de rată         |
 | ------------------ | ------ | ------------- | ---------------------- |
@@ -1087,7 +1087,7 @@ Disponibil gratuit: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1537,11 +1537,11 @@ Models:
 <details>
 <summary><b>🆓 Furnizori GRATUITI (Backup de urgență)</b></summary>
 
-### iFlow (5 modele GRATUITE prin OAuth)
+### Qoder (5 modele GRATUITE prin OAuth)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1739,7 +1739,7 @@ opencode
 
 - Verificați statisticile de utilizare în Tabloul de bord → Costuri
 - Comutați modelul principal la GLM/MiniMax
-- Utilizați nivelul gratuit (Gemini CLI, iFlow) pentru sarcini necritice
+- Utilizați nivelul gratuit (Gemini CLI, Qoder) pentru sarcini necritice
 
 **Tabloul de bord/porturile API sunt greșite**
 

@@ -200,7 +200,7 @@ Kun avaat ongelman, suorita system-info-komento ja liitä luotu tiedosto:
 npm run system-info
 ```
 
-Tämä luo `system-info.txt`, jossa on Node.js-versiosi, OmniRoute-versiosi, käyttöjärjestelmätiedot, asennetut CLI-työkalut (iflow, gemini, claude, codex, antigravity, droidi jne.), Docker/PM2-tila ja järjestelmäpaketit – kaikki, mitä tarvitsemme ongelmasi nopeaan toistamiseen. Liitä tiedosto suoraan GitHub-ongelmaasi.
+Tämä luo `system-info.txt`, jossa on Node.js-versiosi, OmniRoute-versiosi, käyttöjärjestelmätiedot, asennetut CLI-työkalut (qoder, gemini, claude, codex, antigravity, droidi jne.), Docker/PM2-tila ja järjestelmäpaketit – kaikki, mitä tarvitsemme ongelmasi nopeaan toistamiseen. Liitä tiedosto suoraan GitHub-ongelmaasi.
 
 ---
 
@@ -226,7 +226,7 @@ Tämä luo `system-info.txt`, jossa on Node.js-versiosi, OmniRoute-versiosi, kä
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -293,7 +293,7 @@ Kaikki eivät voi maksaa 20–200 dollaria kuukaudessa tekoälytilauksista. Opis
 
 **Kuinka OmniRoute ratkaisee sen:**
 
-- **Free Tier Providers Built-in** — Natiivituki 100 % ilmaisille palveluntarjoajille: iFlow (5 rajoittamaton mallia OAuthin kautta: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen-mallit: 4 unqlim-plus3 qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID ilmaiseksi), Gemini CLI (180 000 tokenia / kuukausi ilmaiseksi)
+- **Free Tier Providers Built-in** — Natiivituki 100 % ilmaisille palveluntarjoajille: Qoder (5 rajoittamaton mallia OAuthin kautta: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen-mallit: 4 unqlim-plus3 qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID ilmaiseksi), Gemini CLI (180 000 tokenia / kuukausi ilmaiseksi)
 - **Ollama Cloud** — pilvipalvelussa isännöityjä Ollama-malleja osoitteessa `api.ollama.com` ilmaisella "kevytkäyttö"-tasolla; käytä `ollamacloud/<model>`-etuliitettä
 - **Vain ilmaiset yhdistelmät** — ketju `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 $/kk ilman seisokkeja
 - **NVIDIA NIM Free Access** - ~40 RPM:n kehittäjä - ikuisesti ilmainen pääsy yli 70 malliin osoitteessa build.nvidia.com (siirrytään hyvityksistä puhtaisiin hintarajoihin)
@@ -357,7 +357,7 @@ Claude Code, Codex, Gemini CLI, Copilot – kaikki käyttävät OAuth 2.0:aa van
 **Kuinka OmniRoute ratkaisee sen:**
 
 - **Automaattinen tunnuksen päivitys** - OAuth-tunnukset päivittyvät taustalla ennen vanhenemista
-- **Sisäänrakennettu OAuth 2.0 (PKCE)** - Automaattinen kulku Claude Codelle, Codexille, Gemini CLI:lle, Copilotille, Kirolle, Qwenille, iFlowille
+- **Sisäänrakennettu OAuth 2.0 (PKCE)** - Automaattinen kulku Claude Codelle, Codexille, Gemini CLI:lle, Copilotille, Kirolle, Qwenille, Qoderille
 - **Multi-Account OAuth** - Useita tilejä palveluntarjoajaa kohden JWT/ID-tunnuksen purkamisen kautta
 - **OAuth LAN/Remote Fix** - Yksityinen IP-tunnistus kohteelle `redirect_uri` + manuaalinen URL-tila etäpalvelimille
 - **OAuth Nginxin takana** - Käyttää `window.location.origin` käänteisen välityspalvelimen yhteensopivuutta varten
@@ -734,7 +734,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | Vaihe | Toiminta                                           | Palveluntarjoajat avattu                                               |
 | ----- | -------------------------------------------------- | ---------------------------------------------------------------------- |
 | 1     | Yhdistä **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **rajaton**                             |
-| 2     | Yhdistä **iFlow** (Google OAuth)                   | kimi-k2-ajattelu, qwen3-coder-plus, deepseek-r1... — **rajoittamaton** |
+| 2     | Yhdistä **Qoder** (Google OAuth)                   | kimi-k2-ajattelu, qwen3-coder-plus, deepseek-r1... — **rajoittamaton** |
 | 3     | Yhdistä **Qwen** (laitekoodi)                      | qwen3-coder-plus, qwen3-coder-flash... — **rajoittamaton**             |
 | 4     | Yhdistä **Gemini CLI** (Google OAuth)              | gemini-3-flash, gemini-2.5-pro — **180K/kk ilmaiseksi**                |
 | 5     | `/dashboard/combos` → **Ilmainen pino ($0)** malli | Round-robin kaikki ilmaiset palveluntarjoajat automaattisesti          |
@@ -943,7 +943,7 @@ Kun OmniRoute on minimoitu, se elää ilmaisinalueellasi nopeilla toimilla:
 |                  | MiniMax M2.1                | 0,2 $/1 milj.                       | 5 tunnin rullaus       | Halvin vaihtoehto                  |
 |                  | Kimi K2.5 (Moonshot API) 🆕 | Maksu per käyttö                    | Ei yhtään              | Suora Moonshot API -käyttö         |
 |                  | Kimi K2                     | 9 dollaria/kk asunto                | 10 milj. rahakkeita/kk | Ennustettavat kustannukset         |
-| **🆓 ILMAINEN**  | iFlow                       | **0 $**                             | Rajoittamaton          | 5 mallia rajoittamaton             |
+| **🆓 ILMAINEN**  | Qoder                       | **0 $**                             | Rajoittamaton          | 5 mallia rajoittamaton             |
 |                  | Qwen                        | **0 $**                             | Rajoittamaton          | 4 mallia rajoittamaton             |
 |                  | Kiro                        | **0 $**                             | Rajoittamaton          | Claude Sonnet/Haiku (AWS Builder)  |
 |                  | LongCat Flash-Lite 🆕       | **0 $** (50 milj. tok/päivä 🔥)     | 1 RPS                  | Suurin ilmainen kiintiö maailmassa |
@@ -958,7 +958,7 @@ Kun OmniRoute on minimoitu, se elää ilmaisinalueellasi nopeilla toimilla:
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -988,7 +988,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`    | **Rajoittamaton** | Ei raportoitu päivittäistä ylärajaa |
 | `claude-opus-4.6`   | `kr/`    | **Rajoittamaton** | Uusin Opus kautta Kiro              |
 
-### 🟢 IFLOW-MALLIT (ilmainen OAuth – ei luottokorttia)
+### 🟢 QODER-MALLIT (ilmainen OAuth – ei luottokorttia)
 
 | Malli              | Etuliite | Raja              | Hintarajoitus         |
 | ------------------ | -------- | ----------------- | --------------------- |
@@ -1087,7 +1087,7 @@ Saatavilla ilmaiseksi: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1537,11 +1537,11 @@ Models:
 <details>
 <summary><b>🆓 ILMAISIA palveluntarjoajia (hätävarmuuskopio)</b></summary>
 
-### iFlow (5 ILMAISTA mallia OAuthin kautta)
+### Qoder (5 ILMAISTA mallia OAuthin kautta)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1739,7 +1739,7 @@ opencode
 
 - Tarkista käyttötilastot kohdassa Dashboard → Costs
 - Vaihda ensisijaiseksi malliksi GLM/MiniMax
-- Use free tier (Gemini CLI, iFlow) for non-critical tasks
+- Use free tier (Gemini CLI, Qoder) for non-critical tasks
 
 **Kojelauta/API-portit ovat väärin**
 

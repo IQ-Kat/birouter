@@ -943,7 +943,7 @@
       }
     },
     "templateFreeStack": "Volný zásobník (0 $)",
-    "templateFreeStackDesc": "Round-robin mezi všemi bezplatnými poskytovateli: Kiro (Claude), iFlow (5 modelů), Qwen (4 modely), Gemini CLI. Bez nákladů, nikdy nepřestaňte kódovat."
+    "templateFreeStackDesc": "Round-robin mezi všemi bezplatnými poskytovateli: Kiro (Claude), Qoder (5 modelů), Qwen (4 modely), Gemini CLI. Bez nákladů, nikdy nepřestaňte kódovat."
   },
   "costs": {
     "title": "Náklady",
@@ -2481,7 +2481,7 @@
     "waitingForGoogleAuthorization": "Čekám na Google autorizaci...",
     "waitingForOpenAIAuthorization": "Čekám na OpenAI autorizaci...",
     "waitingForAntigravityAuthorization": "Čekám na Antigravity autorizaci...",
-    "waitingForIFlowAuthorization": "Čekám na iFlow autorizaci...",
+    "waitingForQoderAuthorization": "Čekám na Qoder autorizaci...",
     "exchangingCodeForTokens": "Vyměňuji kód za tokeny...",
     "Authorization": "Autorizace",
     "Content-Disposition": "Obsah-Dispozice"

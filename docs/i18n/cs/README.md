@@ -135,7 +135,7 @@ Při otevírání problému spusťte příkaz system-info a přiložte vygenerov
 npm run system-info
 ```
 
-Tím se vygeneruje soubor `system-info.txt` s verzí Node.js, verzí OmniRoute, podrobnostmi o operačním systému, nainstalovanými nástroji CLI (iflow, gemini, claude, codex, antigravity, droid atd.), stavem Dockeru/PM2 a systémovými balíčky – vše, co potřebujeme k rychlé reprodukci vašeho problému. Soubor přiložte přímo k vašemu problému na GitHubu.
+Tím se vygeneruje soubor `system-info.txt` s verzí Node.js, verzí OmniRoute, podrobnostmi o operačním systému, nainstalovanými nástroji CLI (qoder, gemini, claude, codex, antigravity, droid atd.), stavem Dockeru/PM2 a systémovými balíčky – vše, co potřebujeme k rychlé reprodukci vašeho problému. Soubor přiložte přímo k vašemu problému na GitHubu.
 
 ---
 
@@ -161,7 +161,7 @@ Tím se vygeneruje soubor `system-info.txt` s verzí Node.js, verzí OmniRoute, 
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -226,7 +226,7 @@ Ne každý si může dovolit zaplatit 20–200 dolarů měsíčně za předplatn
 
 **Jak to OmniRoute řeší:**
 
-- **Vestavění poskytovatelé bezplatné úrovně** — Nativní podpora pro 100% bezplatné poskytovatele: iFlow (5 neomezených modelů přes OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 neomezené modely: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID zdarma), Gemini CLI (180 tisíc tokenů/měsíc zdarma)
+- **Vestavění poskytovatelé bezplatné úrovně** — Nativní podpora pro 100% bezplatné poskytovatele: Qoder (5 neomezených modelů přes OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 neomezené modely: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID zdarma), Gemini CLI (180 tisíc tokenů/měsíc zdarma)
 - **Ollama Cloud** — Cloudově hostované modely Ollama na `api.ollama.com` s bezplatnou úrovní „Light usage“; použijte prefix `ollamacloud/<model>`
 - **Kombinace pouze zdarma** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 $/měsíc s nulovými prostoji
 - **NVIDIA NIM Free Access** — ~40 RPM developerský přístup k více než 70 modelům na build.nvidia.com (přechod z kreditů na čisté limity rychlosti)
@@ -286,7 +286,7 @@ Claude Code, Codex, Gemini CLI, Copilot – všechny používají OAuth 2.0 s to
 **Jak to OmniRoute řeší:**
 
 - **Automatická aktualizace tokenů** – Tokeny OAuth se obnovují na pozadí před vypršením platnosti.
-- **Vestavěný OAuth 2.0 (PKCE)** – Automatický tok pro Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **Vestavěný OAuth 2.0 (PKCE)** – Automatický tok pro Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** — Více účtů na poskytovatele prostřednictvím extrakce tokenů JWT/ID
 - **OAuth LAN/Remote Fix** — Detekce privátní IP adresy pro `redirect_uri` + manuální režim URL pro vzdálené servery
 - **OAuth Behind Nginx** — Používá `window.location.origin` pro kompatibilitu s reverzní proxy
@@ -639,7 +639,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | Krok | Akce                                                           | Poskytovatelé odemčeni                                            |
 | ---- | -------------------------------------------------------------- | ----------------------------------------------------------------- |
 | 1    | Připojení **Kiro** (AWS Builder ID OAuth)                      | Claude Sonnet 4.5, Haiku 4.5 – **neomezeně**                      |
-| 2    | Připojení k **iFlow** (Google OAuth)                           | kimi-k2-myšlení, qwen3-coder-plus, deepseek-r1... — **neomezeně** |
+| 2    | Připojení k **Qoder** (Google OAuth)                           | kimi-k2-myšlení, qwen3-coder-plus, deepseek-r1... — **neomezeně** |
 | 3    | Připojení **Qwen** (kód zařízení)                              | qwen3-coder-plus, qwen3-coder-flash... — **neomezeně**            |
 | 4    | Připojení **rozhraní příkazového řádku Gemini** (Google OAuth) | gemini-3-flash, gemini-2.5-pro — **180 000 GBP/měsíc zdarma**     |
 | 5    | `/dashboard/combos` → Šablona **Free Stack (0 $)**             | Automatické zařazení všech bezplatných poskytovatelů do routingu  |
@@ -848,7 +848,7 @@ Po minimalizaci se OmniRoute nachází v systémové liště a nabízí rychlé 
 | MiniMax M2.1                | 0,2 USD/1 milion                 | 5hodinové válcování                  | Nejlevnější varianta                       |
 | Kimi K2.5 (Moonshot API) 🆕 | Platba za použití                | Žádný                                | Přímý přístup k Moonshot API               |
 | Kimi K2                     | 9 dolarů měsíčně bez závazků     | 10 milionů tokenů/měsíc              | Předvídatelné náklady                      |
-| **🆓 ZDARMA**               | iFlow                            | **0 dolarů**                         | Neomezený                                  | 5 modelů neomezeně                                        |
+| **🆓 ZDARMA**               | Qoder                            | **0 dolarů**                         | Neomezený                                  | 5 modelů neomezeně                                        |
 | Qwen                        | **0 dolarů**                     | Neomezený                            | 4 modely neomezeně                         |
 | Kiro                        | **0 dolarů**                     | Neomezený                            | Claude Sonnet/Haiku (tvorce AWS)           |
 
@@ -859,7 +859,7 @@ Po minimalizaci se OmniRoute nachází v systémové liště a nabízí rychlé 
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -889,7 +889,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`    | **Neomezený** | Žádný hlášený denní limit |
 | `claude-opus-4.6`   | `kr/`    | **Neomezený** | Nejnovější opus od Kira   |
 
-### 🟢 MODELY IFLOW (Bezplatné OAuth — bez nutnosti platit kreditní kartou)
+### 🟢 MODELY QODER (Bezplatné OAuth — bez nutnosti platit kreditní kartou)
 
 | Model              | Předpona | Omezit        | Limit rychlosti     |
 | ------------------ | -------- | ------------- | ------------------- |
@@ -943,7 +943,7 @@ K dispozici zdarma: `llama-3.3-70b-versatile` , `gemma2-9b-it` , `mixtral-8x7b` 
 >
 > ```
 > Kiro (Claude, unlimited)
->  → iFlow (5 models, unlimited)
+>  → Qoder (5 models, unlimited)
 >  → Qwen (4 models, unlimited)
 >  → Gemini CLI (180K/mo)
 >  → Cerebras (1M tok/day)
@@ -1361,11 +1361,11 @@ Models:
 <summary><b>🆓 BEZPLATNÍ poskytovatelé (nouzové zálohování)</b></summary>
 </details>
 
-### iFlow (5 BEZPLATNÝCH modelů přes OAuth)
+### Qoder (5 BEZPLATNÝCH modelů přes OAuth)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1560,7 +1560,7 @@ opencode
 
 - Zkontrolujte statistiky využití v sekci Nástěnka → Náklady
 - Přepnout primární model na GLM/MiniMax
-- Pro nekritické úlohy použijte bezplatnou úroveň (Gemini CLI, iFlow).
+- Pro nekritické úlohy použijte bezplatnou úroveň (Gemini CLI, Qoder).
 
 **Porty řídicího panelu/API jsou nesprávné**
 

@@ -39,11 +39,11 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 | **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
 |                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
 |                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
-| **🆓 FREE**         | iFlow             | $0          | Unlimited        | 8 models free        |
+| **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
 |                     | Qwen              | $0          | Unlimited        | 3 models free        |
 |                     | Kiro              | $0          | Unlimited        | Claude free          |
 
-**💡 Pro Tip:** Start with Gemini CLI (180K free/month) + iFlow (unlimited free) combo = $0 cost!
+**💡 Pro Tip:** Start with Gemini CLI (180K free/month) + Qoder (unlimited free) combo = $0 cost!
 
 ---
 
@@ -193,10 +193,10 @@ Models:
 
 ### 🆓 FREE Providers
 
-#### iFlow (8 FREE models)
+#### Qoder (8 FREE models)
 
 ```bash
-Dashboard → Connect iFlow → OAuth login → Unlimited usage
+Dashboard → Connect Qoder → OAuth login → Unlimited usage
 
 Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
 ```
@@ -548,7 +548,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 **MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.1`
 
-**iFlow (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
+**Qoder (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
 
 **Qwen (`qw/`)** — FREE: `qw/qwen3-coder-plus`, `qw/qwen3-coder-flash`
 

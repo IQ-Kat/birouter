@@ -892,7 +892,7 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), iFlow (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
   },
   "costs": {
     "title": "Kos",
@@ -2420,7 +2420,7 @@
     "waitingForGoogleAuthorization": "Menunggu kebenaran Google...",
     "waitingForOpenAIAuthorization": "Menunggu kebenaran OpenAI...",
     "waitingForAntigravityAuthorization": "Menunggu kebenaran Antigraviti...",
-    "waitingForIFlowAuthorization": "Menunggu kebenaran iFlow...",
+    "waitingForQoderAuthorization": "Menunggu kebenaran Qoder...",
     "exchangingCodeForTokens": "Bertukar kod untuk token..."
   },
   "landing": {

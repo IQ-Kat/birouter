@@ -277,7 +277,7 @@ export const DEFAULT_PRICING = {
     },
   },
 
-  // iFlow AI (if)
+  // Qoder AI (if)
   if: {
     "qwen3-coder-plus": {
       input: 1.0,

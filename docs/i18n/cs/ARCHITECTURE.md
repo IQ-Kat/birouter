@@ -85,7 +85,7 @@ flowchart LR
     end
 
     subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qwen/iFlow/GitHub/Kiro/Cursor/Antigravity]
+        P1[OAuth Providers\nClaude/Codex/Gemini/Qwen/Qoder/GitHub/Kiro/Cursor/Antigravity]
         P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
         P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
     end
@@ -219,7 +219,7 @@ Moduly doménové vrstvy:
 Moduly poskytovatelů OAuth (12 jednotlivých souborů v adresáři `src/lib/oauth/providers/` ):
 
 - Index registru: `src/lib/oauth/providers/index.ts`
-- Jednotliví poskytovatelé: `claude.ts` , `codex.ts` , `gemini.ts` , `antigravity.ts` , `iflow.ts` , `qwen.ts` , `kimi-coding.ts` , `github.ts` , `kiro.ts` , `cursor.ts` , `kilocode.ts` , `cline.ts`
+- Jednotliví poskytovatelé: `claude.ts` , `codex.ts` , `gemini.ts` , `antigravity.ts` , `qoder.ts` , `qwen.ts` , `kimi-coding.ts` , `github.ts` , `kiro.ts` , `cursor.ts` , `kilocode.ts` , `cline.ts`
 - Thin wrapper: `src/lib/oauth/providers.ts` — reexporty z jednotlivých modulů
 
 ## 3) Vrstva perzistence
@@ -592,7 +592,7 @@ Každý poskytovatel má specializovaný exekutor rozšiřující `BaseExecutor`
 
 | Vykonavatel           | Poskytovatel(é)                                                                                                                                              | Speciální manipulace                                                                     |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `DefaultExecutor`     | OpenAI, Claude, Gemini, Qwen, iFlow, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Konfigurace dynamické adresy URL/záhlaví pro každého poskytovatele                       |
+| `DefaultExecutor`     | OpenAI, Claude, Gemini, Qwen, Qoder, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Konfigurace dynamické adresy URL/záhlaví pro každého poskytovatele                       |
 | `AntigravityExecutor` | Google Antigravity                                                                                                                                           | Vlastní ID projektů/relací, analýza Opakování po                                         |
 | `CodexExecutor`       | OpenAI Codex                                                                                                                                                 | Vkládá systémové instrukce, vynucuje úsilí k uvažování                                   |
 | `CursorExecutor`      | IDE kurzoru                                                                                                                                                  | Protokol ConnectRPC, kódování Protobuf, podepisování požadavků pomocí kontrolního součtu |
@@ -616,7 +616,7 @@ Všichni ostatní poskytovatelé (včetně uzlů kompatibilních s vlastními fu
 | Kurzor                         | kurzor          | Vlastní kontrolní součet           | ✅                   | ✅            | ❌              | ❌                          |
 | Kiro                           | Kiro            | OIDC pro jednotné přihlašování AWS | ✅ (Stream událostí) | ❌            | ✅              | ✅ Limity použití           |
 | Qwen                           | otevřeno        | OAuth                              | ✅                   | ✅            | ✅              | ⚠️ Na vyžádání              |
-| iFlow                          | otevřeno        | OAuth (základní)                   | ✅                   | ✅            | ✅              | ⚠️ Na vyžádání              |
+| Qoder                          | otevřeno        | OAuth (základní)                   | ✅                   | ✅            | ✅              | ⚠️ Na vyžádání              |
 | OpenRouter                     | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
 | GLM/Kimi/MiniMax               | Claude          | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |
 | Hluboké vyhledávání            | otevřeno        | Klíč API                           | ✅                   | ✅            | ❌              | ❌                          |

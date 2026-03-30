@@ -52,11 +52,11 @@
 ### 🚀 Vlastnosti
 
 - **feat(search)** : Přidáno hřiště pro vyhledávání (10. koncový bod), stránka s nástroji pro vyhledávání s porovnáním poskytovatelů/kanálovým přeřazením/historií vyhledávání, lokální směrování pro přeřazení, ochrana autorizace ve vyhledávacím API (#443 od @Regis-RCR)
-    - Nová trasa: `/dashboard/search-tools`
-    - Položka postranního panelu v sekci Ladění
-    - `GET /api/search/providers` a `GET /api/search/stats` s ochranou autorizace
-    - Lokální směrování provider_nodes pro `/v1/rerank`
-    - 30+ klíčů i18n ve vyhledávacím jmenném prostoru
+  - Nová trasa: `/dashboard/search-tools`
+  - Položka postranního panelu v sekci Ladění
+  - `GET /api/search/providers` a `GET /api/search/stats` s ochranou autorizace
+  - Lokální směrování provider_nodes pro `/v1/rerank`
+  - 30+ klíčů i18n ve vyhledávacím jmenném prostoru
 
 ### 🐛 Opravy chyb
 
@@ -74,9 +74,9 @@
 ### 🐛 Opravy chyb
 
 - **oprava(codex)** : Blokování týdenních vyčerpávajících účtů v přímém záložním rozhraní API (#440)
-    - Porovnávání prefixů `resolveQuotaWindow()` : `"weekly"` nyní odpovídá klíčům mezipaměti `"weekly (7d)"`
-    - `applyCodexWindowPolicy()` správně vynucuje přepínání `useWeekly` / `use5h`
-    - 4 nové regresní testy (celkem 766)
+  - Porovnávání prefixů `resolveQuotaWindow()` : `"weekly"` nyní odpovídá klíčům mezipaměti `"weekly (7d)"`
+  - `applyCodexWindowPolicy()` správně vynucuje přepínání `useWeekly` / `use5h`
+  - 4 nové regresní testy (celkem 766)
 
 ---
 
@@ -87,8 +87,8 @@
 ### 🐛 Opravy chyb
 
 - **fix(logs)** : Oprava kontrastu světelného režimu v protokolech požadavků, tlačítek filtrů a kombinovaného odznaku (#378)
-    - Tlačítka filtrů Chyba/Úspěch/Kombinace jsou nyní čitelná i ve světlém režimu.
-    - Odznak kombinované řady používá ve světlém režimu silnější fialovou barvu
+  - Tlačítka filtrů Chyba/Úspěch/Kombinace jsou nyní čitelná i ve světlém režimu.
+  - Odznak kombinované řady používá ve světlém režimu silnější fialovou barvu
 
 ---
 
@@ -99,32 +99,32 @@
 ### ✨ Nové funkce
 
 - **feat(search)** : Sjednocené směrování webového vyhledávání — `POST /v1/search` s 5 poskytovateli (Serper, Brave, Perplexity, Exa, Tavily)
-    - Automatické přepnutí napříč poskytovateli, více než 6 500 bezplatných vyhledávání/měsíc
-    - Mezipaměť v paměti se slučováním požadavků (konfigurovatelné TTL)
-    - Dashboard: Karta Analytika vyhledávání v `/dashboard/analytics` s rozpisem poskytovatelů, mírou zásahů do mezipaměti a sledováním nákladů
-    - Nové API: `GET /api/v1/search/analytics` pro statistiky vyhledávacích požadavků
-    - Migrace databáze: sloupec `request_type` v `call_logs` pro sledování požadavků mimo chat
-    - Ověření Zod ( `v1SearchSchema` ), chráněné autorizací, náklady zaznamenány pomocí `recordCost()`
+  - Automatické přepnutí napříč poskytovateli, více než 6 500 bezplatných vyhledávání/měsíc
+  - Mezipaměť v paměti se slučováním požadavků (konfigurovatelné TTL)
+  - Dashboard: Karta Analytika vyhledávání v `/dashboard/analytics` s rozpisem poskytovatelů, mírou zásahů do mezipaměti a sledováním nákladů
+  - Nové API: `GET /api/v1/search/analytics` pro statistiky vyhledávacích požadavků
+  - Migrace databáze: sloupec `request_type` v `call_logs` pro sledování požadavků mimo chat
+  - Ověření Zod ( `v1SearchSchema` ), chráněné autorizací, náklady zaznamenány pomocí `recordCost()`
 
 ### 🔒 Bezpečnost
 
 - **deps** : Next.js 16.1.6 → 16.1.7 — opravuje 6 CVE:
-    - **Kritické** : CVE-2026-29057 (pašování HTTP požadavků přes http-proxy)
-    - **Vysoká** : CVE-2026-27977, CVE-2026-27978 (WebSocket + akce serveru)
-    - **Médium** : CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7
+  - **Kritické** : CVE-2026-29057 (pašování HTTP požadavků přes http-proxy)
+  - **Vysoká** : CVE-2026-27977, CVE-2026-27978 (WebSocket + akce serveru)
+  - **Médium** : CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7
 
 ### 📁 Nové soubory
 
-Soubor | Účel
---- | ---
-`open-sse/handlers/search.ts` | Vyhledávací obslužná rutina s routováním 5 poskytovatelů
-`open-sse/config/searchRegistry.ts` | Registr poskytovatelů (autorizace, náklady, kvóta, TTL)
-`open-sse/services/searchCache.ts` | Mezipaměť v paměti se slučováním požadavků
-`src/app/api/v1/search/route.ts` | Trasa Next.js (POST + GET)
-`src/app/api/v1/search/analytics/route.ts` | API pro statistiky vyhledávání
-`src/app/(dashboard)/dashboard/analytics/SearchAnalyticsTab.tsx` | Karta analytického panelu
-`src/lib/db/migrations/007_search_request_type.sql` | Migrace databáze
-`tests/unit/search-registry.test.mjs` | 277 řádků jednotkových testů
+| Soubor                                                           | Účel                                                     |
+| ---------------------------------------------------------------- | -------------------------------------------------------- |
+| `open-sse/handlers/search.ts`                                    | Vyhledávací obslužná rutina s routováním 5 poskytovatelů |
+| `open-sse/config/searchRegistry.ts`                              | Registr poskytovatelů (autorizace, náklady, kvóta, TTL)  |
+| `open-sse/services/searchCache.ts`                               | Mezipaměť v paměti se slučováním požadavků               |
+| `src/app/api/v1/search/route.ts`                                 | Trasa Next.js (POST + GET)                               |
+| `src/app/api/v1/search/analytics/route.ts`                       | API pro statistiky vyhledávání                           |
+| `src/app/(dashboard)/dashboard/analytics/SearchAnalyticsTab.tsx` | Karta analytického panelu                                |
+| `src/lib/db/migrations/007_search_request_type.sql`              | Migrace databáze                                         |
+| `tests/unit/search-registry.test.mjs`                            | 277 řádků jednotkových testů                             |
 
 ---
 
@@ -283,10 +283,10 @@ Soubor | Účel
 ### 🐛 Opravy chyb
 
 - **fix(providers)** : Odstraněny neexistující názvy modelů u 5 poskytovatelů:
-    - **gemini / gemini-cli** : odstraněny `gemini-3.1-pro/flash` a `gemini-3-*-preview` (neexistují v Google API v1beta); nahrazeny `gemini-2.5-pro` , `gemini-2.5-flash` , `gemini-2.0-flash` , `gemini-1.5-pro/flash`
-    - **antigravity** : odstraněny `gemini-3.1-pro-high/low` a `gemini-3-flash` (neplatné interní aliasy); nahrazeny skutečnými modely z verze 2.x
-    - **github (Copilot)** : odstraněny `gemini-3-flash-preview` a `gemini-3-pro-preview` ; nahrazeny `gemini-2.5-flash`
-    - **nvidia** : opraveno `nvidia/llama-3.3-70b-instruct` → `meta/llama-3.3-70b-instruct` (NVIDIA NIM používá pro modely Meta jmenný prostor `meta/` /); přidány `nvidia/llama-3.1-70b-instruct` a `nvidia/llama-3.1-405b-instruct`
+  - **gemini / gemini-cli** : odstraněny `gemini-3.1-pro/flash` a `gemini-3-*-preview` (neexistují v Google API v1beta); nahrazeny `gemini-2.5-pro` , `gemini-2.5-flash` , `gemini-2.0-flash` , `gemini-1.5-pro/flash`
+  - **antigravity** : odstraněny `gemini-3.1-pro-high/low` a `gemini-3-flash` (neplatné interní aliasy); nahrazeny skutečnými modely z verze 2.x
+  - **github (Copilot)** : odstraněny `gemini-3-flash-preview` a `gemini-3-pro-preview` ; nahrazeny `gemini-2.5-flash`
+  - **nvidia** : opraveno `nvidia/llama-3.3-70b-instruct` → `meta/llama-3.3-70b-instruct` (NVIDIA NIM používá pro modely Meta jmenný prostor `meta/` /); přidány `nvidia/llama-3.1-70b-instruct` a `nvidia/llama-3.1-405b-instruct`
 - **fix(db/combo)** : Aktualizováno `free-stack` combo na vzdálené databázi: odstraněno `qw/qwen3-coder-plus` (prošlý obnovovací token), opraveno `nvidia/llama-3.3-70b-instruct` → `nvidia/meta/llama-3.3-70b-instruct` , opraveno `gemini/gemini-3.1-flash` → `gemini/gemini-2.5-flash` , přidáno `if/deepseek-v3.2`
 
 ---
@@ -356,7 +356,7 @@ Soubor | Účel
 
 - **oprava(média)** : ComfyUI a SD WebUI se již nezobrazují v seznamu poskytovatelů na stránce Média, pokud nejsou nakonfigurovány — při připojení načtou `/api/providers` a skryjí lokální poskytovatele bez připojení (#390)
 - **oprava(auth)** : Round-robin již po zpoždění znovu nevybírá účty s omezenou rychlostí ihned – `backoffLevel` se nyní používá jako primární třídicí klíč v rotaci LRU (#340)
-- **oprava(oauth)** : iFlow (a další poskytovatelé, kteří přesměrovávají na své vlastní uživatelské rozhraní) již nenechávají modální okno OAuth zaseknuté na „Čekání na autorizaci“ – detektor zavřených vyskakovacích oken automaticky přechází do režimu ručního zadávání URL (#344)
+- **oprava(oauth)** : Qoder (a další poskytovatelé, kteří přesměrovávají na své vlastní uživatelské rozhraní) již nenechávají modální okno OAuth zaseknuté na „Čekání na autorizaci“ – detektor zavřených vyskakovacích oken automaticky přechází do režimu ručního zadávání URL (#344)
 - **oprava(logy)** : Tabulka protokolů požadavků je nyní čitelná ve světlém režimu – stavové odznaky, počty tokenů a kombinované tagy používají adaptivní `dark:` barevné třídy (#378)
 
 ### ✨ Funkce
@@ -508,7 +508,7 @@ Soubor | Účel
 ### ✨ Nové funkce
 
 - **Strategie směrování Fill-First a P2C** : Do výběru kombinované strategie přidány strategie `fill-first` (vyčerpání kvóty před přesunem) a `p2c` (výběr Power-of-Two-Choices s nízkou latencí) s kompletními panely s pokyny a barevně odlišenými odznaky.
-- **Přednastavené modely Free Stack** : Vytvoření kombinace pomocí šablony Free Stack nyní automaticky vyplní 7 nejlepších modelů bezplatných poskytovatelů ve své třídě (Gemini CLI, Kiro, iFlow×2, Qwen, NVIDIA NIM, Groq). Uživatelé stačí aktivovat poskytovatele a ihned získají kombinaci 0 $/měsíc.
+- **Přednastavené modely Free Stack** : Vytvoření kombinace pomocí šablony Free Stack nyní automaticky vyplní 7 nejlepších modelů bezplatných poskytovatelů ve své třídě (Gemini CLI, Kiro, Qoder×2, Qwen, NVIDIA NIM, Groq). Uživatelé stačí aktivovat poskytovatele a ihned získají kombinaci 0 $/měsíc.
 - **Širší kombo modální okno** : Modální okno pro vytvoření/úpravu komba nyní používá `max-w-4xl` pro pohodlnou úpravu velkých komb.
 
 ### 🐛 Opravy chyb
@@ -554,13 +554,13 @@ Soubor | Účel
 
 ### 📁 Nové soubory
 
-Soubor | Účel
---- | ---
-`open-sse/services/taskAwareRouter.ts` | Logika směrování s ohledem na úlohy (7 typů úloh)
-`src/app/api/settings/task-routing/route.ts` | API pro konfiguraci směrování úloh
-`src/app/api/providers/[id]/refresh/route.ts` | Ruční aktualizace tokenu OAuth
-`src/lib/db/readCache.ts` | Efektivní mezipaměť pro čtení databáze
-`src/shared/utils/clipboard.ts` | Zpevněná schránka s funkcí
+| Soubor                                        | Účel                                              |
+| --------------------------------------------- | ------------------------------------------------- |
+| `open-sse/services/taskAwareRouter.ts`        | Logika směrování s ohledem na úlohy (7 typů úloh) |
+| `src/app/api/settings/task-routing/route.ts`  | API pro konfiguraci směrování úloh                |
+| `src/app/api/providers/[id]/refresh/route.ts` | Ruční aktualizace tokenu OAuth                    |
+| `src/lib/db/readCache.ts`                     | Efektivní mezipaměť pro čtení databáze            |
+| `src/shared/utils/clipboard.ts`               | Zpevněná schránka s funkcí                        |
 
 ## [2.4.1] - 13. 3. 2026
 
@@ -574,7 +574,7 @@ Soubor | Účel
 
 ### ✨ Funkce
 
-- **Kombinace: Šablona Free Stack** — Nová 4. šablona „Free Stack (0 $)“ využívající round-robin napříč Kiro + iFlow + Qwen + Gemini CLI. Při prvním použití doporučuje předpřipravenou kombinaci s nulovými náklady.
+- **Kombinace: Šablona Free Stack** — Nová 4. šablona „Free Stack (0 $)“ využívající round-robin napříč Kiro + Qoder + Qwen + Gemini CLI. Při prvním použití doporučuje předpřipravenou kombinaci s nulovými náklady.
 - **Média/Přepis: Deepgram jako výchozí** – Deepgram (Nova 3, 200 dolarů zdarma) je nyní výchozím poskytovatelem přepisu. AssemblyAI (50 dolarů zdarma) a Groq Whisper (navždy zdarma) jsou zobrazeny s odznaky bezplatného kreditu.
 - **README: Sekce „Začít zdarma“** – Nová tabulka s 5 kroky v předběžném souboru README, která ukazuje, jak nastavit umělou inteligenci s nulovými náklady během několika minut.
 - **README: Kombinace bezplatného přepisu** – Nová sekce s návrhem kombinací Deepgram/AssemblyAI/Groq a informacemi o bezplatném kreditu pro každého poskytovatele.
@@ -586,9 +586,9 @@ Soubor | Účel
 ### 📖 Dokumentace
 
 - **README: 44+ poskytovatelů** — Všechny 3 výskyty výrazu „36+ poskytovatelů“ byly aktualizovány na „44+“, což odráží skutečný počet kódové základny (44 poskytovatelů v souboru providers.ts).
-- **README: Nová sekce „🆓 Bezplatné modely – Co skutečně získáte“** – Přidána tabulka 7 poskytovatelů s limity rychlosti pro každý model pro: Kiro (Claude neomezeně přes AWS Builder ID), iFlow (5 modelů neomezeně), Qwen (4 modely neomezeně), Gemini CLI (180K/měsíc), NVIDIA NIM (~40 RPM dev-forever), Cerebras (1M tok/den / 60K TPM), Groq (30 RPM / 14.4K RPD). Zahrnuje doporučení pro kombinaci /usr/bin/bash Ultimate Free Stack.
-- **Soubor README: Aktualizace cenové tabulky** – přidán Cerebras do úrovně API KEY, opravena změna NVIDIA z „1000 kreditů“ na „navždy zdarma pro vývojáře“, aktualizovány počty a názvy modelů iFlow/Qwen
-- **README: Modely iFlow 8→5** (s názvy: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2)
+- **README: Nová sekce „🆓 Bezplatné modely – Co skutečně získáte“** – Přidána tabulka 7 poskytovatelů s limity rychlosti pro každý model pro: Kiro (Claude neomezeně přes AWS Builder ID), Qoder (5 modelů neomezeně), Qwen (4 modely neomezeně), Gemini CLI (180K/měsíc), NVIDIA NIM (~40 RPM dev-forever), Cerebras (1M tok/den / 60K TPM), Groq (30 RPM / 14.4K RPD). Zahrnuje doporučení pro kombinaci /usr/bin/bash Ultimate Free Stack.
+- **Soubor README: Aktualizace cenové tabulky** – přidán Cerebras do úrovně API KEY, opravena změna NVIDIA z „1000 kreditů“ na „navždy zdarma pro vývojáře“, aktualizovány počty a názvy modelů Qoder/Qwen
+- **README: Modely Qoder 8→5** (s názvy: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2)
 - **README: Modely Qwen 3→4** (s názvy: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model)
 
 ## [2.3.15] - 13. 3. 2026
@@ -602,7 +602,7 @@ Soubor | Účel
 
 ### 🐛 Opravy chyb
 
-- **iFlow OAuth (#339)** : Obnoven platný výchozí `clientSecret` – dříve to byl prázdný řetězec, který při každém pokusu o připojení způsoboval chybu „Chybné přihlašovací údaje klienta“. Veřejné přihlašovací údaje jsou nyní výchozím záložním nastavením (lze je přepsat pomocí proměnné prostředí `IFLOW_OAUTH_CLIENT_SECRET` ).
+- **Qoder OAuth (#339)** : Obnoven platný výchozí `clientSecret` – dříve to byl prázdný řetězec, který při každém pokusu o připojení způsoboval chybu „Chybné přihlašovací údaje klienta“. Veřejné přihlašovací údaje jsou nyní výchozím záložním nastavením (lze je přepsat pomocí proměnné prostředí `QODER_OAUTH_CLIENT_SECRET` ).
 - **MITM server nenalezen (#335)** : `prepublish.mjs` nyní kompiluje `src/mitm/*.ts` do JavaScriptu pomocí `tsc` před zkopírováním do npm balíčku. Dříve se kopírovaly pouze nezpracované soubory `.ts` – což znamenalo, že `server.js` nikdy neexistoval v globálních instalacích npm/Volta.
 - **Chybí projectId v GeminiCLI (#338)** : Namísto vyvolání hardwarové chyby 500, když v uložených přihlašovacích údajích chybí `projectId` (např. po restartu Dockeru), OmniRoute nyní zaznamená varování a pokusí se o požadavek – vrátí smysluplnou chybu na straně poskytovatele místo pádu OmniRoute.
 - **Neshoda verzí balíčku Electron (#323)** : Synchronizována verze `electron/package.json` s verzí `2.3.13` (dříve `2.0.13` ), takže binární verze pro stolní počítače odpovídá balíčku npm.
@@ -640,9 +640,9 @@ Soubor | Účel
 
 ### 📁 Nové soubory
 
-Soubor | Účel
---- | ---
-`open-sse/services/modelFamilyFallback.ts` | Definice modelových rodin a logika záložních řešení v rámci rodiny
+| Soubor                                     | Účel                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `open-sse/services/modelFamilyFallback.ts` | Definice modelových rodin a logika záložních řešení v rámci rodiny |
 
 ### Opraveno
 

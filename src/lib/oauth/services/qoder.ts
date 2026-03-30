@@ -1,23 +1,23 @@
 import crypto from "crypto";
 import open from "open";
-import { IFLOW_CONFIG } from "../constants/oauth";
+import { QODER_CONFIG } from "../constants/oauth";
 import { getServerCredentials } from "../config/index";
 import { startLocalServer } from "../utils/server";
 import { spinner as createSpinner } from "../utils/ui";
 
 /**
- * iFlow OAuth Service
+ * Qoder OAuth Service
  * Uses Authorization Code flow with Basic Auth
  */
-export class IFlowService {
+export class QoderService {
   config: any;
 
   constructor() {
-    this.config = IFLOW_CONFIG;
+    this.config = QODER_CONFIG;
   }
 
   /**
-   * Build iFlow authorization URL
+   * Build Qoder authorization URL
    */
   buildAuthUrl(redirectUri: string, state: string) {
     const params = new URLSearchParams({
@@ -65,7 +65,7 @@ export class IFlowService {
   }
 
   /**
-   * Get user info from iFlow
+   * Get user info from Qoder
    */
   async getUserInfo(accessToken: string) {
     const response = await fetch(
@@ -92,12 +92,12 @@ export class IFlowService {
   }
 
   /**
-   * Save iFlow tokens to server
+   * Save Qoder tokens to server
    */
   async saveTokens(tokens: any, userInfo: any) {
     const { server, token, userId } = getServerCredentials();
 
-    const response = await fetch(`${server}/api/cli/providers/iflow`, {
+    const response = await fetch(`${server}/api/cli/providers/qoder`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -122,10 +122,10 @@ export class IFlowService {
   }
 
   /**
-   * Complete iFlow OAuth flow
+   * Complete Qoder OAuth flow
    */
   async connect() {
-    const spinner = createSpinner("Starting iFlow OAuth...").start();
+    const spinner = createSpinner("Starting Qoder OAuth...").start();
 
     try {
       spinner.text = "Starting local server...";
@@ -145,14 +145,14 @@ export class IFlowService {
       // Build authorization URL
       const authUrl = this.buildAuthUrl(redirectUri, state);
 
-      console.log("\nOpening browser for iFlow authentication...");
+      console.log("\nOpening browser for Qoder authentication...");
       console.log(`If browser doesn't open, visit:\n${authUrl}\n`);
 
       // Open browser
       await open(authUrl);
 
       // Wait for callback
-      spinner.start("Waiting for iFlow authorization...");
+      spinner.start("Waiting for Qoder authorization...");
 
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -193,7 +193,7 @@ export class IFlowService {
       // Save tokens to server
       await this.saveTokens(tokens, userInfo);
 
-      spinner.succeed(`iFlow connected successfully! (${userInfo.email || userInfo.phone})`);
+      spinner.succeed(`Qoder connected successfully! (${userInfo.email || userInfo.phone})`);
       return true;
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);

@@ -4,7 +4,7 @@
  * Parses <think>...</think> tags from LLM output and converts them
  * to a structured `reasoning_content` field.
  *
- * Used by providers like DeepSeek, Qwen, and iFlow that embed
+ * Used by providers like DeepSeek, Qwen, and Qoder that embed
  * chain-of-thought reasoning inside <think> tags.
  *
  * Usage:

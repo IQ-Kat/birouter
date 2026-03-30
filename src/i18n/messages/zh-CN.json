@@ -948,7 +948,7 @@
       }
     },
     "templateFreeStack": "免费栈（$0）",
-    "templateFreeStackDesc": "在所有免费提供商之间进行轮询：Kiro（Claude）、iFlow（5 个模型）、Qwen（4 个模型）、Gemini CLI。零成本，编码不中断。"
+    "templateFreeStackDesc": "在所有免费提供商之间进行轮询：Kiro（Claude）、Qoder（5 个模型）、Qwen（4 个模型）、Gemini CLI。零成本，编码不中断。"
   },
   "costs": {
     "title": "成本",
@@ -2509,7 +2509,7 @@
     "waitingForGoogleAuthorization": "正在等待 Google 授权...",
     "waitingForOpenAIAuthorization": "正在等待 OpenAI 授权...",
     "waitingForAntigravityAuthorization": "正在等待 Antigravity 授权...",
-    "waitingForIFlowAuthorization": "正在等待 iFlow 授权...",
+    "waitingForQoderAuthorization": "正在等待 Qoder 授权...",
     "exchangingCodeForTokens": "正在用授权码换取 Tokens..."
   },
   "landing": {

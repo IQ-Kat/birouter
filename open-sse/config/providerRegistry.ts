@@ -319,27 +319,27 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
-  iflow: {
-    id: "iflow",
+  qoder: {
+    id: "qoder",
     alias: "if",
     format: "openai",
-    executor: "iflow",
-    baseUrl: "https://apis.iflow.cn/v1/chat/completions",
+    executor: "qoder",
+    baseUrl: "https://apis.qoder.cn/v1/chat/completions",
     authType: "oauth",
     authHeader: "bearer",
     headers: {
-      "User-Agent": "iFlow-Cli",
+      "User-Agent": "Qoder-Cli",
     },
     oauth: {
-      clientIdEnv: "IFLOW_OAUTH_CLIENT_ID",
+      clientIdEnv: "QODER_OAUTH_CLIENT_ID",
       clientIdDefault: "10009311001",
-      clientSecretEnv: "IFLOW_OAUTH_CLIENT_SECRET",
+      clientSecretEnv: "QODER_OAUTH_CLIENT_SECRET",
       clientSecretDefault: "",
-      tokenUrl: "https://iflow.cn/oauth/token",
-      authUrl: "https://iflow.cn/oauth",
+      tokenUrl: "https://qoder.cn/oauth/token",
+      authUrl: "https://qoder.cn/oauth",
     },
     models: [
-      { id: "iflow-rome-30ba3b", name: "iFlow ROME" },
+      { id: "qoder-rome-30ba3b", name: "Qoder ROME" },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "qwen3-max", name: "Qwen3 Max" },
       { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus" },

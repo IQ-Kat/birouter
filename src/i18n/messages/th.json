@@ -892,7 +892,7 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), iFlow (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
   },
   "costs": {
     "title": "ค่าใช้จ่าย",
@@ -2420,7 +2420,7 @@
     "waitingForGoogleAuthorization": "กำลังรอการอนุญาตจาก Google...",
     "waitingForOpenAIAuthorization": "กำลังรอการอนุญาต OpenAI...",
     "waitingForAntigravityAuthorization": "กำลังรอการอนุญาตต้านแรงโน้มถ่วง...",
-    "waitingForIFlowAuthorization": "กำลังรอการอนุญาตจาก iFlow...",
+    "waitingForQoderAuthorization": "กำลังรอการอนุญาตจาก Qoder...",
     "exchangingCodeForTokens": "การเปลี่ยนรหัสเป็นโทเค็น..."
   },
   "landing": {

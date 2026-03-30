@@ -19,7 +19,7 @@ export const PROVIDER_COLORS = {
   codex: { bg: "#10A37F", text: "#fff", label: "Codex" },
   gemini: { bg: "#34A853", text: "#fff", label: "Gemini" },
   qwen: { bg: "#6366F1", text: "#fff", label: "Qwen" },
-  iflow: { bg: "#EC4899", text: "#fff", label: "iFlow" },
+  qoder: { bg: "#EC4899", text: "#fff", label: "Qoder" },
   fireworks: { bg: "#F97316", text: "#fff", label: "Fireworks" },
   kimi: { bg: "#06B6D4", text: "#fff", label: "Kimi" },
   "gemini-cli": { bg: "#34A853", text: "#fff", label: "Gemini CLI" },

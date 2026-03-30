@@ -199,7 +199,7 @@ _Підключіть будь-який інструмент IDE або CLI на
 npm run system-info
 ```
 
-Це генерує `system-info.txt` з вашою версією Node.js, версією OmniRoute, деталями ОС, встановленими інструментами CLI (iflow, gemini, claude, codex, antigravity, droid тощо), статусом Docker/PM2 і системними пакетами — усім, що нам потрібно для швидкого відтворення вашої проблеми. Прикріпіть файл безпосередньо до свого випуску GitHub.
+Це генерує `system-info.txt` з вашою версією Node.js, версією OmniRoute, деталями ОС, встановленими інструментами CLI (qoder, gemini, claude, codex, antigravity, droid тощо), статусом Docker/PM2 і системними пакетами — усім, що нам потрібно для швидкого відтворення вашої проблеми. Прикріпіть файл безпосередньо до свого випуску GitHub.
 
 ---
 
@@ -225,7 +225,7 @@ npm run system-info
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -292,7 +292,7 @@ OpenAI використовує один формат, Claude (Anthropic) вик
 
 **Як це вирішує OmniRoute:**
 
-- **Вбудовані безкоштовні постачальники рівня** — Вбудована підтримка 100% безкоштовних постачальників: iFlow (5 необмежених моделей через OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 необмежені моделі: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID безкоштовно), Gemini CLI (180K токенів/місяць безкоштовно)
+- **Вбудовані безкоштовні постачальники рівня** — Вбудована підтримка 100% безкоштовних постачальників: Qoder (5 необмежених моделей через OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 необмежені моделі: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID безкоштовно), Gemini CLI (180K токенів/місяць безкоштовно)
 - **Ollama Cloud** — хмарні моделі Ollama на `api.ollama.com` з безкоштовним рівнем «Light usage»; використовуйте префікс `ollamacloud/<model>`
 - **Безкоштовні комбінації** — ланцюжок `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 доларів США на місяць без простоїв
 - **Безкоштовний доступ до NVIDIA NIM** — ~40 об./хв. для розробників назавжди безкоштовний доступ до 70+ моделей на build.nvidia.com (перехід від кредитів до чистих обмежень швидкості)
@@ -356,7 +356,7 @@ Claude Code, Codex, Gemini CLI, Copilot — усі використовують 
 **Як це вирішує OmniRoute:**
 
 - **Auto Token Refresh** — маркери OAuth оновлюються у фоновому режимі до завершення терміну дії
-- **Вбудований OAuth 2.0 (PKCE)** — автоматичний потік для Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **Вбудований OAuth 2.0 (PKCE)** — автоматичний потік для Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** — кілька облікових записів на постачальника за допомогою вилучення токенів JWT/ID
 - **OAuth LAN/Remote Fix** — виявлення приватної IP-адреси для `redirect_uri` + ручний режим URL-адреси для віддалених серверів
 - **OAuth за Nginx** — використовує `window.location.origin` для зворотної сумісності проксі
@@ -736,7 +736,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | Крок | Дія                                                     | Постачальники розблоковано                                          |
 | ---- | ------------------------------------------------------- | ------------------------------------------------------------------- |
 | 1    | Підключіть **Kiro** (AWS Builder ID OAuth)              | Клод Сонет 4.5, Хайку 4.5 — **необмежений**                         |
-| 2    | Підключіть **iFlow** (Google OAuth)                     | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **необмежено** |
+| 2    | Підключіть **Qoder** (Google OAuth)                     | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **необмежено** |
 | 3    | Підключіть **Qwen** (код пристрою)                      | qwen3-coder-plus, qwen3-coder-flash... — **необмежено**             |
 | 4    | Підключіть **Gemini CLI** (Google OAuth)                | gemini-3-flash, gemini-2.5-pro — **180K/міс безкоштовно**           |
 | 5    | `/dashboard/combos` → Шаблон **Безкоштовний стек ($0)** | Циклічний цикл усіх безкоштовних постачальників автоматично         |
@@ -945,7 +945,7 @@ npm run electron:build:linux   # Linux (.AppImage)
 |                    | MiniMax M2.1                | $0,2/1 млн                         | 5-годинний роликовий          | Найдешевший варіант                         |
 |                    | Kimi K2.5 (Moonshot API) 🆕 | Оплата за використання             | Жодного                       | Прямий доступ до Moonshot API               |
 |                    | Кімі К2                     | 9 $/міс квартира                   | 10 млн токенів/міс            | Передбачувана вартість                      |
-| **🆓 БЕЗКОШТОВНО** | iFlow                       | **$0**                             | Необмежений                   | 5 моделей без обмежень                      |
+| **🆓 БЕЗКОШТОВНО** | Qoder                       | **$0**                             | Необмежений                   | 5 моделей без обмежень                      |
 |                    | Квен                        | **$0**                             | Необмежений                   | 4 моделі без обмежень                       |
 |                    | Кіро                        | **$0**                             | Необмежений                   | Клод Сонет/Хайку (AWS Builder)              |
 |                    | LongCat Flash-Lite 🆕       | **$0** (50 млн ток/день 🔥)        | 1 RPS                         | Найбільша безкоштовна квота на Землі        |
@@ -960,7 +960,7 @@ npm run electron:build:linux   # Linux (.AppImage)
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -990,7 +990,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`   | **Необмежений** | Немає повідомлень про щоденне обмеження |
 | `claude-opus-4.6`   | `kr/`   | **Необмежений** | Останній Opus через Kiro                |
 
-### 🟢 МОДЕЛІ IFLOW (безкоштовний OAuth — без кредитної картки)
+### 🟢 МОДЕЛІ QODER (безкоштовний OAuth — без кредитної картки)
 
 | Модель             | Префікс | Ліміт           | Обмеження швидкості             |
 | ------------------ | ------- | --------------- | ------------------------------- |
@@ -1089,7 +1089,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1540,11 +1540,11 @@ Models:
 <details>
 <summary><b>🆓 БЕЗКОШТОВНІ постачальники (аварійне резервне копіювання)</b></summary>
 
-### iFlow (5 БЕЗКОШТОВНИХ моделей через OAuth)
+### Qoder (5 БЕЗКОШТОВНИХ моделей через OAuth)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1744,7 +1744,7 @@ opencode
 
 - Перевірте статистику використання в Інформаційній панелі → Витрати
 - Переключіть основну модель на GLM/MiniMax
-- Використовуйте безкоштовний рівень (Gemini CLI, iFlow) для некритичних завдань
+- Використовуйте безкоштовний рівень (Gemini CLI, Qoder) для некритичних завдань
 
 **Порти приладової панелі/API неправильні**
 

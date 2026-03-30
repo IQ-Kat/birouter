@@ -49,7 +49,7 @@ const budget = [
   { file: "open-sse/executors/base.ts", maxAny: 0 },
   { file: "open-sse/executors/kiro.ts", maxAny: 0 },
   { file: "open-sse/executors/cursor.ts", maxAny: 0 },
-  { file: "open-sse/executors/iflow.ts", maxAny: 0 },
+  { file: "open-sse/executors/qoder.ts", maxAny: 0 },
   { file: "open-sse/utils/comfyuiClient.ts", maxAny: 0 },
   { file: "open-sse/utils/tlsClient.ts", maxAny: 0 },
   { file: "open-sse/utils/proxyFetch.ts", maxAny: 0 },

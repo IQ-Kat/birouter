@@ -199,7 +199,7 @@ _قم بتوصيل أي أداة IDE أو CLI مدعومة بالذكاء الا
 npm run system-info
 ```
 
-يؤدي هذا إلى إنشاء `system-info.txt` مع إصدار Node.js، وإصدار OmniRoute، وتفاصيل نظام التشغيل، وأدوات CLI المثبتة (iflow، وgemini، و claude، وcodex، وantigravity، وdroid، وما إلى ذلك)، وحالة Docker/PM2، وحزم النظام - كل ما نحتاجه لإعادة إنتاج مشكلتك بسرعة. قم بإرفاق الملف مباشرة بمشكلة GitHub الخاصة بك.
+يؤدي هذا إلى إنشاء `system-info.txt` مع إصدار Node.js، وإصدار OmniRoute، وتفاصيل نظام التشغيل، وأدوات CLI المثبتة (qoder، وgemini، و claude، وcodex، وantigravity، وdroid، وما إلى ذلك)، وحالة Docker/PM2، وحزم النظام - كل ما نحتاجه لإعادة إنتاج مشكلتك بسرعة. قم بإرفاق الملف مباشرة بمشكلة GitHub الخاصة بك.
 
 ---
 
@@ -225,7 +225,7 @@ npm run system-info
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -292,7 +292,7 @@ Result: Never stop coding, minimal cost
 
 **كيف يحل OmniRoute المشكلة:**
 
-- **موفرو الطبقة المجانية المضمنون** — دعم أصلي لمقدمي الخدمة المجانية بنسبة 100%: iFlow (5 نماذج غير محدودة عبر OAuth: kimi-k2-thinking، qwen3-coder-plus، Deepseek-r1، minimax-m2، kimi-k2)، Qwen (4 نماذج غير محدودة: qwen3-coder-plus، qwen3-coder-flash، qwen3-coder-next، Vision-model)، Kiro (Claude + AWS Builder ID مجانًا)، Gemini CLI (180 ألف رمز مميز شهريًا مجانًا)
+- **موفرو الطبقة المجانية المضمنون** — دعم أصلي لمقدمي الخدمة المجانية بنسبة 100%: Qoder (5 نماذج غير محدودة عبر OAuth: kimi-k2-thinking، qwen3-coder-plus، Deepseek-r1، minimax-m2، kimi-k2)، Qwen (4 نماذج غير محدودة: qwen3-coder-plus، qwen3-coder-flash، qwen3-coder-next، Vision-model)، Kiro (Claude + AWS Builder ID مجانًا)، Gemini CLI (180 ألف رمز مميز شهريًا مجانًا)
 - **Ollama Cloud** — نماذج Ollama المستضافة على السحابة في `api.ollama.com` مع فئة "الاستخدام الخفيف" مجانًا؛ استخدم البادئة `ollamacloud/<model>`
 - **المجموعات المجانية فقط** — السلسلة `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/الشهر بدون أي توقف عن العمل
 - **NVIDIA NIM Free Access** — ~40 دورة في الدقيقة وصول مجاني للأبد إلى أكثر من 70 نموذجًا على build.nvidia.com (الانتقال من الاعتمادات إلى حدود المعدل النقي)
@@ -356,7 +356,7 @@ Claude Code، وCodex، وGemini CLI، وCopilot — جميعهم يستخدمو
 **كيف يحل OmniRoute المشكلة:**
 
 - **التحديث التلقائي للرمز المميز** — يتم تحديث رموز OAuth المميزة في الخلفية قبل انتهاء الصلاحية
-- **OAuth 2.0 (PKCE) مدمج** — التدفق التلقائي لـ Claude Code وCodex وGemini CLI وCopilot وKiro وQwen وiFlow
+- **OAuth 2.0 (PKCE) مدمج** — التدفق التلقائي لـ Claude Code وCodex وGemini CLI وCopilot وKiro وQwen وQoder
 - **OAuth متعدد الحسابات** — حسابات متعددة لكل مزود عبر استخراج الرمز المميز JWT/ID
 - **OAuth LAN/Remote Fix** — اكتشاف IP الخاص لـ `redirect_uri` + وضع URL اليدوي للخوادم البعيدة
 - **OAuth Behind Nginx** — يستخدم `window.location.origin` للتوافق العكسي مع الوكيل
@@ -733,7 +733,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | خطوة | العمل                                              | مقدمي الخدمات مقفلة                                                |
 | ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
 | 1    | الاتصال **Kiro** (معرف AWS Builder OAuth)          | كلود سونيت 4.5، هايكو 4.5 — **غير محدود**                          |
-| 2    | ربط **iFlow** (Google OAuth)                       | kimi-k2-thinking, qwen3-coder-plus, Deepseek-r1... — **غير محدود** |
+| 2    | ربط **Qoder** (Google OAuth)                       | kimi-k2-thinking, qwen3-coder-plus, Deepseek-r1... — **غير محدود** |
 | 3    | ربط **كوين** (رمز الجهاز)                          | qwen3-coder-plus، qwen3-coder-flash... — **غير محدود**             |
 | 4    | الاتصال **Gemini CLI** (Google OAuth)              | gemini-3-flash,gemini-2.5-pro — **180 ألف/الشهر مجانًا**           |
 | 5    | `/dashboard/combos` → **قالب المكدس المجاني ($0)** | جولة روبن لجميع مقدمي الخدمات المجانية تلقائيًا                    |
@@ -957,7 +957,7 @@ npm run electron:build:linux   # Linux (.AppImage)
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -987,7 +987,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`   | **غير محدود** | لم يتم الإبلاغ عن الحد الأقصى اليومي |
 | `claude-opus-4.6`   | `kr/`   | **غير محدود** | أحدث أعمال أوبوس عبر كيرو            |
 
-### 🟢 نماذج IFLOW (بروتوكول OAuth مجاني — بدون بطاقة ائتمان)
+### 🟢 نماذج QODER (بروتوكول OAuth مجاني — بدون بطاقة ائتمان)
 
 | نموذج              | البادئة | الحد          | حد السعر                      |
 | ------------------ | ------- | ------------- | ----------------------------- |
@@ -1086,7 +1086,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1536,11 +1536,11 @@ Models:
 <details>
 <summary><b>🆓 موفرو الخدمة المجانية (النسخ الاحتياطي في حالات الطوارئ)</b></summary>
 
-### iFlow (5 نماذج مجانية عبر OAuth)
+### Qoder (5 نماذج مجانية عبر OAuth)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1738,7 +1738,7 @@ opencode
 
 - التحقق من إحصائيات الاستخدام في لوحة المعلومات → التكاليف
 - تبديل النموذج الأساسي إلى GLM/MiniMax
-- استخدم الطبقة المجانية (Gemini CLI، iFlow) للمهام غير الحرجة
+- استخدم الطبقة المجانية (Gemini CLI، Qoder) للمهام غير الحرجة
 
 **منافذ لوحة المعلومات/واجهة برمجة التطبيقات غير صحيحة**
 

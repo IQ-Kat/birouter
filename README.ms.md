@@ -200,7 +200,7 @@ Apabila membuka isu, sila jalankan arahan maklumat sistem dan lampirkan fail yan
 npm run system-info
 ```
 
-Ini menjana `system-info.txt` dengan versi Node.js anda, versi OmniRoute, butiran OS, alat CLI yang dipasang (iflow, gemini, claude, codex, antigravity, droid, dll.), status Docker/PM2 dan pakej sistem — semua yang kami perlukan untuk mengeluarkan semula isu anda dengan cepat. Lampirkan fail terus pada isu GitHub anda.
+Ini menjana `system-info.txt` dengan versi Node.js anda, versi OmniRoute, butiran OS, alat CLI yang dipasang (qoder, gemini, claude, codex, antigravity, droid, dll.), status Docker/PM2 dan pakej sistem — semua yang kami perlukan untuk mengeluarkan semula isu anda dengan cepat. Lampirkan fail terus pada isu GitHub anda.
 
 ---
 
@@ -226,7 +226,7 @@ Ini menjana `system-info.txt` dengan versi Node.js anda, versi OmniRoute, butira
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -293,7 +293,7 @@ Tidak semua orang boleh membayar $20–200/bulan untuk langganan AI. Pelajar, pe
 
 **Cara OmniRoute menyelesaikannya:**
 
-- **Pembekal Peringkat Percuma Terbina dalam** — Sokongan asli untuk penyedia percuma 100%: iFlow (5 model tanpa had melalui OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 model tanpa had: qwender3-coder3,-coplus qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID secara percuma), Gemini CLI (180K token/bulan percuma)
+- **Pembekal Peringkat Percuma Terbina dalam** — Sokongan asli untuk penyedia percuma 100%: Qoder (5 model tanpa had melalui OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 model tanpa had: qwender3-coder3,-coplus qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID secara percuma), Gemini CLI (180K token/bulan percuma)
 - **Ollama Cloud** — Model Ollama dihoskan awan di `api.ollama.com` dengan peringkat "Penggunaan cahaya" percuma; gunakan awalan `ollamacloud/<model>`
 - **Kombo Percuma-Sahaja** — Rantaian `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/bulan tanpa masa berhenti sifar
 - **Akses Percuma NVIDIA NIM** — ~40 RPM dev-forever akses percuma kepada 70+ model di build.nvidia.com (peralihan daripada kredit kepada had kadar tulen)
@@ -357,7 +357,7 @@ Kod Claude, Codex, Gemini CLI, Copilot — semuanya menggunakan OAuth 2.0 dengan
 **Cara OmniRoute menyelesaikannya:**
 
 - **Muat Semula Token Auto** — Token OAuth dimuat semula di latar belakang sebelum tamat tempoh
-- **OAuth 2.0 (PKCE) Terbina dalam** — Aliran automatik untuk Kod Claude, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) Terbina dalam** — Aliran automatik untuk Kod Claude, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **OAuth Berbilang Akaun** — Berbilang akaun bagi setiap pembekal melalui pengekstrakan token JWT/ID
 - **OAuth LAN/Remote Fix** — Pengesanan IP peribadi untuk `redirect_uri` + mod URL manual untuk pelayan jauh
 - **OAuth Behind Nginx** — Menggunakan `window.location.origin` untuk keserasian proksi terbalik
@@ -734,7 +734,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | Langkah | Tindakan                                                | Pembekal Dibuka Kunci                                              |
 | ------- | ------------------------------------------------------- | ------------------------------------------------------------------ |
 | 1       | Sambung **Kiro** (AWS Builder ID OAuth)                 | Claude Sonnet 4.5, Haiku 4.5 — **tanpa had**                       |
-| 2       | Sambung **iFlow** (Google OAuth)                        | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **tanpa had** |
+| 2       | Sambung **Qoder** (Google OAuth)                        | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **tanpa had** |
 | 3       | Sambung **Qwen** (Kod Peranti)                          | qwen3-coder-plus, qwen3-coder-flash... — **tanpa had**             |
 | 4       | Sambung **Gemini CLI** (Google OAuth)                   | gemini-3-flash, Gemini-2.5-pro — **180K/bln percuma**              |
 | 5       | `/dashboard/combos` → **Templat Timbunan Percuma ($0)** | Round-robin semua pembekal percuma secara automatik                |
@@ -943,7 +943,7 @@ Apabila diminimumkan, OmniRoute tinggal dalam dulang sistem anda dengan tindakan
 |                  | MiniMax M2.1                | $0.2/1J                         | 5 jam bergolek     | Pilihan termurah                     |
 |                  | Kimi K2.5 (Moonshot API) 🆕 | Bayar setiap penggunaan         | Tiada              | Akses langsung Moonshot API          |
 |                  | Kimi K2                     | $9/bln flat                     | 10 juta token/bln  | Kos yang boleh diramal               |
-| **🆓 PERCUMA**   | iFlow                       | **$0**                          | tanpa had          | 5 model tanpa had                    |
+| **🆓 PERCUMA**   | Qoder                       | **$0**                          | tanpa had          | 5 model tanpa had                    |
 |                  | Qwen                        | **$0**                          | tanpa had          | 4 model tanpa had                    |
 |                  | Kiro                        | **$0**                          | tanpa had          | Claude Sonnet/Haiku (Pembina AWS)    |
 |                  | LongCat Flash-Lite 🆕       | **$0** (50J tok/hari 🔥)        | 1 RPS              | Kuota percuma terbesar di Bumi       |
@@ -958,7 +958,7 @@ Apabila diminimumkan, OmniRoute tinggal dalam dulang sistem anda dengan tindakan
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -988,7 +988,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`  | **Tidak terhad** | Tiada had harian dilaporkan |
 | `claude-opus-4.6`   | `kr/`  | **Tidak terhad** | Opus terkini melalui Kiro   |
 
-### 🟢 MODEL IFLOW (OAuth Percuma — Tiada Kad Kredit)
+### 🟢 MODEL QODER (OAuth Percuma — Tiada Kad Kredit)
 
 | Model              | Awalan | Had              | Had Kadar                 |
 | ------------------ | ------ | ---------------- | ------------------------- |
@@ -1087,7 +1087,7 @@ Tersedia secara percuma: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1537,11 +1537,11 @@ Models:
 <details>
 <summary><b>🆓 Pembekal PERCUMA (Sandaran Kecemasan)</b></summary>
 
-### iFlow (5 model PERCUMA melalui OAuth)
+### Qoder (5 model PERCUMA melalui OAuth)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1739,7 +1739,7 @@ opencode
 
 - Semak statistik penggunaan dalam Papan Pemuka → Kos
 - Tukar model utama kepada GLM/MiniMax
-- Gunakan peringkat percuma (Gemini CLI, iFlow) untuk tugasan yang tidak kritikal
+- Gunakan peringkat percuma (Gemini CLI, Qoder) untuk tugasan yang tidak kritikal
 
 **Port papan pemuka/API salah**
 

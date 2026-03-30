@@ -892,7 +892,7 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), iFlow (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
   },
   "costs": {
     "title": "náklady",
@@ -2420,7 +2420,7 @@
     "waitingForGoogleAuthorization": "Čaká sa na autorizáciu Google...",
     "waitingForOpenAIAuthorization": "Čaká sa na autorizáciu OpenAI...",
     "waitingForAntigravityAuthorization": "Čaká sa na antigravitačné povolenie...",
-    "waitingForIFlowAuthorization": "Čaká sa na autorizáciu iFlow...",
+    "waitingForQoderAuthorization": "Čaká sa na autorizáciu Qoder...",
     "exchangingCodeForTokens": "Výmena kódu za tokeny..."
   },
   "landing": {

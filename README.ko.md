@@ -200,7 +200,7 @@ When opening an issue, please run the system-info command and attach the generat
 npm run system-info
 ```
 
-그러면 Node.js 버전, OmniRoute 버전, OS 세부 정보, 설치된 CLI 도구(iflow, gemini, claude, codex, antigravity, droid 등), Docker/PM2 상태, 시스템 패키지 등 문제를 신속하게 재현하는 데 필요한 모든 항목이 포함된 `system-info.txt`이 생성됩니다. GitHub 문제에 직접 파일을 첨부하세요.
+그러면 Node.js 버전, OmniRoute 버전, OS 세부 정보, 설치된 CLI 도구(qoder, gemini, claude, codex, antigravity, droid 등), Docker/PM2 상태, 시스템 패키지 등 문제를 신속하게 재현하는 데 필요한 모든 항목이 포함된 `system-info.txt`이 생성됩니다. GitHub 문제에 직접 파일을 첨부하세요.
 
 ---
 
@@ -226,7 +226,7 @@ npm run system-info
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -293,7 +293,7 @@ Not everyone can pay $20–200/month for AI subscriptions. Students, devs from e
 
 **OmniRoute가 이를 해결하는 방법:**
 
-- **무료 계층 제공자 내장** — 100% 무료 제공자에 대한 기본 지원: iFlow(OAuth를 통한 5개의 무제한 모델: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen(4개의 무제한 모델: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, Vision-model), Kiro (Claude + AWS Builder ID for free), Gemini CLI (180K tokens/month free)
+- **무료 계층 제공자 내장** — 100% 무료 제공자에 대한 기본 지원: Qoder(OAuth를 통한 5개의 무제한 모델: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen(4개의 무제한 모델: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, Vision-model), Kiro (Claude + AWS Builder ID for free), Gemini CLI (180K tokens/month free)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; `ollamacloud/<model>` 접두사 사용
 - **Free-Only Combos** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
 - **NVIDIA NIM 무료 액세스** — ~40RPM 개발 - build.nvidia.com에서 70개 이상의 모델에 영원히 무료 액세스(크레딧에서 순수 속도 제한으로 전환)
@@ -357,7 +357,7 @@ Claude Code, Codex, Gemini CLI, Copilot — all use OAuth 2.0 with expiring toke
 **OmniRoute가 이를 해결하는 방법:**
 
 - **Auto Token Refresh** — OAuth tokens refresh in background before expiration
-- **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** — Multiple accounts per provider via JWT/ID token extraction
 - **OAuth LAN/Remote Fix** — Private IP detection for `redirect_uri` + manual URL mode for remote servers
 - **OAuth Behind Nginx** — Uses `window.location.origin` for reverse proxy compatibility
@@ -734,7 +734,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | 단계 | 액션                                           | 제공자 잠금 해제                                                |
 | ---- | ---------------------------------------------- | --------------------------------------------------------------- |
 | 1    | **Kiro** 연결(AWS Builder ID OAuth)            | 클로드 소네트 4.5, 하이쿠 4.5 — **무제한**                      |
-| 2    | **iFlow** 연결(Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **무제한** |
+| 2    | **Qoder** 연결(Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **무제한** |
 | 3    | 연결 **Qwen**(장치 코드)                       | qwen3-coder-plus, qwen3-coder-flash... — **무제한**             |
 | 4    | **Gemini CLI**(Google OAuth) 연결              | gemini-3-flash, gemini-2.5-pro — **180K/월 무료**               |
 | 5    | `/dashboard/combos` → **무료 스택($0)** 템플릿 | 모든 무료 공급자를 자동으로 라운드 로빈                         |
@@ -958,7 +958,7 @@ npm run electron:build:linux   # Linux (.AppImage)
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -988,7 +988,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`  | **무제한** | 보고된 일일 한도 없음 |
 | `claude-opus-4.6`   | `kr/`  | **무제한** | Kiro를 통한 최신 Opus |
 
-### 🟢 IFLOW 모델(무료 OAuth — 신용카드 없음)
+### 🟢 QODER 모델(무료 OAuth — 신용카드 없음)
 
 | 모델               | 접두사 | 한도       | 비율 제한        |
 | ------------------ | ------ | ---------- | ---------------- |
@@ -1087,7 +1087,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1537,11 +1537,11 @@ Models:
 <details>
 <summary><b>🆓 무료 제공업체(긴급 백업)</b></summary>
 
-### iFlow(OAuth를 통한 5개 무료 모델)
+### Qoder(OAuth를 통한 5개 무료 모델)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1739,7 +1739,7 @@ opencode
 
 - 대시보드 → 비용에서 사용 통계를 확인하세요.
 - 기본 모델을 GLM/MiniMax로 전환
-- 중요하지 않은 작업에는 무료 계층(Gemini CLI, iFlow)을 사용합니다.
+- 중요하지 않은 작업에는 무료 계층(Gemini CLI, Qoder)을 사용합니다.
 
 **대시보드/API 포트가 잘못되었습니다**
 

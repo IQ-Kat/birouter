@@ -941,7 +941,7 @@
       }
     },
     "templateFreeStack": "Ücretsiz Yığın ($0)",
-    "templateFreeStackDesc": "Tüm ücretsiz sağlayıcılarda round-robin: Kiro (Claude), iFlow (5 model), Qwen (4 model), Gemini CLI. Sıfır maliyet, kodlama kesintisiz."
+    "templateFreeStackDesc": "Tüm ücretsiz sağlayıcılarda round-robin: Kiro (Claude), Qoder (5 model), Qwen (4 model), Gemini CLI. Sıfır maliyet, kodlama kesintisiz."
   },
   "costs": {
     "title": "Maliyetler",
@@ -2481,7 +2481,7 @@
     "waitingForGoogleAuthorization": "Google yetkilendirmesi bekleniyor...",
     "waitingForOpenAIAuthorization": "OpenAI yetkilendirmesi bekleniyor...",
     "waitingForAntigravityAuthorization": "Antigravity yetkilendirmesi bekleniyor...",
-    "waitingForIFlowAuthorization": "iFlow yetkilendirmesi bekleniyor...",
+    "waitingForQoderAuthorization": "Qoder yetkilendirmesi bekleniyor...",
     "exchangingCodeForTokens": "Kod jetonlarla değiştiriliyor..."
   },
   "landing": {

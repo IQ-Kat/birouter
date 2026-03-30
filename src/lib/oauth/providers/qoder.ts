@@ -1,7 +1,7 @@
-import { IFLOW_CONFIG } from "../constants/oauth";
+import { QODER_CONFIG } from "../constants/oauth";
 
-export const iflow = {
-  config: IFLOW_CONFIG,
+export const qoder = {
+  config: QODER_CONFIG,
   flowType: "authorization_code",
   buildAuthUrl: (config, redirectUri, state) => {
     const params = new URLSearchParams({
@@ -50,7 +50,7 @@ export const iflow = {
   },
   postExchange: async (tokens) => {
     const userInfoRes = await fetch(
-      `${IFLOW_CONFIG.userInfoUrl}?accessToken=${encodeURIComponent(tokens.access_token)}`,
+      `${QODER_CONFIG.userInfoUrl}?accessToken=${encodeURIComponent(tokens.access_token)}`,
       { headers: { Accept: "application/json" } }
     );
     const result = userInfoRes.ok ? await userInfoRes.json() : {};

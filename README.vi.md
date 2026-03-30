@@ -200,7 +200,7 @@ Khi mở một vấn đề, vui lòng chạy lệnh system-info và đính kèm 
 npm run system-info
 ```
 
-Điều này tạo ra `system-info.txt` với phiên bản Node.js, phiên bản OmniRoute, chi tiết hệ điều hành, các công cụ CLI đã cài đặt (iflow, gemini, claude, codex, antiGravity, droid, v.v.), trạng thái Docker/PM2 và các gói hệ thống — mọi thứ chúng tôi cần để tái tạo vấn đề của bạn một cách nhanh chóng. Đính kèm tệp trực tiếp vào vấn đề GitHub của bạn.
+Điều này tạo ra `system-info.txt` với phiên bản Node.js, phiên bản OmniRoute, chi tiết hệ điều hành, các công cụ CLI đã cài đặt (qoder, gemini, claude, codex, antiGravity, droid, v.v.), trạng thái Docker/PM2 và các gói hệ thống — mọi thứ chúng tôi cần để tái tạo vấn đề của bạn một cách nhanh chóng. Đính kèm tệp trực tiếp vào vấn đề GitHub của bạn.
 
 ---
 
@@ -226,7 +226,7 @@ npm run system-info
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -293,7 +293,7 @@ Không phải ai cũng có thể trả 20–200 USD/tháng để đăng ký AI. 
 
 **Cách OmniRoute giải quyết vấn đề này:**
 
-- **Tích hợp sẵn nhà cung cấp cấp miễn phí** — Hỗ trợ riêng cho nhà cung cấp miễn phí 100%: iFlow (5 mô hình không giới hạn qua OAuth: kimi-k2-thinking, qwen3-code-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 mô hình không giới hạn: qwen3-code-plus, qwen3-code-flash, qwen3-code-next, Vision-model), Kiro (Claude + AWS Builder ID miễn phí), Gemini CLI (miễn phí 180K token/tháng)
+- **Tích hợp sẵn nhà cung cấp cấp miễn phí** — Hỗ trợ riêng cho nhà cung cấp miễn phí 100%: Qoder (5 mô hình không giới hạn qua OAuth: kimi-k2-thinking, qwen3-code-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 mô hình không giới hạn: qwen3-code-plus, qwen3-code-flash, qwen3-code-next, Vision-model), Kiro (Claude + AWS Builder ID miễn phí), Gemini CLI (miễn phí 180K token/tháng)
 - **Ollama Cloud** — Các mô hình Ollama được lưu trữ trên đám mây tại `api.ollama.com` với bậc "Sử dụng nhẹ" miễn phí; sử dụng tiền tố `ollamacloud/<model>`
 - **Combo chỉ miễn phí** — Chuỗi `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/tháng mà không có thời gian ngừng hoạt động
 - **Truy cập miễn phí NVIDIA NIM** — ~40 RPM dành cho nhà phát triển - truy cập miễn phí vĩnh viễn vào hơn 70 mẫu tại build.nvidia.com (chuyển từ tín dụng sang giới hạn tỷ lệ thuần túy)
@@ -357,7 +357,7 @@ Claude Code, Codex, Gemini CLI, Copilot — tất cả đều sử dụng OAuth 
 **Cách OmniRoute giải quyết vấn đề này:**
 
 - **Tự động làm mới mã thông báo** — Làm mới mã thông báo OAuth ở chế độ nền trước khi hết hạn
-- **Tích hợp OAuth 2.0 (PKCE)** — Luồng tự động cho Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow
+- **Tích hợp OAuth 2.0 (PKCE)** — Luồng tự động cho Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
 - **OAuth nhiều tài khoản** — Nhiều tài khoản cho mỗi nhà cung cấp thông qua trích xuất mã thông báo JWT/ID
 - **OAuth LAN/Remote Fix** — Phát hiện IP riêng cho `redirect_uri` + chế độ URL thủ công cho máy chủ từ xa
 - **OAuth đằng sau Nginx** — Sử dụng `window.location.origin` để tương thích với proxy ngược
@@ -734,7 +734,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | Bước | Hành động                                            | Nhà cung cấp đã được mở khóa                                           |
 | ---- | ---------------------------------------------------- | ---------------------------------------------------------------------- |
 | 1    | Kết nối **Kiro** (ID AWS Builder OAuth)              | Claude Sonnet 4.5, Haiku 4.5 — **không giới hạn**                      |
-| 2    | Kết nối **iFlow** (Google OAuth)                     | kimi-k2-thinking, qwen3-code-plus, deepseek-r1... — **không giới hạn** |
+| 2    | Kết nối **Qoder** (Google OAuth)                     | kimi-k2-thinking, qwen3-code-plus, deepseek-r1... — **không giới hạn** |
 | 3    | Kết nối **Qwen** (Mã thiết bị)                       | qwen3-code-plus, qwen3-code-flash... — **không giới hạn**              |
 | 4    | Kết nối **Gemini CLI** (Google OAuth)                | gemini-3-flash, gemini-2.5-pro — **180K/tháng miễn phí**               |
 | 5    | `/dashboard/combos` → **Mẫu ngăn xếp miễn phí ($0)** | Tự động quay vòng tất cả các nhà cung cấp miễn phí                     |
@@ -943,7 +943,7 @@ Khi được thu nhỏ, OmniRoute sẽ tồn tại trong khay hệ thống của
 |                 | MiniMax M2.1                | 0,2 USD/1 triệu USD              | lăn 5 giờ              | Lựa chọn rẻ nhất                          |
 |                 | Kimi K2.5 (API Moonshot) 🆕 | Trả tiền cho mỗi lần sử dụng     | Không có               | Truy cập API Moonshot trực tiếp           |
 |                 | Kimi K2                     | $9/tháng căn hộ                  | 10 triệu token/tháng   | Chi phí dự đoán                           |
-| **🆓 MIỄN PHÍ** | iFlow                       | **$0**                           | Không giới hạn         | 5 mẫu không giới hạn                      |
+| **🆓 MIỄN PHÍ** | Qoder                       | **$0**                           | Không giới hạn         | 5 mẫu không giới hạn                      |
 |                 | Qwen                        | **$0**                           | Không giới hạn         | 4 mẫu không giới hạn                      |
 |                 | Kiro                        | **$0**                           | Không giới hạn         | Claude Sonnet/Haiku (Người xây dựng AWS)  |
 |                 | LongCat Flash-Lite 🆕       | **$0** (50 triệu tok/ngày 🔥)    | 1 RPS                  | Hạn ngạch miễn phí lớn nhất trên Trái đất |
@@ -958,7 +958,7 @@ Khi được thu nhỏ, OmniRoute sẽ tồn tại trong khay hệ thống của
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -988,7 +988,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`   | **Không giới hạn** | Không có giới hạn hàng ngày được báo cáo |
 | `claude-opus-4.6`   | `kr/`   | **Không giới hạn** | Opus mới nhất qua Kiro                   |
 
-### 🟢 MÔ HÌNH IFLOW (OAuth miễn phí - Không có thẻ tín dụng)
+### 🟢 MÔ HÌNH QODER (OAuth miễn phí - Không có thẻ tín dụng)
 
 | Người mẫu          | Tiền tố | Giới hạn           | Giới hạn tỷ lệ                 |
 | ------------------ | ------- | ------------------ | ------------------------------ |
@@ -1087,7 +1087,7 @@ Có sẵn miễn phí: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1537,11 +1537,11 @@ Models:
 <details>
 <summary><b>🆓 Nhà cung cấp MIỄN PHÍ (Dự phòng khẩn cấp)</b></summary>
 
-### iFlow (5 mô hình MIỄN PHÍ qua OAuth)
+### Qoder (5 mô hình MIỄN PHÍ qua OAuth)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1739,7 +1739,7 @@ opencode
 
 - Kiểm tra số liệu thống kê sử dụng trong Bảng điều khiển → Chi phí
 - Chuyển mô hình chính sang GLM/MiniMax
-- Sử dụng bậc miễn phí (Gemini CLI, iFlow) cho các tác vụ không quan trọng
+- Sử dụng bậc miễn phí (Gemini CLI, Qoder) cho các tác vụ không quan trọng
 
 **Cổng bảng điều khiển/API bị sai**
 

@@ -438,7 +438,7 @@ export default function OAuthModal({
   }, [authData, exchangeTokens]);
 
   // Fix #344: Detect when OAuth popup is closed without completing authorization
-  // Some providers (like iFlow) redirect to their own chat UI instead of sending a callback,
+  // Some providers (like Qoder) redirect to their own chat UI instead of sending a callback,
   // leaving the modal stuck at "Waiting for Authorization" forever.
   useEffect(() => {
     if (step !== "waiting" || isDeviceCode || !popupRef.current) return;
@@ -539,7 +539,7 @@ export default function OAuthModal({
               Complete the authorization in the popup window.
             </p>
             <p className="text-xs text-text-muted mb-4 opacity-70">
-              If the popup closes without redirecting back (e.g. iFlow), this dialog will
+              If the popup closes without redirecting back (e.g. Qoder), this dialog will
               automatically switch to manual URL input mode.
             </p>
             <Button variant="ghost" onClick={() => setStep("input")}>

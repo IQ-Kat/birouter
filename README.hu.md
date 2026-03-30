@@ -200,7 +200,7 @@ Egy probléma megnyitásakor futtassa a system-info parancsot, és csatolja a ge
 npm run system-info
 ```
 
-Ez létrehoz egy `system-info.txt`-t a Node.js verziójával, az OmniRoute verziójával, az operációs rendszer részleteivel, a telepített CLI-eszközökkel (iflow, gemini, claude, codex, antigravitáció, droid stb.), Docker/PM2 állapottal és rendszercsomagokkal – mindennel, amire szükségünk van a probléma gyors reprodukálásához. Csatolja a fájlt közvetlenül a GitHub-problémához.
+Ez létrehoz egy `system-info.txt`-t a Node.js verziójával, az OmniRoute verziójával, az operációs rendszer részleteivel, a telepített CLI-eszközökkel (qoder, gemini, claude, codex, antigravitáció, droid stb.), Docker/PM2 állapottal és rendszercsomagokkal – mindennel, amire szükségünk van a probléma gyors reprodukálásához. Csatolja a fájlt közvetlenül a GitHub-problémához.
 
 ---
 
@@ -226,7 +226,7 @@ Ez létrehoz egy `system-info.txt`-t a Node.js verziójával, az OmniRoute verzi
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] iFlow, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
 ```
@@ -293,7 +293,7 @@ Nem mindenki fizethet havi 20–200 dollárt az AI-előfizetésekért. A feltör
 
 **Hogyan oldja meg az OmniRoute:**
 
-- **Beépített ingyenes szolgáltatók** - Natív támogatás a 100%-ban ingyenes szolgáltatókhoz: iFlow (5 korlátlan modell az OAuth-on keresztül: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen-modellek: 4 unqlim-plus3 qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID ingyen), Gemini CLI (180 000 token/hónap ingyenes)
+- **Beépített ingyenes szolgáltatók** - Natív támogatás a 100%-ban ingyenes szolgáltatókhoz: Qoder (5 korlátlan modell az OAuth-on keresztül: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen-modellek: 4 unqlim-plus3 qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID ingyen), Gemini CLI (180 000 token/hónap ingyenes)
 - **Ollama Cloud** – Felhőben tárolt Ollama modellek a `api.ollama.com` címen ingyenes „Light usage” szinttel; használja az `ollamacloud/<model>` előtagot
 - **Csak ingyenes kombók** - Lánc `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/hó nulla állásidővel
 - **NVIDIA NIM ingyenes hozzáférés** – ~40 RPM fejlesztői örökké ingyenes hozzáférés több mint 70 modellhez a build.nvidia.com oldalon (áttérés a kreditekről a tiszta sebességkorlátokra)
@@ -357,7 +357,7 @@ Claude Code, Codex, Gemini CLI, Copilot – mindegyik az OAuth 2.0-t használja 
 **Hogyan oldja meg az OmniRoute:**
 
 - **Automatikus tokenfrissítés** - Az OAuth-tokenek a háttérben frissülnek a lejárat előtt
-- **OAuth 2.0 (PKCE) beépített** - Automatikus áramlás Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, iFlow számára
+- **OAuth 2.0 (PKCE) beépített** - Automatikus áramlás Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder számára
 - **Multi-Account OAuth** - Több fiók szolgáltatónként a JWT/ID token kivonattal
 - **OAuth LAN/Távoli javítás** - Privát IP-észlelés a `redirect_uri` számára + kézi URL mód távoli szerverekhez
 - **OAuth az Nginx mögött** - A `window.location.origin` kódot használja a fordított proxy kompatibilitáshoz
@@ -734,7 +734,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | lépés | Akció                                                | Szolgáltatók feloldva                                                 |
 | ----- | ---------------------------------------------------- | --------------------------------------------------------------------- |
 | 1     | Csatlakozás **Kiro** (AWS Builder ID OAuth)          | Claude Sonnet 4.5, Haiku 4.5 — **korlátlan**                          |
-| 2     | Csatlakoztassa az **iFlow-t** (Google OAuth)         | kimi-k2-gondolkodás, qwen3-coder-plus, deepseek-r1... — **korlátlan** |
+| 2     | Csatlakoztassa az **Qoder-t** (Google OAuth)         | kimi-k2-gondolkodás, qwen3-coder-plus, deepseek-r1... — **korlátlan** |
 | 3     | Csatlakoztassa a **Qwen** (eszközkód)                | qwen3-coder-plus, qwen3-coder-flash... — **korlátlan**                |
 | 4     | Csatlakozás **Gemini CLI** (Google OAuth)            | gemini-3-flash, gemini-2.5-pro – **180K/hó ingyenes**                 |
 | 5     | `/dashboard/combos` → **Ingyenes köteg ($0)** sablon | Körbe-körbe minden ingyenes szolgáltató automatikusan                 |
@@ -943,7 +943,7 @@ Ha minimalizálja, az OmniRoute a tálcán él, gyors műveletekkel:
 |                   | MiniMax M2.1                  | 0,2 USD/1M                          | 5 órás gurulás         | Legolcsóbb lehetőség                    |
 |                   | Kimi K2.5 (Moonshot API) 🆕   | Felhasználásonkénti fizetés         | Nincs                  | Közvetlen Moonshot API hozzáférés       |
 |                   | Kimi K2                       | 9 USD/hó lakás                      | 10 millió token/hó     | Előrelátható költség                    |
-| **🆓 INGYENES**   | iFlow                         | **0 USD**                           | Korlátlan              | 5 modell korlátlan                      |
+| **🆓 INGYENES**   | Qoder                         | **0 USD**                           | Korlátlan              | 5 modell korlátlan                      |
 |                   | Qwen                          | **0 USD**                           | Korlátlan              | 4 modell korlátlan                      |
 |                   | Kiro                          | **0 USD**                           | Korlátlan              | Claude Sonnet/Haiku (AWS Builder)       |
 |                   | LongCat Flash-Lite 🆕         | **0 USD** (50 millió tok/nap 🔥)    | 1 RPS                  | A legnagyobb ingyenes kvóta a Földön    |
@@ -958,7 +958,7 @@ Ha minimalizálja, az OmniRoute a tálcán él, gyors műveletekkel:
 ```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
 Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
@@ -988,7 +988,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`  | **Korlátlan** | Nincs bejelentett napi felső határ |
 | `claude-opus-4.6`   | `kr/`  | **Korlátlan** | Legújabb Opus via Kiro             |
 
-### IFLOW MODELLEK (ingyenes OAuth – hitelkártya nélkül)
+### QODER MODELLEK (ingyenes OAuth – hitelkártya nélkül)
 
 | Modell             | Előtag | Limit         | Rate Limit                    |
 | ------------------ | ------ | ------------- | ----------------------------- |
@@ -1087,7 +1087,7 @@ Ingyenesen elérhető: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1
 >
 > ```
 > Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> iFlow (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
 > LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
 > Qwen (qw/)             → qwen3-coder models UNLIMITED
@@ -1537,11 +1537,11 @@ Models:
 <details>
 <summary><b>🆓 INGYENES szolgáltatók (vészhelyzeti biztonsági mentés)</b></summary>
 
-### iFlow (5 INGYENES modell OAuth-on keresztül)
+### Qoder (5 INGYENES modell OAuth-on keresztül)
 
 ```bash
-Dashboard → Connect iFlow
-→ iFlow OAuth login
+Dashboard → Connect Qoder
+→ Qoder OAuth login
 → Unlimited usage
 
 Models:
@@ -1739,7 +1739,7 @@ opencode
 
 - Ellenőrizze a használati statisztikákat az Irányítópult → Költségek menüpontban
 - Állítsa át az elsődleges modellt GLM/MiniMax-ra
-- Használjon ingyenes réteget (Gemini CLI, iFlow) a nem kritikus feladatokhoz
+- Használjon ingyenes réteget (Gemini CLI, Qoder) a nem kritikus feladatokhoz
 
 **Az irányítópult/API portok hibásak**
 
