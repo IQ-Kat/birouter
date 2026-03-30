@@ -802,7 +802,6 @@ export default function ProviderDetailPage() {
   const { copied, copy } = useCopyToClipboard();
   const t = useTranslations("providers");
   const notify = useNotificationStore();
-  const hasAutoOpened = useRef(false);
   const userDismissed = useRef(false);
   const [proxyTarget, setProxyTarget] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
@@ -989,25 +988,12 @@ export default function ProviderDetailPage() {
     }
   }, [loading, connections, loadConnProxies]);
 
-  // Auto-open Add Connection modal when no connections exist (better UX)
-  // Only fires once on initial load, not on HMR remounts or after user dismissal
-  useEffect(() => {
-    if (
-      !loading &&
-      connections.length === 0 &&
-      providerInfo &&
-      !isCompatible &&
-      !hasAutoOpened.current &&
-      !userDismissed.current
-    ) {
-      hasAutoOpened.current = true;
-      if (isOAuth) {
-        setShowOAuthModal(true);
-      } else {
-        setShowAddApiKeyModal(true);
-      }
-    }
-  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
+  // NOTE: Removed auto-open of Add Connection modal when no connections exist.
+  // The page already shows a clear "No connections yet" empty state with an
+  // "Add Connection" button. Auto-opening the modal was a poor UX pattern that
+  // surprised users navigating to a provider detail page — especially when
+  // re-visiting a provider after deleting a connection. Users should explicitly
+  // click the button when they're ready to connect.
 
   const handleSetAlias = async (modelId, alias, providerAliasOverride = providerAlias) => {
     const fullModel = `${providerAliasOverride}/${modelId}`;
