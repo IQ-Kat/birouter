@@ -190,7 +190,9 @@
     "debugSection": "Debug",
     "helpSection": "Help",
     "primarySection": "Main",
-    "systemSection": "System"
+    "systemSection": "System",
+    "cache": "Cache",
+    "cacheShort": "Cache"
   },
   "themesPage": {
     "title": "Temalar",
@@ -2925,5 +2927,37 @@
       "userInitial": "Bir konuda yardıma ihtiyacım var.",
       "userFollowUp": "Bunu detaylandırabilir misiniz?"
     }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "behavior": "Cache Behavior",
+    "behaviorBypass": "Bypass with header {header}.",
+    "tokensSavedSub": "Estimated from hits",
+    "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "memoryEntries": "Memory Entries",
+    "dedupWindow": "Dedup Window",
+    "hitRate": "Hit Rate",
+    "idempotency": "Idempotency Layer",
+    "memoryEntriesSub": "In-memory LRU",
+    "tokensSaved": "Tokens Saved",
+    "cacheHits": "Cache Hits",
+    "autoRefresh": "Auto-refreshes every {seconds}s",
+    "dbEntriesSub": "Persisted (SQLite)",
+    "misses": "Misses",
+    "behaviorTtl": "Default TTL: 30 minutes. Configure via {envVar}.",
+    "cacheHitsSub": "of {total} total",
+    "total": "Total",
+    "refresh": "Refresh",
+    "clearAll": "Clear All",
+    "performance": "Cache Performance",
+    "unavailable": "Cache unavailable",
+    "description": "Monitor and manage semantic response cache, hit rates, and token savings.",
+    "clearError": "Failed to clear cache.",
+    "clearSuccess": "Cache cleared. {count} expired entries removed.",
+    "hits": "Hits",
+    "dbEntries": "DB Entries",
+    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "activeDedupKeys": "Active Dedup Keys",
+    "behaviorDeterministic": "Only non-streaming requests with temperature=0 are cached."
   }
 }
