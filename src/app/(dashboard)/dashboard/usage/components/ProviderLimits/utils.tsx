@@ -11,15 +11,6 @@ const PROVIDER_PLAN_FALLBACKS = new Set([
 ]);
 
 const QUOTA_LABEL_MAP: Record<string, string> = {
-  "gemini-3-pro-high": "G3 Pro",
-  "gemini-3-pro-low": "G3 Pro Low",
-  "gemini-3-flash": "G3 Flash",
-  "gemini-2.5-flash": "G2.5 Flash",
-  "claude-opus-4-6-thinking": "Opus 4.6 Tk",
-  "claude-opus-4-5-thinking": "Opus 4.5 Tk",
-  "claude-opus-4-5": "Opus 4.5",
-  "claude-sonnet-4-5-thinking": "Sonnet 4.5 Tk",
-  "claude-sonnet-4-5": "Sonnet 4.5",
   chat: "Chat",
   completions: "Completions",
   premium_interactions: "Premium",
@@ -250,6 +241,14 @@ export function parseQuotaData(provider, data) {
         } else if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
             normalizedQuotas.push(normalizeQuotaEntry(name, quota));
+          });
+        }
+        break;
+
+      case "gemini-cli":
+        if (data.quotas) {
+          Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
+            normalizedQuotas.push(normalizeQuotaEntry(modelKey, quota, { modelKey }));
           });
         }
         break;

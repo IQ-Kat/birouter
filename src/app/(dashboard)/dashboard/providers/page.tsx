@@ -95,6 +95,7 @@ function getConnectionErrorTag(connection) {
 export default function ProvidersPage() {
   const [connections, setConnections] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
+  const [expirations, setExpirations] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
@@ -108,14 +109,17 @@ export default function ProvidersPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [connectionsRes, nodesRes] = await Promise.all([
+        const [connectionsRes, nodesRes, expirationsRes] = await Promise.all([
           fetch("/api/providers"),
           fetch("/api/provider-nodes"),
+          fetch("/api/providers/expiration"),
         ]);
         const connectionsData = await connectionsRes.json();
         const nodesData = await nodesRes.json();
+        const expirationsData = await expirationsRes.json();
         if (connectionsRes.ok) setConnections(connectionsData.connections || []);
         if (nodesRes.ok) setProviderNodes(nodesData.nodes || []);
+        if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {
@@ -188,7 +192,16 @@ export default function ProvidersPage() {
     const errorCode = latestError ? getConnectionErrorTag(latestError) : null;
     const errorTime = latestError?.lastErrorAt ? getRelativeTime(latestError.lastErrorAt) : null;
 
-    return { connected, error, total, errorCode, errorTime, allDisabled };
+    // Check expirations
+    const providerExpirations =
+      expirations?.list?.filter((e: any) => e.provider === providerId) || [];
+    const hasExpired = providerExpirations.some((e: any) => e.status === "expired");
+    const hasExpiringSoon = providerExpirations.some((e: any) => e.status === "expiring_soon");
+    let expiryStatus = null;
+    if (hasExpired) expiryStatus = "expired";
+    else if (hasExpiringSoon) expiryStatus = "expiring_soon";
+
+    return { connected, error, total, errorCode, errorTime, allDisabled, expiryStatus };
   };
 
   // Toggle all connections for a provider on/off
@@ -289,6 +302,40 @@ export default function ProvidersPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Expiration Banner */}
+      {expirations?.summary &&
+        (expirations.summary.expired > 0 || expirations.summary.expiringSoon > 0) && (
+          <div
+            className={`p-4 rounded-xl flex items-start gap-3 border ${
+              expirations.summary.expired > 0
+                ? "bg-red-500/10 border-red-500/20"
+                : "bg-amber-500/10 border-amber-500/20"
+            }`}
+          >
+            <span
+              className={`material-symbols-outlined text-[24px] ${
+                expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"
+              }`}
+            >
+              {expirations.summary.expired > 0 ? "error" : "warning"}
+            </span>
+            <div className="flex-1">
+              <h3
+                className={`font-semibold ${expirations.summary.expired > 0 ? "text-red-500" : "text-amber-500"}`}
+              >
+                {expirations.summary.expired > 0
+                  ? `${expirations.summary.expired} Provider connection(s) expired`
+                  : `${expirations.summary.expiringSoon} Provider connection(s) expiring soon`}
+              </h3>
+              <p className="text-sm mt-1 opacity-80 text-text-main">
+                {expirations.summary.expired > 0
+                  ? "Immediate action required. Expired connections will permanently fail."
+                  : "Please review and renew expiring connections to avoid disruption."}
+              </p>
+            </div>
+          </div>
+        )}
+
       {/* OAuth Providers */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -582,6 +629,16 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
                 ) : (
                   <>
                     {getStatusDisplay(connected, error, errorCode, t)}
+                    {stats.expiryStatus === "expired" && (
+                      <Badge variant="error" size="sm" dot>
+                        Expired
+                      </Badge>
+                    )}
+                    {stats.expiryStatus === "expiring_soon" && (
+                      <Badge variant="warning" size="sm" dot>
+                        Expiring Soon
+                      </Badge>
+                    )}
                     {errorTime && <span className="text-text-muted">• {errorTime}</span>}
                   </>
                 )}
@@ -709,6 +766,16 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
                 ) : (
                   <>
                     {getStatusDisplay(connected, error, errorCode, t)}
+                    {stats.expiryStatus === "expired" && (
+                      <Badge variant="error" size="sm" dot>
+                        Expired
+                      </Badge>
+                    )}
+                    {stats.expiryStatus === "expiring_soon" && (
+                      <Badge variant="warning" size="sm" dot>
+                        Expiring Soon
+                      </Badge>
+                    )}
                     {isCompatible && (
                       <Badge variant="default" size="sm">
                         {provider.apiType === "responses" ? t("responses") : t("chat")}

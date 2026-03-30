@@ -577,8 +577,13 @@ export async function getCacheMetrics() {
       cacheCreationTokens: number | null;
     }>;
 
-    // Calculate tokens saved (cached tokens are reused, not charged at full price)
     const tokensSaved = totalsRow?.totalCachedTokens || 0;
+
+    const AVG_INPUT_PRICE_PER_MILLION = 3;
+    const CACHE_DISCOUNT = 0.9;
+    const estimatedCostSaved =
+      Math.round((tokensSaved / 1_000_000) * AVG_INPUT_PRICE_PER_MILLION * CACHE_DISCOUNT * 100) /
+      100;
 
     // Build byProvider object
     const byProvider: Record<
@@ -651,6 +656,58 @@ export async function updateCacheMetrics(_metrics: Record<string, unknown>) {
   // No-op: metrics are now computed from usage_history on-the-fly
   // The usage_history table is the single source of truth
   return getCacheMetrics();
+}
+
+export interface CacheTrendPoint {
+  timestamp: string;
+  requests: number;
+  cachedRequests: number;
+  inputTokens: number;
+  cachedTokens: number;
+  cacheCreationTokens: number;
+}
+
+export async function getCacheTrend(hours = 24): Promise<CacheTrendPoint[]> {
+  const db = getDbInstance();
+
+  try {
+    const rows = db
+      .prepare(
+        `
+        SELECT
+          strftime('%Y-%m-%dT%H:00:00Z', timestamp) as hour,
+          COUNT(*) as requests,
+          SUM(CASE WHEN tokens_cache_read > 0 OR tokens_cache_creation > 0 THEN 1 ELSE 0 END) as cachedRequests,
+          SUM(tokens_input) as inputTokens,
+          SUM(tokens_cache_read) as cachedTokens,
+          SUM(tokens_cache_creation) as cacheCreationTokens
+        FROM usage_history
+        WHERE timestamp >= datetime('now', ?)
+        GROUP BY hour
+        ORDER BY hour ASC
+      `
+      )
+      .all(`-${hours} hours`) as Array<{
+      hour: string;
+      requests: number;
+      cachedRequests: number;
+      inputTokens: number | null;
+      cachedTokens: number | null;
+      cacheCreationTokens: number | null;
+    }>;
+
+    return rows.map((r) => ({
+      timestamp: r.hour,
+      requests: r.requests,
+      cachedRequests: r.cachedRequests,
+      inputTokens: r.inputTokens || 0,
+      cachedTokens: r.cachedTokens || 0,
+      cacheCreationTokens: r.cacheCreationTokens || 0,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch cache trend:", error);
+    return [];
+  }
 }
 
 export async function resetCacheMetrics() {

@@ -2,9 +2,9 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { detectVolumeSignals, recommendStrategyOverride } from "../volumeDetector";
 
-describe("volumeDetector", () => {
-  describe("detectVolumeSignals", () => {
-    it("detects simple single-message request", () => {
+describe("volumeDetector", async () => {
+  describe("detectVolumeSignals", async () => {
+    it("detects simple single-message request", async () => {
       const body = {
         messages: [{ role: "user", content: "Hello" }],
       };
@@ -16,7 +16,7 @@ describe("volumeDetector", () => {
       assert.equal(signals.complexity, "trivial");
     });
 
-    it("detects tool-heavy request as high complexity", () => {
+    it("detects tool-heavy request as high complexity", async () => {
       const body = {
         messages: [{ role: "user", content: "Deploy the app to production" }],
         tools: [
@@ -31,17 +31,15 @@ describe("volumeDetector", () => {
       assert.equal(signals.complexity, "critical");
     });
 
-    it("detects browser keywords", () => {
+    it("detects browser keywords", async () => {
       const body = {
-        messages: [
-          { role: "user", content: "Navigate to the page and take a screenshot" },
-        ],
+        messages: [{ role: "user", content: "Navigate to the page and take a screenshot" }],
       };
       const signals = detectVolumeSignals(body);
       assert.equal(signals.hasBrowser, true);
     });
 
-    it("detects batch from multi-part content", () => {
+    it("detects batch from multi-part content", async () => {
       const parts = Array.from({ length: 20 }, (_, i) => ({
         type: "text",
         text: `Item ${i}`,
@@ -53,11 +51,9 @@ describe("volumeDetector", () => {
       assert.equal(signals.batchSize, 20);
     });
 
-    it("detects security keywords as high complexity", () => {
+    it("detects security keywords as high complexity", async () => {
       const body = {
-        messages: [
-          { role: "user", content: "Refactor the authentication module for production" },
-        ],
+        messages: [{ role: "user", content: "Refactor the authentication module for production" }],
       };
       const signals = detectVolumeSignals(body);
       assert.ok(
@@ -67,16 +63,16 @@ describe("volumeDetector", () => {
     });
   });
 
-  describe("recommendStrategyOverride", () => {
-    it("recommends round-robin for large batches", () => {
+  describe("recommendStrategyOverride", async () => {
+    it("recommends round-robin for large batches", async () => {
       const signals = detectVolumeSignals({ input: Array(60).fill("item") });
-      const override = recommendStrategyOverride(signals, "priority");
+      const override = await recommendStrategyOverride(signals, "priority");
       assert.equal(override.shouldOverride, true);
       assert.equal(override.strategy, "round-robin");
       assert.equal(override.preferEconomy, true);
     });
 
-    it("recommends premium-first for browser tasks", () => {
+    it("recommends premium-first for browser tasks", async () => {
       const signals = {
         batchSize: 1,
         estimatedTokens: 500,
@@ -85,13 +81,13 @@ describe("volumeDetector", () => {
         hasImages: false,
         complexity: "high" as const,
       };
-      const override = recommendStrategyOverride(signals, "round-robin");
+      const override = await recommendStrategyOverride(signals, "round-robin");
       assert.equal(override.shouldOverride, true);
       assert.equal(override.strategy, "priority");
       assert.equal(override.forcePremium, true);
     });
 
-    it("flags economy for tiny requests without changing strategy", () => {
+    it("flags economy for tiny requests without changing strategy", async () => {
       const signals = {
         batchSize: 1,
         estimatedTokens: 100,
@@ -100,12 +96,12 @@ describe("volumeDetector", () => {
         hasImages: false,
         complexity: "trivial" as const,
       };
-      const override = recommendStrategyOverride(signals, "priority");
+      const override = await recommendStrategyOverride(signals, "priority");
       assert.equal(override.shouldOverride, false);
       assert.equal(override.preferEconomy, true);
     });
 
-    it("no override for normal medium requests", () => {
+    it("no override for normal medium requests", async () => {
       const signals = {
         batchSize: 1,
         estimatedTokens: 1000,
@@ -114,7 +110,7 @@ describe("volumeDetector", () => {
         hasImages: false,
         complexity: "low" as const,
       };
-      const override = recommendStrategyOverride(signals, "priority");
+      const override = await recommendStrategyOverride(signals, "priority");
       assert.equal(override.shouldOverride, false);
       assert.equal(override.preferEconomy, false);
     });

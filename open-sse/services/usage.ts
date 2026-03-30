@@ -159,13 +159,13 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
  * @returns {Promise<unknown>} Usage data with quotas
  */
 export async function getUsageForProvider(connection) {
-  const { provider, accessToken, apiKey, providerSpecificData } = connection;
+  const { provider, accessToken, apiKey, providerSpecificData, projectId } = connection;
 
   switch (provider) {
     case "github":
       return await getGitHubUsage(accessToken, providerSpecificData);
     case "gemini-cli":
-      return await getGeminiUsage(accessToken);
+      return await getGeminiUsage(accessToken, providerSpecificData, projectId);
     case "antigravity":
       return await getAntigravityUsage(accessToken, undefined);
     case "claude":
@@ -195,24 +195,22 @@ function parseResetTime(resetValue) {
   if (!resetValue) return null;
 
   try {
-    // If it's already a Date object
+    let date;
     if (resetValue instanceof Date) {
-      return resetValue.toISOString();
+      date = resetValue;
+    } else if (typeof resetValue === "number") {
+      date = new Date(resetValue);
+    } else if (typeof resetValue === "string") {
+      date = new Date(resetValue);
+    } else {
+      return null;
     }
 
-    // If it's a number (Unix timestamp in milliseconds)
-    if (typeof resetValue === "number") {
-      return new Date(resetValue).toISOString();
-    }
+    // Epoch-zero (1970-01-01) means no scheduled reset — treat as null
+    if (date.getTime() <= 0) return null;
 
-    // If it's a string (ISO date or parseable date string)
-    if (typeof resetValue === "string") {
-      return new Date(resetValue).toISOString();
-    }
-
-    return null;
+    return date.toISOString();
   } catch (error) {
-    console.warn(`Failed to parse reset time: ${resetValue}`, error);
     return null;
   }
 }
@@ -417,34 +415,178 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
   return "GitHub Copilot";
 }
 
+// ── Gemini CLI subscription info cache ──────────────────────────────────────
+// Prevents duplicate loadCodeAssist calls within the same quota cycle.
+// Key: accessToken → { data, fetchedAt }
+const _geminiCliSubCache = new Map();
+const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 /**
- * Gemini CLI Usage (Google Cloud)
+ * Gemini CLI Usage — fetch per-model quota from Cloud Code Assist API.
+ * Gemini CLI and Antigravity share the same upstream (cloudcode-pa.googleapis.com),
+ * so this follows the same pattern as getAntigravityUsage().
  */
-async function getGeminiUsage(accessToken) {
+async function getGeminiUsage(accessToken, providerSpecificData?, connectionProjectId?) {
+  if (!accessToken) {
+    return { plan: "Free", message: "Gemini CLI access token not available." };
+  }
+
   try {
-    // Gemini CLI uses Google Cloud quotas
-    // Try to get quota info from Cloud Resource Manager
+    const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
+    const projectId =
+      connectionProjectId ||
+      providerSpecificData?.projectId ||
+      subscriptionInfo?.cloudaicompanionProject ||
+      null;
+
+    const plan = getGeminiCliPlanLabel(subscriptionInfo);
+
+    if (!projectId) {
+      return { plan, message: "Gemini CLI project ID not available." };
+    }
+
+    // Use retrieveUserQuota (same endpoint as Gemini CLI /stats command).
+    // Returns per-model buckets with remainingFraction and resetTime.
     const response = await fetch(
-      "https://cloudresourcemanager.googleapis.com/v1/projects?filter=lifecycleState:ACTIVE",
+      "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
       {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json",
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ project: projectId }),
+        signal: AbortSignal.timeout(10000),
       }
     );
 
     if (!response.ok) {
-      // Quota API may not be accessible, return generic message
-      return {
-        message: "Gemini CLI uses Google Cloud quotas. Check Google Cloud Console for details.",
-      };
+      return { plan, message: `Gemini CLI quota error (${response.status}).` };
     }
 
-    return { message: "Gemini CLI connected. Usage tracked via Google Cloud Console." };
+    const data = await response.json();
+    const quotas: Record<string, UsageQuota> = {};
+
+    if (Array.isArray(data.buckets)) {
+      for (const bucket of data.buckets) {
+        if (!bucket.modelId || bucket.remainingFraction == null) continue;
+
+        const remainingFraction = toNumber(bucket.remainingFraction, 0);
+        const remainingPercentage = remainingFraction * 100;
+        const QUOTA_NORMALIZED_BASE = 1000;
+        const total = QUOTA_NORMALIZED_BASE;
+        const remaining = Math.round(total * remainingFraction);
+        const used = Math.max(0, total - remaining);
+
+        quotas[bucket.modelId] = {
+          used,
+          total,
+          resetAt: parseResetTime(bucket.resetTime),
+          remainingPercentage,
+          unlimited: false,
+        };
+      }
+    }
+
+    return { plan, quotas };
   } catch (error) {
-    return { message: "Unable to fetch Gemini usage. Check Google Cloud Console." };
+    return { message: `Gemini CLI error: ${(error as Error).message}` };
   }
+}
+
+/**
+ * Get Gemini CLI subscription info (cached, 5 min TTL)
+ */
+async function getGeminiCliSubscriptionInfoCached(accessToken) {
+  const cacheKey = accessToken;
+  const cached = _geminiCliSubCache.get(cacheKey);
+
+  if (cached && Date.now() - cached.fetchedAt < GEMINI_CLI_CACHE_TTL_MS) {
+    return cached.data;
+  }
+
+  const data = await getGeminiCliSubscriptionInfo(accessToken);
+  _geminiCliSubCache.set(cacheKey, { data, fetchedAt: Date.now() });
+  return data;
+}
+
+/**
+ * Get Gemini CLI subscription info using correct headers.
+ */
+async function getGeminiCliSubscriptionInfo(accessToken) {
+  try {
+    const response = await fetch("https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        metadata: {
+          ideType: "IDE_UNSPECIFIED",
+          platform: "PLATFORM_UNSPECIFIED",
+          pluginType: "GEMINI",
+        },
+      }),
+    });
+
+    if (!response.ok) return null;
+
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Map Gemini CLI subscription tier to display label (same tiers as Antigravity).
+ */
+function getGeminiCliPlanLabel(subscriptionInfo) {
+  if (!subscriptionInfo || Object.keys(subscriptionInfo).length === 0) return "Free";
+
+  let tierId = "";
+  if (Array.isArray(subscriptionInfo.allowedTiers)) {
+    for (const tier of subscriptionInfo.allowedTiers) {
+      if (tier.isDefault && tier.id) {
+        tierId = tier.id.trim().toUpperCase();
+        break;
+      }
+    }
+  }
+
+  if (!tierId) {
+    tierId = (subscriptionInfo.currentTier?.id || "").toUpperCase();
+  }
+
+  if (tierId) {
+    if (tierId.includes("ULTRA")) return "Ultra";
+    if (tierId.includes("PRO")) return "Pro";
+    if (tierId.includes("ENTERPRISE")) return "Enterprise";
+    if (tierId.includes("BUSINESS") || tierId.includes("STANDARD")) return "Business";
+    if (tierId.includes("FREE") || tierId.includes("INDIVIDUAL") || tierId.includes("LEGACY"))
+      return "Free";
+  }
+
+  const tierName =
+    subscriptionInfo.currentTier?.name ||
+    subscriptionInfo.currentTier?.displayName ||
+    subscriptionInfo.subscriptionType ||
+    subscriptionInfo.tier ||
+    "";
+  const upper = tierName.toUpperCase();
+
+  if (upper.includes("ULTRA")) return "Ultra";
+  if (upper.includes("PRO")) return "Pro";
+  if (upper.includes("ENTERPRISE")) return "Enterprise";
+  if (upper.includes("STANDARD") || upper.includes("BUSINESS")) return "Business";
+  if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
+
+  if (subscriptionInfo.currentTier?.upgradeSubscriptionType) return "Free";
+  if (tierName) {
+    return tierName.charAt(0).toUpperCase() + tierName.slice(1).toLowerCase();
+  }
+
+  return "Free";
 }
 
 // ── Antigravity subscription info cache ──────────────────────────────────────

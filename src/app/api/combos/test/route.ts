@@ -5,6 +5,87 @@ import { getComboByName } from "@/lib/localDb";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
+async function testComboModel(modelStr, internalUrl) {
+  const startTime = Date.now();
+  try {
+    // Send a minimal but real chat request through the same internal
+    // endpoint an external OpenAI-compatible client would use.
+    const testBody = buildComboTestRequestBody(modelStr);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
+    let res;
+    try {
+      res = await fetch(internalUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Internal dashboard tests still use the normal /v1 pipeline but
+          // bypass REQUIRE_API_KEY so admins can test with local session auth.
+          "X-Internal-Test": "combo-health-check",
+          // Force a fresh execution path so combo tests cannot be satisfied by
+          // OmniRoute's semantic cache or other request reuse layers.
+          "X-OmniRoute-No-Cache": "true",
+          "X-Request-Id": `combo-test-${randomUUID()}`,
+        },
+        body: JSON.stringify(testBody),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const latencyMs = Date.now() - startTime;
+
+    if (res.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await res.json();
+      } catch {
+        responseBody = null;
+      }
+
+      const responseText = extractComboTestResponseText(responseBody);
+      if (!responseText) {
+        return {
+          model: modelStr,
+          status: "error",
+          statusCode: res.status,
+          error: "Provider returned HTTP 200 but no text content.",
+          latencyMs,
+        };
+      }
+
+      return { model: modelStr, status: "ok", latencyMs, responseText };
+    }
+
+    let errorMsg = "";
+    try {
+      const errBody = await res.json();
+      errorMsg = errBody?.error?.message || errBody?.error || res.statusText;
+    } catch {
+      errorMsg = res.statusText;
+    }
+
+    return {
+      model: modelStr,
+      status: "error",
+      statusCode: res.status,
+      error: errorMsg,
+      latencyMs,
+    };
+  } catch (error) {
+    const latencyMs = Date.now() - startTime;
+    return {
+      model: modelStr,
+      status: "error",
+      error: error.name === "AbortError" ? "Timeout (20s)" : error.message,
+      latencyMs,
+    };
+  }
+}
+
 /**
  * POST /api/combos/test - Quick test a combo
  * Sends a real chat completion request through each model in the combo
@@ -44,93 +125,11 @@ export async function POST(request) {
       return NextResponse.json({ error: "Combo has no models" }, { status: 400 });
     }
 
-    const results = [];
-    let resolvedBy = null;
-
-    // Test each model sequentially
-    for (const modelStr of models) {
-      const startTime = Date.now();
-      try {
-        // Send a minimal but real chat request through the same internal
-        // endpoint an external OpenAI-compatible client would use.
-        const testBody = buildComboTestRequestBody(modelStr);
-
-        const internalUrl = `${getBaseUrl(request)}/v1/chat/completions`;
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 20000);
-
-        let res;
-        try {
-          res = await fetch(internalUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              // Internal dashboard tests still use the normal /v1 pipeline but
-              // bypass REQUIRE_API_KEY so admins can test with local session auth.
-              "X-Internal-Test": "combo-health-check",
-              // Force a fresh execution path so combo tests cannot be satisfied by
-              // OmniRoute's semantic cache or other request reuse layers.
-              "X-OmniRoute-No-Cache": "true",
-              "X-Request-Id": `combo-test-${randomUUID()}`,
-            },
-            body: JSON.stringify(testBody),
-            signal: controller.signal,
-          });
-        } finally {
-          clearTimeout(timeout);
-        }
-
-        const latencyMs = Date.now() - startTime;
-
-        if (res.ok) {
-          let responseBody = null;
-          try {
-            responseBody = await res.json();
-          } catch {
-            responseBody = null;
-          }
-
-          const responseText = extractComboTestResponseText(responseBody);
-          if (!responseText) {
-            results.push({
-              model: modelStr,
-              status: "error",
-              statusCode: res.status,
-              error: "Provider returned HTTP 200 but no text content.",
-              latencyMs,
-            });
-            continue;
-          }
-
-          results.push({ model: modelStr, status: "ok", latencyMs, responseText });
-          if (!resolvedBy) resolvedBy = modelStr;
-        } else {
-          let errorMsg = "";
-          try {
-            const errBody = await res.json();
-            errorMsg = errBody?.error?.message || errBody?.error || res.statusText;
-          } catch {
-            errorMsg = res.statusText;
-          }
-
-          results.push({
-            model: modelStr,
-            status: "error",
-            statusCode: res.status,
-            error: errorMsg,
-            latencyMs,
-          });
-        }
-      } catch (error) {
-        const latencyMs = Date.now() - startTime;
-        results.push({
-          model: modelStr,
-          status: "error",
-          error: error.name === "AbortError" ? "Timeout (20s)" : error.message,
-          latencyMs,
-        });
-      }
-    }
+    const internalUrl = `${getBaseUrl(request)}/v1/chat/completions`;
+    const results = await Promise.all(
+      models.map((modelStr) => testComboModel(modelStr, internalUrl))
+    );
+    const resolvedBy = results.find((result) => result.status === "ok")?.model || null;
 
     return NextResponse.json({
       comboName,

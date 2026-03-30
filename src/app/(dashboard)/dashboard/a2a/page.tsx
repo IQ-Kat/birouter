@@ -433,43 +433,78 @@ export default function A2ADashboardPage() {
                   <th className="text-left py-2 pr-2">{t("tableTask")}</th>
                   <th className="text-left py-2 pr-2">{t("tableSkill")}</th>
                   <th className="text-left py-2 pr-2">{t("tableState")}</th>
+                  <th className="text-left py-2 pr-2">{t("tablePhase") || "FSM Status"}</th>
                   <th className="text-left py-2 pr-2">{t("tableUpdated")}</th>
                   <th className="text-left py-2">{t("tableActions")}</th>
                 </tr>
               </thead>
               <tbody>
-                {tasksData.tasks.map((task) => (
-                  <tr key={task.id} className="border-b border-border/40">
-                    <td className="py-2 pr-2 font-mono text-xs">{task.id}</td>
-                    <td className="py-2 pr-2">{task.skill}</td>
-                    <td className="py-2 pr-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${stateClass(task.state)}`}>
-                        {t(`state.${task.state}`)}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-2 text-xs">
-                      {new Date(task.updatedAt).toLocaleString()}
-                    </td>
-                    <td className="py-2 flex gap-2">
-                      <Button size="sm" variant="secondary" onClick={() => handleLoadTask(task.id)}>
-                        {t("view")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleCancelTask(task.id)}
-                        disabled={
-                          task.state === "completed" ||
-                          task.state === "failed" ||
-                          task.state === "cancelled" ||
-                          actionBusy === "cancel"
-                        }
-                      >
-                        {t("cancel")}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {tasksData.tasks.map((task) => {
+                  const fsmPhase =
+                    task.metadata?.fsmPhase || (task.metadata?.workflowFSM as any)?.currentPhase;
+                  let fsmBadgeColor = "bg-gray-500/15 text-gray-500";
+                  if (fsmPhase === "plan" || fsmPhase === "plan_review")
+                    fsmBadgeColor = "bg-purple-500/15 text-purple-500";
+                  else if (fsmPhase === "execute") fsmBadgeColor = "bg-blue-500/15 text-blue-500";
+                  else if (
+                    ["code_review", "quality_review", "security", "test", "output_review"].includes(
+                      fsmPhase
+                    )
+                  )
+                    fsmBadgeColor = "bg-amber-500/15 text-amber-500";
+                  else if (fsmPhase === "done") fsmBadgeColor = "bg-green-500/15 text-green-500";
+                  else if (fsmPhase === "failed") fsmBadgeColor = "bg-red-500/15 text-red-500";
+
+                  return (
+                    <tr key={task.id} className="border-b border-border/40">
+                      <td className="py-2 pr-2 font-mono text-xs">{task.id}</td>
+                      <td className="py-2 pr-2">{task.skill}</td>
+                      <td className="py-2 pr-2">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${stateClass(task.state)}`}
+                        >
+                          {t(`state.${task.state}`)}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-2">
+                        {fsmPhase ? (
+                          <span
+                            className={`text-xs px-2 py-1 rounded border border-current/20 font-medium ${fsmBadgeColor}`}
+                          >
+                            {fsmPhase}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-text-muted">—</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-2 text-xs">
+                        {new Date(task.updatedAt).toLocaleString()}
+                      </td>
+                      <td className="py-2 flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleLoadTask(task.id)}
+                        >
+                          {t("view")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleCancelTask(task.id)}
+                          disabled={
+                            task.state === "completed" ||
+                            task.state === "failed" ||
+                            task.state === "cancelled" ||
+                            actionBusy === "cancel"
+                          }
+                        >
+                          {t("cancel")}
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -8,21 +8,26 @@ import {
   invalidateStale,
 } from "@/lib/semanticCache";
 import { getIdempotencyStats } from "@/lib/idempotencyLayer";
+import { getCacheMetrics, getCacheTrend } from "@/lib/db/settings";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/**
- * GET /api/cache — Cache statistics
- */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const trendHours = parseInt(searchParams.get("trendHours") || "24", 10);
+
     const cacheStats = getCacheStats();
     const idempotencyStats = getIdempotencyStats();
+    const promptCacheMetrics = await getCacheMetrics();
+    const trend = await getCacheTrend(trendHours);
 
     return NextResponse.json({
       semanticCache: cacheStats,
+      promptCache: promptCacheMetrics,
+      trend,
       idempotency: idempotencyStats,
     });
   } catch (error) {
@@ -30,17 +35,6 @@ export async function GET() {
   }
 }
 
-/**
- * DELETE /api/cache — Clear all caches or targeted invalidation.
- *
- * Exactly one optional query parameter may be provided:
- *   ?model=<name>      — invalidate all entries for a specific model
- *   ?signature=<hex>   — invalidate a single entry by its SHA-256 signature
- *   ?staleMs=<number>  — invalidate entries older than N milliseconds
- *   (no params)        — clear all cache entries
- *
- * Providing more than one parameter returns 400 Bad Request.
- */
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

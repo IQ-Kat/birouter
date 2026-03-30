@@ -6,6 +6,7 @@ import Image from "next/image";
 import PropTypes from "prop-types";
 import ThemeToggle from "./ThemeToggle";
 import TokenHealthBadge from "./TokenHealthBadge";
+import DegradationBadge from "./DegradationBadge";
 import LanguageSelector from "./LanguageSelector";
 import ProviderIcon from "./ProviderIcon";
 import { useTranslations } from "next-intl";
@@ -199,7 +200,8 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
         {/* Theme toggle */}
         <ThemeToggle />
 
-        {/* Token health */}
+        {/* Degradation & Token health */}
+        <DegradationBadge />
         <TokenHealthBadge />
 
         {/* Logout button */}

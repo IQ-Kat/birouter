@@ -656,6 +656,7 @@ export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce((acc, p) => {
 // Providers that support usage/quota API
 export const USAGE_SUPPORTED_PROVIDERS = [
   "antigravity",
+  "gemini-cli",
   "kiro",
   "github",
   "codex",

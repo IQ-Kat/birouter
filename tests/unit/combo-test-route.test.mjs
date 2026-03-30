@@ -86,6 +86,8 @@ test("combo test route marks a model healthy only when it returns assistant text
   assert.match(fetchCalls[0].init.headers["X-Request-Id"], /^combo-test-/);
   assert.equal(forwardedBody.model, "openrouter/openai/gpt-5.4");
   assert.equal(forwardedBody.messages[0].content, "Reply with OK only.");
+  assert.equal(forwardedBody.max_tokens, 64);
+  assert.equal(forwardedBody.temperature, 0);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
   assert.equal(body.results[0].status, "ok");
   assert.equal(body.results[0].responseText, "OK");
@@ -122,6 +124,45 @@ test("combo test route treats empty successful responses as failures", async () 
   assert.match(body.results[0].error, /no text content/i);
 });
 
+test("combo test route accepts reasoning-only completions as healthy smoke-test responses", async () => {
+  await createTestCombo();
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            finish_reason: "length",
+            message: {
+              role: "assistant",
+              content: "",
+            },
+          },
+        ],
+        usage: {
+          prompt_tokens: 6,
+          completion_tokens: 12,
+          total_tokens: 18,
+          completion_tokens_details: {
+            reasoning_tokens: 12,
+          },
+        },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+
+  const response = await route.POST(makeRequest());
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
+  assert.equal(body.results[0].status, "ok");
+  assert.equal(body.results[0].responseText, "[reasoning-only completion]");
+});
+
 test("combo test route surfaces provider errors instead of downgrading them to reachability", async () => {
   await createTestCombo();
 
@@ -147,4 +188,68 @@ test("combo test route surfaces provider errors instead of downgrading them to r
   assert.equal(body.results[0].statusCode, 422);
   assert.equal(body.results[0].error, "Upstream rejected this request shape");
   assert.equal("probeMethod" in body.results[0], false);
+});
+
+test("combo test route launches model probes concurrently while preserving combo order", async () => {
+  await createTestCombo(["provider/first", "provider/second", "provider/third"]);
+
+  const fetchCalls = [];
+  const resolvers = [];
+  globalThis.fetch = (url, init = {}) =>
+    new Promise((resolve) => {
+      fetchCalls.push({ url: String(url), init });
+      resolvers.push(resolve);
+    });
+
+  const responsePromise = route.POST(makeRequest());
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(fetchCalls.length, 3);
+  assert.deepEqual(
+    fetchCalls.map(({ init }) => JSON.parse(init.body).model),
+    ["provider/first", "provider/second", "provider/third"]
+  );
+
+  resolvers[2](
+    new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "THIRD" } }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    )
+  );
+  resolvers[1](
+    new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "SECOND" } }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    )
+  );
+  resolvers[0](
+    new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "FIRST" } }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    )
+  );
+
+  const response = await responsePromise;
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.resolvedBy, "provider/first");
+  assert.deepEqual(
+    body.results.map((result) => ({
+      model: result.model,
+      status: result.status,
+      responseText: result.responseText,
+    })),
+    [
+      { model: "provider/first", status: "ok", responseText: "FIRST" },
+      { model: "provider/second", status: "ok", responseText: "SECOND" },
+      { model: "provider/third", status: "ok", responseText: "THIRD" },
+    ]
+  );
 });

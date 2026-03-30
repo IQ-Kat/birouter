@@ -152,6 +152,40 @@ export default function RoutingTab() {
         </p>
       </Card>
 
+      {/* Adaptive Volume Routing */}
+      <Card>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 h-fit">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                network_ping
+              </span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">
+                {t("adaptiveVolumeRouting") || "Adaptive Volume Routing"}
+              </h3>
+              <p className="text-sm text-text-muted mt-1">
+                {t("adaptiveVolumeRoutingDesc") ||
+                  "Automatically adjusts traffic volume between providers based on real-time latency and error rates."}
+              </p>
+            </div>
+          </div>
+          <div className="pt-1">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={!!settings.adaptiveVolumeRouting}
+                onChange={(e) => updateSetting({ adaptiveVolumeRouting: e.target.checked })}
+                disabled={loading}
+              />
+              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+        </div>
+      </Card>
+
       {/* Wildcard Aliases */}
       <Card>
         <div className="flex items-center gap-3 mb-4">

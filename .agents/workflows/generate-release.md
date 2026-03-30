@@ -96,7 +96,18 @@ Keep an empty `## [Unreleased]` section above it.
 // turbo
 
 ```bash
-VERSION=$(node -p "require('./package.json').version") && sed -i "s/  version: .*/  version: $VERSION/" docs/openapi.yaml && echo "✓ openapi.yaml → $VERSION"
+VERSION=$(node -p "require('./package.json').version")
+sed -i "s/  version: .*/  version: $VERSION/" docs/openapi.yaml
+echo "✓ openapi.yaml → $VERSION"
+
+for dir in electron open-sse; do
+  if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+    (cd "$dir" && npm version "$VERSION" --no-git-tag-version --allow-same-version > /dev/null)
+    echo "✓ $dir/package.json → $VERSION"
+  fi
+done
+# Re-run install to assert the workspace lockfile is updated
+npm install
 ```
 
 ### 6. Update README.md and i18n docs

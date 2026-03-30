@@ -50,6 +50,8 @@ export const updateSettingsSchema = z.object({
   stripModelPrefix: z.boolean().optional(),
   // Cache control preservation mode
   alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
+  // Adaptive Volume Routing
+  adaptiveVolumeRouting: z.boolean().optional(),
   // Custom CLI agent definitions for ACP
   customAgents: z
     .array(
