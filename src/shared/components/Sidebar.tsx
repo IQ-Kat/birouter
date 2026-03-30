@@ -40,7 +40,7 @@ export default function Sidebar({
 
   useEffect(() => {
     const applySettings = (data) => {
-      setShowDebug(data?.enableRequestLogs === true);
+      setShowDebug(data?.debugMode === true);
       setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
     };
 
@@ -52,8 +52,8 @@ export default function Sidebar({
     const handleSettingsUpdated = (event: Event) => {
       const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
 
-      if ("enableRequestLogs" in detail) {
-        setShowDebug(detail.enableRequestLogs === true);
+      if ("debugMode" in detail) {
+        setShowDebug(detail.debugMode === true);
       }
 
       if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
