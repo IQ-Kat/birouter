@@ -75,3 +75,11 @@ export function analyzePrefix(messages: Message[]): PrefixAnalysis {
 export function shouldInjectCacheControl(analysis: PrefixAnalysis, minTokens = 1024): boolean {
   return analysis.prefixTokens >= minTokens && analysis.confidence >= 0.7;
 }
+
+export function generatePromptCacheKey(messages: Message[]): string {
+  const analysis = analyzePrefix(messages);
+  if (analysis.prefixHash) {
+    return `omni-${analysis.prefixHash.slice(0, 32)}`;
+  }
+  return "";
+}

@@ -950,10 +950,23 @@ export async function handleChatCore({
 
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
-      const bodyToSend =
+      let bodyToSend =
         translatedBody.model === modelToCall
           ? translatedBody
           : { ...translatedBody, model: modelToCall };
+
+      // Inject prompt_cache_key for OpenAI providers if not already set
+      if (
+        targetFormat === FORMATS.OPENAI &&
+        !bodyToSend.prompt_cache_key &&
+        Array.isArray(bodyToSend.messages)
+      ) {
+        const { generatePromptCacheKey } = await import("@/lib/promptCache");
+        const cacheKey = generatePromptCacheKey(bodyToSend.messages);
+        if (cacheKey) {
+          bodyToSend = { ...bodyToSend, prompt_cache_key: cacheKey };
+        }
+      }
 
       const rawResult = await withRateLimit(provider, connectionId, modelToCall, () =>
         executor.execute({
@@ -1444,11 +1457,19 @@ export async function handleChatCore({
       const cachedTokens = toPositiveNumber(
         usage.cache_read_input_tokens ??
           usage.cached_tokens ??
-          ((usage as Record<string, unknown>).prompt_tokens_details as Record<string, unknown> | undefined)?.cached_tokens
+          (
+            (usage as Record<string, unknown>).prompt_tokens_details as
+              | Record<string, unknown>
+              | undefined
+          )?.cached_tokens
       );
       const cacheCreationTokens = toPositiveNumber(
         usage.cache_creation_input_tokens ??
-          ((usage as Record<string, unknown>).prompt_tokens_details as Record<string, unknown> | undefined)?.cache_creation_tokens
+          (
+            (usage as Record<string, unknown>).prompt_tokens_details as
+              | Record<string, unknown>
+              | undefined
+          )?.cache_creation_tokens
       );
 
       saveRequestUsage({
@@ -1604,11 +1625,19 @@ export async function handleChatCore({
       const cachedTokens = toPositiveNumber(
         streamUsage.cache_read_input_tokens ??
           streamUsage.cached_tokens ??
-          ((streamUsage as Record<string, unknown>).prompt_tokens_details as Record<string, unknown> | undefined)?.cached_tokens
+          (
+            (streamUsage as Record<string, unknown>).prompt_tokens_details as
+              | Record<string, unknown>
+              | undefined
+          )?.cached_tokens
       );
       const cacheCreationTokens = toPositiveNumber(
         streamUsage.cache_creation_input_tokens ??
-          ((streamUsage as Record<string, unknown>).prompt_tokens_details as Record<string, unknown> | undefined)?.cache_creation_tokens
+          (
+            (streamUsage as Record<string, unknown>).prompt_tokens_details as
+              | Record<string, unknown>
+              | undefined
+          )?.cache_creation_tokens
       );
 
       saveRequestUsage({
