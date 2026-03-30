@@ -57,17 +57,18 @@ jobs:
       - name: Resolve version and dist-tag
         id: resolve
         run: |
-          case "${{ github.event_name }}" in
-            workflow_dispatch|workflow_call)
-              VERSION="${{ inputs.version }}"
-              TAG="${{ inputs.tag }}"
-              ;;
-            release)
+          VERSION="${{ inputs.version }}"
+          TAG="${{ inputs.tag }}"
+
+          if [ -z "$VERSION" ]; then
+            if [ "${{ github.event_name }}" = "release" ]; then
               VERSION="${GITHUB_REF_NAME}"
-              ;;
-          esac
+            fi
+          fi
+
           # Strip v prefix if present
           VERSION="${VERSION#v}"
+
           # Default dist-tag logic
           if [ -z "$TAG" ]; then
             if [[ "$VERSION" == *-* ]]; then

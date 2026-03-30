@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
   getCloudflaredTunnelStatus,
   startCloudflaredTunnel,
@@ -40,27 +41,27 @@ export async function POST(request: NextRequest) {
     return unauthorized();
   }
 
-  let payload: unknown;
+  let rawBody: unknown;
   try {
-    payload = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = actionSchema.safeParse(payload);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  const validation = validateBody(actionSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return validation.response;
   }
+
+  const parsed = validation.data;
 
   try {
     const status =
-      parsed.data.action === "enable"
-        ? await startCloudflaredTunnel()
-        : await stopCloudflaredTunnel();
+      parsed.action === "enable" ? await startCloudflaredTunnel() : await stopCloudflaredTunnel();
 
     return NextResponse.json({
       success: true,
-      action: parsed.data.action,
+      action: parsed.action,
       status,
     });
   } catch (error) {

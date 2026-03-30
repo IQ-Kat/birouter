@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { z } from "zod";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+
+const cacheConfigUpdateSchema = z.object({
+  semanticCacheEnabled: z.boolean().optional(),
+  semanticCacheMaxSize: z.number().positive().optional(),
+  semanticCacheTTL: z.number().positive().optional(),
+  promptCacheEnabled: z.boolean().optional(),
+  promptCacheStrategy: z.enum(["auto", "system-only", "manual"]).optional(),
+  alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
+});
 
 const CACHE_CONFIG_KEYS = [
   "semanticCacheEnabled",
@@ -43,25 +54,37 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
-    const updates: Record<string, unknown> = {};
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (typeof body.semanticCacheEnabled === "boolean") {
+    const validation = validateBody(cacheConfigUpdateSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return validation.response;
+    }
+
+    const updates: Record<string, unknown> = {};
+    const body = validation.data;
+
+    if (body.semanticCacheEnabled !== undefined) {
       updates.semanticCacheEnabled = body.semanticCacheEnabled;
     }
-    if (typeof body.semanticCacheMaxSize === "number" && body.semanticCacheMaxSize > 0) {
+    if (body.semanticCacheMaxSize !== undefined) {
       updates.semanticCacheMaxSize = body.semanticCacheMaxSize;
     }
-    if (typeof body.semanticCacheTTL === "number" && body.semanticCacheTTL > 0) {
+    if (body.semanticCacheTTL !== undefined) {
       updates.semanticCacheTTL = body.semanticCacheTTL;
     }
-    if (typeof body.promptCacheEnabled === "boolean") {
+    if (body.promptCacheEnabled !== undefined) {
       updates.promptCacheEnabled = body.promptCacheEnabled;
     }
-    if (["auto", "system-only", "manual"].includes(body.promptCacheStrategy)) {
+    if (body.promptCacheStrategy !== undefined) {
       updates.promptCacheStrategy = body.promptCacheStrategy;
     }
-    if (["auto", "always", "never"].includes(body.alwaysPreserveClientCache)) {
+    if (body.alwaysPreserveClientCache !== undefined) {
       updates.alwaysPreserveClientCache = body.alwaysPreserveClientCache;
     }
 
