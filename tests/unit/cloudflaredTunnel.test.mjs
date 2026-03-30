@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 
 import {
   buildCloudflaredChildEnv,
+  extractCloudflaredErrorMessage,
   extractTryCloudflareUrl,
+  getDefaultCloudflaredCertEnv,
   getCloudflaredStartArgs,
   getCloudflaredAssetSpec,
 } from "../../src/lib/cloudflaredTunnel.ts";
@@ -18,6 +20,17 @@ test("extractTryCloudflareUrl parses trycloudflare URL from log output", () => {
 
 test("extractTryCloudflareUrl returns null when no tunnel URL is present", () => {
   assert.equal(extractTryCloudflareUrl("cloudflared starting without assigned URL"), null);
+});
+
+test("extractCloudflaredErrorMessage keeps the actionable stderr line", () => {
+  const error = extractCloudflaredErrorMessage(
+    '2026-03-30T19:56:12Z INF Requesting new quick Tunnel on trycloudflare.com...\n2026-03-30T19:56:12Z ERR failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": tls: failed to verify certificate: x509: certificate signed by unknown authority'
+  );
+
+  assert.equal(
+    error,
+    'failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": tls: failed to verify certificate: x509: certificate signed by unknown authority'
+  );
 });
 
 test("getCloudflaredAssetSpec resolves linux amd64 binary", () => {
@@ -49,22 +62,26 @@ test("getCloudflaredAssetSpec returns null for unsupported platforms", () => {
 });
 
 test("buildCloudflaredChildEnv keeps runtime essentials, isolates runtime dirs, and drops secrets", () => {
-  const env = buildCloudflaredChildEnv({
-    PATH: "/usr/bin",
-    HTTPS_PROXY: "http://proxy.internal:8080",
-    JWT_SECRET: "top-secret",
-    API_KEY_SECRET: "another-secret",
-  }, {
-    runtimeRoot: "/managed/runtime",
-    homeDir: "/managed/runtime/home",
-    configDir: "/managed/runtime/config",
-    cacheDir: "/managed/runtime/cache",
-    dataDir: "/managed/runtime/data",
-    tempDir: "/managed/runtime/tmp",
-    userProfileDir: "/managed/runtime/userprofile",
-    appDataDir: "/managed/runtime/userprofile/AppData/Roaming",
-    localAppDataDir: "/managed/runtime/userprofile/AppData/Local",
-  });
+  const env = buildCloudflaredChildEnv(
+    {
+      PATH: "/usr/bin",
+      HTTPS_PROXY: "http://proxy.internal:8080",
+      JWT_SECRET: "top-secret",
+      API_KEY_SECRET: "another-secret",
+    },
+    {
+      runtimeRoot: "/managed/runtime",
+      homeDir: "/managed/runtime/home",
+      configDir: "/managed/runtime/config",
+      cacheDir: "/managed/runtime/cache",
+      dataDir: "/managed/runtime/data",
+      tempDir: "/managed/runtime/tmp",
+      userProfileDir: "/managed/runtime/userprofile",
+      appDataDir: "/managed/runtime/userprofile/AppData/Roaming",
+      localAppDataDir: "/managed/runtime/userprofile/AppData/Local",
+    },
+    {}
+  );
 
   assert.deepEqual(env, {
     PATH: "/usr/bin",
@@ -80,6 +97,41 @@ test("buildCloudflaredChildEnv keeps runtime essentials, isolates runtime dirs, 
     TMP: "/managed/runtime/tmp",
     TEMP: "/managed/runtime/tmp",
   });
+});
+
+test("getDefaultCloudflaredCertEnv detects common CA bundle paths", () => {
+  const env = getDefaultCloudflaredCertEnv((candidate) =>
+    ["/etc/ssl/certs/ca-certificates.crt", "/etc/ssl/certs"].includes(candidate)
+  );
+
+  assert.deepEqual(env, {
+    SSL_CERT_FILE: "/etc/ssl/certs/ca-certificates.crt",
+    SSL_CERT_DIR: "/etc/ssl/certs",
+  });
+});
+
+test("buildCloudflaredChildEnv injects discovered CA paths when the parent env omits them", () => {
+  const env = buildCloudflaredChildEnv(
+    { PATH: "/usr/bin" },
+    {
+      runtimeRoot: "/managed/runtime",
+      homeDir: "/managed/runtime/home",
+      configDir: "/managed/runtime/config",
+      cacheDir: "/managed/runtime/cache",
+      dataDir: "/managed/runtime/data",
+      tempDir: "/managed/runtime/tmp",
+      userProfileDir: "/managed/runtime/userprofile",
+      appDataDir: "/managed/runtime/userprofile/AppData/Roaming",
+      localAppDataDir: "/managed/runtime/userprofile/AppData/Local",
+    },
+    {
+      SSL_CERT_FILE: "/etc/ssl/certs/ca-certificates.crt",
+      SSL_CERT_DIR: "/etc/ssl/certs",
+    }
+  );
+
+  assert.equal(env.SSL_CERT_FILE, "/etc/ssl/certs/ca-certificates.crt");
+  assert.equal(env.SSL_CERT_DIR, "/etc/ssl/certs");
 });
 
 test("getCloudflaredStartArgs relies on cloudflared protocol auto-negotiation", () => {
