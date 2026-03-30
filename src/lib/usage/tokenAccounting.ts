@@ -52,19 +52,9 @@ export function getLoggedInputTokens(tokens: unknown): number {
     return toFiniteNumber(tokenRecord.input_tokens);
   }
 
+  // prompt_tokens from translator already includes input + cache_read + cache_creation
+  // Do NOT subtract cached tokens - we want the total billable prompt tokens
   const promptTokens = toFiniteNumber(tokenRecord.prompt_tokens);
-  if (promptTokens <= 0) return 0;
-
-  const promptDetails = getPromptTokenDetails(tokenRecord);
-  const cachedFromDetails = toFiniteNumber(promptDetails.cached_tokens);
-  if (cachedFromDetails > 0) {
-    return Math.max(promptTokens - cachedFromDetails, 0);
-  }
-
-  if ("cached_tokens" in tokenRecord && !("cache_read_input_tokens" in tokenRecord)) {
-    return Math.max(promptTokens - toFiniteNumber(tokenRecord.cached_tokens), 0);
-  }
-
   return promptTokens;
 }
 
@@ -73,7 +63,17 @@ export function getLoggedOutputTokens(tokens: unknown): number {
   if (tokenRecord.output !== undefined && tokenRecord.output !== null) {
     return toFiniteNumber(tokenRecord.output);
   }
-  return toFiniteNumber(
-    tokenRecord.completion_tokens ?? tokenRecord.output_tokens
-  );
+  return toFiniteNumber(tokenRecord.completion_tokens ?? tokenRecord.output_tokens);
+}
+
+export function formatUsageLog(tokens: unknown): string {
+  const input = getLoggedInputTokens(tokens);
+  const output = getLoggedOutputTokens(tokens);
+  const cacheRead = getPromptCacheReadTokens(tokens);
+
+  let msg = `in=${input} | out=${output}`;
+  if (cacheRead > 0) {
+    msg += ` | CR=${cacheRead}`;
+  }
+  return msg;
 }

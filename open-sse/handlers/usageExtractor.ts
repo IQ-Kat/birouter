@@ -46,11 +46,18 @@ export function extractUsageFromResponse(responseBody, provider) {
     (responseBody.usage.input_tokens !== undefined ||
       responseBody.usage.output_tokens !== undefined)
   ) {
+    const inputTokens = responseBody.usage.input_tokens || 0;
+    const cacheRead = responseBody.usage.cache_read_input_tokens || 0;
+    const cacheCreation = responseBody.usage.cache_creation_input_tokens || 0;
+
+    // Total prompt tokens = input + cache_read + cache_creation (per Claude API docs)
+    const promptTokens = inputTokens + cacheRead + cacheCreation;
+
     return {
-      prompt_tokens: responseBody.usage.input_tokens || 0,
+      prompt_tokens: promptTokens,
       completion_tokens: responseBody.usage.output_tokens || 0,
-      cache_read_input_tokens: responseBody.usage.cache_read_input_tokens,
-      cache_creation_input_tokens: responseBody.usage.cache_creation_input_tokens,
+      cache_read_input_tokens: cacheRead,
+      cache_creation_input_tokens: cacheCreation,
     };
   }
 
