@@ -189,3 +189,67 @@ test("combo test route surfaces provider errors instead of downgrading them to r
   assert.equal(body.results[0].error, "Upstream rejected this request shape");
   assert.equal("probeMethod" in body.results[0], false);
 });
+
+test("combo test route launches model probes concurrently while preserving combo order", async () => {
+  await createTestCombo(["provider/first", "provider/second", "provider/third"]);
+
+  const fetchCalls = [];
+  const resolvers = [];
+  globalThis.fetch = (url, init = {}) =>
+    new Promise((resolve) => {
+      fetchCalls.push({ url: String(url), init });
+      resolvers.push(resolve);
+    });
+
+  const responsePromise = route.POST(makeRequest());
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(fetchCalls.length, 3);
+  assert.deepEqual(
+    fetchCalls.map(({ init }) => JSON.parse(init.body).model),
+    ["provider/first", "provider/second", "provider/third"]
+  );
+
+  resolvers[2](
+    new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "THIRD" } }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    )
+  );
+  resolvers[1](
+    new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "SECOND" } }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    )
+  );
+  resolvers[0](
+    new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "FIRST" } }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    )
+  );
+
+  const response = await responsePromise;
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.resolvedBy, "provider/first");
+  assert.deepEqual(
+    body.results.map((result) => ({
+      model: result.model,
+      status: result.status,
+      responseText: result.responseText,
+    })),
+    [
+      { model: "provider/first", status: "ok", responseText: "FIRST" },
+      { model: "provider/second", status: "ok", responseText: "SECOND" },
+      { model: "provider/third", status: "ok", responseText: "THIRD" },
+    ]
+  );
+});
