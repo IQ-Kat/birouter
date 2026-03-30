@@ -630,7 +630,7 @@ export async function getCacheMetrics() {
       totalCachedTokens: totalsRow?.totalCachedTokens || 0,
       totalCacheCreationTokens: totalsRow?.totalCacheCreationTokens || 0,
       tokensSaved,
-      estimatedCostSaved: 0, // Would need pricing data to calculate
+      estimatedCostSaved,
       byProvider,
       byStrategy,
       lastUpdated: new Date().toISOString(),

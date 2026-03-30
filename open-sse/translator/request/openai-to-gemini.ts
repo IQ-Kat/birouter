@@ -52,6 +52,7 @@ type GeminiRequest = {
   safetySettings: unknown;
   systemInstruction?: GeminiContent;
   tools?: Array<{ functionDeclarations: GeminiFunctionDeclaration[] }>;
+  cachedContent?: string;
 };
 
 type CloudCodeEnvelope = {
@@ -81,6 +82,11 @@ function openaiToGeminiBase(model, body, stream) {
     generationConfig: {},
     safetySettings: DEFAULT_SAFETY_SETTINGS,
   };
+
+  // Preserve cachedContent if provided by client (for explicit Gemini caching)
+  if (body.cachedContent) {
+    result.cachedContent = body.cachedContent;
+  }
 
   // Generation config
   if (body.temperature !== undefined) {

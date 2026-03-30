@@ -9,15 +9,21 @@ import {
 } from "@/lib/semanticCache";
 import { getIdempotencyStats } from "@/lib/idempotencyLayer";
 import { getCacheMetrics, getCacheTrend } from "@/lib/db/settings";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
 export async function GET(req: NextRequest) {
+  if (!(await isAuthenticated(req))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
-    const trendHours = parseInt(searchParams.get("trendHours") || "24", 10);
+    const rawHours = parseInt(searchParams.get("trendHours") || "24", 10);
+    const trendHours = Math.min(720, Math.max(1, Number.isNaN(rawHours) ? 24 : rawHours));
 
     const cacheStats = getCacheStats();
     const idempotencyStats = getIdempotencyStats();
@@ -36,6 +42,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!(await isAuthenticated(req))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const model = searchParams.get("model");
