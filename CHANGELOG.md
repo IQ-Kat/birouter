@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+---
+## [3.3.4] - 2026-03-30
+
 ### ✨ New Features
 
 - **A2A Workflows:** Added deterministic FSM orchestrator for multi-step agent workflows.
