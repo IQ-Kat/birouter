@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
 import { replaceCustomModels } from "@/lib/db/models";
+import {
+  syncManagedAvailableModelAliases,
+  usesManagedAvailableModels,
+} from "@/lib/providerModels/managedAvailableModels";
 import { saveCallLog } from "@/lib/usage/callLogs";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
@@ -77,9 +81,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const fetchedModels = modelsData.models || [];
 
     // Filter out models already in the built-in registry
-    const registryIds = new Set(
-      getModelsByProviderId(connection.provider).map((m: any) => m.id)
-    );
+    const registryIds = new Set(getModelsByProviderId(connection.provider).map((m: any) => m.id));
 
     // Replace the full model list
     const models = fetchedModels
@@ -91,6 +93,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       .filter((m: any) => m.id && !registryIds.has(m.id));
 
     const replaced = await replaceCustomModels(connection.provider, models);
+
+    let syncedAliases = 0;
+    if (usesManagedAvailableModels(connection.provider)) {
+      const aliasSync = await syncManagedAvailableModelAliases(
+        connection.provider,
+        models.map((model: any) => model.id)
+      );
+      syncedAliases = aliasSync.assignedAliases.length;
+    }
 
     // Log the successful sync
     await saveCallLog({
@@ -105,6 +116,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       requestType: "model-sync",
       responseBody: {
         syncedModels: models.length,
+        syncedAliases,
         provider: connection.provider,
       },
     });
@@ -113,6 +125,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       ok: true,
       provider: connection.provider,
       syncedModels: replaced.length,
+      syncedAliases,
       models: replaced,
     });
   } catch (error: any) {

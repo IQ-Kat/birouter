@@ -596,6 +596,11 @@ curl -X POST http://localhost:20128/api/provider-models \
 
 Or use Dashboard: **Providers → [Provider] → Custom Models**.
 
+Notes:
+
+- OpenRouter and OpenAI/Anthropic-compatible providers are managed from **Available Models** only. Manual add, import, and auto-sync all land in the same available-model list, so there is no separate Custom Models section for those providers.
+- The **Custom Models** section is intended for providers that do not expose managed available-model imports.
+
 ### Dedicated Provider Routes
 
 Route requests directly to a specific provider with model validation:

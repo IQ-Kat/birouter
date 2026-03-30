@@ -1542,6 +1542,8 @@ Models:
 
 **Models:** Access 100+ models from all major providers through a single API key.
 
+**Dashboard behavior:** OpenRouter models are managed from **Available Models**. Manual add, import, and auto-sync all update the same list.
+
 </details>
 
 <details>
