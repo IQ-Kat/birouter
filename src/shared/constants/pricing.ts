@@ -189,8 +189,8 @@ export const DEFAULT_PRICING = {
     },
   },
 
-  // Gemini CLI (gc)
-  gc: {
+  // Gemini CLI
+  "gemini-cli": {
     "gemini-3-flash-preview": {
       input: 0.5,
       output: 3.0,
