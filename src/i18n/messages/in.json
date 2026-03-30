@@ -1062,7 +1062,8 @@
     "a2aQuickStartStep2": "`message/send` या `message/stream` का उपयोग करके JSON-RPC अनुरोधों को `POST /a2a` पर भेजें।",
     "a2aQuickStartStep3": "`कार्य/प्राप्त करें` और `कार्य/रद्द करें` का उपयोग करके कार्यों को ट्रैक और नियंत्रित करें।",
     "completionsLegacy": "पूर्णताएँ (विरासत)",
-    "completionsLegacyDesc": "लीगेसी ओपनएआई टेक्स्ट पूर्णताएँ - शीघ्र स्ट्रिंग और संदेश सरणी प्रारूप दोनों को स्वीकार करती हैं"
+    "completionsLegacyDesc": "लीगेसी ओपनएआई टेक्स्ट पूर्णताएँ - शीघ्र स्ट्रिंग और संदेश सरणी प्रारूप दोनों को स्वीकार करती हैं",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
   },
   "endpoints": {
     "tabProxy": "समापन बिंदु प्रॉक्सी",
