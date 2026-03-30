@@ -6,7 +6,7 @@ export const FREE_PROVIDERS = {
   qwen: { id: "qwen", alias: "qw", name: "Qwen Code", icon: "psychology", color: "#10B981" },
   "gemini-cli": {
     id: "gemini-cli",
-    alias: "gc",
+    alias: "gemini-cli",
     name: "Gemini CLI",
     icon: "terminal",
     color: "#4285F4",

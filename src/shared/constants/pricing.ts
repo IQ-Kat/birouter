@@ -189,8 +189,8 @@ export const DEFAULT_PRICING = {
     },
   },
 
-  // Gemini CLI (gc)
-  gc: {
+  // Gemini CLI
+  "gemini-cli": {
     "gemini-3-flash-preview": {
       input: 0.5,
       output: 3.0,
@@ -1299,7 +1299,7 @@ type TokenUsage = Record<string, number | undefined>;
 
 /**
  * Get pricing for a specific provider and model
- * @param {string} provider - Provider ID (e.g., "openai", "cc", "gc")
+ * @param {string} provider - Provider ID (e.g., "openai", "cc", "gemini-cli")
  * @param {string} model - Model ID
  * @returns {object|null} Pricing object or null if not found
  */
