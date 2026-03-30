@@ -86,6 +86,8 @@ test("combo test route marks a model healthy only when it returns assistant text
   assert.match(fetchCalls[0].init.headers["X-Request-Id"], /^combo-test-/);
   assert.equal(forwardedBody.model, "openrouter/openai/gpt-5.4");
   assert.equal(forwardedBody.messages[0].content, "Reply with OK only.");
+  assert.equal(forwardedBody.max_tokens, 64);
+  assert.equal(forwardedBody.temperature, 0);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
   assert.equal(body.results[0].status, "ok");
   assert.equal(body.results[0].responseText, "OK");
@@ -120,6 +122,45 @@ test("combo test route treats empty successful responses as failures", async () 
   assert.equal(body.results[0].status, "error");
   assert.equal(body.results[0].statusCode, 200);
   assert.match(body.results[0].error, /no text content/i);
+});
+
+test("combo test route accepts reasoning-only completions as healthy smoke-test responses", async () => {
+  await createTestCombo();
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            finish_reason: "length",
+            message: {
+              role: "assistant",
+              content: "",
+            },
+          },
+        ],
+        usage: {
+          prompt_tokens: 6,
+          completion_tokens: 12,
+          total_tokens: 18,
+          completion_tokens_details: {
+            reasoning_tokens: 12,
+          },
+        },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+
+  const response = await route.POST(makeRequest());
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
+  assert.equal(body.results[0].status, "ok");
+  assert.equal(body.results[0].responseText, "[reasoning-only completion]");
 });
 
 test("combo test route surfaces provider errors instead of downgrading them to reachability", async () => {
