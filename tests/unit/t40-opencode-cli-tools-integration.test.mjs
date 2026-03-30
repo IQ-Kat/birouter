@@ -49,9 +49,9 @@ test("T40: OpenCode config generator includes endpoint and selected API key", ()
     apiKey: "sk_test_opencode",
     model: "claude-sonnet-4-5-thinking",
   });
-  assert.equal(providerConfig.baseURL, "http://localhost:20128/v1");
-  assert.equal(providerConfig.apiKey, "sk_test_opencode");
-  assert.ok(providerConfig.models.includes("claude-sonnet-4-5-thinking"));
+  assert.equal(providerConfig.options.baseURL, "http://localhost:20128/v1");
+  assert.equal(providerConfig.options.apiKey, "sk_test_opencode");
+  assert.ok(providerConfig.models["claude-sonnet-4-5-thinking"]);
 
   const mergedConfig = mergeOpenCodeConfig(
     { provider: { custom: { name: "Custom Provider" } } },
@@ -62,8 +62,8 @@ test("T40: OpenCode config generator includes endpoint and selected API key", ()
     }
   );
   assert.ok(mergedConfig.provider.custom);
-  assert.equal(mergedConfig.provider.omniroute.baseURL, "http://localhost:20128/v1");
-  assert.equal(mergedConfig.provider.omniroute.apiKey, "sk_test_opencode");
+  assert.equal(mergedConfig.provider.omniroute.options.baseURL, "http://localhost:20128/v1");
+  assert.equal(mergedConfig.provider.omniroute.options.apiKey, "sk_test_opencode");
 });
 
 test("T40: Windsurf card documents current official limitations honestly", () => {

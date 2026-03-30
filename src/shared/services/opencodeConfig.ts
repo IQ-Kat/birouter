@@ -4,14 +4,6 @@ type OpenCodeConfigInput = {
   model?: string;
 };
 
-type OpenCodeProviderConfig = {
-  name: string;
-  api: "openai";
-  baseURL: string;
-  apiKey: string;
-  models: string[];
-};
-
 const OPENCODE_DEFAULT_MODELS = [
   "claude-opus-4-5-thinking",
   "claude-sonnet-4-5-thinking",
@@ -28,7 +20,7 @@ export const buildOpenCodeProviderConfig = ({
   baseUrl,
   apiKey,
   model,
-}: OpenCodeConfigInput): OpenCodeProviderConfig => {
+}: OpenCodeConfigInput): Record<string, any> => {
   const normalizedBaseUrl = String(baseUrl || "")
     .trim()
     .replace(/\/+$/, "");
@@ -36,12 +28,21 @@ export const buildOpenCodeProviderConfig = ({
 
   const uniqueModels = [...new Set([normalizedModel, ...OPENCODE_DEFAULT_MODELS].filter(Boolean))];
 
+  const modelsRecord: Record<string, { name: string }> = {};
+  for (const m of uniqueModels) {
+    if (m) {
+      modelsRecord[m] = { name: m };
+    }
+  }
+
   return {
+    npm: "@ai-sdk/openai-compatible",
     name: "OmniRoute",
-    api: "openai",
-    baseURL: normalizedBaseUrl,
-    apiKey: apiKey || "sk_omniroute",
-    models: uniqueModels,
+    options: {
+      baseURL: normalizedBaseUrl,
+      apiKey: apiKey || "sk_omniroute",
+    },
+    models: modelsRecord,
   };
 };
 
