@@ -1060,7 +1060,8 @@
     "a2aQuickStartStep2": "JSON-RPC isteklerini `message/send` veya `message/stream` kullanarak `POST /a2a` adresine gönderin.",
     "a2aQuickStartStep3": "Görevleri `tasks/get` ve `tasks/cancel` ile izleyin ve yönetin.",
     "completionsLegacy": "Tamamlamalar (Eski)",
-    "completionsLegacyDesc": "Eski OpenAI metin tamamlamaları — hem bilgi istemi dizesini hem de mesaj dizisi biçimini kabul eder"
+    "completionsLegacyDesc": "Eski OpenAI metin tamamlamaları — hem bilgi istemi dizesini hem de mesaj dizisi biçimini kabul eder",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
   },
   "endpoints": {
     "tabProxy": "Uç Nokta Proxy",

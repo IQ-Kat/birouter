@@ -1011,7 +1011,8 @@
     "webSearch": "Web Search",
     "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
     "searchProvider": "Search Provider",
-    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected."
+    "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected.",
+    "cloudflaredUrlNotice": "Crea un Quick Tunnel temporal de Cloudflare. La URL cambia después de cada reinicio."
   },
   "mcpDashboard": {
     "loading": "Cargando el panel de MCP...",
