@@ -546,18 +546,22 @@ export default function HomePageClient({ machineId }) {
             <div>
               <p className="font-semibold text-sm">Update Available: v{versionInfo.latest}</p>
               <p className="text-xs opacity-80 mt-0.5">
-                {t("updateAvailableDesc") ||
-                  `You are currently using v${versionInfo.current}. Update to access the latest features and bug fixes.`}
+                {versionInfo.autoUpdateSupported
+                  ? t("updateAvailableDesc") ||
+                    `You are currently using v${versionInfo.current}. Update to access the latest features and bug fixes.`
+                  : versionInfo.autoUpdateError ||
+                    "Manual update required for this installation type."}
               </p>
             </div>
           </div>
           <Button
             size="sm"
-            onClick={handleUpdate}
-            disabled={updating}
+            onClick={versionInfo.autoUpdateSupported ? handleUpdate : undefined}
+            disabled={updating || !versionInfo.autoUpdateSupported}
             className="shrink-0 ml-4 font-semibold"
+            title={versionInfo.autoUpdateError || ""}
           >
-            {t("updateNow") || "Update Now"}
+            {versionInfo.autoUpdateSupported ? t("updateNow") || "Update Now" : "Manual Update"}
           </Button>
         </div>
       )}

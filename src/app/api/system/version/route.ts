@@ -95,6 +95,17 @@ export async function POST(req: NextRequest) {
   }
 
   const config = getAutoUpdateConfig();
+  const validation = await validateAutoUpdateRuntime(config);
+
+  if (!validation.supported) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: validation.reason || "Auto-update is not supported in this environment.",
+      },
+      { status: 400 }
+    );
+  }
 
   // If we are in docker-compose mode, use the detached shell script background updates
   if (config.mode === "docker-compose") {
@@ -132,9 +143,13 @@ export async function POST(req: NextRequest) {
       try {
         // Step 1: Install
         send({ step: "install", status: "running", message: `Installing omniroute@${latest}...` });
-        await execFileAsync("npm", ["install", "-g", `omniroute@${latest}`, "--ignore-scripts"], {
-          timeout: 300000,
-        });
+        await execFileAsync(
+          "npm",
+          ["install", "-g", `omniroute@${latest}`, "--ignore-scripts", "--legacy-peer-deps"],
+          {
+            timeout: 300000,
+          }
+        );
         send({ step: "install", status: "done", message: `Installed omniroute@${latest}` });
 
         // Step 2: Rebuild native modules (critical for better-sqlite3)

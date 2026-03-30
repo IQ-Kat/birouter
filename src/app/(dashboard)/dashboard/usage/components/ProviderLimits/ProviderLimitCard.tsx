@@ -7,6 +7,7 @@ import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import QuotaProgressBar from "./QuotaProgressBar";
 import { calculatePercentage } from "./utils";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 
 const planVariants = {
   free: "default",
@@ -70,15 +71,7 @@ export default function ProviderLimitCard({
                 {provider?.slice(0, 2).toUpperCase() || "PR"}
               </span>
             ) : (
-              <Image
-                src={`/providers/${provider}.png`}
-                alt={provider || t("providerLimits")}
-                width={40}
-                height={40}
-                className="object-contain rounded-lg"
-                sizes="40px"
-                onError={() => setImgError(true)}
-              />
+              <ProviderIcon providerId={provider} size={40} />
             )}
           </div>
 
