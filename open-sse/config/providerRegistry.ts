@@ -212,7 +212,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   "gemini-cli": {
     id: "gemini-cli",
-    alias: "gc",
+    alias: "gemini-cli",
     format: "gemini-cli",
     executor: "gemini-cli",
     baseUrl: "https://cloudcode-pa.googleapis.com/v1internal",

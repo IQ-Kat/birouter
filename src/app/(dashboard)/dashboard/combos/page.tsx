@@ -1439,7 +1439,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   };
 
   const FREE_STACK_PRESET_MODELS = [
-    { model: "gc/gemini-3-flash-preview", weight: 0 },
+    { model: "gemini-cli/gemini-3-flash-preview", weight: 0 },
     { model: "kr/claude-sonnet-4.5", weight: 0 },
     { model: "if/kimi-k2-thinking", weight: 0 },
     { model: "if/qwen3-coder-plus", weight: 0 },
