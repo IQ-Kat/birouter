@@ -187,7 +187,12 @@
     "themeCyan": "Azurová",
     "cliToolsShort": "Nástroje",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System"
   },
   "themesPage": {
     "title": "Motivy",
@@ -855,6 +860,11 @@
         "when": "Snížení nákladů je vaší nejvyšší prioritou.",
         "avoid": "Údaje o cenách chybí nebo jsou zastaralé.",
         "example": "Úlohy na pozadí nebo dávkové úlohy, kde se upřednostňují nižší náklady."
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -948,6 +958,13 @@
         "tip1": "Zajistěte cenové pokrytí pro všechny vybrané modely.",
         "tip2": "Pro náročné výzvy si pořiďte kvalitní záložní řešení.",
         "tip3": "Používejte pro dávkové/úlohy na pozadí, kde jsou hlavním klíčovým ukazatelem výkonnosti náklady."
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "Volný zásobník (0 $)",
@@ -1071,7 +1088,25 @@
     "a2aQuickStartStep3": "Sledujte a ovládejte úkoly pomocí příkazů `tasks/get` a `tasks/cancel`.",
     "completionsLegacy": "Completions (Zastaralé)",
     "completionsLegacyDesc": "Zastaralé OpenAI text completion – akceptuje oba formáty, prompt string i messages array.",
-    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "endpoints": {
     "tabProxy": "Koncová Proxy",
@@ -1657,7 +1692,13 @@
     "autoSyncToggleFailed": "Nepodařilo se přepnout automatickou synchronizaci",
     "allModelsAlreadyImported": "Všechny modely jsou již importovány",
     "noNewModelsToImport": "Žádné nové modely k importu — všechny modely jsou již v registru nebo v seznamu vlastních modelů",
-    "skippingExistingModels": "Přeskakování {count} existujících modelů"
+    "skippingExistingModels": "Přeskakování {count} existujících modelů",
+    "applyCodexAuthLocal": "Apply auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
+    "codexAuthExported": "Codex auth.json exported",
+    "exportCodexAuthFile": "Export auth"
   },
   "settings": {
     "title": "Nastavení",
@@ -2066,7 +2107,10 @@
     "customPricingNote": "Výchozí ceny pro konkrétní modely můžete přepsat. Vlastní přepsání má přednost před automaticky zjištěnými cenami.",
     "editPricing": "Upravit ceny",
     "viewFullDetails": "Zobrazit všechny podrobnosti",
-    "themeCoral": "Korál"
+    "themeCoral": "Korál",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a..."
   },
   "translator": {
     "title": "Překladatel",

@@ -187,7 +187,12 @@
     "autoCombo": "Auto Combo",
     "searchTools": "Search Tools",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System"
   },
   "themesPage": {
     "title": "Thèmes",
@@ -804,6 +809,11 @@
         "when": "La réduction des coûts est votre priorité absolue.",
         "avoid": "Les données de tarification sont manquantes ou obsolètes.",
         "example": "Travaux en arrière-plan ou par lots pour lesquels un coût inférieur est préféré."
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -897,6 +907,13 @@
         "tip1": "Assure une couverture de prix pour tous les modèles sélectionnés.",
         "tip2": "Garde un fallback de qualité pour les prompts difficiles.",
         "tip3": "Idéal pour batch/tâches de fond où le coût est le KPI principal."
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "Free Stack ($0)",
@@ -1020,7 +1037,25 @@
     "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
     "searchProvider": "Search Provider",
     "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected.",
-    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "mcpDashboard": {
     "loading": "Chargement du tableau de bord MCP...",
@@ -1594,7 +1629,13 @@
     "autoSyncToggleFailed": "Échec de l'activation de la synchronisation automatique",
     "allModelsAlreadyImported": "Tous les modèles sont déjà importés",
     "noNewModelsToImport": "Aucun nouveau modèle à importer — tous les modèles sont déjà dans le registre ou la liste de modèles personnalisés",
-    "skippingExistingModels": "Ignorance de {count} modèles existants"
+    "skippingExistingModels": "Ignorance de {count} modèles existants",
+    "applyCodexAuthLocal": "Apply auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
+    "codexAuthExported": "Codex auth.json exported",
+    "exportCodexAuthFile": "Export auth"
   },
   "settings": {
     "title": "Paramètres",
@@ -2003,7 +2044,10 @@
     "routingAdvancedGuideHint2": "Si les prestataires varient en termes de qualité/coût, commencez par Opter pour le coût pour le travail de fond et par Moins utilisé pour une usure équilibrée.",
     "comboDefaultsGuideTitle": "Comment régler les paramètres par défaut du combo",
     "comboDefaultsGuideHint1": "Maintenez un faible nombre de tentatives dans les flux à faible latence ; augmentez le délai d'attente uniquement pour les tâches de génération longue.",
-    "comboDefaultsGuideHint2": "Utilisez les remplacements de fournisseur lorsqu'un fournisseur a besoin d'un comportement de délai d'attente/nouvelle tentative différent de celui des valeurs par défaut globales."
+    "comboDefaultsGuideHint2": "Utilisez les remplacements de fournisseur lorsqu'un fournisseur a besoin d'un comportement de délai d'attente/nouvelle tentative différent de celui des valeurs par défaut globales.",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a..."
   },
   "translator": {
     "title": "Traducteur",

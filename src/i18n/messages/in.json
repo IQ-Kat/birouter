@@ -187,7 +187,12 @@
     "themeCyan": "सियान",
     "cliToolsShort": "उपकरण",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System"
   },
   "themesPage": {
     "title": "थीम्स",
@@ -855,6 +860,11 @@
         "when": "लागत में कमी आपकी सर्वोच्च प्राथमिकता है.",
         "avoid": "मूल्य निर्धारण डेटा गायब है या पुराना है।",
         "example": "पृष्ठभूमि या बैच की नौकरियाँ जहाँ कम लागत को प्राथमिकता दी जाती है।"
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -948,6 +958,13 @@
         "tip1": "सभी चयनित मॉडलों के लिए मूल्य निर्धारण कवरेज सुनिश्चित करें।",
         "tip2": "कठिन संकेतों के लिए गुणवत्तापूर्ण फ़ॉलबैक रखें।",
         "tip3": "बैच/पृष्ठभूमि नौकरियों के लिए उपयोग करें जहां लागत मुख्य KPI है।"
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "मुफ़्त स्टैक ($0)",
@@ -1071,7 +1088,25 @@
     "a2aQuickStartStep3": "`कार्य/प्राप्त करें` और `कार्य/रद्द करें` का उपयोग करके कार्यों को ट्रैक और नियंत्रित करें।",
     "completionsLegacy": "पूर्णताएँ (विरासत)",
     "completionsLegacyDesc": "लीगेसी ओपनएआई टेक्स्ट पूर्णताएँ - शीघ्र स्ट्रिंग और संदेश सरणी प्रारूप दोनों को स्वीकार करती हैं",
-    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "endpoints": {
     "tabProxy": "समापन बिंदु प्रॉक्सी",
@@ -1657,7 +1692,13 @@
     "modelsPathHint": "सत्यापन के लिए कस्टम मॉडल पथ (जैसे /v4/मॉडल)",
     "allModelsAlreadyImported": "Semua model sudah diimpor",
     "noNewModelsToImport": "Tidak ada model baru untuk diimpor — semua model sudah ada di registri atau daftar model kustom",
-    "skippingExistingModels": "Melewatkan {count} model yang sudah ada"
+    "skippingExistingModels": "Melewatkan {count} model yang sudah ada",
+    "applyCodexAuthLocal": "Apply auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
+    "codexAuthExported": "Codex auth.json exported",
+    "exportCodexAuthFile": "Export auth"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -2066,7 +2107,10 @@
     "customPricingNote": "आप विशिष्ट मॉडलों के लिए डिफ़ॉल्ट मूल्य निर्धारण को ओवरराइड कर सकते हैं। कस्टम ओवरराइड्स को स्वतः-पता लगाए गए मूल्य-निर्धारण पर प्राथमिकता दी जाती है।",
     "editPricing": "मूल्य निर्धारण संपादित करें",
     "viewFullDetails": "पूर्ण विवरण देखें",
-    "themeCoral": "मूंगा"
+    "themeCoral": "मूंगा",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a..."
   },
   "translator": {
     "title": "अनुवादक",

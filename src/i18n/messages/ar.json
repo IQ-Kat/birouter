@@ -187,7 +187,12 @@
     "autoCombo": "Auto Combo",
     "searchTools": "Search Tools",
     "cache": "Cache",
-    "cacheShort": "Cache"
+    "cacheShort": "Cache",
+    "cliSection": "CLI",
+    "debugSection": "Debug",
+    "helpSection": "Help",
+    "primarySection": "Main",
+    "systemSection": "System"
   },
   "themesPage": {
     "title": "المواضيع",
@@ -804,6 +809,11 @@
         "when": "تخفيض التكلفة هو على رأس أولوياتك.",
         "avoid": "بيانات التسعير مفقودة أو قديمة.",
         "example": "وظائف الخلفية أو الدُفعات حيث تكون التكلفة الأقل مفضلة."
+      },
+      "strict-random": {
+        "when": "Use when you want perfectly even spread — each model used once before repeating.",
+        "avoid": "Avoid when models have different quality or latency and order matters.",
+        "example": "Example: Multiple accounts of the same model to distribute usage evenly."
       }
     },
     "advancedHelp": {
@@ -897,6 +907,13 @@
         "tip1": "Ensure pricing coverage for all selected models.",
         "tip2": "Keep a quality fallback for hard prompts.",
         "tip3": "Use for batch/background jobs where cost is the main KPI."
+      },
+      "strict-random": {
+        "title": "Shuffle deck distribution",
+        "description": "Each model is used exactly once per cycle before reshuffling.",
+        "tip1": "Use at least 2 models for meaningful distribution.",
+        "tip2": "Works best with equivalent-performance models.",
+        "tip3": "Ideal for load balancing across multiple API accounts."
       }
     },
     "templateFreeStack": "Free Stack ($0)",
@@ -1020,7 +1037,25 @@
     "webSearchDesc": "Unified web search across multiple providers with automatic failover and caching",
     "searchProvider": "Search Provider",
     "searchProviderDesc": "This provider is used for web search via POST /v1/search. No model configuration needed — search providers are ready to use once an API key is connected.",
-    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
+    "cloudflaredDescription": "Create a Cloudflare Quick Tunnel for this endpoint to make it accessible from the internet without configuring DNS.",
+    "cloudflaredDisable": "Stop Tunnel",
+    "cloudflaredEnable": "Enable Tunnel",
+    "cloudflaredError": "Error",
+    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredInstallAndEnable": "Install & Enable",
+    "cloudflaredLastError": "Last error: {error}",
+    "cloudflaredNotInstalled": "Not installed",
+    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredRunning": "Running",
+    "cloudflaredStarted": "Cloudflare tunnel started",
+    "cloudflaredStarting": "Starting",
+    "cloudflaredStopped": "Cloudflare tunnel stopped",
+    "cloudflaredStoppedState": "Stopped",
+    "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
+    "cloudflaredTitle": "Cloudflare Quick Tunnel",
+    "cloudflaredUnsupported": "Unsupported",
+    "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
+    "cloudflaredUrlNotice": "Creates a temporary Cloudflare Quick Tunnel. URLs change after restart."
   },
   "mcpDashboard": {
     "loading": "جارٍ تحميل لوحة تحكم MCP...",
@@ -1594,7 +1629,13 @@
     "autoSyncToggleFailed": "فشل في تبديل المزامنة التلقائية",
     "allModelsAlreadyImported": "جميع النماذج مستوردة بالفعل",
     "noNewModelsToImport": "لا توجد نماذج جديدة للاستيراد — جميع النماذج موجودة بالفعل في السجل أو قائمة النماذج المخصصة",
-    "skippingExistingModels": "تخطي {count} نماذج موجودة"
+    "skippingExistingModels": "تخطي {count} نماذج موجودة",
+    "applyCodexAuthLocal": "Apply auth",
+    "codexAuthAppliedLocal": "Codex auth.json applied locally",
+    "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
+    "codexAuthExportFailed": "Failed to export Codex auth.json",
+    "codexAuthExported": "Codex auth.json exported",
+    "exportCodexAuthFile": "Export auth"
   },
   "settings": {
     "title": "الإعدادات",
@@ -2003,7 +2044,10 @@
     "routingAdvancedGuideHint2": "إذا اختلف مقدمو الخدمة من حيث الجودة/التكلفة، فابدأ بـ Cost Opt للعمل في الخلفية والأقل استخدامًا للارتداء المتوازن.",
     "comboDefaultsGuideTitle": "كيفية ضبط إعدادات التحرير والسرد الافتراضية",
     "comboDefaultsGuideHint1": "اجعل عمليات إعادة المحاولة منخفضة في التدفقات ذات زمن الوصول المنخفض؛ زيادة المهلة فقط لمهام الجيل الطويل.",
-    "comboDefaultsGuideHint2": "استخدم تجاوزات الموفر عندما يحتاج أحد الموفرين إلى سلوك مهلة/إعادة محاولة مختلف عن الإعدادات الافتراضية العامة."
+    "comboDefaultsGuideHint2": "استخدم تجاوزات الموفر عندما يحتاج أحد الموفرين إلى سلوك مهلة/إعادة محاولة مختلف عن الإعدادات الافتراضية العامة.",
+    "sidebarVisibility": "Hide sidebar items",
+    "sidebarVisibilityDesc": "Hide any sidebar navigation entry to reduce visual clutter.",
+    "sidebarVisibilityHint": "Any sidebar section is hidden automatically when a..."
   },
   "translator": {
     "title": "مترجم",
