@@ -2,7 +2,7 @@ FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends libsecret-1-0 \
+  && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
@@ -30,7 +30,7 @@ ENV NODE_OPTIONS="--max-old-space-size=256"
 # Data directory inside Docker — must match the volume mount in docker-compose.yml
 ENV DATA_DIR=/app/data
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends libsecret-1-0 \
+  && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /app/data
 

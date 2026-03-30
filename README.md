@@ -882,6 +882,7 @@ Notes:
 
 - Quick Tunnel URLs are temporary and change after every restart.
 - Managed install currently supports Linux, macOS, and Windows on `x64` / `arm64`.
+- Docker images bundle system CA roots and pass them to managed `cloudflared`, which avoids TLS trust failures when the tunnel bootstraps inside the container.
 - Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want OmniRoute to use an existing binary instead of downloading one.
 
 **Using Docker Compose with Caddy (HTTPS Auto-TLS):**
