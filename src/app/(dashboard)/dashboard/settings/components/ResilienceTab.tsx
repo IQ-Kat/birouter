@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, Button } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useLocale, useTranslations } from "next-intl";
+import AutoDisableCard from "./AutoDisableCard";
 
 // ─── State colors and labels ──────────────────────────────────────────────
 const STATE_STYLES = {
@@ -656,6 +657,8 @@ export default function ResilienceTab() {
         onSave={handleSaveProfiles}
         saving={saving}
       />
+      {/* 1.5 Auto Disable Banned Accounts */}
+      <AutoDisableCard />
       {/* 2. Rate Limiting (editable defaults + active limiters) */}
       <RateLimitCard
         rateLimitStatus={data?.rateLimitStatus || []}
