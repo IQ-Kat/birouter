@@ -270,7 +270,11 @@
     "overviewDescription": "Monitoruj wzorce wykorzystania interfejsu API, zużycie tokenów, koszty i trendy aktywności u wszystkich dostawców i modeli.",
     "evalsDescription": "Uruchom pakiety ewaluacyjne, aby przetestować i zweryfikować punkty końcowe LLM. Porównaj jakość modelu, wykryj regresje i porównaj opóźnienia.",
     "overview": "Przegląd",
-    "evals": "Ewaluacje"
+    "evals": "Ewaluacje",
+    "utilization": "Wykorzystanie",
+    "utilizationDescription": "Trendy wykorzystania kwoty dostawcy i śledzenie limitów szybkości",
+    "comboHealth": "Zdrowie Kombinacji",
+    "comboHealthDescription": "Kwota na poziomie kombinacji, dystrybucja użycia i metryki wydajności"
   },
   "apiManager": {
     "title": "Klucze API",

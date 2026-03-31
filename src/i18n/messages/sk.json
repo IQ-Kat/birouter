@@ -270,7 +270,11 @@
     "overviewDescription": "Monitorujte svoje vzorce používania API, spotrebu tokenov, náklady a trendy aktivity u všetkých poskytovateľov a modelov.",
     "evalsDescription": "Spustite vyhodnocovacie súpravy na testovanie a overovanie vašich koncových bodov LLM. Porovnajte kvalitu modelu, zistite regresie a benchmarkovú latenciu.",
     "overview": "Prehľad",
-    "evals": "Evals"
+    "evals": "Evals",
+    "utilization": "Využitie",
+    "utilizationDescription": "Trendy využitia kvót poskytovateľa a sledovanie limitov rýchlosti",
+    "comboHealth": "Zdravie Combo",
+    "comboHealthDescription": "Kvóta na úrovni combo, distribúcia používania a metríky výkonu"
   },
   "apiManager": {
     "title": "API kľúče",

@@ -200,3 +200,12 @@ export {
 } from "./db/webhooks";
 
 export type { Webhook } from "./db/webhooks";
+
+export {
+  saveQuotaSnapshot,
+  getQuotaSnapshots,
+  getAggregatedSnapshots,
+  cleanupOldSnapshots,
+} from "./db/quotaSnapshots";
+
+export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";

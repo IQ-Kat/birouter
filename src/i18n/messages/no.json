@@ -270,7 +270,11 @@
     "overviewDescription": "Overvåk API-bruksmønstre, tokenforbruk, kostnader og aktivitetstrender på tvers av alle leverandører og modeller.",
     "evalsDescription": "Kjør evalueringspakker for å teste og validere LLM-endepunktene dine. Sammenlign modellkvalitet, registrer regresjoner og benchmark latens.",
     "overview": "Oversikt",
-    "evals": "Evals"
+    "evals": "Evals",
+    "utilization": "Utnyttelse",
+    "utilizationDescription": "Leverandørkvotebrukstrender og hastighetsgrensesporing",
+    "comboHealth": "Kombohelse",
+    "comboHealthDescription": "Kombonivåkvote, bruksfordeling og ytelsesmålinger"
   },
   "apiManager": {
     "title": "API-nøkler",

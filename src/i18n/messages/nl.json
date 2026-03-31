@@ -270,7 +270,11 @@
     "overviewDescription": "Houd toezicht op uw API-gebruikspatronen, tokenverbruik, kosten en activiteitstrends voor alle providers en modellen.",
     "evalsDescription": "Voer evaluatiesuites uit om uw LLM-eindpunten te testen en te valideren. Vergelijk de modelkwaliteit, detecteer regressies en benchmark de latentie.",
     "overview": "Overzicht",
-    "evals": "Evals"
+    "evals": "Evals",
+    "utilization": "Benutting",
+    "utilizationDescription": "Trends in quotagebruik van de provider en bijhouden van snelheidslimieten",
+    "comboHealth": "Combo-gezondheid",
+    "comboHealthDescription": "Quota op combo-niveau, gebruiksdistributie en prestatiegegevens"
   },
   "apiManager": {
     "title": "API-sleutels",

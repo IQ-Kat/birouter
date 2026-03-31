@@ -270,7 +270,11 @@
     "overviewDescription": "Kövesse nyomon API-használati mintáit, tokenfelhasználását, költségeit és tevékenységi trendjeit az összes szolgáltatónál és modellnél.",
     "evalsDescription": "Futtasson kiértékelő csomagokat az LLM-végpontok teszteléséhez és érvényesítéséhez. Hasonlítsa össze a modell minőségét, észlelje a regressziókat és mérje fel a késleltetést.",
     "overview": "Áttekintés",
-    "evals": "Evals"
+    "evals": "Evals",
+    "utilization": "Kihasználtság",
+    "utilizationDescription": "Szolgáltatói kvótahasználati trendek és sebességkorlát-követés",
+    "comboHealth": "Kombo egészsége",
+    "comboHealthDescription": "Kombó szintű kvóta, használateloszlás és teljesítménymutatók"
   },
   "apiManager": {
     "title": "API kulcsok",

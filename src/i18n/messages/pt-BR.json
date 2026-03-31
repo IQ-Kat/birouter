@@ -270,7 +270,11 @@
     "overviewDescription": "Monitore padrões de uso da API, consumo de tokens, custos e tendências de atividade em todos os provedores e modelos.",
     "evalsDescription": "Execute suítes de avaliação para testar e validar seus endpoints LLM. Compare qualidade de modelos, detecte regressões e faça benchmarks de latência.",
     "overview": "Visão Geral",
-    "evals": "Avaliações"
+    "evals": "Avaliações",
+    "utilization": "Utilização",
+    "utilizationDescription": "Tendências de uso de cota do provedor e rastreamento de limites de taxa",
+    "comboHealth": "Saúde do Combo",
+    "comboHealthDescription": "Cota em nível de combo, distribuição de uso e métricas de desempenho"
   },
   "apiManager": {
     "title": "Chaves de API",

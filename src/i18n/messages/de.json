@@ -270,7 +270,11 @@
     "overviewDescription": "Überwachen Sie Ihre API-Nutzungsmuster, Token-Verbrauch, Kosten und Aktivitätstrends bei allen Anbietern und Modellen.",
     "evalsDescription": "Führen Sie Evaluierungssuiten aus, um Ihre LLM-Endpunkte zu testen und zu validieren. Vergleichen Sie die Modellqualität, erkennen Sie Regressionen und messen Sie die Latenz.",
     "overview": "Übersicht",
-    "evals": "Bewertungen"
+    "evals": "Bewertungen",
+    "utilization": "Auslastung",
+    "utilizationDescription": "Anbieter-Kontingent-Nutzungstrends und Ratenlimit-Verfolgung",
+    "comboHealth": "Combo-Gesundheit",
+    "comboHealthDescription": "Combo-level Kontingent, Nutzungsverteilung und Leistungsmetriken"
   },
   "apiManager": {
     "title": "API-Schlüssel",

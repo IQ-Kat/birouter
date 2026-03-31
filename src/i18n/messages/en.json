@@ -275,7 +275,11 @@
     "overviewDescription": "Monitor your API usage patterns, token consumption, costs, and activity trends across all providers and models.",
     "evalsDescription": "Run evaluation suites to test and validate your LLM endpoints. Compare model quality, detect regressions, and benchmark latency.",
     "overview": "Overview",
-    "evals": "Evals"
+    "evals": "Evals",
+    "utilization": "Utilization",
+    "utilizationDescription": "Provider quota usage trends and rate limit tracking",
+    "comboHealth": "Combo Health",
+    "comboHealthDescription": "Combo-level quota, usage distribution, and performance metrics"
   },
   "apiManager": {
     "title": "API Keys",

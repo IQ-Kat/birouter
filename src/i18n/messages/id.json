@@ -270,7 +270,11 @@
     "overviewDescription": "Pantau pola penggunaan API Anda, konsumsi token, biaya, dan tren aktivitas di semua penyedia dan model.",
     "evalsDescription": "Jalankan rangkaian evaluasi untuk menguji dan memvalidasi titik akhir LLM Anda. Bandingkan kualitas model, deteksi regresi, dan latensi tolok ukur.",
     "overview": "Ikhtisar",
-    "evals": "Evaluasi"
+    "evals": "Evaluasi",
+    "utilization": "Pemanfaatan",
+    "utilizationDescription": "Tren penggunaan kuota penyedia dan pelacakan batas tarif",
+    "comboHealth": "Kesehatan Kombinasi",
+    "comboHealthDescription": "Kuota tingkat kombinasi, distribusi penggunaan, dan metrik kinerja"
   },
   "apiManager": {
     "title": "Kunci API",

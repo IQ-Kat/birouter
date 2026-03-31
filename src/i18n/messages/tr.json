@@ -268,7 +268,11 @@
     "overviewDescription": "Tüm sağlayıcılar ve modeller genelinde API kullanım kalıplarınızı, jeton tüketiminizi, maliyetlerinizi ve etkinlik eğilimlerinizi izleyin.",
     "evalsDescription": "LLM uç noktalarınızı test etmek ve doğrulamak için değerlendirme paketlerini çalıştırın. Model kalitesini karşılaştırın, regresyonları tespit edin ve gecikmeyi kıyaslayın.",
     "overview": "Genel Bakış",
-    "evals": "Değerlendirmeler"
+    "evals": "Değerlendirmeler",
+    "utilization": "Kullanım",
+    "utilizationDescription": "Sağlayıcı kota kullanım trendleri ve hız limiti takibi",
+    "comboHealth": "Kombo Sağlığı",
+    "comboHealthDescription": "Kombo düzeyinde kota, kullanım dağılımı ve performans metrikleri"
   },
   "apiManager": {
     "title": "API Anahtarları",

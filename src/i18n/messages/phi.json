@@ -270,7 +270,11 @@
     "overviewDescription": "Subaybayan ang iyong mga pattern ng paggamit ng API, pagkonsumo ng token, gastos, at mga trend ng aktibidad sa lahat ng provider at modelo.",
     "evalsDescription": "Magpatakbo ng mga evaluation suite para subukan at patunayan ang iyong mga LLM endpoint. Ihambing ang kalidad ng modelo, tuklasin ang mga regression, at benchmark na latency.",
     "overview": "Pangkalahatang-ideya",
-    "evals": "Evals"
+    "evals": "Evals",
+    "utilization": "Paggamit",
+    "utilizationDescription": "Mga trend sa paggamit ng quota ng provider at pagsubaybay sa rate limit",
+    "comboHealth": "Kalusugan ng Combo",
+    "comboHealthDescription": "Quota sa antas ng combo, pamamahagi ng paggamit, at mga metrics ng pagganap"
   },
   "apiManager": {
     "title": "Mga API Key",

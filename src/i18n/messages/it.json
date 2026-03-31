@@ -270,7 +270,11 @@
     "overviewDescription": "Monitora i modelli di utilizzo delle API, il consumo di token, i costi e le tendenze delle attività su tutti i provider e modelli.",
     "evalsDescription": "Esegui suite di valutazione per testare e convalidare i tuoi endpoint LLM. Confronta la qualità del modello, rileva le regressioni e confronta la latenza.",
     "overview": "Panoramica",
-    "evals": "Valutazioni"
+    "evals": "Valutazioni",
+    "utilization": "Utilizzo",
+    "utilizationDescription": "Tendenze di utilizzo della quota del provider e monitoraggio dei limiti di frequenza",
+    "comboHealth": "Salute Combo",
+    "comboHealthDescription": "Quota a livello combo, distribuzione dell'utilizzo e metriche delle prestazioni"
   },
   "apiManager": {
     "title": "Chiavi API",

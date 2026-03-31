@@ -5,6 +5,8 @@ import { UsageAnalytics, CardSkeleton, SegmentedControl } from "@/shared/compone
 import EvalsTab from "../usage/components/EvalsTab";
 import SearchAnalyticsTab from "./SearchAnalyticsTab";
 import DiversityScoreCard from "./components/DiversityScoreCard";
+import ProviderUtilizationTab from "./ProviderUtilizationTab";
+import ComboHealthTab from "./ComboHealthTab";
 import { useTranslations } from "next-intl";
 
 export default function AnalyticsPage() {
@@ -15,6 +17,8 @@ export default function AnalyticsPage() {
     overview: t("overviewDescription"),
     evals: t("evalsDescription"),
     search: "Search request analytics — provider breakdown, cache hit rate, and cost tracking.",
+    utilization: t("utilizationDescription"),
+    comboHealth: t("comboHealthDescription"),
   };
 
   return (
@@ -33,6 +37,8 @@ export default function AnalyticsPage() {
           { value: "overview", label: t("overview") },
           { value: "evals", label: t("evals") },
           { value: "search", label: "Search" },
+          { value: "utilization", label: t("utilization") },
+          { value: "comboHealth", label: t("comboHealth") },
         ]}
         value={activeTab}
         onChange={setActiveTab}
@@ -50,6 +56,8 @@ export default function AnalyticsPage() {
       )}
       {activeTab === "evals" && <EvalsTab />}
       {activeTab === "search" && <SearchAnalyticsTab />}
+      {activeTab === "utilization" && <ProviderUtilizationTab />}
+      {activeTab === "comboHealth" && <ComboHealthTab />}
     </div>
   );
 }

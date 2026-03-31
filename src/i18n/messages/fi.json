@@ -270,7 +270,11 @@
     "overviewDescription": "Tarkkaile sovellusliittymän käyttötapoja, tunnuksen kulutusta, kustannuksia ja toimintatrendejä kaikilla palveluntarjoajilla ja malleilla.",
     "evalsDescription": "Testaa ja vahvista LLM-päätepisteesi suorittamalla arviointipaketteja. Vertaile mallin laatua, havaitse regressiot ja vertaile viivettä.",
     "overview": "Yleiskatsaus",
-    "evals": "Evals"
+    "evals": "Evals",
+    "utilization": "Käyttöaste",
+    "utilizationDescription": "Palveluntarjoajan kiintiön käyttötrendit ja nopeusrajoitusten seuranta",
+    "comboHealth": "Yhdistelmän kunto",
+    "comboHealthDescription": "Yhdistelmätason kiintiö, käytön jakautuminen ja suorituskykymittarit"
   },
   "apiManager": {
     "title": "API-avaimet",

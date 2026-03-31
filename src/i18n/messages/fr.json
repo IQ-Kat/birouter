@@ -270,7 +270,11 @@
     "overviewDescription": "Surveillez vos modèles d'utilisation des API, la consommation de jetons, les coûts et les tendances d'activité sur tous les fournisseurs et modèles.",
     "evalsDescription": "Exécutez des suites d'évaluation pour tester et valider vos points de terminaison LLM. Comparez la qualité des modèles, détectez les régressions et évaluez la latence.",
     "overview": "Aperçu",
-    "evals": "Évaluations"
+    "evals": "Évaluations",
+    "utilization": "Utilisation",
+    "utilizationDescription": "Tendances d'utilisation du quota fournisseur et suivi des limites de débit",
+    "comboHealth": "Santé du combo",
+    "comboHealthDescription": "Quota au niveau combo, distribution de l'utilisation et métriques de performance"
   },
   "apiManager": {
     "title": "Clés API",

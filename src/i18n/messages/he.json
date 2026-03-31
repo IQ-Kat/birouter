@@ -270,7 +270,11 @@
     "overviewDescription": "עקוב אחר דפוסי השימוש שלך ב-API, צריכת אסימונים, עלויות ומגמות פעילות בכל הספקים והדגמים.",
     "evalsDescription": "הפעל חבילות הערכה כדי לבדוק ולאמת את נקודות הקצה שלך ב-LLM. השווה את איכות המודל, זיהוי רגרסיות והשהייה בהשוואה.",
     "overview": "סקירה כללית",
-    "evals": "Evals"
+    "evals": "Evals",
+    "utilization": "ניצול",
+    "utilizationDescription": "מגמות שימוש במכסת הספק ומעקב אחר מגבלות קצב",
+    "comboHealth": "בריאות הקומבו",
+    "comboHealthDescription": "מכסה ברמת הקומבו, הפצת שימוש ומדדי ביצוע"
   },
   "apiManager": {
     "title": "מפתחות API",

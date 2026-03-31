@@ -270,7 +270,11 @@
     "overviewDescription": "すべてのプロバイダーとモデルにわたる API 使用パターン、トークン消費量、コスト、アクティビティの傾向を監視します。",
     "evalsDescription": "評価スイートを実行して、LLM エンドポイントをテストおよび検証します。モデルの品質を比較し、回帰を検出し、待ち時間をベンチマークします。",
     "overview": "概要",
-    "evals": "エヴァルス"
+    "evals": "エヴァルス",
+    "utilization": "活用率",
+    "utilizationDescription": "プロバイダーのクォータ使用傾向とレート制限の追跡",
+    "comboHealth": "コンボ健全性",
+    "comboHealthDescription": "コンボレベルのクォータ、使用分布、パフォーマンスメトリクス"
   },
   "apiManager": {
     "title": "APIキー",

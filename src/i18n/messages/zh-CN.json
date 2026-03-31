@@ -275,7 +275,11 @@
     "overviewDescription": "监控所有提供商和模型的 API 使用模式、令牌消耗、成本和活动趋势。",
     "evalsDescription": "运行评估套件来测试和验证您的 LLM 端点。比较模型质量、检测回归和基准延迟。",
     "overview": "概述",
-    "evals": "评测"
+    "evals": "评测",
+    "utilization": "利用率",
+    "utilizationDescription": "提供商配额使用趋势和速率限制跟踪",
+    "comboHealth": "组合健康状况",
+    "comboHealthDescription": "组合级别配额、使用分布和性能指标"
   },
   "apiManager": {
     "title": "API 密钥",

@@ -270,7 +270,11 @@
     "overviewDescription": "Giám sát mô hình sử dụng API, mức tiêu thụ mã thông báo, chi phí và xu hướng hoạt động của bạn trên tất cả các nhà cung cấp và mô hình.",
     "evalsDescription": "Chạy bộ đánh giá để kiểm tra và xác thực điểm cuối LLM của bạn. So sánh chất lượng mô hình, phát hiện hồi quy và độ trễ điểm chuẩn.",
     "overview": "Tổng quan",
-    "evals": "Đánh giá"
+    "evals": "Đánh giá",
+    "utilization": "Tỷ lệ sử dụng",
+    "utilizationDescription": "Xu hướng sử dụng hạn ngạch nhà cung cấp và theo dõi giới hạn tốc độ",
+    "comboHealth": "Sức khỏe Combo",
+    "comboHealthDescription": "Hạn ngạch cấp combo, phân phối sử dụng và số liệu hiệu suất"
   },
   "apiManager": {
     "title": "Khóa API",

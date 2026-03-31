@@ -270,7 +270,11 @@
     "overviewDescription": "모든 공급자와 모델 전반에 걸쳐 API 사용 패턴, 토큰 소비, 비용, 활동 추세를 모니터링하세요.",
     "evalsDescription": "평가 모음을 실행하여 LLM 엔드포인트를 테스트하고 검증하세요. 모델 품질을 비교하고, 회귀를 감지하고, 벤치마크 대기 시간을 측정합니다.",
     "overview": "개요",
-    "evals": "평가"
+    "evals": "평가",
+    "utilization": "활용률",
+    "utilizationDescription": "공급자 할당량 사용 추세 및 속도 제한 추적",
+    "comboHealth": "콤보 건강 상태",
+    "comboHealthDescription": "콤보 수준 할당량, 사용 분포 및 성능 메트릭"
   },
   "apiManager": {
     "title": "API 키",

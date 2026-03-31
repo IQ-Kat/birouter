@@ -270,7 +270,11 @@
     "overviewDescription": "Monitorizați-vă modelele de utilizare a API-ului, consumul de simboluri, costurile și tendințele activității la toți furnizorii și modelele.",
     "evalsDescription": "Rulați suite de evaluare pentru a testa și valida punctele finale LLM. Comparați calitatea modelului, detectați regresiile și evaluați latența.",
     "overview": "Prezentare generală",
-    "evals": "Evaluări"
+    "evals": "Evaluări",
+    "utilization": "Utilizare",
+    "utilizationDescription": "Tendințe de utilizare a cotelor furnizorului și urmărirea limitelor de rată",
+    "comboHealth": "Sănătatea Combo-ului",
+    "comboHealthDescription": "Cotă la nivel de combo, distribuția utilizării și metricile de performanță"
   },
   "apiManager": {
     "title": "Chei API",

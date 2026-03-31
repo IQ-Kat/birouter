@@ -270,7 +270,11 @@
     "overviewDescription": "Supervise sus patrones de uso de API, consumo de tokens, costos y tendencias de actividad en todos los proveedores y modelos.",
     "evalsDescription": "Ejecute conjuntos de evaluación para probar y validar sus puntos finales de LLM. Compare la calidad del modelo, detecte regresiones y compare la latencia.",
     "overview": "Descripción general",
-    "evals": "evaluaciones"
+    "evals": "evaluaciones",
+    "utilization": "Utilización",
+    "utilizationDescription": "Tendencias de uso de cuota del proveedor y seguimiento de límites de tasa",
+    "comboHealth": "Salud del combo",
+    "comboHealthDescription": "Cuota a nivel de combo, distribución de uso y métricas de rendimiento"
   },
   "apiManager": {
     "title": "Claves API",
