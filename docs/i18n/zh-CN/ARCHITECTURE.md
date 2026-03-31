@@ -1,102 +1,118 @@
-🌐 **Languages:** 🇺🇸 [English](../../README.md) · 🇧🇷 [pt-BR](../pt-BR/ARCHITECTURE.md) · 🇪🇸 [es](../es/ARCHITECTURE.md) · 🇫🇷 [fr](../fr/ARCHITECTURE.md) · 🇩🇪 [de](../de/ARCHITECTURE.md) · 🇮🇹 [it](../it/ARCHITECTURE.md) · 🇷🇺 [ru](../ru/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../zh-CN/ARCHITECTURE.md) · 🇯🇵 [ja](../ja/ARCHITECTURE.md) · 🇰🇷 [ko](../ko/ARCHITECTURE.md) · 🇸🇦 [ar](../ar/ARCHITECTURE.md) · 🇮🇳 [in](../in/ARCHITECTURE.md) · 🇹🇭 [th](../th/ARCHITECTURE.md) · 🇻🇳 [vi](../vi/ARCHITECTURE.md) · 🇮🇩 [id](../id/ARCHITECTURE.md) · 🇲🇾 [ms](../ms/ARCHITECTURE.md) · 🇳🇱 [nl](../nl/ARCHITECTURE.md) · 🇵🇱 [pl](../pl/ARCHITECTURE.md) · 🇸🇪 [sv](../sv/ARCHITECTURE.md) · 🇳🇴 [no](../no/ARCHITECTURE.md) · 🇩🇰 [da](../da/ARCHITECTURE.md) · 🇫🇮 [fi](../fi/ARCHITECTURE.md) · 🇵🇹 [pt](../pt/ARCHITECTURE.md) · 🇷🇴 [ro](../ro/ARCHITECTURE.md) · 🇭🇺 [hu](../hu/ARCHITECTURE.md) · 🇧🇬 [bg](../bg/ARCHITECTURE.md) · 🇸🇰 [sk](../sk/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../uk-UA/ARCHITECTURE.md) · 🇮🇱 [he](../he/ARCHITECTURE.md) · 🇵🇭 [phi](../phi/ARCHITECTURE.md)
+# OmniRoute 架构
 
----
+🌐 **语言:** 🇺🇸 [English](../../ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../pt-BR/ARCHITECTURE.md) | 🇪🇸 [Español](../es/ARCHITECTURE.md) | 🇫🇷 [Français](../fr/ARCHITECTURE.md) | 🇮🇹 [Italiano](../it/ARCHITECTURE.md) | 🇷🇺 [Русский](../ru/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../zh-CN/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../de/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../in/ARCHITECTURE.md) | 🇹🇭 [ไทย](../th/ARCHITECTURE.md) | 🇺🇦 [Українська](../uk-UA/ARCHITECTURE.md) | 🇸🇦 [العربية](../ar/ARCHITECTURE.md) | 🇯🇵 [日本語](../ja/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../vi/ARCHITECTURE.md) | 🇧🇬 [Български](../bg/ARCHITECTURE.md) | 🇩🇰 [Dansk](../da/ARCHITECTURE.md) | 🇫🇮 [Suomi](../fi/ARCHITECTURE.md) | 🇮🇱 [עברית](../he/ARCHITECTURE.md) | 🇭🇺 [Magyar](../hu/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../id/ARCHITECTURE.md) | 🇰🇷 [한국어](../ko/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../ms/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../nl/ARCHITECTURE.md) | 🇳🇴 [Norsk](../no/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../pt/ARCHITECTURE.md) | 🇷🇴 [Română](../ro/ARCHITECTURE.md) | 🇵🇱 [Polski](../pl/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../sk/ARCHITECTURE.md) | 🇸🇪 [Svenska](../sv/ARCHITECTURE.md) | 🇵🇭 [Filipino](../phi/ARCHITECTURE.md) | 🇨🇿 [Čeština](../cs/ARCHITECTURE.md)
 
-# OmniRoute Architecture
+_最后更新：2026-03-28_
 
-🌐 **Languages:** 🇺🇸 [English](ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/ARCHITECTURE.md) | 🇪🇸 [Español](i18n/es/ARCHITECTURE.md) | 🇫🇷 [Français](i18n/fr/ARCHITECTURE.md) | 🇮🇹 [Italiano](i18n/it/ARCHITECTURE.md) | 🇷🇺 [Русский](i18n/ru/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/ARCHITECTURE.md) | 🇩🇪 [Deutsch](i18n/de/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](i18n/in/ARCHITECTURE.md) | 🇹🇭 [ไทย](i18n/th/ARCHITECTURE.md) | 🇺🇦 [Українська](i18n/uk-UA/ARCHITECTURE.md) | 🇸🇦 [العربية](i18n/ar/ARCHITECTURE.md) | 🇯🇵 [日本語](i18n/ja/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](i18n/vi/ARCHITECTURE.md) | 🇧🇬 [Български](i18n/bg/ARCHITECTURE.md) | 🇩🇰 [Dansk](i18n/da/ARCHITECTURE.md) | 🇫🇮 [Suomi](i18n/fi/ARCHITECTURE.md) | 🇮🇱 [עברית](i18n/he/ARCHITECTURE.md) | 🇭🇺 [Magyar](i18n/hu/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/ARCHITECTURE.md) | 🇰🇷 [한국어](i18n/ko/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/ARCHITECTURE.md) | 🇳🇱 [Nederlands](i18n/nl/ARCHITECTURE.md) | 🇳🇴 [Norsk](i18n/no/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](i18n/pt/ARCHITECTURE.md) | 🇷🇴 [Română](i18n/ro/ARCHITECTURE.md) | 🇵🇱 [Polski](i18n/pl/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](i18n/sk/ARCHITECTURE.md) | 🇸🇪 [Svenska](i18n/sv/ARCHITECTURE.md) | 🇵🇭 [Filipino](i18n/phi/ARCHITECTURE.md)
+## 概述
 
-_Last updated: 2026-03-04_
+OmniRoute 是一个基于 Next.js 构建的本地 AI 路由网关和仪表盘。
+它提供单一的 OpenAI 兼容端点（`/v1/*`），并将流量路由到多个上游提供商，支持翻译、后备、Token 刷新和用量追踪。
 
-## Executive Summary
+核心能力：
 
-OmniRoute is a local AI routing gateway and dashboard built on Next.js.
-It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic across multiple upstream providers with translation, fallback, token refresh, and usage tracking.
+- 面向 CLI/工具的 OpenAI 兼容 API 接口（28 个提供商）
+- 跨提供商格式的请求/响应翻译
+- 模型 Combo 后备（多模型序列）
+- 账户级后备（每个提供商多账户）
+- OAuth + API 密钥提供商连接管理
+- 通过 `/v1/embeddings` 生成 Embedding（6 个提供商，9 个模型）
+- 通过 `/v1/images/generations` 生成图像（4 个提供商，9 个模型）
+- Think 标签解析（`<think>...</think>`）用于推理模型
+- 响应清理以实现严格的 OpenAI SDK 兼容性
+- 角色规范化（developer→system，system→user）实现跨提供商兼容
+- 结构化输出转换（json_schema → Gemini responseSchema）
+- 本地持久化：提供商、密钥、别名、Combo、设置、定价
+- 用量/成本追踪和请求日志
+- 可选的云同步用于多设备/状态同步
+- API 访问控制的 IP 白名单/黑名单
+- Thinking 预算管理（passthrough/auto/custom/adaptive）
+- 全局系统提示词注入
+- 会话追踪和指纹识别
+- 每账户增强速率限制，支持提供商特定配置文件
+- 提供商弹性的熔断器模式
+- 使用互斥锁的防惊群保护
+- 基于签名的请求去重缓存
+- 领域层：模型可用性、成本规则、后备策略、锁定策略
+- 领域状态持久化（SQLite 写入缓存用于后备、预算、锁定、熔断器）
+- 集中请求评估的策略引擎（锁定 → 预算 → 后备）
+- 请求遥测，支持 p50/p95/p99 延迟聚合
+- 关联 ID（X-Request-Id）用于端到端追踪
+- 合规审计日志，支持按 API 密钥选择退出
+- 用于 LLM 质量保证的评估框架
+- 实时熔断器状态的弹性 UI 仪表盘
+- 模块化 OAuth 提供商（`src/lib/oauth/providers/` 下的 12 个独立模块）
 
-Core capabilities:
+主要运行时模型：
 
-- OpenAI-compatible API surface for CLI/tools (28 providers)
-- Request/response translation across provider formats
-- Model combo fallback (multi-model sequence)
-- Account-level fallback (multi-account per provider)
-- OAuth + API-key provider connection management
-- Embedding generation via `/v1/embeddings` (6 providers, 9 models)
-- Image generation via `/v1/images/generations` (4 providers, 9 models)
-- Think tag parsing (`<think>...</think>`) for reasoning models
-- Response sanitization for strict OpenAI SDK compatibility
-- Role normalization (developer→system, system→user) for cross-provider compatibility
-- Structured output conversion (json_schema → Gemini responseSchema)
-- Local persistence for providers, keys, aliases, combos, settings, pricing
-- Usage/cost tracking and request logging
-- Optional cloud sync for multi-device/state sync
-- IP allowlist/blocklist for API access control
-- Thinking budget management (passthrough/auto/custom/adaptive)
-- Global system prompt injection
-- Session tracking and fingerprinting
-- Per-account enhanced rate limiting with provider-specific profiles
-- Circuit breaker pattern for provider resilience
-- Anti-thundering herd protection with mutex locking
-- Signature-based request deduplication cache
-- Domain layer: model availability, cost rules, fallback policy, lockout policy
-- Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
-- Policy engine for centralized request evaluation (lockout → budget → fallback)
-- Request telemetry with p50/p95/p99 latency aggregation
-- Correlation ID (X-Request-Id) for end-to-end tracing
-- Compliance audit logging with opt-out per API key
-- Eval framework for LLM quality assurance
-- Resilience UI dashboard with real-time circuit breaker status
-- Modular OAuth providers (12 individual modules under `src/lib/oauth/providers/`)
+- `src/app/api/*` 下的 Next.js app routes 同时实现 Dashboard API 和兼容性 API
+- `src/sse/*` + `open-sse/*` 中的共享 SSE/路由核心处理提供商执行、翻译、流式传输、后备和用量
 
-Primary runtime model:
+## 范围与边界
 
-- Next.js app routes under `src/app/api/*` implement both dashboard APIs and compatibility APIs
-- A shared SSE/routing core in `src/sse/*` + `open-sse/*` handles provider execution, translation, streaming, fallback, and usage
+### 范围内
 
-## Scope and Boundaries
+- 本地网关运行时
+- Dashboard 管理 API
+- 提供商认证和 Token 刷新
+- 请求翻译和 SSE 流式传输
+- 本地状态 + 用量持久化
+- 可选的云同步编排
 
-### In Scope
+### 范围外
 
-- Local gateway runtime
-- Dashboard management APIs
-- Provider authentication and token refresh
-- Request translation and SSE streaming
-- Local state + usage persistence
-- Optional cloud sync orchestration
+- `NEXT_PUBLIC_CLOUD_URL` 后面的云服务实现
+- 本地进程之外的提供商 SLA/控制平面
+- 外部 CLI 二进制文件本身（Claude CLI、Codex CLI 等）
 
-### Out of Scope
+## Dashboard 界面（当前）
 
-- Cloud service implementation behind `NEXT_PUBLIC_CLOUD_URL`
-- Provider SLA/control plane outside local process
-- External CLI binaries themselves (Claude CLI, Codex CLI, etc.)
+`src/app/(dashboard)/dashboard/` 下的主要页面：
 
-## High-Level System Context
+- `/dashboard` — 快速入门 + 服务商概览
+- `/dashboard/endpoint` — 端点代理 + MCP + A2A + API 端点标签页
+- `/dashboard/providers` — 服务商连接和凭证
+- `/dashboard/combos` — Combo 策略、模板、模型路由规则
+- `/dashboard/costs` — 成本汇总和定价可见性
+- `/dashboard/analytics` — 使用分析和评估
+- `/dashboard/limits` — 配额/速率控制
+- `/dashboard/cli-tools` — CLI 引导、运行时检测、配置生成
+- `/dashboard/agents` — 检测到的 ACP 代理 + 自定义代理注册
+- `/dashboard/media` — 图像/视频/音乐 playground
+- `/dashboard/search-tools` — 搜索服务商测试和历史
+- `/dashboard/health` — 正常运行时间、熔断器、速率限制
+- `/dashboard/logs` — 请求/代理/审计/控制台日志
+- `/dashboard/settings` — 系统设置标签页（通用、路由、Combo 默认值等）
+- `/dashboard/api-manager` — API 密钥生命周期和模型权限
+
+## 高层系统上下文
 
 ```mermaid
 flowchart LR
-    subgraph Clients[Developer Clients]
+    subgraph Clients[开发者客户端]
         C1[Claude Code]
         C2[Codex CLI]
         C3[OpenClaw / Droid / Cline / Continue / Roo]
-        C4[Custom OpenAI-compatible clients]
-        BROWSER[Browser Dashboard]
+        C4[自定义 OpenAI 兼容客户端]
+        BROWSER[浏览器仪表盘]
     end
 
-    subgraph Router[OmniRoute Local Process]
-        API[V1 Compatibility API\n/v1/*]
-        DASH[Dashboard + Management API\n/api/*]
-        CORE[SSE + Translation Core\nopen-sse + src/sse]
+    subgraph Router[OmniRoute 本地进程]
+        API[V1 兼容性 API\n/v1/*]
+        DASH[Dashboard + 管理 API\n/api/*]
+        CORE[SSE + 翻译核心\nopen-sse + src/sse]
         DB[(storage.sqlite)]
-        UDB[(usage tables + log artifacts)]
+        UDB[(用量表 + 日志文件)]
     end
 
-    subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qwen/Qoder/GitHub/Kiro/Cursor/Antigravity]
-        P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
-        P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
+    subgraph Upstreams[上游提供商]
+        P1[OAuth 提供商\nClaude/Codex/Gemini/Qwen/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P2[API 密钥提供商\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
+        P3[兼容节点\nOpenAI 兼容 / Anthropic 兼容]
     end
 
-    subgraph Cloud[Optional Cloud Sync]
-        CLOUD[Cloud Sync Endpoint\nNEXT_PUBLIC_CLOUD_URL]
+    subgraph Cloud[可选云同步]
+        CLOUD[云同步端点\nNEXT_PUBLIC_CLOUD_URL]
     end
 
     C1 --> API
@@ -117,303 +133,304 @@ flowchart LR
     DASH --> CLOUD
 ```
 
-## Core Runtime Components
+## 核心运行时组件
 
-## 1) API and Routing Layer (Next.js App Routes)
+## 1) API 和路由层（Next.js App Routes）
 
-Main directories:
+主要目录：
 
-- `src/app/api/v1/*` and `src/app/api/v1beta/*` for compatibility APIs
-- `src/app/api/*` for management/configuration APIs
-- Next rewrites in `next.config.mjs` map `/v1/*` to `/api/v1/*`
+- `src/app/api/v1/*` 和 `src/app/api/v1beta/*` 用于兼容性 API
+- `src/app/api/*` 用于管理/配置 API
+- `next.config.mjs` 中的 Next 重写将 `/v1/*` 映射到 `/api/v1/*`
 
-Important compatibility routes:
+重要的兼容性路由：
 
 - `src/app/api/v1/chat/completions/route.ts`
 - `src/app/api/v1/messages/route.ts`
 - `src/app/api/v1/responses/route.ts`
-- `src/app/api/v1/models/route.ts` — includes custom models with `custom: true`
-- `src/app/api/v1/embeddings/route.ts` — embedding generation (6 providers)
-- `src/app/api/v1/images/generations/route.ts` — image generation (4+ providers incl. Antigravity/Nebius)
+- `src/app/api/v1/models/route.ts` — 包含 `custom: true` 的自定义模型
+- `src/app/api/v1/embeddings/route.ts` — Embedding 生成（6 个提供商）
+- `src/app/api/v1/images/generations/route.ts` — 图像生成（4+ 个提供商，包括 Antigravity/Nebius）
 - `src/app/api/v1/messages/count_tokens/route.ts`
-- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — dedicated per-provider chat
-- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — dedicated per-provider embeddings
-- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — dedicated per-provider images
+- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — 专用的每提供商聊天
+- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — 专用的每提供商 Embedding
+- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — 专用的每提供商图像
 - `src/app/api/v1beta/models/route.ts`
 - `src/app/api/v1beta/models/[...path]/route.ts`
 
-Management domains:
+管理领域：
 
-- Auth/settings: `src/app/api/auth/*`, `src/app/api/settings/*`
-- Providers/connections: `src/app/api/providers*`
-- Provider nodes: `src/app/api/provider-nodes*`
-- Custom models: `src/app/api/provider-models` (GET/POST/DELETE)
-- Model catalog: `src/app/api/models/route.ts` (GET)
-- Proxy config: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
-- OAuth: `src/app/api/oauth/*`
-- Keys/aliases/combos/pricing: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
-- Usage: `src/app/api/usage/*`
-- Sync/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
-- CLI tooling helpers: `src/app/api/cli-tools/*`
-- IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
-- Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
-- System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
-- Sessions: `src/app/api/sessions` (GET)
-- Rate limits: `src/app/api/rate-limits` (GET)
-- Resilience: `src/app/api/resilience` (GET/PATCH) — provider profiles, circuit breaker, rate limit state
-- Resilience reset: `src/app/api/resilience/reset` (POST) — reset breakers + cooldowns
-- Cache stats: `src/app/api/cache/stats` (GET/DELETE)
-- Model availability: `src/app/api/models/availability` (GET/POST)
-- Telemetry: `src/app/api/telemetry/summary` (GET)
-- Budget: `src/app/api/usage/budget` (GET/POST)
-- Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
-- Compliance audit: `src/app/api/compliance/audit-log` (GET)
-- Evals: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
-- Policies: `src/app/api/policies` (GET/POST)
+- 认证/设置：`src/app/api/auth/*`、`src/app/api/settings/*`
+- 提供商/连接：`src/app/api/providers*`
+- 提供商节点：`src/app/api/provider-nodes*`
+- 自定义模型：`src/app/api/provider-models`（GET/POST/DELETE）
+- 模型目录：`src/app/api/models/route.ts`（GET）
+- 代理配置：`src/app/api/settings/proxy`（GET/PUT/DELETE）+ `src/app/api/settings/proxy/test`（POST）
+- OAuth：`src/app/api/oauth/*`
+- 密钥/别名/Combo/定价：`src/app/api/keys*`、`src/app/api/models/alias`、`src/app/api/combos*`、`src/app/api/pricing`
+- 用量：`src/app/api/usage/*`
+- 同步/云：`src/app/api/sync/*`、`src/app/api/cloud/*`
+- CLI 工具助手：`src/app/api/cli-tools/*`
+- IP 过滤：`src/app/api/settings/ip-filter`（GET/PUT）
+- Thinking 预算：`src/app/api/settings/thinking-budget`（GET/PUT）
+- 系统提示词：`src/app/api/settings/system-prompt`（GET/PUT）
+- 会话：`src/app/api/sessions`（GET）
+- 速率限制：`src/app/api/rate-limits`（GET）
+- 弹性：`src/app/api/resilience`（GET/PATCH）— 提供商配置文件、熔断器、速率限制状态
+- 弹性重置：`src/app/api/resilience/reset`（POST）— 重置熔断器 + 冷却
+- 缓存统计：`src/app/api/cache/stats`（GET/DELETE）
+- 模型可用性：`src/app/api/models/availability`（GET/POST）
+- 遥测：`src/app/api/telemetry/summary`（GET）
+- 预算：`src/app/api/usage/budget`（GET/POST）
+- 后备链：`src/app/api/fallback/chains`（GET/POST/DELETE）
+- 合规审计：`src/app/api/compliance/audit-log`（GET）
+- 评估：`src/app/api/evals`（GET/POST）、`src/app/api/evals/[suiteId]`（GET）
+- 策略：`src/app/api/policies`（GET/POST）
 
-## 2) SSE + Translation Core
+## 2) SSE + 翻译核心
 
-Main flow modules:
+主要流程模块：
 
-- Entry: `src/sse/handlers/chat.ts`
-- Core orchestration: `open-sse/handlers/chatCore.ts`
-- Provider execution adapters: `open-sse/executors/*`
-- Format detection/provider config: `open-sse/services/provider.ts`
-- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- Account fallback logic: `open-sse/services/accountFallback.ts`
-- Translation registry: `open-sse/translator/index.ts`
-- Stream transformations: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- Usage extraction/normalization: `open-sse/utils/usageTracking.ts`
-- Think tag parser: `open-sse/utils/thinkTagParser.ts`
-- Embedding handler: `open-sse/handlers/embeddings.ts`
-- Embedding provider registry: `open-sse/config/embeddingRegistry.ts`
-- Image generation handler: `open-sse/handlers/imageGeneration.ts`
-- Image provider registry: `open-sse/config/imageRegistry.ts`
-- Response sanitization: `open-sse/handlers/responseSanitizer.ts`
-- Role normalization: `open-sse/services/roleNormalizer.ts`
+- 入口：`src/sse/handlers/chat.ts`
+- 核心编排：`open-sse/handlers/chatCore.ts`
+- 提供商执行适配器：`open-sse/executors/*`
+- 格式检测/提供商配置：`open-sse/services/provider.ts`
+- 模型解析/解析：`src/sse/services/model.ts`、`open-sse/services/model.ts`
+- 账户后备逻辑：`open-sse/services/accountFallback.ts`
+- 翻译注册表：`open-sse/translator/index.ts`
+- 流转换：`open-sse/utils/stream.ts`、`open-sse/utils/streamHandler.ts`
+- 用量提取/规范化：`open-sse/utils/usageTracking.ts`
+- Think 标签解析器：`open-sse/utils/thinkTagParser.ts`
+- Embedding 处理器：`open-sse/handlers/embeddings.ts`
+- Embedding 提供商注册表：`open-sse/config/embeddingRegistry.ts`
+- 图像生成处理器：`open-sse/handlers/imageGeneration.ts`
+- 图像提供商注册表：`open-sse/config/imageRegistry.ts`
+- 响应清理：`open-sse/handlers/responseSanitizer.ts`
+- 角色规范化：`open-sse/services/roleNormalizer.ts`
 
-Services (business logic):
+服务（业务逻辑）：
 
-- Account selection/scoring: `open-sse/services/accountSelector.ts`
-- Context lifecycle management: `open-sse/services/contextManager.ts`
-- IP filter enforcement: `open-sse/services/ipFilter.ts`
-- Session tracking: `open-sse/services/sessionManager.ts`
-- Request deduplication: `open-sse/services/signatureCache.ts`
-- System prompt injection: `open-sse/services/systemPrompt.ts`
-- Thinking budget management: `open-sse/services/thinkingBudget.ts`
-- Wildcard model routing: `open-sse/services/wildcardRouter.ts`
-- Rate limit management: `open-sse/services/rateLimitManager.ts`
-- Circuit breaker: `open-sse/services/circuitBreaker.ts`
+- 账户选择/评分：`open-sse/services/accountSelector.ts`
+- 上下文生命周期管理：`open-sse/services/contextManager.ts`
+- IP 过滤执行：`open-sse/services/ipFilter.ts`
+- 会话追踪：`open-sse/services/sessionManager.ts`
+- 请求去重：`open-sse/services/signatureCache.ts`
+- 系统提示词注入：`open-sse/services/systemPrompt.ts`
+- Thinking 预算管理：`open-sse/services/thinkingBudget.ts`
+- 通配符模型路由：`open-sse/services/wildcardRouter.ts`
+- 速率限制管理：`open-sse/services/rateLimitManager.ts`
+- 熔断器：`open-sse/services/circuitBreaker.ts`
 
-Domain layer modules:
+领域层模块：
 
-- Model availability: `src/lib/domain/modelAvailability.ts`
-- Cost rules/budgets: `src/lib/domain/costRules.ts`
-- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
-- Combo resolver: `src/lib/domain/comboResolver.ts`
-- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
-- Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
-- Error codes catalog: `src/lib/domain/errorCodes.ts`
-- Request ID: `src/lib/domain/requestId.ts`
-- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
-- Request telemetry: `src/lib/domain/requestTelemetry.ts`
-- Compliance/audit: `src/lib/domain/compliance/index.ts`
-- Eval runner: `src/lib/domain/evalRunner.ts`
-- Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
+- 模型可用性：`src/lib/domain/modelAvailability.ts`
+- 成本规则/预算：`src/lib/domain/costRules.ts`
+- 后备策略：`src/lib/domain/fallbackPolicy.ts`
+- Combo 解析器：`src/lib/domain/comboResolver.ts`
+- 锁定策略：`src/lib/domain/lockoutPolicy.ts`
+- 策略引擎：`src/domain/policyEngine.ts` — 集中的锁定 → 预算 → 后备评估
+- 错误码目录：`src/lib/domain/errorCodes.ts`
+- 请求 ID：`src/lib/domain/requestId.ts`
+- Fetch 超时：`src/lib/domain/fetchTimeout.ts`
+- 请求遥测：`src/lib/domain/requestTelemetry.ts`
+- 合规/审计：`src/lib/domain/compliance/index.ts`
+- 评估运行器：`src/lib/domain/evalRunner.ts`
+- 领域状态持久化：`src/lib/db/domainState.ts` — 后备链、预算、成本历史、锁定状态、熔断器的 SQLite CRUD
 
-OAuth provider modules (12 individual files under `src/lib/oauth/providers/`):
+OAuth 提供商模块（`src/lib/oauth/providers/` 下的 12 个独立文件）：
 
-- Registry index: `src/lib/oauth/providers/index.ts`
-- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
-- Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
+- 注册表索引：`src/lib/oauth/providers/index.ts`
+- 独立提供商：`claude.ts`、`codex.ts`、`gemini.ts`、`antigravity.ts`、`qoder.ts`、`qwen.ts`、`kimi-coding.ts`、`github.ts`、`kiro.ts`、`cursor.ts`、`kilocode.ts`、`cline.ts`
+- 薄包装器：`src/lib/oauth/providers.ts` — 从独立模块重新导出
 
-## 3) Persistence Layer
+## 3) 持久化层
 
-Primary state DB (SQLite):
+主要状态数据库（SQLite）：
 
-- Core infra: `src/lib/db/core.ts` (better-sqlite3, migrations, WAL)
-- Re-export facade: `src/lib/localDb.ts` (thin compatibility layer for callers)
-- file: `${DATA_DIR}/storage.sqlite` (or `$XDG_CONFIG_HOME/omniroute/storage.sqlite` when set, else `~/.omniroute/storage.sqlite`)
-- entities (tables + KV namespaces): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
+- 核心基础设施：`src/lib/db/core.ts`（better-sqlite3、迁移、WAL）
+- 重新导出外观：`src/lib/localDb.ts`（面向调用者的薄兼容层）
+- 文件：`${DATA_DIR}/storage.sqlite`（或设置 `$XDG_CONFIG_HOME/omniroute/storage.sqlite` 时使用该路径，否则为 `~/.omniroute/storage.sqlite`）
+- 实体（表 + KV 命名空间）：providerConnections、providerNodes、modelAliases、combos、apiKeys、settings、pricing、**customModels**、**proxyConfig**、**ipFilter**、**thinkingBudget**、**systemPrompt**
 
-Usage persistence:
+用量持久化：
 
-- facade: `src/lib/usageDb.ts` (decomposed modules in `src/lib/usage/*`)
-- SQLite tables in `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
-- optional file artifacts remain for compatibility/debug (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
-- legacy JSON files are migrated to SQLite by startup migrations when present
+- 外观：`src/lib/usageDb.ts`（分解模块在 `src/lib/usage/*`）
+- `storage.sqlite` 中的 SQLite 表：`usage_history`、`call_logs`、`proxy_logs`
+- 可选的文件工件为兼容性/调试保留（`${DATA_DIR}/log.txt`、`${DATA_DIR}/call_logs/`、`<repo>/logs/...`）
+- 旧版 JSON 文件在启动迁移时会被迁移到 SQLite
 
-Domain State DB (SQLite):
+领域状态数据库（SQLite）：
 
-- `src/lib/db/domainState.ts` — CRUD operations for domain state
-- Tables (created in `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
-- Write-through cache pattern: in-memory Maps are authoritative at runtime; mutations are written synchronously to SQLite; state is restored from DB on cold start
+- `src/lib/db/domainState.ts` — 领域状态的 CRUD 操作
+- 表（在 `src/lib/db/core.ts` 中创建）：`domain_fallback_chains`、`domain_budgets`、`domain_cost_history`、`domain_lockout_state`、`domain_circuit_breakers`
+- 写入缓存模式：内存中的 Map 在运行时是权威的；变更同步写入 SQLite；状态在冷启动时从数据库恢复
 
-## 4) Auth + Security Surfaces
+## 4) 认证 + 安全接口
 
-- Dashboard cookie auth: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
-- API key generation/verification: `src/shared/utils/apiKey.ts`
-- Provider secrets persisted in `providerConnections` entries
-- Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
+- Dashboard Cookie 认证：`src/proxy.ts`、`src/app/api/auth/login/route.ts`
+- API 密钥生成/验证：`src/shared/utils/apiKey.ts`
+- 提供商密钥持久化在 `providerConnections` 条目中
+- 通过 `open-sse/utils/proxyFetch.ts`（环境变量）和 `open-sse/utils/networkProxy.ts`（可配置的每提供商或全局）支持出站代理
 
-## 5) Cloud Sync
+## 5) 云同步
 
-- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`
-- Periodic task: `src/shared/services/cloudSyncScheduler.ts`
-- Control route: `src/app/api/sync/cloud/route.ts`
+- 调度器初始化：`src/lib/initCloudSync.ts`、`src/shared/services/initializeCloudSync.ts`、`src/shared/services/modelSyncScheduler.ts`
+- 周期性任务：`src/shared/services/cloudSyncScheduler.ts`
+- 周期性任务：`src/shared/services/modelSyncScheduler.ts`
+- 控制路由：`src/app/api/sync/cloud/route.ts`
 
-## Request Lifecycle (`/v1/chat/completions`)
+## 请求生命周期（`/v1/chat/completions`）
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as CLI/SDK 客户端
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as 模型解析器
+    participant Auth as 凭证选择器
+    participant Exec as 提供商执行器
+    participant Prov as 上游提供商
+    participant Stream as 流翻译器
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: 解析/解析模型或 Combo
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt Combo 模型
+        Chat->>Chat: 迭代 Combo 模型（handleComboChat）
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: 活动账户 + Token/API 密钥
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: 检测源格式
+    Core->>Core: 将请求翻译为目标格式
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: 上游 API 调用
+    Prov-->>Exec: SSE/JSON 响应
+    Exec-->>Core: 响应 + 元数据
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: 更新的 Token
+        Core->>Exec: 重试请求
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: 翻译/规范化流到客户端格式
+    Stream-->>Client: SSE 块 / JSON 响应
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: 提取用量 + 持久化历史/日志
 ```
 
-## Combo + Account Fallback Flow
+## Combo + 账户后备流程
 
 ```mermaid
 flowchart TD
-    A[Incoming model string] --> B{Is combo name?}
-    B -- Yes --> C[Load combo models sequence]
-    B -- No --> D[Single model path]
+    A[传入的模型字符串] --> B{是 Combo 名称？}
+    B -- 是 --> C[加载 Combo 模型序列]
+    B -- 否 --> D[单模型路径]
 
-    C --> E[Try model N]
-    E --> F[Resolve provider/model]
+    C --> E[尝试模型 N]
+    E --> F[解析提供商/模型]
     D --> F
 
-    F --> G[Select account credentials]
-    G --> H{Credentials available?}
-    H -- No --> I[Return provider unavailable]
-    H -- Yes --> J[Execute request]
+    F --> G[选择账户凭证]
+    G --> H{凭证可用？}
+    H -- 否 --> I[返回提供商不可用]
+    H -- 是 --> J[执行请求]
 
-    J --> K{Success?}
-    K -- Yes --> L[Return response]
-    K -- No --> M{Fallback-eligible error?}
+    J --> K{成功？}
+    K -- 是 --> L[返回响应]
+    K -- 否 --> M{可后备错误？}
 
-    M -- No --> N[Return error]
-    M -- Yes --> O[Mark account unavailable cooldown]
-    O --> P{Another account for provider?}
-    P -- Yes --> G
-    P -- No --> Q{In combo with next model?}
-    Q -- Yes --> E
-    Q -- No --> R[Return all unavailable]
+    M -- 否 --> N[返回错误]
+    M -- 是 --> O[标记账户不可用冷却]
+    O --> P{同一提供商有其他账户？}
+    P -- 是 --> G
+    P -- 否 --> Q{在有下一个模型的 Combo 中？}
+    Q -- 是 --> E
+    Q -- 否 --> R[返回全部不可用]
 ```
 
-Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics.
+后备决策由 `open-sse/services/accountFallback.ts` 使用状态码和错误消息启发式驱动。
 
-## OAuth Onboarding and Token Refresh Lifecycle
+## OAuth 引导和 Token 刷新生命周期
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant UI as Dashboard UI
     participant OAuth as /api/oauth/[provider]/[action]
-    participant ProvAuth as Provider Auth Server
+    participant ProvAuth as 提供商认证服务器
     participant DB as localDb
     participant Test as /api/providers/[id]/test
-    participant Exec as Provider Executor
+    participant Exec as 提供商执行器
 
-    UI->>OAuth: GET authorize or device-code
-    OAuth->>ProvAuth: create auth/device flow
-    ProvAuth-->>OAuth: auth URL or device code payload
-    OAuth-->>UI: flow data
+    UI->>OAuth: GET authorize 或 device-code
+    OAuth->>ProvAuth: 创建认证/设备流程
+    ProvAuth-->>OAuth: 认证 URL 或设备码负载
+    OAuth-->>UI: 流程数据
 
-    UI->>OAuth: POST exchange or poll
-    OAuth->>ProvAuth: token exchange/poll
-    ProvAuth-->>OAuth: access/refresh tokens
-    OAuth->>DB: createProviderConnection(oauth data)
-    OAuth-->>UI: success + connection id
+    UI->>OAuth: POST exchange 或 poll
+    OAuth->>ProvAuth: Token 交换/轮询
+    ProvAuth-->>OAuth: 访问/刷新 Token
+    OAuth->>DB: createProviderConnection(oauth 数据)
+    OAuth-->>UI: 成功 + 连接 ID
 
     UI->>Test: POST /api/providers/[id]/test
-    Test->>Exec: validate credentials / optional refresh
-    Exec-->>Test: valid or refreshed token info
-    Test->>DB: update status/tokens/errors
-    Test-->>UI: validation result
+    Test->>Exec: 验证凭证 / 可选刷新
+    Exec-->>Test: 有效或刷新后的 Token 信息
+    Test->>DB: 更新状态/Token/错误
+    Test-->>UI: 验证结果
 ```
 
-Refresh during live traffic is executed inside `open-sse/handlers/chatCore.ts` via executor `refreshCredentials()`.
+实时流量期间的刷新在 `open-sse/handlers/chatCore.ts` 内通过执行器 `refreshCredentials()` 执行。
 
-## Cloud Sync Lifecycle (Enable / Sync / Disable)
+## 云同步生命周期（启用 / 同步 / 禁用）
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant UI as Endpoint Page UI
+    participant UI as 端点页面 UI
     participant Sync as /api/sync/cloud
     participant DB as localDb
-    participant Cloud as External Cloud Sync
+    participant Cloud as 外部云同步
     participant Claude as ~/.claude/settings.json
 
     UI->>Sync: POST action=enable
-    Sync->>DB: set cloudEnabled=true
-    Sync->>DB: ensure API key exists
-    Sync->>Cloud: POST /sync/{machineId} (providers/aliases/combos/keys)
-    Cloud-->>Sync: sync result
+    Sync->>DB: 设置 cloudEnabled=true
+    Sync->>DB: 确保 API 密钥存在
+    Sync->>Cloud: POST /sync/{machineId}（providers/aliases/combos/keys）
+    Cloud-->>Sync: 同步结果
     Sync->>Cloud: GET /{machineId}/v1/verify
-    Sync-->>UI: enabled + verification status
+    Sync-->>UI: 已启用 + 验证状态
 
     UI->>Sync: POST action=sync
     Sync->>Cloud: POST /sync/{machineId}
-    Cloud-->>Sync: remote data
-    Sync->>DB: update newer local tokens/status
-    Sync-->>UI: synced
+    Cloud-->>Sync: 远程数据
+    Sync->>DB: 更新较新的本地 Token/状态
+    Sync-->>UI: 已同步
 
     UI->>Sync: POST action=disable
-    Sync->>DB: set cloudEnabled=false
+    Sync->>DB: 设置 cloudEnabled=false
     Sync->>Cloud: DELETE /sync/{machineId}
-    Sync->>Claude: switch ANTHROPIC_BASE_URL back to local (if needed)
-    Sync-->>UI: disabled
+    Sync->>Claude: 将 ANTHROPIC_BASE_URL 切换回本地（如需要）
+    Sync-->>UI: 已禁用
 ```
 
-Periodic sync is triggered by `CloudSyncScheduler` when cloud is enabled.
+周期性同步在云启用时由 `CloudSyncScheduler` 触发。
 
-## Data Model and Storage Map
+## 数据模型和存储映射
 
 ```mermaid
 erDiagram
-    SETTINGS ||--o{ PROVIDER_CONNECTION : controls
-    PROVIDER_NODE ||--o{ PROVIDER_CONNECTION : backs_compatible_provider
-    PROVIDER_CONNECTION ||--o{ USAGE_ENTRY : emits_usage
+    SETTINGS ||--o{ PROVIDER_CONNECTION : 控制
+    PROVIDER_NODE ||--o{ PROVIDER_CONNECTION : 支持兼容提供商
+    PROVIDER_CONNECTION ||--o{ USAGE_ENTRY : 产生用量
 
     SETTINGS {
       boolean cloudEnabled
@@ -508,32 +525,32 @@ erDiagram
     }
 ```
 
-Physical storage files:
+物理存储文件：
 
-- primary runtime DB: `${DATA_DIR}/storage.sqlite`
-- request log lines: `${DATA_DIR}/log.txt` (compat/debug artifact)
-- structured call payload archives: `${DATA_DIR}/call_logs/`
-- optional translator/request debug sessions: `<repo>/logs/...`
+- 主运行时数据库：`${DATA_DIR}/storage.sqlite`
+- 请求日志行：`${DATA_DIR}/log.txt`（兼容性/调试工件）
+- 结构化调用负载归档：`${DATA_DIR}/call_logs/`
+- 可选的翻译器/请求调试会话：`<repo>/logs/...`
 
-## Deployment Topology
+## 部署拓扑
 
 ```mermaid
 flowchart LR
-    subgraph LocalHost[Developer Host]
-        CLI[CLI Tools]
-        Browser[Dashboard Browser]
+    subgraph LocalHost[开发者主机]
+        CLI[CLI 工具]
+        Browser[Dashboard 浏览器]
     end
 
-    subgraph ContainerOrProcess[OmniRoute Runtime]
-        Next[Next.js Server\nPORT=20128]
-        Core[SSE Core + Executors]
+    subgraph ContainerOrProcess[OmniRoute 运行时]
+        Next[Next.js 服务器\nPORT=20128]
+        Core[SSE 核心 + 执行器]
         MainDB[(storage.sqlite)]
-        UsageDB[(usage tables + log artifacts)]
+        UsageDB[(用量表 + 日志工件)]
     end
 
-    subgraph External[External Services]
-        Providers[AI Providers]
-        SyncCloud[Cloud Sync Service]
+    subgraph External[外部服务]
+        Providers[AI 提供商]
+        SyncCloud[云同步服务]
     end
 
     CLI --> Next
@@ -546,242 +563,250 @@ flowchart LR
     Next --> SyncCloud
 ```
 
-## Module Mapping (Decision-Critical)
+## 模块映射（关键决策）
 
-### Route and API Modules
+### 路由和 API 模块
 
-- `src/app/api/v1/*`, `src/app/api/v1beta/*`: compatibility APIs
-- `src/app/api/v1/providers/[provider]/*`: dedicated per-provider routes (chat, embeddings, images)
-- `src/app/api/providers*`: provider CRUD, validation, testing
-- `src/app/api/provider-nodes*`: custom compatible node management
-- `src/app/api/provider-models`: custom model management (CRUD)
-- `src/app/api/models/route.ts`: model catalog API (aliases + custom models)
-- `src/app/api/oauth/*`: OAuth/device-code flows
-- `src/app/api/keys*`: local API key lifecycle
-- `src/app/api/models/alias`: alias management
-- `src/app/api/combos*`: fallback combo management
-- `src/app/api/pricing`: pricing overrides for cost calculation
-- `src/app/api/settings/proxy`: proxy configuration (GET/PUT/DELETE)
-- `src/app/api/settings/proxy/test`: outbound proxy connectivity test (POST)
-- `src/app/api/usage/*`: usage and logs APIs
-- `src/app/api/sync/*` + `src/app/api/cloud/*`: cloud sync and cloud-facing helpers
-- `src/app/api/cli-tools/*`: local CLI config writers/checkers
-- `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
-- `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
-- `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
-- `src/app/api/sessions`: active session listing (GET)
-- `src/app/api/rate-limits`: per-account rate limit status (GET)
+- `src/app/api/v1/*`、`src/app/api/v1beta/*`：兼容性 API
+- `src/app/api/v1/providers/[provider]/*`：专用的每提供商路由（聊天、Embedding、图像）
+- `src/app/api/providers*`：提供商 CRUD、验证、测试
+- `src/app/api/provider-nodes*`：自定义兼容节点管理
+- `src/app/api/provider-models`：自定义模型管理（CRUD）
+- `src/app/api/models/route.ts`：模型目录 API（别名 + 自定义模型）
+- `src/app/api/oauth/*`：OAuth/设备码流程
+- `src/app/api/keys*`：本地 API 密钥生命周期
+- `src/app/api/models/alias`：别名管理
+- `src/app/api/combos*`：后备 Combo 管理
+- `src/app/api/pricing`：成本计算的定价覆盖
+- `src/app/api/settings/proxy`：代理配置（GET/PUT/DELETE）
+- `src/app/api/settings/proxy/test`：出站代理连接测试（POST）
+- `src/app/api/usage/*`：用量和日志 API
+- `src/app/api/sync/*` + `src/app/api/cloud/*`：云同步和面向云的助手
+- `src/app/api/cli-tools/*`：本地 CLI 配置写入器/检查器
+- `src/app/api/settings/ip-filter`：IP 白名单/黑名单（GET/PUT）
+- `src/app/api/settings/thinking-budget`：Thinking Token 预算配置（GET/PUT）
+- `src/app/api/settings/system-prompt`：全局系统提示词（GET/PUT）
+- `src/app/api/sessions`：活动会话列表（GET）
+- `src/app/api/rate-limits`：每账户速率限制状态（GET）
 
-### Routing and Execution Core
+### 路由和执行核心
 
-- `src/sse/handlers/chat.ts`: request parse, combo handling, account selection loop
-- `open-sse/handlers/chatCore.ts`: translation, executor dispatch, retry/refresh handling, stream setup
-- `open-sse/executors/*`: provider-specific network and format behavior
+- `src/sse/handlers/chat.ts`：请求解析、Combo 处理、账户选择循环
+- `open-sse/handlers/chatCore.ts`：翻译、执行器调度、重试/刷新处理、流设置
+- `open-sse/executors/*`：提供商特定的网络和格式行为
 
-### Translation Registry and Format Converters
+### 翻译注册表和格式转换器
 
-- `open-sse/translator/index.ts`: translator registry and orchestration
-- Request translators: `open-sse/translator/request/*`
-- Response translators: `open-sse/translator/response/*`
-- Format constants: `open-sse/translator/formats.ts`
+- `open-sse/translator/index.ts`：翻译器注册表和编排
+- 请求翻译器：`open-sse/translator/request/*`
+- 响应翻译器：`open-sse/translator/response/*`
+- 格式常量：`open-sse/translator/formats.ts`
 
-### Persistence
+### 持久化
 
-- `src/lib/db/*`: persistent config/state and domain persistence on SQLite
-- `src/lib/localDb.ts`: compatibility re-export for DB modules
-- `src/lib/usageDb.ts`: usage history/call logs facade on top of SQLite tables
+- `src/lib/db/*`：SQLite 上的持久化配置/状态和领域持久化
+- `src/lib/localDb.ts`：数据库模块的兼容性重新导出
+- `src/lib/usageDb.ts`：基于 SQLite 表的用量历史/调用日志外观
 
-## Provider Executor Coverage (Strategy Pattern)
+## 提供商执行器覆盖（策略模式）
 
-Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
+每个提供商都有一个继承自 `BaseExecutor`（在 `open-sse/executors/base.ts` 中）的专用执行器，提供 URL 构建、请求头构造、指数退避重试、凭证刷新钩子和 `execute()` 编排方法。
 
-| Executor              | Provider(s)                                                                                                                                                  | Special Handling                                                     |
+| 执行器                | 提供商                                                                                                                                                       | 特殊处理                                                             |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| `DefaultExecutor`     | OpenAI, Claude, Gemini, Qwen, Qoder, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Dynamic URL/header config per provider                               |
-| `AntigravityExecutor` | Google Antigravity                                                                                                                                           | Custom project/session IDs, Retry-After parsing                      |
-| `CodexExecutor`       | OpenAI Codex                                                                                                                                                 | Injects system instructions, forces reasoning effort                 |
-| `CursorExecutor`      | Cursor IDE                                                                                                                                                   | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
-| `GithubExecutor`      | GitHub Copilot                                                                                                                                               | Copilot token refresh, VSCode-mimicking headers                      |
-| `KiroExecutor`        | AWS CodeWhisperer/Kiro                                                                                                                                       | AWS EventStream binary format → SSE conversion                       |
-| `GeminiCLIExecutor`   | Gemini CLI                                                                                                                                                   | Google OAuth token refresh cycle                                     |
+| `DefaultExecutor`     | OpenAI、Claude、Gemini、Qwen、Qoder、OpenRouter、GLM、Kimi、MiniMax、DeepSeek、Groq、xAI、Mistral、Perplexity、Together、Fireworks、Cerebras、Cohere、NVIDIA | 每提供商动态 URL/请求头配置                                          |
+| `AntigravityExecutor` | Google Antigravity                                                                                                                                           | 自定义项目/会话 ID，Retry-After 解析                                 |
+| `CodexExecutor`       | OpenAI Codex                                                                                                                                                 | 注入系统指令，强制推理努力                                           |
+| `CursorExecutor`      | Cursor IDE                                                                                                                                                   | ConnectRPC 协议，Protobuf 编码，通过校验和签名请求                   |
+| `GithubExecutor`      | GitHub Copilot                                                                                                                                               | Copilot Token 刷新，模拟 VSCode 的请求头                             |
+| `KiroExecutor`        | AWS CodeWhisperer/Kiro                                                                                                                                       | AWS EventStream 二进制格式 → SSE 转换                                |
+| `GeminiCLIExecutor`   | Gemini CLI                                                                                                                                                   | Google OAuth Token 刷新周期                                          |
 
-All other providers (including custom compatible nodes) use the `DefaultExecutor`.
+所有其他提供商（包括自定义兼容节点）使用 `DefaultExecutor`。
 
-## Provider Compatibility Matrix
+## 提供商兼容性矩阵
 
-| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
-| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
-| Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
-| Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Gemini CLI       | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
-| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
-| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
-| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
-| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
-| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Qoder            | openai           | OAuth (Basic)         | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| 提供商           | 格式             | 认证                  | 流式传输         | 非流式传输 | Token 刷新 | 用量 API           |
+| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ---------- | ------------------ |
+| Claude           | claude           | API 密钥 / OAuth      | ✅               | ✅         | ✅         | ⚠️ 仅管理员       |
+| Gemini           | gemini           | API 密钥 / OAuth      | ✅               | ✅         | ✅         | ⚠️ Cloud Console  |
+| Gemini CLI       | gemini-cli       | OAuth                 | ✅               | ✅         | ✅         | ⚠️ Cloud Console  |
+| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅         | ✅ 完整配额 API   |
+| OpenAI           | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| Codex            | openai-responses | OAuth                 | ✅ 强制          | ❌         | ✅         | ✅ 速率限制       |
+| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅         | ✅ 配额快照       |
+| Cursor           | cursor           | 自定义校验和          | ✅               | ✅         | ❌         | ❌                 |
+| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅         | ✅ 用量限制       |
+| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅         | ⚠️ 每请求        |
+| Qoder            | openai           | OAuth (Basic)         | ✅               | ✅         | ✅         | ⚠️ 每请求        |
+| OpenRouter       | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| GLM/Kimi/MiniMax | claude           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| DeepSeek         | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| Groq             | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| xAI (Grok)       | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| Mistral          | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| Perplexity       | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| Together AI      | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| Fireworks AI     | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| Cerebras         | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| Cohere           | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
+| NVIDIA NIM       | openai           | API 密钥              | ✅               | ✅         | ❌         | ❌                 |
 
-## Format Translation Coverage
+## 格式翻译覆盖
 
-Detected source formats include:
+检测到的源格式包括：
 
 - `openai`
 - `openai-responses`
 - `claude`
 - `gemini`
 
-Target formats include:
+目标格式包括：
 
-- OpenAI chat/Responses
+- OpenAI 聊天/Responses
 - Claude
-- Gemini/Gemini-CLI/Antigravity envelope
+- Gemini/Gemini-CLI/Antigravity 封装
 - Kiro
 - Cursor
 
-Translations use **OpenAI as the hub format** — all conversions go through OpenAI as intermediate:
+翻译使用 **OpenAI 作为中心格式** — 所有转换都通过 OpenAI 作为中介：
 
 ```
-Source Format → OpenAI (hub) → Target Format
+源格式 → OpenAI（中心）→ 目标格式
 ```
 
-Translations are selected dynamically based on source payload shape and provider target format.
+翻译根据源负载形状和提供商目标格式动态选择。
 
-Additional processing layers in the translation pipeline:
+翻译管道中的额外处理层：
 
-- **Response sanitization** — Strips non-standard fields from OpenAI-format responses (both streaming and non-streaming) to ensure strict SDK compliance
-- **Role normalization** — Converts `developer` → `system` for non-OpenAI targets; merges `system` → `user` for models that reject the system role (GLM, ERNIE)
-- **Think tag extraction** — Parses `<think>...</think>` blocks from content into `reasoning_content` field
-- **Structured output** — Converts OpenAI `response_format.json_schema` to Gemini's `responseMimeType` + `responseSchema`
+- **响应清理** — 从 OpenAI 格式响应（流式和非流式）中剥离非标准字段，以确保严格的 SDK 合规性
+- **角色规范化** — 为非 OpenAI 目标将 `developer` → `system`；为拒绝 system 角色的模型（GLM、ERNIE）合并 `system` → `user`
+- **Think 标签提取** — 从内容中解析 `<think>...</think>` 块到 `reasoning_content` 字段
+- **结构化输出** — 将 OpenAI `response_format.json_schema` 转换为 Gemini 的 `responseMimeType` + `responseSchema`
 
-## Supported API Endpoints
+## 支持的 API 端点
 
-| Endpoint                                           | Format             | Handler                                              |
+| 端点                                               | 格式               | 处理器                                               |
 | -------------------------------------------------- | ------------------ | ---------------------------------------------------- |
-| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                           |
-| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                         |
+| `POST /v1/chat/completions`                        | OpenAI 聊天        | `src/sse/handlers/chat.ts`                           |
+| `POST /v1/messages`                                | Claude Messages    | 相同处理器（自动检测）                               |
 | `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`              |
 | `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                    |
-| `GET /v1/embeddings`                               | Model listing      | API route                                            |
+| `GET /v1/embeddings`                               | 模型列表           | API 路由                                             |
 | `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`               |
-| `GET /v1/images/generations`                       | Model listing      | API route                                            |
-| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation         |
-| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation         |
-| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Dedicated per-provider with model validation         |
-| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                            |
-| `GET /v1/models`                                   | OpenAI Models list | API route (chat + embedding + image + custom models) |
-| `GET /api/models/catalog`                          | Catalog            | All models grouped by provider + type                |
-| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                            |
-| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Network proxy configuration                          |
-| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Proxy health/connectivity test endpoint              |
-| `GET/POST/DELETE /api/provider-models`             | Custom Models      | Custom model management per provider                 |
+| `GET /v1/images/generations`                       | 模型列表           | API 路由                                             |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI 聊天        | 专用的每提供商，带模型验证                           |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | 专用的每提供商，带模型验证                           |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | 专用的每提供商，带模型验证                           |
+| `POST /v1/messages/count_tokens`                   | Claude Token 计数  | API 路由                                             |
+| `GET /v1/models`                                   | OpenAI 模型列表    | API 路由（聊天 + Embedding + 图像 + 自定义模型）     |
+| `GET /api/models/catalog`                          | 目录               | 按提供商 + 类型分组的所有模型                        |
+| `POST /v1beta/models/*:streamGenerateContent`      | Gemini 原生        | API 路由                                             |
+| `GET/PUT/DELETE /api/settings/proxy`               | 代理配置           | 网络代理配置                                         |
+| `POST /api/settings/proxy/test`                    | 代理连接           | 代理健康/连接测试端点                                |
+| `GET/POST/DELETE /api/provider-models`             | 自定义模型         | 每提供商的自定义模型管理                             |
 
-## Bypass Handler
+## Bypass 处理器
 
-The bypass handler (`open-sse/utils/bypassHandler.ts`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
+Bypass 处理器（`open-sse/utils/bypassHandler.ts`）拦截来自 Claude CLI 的已知"丢弃"请求 — 预热 ping、标题提取和 Token 计数 — 并返回**假响应**而不消耗上游提供商的 Token。这仅在 `User-Agent` 包含 `claude-cli` 时触发。
 
-## Request Logger Pipeline
+## 请求日志管道
 
-The request logger (`open-sse/utils/requestLogger.ts`) provides a 7-stage debug logging pipeline, disabled by default, enabled via `ENABLE_REQUEST_LOGS=true`:
+请求日志器（`open-sse/utils/requestLogger.ts`）提供 7 阶段调试日志管道，默认禁用，通过 `ENABLE_REQUEST_LOGS=true` 启用：
 
 ```
 1_req_client.json → 2_req_source.json → 3_req_openai.json → 4_req_target.json
 → 5_res_provider.txt → 6_res_openai.txt → 7_res_client.txt
 ```
 
-Files are written to `<repo>/logs/<session>/` for each request session.
+文件写入到 `<repo>/logs/<session>/`，每个请求会话一个。
 
-## Failure Modes and Resilience
+## 故障模式和弹性
 
-## 1) Account/Provider Availability
+## 1) 账户/提供商可用性
 
-- provider account cooldown on transient/rate/auth errors
-- account fallback before failing request
-- combo model fallback when current model/provider path is exhausted
+- 瞬态/速率/认证错误时的提供商账户冷却
+- 请求失败前的账户后备
+- 当前模型/提供商路径耗尽时的 Combo 模型后备
 
-## 2) Token Expiry
+## 2) Token 过期
 
-- pre-check and refresh with retry for refreshable providers
-- 401/403 retry after refresh attempt in core path
+- 可刷新提供商的预检查和带重试的刷新
+- 核心路径中刷新尝试后的 401/403 重试
 
-## 3) Stream Safety
+## 3) 流安全
 
-- disconnect-aware stream controller
-- translation stream with end-of-stream flush and `[DONE]` handling
-- usage estimation fallback when provider usage metadata is missing
+- 断开连接感知的流控制器
+- 带流结束刷新和 `[DONE]` 处理的翻译流
+- 提供商用量元数据缺失时的用量估算后备
 
-## 4) Cloud Sync Degradation
+## 4) 云同步降级
 
-- sync errors are surfaced but local runtime continues
-- scheduler has retry-capable logic, but periodic execution currently calls single-attempt sync by default
+- 同步错误会显示但本地运行时继续
+- 调度器有重试能力的逻辑，但周期性执行目前默认调用单次尝试同步
 
-## 5) Data Integrity
+## 5) 数据完整性
 
-- SQLite schema migrations and auto-upgrade hooks at startup
-- legacy JSON → SQLite migration compatibility path
+- 启动时的 SQLite 模式迁移和自动升级钩子
+- 旧版 JSON → SQLite 迁移兼容路径
 
-## Observability and Operational Signals
+## 可观测性和运营信号
 
-Runtime visibility sources:
+运行时可见性来源：
 
-- console logs from `src/sse/utils/logger.ts`
-- per-request usage aggregates in SQLite (`usage_history`, `call_logs`, `proxy_logs`)
-- textual request status log in `log.txt` (optional/compat)
-- optional deep request/translation logs under `logs/` when `ENABLE_REQUEST_LOGS=true`
-- dashboard usage endpoints (`/api/usage/*`) for UI consumption
+- 来自 `src/sse/utils/logger.ts` 的控制台日志
+- SQLite 中的每请求用量聚合（`usage_history`、`call_logs`、`proxy_logs`）
+- 当 `settings.detailed_logs_enabled=true` 时，SQLite 中四阶段的详细 payload 捕获（`request_detail_logs`）
+- `log.txt` 中的文本请求状态日志（可选/兼容）
+- 当 `ENABLE_REQUEST_LOGS=true` 时 `logs/` 下的可选深度请求/翻译日志
+- Dashboard 用量端点（`/api/usage/*`）供 UI 消费
 
-## Security-Sensitive Boundaries
+详细请求 payload 捕获会为每次路由调用最多保存四个 JSON payload 阶段：
 
-- JWT secret (`JWT_SECRET`) secures dashboard session cookie verification/signing
-- Initial password bootstrap (`INITIAL_PASSWORD`) should be explicitly configured for first-run provisioning
-- API key HMAC secret (`API_KEY_SECRET`) secures generated local API key format
-- Provider secrets (API keys/tokens) are persisted in local DB and should be protected at filesystem level
-- Cloud sync endpoints rely on API key auth + machine id semantics
+- 客户端发送的原始请求
+- 实际发送到上游的已翻译请求
+- 还原为 JSON 的提供商响应；流式响应会压缩为最终摘要加流元数据
+- OmniRoute 返回给客户端的最终响应；流式响应同样以相同的紧凑摘要形式存储
 
-## Environment and Runtime Matrix
+## 安全敏感边界
 
-Environment variables actively used by code:
+- JWT 密钥（`JWT_SECRET`）保护 Dashboard 会话 Cookie 验证/签名
+- 初始密码引导（`INITIAL_PASSWORD`）应在首次运行配置时显式配置
+- API 密钥 HMAC 密钥（`API_KEY_SECRET`）保护生成的本地 API 密钥格式
+- 提供商密钥（API 密钥/Token）持久化在本地数据库中，应在文件系统级别保护
+- 云同步端点依赖 API 密钥认证 + 机器 ID 语义
 
-- App/auth: `JWT_SECRET`, `INITIAL_PASSWORD`
-- Storage: `DATA_DIR`
-- Compatible node behavior: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
-- Optional storage base override (Linux/macOS when `DATA_DIR` unset): `XDG_CONFIG_HOME`
-- Security hashing: `API_KEY_SECRET`, `MACHINE_ID_SALT`
-- Logging: `ENABLE_REQUEST_LOGS`
-- Sync/cloud URLing: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
-- Outbound proxy: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` and lowercase variants
-- SOCKS5 feature flags: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
-- Platform/runtime helpers (not app-specific config): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`
+## 环境和运行时矩阵
 
-## Known Architectural Notes
+代码中实际使用的环境变量：
 
-1. `usageDb` and `localDb` share the same base directory policy (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) with legacy file migration.
-2. `/api/v1/route.ts` delegates to the same unified catalog builder used by `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) to avoid semantic drift.
-3. Request logger writes full headers/body when enabled; treat log directory as sensitive.
-4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
-5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
-6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
-7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
-8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
+- 应用/认证：`JWT_SECRET`、`INITIAL_PASSWORD`
+- 存储：`DATA_DIR`
+- 兼容节点行为：`ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
+- 可选存储基础覆盖（当 `DATA_DIR` 未设置时的 Linux/macOS）：`XDG_CONFIG_HOME`
+- 安全哈希：`API_KEY_SECRET`、`MACHINE_ID_SALT`
+- 日志：`ENABLE_REQUEST_LOGS`
+- 同步/云 URL：`NEXT_PUBLIC_BASE_URL`、`NEXT_PUBLIC_CLOUD_URL`
+- 出站代理：`HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY`、`NO_PROXY` 及小写变体
+- SOCKS5 功能标志：`ENABLE_SOCKS5_PROXY`、`NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
+- 平台/运行时助手（非应用特定配置）：`APPDATA`、`NODE_ENV`、`PORT`、`HOSTNAME`
 
-## Operational Verification Checklist
+## 已知架构说明
 
-- Build from source: `npm run build`
-- Build Docker image: `docker build -t omniroute .`
-- Start service and verify:
+1. `usageDb` 和 `localDb` 共享相同的基础目录策略（`DATA_DIR` → `XDG_CONFIG_HOME/omniroute` → `~/.omniroute`）并支持旧版文件迁移。
+2. `/api/v1/route.ts` 委托给 `/api/v1/models`（`src/app/api/v1/models/catalog.ts`）使用的相同统一目录构建器，以避免语义漂移。
+3. 请求日志器启用时写入完整的请求头/请求体；应将日志目录视为敏感信息。
+4. 云行为取决于正确的 `NEXT_PUBLIC_BASE_URL` 和云端点可达性。
+5. `open-sse/` 目录作为 `@omniroute/open-sse` **npm 工作区包**发布。源代码通过 `@omniroute/open-sse/...` 导入（由 Next.js `transpilePackages` 解析）。本文档中的文件路径仍使用目录名 `open-sse/` 以保持一致性。
+6. Dashboard 中的图表使用 **Recharts**（基于 SVG）实现可访问的交互式分析可视化（模型用量柱状图、带成功率的提供商分解表）。
+7. E2E 测试使用 **Playwright**（`tests/e2e/`），通过 `npm run test:e2e` 运行。单元测试使用 **Node.js 测试运行器**（`tests/unit/`），通过 `npm run test:unit` 运行。`src/` 下的源代码是 **TypeScript**（`.ts`/`.tsx`）；`open-sse/` 工作区保持 JavaScript（`.js`）。
+8. 设置页面组织为 5 个标签页：安全、路由（6 种全局策略：填充优先、轮询、p2c、随机、最少使用、成本优化）、弹性（可编辑的速率限制、熔断器、策略）、AI（Thinking 预算、系统提示词、提示词缓存）、高级（代理）。
+
+## 运营验证清单
+
+- 从源代码构建：`npm run build`
+- 构建 Docker 镜像：`docker build -t omniroute .`
+- 启动服务并验证：
 - `GET /api/settings`
 - `GET /api/v1/models`
-- CLI target base URL should be `http://<host>:20128/v1` when `PORT=20128`
+- CLI 目标基础 URL 应为 `http://<host>:20128/v1`（当 `PORT=20128` 时）

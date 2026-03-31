@@ -1,272 +1,268 @@
-# User Guide (中文（简体）)
+# 用户指南
 
-🌐 **Languages:** 🇺🇸 [English](../../USER_GUIDE.md) · 🇧🇷 [pt-BR](../pt-BR/USER_GUIDE.md) · 🇪🇸 [es](../es/USER_GUIDE.md) · 🇫🇷 [fr](../fr/USER_GUIDE.md) · 🇩🇪 [de](../de/USER_GUIDE.md) · 🇮🇹 [it](../it/USER_GUIDE.md) · 🇷🇺 [ru](../ru/USER_GUIDE.md) · 🇨🇳 [zh-CN](../zh-CN/USER_GUIDE.md) · 🇯🇵 [ja](../ja/USER_GUIDE.md) · 🇰🇷 [ko](../ko/USER_GUIDE.md) · 🇸🇦 [ar](../ar/USER_GUIDE.md) · 🇮🇳 [in](../in/USER_GUIDE.md) · 🇹🇭 [th](../th/USER_GUIDE.md) · 🇻🇳 [vi](../vi/USER_GUIDE.md) · 🇮🇩 [id](../id/USER_GUIDE.md) · 🇲🇾 [ms](../ms/USER_GUIDE.md) · 🇳🇱 [nl](../nl/USER_GUIDE.md) · 🇵🇱 [pl](../pl/USER_GUIDE.md) · 🇸🇪 [sv](../sv/USER_GUIDE.md) · 🇳🇴 [no](../no/USER_GUIDE.md) · 🇩🇰 [da](../da/USER_GUIDE.md) · 🇫🇮 [fi](../fi/USER_GUIDE.md) · 🇵🇹 [pt](../pt/USER_GUIDE.md) · 🇷🇴 [ro](../ro/USER_GUIDE.md) · 🇭🇺 [hu](../hu/USER_GUIDE.md) · 🇧🇬 [bg](../bg/USER_GUIDE.md) · 🇸🇰 [sk](../sk/USER_GUIDE.md) · 🇺🇦 [uk-UA](../uk-UA/USER_GUIDE.md) · 🇮🇱 [he](../he/USER_GUIDE.md) · 🇵🇭 [phi](../phi/USER_GUIDE.md)
+🌐 **语言:** 🇺🇸 [English](../../USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../pt-BR/USER_GUIDE.md) | 🇪🇸 [Español](../es/USER_GUIDE.md) | 🇫🇷 [Français](../fr/USER_GUIDE.md) | 🇮🇹 [Italiano](../it/USER_GUIDE.md) | 🇷🇺 [Русский](../ru/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../zh-CN/USER_GUIDE.md) | 🇩🇪 [Deutsch](../de/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../in/USER_GUIDE.md) | 🇹🇭 [ไทย](../th/USER_GUIDE.md) | 🇺🇦 [Українська](../uk-UA/USER_GUIDE.md) | 🇸🇦 [العربية](../ar/USER_GUIDE.md) | 🇯🇵 [日本語](../ja/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../vi/USER_GUIDE.md) | 🇧🇬 [Български](../bg/USER_GUIDE.md) | 🇩🇰 [Dansk](../da/USER_GUIDE.md) | 🇫🇮 [Suomi](../fi/USER_GUIDE.md) | 🇮🇱 [עברית](../he/USER_GUIDE.md) | 🇭🇺 [Magyar](../hu/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../id/USER_GUIDE.md) | 🇰🇷 [한국어](../ko/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../ms/USER_GUIDE.md) | 🇳🇱 [Nederlands](../nl/USER_GUIDE.md) | 🇳🇴 [Norsk](../no/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../pt/USER_GUIDE.md) | 🇷🇴 [Română](../ro/USER_GUIDE.md) | 🇵🇱 [Polski](../pl/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../sk/USER_GUIDE.md) | 🇸🇪 [Svenska](../sv/USER_GUIDE.md) | 🇵🇭 [Filipino](../phi/USER_GUIDE.md) | 🇨🇿 [Čeština](../cs/USER_GUIDE.md)
 
-> 🇺🇸 [English](../../USER_GUIDE.md)
-
----
-
-Complete guide for configuring providers, creating combos, integrating CLI tools, and deploying OmniRoute.
+配置提供商、创建 Combo、集成 CLI 工具以及部署 OmniRoute 的完整指南。
 
 ---
 
-## Table of Contents
+## 目录
 
-- [Pricing at a Glance](#-pricing-at-a-glance)
-- [Use Cases](#-use-cases)
-- [Provider Setup](#-provider-setup)
-- [CLI Integration](#-cli-integration)
-- [Deployment](#-deployment)
-- [Available Models](#-available-models)
-- [Advanced Features](#-advanced-features)
+- [价格概览](#-价格概览)
+- [使用场景](#-使用场景)
+- [提供商配置](#-提供商配置)
+- [CLI 集成](#-cli-集成)
+- [部署](#-部署)
+- [可用模型](#-可用模型)
+- [高级功能](#-高级功能)
 
 ---
 
-## 💰 Pricing at a Glance
+## 💰 价格概览
 
-| Tier                | Provider          | Cost        | Quota Reset      | Best For             |
+| 层级                | 提供商            | 费用        | 配额重置         | 适用人群             |
 | ------------------- | ----------------- | ----------- | ---------------- | -------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly      | Already subscribed   |
-|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly      | OpenAI users         |
-|                     | Gemini CLI        | **FREE**    | 180K/mo + 1K/day | Everyone!            |
-|                     | GitHub Copilot    | $10-19/mo   | Monthly          | GitHub users         |
-| **🔑 API KEY**      | DeepSeek          | Pay per use | None             | Cheap reasoning      |
-|                     | Groq              | Pay per use | None             | Ultra-fast inference |
-|                     | xAI (Grok)        | Pay per use | None             | Grok 4 reasoning     |
-|                     | Mistral           | Pay per use | None             | EU-hosted models     |
-|                     | Perplexity        | Pay per use | None             | Search-augmented     |
-|                     | Together AI       | Pay per use | None             | Open-source models   |
-|                     | Fireworks AI      | Pay per use | None             | Fast FLUX images     |
-|                     | Cerebras          | Pay per use | None             | Wafer-scale speed    |
-|                     | Cohere            | Pay per use | None             | Command R+ RAG       |
-|                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
-|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
-| **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
-|                     | Qwen              | $0          | Unlimited        | 3 models free        |
-|                     | Kiro              | $0          | Unlimited        | Claude free          |
+| **💳 订阅**         | Claude Code (Pro) | $20/月      | 5小时 + 每周     | 已订阅用户           |
+|                     | Codex (Plus/Pro)  | $20-200/月  | 5小时 + 每周     | OpenAI 用户          |
+|                     | Gemini CLI        | **免费**    | 18万/月 + 1千/天 | 所有人！             |
+|                     | GitHub Copilot    | $10-19/月   | 每月             | GitHub 用户          |
+| **🔑 API 密钥**     | DeepSeek          | 按量付费    | 无               | 低成本推理           |
+|                     | Groq              | 按量付费    | 无               | 超快推理             |
+|                     | xAI (Grok)        | 按量付费    | 无               | Grok 4 推理          |
+|                     | Mistral           | 按量付费    | 无               | 欧盟托管模型         |
+|                     | Perplexity        | 按量付费    | 无               | 搜索增强             |
+|                     | Together AI       | 按量付费    | 无               | 开源模型             |
+|                     | Fireworks AI      | 按量付费    | 无               | 快速 FLUX 图像       |
+|                     | Cerebras          | 按量付费    | 无               | 晶圆级速度           |
+|                     | Cohere            | 按量付费    | 无               | Command R+ RAG       |
+|                     | NVIDIA NIM        | 按量付费    | 无               | 企业级模型           |
+| **💰 低价**         | GLM-4.7           | $0.6/1M     | 每日上午10点     | 预算备用             |
+|                     | MiniMax M2.1      | $0.2/1M     | 5小时滚动        | 最便宜选项           |
+|                     | Kimi K2           | $9/月固定   | 1000万 token/月  | 可预测成本           |
+| **🆓 免费**         | Qoder             | $0          | 无限制           | 8个免费模型          |
+|                     | Qwen              | $0          | 无限制           | 3个免费模型          |
+|                     | Kiro              | $0          | 无限制           | Claude 免费          |
 
-**💡 Pro Tip:** Start with Gemini CLI (180K free/month) + Qoder (unlimited free) combo = $0 cost!
+**💡 专业提示：** 从 Gemini CLI（每月18万免费）+ Qoder（无限免费）组合开始 = $0 成本！
 
 ---
 
-## 🎯 Use Cases
+## 🎯 使用场景
 
-### Case 1: "I have Claude Pro subscription"
+### 场景 1："我有 Claude Pro 订阅"
 
-**Problem:** Quota expires unused, rate limits during heavy coding
+**问题：** 配额过期未使用，高强度编码时遇到速率限制
 
 ```
 Combo: "maximize-claude"
-  1. cc/claude-opus-4-6        (use subscription fully)
-  2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
+  1. cc/claude-opus-4-6        （充分使用订阅）
+  2. glm/glm-4.7               （配额用尽时的低价备用）
+  3. if/kimi-k2-thinking       （免费紧急后备）
 
-Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
-vs. $20 + hitting limits = frustration
+月费用：$20（订阅）+ ~$5（备用）= 总计 $25
+对比：$20 + 触及限制 = 沮丧
 ```
 
-### Case 2: "I want zero cost"
+### 场景 2："我想零成本"
 
-**Problem:** Can't afford subscriptions, need reliable AI coding
+**问题：** 负担不起订阅，但需要可靠的 AI 编程
 
 ```
 Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
+  1. gc/gemini-3-flash         （每月 18 万免费）
+  2. if/kimi-k2-thinking       （无限免费）
+  3. qw/qwen3-coder-plus       （无限免费）
 
-Monthly cost: $0
-Quality: Production-ready models
+月费用：$0
+质量：生产级模型
 ```
 
-### Case 3: "I need 24/7 coding, no interruptions"
+### 场景 3："我需要 24/7 编程，不能中断"
 
-**Problem:** Deadlines, can't afford downtime
+**问题：** 截止日期紧迫，无法承受停机
 
 ```
 Combo: "always-on"
-  1. cc/claude-opus-4-6        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
-  3. glm/glm-4.7               (cheap, resets daily)
-  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
+  1. cc/claude-opus-4-6        （最佳质量）
+  2. cx/gpt-5.2-codex          （第二订阅）
+  3. glm/glm-4.7               （低价，每日重置）
+  4. minimax/MiniMax-M2.1      （最便宜，5小时重置）
+  5. if/kimi-k2-thinking       （免费无限）
 
-Result: 5 layers of fallback = zero downtime
-Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
+结果：5 层后备 = 零停机
+月费用：$20-200（订阅）+ $10-20（备用）
 ```
 
-### Case 4: "I want FREE AI in OpenClaw"
+### 场景 4："我想在 OpenClaw 中使用免费 AI"
 
-**Problem:** Need AI assistant in messaging apps, completely free
+**问题：** 需要在聊天应用中使用 AI 助手，完全免费
 
 ```
 Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
+  1. if/glm-4.7                （无限免费）
+  2. if/minimax-m2.1           （无限免费）
+  3. if/kimi-k2-thinking       （无限免费）
 
-Monthly cost: $0
-Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+月费用：$0
+访问方式：WhatsApp、Telegram、Slack、Discord、iMessage、Signal...
 ```
 
 ---
 
-## 📖 Provider Setup
+## 📖 提供商配置
 
-### 🔐 Subscription Providers
+### 🔐 订阅类提供商
 
 #### Claude Code (Pro/Max)
 
 ```bash
 Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
+→ OAuth 登录 → 自动刷新 Token
+→ 5 小时 + 每周配额追踪
 
-Models:
+模型：
   cc/claude-opus-4-6
   cc/claude-sonnet-4-5-20250929
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
+**专业提示：** 复杂任务使用 Opus，追求速度使用 Sonnet。OmniRoute 为每个模型追踪配额！
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
+→ OAuth 登录（端口 1455）
+→ 5 小时 + 每周重置
 
-Models:
+模型：
   cx/gpt-5.2-codex
   cx/gpt-5.1-codex-max
 ```
 
-#### Gemini CLI (FREE 180K/month!)
+#### Gemini CLI（每月 18 万免费！）
 
 ```bash
 Dashboard → Providers → Connect Gemini CLI
 → Google OAuth
-→ 180K completions/month + 1K/day
+→ 每月 18 万次补全 + 每日 1 千次
 
-Models:
+模型：
   gc/gemini-3-flash-preview
   gc/gemini-2.5-pro
 ```
 
-**Best Value:** Huge free tier! Use this before paid tiers.
+**最佳性价比：** 超大免费额度！优先使用此提供商。
 
 #### GitHub Copilot
 
 ```bash
 Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Monthly reset (1st of month)
+→ 通过 GitHub OAuth
+→ 每月重置（每月 1 日）
 
-Models:
+模型：
   gh/gpt-5
   gh/claude-4.5-sonnet
   gh/gemini-3-pro
 ```
 
-### 💰 Cheap Providers
+### 💰 低价提供商
 
-#### GLM-4.7 (Daily reset, $0.6/1M)
+#### GLM-4.7（每日重置，$0.6/1M）
 
-1. Sign up: [Zhipu AI](https://open.bigmodel.cn/)
-2. Get API key from Coding Plan
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+1. 注册：[智谱 AI](https://open.bigmodel.cn/)
+2. 从 Coding Plan 获取 API 密钥
+3. Dashboard → Add API Key：提供商：`glm`，API Key：`your-key`
 
-**Use:** `glm/glm-4.7` — **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
+**使用：** `glm/glm-4.7` — **专业提示：** Coding Plan 提供 3 倍配额，仅 1/7 成本！每日上午 10:00 重置。
 
-#### MiniMax M2.1 (5h reset, $0.20/1M)
+#### MiniMax M2.1（5 小时重置，$0.20/1M）
 
-1. Sign up: [MiniMax](https://www.minimax.io/)
-2. Get API key → Dashboard → Add API Key
+1. 注册：[MiniMax](https://www.minimax.io/)
+2. 获取 API 密钥 → Dashboard → Add API Key
 
-**Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
+**使用：** `minimax/MiniMax-M2.1` — **专业提示：** 长上下文（1M tokens）最便宜的选择！
 
-#### Kimi K2 ($9/month flat)
+#### Kimi K2（固定 $9/月）
 
-1. Subscribe: [Moonshot AI](https://platform.moonshot.ai/)
-2. Get API key → Dashboard → Add API Key
+1. 订阅：[Moonshot AI](https://platform.moonshot.ai/)
+2. 获取 API 密钥 → Dashboard → Add API Key
 
-**Use:** `kimi/kimi-latest` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
+**使用：** `kimi/kimi-latest` — **专业提示：** 固定 $9/月获得 1000 万 tokens = 有效成本 $0.90/1M！
 
-### 🆓 FREE Providers
+### 🆓 免费提供商
 
-#### Qoder (8 FREE models)
+#### Qoder（8 个免费模型）
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Unlimited usage
+Dashboard → Connect Qoder → OAuth 登录 → 无限使用
 
-Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
+模型：if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
 ```
 
-#### Qwen (3 FREE models)
+#### Qwen（3 个免费模型）
 
 ```bash
-Dashboard → Connect Qwen → Device code auth → Unlimited usage
+Dashboard → Connect Qwen → 设备码认证 → 无限使用
 
-Models: qw/qwen3-coder-plus, qw/qwen3-coder-flash
+模型：qw/qwen3-coder-plus, qw/qwen3-coder-flash
 ```
 
-#### Kiro (Claude FREE)
+#### Kiro（免费 Claude）
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → Unlimited
+Dashboard → Connect Kiro → AWS Builder ID 或 Google/GitHub → 无限
 
-Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+模型：kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---
 
 ## 🎨 Combos
 
-### Example 1: Maximize Subscription → Cheap Backup
+### 示例 1：最大化订阅 → 低价备用
 
 ```
 Dashboard → Combos → Create New
 
-Name: premium-coding
-Models:
-  1. cc/claude-opus-4-6 (Subscription primary)
-  2. glm/glm-4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
+名称：premium-coding
+模型：
+  1. cc/claude-opus-4-6（订阅主力）
+  2. glm/glm-4.7（低价备用，$0.6/1M）
+  3. minimax/MiniMax-M2.1（最便宜后备，$0.20/1M）
 
-Use in CLI: premium-coding
+在 CLI 中使用：premium-coding
 ```
 
-### Example 2: Free-Only (Zero Cost)
+### 示例 2：仅免费（零成本）
 
 ```
-Name: free-combo
-Models:
-  1. gc/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2-thinking (unlimited)
-  3. qw/qwen3-coder-plus (unlimited)
+名称：free-combo
+模型：
+  1. gc/gemini-3-flash-preview（每月 18 万免费）
+  2. if/kimi-k2-thinking（无限）
+  3. qw/qwen3-coder-plus（无限）
 
-Cost: $0 forever!
+成本：永久 $0！
 ```
 
 ---
 
-## 🔧 CLI Integration
+## 🔧 CLI 集成
 
 ### Cursor IDE
 
 ```
-Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:20128/v1
-  OpenAI API Key: [from omniroute dashboard]
-  Model: cc/claude-opus-4-6
+Settings → Models → Advanced：
+  OpenAI API Base URL：http://localhost:20128/v1
+  OpenAI API Key：[从 omniroute dashboard 获取]
+  Model：cc/claude-opus-4-6
 ```
 
 ### Claude Code
 
-Edit `~/.claude/config.json`:
+编辑 `~/.claude/config.json`：
 
 ```json
 {
@@ -285,7 +281,7 @@ codex "your prompt"
 
 ### OpenClaw
 
-Edit `~/.openclaw/openclaw.json`:
+编辑 `~/.openclaw/openclaw.json`：
 
 ```json
 {
@@ -307,41 +303,41 @@ Edit `~/.openclaw/openclaw.json`:
 }
 ```
 
-**Or use Dashboard:** CLI Tools → OpenClaw → Auto-config
+**或使用 Dashboard：** CLI Tools → OpenClaw → Auto-config
 
 ### Cline / Continue / RooCode
 
 ```
-Provider: OpenAI Compatible
-Base URL: http://localhost:20128/v1
-API Key: [from dashboard]
-Model: cc/claude-opus-4-6
+Provider：OpenAI Compatible
+Base URL：http://localhost:20128/v1
+API Key：[从 dashboard 获取]
+Model：cc/claude-opus-4-6
 ```
 
 ---
 
-## 🚀 Deployment
+## 🚀 部署
 
-### Global npm install (Recommended)
+### 全局 npm 安装（推荐）
 
 ```bash
 npm install -g omniroute
 
-# Create config directory
+# 创建配置目录
 mkdir -p ~/.omniroute
 
-# Create .env file (see .env.example)
+# 创建 .env 文件（参见 .env.example）
 cp .env.example ~/.omniroute/.env
 
-# Start server
+# 启动服务器
 omniroute
-# Or with custom port:
+# 或指定端口：
 omniroute --port 3000
 ```
 
-The CLI automatically loads `.env` from `~/.omniroute/.env` or `./.env`.
+CLI 自动从 `~/.omniroute/.env` 或 `./.env` 加载配置。
 
-### VPS Deployment
+### VPS 部署
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -357,25 +353,25 @@ export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 
 npm run start
-# Or: pm2 start npm --name omniroute -- start
+# 或：pm2 start npm --name omniroute -- start
 ```
 
-### PM2 Deployment (Low Memory)
+### PM2 部署（低内存）
 
-For servers with limited RAM, use the memory limit option:
+对于内存有限的服务器，使用内存限制选项：
 
 ```bash
-# With 512MB limit (default)
+# 默认 512MB 限制
 pm2 start npm --name omniroute -- start
 
-# Or with custom memory limit
+# 或自定义内存限制
 OMNIROUTE_MEMORY_MB=512 pm2 start npm --name omniroute -- start
 
-# Or using ecosystem.config.js
+# 或使用 ecosystem.config.js
 pm2 start ecosystem.config.js
 ```
 
-Create `ecosystem.config.js`:
+创建 `ecosystem.config.js`：
 
 ```javascript
 module.exports = {
@@ -400,24 +396,24 @@ module.exports = {
 ### Docker
 
 ```bash
-# Build image (default = runner-cli with codex/claude/droid preinstalled)
+# 构建镜像（默认 = runner-cli，预装 codex/claude/droid）
 docker build -t omniroute:cli .
 
-# Portable mode (recommended)
+# 便携模式（推荐）
 docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-data:/app/data omniroute:cli
 ```
 
-For host-integrated mode with CLI binaries, see the Docker section in the main docs.
+关于与主机集成的 CLI 二进制文件模式，请参阅主文档中的 Docker 部分。
 
 ### Void Linux (xbps-src)
 
-Void Linux users can package and install OmniRoute natively using the `xbps-src` cross-compilation framework. This automates the Node.js standalone build along with the required `better-sqlite3` native bindings.
+Void Linux 用户可以使用 `xbps-src` 交叉编译框架原生打包和安装 OmniRoute。这将自动完成 Node.js standalone 构建以及所需的 `better-sqlite3` 原生绑定。
 
 <details>
-<summary><b>View xbps-src template</b></summary>
+<summary><b>查看 xbps-src 模板</b></summary>
 
 ```bash
-# Template file for 'omniroute'
+# 'omniroute' 模板文件
 pkgname=omniroute
 version=3.2.4
 revision=1
@@ -509,98 +505,106 @@ post_install() {
 
 </details>
 
-### Environment Variables
+### 环境变量
 
-| Variable                  | Default                              | Description                                             |
+| 变量                      | 默认值                               | 描述                                                    |
 | ------------------------- | ------------------------------------ | ------------------------------------------------------- |
-| `JWT_SECRET`              | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)           |
-| `INITIAL_PASSWORD`        | `123456`                             | First login password                                    |
-| `DATA_DIR`                | `~/.omniroute`                       | Data directory (db, usage, logs)                        |
-| `PORT`                    | framework default                    | Service port (`20128` in examples)                      |
-| `HOSTNAME`                | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                |
-| `NODE_ENV`                | runtime default                      | Set `production` for deploy                             |
-| `BASE_URL`                | `http://localhost:20128`             | Server-side internal base URL                           |
-| `CLOUD_URL`               | `https://omniroute.dev`              | Cloud sync endpoint base URL                            |
-| `API_KEY_SECRET`          | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                      |
-| `REQUIRE_API_KEY`         | `false`                              | Enforce Bearer API key on `/v1/*`                       |
-| `ENABLE_REQUEST_LOGS`     | `false`                              | Enables request/response logs                           |
-| `AUTH_COOKIE_SECURE`      | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy) |
-| `OMNIROUTE_MEMORY_MB`     | `512`                                | Node.js heap limit in MB                                |
-| `PROMPT_CACHE_MAX_SIZE`   | `50`                                 | Max prompt cache entries                                |
-| `SEMANTIC_CACHE_MAX_SIZE` | `100`                                | Max semantic cache entries                              |
+| `JWT_SECRET`              | `omniroute-default-secret-change-me` | JWT 签名密钥（**生产环境必须更改**）                    |
+| `INITIAL_PASSWORD`        | `123456`                             | 首次登录密码                                            |
+| `DATA_DIR`                | `~/.omniroute`                       | 数据目录（数据库、用量、日志）                          |
+| `PORT`                    | 框架默认值                           | 服务端口（示例中为 `20128`）                            |
+| `HOSTNAME`                | 框架默认值                           | 绑定主机（Docker 默认 `0.0.0.0`）                       |
+| `NODE_ENV`                | 运行时默认值                         | 部署时设为 `production`                                 |
+| `BASE_URL`                | `http://localhost:20128`             | 服务端内部基础 URL                                      |
+| `CLOUD_URL`               | `https://omniroute.dev`              | 云同步端点基础 URL                                      |
+| `API_KEY_SECRET`          | `endpoint-proxy-api-key-secret`      | 生成 API 密钥的 HMAC 密钥                               |
+| `REQUIRE_API_KEY`         | `false`                              | 对 `/v1/*` 强制要求 Bearer API 密钥                     |
+| `ALLOW_API_KEY_REVEAL`    | `false`                              | 允许 Api Manager 按需复制完整 API 密钥                  |
+| `DISABLE_SQLITE_AUTO_BACKUP` | `false`                           | 在写入/导入/恢复前禁用自动 SQLite 快照；手动备份仍可用  |
+| `ENABLE_REQUEST_LOGS`     | `false`                              | 启用请求/响应日志                                       |
+| `AUTH_COOKIE_SECURE`      | `false`                              | 强制使用 `Secure` 认证 Cookie（HTTPS 反向代理后）       |
+| `CLOUDFLARED_BIN`         | 未设置                               | 使用现有 `cloudflared` 二进制，而不是托管下载           |
+| `OMNIROUTE_MEMORY_MB`     | `512`                                | Node.js 堆内存限制（MB）                                |
+| `PROMPT_CACHE_MAX_SIZE`   | `50`                                 | 最大提示词缓存条目数                                    |
+| `SEMANTIC_CACHE_MAX_SIZE` | `100`                                | 最大语义缓存条目数                                      |
 
-For the full environment variable reference, see the [README](../README.md).
+完整环境变量参考请参见 [README](../README.md)。
 
 ---
 
-## 📊 Available Models
+## 📊 可用模型
 
 <details>
-<summary><b>View all available models</b></summary>
+<summary><b>查看所有可用模型</b></summary>
 
-**Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
+**Claude Code (`cc/`)** — Pro/Max：`cc/claude-opus-4-6`、`cc/claude-sonnet-4-5-20250929`、`cc/claude-haiku-4-5-20251001`
 
-**Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
+**Codex (`cx/`)** — Plus/Pro：`cx/gpt-5.2-codex`、`cx/gpt-5.1-codex-max`
 
-**Gemini CLI (`gc/`)** — FREE: `gc/gemini-3-flash-preview`, `gc/gemini-2.5-pro`
+**Gemini CLI (`gc/`)** — 免费：`gc/gemini-3-flash-preview`、`gc/gemini-2.5-pro`
 
-**GitHub Copilot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
+**GitHub Copilot (`gh/`)**：`gh/gpt-5`、`gh/claude-4.5-sonnet`
 
-**GLM (`glm/`)** — $0.6/1M: `glm/glm-4.7`
+**GLM (`glm/`)** — $0.6/1M：`glm/glm-4.7`
 
-**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.1`
+**MiniMax (`minimax/`)** — $0.2/1M：`minimax/MiniMax-M2.1`
 
-**Qoder (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
+**Qoder (`if/`)** — 免费：`if/kimi-k2-thinking`、`if/qwen3-coder-plus`、`if/deepseek-r1`
 
-**Qwen (`qw/`)** — FREE: `qw/qwen3-coder-plus`, `qw/qwen3-coder-flash`
+**Qwen (`qw/`)** — 免费：`qw/qwen3-coder-plus`、`qw/qwen3-coder-flash`
 
-**Kiro (`kr/`)** — FREE: `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`
+**Kiro (`kr/`)** — 免费：`kr/claude-sonnet-4.5`、`kr/claude-haiku-4.5`
 
-**DeepSeek (`ds/`)**: `ds/deepseek-chat`, `ds/deepseek-reasoner`
+**DeepSeek (`ds/`)**：`ds/deepseek-chat`、`ds/deepseek-reasoner`
 
-**Groq (`groq/`)**: `groq/llama-3.3-70b-versatile`, `groq/llama-4-maverick-17b-128e-instruct`
+**Groq (`groq/`)**：`groq/llama-3.3-70b-versatile`、`groq/llama-4-maverick-17b-128e-instruct`
 
-**xAI (`xai/`)**: `xai/grok-4`, `xai/grok-4-0709-fast-reasoning`, `xai/grok-code-mini`
+**xAI (`xai/`)**：`xai/grok-4`、`xai/grok-4-0709-fast-reasoning`、`xai/grok-code-mini`
 
-**Mistral (`mistral/`)**: `mistral/mistral-large-2501`, `mistral/codestral-2501`
+**Mistral (`mistral/`)**：`mistral/mistral-large-2501`、`mistral/codestral-2501`
 
-**Perplexity (`pplx/`)**: `pplx/sonar-pro`, `pplx/sonar`
+**Perplexity (`pplx/`)**：`pplx/sonar-pro`、`pplx/sonar`
 
-**Together AI (`together/`)**: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo`
+**Together AI (`together/`)**：`together/meta-llama/Llama-3.3-70B-Instruct-Turbo`
 
-**Fireworks AI (`fireworks/`)**: `fireworks/accounts/fireworks/models/deepseek-v3p1`
+**Fireworks AI (`fireworks/`)**：`fireworks/accounts/fireworks/models/deepseek-v3p1`
 
-**Cerebras (`cerebras/`)**: `cerebras/llama-3.3-70b`
+**Cerebras (`cerebras/`)**：`cerebras/llama-3.3-70b`
 
-**Cohere (`cohere/`)**: `cohere/command-r-plus-08-2024`
+**Cohere (`cohere/`)**：`cohere/command-r-plus-08-2024`
 
-**NVIDIA NIM (`nvidia/`)**: `nvidia/nvidia/llama-3.3-70b-instruct`
+**NVIDIA NIM (`nvidia/`)**：`nvidia/nvidia/llama-3.3-70b-instruct`
 
 </details>
 
 ---
 
-## 🧩 Advanced Features
+## 🧩 高级功能
 
-### Custom Models
+### 自定义模型
 
-Add any model ID to any provider without waiting for an app update:
+无需等待应用更新即可为任何提供商添加任意模型 ID：
 
 ```bash
-# Via API
+# 通过 API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-4.5-preview", "modelName": "GPT-4.5 Preview"}'
 
-# List: curl http://localhost:20128/api/provider-models?provider=openai
-# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-4.5-preview"
+# 列表：curl http://localhost:20128/api/provider-models?provider=openai
+# 删除：curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-4.5-preview"
 ```
 
-Or use Dashboard: **Providers → [Provider] → Custom Models**.
+或使用 Dashboard：**Providers → [提供商] → Custom Models**。
 
-### Dedicated Provider Routes
+说明：
 
-Route requests directly to a specific provider with model validation:
+- OpenRouter 和 OpenAI/Anthropic-compatible 提供商仅通过 **Available Models** 管理。手动添加、导入和自动同步都会写入同一份 available-model 列表，因此这些提供商没有单独的 Custom Models 区块。
+- **Custom Models** 区块面向那些不提供托管 available-model 导入的提供商。
+
+### 专用提供商路由
+
+直接将请求路由到特定提供商并进行模型验证：
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -608,110 +612,118 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-The provider prefix is auto-added if missing. Mismatched models return `400`.
+如果缺少提供商前缀则自动添加。模型不匹配时返回 `400`。
 
-### Network Proxy Configuration
+### 网络代理配置
 
 ```bash
-# Set global proxy
+# 设置全局代理
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Per-provider proxy
+# 按提供商代理
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Test proxy
+# 测试代理
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Precedence:** Key-specific → Combo-specific → Provider-specific → Global → Environment.
+**优先级：** 密钥级 → Combo 级 → 提供商级 → 全局 → 环境变量。
 
-### Model Catalog API
+### 模型目录 API
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Returns models grouped by provider with types (`chat`, `embedding`, `image`).
+返回按提供商分组的模型及类型（`chat`、`embedding`、`image`）。
 
-### Cloud Sync
+### 云同步
 
-- Sync providers, combos, and settings across devices
-- Automatic background sync with timeout + fail-fast
-- Prefer server-side `BASE_URL`/`CLOUD_URL` in production
+- 跨设备同步提供商、Combo 和设置
+- 自动后台同步，带超时 + 快速失败
+- 生产环境优先使用服务端 `BASE_URL`/`CLOUD_URL`
 
-### LLM Gateway Intelligence (Phase 9)
+### Cloudflare Quick Tunnel
 
-- **Semantic Cache** — Auto-caches non-streaming, temperature=0 responses (bypass with `X-OmniRoute-No-Cache: true`)
-- **Request Idempotency** — Deduplicates requests within 5s via `Idempotency-Key` or `X-Request-Id` header
-- **Progress Tracking** — Opt-in SSE `event: progress` events via `X-OmniRoute-Progress: true` header
+- 可在 **Dashboard → Endpoints** 中用于 Docker 和其他自托管部署
+- 会创建一个临时的 `https://*.trycloudflare.com` URL，并转发到当前 OpenAI 兼容的 `/v1` 端点
+- 首次启用时仅在需要时安装 `cloudflared`；之后重启会复用同一个托管二进制文件
+- Tunnel URL 是临时的，每次停止/启动隧道都会变化
+- 如果你更想使用预装的 `cloudflared`，可以设置 `CLOUDFLARED_BIN`
 
----
+### LLM 网关智能（第 9 阶段）
 
-### Translator Playground
-
-Access via **Dashboard → Translator**. Debug and visualize how OmniRoute translates API requests between providers.
-
-| Mode             | Purpose                                                                                |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| **Playground**   | Select source/target formats, paste a request, and see the translated output instantly |
-| **Chat Tester**  | Send live chat messages through the proxy and inspect the full request/response cycle  |
-| **Test Bench**   | Run batch tests across multiple format combinations to verify translation correctness  |
-| **Live Monitor** | Watch real-time translations as requests flow through the proxy                        |
-
-**Use cases:**
-
-- Debug why a specific client/provider combination fails
-- Verify that thinking tags, tool calls, and system prompts translate correctly
-- Compare format differences between OpenAI, Claude, Gemini, and Responses API formats
+- **语义缓存** — 自动缓存非流式、temperature=0 的响应（使用 `X-OmniRoute-No-Cache: true` 绕过）
+- **请求幂等性** — 通过 `Idempotency-Key` 或 `X-Request-Id` 头在 5 秒内去重请求
+- **进度追踪** — 通过 `X-OmniRoute-Progress: true` 头选择性启用 SSE `event: progress` 事件
 
 ---
 
-### Routing Strategies
+### 翻译器实验场
 
-Configure via **Dashboard → Settings → Routing**.
+通过 **Dashboard → Translator** 访问。调试和可视化 OmniRoute 如何在提供商之间翻译 API 请求。
 
-| Strategy                       | Description                                                                                      |
-| ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| **Fill First**                 | Uses accounts in priority order — primary account handles all requests until unavailable         |
-| **Round Robin**                | Cycles through all accounts with a configurable sticky limit (default: 3 calls per account)      |
-| **P2C (Power of Two Choices)** | Picks 2 random accounts and routes to the healthier one — balances load with awareness of health |
-| **Random**                     | Randomly selects an account for each request using Fisher-Yates shuffle                          |
-| **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
-| **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
+| 模式             | 用途                                                                           |
+| ---------------- | ------------------------------------------------------------------------------ |
+| **Playground**   | 选择源/目标格式，粘贴请求，即时查看翻译输出                                    |
+| **Chat Tester**  | 通过代理发送实时聊天消息，检查完整的请求/响应周期                              |
+| **Test Bench**   | 在多种格式组合中运行批量测试，验证翻译正确性                                   |
+| **Live Monitor** | 实时观察请求流经代理时的翻译过程                                               |
 
-#### External Sticky Session Header
+**使用场景：**
 
-For external session affinity (for example, Claude Code/Codex agents behind reverse proxies), send:
+- 调试特定客户端/提供商组合失败的原因
+- 验证 thinking 标签、工具调用和系统提示词是否正确翻译
+- 比较 OpenAI、Claude、Gemini 和 Responses API 格式之间的差异
+
+---
+
+### 路由策略
+
+通过 **Dashboard → Settings → Routing** 配置。
+
+| 策略                           | 描述                                                                                     |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
+| **Fill First**                 | 按优先级顺序使用账户 — 主账户处理所有请求直到不可用                                      |
+| **Round Robin**                | 循环使用所有账户，可配置粘性限制（默认：每账户 3 次调用）                                |
+| **P2C (Power of Two Choices)** | 随机选择 2 个账户并路由到更健康的那个 — 健康感知的负载均衡                               |
+| **Random**                     | 使用 Fisher-Yates 洗牌为每个请求随机选择账户                                             |
+| **Least Used**                 | 路由到 `lastUsedAt` 时间戳最旧的账户，均匀分配流量                                       |
+| **Cost Optimized**             | 路由到优先级值最低的账户，优化成本最低的提供商                                           |
+
+#### 外部粘性会话头
+
+用于外部会话亲和性（例如，反向代理后的 Claude Code/Codex 代理），发送：
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute also accepts `x_session_id` and returns the effective session key in `X-OmniRoute-Session-Id`.
+OmniRoute 也接受 `x_session_id` 并在 `X-OmniRoute-Session-Id` 中返回有效的会话密钥。
 
-If you use Nginx and send underscore-form headers, enable:
+如果使用 Nginx 发送下划线形式的头，需启用：
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Wildcard Model Aliases
+#### 通配符模型别名
 
-Create wildcard patterns to remap model names:
+创建通配符模式以重映射模型名称：
 
 ```
 Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-5-20250929
 Pattern: gpt-*               →  Target: gh/gpt-5.1-codex
 ```
 
-Wildcards support `*` (any characters) and `?` (single character).
+通配符支持 `*`（任意字符）和 `?`（单个字符）。
 
-#### Fallback Chains
+#### 后备链
 
-Define global fallback chains that apply across all requests:
+定义适用于所有请求的全局后备链：
 
 ```
 Chain: production-fallback
@@ -722,208 +734,209 @@ Chain: production-fallback
 
 ---
 
-### Resilience & Circuit Breakers
+### 弹性与熔断器
 
-Configure via **Dashboard → Settings → Resilience**.
+通过 **Dashboard → Settings → Resilience** 配置。
 
-OmniRoute implements provider-level resilience with four components:
+OmniRoute 实现了提供商级别的弹性保护，包含四个组件：
 
-1. **Provider Profiles** — Per-provider configuration for:
-   - Failure threshold (how many failures before opening)
-   - Cooldown duration
-   - Rate limit detection sensitivity
-   - Exponential backoff parameters
+1. **提供商配置文件** — 每个提供商的配置：
+   - 失败阈值（开启熔断前的失败次数）
+   - 冷却持续时间
+   - 速率限制检测灵敏度
+   - 指数退避参数
 
-2. **Editable Rate Limits** — System-level defaults configurable in the dashboard:
-   - **Requests Per Minute (RPM)** — Maximum requests per minute per account
-   - **Min Time Between Requests** — Minimum gap in milliseconds between requests
-   - **Max Concurrent Requests** — Maximum simultaneous requests per account
-   - Click **Edit** to modify, then **Save** or **Cancel**. Values persist via the resilience API.
+2. **可编辑速率限制** — 可在 Dashboard 中配置的系统级默认值：
+   - **每分钟请求数 (RPM)** — 每个账户每分钟最大请求数
+   - **请求最小间隔** — 请求之间的最小间隔（毫秒）
+   - **最大并发请求数** — 每个账户的最大并发请求数
+   - 点击 **Edit** 修改，然后 **Save** 或 **Cancel**。值通过弹性 API 持久化。
 
-3. **Circuit Breaker** — Tracks failures per provider and automatically opens the circuit when a threshold is reached:
-   - **CLOSED** (Healthy) — Requests flow normally
-   - **OPEN** — Provider is temporarily blocked after repeated failures
-   - **HALF_OPEN** — Testing if provider has recovered
+3. **熔断器** — 按提供商追踪失败次数，达到阈值时自动开启熔断：
+   - **CLOSED**（健康）— 请求正常流动
+   - **OPEN** — 重复失败后提供商被临时阻止
+   - **HALF_OPEN** — 测试提供商是否已恢复
 
-4. **Policies & Locked Identifiers** — Shows circuit breaker status and locked identifiers with force-unlock capability.
+4. **策略与锁定标识符** — 显示熔断器状态和锁定标识符，支持强制解锁。
 
-5. **Rate Limit Auto-Detection** — Monitors `429` and `Retry-After` headers to proactively avoid hitting provider rate limits.
+5. **速率限制自动检测** — 监控 `429` 和 `Retry-After` 头，主动避免触及提供商速率限制。
 
-**Pro Tip:** Use **Reset All** button to clear all circuit breakers and cooldowns when a provider recovers from an outage.
+**专业提示：** 当提供商从故障中恢复时，使用 **Reset All** 按钮清除所有熔断器和冷却状态。
 
 ---
 
-### Database Export / Import
+### 数据库导出/导入
 
-Manage database backups in **Dashboard → Settings → System & Storage**.
+在 **Dashboard → Settings → System & Storage** 中管理数据库备份。
 
-| Action                   | Description                                                                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                      |
-| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata |
-| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created                          |
+| 操作                     | 描述                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **Export Database**      | 将当前 SQLite 数据库下载为 `.sqlite` 文件                                                              |
+| **Export All (.tar.gz)** | 下载完整备份归档，包括：数据库、设置、Combo、提供商连接（无凭据）、API 密钥元数据                      |
+| **Import Database**      | 上传 `.sqlite` 文件替换当前数据库。导入前会自动创建备份                                                |
 
 ```bash
-# API: Export database
+# API：导出数据库
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Export all (full archive)
+# API：导出全部（完整归档）
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: Import database
+# API：导入数据库
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Import Validation:** The imported file is validated for integrity (SQLite pragma check), required tables (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), and size (max 100MB).
+**导入验证：** 导入的文件会验证完整性（SQLite pragma 检查）、必需表（`provider_connections`、`provider_nodes`、`combos`、`api_keys`）和大小（最大 100MB）。
 
-**Use Cases:**
+**使用场景：**
 
-- Migrate OmniRoute between machines
-- Create external backups for disaster recovery
-- Share configurations between team members (export all → share archive)
+- 在机器之间迁移 OmniRoute
+- 为灾难恢复创建外部备份
+- 在团队成员之间共享配置（导出全部 → 分享归档）
 
 ---
 
-### Settings Dashboard
+### 设置仪表盘
 
-The settings page is organized into 5 tabs for easy navigation:
+设置页面分为 6 个标签页便于导航：
 
-| Tab            | Contents                                                                                       |
+| 标签页         | 内容                                                                                           |
 | -------------- | ---------------------------------------------------------------------------------------------- |
-| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking      |
-| **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults   |
-| **Resilience** | Provider profiles, editable rate limits, circuit breaker status, policies & locked identifiers |
-| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats              |
-| **Advanced**   | Global proxy configuration (HTTP/SOCKS5)                                                       |
+| **General**    | 系统存储工具、外观设置、主题控制，以及侧边栏项目的单项可见性                                   |
+| **Security**   | 登录/密码设置、IP 访问控制、`/models` API 认证、提供商阻止                                     |
+| **Routing**    | 全局路由策略（6 种选项）、通配符模型别名、后备链、Combo 默认值                                 |
+| **Resilience** | 提供商配置文件、可编辑速率限制、熔断器状态、策略与锁定标识符                                   |
+| **AI**         | Thinking 预算配置、全局系统提示词注入、提示词缓存统计                                          |
+| **Advanced**   | 全局代理配置（HTTP/SOCKS5）                                                                    |
 
 ---
 
-### Costs & Budget Management
+### 成本与预算管理
 
-Access via **Dashboard → Costs**.
+通过 **Dashboard → Costs** 访问。
 
-| Tab         | Purpose                                                                                  |
-| ----------- | ---------------------------------------------------------------------------------------- |
-| **Budget**  | Set spending limits per API key with daily/weekly/monthly budgets and real-time tracking |
-| **Pricing** | View and edit model pricing entries — cost per 1K input/output tokens per provider       |
+| 标签页      | 用途                                                                             |
+| ----------- | -------------------------------------------------------------------------------- |
+| **Budget**  | 为每个 API 密钥设置消费限额，支持每日/每周/每月预算和实时追踪                    |
+| **Pricing** | 查看和编辑模型定价条目 — 每提供商每 1K 输入/输出 token 的成本                    |
 
 ```bash
-# API: Set a budget
+# API：设置预算
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Get current budget status
+# API：获取当前预算状态
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Cost Tracking:** Every request logs token usage and calculates cost using the pricing table. View breakdowns in **Dashboard → Usage** by provider, model, and API key.
+**成本追踪：** 每个请求都会记录 token 用量并使用定价表计算成本。在 **Dashboard → Usage** 中按提供商、模型和 API 密钥查看明细。
 
 ---
 
-### Audio Transcription
+### 音频转录
 
-OmniRoute supports audio transcription via the OpenAI-compatible endpoint:
+OmniRoute 通过 OpenAI 兼容端点支持音频转录：
 
 ```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
-# Example with curl
+# 使用 curl 示例
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=deepgram/nova-3"
 ```
 
-Available providers: **Deepgram** (`deepgram/`), **AssemblyAI** (`assemblyai/`).
+可用提供商：**Deepgram** (`deepgram/`)、**AssemblyAI** (`assemblyai/`)。
 
-Supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
-
----
-
-### Combo Balancing Strategies
-
-Configure per-combo balancing in **Dashboard → Combos → Create/Edit → Strategy**.
-
-| Strategy           | Description                                                              |
-| ------------------ | ------------------------------------------------------------------------ |
-| **Round-Robin**    | Rotates through models sequentially                                      |
-| **Priority**       | Always tries the first model; falls back only on error                   |
-| **Random**         | Picks a random model from the combo for each request                     |
-| **Weighted**       | Routes proportionally based on assigned weights per model                |
-| **Least-Used**     | Routes to the model with the fewest recent requests (uses combo metrics) |
-| **Cost-Optimized** | Routes to the cheapest available model (uses pricing table)              |
-
-Global combo defaults can be set in **Dashboard → Settings → Routing → Combo Defaults**.
+支持的音频格式：`mp3`、`wav`、`m4a`、`flac`、`ogg`、`webm`。
 
 ---
 
-### Health Dashboard
+### Combo 均衡策略
 
-Access via **Dashboard → Health**. Real-time system health overview with 6 cards:
+在 **Dashboard → Combos → Create/Edit → Strategy** 中配置每个 Combo 的均衡策略。
 
-| Card                  | What It Shows                                               |
+| 策略               | 描述                                                             |
+| ------------------ | ---------------------------------------------------------------- |
+| **Round-Robin**    | 按顺序轮流使用模型                                               |
+| **Priority**       | 总是先尝试第一个模型；仅在出错时使用后备                         |
+| **Random**         | 为每个请求从 Combo 中随机选择一个模型                            |
+| **Weighted**       | 根据每个模型分配的权重按比例路由                                 |
+| **Least-Used**     | 路由到最近请求最少的模型（使用 Combo 指标）                      |
+| **Cost-Optimized** | 路由到最便宜的可用模型（使用定价表）                             |
+
+全局 Combo 默认值可在 **Dashboard → Settings → Routing → Combo Defaults** 中设置。
+
+---
+
+### 健康仪表盘
+
+通过 **Dashboard → Health** 访问。包含 6 张卡片的实时系统健康概览：
+
+| 卡片                  | 显示内容                                                    |
 | --------------------- | ----------------------------------------------------------- |
-| **System Status**     | Uptime, version, memory usage, data directory               |
-| **Provider Health**   | Per-provider circuit breaker state (Closed/Open/Half-Open)  |
-| **Rate Limits**       | Active rate limit cooldowns per account with remaining time |
-| **Active Lockouts**   | Providers temporarily blocked by the lockout policy         |
-| **Signature Cache**   | Deduplication cache stats (active keys, hit rate)           |
-| **Latency Telemetry** | p50/p95/p99 latency aggregation per provider                |
+| **System Status**     | 运行时间、版本、内存用量、数据目录                          |
+| **Provider Health**   | 每个提供商的熔断器状态（Closed/Open/Half-Open）             |
+| **Rate Limits**       | 每个账户的活跃速率限制冷却及剩余时间                        |
+| **Active Lockouts**   | 被锁定策略临时阻止的提供商                                  |
+| **Signature Cache**   | 去重缓存统计（活跃密钥数、命中率）                          |
+| **Latency Telemetry** | 每个提供商的 p50/p95/p99 延迟聚合                           |
 
-**Pro Tip:** The Health page auto-refreshes every 10 seconds. Use the circuit breaker card to identify which providers are experiencing issues.
+**专业提示：** 健康页面每 10 秒自动刷新。使用熔断器卡片识别哪些提供商正在遇到问题。
 
 ---
 
-## 🖥️ Desktop Application (Electron)
+## 🖥️ 桌面应用（Electron）
 
-OmniRoute is available as a native desktop application for Windows, macOS, and Linux.
+OmniRoute 提供适用于 Windows、macOS 和 Linux 的原生桌面应用。
 
 ### 安装
 
 ```bash
-# From the electron directory:
+# 在 electron 目录中：
 cd electron
 npm install
 
-# Development mode (connect to running Next.js dev server):
+# 开发模式（连接到运行中的 Next.js 开发服务器）：
 npm run dev
 
-# Production mode (uses standalone build):
+# 生产模式（使用 standalone 构建）：
 npm start
 ```
 
-### Building Installers
+### 构建安装程序
 
 ```bash
 cd electron
-npm run build          # Current platform
+npm run build          # 当前平台
 npm run build:win      # Windows (.exe NSIS)
 npm run build:mac      # macOS (.dmg universal)
 npm run build:linux    # Linux (.AppImage)
 ```
 
-Output → `electron/dist-electron/`
+输出目录 → `electron/dist-electron/`
 
-### Key Features
+### 主要功能
 
-| Feature                     | Description                                          |
+| 功能                        | 描述                                                 |
 | --------------------------- | ---------------------------------------------------- |
-| **Server Readiness**        | Polls server before showing window (no blank screen) |
-| **System Tray**             | Minimize to tray, change port, quit from tray menu   |
-| **Port Management**         | Change server port from tray (auto-restarts server)  |
-| **Content Security Policy** | Restrictive CSP via session headers                  |
-| **Single Instance**         | Only one app instance can run at a time              |
-| **Offline Mode**            | Bundled Next.js server works without internet        |
+| **Server Readiness**        | 显示窗口前轮询服务器（无空白屏幕）                   |
+| **System Tray**             | 最小化到托盘、更改端口、从托盘菜单退出               |
+| **Port Management**         | 从托盘更改服务器端口（自动重启服务器）               |
+| **Content Security Policy** | 通过会话头实现限制性 CSP                             |
+| **Single Instance**         | 同一时间只能运行一个应用实例                         |
+| **Offline Mode**            | 打包的 Next.js 服务器可离线工作                      |
 
-### Environment Variables
+### 环境变量
 
-| Variable              | Default | Description                      |
+| 变量                  | 默认值  | 描述                             |
 | --------------------- | ------- | -------------------------------- |
-| `OMNIROUTE_PORT`      | `20128` | Server port                      |
-| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
+| `OMNIROUTE_PORT`      | `20128` | 服务器端口                       |
+| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js 堆内存限制（64–16384 MB）|
 
-📖 Full documentation: [`electron/README.md`](../electron/README.md)
+📖 完整文档：[`electron/README.md`](../electron/README.md)

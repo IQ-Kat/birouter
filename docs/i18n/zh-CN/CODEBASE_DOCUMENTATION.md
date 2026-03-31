@@ -1,44 +1,40 @@
-🌐 **Languages:** 🇺🇸 [English](../../README.md) · 🇧🇷 [pt-BR](../pt-BR/CODEBASE_DOCUMENTATION.md) · 🇪🇸 [es](../es/CODEBASE_DOCUMENTATION.md) · 🇫🇷 [fr](../fr/CODEBASE_DOCUMENTATION.md) · 🇩🇪 [de](../de/CODEBASE_DOCUMENTATION.md) · 🇮🇹 [it](../it/CODEBASE_DOCUMENTATION.md) · 🇷🇺 [ru](../ru/CODEBASE_DOCUMENTATION.md) · 🇨🇳 [zh-CN](../zh-CN/CODEBASE_DOCUMENTATION.md) · 🇯🇵 [ja](../ja/CODEBASE_DOCUMENTATION.md) · 🇰🇷 [ko](../ko/CODEBASE_DOCUMENTATION.md) · 🇸🇦 [ar](../ar/CODEBASE_DOCUMENTATION.md) · 🇮🇳 [in](../in/CODEBASE_DOCUMENTATION.md) · 🇹🇭 [th](../th/CODEBASE_DOCUMENTATION.md) · 🇻🇳 [vi](../vi/CODEBASE_DOCUMENTATION.md) · 🇮🇩 [id](../id/CODEBASE_DOCUMENTATION.md) · 🇲🇾 [ms](../ms/CODEBASE_DOCUMENTATION.md) · 🇳🇱 [nl](../nl/CODEBASE_DOCUMENTATION.md) · 🇵🇱 [pl](../pl/CODEBASE_DOCUMENTATION.md) · 🇸🇪 [sv](../sv/CODEBASE_DOCUMENTATION.md) · 🇳🇴 [no](../no/CODEBASE_DOCUMENTATION.md) · 🇩🇰 [da](../da/CODEBASE_DOCUMENTATION.md) · 🇫🇮 [fi](../fi/CODEBASE_DOCUMENTATION.md) · 🇵🇹 [pt](../pt/CODEBASE_DOCUMENTATION.md) · 🇷🇴 [ro](../ro/CODEBASE_DOCUMENTATION.md) · 🇭🇺 [hu](../hu/CODEBASE_DOCUMENTATION.md) · 🇧🇬 [bg](../bg/CODEBASE_DOCUMENTATION.md) · 🇸🇰 [sk](../sk/CODEBASE_DOCUMENTATION.md) · 🇺🇦 [uk-UA](../uk-UA/CODEBASE_DOCUMENTATION.md) · 🇮🇱 [he](../he/CODEBASE_DOCUMENTATION.md) · 🇵🇭 [phi](../phi/CODEBASE_DOCUMENTATION.md)
+# OmniRoute — 代码库文档
+
+🌐 **语言:** 🇺🇸 [English](../../CODEBASE_DOCUMENTATION.md) | 🇧🇷 [Português (Brasil)](../pt-BR/CODEBASE_DOCUMENTATION.md) | 🇪🇸 [Español](../es/CODEBASE_DOCUMENTATION.md) | 🇫🇷 [Français](../fr/CODEBASE_DOCUMENTATION.md) | 🇮🇹 [Italiano](../it/CODEBASE_DOCUMENTATION.md) | 🇷🇺 [Русский](../ru/CODEBASE_DOCUMENTATION.md) | 🇨🇳 [中文 (简体)](../zh-CN/CODEBASE_DOCUMENTATION.md) | 🇩🇪 [Deutsch](../de/CODEBASE_DOCUMENTATION.md) | 🇮🇳 [हिन्दी](../in/CODEBASE_DOCUMENTATION.md) | 🇹🇭 [ไทย](../th/CODEBASE_DOCUMENTATION.md) | 🇺🇦 [Українська](../uk-UA/CODEBASE_DOCUMENTATION.md) | 🇸🇦 [العربية](../ar/CODEBASE_DOCUMENTATION.md) | 🇯🇵 [日本語](../ja/CODEBASE_DOCUMENTATION.md) | 🇻🇳 [Tiếng Việt](../vi/CODEBASE_DOCUMENTATION.md) | 🇧🇬 [Български](../bg/CODEBASE_DOCUMENTATION.md) | 🇩🇰 [Dansk](../da/CODEBASE_DOCUMENTATION.md) | 🇫🇮 [Suomi](../fi/CODEBASE_DOCUMENTATION.md) | 🇮🇱 [עברית](../he/CODEBASE_DOCUMENTATION.md) | 🇭🇺 [Magyar](../hu/CODEBASE_DOCUMENTATION.md) | 🇮🇩 [Bahasa Indonesia](../id/CODEBASE_DOCUMENTATION.md) | 🇰🇷 [한국어](../ko/CODEBASE_DOCUMENTATION.md) | 🇲🇾 [Bahasa Melayu](../ms/CODEBASE_DOCUMENTATION.md) | 🇳🇱 [Nederlands](../nl/CODEBASE_DOCUMENTATION.md) | 🇳🇴 [Norsk](../no/CODEBASE_DOCUMENTATION.md) | 🇵🇹 [Português (Portugal)](../pt/CODEBASE_DOCUMENTATION.md) | 🇷🇴 [Română](../ro/CODEBASE_DOCUMENTATION.md) | 🇵🇱 [Polski](../pl/CODEBASE_DOCUMENTATION.md) | 🇸🇰 [Slovenčina](../sk/CODEBASE_DOCUMENTATION.md) | 🇸🇪 [Svenska](../sv/CODEBASE_DOCUMENTATION.md) | 🇵🇭 [Filipino](../phi/CODEBASE_DOCUMENTATION.md) | 🇨🇿 [Čeština](../cs/CODEBASE_DOCUMENTATION.md)
+
+> **OmniRoute** 多提供商 AI 代理路由器的全面新手友好指南。
 
 ---
 
-# omniroute — Codebase Documentation
+## 1. OmniRoute 是什么？
 
-🌐 **Languages:** 🇺🇸 [English](CODEBASE_DOCUMENTATION.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/CODEBASE_DOCUMENTATION.md) | 🇪🇸 [Español](i18n/es/CODEBASE_DOCUMENTATION.md) | 🇫🇷 [Français](i18n/fr/CODEBASE_DOCUMENTATION.md) | 🇮🇹 [Italiano](i18n/it/CODEBASE_DOCUMENTATION.md) | 🇷🇺 [Русский](i18n/ru/CODEBASE_DOCUMENTATION.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/CODEBASE_DOCUMENTATION.md) | 🇩🇪 [Deutsch](i18n/de/CODEBASE_DOCUMENTATION.md) | 🇮🇳 [हिन्दी](i18n/in/CODEBASE_DOCUMENTATION.md) | 🇹🇭 [ไทย](i18n/th/CODEBASE_DOCUMENTATION.md) | 🇺🇦 [Українська](i18n/uk-UA/CODEBASE_DOCUMENTATION.md) | 🇸🇦 [العربية](i18n/ar/CODEBASE_DOCUMENTATION.md) | 🇯🇵 [日本語](i18n/ja/CODEBASE_DOCUMENTATION.md) | 🇻🇳 [Tiếng Việt](i18n/vi/CODEBASE_DOCUMENTATION.md) | 🇧🇬 [Български](i18n/bg/CODEBASE_DOCUMENTATION.md) | 🇩🇰 [Dansk](i18n/da/CODEBASE_DOCUMENTATION.md) | 🇫🇮 [Suomi](i18n/fi/CODEBASE_DOCUMENTATION.md) | 🇮🇱 [עברית](i18n/he/CODEBASE_DOCUMENTATION.md) | 🇭🇺 [Magyar](i18n/hu/CODEBASE_DOCUMENTATION.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/CODEBASE_DOCUMENTATION.md) | 🇰🇷 [한국어](i18n/ko/CODEBASE_DOCUMENTATION.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/CODEBASE_DOCUMENTATION.md) | 🇳🇱 [Nederlands](i18n/nl/CODEBASE_DOCUMENTATION.md) | 🇳🇴 [Norsk](i18n/no/CODEBASE_DOCUMENTATION.md) | 🇵🇹 [Português (Portugal)](i18n/pt/CODEBASE_DOCUMENTATION.md) | 🇷🇴 [Română](i18n/ro/CODEBASE_DOCUMENTATION.md) | 🇵🇱 [Polski](i18n/pl/CODEBASE_DOCUMENTATION.md) | 🇸🇰 [Slovenčina](i18n/sk/CODEBASE_DOCUMENTATION.md) | 🇸🇪 [Svenska](i18n/sv/CODEBASE_DOCUMENTATION.md) | 🇵🇭 [Filipino](i18n/phi/CODEBASE_DOCUMENTATION.md)
+OmniRoute 是一个**代理路由器**，位于 AI 客户端（Claude CLI、Codex、Cursor IDE 等）和 AI 提供商（Anthropic、Google、OpenAI、AWS、GitHub 等）之间。它解决了一个大问题：
 
-> A comprehensive, beginner-friendly guide to the **omniroute** multi-provider AI proxy router.
+> **不同的 AI 客户端使用不同的"语言"（API 格式），不同的 AI 提供商也期望不同的"语言"。** OmniRoute 自动在它们之间进行翻译。
 
----
-
-## 1. What Is omniroute?
-
-omniroute is a **proxy router** that sits between AI clients (Claude CLI, Codex, Cursor IDE, etc.) and AI providers (Anthropic, Google, OpenAI, AWS, GitHub, etc.). It solves one big problem:
-
-> **Different AI clients speak different "languages" (API formats), and different AI providers expect different "languages" too.** omniroute translates between them automatically.
-
-Think of it like a universal translator at the United Nations — any delegate can speak any language, and the translator converts it for any other delegate.
+可以把它想象成联合国的万能翻译员 — 任何代表都可以说任何语言，翻译员会为任何其他代表进行转换。
 
 ---
 
-## 2. Architecture Overview
+## 2. 架构概述
 
 ```mermaid
 graph LR
-    subgraph Clients
+    subgraph Clients[客户端]
         A[Claude CLI]
         B[Codex]
         C[Cursor IDE]
-        D[OpenAI-compatible]
+        D[OpenAI 兼容]
     end
 
-    subgraph omniroute
-        E[Handler Layer]
-        F[Translator Layer]
-        G[Executor Layer]
-        H[Services Layer]
+    subgraph omniroute[OmniRoute]
+        E[处理器层]
+        F[翻译器层]
+        G[执行器层]
+        H[服务层]
     end
 
-    subgraph Providers
+    subgraph Providers[提供商]
         I[Anthropic Claude]
         J[Google Gemini]
         K[OpenAI / Codex]
@@ -65,90 +61,90 @@ graph LR
     H -.-> G
 ```
 
-### Core Principle: Hub-and-Spoke Translation
+### 核心原则：中心辐射翻译
 
-All format translation passes through **OpenAI format as the hub**:
+所有格式翻译都通过 **OpenAI 格式作为中心** 进行：
 
 ```
-Client Format → [OpenAI Hub] → Provider Format    (request)
-Provider Format → [OpenAI Hub] → Client Format    (response)
+客户端格式 → [OpenAI 中心] → 提供商格式    （请求）
+提供商格式 → [OpenAI 中心] → 客户端格式    （响应）
 ```
 
-This means you only need **N translators** (one per format) instead of **N²** (every pair).
+这意味着你只需要 **N 个翻译器**（每种格式一个）而不是 **N²**（每对格式一个）。
 
 ---
 
-## 3. Project Structure
+## 3. 项目结构
 
 ```
 omniroute/
-├── open-sse/                  ← Core proxy library (portable, framework-agnostic)
-│   ├── index.js               ← Main entry point, exports everything
-│   ├── config/                ← Configuration & constants
-│   ├── executors/             ← Provider-specific request execution
-│   ├── handlers/              ← Request handling orchestration
-│   ├── services/              ← Business logic (auth, models, fallback, usage)
-│   ├── translator/            ← Format translation engine
-│   │   ├── request/           ← Request translators (8 files)
-│   │   ├── response/          ← Response translators (7 files)
-│   │   └── helpers/           ← Shared translation utilities (6 files)
-│   └── utils/                 ← Utility functions
-├── src/                       ← Application layer (Express/Worker runtime)
-│   ├── app/                   ← Web UI, API routes, middleware
-│   ├── lib/                   ← Database, auth, and shared library code
-│   ├── mitm/                  ← Man-in-the-middle proxy utilities
-│   ├── models/                ← Database models
-│   ├── shared/                ← Shared utilities (wrappers around open-sse)
-│   ├── sse/                   ← SSE endpoint handlers
-│   └── store/                 ← State management
-├── data/                      ← Runtime data (credentials, logs)
-│   └── provider-credentials.json   (external credentials override, gitignored)
-└── tester/                    ← Test utilities
+├── open-sse/                  ← 核心代理库（可移植，框架无关）
+│   ├── index.js               ← 主入口点，导出所有内容
+│   ├── config/                ← 配置和常量
+│   ├── executors/             ← 提供商特定的请求执行
+│   ├── handlers/              ← 请求处理编排
+│   ├── services/              ← 业务逻辑（认证、模型、后备、用量）
+│   ├── translator/            ← 格式翻译引擎
+│   │   ├── request/           ← 请求翻译器（8 个文件）
+│   │   ├── response/          ← 响应翻译器（7 个文件）
+│   │   └── helpers/           ← 共享翻译工具（6 个文件）
+│   └── utils/                 ← 工具函数
+├── src/                       ← 应用层（Express/Worker 运行时）
+│   ├── app/                   ← Web UI、API 路由、中间件
+│   ├── lib/                   ← 数据库、认证和共享库代码
+│   ├── mitm/                  ← 中间人代理工具
+│   ├── models/                ← 数据库模型
+│   ├── shared/                ← 共享工具（open-sse 的包装器）
+│   ├── sse/                   ← SSE 端点处理器
+│   └── store/                 ← 状态管理
+├── data/                      ← 运行时数据（凭证、日志）
+│   └── provider-credentials.json   （外部凭证覆盖，已 gitignore）
+└── tester/                    ← 测试工具
 ```
 
 ---
 
-## 4. Module-by-Module Breakdown
+## 4. 模块逐一分解
 
-### 4.1 Config (`open-sse/config/`)
+### 4.1 配置（`open-sse/config/`）
 
-The **single source of truth** for all provider configuration.
+所有提供商配置的**单一事实来源**。
 
-| File                          | Purpose                                                                                                                                                                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `constants.ts`                | `PROVIDERS` object with base URLs, OAuth credentials (defaults), headers, and default system prompts for every provider. Also defines `HTTP_STATUS`, `ERROR_TYPES`, `COOLDOWN_MS`, `BACKOFF_CONFIG`, and `SKIP_PATTERNS`. |
-| `credentialLoader.ts`         | Loads external credentials from `data/provider-credentials.json` and merges them over the hardcoded defaults in `PROVIDERS`. Keeps secrets out of source control while maintaining backwards compatibility.               |
-| `providerModels.ts`           | Central model registry: maps provider aliases → model IDs. Functions like `getModels()`, `getProviderByAlias()`.                                                                                                          |
-| `codexInstructions.ts`        | System instructions injected into Codex requests (editing constraints, sandbox rules, approval policies).                                                                                                                 |
-| `defaultThinkingSignature.ts` | Default "thinking" signatures for Claude and Gemini models.                                                                                                                                                               |
-| `ollamaModels.ts`             | Schema definition for local Ollama models (name, size, family, quantization).                                                                                                                                             |
+| 文件                          | 用途                                                                                                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `constants.ts`                | `PROVIDERS` 对象，包含每个提供商的基础 URL、OAuth 凭证（默认值）、请求头和默认系统提示词。还定义了 `HTTP_STATUS`、`ERROR_TYPES`、`COOLDOWN_MS`、`BACKOFF_CONFIG` 和 `SKIP_PATTERNS`。 |
+| `credentialLoader.ts`         | 从 `data/provider-credentials.json` 加载外部凭证，并合并覆盖 `PROVIDERS` 中的硬编码默认值。在保持向后兼容性的同时将密钥保持在源代码控制之外。                                         |
+| `providerModels.ts`           | 中央模型注册表：将提供商别名映射到模型 ID。函数如 `getModels()`、`getProviderByAlias()`。                                                                                             |
+| `codexInstructions.ts`        | 注入到 Codex 请求中的系统指令（编辑约束、沙箱规则、审批策略）。                                                                                                                       |
+| `defaultThinkingSignature.ts` | Claude 和 Gemini 模型的默认"thinking"签名。                                                                                                                                           |
+| `ollamaModels.ts`             | 本地 Ollama 模型的模式定义（名称、大小、家族、量化）。                                                                                                                                |
 
-#### Credential Loading Flow
+#### 凭证加载流程
 
 ```mermaid
 flowchart TD
-    A["App starts"] --> B["constants.ts defines PROVIDERS\nwith hardcoded defaults"]
-    B --> C{"data/provider-credentials.json\nexists?"}
-    C -->|Yes| D["credentialLoader reads JSON"]
-    C -->|No| E["Use hardcoded defaults"]
-    D --> F{"For each provider in JSON"}
-    F --> G{"Provider exists\nin PROVIDERS?"}
-    G -->|No| H["Log warning, skip"]
-    G -->|Yes| I{"Value is object?"}
-    I -->|No| J["Log warning, skip"]
-    I -->|Yes| K["Merge clientId, clientSecret,\ntokenUrl, authUrl, refreshUrl"]
+    A["应用启动"] --> B["constants.ts 定义 PROVIDERS\n使用硬编码默认值"]
+    B --> C{"data/provider-credentials.json\n存在？"}
+    C -->|是| D["credentialLoader 读取 JSON"]
+    C -->|否| E["使用硬编码默认值"]
+    D --> F{"对于 JSON 中的每个提供商"}
+    F --> G{"提供商存在于\nPROVIDERS 中？"}
+    G -->|否| H["记录警告，跳过"]
+    G -->|是| I{"值是对象？"}
+    I -->|否| J["记录警告，跳过"]
+    I -->|是| K["合并 clientId、clientSecret、\ntokenUrl、authUrl、refreshUrl"]
     K --> F
     H --> F
     J --> F
-    F -->|Done| L["PROVIDERS ready with\nmerged credentials"]
+    F -->|完成| L["PROVIDERS 准备好\n使用合并后的凭证"]
     E --> L
 ```
 
 ---
 
-### 4.2 Executors (`open-sse/executors/`)
+### 4.2 执行器（`open-sse/executors/`）
 
-Executors encapsulate **provider-specific logic** using the **Strategy Pattern**. Each executor overrides base methods as needed.
+执行器使用**策略模式**封装**提供商特定逻辑**。每个执行器根据需要覆盖基类方法。
 
 ```mermaid
 classDiagram
@@ -198,161 +194,161 @@ classDiagram
     BaseExecutor <|-- GithubExecutor
 ```
 
-| Executor         | Provider                                   | Key Specializations                                                                                                 |
-| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `base.ts`        | —                                          | Abstract base: URL building, headers, retry logic, credential refresh                                               |
-| `default.ts`     | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Generic OAuth token refresh for standard providers                                                                  |
-| `antigravity.ts` | Google Cloud Code                          | Project/session ID generation, multi-URL fallback, custom retry parsing from error messages ("reset after 2h7m23s") |
-| `cursor.ts`      | Cursor IDE                                 | **Most complex**: SHA-256 checksum auth, Protobuf request encoding, binary EventStream → SSE response parsing       |
-| `codex.ts`       | OpenAI Codex                               | Injects system instructions, manages thinking levels, removes unsupported parameters                                |
-| `gemini-cli.ts`  | Google Gemini CLI                          | Custom URL building (`streamGenerateContent`), Google OAuth token refresh                                           |
-| `github.ts`      | GitHub Copilot                             | Dual token system (GitHub OAuth + Copilot token), VSCode header mimicking                                           |
-| `kiro.ts`        | AWS CodeWhisperer                          | AWS EventStream binary parsing, AMZN event frames, token estimation                                                 |
-| `index.ts`       | —                                          | Factory: maps provider name → executor class, with default fallback                                                 |
+| 执行器           | 提供商                                     | 关键特性                                                                             |
+| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `base.ts`        | —                                          | 抽象基类：URL 构建、请求头、重试逻辑、凭证刷新                                       |
+| `default.ts`     | Claude、Gemini、OpenAI、GLM、Kimi、MiniMax | 标准提供商的通用 OAuth Token 刷新                                                    |
+| `antigravity.ts` | Google Cloud Code                          | 项目/会话 ID 生成、多 URL 后备、从错误消息解析自定义重试（"reset after 2h7m23s"）    |
+| `cursor.ts`      | Cursor IDE                                 | **最复杂**：SHA-256 校验和认证、Protobuf 请求编码、二进制 EventStream → SSE 响应解析 |
+| `codex.ts`       | OpenAI Codex                               | 注入系统指令、管理 Thinking 级别、移除不支持的参数                                   |
+| `gemini-cli.ts`  | Google Gemini CLI                          | 自定义 URL 构建（`streamGenerateContent`）、Google OAuth Token 刷新                  |
+| `github.ts`      | GitHub Copilot                             | 双 Token 系统（GitHub OAuth + Copilot Token）、模拟 VSCode 请求头                    |
+| `kiro.ts`        | AWS CodeWhisperer                          | AWS EventStream 二进制解析、AMZN 事件帧、Token 估算                                  |
+| `index.ts`       | —                                          | 工厂：将提供商名称映射到执行器类，带默认后备                                         |
 
 ---
 
-### 4.3 Handlers (`open-sse/handlers/`)
+### 4.3 处理器（`open-sse/handlers/`）
 
-The **orchestration layer** — coordinates translation, execution, streaming, and error handling.
+**编排层** — 协调翻译、执行、流式传输和错误处理。
 
-| File                  | Purpose                                                                                                                                                                                                                |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chatCore.ts`         | **Central orchestrator** (~600 lines). Handles the complete request lifecycle: format detection → translation → executor dispatch → streaming/non-streaming response → token refresh → error handling → usage logging. |
-| `responsesHandler.ts` | Adapter for OpenAI's Responses API: converts Responses format → Chat Completions → sends to `chatCore` → converts SSE back to Responses format.                                                                        |
-| `embeddings.ts`       | Embedding generation handler: resolves embedding model → provider, dispatches to provider API, returns OpenAI-compatible embedding response. Supports 6+ providers.                                                    |
-| `imageGeneration.ts`  | Image generation handler: resolves image model → provider, supports OpenAI-compatible, Gemini-image (Antigravity), and fallback (Nebius) modes. Returns base64 or URL images.                                          |
+| 文件                  | 用途                                                                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `chatCore.ts`         | **中央编排器**（约 600 行）。处理完整的请求生命周期：格式检测 → 翻译 → 执行器调度 → 流式/非流式响应 → Token 刷新 → 错误处理 → 用量日志。 |
+| `responsesHandler.ts` | OpenAI Responses API 适配器：将 Responses 格式 → Chat Completions → 发送到 `chatCore` → 将 SSE 转换回 Responses 格式。                   |
+| `embeddings.ts`       | Embedding 生成处理器：解析 Embedding 模型 → 提供商，调度到提供商 API，返回 OpenAI 兼容的 Embedding 响应。支持 6+ 个提供商。              |
+| `imageGeneration.ts`  | 图像生成处理器：解析图像模型 → 提供商，支持 OpenAI 兼容、Gemini-image（Antigravity）和后备（Nebius）模式。返回 base64 或 URL 图像。      |
 
-#### Request Lifecycle (chatCore.ts)
+#### 请求生命周期（chatCore.ts）
 
 ```mermaid
 sequenceDiagram
-    participant Client
+    participant Client as 客户端
     participant chatCore
-    participant Translator
-    participant Executor
-    participant Provider
+    participant Translator as 翻译器
+    participant Executor as 执行器
+    participant Provider as 提供商
 
-    Client->>chatCore: Request (any format)
-    chatCore->>chatCore: Detect source format
-    chatCore->>chatCore: Check bypass patterns
-    chatCore->>chatCore: Resolve model & provider
-    chatCore->>Translator: Translate request (source → OpenAI → target)
-    chatCore->>Executor: Get executor for provider
-    Executor->>Executor: Build URL, headers, transform request
-    Executor->>Executor: Refresh credentials if needed
-    Executor->>Provider: HTTP fetch (streaming or non-streaming)
+    Client->>chatCore: 请求（任何格式）
+    chatCore->>chatCore: 检测源格式
+    chatCore->>chatCore: 检查 bypass 模式
+    chatCore->>chatCore: 解析模型和提供商
+    chatCore->>Translator: 翻译请求（源 → OpenAI → 目标）
+    chatCore->>Executor: 获取提供商的执行器
+    Executor->>Executor: 构建 URL、请求头、转换请求
+    Executor->>Executor: 如需要则刷新凭证
+    Executor->>Provider: HTTP fetch（流式或非流式）
 
-    alt Streaming
-        Provider-->>chatCore: SSE stream
-        chatCore->>chatCore: Pipe through SSE transform stream
-        Note over chatCore: Transform stream translates<br/>each chunk: target → OpenAI → source
-        chatCore-->>Client: Translated SSE stream
-    else Non-streaming
-        Provider-->>chatCore: JSON response
-        chatCore->>Translator: Translate response
-        chatCore-->>Client: Translated JSON
+    alt 流式传输
+        Provider-->>chatCore: SSE 流
+        chatCore->>chatCore: 通过 SSE 转换流管道
+        Note over chatCore: 转换流翻译<br/>每个块：目标 → OpenAI → 源
+        chatCore-->>Client: 已翻译的 SSE 流
+    else 非流式传输
+        Provider-->>chatCore: JSON 响应
+        chatCore->>Translator: 翻译响应
+        chatCore-->>Client: 已翻译的 JSON
     end
 
-    alt Error (401, 429, 500...)
-        chatCore->>Executor: Retry with credential refresh
-        chatCore->>chatCore: Account fallback logic
+    alt 错误 (401, 429, 500...)
+        chatCore->>Executor: 带凭证刷新重试
+        chatCore->>chatCore: 账户后备逻辑
     end
 ```
 
 ---
 
-### 4.4 Services (`open-sse/services/`)
+### 4.4 服务（`open-sse/services/`）
 
-Business logic that supports the handlers and executors.
+支持处理器和执行器的业务逻辑。
 
-| File                 | Purpose                                                                                                                                                                                                                                                                                                                                |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `provider.ts`        | **Format detection** (`detectFormat`): analyzes request body structure to identify Claude/OpenAI/Gemini/Antigravity/Responses formats (includes `max_tokens` heuristic for Claude). Also: URL building, header building, thinking config normalization. Supports `openai-compatible-*` and `anthropic-compatible-*` dynamic providers. |
-| `model.ts`           | Model string parsing (`claude/model-name` → `{provider: "claude", model: "model-name"}`), alias resolution with collision detection, input sanitization (rejects path traversal/control chars), and model info resolution with async alias getter support.                                                                             |
-| `accountFallback.ts` | Rate-limit handling: exponential backoff (1s → 2s → 4s → max 2min), account cooldown management, error classification (which errors trigger fallback vs. not).                                                                                                                                                                         |
-| `tokenRefresh.ts`    | OAuth token refresh for **every provider**: Google (Gemini, Antigravity), Claude, Codex, Qwen, Qoder, GitHub (OAuth + Copilot dual-token), Kiro (AWS SSO OIDC + Social Auth). Includes in-flight promise deduplication cache and retry with exponential backoff.                                                                       |
-| `combo.ts`           | **Combo models**: chains of fallback models. If model A fails with a fallback-eligible error, try model B, then C, etc. Returns actual upstream status codes.                                                                                                                                                                          |
-| `usage.ts`           | Fetches quota/usage data from provider APIs (GitHub Copilot quotas, Antigravity model quotas, Codex rate limits, Kiro usage breakdowns, Claude settings).                                                                                                                                                                              |
-| `accountSelector.ts` | Smart account selection with scoring algorithm: considers priority, health status, round-robin position, and cooldown state to pick the optimal account for each request.                                                                                                                                                              |
-| `contextManager.ts`  | Request context lifecycle management: creates and tracks per-request context objects with metadata (request ID, timestamps, provider info) for debugging and logging.                                                                                                                                                                  |
-| `ipFilter.ts`        | IP-based access control: supports allowlist and blocklist modes. Validates client IP against configured rules before processing API requests.                                                                                                                                                                                          |
-| `sessionManager.ts`  | Session tracking with client fingerprinting: tracks active sessions using hashed client identifiers, monitors request counts, and provides session metrics.                                                                                                                                                                            |
-| `signatureCache.ts`  | Request signature-based deduplication cache: prevents duplicate requests by caching recent request signatures and returning cached responses for identical requests within a time window.                                                                                                                                              |
-| `systemPrompt.ts`    | Global system prompt injection: prepends or appends a configurable system prompt to all requests, with per-provider compatibility handling.                                                                                                                                                                                            |
-| `thinkingBudget.ts`  | Reasoning token budget management: supports passthrough, auto (strip thinking config), custom (fixed budget), and adaptive (complexity-scaled) modes for controlling thinking/reasoning tokens.                                                                                                                                        |
-| `wildcardRouter.ts`  | Wildcard model pattern routing: resolves wildcard patterns (e.g., `*/claude-*`) to concrete provider/model pairs based on availability and priority.                                                                                                                                                                                   |
+| 文件                 | 用途                                                                                                                                                                                                                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `provider.ts`        | **格式检测**（`detectFormat`）：分析请求体结构以识别 Claude/OpenAI/Gemini/Antigravity/Responses 格式（包括 Claude 的 `max_tokens` 启发式）。还有：URL 构建、请求头构建、Thinking 配置规范化。支持 `openai-compatible-*` 和 `anthropic-compatible-*` 动态提供商。 |
+| `model.ts`           | 模型字符串解析（`claude/model-name` → `{provider: "claude", model: "model-name"}`）、带冲突检测的别名解析、输入清理（拒绝路径遍历/控制字符）、以及支持异步别名获取器的模型信息解析。                                                                             |
+| `accountFallback.ts` | 速率限制处理：指数退避（1s → 2s → 4s → 最大 2 分钟）、账户冷却管理、错误分类（哪些错误触发后备，哪些不触发）。                                                                                                                                                   |
+| `tokenRefresh.ts`    | **每个提供商**的 OAuth Token 刷新：Google（Gemini、Antigravity）、Claude、Codex、Qwen、Qoder、GitHub（OAuth + Copilot 双 Token）、Kiro（AWS SSO OIDC + 社交认证）。包括进行中 Promise 去重缓存和指数退避重试。                                                   |
+| `combo.ts`           | **Combo 模型**：后备模型链。如果模型 A 因可后备错误失败，尝试模型 B，然后 C，依此类推。返回实际的上游状态码。                                                                                                                                                    |
+| `usage.ts`           | 从提供商 API 获取配额/用量数据（GitHub Copilot 配额、Antigravity 模型配额、Codex 速率限制、Kiro 用量明细、Claude 设置）。                                                                                                                                        |
+| `accountSelector.ts` | 智能账户选择与评分算法：考虑优先级、健康状态、轮询位置和冷却状态，为每个请求选择最优账户。                                                                                                                                                                       |
+| `contextManager.ts`  | 请求上下文生命周期管理：创建和追踪带有元数据（请求 ID、时间戳、提供商信息）的每请求上下文对象，用于调试和日志。                                                                                                                                                  |
+| `ipFilter.ts`        | 基于 IP 的访问控制：支持白名单和黑名单模式。在处理 API 请求前根据配置规则验证客户端 IP。                                                                                                                                                                         |
+| `sessionManager.ts`  | 带客户端指纹的会话追踪：使用哈希客户端标识符追踪活动会话、监控请求计数、提供会话指标。                                                                                                                                                                           |
+| `signatureCache.ts`  | 基于请求签名的去重缓存：通过缓存近期请求签名并在时间窗口内为相同请求返回缓存响应来防止重复请求。                                                                                                                                                                 |
+| `systemPrompt.ts`    | 全局系统提示词注入：在所有请求前置或追加可配置的系统提示词，带每提供商兼容性处理。                                                                                                                                                                               |
+| `thinkingBudget.ts`  | 推理 Token 预算管理：支持 passthrough（透传）、auto（剥离 Thinking 配置）、custom（固定预算）和 adaptive（复杂度缩放）模式来控制 Thinking/推理 Token。                                                                                                           |
+| `wildcardRouter.ts`  | 通配符模型模式路由：根据可用性和优先级将通配符模式（如 `*/claude-*`）解析为具体的提供商/模型对。                                                                                                                                                                 |
 
-#### Token Refresh Deduplication
+#### Token 刷新去重
 
 ```mermaid
 sequenceDiagram
-    participant R1 as Request 1
-    participant R2 as Request 2
+    participant R1 as 请求 1
+    participant R2 as 请求 2
     participant Cache as refreshPromiseCache
-    participant OAuth as OAuth Provider
+    participant OAuth as OAuth 提供商
 
     R1->>Cache: getAccessToken("gemini", token)
-    Cache->>Cache: No in-flight promise
-    Cache->>OAuth: Start refresh
+    Cache->>Cache: 无进行中 Promise
+    Cache->>OAuth: 开始刷新
     R2->>Cache: getAccessToken("gemini", token)
-    Cache->>Cache: Found in-flight promise
-    Cache-->>R2: Return existing promise
-    OAuth-->>Cache: New access token
-    Cache-->>R1: New access token
-    Cache-->>R2: Same access token (shared)
-    Cache->>Cache: Delete cache entry
+    Cache->>Cache: 找到进行中 Promise
+    Cache-->>R2: 返回现有 Promise
+    OAuth-->>Cache: 新访问 Token
+    Cache-->>R1: 新访问 Token
+    Cache-->>R2: 相同访问 Token（共享）
+    Cache->>Cache: 删除缓存条目
 ```
 
-#### Account Fallback State Machine
+#### 账户后备状态机
 
 ```mermaid
 stateDiagram-v2
     [*] --> Active
-    Active --> Error: Request fails (401/429/500)
-    Error --> Cooldown: Apply backoff
-    Cooldown --> Active: Cooldown expires
-    Active --> Active: Request succeeds (reset backoff)
+    Active --> Error: 请求失败 (401/429/500)
+    Error --> Cooldown: 应用退避
+    Cooldown --> Active: 冷却过期
+    Active --> Active: 请求成功（重置退避）
 
     state Error {
         [*] --> ClassifyError
-        ClassifyError --> ShouldFallback: Rate limit / Auth / Transient
-        ClassifyError --> NoFallback: 400 Bad Request
+        ClassifyError --> ShouldFallback: 速率限制 / 认证 / 瞬态
+        ClassifyError --> NoFallback: 400 错误请求
     }
 
     state Cooldown {
         [*] --> ExponentialBackoff
-        ExponentialBackoff: Level 0 = 1s
-        ExponentialBackoff: Level 1 = 2s
-        ExponentialBackoff: Level 2 = 4s
-        ExponentialBackoff: Max = 2min
+        ExponentialBackoff: 级别 0 = 1s
+        ExponentialBackoff: 级别 1 = 2s
+        ExponentialBackoff: 级别 2 = 4s
+        ExponentialBackoff: 最大 = 2min
     }
 ```
 
-#### Combo Model Chain
+#### Combo 模型链
 
 ```mermaid
 flowchart LR
-    A["Request with\ncombo model"] --> B["Model A"]
-    B -->|"2xx Success"| C["Return response"]
-    B -->|"429/401/500"| D{"Fallback\neligible?"}
-    D -->|Yes| E["Model B"]
-    D -->|No| F["Return error"]
-    E -->|"2xx Success"| C
-    E -->|"429/401/500"| G{"Fallback\neligible?"}
-    G -->|Yes| H["Model C"]
-    G -->|No| F
-    H -->|"2xx Success"| C
-    H -->|"Fail"| I["All failed →\nReturn last status"]
+    A["带 Combo 模型的请求"] --> B["模型 A"]
+    B -->|"2xx 成功"| C["返回响应"]
+    B -->|"429/401/500"| D{"可后备？"}
+    D -->|是| E["模型 B"]
+    D -->|否| F["返回错误"]
+    E -->|"2xx 成功"| C
+    E -->|"429/401/500"| G{"可后备？"}
+    G -->|是| H["模型 C"]
+    G -->|否| F
+    H -->|"2xx 成功"| C
+    H -->|"失败"| I["全部失败 →\n返回最后状态"]
 ```
 
 ---
 
-### 4.5 Translator (`open-sse/translator/`)
+### 4.5 翻译器（`open-sse/translator/`）
 
-The **format translation engine** using a self-registering plugin system.
+使用自注册插件系统的**格式翻译引擎**。
 
-#### Architecture
+#### 架构
 
 ```mermaid
 graph TD
@@ -378,40 +374,40 @@ graph TD
     end
 ```
 
-| Directory    | Files         | Description                                                                                                                                                                                                                                                      |
-| ------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `request/`   | 8 translators | Convert request bodies between formats. Each file self-registers via `register(from, to, fn)` on import.                                                                                                                                                         |
-| `response/`  | 7 translators | Convert streaming response chunks between formats. Handles SSE event types, thinking blocks, tool calls.                                                                                                                                                         |
-| `helpers/`   | 6 helpers     | Shared utilities: `claudeHelper` (system prompt extraction, thinking config), `geminiHelper` (parts/contents mapping), `openaiHelper` (format filtering), `toolCallHelper` (ID generation, missing response injection), `maxTokensHelper`, `responsesApiHelper`. |
-| `index.ts`   | —             | Translation engine: `translateRequest()`, `translateResponse()`, state management, registry.                                                                                                                                                                     |
-| `formats.ts` | —             | Format constants: `OPENAI`, `CLAUDE`, `GEMINI`, `ANTIGRAVITY`, `KIRO`, `CURSOR`, `OPENAI_RESPONSES`.                                                                                                                                                             |
+| 目录         | 文件数       | 描述                                                                                                                                                                                                               |
+| ------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request/`   | 8 个翻译器   | 在不同格式之间转换请求体。每个文件在导入时通过 `register(from, to, fn)` 自注册。                                                                                                                                   |
+| `response/`  | 7 个翻译器   | 在不同格式之间转换流式响应块。处理 SSE 事件类型、thinking 块、工具调用。                                                                                                                                           |
+| `helpers/`   | 6 个辅助工具 | 共享工具：`claudeHelper`（系统提示词提取、thinking 配置）、`geminiHelper`（parts/contents 映射）、`openaiHelper`（格式过滤）、`toolCallHelper`（ID 生成、缺失响应注入）、`maxTokensHelper`、`responsesApiHelper`。 |
+| `index.ts`   | —            | 翻译引擎：`translateRequest()`、`translateResponse()`、状态管理、注册表。                                                                                                                                          |
+| `formats.ts` | —            | 格式常量：`OPENAI`、`CLAUDE`、`GEMINI`、`ANTIGRAVITY`、`KIRO`、`CURSOR`、`OPENAI_RESPONSES`。                                                                                                                      |
 
-#### Key Design: Self-Registering Plugins
+#### 关键设计：自注册插件
 
 ```javascript
-// Each translator file calls register() on import:
+// 每个翻译器文件在导入时调用 register()：
 import { register } from "../index.js";
 register("claude", "openai", translateClaudeToOpenAI);
 
-// The index.js imports all translator files, triggering registration:
-import "./request/claude-to-openai.js"; // ← self-registers
+// index.js 导入所有翻译器文件，触发注册：
+import "./request/claude-to-openai.js"; // ← 自注册
 ```
 
 ---
 
-### 4.6 Utils (`open-sse/utils/`)
+### 4.6 工具 (`open-sse/utils/`)
 
-| File               | Purpose                                                                                                                                                                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `error.ts`         | Error response building (OpenAI-compatible format), upstream error parsing, Antigravity retry-time extraction from error messages, SSE error streaming.                                                                                                                              |
-| `stream.ts`        | **SSE Transform Stream** — the core streaming pipeline. Two modes: `TRANSLATE` (full format translation) and `PASSTHROUGH` (normalize + extract usage). Handles chunk buffering, usage estimation, content length tracking. Per-stream encoder/decoder instances avoid shared state. |
-| `streamHelpers.ts` | Low-level SSE utilities: `parseSSELine` (whitespace-tolerant), `hasValuableContent` (filters empty chunks for OpenAI/Claude/Gemini), `fixInvalidId`, `formatSSE` (format-aware SSE serialization with `perf_metrics` cleanup).                                                       |
-| `usageTracking.ts` | Token usage extraction from any format (Claude/OpenAI/Gemini/Responses), estimation with separate tool/message char-per-token ratios, buffer addition (2000 tokens safety margin), format-specific field filtering, console logging with ANSI colors.                                |
-| `requestLogger.ts` | File-based request logging (opt-in via `ENABLE_REQUEST_LOGS=true`). Creates session folders with numbered files: `1_req_client.json` → `7_res_client.txt`. All I/O is async (fire-and-forget). Masks sensitive headers.                                                              |
-| `bypassHandler.ts` | Intercepts specific patterns from Claude CLI (title extraction, warmup, count) and returns fake responses without calling any provider. Supports both streaming and non-streaming. Intentionally limited to Claude CLI scope.                                                        |
-| `networkProxy.ts`  | Resolves outbound proxy URL for a given provider with precedence: provider-specific config → global config → environment variables (`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY`). Supports `NO_PROXY` exclusions. Caches config for 30s.                                                  |
+| 文件               | 用途                                                                                                                                                                                         |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `error.ts`         | 错误响应构建（OpenAI 兼容格式）、上游错误解析、从错误消息中提取 Antigravity 重试时间、SSE 错误流式传输。                                                                                     |
+| `stream.ts`        | **SSE 转换流** — 核心流式管道。两种模式：`TRANSLATE`（完整格式转换）和 `PASSTHROUGH`（规范化 + 提取用量）。处理块缓冲、用量估算、内容长度追踪。每流独立的 encoder/decoder 实例避免共享状态。 |
+| `streamHelpers.ts` | 底层 SSE 工具：`parseSSELine`（容忍空白）、`hasValuableContent`（过滤 OpenAI/Claude/Gemini 的空块）、`fixInvalidId`、`formatSSE`（感知格式的 SSE 序列化，清理 `perf_metrics`）。             |
+| `usageTracking.ts` | 从任何格式提取 Token 用量（Claude/OpenAI/Gemini/Responses），使用独立的工具/消息字符-token 比率估算，添加缓冲（2000 token 安全边际），格式特定字段过滤，带 ANSI 颜色的控制台日志。           |
+| `requestLogger.ts` | 基于文件的请求日志（通过 `ENABLE_REQUEST_LOGS=true` 启用）。创建带编号文件的会话文件夹：`1_req_client.json` → `7_res_client.txt`。所有 I/O 异步（fire-and-forget）。遮蔽敏感请求头。         |
+| `bypassHandler.ts` | 拦截 Claude CLI 的特定模式（标题提取、预热、计数）并返回假响应而不调用任何提供商。支持流式和非流式。有意限制在 Claude CLI 范围内。                                                           |
+| `networkProxy.ts`  | 为给定提供商解析出站代理 URL，优先级：提供商特定配置 → 全局配置 → 环境变量（`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY`）。支持 `NO_PROXY` 排除。配置缓存 30 秒。                                 |
 
-#### SSE Streaming Pipeline
+#### SSE 流管道
 
 ```mermaid
 flowchart TD
@@ -433,161 +429,161 @@ flowchart TD
     style M fill:#9f9,stroke:#333
 ```
 
-#### Request Logger Session Structure
+#### 请求日志器会话结构
 
 ```
 logs/
 └── claude_gemini_claude-sonnet_20260208_143045/
-    ├── 1_req_client.json      ← Raw client request
-    ├── 2_req_source.json      ← After initial conversion
-    ├── 3_req_openai.json      ← OpenAI intermediate format
-    ├── 4_req_target.json      ← Final target format
-    ├── 5_res_provider.txt     ← Provider SSE chunks (streaming)
-    ├── 5_res_provider.json    ← Provider response (non-streaming)
-    ├── 6_res_openai.txt       ← OpenAI intermediate chunks
-    ├── 7_res_client.txt       ← Client-facing SSE chunks
-    └── 6_error.json           ← Error details (if any)
+    ├── 1_req_client.json      ← 原始客户端请求
+    ├── 2_req_source.json      ← 初始转换后
+    ├── 3_req_openai.json      ← OpenAI 中间格式
+    ├── 4_req_target.json      ← 最终目标格式
+    ├── 5_res_provider.txt     ← 提供商 SSE 块（流式）
+    ├── 5_res_provider.json    ← 提供商响应（非流式）
+    ├── 6_res_openai.txt       ← OpenAI 中间块
+    ├── 7_res_client.txt       ← 面向客户端的 SSE 块
+    └── 6_error.json           ← 错误详情（如有）
 ```
 
 ---
 
-### 4.7 Application Layer (`src/`)
+### 4.7 应用层（`src/`）
 
-| Directory     | Purpose                                                                |
-| ------------- | ---------------------------------------------------------------------- |
-| `src/app/`    | Web UI, API routes, Express middleware, OAuth callback handlers        |
-| `src/lib/`    | Database access (`localDb.ts`, `usageDb.ts`), authentication, shared   |
-| `src/mitm/`   | Man-in-the-middle proxy utilities for intercepting provider traffic    |
-| `src/models/` | Database model definitions                                             |
-| `src/shared/` | Wrappers around open-sse functions (provider, stream, error, etc.)     |
-| `src/sse/`    | SSE endpoint handlers that wire the open-sse library to Express routes |
-| `src/store/`  | Application state management                                           |
+| 目录          | 用途                                                 |
+| ------------- | ---------------------------------------------------- |
+| `src/app/`    | Web UI、API 路由、Express 中间件、OAuth 回调处理器   |
+| `src/lib/`    | 数据库访问（`localDb.ts`、`usageDb.ts`）、认证、共享 |
+| `src/mitm/`   | 用于拦截提供商流量的中间人代理工具                   |
+| `src/models/` | 数据库模型定义                                       |
+| `src/shared/` | open-sse 函数的包装器（provider、stream、error 等）  |
+| `src/sse/`    | 将 open-sse 库连接到 Express 路由的 SSE 端点处理器   |
+| `src/store/`  | 应用状态管理                                         |
 
-#### Notable API Routes
+#### 重要 API 路由
 
-| Route                                         | Methods         | Purpose                                                                               |
-| --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
-| `/api/provider-models`                        | GET/POST/DELETE | CRUD for custom models per provider                                                   |
-| `/api/models/catalog`                         | GET             | Aggregated catalog of all models (chat, embedding, image, custom) grouped by provider |
-| `/api/settings/proxy`                         | GET/PUT/DELETE  | Hierarchical outbound proxy configuration (`global/providers/combos/keys`)            |
-| `/api/settings/proxy/test`                    | POST            | Validates proxy connectivity and returns public IP/latency                            |
-| `/v1/providers/[provider]/chat/completions`   | POST            | Dedicated per-provider chat completions with model validation                         |
-| `/v1/providers/[provider]/embeddings`         | POST            | Dedicated per-provider embeddings with model validation                               |
-| `/v1/providers/[provider]/images/generations` | POST            | Dedicated per-provider image generation with model validation                         |
-| `/api/settings/ip-filter`                     | GET/PUT         | IP allowlist/blocklist management                                                     |
-| `/api/settings/thinking-budget`               | GET/PUT         | Reasoning token budget configuration (passthrough/auto/custom/adaptive)               |
-| `/api/settings/system-prompt`                 | GET/PUT         | Global system prompt injection for all requests                                       |
-| `/api/sessions`                               | GET             | Active session tracking and metrics                                                   |
-| `/api/rate-limits`                            | GET             | Per-account rate limit status                                                         |
-
----
-
-## 5. Key Design Patterns
-
-### 5.1 Hub-and-Spoke Translation
-
-All formats translate through **OpenAI format as the hub**. Adding a new provider only requires writing **one pair** of translators (to/from OpenAI), not N pairs.
-
-### 5.2 Executor Strategy Pattern
-
-Each provider has a dedicated executor class inheriting from `BaseExecutor`. The factory in `executors/index.ts` selects the right one at runtime.
-
-### 5.3 Self-Registering Plugin System
-
-Translator modules register themselves on import via `register()`. Adding a new translator is just creating a file and importing it.
-
-### 5.4 Account Fallback with Exponential Backoff
-
-When a provider returns 429/401/500, the system can switch to the next account, applying exponential cooldowns (1s → 2s → 4s → max 2min).
-
-### 5.5 Combo Model Chains
-
-A "combo" groups multiple `provider/model` strings. If the first fails, fallback to the next automatically.
-
-### 5.6 Stateful Streaming Translation
-
-Response translation maintains state across SSE chunks (thinking block tracking, tool call accumulation, content block indexing) via the `initState()` mechanism.
-
-### 5.7 Usage Safety Buffer
-
-A 2000-token buffer is added to reported usage to prevent clients from hitting context window limits due to overhead from system prompts and format translation.
+| 路由                                          | 方法            | 用途                                                              |
+| --------------------------------------------- | --------------- | ----------------------------------------------------------------- |
+| `/api/provider-models`                        | GET/POST/DELETE | 每提供商自定义模型的 CRUD                                         |
+| `/api/models/catalog`                         | GET             | 按提供商分组的所有模型（聊天、Embedding、图像、自定义）的聚合目录 |
+| `/api/settings/proxy`                         | GET/PUT/DELETE  | 分层出站代理配置（`global/providers/combos/keys`）                |
+| `/api/settings/proxy/test`                    | POST            | 验证代理连接并返回公共 IP/延迟                                    |
+| `/v1/providers/[provider]/chat/completions`   | POST            | 带模型验证的专用每提供商聊天完成                                  |
+| `/v1/providers/[provider]/embeddings`         | POST            | 带模型验证的专用每提供商 Embedding                                |
+| `/v1/providers/[provider]/images/generations` | POST            | 带模型验证的专用每提供商图像生成                                  |
+| `/api/settings/ip-filter`                     | GET/PUT         | IP 白名单/黑名单管理                                              |
+| `/api/settings/thinking-budget`               | GET/PUT         | 推理 Token 预算配置（passthrough/auto/custom/adaptive）           |
+| `/api/settings/system-prompt`                 | GET/PUT         | 所有请求的全局系统提示词注入                                      |
+| `/api/sessions`                               | GET             | 活动会话追踪和指标                                                |
+| `/api/rate-limits`                            | GET             | 每账户速率限制状态                                                |
 
 ---
 
-## 6. Supported Formats
+## 5. 关键设计模式
 
-| Format                  | Direction       | Identifier         |
-| ----------------------- | --------------- | ------------------ |
-| OpenAI Chat Completions | source + target | `openai`           |
-| OpenAI Responses API    | source + target | `openai-responses` |
-| Anthropic Claude        | source + target | `claude`           |
-| Google Gemini           | source + target | `gemini`           |
-| Google Gemini CLI       | target only     | `gemini-cli`       |
-| Antigravity             | source + target | `antigravity`      |
-| AWS Kiro                | target only     | `kiro`             |
-| Cursor                  | target only     | `cursor`           |
+### 5.1 中心辐射翻译
 
----
+所有格式都通过 **OpenAI 格式作为中心** 进行翻译。添加新提供商只需要编写**一对**翻译器（到/从 OpenAI），而不是 N 对。
 
-## 7. Supported Providers
+### 5.2 执行器策略模式
 
-| Provider                 | Auth Method            | Executor    | Key Notes                                     |
-| ------------------------ | ---------------------- | ----------- | --------------------------------------------- |
-| Anthropic Claude         | API key or OAuth       | Default     | Uses `x-api-key` header                       |
-| Google Gemini            | API key or OAuth       | Default     | Uses `x-goog-api-key` header                  |
-| Google Gemini CLI        | OAuth                  | GeminiCLI   | Uses `streamGenerateContent` endpoint         |
-| Antigravity              | OAuth                  | Antigravity | Multi-URL fallback, custom retry parsing      |
-| OpenAI                   | API key                | Default     | Standard Bearer auth                          |
-| Codex                    | OAuth                  | Codex       | Injects system instructions, manages thinking |
-| GitHub Copilot           | OAuth + Copilot token  | Github      | Dual token, VSCode header mimicking           |
-| Kiro (AWS)               | AWS SSO OIDC or Social | Kiro        | Binary EventStream parsing                    |
-| Cursor IDE               | Checksum auth          | Cursor      | Protobuf encoding, SHA-256 checksums          |
-| Qwen                     | OAuth                  | Default     | Standard auth                                 |
-| Qoder                    | OAuth (Basic + Bearer) | Default     | Dual auth header                              |
-| OpenRouter               | API key                | Default     | Standard Bearer auth                          |
-| GLM, Kimi, MiniMax       | API key                | Default     | Claude-compatible, use `x-api-key`            |
-| `openai-compatible-*`    | API key                | Default     | Dynamic: any OpenAI-compatible endpoint       |
-| `anthropic-compatible-*` | API key                | Default     | Dynamic: any Claude-compatible endpoint       |
+每个提供商都有一个继承自 `BaseExecutor` 的专用执行器类。`executors/index.ts` 中的工厂在运行时选择正确的执行器。
+
+### 5.3 自注册插件系统
+
+翻译器模块在导入时通过 `register()` 自注册。添加新翻译器只需创建文件并导入它。
+
+### 5.4 带指数退避的账户后备
+
+当提供商返回 429/401/500 时，系统可以切换到下一个账户，应用指数冷却（1s → 2s → 4s → 最大 2min）。
+
+### 5.5 Combo 模型链
+
+"Combo"组合多个 `provider/model` 字符串。如果第一个失败，自动后备到下一个。
+
+### 5.6 有状态流式翻译
+
+响应翻译通过 `initState()` 机制在 SSE 块之间维护状态（Thinking 块追踪、工具调用累积、内容块索引）。
+
+### 5.7 用量安全缓冲
+
+在报告的用量中添加 2000 Token 缓冲，以防止客户端因系统提示词和格式翻译开销而达到上下文窗口限制。
 
 ---
 
-## 8. Data Flow Summary
+## 6. 支持的格式
 
-### Streaming Request
+| 格式                    | 方向      | 标识符             |
+| ----------------------- | --------- | ------------------ |
+| OpenAI Chat Completions | 源 + 目标 | `openai`           |
+| OpenAI Responses API    | 源 + 目标 | `openai-responses` |
+| Anthropic Claude        | 源 + 目标 | `claude`           |
+| Google Gemini           | 源 + 目标 | `gemini`           |
+| Google Gemini CLI       | 仅目标    | `gemini-cli`       |
+| Antigravity             | 源 + 目标 | `antigravity`      |
+| AWS Kiro                | 仅目标    | `kiro`             |
+| Cursor                  | 仅目标    | `cursor`           |
+
+---
+
+## 7. 支持的提供商
+
+| 提供商                   | 认证方法                | 执行器      | 关键说明                          |
+| ------------------------ | ----------------------- | ----------- | --------------------------------- |
+| Anthropic Claude         | API 密钥或 OAuth        | Default     | 使用 `x-api-key` 请求头           |
+| Google Gemini            | API 密钥或 OAuth        | Default     | 使用 `x-goog-api-key` 请求头      |
+| Google Gemini CLI        | OAuth                   | GeminiCLI   | 使用 `streamGenerateContent` 端点 |
+| Antigravity              | OAuth                   | Antigravity | 多 URL 后备，自定义重试解析       |
+| OpenAI                   | API 密钥                | Default     | 标准 Bearer 认证                  |
+| Codex                    | OAuth                   | Codex       | 注入系统指令，管理 Thinking       |
+| GitHub Copilot           | OAuth + Copilot Token   | Github      | 双 Token，模拟 VSCode 请求头      |
+| Kiro (AWS)               | AWS SSO OIDC 或社交     | Kiro        | 二进制 EventStream 解析           |
+| Cursor IDE               | 校验和认证              | Cursor      | Protobuf 编码，SHA-256 校验和     |
+| Qwen                     | OAuth                   | Default     | 标准认证                          |
+| Qoder                    | OAuth（Basic + Bearer） | Default     | 双认证请求头                      |
+| OpenRouter               | API 密钥                | Default     | 标准 Bearer 认证                  |
+| GLM、Kimi、MiniMax       | API 密钥                | Default     | Claude 兼容，使用 `x-api-key`     |
+| `openai-compatible-*`    | API 密钥                | Default     | 动态：任何 OpenAI 兼容端点        |
+| `anthropic-compatible-*` | API 密钥                | Default     | 动态：任何 Claude 兼容端点        |
+
+---
+
+## 8. 数据流摘要
+
+### 流式请求
 
 ```mermaid
 flowchart LR
-    A["Client"] --> B["detectFormat()"]
-    B --> C["translateRequest()\nsource → OpenAI → target"]
-    C --> D["Executor\nbuildUrl + buildHeaders"]
+    A["客户端"] --> B["detectFormat()"]
+    B --> C["translateRequest()\n源 → OpenAI → 目标"]
+    C --> D["执行器\nbuildUrl + buildHeaders"]
     D --> E["fetch(providerURL)"]
-    E --> F["createSSEStream()\nTRANSLATE mode"]
+    E --> F["createSSEStream()\nTRANSLATE 模式"]
     F --> G["parseSSELine()"]
-    G --> H["translateResponse()\ntarget → OpenAI → source"]
+    G --> H["translateResponse()\n目标 → OpenAI → 源"]
     H --> I["extractUsage()\n+ addBuffer"]
     I --> J["formatSSE()"]
-    J --> K["Client receives\ntranslated SSE"]
+    J --> K["客户端接收\n已翻译的 SSE"]
     K --> L["logUsage()\nsaveRequestUsage()"]
 ```
 
-### Non-Streaming Request
+### 非流式请求
 
 ```mermaid
 flowchart LR
-    A["Client"] --> B["detectFormat()"]
-    B --> C["translateRequest()\nsource → OpenAI → target"]
+    A["客户端"] --> B["detectFormat()"]
+    B --> C["translateRequest()\n源 → OpenAI → 目标"]
     C --> D["Executor.execute()"]
-    D --> E["translateResponse()\ntarget → OpenAI → source"]
-    E --> F["Return JSON\nresponse"]
+    D --> E["translateResponse()\n目标 → OpenAI → 源"]
+    E --> F["返回 JSON\n响应"]
 ```
 
-### Bypass Flow (Claude CLI)
+### Bypass 流程（Claude CLI）
 
 ```mermaid
 flowchart LR
-    A["Claude CLI request"] --> B{"Match bypass\npattern?"}
-    B -->|"Title/Warmup/Count"| C["Generate fake\nOpenAI response"]
-    B -->|"No match"| D["Normal flow"]
-    C --> E["Translate to\nsource format"]
-    E --> F["Return without\ncalling provider"]
+    A["Claude CLI 请求"] --> B{"匹配 bypass\n模式？"}
+    B -->|"标题/预热/计数"| C["生成假\nOpenAI 响应"]
+    B -->|"无匹配"| D["正常流程"]
+    C --> E["翻译为\n源格式"]
+    E --> F["返回而不\n调用提供商"]
 ```
