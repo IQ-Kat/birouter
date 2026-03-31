@@ -282,6 +282,109 @@ export default function AppearanceTab() {
             />
           </div>
         </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                badge
+              </span>
+            </div>
+            <div>
+              <h4 className="font-semibold">{t("whitelabeling")}</h4>
+              <p className="text-sm text-text-muted">{t("whitelabelingDesc")}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">{t("appName")}</p>
+                <p className="text-sm text-text-muted">{t("appNameDesc")}</p>
+              </div>
+              <input
+                type="text"
+                value={settings.instanceName || "OmniRoute"}
+                onChange={(e) => updateSetting("instanceName", e.target.value)}
+                placeholder="OmniRoute"
+                maxLength={100}
+                className="h-10 px-3 rounded-lg bg-surface border border-border text-sm text-text-main focus:outline-none focus:border-primary w-48"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div>
+                <p className="font-medium">{t("customLogo")}</p>
+                <p className="text-sm text-text-muted">{t("customLogoDesc")}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={settings.customLogoUrl || ""}
+                  onChange={(e) => updateSetting("customLogoUrl", e.target.value)}
+                  className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm text-text-main focus:outline-none focus:border-primary"
+                  placeholder="https://example.com/logo.png"
+                  maxLength={2000}
+                />
+                {(settings.customLogoUrl || settings.customLogoBase64) && (
+                  <img
+                    src={settings.customLogoBase64 || settings.customLogoUrl}
+                    alt="Logo preview"
+                    className="h-10 w-10 rounded border border-border object-contain bg-surface"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="font-medium">{t("uploadLogo")}</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 500 * 1024) {
+                        alert("Logo file must be less than 500KB");
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const base64 = event.target?.result as string;
+                        updateSetting("customLogoBase64", base64);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="text-sm text-text-muted"
+                />
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    updateSetting("customLogoUrl", "");
+                    updateSetting("customLogoBase64", "");
+                  }}
+                >
+                  {t("resetLogo")}
+                </Button>
+              </div>
+              {(settings.customLogoBase64 || settings.customLogoUrl) && (
+                <div className="mt-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg">
+                  <p className="text-xs text-text-muted mb-2">{t("logoPreview")}</p>
+                  <img
+                    src={settings.customLogoBase64 || settings.customLogoUrl}
+                    alt="Logo preview"
+                    className="h-12 w-auto max-w-full rounded"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </Card>
   );
