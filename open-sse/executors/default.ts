@@ -1,6 +1,7 @@
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
@@ -41,15 +42,23 @@ export class DefaultExecutor extends BaseExecutor {
   buildHeaders(credentials, stream = true) {
     const headers = { "Content-Type": "application/json", ...this.config.headers };
 
+    // T07: resolve extra keys round-robin locally since DefaultExecutor overrides BaseExecutor buildHeaders
+    const extraKeys =
+      (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+    const effectiveKey =
+      extraKeys.length > 0 && credentials.connectionId && credentials.apiKey
+        ? getRotatingApiKey(credentials.connectionId, credentials.apiKey, extraKeys)
+        : credentials.apiKey;
+
     switch (this.provider) {
       case "gemini":
-        credentials.apiKey
-          ? (headers["x-goog-api-key"] = credentials.apiKey)
+        effectiveKey
+          ? (headers["x-goog-api-key"] = effectiveKey)
           : (headers["Authorization"] = `Bearer ${credentials.accessToken}`);
         break;
       case "claude":
-        credentials.apiKey
-          ? (headers["x-api-key"] = credentials.apiKey)
+        effectiveKey
+          ? (headers["x-api-key"] = effectiveKey)
           : (headers["Authorization"] = `Bearer ${credentials.accessToken}`);
         break;
       case "glm":
@@ -58,12 +67,12 @@ export class DefaultExecutor extends BaseExecutor {
       case "kimi-coding-apikey":
       case "minimax":
       case "minimax-cn":
-        headers["x-api-key"] = credentials.apiKey || credentials.accessToken;
+        headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       default:
         if (this.provider?.startsWith?.("anthropic-compatible-")) {
-          if (credentials.apiKey) {
-            headers["x-api-key"] = credentials.apiKey;
+          if (effectiveKey) {
+            headers["x-api-key"] = effectiveKey;
           } else if (credentials.accessToken) {
             headers["Authorization"] = `Bearer ${credentials.accessToken}`;
           }
@@ -71,7 +80,7 @@ export class DefaultExecutor extends BaseExecutor {
             headers["anthropic-version"] = "2023-06-01";
           }
         } else {
-          headers["Authorization"] = `Bearer ${credentials.apiKey || credentials.accessToken}`;
+          headers["Authorization"] = `Bearer ${effectiveKey || credentials.accessToken}`;
         }
     }
 
