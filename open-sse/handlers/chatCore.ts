@@ -23,7 +23,7 @@ import {
 import { HTTP_STATUS, PROVIDER_MAX_TOKENS } from "../config/constants.ts";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
-import { isDetailedLoggingEnabled, saveRequestDetailLog } from "@/lib/db/detailedLogs";
+import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
 import { logAuditEvent } from "@/lib/compliance";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
@@ -533,6 +533,24 @@ export async function handleChatCore({
     claudeCacheUsageMeta?: Record<string, unknown>;
   }) => {
     const callLogId = generateRequestId();
+    const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
+
+    if (pipelinePayloads) {
+      if (providerResponse !== undefined) {
+        pipelinePayloads.providerResponse = providerResponse as Record<string, unknown>;
+      }
+      if (clientResponse !== undefined) {
+        pipelinePayloads.clientResponse = clientResponse as Record<string, unknown>;
+      }
+      if (error) {
+        pipelinePayloads.error = {
+          ...(typeof pipelinePayloads.error === "object" && pipelinePayloads.error
+            ? (pipelinePayloads.error as Record<string, unknown>)
+            : {}),
+          message: error,
+        };
+      }
+    }
 
     saveCallLog({
       id: callLogId,
@@ -565,31 +583,8 @@ export async function handleChatCore({
       apiKeyId: apiKeyInfo?.id || null,
       apiKeyName: apiKeyInfo?.name || null,
       noLog: noLogEnabled,
+      pipelinePayloads,
     }).catch(() => {});
-
-    if (!detailedLoggingEnabled) {
-      return;
-    }
-
-    try {
-      saveRequestDetailLog({
-        call_log_id: callLogId,
-        client_request: clientRawRequest?.body ?? body,
-        translated_request: providerRequest ?? null,
-        provider_response: providerResponse ?? null,
-        client_response: clientResponse ?? null,
-        provider,
-        model,
-        source_format: sourceFormat,
-        target_format: targetFormat,
-        duration_ms: Date.now() - startTime,
-        api_key_id: apiKeyInfo?.id || null,
-        no_log: noLogEnabled,
-      });
-    } catch (err) {
-      const errMessage = err instanceof Error ? err.message : String(err);
-      log?.debug?.("DETAIL_LOG", `Failed to save detailed log: ${errMessage}`);
-    }
   };
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved

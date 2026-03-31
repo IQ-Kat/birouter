@@ -26,6 +26,30 @@ _Your universal API proxy — one endpoint, 67+ providers, zero downtime. Now wi
 
 ---
 
+## Breaking Change: Unified Logging Upgrade
+
+> [!WARNING]
+> **This release changes both the on-disk request log layout and the logging environment variables.**
+>
+> If you are upgrading an existing instance:
+>
+> - Request logs now live in `DATA_DIR/call_logs/YYYY-MM-DD/` as **one JSON artifact per request**.
+> - The old `DATA_DIR/logs/` session folders and `DATA_DIR/log.txt` summary file are removed.
+> - On the first startup after upgrading, OmniRoute creates a safety backup at `DATA_DIR/log_archives/*.zip` before removing the deprecated request log layout.
+> - Legacy logging env vars such as `LOG_TO_FILE`, `LOG_FILE_PATH`, `LOG_MAX_FILE_SIZE`, `LOG_RETENTION_DAYS`, `LOG_LEVEL`, `LOG_FORMAT`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE`, and `PROXY_LOG_MAX_ENTRIES` are no longer supported.
+> - Use the new env model instead:
+>   - `APP_LOG_TO_FILE`
+>   - `APP_LOG_FILE_PATH`
+>   - `APP_LOG_MAX_FILE_SIZE`
+>   - `APP_LOG_RETENTION_DAYS`
+>   - `APP_LOG_LEVEL`
+>   - `APP_LOG_FORMAT`
+>   - `CALL_LOG_RETENTION_DAYS`
+>
+> For release details and upgrade notes, see the [CHANGELOG](CHANGELOG.md).
+
+---
+
 ## 🆕 What's New in v3.0.0
 
 > **Upgrading from v2.9.5?** — See the [full CHANGELOG](CHANGELOG.md#300--2026-03-22-release-candidate--not-yet-merged-to-main) for all changes.
@@ -1276,22 +1300,22 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 
 ### ☁️ Deployment & Platform
 
-| Feature                       | What It Does                                              |
-| ----------------------------- | --------------------------------------------------------- |
-| 🌐 **Deploy Anywhere**        | Localhost, VPS, Docker, Cloud environments                |
-| 🚇 **Cloudflare Tunnel** 🆕   | One-click Quick Tunnel integration from the dashboard     |
-| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles          |
-| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls                    |
-| 🔄 **Backup/Restore**         | Export/import and disaster recovery flows                 |
-| 🧙 **Onboarding Wizard**      | First-run guided setup                                    |
-| 🔧 **CLI Tools Dashboard**    | One-click setup for popular coding tools                  |
-| 🎮 **Model Playground**       | Test any provider/model/endpoint from the dashboard       |
-| 🔏 **CLI Fingerprint Toggle** | Per-provider fingerprint matching in Settings > Security  |
-| 🌐 **i18n (30 languages)**    | Full dashboard + docs language support with RTL coverage  |
-| 🧹 **Clear All Models**       | One-click model list clearing in provider details         |
-| 👁️ **Sidebar Controls** 🆕    | Hide components and integrations from Appearance Settings |
-| 📋 **Issue Templates**        | Standardized GitHub templates for bugs and features       |
-| 📂 **Custom Data Directory**  | `DATA_DIR` override for storage location                  |
+| Feature                        | What It Does                                                          |
+| ------------------------------ | --------------------------------------------------------------------- |
+| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                            |
+| 🚇 **Cloudflare Tunnel** 🆕    | One-click Quick Tunnel integration from the dashboard                 |
+| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles |
+| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls               |
+| 🔄 **Backup/Restore**          | Export/import and disaster recovery flows                             |
+| 🧙 **Onboarding Wizard**       | First-run guided setup                                                |
+| 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                              |
+| 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                   |
+| 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security              |
+| 🌐 **i18n (30 languages)**     | Full dashboard + docs language support with RTL coverage              |
+| 🧹 **Clear All Models**        | One-click model list clearing in provider details                     |
+| 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
+| 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |
+| 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                              |
 
 ### Feature Deep Dive
 
@@ -1811,7 +1835,9 @@ opencode
 
 **No request logs**
 
-- Set `ENABLE_REQUEST_LOGS=true` in `.env`
+- Request artifacts are written to `DATA_DIR/call_logs/` as one JSON file per request
+- Enable pipeline capture from Dashboard → Logs → Request Logs if you need detailed per-stage payloads
+- Set `APP_LOG_TO_FILE=true` if you also want application console logs in `logs/application/app.log`
 
 **Connection test shows "Invalid" for OpenAI-compatible providers**
 
