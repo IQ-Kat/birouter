@@ -959,7 +959,8 @@ export async function handleChatCore({
       if (
         targetFormat === FORMATS.OPENAI &&
         !bodyToSend.prompt_cache_key &&
-        Array.isArray(bodyToSend.messages)
+        Array.isArray(bodyToSend.messages) &&
+        !["nvidia", "codex", "xai"].includes(provider)
       ) {
         const { generatePromptCacheKey } = await import("@/lib/promptCache");
         const cacheKey = generatePromptCacheKey(bodyToSend.messages);
@@ -968,18 +969,39 @@ export async function handleChatCore({
         }
       }
 
-      const rawResult = await withRateLimit(provider, connectionId, modelToCall, () =>
-        executor.execute({
-          model: modelToCall,
-          body: bodyToSend,
-          stream,
-          credentials: getExecutionCredentials(),
-          signal: streamController.signal,
-          log,
-          extendedContext,
-          upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-        })
-      );
+      const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
+        let attempts = 0;
+        const maxAttempts = provider === "qwen" ? 3 : 1;
+
+        while (attempts < maxAttempts) {
+          const res = await executor.execute({
+            model: modelToCall,
+            body: bodyToSend,
+            stream,
+            credentials: getExecutionCredentials(),
+            signal: streamController.signal,
+            log,
+            extendedContext,
+            upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+          });
+
+          // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
+          if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
+            const bodyPeek = await res.response
+              .clone()
+              .text()
+              .catch(() => "");
+            if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
+              const delay = 1500 * (attempts + 1);
+              log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+              await new Promise((r) => setTimeout(r, delay));
+              attempts++;
+              continue;
+            }
+          }
+          return res;
+        }
+      });
 
       if (stream) return rawResult;
 

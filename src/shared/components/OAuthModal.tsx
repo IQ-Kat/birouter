@@ -225,7 +225,12 @@ export default function OAuthModal({
 
             setAuthData({ ...serverData, redirectUri: serverData.redirectUri });
             setStep("waiting");
-            window.open(serverData.authUrl, "oauth_auth");
+            popupRef.current = window.open(serverData.authUrl, "oauth_auth");
+
+            // If browser blocked the popup, switch to manual input step immediately
+            if (!popupRef.current) {
+              setStep("input");
+            }
 
             setPolling(true);
             const maxAttempts = 150;

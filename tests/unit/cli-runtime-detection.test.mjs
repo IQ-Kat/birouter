@@ -15,7 +15,11 @@ const { getCliRuntimeStatus, CLI_TOOL_IDS } =
 // ─── Helpers ──────────────────────────────────────────────────
 
 function createTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "cli-test-"));
+  const testRoot = path.join(os.homedir(), ".omniroute-test-tmp");
+  if (!fs.existsSync(testRoot)) {
+    fs.mkdirSync(testRoot, { recursive: true });
+  }
+  return fs.mkdtempSync(path.join(testRoot, "cli-test-"));
 }
 
 function createFile(dir, name, content) {
@@ -64,11 +68,11 @@ describe("Size threshold — checkKnownPath", () => {
 
   it("should detect files >= 30 bytes via env var", async () => {
     const prev = process.env.CLI_DROID_BIN;
-    // Create a valid 30-byte+ script
+    // Create a valid 30-byte+ script (using spaces/comments for padding, NO \r on linux)
     const content =
       process.platform === "win32"
-        ? "@echo off\r\necho 1.0.0\r\nexit 0\r\n"
-        : "#!/bin/sh\r\necho 1.0.0\r\nexit 0\r\n";
+        ? "@echo off\r\necho 1.0.0\r\nREM PADDING_PADDIN\r\nexit 0\r\n"
+        : "#!/bin/sh\necho 1.0.0\n# PADDING_PADDING_PAD\nexit 0\n";
     const script = createFile(tmpDir, "droid-valid", content);
     // Verify it's at least 30 bytes
     const stat = fs.statSync(script);
@@ -87,10 +91,15 @@ describe("Size threshold — checkKnownPath", () => {
 
   it("should detect a valid CLI script (>= 30 bytes) via env var", async () => {
     const prev = process.env.CLI_DROID_BIN;
+    // Ensure the size stays > 30 bytes without \r\n on bash
+    const content =
+      process.platform === "win32"
+        ? "@echo off\r\necho 1.0.0\r\nREM PADDING_PAD\r\n"
+        : "#!/bin/sh\necho 1.0.0\n# PADDING_PADDING_PAD\n";
     const script =
       process.platform === "win32"
-        ? createFile(tmpDir, "droid.cmd", "@echo off\necho 1.0.0\n")
-        : createFile(tmpDir, "droid", "#!/bin/sh\necho 1.0.0\n");
+        ? createFile(tmpDir, "droid.cmd", content)
+        : createFile(tmpDir, "droid", content);
 
     process.env.CLI_DROID_BIN = script;
     try {
