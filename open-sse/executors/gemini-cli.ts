@@ -1,6 +1,14 @@
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 
+const LOAD_CODE_ASSIST_URL = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
+const PROJECT_TTL_MS = 30_000; // 30 seconds — matches native Gemini CLI
+const MAX_CACHE_SIZE = 100;
+const LOAD_CODE_ASSIST_TIMEOUT_MS = 10_000; // 10 seconds timeout
+
+// Per-account cache: accessToken -> { projectId, expiresAt }
+const projectCache = new Map<string, { projectId: string; expiresAt: number }>();
+
 export class GeminiCLIExecutor extends BaseExecutor {
   constructor() {
     super("gemini-cli", PROVIDERS["gemini-cli"]);
@@ -25,10 +33,94 @@ export class GeminiCLIExecutor extends BaseExecutor {
     };
   }
 
-  transformRequest(model, body, stream, credentials) {
-    // NOTE: project override removed — the stored projectId can become stale for free-tier
-    // accounts, causing 403 errors. The translator (wrapInCloudCodeEnvelope) handles
-    // project injection; the executor should not re-override with potentially stale data.
+  /**
+   * Fetch the current cloudaicompanionProject via loadCodeAssist API.
+   * Native Gemini CLI refreshes this every 30 seconds — OmniRoute stores it once
+   * at OAuth connection time, so it goes stale. This method keeps it fresh.
+   */
+  async refreshProject(accessToken: string): Promise<string | null> {
+    // Check cache
+    const cached = projectCache.get(accessToken);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.projectId;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), LOAD_CODE_ASSIST_TIMEOUT_MS);
+
+      let response;
+      try {
+        response = await fetch(LOAD_CODE_ASSIST_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            metadata: {
+              ideType: "IDE_UNSPECIFIED",
+              platform: "PLATFORM_UNSPECIFIED",
+              pluginType: "GEMINI",
+            },
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (!response.ok) {
+        console.warn(
+          `[OmniRoute] loadCodeAssist returned ${response.status} — falling back to stored projectId`
+        );
+        return null;
+      }
+
+      const data = await response.json();
+      let projectId = "";
+      if (typeof data.cloudaicompanionProject === "string") {
+        projectId = data.cloudaicompanionProject.trim();
+      } else if (data.cloudaicompanionProject?.id) {
+        projectId = data.cloudaicompanionProject.id.trim();
+      }
+
+      if (!projectId) {
+        console.warn("[OmniRoute] loadCodeAssist returned no project — falling back to stored projectId");
+        return null;
+      }
+
+      // Cache for 30 seconds (evict stale entries if cache is full)
+      if (projectCache.size >= MAX_CACHE_SIZE) {
+        const now = Date.now();
+        for (const [key, val] of projectCache) {
+          if (val.expiresAt <= now) projectCache.delete(key);
+        }
+      }
+      projectCache.set(accessToken, {
+        projectId,
+        expiresAt: Date.now() + PROJECT_TTL_MS,
+      });
+
+      return projectId;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.warn(`[OmniRoute] loadCodeAssist failed (${msg}) — falling back to stored projectId`);
+      return null;
+    }
+  }
+
+  async transformRequest(model, body, stream, credentials) {
+    // Refresh the project ID via loadCodeAssist (cached for 30s).
+    // The translator builds the envelope with the stale stored projectId —
+    // we replace it here with the fresh one before sending to the API.
+    if (body && typeof body === "object" && body.request && credentials.accessToken) {
+      const freshProject = await this.refreshProject(credentials.accessToken);
+      if (freshProject) {
+        body.project = freshProject;
+      }
+      // If refresh failed, keep the stale projectId as a best-effort fallback
+    }
     return body;
   }
 

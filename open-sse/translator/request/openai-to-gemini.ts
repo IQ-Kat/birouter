@@ -340,7 +340,8 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
 // Wrap Gemini CLI format in Cloud Code wrapper
 function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
   // Both Antigravity and Gemini CLI need the project field for the Cloud Code API.
-  // For Gemini CLI, the stored project comes from loadCodeAssist during OAuth.
+  // For Gemini CLI, the stored projectId may be stale; the executor's transformRequest
+  // refreshes it via loadCodeAssist before the request is sent to the API.
   let projectId = credentials?.projectId;
 
   if (!projectId) {

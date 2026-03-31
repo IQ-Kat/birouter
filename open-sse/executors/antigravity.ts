@@ -213,7 +213,7 @@ export class AntigravityExecutor extends BaseExecutor {
       const url = this.buildUrl(model, stream, urlIndex);
       const headers = this.buildHeaders(credentials, stream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
-      const transformedBody = this.transformRequest(model, body, stream, credentials);
+      const transformedBody = await this.transformRequest(model, body, stream, credentials);
 
       // Initialize retry counter for this URL
       if (!retryAttemptsByUrl[urlIndex]) {
