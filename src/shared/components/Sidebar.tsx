@@ -37,11 +37,15 @@ export default function Sidebar({
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
+  const [customAppName, setCustomAppName] = useState<string | null>(null);
+  const [customLogo, setCustomLogo] = useState<string | null>(null);
 
   useEffect(() => {
     const applySettings = (data) => {
       setShowDebug(data?.debugMode === true);
       setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
+      setCustomAppName(data?.instanceName || null);
+      setCustomLogo(data?.customLogoBase64 || data?.customLogoUrl || null);
     };
 
     fetch("/api/settings")
@@ -60,6 +64,16 @@ export default function Sidebar({
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
         );
+      }
+
+      if ("instanceName" in detail) {
+        setCustomAppName(detail.instanceName as string || null);
+      }
+
+      if ("customLogoBase64" in detail) {
+        setCustomLogo(detail.customLogoBase64 as string || null);
+      } else if ("customLogoUrl" in detail) {
+        setCustomLogo(detail.customLogoUrl as string || null);
       }
     };
 
@@ -221,12 +235,20 @@ export default function Sidebar({
             className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}
           >
             <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
-              <OmniRouteLogo size={20} className="text-white" />
+              {customLogo ? (
+                <img
+                  src={customLogo}
+                  alt={customAppName || APP_CONFIG.name}
+                  className="size-5 object-contain"
+                />
+              ) : (
+                <OmniRouteLogo size={20} className="text-white" />
+              )}
             </div>
             {!collapsed && (
               <div className="flex flex-col">
                 <h1 className="text-lg font-semibold tracking-tight text-text-main">
-                  {APP_CONFIG.name}
+                  {customAppName || APP_CONFIG.name}
                 </h1>
                 <span className="text-xs text-text-muted">v{APP_CONFIG.version}</span>
               </div>
