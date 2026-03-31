@@ -274,6 +274,8 @@ export function classifyErrorText(errorText) {
   if (
     lower.includes("quota exceeded") ||
     lower.includes("quota depleted") ||
+    lower.includes("quota will reset") ||
+    lower.includes("your quota will reset") ||
     lower.includes("billing")
   ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
