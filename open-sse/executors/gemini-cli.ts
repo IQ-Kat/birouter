@@ -8,6 +8,8 @@ const LOAD_CODE_ASSIST_TIMEOUT_MS = 10_000; // 10 seconds timeout
 
 // Per-account cache: accessToken -> { projectId, expiresAt }
 const projectCache = new Map<string, { projectId: string; expiresAt: number }>();
+// In-flight deduplication: prevents thundering herd on cache miss
+const inflightRefresh = new Map<string, Promise<string | null>>();
 
 export class GeminiCLIExecutor extends BaseExecutor {
   constructor() {
@@ -45,6 +47,20 @@ export class GeminiCLIExecutor extends BaseExecutor {
       return cached.projectId;
     }
 
+    // Deduplicate in-flight requests (thundering herd prevention)
+    const inflight = inflightRefresh.get(accessToken);
+    if (inflight) return inflight;
+
+    const promise = this._doRefresh(accessToken);
+    inflightRefresh.set(accessToken, promise);
+    try {
+      return await promise;
+    } finally {
+      inflightRefresh.delete(accessToken);
+    }
+  }
+
+  async _doRefresh(accessToken: string): Promise<string | null> {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), LOAD_CODE_ASSIST_TIMEOUT_MS);
@@ -81,7 +97,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
       let projectId = "";
       if (typeof data.cloudaicompanionProject === "string") {
         projectId = data.cloudaicompanionProject.trim();
-      } else if (data.cloudaicompanionProject?.id) {
+      } else if (typeof data.cloudaicompanionProject?.id === "string") {
         projectId = data.cloudaicompanionProject.id.trim();
       }
 
@@ -95,6 +111,11 @@ export class GeminiCLIExecutor extends BaseExecutor {
         const now = Date.now();
         for (const [key, val] of projectCache) {
           if (val.expiresAt <= now) projectCache.delete(key);
+        }
+        // If still full, evict the oldest entry (Map maintains insertion order)
+        if (projectCache.size >= MAX_CACHE_SIZE) {
+          const firstKey = projectCache.keys().next().value;
+          if (firstKey !== undefined) projectCache.delete(firstKey);
         }
       }
       projectCache.set(accessToken, {

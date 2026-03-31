@@ -92,7 +92,7 @@ describe("unwrapGeminiChunk", () => {
     assert.strictEqual(result, chunk);
   });
 
-  it("returns parsed when response exists but is null/undefined", () => {
+  it("returns parsed when response is null (falsy) — no valid envelope to unwrap", () => {
     const chunk = { response: null, other: "data" };
     const result = unwrapGeminiChunk(chunk);
     assert.strictEqual(result, chunk);

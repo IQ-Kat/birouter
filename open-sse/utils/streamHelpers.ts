@@ -89,7 +89,10 @@ export function hasValuableContent(chunk, format) {
  * while standard Gemini returns { candidates: [...] } directly.
  */
 export function unwrapGeminiChunk(parsed) {
-  return parsed.candidates ? parsed : parsed.response || parsed;
+  if (!parsed.candidates && parsed.response) {
+    return parsed.response;
+  }
+  return parsed;
 }
 
 // Fix invalid id (generic or too short)
