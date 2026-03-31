@@ -18,11 +18,24 @@ Fetches open feature request issues, analyzes each against the current codebase,
 
 ### 2. Fetch Open Feature Request Issues
 
-// turbo
+// turbo-all
 
-- Run: `gh issue list --repo <owner>/<repo> --state open --limit 50 --json number,title,labels,body,comments,createdAt,author`
-- Filter for issues that are feature requests (label `enhancement`/`feature`, or body describes new functionality, or previously classified as feature request)
-- Sort by oldest first
+**⚠️ CRITICAL**: The JSON output of `gh issue list` can be truncated by the tool, silently hiding issues and their comments. You MUST use the two-step approach below to guarantee **all** feature requests and their full conversations are fetched.
+
+**Step 2a — Get Issue numbers only** (small output, never truncated):
+
+- Run: `gh issue list --repo <owner>/<repo> --state open --labels "enhancement" --limit 500 --json number --jq '.[].number'`
+- (Also run the same for `--labels "feature"` if they are separated, or filter all open issues if labels are not strictly used).
+- This outputs one issue number per line. Count them and confirm total.
+
+**Step 2b — Fetch full metadata & conversations for each Issue** (one call per issue):
+
+- For each issue number from step 2a, run:
+  `gh issue view <NUMBER> --repo <owner>/<repo> --json number,title,labels,body,comments,createdAt,author`
+- Read not just the body, but **ALL comments (`comments` array)** completely to understand the full context, agreements, and restrictions discussed by the community.
+- You may batch these into parallel calls (up to 4 at a time).
+- Filter for issues that are feature requests (if not already filtered by label).
+- Sort by oldest first.
 
 ### 3. Analyze Each Feature Request
 

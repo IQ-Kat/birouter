@@ -4,6 +4,14 @@
 
 ---
 
+## [3.3.9] - 2026-03-31
+
+### 🐛 Bug Fixes
+
+- **Custom Provider Rotation:** Integrated `getRotatingApiKey` internally inside DefaultExecutor, ensuring `extraApiKeys` rotation triggers correctly for custom and compatible upstream providers (#815)
+
+---
+
 ## [3.3.8] - 2026-03-30
 
 ### 🚀 Features

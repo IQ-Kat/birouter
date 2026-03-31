@@ -1280,7 +1280,8 @@ OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
 | ----------------------------- | --------------------------------------------------------- |
 | 🌐 **Deploy Anywhere**        | Localhost, VPS, Docker, Cloud environments                |
 | 🚇 **Cloudflare Tunnel** 🆕   | One-click Quick Tunnel integration from the dashboard     |
-| 💾 **Cloud Sync**             | Configuration sync via cloud worker                       |
+| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles          |
+| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls                    |
 | 🔄 **Backup/Restore**         | Export/import and disaster recovery flows                 |
 | 🧙 **Onboarding Wizard**      | First-run guided setup                                    |
 | 🔧 **CLI Tools Dashboard**    | One-click setup for popular coding tools                  |
