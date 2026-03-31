@@ -697,6 +697,7 @@ export async function handleChatCore({
     isCombo,
     comboStrategy,
     targetProvider: provider,
+    targetFormat,
     settings: { alwaysPreserveClientCache: cacheControlMode },
   });
 
