@@ -9,6 +9,15 @@
 ### ✨ New Features
 
 - **Unified Request Log Artifacts:** Request logging now stores one SQLite index row plus one JSON artifact per request under `DATA_DIR/call_logs/`, with optional pipeline capture embedded in the same file.
+- **Language:** Improved the Chinese translation (#855)
+- **Opencode-Zen Models:** Added 4 free models to opencode-zen registry (#854)
+- **Tests:** Added unit and E2E tests for settings toggles and bug fixes (#850)
+
+### 🐛 Bug Fixes
+
+- **429 Quota Parsing:** Parsed long quota reset times from error bodies to honor correct backoffs and prevent rate-limited account bans (#859)
+- **Prompt Caching:** Preserved client `cache_control` headers for all Claude-protocol providers (like Minimax, GLM, and Bailian), correctly recognizing caching support (#856)
+- **Model Sync Logs:** Reduced log spam by recording `sync-models` only when the channel actually modifies the list (#853)
 
 ### ⚠️ Breaking Changes
 
