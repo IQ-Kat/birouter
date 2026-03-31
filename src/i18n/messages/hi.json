@@ -2512,7 +2512,8 @@
     "waitingForIFlowAuthorization": "Waiting for iFlow authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "Authorization": "Authorization",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "waitingForQoderAuthorization": "Waiting for Qoder authorization..."
   },
   "landing": {
     "brandName": "ओम्निरूट",
