@@ -2,8 +2,6 @@ import { BaseExecutor } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 
 export class GeminiCLIExecutor extends BaseExecutor {
-  private _currentModel: string = "";
-
   constructor() {
     super("gemini-cli", PROVIDERS["gemini-cli"]);
   }
@@ -18,29 +16,19 @@ export class GeminiCLIExecutor extends BaseExecutor {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials.accessToken}`,
       // Fingerprint headers matching native GeminiCLI client (prevents upstream rejection)
-      "User-Agent": `GeminiCLI/0.31.0/${this._currentModel || "unknown"} (linux; x64)`,
+      "User-Agent": "GeminiCLI/0.31.0/unknown (linux; x64)",
       "X-Goog-Api-Client": "google-genai-sdk/1.41.0 gl-node/v22.19.0",
       ...(stream && { Accept: "text/event-stream" }),
-      ...(credentials?.projectId && { "x-goog-user-project": credentials.projectId }),
+      // NOTE: x-goog-user-project removed — the stored projectId can become stale for
+      // free-tier accounts, causing 403 "Cloud Code Private API has not been used in
+      // project X". The API resolves the correct project from the OAuth token alone.
     };
   }
 
   transformRequest(model, body, stream, credentials) {
-    // Capture model so buildHeaders (called after transformRequest) can include it in User-Agent
-    this._currentModel = model || "";
-
-    const allowBodyProjectOverride = process.env.OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE === "1";
-
-    // Default: prefer OAuth-stored projectId. Incoming body.project can be stale
-    // when clients cache older Cloud Code project values.
-    // Opt-in escape hatch: set OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE=1.
-    if (allowBodyProjectOverride && body?.project) {
-      return body;
-    }
-
-    if (credentials?.projectId) {
-      body.project = credentials.projectId;
-    }
+    // NOTE: project override removed — the stored projectId can become stale for free-tier
+    // accounts, causing 403 errors. The translator (wrapInCloudCodeEnvelope) handles
+    // project injection; the executor should not re-override with potentially stale data.
     return body;
   }
 
