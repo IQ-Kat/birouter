@@ -1,32 +1,32 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { getSettings, updateSettings } from "../../src/lib/localDb.ts";
+import { getSettings, updateSettings } from "../../src/lib/db/settings.ts";
 
 describe("Settings API - debugMode and hiddenSidebarItems", () => {
   describe("debugMode", () => {
-    test("PATCH with debugMode=true succeeds", async () => {
+    test("updateSettings with debugMode=true succeeds", async () => {
       const result = await updateSettings({ debugMode: true });
-      assert.strictEqual(result.ok, true, "updateSettings should return ok: true");
+      assert.ok(result, "updateSettings should return truthy result");
 
-      const settings = getSettings();
+      const settings = await getSettings();
       assert.strictEqual(settings.debugMode, true, "debugMode should be true");
     });
 
-    test("PATCH with debugMode=false succeeds", async () => {
+    test("updateSettings with debugMode=false succeeds", async () => {
       const result = await updateSettings({ debugMode: false });
-      assert.strictEqual(result.ok, true, "updateSettings should return ok: true");
+      assert.ok(result, "updateSettings should return truthy result");
 
-      const settings = getSettings();
+      const settings = await getSettings();
       assert.strictEqual(settings.debugMode, false, "debugMode should be false");
     });
   });
 
   describe("hiddenSidebarItems", () => {
-    test("PATCH with hiddenSidebarItems=['translator'] succeeds", async () => {
+    test("updateSettings with hiddenSidebarItems=['translator'] succeeds", async () => {
       const result = await updateSettings({ hiddenSidebarItems: ["translator"] });
-      assert.strictEqual(result.ok, true, "updateSettings should return ok: true");
+      assert.ok(result, "updateSettings should return truthy result");
 
-      const settings = getSettings();
+      const settings = await getSettings();
       assert.deepStrictEqual(
         settings.hiddenSidebarItems,
         ["translator"],
@@ -34,11 +34,11 @@ describe("Settings API - debugMode and hiddenSidebarItems", () => {
       );
     });
 
-    test("PATCH with empty hiddenSidebarItems succeeds", async () => {
+    test("updateSettings with empty hiddenSidebarItems succeeds", async () => {
       const result = await updateSettings({ hiddenSidebarItems: [] });
-      assert.strictEqual(result.ok, true, "updateSettings should return ok: true");
+      assert.ok(result, "updateSettings should return truthy result");
 
-      const settings = getSettings();
+      const settings = await getSettings();
       assert.deepStrictEqual(
         settings.hiddenSidebarItems,
         [],
@@ -48,14 +48,14 @@ describe("Settings API - debugMode and hiddenSidebarItems", () => {
   });
 
   describe("combined updates", () => {
-    test("PATCH with both debugMode and hiddenSidebarItems succeeds", async () => {
+    test("updateSettings with both debugMode and hiddenSidebarItems succeeds", async () => {
       const result = await updateSettings({
         debugMode: true,
         hiddenSidebarItems: ["translator"],
       });
-      assert.strictEqual(result.ok, true, "updateSettings should return ok: true");
+      assert.ok(result, "updateSettings should return truthy result");
 
-      const settings = getSettings();
+      const settings = await getSettings();
       assert.strictEqual(settings.debugMode, true, "debugMode should be true");
       assert.deepStrictEqual(
         settings.hiddenSidebarItems,
