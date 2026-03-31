@@ -712,6 +712,15 @@ export async function handleChatCore({
     if (nativeCodexPassthrough) {
       translatedBody = { ...body, _nativeCodexPassthrough: true };
       log?.debug?.("FORMAT", "native codex passthrough enabled");
+    } else if (isClaudePassthrough && preserveCacheControl) {
+      // Pure passthrough: when preserveCacheControl is true, forward the body
+      // as-is without any normalization. The OpenAI round-trip would strip
+      // cache_control markers; even prepareClaudeRequest can alter structure.
+      // Claude Code sends well-formed Messages API payloads — trust it.
+      translatedBody = { ...body };
+      translatedBody._disableToolPrefix = true;
+
+      log?.debug?.("FORMAT", "claude passthrough with cache_control preservation");
     } else if (isClaudePassthrough) {
       // Claude OAuth expects the same Claude Code prompt + structural normalization
       // as the OpenAI-compatible chat path. Round-trip through OpenAI to reuse the
