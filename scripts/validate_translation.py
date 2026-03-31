@@ -396,8 +396,16 @@ def quick_check() -> int:
     print(f"Missing: {len(missing)}")
     print(f"Untranslated: {len(untranslated)}")
     
-    # Only fail on missing keys, untranslated is acceptable
-    return 0 if not missing else 1
+    # Exit codes:
+    # 0 = OK
+    # 1 = generic error
+    # 2 = missing string in translation
+    # 3 = non translated string (same as source)
+    if missing:
+        return 2
+    if untranslated:
+        return 3
+    return 0
 
 
 def show_diff(category: str) -> int:
