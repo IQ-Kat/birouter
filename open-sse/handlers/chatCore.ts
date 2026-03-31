@@ -90,6 +90,8 @@ import {
 import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
+import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
+import { retrieveMemories } from "@/lib/memory/retrieval";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -681,6 +683,26 @@ export async function handleChatCore({
       const name = fn?.name ?? tool.name;
       return name && String(name).trim().length > 0;
     });
+  }
+
+  if (apiKeyInfo?.id && shouldInjectMemory(body as Parameters<typeof shouldInjectMemory>[0])) {
+    try {
+      const memories = await retrieveMemories(apiKeyInfo.id);
+      if (memories.length > 0) {
+        const injected = injectMemory(
+          body as Parameters<typeof injectMemory>[0],
+          memories,
+          provider
+        );
+        body = injected as typeof body;
+        log?.debug?.("MEMORY", `Injected ${memories.length} memories for key=${apiKeyInfo.id}`);
+      }
+    } catch (memErr) {
+      log?.debug?.(
+        "MEMORY",
+        `Memory injection skipped: ${memErr instanceof Error ? memErr.message : String(memErr)}`
+      );
+    }
   }
 
   // Translate request (pass reqLogger for intermediate logging)
