@@ -84,8 +84,10 @@ export default function CodexServiceTierTab() {
         <button
           onClick={() => save(!enabled)}
           disabled={loading || saving}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            enabled ? "bg-sky-500" : "bg-white/10"
+          className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${
+            enabled
+              ? "bg-sky-500 border-sky-500"
+              : "bg-black/10 border-black/10 dark:bg-white/10 dark:border-white/10"
           }`}
         >
           <span
