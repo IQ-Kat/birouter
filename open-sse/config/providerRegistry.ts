@@ -46,7 +46,7 @@ export interface RegistryOAuth {
 
 export interface RegistryEntry {
   id: string;
-  alias: string;
+  alias?: string;
   format: string;
   executor: string;
   baseUrl?: string;
@@ -359,7 +359,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   antigravity: {
     id: "antigravity",
-    alias: "ag",
+    alias: undefined,
     format: "antigravity",
     executor: "antigravity",
     baseUrls: [
@@ -389,14 +389,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
       { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
       { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
-      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
-      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview" },
+      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
+      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
+      { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
+      { id: "gemini-3-pro-high", name: "Gemini 3 Pro (High)" },
+      { id: "gemini-3-pro-low", name: "Gemini 3 Pro (Low)" },
+      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
       { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
       { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
-      { id: "gpt-5", name: "GPT 5" },
-      { id: "gpt-5-mini", name: "GPT 5 Mini" },
     ],
     passthroughModels: true,
   },
