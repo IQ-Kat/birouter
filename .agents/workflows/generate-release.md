@@ -11,6 +11,8 @@ Bump version, finalize CHANGELOG, commit, open a **PR to main** and wait for use
 > Always use: `npm version patch --no-git-tag-version`
 > The threshold rule: when `y` reaches 10, bump to `2.(x+1).0` — e.g. `2.1.10` → `2.2.0`.
 
+> **🔴 SINGLE BRANCH RULE**: The `release/vX.Y.Z` branch is the **ONLY** development branch for the entire release cycle. ALL work — bug fixes, feature implementations, PR integrations, issue resolutions — MUST be committed directly on this branch. Never create separate `fix/`, `feat/`, or topic branches. When running `/resolve-issues`, `/implement-features`, or `/review-prs`, always work on the current release branch.
+
 ---
 
 ## ⚠️ Two-Phase Flow
