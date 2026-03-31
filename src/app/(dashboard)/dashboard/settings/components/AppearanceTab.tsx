@@ -21,6 +21,7 @@ export default function AppearanceTab() {
   const tSidebar = useTranslations("sidebar");
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [customThemeColor, setCustomThemeColor] = useState(customColor || "#3b82f6");
   const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
     customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`
@@ -342,26 +343,47 @@ export default function AppearanceTab() {
             <div className="flex flex-col gap-2">
               <p className="font-medium">{t("uploadLogo")}</p>
               <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      if (file.size > 500 * 1024) {
-                        alert("Logo file must be less than 500KB");
-                        return;
+                <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border text-sm text-text-main cursor-pointer hover:bg-surface/80 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 500 * 1024) {
+                          setUploadError("Logo file must be less than 500KB");
+                          return;
+                        }
+                        const validTypes = [
+                          "image/png",
+                          "image/jpeg",
+                          "image/svg+xml",
+                          "image/gif",
+                          "image/webp",
+                        ];
+                        if (!validTypes.includes(file.type)) {
+                          setUploadError(
+                            "Invalid file type. Please upload PNG, JPG, SVG, GIF, or WebP."
+                          );
+                          return;
+                        }
+                        setUploadError(null);
+                        const reader = new FileReader();
+                        reader.onerror = () => {
+                          setUploadError("Failed to read file");
+                        };
+                        reader.onload = (event) => {
+                          const base64 = event.target?.result as string;
+                          updateSetting("customLogoBase64", base64);
+                        };
+                        reader.readAsDataURL(file);
                       }
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        const base64 = event.target?.result as string;
-                        updateSetting("customLogoBase64", base64);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  className="text-sm text-text-muted"
-                />
+                    }}
+                    className="hidden"
+                  />
+                  <span className="material-symbols-outlined text-[18px]">upload</span>
+                  <span>{t("uploadLogo")}</span>
+                </label>
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -372,6 +394,7 @@ export default function AppearanceTab() {
                   {t("resetLogo")}
                 </Button>
               </div>
+              {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
               {(settings.customLogoBase64 || settings.customLogoUrl) && (
                 <div className="mt-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg">
                   <p className="text-xs text-text-muted mb-2">{t("logoPreview")}</p>
@@ -414,26 +437,47 @@ export default function AppearanceTab() {
             <div className="flex flex-col gap-2">
               <p className="font-medium">{t("uploadFavicon")}</p>
               <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      if (file.size > 50 * 1024) {
-                        alert("Favicon file must be less than 50KB");
-                        return;
+                <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border text-sm text-text-main cursor-pointer hover:bg-surface/80 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/png,image/x-icon,image/svg+xml,image/gif,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 50 * 1024) {
+                          setUploadError("Favicon file must be less than 50KB");
+                          return;
+                        }
+                        const validTypes = [
+                          "image/png",
+                          "image/x-icon",
+                          "image/svg+xml",
+                          "image/gif",
+                          "image/webp",
+                        ];
+                        if (!validTypes.includes(file.type)) {
+                          setUploadError(
+                            "Invalid file type. Please upload PNG, ICO, SVG, GIF, or WebP."
+                          );
+                          return;
+                        }
+                        setUploadError(null);
+                        const reader = new FileReader();
+                        reader.onerror = () => {
+                          setUploadError("Failed to read file");
+                        };
+                        reader.onload = (event) => {
+                          const base64 = event.target?.result as string;
+                          updateSetting("customFaviconBase64", base64);
+                        };
+                        reader.readAsDataURL(file);
                       }
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        const base64 = event.target?.result as string;
-                        updateSetting("customFaviconBase64", base64);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  className="text-sm text-text-muted"
-                />
+                    }}
+                    className="hidden"
+                  />
+                  <span className="material-symbols-outlined text-[18px]">upload</span>
+                  <span>{t("uploadFavicon")}</span>
+                </label>
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -444,6 +488,9 @@ export default function AppearanceTab() {
                   {t("resetFavicon")}
                 </Button>
               </div>
+              {uploadError && !uploadError.includes("Logo") && (
+                <p className="text-sm text-red-500">{uploadError}</p>
+              )}
               {(settings.customFaviconBase64 || settings.customFaviconUrl) && (
                 <div className="mt-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg">
                   <p className="text-xs text-text-muted mb-2">{t("faviconPreview")}</p>
