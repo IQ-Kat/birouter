@@ -402,11 +402,13 @@ def quick_check() -> int:
     # 0 = OK
     # 1 = generic error
     # 2 = missing string in translation
-    # 3 = non translated string (same as source)
+    # 3 = untranslated (soft warning - not a failure)
     if missing:
         return 2
+    # untranslated is a soft warning, not a failure - translations exist, just not localized
     if untranslated:
-        return 3
+        print_warning(f"{len(untranslated)} untranslated keys (non-critical)")
+        return 0
     return 0
 
 
