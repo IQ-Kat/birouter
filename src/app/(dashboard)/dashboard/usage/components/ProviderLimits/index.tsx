@@ -88,7 +88,7 @@ export default function ProviderLimits() {
     if (typeof window === "undefined") return false;
     return localStorage.getItem(LS_AUTO_REFRESH) === "true";
   });
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Record<string, string>>({});
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [countdown, setCountdown] = useState(120);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -181,6 +181,10 @@ export default function ProviderLimits() {
             raw: data,
           },
         }));
+        setLastRefreshedAt((prev) => ({
+          ...prev,
+          [connectionId]: new Date().toISOString(),
+        }));
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
@@ -195,8 +199,7 @@ export default function ProviderLimits() {
 
   const refreshProvider = useCallback(
     async (connectionId, provider) => {
-      await fetchQuota(connectionId, provider);
-      setLastUpdated(new Date());
+      await fetchQuota(connectionId, provider, { force: true });
     },
     [fetchQuota]
   );
@@ -216,9 +219,8 @@ export default function ProviderLimits() {
       const chunkSize = 5;
       for (let i = 0; i < usageConnections.length; i += chunkSize) {
         const chunk = usageConnections.slice(i, i + chunkSize);
-        await Promise.all(chunk.map((conn) => fetchQuota(conn.id, conn.provider)));
+        await Promise.all(chunk.map((conn) => fetchQuota(conn.id, conn.provider, { force: true })));
       }
-      setLastUpdated(new Date());
     } catch (error) {
       console.error("Error refreshing all:", error);
     } finally {
@@ -520,7 +522,7 @@ export default function ProviderLimits() {
         {/* Table header */}
         <div
           className="items-center px-4 py-2.5 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-text-muted"
-          style={{ display: "grid", gridTemplateColumns: "280px 1fr 100px 48px" }}
+          style={{ display: "grid", gridTemplateColumns: "280px 1fr 128px 48px" }}
         >
           <div>{t("account")}</div>
           <div>{t("modelQuotas")}</div>
@@ -539,6 +541,7 @@ export default function ProviderLimits() {
             };
             const tierMeta = tierByConnection[conn.id] || normalizePlanTier(null);
             const resolvedPlan = resolvedPlanByConnection[conn.id];
+            const refreshedAt = lastRefreshedAt[conn.id];
 
             return (
               <div
@@ -546,7 +549,7 @@ export default function ProviderLimits() {
                 className="items-center px-4 py-3.5 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02]"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "280px 1fr 100px 48px",
+                  gridTemplateColumns: "280px 1fr 128px 48px",
                   borderBottom: !isLast ? "1px solid var(--color-border)" : "none",
                 }}
               >
@@ -670,11 +673,16 @@ export default function ProviderLimits() {
                   )}
                 </div>
 
-                {/* Last Used */}
+                {/* Last Refreshed */}
                 <div className="text-center text-[11px] text-text-muted">
-                  {lastUpdated ? (
+                  {refreshedAt ? (
                     <span>
-                      {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(refreshedAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: false,
+                      })}
                     </span>
                   ) : (
                     "-"
