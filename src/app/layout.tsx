@@ -5,21 +5,28 @@ import "@/lib/initCloudSync"; // Auto-initialize cloud sync
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { RTL_LOCALES } from "@/i18n/config";
+import { getSettings } from "@/lib/db/settings";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
 
-export const metadata = {
-  title: "OmniRoute — AI Gateway for Multi-Provider LLMs",
-  description:
-    "OmniRoute is an AI gateway for multi-provider LLMs. One endpoint for all your AI providers.",
-  icons: {
-    icon: "/favicon.svg",
-    apple: "/apple-touch-icon.svg",
-  },
-};
+export async function generateMetadata() {
+  const settings = await getSettings();
+  const instanceName = settings?.instanceName || "OmniRoute";
+  const customFaviconUrl = settings?.customFaviconUrl || settings?.customFaviconBase64;
+
+  return {
+    title: `${instanceName} — AI Gateway for Multi-Provider LLMs`,
+    description:
+      "OmniRoute is an AI gateway for multi-provider LLMs. One endpoint for all your AI providers.",
+    icons: {
+      icon: customFaviconUrl ? "/api/settings/favicon" : "/favicon.svg",
+      apple: "/apple-touch-icon.svg",
+    },
+  };
+}
 
 export default async function RootLayout({ children }) {
   const locale = await getLocale();

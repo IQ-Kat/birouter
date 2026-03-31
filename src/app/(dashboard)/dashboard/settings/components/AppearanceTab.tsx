@@ -383,6 +383,78 @@ export default function AppearanceTab() {
                 </div>
               )}
             </div>
+
+            <div className="flex flex-col gap-2 pt-4 border-t border-border">
+              <div>
+                <p className="font-medium">{t("customFavicon")}</p>
+                <p className="text-sm text-text-muted">{t("customFaviconDesc")}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={settings.customFaviconUrl || ""}
+                  onChange={(e) => updateSetting("customFaviconUrl", e.target.value)}
+                  className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm text-text-main focus:outline-none focus:border-primary"
+                  placeholder="https://example.com/favicon.ico"
+                  maxLength={2000}
+                />
+                {(settings.customFaviconUrl || settings.customFaviconBase64) && (
+                  <img
+                    src={settings.customFaviconBase64 || settings.customFaviconUrl}
+                    alt="Favicon preview"
+                    className="h-10 w-10 rounded border border-border object-contain bg-surface"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="font-medium">{t("uploadFavicon")}</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 50 * 1024) {
+                        alert("Favicon file must be less than 50KB");
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const base64 = event.target?.result as string;
+                        updateSetting("customFaviconBase64", base64);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="text-sm text-text-muted"
+                />
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    updateSetting("customFaviconUrl", "");
+                    updateSetting("customFaviconBase64", "");
+                  }}
+                >
+                  {t("resetFavicon")}
+                </Button>
+              </div>
+              {(settings.customFaviconBase64 || settings.customFaviconUrl) && (
+                <div className="mt-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg">
+                  <p className="text-xs text-text-muted mb-2">{t("faviconPreview")}</p>
+                  <img
+                    src={settings.customFaviconBase64 || settings.customFaviconUrl}
+                    alt="Favicon preview"
+                    className="h-8 w-8 rounded"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
