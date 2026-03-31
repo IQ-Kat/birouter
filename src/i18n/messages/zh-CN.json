@@ -2376,7 +2376,7 @@
     "loadingQuotas": "正在加载...",
     "account": "账户",
     "modelQuotas": "模型配额",
-    "lastUsed": "最后使用",
+    "lastUsed": "最后刷新",
     "actions": "操作",
     "refreshQuota": "刷新配额",
     "today": "今天",
