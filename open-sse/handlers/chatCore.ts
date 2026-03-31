@@ -1168,6 +1168,31 @@ export async function handleChatCore({
           console.warn(
             `[provider] Node ${connectionId} banned (${statusCode}) — disabling permanently`
           );
+        } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
+          await updateProviderConnection(connectionId, {
+            isActive: false,
+            testStatus: "deactivated",
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.RATE_LIMITED) {
+          const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
+          await updateProviderConnection(connectionId, {
+            rateLimitedUntil: rateLimitedUntil,
+            testStatus: "credits_exhausted",
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+            healthCheckInterval: null,
+            lastHealthCheckAt: null,
+          });
+          console.warn(
+            `[provider] Node ${connectionId} rate limited (${statusCode}) - Next available at ${rateLimitedUntil}`
+          );
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           await updateProviderConnection(connectionId, {
             testStatus: "credits_exhausted",
