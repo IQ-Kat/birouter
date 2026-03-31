@@ -591,10 +591,11 @@ const checkKnownPath = async (commandPath: string) => {
       return { installed: false, commandPath: null, reason: "not_file" };
     }
 
-    // CLI binaries should be > 30 bytes and < 100MB
+    // CLI binaries should be > 30 bytes and < 350MB
     // npm .cmd wrappers on Windows are ~300-500 bytes, JS wrappers on Linux can be ~44 bytes
     // Minimum catches empty/suspicious files while allowing legitimate thin wrappers
-    if (stat.size < 30 || stat.size > 100 * 1024 * 1024) {
+    // Many modern CLIs (like Claude Code and OpenCode) build as single ~150-250MB binaries
+    if (stat.size < 30 || stat.size > 350 * 1024 * 1024) {
       return { installed: false, commandPath: null, reason: "suspicious_size" };
     }
   } catch (error) {
@@ -787,7 +788,10 @@ export const getCliRuntimeStatus = async (toolId: string) => {
     };
   }
 
-  const located = await locateCommandCandidate(commands, env, toolId);
+  const envCommand = String(process.env[tool.envBinKey] || "").trim();
+  const hasEnvOverride = !!envCommand;
+
+  const located = await locateCommandCandidate(commands, env, hasEnvOverride ? undefined : toolId);
   const command = located.command;
 
   if (!located.installed) {

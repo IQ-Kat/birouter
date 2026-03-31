@@ -270,6 +270,11 @@ export class CodexExecutor extends BaseExecutor {
     // Ensure store is false (Codex requirement)
     body.store = false;
 
+    // Issue #806: Even for native passthrough, some clients (purist completions) might indiscriminately inject
+    // a `messages` or `prompt` array which the strict Codex Responses schema rejects.
+    delete body.messages;
+    delete body.prompt;
+
     if (nativeCodexPassthrough) {
       return body;
     }

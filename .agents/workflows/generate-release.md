@@ -176,24 +176,17 @@ Inform the user:
 
 > Run these steps only AFTER the user has merged the PR.
 
-### 11. Pull main and create tag
+### 11. Create Git Tag and GitHub Release (MANDATORY)
+
+// turbo
 
 ```bash
 git checkout main
 git pull origin main
-git tag -a v2.x.y -m "Release v2.x.y"
-```
-
-### 12. Push tag to GitHub
-
-```bash
+VERSION=$(node -p "require('./package.json').version")
+git tag -a "v$VERSION" -m "Release v$VERSION"
 git push origin --tags
-```
-
-### 13. Create GitHub release
-
-```bash
-gh release create v2.x.y --title "v2.x.y — summary" --notes "..."
+gh release create "v$VERSION" --title "v$VERSION" --notes "OmniRoute v$VERSION Release" --target main
 ```
 
 ### 14. 🐳 Trigger Docker Hub build (MANDATORY — keep npm and Docker in sync)

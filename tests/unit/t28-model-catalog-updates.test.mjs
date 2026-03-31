@@ -22,10 +22,10 @@ test("T28: antigravity static catalog includes Gemini 3.1 preview fallbacks", ()
   assert.ok(staticIds.includes("gemini-3.1-flash-lite-preview"));
 });
 
-test("T28: qwen registry uses DashScope-compatible base URL", () => {
+test("T28: qwen registry uses native chat.qwen.ai base URL", () => {
   assert.equal(
     REGISTRY.qwen.baseUrl,
-    "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"
+    "https://chat.qwen.ai/api/v1/services/aigc/text-generation/generation"
   );
 });
 
