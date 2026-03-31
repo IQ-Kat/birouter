@@ -149,8 +149,13 @@ export async function isAuthRequired(): Promise<boolean> {
     // reset-password CLI tool (bin/reset-password.mjs).
     if (!settings.password && !process.env.INITIAL_PASSWORD) return false;
     return true;
-  } catch {
+  } catch (error: any) {
     // On error, require auth (secure by default)
+    // Log the error so failures (e.g., SQLITE_BUSY) aren't silent 401s
+    console.error(
+      "[API_AUTH_GUARD] isAuthRequired failed, defaulting to true:",
+      error?.message || error
+    );
     return true;
   }
 }
