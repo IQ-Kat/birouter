@@ -429,15 +429,15 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
 
   if (messageObj.content !== undefined && messageObj.content !== null) {
     hasTextOrReasoning = true;
+    const resolvedText = toString(messageObj.content);
     content.push({
       type: "text",
-      text: toString(messageObj.content),
+      text: resolvedText === "" ? "(empty response)" : resolvedText,
     });
   } else if (!hasTextOrReasoning) {
-    // Claude format expects a text block even before tool calls (or if empty)
     content.push({
       type: "text",
-      text: "",
+      text: "(empty response)",
     });
   }
 
