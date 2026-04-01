@@ -69,11 +69,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   antigravity: () => [
     { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
-    { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
     { id: "gemini-3-flash", name: "Gemini 3 Flash" },
-    { id: "gemini-3-pro-high", name: "Gemini 3 Pro (High)" },
-    { id: "gemini-3-pro-low", name: "Gemini 3 Pro (Low)" },
     { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
     { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
     { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
