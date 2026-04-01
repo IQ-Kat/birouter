@@ -138,3 +138,6 @@ vscode-extension/
 
 # IDEA
 .idea/
+
+# Local OpenCode agent config
+.config/
