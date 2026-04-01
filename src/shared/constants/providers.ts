@@ -22,7 +22,7 @@ export const OAUTH_PROVIDERS = {
   claude: { id: "claude", alias: "cc", name: "Claude Code", icon: "smart_toy", color: "#D97757" },
   antigravity: {
     id: "antigravity",
-    alias: "ag",
+    alias: undefined,
     name: "Antigravity",
     icon: "rocket_launch",
     color: "#F59E0B",
@@ -643,13 +643,13 @@ export function getProviderAlias(providerId) {
 
 // Alias to ID mapping (for quick lookup)
 export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce((acc, p) => {
-  acc[p.alias] = p.id;
+  if (p.alias) acc[p.alias] = p.id;
   return acc;
 }, {});
 
 // ID to Alias mapping
 export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce((acc, p) => {
-  acc[p.id] = p.alias;
+  acc[p.id] = p.alias || p.id;
   return acc;
 }, {});
 
