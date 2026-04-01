@@ -14,7 +14,6 @@ interface MemoryCardsProps {
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
-  stats?: null | unknown;
 }
 
 // ─── Internal StatCard ────────────────────────────────────────────────────────
@@ -70,7 +69,7 @@ export default function MemoryCards({
   error = null,
   onRetry,
 }: MemoryCardsProps) {
-  const t = useTranslations("Cache");
+  const t = useTranslations("cache");
 
   if (loading) {
     return (
