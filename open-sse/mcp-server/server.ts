@@ -12,6 +12,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
 
 import {
   MCP_TOOLS,
@@ -77,6 +78,13 @@ type JsonRecord = Record<string, unknown>;
 type TextToolResult = {
   content: Array<{ type: "text"; text: string }>;
   isError?: boolean;
+};
+
+type SchemaBackedTool<TSchema extends z.ZodTypeAny = z.ZodTypeAny> = {
+  name: string;
+  description: string;
+  inputSchema: TSchema;
+  handler: (args: z.infer<TSchema>) => Promise<unknown>;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -175,6 +183,29 @@ function withScopeEnforcement(
 
     return handler(args, extra);
   };
+}
+
+function registerSchemaBackedTool<TSchema extends z.ZodTypeAny>(
+  server: McpServer,
+  toolDef: SchemaBackedTool<TSchema>
+) {
+  server.registerTool(
+    toolDef.name,
+    {
+      description: toolDef.description,
+      inputSchema: toolDef.inputSchema,
+    },
+    withScopeEnforcement(toolDef.name, async (args) => {
+      try {
+        const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+        const result = await toolDef.handler(parsedArgs);
+        return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+      }
+    })
+  );
 }
 
 // ============ Tool Handlers ============
@@ -765,44 +796,12 @@ export function createMcpServer(): McpServer {
 
   // ── Memory Tools ──────────────────────────────
   Object.values(memoryTools).forEach((toolDef) => {
-    server.registerTool(
-      toolDef.name,
-      {
-        description: toolDef.description,
-        inputSchema: toolDef.inputSchema as any,
-      },
-      withScopeEnforcement(toolDef.name, async (args) => {
-        try {
-          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          const result = await toolDef.handler(parsedArgs as any);
-          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-        }
-      })
-    );
+    registerSchemaBackedTool(server, toolDef);
   });
 
   // ── Skill Tools ──────────────────────────────
   Object.values(skillTools).forEach((toolDef) => {
-    server.registerTool(
-      toolDef.name,
-      {
-        description: toolDef.description,
-        inputSchema: toolDef.inputSchema as any,
-      },
-      withScopeEnforcement(toolDef.name, async (args) => {
-        try {
-          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          const result = await toolDef.handler(parsedArgs as any);
-          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-        }
-      })
-    );
+    registerSchemaBackedTool(server, toolDef);
   });
 
   return server;
