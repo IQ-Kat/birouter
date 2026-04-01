@@ -3,16 +3,18 @@
  */
 
 import { getDbInstance, rowToCamel } from "../db/core";
-import { toRecord } from "../db/apiKeys";
 import { Memory, MemoryType } from "./types";
-import { CacheEntry } from "../db/apiKeys";
+interface CacheEntry<T> {
+  value: T;
+  timestamp: number;
+}
 
 // Memory cache configuration
 const MEMORY_CACHE_TTL = 300_000; // 5 minutes
 const MEMORY_MAX_CACHE_SIZE = 10_000;
 
 // Cache for recently accessed memories
-const _memoryCache = new Map<string, CacheEntry<Memory>>();
+const _memoryCache = new Map<string, CacheEntry<Memory | null>>();
 
 // Helper function to safely parse JSON strings
 function parseJSON(value: unknown): Record<string, unknown> {
@@ -162,7 +164,7 @@ export async function getMemory(id: string): Promise<Memory | null> {
 
   const db = getDbInstance();
   const stmt = db.prepare("SELECT * FROM memory WHERE id = ?");
-  const row = stmt.get(id);
+  const row = stmt.get(id) as any;
 
   if (!row) {
     // Cache negative result briefly to prevent repeated DB hits
@@ -324,7 +326,7 @@ export async function listMemories(filters: {
   const stmt = db.prepare(query);
   const rows = stmt.all(...params);
 
-  return rows.map((row) => ({
+  return (rows as any[]).map((row: any) => ({
     id: String(row.id),
     apiKeyId: String(row.apiKeyId),
     sessionId: String(row.sessionId),

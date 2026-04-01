@@ -22,7 +22,7 @@ export const MemoryCreateInputSchema = z
     type: z.nativeEnum(MemoryType),
     key: z.string().min(1),
     content: z.string().min(1),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 
@@ -34,7 +34,7 @@ export const MemoryUpdateInputSchema = z
     type: z.nativeEnum(MemoryType).optional(),
     key: z.string().min(1).optional(),
     content: z.string().min(1).optional(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 

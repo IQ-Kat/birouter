@@ -66,7 +66,7 @@ export const memoryTools = {
     handler: async (args: z.infer<typeof MemoryAddSchema>) => {
       const memory = await createMemory({
         apiKeyId: args.apiKeyId,
-        sessionId: args.sessionId || null,
+        sessionId: args.sessionId || "",
         type: args.type as MemoryType,
         key: args.key,
         content: args.content,
