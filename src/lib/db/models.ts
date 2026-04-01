@@ -429,12 +429,6 @@ export async function replaceCustomModels(
   });
 
   if (merged.length === 0) {
-    // Guard: skip destructive clear when the caller hasn't explicitly opted in.
-    // This prevents auto-sync from wiping manually-imported models when the
-    // upstream /models endpoint fails, times out, or returns an empty list.
-    if (!allowEmpty) {
-      return Array.isArray(existing) ? existing : [];
-    }
     db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(
       providerId
     );
