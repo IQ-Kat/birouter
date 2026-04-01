@@ -19,6 +19,7 @@ import BackgroundDegradationTab from "./components/BackgroundDegradationTab";
 
 import CacheStatsCard from "./components/CacheStatsCard";
 import CacheSettingsTab from "./components/CacheSettingsTab";
+import MemorySkillsTab from "./components/MemorySkillsTab";
 import ResilienceTab from "./components/ResilienceTab";
 
 const tabs = [
@@ -76,9 +77,17 @@ export default function SettingsPage() {
           role="tabpanel"
           aria-label={t(tabs.find((t2) => t2.id === activeTab)?.labelKey || "general")}
         >
-          {activeTab === "general" && <SystemStorageTab />}
+          {activeTab === "general" && (
+            <div className="flex flex-col gap-6">
+              <SystemStorageTab />
+            </div>
+          )}
 
-          {activeTab === "appearance" && <AppearanceTab />}
+          {activeTab === "appearance" && (
+            <div className="flex flex-col gap-6">
+              <AppearanceTab />
+            </div>
+          )}
 
           {activeTab === "ai" && (
             <div className="flex flex-col gap-6">
@@ -87,6 +96,7 @@ export default function SettingsPage() {
               <SystemPromptTab />
               <CacheStatsCard />
               <CacheSettingsTab />
+              <MemorySkillsTab />
             </div>
           )}
 
