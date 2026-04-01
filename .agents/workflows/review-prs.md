@@ -137,29 +137,43 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
   - **Approved with changes** → Implement the fixes and corrections before merging
   - **Rejected** → Close the PR or leave a review comment
 
-### 7. Implementation (if approved)
+### 7. Pre-Merge Fixes & CI Green-Lighting (if approved)
 
-> **⚠️ ALL work happens on the release branch, NOT the PR branch.**
+> **⚠️ Fixes should be pushed back to the PR branch before merging.** We want the PR itself to be green and fully valid before it integrates.
 
-- Cherry-pick or merge the PR's changes into the current release branch:
+- **Sync latest fixes:** Merge `main` or the current `release` branch into the PR branch so the PR inherits any latest CI or integration test fixes (preventing false-positive failures).
+- **Implement improvements:** Apply the required fixes identified in the analysis directly on the PR branch (e.g., adding missing API routes, fixing SSRF, applying comments from other agents).
+- **Pushing changes to PR branches:**
 
   ```bash
-  # Option A: Merge PR branch into release branch
-  git merge --no-ff <pr-branch> -m "Merge PR #<NUMBER>: <title>"
+  # Checkout the PR locally
+  gh pr checkout <NUMBER>
 
-  # Option B: Cherry-pick if cleaner
-  git cherry-pick <commit-hash>
+  # Apply fixes, commit your changes
+  git commit -m "chore: apply review suggestions and missing layers"
+
+  # Attempt to push directly to the PR branch
+  git push
   ```
 
-- Implement any required fixes identified in the analysis **on the release branch**
-- If the Cross-Layer Analysis (4f) identified missing frontend/backend counterparts, implement them
-- Run the project's test suite to verify nothing breaks
+- **Fallback (For external forks without maintainer edit access):**
+  If `git push` fails because the PR comes from an external fork without write access, you MUST:
+  1. Create a new branch ending in `-fix` (e.g., `checkout -b fix-pr-<NUMBER>`).
+  2. Push your branch to the main repo (`git push origin fix-pr-<NUMBER>`).
+  3. Create a Pull Request targeting the contributor's repository and branch (use `gh pr create --repo <contributor-repo> --base <contributor-branch> --head diegosouzapw:fix-pr-<NUMBER>`).
+  4. Once they accept our PR into their branch, their original PR to our `main` will automatically update and become green.
+
+- Run the project's test suite locally to verify nothing breaks:
   // turbo
 - Run: `npm test` or equivalent test command
-- Commit improvements with descriptive messages
-- Push the release branch: `git push origin release/vX.Y.Z`
 
-### 8. Thank the Contributor
+### 8. Merge & Integrate
+
+- Once the PR is green (you can check with `gh pr status`), proceed to merge the PR into the current release branch (`release/vX.Y.Z`).
+
+  ```bash
+  gh pr merge <NUMBER> --repo <owner>/<repo>
+  ```
 
 - Post a **thank-you comment** on the PR via the GitHub API
 - The message should:
