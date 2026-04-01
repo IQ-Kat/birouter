@@ -90,6 +90,11 @@ import {
 import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
+import {
+  buildClaudeCodeCompatibleRequest,
+  isClaudeCodeCompatibleProvider,
+  resolveClaudeCodeCompatibleSessionId,
+} from "../services/claudeCodeCompatible.ts";
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -686,6 +691,8 @@ export async function handleChatCore({
   // Translate request (pass reqLogger for intermediate logging)
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
+  const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
+  let ccSessionId: string | null = null;
 
   // Determine if we should preserve client-side cache_control headers
   // Fetch settings from DB to get user preference
@@ -710,6 +717,46 @@ export async function handleChatCore({
     if (nativeCodexPassthrough) {
       translatedBody = { ...body, _nativeCodexPassthrough: true };
       log?.debug?.("FORMAT", "native codex passthrough enabled");
+    } else if (isClaudeCodeCompatible) {
+      let normalizedForCc = { ...body };
+
+      // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
+      // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
+      if (sourceFormat !== FORMATS.OPENAI) {
+        const normalizeToolCallId = getModelNormalizeToolCallId(
+          provider || "",
+          model || "",
+          sourceFormat
+        );
+        const preserveDeveloperRole = getModelPreserveOpenAIDeveloperRole(
+          provider || "",
+          model || "",
+          sourceFormat
+        );
+        normalizedForCc = translateRequest(
+          sourceFormat,
+          FORMATS.OPENAI,
+          model,
+          { ...body },
+          stream,
+          credentials,
+          provider,
+          reqLogger,
+          { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+        );
+      }
+
+      ccSessionId = resolveClaudeCodeCompatibleSessionId(clientRawRequest?.headers);
+      translatedBody = buildClaudeCodeCompatibleRequest({
+        sourceBody: body,
+        normalizedBody: normalizedForCc,
+        model,
+        stream,
+        sessionId: ccSessionId,
+        cwd: process.cwd(),
+        now: new Date(),
+      });
+      log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {
       // Pure passthrough: when preserveCacheControl is true, forward the body
       // as-is without any normalization. The OpenAI round-trip would strip
@@ -946,8 +993,21 @@ export async function handleChatCore({
 
   // Get executor for this provider
   const executor = getExecutor(provider);
-  const getExecutionCredentials = () =>
-    nativeCodexPassthrough ? { ...credentials, requestEndpointPath: endpointPath } : credentials;
+  const getExecutionCredentials = () => {
+    const nextCredentials = nativeCodexPassthrough
+      ? { ...credentials, requestEndpointPath: endpointPath }
+      : credentials;
+
+    if (!ccSessionId) return nextCredentials;
+
+    return {
+      ...nextCredentials,
+      providerSpecificData: {
+        ...(nextCredentials?.providerSpecificData || {}),
+        ccSessionId,
+      },
+    };
+  };
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({ onDisconnect, log, provider, model });

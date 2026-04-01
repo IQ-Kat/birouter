@@ -17,14 +17,21 @@ import {
 import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/config";
 import {
   FREE_PROVIDERS,
-  OPENAI_COMPATIBLE_PREFIX,
-  ANTHROPIC_COMPATIBLE_PREFIX,
+  isAnthropicCompatibleProvider,
+  isClaudeCodeCompatibleProvider,
+  isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
+import { CC_COMPATIBLE_PROVIDER_ENABLED } from "@/shared/utils/featureFlags";
 import Link from "next/link";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { useNotificationStore } from "@/store/notificationStore";
 import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
 import { useTranslations } from "next-intl";
+
+const CC_COMPATIBLE_LABEL = "CC Compatible";
+const ADD_CC_COMPATIBLE_LABEL = "Add CC Compatible";
+const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/messages?beta=true";
+const CC_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
 function getStatusDisplay(connected, error, errorCode, t) {
@@ -99,6 +106,7 @@ export default function ProvidersPage() {
   const [loading, setLoading] = useState(true);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
+  const [showAddCcCompatibleModal, setShowAddCcCompatibleModal] = useState(false);
   const [testingMode, setTestingMode] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<any>(null);
   const [importingZed, setImportingZed] = useState(false);
@@ -283,12 +291,25 @@ export default function ProvidersPage() {
     }));
 
   const anthropicCompatibleProviders = providerNodes
-    .filter((node) => node.type === "anthropic-compatible")
+    .filter(
+      (node) => node.type === "anthropic-compatible" && !isClaudeCodeCompatibleProvider(node.id)
+    )
     .map((node) => ({
       id: node.id,
       name: node.name || t("anthropicCompatibleName"),
       color: "#D97757",
       textIcon: "AC",
+    }));
+
+  const ccCompatibleProviders = providerNodes
+    .filter(
+      (node) => node.type === "anthropic-compatible" && isClaudeCodeCompatibleProvider(node.id)
+    )
+    .map((node) => ({
+      id: node.id,
+      name: node.name || CC_COMPATIBLE_LABEL,
+      color: "#B45309",
+      textIcon: "CC",
     }));
 
   if (loading) {
@@ -474,7 +495,9 @@ export default function ProvidersPage() {
             <span className="size-2.5 rounded-full bg-orange-500" title={t("compatibleLabel")} />
           </h2>
           <div className="flex flex-wrap gap-2">
-            {(compatibleProviders.length > 0 || anthropicCompatibleProviders.length > 0) && (
+            {(compatibleProviders.length > 0 ||
+              anthropicCompatibleProviders.length > 0 ||
+              ccCompatibleProviders.length > 0) && (
               <button
                 onClick={() => handleBatchTest("compatible")}
                 disabled={!!testingMode}
@@ -491,6 +514,16 @@ export default function ProvidersPage() {
                 {testingMode === "compatible" ? t("testing") : t("testAll")}
               </button>
             )}
+            {CC_COMPATIBLE_PROVIDER_ENABLED && (
+              <Button
+                size="sm"
+                variant="secondary"
+                icon="add"
+                onClick={() => setShowAddCcCompatibleModal(true)}
+              >
+                {ADD_CC_COMPATIBLE_LABEL}
+              </Button>
+            )}
             <Button size="sm" icon="add" onClick={() => setShowAddAnthropicCompatibleModal(true)}>
               {t("addAnthropicCompatible")}
             </Button>
@@ -505,7 +538,9 @@ export default function ProvidersPage() {
             </Button>
           </div>
         </div>
-        {compatibleProviders.length === 0 && anthropicCompatibleProviders.length === 0 ? (
+        {compatibleProviders.length === 0 &&
+        anthropicCompatibleProviders.length === 0 &&
+        ccCompatibleProviders.length === 0 ? (
           <div className="text-center py-8 border border-dashed border-border rounded-xl">
             <span className="material-symbols-outlined text-[32px] text-text-muted mb-2">
               extension
@@ -515,7 +550,11 @@ export default function ProvidersPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {[...compatibleProviders, ...anthropicCompatibleProviders].map((info) => (
+            {[
+              ...compatibleProviders,
+              ...anthropicCompatibleProviders,
+              ...ccCompatibleProviders,
+            ].map((info) => (
               <ApiKeyProviderCard
                 key={info.id}
                 providerId={info.id}
@@ -544,6 +583,16 @@ export default function ProvidersPage() {
           setShowAddAnthropicCompatibleModal(false);
         }}
       />
+      {CC_COMPATIBLE_PROVIDER_ENABLED && (
+        <AddCcCompatibleModal
+          isOpen={showAddCcCompatibleModal}
+          onClose={() => setShowAddCcCompatibleModal(false)}
+          onCreated={(node) => {
+            setProviderNodes((prev) => [...prev, node]);
+            setShowAddCcCompatibleModal(false);
+          }}
+        />
+      )}
       {/* Test Results Modal */}
       {testResults && (
         <div
@@ -695,8 +744,10 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const { connected, error, errorCode, errorTime, allDisabled } = stats;
-  const isCompatible = providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
-  const isAnthropicCompatible = providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
+  const isCompatible = isOpenAICompatibleProvider(providerId);
+  const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
+  const isAnthropicCompatible =
+    isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
 
   const dotColors = {
     free: "bg-green-500",
@@ -717,7 +768,7 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
     if (isCompatible) {
       return provider.apiType === "responses" ? "/providers/oai-r.png" : "/providers/oai-cc.png";
     }
-    if (isAnthropicCompatible) return "/providers/anthropic-m.png";
+    if (isAnthropicCompatible || isCcCompatible) return "/providers/anthropic-m.png";
     return null; // ProviderIcon will handle it
   })();
 
@@ -779,6 +830,11 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
                     {isCompatible && (
                       <Badge variant="default" size="sm">
                         {provider.apiType === "responses" ? t("responses") : t("chat")}
+                      </Badge>
+                    )}
+                    {isCcCompatible && (
+                      <Badge variant="default" size="sm">
+                        CC
                       </Badge>
                     )}
                     {isAnthropicCompatible && (
@@ -1227,6 +1283,200 @@ function AddAnthropicCompatibleModal({ isOpen, onClose, onCreated }) {
 }
 
 AddAnthropicCompatibleModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onCreated: PropTypes.func.isRequired,
+};
+
+function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    prefix: "",
+    baseUrl: "https://api.anthropic.com/v1",
+    chatPath: CC_COMPATIBLE_DEFAULT_CHAT_PATH,
+    modelsPath: CC_COMPATIBLE_DEFAULT_MODELS_PATH,
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [checkKey, setCheckKey] = useState("");
+  const [validating, setValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState<"success" | "failed" | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setValidationResult(null);
+      setCheckKey("");
+    }
+  }, [isOpen]);
+
+  const handleSubmit = async () => {
+    if (!formData.name.trim() || !formData.prefix.trim() || !formData.baseUrl.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/provider-nodes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          prefix: formData.prefix,
+          baseUrl: formData.baseUrl,
+          type: "anthropic-compatible",
+          compatMode: "cc",
+          chatPath: formData.chatPath || CC_COMPATIBLE_DEFAULT_CHAT_PATH,
+          modelsPath: formData.modelsPath || CC_COMPATIBLE_DEFAULT_MODELS_PATH,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        onCreated(data.node);
+        setFormData({
+          name: "",
+          prefix: "",
+          baseUrl: "https://api.anthropic.com/v1",
+          chatPath: CC_COMPATIBLE_DEFAULT_CHAT_PATH,
+          modelsPath: CC_COMPATIBLE_DEFAULT_MODELS_PATH,
+        });
+        setCheckKey("");
+        setValidationResult(null);
+        setShowAdvanced(false);
+      }
+    } catch (error) {
+      console.log("Error creating CC Compatible node:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleValidate = async () => {
+    setValidating(true);
+    try {
+      const res = await fetch("/api/provider-nodes/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          baseUrl: formData.baseUrl,
+          apiKey: checkKey,
+          type: "anthropic-compatible",
+          compatMode: "cc",
+          chatPath: formData.chatPath || CC_COMPATIBLE_DEFAULT_CHAT_PATH,
+          modelsPath: formData.modelsPath || CC_COMPATIBLE_DEFAULT_MODELS_PATH,
+        }),
+      });
+      const data = await res.json();
+      setValidationResult(data.valid ? "success" : "failed");
+    } catch {
+      setValidationResult("failed");
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} title={ADD_CC_COMPATIBLE_LABEL} onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        <Input
+          label="Name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="CC Compatible Production"
+          hint="Display name for this Claude Code-compatible provider"
+        />
+        <Input
+          label="Prefix"
+          value={formData.prefix}
+          onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
+          placeholder="cc"
+          hint="Used for model aliases such as prefix/model-id"
+        />
+        <Input
+          label="Base URL"
+          value={formData.baseUrl}
+          onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
+          placeholder="https://example.com/v1"
+          hint="Base URL for the CC-compatible site. Do not include /messages."
+        />
+        <button
+          type="button"
+          className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          aria-expanded={showAdvanced}
+          aria-controls="advanced-settings-cc"
+        >
+          <span
+            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+            aria-hidden="true"
+          >
+            ▶
+          </span>
+          Advanced settings
+        </button>
+        {showAdvanced && (
+          <div
+            id="advanced-settings-cc"
+            className="flex flex-col gap-3 pl-2 border-l-2 border-border"
+          >
+            <Input
+              label="Chat Path"
+              value={formData.chatPath}
+              onChange={(e) => setFormData({ ...formData, chatPath: e.target.value })}
+              placeholder={CC_COMPATIBLE_DEFAULT_CHAT_PATH}
+              hint="Defaults to the strict Claude Code-compatible messages path"
+            />
+            <Input
+              label="Models Path"
+              value={formData.modelsPath}
+              onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
+              placeholder={CC_COMPATIBLE_DEFAULT_MODELS_PATH}
+              hint="Defaults to /models"
+            />
+          </div>
+        )}
+        <div className="flex gap-2">
+          <Input
+            label="API Key for Check"
+            type="password"
+            value={checkKey}
+            onChange={(e) => setCheckKey(e.target.value)}
+            className="flex-1"
+          />
+          <div className="pt-6">
+            <Button
+              onClick={handleValidate}
+              disabled={!checkKey || validating || !formData.baseUrl.trim()}
+              variant="secondary"
+            >
+              {validating ? "Checking..." : "Check"}
+            </Button>
+          </div>
+        </div>
+        {validationResult && (
+          <Badge variant={validationResult === "success" ? "success" : "error"}>
+            {validationResult === "success" ? "Valid" : "Invalid"}
+          </Badge>
+        )}
+        <div className="flex gap-2">
+          <Button
+            onClick={handleSubmit}
+            fullWidth
+            disabled={
+              !formData.name.trim() ||
+              !formData.prefix.trim() ||
+              !formData.baseUrl.trim() ||
+              submitting
+            }
+          >
+            {submitting ? "Creating..." : "Add"}
+          </Button>
+          <Button onClick={onClose} variant="ghost" fullWidth>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+AddCcCompatibleModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onCreated: PropTypes.func.isRequired,
