@@ -22,8 +22,12 @@ export class AntigravityExecutor extends BaseExecutor {
   buildUrl(model, stream, urlIndex = 0) {
     const baseUrls = this.getBaseUrls();
     const baseUrl = baseUrls[urlIndex] || baseUrls[0];
-    const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
-    return `${baseUrl}/v1internal:${action}`;
+    // Always use streaming endpoint — the non-streaming `generateContent` causes
+    // upstream 400 errors for some models (e.g. gpt-oss-120b-medium) because the
+    // Cloud Code API internally converts to OpenAI format and injects
+    // stream_options without setting stream=true.  chatCore already handles
+    // SSE→JSON conversion for non-streaming client requests.
+    return `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
   }
 
   buildHeaders(credentials, stream = true) {
@@ -32,7 +36,7 @@ export class AntigravityExecutor extends BaseExecutor {
       Authorization: `Bearer ${credentials.accessToken}`,
       "User-Agent": this.config.headers?.["User-Agent"] || "antigravity/1.104.0 darwin/arm64",
       "X-OmniRoute-Source": "omniroute",
-      ...(stream && { Accept: "text/event-stream" }),
+      Accept: "text/event-stream",
     };
   }
 
@@ -199,6 +203,102 @@ export class AntigravityExecutor extends BaseExecutor {
     return totalMs > 0 ? totalMs : null;
   }
 
+  /**
+   * Collect an SSE streaming response into a single non-streaming JSON response.
+   * Parses Gemini-format SSE chunks and assembles text content + usage into one
+   * OpenAI-format chat.completion payload.
+   */
+  collectStreamToResponse(response, model, url, headers, transformedBody, log?, signal?) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    const SSE_COLLECT_TIMEOUT_MS = 120_000;
+
+    const collect = async () => {
+      const chunks: string[] = [];
+      const timeout = AbortSignal.timeout(SSE_COLLECT_TIMEOUT_MS);
+      try {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          if (signal?.aborted) throw new Error("Request aborted during SSE collection");
+          const { done, value } = await Promise.race([
+            reader.read(),
+            new Promise<never>((_, reject) =>
+              timeout.addEventListener("abort", () => reject(new Error("SSE collection timed out")), { once: true })
+            ),
+          ]);
+          if (done) break;
+          chunks.push(decoder.decode(value, { stream: true }));
+        }
+      } catch (err) {
+        log?.warn?.("SSE_COLLECT", `Error collecting SSE stream: ${err?.message || err}`);
+        // Fall through — return whatever was collected so far
+      }
+      const rawSSE = chunks.join("");
+
+      // Parse Gemini SSE: each line is "data: {json}"
+      let textContent = "";
+      let finishReason = "stop";
+      let usage: Record<string, unknown> | null = null;
+      const lines = rawSSE.split("\n");
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const payload = trimmed.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(payload);
+          const candidate = parsed?.response?.candidates?.[0];
+          if (candidate?.content?.parts) {
+            for (const part of candidate.content.parts) {
+              if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
+                textContent += part.text;
+              }
+            }
+          }
+          if (candidate?.finishReason) {
+            finishReason = candidate.finishReason.toLowerCase() === "stop" ? "stop" : candidate.finishReason.toLowerCase();
+          }
+          if (parsed?.response?.usageMetadata) {
+            const um = parsed.response.usageMetadata;
+            usage = {
+              prompt_tokens: um.promptTokenCount || 0,
+              completion_tokens: um.candidatesTokenCount || 0,
+              total_tokens: um.totalTokenCount || 0,
+            };
+          }
+        } catch (e) {
+          log?.debug?.("SSE_PARSE", `Skipping malformed SSE line: ${payload.slice(0, 80)}`);
+        }
+      }
+
+      const result = {
+        id: `chatcmpl-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+        object: "chat.completion",
+        created: Math.floor(Date.now() / 1000),
+        model,
+        choices: [
+          {
+            index: 0,
+            message: { role: "assistant", content: textContent },
+            finish_reason: finishReason,
+          },
+        ],
+        ...(usage && { usage }),
+      };
+
+      const syntheticResponse = new Response(JSON.stringify(result), {
+        status: response.status,
+        statusText: response.statusText,
+        headers: [["Content-Type", "application/json"]],
+      });
+
+      return { response: syntheticResponse, url, headers, transformedBody };
+    };
+
+    return collect();
+  }
+
   async execute({ model, body, stream, credentials, signal, log, upstreamExtraHeaders }) {
     const fallbackCount = this.getFallbackCount();
     let lastError = null;
@@ -206,11 +306,16 @@ export class AntigravityExecutor extends BaseExecutor {
     const MAX_AUTO_RETRIES = 3;
     const retryAttemptsByUrl = {}; // Track retry attempts per URL
 
+    // Always stream upstream — buildUrl always returns the streaming endpoint.
+    // For non-streaming clients, we collect the SSE below and return a synthetic
+    // non-streaming Response so chatCore's non-streaming path stays unchanged.
+    const upstreamStream = true;
+
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
-      const url = this.buildUrl(model, stream, urlIndex);
-      const headers = this.buildHeaders(credentials, stream);
+      const url = this.buildUrl(model, upstreamStream, urlIndex);
+      const headers = this.buildHeaders(credentials, upstreamStream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
-      const transformedBody = this.transformRequest(model, body, stream, credentials);
+      const transformedBody = this.transformRequest(model, body, upstreamStream, credentials);
 
       // Initialize retry counter for this URL
       if (!retryAttemptsByUrl[urlIndex]) {
@@ -344,6 +449,12 @@ export class AntigravityExecutor extends BaseExecutor {
             log?.warn?.("RETRY", `Failed to embed retryAfterMs: ${err}`);
             // Fall back to original response
           }
+        }
+
+        // For non-streaming clients, collect the SSE stream and return a synthetic
+        // non-streaming Response so chatCore doesn't need to handle SSE conversion.
+        if (!stream) {
+          return this.collectStreamToResponse(response, model, url, headers, transformedBody, log, signal);
         }
 
         return { response, url, headers, transformedBody };

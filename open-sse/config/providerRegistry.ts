@@ -387,18 +387,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
       { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-      { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
-      { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
-      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
-      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
-      { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
-      { id: "gemini-3-pro-high", name: "Gemini 3 Pro (High)" },
-      { id: "gemini-3-pro-low", name: "Gemini 3 Pro (Low)" },
-      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
-      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite" },
-      { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
+      { id: "gemini-3-pro-high", name: "Gemini 3 Pro (High)" },
+      { id: "gemini-3-pro-low", name: "Gemini 3 Pro (Low)" },
+      { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
+      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
+      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
       { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
     ],
     passthroughModels: true,
@@ -1551,6 +1547,21 @@ export function isLocalProvider(baseUrl?: string | null): boolean {
   } catch {
     return false;
   }
+}
+
+/** Set of provider IDs with passthroughModels enabled — 404s are model-specific, not account-level. */
+const _passthroughProviderIds: Set<string> | null = (() => {
+  try {
+    const ids = new Set<string>();
+    for (const entry of Object.values(REGISTRY)) {
+      if (entry.passthroughModels) ids.add(entry.id);
+    }
+    return ids;
+  } catch { return null; }
+})();
+
+export function getPassthroughProviders(): Set<string> {
+  return _passthroughProviderIds ?? new Set<string>();
 }
 
 // ── Registry Lookup Helpers ───────────────────────────────────────────────
