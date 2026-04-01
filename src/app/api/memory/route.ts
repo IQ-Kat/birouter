@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const apiKeyId = searchParams.get("apiKeyId") || undefined;
-    const type = searchParams.get("type") as any || undefined;
+    const type = (searchParams.get("type") as any) || undefined;
     const sessionId = searchParams.get("sessionId") || undefined;
     const limitParams = searchParams.get("limit");
     const offsetParams = searchParams.get("offset");

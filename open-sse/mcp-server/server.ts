@@ -12,7 +12,6 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
 
 import {
   MCP_TOOLS,
@@ -24,7 +23,6 @@ import {
   routeRequestInput,
   costReportInput,
   listModelsCatalogInput,
-  webSearchInput,
   simulateRouteInput,
   setBudgetGuardInput,
   setRoutingStrategyInput,
@@ -78,13 +76,6 @@ type JsonRecord = Record<string, unknown>;
 type TextToolResult = {
   content: Array<{ type: "text"; text: string }>;
   isError?: boolean;
-};
-
-type SchemaBackedTool<TSchema extends z.ZodTypeAny = z.ZodTypeAny> = {
-  name: string;
-  description: string;
-  inputSchema: TSchema;
-  handler: (args: z.infer<TSchema>) => Promise<unknown>;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -183,29 +174,6 @@ function withScopeEnforcement(
 
     return handler(args, extra);
   };
-}
-
-function registerSchemaBackedTool<TSchema extends z.ZodTypeAny>(
-  server: McpServer,
-  toolDef: SchemaBackedTool<TSchema>
-) {
-  server.registerTool(
-    toolDef.name,
-    {
-      description: toolDef.description,
-      inputSchema: toolDef.inputSchema,
-    },
-    withScopeEnforcement(toolDef.name, async (args) => {
-      try {
-        const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-        const result = await toolDef.handler(parsedArgs);
-        return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-      }
-    })
-  );
 }
 
 // ============ Tool Handlers ============
@@ -526,37 +494,6 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
   }
 }
 
-async function handleWebSearch(args: {
-  query: string;
-  max_results?: number;
-  search_type?: "web" | "news";
-  provider?: string;
-}) {
-  const start = Date.now();
-  try {
-    const body: Record<string, unknown> = {
-      query: args.query,
-      max_results: args.max_results ?? 5,
-      search_type: args.search_type ?? "web",
-    };
-    if (args.provider) {
-      body["provider"] = args.provider;
-    }
-
-    const data = await omniRouteFetch("/v1/search", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-
-    await logToolCall("omniroute_web_search", args, data, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    await logToolCall("omniroute_web_search", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
 // ============ MCP Server Setup ============
 
 /**
@@ -657,18 +594,6 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_list_models_catalog", (args) =>
       handleListModelsCatalog(listModelsCatalogInput.parse(args))
-    )
-  );
-
-  server.registerTool(
-    "omniroute_web_search",
-    {
-      description:
-        "Performs a web search using OmniRoute's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
-      inputSchema: webSearchInput,
-    },
-    withScopeEnforcement("omniroute_web_search", (args) =>
-      handleWebSearch(webSearchInput.parse(args))
     )
   );
 
@@ -796,12 +721,44 @@ export function createMcpServer(): McpServer {
 
   // ── Memory Tools ──────────────────────────────
   Object.values(memoryTools).forEach((toolDef) => {
-    registerSchemaBackedTool(server, toolDef);
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        inputSchema: toolDef.inputSchema as any,
+      },
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+          const result = await toolDef.handler(parsedArgs as any);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+        }
+      })
+    );
   });
 
   // ── Skill Tools ──────────────────────────────
   Object.values(skillTools).forEach((toolDef) => {
-    registerSchemaBackedTool(server, toolDef);
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        inputSchema: toolDef.inputSchema as any,
+      },
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+          const result = await toolDef.handler(parsedArgs as any);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+        }
+      })
+    );
   });
 
   return server;

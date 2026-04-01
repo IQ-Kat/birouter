@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { deleteMemory, getMemory } from "@/lib/memory/store";
 
-export async function DELETE(
-  request: Request,
-  props: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params;
     const success = await deleteMemory(id);
@@ -18,10 +15,7 @@ export async function DELETE(
   }
 }
 
-export async function GET(
-  request: Request,
-  props: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params;
     const memory = await getMemory(id);
