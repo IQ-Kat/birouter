@@ -709,7 +709,7 @@ export async function handleChatCore({
       log?.debug?.("FORMAT", "native codex passthrough enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {
       // Pure passthrough: when preserveCacheControl is true, forward the body
-      // as-is without normalization. The OpenAI round-trip would strip
+      // as-is without prior normalization. The OpenAI round-trip would strip
       // cache_control markers; even prepareClaudeRequest can alter structure.
       // Claude Code sends well-formed Messages API payloads — trust it.
       translatedBody = { ...body };
@@ -1247,6 +1247,16 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
+        } else if (errorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR) {
+          // Cloud Code 403 with stale project: not a ban, keep account active.
+          await updateProviderConnection(connectionId, {
+            lastErrorType: errorType,
+            lastError: message,
+            errorCode: statusCode,
+          });
+          console.warn(
+            `[provider] Node ${connectionId} project routing error (${statusCode}) — not banning`
+          );
         }
       } catch {
         // Best-effort state update; request flow should continue with fallback handling.
