@@ -432,6 +432,13 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
         for (const block of msg.content) {
           if (block.type === "text") {
             parts.push({ text: block.text });
+          } else if (block.type === "image" && block.source) {
+            parts.push({
+              inlineData: {
+                mime_type: block.source.media_type,
+                data: block.source.data,
+              },
+            });
           } else if (block.type === "tool_use") {
             parts.push({
               functionCall: {
