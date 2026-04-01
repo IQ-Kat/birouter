@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🛠️ Maintenance
+
+- **AGENTS.md rewrite:** Condensed from 297→153 lines. Added build/lint/test commands (including single-test execution), code style guidelines (Prettier, TypeScript, ESLint, naming, imports, error handling, security), and trimmed verbose architecture tables for AI agent consumption.
+
 ## [3.4.1] - 2026-03-31
 
 > [!WARNING]
