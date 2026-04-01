@@ -268,7 +268,7 @@ Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Eve
 **How OmniRoute solves it:**
 
 - **Smart 4-Tier Fallback** — If subscription quota runs out, automatically redirects to API Key → Cheap → Free with zero manual intervention
-- **Real-Time Quota Tracking** — Shows token consumption in real-time with reset countdown (5h, daily, weekly)
+- **Provider Limits Tracking** — Cached quota snapshots refresh on a server-side schedule (default `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) with manual refresh available in the UI
 - **Multi-Account Support** — Multiple accounts per provider with auto round-robin — when one runs out, switches to the next
 - **Custom Combos** — Customizable fallback chains with 6 balancing strategies (fill-first, round-robin, P2C, random, least-used, cost-optimized)
 - **Codex Business Quotas** — Business/Team workspace quota monitoring directly in the dashboard
