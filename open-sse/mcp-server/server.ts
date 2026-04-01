@@ -23,6 +23,7 @@ import {
   routeRequestInput,
   costReportInput,
   listModelsCatalogInput,
+  webSearchInput,
   simulateRouteInput,
   setBudgetGuardInput,
   setRoutingStrategyInput,
@@ -492,6 +493,37 @@ async function handleListModelsCatalog(args: { provider?: string; capability?: s
   }
 }
 
+async function handleWebSearch(args: {
+  query: string;
+  max_results?: number;
+  search_type?: "web" | "news";
+  provider?: string;
+}) {
+  const start = Date.now();
+  try {
+    const body: Record<string, unknown> = {
+      query: args.query,
+      max_results: args.max_results ?? 5,
+      search_type: args.search_type ?? "web",
+    };
+    if (args.provider) {
+      body["provider"] = args.provider;
+    }
+
+    const data = await omniRouteFetch("/v1/search", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+    await logToolCall("omniroute_web_search", args, data, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_web_search", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
 // ============ MCP Server Setup ============
 
 /**
@@ -592,6 +624,18 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_list_models_catalog", (args) =>
       handleListModelsCatalog(listModelsCatalogInput.parse(args))
+    )
+  );
+
+  server.registerTool(
+    "omniroute_web_search",
+    {
+      description:
+        "Performs a web search using OmniRoute's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
+      inputSchema: webSearchInput,
+    },
+    withScopeEnforcement("omniroute_web_search", (args) =>
+      handleWebSearch(webSearchInput.parse(args))
     )
   );
 
