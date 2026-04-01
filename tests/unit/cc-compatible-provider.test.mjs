@@ -21,7 +21,7 @@ const providerNodesValidateRoute =
   await import("../../src/app/api/provider-nodes/validate/route.ts");
 
 const originalFetch = globalThis.fetch;
-const originalFlag = process.env.NEXT_PUBLIC_ENABLE_CC_COMPATIBLE_PROVIDER;
+const originalFlag = process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -32,9 +32,9 @@ async function resetStorage() {
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
   if (originalFlag === undefined) {
-    delete process.env.NEXT_PUBLIC_ENABLE_CC_COMPATIBLE_PROVIDER;
+    delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
   } else {
-    process.env.NEXT_PUBLIC_ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
+    process.env.ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
   }
   await resetStorage();
 });
@@ -42,9 +42,9 @@ test.afterEach(async () => {
 test.after(() => {
   globalThis.fetch = originalFetch;
   if (originalFlag === undefined) {
-    delete process.env.NEXT_PUBLIC_ENABLE_CC_COMPATIBLE_PROVIDER;
+    delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
   } else {
-    process.env.NEXT_PUBLIC_ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
+    process.env.ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
   }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -170,7 +170,7 @@ test("validateProviderApiKey uses CC skeleton request after /models fallback", a
 });
 
 test("provider-nodes create route rejects CC mode when feature flag is disabled", async () => {
-  delete process.env.NEXT_PUBLIC_ENABLE_CC_COMPATIBLE_PROVIDER;
+  delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
 
   const response = await providerNodesRoute.POST(
     new Request("http://localhost/api/provider-nodes", {
@@ -190,7 +190,7 @@ test("provider-nodes create route rejects CC mode when feature flag is disabled"
 });
 
 test("provider-nodes create route creates CC node with dedicated prefix when enabled", async () => {
-  process.env.NEXT_PUBLIC_ENABLE_CC_COMPATIBLE_PROVIDER = "true";
+  process.env.ENABLE_CC_COMPATIBLE_PROVIDER = "true";
 
   const response = await providerNodesRoute.POST(
     new Request("http://localhost/api/provider-nodes", {
@@ -217,7 +217,7 @@ test("provider-nodes create route creates CC node with dedicated prefix when ena
 });
 
 test("provider-nodes validate route rejects CC mode when feature flag is disabled", async () => {
-  delete process.env.NEXT_PUBLIC_ENABLE_CC_COMPATIBLE_PROVIDER;
+  delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
 
   const response = await providerNodesValidateRoute.POST(
     new Request("http://localhost/api/provider-nodes/validate", {
@@ -233,4 +233,14 @@ test("provider-nodes validate route rejects CC mode when feature flag is disable
   );
 
   assert.equal(response.status, 403);
+});
+
+test("provider-nodes list route exposes CC flag state from server env", async () => {
+  process.env.ENABLE_CC_COMPATIBLE_PROVIDER = "true";
+
+  const response = await providerNodesRoute.GET();
+  assert.equal(response.status, 200);
+
+  const data = await response.json();
+  assert.equal(data.ccCompatibleProviderEnabled, true);
 });

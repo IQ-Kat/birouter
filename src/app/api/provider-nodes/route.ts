@@ -29,7 +29,10 @@ function sanitizeAnthropicBaseUrl(baseUrl: string) {
 export async function GET() {
   try {
     const nodes = await getProviderNodes();
-    return NextResponse.json({ nodes });
+    return NextResponse.json({
+      nodes,
+      ccCompatibleProviderEnabled: isCcCompatibleProviderEnabled(),
+    });
   } catch (error) {
     console.log("Error fetching provider nodes:", error);
     return NextResponse.json({ error: "Failed to fetch provider nodes" }, { status: 500 });

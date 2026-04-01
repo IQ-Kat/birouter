@@ -21,7 +21,6 @@ import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
-import { CC_COMPATIBLE_PROVIDER_ENABLED } from "@/shared/utils/featureFlags";
 import Link from "next/link";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -102,6 +101,7 @@ function getConnectionErrorTag(connection) {
 export default function ProvidersPage() {
   const [connections, setConnections] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
+  const [ccCompatibleProviderEnabled, setCcCompatibleProviderEnabled] = useState(false);
   const [expirations, setExpirations] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
@@ -126,7 +126,10 @@ export default function ProvidersPage() {
         const nodesData = await nodesRes.json();
         const expirationsData = await expirationsRes.json();
         if (connectionsRes.ok) setConnections(connectionsData.connections || []);
-        if (nodesRes.ok) setProviderNodes(nodesData.nodes || []);
+        if (nodesRes.ok) {
+          setProviderNodes(nodesData.nodes || []);
+          setCcCompatibleProviderEnabled(nodesData.ccCompatibleProviderEnabled === true);
+        }
         if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
       } catch (error) {
         console.log("Error fetching data:", error);
@@ -514,7 +517,7 @@ export default function ProvidersPage() {
                 {testingMode === "compatible" ? t("testing") : t("testAll")}
               </button>
             )}
-            {CC_COMPATIBLE_PROVIDER_ENABLED && (
+            {ccCompatibleProviderEnabled && (
               <Button
                 size="sm"
                 variant="secondary"
@@ -583,7 +586,7 @@ export default function ProvidersPage() {
           setShowAddAnthropicCompatibleModal(false);
         }}
       />
-      {CC_COMPATIBLE_PROVIDER_ENABLED && (
+      {ccCompatibleProviderEnabled && (
         <AddCcCompatibleModal
           isOpen={showAddCcCompatibleModal}
           onClose={() => setShowAddCcCompatibleModal(false)}
