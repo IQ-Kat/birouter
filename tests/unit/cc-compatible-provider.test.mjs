@@ -54,8 +54,25 @@ test("buildClaudeCodeCompatibleRequest keeps order/text while mapping unsupporte
   const payload = buildClaudeCodeCompatibleRequest({
     sourceBody: {
       reasoning_effort: "xhigh",
+      tool_choice: "required",
     },
     normalizedBody: {
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "lookup_weather",
+            description: "Fetch weather",
+            parameters: {
+              type: "object",
+              properties: {
+                city: { type: "string" },
+              },
+              required: ["city"],
+            },
+          },
+        },
+      ],
       messages: [
         { role: "system", content: "sys" },
         { role: "user", content: [{ type: "text", text: "u1" }, { type: "image_url" }] },
@@ -85,7 +102,19 @@ test("buildClaudeCodeCompatibleRequest keeps order/text while mapping unsupporte
   assert.deepEqual(payload.messages.at(-1).content.at(-1).cache_control, { type: "ephemeral" });
   assert.equal(payload.system.length, 4);
   assert.equal(payload.system.at(-1).text, "sys");
-  assert.equal(payload.tools.length, 0);
+  assert.equal(payload.tools.length, 1);
+  assert.deepEqual(payload.tools[0], {
+    name: "lookup_weather",
+    description: "Fetch weather",
+    input_schema: {
+      type: "object",
+      properties: {
+        city: { type: "string" },
+      },
+      required: ["city"],
+    },
+  });
+  assert.deepEqual(payload.tool_choice, { type: "any" });
   assert.equal(payload.context_management.edits[0].type, "clear_thinking_20251015");
   assert.equal(JSON.parse(payload.metadata.user_id).session_id, "session-1");
 });
@@ -103,6 +132,31 @@ test("buildClaudeCodeCompatibleRequest honors token priority fields", () => {
   });
 
   assert.equal(payload.max_tokens, 321);
+  assert.deepEqual(payload.tools, []);
+  assert.equal(payload.tool_choice, undefined);
+});
+
+test("buildClaudeCodeCompatibleRequest omits auto tool_choice while preserving tools", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    sourceBody: { tool_choice: "auto" },
+    normalizedBody: {
+      messages: [{ role: "user", content: "hi" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "ping",
+            parameters: { type: "object" },
+          },
+        },
+      ],
+    },
+    model: "claude-sonnet-4-6",
+    sessionId: "session-4",
+  });
+
+  assert.equal(payload.tools.length, 1);
+  assert.equal(payload.tool_choice, undefined);
 });
 
 test("DefaultExecutor uses CC-compatible path and headers", () => {
