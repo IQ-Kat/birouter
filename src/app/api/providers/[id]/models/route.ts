@@ -154,7 +154,15 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     body: {},
-    parseResponse: (data) => data.models || [],
+    parseResponse: (data) => {
+      const excluded = new Set([
+        "gemini-2.5-flash-preview-image-generation",
+        "gemini-3.1-flash-image-preview",
+        "gemini-3-pro-low",
+        "gemini-3-pro-high",
+      ]);
+      return (data.models || []).filter((m: any) => !excluded.has(m.model || m.id));
+    },
   },
   openai: {
     url: "https://api.openai.com/v1/models",
