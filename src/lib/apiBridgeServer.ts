@@ -26,6 +26,8 @@ const OPENAI_COMPAT_PATHS = [
   /^\/responses(?:\?|$)/,
   /^\/models(?:\?|$)/,
   /^\/codex(?:\/|\?|$)/,
+  /^\/api\/oauth(?:\/|$)/,
+  /^\/callback(?:\?|$)/,
 ];
 
 function isOpenAiCompatiblePath(pathname: string): boolean {

@@ -256,11 +256,11 @@ describe("DashboardLayout Integration", () => {
   });
 });
 
-describe("Page Integration — usage page wiring", () => {
-  const src = readProjectFile("src/app/(dashboard)/dashboard/usage/page.tsx");
+describe("Page Integration — logs page wiring", () => {
+  const src = readProjectFile("src/app/(dashboard)/dashboard/logs/page.tsx");
 
-  it("should wire segmented usage tabs", () => {
-    assert.ok(src, "src/app/(dashboard)/dashboard/usage/page.tsx should exist");
+  it("should wire segmented log tabs", () => {
+    assert.ok(src, "src/app/(dashboard)/dashboard/logs/page.tsx should exist");
     assert.match(src, /SegmentedControl/);
     assert.match(src, /RequestLoggerV2/);
     assert.match(src, /ProxyLogger/);
