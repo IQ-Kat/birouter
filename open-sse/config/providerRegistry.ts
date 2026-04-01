@@ -1524,8 +1524,6 @@ export function generateAliasMap(): Record<string, string> {
 const LOCAL_HOSTNAMES = new Set([
   "localhost",
   "127.0.0.1",
-  "::1",
-  "[::1]",
   ...(typeof process !== "undefined" && process.env.LOCAL_HOSTNAMES
     ? process.env.LOCAL_HOSTNAMES.split(",")
         .map((h) => h.trim())
@@ -1544,7 +1542,12 @@ export function isLocalProvider(baseUrl?: string | null): boolean {
   if (!baseUrl) return false;
   try {
     const url = new URL(baseUrl);
-    return LOCAL_HOSTNAMES.has(url.hostname);
+    const hostname = url.hostname;
+    // Strictly matching 172.16.0.0/12 (Docker/local) and explicitly blocking ::1 per SSRF hardening
+    return (
+      LOCAL_HOSTNAMES.has(hostname) ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
+    );
   } catch {
     return false;
   }
