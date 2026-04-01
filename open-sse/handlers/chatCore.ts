@@ -13,7 +13,7 @@ import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
-import { getUnsupportedParams } from "../config/providerRegistry.ts";
+import { getUnsupportedParams, getPassthroughProviders } from "../config/providerRegistry.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -1211,19 +1211,32 @@ export async function handleChatCore({
             `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.RATE_LIMITED) {
-          const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
-          await updateProviderConnection(connectionId, {
-            rateLimitedUntil: rateLimitedUntil,
-            testStatus: "credits_exhausted",
-            lastErrorType: errorType,
-            lastError: message,
-            errorCode: statusCode,
-            healthCheckInterval: null,
-            lastHealthCheckAt: null,
-          });
-          console.warn(
-            `[provider] Node ${connectionId} rate limited (${statusCode}) - Next available at ${rateLimitedUntil}`
-          );
+          // For passthrough providers (e.g. Antigravity), each model has independent
+          // quota.  A 429 on one model must NOT lock out the entire connection — other
+          // models may still have quota available.  Use lockModel() instead.
+          const isPassthrough = provider && getPassthroughProviders().has(provider);
+          if (isPassthrough) {
+            const { lockModel } = await import("../services/accountFallback.ts");
+            const cooldown = retryAfterMs || 60_000;
+            lockModel(provider, connectionId, model, "rate_limited", cooldown);
+            console.warn(
+              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(cooldown / 1000)}s (connection stays active)`
+            );
+          } else {
+            const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
+            await updateProviderConnection(connectionId, {
+              rateLimitedUntil: rateLimitedUntil,
+              testStatus: "credits_exhausted",
+              lastErrorType: errorType,
+              lastError: message,
+              errorCode: statusCode,
+              healthCheckInterval: null,
+              lastHealthCheckAt: null,
+            });
+            console.warn(
+              `[provider] Node ${connectionId} rate limited (${statusCode}) - Next available at ${rateLimitedUntil}`
+            );
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           await updateProviderConnection(connectionId, {
             testStatus: "credits_exhausted",

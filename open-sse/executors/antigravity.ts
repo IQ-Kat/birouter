@@ -5,13 +5,21 @@ import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts"
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 
+const BARE_PRO_IDS = new Set(["gemini-3-pro", "gemini-3.1-pro", "gemini-3-1-pro"]);
+
 /**
  * Strip provider prefixes (e.g. "antigravity/model" → "model").
  * Ensures the model name sent to the upstream API never contains a routing prefix.
  */
 function cleanModelName(model: string): string {
   if (!model) return model;
-  return model.includes("/") ? model.split("/").pop()! : model;
+  let clean = model.includes("/") ? model.split("/").pop()! : model;
+  // Normalize bare Pro IDs to the Low tier (matching OpenClaw convention).
+  // The upstream API requires an explicit tier suffix; bare IDs cause errors.
+  if (BARE_PRO_IDS.has(clean)) {
+    clean = `${clean}-low`;
+  }
+  return clean;
 }
 
 export class AntigravityExecutor extends BaseExecutor {

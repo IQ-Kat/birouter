@@ -691,15 +691,25 @@ async function getAntigravityUsage(accessToken, providerSpecificData) {
     const modelEntries = toRecord(dataObj.models);
     const quotas: Record<string, UsageQuota> = {};
 
+    // Models excluded from quota display — internal/special-purpose models that
+    // the Antigravity API returns quota for but are not user-callable via
+    // generateContent.  Matches CLIProxyAPI's hardcoded exclusion list.
+    const ANTIGRAVITY_EXCLUDED_MODELS = new Set([
+      "chat_20706",
+      "chat_23310",
+      "tab_flash_lite_preview",
+      "tab_jump_flash_lite_preview",
+      "gemini-2.5-flash-thinking",
+      "gemini-2.5-pro",          // browser subagent model — not user-callable
+    ]);
+
     // Parse per-model quota info from fetchAvailableModels response.
-    // Show all models that have quota data, excluding only internal models
-    // (tab-completion, chat placeholders, etc.).
     for (const [modelKey, infoValue] of Object.entries(modelEntries)) {
       const info = toRecord(infoValue);
       const quotaInfo = toRecord(info.quotaInfo);
 
-      // Skip internal models and models without quota info
-      if (info.isInternal === true || Object.keys(quotaInfo).length === 0) {
+      // Skip internal, excluded, and models without quota info
+      if (info.isInternal === true || ANTIGRAVITY_EXCLUDED_MODELS.has(modelKey) || Object.keys(quotaInfo).length === 0) {
         continue;
       }
 

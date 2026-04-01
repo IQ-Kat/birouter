@@ -803,6 +803,21 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: localCooldown };
     }
 
+    // ── 429 model-only lockout for passthrough providers ──
+    // For passthrough providers like Antigravity, each model has independent quota.
+    // A 429 on one model should NOT lock out the entire connection — other models
+    // may still have quota available. Use lockModel() instead of connection-wide
+    // rateLimitedUntil, same pattern as the 404 model-only lockout above.
+    if (isPassthroughProvider && status === 429 && provider && model) {
+      const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimited;
+      lockModel(provider, connectionId, model, reason || "rate_limited", modelCooldown);
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${model} — 429 rate limit ${Math.ceil(modelCooldown / 1000)}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: modelCooldown };
+    }
+
     const rateLimitedUntil = getUnavailableUntil(cooldownMs);
     const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
 
