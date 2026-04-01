@@ -224,6 +224,7 @@ export class AntigravityExecutor extends BaseExecutor {
 
     const collect = async () => {
       const chunks: string[] = [];
+      let timedOut = false;
       const timeout = AbortSignal.timeout(SSE_COLLECT_TIMEOUT_MS);
       try {
         // eslint-disable-next-line no-constant-condition
@@ -239,7 +240,9 @@ export class AntigravityExecutor extends BaseExecutor {
           chunks.push(decoder.decode(value, { stream: true }));
         }
       } catch (err) {
-        log?.warn?.("SSE_COLLECT", `Error collecting SSE stream: ${err?.message || err}`);
+        const msg = err?.message || String(err);
+        timedOut = msg.includes("timed out");
+        log?.warn?.("SSE_COLLECT", `Error collecting SSE stream: ${msg}`);
         // Fall through — return whatever was collected so far
       }
       const rawSSE = chunks.join("");
@@ -289,15 +292,16 @@ export class AntigravityExecutor extends BaseExecutor {
           {
             index: 0,
             message: { role: "assistant", content: textContent },
-            finish_reason: finishReason,
+            finish_reason: timedOut ? "length" : finishReason,
           },
         ],
         ...(usage && { usage }),
       };
 
+      const syntheticStatus = timedOut ? 504 : response.status;
       const syntheticResponse = new Response(JSON.stringify(result), {
-        status: response.status,
-        statusText: response.statusText,
+        status: syntheticStatus,
+        statusText: timedOut ? "Gateway Timeout" : response.statusText,
         headers: [["Content-Type", "application/json"]],
       });
 

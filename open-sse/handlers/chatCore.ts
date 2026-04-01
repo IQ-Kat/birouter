@@ -1217,7 +1217,7 @@ export async function handleChatCore({
           const isPassthrough = provider && getPassthroughProviders().has(provider);
           if (isPassthrough) {
             const { lockModel } = await import("../services/accountFallback.ts");
-            const cooldown = retryAfterMs || 60_000;
+            const cooldown = retryAfterMs || 120_000; // 2 min default, same as COOLDOWN_MS.rateLimit
             lockModel(provider, connectionId, model, "rate_limited", cooldown);
             console.warn(
               `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(cooldown / 1000)}s (connection stays active)`

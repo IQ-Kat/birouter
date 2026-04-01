@@ -809,7 +809,7 @@ export async function markAccountUnavailable(
     // may still have quota available. Use lockModel() instead of connection-wide
     // rateLimitedUntil, same pattern as the 404 model-only lockout above.
     if (isPassthroughProvider && status === 429 && provider && model) {
-      const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimited;
+      const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimit;
       lockModel(provider, connectionId, model, reason || "rate_limited", modelCooldown);
       log.info(
         "AUTH",
