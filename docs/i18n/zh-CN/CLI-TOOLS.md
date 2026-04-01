@@ -1,68 +1,81 @@
-🌐 **Languages:** 🇺🇸 [English](../../CLI-TOOLS.md) · 🇧🇷 [pt-BR](../pt-BR/CLI-TOOLS.md) · 🇪🇸 [es](../es/CLI-TOOLS.md) · 🇫🇷 [fr](../fr/CLI-TOOLS.md) · 🇩🇪 [de](../de/CLI-TOOLS.md) · 🇮🇹 [it](../it/CLI-TOOLS.md) · 🇷🇺 [ru](../ru/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../zh-CN/CLI-TOOLS.md) · 🇯🇵 [ja](../ja/CLI-TOOLS.md) · 🇰🇷 [ko](../ko/CLI-TOOLS.md) · 🇸🇦 [ar](../ar/CLI-TOOLS.md)
+🌐 **语言:** 🇺🇸 [English](../../CLI-TOOLS.md) · 🇧🇷 [pt-BR](../pt-BR/CLI-TOOLS.md) · 🇪🇸 [es](../es/CLI-TOOLS.md) · 🇫🇷 [fr](../fr/CLI-TOOLS.md) · 🇩🇪 [de](../de/CLI-TOOLS.md) · 🇮🇹 [it](../it/CLI-TOOLS.md) · 🇷🇺 [ru](../ru/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../zh-CN/CLI-TOOLS.md) · 🇯🇵 [ja](../ja/CLI-TOOLS.md) · 🇰🇷 [ko](../ko/CLI-TOOLS.md) · 🇸🇦 [ar](../ar/CLI-TOOLS.md)
 
 # CLI 工具配置指南 — OmniRoute
 
-本指南说明如何安装和配置所有支持的 AI CLI 工具，以使用 **OmniRoute** 作为统一后端。
-
-This guide explains how to install and configure all supported AI coding CLI tools
-to use **OmniRoute** as the unified backend, giving you centralized key management,
-cost tracking, model switching, and request logging across every tool.
+本指南说明如何安装和配置所有支持的 AI 编程 CLI 工具，以使用 **OmniRoute** 作为统一后端，为您提供集中化的密钥管理、成本跟踪、模型切换以及所有工具的请求日志记录。
 
 ---
 
-## How It Works
+## 工作原理
 
 ```
-Claude / Codex / Gemini CLI / OpenCode / Cline / KiloCode / Continue / Kiro CLI
+Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
            │
-           ▼  (all point to OmniRoute)
+           ▼  (所有工具指向 OmniRoute)
     http://YOUR_SERVER:20128/v1
            │
-           ▼  (OmniRoute routes to the right provider)
+           ▼  (OmniRoute 路由到正确的服务商)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
-**Benefits:**
+**优势:**
 
-- One API key to manage all tools
-- Cost tracking across all CLIs in the dashboard
-- Model switching without reconfiguring every tool
-- Works locally and on remote servers (VPS)
-
----
-
-## Supported Tools
-
-| Tool             | Command             | Type              | Install Method |
-| ---------------- | ------------------- | ----------------- | -------------- |
-| **Claude Code**  | `claude`            | CLI               | npm            |
-| **OpenAI Codex** | `codex`             | CLI               | npm            |
-| **Gemini CLI**   | `gemini`            | CLI               | npm            |
-| **OpenCode**     | `opencode`          | CLI               | npm            |
-| **Cline**        | `cline`             | CLI + VS Code ext | npm            |
-| **KiloCode**     | `kilocode` / `kilo` | CLI + VS Code ext | npm            |
-| **Continue**     | guide-based         | VS Code ext       | VS Code        |
-| **Kiro CLI**     | `kiro-cli`          | CLI               | curl installer |
-| **Cursor**       | `cursor`            | Desktop app       | Download       |
-| **Droid**        | web-based           | Built-in agent    | OmniRoute      |
-| **OpenClaw**     | web-based           | Built-in agent    | OmniRoute      |
+- 一个 API 密钥管理所有工具
+- 在仪表盘中跨所有 CLI 跟踪成本
+- 无需重新配置每个工具即可切换模型
+- 本地和远程服务器 (VPS) 均可使用
 
 ---
 
-## Step 1 — Get an OmniRoute API Key
+## 支持的工具（以仪表盘为准）
 
-1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
-2. Click **Create API Key**
-3. Give it a name (e.g. `cli-tools`) and select all permissions
-4. Copy the key — you'll need it for every CLI below
+仪表盘中 `/dashboard/cli-tools` 的卡片由 `src/shared/constants/cliTools.ts` 生成。
+当前列表 (v3.0.0-rc.16):
 
-> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+| 工具              | ID            | 命令         | 配置模式 | 安装方式     |
+| ----------------- | ------------- | ------------ | -------- | ------------ |
+| **Claude Code**   | `claude`      | `claude`     | env      | npm          |
+| **OpenAI Codex**  | `codex`       | `codex`      | custom   | npm          |
+| **Factory Droid** | `droid`       | `droid`      | custom   | 内置/CLI     |
+| **OpenClaw**      | `openclaw`    | `openclaw`   | custom   | 内置/CLI     |
+| **Cursor**        | `cursor`      | app          | guide    | 桌面应用     |
+| **Cline**         | `cline`       | `cline`      | custom   | npm          |
+| **Kilo Code**     | `kilo`        | `kilocode`   | custom   | npm          |
+| **Continue**      | `continue`    | extension    | guide    | VS Code      |
+| **Antigravity**   | `antigravity` | internal     | mitm     | OmniRoute    |
+| **GitHub Copilot**| `copilot`     | extension    | custom   | VS Code      |
+| **OpenCode**      | `opencode`    | `opencode`   | guide    | npm          |
+| **Kiro AI**       | `kiro`        | app/cli      | mitm     | 桌面/CLI     |
+
+### CLI 指纹同步（代理 + 设置）
+
+`/dashboard/agents` 和 `Settings > CLI Fingerprint` 使用 `src/shared/constants/cliCompatProviders.ts`。
+这确保服务商 ID 与 CLI 卡片和旧版 ID 保持一致。
+
+| CLI ID | 指纹服务商 ID |
+| ------ | ------------- |
+| `kilo` | `kilocode`    |
+| `copilot` | `github`   |
+| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | 相同 ID |
+
+为兼容性保留的旧版 ID：`copilot`、`kimi-coding`、`qwen`。
 
 ---
 
-## Step 2 — Install CLI Tools
+## 第 1 步 — 获取 OmniRoute API 密钥
 
-All npm-based tools require Node.js 18+:
+1. 打开 OmniRoute 仪表盘 → **API Manager** (`/dashboard/api-manager`)
+2. 点击 **Create API Key**
+3. 命名（例如 `cli-tools`）并选择所有权限
+4. 复制密钥 — 下面的每个 CLI 都需要使用
+
+> 密钥格式类似：`sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+
+---
+
+## 第 2 步 — 安装 CLI 工具
+
+所有基于 npm 的工具需要 Node.js 18+：
 
 ```bash
 # Claude Code (Anthropic)
@@ -71,9 +84,6 @@ npm install -g @anthropic-ai/claude-code
 # OpenAI Codex
 npm install -g @openai/codex
 
-# Gemini CLI (Google)
-npm install -g @google/gemini-cli
-
 # OpenCode
 npm install -g opencode-ai
 
@@ -81,34 +91,33 @@ npm install -g opencode-ai
 npm install -g cline
 
 # KiloCode
-npm install -g kilecode
+npm install -g kilocode
 
-# Kiro CLI (Amazon — requires curl + unzip)
-apt-get install -y unzip   # on Debian/Ubuntu
+# Kiro CLI (Amazon — 需要 curl + unzip)
+apt-get install -y unzip   # Debian/Ubuntu
 curl -fsSL https://cli.kiro.dev/install | bash
-export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
+export PATH="$HOME/.local/bin:$PATH"   # 添加到 ~/.bashrc
 ```
 
-**Verify:**
+**验证:**
 
 ```bash
 claude --version     # 2.x.x
 codex --version      # 0.x.x
-gemini --version     # 0.x.x
 opencode --version   # x.x.x
 cline --version      # 2.x.x
-kilocode --version   # x.x.x (or: kilo --version)
+kilocode --version   # x.x.x (或: kilo --version)
 kiro-cli --version   # 1.x.x
 ```
 
 ---
 
-## Step 3 — Set Global Environment Variables
+## 第 3 步 — 设置全局环境变量
 
-Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
+添加到 `~/.bashrc`（或 `~/.zshrc`），然后运行 `source ~/.bashrc`：
 
 ```bash
-# OmniRoute Universal Endpoint
+# OmniRoute 统一端点
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
@@ -117,20 +126,20 @@ export GEMINI_BASE_URL="http://localhost:20128/v1"
 export GEMINI_API_KEY="sk-your-omniroute-key"
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain,
-> e.g. `http://192.168.0.15:20128`.
+> 对于**远程服务器**，将 `localhost:20128` 替换为服务器 IP 或域名，
+> 例如 `http://192.168.0.15:20128`。
 
 ---
 
-## Step 4 — Configure Each Tool
+## 第 4 步 — 配置各工具
 
 ### Claude Code
 
 ```bash
-# Via CLI:
+# 通过 CLI:
 claude config set --global api-base-url http://localhost:20128/v1
 
-# Or create ~/.claude/settings.json:
+# 或创建 ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
   "apiBaseUrl": "http://localhost:20128/v1",
@@ -139,7 +148,7 @@ mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 EOF
 ```
 
-**Test:** `claude "say hello"`
+**测试:** `claude "say hello"`
 
 ---
 
@@ -153,22 +162,7 @@ apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
 
-**Test:** `codex "what is 2+2?"`
-
----
-
-### Gemini CLI
-
-```bash
-mkdir -p ~/.gemini && cat > ~/.gemini/settings.json << EOF
-{
-  "apiKey": "sk-your-omniroute-key",
-  "baseUrl": "http://localhost:20128/v1"
-}
-EOF
-```
-
-**Test:** `gemini "hello"`
+**测试:** `codex "what is 2+2?"`
 
 ---
 
@@ -182,13 +176,13 @@ api_key = "sk-your-omniroute-key"
 EOF
 ```
 
-**Test:** `opencode`
+**测试:** `opencode`
 
 ---
 
-### Cline (CLI or VS Code)
+### Cline (CLI 或 VS Code)
 
-**CLI mode:**
+**CLI 模式:**
 
 ```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
@@ -200,22 +194,22 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 EOF
 ```
 
-**VS Code mode:**
-Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+**VS Code 模式:**
+Cline 扩展设置 → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
+或使用 OmniRoute 仪表盘 → **CLI Tools → Cline → Apply Config**。
 
 ---
 
-### KiloCode (CLI or VS Code)
+### KiloCode (CLI 或 VS Code)
 
-**CLI mode:**
+**CLI 模式:**
 
 ```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 ```
 
-**VS Code settings:**
+**VS Code 设置:**
 
 ```json
 {
@@ -224,13 +218,13 @@ kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 }
 ```
 
-Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
+或使用 OmniRoute 仪表盘 → **CLI Tools → KiloCode → Apply Config**。
 
 ---
 
-### Continue (VS Code Extension)
+### Continue (VS Code 扩展)
 
-Edit `~/.continue/config.yaml`:
+编辑 `~/.continue/config.yaml`:
 
 ```yaml
 models:
@@ -242,103 +236,102 @@ models:
     default: true
 ```
 
-Restart VS Code after editing.
+编辑后重启 VS Code。
 
 ---
 
 ### Kiro CLI (Amazon)
 
 ```bash
-# Login to your AWS/Kiro account:
+# 登录您的 AWS/Kiro 账户:
 kiro-cli login
 
-# The CLI uses its own auth — OmniRoute is not needed as backend for Kiro CLI itself.
-# Use kiro-cli alongside OmniRoute for other tools.
+# CLI 使用自有认证 — Kiro CLI 本身不需要 OmniRoute 作为后端。
+# 将 kiro-cli 与其他工具的 OmniRoute 一起使用。
 kiro-cli status
 ```
 
 ---
 
-### Cursor (Desktop App)
+### Cursor (桌面应用)
 
-> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
-> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
+> **注意:** Cursor 通过其云端路由请求。对于 OmniRoute 集成，
+> 在 OmniRoute Settings 中启用 **Cloud Endpoint** 并使用您的公共域名 URL。
 
-Via GUI: **Settings → Models → OpenAI API Key**
+通过 GUI: **Settings → Models → OpenAI API Key**
 
 - Base URL: `https://your-domain.com/v1`
-- API Key: your OmniRoute key
+- API Key: 您的 OmniRoute 密钥
 
 ---
 
-## Dashboard Auto-Configuration
+## 仪表盘自动配置
 
-The OmniRoute dashboard automates configuration for most tools:
+OmniRoute 仪表盘可自动配置大多数工具：
 
-1. Go to `http://localhost:20128/dashboard/cli-tools`
-2. Expand any tool card
-3. Select your API key from the dropdown
-4. Click **Apply Config** (if tool is detected as installed)
-5. Or copy the generated config snippet manually
-
----
-
-## Built-in Agents: Droid & OpenClaw
-
-**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
-They run as internal routes and use OmniRoute's model routing automatically.
-
-- Access: `http://localhost:20128/dashboard/agents`
-- Configure: same combos and providers as all other tools
-- No API key or CLI install required
+1. 前往 `http://localhost:20128/dashboard/cli-tools`
+2. 展开任意工具卡片
+3. 从下拉菜单选择您的 API 密钥
+4. 点击 **Apply Config**（如果检测到工具已安装）
+5. 或手动复制生成的配置片段
 
 ---
 
-## Available API Endpoints
+## 内置代理：Droid & OpenClaw
 
-| Endpoint                   | Description                   | Use For                     |
-| -------------------------- | ----------------------------- | --------------------------- |
-| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
-| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
-| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
-| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
-| `/v1/images/generations`   | Image generation              | DALL-E, Flux, etc.          |
-| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
-| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
+**Droid** 和 **OpenClaw** 是直接内置于 OmniRoute 的 AI 代理 — 无需安装。
+它们作为内部路由运行，自动使用 OmniRoute 的模型路由。
+
+- 访问：`http://localhost:20128/dashboard/agents`
+- 配置：与所有其他工具使用相同的组合和服务商
+- 无需 API 密钥或 CLI 安装
 
 ---
 
-## Troubleshooting
+## 可用 API 端点
 
-| Error                     | Cause                   | Fix                                        |
-| ------------------------- | ----------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
-| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
-| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
-| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
-| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
-| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
+| 端点                       | 描述                     | 用途                       |
+| -------------------------- | ------------------------ | -------------------------- |
+| `/v1/chat/completions`     | 标准聊天（所有服务商）   | 所有现代工具               |
+| `/v1/responses`            | Responses API（OpenAI 格式）| Codex、代理工作流        |
+| `/v1/completions`          | 旧版文本补全             | 使用 `prompt:` 的旧工具    |
+| `/v1/embeddings`           | 文本嵌入                 | RAG、搜索                  |
+| `/v1/images/generations`   | 图像生成                 | DALL-E、Flux 等            |
+| `/v1/audio/speech`         | 文本转语音               | ElevenLabs、OpenAI TTS     |
+| `/v1/audio/transcriptions` | 语音转文字               | Deepgram、AssemblyAI       |
 
 ---
 
-## Quick Setup Script (One Command)
+## 故障排除
+
+| 错误                      | 原因                  | 解决方案                                   |
+| ------------------------- | --------------------- | ------------------------------------------ |
+| `Connection refused`      | OmniRoute 未运行      | `pm2 start omniroute`                      |
+| `401 Unauthorized`        | API 密钥错误          | 在 `/dashboard/api-manager` 检查          |
+| `No combo configured`     | 无活动路由组合        | 在 `/dashboard/combos` 设置               |
+| `invalid model`           | 模型不在目录中        | 使用 `auto` 或检查 `/dashboard/providers` |
+| CLI 显示 "not installed"  | 二进制文件不在 PATH 中| 检查 `which <command>`                     |
+| `kiro-cli: not found`     | 不在 PATH 中          | `export PATH="$HOME/.local/bin:$PATH"`     |
+
+---
+
+## 快速设置脚本（一条命令）
 
 ```bash
-# Install all CLIs and configure for OmniRoute (replace with your key and server URL)
+# 安装所有 CLI 并为 OmniRoute 配置（替换为您的密钥和服务器 URL）
 OMNIROUTE_URL="http://localhost:20128/v1"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
-npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli opencode-ai cline kilecode
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode
 
 # Kiro CLI
 apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
 
-# Write configs
-mkdir -p ~/.claude ~/.codex ~/.gemini ~/.config/opencode ~/.continue
+# 写入配置
+mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
 
 cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
 cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
-cat > ~/.gemini/settings.json   <<< "{\"apiKey\":\"$OMNIROUTE_KEY\",\"baseUrl\":\"$OMNIROUTE_URL\"}"
 cat >> ~/.bashrc << EOF
 export OPENAI_BASE_URL="$OMNIROUTE_URL"
 export OPENAI_API_KEY="$OMNIROUTE_KEY"
@@ -347,5 +340,5 @@ export ANTHROPIC_API_KEY="$OMNIROUTE_KEY"
 EOF
 
 source ~/.bashrc
-echo "✅ All CLIs installed and configured for OmniRoute"
+echo "✅ 所有 CLI 已安装并配置为使用 OmniRoute"
 ```

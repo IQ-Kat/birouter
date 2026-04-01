@@ -1,38 +1,36 @@
-🌐 **Languages:** 🇺🇸 [English](../../README.md) · 🇧🇷 [pt-BR](../pt-BR/A2A-SERVER.md) · 🇪🇸 [es](../es/A2A-SERVER.md) · 🇫🇷 [fr](../fr/A2A-SERVER.md) · 🇩🇪 [de](../de/A2A-SERVER.md) · 🇮🇹 [it](../it/A2A-SERVER.md) · 🇷🇺 [ru](../ru/A2A-SERVER.md) · 🇨🇳 [zh-CN](../zh-CN/A2A-SERVER.md) · 🇯🇵 [ja](../ja/A2A-SERVER.md) · 🇰🇷 [ko](../ko/A2A-SERVER.md) · 🇸🇦 [ar](../ar/A2A-SERVER.md) · 🇮🇳 [in](../in/A2A-SERVER.md) · 🇹🇭 [th](../th/A2A-SERVER.md) · 🇻🇳 [vi](../vi/A2A-SERVER.md) · 🇮🇩 [id](../id/A2A-SERVER.md) · 🇲🇾 [ms](../ms/A2A-SERVER.md) · 🇳🇱 [nl](../nl/A2A-SERVER.md) · 🇵🇱 [pl](../pl/A2A-SERVER.md) · 🇸🇪 [sv](../sv/A2A-SERVER.md) · 🇳🇴 [no](../no/A2A-SERVER.md) · 🇩🇰 [da](../da/A2A-SERVER.md) · 🇫🇮 [fi](../fi/A2A-SERVER.md) · 🇵🇹 [pt](../pt/A2A-SERVER.md) · 🇷🇴 [ro](../ro/A2A-SERVER.md) · 🇭🇺 [hu](../hu/A2A-SERVER.md) · 🇧🇬 [bg](../bg/A2A-SERVER.md) · 🇸🇰 [sk](../sk/A2A-SERVER.md) · 🇺🇦 [uk-UA](../uk-UA/A2A-SERVER.md) · 🇮🇱 [he](../he/A2A-SERVER.md) · 🇵🇭 [phi](../phi/A2A-SERVER.md)
+# OmniRoute A2A 服务器文档
 
----
+🌐 **语言:** 🇺🇸 [English](../../A2A-SERVER.md) · 🇧🇷 [pt-BR](../pt-BR/A2A-SERVER.md) · 🇪🇸 [es](../es/A2A-SERVER.md) · 🇫🇷 [fr](../fr/A2A-SERVER.md) · 🇩🇪 [de](../de/A2A-SERVER.md) · 🇮🇹 [it](../it/A2A-SERVER.md) · 🇷🇺 [ru](../ru/A2A-SERVER.md) · 🇨🇳 [zh-CN](../zh-CN/A2A-SERVER.md) · 🇯🇵 [ja](../ja/A2A-SERVER.md) · 🇰🇷 [ko](../ko/A2A-SERVER.md) · 🇸🇦 [ar](../ar/A2A-SERVER.md) · 🇮🇳 [in](../in/A2A-SERVER.md) · 🇹🇭 [th](../th/A2A-SERVER.md) · 🇻🇳 [vi](../vi/A2A-SERVER.md) · 🇮🇩 [id](../id/A2A-SERVER.md) · 🇲🇾 [ms](../ms/A2A-SERVER.md) · 🇳🇱 [nl](../nl/A2A-SERVER.md) · 🇵🇱 [pl](../pl/A2A-SERVER.md) · 🇸🇪 [sv](../sv/A2A-SERVER.md) · 🇳🇴 [no](../no/A2A-SERVER.md) · 🇩🇰 [da](../da/A2A-SERVER.md) · 🇫🇮 [fi](../fi/A2A-SERVER.md) · 🇵🇹 [pt](../pt/A2A-SERVER.md) · 🇷🇴 [ro](../ro/A2A-SERVER.md) · 🇭🇺 [hu](../hu/A2A-SERVER.md) · 🇧🇬 [bg](../bg/A2A-SERVER.md) · 🇸🇰 [sk](../sk/A2A-SERVER.md) · 🇺🇦 [uk-UA](../uk-UA/A2A-SERVER.md) · 🇮🇱 [he](../he/A2A-SERVER.md) · 🇵🇭 [phi](../phi/A2A-SERVER.md) · 🇨🇿 [cs](../cs/A2A-SERVER.md)
 
-# OmniRoute A2A Server Documentation
+> Agent-to-Agent Protocol v0.3 — OmniRoute 作为智能路由代理
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
-
-## Agent Discovery
+## 代理发现
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+返回描述 OmniRoute 能力、技能和身份验证要求的 Agent Card。
 
 ---
 
-## Authentication
+## 身份验证
 
-All `/a2a` requests require an API key via the `Authorization` header:
+所有 `/a2a` 请求需要通过 `Authorization` 头部提供 API 密钥：
 
 ```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
 ```
 
-If no API key is configured on the server, authentication is bypassed.
+如果服务器未配置 API 密钥，则跳过身份验证。
 
 ---
 
-## JSON-RPC 2.0 Methods
+## JSON-RPC 2.0 方法
 
-### `message/send` — Synchronous Execution
+### `message/send` — 同步执行
 
-Sends a message to a skill and waits for the complete response.
+向技能发送消息并等待完整响应。
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -50,7 +48,7 @@ curl -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**Response:**
+**响应:**
 
 ```json
 {
@@ -71,9 +69,9 @@ curl -X POST http://localhost:20128/a2a \
 }
 ```
 
-### `message/stream` — SSE Streaming
+### `message/stream` — SSE 流式传输
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
+与 `message/send` 相同，但返回 Server-Sent Events 进行实时流式传输。
 
 ```bash
 curl -N -X POST http://localhost:20128/a2a \
@@ -90,7 +88,7 @@ curl -N -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**SSE Events:**
+**SSE 事件:**
 
 ```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
@@ -100,7 +98,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
 ```
 
-### `tasks/get` — Query Task Status
+### `tasks/get` — 查询任务状态
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -109,7 +107,7 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
 ```
 
-### `tasks/cancel` — Cancel a Task
+### `tasks/cancel` — 取消任务
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -120,16 +118,16 @@ curl -X POST http://localhost:20128/a2a \
 
 ---
 
-## Available Skills
+## 可用技能
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+| 技能               | 描述                                                                                            |
+| :----------------- | :---------------------------------------------------------------------------------------------- |
+| `smart-routing`    | 通过 OmniRoute 的智能管道路由提示。返回带有路由说明、成本和弹性追踪的响应。                      |
+| `quota-management` | 回答关于服务商配额的自然语言查询，建议免费组合，并提供配额排名。                                 |
 
 ---
 
-## Task Lifecycle
+## 任务生命周期
 
 ```
 submitted → working → completed
@@ -137,25 +135,25 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
+- 任务在 5 分钟后过期（可配置）
+- 终止状态：`completed`、`failed`、`cancelled`
+- 事件日志跟踪每个状态转换
 
 ---
 
-## Error Codes
+## 错误代码
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
+| 代码   | 含义                        |
+| :----- | :-------------------------- |
+| -32700 | 解析错误（无效 JSON）        |
+| -32600 | 无效请求 / 未授权            |
+| -32601 | 方法或技能未找到             |
+| -32602 | 无效参数                     |
+| -32603 | 内部错误                     |
 
 ---
 
-## Integration Examples
+## 集成示例
 
 ### Python (requests)
 
