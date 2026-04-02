@@ -408,6 +408,8 @@ export async function getProviderCredentials(
         if (isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
         if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+        // Per-model lockout: if this specific model is locked on this connection, skip it
+        if (requestedModel && isModelLocked(provider, c.id, requestedModel)) return false;
       }
       return true;
     });
