@@ -131,12 +131,52 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     authQuery: "key", // Use query param for API key
-    parseResponse: (data) =>
-      (data.models || []).map((m) => ({
-        ...m,
-        id: (m.name || m.id || "").replace(/^models\//, ""),
-        name: m.displayName || (m.name || "").replace(/^models\//, ""),
-      })),
+    parseResponse: (data) => {
+      const METHOD_TO_ENDPOINT: Record<string, string> = {
+        generateContent: "chat",
+        embedContent: "embeddings",
+        predict: "images",
+        predictLongRunning: "images",
+        bidiGenerateContent: "audio",
+        generateAnswer: "chat",
+      };
+      const IGNORED_METHODS = new Set([
+        "countTokens",
+        "countTextTokens",
+        "createCachedContent",
+        "batchGenerateContent",
+        "asyncBatchEmbedContent",
+      ]);
+
+      return (data.models || []).map((m: Record<string, unknown>) => {
+        const methods: string[] = Array.isArray(m.supportedGenerationMethods)
+          ? m.supportedGenerationMethods
+          : [];
+        const endpoints = [
+          ...new Set(
+            methods
+              .filter((method) => !IGNORED_METHODS.has(method))
+              .map((method) => METHOD_TO_ENDPOINT[method] || "chat")
+          ),
+        ];
+        if (endpoints.length === 0) endpoints.push("chat");
+
+        return {
+          ...m,
+          id: ((m.name as string) || (m.id as string) || "").replace(/^models\//, ""),
+          name: (m.displayName as string) || ((m.name as string) || "").replace(/^models\//, ""),
+          supportedEndpoints: endpoints,
+          ...(typeof m.inputTokenLimit === "number"
+            ? { inputTokenLimit: m.inputTokenLimit }
+            : {}),
+          ...(typeof m.outputTokenLimit === "number"
+            ? { outputTokenLimit: m.outputTokenLimit }
+            : {}),
+          ...(typeof m.description === "string" ? { description: m.description } : {}),
+          ...(m.thinking === true ? { supportsThinking: true } : {}),
+        };
+      });
+    },
   },
   // gemini-cli handled via retrieveUserQuota (see GET handler)
   qwen: {
