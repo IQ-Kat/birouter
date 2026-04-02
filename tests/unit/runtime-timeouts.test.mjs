@@ -19,8 +19,25 @@ test("upstream timeout config derives hidden fetch timeouts from FETCH_TIMEOUT_M
   });
 });
 
+test("REQUEST_TIMEOUT_MS becomes the common timeout baseline when specific overrides are unset", () => {
+  const upstreamConfig = runtimeTimeouts.getUpstreamTimeoutConfig({
+    REQUEST_TIMEOUT_MS: "600000",
+  });
+  const apiBridgeConfig = runtimeTimeouts.getApiBridgeTimeoutConfig({
+    REQUEST_TIMEOUT_MS: "600000",
+  });
+
+  assert.equal(upstreamConfig.fetchTimeoutMs, 600000);
+  assert.equal(upstreamConfig.streamIdleTimeoutMs, 600000);
+  assert.equal(upstreamConfig.fetchHeadersTimeoutMs, 600000);
+  assert.equal(upstreamConfig.fetchBodyTimeoutMs, 600000);
+  assert.equal(apiBridgeConfig.proxyTimeoutMs, 600000);
+  assert.equal(apiBridgeConfig.serverRequestTimeoutMs, 600000);
+});
+
 test("upstream timeout config honors explicit overrides and falls back on invalid values", () => {
   const config = runtimeTimeouts.getUpstreamTimeoutConfig({
+    REQUEST_TIMEOUT_MS: "550000",
     FETCH_TIMEOUT_MS: "600000",
     STREAM_IDLE_TIMEOUT_MS: "600000",
     FETCH_HEADERS_TIMEOUT_MS: "610000",

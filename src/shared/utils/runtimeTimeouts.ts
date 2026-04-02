@@ -16,6 +16,11 @@ export const DEFAULT_API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS = 60_000;
 export const DEFAULT_API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS = 5_000;
 export const DEFAULT_API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS = 0;
 
+function hasEnvValue(env: EnvSource, name: string): boolean {
+  const raw = env[name];
+  return raw != null && raw.trim() !== "";
+}
+
 export type UpstreamTimeoutConfig = {
   fetchTimeoutMs: number;
   streamIdleTimeoutMs: number;
@@ -60,14 +65,25 @@ export function getUpstreamTimeoutConfig(
   env: EnvSource = process.env,
   logger?: TimeoutLogger
 ): UpstreamTimeoutConfig {
-  const fetchTimeoutMs = readTimeoutMs(env, "FETCH_TIMEOUT_MS", DEFAULT_FETCH_TIMEOUT_MS, {
-    allowZero: true,
-    logger,
-  });
+  const sharedRequestTimeoutMs = hasEnvValue(env, "REQUEST_TIMEOUT_MS")
+    ? readTimeoutMs(env, "REQUEST_TIMEOUT_MS", DEFAULT_FETCH_TIMEOUT_MS, {
+        allowZero: true,
+        logger,
+      })
+    : undefined;
+  const fetchTimeoutMs = readTimeoutMs(
+    env,
+    "FETCH_TIMEOUT_MS",
+    sharedRequestTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
   const streamIdleTimeoutMs = readTimeoutMs(
     env,
     "STREAM_IDLE_TIMEOUT_MS",
-    DEFAULT_STREAM_IDLE_TIMEOUT_MS,
+    sharedRequestTimeoutMs ?? DEFAULT_STREAM_IDLE_TIMEOUT_MS,
     {
       allowZero: true,
       logger,
@@ -123,10 +139,16 @@ export function getApiBridgeTimeoutConfig(
   env: EnvSource = process.env,
   logger?: TimeoutLogger
 ): ApiBridgeTimeoutConfig {
+  const sharedRequestTimeoutMs = hasEnvValue(env, "REQUEST_TIMEOUT_MS")
+    ? readTimeoutMs(env, "REQUEST_TIMEOUT_MS", DEFAULT_FETCH_TIMEOUT_MS, {
+        allowZero: true,
+        logger,
+      })
+    : undefined;
   const proxyTimeoutMs = readTimeoutMs(
     env,
     "API_BRIDGE_PROXY_TIMEOUT_MS",
-    DEFAULT_API_BRIDGE_PROXY_TIMEOUT_MS,
+    sharedRequestTimeoutMs ?? DEFAULT_API_BRIDGE_PROXY_TIMEOUT_MS,
     {
       allowZero: true,
       logger,
@@ -160,7 +182,9 @@ export function getApiBridgeTimeoutConfig(
     serverRequestTimeoutMs: readTimeoutMs(
       env,
       "API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS",
-      derivedRequestTimeoutMs,
+      sharedRequestTimeoutMs
+        ? Math.max(sharedRequestTimeoutMs, derivedRequestTimeoutMs)
+        : derivedRequestTimeoutMs,
       {
         allowZero: true,
         logger,
