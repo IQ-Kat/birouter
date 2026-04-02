@@ -454,6 +454,9 @@ export async function getUnifiedModelsResponse(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
+            ...(typeof (model as any).inputTokenLimit === "number"
+              ? { context_length: (model as any).inputTokenLimit }
+              : {}),
             ...(visionFields || {}),
           });
 
@@ -476,6 +479,9 @@ export async function getUnifiedModelsResponse(
               parent: aliasId,
               custom: true,
               ...(modelType ? { type: modelType } : {}),
+              ...(typeof (model as any).inputTokenLimit === "number"
+                ? { context_length: (model as any).inputTokenLimit }
+                : {}),
               ...(providerVisionFields || {}),
             });
           }
