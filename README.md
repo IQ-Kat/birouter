@@ -979,6 +979,7 @@ OmniRoute is available as a public Docker image on [Docker Hub](https://hub.dock
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
+  --stop-timeout 40 \
   -p 20128:20128 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
@@ -993,6 +994,7 @@ cp .env.example .env
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
+  --stop-timeout 40 \
   --env-file .env \
   -p 20128:20128 \
   -v omniroute-data:/app/data \
@@ -1016,6 +1018,8 @@ Notes:
 - Quick Tunnel URLs are temporary and change after every restart.
 - Managed install currently supports Linux, macOS, and Windows on `x64` / `arm64`.
 - Docker images bundle system CA roots and pass them to managed `cloudflared`, which avoids TLS trust failures when the tunnel bootstraps inside the container.
+- SQLite runs in WAL mode. `docker stop` should be allowed to finish so OmniRoute can checkpoint the latest changes back into `storage.sqlite`.
+- The bundled Compose files already set a 40s stop grace period. If you run the image directly, keep `--stop-timeout 40` (or similar) so manual stops do not cut off shutdown cleanup.
 - Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want OmniRoute to use an existing binary instead of downloading one.
 
 **Using Docker Compose with Caddy (HTTPS Auto-TLS):**
