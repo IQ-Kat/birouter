@@ -617,7 +617,7 @@ export async function validateClaudeCodeCompatibleProvider({
   try {
     const messagesRes = await fetch(joinClaudeCodeCompatibleUrl(baseUrl, chatPath), {
       method: "POST",
-      headers: buildClaudeCodeCompatibleHeaders(apiKey, false, sessionId),
+      headers: buildClaudeCodeCompatibleHeaders(apiKey, true, sessionId),
       body: JSON.stringify(payload),
     });
 

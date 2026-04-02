@@ -33,6 +33,10 @@ import {
   supportsApiKeyOnFreeProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
+import {
+  compatibleProviderSupportsModelImport,
+  getCompatibleFallbackModels,
+} from "@/lib/providers/managedAvailableModels";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
@@ -335,6 +339,7 @@ interface CompatibleModelsSectionProps {
   providerDisplayAlias: string;
   modelAliases: Record<string, string>;
   fallbackModels?: CompatModelRow[];
+  allowImport: boolean;
   description: string;
   inputLabel: string;
   inputPlaceholder: string;
@@ -472,7 +477,6 @@ interface EditCompatibleNodeModalProps {
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const CC_COMPATIBLE_DETAILS_TITLE = "CC Compatible Details";
 const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
-const CC_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
@@ -881,6 +885,7 @@ export default function ProviderDetailPage() {
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
+  const compatibleSupportsModelImport = compatibleProviderSupportsModelImport(providerId);
 
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
   const providerDisplayAlias = isCompatible ? providerNode?.prefix || providerId : providerAlias;
@@ -1748,6 +1753,10 @@ export default function ProviderDetailPage() {
     () => buildCompatMap(modelMeta.modelCompatOverrides),
     [modelMeta.modelCompatOverrides]
   );
+  const compatibleFallbackModels = useMemo(
+    () => getCompatibleFallbackModels(providerId, modelMeta.customModels),
+    [providerId, modelMeta.customModels]
+  );
 
   const effectiveModelNormalize = (modelId: string, protocol = MODEL_COMPAT_PROTOCOL_KEYS[0]) =>
     effectiveNormalizeForProtocol(modelId, protocol, customMap, overrideMap);
@@ -1834,7 +1843,7 @@ export default function ProviderDetailPage() {
   };
 
   const renderModelsSection = () => {
-    const autoSyncToggle = canImportModels && (
+    const autoSyncToggle = compatibleSupportsModelImport && canImportModels && (
       <button
         onClick={handleToggleAutoSync}
         disabled={togglingAutoSync}
@@ -1869,7 +1878,7 @@ export default function ProviderDetailPage() {
         providerId === "openrouter"
           ? t("openRouterAnyModelHint")
           : isCcCompatible
-            ? "CC Compatible provider models are routed through the Claude Code-compatible bridge."
+            ? "CC Compatible available models mirror the OAuth Claude Code provider list."
             : t("compatibleModelsDescription", {
                 type: isAnthropicCompatible ? t("anthropic") : t("openai"),
               });
@@ -1893,7 +1902,7 @@ export default function ProviderDetailPage() {
             providerStorageAlias={providerStorageAlias}
             providerDisplayAlias={providerDisplayAlias}
             modelAliases={modelAliases}
-            fallbackModels={providerId === "openrouter" ? modelMeta.customModels : undefined}
+            fallbackModels={compatibleFallbackModels}
             description={description}
             inputLabel={inputLabel}
             inputPlaceholder={inputPlaceholder}
@@ -1911,6 +1920,7 @@ export default function ProviderDetailPage() {
             saveModelCompatFlags={saveModelCompatFlags}
             compatSavingModelId={compatSavingModelId}
             onModelsChanged={fetchProviderModelMeta}
+            allowImport={compatibleSupportsModelImport}
           />
         </div>
       );
@@ -3521,6 +3531,7 @@ function CompatibleModelsSection({
   saveModelCompatFlags,
   compatSavingModelId,
   onModelsChanged,
+  allowImport,
 }: CompatibleModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
@@ -3609,7 +3620,7 @@ function CompatibleModelsSection({
   };
 
   const handleImport = async () => {
-    if (importing) return;
+    if (!allowImport || importing) return;
     const activeConnection = connections.find((conn) => conn.isActive !== false);
     if (!activeConnection) return;
 
@@ -3712,18 +3723,22 @@ function CompatibleModelsSection({
         <Button size="sm" icon="add" onClick={handleAdd} disabled={!newModel.trim() || adding}>
           {adding ? t("adding") : t("add")}
         </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          icon="download"
-          onClick={handleImport}
-          disabled={!canImport || importing}
-        >
-          {importing ? t("importingModels") : t("importFromModels")}
-        </Button>
+        {allowImport && (
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="download"
+            onClick={handleImport}
+            disabled={!canImport || importing}
+          >
+            {importing ? t("importingModels") : t("importFromModels")}
+          </Button>
+        )}
       </div>
 
-      {!canImport && <p className="text-xs text-text-muted">{t("addConnectionToImport")}</p>}
+      {allowImport && !canImport && (
+        <p className="text-xs text-text-muted">{t("addConnectionToImport")}</p>
+      )}
 
       {allModels.length > 0 && (
         <div className="flex flex-col gap-3">
@@ -3777,6 +3792,7 @@ CompatibleModelsSection.propTypes = {
   saveModelCompatFlags: PropTypes.func.isRequired,
   compatSavingModelId: PropTypes.string,
   onModelsChanged: PropTypes.func,
+  allowImport: PropTypes.bool.isRequired,
 };
 
 function CooldownTimer({ until }: CooldownTimerProps) {
@@ -5149,13 +5165,13 @@ function EditCompatibleNodeModal({
               ? "https://api.anthropic.com/v1"
               : "https://api.openai.com/v1"),
         chatPath: node.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
-        modelsPath: node.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
+        modelsPath: isCcCompatible ? "" : node.modelsPath || "",
       });
       setShowAdvanced(
         !!(
           node.chatPath ||
-          node.modelsPath ||
-          (isCcCompatible && !node.chatPath && !node.modelsPath)
+          (!isCcCompatible && node.modelsPath) ||
+          (isCcCompatible && !node.chatPath)
         )
       );
     }
@@ -5175,8 +5191,7 @@ function EditCompatibleNodeModal({
         prefix: formData.prefix,
         baseUrl: formData.baseUrl,
         chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
-        modelsPath:
-          formData.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
+        modelsPath: isCcCompatible ? "" : formData.modelsPath,
       };
       if (!isAnthropic) {
         payload.apiType = formData.apiType;
@@ -5199,8 +5214,7 @@ function EditCompatibleNodeModal({
           type: isAnthropic ? "anthropic-compatible" : "openai-compatible",
           compatMode: isCcCompatible ? "cc" : undefined,
           chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
-          modelsPath:
-            formData.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
+          modelsPath: isCcCompatible ? "" : formData.modelsPath,
         }),
       });
       const data = await res.json();
@@ -5312,15 +5326,15 @@ function EditCompatibleNodeModal({
                   : t("chatPathHint")
               }
             />
-            <Input
-              label={isCcCompatible ? "Models Path" : t("modelsPathLabel")}
-              value={formData.modelsPath}
-              onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
-              placeholder={
-                isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : t("modelsPathPlaceholder")
-              }
-              hint={isCcCompatible ? "Defaults to /models" : t("modelsPathHint")}
-            />
+            {!isCcCompatible && (
+              <Input
+                label={t("modelsPathLabel")}
+                value={formData.modelsPath}
+                onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
+                placeholder={t("modelsPathPlaceholder")}
+                hint={t("modelsPathHint")}
+              />
+            )}
           </div>
         )}
         <div className="flex gap-2">
