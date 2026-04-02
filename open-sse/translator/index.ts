@@ -267,6 +267,15 @@ export function translateResponse(targetFormat, sourceFormat, chunk, state) {
           finalResults.push(...(Array.isArray(converted) ? converted : [converted]));
         }
       }
+      // Flush: pass null to source-format translator even when Step 1 produced no output.
+      // This is critical for formats like openai-responses that emit terminal events
+      // (e.g., response.completed with total_tokens) in their flush handler.
+      if (chunk === null && results.length === 0) {
+        const converted = fromOpenAI(null, state);
+        if (converted) {
+          finalResults.push(...(Array.isArray(converted) ? converted : [converted]));
+        }
+      }
       results = finalResults;
     }
   }
