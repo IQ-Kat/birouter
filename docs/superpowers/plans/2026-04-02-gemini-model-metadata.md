@@ -216,13 +216,13 @@ git commit -m "feat(db): extend replaceCustomModels with metadata fields"
 ### Task 4: Use stored token limits in catalog
 
 **Files:**
-- Modify: `src/app/api/v1/models/catalog.ts:443-458`
+- Modify: `src/app/api/v1/models/catalog.ts:443-480`
 
 - [ ] **Step 1: Add context_length from stored inputTokenLimit for custom models**
 
-In the custom models section, add `context_length` to the first `models.push` (around line 443). After the existing `...(visionFields || {}),` line, add:
+There are two `models.push` calls for custom models — the main one and the provider-prefixed alias. Both need `context_length`.
 
-The full replacement for lines 443-458:
+Replace lines 443-458 (first push) with:
 
 ```typescript
           models.push({
@@ -244,6 +244,26 @@ The full replacement for lines 443-458:
               : {}),
             ...(visionFields || {}),
           });
+```
+
+Also add `context_length` to the second push (provider-prefixed alias, around line 469-480). Replace that push with:
+
+```typescript
+            models.push({
+              id: providerPrefixedId,
+              object: "model",
+              created: timestamp,
+              owned_by: canonicalProviderId,
+              permission: [],
+              root: modelId,
+              parent: aliasId,
+              custom: true,
+              ...(modelType ? { type: modelType } : {}),
+              ...(typeof (model as any).inputTokenLimit === "number"
+                ? { context_length: (model as any).inputTokenLimit }
+                : {}),
+              ...(providerVisionFields || {}),
+            });
 ```
 
 - [ ] **Step 2: Build to verify no type errors**
