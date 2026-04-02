@@ -158,6 +158,8 @@
     "playground": "Playground",
     "searchTools": "Search Tools",
     "agents": "Agents",
+    "memory": "Memory",
+    "skills": "Skills",
     "docs": "Docs",
     "issues": "Issues",
     "endpoints": "Endpoints",

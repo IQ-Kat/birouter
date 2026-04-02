@@ -168,14 +168,25 @@ function openaiToGeminiBase(model, body, stream) {
         }
 
         if (msg.tool_calls && Array.isArray(msg.tool_calls)) {
+          // Gemini 3+ requires thoughtSignature as a sibling part in model content
+          // that contains functionCall parts. If no reasoning_content was present
+          // (which already injects the signature above), inject one now. (#927)
+          const hasSignatureAlready = parts.some((p) => p.thoughtSignature);
+          if (!hasSignatureAlready) {
+            parts.push({
+              thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
+              text: "",
+            });
+          }
+
           const toolCallIds = [];
           for (const tc of msg.tool_calls) {
             if (tc.type !== "function") continue;
 
             const args = tryParseJSON(tc.function?.arguments || "{}");
-            // Do NOT include thoughtSignature on functionCall parts — it is only valid
-            // on thinking/reasoning parts and causes HTTP 400 "invalid argument" from the
-            // Gemini API when present on a functionCall part (#725).
+            // Do NOT include thoughtSignature ON the functionCall part itself — it is
+            // only valid as a separate sibling part. Including it inside functionCall
+            // causes HTTP 400 "invalid argument" (#725).
             parts.push({
               functionCall: {
                 id: tc.id,

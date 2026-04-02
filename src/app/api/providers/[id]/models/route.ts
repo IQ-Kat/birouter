@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
 import {
+  isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
 import { getModelIsHidden } from "@/lib/localDb";
+import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -99,6 +101,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "glm-4.7", name: "GLM 4.7" },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
   ],
+  qoder: () => getStaticQoderModels(),
 };
 
 /**
@@ -555,6 +558,13 @@ export async function GET(
     }
 
     if (isAnthropicCompatibleProvider(provider)) {
+      if (isClaudeCodeCompatibleProvider(provider)) {
+        return NextResponse.json(
+          { error: `Provider ${provider} does not support models listing` },
+          { status: 400 }
+        );
+      }
+
       let baseUrl = getProviderBaseUrl(connection.providerSpecificData);
       if (!baseUrl) {
         return NextResponse.json(
