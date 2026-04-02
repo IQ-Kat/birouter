@@ -188,6 +188,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         id: m.id || m.name || m.model,
         name: m.name || m.displayName || m.id || m.model,
         source: "auto-sync",
+        ...(Array.isArray(m.supportedEndpoints) && m.supportedEndpoints.length > 0
+          ? { supportedEndpoints: m.supportedEndpoints }
+          : {}),
+        ...(typeof m.inputTokenLimit === "number" ? { inputTokenLimit: m.inputTokenLimit } : {}),
+        ...(typeof m.outputTokenLimit === "number" ? { outputTokenLimit: m.outputTokenLimit } : {}),
+        ...(typeof m.description === "string" ? { description: m.description } : {}),
+        ...(m.supportsThinking === true ? { supportsThinking: true } : {}),
       }))
       .filter((m: any) => m.id && !registryIds.has(m.id));
 
