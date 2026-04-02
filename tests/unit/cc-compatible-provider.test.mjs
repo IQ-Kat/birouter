@@ -8,6 +8,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cc-compat
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 const {
   buildClaudeCodeCompatibleRequest,
@@ -21,6 +22,7 @@ const { validateProviderApiKey } = await import("../../src/lib/providers/validat
 const providerNodesRoute = await import("../../src/app/api/provider-nodes/route.ts");
 const providerNodesValidateRoute =
   await import("../../src/app/api/provider-nodes/validate/route.ts");
+const providerModelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
 
 const originalFetch = globalThis.fetch;
 const originalFlag = process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
@@ -398,7 +400,7 @@ test("provider-nodes create route creates CC node with dedicated prefix when ena
   assert.match(data.node.id, /^anthropic-compatible-cc-/);
   assert.equal(data.node.baseUrl, "https://proxy.example.com");
   assert.equal(data.node.chatPath, CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH);
-  assert.equal(data.node.modelsPath, CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH);
+  assert.equal(data.node.modelsPath, null);
 });
 
 test("provider-nodes validate route rejects CC mode when feature flag is disabled", async () => {
@@ -428,4 +430,29 @@ test("provider-nodes list route exposes CC flag state from server env", async ()
 
   const data = await response.json();
   assert.equal(data.ccCompatibleProviderEnabled, true);
+});
+
+test("provider models route reports CC compatible providers do not support models listing", async () => {
+  process.env.ENABLE_CC_COMPATIBLE_PROVIDER = "true";
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "anthropic-compatible-cc-test",
+    authType: "apikey",
+    name: "cc-live",
+    apiKey: "sk-test",
+    providerSpecificData: {
+      baseUrl: "https://proxy.example.com",
+      chatPath: CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+    },
+  });
+
+  const response = await providerModelsRoute.GET(
+    new Request(`http://localhost/api/providers/${connection.id}/models`),
+    { params: { id: connection.id } }
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    error: "Provider anthropic-compatible-cc-test does not support models listing",
+  });
 });

@@ -471,7 +471,6 @@ interface EditCompatibleNodeModalProps {
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const CC_COMPATIBLE_DETAILS_TITLE = "CC Compatible Details";
 const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
-const CC_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
@@ -5110,13 +5109,13 @@ function EditCompatibleNodeModal({
               ? "https://api.anthropic.com/v1"
               : "https://api.openai.com/v1"),
         chatPath: node.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
-        modelsPath: node.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
+        modelsPath: isCcCompatible ? "" : node.modelsPath || "",
       });
       setShowAdvanced(
         !!(
           node.chatPath ||
-          node.modelsPath ||
-          (isCcCompatible && !node.chatPath && !node.modelsPath)
+          (!isCcCompatible && node.modelsPath) ||
+          (isCcCompatible && !node.chatPath)
         )
       );
     }
@@ -5136,8 +5135,7 @@ function EditCompatibleNodeModal({
         prefix: formData.prefix,
         baseUrl: formData.baseUrl,
         chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
-        modelsPath:
-          formData.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
+        modelsPath: isCcCompatible ? "" : formData.modelsPath,
       };
       if (!isAnthropic) {
         payload.apiType = formData.apiType;
@@ -5160,8 +5158,7 @@ function EditCompatibleNodeModal({
           type: isAnthropic ? "anthropic-compatible" : "openai-compatible",
           compatMode: isCcCompatible ? "cc" : undefined,
           chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
-          modelsPath:
-            formData.modelsPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : ""),
+          modelsPath: isCcCompatible ? "" : formData.modelsPath,
         }),
       });
       const data = await res.json();
@@ -5273,15 +5270,15 @@ function EditCompatibleNodeModal({
                   : t("chatPathHint")
               }
             />
-            <Input
-              label={isCcCompatible ? "Models Path" : t("modelsPathLabel")}
-              value={formData.modelsPath}
-              onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
-              placeholder={
-                isCcCompatible ? CC_COMPATIBLE_DEFAULT_MODELS_PATH : t("modelsPathPlaceholder")
-              }
-              hint={isCcCompatible ? "Defaults to /models" : t("modelsPathHint")}
-            />
+            {!isCcCompatible && (
+              <Input
+                label={t("modelsPathLabel")}
+                value={formData.modelsPath}
+                onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
+                placeholder={t("modelsPathPlaceholder")}
+                hint={t("modelsPathHint")}
+              />
+            )}
           </div>
         )}
         <div className="flex gap-2">

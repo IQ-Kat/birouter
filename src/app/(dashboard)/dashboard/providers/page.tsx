@@ -30,7 +30,6 @@ import { useTranslations } from "next-intl";
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const ADD_CC_COMPATIBLE_LABEL = "Add CC Compatible";
 const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
-const CC_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 
 // Shared helper function to avoid code duplication between ProviderCard and ApiKeyProviderCard
 function getStatusDisplay(connected, error, errorCode, t) {
@@ -1287,7 +1286,6 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
     prefix: "",
     baseUrl: "https://api.anthropic.com",
     chatPath: CC_COMPATIBLE_DEFAULT_CHAT_PATH,
-    modelsPath: CC_COMPATIBLE_DEFAULT_MODELS_PATH,
   });
   const [submitting, setSubmitting] = useState(false);
   const [checkKey, setCheckKey] = useState("");
@@ -1316,7 +1314,6 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
           type: "anthropic-compatible",
           compatMode: "cc",
           chatPath: formData.chatPath || CC_COMPATIBLE_DEFAULT_CHAT_PATH,
-          modelsPath: formData.modelsPath || CC_COMPATIBLE_DEFAULT_MODELS_PATH,
         }),
       });
       const data = await res.json();
@@ -1327,7 +1324,6 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
           prefix: "",
           baseUrl: "https://api.anthropic.com",
           chatPath: CC_COMPATIBLE_DEFAULT_CHAT_PATH,
-          modelsPath: CC_COMPATIBLE_DEFAULT_MODELS_PATH,
         });
         setCheckKey("");
         setValidationResult(null);
@@ -1352,7 +1348,6 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
           type: "anthropic-compatible",
           compatMode: "cc",
           chatPath: formData.chatPath || CC_COMPATIBLE_DEFAULT_CHAT_PATH,
-          modelsPath: formData.modelsPath || CC_COMPATIBLE_DEFAULT_MODELS_PATH,
         }),
       });
       const data = await res.json();
@@ -1414,13 +1409,6 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
               onChange={(e) => setFormData({ ...formData, chatPath: e.target.value })}
               placeholder={CC_COMPATIBLE_DEFAULT_CHAT_PATH}
               hint={t("chatPathHint")}
-            />
-            <Input
-              label={t("modelsPathLabel")}
-              value={formData.modelsPath}
-              onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
-              placeholder={CC_COMPATIBLE_DEFAULT_MODELS_PATH}
-              hint={t("modelsPathHint")}
             />
           </div>
         )}

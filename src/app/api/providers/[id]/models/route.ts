@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
 import {
+  isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
@@ -555,6 +556,13 @@ export async function GET(
     }
 
     if (isAnthropicCompatibleProvider(provider)) {
+      if (isClaudeCodeCompatibleProvider(provider)) {
+        return NextResponse.json(
+          { error: `Provider ${provider} does not support models listing` },
+          { status: 400 }
+        );
+      }
+
       let baseUrl = getProviderBaseUrl(connection.providerSpecificData);
       if (!baseUrl) {
         return NextResponse.json(
