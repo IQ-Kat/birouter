@@ -25,6 +25,20 @@ test("T28: antigravity static catalog exposes current Gemini 3.1 model IDs", () 
   assert.ok(!staticIds.includes("gemini-3-pro-low"));
 });
 
+test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias compatibility", async () => {
+  const githubIds = REGISTRY.github.models.map((m) => m.id);
+
+  assert.ok(githubIds.includes("gemini-3.1-pro-preview"));
+
+  const canonical = await getModelInfoCore("gh/gemini-3.1-pro-preview", {});
+  assert.equal(canonical.provider, "github");
+  assert.equal(canonical.model, "gemini-3.1-pro-preview");
+
+  const legacy = await getModelInfoCore("gh/gemini-3-pro", {});
+  assert.equal(legacy.provider, "github");
+  assert.equal(legacy.model, "gemini-3.1-pro-preview");
+});
+
 test("T28: qwen registry uses native chat.qwen.ai base URL", () => {
   assert.equal(
     REGISTRY.qwen.baseUrl,

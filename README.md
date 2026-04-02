@@ -1635,7 +1635,7 @@ Dashboard → Providers → Connect GitHub
 Models:
   gh/gpt-5
   gh/claude-4.5-sonnet
-  gh/gemini-3-pro
+  gh/gemini-3.1-pro-preview
 ```
 
 </details>

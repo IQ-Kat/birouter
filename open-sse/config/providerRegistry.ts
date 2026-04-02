@@ -439,6 +439,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (Full ID)" },
       { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
       { id: "grok-code-fast-1", name: "Grok Code Fast 1" },
@@ -1556,7 +1557,9 @@ const _passthroughProviderIds: Set<string> | null = (() => {
       if (entry.passthroughModels) ids.add(entry.id);
     }
     return ids;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 })();
 
 export function getPassthroughProviders(): Set<string> {
