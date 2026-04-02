@@ -15,6 +15,7 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { createProviderSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { buildModelSyncInternalHeaders } from "@/shared/services/modelSyncScheduler";
 
 // GET /api/providers - List all connections
 export async function GET() {
@@ -138,6 +139,23 @@ export async function POST(request: Request) {
       isActive: true,
       testStatus: testStatus || "unknown",
     });
+
+    // Auto-trigger model sync for Gemini when API key is saved
+    if (provider === "gemini" && newConnection?.id) {
+      try {
+        const origin = new URL(request.url).origin;
+        fetch(`${origin}/api/providers/${newConnection.id}/sync-models`, {
+          method: "POST",
+          headers: {
+            ...buildModelSyncInternalHeaders(),
+            cookie: request.headers.get("cookie") || "",
+          },
+        }).catch((e) => console.error("Auto-sync failed for gemini:", e));
+      } catch (e) {
+        // Non-blocking — don't fail the connection save
+        console.error("Failed to trigger auto-sync for gemini:", e);
+      }
+    }
 
     // Hide sensitive fields
     const result: Record<string, any> = { ...newConnection };
