@@ -3068,6 +3068,7 @@
     "cachedTokensCol": "Cached",
     "cacheCreation": "Creation",
     "trend24h": "Cache Trend (24h)",
+    "peakCached": "Peak cached",
     "cached": "Cached",
     "overview": "Overview",
     "entries": "Entries",

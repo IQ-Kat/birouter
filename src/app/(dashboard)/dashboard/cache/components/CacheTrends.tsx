@@ -73,7 +73,7 @@ export default function CacheTrends({
         <>
           {maxCachedRequests > 0 && (
             <div className="text-xs text-text-muted">
-              Peak cached:{" "}
+              {t("peakCached")}:{" "}
               <span className="font-medium text-foreground">
                 {maxCachedRequests} / {maxRequests}
               </span>
