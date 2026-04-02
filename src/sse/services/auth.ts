@@ -793,7 +793,8 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isPassthroughProvider = provider && getPassthroughProviders().has(provider);
-    if ((isLocalProvider(connBaseUrl) || isPassthroughProvider) && status === 404 && provider && model) {
+    const isPerModelQuotaProvider = isPassthroughProvider || provider === "gemini";
+    if ((isLocalProvider(connBaseUrl) || isPerModelQuotaProvider) && status === 404 && provider && model) {
       const localCooldown = COOLDOWN_MS.notFoundLocal;
       lockModel(provider, connectionId, model, "not_found", localCooldown);
       log.info(
@@ -803,12 +804,13 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: localCooldown };
     }
 
-    // ── 429 model-only lockout for passthrough providers ──
-    // For passthrough providers like Antigravity, each model has independent quota.
-    // A 429 on one model should NOT lock out the entire connection — other models
-    // may still have quota available. Use lockModel() instead of connection-wide
-    // rateLimitedUntil, same pattern as the 404 model-only lockout above.
-    if (isPassthroughProvider && status === 429 && provider && model) {
+    // ── 429 model-only lockout for per-model quota providers ──
+    // For providers where each model has independent quota (passthrough providers,
+    // Gemini AI Studio), a 429 on one model should NOT lock out the entire connection
+    // — other models may still have quota available. Use lockModel() instead of
+    // connection-wide rateLimitedUntil.
+    const hasPerModelQuota = isPassthroughProvider || provider === "gemini";
+    if (hasPerModelQuota && status === 429 && provider && model) {
       const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimit;
       lockModel(provider, connectionId, model, reason || "rate_limited", modelCooldown);
       log.info(
