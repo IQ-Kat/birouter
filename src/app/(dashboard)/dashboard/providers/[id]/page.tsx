@@ -835,6 +835,7 @@ export default function ProviderDetailPage() {
     customModels: CompatModelRow[];
     modelCompatOverrides: Array<CompatModelRow & { id: string }>;
   }>({ customModels: [], modelCompatOverrides: [] });
+  const [syncedAvailableModels, setSyncedAvailableModels] = useState<any[]>([]);
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
   const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
@@ -873,7 +874,11 @@ export default function ProviderDetailPage() {
       (OAUTH_PROVIDERS as any)[providerId] ||
       (APIKEY_PROVIDERS as any)[providerId];
   const isOAuth = !!(FREE_PROVIDERS as any)[providerId] || !!(OAUTH_PROVIDERS as any)[providerId];
-  const models = getModelsByProviderId(providerId);
+  const registryModels = getModelsByProviderId(providerId);
+  // For Gemini: use synced API models if available, otherwise fall back to registry
+  const models = providerId === "gemini" && syncedAvailableModels.length > 0
+    ? syncedAvailableModels
+    : registryModels;
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
@@ -906,6 +911,20 @@ export default function ProviderDetailPage() {
         customModels: data.models || [],
         modelCompatOverrides: data.modelCompatOverrides || [],
       });
+      // Fetch synced available models for Gemini
+      if (providerId === "gemini") {
+        try {
+          const syncRes = await fetch("/api/synced-available-models?provider=gemini", {
+            cache: "no-store",
+          });
+          if (syncRes.ok) {
+            const syncData = await syncRes.json();
+            setSyncedAvailableModels(syncData.models || []);
+          }
+        } catch {
+          // Non-critical
+        }
+      }
     } catch (e) {
       console.error("fetchProviderModelMeta", e);
     }
@@ -2432,7 +2451,7 @@ export default function ProviderDetailPage() {
           {renderModelsSection()}
 
           {/* Custom Models — available for providers without managed available-model metadata */}
-          {!isManagedAvailableModelsProvider && (
+          {!isManagedAvailableModelsProvider && providerId !== "gemini" && (
             <CustomModelsSection
               providerId={providerId}
               providerAlias={providerDisplayAlias}
