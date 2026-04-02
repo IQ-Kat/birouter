@@ -383,6 +383,10 @@ export async function replaceCustomModels(
     source?: string;
     apiFormat?: string;
     supportedEndpoints?: string[];
+    inputTokenLimit?: number;
+    outputTokenLimit?: number;
+    description?: string;
+    supportsThinking?: boolean;
   }>,
   { allowEmpty = false }: { allowEmpty?: boolean } = {}
 ) {
@@ -412,6 +416,27 @@ export async function replaceCustomModels(
       source: m.source || "auto-sync",
       apiFormat: m.apiFormat || (prev as any)?.apiFormat || "chat-completions",
       supportedEndpoints: m.supportedEndpoints || (prev as any)?.supportedEndpoints || ["chat"],
+      // Preserve metadata from provider API (or previous sync)
+      ...(m.inputTokenLimit != null
+        ? { inputTokenLimit: m.inputTokenLimit }
+        : (prev as any)?.inputTokenLimit != null
+        ? { inputTokenLimit: (prev as any).inputTokenLimit }
+        : {}),
+      ...(m.outputTokenLimit != null
+        ? { outputTokenLimit: m.outputTokenLimit }
+        : (prev as any)?.outputTokenLimit != null
+        ? { outputTokenLimit: (prev as any).outputTokenLimit }
+        : {}),
+      ...(m.description != null
+        ? { description: m.description }
+        : (prev as any)?.description != null
+        ? { description: (prev as any).description }
+        : {}),
+      ...(m.supportsThinking != null
+        ? { supportsThinking: m.supportsThinking }
+        : (prev as any)?.supportsThinking != null
+        ? { supportsThinking: (prev as any).supportsThinking }
+        : {}),
       // Preserve existing compat flags
       ...(prev && (prev as any).normalizeToolCallId !== undefined
         ? { normalizeToolCallId: (prev as any).normalizeToolCallId }
