@@ -125,7 +125,8 @@ services:
       - PORT=${CLIPROXYAPI_PORT:-8317}
       - HOST=0.0.0.0
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8317/v1/models"]
+      test:
+        ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:${CLIPROXYAPI_PORT:-8317}/v1/models"]
       interval: 30s
       timeout: 5s
       retries: 3

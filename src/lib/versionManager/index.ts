@@ -44,7 +44,9 @@ export async function startTool(tool: string): Promise<{
   const binaryPath = info?.binaryPath || (await getCurrentBinaryPath());
 
   if (!binaryPath) {
-    throw new Error(`No binary found for ${tool}. Install it first.`);
+    throw new Error(
+      `No binary found for ${tool}. Run installTool('${tool}') or set binaryPath in version manager.`
+    );
   }
 
   const { pid, port } = await startProcess(binaryPath, info?.port || undefined);

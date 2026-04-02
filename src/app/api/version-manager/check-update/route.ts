@@ -2,8 +2,12 @@
 
 import { NextResponse } from "next/server";
 import { checkForUpdates } from "@/lib/versionManager";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const tool = searchParams.get("tool") || "cliproxyapi";
