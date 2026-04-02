@@ -10,16 +10,19 @@ function resolveCliproxyapiBaseUrl(): string {
   return `http://${host}:${port}`;
 }
 
+export { resolveCliproxyapiBaseUrl };
+
 export class CliproxyapiExecutor extends BaseExecutor {
   private readonly upstreamBaseUrl: string;
 
-  constructor() {
+  constructor(baseUrl?: string) {
+    const effectiveBase = baseUrl ?? resolveCliproxyapiBaseUrl();
     super("cliproxyapi", {
       id: "cliproxyapi",
-      baseUrl: resolveCliproxyapiBaseUrl() + "/v1/chat/completions",
+      baseUrl: effectiveBase + "/v1/chat/completions",
       headers: { "Content-Type": "application/json" },
     });
-    this.upstreamBaseUrl = resolveCliproxyapiBaseUrl();
+    this.upstreamBaseUrl = effectiveBase;
   }
 
   buildUrl(_model: string, _stream: boolean, _urlIndex = 0): string {

@@ -1066,12 +1066,25 @@ export async function handleChatCore({
             "UPSTREAM_PROXY",
             `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
           );
-          return proxyExec.execute(input);
+          try {
+            return await proxyExec.execute(input);
+          } catch (proxyErr) {
+            const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
+            log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
+            throw proxyErr;
+          }
         }
         return result;
       } catch (err) {
-        log?.info?.("UPSTREAM_PROXY", `${prov} native error, retrying via CLIProxyAPI`);
-        return proxyExec.execute(input);
+        const errMsg = err instanceof Error ? err.message : String(err);
+        log?.info?.("UPSTREAM_PROXY", `${prov} native error (${errMsg}), retrying via CLIProxyAPI`);
+        try {
+          return await proxyExec.execute(input);
+        } catch (proxyErr) {
+          const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
+          log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
+          throw proxyErr;
+        }
       }
     };
     return wrapper;
