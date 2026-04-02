@@ -1290,11 +1290,12 @@ export async function handleChatCore({
             `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.RATE_LIMITED) {
-          // For passthrough providers (e.g. Antigravity), each model has independent
-          // quota.  A 429 on one model must NOT lock out the entire connection — other
-          // models may still have quota available.  Use lockModel() instead.
+          // For providers with per-model quotas (passthrough providers, Gemini),
+          // each model has independent quota. A 429 on one model must NOT lock out
+          // the entire connection — other models may still have quota available.
+          // Use lockModel() instead.
           const isPassthrough = provider && getPassthroughProviders().has(provider);
-          if (isPassthrough) {
+          if (isPassthrough || provider === "gemini") {
             const { lockModel } = await import("../services/accountFallback.ts");
             const cooldown = retryAfterMs || 120_000; // 2 min default, same as COOLDOWN_MS.rateLimit
             lockModel(provider, connectionId, model, "rate_limited", cooldown);
@@ -1317,13 +1318,23 @@ export async function handleChatCore({
             );
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
-          await updateProviderConnection(connectionId, {
-            testStatus: "credits_exhausted",
-            lastErrorType: errorType,
-            lastError: message,
-            errorCode: statusCode,
-          });
-          console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
+          // Gemini has per-model quotas — lock the model only, not the connection
+          if (provider === "gemini" && model) {
+            const { lockModel } = await import("../services/accountFallback.ts");
+            const cooldown = retryAfterMs || 120_000;
+            lockModel(provider, connectionId, model, "quota_exhausted", cooldown);
+            console.warn(
+              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(cooldown / 1000)}s (connection stays active)`
+            );
+          } else {
+            await updateProviderConnection(connectionId, {
+              testStatus: "credits_exhausted",
+              lastErrorType: errorType,
+              lastError: message,
+              errorCode: statusCode,
+            });
+            console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           await updateProviderConnection(connectionId, {
             isActive: false,

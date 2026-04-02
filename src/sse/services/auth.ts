@@ -724,6 +724,23 @@ export async function markAccountUnavailable(
   try {
     await currentMutex;
 
+    // ── Gemini per-model lockout (must be before terminal status check) ──
+    // Gemini AI Studio has per-model quotas. A 429 on gemini-2.5-pro must NOT
+    // lock out gemini-2.5-flash on the same API key. Lock the specific model
+    // only and return early, before any connection-wide state is modified.
+    if (provider === "gemini" && model && (status === 429 || status === 404)) {
+      const reason = status === 404 ? "not_found" : "rate_limited";
+      const cooldown = status === 404
+        ? COOLDOWN_MS.notFoundLocal
+        : (COOLDOWN_MS.rateLimit || 60_000);
+      lockModel(provider, connectionId, model, reason, cooldown);
+      log.info(
+        "AUTH",
+        `Gemini model-only lockout for ${model} — ${status} ${reason} ${Math.ceil(cooldown / 1000)}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: cooldown };
+    }
+
     // Read current connection to get backoffLevel
     const connectionsRaw = await getProviderConnections({ provider });
     const connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
