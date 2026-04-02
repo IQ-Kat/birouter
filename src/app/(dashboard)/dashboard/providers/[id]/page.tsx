@@ -32,6 +32,10 @@ import {
   isClaudeCodeCompatibleProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
+import {
+  compatibleProviderSupportsModelImport,
+  getCompatibleFallbackModels,
+} from "@/lib/providers/managedAvailableModels";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
@@ -334,6 +338,7 @@ interface CompatibleModelsSectionProps {
   providerDisplayAlias: string;
   modelAliases: Record<string, string>;
   fallbackModels?: CompatModelRow[];
+  allowImport: boolean;
   description: string;
   inputLabel: string;
   inputPlaceholder: string;
@@ -876,6 +881,7 @@ export default function ProviderDetailPage() {
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
+  const compatibleSupportsModelImport = compatibleProviderSupportsModelImport(providerId);
 
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
   const providerDisplayAlias = isCompatible ? providerNode?.prefix || providerId : providerAlias;
@@ -1735,6 +1741,10 @@ export default function ProviderDetailPage() {
     () => buildCompatMap(modelMeta.modelCompatOverrides),
     [modelMeta.modelCompatOverrides]
   );
+  const compatibleFallbackModels = useMemo(
+    () => getCompatibleFallbackModels(providerId, modelMeta.customModels),
+    [providerId, modelMeta.customModels]
+  );
 
   const effectiveModelNormalize = (modelId: string, protocol = MODEL_COMPAT_PROTOCOL_KEYS[0]) =>
     effectiveNormalizeForProtocol(modelId, protocol, customMap, overrideMap);
@@ -1821,7 +1831,7 @@ export default function ProviderDetailPage() {
   };
 
   const renderModelsSection = () => {
-    const autoSyncToggle = canImportModels && (
+    const autoSyncToggle = compatibleSupportsModelImport && canImportModels && (
       <button
         onClick={handleToggleAutoSync}
         disabled={togglingAutoSync}
@@ -1856,7 +1866,7 @@ export default function ProviderDetailPage() {
         providerId === "openrouter"
           ? t("openRouterAnyModelHint")
           : isCcCompatible
-            ? "CC Compatible provider models are routed through the Claude Code-compatible bridge."
+            ? "CC Compatible available models mirror the OAuth Claude Code provider list."
             : t("compatibleModelsDescription", {
                 type: isAnthropicCompatible ? t("anthropic") : t("openai"),
               });
@@ -1880,7 +1890,7 @@ export default function ProviderDetailPage() {
             providerStorageAlias={providerStorageAlias}
             providerDisplayAlias={providerDisplayAlias}
             modelAliases={modelAliases}
-            fallbackModels={providerId === "openrouter" ? modelMeta.customModels : undefined}
+            fallbackModels={compatibleFallbackModels}
             description={description}
             inputLabel={inputLabel}
             inputPlaceholder={inputPlaceholder}
@@ -1898,6 +1908,7 @@ export default function ProviderDetailPage() {
             saveModelCompatFlags={saveModelCompatFlags}
             compatSavingModelId={compatSavingModelId}
             onModelsChanged={fetchProviderModelMeta}
+            allowImport={compatibleSupportsModelImport}
           />
         </div>
       );
@@ -3493,6 +3504,7 @@ function CompatibleModelsSection({
   saveModelCompatFlags,
   compatSavingModelId,
   onModelsChanged,
+  allowImport,
 }: CompatibleModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
@@ -3581,7 +3593,7 @@ function CompatibleModelsSection({
   };
 
   const handleImport = async () => {
-    if (importing) return;
+    if (!allowImport || importing) return;
     const activeConnection = connections.find((conn) => conn.isActive !== false);
     if (!activeConnection) return;
 
@@ -3684,18 +3696,22 @@ function CompatibleModelsSection({
         <Button size="sm" icon="add" onClick={handleAdd} disabled={!newModel.trim() || adding}>
           {adding ? t("adding") : t("add")}
         </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          icon="download"
-          onClick={handleImport}
-          disabled={!canImport || importing}
-        >
-          {importing ? t("importingModels") : t("importFromModels")}
-        </Button>
+        {allowImport && (
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="download"
+            onClick={handleImport}
+            disabled={!canImport || importing}
+          >
+            {importing ? t("importingModels") : t("importFromModels")}
+          </Button>
+        )}
       </div>
 
-      {!canImport && <p className="text-xs text-text-muted">{t("addConnectionToImport")}</p>}
+      {allowImport && !canImport && (
+        <p className="text-xs text-text-muted">{t("addConnectionToImport")}</p>
+      )}
 
       {allModels.length > 0 && (
         <div className="flex flex-col gap-3">
@@ -3749,6 +3765,7 @@ CompatibleModelsSection.propTypes = {
   saveModelCompatFlags: PropTypes.func.isRequired,
   compatSavingModelId: PropTypes.string,
   onModelsChanged: PropTypes.func,
+  allowImport: PropTypes.bool.isRequired,
 };
 
 function CooldownTimer({ until }: CooldownTimerProps) {
