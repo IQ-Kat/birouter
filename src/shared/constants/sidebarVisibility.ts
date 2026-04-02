@@ -57,8 +57,6 @@ const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
   { id: "limits", href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
   { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
-  { id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
-  { id: "skills", href: "/dashboard/skills", i18nKey: "skills", icon: "auto_awesome" },
 ];
 
 const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
