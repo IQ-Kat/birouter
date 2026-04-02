@@ -203,6 +203,7 @@ export class CircuitBreaker {
       this._transition(STATE.CLOSED);
       this.failureCount = 0;
       this.successCount = 0;
+      this.lastFailureTime = null;
     } else if (this.state === STATE.HALF_OPEN) {
       this.successCount++;
       this._transition(STATE.CLOSED);
