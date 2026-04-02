@@ -12,6 +12,7 @@ import { runMigrations } from "./migrationRunner";
 
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
+type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
 
 // ──────────────── Environment Detection ────────────────
 
@@ -323,6 +324,12 @@ function setDb(db: SqliteDatabase | null): void {
   }
 }
 
+function checkpointDb(db: SqliteDatabase, mode: CheckpointMode = "TRUNCATE"): boolean {
+  if (isCloud || isBuildPhase || !SQLITE_FILE) return false;
+  db.pragma(`wal_checkpoint(${mode})`);
+  return true;
+}
+
 function ensureProviderConnectionsColumns(db: SqliteDatabase) {
   try {
     const columns = db.prepare("PRAGMA table_info(provider_connections)").all() as Array<{
@@ -523,15 +530,39 @@ export function getDbInstance(): SqliteDatabase {
   return db;
 }
 
+export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | null }): boolean {
+  const db = getDb();
+  if (!db) return false;
+
+  const checkpointMode = options?.checkpointMode ?? "TRUNCATE";
+
+  try {
+    if (checkpointMode) {
+      try {
+        if (checkpointDb(db, checkpointMode)) {
+          console.log(`[DB] SQLite WAL checkpoint completed (${checkpointMode}).`);
+        }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`[DB] WAL checkpoint failed during close (${checkpointMode}):`, message);
+      }
+    }
+  } finally {
+    try {
+      if (db.open) db.close();
+    } finally {
+      setDb(null);
+    }
+  }
+
+  return true;
+}
+
 /**
  * Reset the singleton (used by restore).
  */
 export function resetDbInstance() {
-  const db = getDb();
-  if (db) {
-    db.close();
-    setDb(null);
-  }
+  closeDbInstance();
 }
 
 // ──────────────── JSON → SQLite Migration ────────────────

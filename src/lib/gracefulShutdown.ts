@@ -96,11 +96,9 @@ async function waitForDrain(): Promise<void> {
  */
 async function cleanup(): Promise<void> {
   try {
-    const { getDbInstance } = await import("@/lib/db/core");
-    const db = getDbInstance();
-    if (db && typeof db.close === "function") {
-      db.close();
-      console.log("[Shutdown] SQLite database closed.");
+    const { closeDbInstance } = await import("@/lib/db/core");
+    if (closeDbInstance()) {
+      console.log("[Shutdown] SQLite database checkpointed and closed.");
     }
   } catch (err) {
     console.error("[Shutdown] Error during cleanup:", (err as Error).message);

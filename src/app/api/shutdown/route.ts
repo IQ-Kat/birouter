@@ -4,7 +4,7 @@ export async function POST() {
   const response = NextResponse.json({ success: true, message: "Shutting down..." });
 
   setTimeout(() => {
-    process.exit(0);
+    process.kill(process.pid, "SIGTERM");
   }, 500);
 
   return response;
