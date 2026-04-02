@@ -13,7 +13,8 @@ import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
-import { getUnsupportedParams, getPassthroughProviders } from "../config/providerRegistry.ts";
+import { getUnsupportedParams } from "../config/providerRegistry.ts";
+import { hasPerModelQuota, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -1293,14 +1294,9 @@ export async function handleChatCore({
           // For providers with per-model quotas (passthrough providers, Gemini),
           // each model has independent quota. A 429 on one model must NOT lock out
           // the entire connection — other models may still have quota available.
-          // Use lockModel() instead.
-          const isPassthrough = provider && getPassthroughProviders().has(provider);
-          if (isPassthrough || provider === "gemini") {
-            const { lockModel } = await import("../services/accountFallback.ts");
-            const cooldown = retryAfterMs || 120_000; // 2 min default, same as COOLDOWN_MS.rateLimit
-            lockModel(provider, connectionId, model, "rate_limited", cooldown);
+          if (lockModelIfPerModelQuota(provider, connectionId, model, "rate_limited", retryAfterMs || 120_000)) {
             console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil(cooldown / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || 120_000) / 1000)}s (connection stays active)`
             );
           } else {
             const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
@@ -1318,13 +1314,10 @@ export async function handleChatCore({
             );
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
-          // Gemini has per-model quotas — lock the model only, not the connection
-          if (provider === "gemini" && model) {
-            const { lockModel } = await import("../services/accountFallback.ts");
-            const cooldown = retryAfterMs || 120_000;
-            lockModel(provider, connectionId, model, "quota_exhausted", cooldown);
+          // Providers with per-model quotas — lock the model only, not the connection
+          if (lockModelIfPerModelQuota(provider, connectionId, model, "quota_exhausted", retryAfterMs || 120_000)) {
             console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(cooldown / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || 120_000) / 1000)}s (connection stays active)`
             );
           } else {
             await updateProviderConnection(connectionId, {

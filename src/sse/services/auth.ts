@@ -14,6 +14,7 @@ import {
   checkFallbackError,
   isModelLocked,
   lockModel,
+  hasPerModelQuota,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider, getPassthroughProviders } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
@@ -726,11 +727,10 @@ export async function markAccountUnavailable(
   try {
     await currentMutex;
 
-    // ── Gemini per-model lockout (must be before terminal status check) ──
-    // Gemini AI Studio has per-model quotas. A 429 on gemini-2.5-pro must NOT
-    // lock out gemini-2.5-flash on the same API key. Lock the specific model
-    // only and return early, before any connection-wide state is modified.
-    if (provider === "gemini" && model && (status === 429 || status === 404)) {
+    // ── Per-model lockout for providers with independent model quotas ──
+    // Providers like Gemini AI Studio have per-model quotas. A 429/404 on one
+    // model must NOT lock out other models on the same API key.
+    if (hasPerModelQuota(provider) && model && (status === 429 || status === 404)) {
       const reason = status === 404 ? "not_found" : "rate_limited";
       const cooldown = status === 404
         ? COOLDOWN_MS.notFoundLocal
@@ -738,7 +738,7 @@ export async function markAccountUnavailable(
       lockModel(provider, connectionId, model, reason, cooldown);
       log.info(
         "AUTH",
-        `Gemini model-only lockout for ${model} — ${status} ${reason} ${Math.ceil(cooldown / 1000)}s (connection stays active)`
+        `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(cooldown / 1000)}s (connection stays active)`
       );
       return { shouldFallback: true, cooldownMs: cooldown };
     }
@@ -812,7 +812,7 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isPassthroughProvider = provider && getPassthroughProviders().has(provider);
-    const isPerModelQuotaProvider = isPassthroughProvider || provider === "gemini";
+    const isPerModelQuotaProvider = hasPerModelQuota(provider);
     if ((isLocalProvider(connBaseUrl) || isPerModelQuotaProvider) && status === 404 && provider && model) {
       const localCooldown = COOLDOWN_MS.notFoundLocal;
       lockModel(provider, connectionId, model, "not_found", localCooldown);
@@ -828,8 +828,7 @@ export async function markAccountUnavailable(
     // Gemini AI Studio), a 429 on one model should NOT lock out the entire connection
     // — other models may still have quota available. Use lockModel() instead of
     // connection-wide rateLimitedUntil.
-    const hasPerModelQuota = isPassthroughProvider || provider === "gemini";
-    if (hasPerModelQuota && status === 429 && provider && model) {
+    if (isPerModelQuotaProvider && status === 429 && provider && model) {
       const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimit;
       lockModel(provider, connectionId, model, reason || "rate_limited", modelCooldown);
       log.info(
