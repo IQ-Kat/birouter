@@ -1070,6 +1070,10 @@ export default function ProviderDetailPage() {
       const res = await fetch(`/api/providers/${id}`, { method: "DELETE" });
       if (res.ok) {
         setConnections(connections.filter((c) => c.id !== id));
+        // Refresh model list after connection deletion (synced models may change)
+        if (providerId === "gemini") {
+          await fetchProviderModelMeta();
+        }
       }
     } catch (error) {
       console.log("Error deleting connection:", error);
@@ -1091,6 +1095,10 @@ export default function ProviderDetailPage() {
       if (res.ok) {
         await fetchConnections();
         setShowAddApiKeyModal(false);
+        // For Gemini: auto-sync is fire-and-forget, poll for model updates
+        if (providerId === "gemini") {
+          setTimeout(() => fetchProviderModelMeta(), 3000);
+        }
         return null;
       }
       const data = await res.json().catch(() => ({}));
