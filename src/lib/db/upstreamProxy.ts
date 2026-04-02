@@ -32,8 +32,9 @@ function toRecord(value: unknown): Record<string, unknown> {
 const BLOCKED_HOSTNAMES = ["metadata.google.internal", "169.254.169.254", "metadata.aws.internal"];
 
 function isPrivateHost(hostname: string): boolean {
-  if (BLOCKED_HOSTNAMES.includes(hostname)) return true;
+  // CLIProxyAPI runs on localhost:8317 — allow loopback explicitly
   if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return false;
+  if (BLOCKED_HOSTNAMES.includes(hostname)) return true;
   if (
     /^10\./.test(hostname) ||
     /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||

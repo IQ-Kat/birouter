@@ -1,34 +1,82 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 
+interface Settings {
+  cliproxyapi_fallback_enabled?: boolean;
+  cliproxyapi_url?: string;
+  cliproxyapi_fallback_codes?: string;
+  [key: string]: unknown;
+}
+
+interface VersionManagerEntry {
+  tool: string;
+  status: string;
+  installedVersion: string | null;
+  healthStatus: string;
+  port: number;
+}
+
+function isValidUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export default function CliproxyapiSettingsTab() {
-  const [settings, setSettings] = useState<Record<string, any>>({});
+  const [settings, setSettings] = useState<Settings>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: string; text: string } | null>(null);
-  const [toolState, setToolState] = useState<any>(null);
+  const [toolState, setToolState] = useState<VersionManagerEntry | null>(null);
+  const [toolStateError, setToolStateError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/settings")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`Settings API returned ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         setSettings(data);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("Failed to load settings:", err);
+        setLoading(false);
+      });
 
     fetch("/api/version-manager/status")
-      .then((r) => r.json())
-      .then((data) => {
-        const entry = Array.isArray(data) ? data.find((t: any) => t.tool === "cliproxyapi") : null;
-        setToolState(entry);
+      .then((r) => {
+        if (!r.ok) throw new Error(`Version manager API returned ${r.status}`);
+        return r.json();
       })
-      .catch(() => {});
+      .then((data) => {
+        const entry = Array.isArray(data)
+          ? data.find((t: VersionManagerEntry) => t.tool === "cliproxyapi")
+          : null;
+        setToolState(entry ?? null);
+        setToolStateError(null);
+      })
+      .catch((err) => {
+        console.error("Failed to load version manager status:", err);
+        setToolStateError("Unable to reach version manager service");
+        setToolState(null);
+      });
   }, []);
 
-  const updateSetting = async (key: string, value: any) => {
+  const updateSetting = useCallback(async (key: string, value: boolean | string) => {
+    if (key === "cliproxyapi_url" && typeof value === "string" && value.trim() !== "") {
+      if (!isValidUrl(value)) {
+        setMessage({ type: "error", text: "Invalid URL format. Use http:// or https://" });
+        return;
+      }
+    }
+
     setSaving(true);
     setMessage(null);
     try {
@@ -37,16 +85,18 @@ export default function CliproxyapiSettingsTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [key]: value }),
       });
-      if (res.ok) {
-        setSettings((prev) => ({ ...prev, [key]: value }));
-        setMessage({ type: "success", text: "Setting saved" });
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status}`);
       }
+      await res.json();
+      setSettings((prev) => ({ ...prev, [key]: value }));
+      setMessage({ type: "success", text: "Setting saved" });
     } catch {
       setMessage({ type: "error", text: "Failed to save setting" });
     } finally {
       setSaving(false);
     }
-  };
+  }, []);
 
   const cpaEnabled = settings.cliproxyapi_fallback_enabled === true;
   const cpaUrl = settings.cliproxyapi_url || "http://127.0.0.1:8317";
@@ -142,6 +192,8 @@ export default function CliproxyapiSettingsTab() {
             </span>
             Loading...
           </div>
+        ) : toolStateError ? (
+          <p className="text-sm text-text-muted">{toolStateError}</p>
         ) : toolState ? (
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 rounded-lg bg-bg-secondary">

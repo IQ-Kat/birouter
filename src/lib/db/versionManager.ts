@@ -226,10 +226,28 @@ export async function updateVersionManagerTool(
   const existing = await getVersionManagerTool(tool);
   if (!existing) return null;
 
+  const ALLOWED_COLUMNS = new Set([
+    "currentVersion",
+    "installedVersion",
+    "pinnedVersion",
+    "binaryPath",
+    "status",
+    "pid",
+    "port",
+    "apiKey",
+    "managementKey",
+    "autoUpdate",
+    "autoStart",
+    "healthStatus",
+    "configOverrides",
+    "errorMessage",
+  ]);
+
   const sets: string[] = ["updated_at = datetime('now')"];
   const params: Record<string, unknown> = { tool };
 
   for (const [key, value] of Object.entries(updates)) {
+    if (!ALLOWED_COLUMNS.has(key)) continue;
     const dbKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
 
     if (key === "configOverrides") {
