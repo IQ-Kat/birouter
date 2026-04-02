@@ -803,6 +803,28 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 # Dashboard: http://localhost:20129
 ```
 
+### Long-Running Streaming Timeouts
+
+For long reasoning models or slow upstream streams, tune these env vars:
+
+| Variable                                 | Default                                    | Purpose                                                                     |
+| ---------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------- |
+| `FETCH_TIMEOUT_MS`                       | `600000`                                   | Total upstream request timeout used by the main fetch abort signal          |
+| `STREAM_IDLE_TIMEOUT_MS`                 | `600000`                                   | Maximum gap between streaming chunks before OmniRoute aborts the SSE stream |
+| `FETCH_HEADERS_TIMEOUT_MS`               | inherits `FETCH_TIMEOUT_MS`                | Undici time limit for receiving upstream response headers                   |
+| `FETCH_BODY_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)            |
+| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                    | Undici TCP connect timeout                                                  |
+| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`                                     | Undici idle keep-alive socket timeout                                       |
+| `TLS_CLIENT_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Timeout for TLS fingerprint requests made through `wreq-js`                 |
+| `API_BRIDGE_PROXY_TIMEOUT_MS`            | `30000`                                    | Timeout for `/v1` proxy forwarding from API port to dashboard port          |
+| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)` | Incoming request timeout on the API bridge server                           |
+| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Incoming header timeout on the API bridge server                            |
+| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Keep-alive timeout on the API bridge server                                 |
+| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        | Socket inactivity timeout on the API bridge server (`0` disables it)        |
+
+If you run OmniRoute behind Nginx, Caddy, Cloudflare, or another reverse proxy, make sure the proxy
+timeouts are also higher than your OmniRoute stream/fetch timeouts.
+
 ### 2) Connect providers and create your API key
 
 1. Open Dashboard → `Providers` and connect at least one provider (OAuth or API key).
