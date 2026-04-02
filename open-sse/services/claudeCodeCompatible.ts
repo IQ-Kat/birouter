@@ -116,7 +116,7 @@ export function buildClaudeCodeCompatibleValidationPayload(model = "claude-sonne
       max_tokens: 1,
     },
     model,
-    stream: false,
+    stream: true,
     sessionId,
     cwd: process.cwd(),
     now: new Date(),
