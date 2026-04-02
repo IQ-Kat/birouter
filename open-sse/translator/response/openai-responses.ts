@@ -19,10 +19,12 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
   // (input_tokens/output_tokens) so response.completed always has the fields Codex expects.
   if (chunk.usage) {
     const u = chunk.usage;
+    const input_tokens = u.input_tokens ?? u.prompt_tokens ?? 0;
+    const output_tokens = u.output_tokens ?? u.completion_tokens ?? 0;
     state.usage = {
-      input_tokens: u.input_tokens ?? u.prompt_tokens ?? 0,
-      output_tokens: u.output_tokens ?? u.completion_tokens ?? 0,
-      total_tokens: u.total_tokens ?? (u.input_tokens ?? u.prompt_tokens ?? 0) + (u.output_tokens ?? u.completion_tokens ?? 0),
+      input_tokens,
+      output_tokens,
+      total_tokens: u.total_tokens ?? input_tokens + output_tokens,
     };
     if (u.prompt_tokens_details?.cached_tokens) {
       state.usage.input_tokens_details = { cached_tokens: u.prompt_tokens_details.cached_tokens };
