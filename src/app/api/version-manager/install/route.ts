@@ -1,0 +1,30 @@
+"use server";
+
+import { NextResponse } from "next/server";
+import { installTool } from "@/lib/versionManager";
+import { versionManagerInstallSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+
+export async function POST(request: Request) {
+  let rawBody;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const validation = validateBody(versionManagerInstallSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  try {
+    const { tool, version } = validation.data;
+    const result = await installTool(tool, version || undefined);
+    return NextResponse.json({ success: true, ...result });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Installation failed";
+    console.error("[version-manager] install error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
