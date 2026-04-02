@@ -14,11 +14,24 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     return flushEvents(state);
   }
 
-  if (!chunk.choices?.length) {
-    // Capture usage from usage-only chunks (stream_options.include_usage)
-    if (chunk.usage) {
-      state.usage = chunk.usage;
+  // Capture usage from any chunk that carries it (usage-only chunks OR final chunks with finish_reason)
+  // Normalize Chat Completions format (prompt_tokens/completion_tokens) to Responses API format
+  // (input_tokens/output_tokens) so response.completed always has the fields Codex expects.
+  if (chunk.usage) {
+    const u = chunk.usage;
+    const input_tokens = u.input_tokens ?? u.prompt_tokens ?? 0;
+    const output_tokens = u.output_tokens ?? u.completion_tokens ?? 0;
+    state.usage = {
+      input_tokens,
+      output_tokens,
+      total_tokens: u.total_tokens ?? input_tokens + output_tokens,
+    };
+    if (u.prompt_tokens_details?.cached_tokens) {
+      state.usage.input_tokens_details = { cached_tokens: u.prompt_tokens_details.cached_tokens };
     }
+  }
+
+  if (!chunk.choices?.length) {
     return [];
   }
 
