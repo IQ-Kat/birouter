@@ -14,7 +14,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     return flushEvents(state);
   }
 
-  // Capture usage from any chunk that carries it (usage-only chunks OR final chunks with finish_reason)
+  // Capture usage from all chunks that carry it (usage-only chunks OR final chunks with finish_reason)
   // Normalize Chat Completions format (prompt_tokens/completion_tokens) to Responses API format
   // (input_tokens/output_tokens) so response.completed always has the fields Codex expects.
   if (chunk.usage) {
@@ -624,11 +624,13 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
       object: "chat.completion.chunk",
       created: state.created,
       model: state.model || "gpt-4",
-      choices: [{
-        index: 0,
-        delta: { reasoning_content: reasoningDelta },
-        finish_reason: null,
-      }],
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning_content: reasoningDelta },
+          finish_reason: null,
+        },
+      ],
     };
   }
 
