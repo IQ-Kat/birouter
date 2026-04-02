@@ -41,16 +41,11 @@ export async function GET() {
     try {
       const syncedGeminiModels = await getSyncedAvailableModels("gemini");
       if (syncedGeminiModels.length > 0) {
-        // Remove hardcoded gemini entries
-        const geminiStart = models.findIndex((m: any) =>
-          typeof m.name === "string" && m.name.startsWith("models/gemini/")
-        );
-        if (geminiStart !== -1) {
-          let geminiEnd = geminiStart;
-          while (geminiEnd < models.length && (models[geminiEnd] as any).name?.startsWith("models/gemini/")) {
-            geminiEnd++;
+        // Remove all hardcoded gemini entries (non-consecutive, so filter instead of splice)
+        for (let i = models.length - 1; i >= 0; i--) {
+          if (typeof (models[i] as any).name === "string" && (models[i] as any).name.startsWith("models/gemini/")) {
+            models.splice(i, 1);
           }
-          models.splice(geminiStart, geminiEnd - geminiStart);
         }
         // Add synced models
         for (const m of syncedGeminiModels) {
@@ -74,6 +69,8 @@ export async function GET() {
       const customModelsMap = (await getAllCustomModels()) as Record<string, unknown>;
       for (const [providerId, rawModels] of Object.entries(customModelsMap)) {
         if (!Array.isArray(rawModels)) continue;
+        // Skip Gemini — handled by syncedAvailableModels above
+        if (providerId === "gemini") continue;
         for (const model of rawModels) {
           if (!model || typeof model !== "object" || typeof (model as any).id !== "string") continue;
           const m = model as Record<string, unknown>;
