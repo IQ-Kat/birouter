@@ -1093,11 +1093,70 @@ export default function ProviderDetailPage() {
         body: JSON.stringify({ provider: providerId, ...formData }),
       });
       if (res.ok) {
+        const connectionData = await res.json();
+        const newConnection = connectionData?.connection;
         await fetchConnections();
         setShowAddApiKeyModal(false);
-        // For Gemini: auto-sync is fire-and-forget, poll for model updates
-        if (providerId === "gemini") {
-          setTimeout(() => fetchProviderModelMeta(), 3000);
+
+        // For Gemini: show progress dialog and sync models from endpoint
+        if (providerId === "gemini" && newConnection?.id) {
+          setShowImportModal(true);
+          setImportProgress({
+            current: 0,
+            total: 0,
+            phase: "fetching",
+            status: t("fetchingModels"),
+            logs: [],
+            error: "",
+            importedCount: 0,
+          });
+
+          try {
+            const syncRes = await fetch(`/api/providers/${newConnection.id}/sync-models`, {
+              method: "POST",
+            });
+            const syncData = await syncRes.json();
+
+            if (!syncRes.ok || syncData.error) {
+              setImportProgress((prev) => ({
+                ...prev,
+                phase: "error",
+                status: t("failedFetchModels"),
+                error: syncData.error?.message || syncData.error || t("failedImportModels"),
+              }));
+              return null;
+            }
+
+            const syncedCount = syncData.syncedModels || 0;
+            const syncedModelList: Array<{ id: string; name?: string }> = syncData.models || [];
+            const logs: string[] = [];
+            if (syncedModelList.length > 0) {
+              logs.push(`✓ ${syncedCount} models available`);
+              logs.push("");
+              for (const m of syncedModelList) {
+                logs.push(`  ${m.name || m.id}`);
+              }
+            }
+
+            setImportProgress((prev) => ({
+              ...prev,
+              phase: "done",
+              status: t("modelsImported", { count: syncedCount }),
+              total: syncedCount,
+              current: syncedCount,
+              importedCount: syncedCount,
+              logs,
+            }));
+
+            await fetchProviderModelMeta();
+          } catch (syncError) {
+            setImportProgress((prev) => ({
+              ...prev,
+              phase: "error",
+              status: t("failedFetchModels"),
+              error: String(syncError),
+            }));
+          }
         }
         return null;
       }
@@ -1968,7 +2027,7 @@ export default function ProviderDetailPage() {
       );
     }
 
-    const importButton = (
+    const importButton = providerId === "gemini" ? null : (
       <div className="flex items-center gap-2 mb-4">
         <Button
           size="sm"
@@ -2748,11 +2807,16 @@ export default function ProviderDetailPage() {
             </div>
           )}
 
-          {/* Auto-reload notice */}
-          {importProgress.phase === "done" && importProgress.importedCount > 0 && (
-            <p className="text-xs text-text-muted text-center animate-pulse">
-              {t("pageAutoRefresh")}
-            </p>
+          {/* Close button */}
+          {importProgress.phase === "done" && (
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:opacity-90 transition-opacity"
+              >
+                {t("close") || "Close"}
+              </button>
+            </div>
           )}
         </div>
       </Modal>

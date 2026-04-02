@@ -1491,6 +1491,7 @@
     "importFailed": "Falha na importação",
     "noNewModelsAdded": "Nenhum novo modelo foi adicionado.",
     "adding": "Adicionando...",
+    "close": "Close",
     "importingModelsTitle": "Importando Modelos",
     "copyModel": "Copiar modelo",
     "removeModel": "Remover modelo",
@@ -1657,6 +1658,7 @@
     "autoSyncEnabled": "Sincronização automática habilitada – os modelos serão atualizados periodicamente",
     "autoSyncDisabled": "Sincronização automática desativada",
     "autoSyncToggleFailed": "Falha ao alternar a sincronização automática",
+    "modelsImported": "{count} models imported",
     "allModelsAlreadyImported": "Todos os modelos já foram importados",
     "noNewModelsToImport": "Nenhum modelo novo para importar — todos os modelos já estão no registro ou na lista de modelos personalizados",
     "skippingExistingModels": "Ignorando {count} modelos existentes"

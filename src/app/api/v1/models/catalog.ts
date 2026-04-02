@@ -180,7 +180,7 @@ export async function getUnifiedModelsResponse(
       connections = connections.filter((c) => c.isActive !== false);
     } catch (e) {
       // If database not available, show no provider models (safe default)
-      console.log("Could not fetch providers, showing only combos/custom models");
+      console.log("[catalog] Could not fetch providers:", e);
     }
 
     // Get provider nodes (for compatible providers with custom prefixes)
@@ -255,30 +255,6 @@ export async function getUnifiedModelsResponse(
       const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
       const defaultContextLength = registryEntry?.defaultContextLength;
 
-      // For Gemini: use synced API models exclusively (no hardcoded fallback)
-      if (alias === "gemini") {
-        try {
-          const syncedModels = await getSyncedAvailableModels("gemini");
-          for (const sm of syncedModels) {
-            const aliasId = `gemini/${sm.id}`;
-            if (getModelIsHidden("gemini", sm.id)) continue;
-            models.push({
-              id: aliasId,
-              object: "model",
-              created: timestamp,
-              owned_by: "gemini",
-              permission: [],
-              root: sm.id,
-              parent: null,
-              ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
-            });
-          }
-        } catch {
-          // No synced models — show nothing for Gemini
-        }
-        continue; // Always skip hardcoded models for Gemini
-      }
-
       for (const model of providerModels) {
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
@@ -318,6 +294,63 @@ export async function getUnifiedModelsResponse(
             ...(providerVisionFields || {}),
           });
         }
+      }
+    }
+
+    // Gemini: synced API models exclusively (outside PROVIDER_MODELS loop since registry is empty)
+    if (activeAliases.has("gemini") && !blockedProviders.has("gemini")) {
+      try {
+        const syncedModels = await getSyncedAvailableModels("gemini");
+        for (const sm of syncedModels) {
+          const aliasId = `gemini/${sm.id}`;
+          if (getModelIsHidden("gemini", sm.id)) continue;
+
+          // Convert supportedEndpoints to type/subtype for endpoint categorization
+          const endpoints = Array.isArray(sm.supportedEndpoints)
+            ? sm.supportedEndpoints
+            : ["chat"];
+          let modelType: string | undefined;
+          if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("images")) modelType = "image";
+          else if (endpoints.includes("audio")) modelType = "audio";
+
+          models.push({
+            id: aliasId,
+            object: "model",
+            created: timestamp,
+            owned_by: "gemini",
+            permission: [],
+            root: sm.id,
+            parent: null,
+            ...(modelType ? { type: modelType } : {}),
+            ...(modelType === "audio" ? { subtype: "transcription" } : {}),
+            ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+            ...(endpoints.length > 1 || !endpoints.includes("chat")
+              ? { supported_endpoints: endpoints }
+              : {}),
+          });
+
+          // For audio models, also add a speech variant so they appear in both sections
+          if (modelType === "audio") {
+            models.push({
+              id: aliasId,
+              object: "model",
+              created: timestamp,
+              owned_by: "gemini",
+              permission: [],
+              root: sm.id,
+              parent: null,
+              type: "audio",
+              subtype: "speech",
+              ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+              ...(endpoints.length > 1 || !endpoints.includes("chat")
+                ? { supported_endpoints: endpoints }
+                : {}),
+            });
+          }
+        }
+      } catch {
+        // No synced models — show nothing for Gemini
       }
     }
 
@@ -419,6 +452,8 @@ export async function getUnifiedModelsResponse(
     try {
       const customModelsMap = (await getAllCustomModels()) as Record<string, unknown>;
       for (const [providerId, rawProviderCustomModels] of Object.entries(customModelsMap)) {
+        // Skip Gemini — handled by syncedAvailableModels above
+        if (providerId === "gemini") continue;
         const providerCustomModels = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
               (model): model is Record<string, unknown> =>
