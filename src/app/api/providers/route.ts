@@ -145,6 +145,8 @@ export async function POST(request: Request) {
       testStatus: testStatus || "unknown",
     });
 
+    // Note: Gemini model sync is now triggered client-side with progress dialog
+
     // Hide sensitive fields
     const result: Record<string, any> = { ...newConnection };
     delete result.apiKey;

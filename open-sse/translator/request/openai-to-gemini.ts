@@ -33,7 +33,7 @@ type GeminiGenerationConfig = {
   maxOutputTokens?: unknown;
   thinkingConfig?: {
     thinkingBudget: number;
-    include_thoughts: boolean;
+    includeThoughts: boolean;
   };
   responseMimeType?: string;
   responseSchema?: unknown;
@@ -317,7 +317,7 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
     const budget = budgetMap[body.reasoning_effort] || getDefaultThinkingBudget(model) || 8192;
     gemini.generationConfig.thinkingConfig = {
       thinkingBudget: budget,
-      include_thoughts: true,
+      includeThoughts: true,
     };
   }
 
@@ -325,7 +325,7 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
   if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
     gemini.generationConfig.thinkingConfig = {
       thinkingBudget: body.thinking.budget_tokens,
-      include_thoughts: true,
+      includeThoughts: true,
     };
   }
 
@@ -446,7 +446,7 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
           } else if (block.type === "image" && block.source) {
             parts.push({
               inlineData: {
-                mime_type: block.source.media_type,
+                mimeType: block.source.media_type,
                 data: block.source.data,
               },
             });

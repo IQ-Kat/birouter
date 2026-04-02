@@ -14,6 +14,7 @@ import {
   checkFallbackError,
   isModelLocked,
   lockModel,
+  hasPerModelQuota,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider, getPassthroughProviders } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
@@ -408,6 +409,8 @@ export async function getProviderCredentials(
         if (isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
         if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+        // Per-model lockout: if this specific model is locked on this connection, skip it
+        if (requestedModel && isModelLocked(provider, c.id, requestedModel)) return false;
       }
       return true;
     });
@@ -724,6 +727,29 @@ export async function markAccountUnavailable(
   try {
     await currentMutex;
 
+    // ── Per-model lockout for providers with independent model quotas ──
+    // Providers like Gemini AI Studio have per-model quotas. A 429/404 on one
+    // model must NOT lock out other models on the same API key.
+    if (hasPerModelQuota(provider) && model && (status === 429 || status === 404)) {
+      const reason = status === 404 ? "not_found" : "rate_limited";
+      const cooldown = status === 404
+        ? COOLDOWN_MS.notFoundLocal
+        : COOLDOWN_MS.rateLimit;
+      lockModel(provider, connectionId, model, reason, cooldown);
+      // Update last error for observability (without changing terminal status)
+      updateProviderConnection(connectionId, {
+        lastErrorType: reason,
+        lastError: `Model ${model} ${reason}`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(cooldown / 1000)}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: cooldown };
+    }
+
     // Read current connection to get backoffLevel
     const connectionsRaw = await getProviderConnections({ provider });
     const connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
@@ -793,7 +819,8 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isPassthroughProvider = provider && getPassthroughProviders().has(provider);
-    if ((isLocalProvider(connBaseUrl) || isPassthroughProvider) && status === 404 && provider && model) {
+    const isPerModelQuotaProvider = hasPerModelQuota(provider);
+    if ((isLocalProvider(connBaseUrl) || isPerModelQuotaProvider) && status === 404 && provider && model) {
       const localCooldown = COOLDOWN_MS.notFoundLocal;
       lockModel(provider, connectionId, model, "not_found", localCooldown);
       log.info(
@@ -803,12 +830,12 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: localCooldown };
     }
 
-    // ── 429 model-only lockout for passthrough providers ──
-    // For passthrough providers like Antigravity, each model has independent quota.
-    // A 429 on one model should NOT lock out the entire connection — other models
-    // may still have quota available. Use lockModel() instead of connection-wide
-    // rateLimitedUntil, same pattern as the 404 model-only lockout above.
-    if (isPassthroughProvider && status === 429 && provider && model) {
+    // ── 429 model-only lockout for per-model quota providers ──
+    // For providers where each model has independent quota (passthrough providers,
+    // Gemini AI Studio), a 429 on one model should NOT lock out the entire connection
+    // — other models may still have quota available. Use lockModel() instead of
+    // connection-wide rateLimitedUntil.
+    if (isPerModelQuotaProvider && status === 429 && provider && model) {
       const modelCooldown = cooldownMs || COOLDOWN_MS.rateLimit;
       lockModel(provider, connectionId, model, reason || "rate_limited", modelCooldown);
       log.info(
