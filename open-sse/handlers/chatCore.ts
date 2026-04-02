@@ -60,7 +60,11 @@ import {
 } from "../executors/codex.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
-import { parseSSEToOpenAIResponse, parseSSEToResponsesOutput } from "./sseParser.ts";
+import {
+  parseSSEToClaudeResponse,
+  parseSSEToOpenAIResponse,
+  parseSSEToResponsesOutput,
+} from "./sseParser.ts";
 import { sanitizeOpenAIResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
@@ -711,6 +715,7 @@ export async function handleChatCore({
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
+  const upstreamStream = stream || isClaudeCodeCompatible;
   let ccSessionId: string | null = null;
 
   // Determine if we should preserve client-side cache_control headers
@@ -770,7 +775,7 @@ export async function handleChatCore({
         sourceBody: body,
         normalizedBody: normalizedForCc,
         model,
-        stream,
+        stream: upstreamStream,
         sessionId: ccSessionId,
         cwd: process.cwd(),
         now: new Date(),
@@ -1031,7 +1036,7 @@ export async function handleChatCore({
   // Create stream controller for disconnect detection
   const streamController = createStreamController({ onDisconnect, log, provider, model });
 
-  const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}` };
+  const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}`, stream };
   const dedupEnabled = shouldDeduplicate(dedupRequestBody);
   const dedupHash = dedupEnabled ? computeRequestHash(dedupRequestBody) : null;
 
@@ -1065,7 +1070,7 @@ export async function handleChatCore({
           const res = await executor.execute({
             model: modelToCall,
             body: bodyToSend,
-            stream,
+            stream: upstreamStream,
             credentials: getExecutionCredentials(),
             signal: streamController.signal,
             log,
@@ -1228,7 +1233,7 @@ export async function handleChatCore({
         const retryResult = await executor.execute({
           model: retryModelId,
           body: translatedBody,
-          stream,
+          stream: upstreamStream,
           credentials: getExecutionCredentials(),
           signal: streamController.signal,
           log,
@@ -1532,7 +1537,9 @@ export async function handleChatCore({
       const parsedFromSSE =
         targetFormat === FORMATS.OPENAI_RESPONSES
           ? parseSSEToResponsesOutput(rawBody, model)
-          : parseSSEToOpenAIResponse(rawBody, model);
+          : targetFormat === FORMATS.CLAUDE
+            ? parseSSEToClaudeResponse(rawBody, model)
+            : parseSSEToOpenAIResponse(rawBody, model);
 
       if (!parsedFromSSE) {
         appendRequestLog({

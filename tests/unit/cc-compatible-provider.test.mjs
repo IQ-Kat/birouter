@@ -16,6 +16,7 @@ const {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
   joinClaudeCodeCompatibleUrl,
 } = await import("../../open-sse/services/claudeCodeCompatible.ts");
+const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
 const providerNodesRoute = await import("../../src/app/api/provider-nodes/route.ts");
 const providerNodesValidateRoute =
@@ -263,7 +264,94 @@ test("validateProviderApiKey uses CC skeleton request after /models fallback", a
   );
   assert.equal(calls[1].body.model, "claude-sonnet-4-6");
   assert.equal(calls[1].body.messages[0].role, "user");
+  assert.equal(calls[1].body.stream, true);
   assert.equal(calls[1].headers["x-api-key"], "sk-test");
+  assert.equal(calls[1].headers.Accept, "text/event-stream");
+});
+
+test("handleChatCore forces upstream streaming for CC compatible while returning JSON to non-stream clients", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({
+      url: String(url),
+      method: init.method || "GET",
+      headers: init.headers,
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    });
+
+    return new Response(
+      [
+        "event: message_start",
+        'data: {"type":"message_start","message":{"id":"msg_1","type":"message","role":"assistant","model":"claude-sonnet-4-6","usage":{"input_tokens":7,"output_tokens":0}}}',
+        "",
+        "event: content_block_start",
+        'data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+        "",
+        "event: content_block_delta",
+        'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello from CC"}}',
+        "",
+        "event: message_delta",
+        'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":5}}',
+        "",
+        "event: message_stop",
+        'data: {"type":"message_stop"}',
+        "",
+      ].join("\n"),
+      {
+        status: 200,
+        headers: {
+          "content-type": "text/event-stream",
+        },
+      }
+    );
+  };
+
+  const result = await handleChatCore({
+    body: {
+      model: "claude-sonnet-4-6",
+      messages: [{ role: "user", content: "Ping" }],
+      stream: false,
+    },
+    modelInfo: {
+      provider: "anthropic-compatible-cc-test",
+      model: "claude-sonnet-4-6",
+      extendedContext: false,
+    },
+    credentials: {
+      apiKey: "sk-test",
+      providerSpecificData: {
+        baseUrl: "https://proxy.example.com",
+        chatPath: CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+      },
+    },
+    clientRawRequest: {
+      endpoint: "/v1/chat/completions",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "Ping" }],
+        stream: false,
+      },
+      headers: new Headers({ accept: "application/json" }),
+    },
+    userAgent: "unit-test",
+    log: {
+      debug() {},
+      info() {},
+      warn() {},
+      error() {},
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].headers.Accept, "text/event-stream");
+  assert.equal(calls[0].body.stream, true);
+
+  const payload = await result.response.json();
+  assert.equal(payload.choices[0].message.content, "Hello from CC");
+  assert.equal(payload.choices[0].finish_reason, "stop");
+  assert.equal(payload.usage.prompt_tokens, 2007);
+  assert.equal(payload.usage.completion_tokens, 5);
 });
 
 test("provider-nodes create route rejects CC mode when feature flag is disabled", async () => {

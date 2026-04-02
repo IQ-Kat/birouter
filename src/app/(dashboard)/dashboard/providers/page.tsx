@@ -518,25 +518,14 @@ export default function ProvidersPage() {
               </button>
             )}
             {ccCompatibleProviderEnabled && (
-              <Button
-                size="sm"
-                variant="secondary"
-                icon="add"
-                onClick={() => setShowAddCcCompatibleModal(true)}
-              >
+              <Button size="sm" icon="add" onClick={() => setShowAddCcCompatibleModal(true)}>
                 {ADD_CC_COMPATIBLE_LABEL}
               </Button>
             )}
             <Button size="sm" icon="add" onClick={() => setShowAddAnthropicCompatibleModal(true)}>
               {t("addAnthropicCompatible")}
             </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="add"
-              onClick={() => setShowAddCompatibleModal(true)}
-              className="!bg-white !text-black hover:!bg-gray-100"
-            >
+            <Button size="sm" icon="add" onClick={() => setShowAddCompatibleModal(true)}>
               {t("addOpenAICompatible")}
             </Button>
           </div>
@@ -1292,6 +1281,7 @@ AddAnthropicCompatibleModal.propTypes = {
 };
 
 function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
+  const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
     prefix: "",
@@ -1378,25 +1368,25 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
     <Modal isOpen={isOpen} title={ADD_CC_COMPATIBLE_LABEL} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <Input
-          label="Name"
+          label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="CC Compatible Production"
-          hint="Display name for this Claude Code-compatible provider"
+          placeholder={t("compatibleProdPlaceholder", { type: CC_COMPATIBLE_LABEL })}
+          hint={t("nameHint")}
         />
         <Input
-          label="Prefix"
+          label={t("prefixLabel")}
           value={formData.prefix}
           onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
-          placeholder="cc"
-          hint="Used for model aliases such as prefix/model-id"
+          placeholder="cc-prod"
+          hint={t("prefixHint")}
         />
         <Input
-          label="Base URL"
+          label={t("baseUrlLabel")}
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-          placeholder="https://example.com/v1"
-          hint="Base URL for the CC-compatible site. Do not include /messages."
+          placeholder="https://api.anthropic.com"
+          hint={t("compatibleBaseUrlHint", { type: CC_COMPATIBLE_LABEL })}
         />
         <button
           type="button"
@@ -1411,7 +1401,7 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
           >
             ▶
           </span>
-          Advanced settings
+          {t("advancedSettings")}
         </button>
         {showAdvanced && (
           <div
@@ -1419,24 +1409,24 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
             className="flex flex-col gap-3 pl-2 border-l-2 border-border"
           >
             <Input
-              label="Chat Path"
+              label={t("chatPathLabel")}
               value={formData.chatPath}
               onChange={(e) => setFormData({ ...formData, chatPath: e.target.value })}
               placeholder={CC_COMPATIBLE_DEFAULT_CHAT_PATH}
-              hint="Defaults to the strict Claude Code-compatible messages path"
+              hint={t("chatPathHint")}
             />
             <Input
-              label="Models Path"
+              label={t("modelsPathLabel")}
               value={formData.modelsPath}
               onChange={(e) => setFormData({ ...formData, modelsPath: e.target.value })}
               placeholder={CC_COMPATIBLE_DEFAULT_MODELS_PATH}
-              hint="Defaults to /models"
+              hint={t("modelsPathHint")}
             />
           </div>
         )}
         <div className="flex gap-2">
           <Input
-            label="API Key for Check"
+            label={t("apiKeyForCheck")}
             type="password"
             value={checkKey}
             onChange={(e) => setCheckKey(e.target.value)}
@@ -1448,13 +1438,13 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
               disabled={!checkKey || validating || !formData.baseUrl.trim()}
               variant="secondary"
             >
-              {validating ? "Checking..." : "Check"}
+              {validating ? t("checking") : t("check")}
             </Button>
           </div>
         </div>
         {validationResult && (
           <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? "Valid" : "Invalid"}
+            {validationResult === "success" ? t("valid") : t("invalid")}
           </Badge>
         )}
         <div className="flex gap-2">
@@ -1468,10 +1458,10 @@ function AddCcCompatibleModal({ isOpen, onClose, onCreated }) {
               submitting
             }
           >
-            {submitting ? "Creating..." : "Add"}
+            {submitting ? t("creating") : t("add")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </div>

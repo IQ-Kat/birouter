@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes
+
+- **CC Compatible UX & Streaming:** Unified the Add CC/OpenAI/Anthropic compatible actions around the Anthropic UI treatment, and forced CC-compatible upstream requests to use SSE while still returning streaming or non-streaming responses based on the client request.
+
 ---
 
 ## [3.4.3] - 2026-04-02
