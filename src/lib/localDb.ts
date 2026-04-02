@@ -92,6 +92,10 @@ export {
   updateSettings,
   isCloudEnabled,
 
+  // LKGP (Last Known Good Provider) (#919)
+  getLKGP,
+  setLKGP,
+
   // Pricing
   getPricing,
   getPricingForModel,
