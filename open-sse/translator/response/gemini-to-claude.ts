@@ -171,6 +171,11 @@ export function geminiToClaudeResponse(chunk, state) {
       stopReason = "tool_use";
     } else if (reason === "max_tokens" || reason === "length") {
       stopReason = "max_tokens";
+    } else if (reason === "safety" || reason === "recitation" || reason === "blocklist") {
+      // Content was blocked by Gemini safety filters — map to end_turn but leave
+      // no text content so the client sees an empty response rather than silently
+      // appearing normal. The caller can inspect the raw finishReason if needed.
+      stopReason = "end_turn";
     } else {
       stopReason = "end_turn";
     }

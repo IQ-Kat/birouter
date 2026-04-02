@@ -715,7 +715,10 @@ export async function GET(
 
     while (pageUrl && pageCount < MAX_PAGES) {
       pageCount++;
-      const response = await fetch(pageUrl, fetchOptions);
+      const response = await fetch(pageUrl, {
+        ...fetchOptions,
+        signal: AbortSignal.timeout(15_000),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
