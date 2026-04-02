@@ -6,6 +6,7 @@ import {
 } from "@/shared/constants/providers";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
 import { getModelIsHidden } from "@/lib/localDb";
+import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -99,6 +100,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "glm-4.7", name: "GLM 4.7" },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
   ],
+  qoder: () => getStaticQoderModels(),
 };
 
 /**

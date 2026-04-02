@@ -168,9 +168,11 @@ export default function ProvidersPage() {
   };
 
   const getProviderStats = (providerId, authType) => {
-    const providerConnections = connections.filter(
-      (c) => c.provider === providerId && c.authType === authType
-    );
+    const providerConnections = connections.filter((c) => {
+      if (c.provider !== providerId) return false;
+      if (authType === "free") return true;
+      return c.authType === authType;
+    });
 
     // Helper: check if connection is effectively active (cooldown expired)
     const getEffectiveStatus = (conn) => {
@@ -217,13 +219,17 @@ export default function ProvidersPage() {
 
   // Toggle all connections for a provider on/off
   const handleToggleProvider = async (providerId: string, authType: string, newActive: boolean) => {
-    const providerConns = connections.filter(
-      (c) => c.provider === providerId && c.authType === authType
-    );
+    const providerConns = connections.filter((c) => {
+      if (c.provider !== providerId) return false;
+      if (authType === "free") return true;
+      return c.authType === authType;
+    });
     // Optimistically update UI
     setConnections((prev) =>
       prev.map((c) =>
-        c.provider === providerId && c.authType === authType ? { ...c, isActive: newActive } : c
+        c.provider === providerId && (authType === "free" || c.authType === authType)
+          ? { ...c, isActive: newActive }
+          : c
       )
     );
     // Fire API calls in parallel
@@ -444,9 +450,9 @@ export default function ProvidersPage() {
               key={key}
               providerId={key}
               provider={info}
-              stats={getProviderStats(key, "oauth")}
+              stats={getProviderStats(key, "free")}
               authType="free"
-              onToggle={(active) => handleToggleProvider(key, "oauth", active)}
+              onToggle={(active) => handleToggleProvider(key, "free", active)}
             />
           ))}
         </div>

@@ -17,6 +17,12 @@ export const FREE_PROVIDERS = {
   kiro: { id: "kiro", alias: "kr", name: "Kiro AI", icon: "psychology_alt", color: "#FF6B35" },
 };
 
+export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
+
+export function supportsApiKeyOnFreeProvider(providerId) {
+  return FREE_APIKEY_PROVIDER_IDS.has(providerId);
+}
+
 // OAuth Providers
 export const OAUTH_PROVIDERS = {
   claude: { id: "claude", alias: "cc", name: "Claude Code", icon: "smart_toy", color: "#D97757" },
