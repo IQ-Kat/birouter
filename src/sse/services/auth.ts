@@ -734,8 +734,15 @@ export async function markAccountUnavailable(
       const reason = status === 404 ? "not_found" : "rate_limited";
       const cooldown = status === 404
         ? COOLDOWN_MS.notFoundLocal
-        : (COOLDOWN_MS.rateLimit || 60_000);
+        : COOLDOWN_MS.rateLimit;
       lockModel(provider, connectionId, model, reason, cooldown);
+      // Update last error for observability (without changing terminal status)
+      updateProviderConnection(connectionId, {
+        lastErrorType: reason,
+        lastError: `Model ${model} ${reason}`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
       log.info(
         "AUTH",
         `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(cooldown / 1000)}s (connection stays active)`

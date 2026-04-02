@@ -101,7 +101,9 @@ export function lockModel(provider, connectionId, model, reason, cooldownMs) {
   ensureCleanupTimer();
   const key = `${provider}:${connectionId}:${model}`;
   const newUntil = Date.now() + cooldownMs;
-  // Preserve the longer cooldown if an existing lock has more time remaining
+  // Preserve the longer cooldown if an existing lock has more time remaining.
+  // Safe without a mutex: no await between get/set, so this runs atomically
+  // within Node.js's single-threaded event loop.
   const existing = modelLockouts.get(key);
   if (existing && existing.until > newUntil) return;
   modelLockouts.set(key, {

@@ -1114,6 +1114,7 @@ export default function ProviderDetailPage() {
           try {
             const syncRes = await fetch(`/api/providers/${newConnection.id}/sync-models`, {
               method: "POST",
+              signal: AbortSignal.timeout(30_000), // 30s timeout — model sync shouldn't hang
             });
             const syncData = await syncRes.json();
 

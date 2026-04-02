@@ -15,6 +15,7 @@ import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerMo
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { hasPerModelQuota, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
+import { COOLDOWN_MS } from "../config/constants.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -1294,9 +1295,9 @@ export async function handleChatCore({
           // For providers with per-model quotas (passthrough providers, Gemini),
           // each model has independent quota. A 429 on one model must NOT lock out
           // the entire connection — other models may still have quota available.
-          if (lockModelIfPerModelQuota(provider, connectionId, model, "rate_limited", retryAfterMs || 120_000)) {
+          if (lockModelIfPerModelQuota(provider, connectionId, model, "rate_limited", retryAfterMs || COOLDOWN_MS.rateLimit)) {
             console.warn(
-              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || 120_000) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
             );
           } else {
             const rateLimitedUntil = new Date(Date.now() + retryAfterMs).toISOString();
@@ -1315,9 +1316,9 @@ export async function handleChatCore({
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
-          if (lockModelIfPerModelQuota(provider, connectionId, model, "quota_exhausted", retryAfterMs || 120_000)) {
+          if (lockModelIfPerModelQuota(provider, connectionId, model, "quota_exhausted", retryAfterMs || COOLDOWN_MS.rateLimit)) {
             console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || 120_000) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
             );
           } else {
             await updateProviderConnection(connectionId, {

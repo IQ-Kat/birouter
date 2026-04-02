@@ -701,6 +701,7 @@ export async function GET(
     let pageUrl = url;
     let pageCount = 0;
     const MAX_PAGES = 20; // Safety limit
+    const seenTokens = new Set<string>();
 
     while (pageUrl && pageCount < MAX_PAGES) {
       pageCount++;
@@ -721,6 +722,11 @@ export async function GET(
 
       const nextPageToken = data.nextPageToken;
       if (!nextPageToken) break;
+      if (seenTokens.has(nextPageToken)) {
+        console.warn(`[models] ${provider}: duplicate nextPageToken detected, stopping pagination`);
+        break;
+      }
+      seenTokens.add(nextPageToken);
       pageUrl = `${config.url}${config.url.includes("?") ? "&" : "?"}pageToken=${encodeURIComponent(nextPageToken)}`;
       if (config.authQuery) {
         pageUrl += `&${config.authQuery}=${token}`;
