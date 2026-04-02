@@ -154,3 +154,7 @@ typescript
 
 # Gemini Antigravity agent data
 .gemini/
+
+# Superpowers skills/plans/specs (internal tooling, not project code)
+.agents/
+docs/superpowers/
