@@ -1,5 +1,18 @@
 import { NextResponse } from "next/server";
 import { listMemories, createMemory } from "@/lib/memory/store";
+import { MemoryType } from "@/lib/memory/types";
+import { z } from "zod";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+
+const createMemorySchema = z.object({
+  content: z.string().min(1),
+  key: z.string().min(1),
+  type: z.nativeEnum(MemoryType).default(MemoryType.FACTUAL),
+  sessionId: z.string().default(""),
+  apiKeyId: z.string().default(""),
+  metadata: z.record(z.unknown()).default({}),
+  expiresAt: z.coerce.date().nullable().default(null),
+});
 
 export async function GET(request: Request) {
   try {
@@ -26,8 +39,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const memoryId = await createMemory(body);
+    const rawBody = await request.json();
+    const validation = validateBody(createMemorySchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json(validation.error, { status: 400 });
+    }
+    const memoryId = await createMemory(validation.data);
     return NextResponse.json({ success: true, id: memoryId });
   } catch (err: unknown) {
     const error = err instanceof Error ? err.message : String(err);

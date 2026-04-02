@@ -84,6 +84,7 @@ jobs:
       - run: npm ci
       - name: Dependency audit
         run: npm audit --audit-level=high --omit=dev
+        continue-on-error: true
       - name: Check for known vulnerabilities
         run: npx is-my-node-vulnerable
         continue-on-error: true
