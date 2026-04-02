@@ -1,6 +1,6 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
-import { getAllCustomModels } from "@/lib/db/models";
+import { getAllCustomModels, getSyncedAvailableModels } from "@/lib/db/models";
 
 /**
  * Handle CORS preflight
@@ -35,6 +35,38 @@ export async function GET() {
           outputTokenLimit: 8192,
         });
       }
+    }
+
+    // Gemini: replace hardcoded entries with synced models when available
+    try {
+      const syncedGeminiModels = await getSyncedAvailableModels("gemini");
+      if (syncedGeminiModels.length > 0) {
+        // Remove hardcoded gemini entries
+        const geminiStart = models.findIndex((m: any) =>
+          typeof m.name === "string" && m.name.startsWith("models/gemini/")
+        );
+        if (geminiStart !== -1) {
+          let geminiEnd = geminiStart;
+          while (geminiEnd < models.length && (models[geminiEnd] as any).name?.startsWith("models/gemini/")) {
+            geminiEnd++;
+          }
+          models.splice(geminiStart, geminiEnd - geminiStart);
+        }
+        // Add synced models
+        for (const m of syncedGeminiModels) {
+          models.push({
+            name: `models/gemini/${m.id}`,
+            displayName: m.name || m.id,
+            ...(typeof m.description === "string" ? { description: m.description } : {}),
+            supportedGenerationMethods: ["generateContent"],
+            inputTokenLimit: typeof m.inputTokenLimit === "number" ? m.inputTokenLimit : 128000,
+            outputTokenLimit: typeof m.outputTokenLimit === "number" ? m.outputTokenLimit : 8192,
+            ...(m.supportsThinking === true ? { thinking: true } : {}),
+          });
+        }
+      }
+    } catch {
+      // Non-critical
     }
 
     // Custom models (use stored metadata from provider APIs)

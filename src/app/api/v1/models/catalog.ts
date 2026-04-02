@@ -18,6 +18,7 @@ import { getAllModerationModels } from "@omniroute/open-sse/config/moderationReg
 import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getSyncedAvailableModels } from "@/lib/db/models";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -253,6 +254,32 @@ export async function getUnifiedModelsResponse(
       // Get default context length from registry (provider-level default)
       const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
       const defaultContextLength = registryEntry?.defaultContextLength;
+
+      // Skip hardcoded Gemini models if synced models are available
+      if (alias === "gemini") {
+        try {
+          const syncedModels = await getSyncedAvailableModels("gemini");
+          if (syncedModels.length > 0) {
+            for (const sm of syncedModels) {
+              const aliasId = `gemini/${sm.id}`;
+              if (getModelIsHidden("gemini", sm.id)) continue;
+              models.push({
+                id: aliasId,
+                object: "model",
+                created: timestamp,
+                owned_by: "gemini",
+                permission: [],
+                root: sm.id,
+                parent: null,
+                ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+              });
+            }
+            continue; // Skip hardcoded models for this provider
+          }
+        } catch {
+          // Fall through to hardcoded models
+        }
+      }
 
       for (const model of providerModels) {
         const aliasId = `${alias}/${model.id}`;
