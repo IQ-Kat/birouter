@@ -19,10 +19,12 @@ import BackgroundDegradationTab from "./components/BackgroundDegradationTab";
 
 import CacheStatsCard from "./components/CacheStatsCard";
 import CacheSettingsTab from "./components/CacheSettingsTab";
+import MemorySkillsTab from "./components/MemorySkillsTab";
 import ResilienceTab from "./components/ResilienceTab";
 
 const tabs = [
   { id: "general", labelKey: "general", icon: "settings" },
+  { id: "appearance", labelKey: "appearance", icon: "palette" },
   { id: "ai", labelKey: "ai", icon: "smart_toy" },
   { id: "security", labelKey: "security", icon: "shield" },
   { id: "routing", labelKey: "routing", icon: "route" },
@@ -76,12 +78,15 @@ export default function SettingsPage() {
           aria-label={t(tabs.find((t2) => t2.id === activeTab)?.labelKey || "general")}
         >
           {activeTab === "general" && (
-            <>
-              <div className="flex flex-col gap-6">
-                <SystemStorageTab />
-                <AppearanceTab />
-              </div>
-            </>
+            <div className="flex flex-col gap-6">
+              <SystemStorageTab />
+            </div>
+          )}
+
+          {activeTab === "appearance" && (
+            <div className="flex flex-col gap-6">
+              <AppearanceTab />
+            </div>
           )}
 
           {activeTab === "ai" && (
@@ -91,6 +96,7 @@ export default function SettingsPage() {
               <SystemPromptTab />
               <CacheStatsCard />
               <CacheSettingsTab />
+              <MemorySkillsTab />
             </div>
           )}
 

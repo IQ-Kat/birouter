@@ -68,11 +68,11 @@ function isLocalhostUrl(baseUrl: string): boolean {
     if (u.username || u.password) return false;
     // Note: URL.hostname returns "[::1]" WITH brackets for IPv6 — both forms checked.
     // Verified: node -e "new URL('http://[::1]:8080').hostname" → "[::1]"
+    // Strictly matching 172.16.0.0/12 (Docker/local) and explicitly blocking ::1 per SSRF hardening
     return (
       u.hostname === "localhost" ||
       u.hostname === "127.0.0.1" ||
-      u.hostname === "::1" ||
-      u.hostname === "[::1]"
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(u.hostname)
     );
   } catch {
     return false;

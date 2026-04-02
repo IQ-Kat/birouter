@@ -209,3 +209,13 @@ export {
 } from "./db/quotaSnapshots";
 
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
+
+export {
+  getProviderLimitsCache,
+  getAllProviderLimitsCache,
+  setProviderLimitsCache,
+  setProviderLimitsCacheBatch,
+  deleteProviderLimitsCache,
+} from "./db/providerLimits";
+
+export type { ProviderLimitsCacheEntry } from "./db/providerLimits";

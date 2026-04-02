@@ -19,6 +19,8 @@ const proxyFetch = await import("../../open-sse/utils/proxyFetch.ts");
 const proxyDispatcher = await import("../../open-sse/utils/proxyDispatcher.ts");
 const proxySettingsRoute = await import("../../src/app/api/settings/proxy/route.ts");
 const proxyTestRoute = await import("../../src/app/api/settings/proxy/test/route.ts");
+const shutdownRoute = await import("../../src/app/api/shutdown/route.ts");
+const restartRoute = await import("../../src/app/api/restart/route.ts");
 
 async function withEnv(name, value, fn) {
   const previous = process.env[name];
@@ -140,6 +142,80 @@ test(
     assert.equal(row.cnt, 1);
   }
 );
+
+test("closeDbInstance checkpoints WAL changes into the primary SQLite file", async () => {
+  await resetStorage();
+
+  const db = core.getDbInstance();
+  const now = new Date().toISOString();
+  db.prepare(
+    "INSERT INTO provider_connections (id, provider, auth_type, name, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run("checkpoint-test-conn", "openai", "apikey", "checkpoint-test", 1, now, now);
+
+  core.closeDbInstance();
+
+  const snapshotPath = path.join(TEST_DATA_DIR, "storage-snapshot.sqlite");
+  fs.copyFileSync(core.SQLITE_FILE, snapshotPath);
+
+  const Database = (await import("better-sqlite3")).default;
+  const snapshotDb = new Database(snapshotPath, { readonly: true });
+  try {
+    const row = snapshotDb
+      .prepare("SELECT name FROM provider_connections WHERE id = ?")
+      .get("checkpoint-test-conn");
+    assert.equal(row?.name, "checkpoint-test");
+  } finally {
+    snapshotDb.close();
+  }
+});
+
+test("shutdown route uses SIGTERM for graceful shutdown", async () => {
+  const originalKill = process.kill;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls = [];
+
+  process.kill = (pid, signal) => {
+    calls.push({ pid, signal });
+    return true;
+  };
+  globalThis.setTimeout = (callback) => {
+    callback();
+    return 0;
+  };
+
+  try {
+    const response = await shutdownRoute.POST();
+    assert.equal(response.status, 200);
+    assert.deepEqual(calls, [{ pid: process.pid, signal: "SIGTERM" }]);
+  } finally {
+    process.kill = originalKill;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("restart route uses SIGTERM for graceful restart", async () => {
+  const originalKill = process.kill;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls = [];
+
+  process.kill = (pid, signal) => {
+    calls.push({ pid, signal });
+    return true;
+  };
+  globalThis.setTimeout = (callback) => {
+    callback();
+    return 0;
+  };
+
+  try {
+    const response = await restartRoute.POST();
+    assert.equal(response.status, 200);
+    assert.deepEqual(calls, [{ pid: process.pid, signal: "SIGTERM" }]);
+  } finally {
+    process.kill = originalKill;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
 
 test("unlinkFileWithRetry retries EBUSY/EPERM and eventually succeeds", async () => {
   const target = path.join(TEST_DATA_DIR, "retry-target.tmp");

@@ -369,7 +369,9 @@ test("Chat→Responses streaming: usage-only chunk is captured (not dropped)", (
   const completedEvent = finishEvents.find((e) => e.event === "response.completed");
   assert.ok(completedEvent, "should have completed event");
   assert.ok(completedEvent.data.response.usage, "completed event should include usage");
-  assert.equal(completedEvent.data.response.usage.prompt_tokens, 10);
+  assert.equal(completedEvent.data.response.usage.input_tokens, 10);
+  assert.equal(completedEvent.data.response.usage.output_tokens, 5);
+  assert.equal(completedEvent.data.response.usage.total_tokens, 15);
 });
 
 test("Chat→Responses streaming: completed event includes accumulated output", () => {

@@ -203,9 +203,12 @@ export function parseQuotaData(provider, data) {
       case "antigravity":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
+            if (quota?.unlimited && (!quota?.total || quota.total <= 0)) {
+              return;
+            }
             normalizedQuotas.push(
-              normalizeQuotaEntry(quota.displayName || modelKey, quota, {
-                modelKey: modelKey, // Keep modelKey for sorting
+              normalizeQuotaEntry(modelKey, quota, {
+                modelKey: modelKey,
               })
             );
           });
