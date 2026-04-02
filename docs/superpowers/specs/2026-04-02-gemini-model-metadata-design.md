@@ -16,25 +16,26 @@ Extend the existing `customModels` JSON blob with additional fields. The key-val
 
 Gemini API field → stored field → consumer
 
-| Gemini API field | Stored as | Used by |
+| Gemini API field | Stored as (all optional) | Used by |
 |---|---|---|
 | `supportedGenerationMethods` | `supportedEndpoints` (mapped) | Routing: `/v1/embeddings`, `/v1/images/generations`, catalog type detection |
 | `inputTokenLimit` | `inputTokenLimit` | Catalog `context_length`, v1beta models endpoint |
 | `outputTokenLimit` | `outputTokenLimit` | v1beta models endpoint, thinking budget |
 | `description` | `description` | Dashboard model display |
 | `thinking` | `supportsThinking` | Model specs, thinking budget logic |
-| `maxTemperature` | `maxTemperature` | Request validation |
+
+Note: `maxTemperature` excluded — no current consumer. Can be added later if needed.
 
 ### supportedGenerationMethods → supportedEndpoints mapping
 
 ```
 generateContent           → "chat"
 embedContent              → "embeddings"
-predict                   → "images"
-predictLongRunning        → "images"
+predict                   → "images"        (Imagen models)
+predictLongRunning        → "images"        (Veo video models)
 bidiGenerateContent       → "audio"
 generateAnswer            → "chat"
-countTokens               → (ignored — utility method, not an endpoint)
+countTokens               → (ignored — utility method)
 createCachedContent       → (ignored)
 batchGenerateContent      → (ignored — batch variant of chat)
 asyncBatchEmbedContent    → (ignored — batch variant of embeddings)
@@ -42,11 +43,22 @@ asyncBatchEmbedContent    → (ignored — batch variant of embeddings)
 
 If a model has no mappable methods, default to `["chat"]`.
 
+## Backwards Compatibility
+
+All new fields are optional. Existing custom models in the DB won't have them. Consumers must handle missing fields with fallbacks:
+- `inputTokenLimit` missing → fall back to registry `defaultContextLength` or omit
+- `outputTokenLimit` missing → fall back to hardcoded default or omit
+- `supportedEndpoints` missing → default to `["chat"]` (already handled by existing code)
+- `description` missing → omit
+- `supportsThinking` missing → treat as `false`
+
+No migration needed — fields appear on next sync.
+
 ## Changes
 
 ### 1. Gemini parseResponse — `src/app/api/providers/[id]/models/route.ts`
 
-Add metadata extraction to the existing `gemini.parseResponse`. After the current `id`/`name` mapping, also extract `inputTokenLimit`, `outputTokenLimit`, `description`, `thinking`, `maxTemperature`, and compute `supportedEndpoints` from `supportedGenerationMethods`.
+Add metadata extraction to the existing `gemini.parseResponse`. After the current `id`/`name` mapping, extract `inputTokenLimit`, `outputTokenLimit`, `description`, `supportsThinking` (from `thinking`), and compute `supportedEndpoints` from `supportedGenerationMethods`.
 
 ### 2. Sync route — `src/app/api/providers/[id]/sync-models/route.ts`
 
@@ -54,7 +66,7 @@ Lines 186-192: Carry through the new metadata fields instead of only `{id, name,
 
 ### 3. replaceCustomModels — `src/lib/db/models.ts`
 
-Add the new fields to the TypeScript parameter type (lines 380-386) so they're explicitly recognized. Also preserve them during merge the same way compat flags are preserved.
+Add the new optional fields to the TypeScript parameter type (lines 380-386). Also preserve them during merge the same way compat flags are preserved.
 
 ### 4. Catalog — `src/app/api/v1/models/catalog.ts`
 
