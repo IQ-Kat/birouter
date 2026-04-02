@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
-import { getCustomModels, replaceCustomModels } from "@/lib/db/models";
+import { getCustomModels, replaceCustomModels, unionSyncedAvailableModels } from "@/lib/db/models";
 import {
   syncManagedAvailableModelAliases,
   usesManagedAvailableModels,
@@ -200,6 +200,26 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const previousModels = await getCustomModels(logProvider);
     const replaced = await replaceCustomModels(logProvider, models);
+
+    // For Gemini: also write to syncedAvailableModels (unioned across API keys)
+    if (logProvider === "gemini") {
+      try {
+        const syncedModels = models.map((m: any) => ({
+          id: m.id,
+          name: m.name || m.id,
+          source: "api-sync" as const,
+          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
+          ...(typeof m.inputTokenLimit === "number" ? { inputTokenLimit: m.inputTokenLimit } : {}),
+          ...(typeof m.outputTokenLimit === "number" ? { outputTokenLimit: m.outputTokenLimit } : {}),
+          ...(typeof m.description === "string" ? { description: m.description } : {}),
+          ...(m.supportsThinking === true ? { supportsThinking: true } : {}),
+        }));
+        await unionSyncedAvailableModels(logProvider, syncedModels);
+      } catch (e) {
+        console.error("Failed to union synced available models for gemini:", e);
+      }
+    }
+
     const modelChanges = summarizeModelChanges(previousModels, replaced);
 
     let syncedAliases = 0;
