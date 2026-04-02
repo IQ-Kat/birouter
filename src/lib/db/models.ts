@@ -528,13 +528,12 @@ export interface SyncedAvailableModel {
 export async function getSyncedAvailableModels(providerId: string): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const rows = db
-    .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels'")
-    .all();
+    .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?")
+    .all(`${providerId}:%`);
   const map = new Map<string, SyncedAvailableModel>();
-  const prefix = `${providerId}:`;
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
-    if (!key || !key.startsWith(prefix) || value === null) continue;
+    if (!key || value === null) continue;
     const models: SyncedAvailableModel[] = JSON.parse(value);
     for (const m of models) {
       if (m.id) map.set(m.id, m);

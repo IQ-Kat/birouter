@@ -57,8 +57,8 @@ export async function GET() {
           ...(m.supportsThinking === true ? { thinking: true } : {}),
         });
       }
-    } catch {
-      // No synced models — Gemini shows nothing
+    } catch (err) {
+      console.error("[v1beta/models] Error fetching synced Gemini models:", err);
     }
 
     // Custom models (use stored metadata from provider APIs)

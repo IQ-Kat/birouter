@@ -349,8 +349,8 @@ export async function getUnifiedModelsResponse(
             });
           }
         }
-      } catch {
-        // No synced models — show nothing for Gemini
+      } catch (err) {
+        console.error("[catalog] Error fetching synced Gemini models:", err);
       }
     }
 
