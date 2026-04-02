@@ -1162,7 +1162,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
 | `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
 
-### 🟢 QODER MODELS (Free OAuth — No Credit Card)
+### 🟢 QODER MODELS (Free PAT via qodercli)
 
 | Model              | Prefix | Limit         | Rate Limit      |
 | ------------------ | ------ | ------------- | --------------- |
@@ -1171,6 +1171,9 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
 | `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
 | `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+
+> Recommended connection method: **Personal Access Token + `qodercli`**. Browser OAuth is
+> experimental and disabled by default unless `QODER_OAUTH_*` environment variables are configured.
 
 ### 🟡 QWEN MODELS (Device Code Auth)
 

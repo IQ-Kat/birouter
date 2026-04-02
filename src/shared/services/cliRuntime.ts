@@ -109,6 +109,16 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".config/opencode/opencode.json",
     },
   },
+  qoder: {
+    defaultCommand: "qodercli",
+    envBinKey: "CLI_QODER_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 12000,
+    paths: {
+      config: ".qoder/settings.json",
+      auth: ".qoder/auth.json",
+    },
+  },
 };
 
 const isWindows = () => process.platform === "win32";
@@ -390,6 +400,7 @@ const getKnownToolPaths = (toolId: string): string[] => {
     cline: [["cline.cmd", "cline"]],
     kilo: [["kilocode.cmd", "kilocode"]],
     opencode: [["opencode.cmd", "opencode"]],
+    qoder: [["qodercli.exe", "qodercli"]],
   };
 
   const bins = toolBins[toolId] || [];

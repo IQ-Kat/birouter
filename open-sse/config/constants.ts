@@ -44,8 +44,8 @@ export const OAUTH_ENDPOINTS = {
     auth: "https://chat.qwen.ai/api/v1/oauth2/device/code", // From CLIProxyAPI
   },
   qoder: {
-    token: "https://qoder.cn/oauth/token",
-    auth: "https://qoder.cn/oauth",
+    token: process.env.QODER_OAUTH_TOKEN_URL || "",
+    auth: process.env.QODER_OAUTH_AUTHORIZE_URL || "",
   },
   github: {
     token: "https://github.com/login/oauth/access_token",
