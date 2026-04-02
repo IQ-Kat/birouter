@@ -55,6 +55,19 @@ export class GithubExecutor extends BaseExecutor {
       );
       delete modifiedBody.response_format;
     }
+
+    // Strip reasoning_text / reasoning_content from assistant messages.
+    // GitHub Copilot converts these into Anthropic thinking blocks but cannot
+    // supply a valid `signature`, causing upstream 400 errors.
+    if (Array.isArray(modifiedBody.messages)) {
+      for (const msg of modifiedBody.messages) {
+        if (msg.role === "assistant") {
+          delete msg.reasoning_text;
+          delete msg.reasoning_content;
+        }
+      }
+    }
+
     return modifiedBody;
   }
 
@@ -167,6 +180,10 @@ export class GithubExecutor extends BaseExecutor {
             ...githubTokens,
             copilotToken: copilotResult.token,
             copilotTokenExpiresAt: copilotResult.expiresAt,
+            providerSpecificData: {
+              copilotToken: copilotResult.token,
+              copilotTokenExpiresAt: copilotResult.expiresAt,
+            },
           };
         }
         return githubTokens;
@@ -179,6 +196,10 @@ export class GithubExecutor extends BaseExecutor {
         refreshToken: credentials.refreshToken,
         copilotToken: copilotResult.token,
         copilotTokenExpiresAt: copilotResult.expiresAt,
+        providerSpecificData: {
+          copilotToken: copilotResult.token,
+          copilotTokenExpiresAt: copilotResult.expiresAt,
+        },
       };
     }
 
