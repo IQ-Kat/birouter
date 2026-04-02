@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "7ee82019-c47a-49a4-811e-94ea35ba621e",
+    "timestamp": "2026-03-31T23:46:45.216Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-flash",
+    "requestedModel": "antigravity/gemini-3-flash",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 1205,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "thoughtSignature": "ErUCCrICAb4+9vvsHGX1ieKP0lJ6EAM7VA6wq53YjUD6qPxxSjdrYZ1ITaVGahZRsJiTiz7Z8Aq2K8GUhL7IGco+mpcK+jpKgIV/3HiogqPVInc7kE/CpvvFtHPz5wW0RZD3vbGkUCqxGi128iAa4Is2E4RXR71bCHIvf7ai3l3+lojGz7eMoDC76DhuapU7ss896PaQik9ZimlqmzD6tTZaFccHWviTmSHQxcMS8QpxFXwEcWL6JI+P0Z7eBLK0teRJIbPlJsc3S/QJElaJx+MCINbr357p/9NW6OsSWwRMebJ6JTmVs8iXWXXI/vxfpWVRueFbohHyPVf5eIbTA5kTZwjQMPS44SUdK6DbPXpluDriXdL3G44uq4wZKTYgv27+tgq/E58OP4AYBXtYw2Yg1Nnaxl4m",
+                "text": "Hello, I am Antigravity, your agentic AI coding assistant from Google DeepMind, and I'm ready to help you with your coding task"
+              }
+            ]
+          },
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 90,
+        "candidatesTokenCount": 31,
+        "totalTokenCount": 186,
+        "thoughtsTokenCount": 65
+      },
+      "modelVersion": "gemini-3-flash",
+      "responseId": "5VzMacvNCOyw1MkPqtaYgAU"
+    },
+    "traceId": "fadbdd94ddc15dfe",
+    "metadata": {}
+  },
+  "error": null
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "8aa787ef-0dca-4e7a-bbe1-06fb3da35973",
+    "timestamp": "2026-04-01T04:55:38.218Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 400,
+    "model": "gemini-3.1-pro-low",
+    "requestedModel": "antigravity/gemini-3.1-pro-low",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 466,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "antigravity/gemini-3.1-pro-low",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Please tell me how you are feeling today?"
+      }
+    ]
+  },
+  "responseBody": null,
+  "error": "[400]: Request contains an invalid argument."
+}

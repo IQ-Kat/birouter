@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "7ceb5186-02f6-4c36-9380-a01d806438fa",
+    "timestamp": "2026-03-31T22:07:00.583Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-flash-agent",
+    "requestedModel": "antigravity/gemini-3-flash-agent",
+    "provider": "antigravity",
+    "account": "chris@spacedinosaurs.com",
+    "connectionId": "f2b5c286-9b13-42fd-b9eb-9bcc05547b9c",
+    "duration": 1133,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-flash-agent",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say the word OK and nothing else"
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "thoughtSignature": "EpMDCpADAb4+9vuqggluWVbBvIk+eRqiVDKkfWMhxODFaTXJwOjq8sHfLq9YhKdqhrzP9NJ+ftvwRgjxVm2JRqW4N+OF8x9TWJzGdhGh6ggXToho/A2MBx323PjiGlrvjfSlp+IuH6HyTRcdMmb8GM8ZJTmAmXfGJejx0WAcVoiGWuHmYxeVo5gkHocHbZDpxLhIez1IiH+/9qNWBYVCWsd1vZswnQH7QciTFWZmwJwyAQe87Tb8guwobSLAY3xAdKFFRwkrS8hx9cFJTwdqtoAKtYeNVcOYRquEk4GiodiSLPtSYnqeWbdGIIQb2qq//bsfBEuKCH/tTlaD/mKAxxejlbjsvDq4qZMQA0gNF9ZBxjisVxiWLUjpEMmUNmNU15+Kx6x1atTuXTGj/lth1nSw5tem4RWd62QTMAqekwlrYdTt9XaWHYBB69+m20DpMwQdfIGpY3NsZHOjNJy56qMxzxZr0WzxF7eIGST4NpePip04l1jCXXLHkLM3Yof36/5DyXqhlVXQQxgWSRY0KhL5RIMivw==",
+                "text": "OK"
+              }
+            ]
+          },
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 89,
+        "candidatesTokenCount": 1,
+        "totalTokenCount": 185,
+        "thoughtsTokenCount": 95
+      },
+      "modelVersion": "gemini-3-flash-c",
+      "responseId": "hEXMaerXHKKxsOIPmqGFgAI"
+    },
+    "traceId": "f1f08e6c2f20c77d",
+    "metadata": {}
+  },
+  "error": null
+}

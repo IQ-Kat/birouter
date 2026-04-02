@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "2a575182-8eb2-409c-914a-95fe06bad7a0",
+    "timestamp": "2026-03-31T22:03:14.574Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-pro-low",
+    "requestedModel": "antigravity/gemini-3.1-pro-low",
+    "provider": "antigravity",
+    "account": "chris@spacedinosaurs.com",
+    "connectionId": "f2b5c286-9b13-42fd-b9eb-9bcc05547b9c",
+    "duration": 4661,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-pro-low",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say OK"
+      }
+    ],
+    "max_tokens": 10,
+    "stream": false
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {},
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 84,
+        "totalTokenCount": 91,
+        "thoughtsTokenCount": 7
+      },
+      "modelVersion": "gemini-3.1-pro-low",
+      "responseId": "okTMafz9HtXQjrEPsNH2yQM"
+    },
+    "traceId": "440953dd23036d68",
+    "metadata": {}
+  },
+  "error": null
+}

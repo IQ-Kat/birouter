@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "3e23e554-5226-4e34-8b61-c387acb48312",
+    "timestamp": "2026-04-01T04:44:45.075Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-flash-image",
+    "requestedModel": "antigravity/gemini-3.1-flash-image",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 1477,
+    "tokens": {
+      "in": 338,
+      "out": 106
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-flash-image",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nSuggest 3-5 relevant follow-up questions or prompts that the user might naturally ask next in this conversation as a **user**, based on the chat history, to help continue or deepen the discussion.\n### Guidelines:\n- Write all follow-up questions from the user’s point of view, directed to the assistant.\n- Make questions concise, clear, and directly related to the discussed topic(s).\n- Only suggest follow-ups that make sense given the chat content and do not repeat what was already covered.\n- If the conversation is very short or not specific, suggest more general (but relevant) follow-ups the user might ask.\n- Use the conversation's primary language; default to English if multilingual.\n- Response must be a JSON object with a \"follow_ups\" key containing an array of strings, no extra text or formatting.\n### Output:\nJSON format: { \"follow_ups\": [\"Question 1?\", \"Question 2?\", \"Question 3?\"] }\n### Chat History:\n<chat_history>\nUSER: Hello. Generate an image of a giant pekingese dog destroying a large city\nASSISTANT: \n</chat_history>"
+      }
+    ],
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775018685069-40d87071",
+    "object": "chat.completion",
+    "created": 1775018685,
+    "model": "gemini-3.1-flash-image",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "    \"Can you generate the same scene, but from a bird's-eye view, looking down on the city?\",\n    \"I'd like to see another image, but this time a small poodle is trying to stop the giant Pekingese.\",\n    \"Can you generate a scene of a giant golden retriever rescuing people from a burning building instead?\"\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2338,
+      "completion_tokens": 106,
+      "total_tokens": 2444
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

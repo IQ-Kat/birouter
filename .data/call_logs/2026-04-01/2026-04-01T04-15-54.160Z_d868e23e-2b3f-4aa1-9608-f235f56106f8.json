@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "d868e23e-2b3f-4aa1-9608-f235f56106f8",
+    "timestamp": "2026-04-01T04:15:54.160Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 429,
+    "model": "gemini-2.5-flash",
+    "requestedModel": "antigravity/gemini-2.5-flash",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 46028,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "antigravity/gemini-2.5-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello"
+      }
+    ]
+  },
+  "responseBody": null,
+  "error": "[429]: Resource has been exhausted (e.g. check quota)."
+}

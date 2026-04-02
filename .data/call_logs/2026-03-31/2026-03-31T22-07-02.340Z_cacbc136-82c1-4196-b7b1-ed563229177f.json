@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "cacbc136-82c1-4196-b7b1-ed563229177f",
+    "timestamp": "2026-03-31T22:07:02.340Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 503,
+    "model": "gemini-2.5-pro",
+    "requestedModel": "antigravity/gemini-2.5-pro",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "08bf91d9-0317-4717-af97-7fd607976619",
+    "duration": 978,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-2.5-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say the word OK and nothing else"
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[503]: No capacity available for model gemini-2.5-pro on the server"
+}

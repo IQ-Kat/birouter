@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "1775020748883-1",
+    "timestamp": "2026-04-01T05:19:08.883Z",
+    "method": "POST",
+    "path": "/api/providers/test",
+    "status": 200,
+    "model": "connection-test",
+    "requestedModel": null,
+    "provider": "gemini-cli",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1bdb1bfc-7797-46b0-9ddb-a4b201dd5702",
+    "duration": 157,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "test",
+    "targetFormat": "test",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": null,
+  "responseBody": null,
+  "error": null
+}

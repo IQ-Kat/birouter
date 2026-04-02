@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "1775155235151-1",
+    "timestamp": "2026-04-02T18:40:35.151Z",
+    "method": "POST",
+    "path": "/api/providers/test",
+    "status": 200,
+    "model": "connection-test",
+    "requestedModel": null,
+    "provider": "gemini",
+    "account": "Test",
+    "connectionId": "767dae59-c26c-4c27-bdc2-3bd1f61cd4f1",
+    "duration": 216,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "test",
+    "targetFormat": "test",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": null,
+  "responseBody": null,
+  "error": null
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "1904b545-73cc-4e6e-8f5c-6e45a98a0d60",
+    "timestamp": "2026-03-31T20:58:03.717Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 429,
+    "model": "gemini-2.5-flash-lite",
+    "requestedModel": "antigravity/gemini-2.5-flash-lite",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "049c789b-0527-4596-a5ad-efadcff30b04",
+    "duration": 46300,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-2.5-flash-lite",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say OK"
+      }
+    ],
+    "max_tokens": 10,
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[429]: Resource has been exhausted (e.g. check quota)."
+}

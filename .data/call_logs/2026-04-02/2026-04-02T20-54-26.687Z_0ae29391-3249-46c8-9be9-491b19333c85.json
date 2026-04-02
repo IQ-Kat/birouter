@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "0ae29391-3249-46c8-9be9-491b19333c85",
+    "timestamp": "2026-04-02T20:54:26.687Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-2.5-flash",
+    "requestedModel": "gemini/gemini-2.5-flash",
+    "provider": "gemini",
+    "account": "Test2",
+    "connectionId": "cce726bb-da20-46f7-878e-01721b990e6b",
+    "duration": 4629,
+    "tokens": {
+      "in": 251,
+      "out": 56
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "apiKeyId": "5e1f68d5-51b9-4c50-afdc-4234b3afbfcb",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "gemini/gemini-2.5-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nSuggest 3-5 relevant follow-up questions or prompts that the user might naturally ask next in this conversation as a **user**, based on the chat history, to help continue or deepen the discussion.\n### Guidelines:\n- Write all follow-up questions from the user’s point of view, directed to the assistant.\n- Make questions concise, clear, and directly related to the discussed topic(s).\n- Only suggest follow-ups that make sense given the chat content and do not repeat what was already covered.\n- If the conversation is very short or not specific, suggest more general (but relevant) follow-ups the user might ask.\n- Use the conversation's primary language; default to English if multilingual.\n- Response must be a JSON object with a \"follow_ups\" key containing an array of strings, no extra text or formatting.\n### Output:\nJSON format: { \"follow_ups\": [\"Question 1?\", \"Question 2?\", \"Question 3?\"] }\n### Chat History:\n<chat_history>\nUSER: Hello?\nASSISTANT: Hello! How can I help you today?\n</chat_history>"
+      }
+    ],
+    "stream": false
+  },
+  "responseBody": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "```json\n{\n  \"follow_ups\": [\n    \"What can you help me with?\",\n    \"What kind of information can you provide?\",\n    \"Can you give me some examples of how you typically assist users?\"\n  ]\n}\n```"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 251,
+      "candidatesTokenCount": 56,
+      "totalTokenCount": 1052,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 251
+        }
+      ],
+      "thoughtsTokenCount": 745
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "ftfOaeCNCZyRmtkPipXV0AQ"
+  },
+  "error": null
+}

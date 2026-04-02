@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "a502931d-86b2-42d8-8b02-f8d79eb3d7cd",
+    "timestamp": "2026-03-31T23:46:41.149Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-flash-agent",
+    "requestedModel": "antigravity/gemini-3-flash-agent",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 1114,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-flash-agent",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "thoughtSignature": "ErwDCrkDAb4+9vsTgmJkfdsmf3Ern539oSYOn5qHbaWkxi6rq7ec17FDgI1eH6HC+Zckp2fIiok80Ga9ksOEPaSLxAMdGJYTAiqmDKY5P/IGkafG2hJFvry3cTdVYeBIqW8EQb9g3ivCwfdK2ZSDh6j+P9K70lEjYr/G6GTV2jsP4i86E6a2JzUEWhXEtkkJZMfhG3j0uPdQFzva7JmF2fDV0CKfyQAfijArNPPKA3OhBhSI7tZ5RcyQpLbQYoHYX8LluoNwtP/bNlzbSfmS8TG2s5uyFiB9jpYdD8e6xYccj3PJOLvEy/cAc5oj2Hmk/4rGYXlfXkiIVX6ZdFziK7ZVzKjrka8u8jEQIj7ov5TeRTXsL5cX47/ukYNaA2oDEDWoqoYCkgmgm9Fz32KHqU1HvPH8LcAZbtaN5f7AStT+z9WQG7MfmZnS/qMO1eiCRx8xrWLJ1RDiHNMmqzHwX8QD8Gf4uEIx+5qABXAyPEY2L8kc5Ii5jOfe0zGzFzszUDNlJRok8ItKsCH8WGpExPfHX1sHts9rDneIDnGCpr2qeJoNn+qIOky5sPBz788FoDZTGQTRbwIIZpS/1mPl",
+                "text": "Hello"
+              }
+            ]
+          },
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 90,
+        "candidatesTokenCount": 1,
+        "totalTokenCount": 186,
+        "thoughtsTokenCount": 95
+      },
+      "modelVersion": "gemini-3-flash-c",
+      "responseId": "4VzMabi_Bbzj_uMPh6OwUQ"
+    },
+    "traceId": "53878c3828adbfb3",
+    "metadata": {}
+  },
+  "error": null
+}

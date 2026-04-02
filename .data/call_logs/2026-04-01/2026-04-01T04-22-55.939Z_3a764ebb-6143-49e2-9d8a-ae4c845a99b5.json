@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "3a764ebb-6143-49e2-9d8a-ae4c845a99b5",
+    "timestamp": "2026-04-01T04:22:55.939Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 400,
+    "model": "gemini-3-pro-low",
+    "requestedModel": "antigravity/gemini-3-pro-low",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 185,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "antigravity/gemini-3-pro-low",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello"
+      }
+    ]
+  },
+  "responseBody": null,
+  "error": "[400]: Request contains an invalid argument."
+}

@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "010ef321-f040-4651-b854-4dbe471ea900",
+    "timestamp": "2026-04-02T21:14:11.437Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-2.5-flash",
+    "requestedModel": "gemini/gemini-2.5-flash",
+    "provider": "gemini",
+    "account": "Test",
+    "connectionId": "744daa7d-1e4a-4480-8e97-552fc3177d44",
+    "duration": 842,
+    "tokens": {
+      "in": 3,
+      "out": 31
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "apiKeyId": "5e1f68d5-51b9-4c50-afdc-4234b3afbfcb",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "gemini/gemini-2.5-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello?"
+      }
+    ]
+  },
+  "responseBody": {
+    "choices": [
+      {
+        "message": {
+          "role": "assistant",
+          "content": "Hello! How can I help you today?"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 3,
+      "completion_tokens": 31,
+      "total_tokens": 34
+    },
+    "_streamed": true
+  },
+  "error": null,
+  "pipeline": {
+    "streamChunks": {
+      "provider": [
+        "data: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"Hello! How can I help you today?\"}],\"role\": \"model\"},\"finishReason\": \"STOP\",\"index\": 0}],\"usageMetadata\": {\"promptTokenCount\": 3,\"candidatesTokenCount\": 9,\"totalTokenCount\": 34,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 3}],\"thoughtsTokenCount\": 22},\"modelVersion\": \"gemini-2.5-flash\",\"responseId\": \"ItzOaae5LuyLmtkP-sijuAQ\"}\r\n\r\n"
+      ],
+      "client": [
+        "data: {\"id\":\"chatcmpl-ItzOaae5LuyLmtkP-sijuAQ\",\"object\":\"chat.completion.chunk\",\"created\":1775164451,\"model\":\"gemini-2.5-flash\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\"},\"finish_reason\":null}]}\n\n",
+        "data: {\"id\":\"chatcmpl-ItzOaae5LuyLmtkP-sijuAQ\",\"object\":\"chat.completion.chunk\",\"created\":1775164451,\"model\":\"gemini-2.5-flash\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Hello! How can I help you today?\"},\"finish_reason\":null}]}\n\n",
+        "data: {\"id\":\"chatcmpl-ItzOaae5LuyLmtkP-sijuAQ\",\"object\":\"chat.completion.chunk\",\"created\":1775164451,\"model\":\"gemini-2.5-flash\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":2003,\"completion_tokens\":31,\"total_tokens\":2034,\"completion_tokens_details\":{\"reasoning_tokens\":22}}}\n\n",
+        "data: [DONE]\n\n"
+      ]
+    },
+    "clientRawRequest": {
+      "timestamp": "2026-04-02T21:14:10.594Z",
+      "endpoint": "/v1/chat/completions",
+      "headers": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "authorization": "[REDACTED]",
+        "content-length": "105",
+        "content-type": "application/json",
+        "host": "192.168.6.1:20130",
+        "user-agent": "Python/3.11 aiohttp/3.13.2",
+        "x-forwarded-for": "::ffff:172.25.0.4",
+        "x-forwarded-host": "192.168.6.1:20130",
+        "x-forwarded-port": "20130",
+        "x-forwarded-proto": "http"
+      },
+      "body": {
+        "stream": true,
+        "model": "gemini/gemini-2.5-flash",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hello?"
+          }
+        ]
+      }
+    },
+    "providerRequest": {
+      "timestamp": "2026-04-02T21:14:11.422Z",
+      "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse",
+      "headers": {
+        "Content-Type": "application/json",
+        "x-goog-api-key": "AIzaSyD5VuPVgyNC0B5sw65NOCsTxv0Q7XuXtAI",
+        "Accept": "text/event-stream"
+      },
+      "body": {
+        "model": "gemini-2.5-flash",
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Hello?"
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "maxOutputTokens": 8192
+        },
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_CIVIC_INTEGRITY",
+            "threshold": "OFF"
+          }
+        ]
+      }
+    },
+    "providerResponse": {
+      "_streamed": true,
+      "_format": "sse-json",
+      "_stage": "provider_response",
+      "_eventCount": 1,
+      "summary": {
+        "candidates": [
+          {
+            "index": 0,
+            "content": {
+              "role": "model",
+              "parts": [
+                {
+                  "text": "Hello! How can I help you today?"
+                }
+              ]
+            },
+            "finishReason": "STOP"
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 3,
+          "candidatesTokenCount": 9,
+          "totalTokenCount": 34,
+          "thoughtsTokenCount": 22
+        },
+        "modelVersion": "gemini-2.5-flash"
+      }
+    },
+    "clientResponse": {
+      "_streamed": true,
+      "_format": "sse-json",
+      "_stage": "client_response",
+      "_eventCount": 4,
+      "summary": {
+        "choices": [
+          {
+            "message": {
+              "role": "assistant",
+              "content": "Hello! How can I help you today?"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 3,
+          "completion_tokens": 31,
+          "total_tokens": 34
+        },
+        "_streamed": true
+      }
+    }
+  }
+}

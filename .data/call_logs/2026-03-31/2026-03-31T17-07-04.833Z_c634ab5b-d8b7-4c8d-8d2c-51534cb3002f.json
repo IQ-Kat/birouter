@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "c634ab5b-d8b7-4c8d-8d2c-51534cb3002f",
+    "timestamp": "2026-03-31T17:07:04.833Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 429,
+    "model": "gemini-2.5-pro",
+    "requestedModel": "gemini-cli/gemini-2.5-pro",
+    "provider": "gemini-cli",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "c4387b28-a379-4dd1-a7e9-4e3fe1ae741a",
+    "duration": 4793,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini-cli",
+    "apiKeyId": "c8635ff9-2ee0-4045-ba77-75325347623f",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "gemini-cli/gemini-2.5-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello in one word"
+      }
+    ],
+    "stream": false,
+    "max_tokens": 50
+  },
+  "responseBody": null,
+  "error": "[429]: You have exhausted your capacity on this model."
+}

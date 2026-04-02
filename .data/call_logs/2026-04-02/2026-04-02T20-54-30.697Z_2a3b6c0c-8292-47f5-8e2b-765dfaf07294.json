@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "2a3b6c0c-8292-47f5-8e2b-765dfaf07294",
+    "timestamp": "2026-04-02T20:54:30.697Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-2.5-flash",
+    "requestedModel": "gemini/gemini-2.5-flash",
+    "provider": "gemini",
+    "account": "Test2",
+    "connectionId": "cce726bb-da20-46f7-878e-01721b990e6b",
+    "duration": 1163,
+    "tokens": {
+      "in": 195,
+      "out": 16
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "apiKeyId": "5e1f68d5-51b9-4c50-afdc-4234b3afbfcb",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "gemini/gemini-2.5-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nGenerate 1-3 broad tags categorizing the main themes of the chat history, along with 1-3 more specific subtopic tags.\n\n### Guidelines:\n- Start with high-level domains (e.g. Science, Technology, Philosophy, Arts, Politics, Business, Health, Sports, Entertainment, Education)\n- Consider including relevant subfields/subdomains if they are strongly represented throughout the conversation\n- If content is too short (less than 3 messages) or too diverse, use only [\"General\"]\n- Use the chat's primary language; default to English if multilingual\n- Prioritize accuracy over specificity\n\n### Output:\nJSON format: { \"tags\": [\"tag1\", \"tag2\", \"tag3\"] }\n\n### Chat History:\n<chat_history>\nUSER: Hello?\nASSISTANT: Hello! How can I help you today?\n</chat_history>"
+      }
+    ],
+    "stream": false
+  },
+  "responseBody": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "```json\n{\n  \"tags\": [\"General\"]\n}\n```"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 195,
+      "candidatesTokenCount": 16,
+      "totalTokenCount": 334,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 195
+        }
+      ],
+      "thoughtsTokenCount": 123
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "hdfOaZHRJY62qtsPiOq12AQ"
+  },
+  "error": null
+}

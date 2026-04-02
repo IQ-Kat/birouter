@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "4a472b9c-bfa1-4d0d-aef4-74665ab5602a",
+    "timestamp": "2026-04-01T02:06:27.393Z",
+    "method": "POST",
+    "path": "/api/v1/responses",
+    "status": 400,
+    "model": "gpt-oss-120b-medium",
+    "requestedModel": "antigravity/gpt-oss-120b-medium",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 186,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai-responses",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gpt-oss-120b-medium",
+    "input": "Hello! Say hi in one sentence.",
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[400]: {\"id\":\"chatcmpl-1775009187391\",\"object\":\"chat.completion\",\"created\":1775009187,\"model\":\"gpt-oss-120b-medium\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":\"stop\"}]}"
+}

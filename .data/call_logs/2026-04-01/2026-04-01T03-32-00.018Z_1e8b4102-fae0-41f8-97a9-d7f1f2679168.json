@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "1e8b4102-fae0-41f8-97a9-d7f1f2679168",
+    "timestamp": "2026-04-01T03:32:00.018Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "claude-sonnet-4-6",
+    "requestedModel": "antigravity/claude-sonnet-4-6",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 1081,
+    "tokens": {
+      "in": 106,
+      "out": 4
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "ede5a852-76b1-4e40-ad09-2b96b5fdd4ba",
+    "apiKeyName": "Test 2",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/claude-sonnet-4-6",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say ok"
+      }
+    ],
+    "max_tokens": 1024,
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775014320014-78c2e326",
+    "object": "chat.completion",
+    "created": 1775014320,
+    "model": "claude-sonnet-4-6",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "ok"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2106,
+      "completion_tokens": 4,
+      "total_tokens": 2110
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

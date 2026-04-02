@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "e00abf17-e4a0-4c0f-910c-53f31d88f96c",
+    "timestamp": "2026-04-01T05:04:07.257Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-pro-high",
+    "requestedModel": "antigravity/gemini-3.1-pro-high",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 7263,
+    "tokens": {
+      "in": 417,
+      "out": 12
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-pro-high",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nGenerate a concise, 3-5 word title with an emoji summarizing the chat history.\n### Guidelines:\n- The title should clearly represent the main theme or subject of the conversation.\n- Use emojis that enhance understanding of the topic, but avoid quotation marks or special formatting.\n- Write the title in the chat's primary language; default to English if multilingual.\n- Prioritize accuracy over excessive creativity; keep it clear and simple.\n- Your entire response must consist solely of the JSON object, without any introductory or concluding text.\n- The output must be a single, raw JSON object, without any markdown code fences or other encapsulating text.\n- Ensure no conversational text, affirmations, or explanations precede or follow the raw JSON output, as this will cause direct parsing failure.\n### Output:\nJSON format: { \"title\": \"your concise title here\" }\n### Examples:\n- { \"title\": \"📉 Stock Market Trends\" },\n- { \"title\": \"🍪 Perfect Chocolate Chip Recipe\" },\n- { \"title\": \"Evolution of Music Streaming\" },\n- { \"title\": \"Remote Work Productivity Tips\" },\n- { \"title\": \"Artificial Intelligence in Healthcare\" },\n- { \"title\": \"🎮 Video Game Development Insights\" }\n### Chat History:\n<chat_history>\nUSER: Please tell me how you are feeling today?\nASSISTANT: I don't have feelings since I'm an artificial intelligence, but I'm fully operational and ready to help! How can I assist you today?\n</chat_history>"
+      }
+    ],
+    "stream": false,
+    "max_tokens": 1000
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775019847254-37c56856",
+    "object": "chat.completion",
+    "created": 1775019847,
+    "model": "gemini-3.1-pro-high",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{ \"title\": \"🤖 AI Feelings and Status\" }"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2417,
+      "completion_tokens": 12,
+      "total_tokens": 3010
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

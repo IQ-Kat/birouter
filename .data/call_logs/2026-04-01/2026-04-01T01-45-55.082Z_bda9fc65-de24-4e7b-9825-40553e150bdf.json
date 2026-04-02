@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "bda9fc65-de24-4e7b-9825-40553e150bdf",
+    "timestamp": "2026-04-01T01:45:55.082Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gpt-oss-120b-medium",
+    "requestedModel": "antigravity/gpt-oss-120b-medium",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 591,
+    "tokens": {
+      "in": 149,
+      "out": 46
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "ede5a852-76b1-4e40-ad09-2b96b5fdd4ba",
+    "apiKeyName": "Test 2",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gpt-oss-120b-medium",
+    "stream": false,
+    "max_completion_tokens": 100,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello and tell me a short joke about programming"
+      }
+    ]
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775007955062",
+    "object": "chat.completion",
+    "created": 1775007955,
+    "model": "gpt-oss-120b-medium",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Hello! 👋\n\nWhy do programmers prefer dark mode?\n\nBecause light attracts bugs!"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2149,
+      "completion_tokens": 46,
+      "total_tokens": 2195
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

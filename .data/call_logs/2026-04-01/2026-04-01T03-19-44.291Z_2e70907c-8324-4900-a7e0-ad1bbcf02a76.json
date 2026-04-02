@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "2e70907c-8324-4900-a7e0-ad1bbcf02a76",
+    "timestamp": "2026-04-01T03:19:44.291Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 429,
+    "model": "gemini-2.5-flash-lite",
+    "requestedModel": "antigravity/gemini-2.5-flash-lite",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 44542,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "ede5a852-76b1-4e40-ad09-2b96b5fdd4ba",
+    "apiKeyName": "Test 2",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-2.5-flash-lite",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say ok"
+      }
+    ],
+    "max_tokens": 10,
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[429]: {\"id\":\"chatcmpl-1775013584288-cb2629be\",\"object\":\"chat.completion\",\"created\":1775013584,\"model\":\"gemini-2.5-flash-lite\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":\"stop\"}]}"
+}

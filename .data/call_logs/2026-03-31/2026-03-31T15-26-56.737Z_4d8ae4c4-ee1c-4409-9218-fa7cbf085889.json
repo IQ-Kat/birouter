@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "4d8ae4c4-ee1c-4409-9218-fa7cbf085889",
+    "timestamp": "2026-03-31T15:26:56.737Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-flash-preview",
+    "requestedModel": "gemini-cli/gemini-3-flash-preview",
+    "provider": "gemini-cli",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "352fc97c-8e30-4ffa-b41e-8ce422a0db3e",
+    "duration": 1063,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini-cli",
+    "apiKeyId": "c8635ff9-2ee0-4045-ba77-75325347623f",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "gemini-cli/gemini-3-flash-preview",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is 2+2? Reply with just the number."
+      }
+    ],
+    "stream": false,
+    "max_tokens": 20
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model"
+          },
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 13,
+        "totalTokenCount": 30,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 13
+          }
+        ],
+        "thoughtsTokenCount": 17
+      },
+      "modelVersion": "gemini-3-flash-preview",
+      "createTime": "2026-03-31T15:26:55.921478Z",
+      "responseId": "v-fLaYafOOmU4_UP762GkQ0"
+    },
+    "traceId": "5d73dbb69c78c833",
+    "metadata": {
+      "remoteContext": {
+        "ragState": "RAG_DISABLED"
+      }
+    }
+  },
+  "error": null
+}

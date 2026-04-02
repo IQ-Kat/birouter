@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "0bf58d48-ea41-429a-8193-ed3e55f7a6bd",
+    "timestamp": "2026-03-31T15:24:20.891Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-2.5-flash",
+    "requestedModel": "gemini-cli/gemini-2.5-flash",
+    "provider": "gemini-cli",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "352fc97c-8e30-4ffa-b41e-8ce422a0db3e",
+    "duration": 5007,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini-cli",
+    "apiKeyId": "c8635ff9-2ee0-4045-ba77-75325347623f",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "gemini-cli/gemini-2.5-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say exactly: HELLO"
+      }
+    ],
+    "stream": false,
+    "max_tokens": 20
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model"
+          },
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 5,
+        "totalTokenCount": 22,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5
+          }
+        ],
+        "thoughtsTokenCount": 17
+      },
+      "modelVersion": "gemini-2.5-flash",
+      "createTime": "2026-03-31T15:24:18.823251Z",
+      "responseId": "IufLadOfMoqV4_UPs52fkAE"
+    },
+    "traceId": "2fa07f42074e3bcc",
+    "metadata": {
+      "remoteContext": {
+        "ragState": "RAG_DISABLED"
+      }
+    }
+  },
+  "error": null
+}

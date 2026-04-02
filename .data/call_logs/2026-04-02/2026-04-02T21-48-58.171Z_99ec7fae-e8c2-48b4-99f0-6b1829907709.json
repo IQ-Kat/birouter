@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "99ec7fae-e8c2-48b4-99f0-6b1829907709",
+    "timestamp": "2026-04-02T21:48:58.171Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 404,
+    "model": "gemini-3.1-flash-live-preview",
+    "requestedModel": "gemini/gemini-3.1-flash-live-preview",
+    "provider": "gemini",
+    "account": "Test",
+    "connectionId": "9cc0c587-c8f9-4286-b753-0050d6755dd6",
+    "duration": 234,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "apiKeyId": "5e1f68d5-51b9-4c50-afdc-4234b3afbfcb",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "gemini/gemini-3.1-flash-live-preview",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello?"
+      }
+    ]
+  },
+  "responseBody": null,
+  "error": "[404]: models/gemini-3.1-flash-live-preview is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
+  "pipeline": {
+    "clientRawRequest": {
+      "timestamp": "2026-04-02T21:48:57.936Z",
+      "endpoint": "/v1/chat/completions",
+      "headers": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "authorization": "[REDACTED]",
+        "content-length": "118",
+        "content-type": "application/json",
+        "host": "192.168.6.1:20130",
+        "user-agent": "Python/3.11 aiohttp/3.13.2",
+        "x-forwarded-for": "::ffff:172.25.0.4",
+        "x-forwarded-host": "192.168.6.1:20130",
+        "x-forwarded-port": "20130",
+        "x-forwarded-proto": "http"
+      },
+      "body": {
+        "stream": true,
+        "model": "gemini/gemini-3.1-flash-live-preview",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hello?"
+          }
+        ]
+      }
+    },
+    "providerRequest": {
+      "timestamp": "2026-04-02T21:48:58.170Z",
+      "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-live-preview:streamGenerateContent?alt=sse",
+      "headers": {
+        "Content-Type": "application/json",
+        "x-goog-api-key": "AIzaSyD5VuPVgyNC0B5sw65NOCsTxv0Q7XuXtAI",
+        "Accept": "text/event-stream"
+      },
+      "body": {
+        "model": "gemini-3.1-flash-live-preview",
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Hello?"
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "maxOutputTokens": 8192
+        },
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_CIVIC_INTEGRITY",
+            "threshold": "OFF"
+          }
+        ]
+      }
+    },
+    "error": {
+      "timestamp": "2026-04-02T21:48:58.170Z",
+      "error": "models/gemini-3.1-flash-live-preview is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
+      "stack": "Error: models/gemini-3.1-flash-live-preview is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.\n    at Module.en (/home/overmind/Projects/omniroute/.next/server/chunks/Projects_omniroute_d2d4f90c._.js:27:9405)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async i.execute (/home/overmind/Projects/omniroute/.next/server/chunks/Projects_omniroute_d564c17a._.js:1:6694)\n    at async N (/home/overmind/Projects/omniroute/.next/server/chunks/Projects_omniroute_d2d4f90c._.js:27:33302)\n    at async $ (/home/overmind/Projects/omniroute/.next/server/chunks/Projects_omniroute_d2d4f90c._.js:27:28742)\n    at async I (/home/overmind/Projects/omniroute/.next/server/chunks/Projects_omniroute_d2d4f90c._.js:27:25975)\n    at async l (/home/overmind/Projects/omniroute/.next/server/chunks/[root-of-the-server]__e1a2eeb9._.js:1:5993)\n    at async rW.do (/home/overmind/Projects/omniroute/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js:5:20181)\n    at async rW.handle (/home/overmind/Projects/omniroute/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js:5:24961)\n    at async d (/home/overmind/Projects/omniroute/.next/server/chunks/[root-of-the-server]__e1a2eeb9._.js:1:9409)",
+      "requestBody": {
+        "model": "gemini-3.1-flash-live-preview",
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Hello?"
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "maxOutputTokens": 8192
+        },
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "OFF"
+          },
+          {
+            "category": "HARM_CATEGORY_CIVIC_INTEGRITY",
+            "threshold": "OFF"
+          }
+        ]
+      },
+      "message": "[404]: models/gemini-3.1-flash-live-preview is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods."
+    },
+    "providerResponse": {
+      "error": {
+        "code": 404,
+        "message": "models/gemini-3.1-flash-live-preview is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
+        "status": "NOT_FOUND"
+      }
+    },
+    "clientResponse": {
+      "error": {
+        "message": "[404]: models/gemini-3.1-flash-live-preview is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
+        "type": "invalid_request_error",
+        "code": "model_not_found"
+      }
+    }
+  }
+}

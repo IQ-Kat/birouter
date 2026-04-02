@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "c39d46d0-6310-4e3e-8c3c-86dcb555488e",
+    "timestamp": "2026-04-01T04:23:03.890Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-flash-image",
+    "requestedModel": "antigravity/gemini-3.1-flash-image",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 1219,
+    "tokens": {
+      "in": 424,
+      "out": 53
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-flash-image",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nSuggest 3-5 relevant follow-up questions or prompts that the user might naturally ask next in this conversation as a **user**, based on the chat history, to help continue or deepen the discussion.\n### Guidelines:\n- Write all follow-up questions from the user’s point of view, directed to the assistant.\n- Make questions concise, clear, and directly related to the discussed topic(s).\n- Only suggest follow-ups that make sense given the chat content and do not repeat what was already covered.\n- If the conversation is very short or not specific, suggest more general (but relevant) follow-ups the user might ask.\n- Use the conversation's primary language; default to English if multilingual.\n- Response must be a JSON object with a \"follow_ups\" key containing an array of strings, no extra text or formatting.\n### Output:\nJSON format: { \"follow_ups\": [\"Question 1?\", \"Question 2?\", \"Question 3?\"] }\n### Chat History:\n<chat_history>\nUSER: Hello\nASSISTANT: Hello there! I'm Antigravity, an AI assistant from Google Deepmind, here to help you with your coding tasks. Whether you're starting a new project, looking to debug some tricky code, or have questions about concepts, I'm ready to dive in.\n\nJust a reminder to help our collaboration: please use absolute paths when referencing files, and I'll be proactive in trying to solve the problem or anticipate your next steps.\n\nWhat would you like to work on today?\n</chat_history>"
+      }
+    ],
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775017383887-c47b99b6",
+    "object": "chat.completion",
+    "created": 1775017383,
+    "model": "gemini-3.1-flash-image",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "'d like you to look at. Are you ready?\", \"What kinds of coding tasks are you best at?\"] }"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2424,
+      "completion_tokens": 53,
+      "total_tokens": 2477
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

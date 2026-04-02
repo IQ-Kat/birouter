@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "16e4c904-2a03-4191-99c2-f83afa0c2219",
+    "timestamp": "2026-04-01T02:07:03.526Z",
+    "method": "POST",
+    "path": "/api/v1/responses",
+    "status": 400,
+    "model": "gemini-3-flash",
+    "requestedModel": "antigravity/gemini-3-flash",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 172,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai-responses",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-flash",
+    "input": "Hello! Say hi in one sentence.",
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[400]: {\"id\":\"chatcmpl-1775009223523\",\"object\":\"chat.completion\",\"created\":1775009223,\"model\":\"gemini-3-flash\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":\"stop\"}]}"
+}

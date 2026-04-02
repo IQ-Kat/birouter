@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "aa481f62-0899-4423-8cdc-a8b791aacb95",
+    "timestamp": "2026-03-31T15:24:22.008Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-2.5-flash-lite",
+    "requestedModel": "gemini-cli/gemini-2.5-flash-lite",
+    "provider": "gemini-cli",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "352fc97c-8e30-4ffa-b41e-8ce422a0db3e",
+    "duration": 1085,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini-cli",
+    "apiKeyId": "c8635ff9-2ee0-4045-ba77-75325347623f",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "gemini-cli/gemini-2.5-flash-lite",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say exactly: HELLO"
+      }
+    ],
+    "stream": false,
+    "max_tokens": 20
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "HELLO"
+              }
+            ]
+          },
+          "finishReason": "STOP",
+          "avgLogprobs": -0.000548450683709234
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 5,
+        "candidatesTokenCount": 1,
+        "totalTokenCount": 6,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1
+          }
+        ]
+      },
+      "modelVersion": "gemini-2.5-flash-lite",
+      "createTime": "2026-03-31T15:24:21.199660Z",
+      "responseId": "JefLaeyXDMGK998P5caw2QE"
+    },
+    "traceId": "ed939cdca1f71552",
+    "metadata": {
+      "remoteContext": {
+        "ragState": "RAG_DISABLED"
+      }
+    }
+  },
+  "error": null
+}

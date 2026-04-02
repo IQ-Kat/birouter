@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "297798d3-810e-4c31-8e52-29b1aa4e2f00",
+    "timestamp": "2026-03-31T23:56:16.175Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 404,
+    "model": "gemini-3.1-flash-image-preview",
+    "requestedModel": "antigravity/gemini-3.1-flash-image-preview",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 163,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-flash-image-preview",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[404]: Requested entity was not found."
+}

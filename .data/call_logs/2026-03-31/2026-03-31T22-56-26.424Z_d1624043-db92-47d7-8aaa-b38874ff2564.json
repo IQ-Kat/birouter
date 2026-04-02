@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "d1624043-db92-47d7-8aaa-b38874ff2564",
+    "timestamp": "2026-03-31T22:56:26.424Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 429,
+    "model": "gemini-2.5-pro",
+    "requestedModel": "antigravity/gemini-2.5-pro",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "08bf91d9-0317-4717-af97-7fd607976619",
+    "duration": 1377,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-2.5-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[429]: You have exhausted your capacity on this model. Your quota will reset after 4h6m50s."
+}

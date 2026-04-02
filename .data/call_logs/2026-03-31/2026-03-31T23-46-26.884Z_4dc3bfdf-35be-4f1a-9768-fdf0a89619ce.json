@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "4dc3bfdf-35be-4f1a-9768-fdf0a89619ce",
+    "timestamp": "2026-03-31T23:46:26.884Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-pro-high",
+    "requestedModel": "antigravity/gemini-3-pro-high",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 2643,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-pro-high",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "thoughtSignature": "EpwDCpkDAb4+9vueARxoZH+xkCH2FPifwhjqZkYltwzukTRlSHax6SI6u7awFUMUXkbe50MoluykVcXnA27VueHdQqBH1LEVfPimrJK3wZLV/OvuQRKfWExRkCnAWgSjhXBejR7qu2M8LmXJvqsAz9dWRxCqvec0ugH/ABAOoSeWAYUIY2ZE9z+JWO+znM/NqChuYQ3gvhGLuzP84MwPCxU3P3aXdc3QOTKjfNTpnOQChKnCMF4nDuKutVeNcRJ9nD219k7/4/2X3IpHaSNDwv9fOusnCXUUCK5LYPGnCfkAXZUk801ygizZfK14YvOA84v1kBuqGgF33ZKpDbLDHP4vScagSp9eMhjjgiDQCxWO7tgt4mEUsFdUFcLgev3CJ5Uh1DuHmzGjGLgysaFI4VVfRF1kyxEhzJqO170C2H71tlcKQe5rvvcUCjdevdWW2Gi2flHSqm9miheLCltlB9nXMjifKDMkHr8gsJPBhqUuQpsADBGb7qGv/uPPEMLVI5jWUNtr/4HgvpkDKcUEDK6j05KS/uU0s7rV4zNb7g==",
+                "text": "Hello! I'"
+              }
+            ]
+          },
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 90,
+        "candidatesTokenCount": 4,
+        "totalTokenCount": 186,
+        "thoughtsTokenCount": 92
+      },
+      "modelVersion": "gemini-3.1-pro-high",
+      "responseId": "0lzMaeahMpGm_uMP7fG7yAE"
+    },
+    "traceId": "694d4fbde55b02da",
+    "metadata": {}
+  },
+  "error": null
+}

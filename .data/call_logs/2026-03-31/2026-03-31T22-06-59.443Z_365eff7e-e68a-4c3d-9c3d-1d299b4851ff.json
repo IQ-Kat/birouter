@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "365eff7e-e68a-4c3d-9c3d-1d299b4851ff",
+    "timestamp": "2026-03-31T22:06:59.443Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-flash",
+    "requestedModel": "antigravity/gemini-3-flash",
+    "provider": "antigravity",
+    "account": "chris@spacedinosaurs.com",
+    "connectionId": "f2b5c286-9b13-42fd-b9eb-9bcc05547b9c",
+    "duration": 1221,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say the word OK and nothing else"
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "thoughtSignature": "Eq4DCqsDAb4+9vu3K/8oTRgCaix57Ti1iGeqVFZLdvG1DkQJBPG7Hnnf7fpKR+vnFnKaYVIyTNL8ge74eOvl8n/BrkPc8EYh8dGbe5UKZaimk9TdTlaoDM1mbRrYKyrHftFCmETWYQ1YPOgPPzI741N91xgyjcGtAb6YAbkfZQeabhPp54oMB5oAsiP1IYxR4RsnHxnwYLgWcNeu3mizNmpW3xGorVZjBc1Qhs7YtMJoUqF/Wr92Nth+PMmjo7b2NGpflkwLzYOiorM7btijEqm5BKSlyHa6LEAcgWnuvW6gHb/Z1e6FAx5NYjPI0dOMD6YpCnsmRm1QAc0vtiv0cI7jpLLUfjex40+1ziMKf6d0VBbzAmXQmFUJS2ESsw25Wn+fw7IfYpFVZxgxOPu9w3MyM5a7YmoAdJbQVFnbOLQlLGVoljcb75mz00e22XJH2IM+1fzqo+zUCj+NTp7MOVltFCUnfwMbG1dZfI0vGvZUpineFXs4o2KXyOmHGvVZk/ZsSpaqNL9/0gGmRyA95wXNC9dNeUme+CdWzN6bHQQaQ8d0Jqb6WbzI/kRxshJWIQ==",
+                "text": "OK"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 89,
+        "totalTokenCount": 183,
+        "thoughtsTokenCount": 94
+      },
+      "modelVersion": "gemini-3-flash",
+      "responseId": "g0XMaeXRFMyJjrEPvNKWYQ"
+    },
+    "traceId": "ece53b462db33ac",
+    "metadata": {}
+  },
+  "error": null
+}

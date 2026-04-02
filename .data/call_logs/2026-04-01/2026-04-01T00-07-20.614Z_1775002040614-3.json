@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "1775002040614-3",
+    "timestamp": "2026-04-01T00:07:20.614Z",
+    "method": "POST",
+    "path": "/v1/images/generations",
+    "status": 200,
+    "model": "t42-imagen3/test-model",
+    "requestedModel": null,
+    "provider": "t42-imagen3",
+    "account": "-",
+    "connectionId": null,
+    "duration": 1,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": null,
+    "targetFormat": null,
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": null,
+  "responseBody": {
+    "images_count": 1
+  },
+  "error": null
+}

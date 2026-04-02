@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "d74350b7-ed20-4da1-9ec7-20678edd9c61",
+    "timestamp": "2026-04-01T01:38:09.609Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 200,
+    "model": "gpt-oss-120b-medium",
+    "requestedModel": "antigravity/gpt-oss-120b-medium",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 827,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gpt-oss-120b-medium",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775007489606",
+    "object": "chat.completion",
+    "created": 1775007489,
+    "model": "gpt-oss-120b-medium",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": ""
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2078,
+      "completion_tokens": 1,
+      "total_tokens": 2079,
+      "estimated": true
+    }
+  },
+  "error": null
+}

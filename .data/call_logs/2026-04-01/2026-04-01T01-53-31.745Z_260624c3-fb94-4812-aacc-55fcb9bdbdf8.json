@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "260624c3-fb94-4812-aacc-55fcb9bdbdf8",
+    "timestamp": "2026-04-01T01:53:31.745Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 200,
+    "model": "gpt-oss-120b-medium",
+    "requestedModel": "antigravity/gpt-oss-120b-medium",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 554,
+    "tokens": {
+      "in": 141,
+      "out": 34
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "ede5a852-76b1-4e40-ad09-2b96b5fdd4ba",
+    "apiKeyName": "Test 2",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gpt-oss-120b-medium",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello"
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775008411740",
+    "object": "chat.completion",
+    "created": 1775008411,
+    "model": "gpt-oss-120b-medium",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Hello! How can I assist you today?"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2141,
+      "completion_tokens": 34,
+      "total_tokens": 2175
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

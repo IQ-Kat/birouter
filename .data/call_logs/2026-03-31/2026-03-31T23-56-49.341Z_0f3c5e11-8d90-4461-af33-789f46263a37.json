@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "0f3c5e11-8d90-4461-af33-789f46263a37",
+    "timestamp": "2026-03-31T23:56:49.341Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-flash-image",
+    "requestedModel": "antigravity/gemini-3.1-flash-image",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 1327,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-flash-image",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "thoughtSignature": "EjQKMgG+Pvb7DPtzmjVHX1T/bjvenqetxezhCU68qzrXGbM8rYXApZhm8/KJ624iLRAAQoRG",
+                "text": "Hello there!"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 90,
+        "candidatesTokenCount": 3,
+        "totalTokenCount": 93
+      },
+      "modelVersion": "gemini-3.1-flash-image",
+      "responseId": "QV_MaYT_EI7P_uMPieGIgAY"
+    },
+    "traceId": "b904ad6e70d40cf2",
+    "metadata": {}
+  },
+  "error": null
+}

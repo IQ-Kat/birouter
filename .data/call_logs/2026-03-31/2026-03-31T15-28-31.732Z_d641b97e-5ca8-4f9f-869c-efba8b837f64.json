@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "d641b97e-5ca8-4f9f-869c-efba8b837f64",
+    "timestamp": "2026-03-31T15:28:31.732Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 404,
+    "model": "gemini-3.1-pro",
+    "requestedModel": "gemini-cli/gemini-3.1-pro",
+    "provider": "gemini-cli",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "352fc97c-8e30-4ffa-b41e-8ce422a0db3e",
+    "duration": 1176,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini-cli",
+    "apiKeyId": "c8635ff9-2ee0-4045-ba77-75325347623f",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "gemini-cli/gemini-3.1-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is 2+2? Reply with just the number."
+      }
+    ],
+    "stream": false,
+    "max_tokens": 20
+  },
+  "responseBody": null,
+  "error": "[404]: Requested entity was not found."
+}

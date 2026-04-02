@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "fe2cd723-a6ba-4999-a967-539b47fc1e24",
+    "timestamp": "2026-04-02T21:13:04.901Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-2.5-flash",
+    "requestedModel": "gemini/gemini-2.5-flash",
+    "provider": "gemini",
+    "account": "Test",
+    "connectionId": "744daa7d-1e4a-4480-8e97-552fc3177d44",
+    "duration": 2240,
+    "tokens": {
+      "in": 3,
+      "out": 334
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "apiKeyId": "5e1f68d5-51b9-4c50-afdc-4234b3afbfcb",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "gemini/gemini-2.5-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello?"
+      }
+    ]
+  },
+  "responseBody": {
+    "choices": [
+      {
+        "message": {
+          "role": "assistant",
+          "content": "Hello! How can I help you today?"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 3,
+      "completion_tokens": 334,
+      "total_tokens": 337
+    },
+    "_streamed": true
+  },
+  "error": null
+}

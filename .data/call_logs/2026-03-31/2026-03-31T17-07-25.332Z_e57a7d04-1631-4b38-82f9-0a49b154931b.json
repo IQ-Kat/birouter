@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "e57a7d04-1631-4b38-82f9-0a49b154931b",
+    "timestamp": "2026-03-31T17:07:25.332Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-flash-preview",
+    "requestedModel": "gemini-cli/gemini-3-flash-preview",
+    "provider": "gemini-cli",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "c4387b28-a379-4dd1-a7e9-4e3fe1ae741a",
+    "duration": 1112,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini-cli",
+    "apiKeyId": "c8635ff9-2ee0-4045-ba77-75325347623f",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "gemini-cli/gemini-3-flash-preview",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say yo in one word"
+      }
+    ],
+    "stream": false,
+    "max_tokens": 50
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "thoughtSignature": "CocBAY89a19/0r7uWaUcn7LC9t0yck9jGu8QaQ1R1hx9GjPQBQgUuxtjUm15RsE7foMByvWRtxpJhJy8gsDvTssf7c+KxqSzzwjlpvG8ZSxwP+VMiVt1ZSjYiJFAqqlJybm7mmLB3Y1kmPyoW9BXN51Juwd+rlC62i+5QccNZtViO5ue+ErYSAzE",
+                "text": "Yo"
+              }
+            ]
+          },
+          "finishReason": "STOP",
+          "avgLogprobs": -11.29490654694662
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 5,
+        "candidatesTokenCount": 1,
+        "totalTokenCount": 44,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1
+          }
+        ],
+        "thoughtsTokenCount": 38
+      },
+      "modelVersion": "gemini-3-flash-preview",
+      "createTime": "2026-03-31T17:07:24.469760Z",
+      "responseId": "TP_LaYDWHMGK998P5caw2QE"
+    },
+    "traceId": "b8f6e7098a1c4883",
+    "metadata": {
+      "remoteContext": {
+        "ragState": "RAG_DISABLED"
+      }
+    }
+  },
+  "error": null
+}

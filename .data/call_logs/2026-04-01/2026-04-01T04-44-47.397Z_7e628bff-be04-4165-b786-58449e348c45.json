@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "7e628bff-be04-4165-b786-58449e348c45",
+    "timestamp": "2026-04-01T04:44:47.397Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-flash-image",
+    "requestedModel": "antigravity/gemini-3.1-flash-image",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 1146,
+    "tokens": {
+      "in": 282,
+      "out": 27
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-flash-image",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nGenerate 1-3 broad tags categorizing the main themes of the chat history, along with 1-3 more specific subtopic tags.\n\n### Guidelines:\n- Start with high-level domains (e.g. Science, Technology, Philosophy, Arts, Politics, Business, Health, Sports, Entertainment, Education)\n- Consider including relevant subfields/subdomains if they are strongly represented throughout the conversation\n- If content is too short (less than 3 messages) or too diverse, use only [\"General\"]\n- Use the chat's primary language; default to English if multilingual\n- Prioritize accuracy over specificity\n\n### Output:\nJSON format: { \"tags\": [\"tag1\", \"tag2\", \"tag3\"] }\n\n### Chat History:\n<chat_history>\nUSER: Hello. Generate an image of a giant pekingese dog destroying a large city\nASSISTANT: \n</chat_history>"
+      }
+    ],
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775018687394-b80e39ad",
+    "object": "chat.completion",
+    "created": 1775018687,
+    "model": "gemini-3.1-flash-image",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": ""
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2282,
+      "completion_tokens": 27,
+      "total_tokens": 2309
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

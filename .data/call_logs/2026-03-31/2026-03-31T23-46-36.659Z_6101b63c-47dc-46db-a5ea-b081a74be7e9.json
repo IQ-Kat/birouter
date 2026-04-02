@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "6101b63c-47dc-46db-a5ea-b081a74be7e9",
+    "timestamp": "2026-03-31T23:46:36.659Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-pro-low",
+    "requestedModel": "antigravity/gemini-3-pro-low",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 3140,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-pro-low",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "response": {
+      "candidates": [
+        {
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "thoughtSignature": "EpgDCpUDAb4+9vuvhdI3KO8sMM4bMVr7jofJCSDPsAUJ+QvJoNpdTRie9EpSGrTSTgfPP7tIyELeiNyUEtbpRv+dgzTsM5yc+3gb0T84zx7Vi9bSONvknh5OHTRDvBHwLmilFLLkakhNDmZ/0B0IeF7QEr9GinyfcmzoK0gag7OakYtnxIWJlZMPfGNep3si1v51lVxYe5qChMgDB1UKZ6E8nnTUu6UeDvbNn2ZNDR7FUoi54F+Z8U3ol4eMuLusqaTrGgp7yuazMGgIFyMVd7ab+ESlavPUPV1S0FOcvEHJgx3PiA1/x4yHF76A86qvAvtsLRzNlnSiEddsf7ZYHhecsicUlRYQ81Gp1oowRQpxTQWT4d4FiMOWS7tgqGdT1kIO2nSTmmmWbF0t43xLSTJA/omOJr+LdQXFxFdjIkAzrBrNi0r1YdvPv/rCx0dWp6p3L66FBPbAHgvBodOxHg+7mVuvVk5PQfR3i6BDk6I/cAN5BWcUGjwnnAsgE42GH+aT8L5NhFgjk2g7H5gtf8uEP9WGgh/ex5jx",
+                "text": "Hello! It is"
+              }
+            ]
+          },
+          "finishReason": "MAX_TOKENS"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 90,
+        "candidatesTokenCount": 4,
+        "totalTokenCount": 186,
+        "thoughtsTokenCount": 92
+      },
+      "modelVersion": "gemini-3.1-pro-low",
+      "responseId": "3FzMabm7I6Xf_uMPjaPn4Ac"
+    },
+    "traceId": "d9e47e28b5e6b09f",
+    "metadata": {}
+  },
+  "error": null
+}

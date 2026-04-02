@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "a13a22cc-c4a7-4033-b991-00021da47c28",
+    "timestamp": "2026-04-01T02:06:22.186Z",
+    "method": "POST",
+    "path": "/api/v1/responses",
+    "status": 404,
+    "model": "gemini-2.5-flash-preview-image-generation",
+    "requestedModel": "antigravity/gemini-2.5-flash-preview-image-generation",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 322,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai-responses",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-2.5-flash-preview-image-generation",
+    "input": "Hello! Say hi in one sentence.",
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[404]: {\"id\":\"chatcmpl-1775009182183\",\"object\":\"chat.completion\",\"created\":1775009182,\"model\":\"gemini-2.5-flash-preview-image-generation\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":\"stop\"}]}"
+}

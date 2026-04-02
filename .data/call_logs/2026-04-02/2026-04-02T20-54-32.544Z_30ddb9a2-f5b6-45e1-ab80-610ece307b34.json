@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "30ddb9a2-f5b6-45e1-ab80-610ece307b34",
+    "timestamp": "2026-04-02T20:54:32.544Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 429,
+    "model": "gemini-2.5-pro",
+    "requestedModel": "gemini/gemini-2.5-pro",
+    "provider": "gemini",
+    "account": "Test2",
+    "connectionId": "cce726bb-da20-46f7-878e-01721b990e6b",
+    "duration": 4460,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "apiKeyId": "5e1f68d5-51b9-4c50-afdc-4234b3afbfcb",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "gemini/gemini-2.5-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello?"
+      }
+    ]
+  },
+  "responseBody": null,
+  "error": "[429]: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\nPlease retry in 27.503643788s."
+}

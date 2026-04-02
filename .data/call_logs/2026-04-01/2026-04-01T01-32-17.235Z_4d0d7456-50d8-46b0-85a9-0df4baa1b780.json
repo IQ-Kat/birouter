@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "4d0d7456-50d8-46b0-85a9-0df4baa1b780",
+    "timestamp": "2026-04-01T01:32:17.235Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gpt-oss-120b-medium",
+    "requestedModel": "antigravity/gpt-oss-120b-medium",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 794,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "89bf0bfa-8542-4a68-b5e4-70ffd1d10d48",
+    "apiKeyName": "Test",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gpt-oss-120b-medium",
+    "stream": false,
+    "stream_options": {
+      "include_usage": true
+    },
+    "max_completion_tokens": 50,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hi in 5 words"
+      }
+    ]
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775007137227",
+    "object": "chat.completion",
+    "created": 1775007137,
+    "model": "gpt-oss-120b-medium",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": ""
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2090,
+      "completion_tokens": 1,
+      "total_tokens": 2091,
+      "estimated": true
+    }
+  },
+  "error": null
+}

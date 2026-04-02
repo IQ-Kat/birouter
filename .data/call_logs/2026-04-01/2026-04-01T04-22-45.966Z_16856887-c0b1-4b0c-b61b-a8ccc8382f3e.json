@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "16856887-c0b1-4b0c-b61b-a8ccc8382f3e",
+    "timestamp": "2026-04-01T04:22:45.966Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-flash",
+    "requestedModel": "antigravity/gemini-3-flash",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 2121,
+    "tokens": {
+      "in": 462,
+      "out": 15
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nGenerate a concise, 3-5 word title with an emoji summarizing the chat history.\n### Guidelines:\n- The title should clearly represent the main theme or subject of the conversation.\n- Use emojis that enhance understanding of the topic, but avoid quotation marks or special formatting.\n- Write the title in the chat's primary language; default to English if multilingual.\n- Prioritize accuracy over excessive creativity; keep it clear and simple.\n- Your entire response must consist solely of the JSON object, without any introductory or concluding text.\n- The output must be a single, raw JSON object, without any markdown code fences or other encapsulating text.\n- Ensure no conversational text, affirmations, or explanations precede or follow the raw JSON output, as this will cause direct parsing failure.\n### Output:\nJSON format: { \"title\": \"your concise title here\" }\n### Examples:\n- { \"title\": \"📉 Stock Market Trends\" },\n- { \"title\": \"🍪 Perfect Chocolate Chip Recipe\" },\n- { \"title\": \"Evolution of Music Streaming\" },\n- { \"title\": \"Remote Work Productivity Tips\" },\n- { \"title\": \"Artificial Intelligence in Healthcare\" },\n- { \"title\": \"🎮 Video Game Development Insights\" }\n### Chat History:\n<chat_history>\nUSER: Hello\nASSISTANT: Hello! I am Antigravity, your agentic AI coding assistant. I'm ready to help you build, debug, or refactor your code.\n\nTo get started, please let me know what you're working on. If you have an existing codebase, provide the **absolute path** to the project directory so I can explore the files and understand the context. \n\nHow can I help you today?\n</chat_history>"
+      }
+    ],
+    "stream": false,
+    "max_tokens": 1000
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775017365962-b2c2c310",
+    "object": "chat.completion",
+    "created": 1775017365,
+    "model": "gemini-3-flash",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{ \"title\": \"Introduction to Antigravity AI 🤖\" }"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2462,
+      "completion_tokens": 15,
+      "total_tokens": 2750
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

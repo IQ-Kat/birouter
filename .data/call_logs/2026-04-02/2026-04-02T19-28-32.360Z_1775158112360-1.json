@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "1775158112360-1",
+    "timestamp": "2026-04-02T19:28:32.360Z",
+    "method": "GET",
+    "path": "/api/providers/9fd93082-15b8-4b59-a035-5f11ff52206f/models",
+    "status": 200,
+    "model": "model-sync",
+    "requestedModel": null,
+    "provider": "gemini",
+    "account": "Test",
+    "connectionId": "9fd93082-15b8-4b59-a035-5f11ff52206f",
+    "duration": 204,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": "model-sync",
+    "sourceFormat": "-",
+    "targetFormat": null,
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": null,
+  "responseBody": {
+    "syncedModels": 50,
+    "syncedAliases": 0,
+    "provider": "gemini",
+    "channel": "Test",
+    "modelChanges": {
+      "added": 0,
+      "removed": 0,
+      "updated": 7,
+      "total": 7
+    }
+  },
+  "error": null
+}

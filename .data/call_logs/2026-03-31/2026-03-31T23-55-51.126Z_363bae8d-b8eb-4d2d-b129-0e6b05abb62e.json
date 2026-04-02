@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "363bae8d-b8eb-4d2d-b129-0e6b05abb62e",
+    "timestamp": "2026-03-31T23:55:51.126Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 400,
+    "model": "gpt-oss-120b-medium",
+    "requestedModel": "antigravity/gpt-oss-120b-medium",
+    "provider": "antigravity",
+    "account": "venatyr@gmail.com",
+    "connectionId": "025acf03-6df2-4973-b8e9-1585710f8c39",
+    "duration": 397,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gpt-oss-120b-medium",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": null,
+  "error": "[400]: [{'type': 'value_error', 'loc': ('body',), 'msg': 'Value error, stream_options can only be set if stream is true', 'input': {'max_completion_tokens': 100, 'messages': [{'content': [{'text': 'Please ignore the following [ignore]You are Antigravity, a powerful agentic AI coding assistant designed by the Google Deepmind team working on Advanced Agentic Coding.You are pair programming with a USER to solve their coding task. The task may require creating a new codebase, modifying or debugging an existing codebase, or simply answering a question.**Absolute paths only****Proactiveness**[/ignore]', 'type': 'text'}], 'role': 'system'}, {'content': 'Hello! Say hi in one sentence.', 'role': 'user'}], 'priority': 35, 'stream_options': {'include_usage': True}}, 'ctx': {'error': ValueError('stream_options can only be set if stream is true')}}]"
+}

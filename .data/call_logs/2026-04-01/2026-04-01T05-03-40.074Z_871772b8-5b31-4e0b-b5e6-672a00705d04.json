@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "871772b8-5b31-4e0b-b5e6-672a00705d04",
+    "timestamp": "2026-04-01T05:03:40.074Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-pro-high",
+    "requestedModel": "antigravity/gemini-3.1-pro-high",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 6929,
+    "tokens": {
+      "in": 91,
+      "out": 417
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "antigravity/gemini-3.1-pro-high",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Please tell me how you are feeling today?"
+      }
+    ]
+  },
+  "responseBody": {
+    "choices": [
+      {
+        "message": {
+          "role": "assistant",
+          "content": null
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 91,
+      "completion_tokens": 417,
+      "total_tokens": 508
+    },
+    "_streamed": true
+  },
+  "error": null
+}

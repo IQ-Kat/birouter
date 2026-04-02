@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "1775002038492-1",
+    "timestamp": "2026-04-01T00:07:18.492Z",
+    "method": "POST",
+    "path": "/v1/images/generations",
+    "status": 200,
+    "model": "nanobanana/nanobanana-pro",
+    "requestedModel": null,
+    "provider": "nanobanana",
+    "account": "-",
+    "connectionId": null,
+    "duration": 21,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": null,
+    "targetFormat": null,
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": null,
+  "responseBody": {
+    "images_count": 1,
+    "mode": "async",
+    "taskId": "task-handler-1"
+  },
+  "error": null
+}

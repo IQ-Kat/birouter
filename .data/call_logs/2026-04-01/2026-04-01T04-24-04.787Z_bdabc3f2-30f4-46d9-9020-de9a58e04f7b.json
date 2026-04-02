@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "bdabc3f2-30f4-46d9-9020-de9a58e04f7b",
+    "timestamp": "2026-04-01T04:24:04.787Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 404,
+    "model": "gemini-2.5-flash-preview-image-generation",
+    "requestedModel": "antigravity/gemini-2.5-flash-preview-image-generation",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 144,
+    "tokens": {
+      "in": 0,
+      "out": 0
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "stream": true,
+    "model": "antigravity/gemini-2.5-flash-preview-image-generation",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello"
+      }
+    ]
+  },
+  "responseBody": null,
+  "error": "[404]: Requested entity was not found."
+}

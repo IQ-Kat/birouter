@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "33ef4a07-2f99-4c04-8731-a6c9db6e5b31",
+    "timestamp": "2026-04-01T05:03:59.959Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-pro-high",
+    "requestedModel": "antigravity/gemini-3.1-pro-high",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 19849,
+    "tokens": {
+      "in": 362,
+      "out": 73
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-pro-high",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nSuggest 3-5 relevant follow-up questions or prompts that the user might naturally ask next in this conversation as a **user**, based on the chat history, to help continue or deepen the discussion.\n### Guidelines:\n- Write all follow-up questions from the user’s point of view, directed to the assistant.\n- Make questions concise, clear, and directly related to the discussed topic(s).\n- Only suggest follow-ups that make sense given the chat content and do not repeat what was already covered.\n- If the conversation is very short or not specific, suggest more general (but relevant) follow-ups the user might ask.\n- Use the conversation's primary language; default to English if multilingual.\n- Response must be a JSON object with a \"follow_ups\" key containing an array of strings, no extra text or formatting.\n### Output:\nJSON format: { \"follow_ups\": [\"Question 1?\", \"Question 2?\", \"Question 3?\"] }\n### Chat History:\n<chat_history>\nUSER: Please tell me how you are feeling today?\nASSISTANT: I don't have feelings since I'm an artificial intelligence, but I'm fully operational and ready to help! How can I assist you today?\n</chat_history>"
+      }
+    ],
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775019839953-80d6a3c7",
+    "object": "chat.completion",
+    "created": 1775019839,
+    "model": "gemini-3.1-pro-high",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"follow_ups\": [\n    \"What kind of tasks are you best at helping with?\",\n    \"How do you actually work if you don't have feelings?\",\n    \"Can you help me brainstorm some ideas for a new project?\",\n    \"Are you able to help me write and debug code?\"\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2362,
+      "completion_tokens": 73,
+      "total_tokens": 3219
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

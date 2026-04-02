@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "42ba5ce0-07a9-4a9a-945d-e1b0364bce4b",
+    "timestamp": "2026-04-01T04:46:27.200Z",
+    "method": "POST",
+    "path": "/api/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-pro-high",
+    "requestedModel": "antigravity/gemini-3.1-pro-high",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 2708,
+    "tokens": {
+      "in": 90,
+      "out": 1
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": null,
+    "apiKeyName": null,
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-pro-high",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Say hi in one sentence."
+      }
+    ],
+    "max_tokens": 100,
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775018787197-5cf079b3",
+    "object": "chat.completion",
+    "created": 1775018787,
+    "model": "gemini-3.1-pro-high",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Hello"
+        },
+        "finish_reason": "max_tokens"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2090,
+      "completion_tokens": 1,
+      "total_tokens": 2186
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

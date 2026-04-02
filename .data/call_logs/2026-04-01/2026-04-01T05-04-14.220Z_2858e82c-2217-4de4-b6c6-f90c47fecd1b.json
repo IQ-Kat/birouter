@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "2858e82c-2217-4de4-b6c6-f90c47fecd1b",
+    "timestamp": "2026-04-01T05:04:14.220Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3.1-pro-low",
+    "requestedModel": "antigravity/gemini-3.1-pro-low",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 5404,
+    "tokens": {
+      "in": 305,
+      "out": 13
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3.1-pro-low",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nGenerate 1-3 broad tags categorizing the main themes of the chat history, along with 1-3 more specific subtopic tags.\n\n### Guidelines:\n- Start with high-level domains (e.g. Science, Technology, Philosophy, Arts, Politics, Business, Health, Sports, Entertainment, Education)\n- Consider including relevant subfields/subdomains if they are strongly represented throughout the conversation\n- If content is too short (less than 3 messages) or too diverse, use only [\"General\"]\n- Use the chat's primary language; default to English if multilingual\n- Prioritize accuracy over specificity\n\n### Output:\nJSON format: { \"tags\": [\"tag1\", \"tag2\", \"tag3\"] }\n\n### Chat History:\n<chat_history>\nUSER: Please tell me how you are feeling today?\nASSISTANT: I don't have feelings since I'm an AI, but I'm functioning perfectly and ready to help! How can I assist you today?\n</chat_history>"
+      }
+    ],
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775019854217-e6366027",
+    "object": "chat.completion",
+    "created": 1775019854,
+    "model": "gemini-3.1-pro-low",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "```json\n{ \"tags\": [\"General\"] }\n```"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2305,
+      "completion_tokens": 13,
+      "total_tokens": 2705
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

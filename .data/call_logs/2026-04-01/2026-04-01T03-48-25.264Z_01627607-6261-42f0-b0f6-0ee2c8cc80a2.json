@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "01627607-6261-42f0-b0f6-0ee2c8cc80a2",
+    "timestamp": "2026-04-01T03:48:25.264Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gemini-3-pro-high",
+    "requestedModel": "antigravity/gemini-3-pro-high",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 3635,
+    "tokens": {
+      "in": 84,
+      "out": 2
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "ede5a852-76b1-4e40-ad09-2b96b5fdd4ba",
+    "apiKeyName": "Test 2",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gemini-3-pro-high",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say ok"
+      }
+    ],
+    "max_tokens": 1024,
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775015305261-108cecac",
+    "object": "chat.completion",
+    "created": 1775015305,
+    "model": "gemini-3.1-pro-high",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Ok."
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2084,
+      "completion_tokens": 2,
+      "total_tokens": 2233
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}

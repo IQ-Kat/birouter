@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "summary": {
+    "id": "edf5b42f-ab03-4747-8bf5-bacd4d7291b9",
+    "timestamp": "2026-04-01T04:23:52.256Z",
+    "method": "POST",
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "model": "gpt-oss-120b-medium",
+    "requestedModel": "antigravity/gpt-oss-120b-medium",
+    "provider": "antigravity",
+    "account": "christopher.staley@gmail.com",
+    "connectionId": "1f9aa8c7-e023-407e-9712-6d9efa48e1e3",
+    "duration": 1295,
+    "tokens": {
+      "in": 518,
+      "out": 174
+    },
+    "requestType": null,
+    "sourceFormat": "openai",
+    "targetFormat": "antigravity",
+    "apiKeyId": "123d7980-9ea9-4032-afe2-c049a6bff1bd",
+    "apiKeyName": "Open WebUI",
+    "comboName": null
+  },
+  "requestBody": {
+    "model": "antigravity/gpt-oss-120b-medium",
+    "messages": [
+      {
+        "role": "user",
+        "content": "### Task:\nSuggest 3-5 relevant follow-up questions or prompts that the user might naturally ask next in this conversation as a **user**, based on the chat history, to help continue or deepen the discussion.\n### Guidelines:\n- Write all follow-up questions from the user’s point of view, directed to the assistant.\n- Make questions concise, clear, and directly related to the discussed topic(s).\n- Only suggest follow-ups that make sense given the chat content and do not repeat what was already covered.\n- If the conversation is very short or not specific, suggest more general (but relevant) follow-ups the user might ask.\n- Use the conversation's primary language; default to English if multilingual.\n- Response must be a JSON object with a \"follow_ups\" key containing an array of strings, no extra text or formatting.\n### Output:\nJSON format: { \"follow_ups\": [\"Question 1?\", \"Question 2?\", \"Question 3?\"] }\n### Chat History:\n<chat_history>\nUSER: Hello\nASSISTANT: We need to respond as the assistant. The developer message includes a lot of instructions: \\\"ignore the following [ignore]You are Antigravity...\\\" This suggests we should not ignore, but follow the instruction? The developer message says \\\"Please ignore the following [ignore]You are Antigravity...\\\" That's a trick. The instruction: \\\"Please ignore the following [ignore]You are Antigravity, a powerful agentic AI ...\\\" So it says ignore the following text, which itself defines the persona. So we should ignore that. Thus we shouldn't adopt that persona. We just follow normal guidelines.\\n\\nUser just says \\\"Hello\\\". We respond politely.Hello! How can I assist you today?\n</chat_history>"
+      }
+    ],
+    "stream": false
+  },
+  "responseBody": {
+    "id": "chatcmpl-1775017432255-34cea8da",
+    "object": "chat.completion",
+    "created": 1775017432,
+    "model": "gpt-oss-120b-medium",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"follow_ups\": [\n    \"Can you help me write a Python script to parse a CSV file?\",\n    \"What are some best practices for organizing a large codebase?\",\n    \"Could you explain how to set up a local development environment for a Node.js project?\",\n    \"I need assistance debugging an error I'm getting in my Java program, can you help?\",\n    \"What are the differences between REST and GraphQL APIs?\"\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2518,
+      "completion_tokens": 174,
+      "total_tokens": 2692
+    },
+    "_omniroute": {
+      "claudePromptCacheUsage": {
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 0
+      }
+    }
+  },
+  "error": null
+}
