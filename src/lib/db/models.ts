@@ -507,6 +507,9 @@ export async function removeCustomModel(providerId: string, modelId: string) {
 }
 
 // ──────────────── Synced Available Models ────────────────
+// Storage: namespace = 'syncedAvailableModels', key = '<providerId>:<connectionId>'
+// Each connection stores its own model list. Reads union across all connections
+// for a provider. Deleting a connection removes only its models.
 
 export interface SyncedAvailableModel {
   id: string;
@@ -520,15 +523,24 @@ export interface SyncedAvailableModel {
 }
 
 /**
- * Get synced available models for a provider.
+ * Get all synced available models for a provider, unioned across all connections.
  */
 export async function getSyncedAvailableModels(providerId: string): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
-  const row = db
-    .prepare("SELECT value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?")
-    .get(providerId);
-  const value = getKeyValue(row).value;
-  return value ? JSON.parse(value) : [];
+  const rows = db
+    .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels'")
+    .all();
+  const map = new Map<string, SyncedAvailableModel>();
+  const prefix = `${providerId}:`;
+  for (const row of rows) {
+    const { key, value } = getKeyValue(row);
+    if (!key || !key.startsWith(prefix) || value === null) continue;
+    const models: SyncedAvailableModel[] = JSON.parse(value);
+    for (const m of models) {
+      if (m.id) map.set(m.id, m);
+    }
+  }
+  return Array.from(map.values());
 }
 
 /**
@@ -539,39 +551,62 @@ export async function getAllSyncedAvailableModels(): Promise<Record<string, Sync
   const rows = db
     .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels'")
     .all();
-  const result: Record<string, SyncedAvailableModel[]> = {};
+  // Group by providerId (before the colon)
+  const byProvider = new Map<string, Map<string, SyncedAvailableModel>>();
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
     if (!key || value === null) continue;
-    result[key] = JSON.parse(value);
+    const providerId = key.split(":")[0];
+    if (!byProvider.has(providerId)) byProvider.set(providerId, new Map());
+    const models: SyncedAvailableModel[] = JSON.parse(value);
+    const map = byProvider.get(providerId)!;
+    for (const m of models) {
+      if (m.id) map.set(m.id, m);
+    }
+  }
+  const result: Record<string, SyncedAvailableModel[]> = {};
+  for (const [providerId, map] of byProvider) {
+    result[providerId] = Array.from(map.values());
   }
   return result;
 }
 
 /**
- * Union new models into the existing synced available models for a provider.
- * Models are matched by ID. New models are added; existing models get their
- * metadata updated from the new data.
+ * Replace the model list for a specific connection.
+ * Key format: '<providerId>:<connectionId>'
  */
-export async function unionSyncedAvailableModels(
+export async function replaceSyncedAvailableModelsForConnection(
   providerId: string,
-  newModels: SyncedAvailableModel[]
+  connectionId: string,
+  models: SyncedAvailableModel[]
 ): Promise<SyncedAvailableModel[]> {
-  const existing = await getSyncedAvailableModels(providerId);
-  const map = new Map<string, SyncedAvailableModel>();
-  for (const m of existing) {
-    if (m.id) map.set(m.id, m);
-  }
-  for (const m of newModels) {
-    if (m.id) map.set(m.id, m);
-  }
-  const merged = Array.from(map.values());
   const db = getDbInstance();
-  db.prepare(
-    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('syncedAvailableModels', ?, ?)"
-  ).run(providerId, JSON.stringify(merged));
+  const key = `${providerId}:${connectionId}`;
+  if (models.length === 0) {
+    db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(key);
+  } else {
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('syncedAvailableModels', ?, ?)"
+    ).run(key, JSON.stringify(models));
+  }
   backupDbFile("pre-write");
-  return merged;
+  // Return the full unioned list for the provider
+  return getSyncedAvailableModels(providerId);
+}
+
+/**
+ * Delete all synced models for a specific connection.
+ * Returns the remaining unioned list for the provider.
+ */
+export async function deleteSyncedAvailableModelsForConnection(
+  providerId: string,
+  connectionId: string
+): Promise<SyncedAvailableModel[]> {
+  const db = getDbInstance();
+  const key = `${providerId}:${connectionId}`;
+  db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(key);
+  backupDbFile("pre-write");
+  return getSyncedAvailableModels(providerId);
 }
 
 export async function updateCustomModel(

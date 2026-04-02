@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
-import { getCustomModels, replaceCustomModels, unionSyncedAvailableModels } from "@/lib/db/models";
+import { getCustomModels, replaceCustomModels, replaceSyncedAvailableModelsForConnection } from "@/lib/db/models";
 import {
   syncManagedAvailableModelAliases,
   usesManagedAvailableModels,
@@ -214,7 +214,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           ...(typeof m.description === "string" ? { description: m.description } : {}),
           ...(m.supportsThinking === true ? { supportsThinking: true } : {}),
         }));
-        await unionSyncedAvailableModels(logProvider, syncedModels);
+        await replaceSyncedAvailableModelsForConnection(logProvider, id, syncedModels);
       } catch (e) {
         console.error("Failed to union synced available models for gemini:", e);
       }

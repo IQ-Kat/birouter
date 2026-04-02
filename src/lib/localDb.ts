@@ -62,7 +62,8 @@ export {
   // Synced Available Models
   getSyncedAvailableModels,
   getAllSyncedAvailableModels,
-  unionSyncedAvailableModels,
+  replaceSyncedAvailableModelsForConnection,
+  deleteSyncedAvailableModelsForConnection,
 } from "./db/models";
 
 export type { ModelCompatPerProtocol, ModelCompatPatch, SyncedAvailableModel } from "./db/models";
