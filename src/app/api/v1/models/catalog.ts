@@ -255,30 +255,28 @@ export async function getUnifiedModelsResponse(
       const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
       const defaultContextLength = registryEntry?.defaultContextLength;
 
-      // Skip hardcoded Gemini models if synced models are available
+      // For Gemini: use synced API models exclusively (no hardcoded fallback)
       if (alias === "gemini") {
         try {
           const syncedModels = await getSyncedAvailableModels("gemini");
-          if (syncedModels.length > 0) {
-            for (const sm of syncedModels) {
-              const aliasId = `gemini/${sm.id}`;
-              if (getModelIsHidden("gemini", sm.id)) continue;
-              models.push({
-                id: aliasId,
-                object: "model",
-                created: timestamp,
-                owned_by: "gemini",
-                permission: [],
-                root: sm.id,
-                parent: null,
-                ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
-              });
-            }
-            continue; // Skip hardcoded models for this provider
+          for (const sm of syncedModels) {
+            const aliasId = `gemini/${sm.id}`;
+            if (getModelIsHidden("gemini", sm.id)) continue;
+            models.push({
+              id: aliasId,
+              object: "model",
+              created: timestamp,
+              owned_by: "gemini",
+              permission: [],
+              root: sm.id,
+              parent: null,
+              ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+            });
           }
         } catch {
-          // Fall through to hardcoded models
+          // No synced models — show nothing for Gemini
         }
+        continue; // Always skip hardcoded models for Gemini
       }
 
       for (const model of providerModels) {

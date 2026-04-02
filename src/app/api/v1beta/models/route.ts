@@ -37,31 +37,28 @@ export async function GET() {
       }
     }
 
-    // Gemini: replace hardcoded entries with synced models when available
+    // Gemini: always replace hardcoded entries with synced models (no fallback)
+    // Always remove hardcoded gemini entries — even if sync returns empty
+    for (let i = models.length - 1; i >= 0; i--) {
+      if (typeof (models[i] as any).name === "string" && (models[i] as any).name.startsWith("models/gemini/")) {
+        models.splice(i, 1);
+      }
+    }
     try {
       const syncedGeminiModels = await getSyncedAvailableModels("gemini");
-      if (syncedGeminiModels.length > 0) {
-        // Remove all hardcoded gemini entries (non-consecutive, so filter instead of splice)
-        for (let i = models.length - 1; i >= 0; i--) {
-          if (typeof (models[i] as any).name === "string" && (models[i] as any).name.startsWith("models/gemini/")) {
-            models.splice(i, 1);
-          }
-        }
-        // Add synced models
-        for (const m of syncedGeminiModels) {
-          models.push({
-            name: `models/gemini/${m.id}`,
-            displayName: m.name || m.id,
-            ...(typeof m.description === "string" ? { description: m.description } : {}),
-            supportedGenerationMethods: ["generateContent"],
-            inputTokenLimit: typeof m.inputTokenLimit === "number" ? m.inputTokenLimit : 128000,
-            outputTokenLimit: typeof m.outputTokenLimit === "number" ? m.outputTokenLimit : 8192,
-            ...(m.supportsThinking === true ? { thinking: true } : {}),
-          });
-        }
+      for (const m of syncedGeminiModels) {
+        models.push({
+          name: `models/gemini/${m.id}`,
+          displayName: m.name || m.id,
+          ...(typeof m.description === "string" ? { description: m.description } : {}),
+          supportedGenerationMethods: ["generateContent"],
+          inputTokenLimit: typeof m.inputTokenLimit === "number" ? m.inputTokenLimit : 128000,
+          outputTokenLimit: typeof m.outputTokenLimit === "number" ? m.outputTokenLimit : 8192,
+          ...(m.supportsThinking === true ? { thinking: true } : {}),
+        });
       }
     } catch {
-      // Non-critical
+      // No synced models — Gemini shows nothing
     }
 
     // Custom models (use stored metadata from provider APIs)

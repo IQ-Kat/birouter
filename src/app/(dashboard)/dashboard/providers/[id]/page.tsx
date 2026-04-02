@@ -875,8 +875,8 @@ export default function ProviderDetailPage() {
       (APIKEY_PROVIDERS as any)[providerId];
   const isOAuth = !!(FREE_PROVIDERS as any)[providerId] || !!(OAUTH_PROVIDERS as any)[providerId];
   const registryModels = getModelsByProviderId(providerId);
-  // For Gemini: use synced API models if available, otherwise fall back to registry
-  const models = providerId === "gemini" && syncedAvailableModels.length > 0
+  // For Gemini: always use synced API models (empty if no keys added yet)
+  const models = providerId === "gemini"
     ? syncedAvailableModels
     : registryModels;
   const providerAlias = getProviderAlias(providerId);
