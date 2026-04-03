@@ -818,8 +818,8 @@ export async function handleComboChat({
       const { getLKGP } = await import("../../src/lib/localDb");
       const lkgp = await getLKGP(combo.name, combo.id || combo.name);
       if (lkgp) lastKnownGoodProvider = lkgp;
-    } catch {
-      /* ignore db errors */
+    } catch (err) {
+      log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
     }
 
     const candidates = await buildAutoCandidates(eligibleModels, combo.name);
@@ -998,7 +998,11 @@ export async function handleComboChat({
         if (provider) {
           import("../../src/lib/localDb")
             .then(({ setLKGP }) => setLKGP(combo.name, combo.id || combo.name, provider))
-            .catch(() => {});
+            .catch((err) =>
+              log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
+                err,
+              })
+            );
         }
 
         return result;

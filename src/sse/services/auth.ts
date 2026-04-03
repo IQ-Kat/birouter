@@ -315,10 +315,13 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
  */
 function getProviderSearchPool(provider: string): string[] {
-  const pool = [provider];
-  if (provider === "nvidia") pool.push("nvidia_nim");
-  if (provider === "nvidia_nim") pool.push("nvidia");
-  return [...new Set(pool)];
+  if (provider === "nvidia") {
+    return ["nvidia", "nvidia_nim"];
+  }
+  if (provider === "nvidia_nim") {
+    return ["nvidia_nim", "nvidia"];
+  }
+  return [provider];
 }
 
 /**
@@ -349,11 +352,10 @@ export async function getProviderCredentials(
 
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
     const providersToSearch = getProviderSearchPool(provider);
-    let connectionsRaw: any[] = [];
-    for (const p of providersToSearch) {
-      const results = await getProviderConnections({ provider: p, isActive: true });
-      if (Array.isArray(results)) connectionsRaw.push(...results);
-    }
+    const connectionResults = await Promise.all(
+      providersToSearch.map((p) => getProviderConnections({ provider: p, isActive: true }))
+    );
+    const connectionsRaw = connectionResults.filter(Array.isArray).flat();
 
     let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
       .map(toProviderConnection)
@@ -370,11 +372,10 @@ export async function getProviderCredentials(
     if (connections.length === 0) {
       // Check all connections (including inactive) to see if rate limited
       // Fix #922: Also search aliases here
-      let allConnectionsRaw: any[] = [];
-      for (const p of providersToSearch) {
-        const results = await getProviderConnections({ provider: p });
-        if (Array.isArray(results)) allConnectionsRaw.push(...results);
-      }
+      const allConnectionsResults = await Promise.all(
+        providersToSearch.map((p) => getProviderConnections({ provider: p }))
+      );
+      const allConnectionsRaw = allConnectionsResults.filter(Array.isArray).flat();
       const allConnections = (Array.isArray(allConnectionsRaw) ? allConnectionsRaw : [])
         .map(toProviderConnection)
         .filter((conn) => conn.id.length > 0);
