@@ -10,7 +10,6 @@
  * @module domain/fallbackPolicy
  */
 
-
 import {
   saveFallbackChain,
   loadFallbackChain,

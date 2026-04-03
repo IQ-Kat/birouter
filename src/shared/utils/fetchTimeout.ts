@@ -7,7 +7,6 @@
  * @module shared/utils/fetchTimeout
  */
 
-
 const DEFAULT_TIMEOUT_MS = 120000; // 2 minutes
 const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS || "", 10) || DEFAULT_TIMEOUT_MS;
 

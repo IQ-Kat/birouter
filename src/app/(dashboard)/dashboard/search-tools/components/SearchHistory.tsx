@@ -58,7 +58,9 @@ export default function SearchHistory({ onReplay }: SearchHistoryProps) {
             <div className="text-xs text-text-main truncate">{entry.query}</div>
             <div className="flex justify-between mt-0.5">
               <span className="text-[10px] text-text-muted">{entry.provider}</span>
-              <span className="text-[10px] text-text-muted">{timeAgo(entry.timestamp, locale)}</span>
+              <span className="text-[10px] text-text-muted">
+                {timeAgo(entry.timestamp, locale)}
+              </span>
             </div>
           </button>
         ))}

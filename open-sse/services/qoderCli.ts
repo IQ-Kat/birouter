@@ -93,7 +93,9 @@ export function getStaticQoderModels() {
 }
 
 export function mapQoderModelToLevel(model: string | null | undefined): string | null {
-  const normalized = String(model || "").trim().toLowerCase();
+  const normalized = String(model || "")
+    .trim()
+    .toLowerCase();
   if (!normalized) return null;
   if (normalized.includes("deepseek-r1")) return "ultimate";
   if (normalized.includes("qwen3-max")) return "performance";
@@ -475,7 +477,8 @@ export async function validateQoderCliPat({
   providerSpecificData?: JsonRecord;
 }) {
   const modelId =
-    getString(providerSpecificData.validationModelId).trim() || getString(providerSpecificData.modelId).trim();
+    getString(providerSpecificData.validationModelId).trim() ||
+    getString(providerSpecificData.modelId).trim();
   const result = await runQoderCliCommand({
     token: apiKey,
     prompt: "Reply with OK only.",

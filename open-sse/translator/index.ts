@@ -84,7 +84,11 @@ export function translateRequest(
   credentials = null,
   provider = null,
   reqLogger = null,
-  options?: { normalizeToolCallId?: boolean; preserveDeveloperRole?: boolean; preserveCacheControl?: boolean }
+  options?: {
+    normalizeToolCallId?: boolean;
+    preserveDeveloperRole?: boolean;
+    preserveCacheControl?: boolean;
+  }
 ) {
   let result = body;
   const use9CharId = options?.normalizeToolCallId === true;

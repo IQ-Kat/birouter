@@ -50,7 +50,11 @@ export async function handleMusicGeneration({ body, credentials, log }) {
     return handleComfyUIMusicGeneration({ model, provider, providerConfig, body, log });
   }
 
-  return { success: false, status: 400, error: `Unsupported music format: ${providerConfig.format}` };
+  return {
+    success: false,
+    status: 400,
+    error: `Unsupported music format: ${providerConfig.format}`,
+  };
 }
 
 /**
@@ -109,7 +113,10 @@ async function handleComfyUIMusicGeneration({ model, provider, providerConfig, b
 
   if (log) {
     const promptPreview = String(body.prompt ?? "").slice(0, 60);
-    log.info("MUSIC", `${provider}/${model} (comfyui) | prompt: "${promptPreview}..." | duration: ${duration}s`);
+    log.info(
+      "MUSIC",
+      `${provider}/${model} (comfyui) | prompt: "${promptPreview}..." | duration: ${duration}s`
+    );
   }
 
   try {

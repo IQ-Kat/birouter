@@ -45,7 +45,13 @@ async function main() {
 
   const vitestProcess = spawn(
     process.execPath,
-    ["./node_modules/vitest/vitest.mjs", "run", "tests/e2e/protocol-clients.test.ts", "--dir", "tests"],
+    [
+      "./node_modules/vitest/vitest.mjs",
+      "run",
+      "tests/e2e/protocol-clients.test.ts",
+      "--dir",
+      "tests",
+    ],
     {
       stdio: "inherit",
       env: testEnv,

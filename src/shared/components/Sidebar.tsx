@@ -67,13 +67,13 @@ export default function Sidebar({
       }
 
       if ("instanceName" in detail) {
-        setCustomAppName(detail.instanceName as string || null);
+        setCustomAppName((detail.instanceName as string) || null);
       }
 
       if ("customLogoBase64" in detail) {
-        setCustomLogo(detail.customLogoBase64 as string || null);
+        setCustomLogo((detail.customLogoBase64 as string) || null);
       } else if ("customLogoUrl" in detail) {
-        setCustomLogo(detail.customLogoUrl as string || null);
+        setCustomLogo((detail.customLogoUrl as string) || null);
       }
     };
 

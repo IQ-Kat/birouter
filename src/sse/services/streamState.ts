@@ -165,7 +165,11 @@ export class StreamTracker {
    * @returns {boolean}
    */
   isTerminal(): boolean {
-    const terminalStates: string[] = [STREAM_STATES.COMPLETED, STREAM_STATES.FAILED, STREAM_STATES.CANCELLED];
+    const terminalStates: string[] = [
+      STREAM_STATES.COMPLETED,
+      STREAM_STATES.FAILED,
+      STREAM_STATES.CANCELLED,
+    ];
     return terminalStates.includes(this.state);
   }
 }

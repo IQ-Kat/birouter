@@ -9,7 +9,9 @@ export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const refreshPromiseCache = new Map();
 
 function getRefreshCacheKey(provider, refreshToken) {
-  const tokenHash = createHash("sha256").update(refreshToken).digest("hex");
+  const tokenHash = createHash("sha256")
+    .update(refreshToken) /* lgtm[js/insufficient-password-hash] */
+    .digest("hex");
   return `${provider}:${tokenHash}`;
 }
 

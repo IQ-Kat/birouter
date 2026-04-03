@@ -420,23 +420,23 @@ export async function replaceCustomModels(
       ...(m.inputTokenLimit != null
         ? { inputTokenLimit: m.inputTokenLimit }
         : (prev as any)?.inputTokenLimit != null
-        ? { inputTokenLimit: (prev as any).inputTokenLimit }
-        : {}),
+          ? { inputTokenLimit: (prev as any).inputTokenLimit }
+          : {}),
       ...(m.outputTokenLimit != null
         ? { outputTokenLimit: m.outputTokenLimit }
         : (prev as any)?.outputTokenLimit != null
-        ? { outputTokenLimit: (prev as any).outputTokenLimit }
-        : {}),
+          ? { outputTokenLimit: (prev as any).outputTokenLimit }
+          : {}),
       ...(m.description != null
         ? { description: m.description }
         : (prev as any)?.description != null
-        ? { description: (prev as any).description }
-        : {}),
+          ? { description: (prev as any).description }
+          : {}),
       ...(m.supportsThinking != null
         ? { supportsThinking: m.supportsThinking }
         : (prev as any)?.supportsThinking != null
-        ? { supportsThinking: (prev as any).supportsThinking }
-        : {}),
+          ? { supportsThinking: (prev as any).supportsThinking }
+          : {}),
       // Preserve existing compat flags
       ...(prev && (prev as any).normalizeToolCallId !== undefined
         ? { normalizeToolCallId: (prev as any).normalizeToolCallId }
@@ -525,10 +525,14 @@ export interface SyncedAvailableModel {
 /**
  * Get all synced available models for a provider, unioned across all connections.
  */
-export async function getSyncedAvailableModels(providerId: string): Promise<SyncedAvailableModel[]> {
+export async function getSyncedAvailableModels(
+  providerId: string
+): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const rows = db
-    .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?")
+    .prepare(
+      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?"
+    )
     .all(`${providerId}:%`);
   const map = new Map<string, SyncedAvailableModel>();
   for (const row of rows) {
@@ -545,7 +549,9 @@ export async function getSyncedAvailableModels(providerId: string): Promise<Sync
 /**
  * Get all synced available models across all providers.
  */
-export async function getAllSyncedAvailableModels(): Promise<Record<string, SyncedAvailableModel[]>> {
+export async function getAllSyncedAvailableModels(): Promise<
+  Record<string, SyncedAvailableModel[]>
+> {
   const db = getDbInstance();
   const rows = db
     .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels'")
@@ -582,7 +588,9 @@ export async function replaceSyncedAvailableModelsForConnection(
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
   if (models.length === 0) {
-    db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(key);
+    db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
+      key
+    );
   } else {
     db.prepare(
       "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('syncedAvailableModels', ?, ?)"
@@ -603,7 +611,9 @@ export async function deleteSyncedAvailableModelsForConnection(
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
-  db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(key);
+  db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
+    key
+  );
   backupDbFile("pre-write");
   return getSyncedAvailableModels(providerId);
 }

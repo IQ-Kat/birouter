@@ -227,7 +227,11 @@ export function geminiToOpenAIResponse(chunk, state) {
     }
     // Content blocked by Gemini safety filters — pass through as "content_filter"
     // so downstream clients can distinguish from normal completion.
-    if (finishReason === "safety" || finishReason === "recitation" || finishReason === "blocklist") {
+    if (
+      finishReason === "safety" ||
+      finishReason === "recitation" ||
+      finishReason === "blocklist"
+    ) {
       finishReason = "content_filter";
     }
 

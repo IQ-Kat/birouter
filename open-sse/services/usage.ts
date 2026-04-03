@@ -700,15 +700,15 @@ async function getAntigravityUsage(accessToken, providerSpecificData) {
       "tab_flash_lite_preview",
       "tab_jump_flash_lite_preview",
       "gemini-2.5-flash-thinking",
-      "gemini-2.5-pro",                        // browser subagent model — not user-callable
-      "gemini-2.5-flash",                      // internal — quota always exhausted on free tier
-      "gemini-2.5-flash-lite",                 // internal — quota always exhausted on free tier
+      "gemini-2.5-pro", // browser subagent model — not user-callable
+      "gemini-2.5-flash", // internal — quota always exhausted on free tier
+      "gemini-2.5-flash-lite", // internal — quota always exhausted on free tier
       "gemini-2.5-flash-preview-image-generation", // image-gen only, not usable for chat
-      "gemini-3.1-flash-image-preview",        // image-gen preview, not usable for chat
-      "gemini-3-flash-agent",                  // internal agent model — not user-callable
-      "gemini-3.1-flash-lite",                 // not usable for chat
-      "gemini-3-pro-low",                      // not usable for chat
-      "gemini-3-pro-high",                     // not usable for chat
+      "gemini-3.1-flash-image-preview", // image-gen preview, not usable for chat
+      "gemini-3-flash-agent", // internal agent model — not user-callable
+      "gemini-3.1-flash-lite", // not usable for chat
+      "gemini-3-pro-low", // not usable for chat
+      "gemini-3-pro-high", // not usable for chat
     ]);
 
     // Parse per-model quota info from fetchAvailableModels response.
@@ -717,7 +717,11 @@ async function getAntigravityUsage(accessToken, providerSpecificData) {
       const quotaInfo = toRecord(info.quotaInfo);
 
       // Skip internal, excluded, and models without quota info
-      if (info.isInternal === true || ANTIGRAVITY_EXCLUDED_MODELS.has(modelKey) || Object.keys(quotaInfo).length === 0) {
+      if (
+        info.isInternal === true ||
+        ANTIGRAVITY_EXCLUDED_MODELS.has(modelKey) ||
+        Object.keys(quotaInfo).length === 0
+      ) {
         continue;
       }
 

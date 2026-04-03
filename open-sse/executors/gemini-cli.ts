@@ -102,7 +102,9 @@ export class GeminiCLIExecutor extends BaseExecutor {
       }
 
       if (!projectId) {
-        console.warn("[OmniRoute] loadCodeAssist returned no project — falling back to stored projectId");
+        console.warn(
+          "[OmniRoute] loadCodeAssist returned no project — falling back to stored projectId"
+        );
         return null;
       }
 

@@ -54,7 +54,7 @@ export default function DiversityScoreCard() {
           Provider Diversity Score
         </h3>
         <span
-          className={`text-xs px-2 py-0.5 rounded-md border ${gaugeColor.replace("bg-", "border-").replace("500", "500/20")} ${gaugeColor.replace("bg-", "bg-").replace("500", "500/10")} ${riskColor}`}
+          className={`text-xs px-2 py-0.5 rounded-md border ${gaugeColor.replace("bg-", "border-").replace("500", "500/20")} ${gaugeColor.replace("500", "500/10")} ${riskColor}`}
         >
           Shannon Entropy
         </span>

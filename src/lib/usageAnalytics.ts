@@ -72,7 +72,11 @@ function shortModelName(model: string) {
  * @param {Object} connectionMap - Map of connectionId → account name
  * @returns {Object} Analytics data
  */
-export async function computeAnalytics(history: any[], range = "30d", connectionMap: Record<string, string> = {}) {
+export async function computeAnalytics(
+  history: any[],
+  range = "30d",
+  connectionMap: Record<string, string> = {}
+) {
   const { start, end } = getDateRange(range);
 
   // ---- Filtered entries ----

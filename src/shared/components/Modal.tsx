@@ -28,7 +28,6 @@ export default function Modal({
   showCloseButton = true,
   className,
 }: ModalProps) {
-
   const titleId = useId();
   const dialogRef = useRef(null);
 

@@ -51,15 +51,9 @@ export interface Plugin {
   /** Called before the chat handler */
   onRequest?: (ctx: PluginContext) => Promise<PluginResult | void> | PluginResult | void;
   /** Called after the chat handler */
-  onResponse?: (
-    ctx: PluginContext,
-    response: any
-  ) => Promise<any | void> | any | void;
+  onResponse?: (ctx: PluginContext, response: any) => Promise<any | void> | any | void;
   /** Called on handler error */
-  onError?: (
-    ctx: PluginContext,
-    error: Error
-  ) => Promise<any | void> | any | void;
+  onError?: (ctx: PluginContext, error: Error) => Promise<any | void> | any | void;
 }
 
 // ── Registry ──

@@ -884,9 +884,7 @@ export default function ProviderDetailPage() {
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
   // For Gemini: always use synced API models (empty if no keys added yet)
-  const models = providerId === "gemini"
-    ? syncedAvailableModels
-    : registryModels;
+  const models = providerId === "gemini" ? syncedAvailableModels : registryModels;
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
@@ -2050,23 +2048,24 @@ export default function ProviderDetailPage() {
       );
     }
 
-    const importButton = providerId === "gemini" ? null : (
-      <div className="flex items-center gap-2 mb-4">
-        <Button
-          size="sm"
-          variant="secondary"
-          icon="download"
-          onClick={handleImportModels}
-          disabled={!canImportModels || importingModels}
-        >
-          {importingModels ? t("importingModels") : t("importFromModels")}
-        </Button>
-        {autoSyncToggle}
-        {!canImportModels && (
-          <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
-        )}
-      </div>
-    );
+    const importButton =
+      providerId === "gemini" ? null : (
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="download"
+            onClick={handleImportModels}
+            disabled={!canImportModels || importingModels}
+          >
+            {importingModels ? t("importingModels") : t("importFromModels")}
+          </Button>
+          {autoSyncToggle}
+          {!canImportModels && (
+            <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
+          )}
+        </div>
+      );
 
     if (models.length === 0) {
       return (
@@ -2401,7 +2400,9 @@ export default function ProviderDetailPage() {
                         setShowEditModal(true);
                       }}
                       onDelete={() => handleDelete(conn.id)}
-                      onReauth={conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined}
+                      onReauth={
+                        conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined
+                      }
                       onRefreshToken={
                         conn.authType === "oauth" ? () => handleRefreshToken(conn.id) : undefined
                       }
@@ -4270,8 +4271,9 @@ function ConnectionRow({
               <span
                 className={`text-xs truncate max-w-[300px] ${statusPresentation.errorTextClass}`}
                 title={connection.lastError.replace(/<[^>]*>?/gm, "")}
-                dangerouslySetInnerHTML={{ __html: connection.lastError }}
-              />
+              >
+                {connection.lastError.replace(/<[^>]*>?/gm, "")}
+              </span>
             )}
             <span className="text-xs text-text-muted">#{connection.priority}</span>
             {connection.globalPriority && (
