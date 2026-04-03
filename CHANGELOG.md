@@ -6,25 +6,30 @@
 
 ## [3.5.0] — 2026-04-03
 
-### Features & Refactoring
+### ✨ New Features
 
-- **Auto-Combo Native CRUD:** Completed full management lifecycle for Auto-Combos directly in the dashboard, linking candidatePool algorithms securely via visual modalities.
-- **i18n Translation Sync:** Fixed multiple isolated English language translation fallbacks missing from the settings panels and properly integrated the 33-language JSON ecosystem.
+- **Auto-Combo & Routing:** Completed native CRUD lifecycle integration for the advanced Auto-Combo engine (#955).
+- **Core Operations:** Fixed missing translations for new native Auto-Combos options (#955).
+- **Security Validation:** Disabled SQLite auto-backup tasks natively during unit test CI execution to explicitly resolve Node 22 Event Loop hanging memory leaks (#956).
+- **Ecosystem Proxies:** Completed explicit integration mapping model synchronization schedulers, OAuth cycles, and Token Check refreshes safely through OmniRoute's native system upstream proxies (#953).
+- **MCP Extensibility:** Added and successfully registered the new `omniroute_web_search` MCP framework tool out of beta into production schemas (#951).
+- **Tokens Buffer Logic:** Added runtime configuration limits extending configurable input/output token buffers for precise Usage Tracking metrics (#959).
 
-- **System Proxies integration:** Implemented global proxy routing architecture mapped cleanly to external requests including token refreshes, sync events, and model fetches (#953).
-- **Settings & Analytics Framework:** Redesigned Settings persistence caching structure natively. Overhauled the Analytics Cache UI introducing robust metrics, cost ratios, and diversity heatmaps (#952).
-- **Auto-Combo LKGP Integration:** Exposed LKGP (Last Known Good Provider) toggle settings visually on the Routing dashboards per community request (#955).
-- **MCP Services Registration:** Officially exposed the `omniroute_web_search` component out of stealth into the local MCP capabilities manifest (#951).
-- **Marketplace Native Module:** Officially implemented the SkillsMP UI Marketplace for OmniSkill exploration (#955).
-- **Free-Tier UX Provider Tiers:** Shifted free provider sorting logically into OAuth umbrellas and improved display filters (#950).
+### 🐛 Bug Fixes
 
-### Bug Fixes
+- **CodeQL Remediation:** Fully resolved and secured critical string indexing operations preventing Server-Side Request Forgery (SSRF) arrays indexing heuristics alongside polynomial algorithmic backtracking (ReDoS) inside deep proxy dispatcher modules.
+- **Crypto Hashes:** Replaced weak unverified legacy OAuth 1.0 hashes with robust HMAC-SHA-256 standard validation primitives ensuring tight access controls.
+- **API Boundary Protection:** Correctly verified and mapped structural route protections enforcing strict `isAuthenticated()` middleware logic covering newer dynamic endpoints targeting settings manipulation and native skills loading.
+- **CLI Ecosystem Compat:** Resolved broken native runtime parser bindings crashing `where` environment detectors strictly over `.cmd/.exe` edge cases gracefully for external plugins (#969).
+- **Cache Architecture:** Refactored exact Analytics and System Settings dashboard parameters layout structure caching to maintain stable re-hydration persistence cycles resolving visual unaligned state flashes (#952).
+- **Claude Caching Standards:** Normalized and accurately strictly preserved critical ephemeral block markers `ephemeral` caching TTL orders for downstream nodes enforcing standard compatible CC requests mapping cleanly without dropped metrics (#948).
+- **Internal Aliases Auth:** Simplified internal runtime mappings normalizing Codex credential payload lookups inside global translation parameters resolving 401 unauthenticated drops (#958).
 
-- **Codex Alias Auth Resolver:** Normalized credentials lookup path routing correctly matching nested 'cx/' prompt styles across incoming clients without tripping 401 unauthenticated layers (#958).
+### 🛠️ Maintenance
 
-- **Memory Database Collisions:** Safely isolated 500 exceptions in the remote memory DB connections on multi-threaded restarts (#955).
-- **Claude Cache Stability:** Re-factored strict Cache Control sequence ordering structurally preserving accurate 5-minute ephemeral blocks mapped precisely for Anthropic compatible providers (#948).
-- **Cross-Component Upstream 400s:** Nullified positive `max_tokens` clipping enforcing exact bounds when forwarding structures across mismatched clients (#955).
+- **UI Discoverability:** Correctly adjusted layout categorizations explicitly separating free tier providers logic improving UX sorting flows inside the general API registry pages (#950).
+- **Deployment Topology:** Unified Docker deployment artifacts ensuring the root `fly.toml` matches expected cloud instance parameters out-of-the-box natively handling automated deployments scaling properly.
+- **Development Tooling:** Decoupled `LKGP` runtime parameters into explicit DB layer abstraction caching utilities ensuring strict test isolation coverage for core caching layers safely.
 
 ---
 

@@ -1,6 +1,6 @@
 # 🚀 OmniRoute — The Free AI Gateway (Dansk)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇸 [es](../es/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇩🇪 [de](../de/README.md) · 🇮🇹 [it](../it/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇮🇳 [in](../in/README.md) · 🇹🇭 [th](../th/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇮🇩 [id](../id/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇳🇴 [no](../no/README.md) · 🇩🇰 [da](../da/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇮🇱 [he](../he/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇨🇿 [cs](../cs/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇪🇸 [es](../es/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇩🇪 [de](../de/README.md) · 🇮🇹 [it](../it/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇸🇦 [ar](../ar/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇮🇳 [in](../in/README.md) · 🇹🇭 [th](../th/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇮🇩 [id](../id/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇳🇴 [no](../no/README.md) · 🇩🇰 [da](../da/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇮🇱 [he](../he/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇹🇷 [tr](../tr/README.md)
 
 ---
 
@@ -27,54 +27,6 @@ _Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now wi
 </div>
 
 🌐 **Available in:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dansk](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [Magyar](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nederlands](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugal)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipino](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
-
----
-
-## Breaking Change: Unified Logging Upgrade
-
-> [!WARNING]
-> **This release changes both the on-disk request log layout and the logging environment variables.**
->
-> If you are upgrading an existing instance:
->
-> - Request logs now live in `DATA_DIR/call_logs/YYYY-MM-DD/` as **one JSON artifact per request**.
-> - The old `DATA_DIR/logs/` session folders and `DATA_DIR/log.txt` summary file are removed.
-> - On the first startup after upgrading, OmniRoute creates a safety backup at `DATA_DIR/log_archives/*.zip` before removing the deprecated request log layout.
-> - Legacy logging env vars such as `LOG_TO_FILE`, `LOG_FILE_PATH`, `LOG_MAX_FILE_SIZE`, `LOG_RETENTION_DAYS`, `LOG_LEVEL`, `LOG_FORMAT`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE`, and `PROXY_LOG_MAX_ENTRIES` are no longer supported.
-> - Use the new env model instead:
->   - `APP_LOG_TO_FILE`
->   - `APP_LOG_FILE_PATH`
->   - `APP_LOG_MAX_FILE_SIZE`
->   - `APP_LOG_RETENTION_DAYS`
->   - `APP_LOG_MAX_FILES`
->   - `APP_LOG_LEVEL`
->   - `APP_LOG_FORMAT`
->   - `CALL_LOG_RETENTION_DAYS`
->   - `CALL_LOG_MAX_ENTRIES`
->
-> For release details and upgrade notes, see the [CHANGELOG](CHANGELOG.md).
-
----
-
-## 🆕 What's New
-
-> **Upgrading from v2.9.5?** — See the [full CHANGELOG](CHANGELOG.md#300--2026-03-22-release-candidate--not-yet-merged-to-main) for all changes.
-
-| Area                         | Change                                                                                                                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔒 **CodeQL Security**       | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection remediation                                                                               |
-| ✅ **Route Validation**      | All 176 API routes now validated with Zod schemas + `validateBody()` — CI `check:route-validation:t06` passes                                                             |
-| 🐛 **omniModel Tag Leak**    | Internal `<omniModel>` tags no longer leak to clients in SSE streaming responses (#585)                                                                                   |
-| 🔑 **Registered Keys API**   | Auto-provision API keys via `POST /api/v1/registered-keys` with per-provider/account quota enforcement, idempotency, SHA-256 storage, and optional GitHub issue reporting |
-| 🎨 **Provider Icons**        | 130+ provider logos via `@lobehub/icons` (SVG) with PNG → generic fallback chain                                                                                          |
-| 🔄 **Model Auto-Sync**       | 24h scheduler and manual UI toggle to sync model lists for built-in and custom OpenAI-compatible providers                                                                |
-| 🌐 **OpenCode Zen/Go**       | Two new providers from @kang-heewon via PR #530: free tier + subscription tier via `OpencodeExecutor`                                                                     |
-| 🐛 **Gemini CLI OAuth**      | Actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker (was cryptic Google error)                                                                        |
-| 🐛 **OpenCode config**       | `saveOpenCodeConfig()` now correctly writes TOML to `XDG_CONFIG_HOME`                                                                                                     |
-| 🐛 **Pinned model override** | `body.model` correctly set to `pinnedModel` on context-cache protection                                                                                                   |
-| 🐛 **Codex/Claude loop**     | `tool_result` blocks now converted to text to stop infinite loops                                                                                                         |
-| 🐛 **Login redirect**        | Login no longer freezes after skipping password setup                                                                                                                     |
-| 🐛 **Windows paths**         | MSYS2/Git-Bash paths (`/c/...`) normalized to `C:\...` automatically                                                                                                      |
 
 ---
 
@@ -274,7 +226,7 @@ Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Eve
 **How OmniRoute solves it:**
 
 - **Smart 4-Tier Fallback** — If subscription quota runs out, automatically redirects to API Key → Cheap → Free with zero manual intervention
-- **Real-Time Quota Tracking** — Shows token consumption in real-time with reset countdown (5h, daily, weekly)
+- **Provider Limits Tracking** — Cached quota snapshots refresh on a server-side schedule (default `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) with manual refresh available in the UI
 - **Multi-Account Support** — Multiple accounts per provider with auto round-robin — when one runs out, switches to the next
 - **Custom Combos** — Customizable fallback chains with 9 balancing strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, strict-random)
 - **Codex Business Quotas** — Business/Team workspace quota monitoring directly in the dashboard
@@ -807,6 +759,36 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 # Dashboard: http://localhost:20129
 ```
 
+### Long-Running Streaming Timeouts
+
+For most deployments, you only need:
+
+| Variable                 | Default                       | Purpose                                                                                                                     |
+| ------------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `REQUEST_TIMEOUT_MS`     | `600000`                      | Shared baseline for upstream fetch, hidden Undici timeouts, TLS fingerprint requests, and API bridge request/proxy timeouts |
+| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Maximum gap between streaming chunks before OmniRoute aborts the SSE stream                                                 |
+
+Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, and other per-layer timeout vars still work and override the shared baseline.
+
+Advanced overrides are available if you need finer control:
+
+| Variable                                 | Default                                    | Purpose                                                              |
+| ---------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| `FETCH_TIMEOUT_MS`                       | inherits `REQUEST_TIMEOUT_MS`              | Total upstream request timeout used by the main fetch abort signal   |
+| `FETCH_HEADERS_TIMEOUT_MS`               | inherits `FETCH_TIMEOUT_MS`                | Undici time limit for receiving upstream response headers            |
+| `FETCH_BODY_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)     |
+| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                    | Undici TCP connect timeout                                           |
+| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`                                     | Undici idle keep-alive socket timeout                                |
+| `TLS_CLIENT_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Timeout for TLS fingerprint requests made through `wreq-js`          |
+| `API_BRIDGE_PROXY_TIMEOUT_MS`            | inherits `REQUEST_TIMEOUT_MS` or `30000`   | Timeout for `/v1` proxy forwarding from API port to dashboard port   |
+| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)` | Incoming request timeout on the API bridge server                    |
+| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Incoming header timeout on the API bridge server                     |
+| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Keep-alive timeout on the API bridge server                          |
+| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        | Socket inactivity timeout on the API bridge server (`0` disables it) |
+
+If you run OmniRoute behind Nginx, Caddy, Cloudflare, or another reverse proxy, make sure the proxy
+timeouts are also higher than your OmniRoute stream/fetch timeouts.
+
 ### 2) Connect providers and create your API key
 
 1. Open Dashboard → `Providers` and connect at least one provider (OAuth or API key).
@@ -983,6 +965,7 @@ OmniRoute is available as a public Docker image on [Docker Hub](https://hub.dock
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
+  --stop-timeout 40 \
   -p 20128:20128 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
@@ -997,6 +980,7 @@ cp .env.example .env
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
+  --stop-timeout 40 \
   --env-file .env \
   -p 20128:20128 \
   -v omniroute-data:/app/data \
@@ -1018,8 +1002,12 @@ Dashboard support for Docker deployments now includes a one-click **Cloudflare Q
 Notes:
 
 - Quick Tunnel URLs are temporary and change after every restart.
+- Quick Tunnels are not auto-restored after an OmniRoute or container restart. Re-enable them from the dashboard when needed.
 - Managed install currently supports Linux, macOS, and Windows on `x64` / `arm64`.
+- Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained container environments. Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want a different transport.
 - Docker images bundle system CA roots and pass them to managed `cloudflared`, which avoids TLS trust failures when the tunnel bootstraps inside the container.
+- SQLite runs in WAL mode. `docker stop` should be allowed to finish so OmniRoute can checkpoint the latest changes back into `storage.sqlite`.
+- The bundled Compose files already set a 40s stop grace period. If you run the image directly, keep `--stop-timeout 40` (or similar) so manual stops do not cut off shutdown cleanup.
 - Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want OmniRoute to use an existing binary instead of downloading one.
 
 **Using Docker Compose with Caddy (HTTPS Auto-TLS):**
@@ -1162,7 +1150,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
 | `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
 
-### 🟢 QODER MODELS (Free OAuth — No Credit Card)
+### 🟢 QODER MODELS (Free PAT via qodercli)
 
 | Model              | Prefix | Limit         | Rate Limit      |
 | ------------------ | ------ | ------------- | --------------- |
@@ -1171,6 +1159,9 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
 | `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
 | `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+
+> Recommended connection method: **Personal Access Token + `qodercli`**. Browser OAuth is
+> experimental and disabled by default unless `QODER_OAUTH_*` environment variables are configured.
 
 ### 🟡 QWEN MODELS (Device Code Auth)
 
@@ -1635,7 +1626,7 @@ Dashboard → Providers → Connect GitHub
 Models:
   gh/gpt-5
   gh/claude-4.5-sonnet
-  gh/gemini-3-pro
+  gh/gemini-3.1-pro-preview
 ```
 
 </details>

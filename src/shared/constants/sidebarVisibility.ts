@@ -57,7 +57,7 @@ const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
   { id: "limits", href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
   { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
-  { id: "media", href: "/dashboard/media", i18nKey: "media", icon: "auto_awesome" },
+  { id: "media", href: "/dashboard/cache/media", i18nKey: "media", icon: "perm_media" },
 ];
 
 const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [

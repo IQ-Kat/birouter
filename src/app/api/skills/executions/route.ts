@@ -21,7 +21,7 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 const executionSchema = z.object({
   skillName: z.string().min(1),
   apiKeyId: z.string().min(1),
-  input: z.record(z.unknown()).optional(),
+  input: z.record(z.string(), z.unknown()).optional(),
   sessionId: z.string().optional(),
 });
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const rawBody = await request.json();
     const validation = validateBody(executionSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return validation.response;
+      return NextResponse.json(validation.error, { status: 400 });
     }
     const { skillName, input, apiKeyId, sessionId } = validation.data;
 
