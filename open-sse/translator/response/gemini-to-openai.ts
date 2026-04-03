@@ -1,5 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+import { storeGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
 
 // Convert Gemini response chunk to OpenAI format
 export function geminiToOpenAIResponse(chunk, state) {
@@ -38,6 +39,9 @@ export function geminiToOpenAIResponse(chunk, state) {
     for (const part of content.parts) {
       const hasThoughtSig = part.thoughtSignature || part.thought_signature;
       const isThought = part.thought === true;
+      if (hasThoughtSig && typeof hasThoughtSig === "string") {
+        state.pendingThoughtSignature = hasThoughtSig;
+      }
 
       // Handle thought signature (thinking mode)
       if (hasThoughtSig) {
@@ -74,6 +78,11 @@ export function geminiToOpenAIResponse(chunk, state) {
               arguments: JSON.stringify(fcArgs),
             },
           };
+
+          if (state.pendingThoughtSignature) {
+            storeGeminiThoughtSignature(toolCall.id, state.pendingThoughtSignature);
+            state.pendingThoughtSignature = null;
+          }
 
           state.toolCalls.set(toolCallIndex, toolCall);
 
@@ -126,6 +135,11 @@ export function geminiToOpenAIResponse(chunk, state) {
             arguments: JSON.stringify(fcArgs),
           },
         };
+
+        if (state.pendingThoughtSignature) {
+          storeGeminiThoughtSignature(toolCall.id, state.pendingThoughtSignature);
+          state.pendingThoughtSignature = null;
+        }
 
         state.toolCalls.set(toolCallIndex, toolCall);
 
