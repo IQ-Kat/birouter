@@ -1010,17 +1010,16 @@ export async function handleComboChat({
       try {
         const cloned = result.clone();
         try {
-          const errorBody = await cloned.json();
-          errorText =
-            errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
-          retryAfter = errorBody?.retryAfter || null;
-        } catch {
-          try {
-            const text = await result.text();
-            if (text) errorText = text.substring(0, 500);
-          } catch {
-            /* Body consumed */
+          const text = await cloned.text();
+          if (text) {
+            errorText = text.substring(0, 500);
+            const errorBody = JSON.parse(text);
+            errorText =
+              errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
+            retryAfter = errorBody?.retryAfter || null;
           }
+        } catch {
+          /* Clone parse failed */
         }
       } catch {
         /* Clone failed */
@@ -1293,17 +1292,16 @@ async function handleRoundRobinCombo({
         try {
           const cloned = result.clone();
           try {
-            const errorBody = await cloned.json();
-            errorText =
-              errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
-            retryAfter = errorBody?.retryAfter || null;
-          } catch {
-            try {
-              const text = await result.text();
-              if (text) errorText = text.substring(0, 500);
-            } catch {
-              /* Body consumed */
+            const text = await cloned.text();
+            if (text) {
+              errorText = text.substring(0, 500);
+              const errorBody = JSON.parse(text);
+              errorText =
+                errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
+              retryAfter = errorBody?.retryAfter || null;
             }
+          } catch {
+            /* Clone parse failed */
           }
         } catch {
           /* Clone failed */
