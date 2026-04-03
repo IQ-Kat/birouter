@@ -192,7 +192,7 @@ export function claudeToGeminiRequest(model, body, stream) {
   if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
     result.generationConfig.thinkingConfig = {
       thinkingBudget: body.thinking.budget_tokens,
-      include_thoughts: true,
+      includeThoughts: true,
     };
   }
 

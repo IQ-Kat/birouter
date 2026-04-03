@@ -58,9 +58,15 @@ export {
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
   getModelIsHidden,
+
+  // Synced Available Models
+  getSyncedAvailableModels,
+  getAllSyncedAvailableModels,
+  replaceSyncedAvailableModelsForConnection,
+  deleteSyncedAvailableModelsForConnection,
 } from "./db/models";
 
-export type { ModelCompatPerProtocol, ModelCompatPatch } from "./db/models";
+export type { ModelCompatPerProtocol, ModelCompatPatch, SyncedAvailableModel } from "./db/models";
 
 export {
   // Combos
@@ -91,6 +97,10 @@ export {
   getSettings,
   updateSettings,
   isCloudEnabled,
+
+  // LKGP (Last Known Good Provider) (#919)
+  getLKGP,
+  setLKGP,
 
   // Pricing
   getPricing,
