@@ -47,7 +47,9 @@ function execElevatedWindows(command) {
 export function checkDNSEntry() {
   try {
     const hostsContent = fs.readFileSync(HOSTS_FILE, "utf8");
-    return hostsContent.includes(TARGET_HOST);
+    const escapedHost = TARGET_HOST.replace(/\./g, "\\.");
+    const regex = new RegExp(`^\\s*127\\.0\\.0\\.1\\s+${escapedHost}\\b`, "m");
+    return regex.test(hostsContent);
   } catch {
     return false;
   }
