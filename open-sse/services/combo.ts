@@ -818,8 +818,8 @@ export async function handleComboChat({
       const { getLKGP } = await import("../../src/lib/localDb");
       const lkgp = await getLKGP(combo.name, combo.id || combo.name);
       if (lkgp) lastKnownGoodProvider = lkgp;
-    } catch {
-      /* ignore db errors */
+    } catch (err) {
+      log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
     }
 
     const candidates = await buildAutoCandidates(eligibleModels, combo.name);
@@ -998,7 +998,11 @@ export async function handleComboChat({
         if (provider) {
           import("../../src/lib/localDb")
             .then(({ setLKGP }) => setLKGP(combo.name, combo.id || combo.name, provider))
-            .catch(() => {});
+            .catch((err) =>
+              log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
+                err,
+              })
+            );
         }
 
         return result;
@@ -1010,17 +1014,16 @@ export async function handleComboChat({
       try {
         const cloned = result.clone();
         try {
-          const errorBody = await cloned.json();
-          errorText =
-            errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
-          retryAfter = errorBody?.retryAfter || null;
-        } catch {
-          try {
-            const text = await result.text();
-            if (text) errorText = text.substring(0, 500);
-          } catch {
-            /* Body consumed */
+          const text = await cloned.text();
+          if (text) {
+            errorText = text.substring(0, 500);
+            const errorBody = JSON.parse(text);
+            errorText =
+              errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
+            retryAfter = errorBody?.retryAfter || null;
           }
+        } catch {
+          /* Clone parse failed */
         }
       } catch {
         /* Clone failed */
@@ -1293,17 +1296,16 @@ async function handleRoundRobinCombo({
         try {
           const cloned = result.clone();
           try {
-            const errorBody = await cloned.json();
-            errorText =
-              errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
-            retryAfter = errorBody?.retryAfter || null;
-          } catch {
-            try {
-              const text = await result.text();
-              if (text) errorText = text.substring(0, 500);
-            } catch {
-              /* Body consumed */
+            const text = await cloned.text();
+            if (text) {
+              errorText = text.substring(0, 500);
+              const errorBody = JSON.parse(text);
+              errorText =
+                errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
+              retryAfter = errorBody?.retryAfter || null;
             }
+          } catch {
+            /* Clone parse failed */
           }
         } catch {
           /* Clone failed */

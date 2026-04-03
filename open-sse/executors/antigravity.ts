@@ -93,10 +93,12 @@ export class AntigravityExecutor extends BaseExecutor {
           role = "user";
         }
 
-        // Strip thought parts (no valid signature -> provider rejects).
-        // Also drop entries that become empty after filtering, which can trigger
-        // 400 invalid argument on Gemini 3 Flash through Antigravity.
-        const parts = c.parts?.filter((p) => !p.thought && !p.thoughtSignature) || [];
+        const hasFunctionCall = c.parts?.some((p) => p.functionCall) || false;
+
+        // Antigravity rejects synthetic thought text, but Gemini 3+ requires any
+        // returned thoughtSignature metadata to survive model tool-call turns.
+        const parts =
+          c.parts?.filter((p) => !p.thought && (hasFunctionCall || !p.thoughtSignature)) || [];
         return { ...c, role, parts };
       }) || [];
 
@@ -230,7 +232,6 @@ export class AntigravityExecutor extends BaseExecutor {
       let timedOut = false;
       const timeout = AbortSignal.timeout(SSE_COLLECT_TIMEOUT_MS);
       try {
-         
         while (true) {
           if (signal?.aborted) throw new Error("Request aborted during SSE collection");
           const { done, value } = await Promise.race([
