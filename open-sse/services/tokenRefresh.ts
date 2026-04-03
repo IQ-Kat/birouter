@@ -1,5 +1,5 @@
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { createHmac } from "node:crypto";
+import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 
 // Token expiry buffer (refresh if expires within 5 minutes)
@@ -12,7 +12,7 @@ const CACHE_SECRET = "omniroute-token-cache";
 const refreshPromiseCache = new Map();
 
 function getRefreshCacheKey(provider, refreshToken) {
-  const tokenHash = createHmac("sha256", CACHE_SECRET).update(refreshToken).digest("hex");
+  const tokenHash = pbkdf2Sync(refreshToken, CACHE_SECRET, 1000, 32, "sha256").toString("hex");
   return `${provider}:${tokenHash}`;
 }
 

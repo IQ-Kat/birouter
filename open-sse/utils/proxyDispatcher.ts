@@ -74,11 +74,19 @@ export function getDefaultDispatcher(): Dispatcher {
  */
 function extractExplicitPort(urlStr: string): string | null {
   try {
-    // Match port in the host portion: "scheme://[user:pass@]host:PORT[/...]"
-    const match = urlStr.match(/:\/\/(?:[^@]*@)?[^:/\s]+:(\d+)/);
-    if (match) {
-      const port = Number(match[1]);
-      if (Number.isInteger(port) && port >= 1 && port <= 65535) return String(port);
+    const idx = urlStr.indexOf('://');
+    if (idx === -1) return null;
+    const authorityStart = idx + 3;
+    const authorityEnd = urlStr.indexOf('/', authorityStart);
+    const authority = authorityEnd === -1 ? urlStr.slice(authorityStart) : urlStr.slice(authorityStart, authorityEnd);
+    const lastColon = authority.lastIndexOf(':');
+    const atSign = authority.lastIndexOf('@');
+    if (lastColon !== -1 && lastColon > atSign) {
+      const portStr = authority.slice(lastColon + 1);
+      if (/^\d+$/.test(portStr)) {
+        const port = Number(portStr);
+        if (Number.isInteger(port) && port >= 1 && port <= 65535) return String(port);
+      }
     }
   } catch {}
   return null;
