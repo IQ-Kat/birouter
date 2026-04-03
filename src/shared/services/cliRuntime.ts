@@ -660,7 +660,13 @@ const checkRunnable = async (
   const minimalEnv: Record<string, string | undefined> = {
     PATH: env.PATH,
     HOME: env.HOME || env.USERPROFILE,
+    USERPROFILE: env.USERPROFILE, // Windows needs this for os.homedir()
+    APPDATA: env.APPDATA, // Many npm CLI tools rely on APPDATA
+    LOCALAPPDATA: env.LOCALAPPDATA,
+    TEMP: env.TEMP,
+    TMP: env.TMP,
     SystemRoot: env.SystemRoot, // Windows needs this
+    ComSpec: env.ComSpec, // Windows shell
     PATHEXT: env.PATHEXT, // Windows cmd.exe needs this to resolve .cmd/.bat/.exe extensions
   };
 

@@ -156,7 +156,6 @@ function openaiToGeminiBase(model, body, stream) {
           });
           parts.push({
             thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
-            text: "",
           });
         }
 
@@ -175,7 +174,6 @@ function openaiToGeminiBase(model, body, stream) {
           if (!hasSignatureAlready) {
             parts.push({
               thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
-              text: "",
             });
           }
 
