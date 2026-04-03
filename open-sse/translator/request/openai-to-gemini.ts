@@ -2,6 +2,7 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
+import { getGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
 import { openaiToClaudeRequestForAntigravity } from "./openai-to-claude.ts";
 import {
   capMaxOutputTokens,
@@ -73,6 +74,15 @@ type CloudCodeEnvelope = {
     };
   };
 };
+
+function normalizeAntigravityToolName(name: unknown) {
+  if (typeof name !== "string") return name;
+  const trimmed = name.trim();
+  if (!trimmed) return trimmed;
+
+  const namespaceIndex = trimmed.indexOf(":");
+  return namespaceIndex >= 0 ? trimmed.slice(namespaceIndex + 1) : trimmed;
+}
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
 function openaiToGeminiBase(model, body, stream) {
@@ -167,31 +177,40 @@ function openaiToGeminiBase(model, body, stream) {
         }
 
         if (msg.tool_calls && Array.isArray(msg.tool_calls)) {
-          // Gemini 3+ requires thoughtSignature as a sibling part in model content
-          // that contains functionCall parts. If no reasoning_content was present
-          // (which already injects the signature above), inject one now. (#927)
-          const hasSignatureAlready = parts.some((p) => p.thoughtSignature);
-          if (!hasSignatureAlready) {
-            parts.push({
-              thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
-            });
-          }
-
           const toolCallIds = [];
+          const firstPersistedSignature = msg.tool_calls
+            .map((tc) => getGeminiThoughtSignature(tc.id))
+            .find((signature) => typeof signature === "string" && signature.length > 0);
+
+          const shouldUseEmbeddedSignature = !parts.some((p) => p.thoughtSignature);
+          let embeddedSignatureUsed = false;
+
           for (const tc of msg.tool_calls) {
             if (tc.type !== "function") continue;
 
             const args = tryParseJSON(tc.function?.arguments || "{}");
-            // Do NOT include thoughtSignature ON the functionCall part itself — it is
-            // only valid as a separate sibling part. Including it inside functionCall
-            // causes HTTP 400 "invalid argument" (#725).
+            const signatureForToolCall = getGeminiThoughtSignature(tc.id);
+            const embeddedThoughtSignature =
+              shouldUseEmbeddedSignature && !embeddedSignatureUsed
+                ? firstPersistedSignature ||
+                  signatureForToolCall ||
+                  DEFAULT_THINKING_GEMINI_SIGNATURE
+                : undefined;
+
+            // Gemini expects the signature on the functionCall part itself. For
+            // parallel calls, only the first functionCall in the batch carries it.
             parts.push({
+              ...(embeddedThoughtSignature ? { thoughtSignature: embeddedThoughtSignature } : {}),
               functionCall: {
                 id: tc.id,
                 name: tc.function.name,
                 args: args,
               },
             });
+
+            if (embeddedThoughtSignature) {
+              embeddedSignatureUsed = true;
+            }
             toolCallIds.push(tc.id);
           }
 
@@ -330,6 +349,7 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
   // Clean schema for tools
   if (gemini.tools?.[0]?.functionDeclarations) {
     for (const fn of gemini.tools[0].functionDeclarations) {
+      fn.name = normalizeAntigravityToolName(fn.name);
       if (fn.parameters) {
         const cleanedSchema = cleanJSONSchemaForAntigravity(fn.parameters);
         fn.parameters = cleanedSchema;
@@ -339,6 +359,20 @@ export function openaiToGeminiCLIRequest(model, body, stream) {
         //   fn.parametersJsonSchema = cleanedSchema;
         //   delete fn.parameters;
         // }
+      }
+    }
+  }
+
+  if (Array.isArray(gemini.contents)) {
+    for (const content of gemini.contents) {
+      if (!Array.isArray(content.parts)) continue;
+      for (const part of content.parts) {
+        if (part.functionCall?.name) {
+          part.functionCall.name = normalizeAntigravityToolName(part.functionCall.name);
+        }
+        if (part.functionResponse?.name) {
+          part.functionResponse.name = normalizeAntigravityToolName(part.functionResponse.name);
+        }
       }
     }
   }

@@ -1,10 +1,10 @@
 /**
- * T43: Gemini tool call parts must NOT include thoughtSignature.
+ * T43: Gemini tool call parts must preserve thoughtSignature correctly.
  *
  * Regression test for HTTP 400 "invalid argument" when OmniRoute translates
- * OpenAI tool_calls to Gemini format. The thoughtSignature field is only valid
- * on thinking/reasoning parts — injecting it on functionCall parts causes the
- * Gemini API to reject the request with a 400 error.
+ * OpenAI tool_calls to Gemini format. Gemini 3 requires the signature to live on
+ * the first functionCall part for a tool-call batch, and replays fail if the
+ * signature is stripped or emitted as a separate sibling part.
  *
  * Reproduces: https://github.com/diegosouzapw/OmniRoute/issues/725
  */
@@ -24,7 +24,7 @@ function translateToGemini(messages, tools) {
   });
 }
 
-test("T43: functionCall parts must not contain thoughtSignature", () => {
+test("T43: first functionCall part keeps thoughtSignature", () => {
   const messages = [
     { role: "user", content: "What is the weather in Tokyo?" },
     {
@@ -69,19 +69,18 @@ test("T43: functionCall parts must not contain thoughtSignature", () => {
 
   assert.ok(modelTurn, "Expected a model turn with functionCall parts");
 
-  for (const part of modelTurn.parts) {
-    if (part.functionCall) {
-      assert.ok(
-        !("thoughtSignature" in part),
-        `functionCall part must not contain thoughtSignature — Gemini API returns HTTP 400 "invalid argument" when it does. Got: ${JSON.stringify(part)}`
-      );
-      assert.equal(part.functionCall.name, "get_weather");
-      assert.deepEqual(part.functionCall.args, { location: "Tokyo" });
-    }
-  }
+  const functionCallParts = modelTurn.parts.filter((part) => part.functionCall);
+  assert.equal(functionCallParts.length, 1, "Expected exactly 1 functionCall part");
+  assert.equal(functionCallParts[0].functionCall.name, "get_weather");
+  assert.deepEqual(functionCallParts[0].functionCall.args, { location: "Tokyo" });
+  assert.ok(
+    typeof functionCallParts[0].thoughtSignature === "string" &&
+      functionCallParts[0].thoughtSignature.length > 0,
+    `first functionCall part must carry thoughtSignature. Got: ${JSON.stringify(functionCallParts[0])}`
+  );
 });
 
-test("T43: multiple tool calls — none of the functionCall parts may have thoughtSignature", () => {
+test("T43: multiple tool calls only tag the first functionCall part", () => {
   const messages = [
     { role: "user", content: "Get weather for Tokyo and London" },
     {
@@ -122,12 +121,15 @@ test("T43: multiple tool calls — none of the functionCall parts may have thoug
   const functionCallParts = modelTurn.parts.filter((p) => p.functionCall);
   assert.equal(functionCallParts.length, 2, "Expected 2 functionCall parts");
 
-  for (const part of functionCallParts) {
-    assert.ok(
-      !("thoughtSignature" in part),
-      `functionCall part must not contain thoughtSignature. Got: ${JSON.stringify(part)}`
-    );
-  }
+  assert.ok(
+    typeof functionCallParts[0].thoughtSignature === "string" &&
+      functionCallParts[0].thoughtSignature.length > 0,
+    `first functionCall part must carry thoughtSignature. Got: ${JSON.stringify(functionCallParts[0])}`
+  );
+  assert.ok(
+    !("thoughtSignature" in functionCallParts[1]),
+    `parallel follow-up functionCall parts must stay unsigned. Got: ${JSON.stringify(functionCallParts[1])}`
+  );
 });
 
 test("T43: thinking parts still include thoughtSignature (regression guard)", () => {
