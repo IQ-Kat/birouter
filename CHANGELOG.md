@@ -8,6 +8,9 @@
 
 ### Features & Refactoring
 
+- **Auto-Combo Native CRUD:** Completed full management lifecycle for Auto-Combos directly in the dashboard, linking candidatePool algorithms securely via visual modalities.
+- **i18n Translation Sync:** Fixed multiple isolated English language translation fallbacks missing from the settings panels and properly integrated the 33-language JSON ecosystem.
+
 - **System Proxies integration:** Implemented global proxy routing architecture mapped cleanly to external requests including token refreshes, sync events, and model fetches (#953).
 - **Settings & Analytics Framework:** Redesigned Settings persistence caching structure natively. Overhauled the Analytics Cache UI introducing robust metrics, cost ratios, and diversity heatmaps (#952).
 - **Auto-Combo LKGP Integration:** Exposed LKGP (Last Known Good Provider) toggle settings visually on the Routing dashboards per community request (#955).
@@ -16,6 +19,8 @@
 - **Free-Tier UX Provider Tiers:** Shifted free provider sorting logically into OAuth umbrellas and improved display filters (#950).
 
 ### Bug Fixes
+
+- **Codex Alias Auth Resolver:** Normalized credentials lookup path routing correctly matching nested 'cx/' prompt styles across incoming clients without tripping 401 unauthenticated layers (#958).
 
 - **Memory Database Collisions:** Safely isolated 500 exceptions in the remote memory DB connections on multi-threaded restarts (#955).
 - **Claude Cache Stability:** Re-factored strict Cache Control sequence ordering structurally preserving accurate 5-minute ephemeral blocks mapped precisely for Anthropic compatible providers (#948).
