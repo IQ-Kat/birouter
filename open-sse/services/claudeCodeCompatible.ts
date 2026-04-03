@@ -166,12 +166,18 @@ export function buildClaudeCodeCompatibleRequest({
     systemBlocks: preparedClaudeBody?.system as Record<string, unknown>[] | undefined,
     cwd,
     now,
+    preserveCacheControl,
   });
   const resolvedSessionId = sessionId || randomUUID();
   const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model);
   const maxTokens = resolveClaudeCodeCompatibleMaxTokens(sourceBody, normalizedBody);
   const tools = preparedClaudeBody?.tools
-    ? (preparedClaudeBody.tools as Record<string, unknown>[])
+    ? applyClaudeCodeCompatibleToolCacheStrategy(
+        preparedClaudeBody.tools as Record<string, unknown>[],
+        {
+          preserveExisting: preserveCacheControl,
+        }
+      )
     : buildClaudeCodeCompatibleTools(normalizedBody, sourceBody);
   const toolChoice =
     tools.length > 0
@@ -351,8 +357,10 @@ function buildClaudeCodeCompatibleMessagesFromClaude(
     for (const message of merged) {
       stripCacheControlFromContentBlocks(message.content);
     }
-    applyClaudeCodeCompatibleMessageCacheStrategy(merged);
   }
+  applyClaudeCodeCompatibleMessageCacheStrategy(merged, {
+    preserveExisting: preserveCacheControl,
+  });
 
   if (merged.length === 0) {
     const fallbackText = converted
@@ -379,11 +387,13 @@ function buildClaudeCodeCompatibleSystemBlocks({
   systemBlocks,
   cwd,
   now,
+  preserveCacheControl,
 }: {
   messages: MessageLike[] | undefined;
   systemBlocks?: Array<Record<string, unknown>> | undefined;
   cwd: string;
   now: Date;
+  preserveCacheControl: boolean;
 }) {
   const customSystemBlocks =
     Array.isArray(systemBlocks) && systemBlocks.length > 0
@@ -410,6 +420,15 @@ function buildClaudeCodeCompatibleSystemBlocks({
 
   for (const systemBlock of customSystemBlocks) {
     blocks.push(systemBlock);
+  }
+
+  if (
+    preserveCacheControl &&
+    customSystemBlocks.length > 0 &&
+    !customSystemBlocks.some((block) => hasCacheControl(block))
+  ) {
+    const lastCustomSystemBlock = customSystemBlocks[customSystemBlocks.length - 1];
+    lastCustomSystemBlock.cache_control = { type: "ephemeral", ttl: "1h" };
   }
 
   return blocks;
@@ -448,12 +467,10 @@ function buildClaudeCodeCompatibleTools(
   return rawTools
     .map((tool) => convertClaudeCodeCompatibleTool(tool))
     .filter((tool): tool is Record<string, unknown> => !!tool)
+    .map((tool) => ({ ...tool }))
     .map((tool, index, tools) => {
       if (index !== findLastCacheableToolIndex(tools)) return tool;
-      return {
-        ...tool,
-        cache_control: { type: "ephemeral", ttl: "1h" },
-      };
+      return { ...tool, cache_control: { type: "ephemeral", ttl: "1h" } };
     });
 }
 
@@ -633,7 +650,7 @@ function convertClaudeCodeCompatibleClaudeMessage(
 function extractCustomSystemBlocks(messages: MessageLike[] | undefined) {
   if (!Array.isArray(messages)) return [];
 
-  return messages
+  const blocks = messages
     .filter((message) => {
       const role = String(message?.role || "").toLowerCase();
       return role === "system" || role === "developer";
@@ -645,11 +662,21 @@ function extractCustomSystemBlocks(messages: MessageLike[] | undefined) {
       text,
       cache_control: { type: "ephemeral" },
     }));
+
+  if (blocks.length > 0) {
+    blocks[blocks.length - 1].cache_control = { type: "ephemeral", ttl: "1h" };
+  }
+
+  return blocks;
 }
 
 function applyClaudeCodeCompatibleMessageCacheStrategy(
-  messages: Array<{ role: "user" | "assistant"; content: Array<Record<string, unknown>> }>
+  messages: Array<{ role: "user" | "assistant"; content: Array<Record<string, unknown>> }>,
+  options: {
+    preserveExisting?: boolean;
+  } = {}
 ) {
+  const preserveExisting = options.preserveExisting === true;
   const userIndexes = messages.reduce((indexes, message, index) => {
     if (message.role === "user") indexes.push(index);
     return indexes;
@@ -658,14 +685,28 @@ function applyClaudeCodeCompatibleMessageCacheStrategy(
   const secondToLastUserIndex = userIndexes.length >= 2 ? userIndexes[userIndexes.length - 2] : -1;
 
   if (secondToLastUserIndex >= 0) {
-    markLastContentCacheControl(messages[secondToLastUserIndex].content);
+    markLastContentCacheControl(
+      messages[secondToLastUserIndex].content,
+      undefined,
+      preserveExisting
+    );
   } else if (!hasAssistant && userIndexes.length > 0) {
-    markLastContentCacheControl(messages[userIndexes[userIndexes.length - 1]].content);
+    markLastContentCacheControl(
+      messages[userIndexes[userIndexes.length - 1]].content,
+      undefined,
+      preserveExisting
+    );
+  }
+
+  const lastUserIndex = userIndexes.length > 0 ? userIndexes[userIndexes.length - 1] : -1;
+  const endsOnUser = lastUserIndex === messages.length - 1;
+  if (endsOnUser && lastUserIndex >= 0) {
+    markLastContentCacheControl(messages[lastUserIndex].content, undefined, preserveExisting);
   }
 
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i].role !== "assistant") continue;
-    if (markLastContentCacheControl(messages[i].content)) break;
+    if (markLastContentCacheControl(messages[i].content, undefined, preserveExisting)) break;
   }
 }
 
@@ -675,12 +716,50 @@ function stripCacheControlFromContentBlocks(content: Array<Record<string, unknow
   }
 }
 
-function markLastContentCacheControl(content: Array<Record<string, unknown>>, ttl?: string) {
+function applyClaudeCodeCompatibleToolCacheStrategy(
+  tools: Array<Record<string, unknown>>,
+  options: {
+    preserveExisting?: boolean;
+  } = {}
+) {
+  const preparedTools = tools.map((tool) => ({ ...tool }));
+  const lastCacheableToolIndex = findLastCacheableToolIndex(preparedTools);
+  if (lastCacheableToolIndex < 0) return preparedTools;
+
+  if (options.preserveExisting && preparedTools.some((tool) => hasCacheControl(tool))) {
+    return preparedTools;
+  }
+
+  preparedTools[lastCacheableToolIndex].cache_control = { type: "ephemeral", ttl: "1h" };
+  return preparedTools;
+}
+
+function markLastContentCacheControl(
+  content: Array<Record<string, unknown>>,
+  ttl?: string,
+  preserveExisting = false
+) {
   if (!Array.isArray(content) || content.length === 0) return false;
   const lastBlock = content[content.length - 1];
   if (!lastBlock) return false;
+  if (
+    preserveExisting &&
+    content.some(
+      (block) =>
+        !!block &&
+        typeof block === "object" &&
+        !!readRecord(block)?.cache_control &&
+        typeof readRecord(block)?.cache_control === "object"
+    )
+  ) {
+    return true;
+  }
   lastBlock.cache_control = ttl ? { type: "ephemeral", ttl } : { type: "ephemeral" };
   return true;
+}
+
+function hasCacheControl(value: unknown) {
+  return !!readRecord(value)?.cache_control && typeof readRecord(value)?.cache_control === "object";
 }
 
 function findLastCacheableToolIndex(tools: Array<Record<string, unknown>>) {
