@@ -39,8 +39,7 @@ export default function FilterBar({
     setExpandedFilter(null);
   }, [onSearchChange, filters, onFilterChange]);
 
-  const hasActiveFilters =
-    searchValue || Object.values(activeFilters).some((v) => v && v !== "");
+  const hasActiveFilters = searchValue || Object.values(activeFilters).some((v) => v && v !== "");
 
   return (
     <div
@@ -89,9 +88,7 @@ export default function FilterBar({
       {filters.map((filter) => (
         <div key={filter.key} style={{ position: "relative" }}>
           <button
-            onClick={() =>
-              setExpandedFilter(expandedFilter === filter.key ? null : filter.key)
-            }
+            onClick={() => setExpandedFilter(expandedFilter === filter.key ? null : filter.key)}
             style={{
               padding: "6px 12px",
               borderRadius: "6px",
@@ -99,9 +96,7 @@ export default function FilterBar({
               background: activeFilters[filter.key]
                 ? "rgba(99,102,241,0.15)"
                 : "rgba(255,255,255,0.05)",
-              color: activeFilters[filter.key]
-                ? "#818cf8"
-                : "var(--text-secondary, #888)",
+              color: activeFilters[filter.key] ? "#818cf8" : "var(--text-secondary, #888)",
               fontSize: "12px",
               cursor: "pointer",
               whiteSpace: "nowrap",
@@ -158,10 +153,7 @@ export default function FilterBar({
                     width: "100%",
                     padding: "6px 12px",
                     textAlign: "left",
-                    background:
-                      activeFilters[filter.key] === opt
-                        ? "rgba(99,102,241,0.2)"
-                        : "none",
+                    background: activeFilters[filter.key] === opt ? "rgba(99,102,241,0.2)" : "none",
                     border: "none",
                     color:
                       activeFilters[filter.key] === opt

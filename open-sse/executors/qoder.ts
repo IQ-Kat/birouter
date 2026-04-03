@@ -39,14 +39,7 @@ export class QoderExecutor extends BaseExecutor {
     };
   }
 
-  async execute({
-    model,
-    body,
-    stream,
-    credentials,
-    signal,
-    upstreamExtraHeaders,
-  }: ExecuteInput) {
+  async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }: ExecuteInput) {
     const headers = this.buildHeaders(credentials, stream);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 

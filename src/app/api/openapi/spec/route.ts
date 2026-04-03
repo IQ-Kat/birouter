@@ -20,7 +20,10 @@ export async function GET() {
 
     let specPath = "";
     for (const p of candidates) {
-      if (fs.existsSync(p)) { specPath = p; break; }
+      if (fs.existsSync(p)) {
+        specPath = p;
+        break;
+      }
     }
 
     if (!specPath) {

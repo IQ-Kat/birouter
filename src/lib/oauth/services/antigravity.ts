@@ -165,7 +165,12 @@ export class AntigravityService {
   /**
    * Complete onboarding flow with retry
    */
-  async completeOnboarding(accessToken: string, projectId: string, tierId: string, maxRetries = 10) {
+  async completeOnboarding(
+    accessToken: string,
+    projectId: string,
+    tierId: string,
+    maxRetries = 10
+  ) {
     for (let i = 0; i < maxRetries; i++) {
       const result = await this.onboardUser(accessToken, projectId, tierId);
 

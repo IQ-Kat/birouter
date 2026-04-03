@@ -9,7 +9,6 @@
  * @module domain/modelAvailability
  */
 
-
 /**
  * @typedef {Object} UnavailableEntry
  * @property {string} provider

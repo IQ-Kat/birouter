@@ -27,4 +27,3 @@ const LEGACY_PROVIDER_IDS = [
 export const CLI_COMPAT_PROVIDER_IDS = Array.from(
   new Set([...DERIVED_PROVIDER_IDS, ...LEGACY_PROVIDER_IDS])
 );
-

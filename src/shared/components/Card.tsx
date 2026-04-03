@@ -13,7 +13,6 @@ interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> 
   className?: string;
 }
 
-
 export default function Card({
   children,
   title,
@@ -25,7 +24,6 @@ export default function Card({
   className,
   ...props
 }: CardProps) {
-
   const paddings = {
     none: "",
     xs: "p-3",

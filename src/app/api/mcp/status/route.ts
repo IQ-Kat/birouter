@@ -26,8 +26,7 @@ export async function GET() {
 
     // stdio uses heartbeat file; HTTP transports use in-process state
     const stdioOnline = isMcpHeartbeatOnline(heartbeat, { requireLivePid: true });
-    const online =
-      mcpTransport === "stdio" ? stdioOnline : httpStatus.online;
+    const online = mcpTransport === "stdio" ? stdioOnline : httpStatus.online;
 
     const lastCall = lastCallPage.entries[0] || null;
     const now = Date.now();

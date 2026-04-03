@@ -10,13 +10,15 @@ import { NextResponse } from "next/server";
 import { getWebhook, updateWebhookRecord, deleteWebhook } from "@/lib/localDb";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
-const updateWebhookSchema = z.object({
-  url: z.string().url("Invalid URL format").max(2000).optional(),
-  events: z.array(z.string()).optional(),
-  secret: z.string().max(500).optional(),
-  description: z.string().max(1000).optional(),
-  enabled: z.boolean().optional(),
-}).passthrough();
+const updateWebhookSchema = z
+  .object({
+    url: z.string().url("Invalid URL format").max(2000).optional(),
+    events: z.array(z.string()).optional(),
+    secret: z.string().max(500).optional(),
+    description: z.string().max(1000).optional(),
+    enabled: z.boolean().optional(),
+  })
+  .passthrough();
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

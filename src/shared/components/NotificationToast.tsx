@@ -68,9 +68,7 @@ function Toast({ notification, onDismiss }) {
         boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
         minWidth: "320px",
         maxWidth: "420px",
-        animation: isExiting
-          ? "toastOut 0.2s ease-in forwards"
-          : "toastIn 0.3s ease-out forwards",
+        animation: isExiting ? "toastOut 0.2s ease-in forwards" : "toastIn 0.3s ease-out forwards",
         transition: "all 0.2s ease",
       }}
     >

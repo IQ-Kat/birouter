@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 /**
  * Image Generation Handler
  *
@@ -992,7 +993,7 @@ async function handleComfyUIImageGeneration({ model, provider, providerConfig, b
     "3": {
       class_type: "KSampler",
       inputs: {
-        seed: Math.floor(Math.random() * 2 ** 32),
+        seed: parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % 2 ** 32,
         steps: body.steps || 20,
         cfg: body.cfg_scale || 7,
         sampler_name: "euler",
@@ -1087,7 +1088,10 @@ type Imagen3ImageGenArgs = {
   providerConfig: { baseUrl: string };
   body: { prompt?: string; size?: string; n?: number };
   credentials: { apiKey?: string; accessToken?: string };
-  log?: { info?: (tag: string, msg: string) => void; error?: (tag: string, msg: string) => void } | null;
+  log?: {
+    info?: (tag: string, msg: string) => void;
+    error?: (tag: string, msg: string) => void;
+  } | null;
 };
 
 type Imagen3NormalizedImage = {

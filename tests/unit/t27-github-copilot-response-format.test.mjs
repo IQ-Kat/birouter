@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-
 const { GithubExecutor } = await import("../../open-sse/executors/github.ts");
 const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
 
@@ -15,6 +14,16 @@ function streamFromChunks(chunks) {
     },
   });
 }
+
+const originalFetch = globalThis.fetch;
+
+test.afterEach(async () => {
+  globalThis.fetch = originalFetch;
+});
+
+test.after(() => {
+  globalThis.fetch = originalFetch;
+});
 
 test("T27: Claude + response_format=json_object injects system instruction and strips response_format field", () => {
   const executor = new GithubExecutor();
@@ -108,4 +117,104 @@ test("T27: streaming error responses keep their original body readable", async (
   } finally {
     BaseExecutor.prototype.execute = originalExecute;
   }
+});
+
+test("T27: requests use copilotToken from providerSpecificData when available", async () => {
+  globalThis.fetch = async (_url, init = {}) => {
+    assert.equal(init.headers.Authorization, "Bearer copilot_test");
+    return new Response(
+      JSON.stringify({
+        choices: [
+          { index: 0, message: { role: "assistant", content: "OK" }, finish_reason: "stop" },
+        ],
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  const executor = new GithubExecutor();
+  const result = await executor.execute({
+    model: "gemini-3.1-pro-preview",
+    body: { messages: [{ role: "user", content: "Ping" }], stream: false },
+    stream: false,
+    credentials: {
+      accessToken: "ghu_test",
+      providerSpecificData: {
+        copilotToken: "copilot_test",
+      },
+    },
+  });
+
+  assert.equal(result.response.status, 200);
+  assert.match(await result.response.text(), /OK/);
+});
+
+test("T27: non-stream execute materializes provider responses before returning", async () => {
+  const executor = new GithubExecutor();
+  const originalExecute = BaseExecutor.prototype.execute;
+
+  class WeirdResponse {
+    constructor(body, init = {}) {
+      this._body = body;
+      this.status = init.status || 200;
+      this.statusText = init.statusText || "OK";
+      this.headers = new Headers(init.headers || {});
+      this.bodyUsed = false;
+      this.body = {};
+    }
+
+    async text() {
+      if (this.bodyUsed) {
+        throw new TypeError("Response body is already used");
+      }
+      this.bodyUsed = true;
+      return this._body;
+    }
+  }
+
+  BaseExecutor.prototype.execute = async () => ({
+    response: new WeirdResponse(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    }),
+    url: "https://api.githubcopilot.com/chat/completions",
+  });
+
+  try {
+    const result = await executor.execute({
+      model: "gemini-3.1-pro-preview",
+      body: { messages: [{ role: "user", content: "Ping" }], stream: false },
+      stream: false,
+      credentials: {
+        accessToken: "ghu_test",
+        providerSpecificData: {
+          copilotToken: "copilot_test",
+        },
+      },
+    });
+
+    assert.equal(result.response.constructor.name, "Response");
+    assert.equal(await result.response.text(), JSON.stringify({ ok: true }));
+  } finally {
+    BaseExecutor.prototype.execute = originalExecute;
+  }
+});
+
+test("T27: needsRefresh respects providerSpecificData copilot token metadata", () => {
+  const executor = new GithubExecutor();
+  const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+
+  assert.equal(
+    executor.needsRefresh({
+      accessToken: "ghu_test",
+      providerSpecificData: {
+        copilotToken: "copilot_test",
+        copilotTokenExpiresAt: expiresAt,
+      },
+    }),
+    false
+  );
 });

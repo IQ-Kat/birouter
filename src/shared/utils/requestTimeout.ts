@@ -57,7 +57,11 @@ export async function fetchWithTimeout(url: string, options: RequestInit & Timeo
  * @returns {Promise<T>}
  * @throws {Error} With name 'TimeoutError' if operation times out
  */
-export async function withTimeout<T>(fn: () => Promise<T>, timeoutMs: number, label = "Operation"): Promise<T> {
+export async function withTimeout<T>(
+  fn: () => Promise<T>,
+  timeoutMs: number,
+  label = "Operation"
+): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       const error: any = new Error(`${label} timed out after ${timeoutMs}ms`);

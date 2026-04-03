@@ -27,6 +27,23 @@ Phase 2 (post-merge): tag → publish → GitHub release → Docker → deploy
 
 ---
 
+## Phase 0: Security Verification (MANDATORY)
+
+Before creating the release, you must ensure the codebase and supply chain are secure and free of known vulnerabilities.
+
+1. **Run Local Dependencies Audit:**
+
+   ```bash
+   npm audit
+   ```
+
+   _Fix any `high` or `critical` vulnerabilities identified._
+
+2. **Check GitHub CodeQL & Dependabot Alerts:**
+   Navigate to the repository's **Security** tab on GitHub, or use the project's `vulnerability-scanner` skill to analyze active alerts. Ensure all static analysis findings (e.g., prototype pollution, insecure randomness, ReDoS, shell injections) are addressed and logically committed on a target branch.
+
+---
+
 ## Phase 1: Pre-Merge
 
 ### 1. Create release branch

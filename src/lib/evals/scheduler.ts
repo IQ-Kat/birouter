@@ -46,9 +46,7 @@ let _outputProvider: ((suiteId: string, caseId: string) => Promise<string>) | nu
  *
  * @param fn - Async function(suiteId, caseId) → actual output string
  */
-export function setOutputProvider(
-  fn: (suiteId: string, caseId: string) => Promise<string>
-): void {
+export function setOutputProvider(fn: (suiteId: string, caseId: string) => Promise<string>): void {
   _outputProvider = fn;
 }
 
@@ -87,9 +85,7 @@ export function schedule(suiteId: string, intervalMs: number): ScheduledEval {
 
   _timers.set(suiteId, timer);
 
-  console.log(
-    `[EvalScheduler] Scheduled "${suiteId}" every ${Math.round(safeInterval / 1000)}s`
-  );
+  console.log(`[EvalScheduler] Scheduled "${suiteId}" every ${Math.round(safeInterval / 1000)}s`);
 
   return entry;
 }

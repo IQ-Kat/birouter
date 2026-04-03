@@ -81,16 +81,12 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   // ─── Convenience Methods ─────────────────
 
-  success: (message, title) =>
-    get().addNotification({ type: "success", message, title }),
+  success: (message, title) => get().addNotification({ type: "success", message, title }),
 
   error: (message, title) =>
     get().addNotification({ type: "error", message, title, duration: 8000 }),
 
-  warning: (message, title) =>
-    get().addNotification({ type: "warning", message, title }),
+  warning: (message, title) => get().addNotification({ type: "warning", message, title }),
 
-  info: (message, title) =>
-    get().addNotification({ type: "info", message, title }),
+  info: (message, title) => get().addNotification({ type: "info", message, title }),
 }));
-

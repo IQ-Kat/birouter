@@ -39,7 +39,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  const { title, provider, accountId, requestId, errorCode, details, labels = [] } = validation.data;
+  const {
+    title,
+    provider,
+    accountId,
+    requestId,
+    errorCode,
+    details,
+    labels = [],
+  } = validation.data;
 
   const repo = process.env.GITHUB_ISSUES_REPO;
   const token = process.env.GITHUB_ISSUES_TOKEN;

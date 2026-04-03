@@ -55,7 +55,11 @@ export async function handleVideoGeneration({ body, credentials, log }) {
     return handleSDWebUIVideoGeneration({ model, provider, providerConfig, body, log });
   }
 
-  return { success: false, status: 400, error: `Unsupported video format: ${providerConfig.format}` };
+  return {
+    success: false,
+    status: 400,
+    error: `Unsupported video format: ${providerConfig.format}`,
+  };
 }
 
 /**
@@ -119,7 +123,10 @@ async function handleComfyUIVideoGeneration({ model, provider, providerConfig, b
 
   if (log) {
     const promptPreview = String(body.prompt ?? "").slice(0, 60);
-    log.info("VIDEO", `${provider}/${model} (comfyui) | prompt: "${promptPreview}..." | frames: ${frames}`);
+    log.info(
+      "VIDEO",
+      `${provider}/${model} (comfyui) | prompt: "${promptPreview}..." | frames: ${frames}`
+    );
   }
 
   try {
@@ -202,7 +209,8 @@ async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, b
 
     if (!response.ok) {
       const errorText = await response.text();
-      if (log) log.error("VIDEO", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
+      if (log)
+        log.error("VIDEO", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
       saveCallLog({
         method: "POST",
         path: "/v1/videos/generations",

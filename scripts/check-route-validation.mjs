@@ -51,7 +51,9 @@ for (const fullPath of routeFiles) {
 }
 
 if (missingValidation.length > 0) {
-  console.error("[t06:route-validation] FAIL - routes with request.json() without validateBody() or .safeParse():");
+  console.error(
+    "[t06:route-validation] FAIL - routes with request.json() without validateBody() or .safeParse():"
+  );
   for (const file of missingValidation) {
     console.error(`  - ${file}`);
   }

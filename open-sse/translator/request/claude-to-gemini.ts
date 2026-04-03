@@ -92,9 +92,6 @@ export function claudeToGeminiRequest(model, body, stream) {
               break;
 
             case "tool_use":
-              // Do NOT include thoughtSignature on functionCall parts — it is only valid
-              // on thinking/reasoning parts and causes HTTP 400 "invalid argument" from the
-              // Gemini API when present on a functionCall part.
               parts.push({
                 functionCall: {
                   id: block.id,
@@ -148,19 +145,20 @@ export function claudeToGeminiRequest(model, body, stream) {
         // Map Claude roles to Gemini roles
         const geminiRole = msg.role === "assistant" ? "model" : "user";
 
-        // Gemini 3+ requires thoughtSignature as a sibling part in model content
-        // that contains functionCall parts. Inject if not already present from
-        // a thinking block. (#927)
+        // Gemini 3+ expects the signature on the first functionCall part in a tool-call
+        // batch. If the assistant turn had no explicit thinking block, inject a fallback
+        // signature into that first functionCall. (#927)
         if (geminiRole === "model") {
           const hasFunctionCall = parts.some((p) => p.functionCall);
           const hasSignature = parts.some((p) => p.thoughtSignature);
           if (hasFunctionCall && !hasSignature) {
-            // Insert before the first functionCall part
             const fcIndex = parts.findIndex((p) => p.functionCall);
-            parts.splice(fcIndex, 0, {
-              thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
-              text: "",
-            });
+            if (fcIndex >= 0) {
+              parts[fcIndex] = {
+                ...parts[fcIndex],
+                thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
+              };
+            }
           }
         }
 

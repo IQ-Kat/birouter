@@ -21,7 +21,10 @@ const DEFAULT_INTERVAL_MS = 2000;
  * @param {AbortSignal} [options.signal] - Abort signal for cancellation
  * @returns {TransformStream}
  */
-export function createProgressTransform({ intervalMs = DEFAULT_INTERVAL_MS, signal }: { intervalMs?: number; signal?: AbortSignal } = {}) {
+export function createProgressTransform({
+  intervalMs = DEFAULT_INTERVAL_MS,
+  signal,
+}: { intervalMs?: number; signal?: AbortSignal } = {}) {
   let tokenCount = 0;
   let startTime = Date.now();
   let intervalId;

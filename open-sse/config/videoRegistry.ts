@@ -40,9 +40,7 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authType: "none",
     authHeader: "none",
     format: "sdwebui-video",
-    models: [
-      { id: "animatediff-webui", name: "AnimateDiff (WebUI)" },
-    ],
+    models: [{ id: "animatediff-webui", name: "AnimateDiff (WebUI)" }],
   },
 };
 

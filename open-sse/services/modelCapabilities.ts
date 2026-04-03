@@ -83,10 +83,9 @@ export function supportsReasoning(modelStr: string): boolean {
   const normalized = String(modelStr || "").toLowerCase();
   if (!normalized) return true;
 
-  const blocked = REASONING_UNSUPPORTED_PATTERNS.some((pattern) =>
-    normalized === pattern ||
-    normalized.endsWith(`/${pattern}`) ||
-    normalized.includes(pattern)
+  const blocked = REASONING_UNSUPPORTED_PATTERNS.some(
+    (pattern) =>
+      normalized === pattern || normalized.endsWith(`/${pattern}`) || normalized.includes(pattern)
   );
 
   return !blocked;
