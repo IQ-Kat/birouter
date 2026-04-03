@@ -12,6 +12,9 @@ export default function ProxyTab() {
   const t = useTranslations("settings");
   const tc = useTranslations("common");
   const [debugMode, setDebugMode] = useState(false);
+  const [usageTokenBuffer, setUsageTokenBuffer] = useState<number | null>(null);
+  const [bufferInput, setBufferInput] = useState("");
+  const [bufferSaving, setBufferSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadGlobalProxy = async () => {
@@ -36,6 +39,26 @@ export default function ProxyTab() {
       }
     } catch (err) {
       console.error("Failed to update debugMode:", err);
+    }
+  };
+
+  const updateUsageTokenBuffer = async () => {
+    const val = parseInt(bufferInput, 10);
+    if (isNaN(val) || val < 0 || val > 50000) return;
+    setBufferSaving(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usageTokenBuffer: val }),
+      });
+      if (res.ok) {
+        setUsageTokenBuffer(val);
+      }
+    } catch (err) {
+      console.error("Failed to update usageTokenBuffer:", err);
+    } finally {
+      setBufferSaving(false);
     }
   };
 
@@ -65,6 +88,9 @@ export default function ProxyTab() {
       })
       .then((data) => {
         setDebugMode(data.debugMode === true);
+        const buf = typeof data.usageTokenBuffer === "number" ? data.usageTokenBuffer : 2000;
+        setUsageTokenBuffer(buf);
+        setBufferInput(String(buf));
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -118,6 +144,49 @@ export default function ProxyTab() {
               onChange={() => updateDebugMode(!debugMode)}
               disabled={loading}
             />
+          </div>
+        </Card>
+        <Card className="p-6 mt-4">
+          <div className="flex flex-col gap-3">
+            <div>
+              <p className="font-medium">Usage Token Buffer</p>
+              <p className="text-sm text-text-muted mt-1">
+                Extra tokens added to reported usage to account for system prompt overhead. Set to 0
+                to report raw provider token counts. Default: 2000. Changes take effect within 30
+                seconds.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min={0}
+                max={50000}
+                value={bufferInput}
+                onChange={(e) => setBufferInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") updateUsageTokenBuffer();
+                }}
+                className="w-32 px-3 py-1.5 rounded bg-surface-2 border border-border text-sm text-text-primary"
+                disabled={loading}
+              />
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={updateUsageTokenBuffer}
+                disabled={
+                  bufferSaving ||
+                  loading ||
+                  parseInt(bufferInput, 10) === usageTokenBuffer
+                }
+              >
+                {bufferSaving ? tc("saving") : tc("save")}
+              </Button>
+              {usageTokenBuffer !== null && parseInt(bufferInput, 10) !== usageTokenBuffer && (
+                <span className="text-xs text-text-muted">
+                  Current: {usageTokenBuffer}
+                </span>
+              )}
+            </div>
           </div>
         </Card>
       </div>

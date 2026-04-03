@@ -53,6 +53,9 @@ export const updateSettingsSchema = z.object({
   alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
   // Adaptive Volume Routing
   adaptiveVolumeRouting: z.boolean().optional(),
+  // Usage token buffer — safety margin added to reported prompt/input token counts.
+  // Prevents CLI tools from overrunning context windows. Set to 0 to disable.
+  usageTokenBuffer: z.number().int().min(0).max(50000).optional(),
   // Custom CLI agent definitions for ACP
   customAgents: z
     .array(
