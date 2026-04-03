@@ -7,7 +7,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card } from "@/shared/components";
+import { Card, Button } from "@/shared/components";
+import AutoComboModal from "./AutoComboModal";
+import { useNotificationStore } from "@/store/notificationStore";
 
 interface ProviderScore {
   provider: string;
@@ -44,21 +46,25 @@ export default function AutoComboDashboard() {
   const [incidentMode, setIncidentMode] = useState(false);
   const [modePack, setModePack] = useState("ship-fast");
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [combosRes, healthRes] = await Promise.allSettled([
-        fetch("/api/combos/auto"),
-        fetch("/api/monitoring/health"),
-      ]);
+  const notify = useNotificationStore();
+  const [combos, setCombos] = useState<any[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingCombo, setEditingCombo] = useState<any | null>(null);
+  const [activeProviders, setActiveProviders] = useState<any[]>([]);
 
-      if (combosRes.status === "fulfilled") {
-        const comboPayload = await combosRes.value.json();
-        const combos = Array.isArray(comboPayload?.combos)
-          ? (comboPayload.combos as AutoComboRecord[])
-          : [];
-        const firstCombo = combos[0] || null;
-        const candidatePool = Array.isArray(firstCombo?.candidatePool)
-          ? firstCombo.candidatePool.filter((entry): entry is string => typeof entry === "string")
+  const fetchCombos = useCallback(async () => {
+    try {
+      const res = await fetch("/api/combos");
+      if (res.ok) {
+        const payload = await res.json();
+        const allCombos = Array.isArray(payload?.combos) ? payload.combos : [];
+        const auto = allCombos.filter((c: any) => c.strategy === "auto" || c.strategy === "lkgp");
+        setCombos(auto);
+
+        // Refresh scores based on first auto combo found
+        const firstCombo = auto[0] || null;
+        const candidatePool = Array.isArray(firstCombo?.config?.candidatePool)
+          ? firstCombo.config.candidatePool
           : [];
         const rawWeights =
           firstCombo?.weights &&
@@ -81,9 +87,16 @@ export default function AutoComboDashboard() {
       } else {
         setScores([]);
       }
+    } catch {
+      setScores([]);
+    }
+  }, []);
 
-      if (healthRes.status === "fulfilled") {
-        const health = (await healthRes.value.json()) as HealthRecord;
+  const fetchHealth = useCallback(async () => {
+    try {
+      const healthRes = await fetch("/api/monitoring/health");
+      if (healthRes.ok) {
+        const health = (await healthRes.json()) as HealthRecord;
         const providerHealth =
           health?.providerHealth && typeof health.providerHealth === "object"
             ? health.providerHealth
@@ -126,6 +139,23 @@ export default function AutoComboDashboard() {
     }
   }, []);
 
+  const fetchData = useCallback(async () => {
+    await Promise.all([fetchCombos(), fetchHealth()]);
+
+    // Fetch active providers for the Modal
+    try {
+      const pRes = await fetch("/api/providers");
+      if (pRes.ok) {
+        const pData = await pRes.json();
+        setActiveProviders(
+          (pData.connections || []).filter(
+            (c: any) => c.testStatus === "active" || c.testStatus === "success"
+          )
+        );
+      }
+    } catch {}
+  }, [fetchCombos, fetchHealth]);
+
   useEffect(() => {
     const id = setTimeout(fetchData, 0);
     const interval = setInterval(fetchData, 30_000);
@@ -134,6 +164,59 @@ export default function AutoComboDashboard() {
       clearInterval(interval);
     };
   }, [fetchData]);
+
+  const handleCreate = async (data: any) => {
+    try {
+      const res = await fetch("/api/combos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        await fetchCombos();
+        setShowCreateModal(false);
+        notify.success("Auto-Combo created successfully");
+      } else {
+        const err = await res.json();
+        notify.error(err.error?.message || err.error || "Failed to create combo");
+      }
+    } catch {
+      notify.error("Error creating combo");
+    }
+  };
+
+  const handleUpdate = async (id: string, data: any) => {
+    try {
+      const res = await fetch(`/api/combos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        await fetchCombos();
+        setEditingCombo(null);
+        notify.success("Auto-Combo updated");
+      } else {
+        const err = await res.json();
+        notify.error("Failed to update: " + (err.error?.message || err.error));
+      }
+    } catch {
+      notify.error("Error updating combo");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this auto-combo?")) return;
+    try {
+      const res = await fetch(`/api/combos/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setCombos(combos.filter((c) => c.id !== id));
+        notify.success("Auto-combo deleted");
+      }
+    } catch {
+      notify.error("Error deleting combo");
+    }
+  };
 
   const FACTOR_LABELS: Record<string, string> = {
     quota: "📊 Quota",
@@ -154,14 +237,73 @@ export default function AutoComboDashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-semibold">⚡ Auto-Combo Engine</h1>
           <p className="text-sm text-text-muted mt-1">
             Smart routing automatically adapting to latency, health, and throughput
           </p>
         </div>
+        <Button icon="add" onClick={() => setShowCreateModal(true)}>
+          Create Auto-Combo
+        </Button>
       </div>
+
+      {/* ──── CRUD Auto Combos List ──── */}
+      {combos.length > 0 && (
+        <Card className="mb-2">
+          <h2 className="text-lg font-semibold mb-4">Configured Auto-Combos</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {combos.map((combo) => (
+              <div
+                key={combo.id}
+                className="p-4 border rounded-lg bg-surface flex justify-between items-center"
+              >
+                <div>
+                  <h3 className="font-semibold text-text-main flex items-center gap-2">
+                    {combo.name}
+                    <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500">
+                      {combo.strategy}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-text-muted mt-1">
+                    Pool: {combo.config?.candidatePool?.length || "All"} APIs | Pack:{" "}
+                    {combo.config?.modePack || "fast"}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => setEditingCombo(combo)}>
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(combo.id)}>
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Forms */}
+      {showCreateModal && (
+        <AutoComboModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSave={handleCreate}
+          activeProviders={activeProviders}
+          combo={null}
+        />
+      )}
+      {editingCombo && (
+        <AutoComboModal
+          isOpen={!!editingCombo}
+          onClose={() => setEditingCombo(null)}
+          onSave={(data: any) => handleUpdate(editingCombo.id, data)}
+          activeProviders={activeProviders}
+          combo={editingCombo}
+        />
+      )}
 
       <Card>
         <div className="flex flex-col md:flex-row gap-6">
@@ -242,8 +384,7 @@ export default function AutoComboDashboard() {
 
           {scores.length === 0 ? (
             <p className="text-sm text-text-muted py-4">
-              No auto-combo configured or data loading... Create one via{" "}
-              <code>POST /api/combos/auto</code>.
+              No auto-combo configured... Create one to see live provider scores.
             </p>
           ) : (
             <div className="space-y-3">

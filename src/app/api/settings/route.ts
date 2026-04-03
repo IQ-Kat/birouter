@@ -115,6 +115,13 @@ export async function PATCH(request) {
         );
       }
     }
+    // Sync usage token buffer to runtime cache
+    if ("usageTokenBuffer" in body) {
+      const { invalidateBufferTokensCache } =
+        await import("@omniroute/open-sse/utils/usageTracking.ts");
+      invalidateBufferTokensCache();
+    }
+
     if (cpaFallback !== undefined || cpaUrl !== undefined) {
       const enabled =
         cpaFallback ?? (settings as Record<string, unknown>).cliproxyapi_fallback_enabled;

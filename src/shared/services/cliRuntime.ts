@@ -537,7 +537,19 @@ const locateCommand = async (command: string, env: Record<string, string | undef
   if (isWindows()) {
     const located = await runProcess("where", [command], { env, timeoutMs: 3000 });
     if (located.ok && located.stdout) {
-      return { installed: true, commandPath: command, reason: null };
+      // `where` may return multiple matches (e.g. `opencode` + `opencode.cmd`).
+      // npm global installs on Windows create both a Unix shell script (no extension)
+      // and a .cmd wrapper. We must prefer the Windows executable extension.
+      const lines = located.stdout
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      if (lines.length === 0) {
+        return { installed: false, commandPath: null, reason: "not_found" };
+      }
+      const winExt = /\.(cmd|exe|bat|com)$/i;
+      const preferred = lines.find((l) => winExt.test(l)) || lines[0];
+      return { installed: true, commandPath: preferred, reason: null };
     }
     return { installed: false, commandPath: null, reason: "not_found" };
   }

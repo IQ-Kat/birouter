@@ -26,54 +26,6 @@ _Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now wi
 
 ---
 
-## Breaking Change: Unified Logging Upgrade
-
-> [!WARNING]
-> **This release changes both the on-disk request log layout and the logging environment variables.**
->
-> If you are upgrading an existing instance:
->
-> - Request logs now live in `DATA_DIR/call_logs/YYYY-MM-DD/` as **one JSON artifact per request**.
-> - The old `DATA_DIR/logs/` session folders and `DATA_DIR/log.txt` summary file are removed.
-> - On the first startup after upgrading, OmniRoute creates a safety backup at `DATA_DIR/log_archives/*.zip` before removing the deprecated request log layout.
-> - Legacy logging env vars such as `LOG_TO_FILE`, `LOG_FILE_PATH`, `LOG_MAX_FILE_SIZE`, `LOG_RETENTION_DAYS`, `LOG_LEVEL`, `LOG_FORMAT`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE`, and `PROXY_LOG_MAX_ENTRIES` are no longer supported.
-> - Use the new env model instead:
->   - `APP_LOG_TO_FILE`
->   - `APP_LOG_FILE_PATH`
->   - `APP_LOG_MAX_FILE_SIZE`
->   - `APP_LOG_RETENTION_DAYS`
->   - `APP_LOG_MAX_FILES`
->   - `APP_LOG_LEVEL`
->   - `APP_LOG_FORMAT`
->   - `CALL_LOG_RETENTION_DAYS`
->   - `CALL_LOG_MAX_ENTRIES`
->
-> For release details and upgrade notes, see the [CHANGELOG](CHANGELOG.md).
-
----
-
-## 🆕 What's New
-
-> **Upgrading from v2.9.5?** — See the [full CHANGELOG](CHANGELOG.md#300--2026-03-22-release-candidate--not-yet-merged-to-main) for all changes.
-
-| Area                         | Change                                                                                                                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔒 **CodeQL Security**       | Fixed 10+ CodeQL alerts: polynomial-redos, insecure-randomness, shell-injection remediation                                                                               |
-| ✅ **Route Validation**      | All 176 API routes now validated with Zod schemas + `validateBody()` — CI `check:route-validation:t06` passes                                                             |
-| 🐛 **omniModel Tag Leak**    | Internal `<omniModel>` tags no longer leak to clients in SSE streaming responses (#585)                                                                                   |
-| 🔑 **Registered Keys API**   | Auto-provision API keys via `POST /api/v1/registered-keys` with per-provider/account quota enforcement, idempotency, SHA-256 storage, and optional GitHub issue reporting |
-| 🎨 **Provider Icons**        | 130+ provider logos via `@lobehub/icons` (SVG) with PNG → generic fallback chain                                                                                          |
-| 🔄 **Model Auto-Sync**       | 24h scheduler and manual UI toggle to sync model lists for built-in and custom OpenAI-compatible providers                                                                |
-| 🌐 **OpenCode Zen/Go**       | Two new providers from @kang-heewon via PR #530: free tier + subscription tier via `OpencodeExecutor`                                                                     |
-| 🐛 **Gemini CLI OAuth**      | Actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker (was cryptic Google error)                                                                        |
-| 🐛 **OpenCode config**       | `saveOpenCodeConfig()` now correctly writes TOML to `XDG_CONFIG_HOME`                                                                                                     |
-| 🐛 **Pinned model override** | `body.model` correctly set to `pinnedModel` on context-cache protection                                                                                                   |
-| 🐛 **Codex/Claude loop**     | `tool_result` blocks now converted to text to stop infinite loops                                                                                                         |
-| 🐛 **Login redirect**        | Login no longer freezes after skipping password setup                                                                                                                     |
-| 🐛 **Windows paths**         | MSYS2/Git-Bash paths (`/c/...`) normalized to `C:\...` automatically                                                                                                      |
-
----
-
 ## 🖼️ Main Dashboard
 
 <div align="center">

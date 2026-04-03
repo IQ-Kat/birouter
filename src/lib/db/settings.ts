@@ -273,6 +273,11 @@ export async function setLKGP(comboName: string, modelId: string, providerId: st
   );
 }
 
+export function clearAllLKGP(): void {
+  const db = getDbInstance();
+  db.prepare("DELETE FROM key_value WHERE namespace = 'lkgp'").run();
+}
+
 // ──────────────── Proxy Config ────────────────
 
 const DEFAULT_PROXY_CONFIG: ProxyConfig = { global: null, providers: {}, combos: {}, keys: {} };

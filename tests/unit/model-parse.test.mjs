@@ -20,3 +20,10 @@ test("[1m] suffix: works with provider prefix", () => {
   assert.strictEqual(result.model, "claude-sonnet-4-6");
   assert.strictEqual(result.extendedContext, true);
 });
+
+test("parseModel trims provider prefix and model id", () => {
+  const result = parseModel("  cx / gpt-5.4  ");
+  assert.strictEqual(result.providerAlias, "cx");
+  assert.strictEqual(result.provider, "codex");
+  assert.strictEqual(result.model, "gpt-5.4");
+});

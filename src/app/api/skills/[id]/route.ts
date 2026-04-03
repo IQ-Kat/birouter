@@ -8,6 +8,20 @@ const updateSkillSchema = z.object({
   enabled: z.boolean(),
 });
 
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await props.params;
+    const deleted = await skillRegistry.unregisterById(id);
+    if (!deleted) {
+      return NextResponse.json({ error: "Skill not found" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error }, { status: 500 });
+  }
+}
+
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params;

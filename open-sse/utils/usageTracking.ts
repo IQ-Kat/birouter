@@ -23,10 +23,74 @@ export const COLORS = {
 
 /**
  * Safety buffer added to reported token usage to prevent clients from hitting
- * context window limits. 2000 tokens accounts for overhead from system prompts,
+ * context window limits. Accounts for overhead from system prompts,
  * tool definitions, and format translation that may not be reflected in raw usage.
+ *
+ * Configurable via:
+ *   - Settings API / Dashboard: `usageTokenBuffer` (persisted in DB)
+ *   - Environment variable: `USAGE_TOKEN_BUFFER`
+ *   - Defaults to 2000 if neither is set
+ *
+ * Set to 0 to disable the buffer entirely (raw provider token counts).
  */
-const BUFFER_TOKENS = 2000;
+const DEFAULT_BUFFER_TOKENS = 2000;
+
+let _cachedBuffer: number | null = null;
+let _cacheTimestamp = 0;
+const CACHE_TTL_MS = 30_000; // Re-read from DB/env every 30s
+
+function getBufferTokens(): number {
+  const now = Date.now();
+  const isExpired = _cachedBuffer !== null && now - _cacheTimestamp >= CACHE_TTL_MS;
+
+  if (_cachedBuffer !== null && !isExpired) {
+    return _cachedBuffer;
+  }
+
+  // Priority: env var > cached DB value > default
+  const envVal = process.env.USAGE_TOKEN_BUFFER;
+  if (envVal !== undefined) {
+    const parsed = parseInt(envVal, 10);
+    if (!isNaN(parsed) && parsed >= 0) {
+      _cachedBuffer = parsed;
+      _cacheTimestamp = now;
+      return parsed;
+    }
+  }
+
+  // Return cached value or default; kick off async DB read to update cache.
+  // On first call (_cachedBuffer is null), use the default.
+  // On TTL expiry (_cachedBuffer is stale), continue returning the stale value
+  // while refreshing asynchronously — prevents blocking the hot path.
+  if (_cachedBuffer === null || isExpired) {
+    if (_cachedBuffer === null) {
+      _cachedBuffer = DEFAULT_BUFFER_TOKENS;
+    }
+    _cacheTimestamp = now;
+    _loadBufferFromDb();
+  }
+  return _cachedBuffer;
+}
+
+async function _loadBufferFromDb(): Promise<void> {
+  try {
+    const { getSettings } = await import("@/lib/db/settings");
+    const settings = await getSettings();
+    const val = settings.usageTokenBuffer;
+    if (typeof val === "number" && val >= 0) {
+      _cachedBuffer = val;
+      _cacheTimestamp = Date.now();
+    }
+  } catch {
+    // DB not ready yet or settings unavailable — keep current value
+  }
+}
+
+/** Force-refresh the buffer from settings (e.g. after a settings update). */
+export function invalidateBufferTokensCache(): void {
+  _cachedBuffer = null;
+  _cacheTimestamp = 0;
+}
 
 // Get HH:MM:SS timestamp
 function getTimeString() {
@@ -46,21 +110,24 @@ function getTimeString() {
 export function addBufferToUsage(usage) {
   if (!usage || typeof usage !== "object") return usage;
 
+  const buffer = getBufferTokens();
+  if (buffer === 0) return usage;
+
   const result = { ...usage };
 
   // Claude format
   if (result.input_tokens !== undefined) {
-    result.input_tokens += BUFFER_TOKENS;
+    result.input_tokens += buffer;
   }
 
   // OpenAI format
   if (result.prompt_tokens !== undefined) {
-    result.prompt_tokens += BUFFER_TOKENS;
+    result.prompt_tokens += buffer;
   }
 
   // Calculate or update total_tokens
   if (result.total_tokens !== undefined) {
-    result.total_tokens += BUFFER_TOKENS;
+    result.total_tokens += buffer;
   } else if (result.prompt_tokens !== undefined && result.completion_tokens !== undefined) {
     // Calculate total_tokens if not exists
     result.total_tokens = result.prompt_tokens + result.completion_tokens;

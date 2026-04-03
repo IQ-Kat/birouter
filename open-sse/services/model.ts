@@ -105,12 +105,13 @@ export function parseModel(modelStr) {
     extendedContext = true;
     cleanStr = cleanStr.slice(0, -4);
   }
+  cleanStr = cleanStr.trim();
 
   // Check if standard format: provider/model or alias/model
   if (cleanStr.includes("/")) {
     const firstSlash = cleanStr.indexOf("/");
-    const providerOrAlias = cleanStr.slice(0, firstSlash);
-    const model = cleanStr.slice(firstSlash + 1);
+    const providerOrAlias = cleanStr.slice(0, firstSlash).trim();
+    const model = cleanStr.slice(firstSlash + 1).trim();
     const provider = resolveProviderAlias(providerOrAlias);
     return { provider, model, isAlias: false, providerAlias: providerOrAlias, extendedContext };
   }

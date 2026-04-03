@@ -17,6 +17,7 @@ export interface RoutingContext {
   requestHasVision?: boolean;
   estimatedInputTokens?: number;
   lastKnownGoodProvider?: string;
+  lkgpEnabled?: boolean;
 }
 
 export interface RoutingDecision {
@@ -124,6 +125,10 @@ class LKGPStrategyImpl implements RouterStrategy {
   readonly description = "Tries last known good provider first, then falls back to rules";
 
   select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
+    if (context.lkgpEnabled === false) {
+      return getStrategy("rules").select(pool, context);
+    }
+
     if (context.lastKnownGoodProvider) {
       const best = pool.find(
         (c) => c.provider === context.lastKnownGoodProvider && c.circuitBreakerState !== "OPEN"

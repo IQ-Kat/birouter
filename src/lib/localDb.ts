@@ -129,6 +129,7 @@ export {
   getProxyWhereUsed,
   assignProxyToScope,
   resolveProxyForConnectionFromRegistry,
+  resolveProxyForProvider,
   migrateLegacyProxyConfigToRegistry,
   getProxyHealthStats,
   bulkAssignProxyToScope,
@@ -158,6 +159,8 @@ export {
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
+  getCachedLKGP,
+  setCachedLKGP,
   invalidateDbCache,
 } from "./db/readCache";
 

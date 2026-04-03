@@ -173,35 +173,6 @@ export function selectProvider(
   };
 }
 
-// ============ In-Memory Auto-Combo Registry ============
-
-const autoCombos = new Map<string, AutoComboConfig>();
-
-export function createAutoCombo(config: Omit<AutoComboConfig, "type">): AutoComboConfig {
-  const full: AutoComboConfig = { ...config, type: "auto" };
-  autoCombos.set(config.id, full);
-  return full;
-}
-
-export function getAutoCombo(id: string): AutoComboConfig | undefined {
-  return autoCombos.get(id);
-}
-
-export function updateAutoCombo(
-  id: string,
-  update: Partial<AutoComboConfig>
-): AutoComboConfig | undefined {
-  const existing = autoCombos.get(id);
-  if (!existing) return undefined;
-  const updated = { ...existing, ...update, id, type: "auto" as const };
-  autoCombos.set(id, updated);
-  return updated;
-}
-
-export function deleteAutoCombo(id: string): boolean {
-  return autoCombos.delete(id);
-}
-
-export function listAutoCombos(): AutoComboConfig[] {
-  return [...autoCombos.values()];
-}
+// ============ Auto-Combo Config Schema Reference ============
+// Note: AutoCombos are now persisted natively in the SQLite DB via src/lib/db/combos.ts
+// using the combo.strategy = "auto" | "lkgp" type, with parameters nested inside combo.config

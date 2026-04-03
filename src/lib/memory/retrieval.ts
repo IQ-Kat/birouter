@@ -21,13 +21,17 @@ export async function retrieveMemories(
   const normalizedConfig = MemoryConfigSchema.parse({
     enabled: true,
     maxTokens: 2000,
-    retrievalStrategy: "recent",
+    retrievalStrategy: "exact",
     autoSummarize: false,
     persistAcrossModels: false,
     retentionDays: 30,
     scope: "apiKey",
     ...config,
   });
+
+  if (!normalizedConfig.enabled || normalizedConfig.maxTokens <= 0) {
+    return [];
+  }
 
   const maxTokens = Math.min(Math.max(normalizedConfig.maxTokens, 100), 8000);
   const strategy = normalizedConfig.retrievalStrategy;
@@ -37,8 +41,17 @@ export async function retrieveMemories(
   let totalTokens = 0;
 
   // Build base query
-  let query = "SELECT * FROM memory WHERE apiKeyId = ?";
+  let query =
+    "SELECT * FROM memory WHERE apiKeyId = ? AND (expiresAt IS NULL OR datetime(expiresAt) > datetime('now'))";
   const params: any[] = [apiKeyId];
+
+  if (normalizedConfig.retentionDays > 0) {
+    const cutoff = new Date(
+      Date.now() - normalizedConfig.retentionDays * 24 * 60 * 60 * 1000
+    ).toISOString();
+    query += " AND datetime(createdAt) >= datetime(?)";
+    params.push(cutoff);
+  }
 
   // Add ordering based on strategy
   switch (strategy) {
@@ -71,7 +84,13 @@ export async function retrieveMemories(
       type: (row as any).type as MemoryType,
       key: String((row as any).key),
       content: String((row as any).content),
-      metadata: JSON.parse(String((row as any).metadata)),
+      metadata: (() => {
+        try {
+          return JSON.parse(String((row as any).metadata));
+        } catch {
+          return {};
+        }
+      })(),
       createdAt: new Date(String((row as any).createdAt)),
       updatedAt: new Date(String((row as any).updatedAt)),
       expiresAt: (row as any).expiresAt ? new Date(String((row as any).expiresAt)) : null,

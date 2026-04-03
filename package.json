@@ -1,6 +1,6 @@
 {
   "name": "omniroute",
-  "version": "3.4.9",
+  "version": "3.5.0",
   "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
   "type": "module",
   "bin": {
@@ -56,11 +56,11 @@
     "electron:build:win": "npm run build && cd electron && npm run build:win",
     "electron:build:mac": "npm run build && cd electron && npm run build:mac",
     "electron:build:linux": "npm run build && cd electron && npm run build:linux",
-    "test": "node --import tsx/esm --test tests/unit/*.test.mjs",
-    "test:unit": "node --import tsx/esm --test tests/unit/*.test.mjs",
-    "test:plan3": "node --import tsx/esm --test tests/unit/plan3-p0.test.mjs",
-    "test:fixes": "node --import tsx/esm --test tests/unit/fixes-p1.test.mjs",
-    "test:security": "node --import tsx/esm --test tests/unit/security-fase01.test.mjs",
+    "test": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test tests/unit/*.test.mjs",
+    "test:unit": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test tests/unit/*.test.mjs",
+    "test:plan3": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test tests/unit/plan3-p0.test.mjs",
+    "test:fixes": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test tests/unit/fixes-p1.test.mjs",
+    "test:security": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test tests/unit/security-fase01.test.mjs",
     "check:cycles": "node scripts/check-cycles.mjs",
     "check:route-validation:t06": "node scripts/check-route-validation.mjs",
     "check:any-budget:t11": "node scripts/check-t11-any-budget.mjs",
@@ -70,7 +70,7 @@
     "test:integration": "node --import tsx/esm --test tests/integration/*.test.mjs",
     "test:e2e": "node scripts/run-playwright-tests.mjs test tests/e2e/*.spec.ts",
     "test:protocols:e2e": "node scripts/run-protocol-clients-tests.mjs",
-    "test:vitest": "vitest run open-sse/mcp-server/__tests__/*.test.ts open-sse/services/autoCombo/__tests__/*.test.ts",
+    "test:vitest": "vitest run --config vitest.mcp.config.ts",
     "test:ecosystem": "node scripts/run-ecosystem-tests.mjs",
     "test:coverage": "c8 --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 55 --lines 55 --functions 55 --branches 60 node --import tsx/esm --test tests/unit/*.test.mjs",
     "test:coverage:legacy": "c8 --exclude=open-sse --check-coverage --lines 50 --functions 50 --branches 50 node --import tsx/esm --test tests/unit/*.test.mjs",
@@ -147,7 +147,7 @@
     "tailwindcss": "^4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.0",
-    "vitest": "^4.0.18",
+    "vitest": "^4.1.2",
     "wait-on": "^9.0.4"
   },
   "lint-staged": {

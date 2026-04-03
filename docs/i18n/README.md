@@ -1,6 +1,6 @@
 # 🌐 Multilingual Documentation — 9router
 
-Translations of documentation into 30 languages. Code blocks remain in English.
+Translations of documentation into 32 languages. Code blocks remain in English.
 
 ---
 
@@ -13,7 +13,8 @@ Translations of documentation into 30 languages. Code blocks remain in English.
 - 🇯🇵 **日本語** (`ja`): [Docs Root](./ja/README.md)
 - 🇰🇷 **한국어** (`ko`): [Docs Root](./ko/README.md)
 - 🇸🇦 **العربية** (`ar`): [Docs Root](./ar/README.md)
-- 🇮🇳 **हिन्दी** (`in`): [Docs Root](./in/README.md)
+- 🇮🇳 **हिन्दी** (`hi`): [Docs Root](./hi/README.md)
+- 🇮🇳 **हिन्दी (IN)** (`in`): [Docs Root](./in/README.md)
 - 🇹🇭 **ไทย** (`th`): [Docs Root](./th/README.md)
 - 🇻🇳 **Tiếng Việt** (`vi`): [Docs Root](./vi/README.md)
 - 🇮🇩 **Bahasa Indonesia** (`id`): [Docs Root](./id/README.md)
@@ -34,3 +35,4 @@ Translations of documentation into 30 languages. Code blocks remain in English.
 - 🇵🇭 **Filipino** (`phi`): [Docs Root](./phi/README.md)
 - 🇧🇷 **Português (Brasil)** (`pt-BR`): [Docs Root](./pt-BR/README.md)
 - 🇨🇿 **Čeština** (`cs`): [Docs Root](./cs/README.md)
+- 🇹🇷 **Türkçe** (`tr`): [Docs Root](./tr/README.md)

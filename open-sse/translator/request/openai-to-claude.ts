@@ -2,6 +2,7 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { CLAUDE_SYSTEM_PROMPT } from "../../config/constants.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
+import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 
 // Prefix for Claude OAuth tool names to avoid conflicts
@@ -428,7 +429,12 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           // Tool name already has prefix from tool declarations, keep as-is
           // CRITICAL: Skip tool_use blocks with empty name (causes Claude 400 error)
           if (part.name && part.name.trim()) {
-            blocks.push({ type: "tool_use", id: part.id, name: part.name, input: part.input });
+            blocks.push({
+              type: "tool_use",
+              id: sanitizeToolId(part.id),
+              name: part.name,
+              input: part.input,
+            });
           }
         }
       }
@@ -450,7 +456,7 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           const toolName = disableToolPrefix ? fnName : CLAUDE_OAUTH_TOOL_PREFIX + fnName;
           blocks.push({
             type: "tool_use",
-            id: tc.id,
+            id: sanitizeToolId(tc.id),
             name: toolName,
             input: tryParseJSON(tc.function.arguments),
           });
