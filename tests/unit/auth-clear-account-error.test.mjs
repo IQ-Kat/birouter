@@ -56,3 +56,19 @@ test("clearAccountError clears stale provider error metadata after recovery", as
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.backoffLevel, 0);
 });
+
+test("getProviderCredentials resolves provider aliases to canonical DB records", async () => {
+  await resetStorage();
+
+  const created = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    email: "alias@example.com",
+    accessToken: "access",
+    refreshToken: "refresh",
+    testStatus: "active",
+  });
+
+  const credentials = await auth.getProviderCredentials("cx");
+  assert.equal(credentials.connectionId, created.id);
+});

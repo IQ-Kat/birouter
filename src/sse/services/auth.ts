@@ -23,6 +23,7 @@ import {
 } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
+import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
@@ -316,13 +317,17 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
  */
 function getProviderSearchPool(provider: string): string[] {
+  const canonicalProvider = resolveProviderId(provider);
+  const canonicalAlias = getProviderAlias(canonicalProvider);
+
   if (provider === "nvidia") {
     return ["nvidia", "nvidia_nim"];
   }
   if (provider === "nvidia_nim") {
     return ["nvidia_nim", "nvidia"];
   }
-  return [provider];
+
+  return Array.from(new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean)));
 }
 
 /**
