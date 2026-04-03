@@ -4,6 +4,27 @@
 
 ---
 
+## [3.4.7] — 2026-04-03
+
+### Features
+
+- Added `Cryptography` node to Monitoring and MCP health checks (#798)
+- Hardened model-catalog route permissions mapping (`/models`) (#781)
+
+### Bug Fixes
+
+- Fixed NPM-installed CLI tools healthcheck failures on Windows (#935)
+- Fixed payload translation dropping valid content due to invalid API fields (#927)
+- Fixed runtime crash in Node 25 regarding API key execution (#867)
+- Fixed MCP standalone module-resolution (`ERR_MODULE_NOT_FOUND`) via `esbuild` (#936)
+- Fixed NVIDIA NIM routing credential resolution alias mismatch (#931)
+
+### Security
+
+- Added safe strict input boundary protection against raw `shell: true` remote-code execution injections.
+
+---
+
 ## [3.4.6] - 2026-04-02
 
 ### ✨ New Features
