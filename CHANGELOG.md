@@ -4,6 +4,25 @@
 
 ---
 
+## [3.5.0] — 2026-04-03
+
+### Features & Refactoring
+
+- **System Proxies integration:** Implemented global proxy routing architecture mapped cleanly to external requests including token refreshes, sync events, and model fetches (#953).
+- **Settings & Analytics Framework:** Redesigned Settings persistence caching structure natively. Overhauled the Analytics Cache UI introducing robust metrics, cost ratios, and diversity heatmaps (#952).
+- **Auto-Combo LKGP Integration:** Exposed LKGP (Last Known Good Provider) toggle settings visually on the Routing dashboards per community request (#955).
+- **MCP Services Registration:** Officially exposed the `omniroute_web_search` component out of stealth into the local MCP capabilities manifest (#951).
+- **Marketplace Native Module:** Officially implemented the SkillsMP UI Marketplace for OmniSkill exploration (#955).
+- **Free-Tier UX Provider Tiers:** Shifted free provider sorting logically into OAuth umbrellas and improved display filters (#950).
+
+### Bug Fixes
+
+- **Memory Database Collisions:** Safely isolated 500 exceptions in the remote memory DB connections on multi-threaded restarts (#955).
+- **Claude Cache Stability:** Re-factored strict Cache Control sequence ordering structurally preserving accurate 5-minute ephemeral blocks mapped precisely for Anthropic compatible providers (#948).
+- **Cross-Component Upstream 400s:** Nullified positive `max_tokens` clipping enforcing exact bounds when forwarding structures across mismatched clients (#955).
+
+---
+
 ## [3.4.9] — 2026-04-03
 
 ### Features & Refactoring
