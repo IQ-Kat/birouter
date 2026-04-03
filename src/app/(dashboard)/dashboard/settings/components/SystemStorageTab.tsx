@@ -18,6 +18,10 @@ export default function SystemStorageTab() {
   const [importStatus, setImportStatus] = useState({ type: "", message: "" });
   const [confirmImport, setConfirmImport] = useState(false);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [clearCacheLoading, setClearCacheLoading] = useState(false);
+  const [clearCacheStatus, setClearCacheStatus] = useState({ type: "", message: "" });
+  const [purgeLogsLoading, setPurgeLogsLoading] = useState(false);
+  const [purgeLogsStatus, setPurgeLogsStatus] = useState({ type: "", message: "" });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const locale = useLocale();
   const t = useTranslations("settings");
@@ -462,6 +466,124 @@ export default function SystemStorageTab() {
           </div>
         </div>
       )}
+
+      {/* Maintenance */}
+      <div className="pt-3 border-t border-border/50 mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="material-symbols-outlined text-[18px] text-blue-500" aria-hidden="true">
+            build
+          </span>
+          <p className="font-medium">{t("maintenance") || "Maintenance"}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <Button
+            variant="outline"
+            size="sm"
+            loading={clearCacheLoading}
+            onClick={async () => {
+              setClearCacheLoading(true);
+              setClearCacheStatus({ type: "", message: "" });
+              try {
+                const res = await fetch("/api/cache", { method: "DELETE" });
+                const data = await res.json();
+                if (res.ok) {
+                  setClearCacheStatus({
+                    type: "success",
+                    message: t("cacheCleared") || "Cache cleared successfully",
+                  });
+                } else {
+                  setClearCacheStatus({
+                    type: "error",
+                    message: data.error || t("clearCacheFailed") || "Failed to clear cache",
+                  });
+                }
+              } catch {
+                setClearCacheStatus({ type: "error", message: t("errorOccurred") });
+              } finally {
+                setClearCacheLoading(false);
+              }
+            }}
+          >
+            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+              delete_sweep
+            </span>
+            {t("clearCache") || "Clear Cache"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            loading={purgeLogsLoading}
+            onClick={async () => {
+              setPurgeLogsLoading(true);
+              setPurgeLogsStatus({ type: "", message: "" });
+              try {
+                const res = await fetch("/api/settings/purge-logs", { method: "POST" });
+                const data = await res.json();
+                if (res.ok) {
+                  setPurgeLogsStatus({
+                    type: "success",
+                    message:
+                      t("logsDeleted", { count: data.deleted }) ||
+                      `Purged ${data.deleted} expired log(s)`,
+                  });
+                } else {
+                  setPurgeLogsStatus({
+                    type: "error",
+                    message: data.error || t("purgeLogsFailed") || "Failed to purge logs",
+                  });
+                }
+              } catch {
+                setPurgeLogsStatus({ type: "error", message: t("errorOccurred") });
+              } finally {
+                setPurgeLogsLoading(false);
+              }
+            }}
+          >
+            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+              auto_delete
+            </span>
+            {t("purgeExpiredLogs") || "Purge Expired Logs"}
+          </Button>
+        </div>
+        {(clearCacheStatus.message || purgeLogsStatus.message) && (
+          <div className="flex flex-col gap-2">
+            {clearCacheStatus.message && (
+              <div
+                className={`p-3 rounded-lg text-sm ${
+                  clearCacheStatus.type === "success"
+                    ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                    : "bg-red-500/10 text-red-500 border border-red-500/20"
+                }`}
+                role="alert"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                    {clearCacheStatus.type === "success" ? "check_circle" : "error"}
+                  </span>
+                  {clearCacheStatus.message}
+                </div>
+              </div>
+            )}
+            {purgeLogsStatus.message && (
+              <div
+                className={`p-3 rounded-lg text-sm ${
+                  purgeLogsStatus.type === "success"
+                    ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                    : "bg-red-500/10 text-red-500 border border-red-500/20"
+                }`}
+                role="alert"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                    {purgeLogsStatus.type === "success" ? "check_circle" : "error"}
+                  </span>
+                  {purgeLogsStatus.message}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Backup/Restore section */}
       <div className="pt-3 border-t border-border/50">

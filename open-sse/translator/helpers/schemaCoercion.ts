@@ -183,6 +183,12 @@ export function sanitizeToolDescriptions(tools: unknown): unknown {
   return tools.map((tool) => sanitizeToolDescription(tool));
 }
 
+export function sanitizeToolId(id: string | undefined): string {
+  if (!id) return `tool_${crypto.randomUUID().replace(/-/g, "_")}`;
+  const sanitized = id.replace(/[^a-zA-Z0-9_-]/g, "_");
+  return sanitized || `tool_${crypto.randomUUID().replace(/-/g, "_")}`;
+}
+
 export function injectEmptyReasoningContentForToolCalls(
   messages: unknown,
   provider: unknown

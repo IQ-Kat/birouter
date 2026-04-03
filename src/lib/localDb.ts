@@ -159,6 +159,8 @@ export {
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
+  getCachedLKGP,
+  setCachedLKGP,
   invalidateDbCache,
 } from "./db/readCache";
 

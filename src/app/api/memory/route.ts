@@ -30,7 +30,17 @@ export async function GET(request: Request) {
       limit: limitParams ? parseInt(limitParams, 10) : undefined,
       offset: offsetParams ? parseInt(offsetParams, 10) : undefined,
     });
-    return NextResponse.json({ memories });
+    const stats = {
+      total: memories.length,
+      byType: memories.reduce(
+        (acc, m) => {
+          acc[m.type] = (acc[m.type] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
+    };
+    return NextResponse.json({ memories, stats });
   } catch (err: unknown) {
     const error = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error }, { status: 500 });

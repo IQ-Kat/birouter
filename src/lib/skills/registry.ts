@@ -26,7 +26,8 @@ class SkillRegistry {
     enabled?: boolean;
     apiKeyId: string;
   }): Promise<Skill> {
-    const parsed = SkillCreateInputSchema.parse(skillData);
+    const { apiKeyId: _apiKeyId, ...parseableData } = skillData;
+    const parsed = SkillCreateInputSchema.parse(parseableData);
     const db = getDbInstance();
     const id = randomUUID();
     const now = new Date();
@@ -96,6 +97,23 @@ class SkillRegistry {
     return false;
   }
 
+  async unregisterById(id: string): Promise<boolean> {
+    const db = getDbInstance();
+    const deleted = db.prepare("DELETE FROM skills WHERE id = ?").run(id);
+    if (deleted.changes > 0) {
+      const keysToDelete = Array.from(this.registeredSkills.entries())
+        .filter(([, skill]) => skill.id === id)
+        .map(([key]) => key);
+      keysToDelete.forEach((k) => {
+        const skill = this.registeredSkills.get(k);
+        if (skill) this.clearVersionCache(skill.name);
+        this.registeredSkills.delete(k);
+      });
+      return true;
+    }
+    return false;
+  }
+
   list(apiKeyId?: string): Skill[] {
     if (apiKeyId) {
       return Array.from(this.registeredSkills.values()).filter((s) => s.apiKeyId === apiKeyId);
@@ -103,7 +121,7 @@ class SkillRegistry {
     return Array.from(this.registeredSkills.values());
   }
 
-  getSkill(name: string, apiKeyId?: string): Skill | undefined {
+  getSkill(name: string, _apiKeyId?: string): Skill | undefined {
     return this.registeredSkills.get(name);
   }
 
@@ -113,7 +131,7 @@ class SkillRegistry {
     return Array.from(cached.values()).sort((a, b) => this.compareVersions(b.version, a.version));
   }
 
-  resolveVersion(name: string, constraint: string, apiKeyId?: string): Skill | undefined {
+  resolveVersion(name: string, constraint: string, _apiKeyId?: string): Skill | undefined {
     const versions = this.getSkillVersions(name);
     if (versions.length === 0) return undefined;
 

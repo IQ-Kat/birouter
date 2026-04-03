@@ -16,5 +16,5 @@ export function adjustMaxTokens(body) {
     }
   }
 
-  return maxTokens;
+  return Math.max(1, maxTokens);
 }

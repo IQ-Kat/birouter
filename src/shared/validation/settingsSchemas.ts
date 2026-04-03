@@ -67,4 +67,6 @@ export const updateSettingsSchema = z.object({
       })
     )
     .optional(),
+  // SkillsMP marketplace API key
+  skillsmpApiKey: z.string().max(200).optional(),
 });
