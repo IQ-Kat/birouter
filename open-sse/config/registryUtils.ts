@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 /**
  * Shared Registry Utilities
  *

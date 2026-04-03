@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto, { randomUUID } from "crypto";
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
 
@@ -164,7 +164,7 @@ export class AntigravityExecutor extends BaseExecutor {
   }
 
   generateSessionId() {
-    return `-${Math.floor(Math.random() * 9_000_000_000_000_000_000)}`;
+    return `-${parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % 9_000_000_000_000_000_000}`;
   }
 
   parseRetryHeaders(headers) {
@@ -230,13 +230,17 @@ export class AntigravityExecutor extends BaseExecutor {
       let timedOut = false;
       const timeout = AbortSignal.timeout(SSE_COLLECT_TIMEOUT_MS);
       try {
-        // eslint-disable-next-line no-constant-condition
+         
         while (true) {
           if (signal?.aborted) throw new Error("Request aborted during SSE collection");
           const { done, value } = await Promise.race([
             reader.read(),
             new Promise<never>((_, reject) =>
-              timeout.addEventListener("abort", () => reject(new Error("SSE collection timed out")), { once: true })
+              timeout.addEventListener(
+                "abort",
+                () => reject(new Error("SSE collection timed out")),
+                { once: true }
+              )
             ),
           ]);
           if (done) break;
@@ -271,7 +275,10 @@ export class AntigravityExecutor extends BaseExecutor {
             }
           }
           if (candidate?.finishReason) {
-            finishReason = candidate.finishReason.toLowerCase() === "stop" ? "stop" : candidate.finishReason.toLowerCase();
+            finishReason =
+              candidate.finishReason.toLowerCase() === "stop"
+                ? "stop"
+                : candidate.finishReason.toLowerCase();
           }
           if (parsed?.response?.usageMetadata) {
             const um = parsed.response.usageMetadata;
@@ -330,12 +337,7 @@ export class AntigravityExecutor extends BaseExecutor {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
       const headers = this.buildHeaders(credentials, upstreamStream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
-      const transformedBody = await this.transformRequest(
-        model,
-        body,
-        upstreamStream,
-        credentials
-      );
+      const transformedBody = await this.transformRequest(model, body, upstreamStream, credentials);
 
       // Initialize retry counter for this URL
       if (!retryAttemptsByUrl[urlIndex]) {
@@ -474,7 +476,15 @@ export class AntigravityExecutor extends BaseExecutor {
         // For non-streaming clients, collect the SSE stream and return a synthetic
         // non-streaming Response so chatCore doesn't need to handle SSE conversion.
         if (!stream) {
-          return this.collectStreamToResponse(response, model, url, headers, transformedBody, log, signal);
+          return this.collectStreamToResponse(
+            response,
+            model,
+            url,
+            headers,
+            transformedBody,
+            log,
+            signal
+          );
         }
 
         return { response, url, headers, transformedBody };

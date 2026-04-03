@@ -138,9 +138,7 @@ export function getAllExpirations(): ProviderExpiration[] {
  * Get connections that are expired or expiring soon.
  */
 export function getExpiringSoon(): ProviderExpiration[] {
-  return getAllExpirations().filter(
-    (e) => e.status === "expired" || e.status === "expiring_soon"
-  );
+  return getAllExpirations().filter((e) => e.status === "expired" || e.status === "expiring_soon");
 }
 
 /**
@@ -229,9 +227,7 @@ export function detectExpirationFromResponse(
 
   // Rate limit headers may indicate reset times
   const resetHeader =
-    headers["x-ratelimit-reset"] ||
-    headers["x-ratelimit-reset-tokens"] ||
-    headers["retry-after"];
+    headers["x-ratelimit-reset"] || headers["x-ratelimit-reset-tokens"] || headers["retry-after"];
 
   if (resetHeader && status === 429) {
     const resetTime = parseInt(resetHeader, 10);

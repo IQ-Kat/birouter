@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
-import { getCustomModels, replaceCustomModels, replaceSyncedAvailableModelsForConnection } from "@/lib/db/models";
+import {
+  getCustomModels,
+  replaceCustomModels,
+  replaceSyncedAvailableModelsForConnection,
+} from "@/lib/db/models";
 import {
   syncManagedAvailableModelAliases,
   usesManagedAvailableModels,
@@ -144,7 +148,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     // Fetch models from the existing /api/providers/[id]/models endpoint
     const origin = new URL(request.url).origin;
-    const modelsUrl = `${origin}/api/providers/${id}/models`;
+    const modelsUrl = `${origin}/api/providers/${encodeURIComponent(id)}/models`;
     const modelsRes = await fetch(modelsUrl, {
       method: "GET",
       headers: {
@@ -210,7 +214,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           source: "api-sync" as const,
           ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
           ...(typeof m.inputTokenLimit === "number" ? { inputTokenLimit: m.inputTokenLimit } : {}),
-          ...(typeof m.outputTokenLimit === "number" ? { outputTokenLimit: m.outputTokenLimit } : {}),
+          ...(typeof m.outputTokenLimit === "number"
+            ? { outputTokenLimit: m.outputTokenLimit }
+            : {}),
           ...(typeof m.description === "string" ? { description: m.description } : {}),
           ...(m.supportsThinking === true ? { supportsThinking: true } : {}),
         }));

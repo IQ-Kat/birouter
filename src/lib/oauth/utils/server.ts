@@ -7,7 +7,10 @@ import { URL } from "url";
  * @param {number} fixedPort - Optional fixed port number (default: random)
  * @returns {Promise<{server: http.Server, port: number, close: Function}>}
  */
-export function startLocalServer(onCallback: (params: Record<string, string>) => void, fixedPort: number | null = null): Promise<{ server: any; port: number; close: () => void }> {
+export function startLocalServer(
+  onCallback: (params: Record<string, string>) => void,
+  fixedPort: number | null = null
+): Promise<{ server: any; port: number; close: () => void }> {
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
       const url = new URL(req.url || "/", `http://localhost`);

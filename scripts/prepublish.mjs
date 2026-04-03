@@ -240,7 +240,7 @@ if (existsSync(mitmSrc)) {
   writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
 
   try {
-    execSync("npx tsc -p " + JSON.stringify(tmpTsconfigPath), { cwd: ROOT, stdio: "inherit" });
+    execSync("npx tsc -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
     console.log("  ✅ MITM utilities compiled to app/src/mitm/");
   } catch (err) {
     console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);
@@ -264,7 +264,7 @@ if (existsSync(mcpSrcFile)) {
   mkdirSync(mcpDestDir, { recursive: true });
   try {
     execSync(
-      `npx esbuild ${JSON.stringify(mcpSrcFile)} --bundle --platform=node --packages=external --format=esm --outfile=${JSON.stringify(mcpDestFile)}`,
+      `npx esbuild open-sse/mcp-server/server.ts --bundle --platform=node --packages=external --format=esm --outfile=app/open-sse/mcp-server/server.js`,
       { cwd: ROOT, stdio: "inherit" }
     );
     console.log("  ✅ MCP Server bundled to app/open-sse/mcp-server/server.js");

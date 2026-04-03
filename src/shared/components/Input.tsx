@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { cn } from "@/shared/utils/cn";
 
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   label?: React.ReactNode;
   error?: React.ReactNode;
   hint?: React.ReactNode;

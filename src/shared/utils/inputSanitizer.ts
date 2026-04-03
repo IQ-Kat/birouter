@@ -13,17 +13,20 @@
 const INJECTION_PATTERNS = [
   {
     name: "system_override",
-    pattern: /\b(ignore|disregard|forget)\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions?|prompts?|rules?|context)/i,
+    pattern:
+      /\b(ignore|disregard|forget)\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions?|prompts?|rules?|context)/i,
     severity: "high",
   },
   {
     name: "role_hijack",
-    pattern: /\b(you\s+are\s+now|act\s+as\s+if|pretend\s+(to\s+be|you\s+are)|from\s+now\s+on\s+you\s+are)\b/i,
+    pattern:
+      /\b(you\s+are\s+now|act\s+as\s+if|pretend\s+(to\s+be|you\s+are)|from\s+now\s+on\s+you\s+are)\b/i,
     severity: "medium",
   },
   {
     name: "system_prompt_leak",
-    pattern: /\b(reveal|show|display|print|output|repeat)\s+(your\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
+    pattern:
+      /\b(reveal|show|display|print|output|repeat)\s+(your\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
     severity: "high",
   },
   {
@@ -38,7 +41,8 @@ const INJECTION_PATTERNS = [
   },
   {
     name: "encoding_evasion",
-    pattern: /\b(base64\s+decode|rot13|hex\s+decode|unicode\s+escape)\b.*\b(instruction|prompt|command)\b/i,
+    pattern:
+      /\b(base64\s+decode|rot13|hex\s+decode|unicode\s+escape)\b.*\b(instruction|prompt|command)\b/i,
     severity: "medium",
   },
 ];

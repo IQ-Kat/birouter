@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import {
   getProviderConnections,
   validateApiKey,
@@ -659,8 +660,11 @@ export async function getProviderCredentials(
       if (orderedConnections.length <= 2) {
         connection = orderedConnections[0];
       } else {
-        const i = Math.floor(Math.random() * orderedConnections.length);
-        let j = Math.floor(Math.random() * (orderedConnections.length - 1));
+        const i =
+          parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % orderedConnections.length;
+        let j =
+          parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) %
+          (orderedConnections.length - 1);
         if (j >= i) j++;
         const a = orderedConnections[i];
         const b = orderedConnections[j];
@@ -671,7 +675,8 @@ export async function getProviderCredentials(
       }
     } else if (strategy === "random") {
       // Random: Fisher-Yates-inspired random pick
-      const idx = Math.floor(Math.random() * orderedConnections.length);
+      const idx =
+        parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % orderedConnections.length;
       connection = orderedConnections[idx];
     } else if (strategy === "least-used") {
       // Least Used: pick the one with oldest lastUsedAt

@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 
 import { getRegistryEntry } from "../../config/providerRegistry.ts";
-import { PROVIDER_ID_TO_ALIAS, getModelsByProviderId, getProviderModels } from "../../config/providerModels.ts";
+import {
+  PROVIDER_ID_TO_ALIAS,
+  getModelsByProviderId,
+  getProviderModels,
+} from "../../config/providerModels.ts";
 import { supportsToolCalling } from "../../services/modelCapabilities.ts";
 import { getPricingForModel } from "../../../src/shared/constants/pricing.ts";
 

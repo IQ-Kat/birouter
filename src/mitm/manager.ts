@@ -69,7 +69,7 @@ export async function getMitmStatus() {
   let dnsConfigured = false;
   try {
     const hostsContent = fs.readFileSync("/etc/hosts", "utf-8");
-    dnsConfigured = hostsContent.includes("daily-cloudcode-pa.googleapis.com");
+    dnsConfigured = /\bdaily-cloudcode-pa\.googleapis\.com\b/.test(hostsContent);
   } catch {
     // Ignore
   }

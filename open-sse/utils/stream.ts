@@ -10,7 +10,13 @@ import {
   filterUsageForFormat,
   COLORS,
 } from "./usageTracking.ts";
-import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE, unwrapGeminiChunk } from "./streamHelpers.ts";
+import {
+  parseSSELine,
+  hasValuableContent,
+  fixInvalidId,
+  formatSSE,
+  unwrapGeminiChunk,
+} from "./streamHelpers.ts";
 import {
   createStructuredSSECollector,
   buildStreamSummaryFromEvents,

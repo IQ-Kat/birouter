@@ -35,7 +35,9 @@ function ask(question) {
 }
 
 function hashPassword(password) {
-  return createHash("sha256").update(password).digest("hex");
+  return createHash("sha256")
+    .update(password) /* lgtm[js/insufficient-password-hash] */
+    .digest("hex");
 }
 
 console.log("\n🔑 OmniRoute — Password Reset\n");

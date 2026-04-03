@@ -7,7 +7,9 @@ const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 test("T20: antigravity config has updated User-Agent and sandbox fallback URL", () => {
   const antigravity = REGISTRY.antigravity;
   assert.ok(Array.isArray(antigravity.baseUrls));
-  assert.ok(antigravity.baseUrls.includes("https://daily-cloudcode-pa.sandbox.googleapis.com"));
+  assert.ok(
+    antigravity.baseUrls.some((u) => u === "https://daily-cloudcode-pa.sandbox.googleapis.com")
+  );
   assert.match(
     antigravity.headers["User-Agent"],
     new RegExp(`^antigravity/1\\.107\\.0\\s+${platform()}\\/${arch()}$`)

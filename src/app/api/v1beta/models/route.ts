@@ -40,7 +40,10 @@ export async function GET() {
     // Gemini: always replace hardcoded entries with synced models (no fallback)
     // Always remove hardcoded gemini entries — even if sync returns empty
     for (let i = models.length - 1; i >= 0; i--) {
-      if (typeof (models[i] as any).name === "string" && (models[i] as any).name.startsWith("models/gemini/")) {
+      if (
+        typeof (models[i] as any).name === "string" &&
+        (models[i] as any).name.startsWith("models/gemini/")
+      ) {
         models.splice(i, 1);
       }
     }
@@ -69,7 +72,8 @@ export async function GET() {
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
         for (const model of rawModels) {
-          if (!model || typeof model !== "object" || typeof (model as any).id !== "string") continue;
+          if (!model || typeof model !== "object" || typeof (model as any).id !== "string")
+            continue;
           const m = model as Record<string, unknown>;
           if (m.isHidden === true) continue;
           models.push({
@@ -77,10 +81,8 @@ export async function GET() {
             displayName: m.name || m.id,
             ...(typeof m.description === "string" ? { description: m.description } : {}),
             supportedGenerationMethods: ["generateContent"],
-            inputTokenLimit:
-              typeof m.inputTokenLimit === "number" ? m.inputTokenLimit : 128000,
-            outputTokenLimit:
-              typeof m.outputTokenLimit === "number" ? m.outputTokenLimit : 8192,
+            inputTokenLimit: typeof m.inputTokenLimit === "number" ? m.inputTokenLimit : 128000,
+            outputTokenLimit: typeof m.outputTokenLimit === "number" ? m.outputTokenLimit : 8192,
             ...(m.supportsThinking === true ? { thinking: true } : {}),
           });
         }

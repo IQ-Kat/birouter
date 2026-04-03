@@ -46,7 +46,7 @@ export function stripAnthropicMessagesSuffix(baseUrl: string | null | undefined)
     .trim()
     .replace(/\/$/, "");
   if (!normalized) return "";
-  return normalized.replace(/\/messages(?:\?[^#]*)?$/i, "");
+  return normalized.split("?")[0].replace(/\/messages$/i, "");
 }
 
 export function stripClaudeCodeCompatibleEndpointSuffix(
@@ -56,7 +56,7 @@ export function stripClaudeCodeCompatibleEndpointSuffix(
     .trim()
     .replace(/\/$/, "");
   if (!normalized) return "";
-  return normalized.replace(/\/(?:v\d+\/)?messages(?:\?[^#]*)?$/i, "");
+  return normalized.split("?")[0].replace(/\/(?:v\d+\/)?messages$/i, "");
 }
 
 function joinNormalizedBaseUrlAndPath(baseUrl: string, path: string): string {

@@ -753,7 +753,9 @@ export default function MediaPageClient() {
         {/* Transcription: file upload */}
         {activeTab === "transcription" ? (
           <div>
-            <label className="block text-sm font-medium text-text-main mb-2">Audio / Video File</label>
+            <label className="block text-sm font-medium text-text-main mb-2">
+              Audio / Video File
+            </label>
             <input
               type="file"
               accept="audio/*,video/*"
@@ -761,7 +763,9 @@ export default function MediaPageClient() {
                 const file = e.target.files?.[0] ?? null;
                 setFileSizeError(null);
                 if (file && file.size > MAX_TRANSCRIPTION_FILE_SIZE) {
-                  setFileSizeError(`File too large (${formatFileSize(file.size)}). Maximum allowed: 4 GB.`);
+                  setFileSizeError(
+                    `File too large (${formatFileSize(file.size)}). Maximum allowed: 4 GB.`
+                  );
                   setAudioFile(null);
                   e.target.value = "";
                   return;
@@ -781,7 +785,9 @@ export default function MediaPageClient() {
                 {audioFile.name} ({formatFileSize(audioFile.size)})
               </p>
             )}
-            <p className="text-[10px] text-text-muted/60 mt-1">Supports audio and video files up to 4 GB</p>
+            <p className="text-[10px] text-text-muted/60 mt-1">
+              Supports audio and video files up to 4 GB
+            </p>
           </div>
         ) : (
           /* Prompt / Text */

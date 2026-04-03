@@ -158,7 +158,11 @@ function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string
       reasoningParts.push(delta.reasoning_content);
     }
     // Normalize `reasoning` alias (NVIDIA kimi-k2.5 etc.)
-    if (typeof delta.reasoning === "string" && delta.reasoning.length > 0 && !delta.reasoning_content) {
+    if (
+      typeof delta.reasoning === "string" &&
+      delta.reasoning.length > 0 &&
+      !delta.reasoning_content
+    ) {
       reasoningParts.push(delta.reasoning);
     }
 

@@ -49,7 +49,12 @@ export class KiroService {
   /**
    * Start device authorization for AWS Builder ID or IDC
    */
-  async startDeviceAuthorization(clientId: string, clientSecret: string, startUrl: string, region: string = "us-east-1") {
+  async startDeviceAuthorization(
+    clientId: string,
+    clientSecret: string,
+    startUrl: string,
+    region: string = "us-east-1"
+  ) {
     const endpoint = `https://oidc.${region}.amazonaws.com/device_authorization`;
 
     const response = await fetch(endpoint, {
@@ -83,7 +88,12 @@ export class KiroService {
   /**
    * Poll for token using device code (AWS Builder ID/IDC)
    */
-  async pollDeviceToken(clientId: string, clientSecret: string, deviceCode: string, region: string = "us-east-1") {
+  async pollDeviceToken(
+    clientId: string,
+    clientSecret: string,
+    deviceCode: string,
+    region: string = "us-east-1"
+  ) {
     const endpoint = `https://oidc.${region}.amazonaws.com/token`;
 
     const response = await fetch(endpoint, {

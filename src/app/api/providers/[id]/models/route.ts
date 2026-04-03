@@ -169,9 +169,7 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
           id: ((m.name as string) || (m.id as string) || "").replace(/^models\//, ""),
           name: (m.displayName as string) || ((m.name as string) || "").replace(/^models\//, ""),
           supportedEndpoints: endpoints,
-          ...(typeof m.inputTokenLimit === "number"
-            ? { inputTokenLimit: m.inputTokenLimit }
-            : {}),
+          ...(typeof m.inputTokenLimit === "number" ? { inputTokenLimit: m.inputTokenLimit } : {}),
           ...(typeof m.outputTokenLimit === "number"
             ? { outputTokenLimit: m.outputTokenLimit }
             : {}),
@@ -747,7 +745,9 @@ export async function GET(
     }
 
     if (pageCount > 1) {
-      console.log(`[models] ${provider}: fetched ${allModels.length} models across ${pageCount} pages`);
+      console.log(
+        `[models] ${provider}: fetched ${allModels.length} models across ${pageCount} pages`
+      );
     }
 
     return buildResponse({

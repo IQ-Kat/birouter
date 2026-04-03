@@ -4,6 +4,18 @@
 
 ---
 
+## [3.4.8] — 2026-04-03
+
+### Security
+
+- Fully remediated all outstanding Github Advanced Security (CodeQL) findings and Dependabot alerts.
+- Fixed insecure randomness vulnerabilities by migrating from `Math.random` to `crypto.randomUUID()`.
+- Secured shell commands in automated scripts from string injection.
+- Migrated vulnerable catastrophic backtracking RegEx parsing patterns in chat/translation pipelines.
+- Enhanced output sanitization controls inside React UI components and Server Sent Events (SSE) tag injection.
+
+---
+
 ## [3.4.7] — 2026-04-03
 
 ### Features

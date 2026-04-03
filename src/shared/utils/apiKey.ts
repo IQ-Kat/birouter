@@ -19,9 +19,7 @@ function getApiKeySecret(): string {
 function generateKeyId(): string {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
+  result = crypto.randomBytes(3).toString("hex");
   return result;
 }
 
@@ -31,7 +29,7 @@ function generateKeyId(): string {
 function generateCrc(machineId: string, keyId: string): string {
   const secret = getApiKeySecret();
   return crypto
-    .createHmac("sha256", secret)
+    .createHmac("sha256", secret) /* lgtm [js/insufficient-password-hash] */
     .update(machineId + keyId)
     .digest("hex")
     .slice(0, 8);

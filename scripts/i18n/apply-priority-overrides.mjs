@@ -170,9 +170,15 @@ function setByPath(target, pathStr, value) {
   const tokens = pathStr.split(".");
   let current = target;
   for (let i = 0; i < tokens.length - 1; i += 1) {
+    if (tokens[i] === "__proto__" || tokens[i] === "constructor" || tokens[i] === "prototype")
+      continue;
+    if (typeof current[tokens[i]] !== "object") current[tokens[i]] = {};
     current = current[tokens[i]];
   }
-  current[tokens[tokens.length - 1]] = value;
+  const last = tokens[tokens.length - 1];
+  if (last !== "__proto__" && last !== "constructor" && last !== "prototype") {
+    current[last] = value;
+  }
 }
 
 async function applyMessageOverrides() {
