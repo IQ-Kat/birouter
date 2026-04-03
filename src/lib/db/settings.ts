@@ -273,6 +273,11 @@ export async function setLKGP(comboName: string, modelId: string, providerId: st
   );
 }
 
+export function clearAllLKGP(): void {
+  const db = getDbInstance();
+  db.prepare("DELETE FROM key_value WHERE namespace = 'lkgp'").run();
+}
+
 // ──────────────── Proxy Config ────────────────
 
 const DEFAULT_PROXY_CONFIG: ProxyConfig = { global: null, providers: {}, combos: {}, keys: {} };
@@ -743,31 +748,4 @@ export async function resetCacheMetrics() {
     "resetCacheMetrics is deprecated - cache metrics are now computed from usage_history"
   );
   return getCacheMetrics();
-}
-
-// ──────────────── Last Known Good Provider (LKGP) ────────────────
-
-export async function getLKGP(comboName: string, modelId: string): Promise<string | null> {
-  const db = getDbInstance();
-  const key = `lkgp:${comboName}:${modelId}`;
-  const row = db
-    .prepare("SELECT value FROM key_value WHERE namespace = 'lkgp' AND key = ?")
-    .get(key);
-  if (!row) return null;
-  const record = toRecord(row);
-  return typeof record.value === "string" ? record.value : null;
-}
-
-export async function setLKGP(
-  comboName: string,
-  modelId: string,
-  providerId: string
-): Promise<void> {
-  const db = getDbInstance();
-  const key = `lkgp:${comboName}:${modelId}`;
-  db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('lkgp', ?, ?)").run(
-    key,
-    providerId
-  );
-  backupDbFile("pre-write");
 }

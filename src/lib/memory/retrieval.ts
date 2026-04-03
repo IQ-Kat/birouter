@@ -71,7 +71,13 @@ export async function retrieveMemories(
       type: (row as any).type as MemoryType,
       key: String((row as any).key),
       content: String((row as any).content),
-      metadata: JSON.parse(String((row as any).metadata)),
+      metadata: (() => {
+        try {
+          return JSON.parse(String((row as any).metadata));
+        } catch {
+          return {};
+        }
+      })(),
       createdAt: new Date(String((row as any).createdAt)),
       updatedAt: new Date(String((row as any).updatedAt)),
       expiresAt: (row as any).expiresAt ? new Date(String((row as any).expiresAt)) : null,

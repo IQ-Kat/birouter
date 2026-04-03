@@ -1,6 +1,7 @@
 import { skillRegistry } from "./registry";
 import { SkillExecution, SkillStatus, SkillHandler } from "./types";
 import { getDbInstance } from "../db/core";
+import { getSettings } from "../db/settings";
 import { randomUUID } from "crypto";
 
 class SkillExecutor {
@@ -35,6 +36,11 @@ class SkillExecutor {
     input: Record<string, unknown>,
     context: { apiKeyId: string; sessionId?: string }
   ): Promise<SkillExecution> {
+    const settings = await getSettings();
+    if (settings.skillsEnabled === false) {
+      throw new Error("Skills execution is disabled. Enable Skills in Settings > AI.");
+    }
+
     const skill = skillRegistry.getSkill(skillName, context.apiKeyId);
     if (!skill) {
       throw new Error(`Skill not found: ${skillName}`);

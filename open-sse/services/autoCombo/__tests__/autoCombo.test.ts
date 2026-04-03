@@ -8,6 +8,8 @@ import type { ProviderCandidate, ScoringWeights } from "../scoring";
 import { getTaskFitness, getTaskTypes } from "../taskFitness";
 import { SelfHealingManager } from "../selfHealing";
 import { MODE_PACKS, getModePack, getModePackNames } from "../modePacks";
+import { getStrategy } from "../routerStrategy";
+import type { RoutingContext } from "../routerStrategy";
 
 describe("Scoring", () => {
   const candidate: ProviderCandidate = {
@@ -158,5 +160,73 @@ describe("Mode Packs", () => {
 
   it("undefined pack should return undefined", () => {
     expect(getModePack("nonexistent")).toBeUndefined();
+  });
+});
+
+describe("LKGP Strategy", () => {
+  const pool: ProviderCandidate[] = [
+    {
+      provider: "anthropic",
+      model: "claude-sonnet",
+      quotaRemaining: 80,
+      quotaTotal: 100,
+      circuitBreakerState: "CLOSED",
+      costPer1MTokens: 3,
+      p95LatencyMs: 1200,
+      latencyStdDev: 120,
+      errorRate: 0.02,
+    },
+    {
+      provider: "openai",
+      model: "gpt-4o",
+      quotaRemaining: 90,
+      quotaTotal: 100,
+      circuitBreakerState: "CLOSED",
+      costPer1MTokens: 5,
+      p95LatencyMs: 800,
+      latencyStdDev: 80,
+      errorRate: 0.01,
+    },
+  ];
+
+  it("should fall back to rules strategy when lkgpEnabled is false", () => {
+    const context: RoutingContext = {
+      taskType: "coding",
+      lastKnownGoodProvider: "anthropic",
+      lkgpEnabled: false,
+    };
+    const lkgpStrategy = getStrategy("lkgp");
+    const rulesStrategy = getStrategy("rules");
+
+    const lkgpResult = lkgpStrategy.select(pool, context);
+    const rulesResult = rulesStrategy.select(pool, context);
+
+    expect(lkgpResult.strategy).toBe("rules");
+    expect(lkgpResult.provider).toBe(rulesResult.provider);
+  });
+
+  it("should use LKGP provider when lkgpEnabled is true", () => {
+    const context: RoutingContext = {
+      taskType: "coding",
+      lastKnownGoodProvider: "anthropic",
+      lkgpEnabled: true,
+    };
+    const lkgpStrategy = getStrategy("lkgp");
+    const result = lkgpStrategy.select(pool, context);
+
+    expect(result.strategy).toBe("lkgp");
+    expect(result.provider).toBe("anthropic");
+  });
+
+  it("should use LKGP provider when lkgpEnabled is undefined (default)", () => {
+    const context: RoutingContext = {
+      taskType: "coding",
+      lastKnownGoodProvider: "openai",
+    };
+    const lkgpStrategy = getStrategy("lkgp");
+    const result = lkgpStrategy.select(pool, context);
+
+    expect(result.strategy).toBe("lkgp");
+    expect(result.provider).toBe("openai");
   });
 });

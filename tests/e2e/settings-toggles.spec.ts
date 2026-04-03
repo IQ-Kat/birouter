@@ -37,6 +37,38 @@ test.describe("Settings Toggles", () => {
     );
   });
 
+  test("Clear Cache button calls DELETE /api/cache", async ({ page }) => {
+    await page.goto("/dashboard/settings");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("tab", { name: /general/i }).click();
+
+    const clearBtn = page.getByRole("button", { name: /clear cache/i });
+    await expect(clearBtn).toBeVisible({ timeout: 5000 });
+
+    const [request] = await Promise.all([
+      page.waitForRequest((req) => req.url().includes("/api/cache") && req.method() === "DELETE"),
+      clearBtn.click(),
+    ]);
+    expect(request).toBeTruthy();
+  });
+
+  test("Purge Expired Logs button calls POST /api/settings/purge-logs", async ({ page }) => {
+    await page.goto("/dashboard/settings");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("tab", { name: /general/i }).click();
+
+    const purgeBtn = page.getByRole("button", { name: /purge expired logs/i });
+    await expect(purgeBtn).toBeVisible({ timeout: 5000 });
+
+    const [request] = await Promise.all([
+      page.waitForRequest(
+        (req) => req.url().includes("/api/settings/purge-logs") && req.method() === "POST"
+      ),
+      purgeBtn.click(),
+    ]);
+    expect(request).toBeTruthy();
+  });
+
   test("Debug mode should persist after page reload", async ({ page }) => {
     await page.goto("/dashboard/settings");
     await page.waitForLoadState("networkidle");

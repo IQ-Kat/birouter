@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -29,17 +29,47 @@ export default function MemorySkillsTab() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [skillsmpApiKey, setSkillsmpApiKey] = useState("");
+  const [skillsmpSaving, setSkillsmpSaving] = useState(false);
+  const [skillsmpStatus, setSkillsmpStatus] = useState("");
   const t = useTranslations("settings");
 
   useEffect(() => {
-    fetch("/api/settings/memory")
-      .then((res) => res.json())
-      .then((data) => {
-        setConfig(data);
+    Promise.all([
+      fetch("/api/settings/memory").then((res) => res.json()),
+      fetch("/api/settings").then((res) => res.json()),
+    ])
+      .then(([memData, settingsData]) => {
+        setConfig(memData);
+        if (settingsData.skillsmpApiKey) {
+          setSkillsmpApiKey(settingsData.skillsmpApiKey);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
+
+  const saveSkillsmpApiKey = useCallback(async () => {
+    setSkillsmpSaving(true);
+    setSkillsmpStatus("");
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skillsmpApiKey }),
+      });
+      if (res.ok) {
+        setSkillsmpStatus("saved");
+        setTimeout(() => setSkillsmpStatus(""), 2000);
+      } else {
+        setSkillsmpStatus("error");
+      }
+    } catch {
+      setSkillsmpStatus("error");
+    } finally {
+      setSkillsmpSaving(false);
+    }
+  }, [skillsmpApiKey]);
 
   const save = async (updates: Partial<MemoryConfig>) => {
     const newConfig = { ...config, ...updates };
@@ -245,6 +275,56 @@ export default function MemorySkillsTab() {
         </div>
 
         <p className="text-xs text-text-muted mt-3">{t("skillsComingSoon")}</p>
+      </Card>
+
+      {/* SkillsMP Marketplace API Key */}
+      <Card>
+        <div className="flex items-center gap-3 mb-5">
+          <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              storefront
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">SkillsMP Marketplace</h3>
+            <p className="text-sm text-text-muted">
+              Connect to SkillsMP to discover and install skills from the marketplace.
+            </p>
+          </div>
+          {skillsmpStatus === "saved" && (
+            <span className="ml-auto text-xs font-medium text-emerald-500 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">check_circle</span>{" "}
+              {t("saved")}
+            </span>
+          )}
+          {skillsmpStatus === "error" && (
+            <span className="ml-auto text-xs font-medium text-red-500">Failed to save</span>
+          )}
+        </div>
+
+        <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
+          <label className="text-sm font-medium block mb-2">API Key</label>
+          <div className="flex gap-2">
+            <input
+              type="password"
+              value={skillsmpApiKey}
+              onChange={(e) => setSkillsmpApiKey(e.target.value)}
+              placeholder="sk_live_..."
+              className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-violet-500"
+            />
+            <button
+              onClick={saveSkillsmpApiKey}
+              disabled={skillsmpSaving}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
+            >
+              {skillsmpSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
+          <p className="text-xs text-text-muted mt-2">
+            Get your API key from <span className="text-violet-400">skillsmp.com</span>. Rate limit:
+            500 requests/day.
+          </p>
+        </div>
       </Card>
     </div>
   );
