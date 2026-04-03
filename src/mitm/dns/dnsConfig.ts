@@ -50,7 +50,7 @@ export function checkDNSEntry() {
     const lines = hostsContent.split(/\r?\n/);
     return lines.some((line) => {
       const parts = line.trim().split(/\s+/);
-      return parts.length >= 2 && parts[0] === "127.0.0.1" && parts.includes(TARGET_HOST);
+      return parts.length >= 2 && parts[0] === "127.0.0.1" && parts.some(p => p === TARGET_HOST);
     });
   } catch {
     return false;
