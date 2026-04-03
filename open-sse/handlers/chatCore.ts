@@ -794,11 +794,13 @@ export async function handleChatCore({
       translatedBody = buildClaudeCodeCompatibleRequest({
         sourceBody: body,
         normalizedBody: normalizedForCc,
+        claudeBody: sourceFormat === FORMATS.CLAUDE ? body : null,
         model,
         stream: upstreamStream,
         sessionId: ccSessionId,
         cwd: process.cwd(),
         now: new Date(),
+        preserveCacheControl,
       });
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {

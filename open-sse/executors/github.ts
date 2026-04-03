@@ -76,7 +76,12 @@ export class GithubExecutor extends BaseExecutor {
     if (!result || !result.response?.body) return result;
 
     const isStreaming = input.stream === true;
-    if (isStreaming) {
+    const contentType = (result.response.headers.get("content-type") || "").toLowerCase();
+    if (isStreaming && result.response.ok && contentType.includes("text/event-stream")) {
+      // Preserve the original response body for downstream error handling.
+      const sourceResponse = result.response.clone();
+      if (!sourceResponse.body) return result;
+
       const decoder = new TextDecoder();
       const transformStream = new TransformStream({
         transform(chunk, controller) {
@@ -88,10 +93,10 @@ export class GithubExecutor extends BaseExecutor {
         },
       });
 
-      const newResponse = new Response(result.response.body.pipeThrough(transformStream), {
-        status: result.response.status,
-        statusText: result.response.statusText,
-        headers: result.response.headers, // Headers class carries over correctly
+      const newResponse = new Response(sourceResponse.body.pipeThrough(transformStream), {
+        status: sourceResponse.status,
+        statusText: sourceResponse.statusText,
+        headers: new Headers(sourceResponse.headers),
       });
       result.response = newResponse;
     }

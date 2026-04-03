@@ -104,11 +104,14 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
       { role: "user", text: "u2" },
     ]
   );
-  assert.deepEqual(payload.messages.at(-1).content.at(-1).cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.messages[0].content.at(-1).cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.messages[1].content.at(-1).cache_control, { type: "ephemeral" });
+  assert.equal(payload.messages[2].content.at(-1).cache_control, undefined);
   assert.equal(payload.system.length, 4);
   assert.equal(payload.system.at(-1).text, "sys");
   assert.equal(payload.tools.length, 1);
-  assert.deepEqual(payload.tools[0], {
+  const { cache_control, ...toolWithoutCacheControl } = payload.tools[0];
+  assert.deepEqual(toolWithoutCacheControl, {
     name: "lookup_weather",
     description: "Fetch weather",
     input_schema: {
@@ -119,9 +122,68 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
       required: ["city"],
     },
   });
+  assert.deepEqual(payload.tools[0].cache_control, { type: "ephemeral", ttl: "1h" });
   assert.deepEqual(payload.tool_choice, { type: "any" });
   assert.equal(payload.context_management.edits[0].type, "clear_thinking_20251015");
   assert.equal(JSON.parse(payload.metadata.user_id).session_id, "session-1");
+});
+
+test("buildClaudeCodeCompatibleRequest preserves Claude cache markers when requested", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      max_tokens: 64,
+    },
+    normalizedBody: {
+      max_tokens: 64,
+      messages: [{ role: "user", content: "fallback" }],
+    },
+    claudeBody: {
+      system: [{ type: "text", text: "sys", cache_control: { type: "ephemeral", ttl: "5m" } }],
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "text", text: "u1", cache_control: { type: "ephemeral" } }],
+        },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "text",
+              text: "a1",
+              cache_control: { type: "ephemeral", ttl: "10m" },
+            },
+          ],
+        },
+        { role: "user", content: [{ type: "text", text: "u2" }] },
+      ],
+      tools: [
+        {
+          name: "lookup_weather",
+          description: "Fetch weather",
+          input_schema: {
+            type: "object",
+            properties: {
+              city: { type: "string" },
+            },
+            required: ["city"],
+          },
+          cache_control: { type: "ephemeral", ttl: "30m" },
+        },
+      ],
+    },
+    model: "claude-sonnet-4-6",
+    sessionId: "session-preserve",
+    preserveCacheControl: true,
+  });
+
+  assert.deepEqual(payload.system.at(-1).cache_control, { type: "ephemeral", ttl: "5m" });
+  assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.messages[1].content[0].cache_control, {
+    type: "ephemeral",
+    ttl: "10m",
+  });
+  assert.equal(payload.messages[2].content[0].cache_control, undefined);
+  assert.deepEqual(payload.tools[0].cache_control, { type: "ephemeral", ttl: "30m" });
 });
 
 test("buildClaudeCodeCompatibleRequest falls back to a user turn when the source only has assistant/model text", () => {
@@ -181,6 +243,7 @@ test("buildClaudeCodeCompatibleRequest omits auto tool_choice while preserving t
   });
 
   assert.equal(payload.tools.length, 1);
+  assert.deepEqual(payload.tools[0].cache_control, { type: "ephemeral", ttl: "1h" });
   assert.equal(payload.tool_choice, undefined);
 });
 
@@ -354,6 +417,126 @@ test("handleChatCore forces upstream streaming for CC compatible while returning
   assert.equal(payload.choices[0].finish_reason, "stop");
   assert.equal(payload.usage.prompt_tokens, 2007);
   assert.equal(payload.usage.completion_tokens, 5);
+});
+
+test("handleChatCore preserves Claude cache_control when CC-compatible requests originate from Claude", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({
+      url: String(url),
+      method: init.method || "GET",
+      headers: init.headers,
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    });
+
+    return new Response(
+      [
+        "event: message_start",
+        'data: {"type":"message_start","message":{"id":"msg_2","type":"message","role":"assistant","model":"claude-sonnet-4-6","usage":{"input_tokens":12,"output_tokens":0}}}',
+        "",
+        "event: content_block_start",
+        'data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+        "",
+        "event: content_block_delta",
+        'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Preserved"}}',
+        "",
+        "event: message_delta",
+        'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":3}}',
+        "",
+        "event: message_stop",
+        'data: {"type":"message_stop"}',
+        "",
+      ].join("\n"),
+      {
+        status: 200,
+        headers: {
+          "content-type": "text/event-stream",
+        },
+      }
+    );
+  };
+
+  const claudeBody = {
+    model: "claude-sonnet-4-6",
+    max_tokens: 64,
+    system: [{ type: "text", text: "system", cache_control: { type: "ephemeral", ttl: "5m" } }],
+    messages: [
+      {
+        role: "user",
+        content: [{ type: "text", text: "u1", cache_control: { type: "ephemeral" } }],
+      },
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "text",
+            text: "a1",
+            cache_control: { type: "ephemeral", ttl: "10m" },
+          },
+        ],
+      },
+      { role: "user", content: [{ type: "text", text: "u2" }] },
+    ],
+    tools: [
+      {
+        name: "lookup_weather",
+        description: "Fetch weather",
+        input_schema: {
+          type: "object",
+          properties: {
+            city: { type: "string" },
+          },
+        },
+        cache_control: { type: "ephemeral", ttl: "30m" },
+      },
+    ],
+  };
+
+  const result = await handleChatCore({
+    body: claudeBody,
+    modelInfo: {
+      provider: "anthropic-compatible-cc-test",
+      model: "claude-sonnet-4-6",
+      extendedContext: false,
+    },
+    credentials: {
+      apiKey: "sk-test",
+      providerSpecificData: {
+        baseUrl: "https://proxy.example.com",
+        chatPath: CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+      },
+    },
+    clientRawRequest: {
+      endpoint: "/v1/messages",
+      body: claudeBody,
+      headers: new Headers({ accept: "application/json" }),
+    },
+    userAgent: "Claude-Code/1.0.0",
+    log: {
+      debug() {},
+      info() {},
+      warn() {},
+      error() {},
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].body.system.at(-1).cache_control, {
+    type: "ephemeral",
+    ttl: "5m",
+  });
+  assert.deepEqual(calls[0].body.messages[0].content[0].cache_control, {
+    type: "ephemeral",
+  });
+  assert.deepEqual(calls[0].body.messages[1].content[0].cache_control, {
+    type: "ephemeral",
+    ttl: "10m",
+  });
+  assert.deepEqual(calls[0].body.tools[0].cache_control, {
+    type: "ephemeral",
+    ttl: "30m",
+  });
 });
 
 test("provider-nodes create route rejects CC mode when feature flag is disabled", async () => {

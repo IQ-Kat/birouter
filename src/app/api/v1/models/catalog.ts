@@ -18,6 +18,7 @@ import { getAllModerationModels } from "@omniroute/open-sse/config/moderationReg
 import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -483,6 +484,45 @@ export async function getUnifiedModelsResponse(
       }
     } catch (e) {
       console.log("Could not fetch custom models");
+    }
+
+    // Add managed fallback models for compatible providers that don't import a model list.
+    for (const conn of connections) {
+      const providerId = typeof conn.provider === "string" ? conn.provider : null;
+      if (!providerId) continue;
+      if (blockedProviders.has(providerId)) continue;
+
+      const fallbackModels = getCompatibleFallbackModels(providerId);
+      if (!Array.isArray(fallbackModels) || fallbackModels.length === 0) continue;
+
+      const prefix = providerIdToPrefix[providerId];
+      const alias = prefix || providerIdToAlias[providerId] || providerId;
+
+      for (const model of fallbackModels) {
+        const modelId = typeof model.id === "string" ? model.id : null;
+        if (!modelId) continue;
+        if (getModelIsHidden(providerId, modelId)) continue;
+
+        const aliasId = `${alias}/${modelId}`;
+        if (models.some((m) => m.id === aliasId)) continue;
+
+        const visionFields =
+          getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
+        const contextLength =
+          typeof model.contextLength === "number" ? model.contextLength : undefined;
+
+        models.push({
+          id: aliasId,
+          object: "model",
+          created: timestamp,
+          owned_by: providerId,
+          permission: [],
+          root: modelId,
+          parent: null,
+          ...(contextLength ? { context_length: contextLength } : {}),
+          ...(visionFields || {}),
+        });
+      }
     }
 
     // Filter by API key permissions if requested
