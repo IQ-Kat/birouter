@@ -544,6 +544,9 @@ const locateCommand = async (command: string, env: Record<string, string | undef
         .split(/\r?\n/)
         .map((l) => l.trim())
         .filter(Boolean);
+      if (lines.length === 0) {
+        return { installed: false, commandPath: null, reason: "not_found" };
+      }
       const winExt = /\.(cmd|exe|bat|com)$/i;
       const preferred = lines.find((l) => winExt.test(l)) || lines[0];
       return { installed: true, commandPath: preferred, reason: null };
