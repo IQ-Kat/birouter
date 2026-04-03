@@ -84,6 +84,8 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
 ];
 
 export const SETTINGS_FALLBACK_STRATEGY_VALUES: RoutingStrategyValue[] = [
+  "priority",
+  "weighted",
   "fill-first",
   "round-robin",
   "p2c",
