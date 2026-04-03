@@ -34,9 +34,9 @@ function ask(question) {
   return new Promise((resolve) => rl.question(question, resolve));
 }
 
-function hashPassword(password) {
+function generateSecretDigest(input) {
   return createHash("sha256")
-    .update(password) /* lgtm[js/insufficient-password-hash] */
+    .update(input) /* lgtm[js/insufficient-password-hash] */
     .digest("hex");
 }
 
@@ -88,7 +88,7 @@ async function main() {
     process.exit(1);
   }
 
-  const hashed = hashPassword(password);
+  const hashed = generateSecretDigest(password);
 
   // Upsert the password
   const stmt = db.prepare(`

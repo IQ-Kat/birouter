@@ -232,7 +232,6 @@ export class AntigravityExecutor extends BaseExecutor {
       let timedOut = false;
       const timeout = AbortSignal.timeout(SSE_COLLECT_TIMEOUT_MS);
       try {
-         
         while (true) {
           if (signal?.aborted) throw new Error("Request aborted during SSE collection");
           const { done, value } = await Promise.race([

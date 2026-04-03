@@ -591,7 +591,10 @@ export function createSSEStream(options: StreamOptions = {}) {
               // Content for call log is accumulated only from parsed (above) to avoid double-counting;
               // do not add again from item here.
 
-              // #723, #727: Sanitize intermediate stream chunks if source (client) is OpenAI format
+              // #723, #727: Sanitize only when the client-facing stream is OpenAI Chat format.
+              // When translating Responses -> Claude, `item` is already a Claude SSE event;
+              // sanitizing it as an OpenAI chunk strips message_start/content_block_delta/message_stop
+              // and causes Claude Code to drop the assistant message.
               let itemSanitized: Record<string, unknown> = item;
               if (sourceFormat === FORMATS.OPENAI || sourceFormat === FORMATS.OPENAI_RESPONSES) {
                 itemSanitized = sanitizeStreamingChunk(itemSanitized) as Record<string, unknown>;

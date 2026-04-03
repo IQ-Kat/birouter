@@ -4270,9 +4270,9 @@ function ConnectionRow({
             {connection.lastError && connection.isActive !== false && (
               <span
                 className={`text-xs truncate max-w-[300px] ${statusPresentation.errorTextClass}`}
-                title={connection.lastError.replace(/<[^>]*>?/gm, "")}
+                title={connection.lastError.replace(/<[^>]+>/gm, "")}
               >
-                {connection.lastError.replace(/<[^>]*>?/gm, "")}
+                {connection.lastError.replace(/<[^>]+>/gm, "")}
               </span>
             )}
             <span className="text-xs text-text-muted">#{connection.priority}</span>

@@ -1,17 +1,17 @@
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 
 // Token expiry buffer (refresh if expires within 5 minutes)
 export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
+
+const CACHE_SECRET = "omniroute-token-cache";
 
 // In-flight refresh promise cache to prevent race conditions
 // Key: "provider:sha256(refreshToken)" → Value: Promise<result>
 const refreshPromiseCache = new Map();
 
 function getRefreshCacheKey(provider, refreshToken) {
-  const tokenHash = createHash("sha256")
-    .update(refreshToken) /* lgtm[js/insufficient-password-hash] */
-    .digest("hex");
+  const tokenHash = createHmac("sha256", CACHE_SECRET).update(refreshToken).digest("hex");
   return `${provider}:${tokenHash}`;
 }
 
