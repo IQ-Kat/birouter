@@ -17,6 +17,7 @@
 
 ### Internal Integrations
 
+- Integrated PR #946 — fix: preserve Claude Code compatibility in responses conversion
 - Integrated PR #944 — fix(gemini): preserve thought signatures across antigravity tool calls
 - Integrated PR #943 — fix: restore GitHub Copilot body
 - Integrated PR #942 — Fix cc-compatible cache markers
