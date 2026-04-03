@@ -994,7 +994,11 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding.",
+    "auto": "Auto Combo",
+    "autoDesc": "Pool de roteamento inteligente (Otimizado)",
+    "lkgp": "Modo LKGP",
+    "lkgpDesc": "Último Provedor Bom Conhecido (Resiliência previsível)"
   },
   "costs": {
     "title": "Custos",
@@ -1776,7 +1780,10 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "statusDeactivated": "Desativado (Manual)",
+    "statusBanned": "Banido / Sandbox Violation",
+    "statusCreditsExhausted": "Saldo Insuficiente"
   },
   "settings": {
     "title": "Configurações",
@@ -1918,8 +1925,8 @@
     "thinkingBudgetDesc": "Controle o uso do token de raciocínio de IA em todas as solicitações",
     "passthrough": "Passagem",
     "passthroughDesc": "Sem alterações – o cliente controla o orçamento pensado",
-    "auto": "Automático",
-    "autoDesc": "Remova todas as configurações de pensamento – deixe o provedor decidir",
+    "auto": "Auto Combo",
+    "autoDesc": "Pool de roteamento inteligente (Otimizado)",
     "custom": "Personalizado",
     "customDesc": "Defina um orçamento fixo de tokens para todas as solicitações",
     "adaptive": "Adaptativo",
@@ -2217,7 +2224,31 @@
     "customPricingNote": "Você pode substituir o preço padrão de modelos específicos. As substituições personalizadas têm prioridade sobre os preços detectados automaticamente.",
     "editPricing": "Editar preços",
     "viewFullDetails": "Ver detalhes completos",
-    "themeCoral": "Coral"
+    "themeCoral": "Coral",
+    "adaptiveVolumeRouting": "Roteamento de Volume Adaptativo",
+    "adaptiveVolumeRoutingDesc": "Escala conexões dinamicamente com base no volume e pressão na taxa de transferência.",
+    "days": "Dias",
+    "lkgp": "Modo LKGP",
+    "lkgpDesc": "Último Provedor Bom Conhecido (Resiliência previsível)",
+    "memoryTitle": "Memória",
+    "memoryDesc": "Memória conversacional persistente entre sessões",
+    "memoryEnabled": "Ativar Memória",
+    "memoryEnabledDesc": "Quando ativado, injetará o contexto passado relevante de forma dinâmica.",
+    "maxTokens": "Tokens Máximos",
+    "retentionDays": "Retenção",
+    "recent": "Recente",
+    "recentDesc": "Janela cronológica",
+    "semantic": "Semântica",
+    "semanticDesc": "Busca vetorial",
+    "hybrid": "Híbrido",
+    "hybridDesc": "Recente + Semântico",
+    "skillsTitle": "Skills A2A",
+    "skillsDesc": "Ferramentas auto-executáveis",
+    "skillsEnabled": "Ativar Skills",
+    "skillsEnabledDesc": "Permite aos agentes executar consultas e gerar arquivos.",
+    "skillsComingSoon": "Marketplace em breve.",
+    "memorySkillsTitle": "Memória e Skills",
+    "memorySkillsDesc": "Contexto persistente e capacidades A2A"
   },
   "translator": {
     "title": "Tradutor",
@@ -3078,6 +3109,9 @@
     "model": "Model",
     "created": "Created",
     "expires": "Expires",
-    "actions": "Actions"
+    "actions": "Actions",
+    "deduplicatedRequests": "Requisições Desduplicadas",
+    "savedCalls": "Chamadas API Poupadas",
+    "totalProcessed": "Total Processado"
   }
 }

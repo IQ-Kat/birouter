@@ -7,7 +7,9 @@ export type RoutingStrategyValue =
   | "random"
   | "least-used"
   | "cost-optimized"
-  | "strict-random";
+  | "strict-random"
+  | "auto"
+  | "lkgp";
 
 type RoutingStrategyOption = {
   value: RoutingStrategyValue;
@@ -81,6 +83,20 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     settingsDescKey: "strictRandomDesc",
     icon: "casino",
   },
+  {
+    value: "auto",
+    labelKey: "auto",
+    combosDescKey: "autoDesc",
+    settingsDescKey: "autoDesc",
+    icon: "auto_awesome",
+  },
+  {
+    value: "lkgp",
+    labelKey: "lkgp",
+    combosDescKey: "lkgpDesc",
+    settingsDescKey: "lkgpDesc",
+    icon: "verified",
+  },
 ];
 
 export const SETTINGS_FALLBACK_STRATEGY_VALUES: RoutingStrategyValue[] = [
@@ -93,4 +109,6 @@ export const SETTINGS_FALLBACK_STRATEGY_VALUES: RoutingStrategyValue[] = [
   "least-used",
   "cost-optimized",
   "strict-random",
+  "auto",
+  "lkgp",
 ];

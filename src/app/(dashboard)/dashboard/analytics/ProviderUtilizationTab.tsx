@@ -90,19 +90,27 @@ function getLatestPoints(points: ProviderUtilizationPoint[]) {
 
 export default function ProviderUtilizationTab() {
   const [range, setRange] = useState<UtilizationTimeRange>("24h");
+  const [aggregateBy, setAggregateBy] = useState<"provider" | "connection">("provider");
   const [data, setData] = useState<ProviderUtilizationResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUtilization = useCallback(
-    async (selectedRange: UtilizationTimeRange, signal?: AbortSignal) => {
+    async (
+      selectedRange: UtilizationTimeRange,
+      selectedAggregate: "provider" | "connection",
+      signal?: AbortSignal
+    ) => {
       setLoading(true);
 
       try {
-        const response = await fetch(`/api/usage/utilization?range=${selectedRange}`, {
-          signal,
-          cache: "no-store",
-        });
+        const response = await fetch(
+          `/api/usage/utilization?range=${selectedRange}&aggregateBy=${selectedAggregate}`,
+          {
+            signal,
+            cache: "no-store",
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch utilization data");
@@ -132,10 +140,10 @@ export default function ProviderUtilizationTab() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchUtilization(range, controller.signal);
+    fetchUtilization(range, aggregateBy, controller.signal);
 
     return () => controller.abort();
-  }, [fetchUtilization, range]);
+  }, [fetchUtilization, range, aggregateBy]);
 
   const providerColors = useMemo(() => {
     const colors = new Map<string, string>();
@@ -177,8 +185,8 @@ export default function ProviderUtilizationTab() {
   const handleRetry = useCallback(() => {
     setRetrying(true);
     setError(null);
-    fetchUtilization(range).finally(() => setRetrying(false));
-  }, [range, fetchUtilization]);
+    fetchUtilization(range, aggregateBy).finally(() => setRetrying(false));
+  }, [range, aggregateBy, fetchUtilization]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -186,7 +194,35 @@ export default function ProviderUtilizationTab() {
         title="Provider utilization"
         subtitle={RANGE_LABELS[range]}
         icon="monitoring"
-        action={<TimeRangeSelector value={range} onChange={setRange} />}
+        action={
+          <div className="flex items-center gap-4">
+            <div className="flex rounded-lg border border-border/50 bg-black/5 p-1 dark:bg-white/5">
+              <button
+                onClick={() => setAggregateBy("provider")}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  aggregateBy === "provider"
+                    ? "bg-surface text-text-main shadow-sm"
+                    : "text-text-muted hover:text-text-main"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">dns</span>
+                Global View
+              </button>
+              <button
+                onClick={() => setAggregateBy("connection")}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  aggregateBy === "connection"
+                    ? "bg-surface text-text-main shadow-sm"
+                    : "text-text-muted hover:text-text-main"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">account_tree</span>
+                Account Split
+              </button>
+            </div>
+            <TimeRangeSelector value={range} onChange={setRange} />
+          </div>
+        }
         className="overflow-hidden"
       >
         {loading && !hasData ? (

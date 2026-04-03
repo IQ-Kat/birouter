@@ -994,7 +994,11 @@
       }
     },
     "templateFreeStack": "Free Stack ($0)",
-    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding."
+    "templateFreeStackDesc": "Round-robin across all free providers: Kiro (Claude), Qoder (5 models), Qwen (4 models), Gemini CLI. Zero cost, never stops coding.",
+    "auto": "Auto Combo",
+    "autoDesc": "Self-healing smart routing pool (Performance optimized)",
+    "lkgp": "LKGP Mode",
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)"
   },
   "costs": {
     "title": "Costs",
@@ -1778,7 +1782,10 @@
     "chatPathHint": "Custom chat path for providers with non-standard APIs (e.g. /v4/chat/completions)",
     "modelsPathLabel": "Models Endpoint Path",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)"
+    "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
+    "statusDeactivated": "Deactivated (Manual)",
+    "statusBanned": "Banned / Sandbox Violation",
+    "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted"
   },
   "settings": {
     "title": "Settings",
@@ -1918,7 +1925,6 @@
     "uploadFavicon": "Upload Favicon",
     "resetFavicon": "Reset Favicon",
     "faviconPreview": "Favicon Preview",
-    "promptCache": "Prompt Cache",
     "flushCache": "Flush Cache",
     "flushing": "Flushing…",
     "size": "Size",
@@ -1940,8 +1946,8 @@
     "thinkingBudgetDesc": "Control AI reasoning token usage across all requests",
     "passthrough": "Passthrough",
     "passthroughDesc": "No changes — client controls thinking budget",
-    "auto": "Auto",
-    "autoDesc": "Strip all thinking config — let provider decide",
+    "auto": "Auto Combo",
+    "autoDesc": "Self-healing smart routing pool (Performance optimized)",
     "custom": "Custom",
     "customDesc": "Set a fixed token budget for all requests",
     "adaptive": "Adaptive",
@@ -2209,7 +2215,6 @@
     "unsaved": "unsaved",
     "resetDefaults": "Reset Defaults",
     "saveProvider": "Save Provider",
-    "saving": "Saving...",
     "model": "Model",
     "models": "models",
     "moreProviders": "{count} more providers",
@@ -2240,7 +2245,12 @@
     "customPricingNote": "You can override default pricing for specific models. Custom overrides take priority over auto-detected pricing.",
     "editPricing": "Edit Pricing",
     "viewFullDetails": "View Full Details",
-    "themeCoral": "Coral"
+    "themeCoral": "Coral",
+    "adaptiveVolumeRouting": "Adaptive Volume Routing",
+    "adaptiveVolumeRoutingDesc": "Scale connections dynamically based on payload volume and throughput pressure.",
+    "days": "Days",
+    "lkgp": "LKGP Mode",
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)"
   },
   "translator": {
     "title": "Translator",
@@ -3102,6 +3112,9 @@
     "model": "Model",
     "created": "Created",
     "expires": "Expires",
-    "actions": "Actions"
+    "actions": "Actions",
+    "deduplicatedRequests": "Deduplicated Requests",
+    "savedCalls": "Saved API Calls",
+    "totalProcessed": "Total Requests Processed"
   }
 }

@@ -72,6 +72,7 @@ export function getAggregatedSnapshots(opts: {
   since: string;
   until?: string;
   bucketMinutes: number;
+  aggregateBy?: "provider" | "connection";
 }): ProviderUtilizationPoint[] {
   const db = getDbInstance() as unknown as DbLike;
   const conditions: string[] = ["created_at >= ?"];
@@ -92,16 +93,23 @@ export function getAggregatedSnapshots(opts: {
     throw new Error("Invalid bucket size");
   }
 
+  const groupFields =
+    opts.aggregateBy === "connection"
+      ? "bucket, provider, connection_id, window_key"
+      : "bucket, provider, window_key";
+  const selectKey =
+    opts.aggregateBy === "connection" ? "provider || ':' || connection_id as provider" : "provider";
+
   const sql = `
     SELECT 
       datetime((strftime('%s', created_at) / ${bucketSeconds}) * ${bucketSeconds}, 'unixepoch') as bucket,
-      provider,
+      ${selectKey},
       AVG(remaining_percentage) as remainingPct,
       MAX(is_exhausted) as isExhausted,
       window_key
     FROM quota_snapshots 
     WHERE ${conditions.join(" AND ")}
-    GROUP BY bucket, provider, window_key
+    GROUP BY ${groupFields}
     ORDER BY bucket ASC
   `;
 

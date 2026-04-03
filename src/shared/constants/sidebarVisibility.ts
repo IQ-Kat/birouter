@@ -57,6 +57,7 @@ const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
   { id: "limits", href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
   { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
+  { id: "media", href: "/dashboard/media", i18nKey: "media", icon: "auto_awesome" },
 ];
 
 const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
@@ -69,7 +70,6 @@ const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
 const DEBUG_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "translator", href: "/dashboard/translator", i18nKey: "translator", icon: "translate" },
   { id: "playground", href: "/dashboard/playground", i18nKey: "playground", icon: "science" },
-  { id: "media", href: "/dashboard/media", i18nKey: "media", icon: "auto_awesome" },
   {
     id: "search-tools",
     href: "/dashboard/search-tools",

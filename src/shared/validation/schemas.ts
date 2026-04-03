@@ -82,7 +82,21 @@ const comboStrategySchema = z.enum([
   "fill-first",
   // #729 schema fixes for combo edit/save
   "p2c",
+  "auto",
+  "lkgp",
 ]);
+
+const scoringWeightsSchema = z
+  .object({
+    quota: z.number().min(0).max(1),
+    health: z.number().min(0).max(1),
+    costInv: z.number().min(0).max(1),
+    latencyInv: z.number().min(0).max(1),
+    taskFit: z.number().min(0).max(1),
+    stability: z.number().min(0).max(1),
+    tierPriority: z.number().min(0).max(1).optional().default(0.05),
+  })
+  .optional();
 
 const comboRuntimeConfigSchema = z
   .object({
@@ -96,6 +110,13 @@ const comboRuntimeConfigSchema = z
     healthCheckTimeoutMs: z.coerce.number().int().min(100).max(30000).optional(),
     maxComboDepth: z.coerce.number().int().min(1).max(10).optional(),
     trackMetrics: z.boolean().optional(),
+    // Auto-Combo / LKGP Extensions
+    candidatePool: z.array(z.string().min(1)).optional(),
+    weights: scoringWeightsSchema.optional(),
+    modePack: z.string().max(100).optional(),
+    budgetCap: z.number().positive().optional(),
+    explorationRate: z.number().min(0).max(1).optional(),
+    routerStrategy: z.string().optional(),
   })
   .strict();
 
@@ -116,18 +137,6 @@ export const createComboSchema = z.object({
 });
 
 // ──── Auto-Combo Schemas ────
-
-const scoringWeightsSchema = z
-  .object({
-    quota: z.number().min(0).max(1),
-    health: z.number().min(0).max(1),
-    costInv: z.number().min(0).max(1),
-    latencyInv: z.number().min(0).max(1),
-    taskFit: z.number().min(0).max(1),
-    stability: z.number().min(0).max(1),
-    tierPriority: z.number().min(0).max(1).optional().default(0.05),
-  })
-  .optional();
 
 export const createAutoComboSchema = z.object({
   id: z.string().trim().min(1, "id is required").max(100),
