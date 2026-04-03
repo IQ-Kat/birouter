@@ -796,11 +796,13 @@ export async function handleChatCore({
       translatedBody = buildClaudeCodeCompatibleRequest({
         sourceBody: body,
         normalizedBody: normalizedForCc,
+        claudeBody: sourceFormat === FORMATS.CLAUDE ? body : null,
         model,
         stream: upstreamStream,
         sessionId: ccSessionId,
         cwd: process.cwd(),
         now: new Date(),
+        preserveCacheControl,
       });
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {
@@ -1380,7 +1382,15 @@ export async function handleChatCore({
           // For providers with per-model quotas (passthrough providers, Gemini),
           // each model has independent quota. A 429 on one model must NOT lock out
           // the entire connection — other models may still have quota available.
-          if (lockModelIfPerModelQuota(provider, connectionId, model, "rate_limited", retryAfterMs || COOLDOWN_MS.rateLimit)) {
+          if (
+            lockModelIfPerModelQuota(
+              provider,
+              connectionId,
+              model,
+              "rate_limited",
+              retryAfterMs || COOLDOWN_MS.rateLimit
+            )
+          ) {
             console.warn(
               `[provider] Node ${connectionId} model-only rate limited (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
             );
@@ -1401,7 +1411,15 @@ export async function handleChatCore({
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
-          if (lockModelIfPerModelQuota(provider, connectionId, model, "quota_exhausted", retryAfterMs || COOLDOWN_MS.rateLimit)) {
+          if (
+            lockModelIfPerModelQuota(
+              provider,
+              connectionId,
+              model,
+              "quota_exhausted",
+              retryAfterMs || COOLDOWN_MS.rateLimit
+            )
+          ) {
             console.warn(
               `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
             );

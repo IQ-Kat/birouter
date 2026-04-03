@@ -13,6 +13,9 @@
 
 ### Bug Fixes
 
+- Fixed Claude OAuth token refreshes failing to preserve cache contexts (#937)
+- Fixed CC-Compatible provider errors rendering cached models unreachable (#937)
+- Fixed GitHub Executor errors related to invalid context arrays (#937)
 - Fixed NPM-installed CLI tools healthcheck failures on Windows (#935)
 - Fixed payload translation dropping valid content due to invalid API fields (#927)
 - Fixed runtime crash in Node 25 regarding API key execution (#867)

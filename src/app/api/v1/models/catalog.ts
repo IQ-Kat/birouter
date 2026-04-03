@@ -19,6 +19,7 @@ import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getSyncedAvailableModels } from "@/lib/db/models";
+import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -306,9 +307,7 @@ export async function getUnifiedModelsResponse(
           if (getModelIsHidden("gemini", sm.id)) continue;
 
           // Convert supportedEndpoints to type/subtype for endpoint categorization
-          const endpoints = Array.isArray(sm.supportedEndpoints)
-            ? sm.supportedEndpoints
-            : ["chat"];
+          const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
           else if (endpoints.includes("images")) modelType = "image";
@@ -549,6 +548,47 @@ export async function getUnifiedModelsResponse(
       }
     } catch (e) {
       console.log("Could not fetch custom models");
+    }
+
+    // Add managed fallback models for compatible providers that don't import a model list.
+    for (const conn of connections) {
+      const providerId = typeof conn.provider === "string" ? conn.provider : null;
+      if (!providerId) continue;
+      if (blockedProviders.has(providerId)) continue;
+
+      const fallbackModels = getCompatibleFallbackModels(providerId);
+      if (!Array.isArray(fallbackModels) || fallbackModels.length === 0) continue;
+
+      const prefix = providerIdToPrefix[providerId];
+      const alias = prefix || providerIdToAlias[providerId] || providerId;
+
+      for (const model of fallbackModels) {
+        const modelId = typeof model.id === "string" ? model.id : null;
+        if (!modelId) continue;
+        if (getModelIsHidden(providerId, modelId)) continue;
+
+        const aliasId = `${alias}/${modelId}`;
+        if (models.some((m) => m.id === aliasId)) continue;
+
+        const visionFields =
+          getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
+        const contextLength =
+          typeof (model as any).contextLength === "number"
+            ? (model as any).contextLength
+            : undefined;
+
+        models.push({
+          id: aliasId,
+          object: "model",
+          created: timestamp,
+          owned_by: providerId,
+          permission: [],
+          root: modelId,
+          parent: null,
+          ...(contextLength ? { context_length: contextLength } : {}),
+          ...(visionFields || {}),
+        });
+      }
     }
 
     // Filter by API key permissions if requested
