@@ -106,7 +106,7 @@ test("buildClaudeCodeCompatibleRequest keeps prior role history while dropping t
   );
   assert.deepEqual(payload.messages[0].content.at(-1).cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.messages[1].content.at(-1).cache_control, { type: "ephemeral" });
-  assert.equal(payload.messages[2].content.at(-1).cache_control, undefined);
+  assert.deepEqual(payload.messages[2].content.at(-1).cache_control, { type: "ephemeral" });
   assert.equal(payload.system.length, 4);
   assert.equal(payload.system.at(-1).text, "sys");
   assert.equal(payload.tools.length, 1);
@@ -182,8 +182,88 @@ test("buildClaudeCodeCompatibleRequest preserves Claude cache markers when reque
     type: "ephemeral",
     ttl: "10m",
   });
-  assert.equal(payload.messages[2].content[0].cache_control, undefined);
+  assert.deepEqual(payload.messages[2].content[0].cache_control, { type: "ephemeral" });
   assert.deepEqual(payload.tools[0].cache_control, { type: "ephemeral", ttl: "30m" });
+});
+
+test("buildClaudeCodeCompatibleRequest supplements missing Claude cache markers in preserve mode", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      max_tokens: 64,
+    },
+    normalizedBody: {
+      max_tokens: 64,
+      messages: [{ role: "user", content: "fallback" }],
+    },
+    claudeBody: {
+      system: [{ type: "text", text: "sys" }],
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "text", text: "u1" }],
+        },
+        {
+          role: "assistant",
+          content: [{ type: "text", text: "a1" }],
+        },
+        { role: "user", content: [{ type: "text", text: "u2" }] },
+      ],
+      tools: [
+        {
+          name: "lookup_weather",
+          description: "Fetch weather",
+          input_schema: {
+            type: "object",
+            properties: {
+              city: { type: "string" },
+            },
+            required: ["city"],
+          },
+        },
+      ],
+    },
+    model: "claude-sonnet-4-6",
+    sessionId: "session-preserve-defaults",
+    preserveCacheControl: true,
+  });
+
+  assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.messages[1].content[0].cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.messages[2].content[0].cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.tools[0].cache_control, { type: "ephemeral", ttl: "1h" });
+});
+
+test("buildClaudeCodeCompatibleRequest marks final user turn and 1h system cache in non-preserve mode", () => {
+  const largeUserPrompt = Array.from(
+    { length: 200 },
+    (_, index) => `Context line ${index + 1}: repeated stable context for cache testing.`
+  ).join("\n");
+
+  const payload = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      max_tokens: 64,
+    },
+    normalizedBody: {
+      max_tokens: 64,
+      messages: [
+        { role: "system", content: "Follow the house style exactly." },
+        { role: "user", content: "[Start a new chat]" },
+        { role: "assistant", content: "Hello short ack" },
+        { role: "user", content: largeUserPrompt },
+      ],
+    },
+    model: "claude-sonnet-4-6",
+    sessionId: "session-last-user-cache",
+    preserveCacheControl: false,
+  });
+
+  assert.deepEqual(payload.system.at(-1).cache_control, {
+    type: "ephemeral",
+    ttl: "1h",
+  });
+  assert.deepEqual(payload.messages[0].content[0].cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.messages[1].content[0].cache_control, { type: "ephemeral" });
+  assert.deepEqual(payload.messages[2].content[0].cache_control, { type: "ephemeral" });
 });
 
 test("buildClaudeCodeCompatibleRequest falls back to a user turn when the source only has assistant/model text", () => {
@@ -419,7 +499,7 @@ test("handleChatCore forces upstream streaming for CC compatible while returning
   assert.equal(payload.usage.completion_tokens, 5);
 });
 
-test("handleChatCore preserves Claude cache_control when CC-compatible requests originate from Claude", async () => {
+test("handleChatCore applies OmniRoute-managed cache strategy for CC-compatible requests in auto mode", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({
@@ -524,18 +604,20 @@ test("handleChatCore preserves Claude cache_control when CC-compatible requests 
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0].body.system.at(-1).cache_control, {
     type: "ephemeral",
-    ttl: "5m",
+    ttl: "1h",
   });
   assert.deepEqual(calls[0].body.messages[0].content[0].cache_control, {
     type: "ephemeral",
   });
   assert.deepEqual(calls[0].body.messages[1].content[0].cache_control, {
     type: "ephemeral",
-    ttl: "10m",
+  });
+  assert.deepEqual(calls[0].body.messages[2].content[0].cache_control, {
+    type: "ephemeral",
   });
   assert.deepEqual(calls[0].body.tools[0].cache_control, {
     type: "ephemeral",
-    ttl: "30m",
+    ttl: "1h",
   });
 });
 

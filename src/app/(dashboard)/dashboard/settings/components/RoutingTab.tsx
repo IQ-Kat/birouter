@@ -277,7 +277,7 @@ export default function RoutingTab() {
             {
               value: "auto",
               label: "Auto (Recommended)",
-              desc: "Preserve cache_control only for caching-aware clients (Claude Code) with deterministic routing",
+              desc: "Preserve cache_control for native Claude-compatible flows with deterministic routing; CC-compatible bridges use OmniRoute-managed markers",
             },
             {
               value: "always",
