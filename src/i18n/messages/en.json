@@ -2250,7 +2250,9 @@
     "adaptiveVolumeRoutingDesc": "Scale connections dynamically based on payload volume and throughput pressure.",
     "days": "Days",
     "lkgp": "LKGP Mode",
-    "lkgpDesc": "Last Known Good Provider (Predictable resilience)"
+    "lkgpDesc": "Last Known Good Provider (Predictable resilience)",
+    "purgeExpiredLogs": "Purge Expired Logs",
+    "purgeLogsFailed": "Failed to purge logs"
   },
   "translator": {
     "title": "Translator",

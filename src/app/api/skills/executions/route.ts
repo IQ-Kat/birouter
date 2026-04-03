@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { skillExecutor } from "@/lib/skills/executor";
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const executions = skillExecutor.listExecutions();
     return NextResponse.json({ executions });
@@ -11,14 +14,28 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { skillName, input, apiKeyId, sessionId } = body;
+import { z } from "zod";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
-    if (!skillName || !apiKeyId) {
-      return NextResponse.json({ error: "skillName and apiKeyId are required" }, { status: 400 });
+const executionSchema = z.object({
+  skillName: z.string().min(1),
+  apiKeyId: z.string().min(1),
+  input: z.record(z.unknown()).optional(),
+  sessionId: z.string().optional(),
+});
+
+export async function POST(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  try {
+    const rawBody = await request.json();
+    const validation = validateBody(executionSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return validation.response;
     }
+    const { skillName, input, apiKeyId, sessionId } = validation.data;
 
     const execution = await skillExecutor.execute(skillName, input || {}, {
       apiKeyId,

@@ -2248,7 +2248,9 @@
     "skillsEnabledDesc": "Permite aos agentes executar consultas e gerar arquivos.",
     "skillsComingSoon": "Marketplace em breve.",
     "memorySkillsTitle": "Memória e Skills",
-    "memorySkillsDesc": "Contexto persistente e capacidades A2A"
+    "memorySkillsDesc": "Contexto persistente e capacidades A2A",
+    "purgeExpiredLogs": "Purgar Logs Expirados",
+    "purgeLogsFailed": "Falha ao purgar logs"
   },
   "translator": {
     "title": "Tradutor",

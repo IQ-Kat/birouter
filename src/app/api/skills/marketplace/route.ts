@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getSettings } from "@/lib/db/settings";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 export async function GET(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q") || "";

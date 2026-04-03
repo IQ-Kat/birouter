@@ -3,6 +3,8 @@ import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { skillRegistry } from "@/lib/skills/registry";
 
+import { isAuthenticated } from "@/shared/utils/apiAuth";
+
 const marketplaceInstallSchema = z.object({
   name: z.string().min(1).max(64),
   description: z.string().min(1).max(1024),
@@ -12,6 +14,9 @@ const marketplaceInstallSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const rawBody = await request.json();
     const validation = validateBody(marketplaceInstallSchema, rawBody);

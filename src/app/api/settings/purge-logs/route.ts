@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { getDbInstance } from "@/lib/db/core";
 import { getCallLogRetentionDays } from "@/lib/logEnv";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const db = getDbInstance();
     const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
