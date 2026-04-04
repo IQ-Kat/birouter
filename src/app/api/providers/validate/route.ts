@@ -31,9 +31,12 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { provider, apiKey, validationModelId } = validation.data;
+    const { provider, apiKey, validationModelId, customUserAgent } = validation.data;
 
     let providerSpecificData: any = { validationModelId };
+    if (customUserAgent) {
+      providerSpecificData.customUserAgent = customUserAgent;
+    }
 
     if (isOpenAICompatibleProvider(provider) || isAnthropicCompatibleProvider(provider)) {
       const node: any = await getProviderNodeById(provider);

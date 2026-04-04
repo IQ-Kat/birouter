@@ -4523,11 +4523,13 @@ function AddApiKeyModal({
     region: isVertex ? defaultRegion : "",
     apiRegion: "international",
     validationModelId: "",
+    customUserAgent: "",
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleValidate = async () => {
     setValidating(true);
@@ -4540,6 +4542,7 @@ function AddApiKeyModal({
           provider,
           apiKey: formData.apiKey,
           validationModelId: formData.validationModelId || undefined,
+          customUserAgent: formData.customUserAgent.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -4578,6 +4581,7 @@ function AddApiKeyModal({
             provider,
             apiKey: formData.apiKey,
             validationModelId: formData.validationModelId || undefined,
+            customUserAgent: formData.customUserAgent.trim() || undefined,
           }),
         });
         const data = await res.json();
@@ -4594,28 +4598,26 @@ function AddApiKeyModal({
         return;
       }
 
+      const providerSpecificData: Record<string, unknown> = {};
+      if (formData.customUserAgent.trim()) {
+        providerSpecificData.customUserAgent = formData.customUserAgent.trim();
+      }
+      if (isBailian) {
+        providerSpecificData.baseUrl = validatedBailianBaseUrl;
+      } else if (isVertex) {
+        providerSpecificData.region = formData.region;
+      } else if (isGlm) {
+        providerSpecificData.apiRegion = formData.apiRegion;
+      }
+
       const payload = {
         name: formData.name,
         apiKey: formData.apiKey,
         priority: formData.priority,
         testStatus: "active",
-        providerSpecificData: undefined,
+        providerSpecificData:
+          Object.keys(providerSpecificData).length > 0 ? providerSpecificData : undefined,
       };
-
-      // Include baseUrl in providerSpecificData for bailian-coding-plan
-      if (isBailian) {
-        payload.providerSpecificData = {
-          baseUrl: validatedBailianBaseUrl,
-        };
-      } else if (isVertex) {
-        payload.providerSpecificData = {
-          region: formData.region,
-        };
-      } else if (isGlm) {
-        payload.providerSpecificData = {
-          apiRegion: formData.apiRegion,
-        };
-      }
 
       const error = await onSave(payload);
       if (error) {
@@ -4693,6 +4695,35 @@ function AddApiKeyModal({
                     provider: providerName || t("openaiCompatibleName"),
                   })}
           </p>
+        )}
+        <button
+          type="button"
+          className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          aria-expanded={showAdvanced}
+          aria-controls="add-api-key-advanced-settings"
+        >
+          <span
+            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+            aria-hidden="true"
+          >
+            ▶
+          </span>
+          {t("advancedSettings")}
+        </button>
+        {showAdvanced && (
+          <div
+            id="add-api-key-advanced-settings"
+            className="flex flex-col gap-3 pl-2 border-l-2 border-border"
+          >
+            <Input
+              label="Custom User-Agent"
+              value={formData.customUserAgent}
+              onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
+              placeholder="my-app/1.0"
+              hint="Optional override sent upstream as the User-Agent header for this connection"
+            />
+          </div>
         )}
         <Input
           label="Model ID (opcional)"
@@ -4796,6 +4827,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     apiRegion: "international",
     validationModelId: "",
     tag: "",
+    customUserAgent: "",
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -4805,6 +4837,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const [saveError, setSaveError] = useState<string | null>(null);
   const [extraApiKeys, setExtraApiKeys] = useState<string[]>([]);
   const [newExtraKey, setNewExtraKey] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const isBailian = connection?.provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
@@ -4818,6 +4851,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const existingBaseUrl = typeof rawBaseUrl === "string" ? rawBaseUrl : "";
       const rawRegion = connection.providerSpecificData?.region;
       const existingRegion = typeof rawRegion === "string" ? rawRegion : "";
+      const rawCustomUserAgent = connection.providerSpecificData?.customUserAgent;
+      const existingCustomUserAgent =
+        typeof rawCustomUserAgent === "string" ? rawCustomUserAgent : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -4828,11 +4864,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
+        customUserAgent: existingCustomUserAgent,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
       setNewExtraKey("");
+      setShowAdvanced(!!existingCustomUserAgent);
       setTestResult(null);
       setValidationResult(null);
       setSaveError(null);
@@ -4880,6 +4918,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           provider: connection.provider,
           apiKey: formData.apiKey,
           validationModelId: formData.validationModelId || undefined,
+          customUserAgent: formData.customUserAgent.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -4925,6 +4964,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 provider: connection.provider,
                 apiKey: formData.apiKey,
                 validationModelId: formData.validationModelId || undefined,
+                customUserAgent: formData.customUserAgent.trim() || undefined,
               }),
             });
             const data = await res.json();
@@ -4952,6 +4992,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           ...(connection.providerSpecificData || {}),
           extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
           tag: formData.tag.trim() || undefined,
+          customUserAgent: formData.customUserAgent.trim(),
         };
         if (formData.validationModelId) {
           updates.providerSpecificData.validationModelId = formData.validationModelId;
@@ -5065,6 +5106,35 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             {saveError && (
               <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
                 {saveError}
+              </div>
+            )}
+            <button
+              type="button"
+              className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              aria-expanded={showAdvanced}
+              aria-controls="edit-connection-advanced-settings"
+            >
+              <span
+                className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+                aria-hidden="true"
+              >
+                ▶
+              </span>
+              {t("advancedSettings")}
+            </button>
+            {showAdvanced && (
+              <div
+                id="edit-connection-advanced-settings"
+                className="flex flex-col gap-3 pl-2 border-l-2 border-border"
+              >
+                <Input
+                  label="Custom User-Agent"
+                  value={formData.customUserAgent}
+                  onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
+                  placeholder="my-app/1.0"
+                  hint="Optional override sent upstream as the User-Agent header for this connection"
+                />
               </div>
             )}
             <Input
