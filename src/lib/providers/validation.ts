@@ -80,11 +80,40 @@ function resolveChatUrl(provider: string, baseUrl: string, providerSpecificData:
   return normalized;
 }
 
-function buildBearerHeaders(apiKey: string) {
+function getCustomUserAgent(providerSpecificData: any = {}) {
+  if (typeof providerSpecificData?.customUserAgent !== "string") return null;
+  const customUserAgent = providerSpecificData.customUserAgent.trim();
+  return customUserAgent || null;
+}
+
+function applyCustomUserAgent(headers: Record<string, string>, providerSpecificData: any = {}) {
+  const customUserAgent = getCustomUserAgent(providerSpecificData);
+  if (!customUserAgent) return headers;
+  headers["User-Agent"] = customUserAgent;
+  if ("user-agent" in headers) {
+    headers["user-agent"] = customUserAgent;
+  }
+  return headers;
+}
+
+function withCustomUserAgent(init: RequestInit, providerSpecificData: any = {}) {
   return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
+    ...init,
+    headers: applyCustomUserAgent(
+      { ...((init.headers as Record<string, string> | undefined) || {}) },
+      providerSpecificData
+    ),
   };
+}
+
+function buildBearerHeaders(apiKey: string, providerSpecificData: any = {}) {
+  return applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    providerSpecificData
+  );
 }
 
 async function validateOpenAILikeProvider({
@@ -106,7 +135,7 @@ async function validateOpenAILikeProvider({
 
   const modelsRes = await fetch(modelsUrl, {
     method: "GET",
-    headers: buildBearerHeaders(apiKey),
+    headers: buildBearerHeaders(apiKey, providerSpecificData),
   });
 
   if (modelsRes.ok) {
@@ -132,7 +161,7 @@ async function validateOpenAILikeProvider({
 
   const chatRes = await fetch(chatUrl, {
     method: "POST",
-    headers: buildBearerHeaders(apiKey),
+    headers: buildBearerHeaders(apiKey, providerSpecificData),
     body: JSON.stringify(testBody),
   });
 
@@ -167,10 +196,13 @@ async function validateAnthropicLikeProvider({
     return { valid: false, error: "Missing base URL" };
   }
 
-  const requestHeaders = {
-    "Content-Type": "application/json",
-    ...headers,
-  };
+  const requestHeaders = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      ...headers,
+    },
+    providerSpecificData
+  );
 
   if (!requestHeaders["x-api-key"] && !requestHeaders["X-API-Key"]) {
     requestHeaders["x-api-key"] = apiKey;
@@ -200,7 +232,7 @@ async function validateAnthropicLikeProvider({
   return { valid: true, error: null };
 }
 
-async function validateGeminiLikeProvider({ apiKey, baseUrl }: any) {
+async function validateGeminiLikeProvider({ apiKey, baseUrl, providerSpecificData = {} }: any) {
   if (!baseUrl) {
     return { valid: false, error: "Missing base URL" };
   }
@@ -208,7 +240,7 @@ async function validateGeminiLikeProvider({ apiKey, baseUrl }: any) {
   const separator = baseUrl.includes("?") ? "&" : "?";
   const response = await fetch(`${baseUrl}${separator}key=${encodeURIComponent(apiKey)}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers: applyCustomUserAgent({ "Content-Type": "application/json" }, providerSpecificData),
   });
 
   if (response.ok) {
@@ -224,11 +256,11 @@ async function validateGeminiLikeProvider({ apiKey, baseUrl }: any) {
 
 // ── Specialty providers (non-standard APIs) ──
 
-async function validateDeepgramProvider({ apiKey }: any) {
+async function validateDeepgramProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const response = await fetch("https://api.deepgram.com/v1/auth/token", {
       method: "GET",
-      headers: { Authorization: `Token ${apiKey}` },
+      headers: applyCustomUserAgent({ Authorization: `Token ${apiKey}` }, providerSpecificData),
     });
     if (response.ok) return { valid: true, error: null };
     if (response.status === 401 || response.status === 403) {
@@ -240,14 +272,17 @@ async function validateDeepgramProvider({ apiKey }: any) {
   }
 }
 
-async function validateAssemblyAIProvider({ apiKey }: any) {
+async function validateAssemblyAIProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const response = await fetch("https://api.assemblyai.com/v2/transcript?limit=1", {
       method: "GET",
-      headers: {
-        Authorization: apiKey,
-        "Content-Type": "application/json",
-      },
+      headers: applyCustomUserAgent(
+        {
+          Authorization: apiKey,
+          "Content-Type": "application/json",
+        },
+        providerSpecificData
+      ),
     });
     if (response.ok) return { valid: true, error: null };
     if (response.status === 401 || response.status === 403) {
@@ -259,16 +294,19 @@ async function validateAssemblyAIProvider({ apiKey }: any) {
   }
 }
 
-async function validateNanoBananaProvider({ apiKey }: any) {
+async function validateNanoBananaProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     // NanoBanana doesn't expose a lightweight validation endpoint,
     // so we send a minimal generate request that will succeed or fail on auth.
     const response = await fetch("https://api.nanobananaapi.ai/api/v1/nanobanana/generate", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: applyCustomUserAgent(
+        {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        providerSpecificData
+      ),
       body: JSON.stringify({
         prompt: "test",
         model: "nanobanana-flash",
@@ -284,15 +322,18 @@ async function validateNanoBananaProvider({ apiKey }: any) {
   }
 }
 
-async function validateElevenLabsProvider({ apiKey }: any) {
+async function validateElevenLabsProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     // Lightweight auth check endpoint
     const response = await fetch("https://api.elevenlabs.io/v1/voices", {
       method: "GET",
-      headers: {
-        "xi-api-key": apiKey,
-        "Content-Type": "application/json",
-      },
+      headers: applyCustomUserAgent(
+        {
+          "xi-api-key": apiKey,
+          "Content-Type": "application/json",
+        },
+        providerSpecificData
+      ),
     });
 
     if (response.ok) return { valid: true, error: null };
@@ -306,16 +347,19 @@ async function validateElevenLabsProvider({ apiKey }: any) {
   }
 }
 
-async function validateInworldProvider({ apiKey }: any) {
+async function validateInworldProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     // Inworld TTS lacks a simple key-introspection endpoint.
     // Send a minimal synth request and treat non-auth 4xx as auth-pass.
     const response = await fetch("https://api.inworld.ai/tts/v1/voice", {
       method: "POST",
-      headers: {
-        Authorization: `Basic ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: applyCustomUserAgent(
+        {
+          Authorization: `Basic ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        providerSpecificData
+      ),
       body: JSON.stringify({
         text: "test",
         modelId: "inworld-tts-1.5-mini",
@@ -348,11 +392,14 @@ async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData 
 
     const response = await fetch(messagesUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        providerSpecificData
+      ),
       body: JSON.stringify({
         model: "qwen3-coder-plus",
         max_tokens: 1,
@@ -396,7 +443,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   try {
     const modelsRes = await fetch(`${baseUrl}/models`, {
       method: "GET",
-      headers: buildBearerHeaders(apiKey),
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
     });
 
     modelsReachable = true;
@@ -441,7 +488,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   try {
     const chatRes = await fetch(chatUrl, {
       method: "POST",
-      headers: buildBearerHeaders(apiKey),
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
       body: JSON.stringify({
         model: testModelId,
         messages: [{ role: "user", content: "test" }],
@@ -503,7 +550,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   try {
     const pingRes = await fetch(baseUrl, {
       method: "GET",
-      headers: buildBearerHeaders(apiKey),
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
       signal: AbortSignal.timeout(5000),
     });
 
@@ -524,12 +571,15 @@ async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificDat
     return { valid: false, error: "No base URL configured for Anthropic compatible provider" };
   }
 
-  const headers = {
-    "Content-Type": "application/json",
-    "x-api-key": apiKey,
-    "anthropic-version": "2023-06-01",
-    Authorization: `Bearer ${apiKey}`,
-  };
+  const headers = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    providerSpecificData
+  );
 
   // Step 1: Try GET /models
   try {
@@ -590,7 +640,10 @@ export async function validateClaudeCodeCompatibleProvider({
 
   const modelsPath = providerSpecificData?.modelsPath || CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH;
   const chatPath = providerSpecificData?.chatPath || CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH;
-  const defaultHeaders = buildClaudeCodeCompatibleHeaders(apiKey, false);
+  const defaultHeaders = applyCustomUserAgent(
+    buildClaudeCodeCompatibleHeaders(apiKey, false),
+    providerSpecificData
+  );
 
   try {
     const modelsRes = await fetch(joinClaudeCodeCompatibleUrl(baseUrl, modelsPath), {
@@ -617,7 +670,10 @@ export async function validateClaudeCodeCompatibleProvider({
   try {
     const messagesRes = await fetch(joinClaudeCodeCompatibleUrl(baseUrl, chatPath), {
       method: "POST",
-      headers: buildClaudeCodeCompatibleHeaders(apiKey, true, sessionId),
+      headers: applyCustomUserAgent(
+        buildClaudeCodeCompatibleHeaders(apiKey, true, sessionId),
+        providerSpecificData
+      ),
       body: JSON.stringify(payload),
     });
 
@@ -657,10 +713,11 @@ export async function validateClaudeCodeCompatibleProvider({
 
 async function validateSearchProvider(
   url: string,
-  init: RequestInit
+  init: RequestInit,
+  providerSpecificData: any = {}
 ): Promise<{ valid: boolean; error: string | null; unsupported: false }> {
   try {
-    const response = await fetch(url, init);
+    const response = await fetch(url, withCustomUserAgent(init, providerSpecificData));
     if (response.ok) return { valid: true, error: null, unsupported: false };
     if (response.status === 401 || response.status === 403) {
       return { valid: false, error: "Invalid API key", unsupported: false };
@@ -757,11 +814,11 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     inworld: validateInworldProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
     // LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
-    longcat: async ({ apiKey }: any) => {
+    longcat: async ({ apiKey, providerSpecificData }: any) => {
       try {
         const res = await fetch("https://api.longcat.chat/openai/v1/chat/completions", {
           method: "POST",
-          headers: buildBearerHeaders(apiKey),
+          headers: buildBearerHeaders(apiKey, providerSpecificData),
           body: JSON.stringify({
             model: "longcat",
             messages: [{ role: "user", content: "test" }],
@@ -781,9 +838,9 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     ...Object.fromEntries(
       Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
         id,
-        ({ apiKey }: any) => {
+        ({ apiKey, providerSpecificData }: any) => {
           const { url, init } = configFn(apiKey);
-          return validateSearchProvider(url, init);
+          return validateSearchProvider(url, init, providerSpecificData);
         },
       ])
     ),
@@ -847,6 +904,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       return await validateGeminiLikeProvider({
         apiKey,
         baseUrl,
+        providerSpecificData,
       });
     }
 

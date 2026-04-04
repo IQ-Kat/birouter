@@ -41,8 +41,8 @@ test("openai-compatible validation reports missing base URL", async () => {
 
 test("openai-compatible validation accepts rate-limited /models responses", async () => {
   const calls = [];
-  globalThis.fetch = async (url) => {
-    calls.push(String(url));
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), headers: init.headers || {} });
     return new Response(JSON.stringify({ error: "rate limited" }), { status: 429 });
   };
 
@@ -55,7 +55,33 @@ test("openai-compatible validation accepts rate-limited /models responses", asyn
   assert.equal(result.valid, true);
   assert.equal(result.method, "models_endpoint");
   assert.match(result.warning, /Rate limited/i);
-  assert.deepEqual(calls, ["https://api.example.com/v1/models"]);
+  assert.deepEqual(
+    calls.map((call) => call.url),
+    ["https://api.example.com/v1/models"]
+  );
+  assert.equal(calls[0].headers.Authorization, "Bearer sk-test");
+});
+
+test("openai-compatible validation forwards custom User-Agent", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), headers: init.headers || {} });
+    return new Response(JSON.stringify({ error: "rate limited" }), { status: 429 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-custom-ua",
+    apiKey: "sk-test",
+    providerSpecificData: {
+      baseUrl: "https://api.example.com/v1",
+      customUserAgent: "MyRouteTester/1.0",
+    },
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.example.com/v1/models");
+  assert.equal(calls[0].headers["User-Agent"], "MyRouteTester/1.0");
 });
 
 test("openai-compatible validation treats chat 400 as authenticated fallback", async () => {

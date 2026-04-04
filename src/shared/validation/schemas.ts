@@ -32,12 +32,23 @@ export const createProviderSchema = z.object({
     .superRefine((data, ctx) => {
       if (!data) return;
       const baseUrl = data.baseUrl;
-      if (baseUrl === undefined) return;
-      if (typeof baseUrl !== "string" || !isHttpUrl(baseUrl)) {
+      if (baseUrl !== undefined && (typeof baseUrl !== "string" || !isHttpUrl(baseUrl))) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "providerSpecificData.baseUrl must be a valid http(s) URL",
           path: ["baseUrl"],
+        });
+      }
+      const customUserAgent = data.customUserAgent;
+      if (
+        customUserAgent !== undefined &&
+        customUserAgent !== null &&
+        (typeof customUserAgent !== "string" || customUserAgent.length > 500)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "providerSpecificData.customUserAgent must be a string up to 500 chars",
+          path: ["customUserAgent"],
         });
       }
     }),
@@ -1033,12 +1044,23 @@ export const updateProviderConnectionSchema = z
       .superRefine((data, ctx) => {
         if (!data) return;
         const baseUrl = data.baseUrl;
-        if (baseUrl === undefined) return;
-        if (typeof baseUrl !== "string" || !isHttpUrl(baseUrl)) {
+        if (baseUrl !== undefined && (typeof baseUrl !== "string" || !isHttpUrl(baseUrl))) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "providerSpecificData.baseUrl must be a valid http(s) URL",
             path: ["baseUrl"],
+          });
+        }
+        const customUserAgent = data.customUserAgent;
+        if (
+          customUserAgent !== undefined &&
+          customUserAgent !== null &&
+          (typeof customUserAgent !== "string" || customUserAgent.length > 500)
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "providerSpecificData.customUserAgent must be a string up to 500 chars",
+            path: ["customUserAgent"],
           });
         }
       }),
@@ -1075,6 +1097,7 @@ export const validateProviderApiKeySchema = z.object({
   provider: z.string().trim().min(1, "Provider and API key required"),
   apiKey: z.string().trim().min(1, "Provider and API key required"),
   validationModelId: z.string().trim().optional(),
+  customUserAgent: z.string().trim().max(500).optional(),
 });
 
 const geminiPartSchema = z
