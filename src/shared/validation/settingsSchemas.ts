@@ -72,4 +72,7 @@ export const updateSettingsSchema = z.object({
     .optional(),
   // SkillsMP marketplace API key
   skillsmpApiKey: z.string().max(200).optional(),
+  // models.dev sync settings
+  modelsDevSyncEnabled: z.boolean().optional(),
+  modelsDevSyncInterval: z.number().int().min(3600).max(604800).optional(),
 });

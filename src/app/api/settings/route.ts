@@ -149,6 +149,19 @@ export async function PATCH(request) {
       invalidateCacheControlSettingsCache();
     }
 
+    // Sync models.dev sync settings
+    if ("modelsDevSyncEnabled" in body) {
+      const { stopPeriodicSync, startPeriodicSync } = await import("@/lib/modelsDevSync");
+      const settings = await getSettings();
+      const wasEnabled = (settings as Record<string, unknown>).modelsDevSyncEnabled === true;
+      const isEnabled = body.modelsDevSyncEnabled === true;
+      if (wasEnabled && !isEnabled) {
+        stopPeriodicSync();
+      } else if (!wasEnabled && isEnabled) {
+        startPeriodicSync();
+      }
+    }
+
     const { password, ...safeSettings } = settings;
     return NextResponse.json(safeSettings);
   } catch (error) {

@@ -103,7 +103,7 @@ export async function getPricing() {
   const { getDefaultPricing } = await import("@/shared/constants/pricing");
   const defaultPricing = getDefaultPricing();
 
-  // Layer 2: Synced external pricing (middle priority)
+  // Layer 2: Synced external pricing from LiteLLM (middle-low priority)
   const syncedRows = db
     .prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing_synced'")
     .all();
@@ -116,7 +116,24 @@ export async function getPricing() {
     syncedPricing[key] = toRecord(JSON.parse(rawValue)) as PricingModels;
   }
 
-  // Layer 3: User overrides (highest priority)
+  // Layer 3: Synced pricing from models.dev (middle-high priority)
+  const modelsDevRows = db
+    .prepare("SELECT key, value FROM key_value WHERE namespace = 'models_dev_pricing'")
+    .all();
+  const modelsDevPricing: PricingByProvider = {};
+  for (const row of modelsDevRows) {
+    const record = toRecord(row);
+    const key = typeof record.key === "string" ? record.key : null;
+    const rawValue = typeof record.value === "string" ? record.value : null;
+    if (!key || rawValue === null) continue;
+    try {
+      modelsDevPricing[key] = JSON.parse(rawValue) as PricingModels;
+    } catch {
+      // Corrupted data — skip silently, fallback to lower layers
+    }
+  }
+
+  // Layer 4: User overrides (highest priority)
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing'").all();
   const userPricing: PricingByProvider = {};
   for (const row of rows) {
@@ -127,7 +144,7 @@ export async function getPricing() {
     userPricing[key] = toRecord(JSON.parse(rawValue)) as PricingModels;
   }
 
-  // Merge: defaults → synced → user (each layer overrides the previous)
+  // Merge: defaults → LiteLLM → models.dev → user (each layer overrides the previous)
   const mergedPricing: PricingByProvider = {};
 
   // Start with defaults
@@ -135,8 +152,8 @@ export async function getPricing() {
     mergedPricing[provider] = { ...(toRecord(models) as PricingModels) };
   }
 
-  // Layer synced then user on top (each higher-priority layer overrides)
-  for (const layer of [syncedPricing, userPricing]) {
+  // Layer synced (LiteLLM), then models.dev, then user on top
+  for (const layer of [syncedPricing, modelsDevPricing, userPricing]) {
     for (const [provider, models] of Object.entries(layer)) {
       if (!mergedPricing[provider]) {
         mergedPricing[provider] = { ...models };
