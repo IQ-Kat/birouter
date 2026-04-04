@@ -182,10 +182,10 @@ test("registry openai-like providers report unsupported validation endpoints on 
   ]);
 });
 
-test("gemini validation rejects invalid API keys", async () => {
+test("gemini validation rejects invalid API keys (401)", async () => {
   const calls = [];
-  globalThis.fetch = async (url) => {
-    calls.push(String(url));
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), headers: init?.headers });
     return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
   };
 
@@ -197,6 +197,184 @@ test("gemini validation rejects invalid API keys", async () => {
   assert.equal(result.valid, false);
   assert.equal(result.error, "Invalid API key");
   assert.equal(calls.length, 1);
-  assert.match(calls[0], /generativelanguage\.googleapis\.com/);
-  assert.match(calls[0], /key=bad-key/);
+  assert.match(calls[0].url, /generativelanguage\.googleapis\.com/);
+  assert.equal(calls[0].headers["x-goog-api-key"], "bad-key");
+});
+
+test("gemini validation rejects invalid API keys (400 with API_KEY_INVALID)", async () => {
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: 400,
+          message: "API key not valid. Please pass a valid API key.",
+          status: "INVALID_ARGUMENT",
+          details: [{ reason: "API_KEY_INVALID" }],
+        },
+      }),
+      { status: 400 }
+    );
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: "bad-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gemini validation rejects expired API keys (400 with API_KEY_EXPIRED)", async () => {
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: 400,
+          message: "API key expired.",
+          status: "INVALID_ARGUMENT",
+          details: [{ reason: "API_KEY_EXPIRED" }],
+        },
+      }),
+      { status: 400 }
+    );
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: "expired-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gemini validation rejects invalid keys via PERMISSION_DENIED status", async () => {
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: 400,
+          message: "Request had insufficient authentication scopes.",
+          status: "PERMISSION_DENIED",
+          details: [],
+        },
+      }),
+      { status: 400 }
+    );
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: "bad-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gemini validation accepts valid API key (200)", async () => {
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        models: [
+          { name: "models/gemini-2.5-flash", supportedGenerationMethods: ["generateContent"] },
+        ],
+      }),
+      { status: 200 }
+    );
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: "valid-key",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("gemini validation treats 400 with unknown body as invalid key", async () => {
+  globalThis.fetch = async () => {
+    return new Response("not json", { status: 400 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: "bad-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gemini validation treats 429 rate limit as valid key", async () => {
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: 429,
+          message: "You exceeded your current quota.",
+          status: "RESOURCE_EXHAUSTED",
+        },
+      }),
+      { status: 429 }
+    );
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: "valid-but-rate-limited-key",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+});
+
+test("gemini validation rejects invalid keys via UNAUTHENTICATED status", async () => {
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: 401,
+          message: "Request is missing valid authentication credentials.",
+          status: "UNAUTHENTICATED",
+          details: [],
+        },
+      }),
+      { status: 401 }
+    );
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: "bad-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});
+
+test("gemini-cli validation uses Bearer auth (OAuth)", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), headers: init?.headers });
+    return new Response(
+      JSON.stringify({
+        models: [{ name: "models/gemini-2.5-flash" }],
+      }),
+      { status: 200 }
+    );
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini-cli",
+    apiKey: "oauth-access-token",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].headers["Authorization"], "Bearer oauth-access-token");
+  assert.equal(calls[0].headers["x-goog-api-key"], undefined);
 });

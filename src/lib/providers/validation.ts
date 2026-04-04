@@ -200,23 +200,70 @@ async function validateAnthropicLikeProvider({
   return { valid: true, error: null };
 }
 
-async function validateGeminiLikeProvider({ apiKey, baseUrl }: any) {
+async function validateGeminiLikeProvider({ apiKey, baseUrl, authType }: any) {
   if (!baseUrl) {
     return { valid: false, error: "Missing base URL" };
   }
 
-  const separator = baseUrl.includes("?") ? "&" : "?";
-  const response = await fetch(`${baseUrl}${separator}key=${encodeURIComponent(apiKey)}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
+  // Use the correct auth header based on provider config:
+  // - gemini (API key): x-goog-api-key
+  // - gemini-cli (OAuth): Bearer token
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (authType === "oauth") {
+    headers["Authorization"] = `Bearer ${apiKey}`;
+  } else {
+    headers["x-goog-api-key"] = apiKey;
+  }
+
+  const response = await fetch(baseUrl, { method: "GET", headers });
 
   if (response.ok) {
     return { valid: true, error: null };
   }
 
-  if (response.status === 401 || response.status === 403) {
-    return { valid: false, error: "Invalid API key" };
+  // 429 = rate limited, but auth is valid
+  if (response.status === 429) {
+    return { valid: true, error: null };
+  }
+
+  // Google returns 400 (not 401/403) for invalid API keys on the models endpoint.
+  // Parse the response body to detect auth failures.
+  if (response.status === 400 || response.status === 401 || response.status === 403) {
+    const isAuthError = (body: any) => {
+      const message = (body?.error?.message || "").toLowerCase();
+      const reason = body?.error?.details?.[0]?.reason || "";
+      const status = body?.error?.status || "";
+      const authPatterns = [
+        "api key not valid",
+        "api key expired",
+        "api key invalid",
+        "API_KEY_INVALID",
+        "API_KEY_EXPIRED",
+        "PERMISSION_DENIED",
+        "UNAUTHENTICATED",
+      ];
+      return authPatterns.some(
+        (p) => message.includes(p.toLowerCase()) || reason === p || status === p
+      );
+    };
+
+    try {
+      const body = await response.json();
+      if (isAuthError(body)) {
+        return { valid: false, error: "Invalid API key" };
+      }
+      // 401/403 are always auth failures even without matching patterns
+      if (response.status === 401 || response.status === 403) {
+        return { valid: false, error: "Invalid API key" };
+      }
+    } catch {
+      // Unparseable body — 401/403 are always auth failures
+      if (response.status === 401 || response.status === 403) {
+        return { valid: false, error: "Invalid API key" };
+      }
+      // 400 without parseable body — likely auth issue for Gemini
+      return { valid: false, error: "Invalid API key" };
+    }
   }
 
   return { valid: false, error: `Validation failed: ${response.status}` };
@@ -847,6 +894,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       return await validateGeminiLikeProvider({
         apiKey,
         baseUrl,
+        authType: entry.authType,
       });
     }
 
