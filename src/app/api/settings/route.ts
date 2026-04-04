@@ -44,6 +44,12 @@ export async function PATCH(request) {
   try {
     const rawBody = await request.json();
 
+    // Capture old settings BEFORE update for comparison (needed for models.dev sync toggle)
+    const oldSettings =
+      "modelsDevSyncEnabled" in rawBody || "modelsDevSyncInterval" in rawBody
+        ? await getSettings()
+        : null;
+
     // Zod validation
     const validation = validateBody(updateSettingsSchema, rawBody);
     if (isValidationFailure(validation)) {
@@ -147,6 +153,26 @@ export async function PATCH(request) {
     if ("alwaysPreserveClientCache" in body) {
       const { invalidateCacheControlSettingsCache } = await import("@/lib/cacheControlSettings");
       invalidateCacheControlSettingsCache();
+    }
+
+    // Sync models.dev sync settings (compare old vs new state)
+    if (oldSettings && ("modelsDevSyncEnabled" in body || "modelsDevSyncInterval" in body)) {
+      const { stopPeriodicSync, startPeriodicSync } = await import("@/lib/modelsDevSync");
+      const wasEnabled = (oldSettings as Record<string, unknown>).modelsDevSyncEnabled === true;
+      const isEnabled = settings.modelsDevSyncEnabled === true;
+      const oldInterval = (oldSettings as Record<string, unknown>).modelsDevSyncInterval as
+        | number
+        | undefined;
+      const newInterval = settings.modelsDevSyncInterval as number | undefined;
+
+      if (wasEnabled && !isEnabled) {
+        stopPeriodicSync();
+      } else if (!wasEnabled && isEnabled) {
+        startPeriodicSync(newInterval);
+      } else if (isEnabled && oldInterval !== newInterval) {
+        stopPeriodicSync();
+        startPeriodicSync(newInterval);
+      }
     }
 
     const { password, ...safeSettings } = settings;

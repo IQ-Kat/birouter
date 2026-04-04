@@ -18,6 +18,7 @@ import ModelAliasesTab from "./components/ModelAliasesTab";
 import BackgroundDegradationTab from "./components/BackgroundDegradationTab";
 import CacheSettingsTab from "./components/CacheSettingsTab";
 import MemorySkillsTab from "./components/MemorySkillsTab";
+import ModelsDevSyncTab from "./components/ModelsDevSyncTab";
 import ResilienceTab from "./components/ResilienceTab";
 import CliproxyapiSettingsTab from "./components/CliproxyapiSettingsTab";
 
@@ -95,6 +96,7 @@ export default function SettingsPage() {
               <SystemPromptTab />
               <CacheSettingsTab />
               <MemorySkillsTab />
+              <ModelsDevSyncTab />
             </div>
           )}
 
