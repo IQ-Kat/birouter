@@ -660,7 +660,8 @@ export function stopPeriodicSync(): void {
  * Get current sync status.
  */
 export function getSyncStatus(): SyncStatus {
-  const enabled = process.env.MODELS_DEV_SYNC_ENABLED === "true";
+  // If the sync timer is active, it's enabled.
+  const enabled = syncTimer !== null;
   return {
     enabled,
     lastSync: lastSyncTime,
@@ -680,9 +681,14 @@ export function getSyncStatus(): SyncStatus {
  * Initialize models.dev sync if enabled.
  */
 export async function initModelsDevSync(): Promise<void> {
-  if (process.env.MODELS_DEV_SYNC_ENABLED !== "true") {
-    console.log("[MODELS_DEV] Disabled (set MODELS_DEV_SYNC_ENABLED=true to enable)");
+  const { getSettings } = await import("./localDb");
+  const settings = await getSettings();
+
+  if (settings.modelsDevSyncEnabled !== true) {
+    console.log("[MODELS_DEV] Disabled (enable via Settings > AI)");
     return;
   }
-  startPeriodicSync();
+
+  const interval = settings.modelsDevSyncInterval as number | undefined;
+  startPeriodicSync(interval);
 }

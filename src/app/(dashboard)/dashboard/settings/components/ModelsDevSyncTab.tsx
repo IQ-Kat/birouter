@@ -107,11 +107,16 @@ export default function ModelsDevSyncTab() {
       });
       if (!res.ok) {
         setEnabled(!newVal);
+        setFeedback({ type: "error", message: t("enableSyncError") || "Failed to update" });
+      } else {
+        setFeedback({ type: "success", message: "Settings saved" });
       }
     } catch {
       setEnabled(!newVal);
+      setFeedback({ type: "error", message: "Network error" });
     } finally {
       setSaving(false);
+      setTimeout(() => setFeedback(null), 3000);
     }
   };
 
@@ -126,9 +131,15 @@ export default function ModelsDevSyncTab() {
       });
       if (!res.ok) {
         setIntervalHours(oldInterval);
+        setFeedback({ type: "error", message: t("enableSyncError") || "Failed to update" });
+      } else {
+        setFeedback({ type: "success", message: "Interval updated" });
       }
     } catch {
       setIntervalHours(oldInterval);
+      setFeedback({ type: "error", message: "Network error" });
+    } finally {
+      setTimeout(() => setFeedback(null), 3000);
     }
   };
 
