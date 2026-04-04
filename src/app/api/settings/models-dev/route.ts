@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
   syncModelsDev,
   getModelsDevPricing,
@@ -8,6 +10,12 @@ import {
   startPeriodicSync,
   stopPeriodicSync,
 } from "@/lib/modelsDevSync";
+
+const modelsDevActionSchema = z.object({
+  action: z.enum(["sync", "start", "stop"]),
+  dryRun: z.boolean().optional(),
+  syncCapabilities: z.boolean().optional(),
+});
 
 export async function GET(request: NextRequest) {
   if (!(await isAuthenticated(request))) {
@@ -48,13 +56,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
-  const action = body.action as string | undefined;
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const validation = validateBody(modelsDevActionSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return validation.response;
+  }
+
+  const { action, dryRun, syncCapabilities } = validation.data;
 
   if (action === "sync") {
-    const dryRun = body.dryRun === true;
-    const syncCapabilities = body.syncCapabilities !== false;
-    const result = await syncModelsDev({ dryRun, syncCapabilities });
+    const result = await syncModelsDev({
+      dryRun: dryRun ?? false,
+      syncCapabilities: syncCapabilities !== false,
+    });
     return NextResponse.json(result);
   }
 
@@ -68,5 +88,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, message: "Periodic sync stopped" });
   }
 
-  return NextResponse.json({ error: "Unknown action. Use: sync, start, stop" }, { status: 400 });
+  return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }
