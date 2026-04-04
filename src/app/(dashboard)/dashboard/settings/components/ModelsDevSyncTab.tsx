@@ -58,7 +58,10 @@ export default function ModelsDevSyncTab() {
           setIntervalHours(Math.round(intervalMs / 3600000));
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Failed to fetch models.dev settings:", err);
+        setFeedback({ type: "error", message: "Failed to load settings" });
+      });
   }, [fetchStatus]);
 
   const triggerSync = async () => {
@@ -113,15 +116,19 @@ export default function ModelsDevSyncTab() {
   };
 
   const updateInterval = async (hours: number) => {
+    const oldInterval = intervalHours;
     setIntervalHours(hours);
     try {
-      await fetch("/api/settings", {
+      const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ modelsDevSyncInterval: hours * 3600000 }),
       });
+      if (!res.ok) {
+        setIntervalHours(oldInterval);
+      }
     } catch {
-      // Revert on failure
+      setIntervalHours(oldInterval);
     }
   };
 
