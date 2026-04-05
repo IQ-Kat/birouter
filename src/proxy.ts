@@ -81,6 +81,27 @@ export async function proxy(request: any) {
       return response;
     }
 
+    try {
+      // Direct import — no HTTP self-fetch overhead
+      const settings = await getSettings();
+      // Skip auth if login is not required
+      if (settings.requireLogin === false) {
+        return response;
+      }
+      // Skip auth ONLY for fresh installs (before onboarding) where no password exists yet.
+      // Once setupComplete is true, always require auth — prevents bypass if password row is lost (#151)
+      if (!settings.setupComplete && !settings.password && !process.env.INITIAL_PASSWORD) {
+        return response;
+      }
+    } catch (err) {
+      // FASE-01: Log settings fetch errors instead of silencing them
+      console.error("[Middleware] settings_error: Settings read failed:", err.message, {
+        path: pathname,
+        requestId,
+      });
+      // On error, require login (fall through to token check)
+    }
+
     const token = request.cookies.get("auth_token")?.value;
 
     if (token) {
@@ -129,30 +150,12 @@ export async function proxy(request: any) {
           tokenPresent: true,
           requestId,
         });
-        return NextResponse.redirect(new URL("/login", request.url));
+        const redirectResponse = NextResponse.redirect(new URL("/login", request.url));
+        redirectResponse.cookies.delete("auth_token");
+        return redirectResponse;
       }
     }
 
-    try {
-      // Direct import — no HTTP self-fetch overhead
-      const settings = await getSettings();
-      // Skip auth if login is not required
-      if (settings.requireLogin === false) {
-        return response;
-      }
-      // Skip auth ONLY for fresh installs (before onboarding) where no password exists yet.
-      // Once setupComplete is true, always require auth — prevents bypass if password row is lost (#151)
-      if (!settings.setupComplete && !settings.password && !process.env.INITIAL_PASSWORD) {
-        return response;
-      }
-    } catch (err) {
-      // FASE-01: Log settings fetch errors instead of silencing them
-      console.error("[Middleware] settings_error: Settings read failed:", err.message, {
-        path: pathname,
-        requestId,
-      });
-      // On error, require login
-    }
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
