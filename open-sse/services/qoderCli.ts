@@ -304,7 +304,7 @@ export function buildQoderChunk({
 export function parseQoderCliFailure(stderrText: string, stdoutText = ""): QoderCliFailure {
   const stderr = String(stderrText || "").trim();
   const stdout = String(stdoutText || "").trim();
-  const combined = `${stderr}\n${stdout}`.trim() || "Qoder CLI request failed";
+  const combined = `${stderr}\n${stdout}`.trim() || "Qoder API request failed";
   const normalized = combined.toLowerCase();
 
   if (
@@ -314,15 +314,6 @@ export function parseQoderCliFailure(stderrText: string, stdoutText = ""): Qoder
     (normalized.includes("unauthorized") && normalized.includes("qoder"))
   ) {
     return { status: 401, message: combined, code: "upstream_auth_error" };
-  }
-
-  if (
-    normalized.includes("command not found") ||
-    normalized.includes("not installed") ||
-    normalized.includes("enoent") ||
-    normalized.includes("no such file or directory")
-  ) {
-    return { status: 503, message: combined, code: "runtime_error" };
   }
 
   if (normalized.includes("timed out") || normalized.includes("timeout")) {
@@ -350,123 +341,56 @@ export function createQoderErrorResponse(failure: QoderCliFailure): Response {
   );
 }
 
-export async function runQoderCliCommand({
-  token,
-  prompt,
-  stream,
-  model,
-  workspace,
-  command,
-  signal,
-  timeoutMs = DEFAULT_TIMEOUT_MS,
-}: QoderCliRunOptions): Promise<QoderCliRunResult> {
-  const cliCommand = String(command || getQoderCliCommand()).trim();
-  const cwd = String(workspace || getQoderCliWorkspace()).trim() || process.cwd();
-  const args = [
-    "-q",
-    "-p",
-    prompt,
-    "--max-turns",
-    DEFAULT_MAX_TURNS,
-    "--workspace",
-    cwd,
-    "--output-format",
-    stream ? "stream-json" : "json",
-  ];
+const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA8iMH5c02LilrsERw9t6Pv5Nc
+4k6Pz1EaDicBMpdpxKduSZu5OANqUq8er4GM95omAGIOPOh+Nx0spthYA2BqGz+l
+6HRkPJ7S236FZz73In/KVuLnwI8JJ2CbuJap8kvheCCZpmAWpb/cPx/3Vr/J6I17
+XcW+ML9FoCI6AOvOzwIDAQAB
+-----END PUBLIC KEY-----`;
 
-  const level = mapQoderModelToLevel(model || QODER_DEFAULT_MODEL);
-  if (level) {
-    args.push("--model", level);
-  }
+function buildCosyHeadersForValidation(bodyStr: string, token: string) {
+  const aesKeyBytes = crypto.randomBytes(16);
+  const aesKeyStr = aesKeyBytes.toString("hex").slice(0, 16);
+  const aesKeyBuf = Buffer.from(aesKeyStr, "utf8");
 
-  return new Promise((resolve) => {
-    let stdout = "";
-    let stderr = "";
-    let timedOut = false;
-    let settled = false;
+  const uid = "omniroute.user@qoder.sh";
+  const userInfo = {
+    uid: uid,
+    security_oauth_token: token,
+    name: "omniroute",
+    aid: "",
+    email: uid,
+  };
 
-    const child = spawn(cliCommand, args, {
-      env: {
-        ...process.env,
-        QODER_PERSONAL_ACCESS_TOKEN: token,
-      },
-      stdio: ["ignore", "pipe", "pipe"],
-      ...(process.platform === "win32" ? { shell: true } : {}),
-    });
+  const cipher = crypto.createCipheriv("aes-128-cbc", aesKeyBuf, aesKeyBuf);
+  let ciphertext = cipher.update(JSON.stringify(userInfo), "utf8", "base64");
+  ciphertext += cipher.final("base64");
 
-    const cleanup = (result: QoderCliRunResult) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      signal?.removeEventListener?.("abort", abortHandler);
-      resolve(result);
-    };
-
-    const abortChild = () => {
-      try {
-        child.kill("SIGTERM");
-      } catch {}
-      setTimeout(() => {
-        try {
-          child.kill("SIGKILL");
-        } catch {}
-      }, 250).unref?.();
-    };
-
-    const abortHandler = () => {
-      abortChild();
-      cleanup({
-        ok: false,
-        code: null,
-        stdout: stdout.trim(),
-        stderr: stderr.trim(),
-        timedOut: false,
-        error: "aborted",
-      });
-    };
-
-    if (signal?.aborted) {
-      abortHandler();
-      return;
-    }
-
-    signal?.addEventListener?.("abort", abortHandler, { once: true });
-
-    const timer = setTimeout(() => {
-      timedOut = true;
-      abortChild();
-    }, timeoutMs);
-
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk.toString();
-    });
-
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString();
-    });
-
-    child.on("error", (error) => {
-      cleanup({
-        ok: false,
-        code: null,
-        stdout: stdout.trim(),
-        stderr: stderr.trim(),
-        timedOut,
-        error: error?.message || "spawn_error",
-      });
-    });
-
-    child.on("close", (code) => {
-      cleanup({
-        ok: !timedOut && code === 0,
-        code,
-        stdout: stdout.trim(),
-        stderr: stderr.trim(),
-        timedOut,
-        error: timedOut ? "timeout" : null,
-      });
-    });
+  const encryptedKeyBuf = crypto.publicEncrypt(
+    { key: PUBLIC_KEY, padding: crypto.constants.RSA_PKCS1_PADDING },
+    aesKeyBuf
+  );
+  const cosyKeyB64 = encryptedKeyBuf.toString("base64");
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const payloadStr = JSON.stringify({
+    version: "v1",
+    requestId: crypto.randomUUID(),
+    info: ciphertext,
+    cosyVersion: "0.12.3",
+    ideVersion: "",
   });
+  const payloadB64 = Buffer.from(payloadStr).toString("base64");
+  const sigPath = "/api/v2/service/pro/sse/agent_chat_generation";
+  const sigInput = `${payloadB64}\n${cosyKeyB64}\n${timestamp}\n${bodyStr}\n${sigPath}`;
+  const sig = crypto.createHash("md5").update(sigInput).digest("hex");
+
+  return {
+    Authorization: `Bearer COSY.${payloadB64}.${sig}`,
+    "Cosy-Key": cosyKeyB64,
+    "Cosy-User": uid,
+    "Cosy-Date": timestamp,
+    "Content-Type": "application/json",
+  };
 }
 
 export async function validateQoderCliPat({
@@ -478,24 +402,32 @@ export async function validateQoderCliPat({
 }) {
   const modelId =
     getString(providerSpecificData.validationModelId).trim() ||
-    getString(providerSpecificData.modelId).trim();
-  const result = await runQoderCliCommand({
-    token: apiKey,
-    prompt: "Reply with OK only.",
+    getString(providerSpecificData.modelId).trim() ||
+    QODER_DEFAULT_MODEL;
+
+  const bodyStr = JSON.stringify({
+    model: modelId || "coder-model",
+    messages: [{ role: "user", content: "hi" }],
     stream: false,
-    model: modelId || QODER_DEFAULT_MODEL,
-    workspace: getQoderCliWorkspace(),
-    timeoutMs: 30_000,
   });
 
-  if (!result.ok) {
-    const failure = parseQoderCliFailure(result.stderr || result.error || "", result.stdout);
-    return {
-      valid: false,
-      error: failure.status === 401 ? "Invalid API key" : failure.message,
-      unsupported: false,
-    };
-  }
+  const headers = buildCosyHeadersForValidation(bodyStr, apiKey);
+  const endpoint =
+    "https://api1.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation?AgentId=agent_common";
 
-  return { valid: true, error: null, unsupported: false };
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: bodyStr,
+      // @ts-ignore
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) {
+      return { valid: false, error: `HTTP ${res.status}: ${await res.text()}`, unsupported: false };
+    }
+    return { valid: true, error: null, unsupported: false };
+  } catch (e: any) {
+    return { valid: false, error: e.message, unsupported: false };
+  }
 }

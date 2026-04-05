@@ -595,8 +595,12 @@ export function createSSEStream(options: StreamOptions = {}) {
               // When translating Responses -> Claude, `item` is already a Claude SSE event;
               // sanitizing it as an OpenAI chunk strips message_start/content_block_delta/message_stop
               // and causes Claude Code to drop the assistant message.
+              // #761: Responses API events have {event, data} structure — skip sanitization
+              // entirely as it strips them to {"object":"chat.completion.chunk"}, losing all content.
               let itemSanitized: Record<string, unknown> = item;
-              if (sourceFormat === FORMATS.OPENAI || sourceFormat === FORMATS.OPENAI_RESPONSES) {
+              const isResponsesEvent =
+                typeof item?.event === "string" && item.event.startsWith("response.");
+              if (sourceFormat === FORMATS.OPENAI && !isResponsesEvent) {
                 itemSanitized = sanitizeStreamingChunk(itemSanitized) as Record<string, unknown>;
 
                 // Extract reasoning tags from content if translation generated them

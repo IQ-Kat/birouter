@@ -36,6 +36,15 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "payment required",
 ];
 
+// T11: Signals that indicate OAuth token is invalid/expired (not permanent deactivation)
+export const OAUTH_INVALID_TOKEN_SIGNALS = [
+  "invalid authentication credentials",
+  "oauth 2",
+  "login cookie",
+  "valid authentication credential",
+  "invalid credentials",
+];
+
 /**
  * T06: Returns true if response body indicates the account is permanently deactivated.
  */
@@ -50,6 +59,15 @@ export function isAccountDeactivated(errorText: string): boolean {
 export function isCreditsExhausted(errorText: string): boolean {
   const lower = String(errorText || "").toLowerCase();
   return CREDITS_EXHAUSTED_SIGNALS.some((sig) => lower.includes(sig));
+}
+
+/**
+ * T11: Returns true if response body indicates OAuth token is invalid/expired.
+ * This is different from permanent account deactivation - token refresh can recover.
+ */
+export function isOAuthInvalidToken(errorText: string): boolean {
+  const lower = String(errorText || "").toLowerCase();
+  return OAUTH_INVALID_TOKEN_SIGNALS.some((sig) => lower.includes(sig));
 }
 
 // ─── Provider Profile Helper ────────────────────────────────────────────────

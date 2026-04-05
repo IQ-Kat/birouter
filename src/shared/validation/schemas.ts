@@ -95,6 +95,7 @@ const comboStrategySchema = z.enum([
   "p2c",
   "auto",
   "lkgp",
+  "context-optimized",
 ]);
 
 const scoringWeightsSchema = z

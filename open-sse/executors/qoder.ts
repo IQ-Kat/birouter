@@ -1,5 +1,3 @@
-import crypto from "crypto";
-import { spawn } from "child_process";
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
@@ -7,22 +5,16 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import {
-  buildQoderChunk,
-  buildQoderCompletionPayload,
-  buildQoderPrompt,
-  createQoderErrorResponse,
-  extractTextFromQoderEnvelope,
-  getQoderCliCommand,
-  getQoderCliWorkspace,
-  mapQoderModelToLevel,
-  parseQoderCliFailure,
-  runQoderCliCommand,
-} from "../services/qoderCli.ts";
 
-function getPat(credentials: ProviderCredentials): string {
+function getAuthToken(credentials: ProviderCredentials): string {
   if (typeof credentials.apiKey === "string" && credentials.apiKey.trim()) {
     return credentials.apiKey.trim();
+  }
+  if (typeof credentials.accessToken === "string" && credentials.accessToken.trim()) {
+    return credentials.accessToken.trim();
+  }
+  if (typeof credentials.refreshToken === "string" && credentials.refreshToken.trim()) {
+    return credentials.refreshToken.trim();
   }
   return "";
 }
@@ -32,257 +24,134 @@ export class QoderExecutor extends BaseExecutor {
     super("qoder", PROVIDERS.qoder);
   }
 
-  buildHeaders(_credentials: ProviderCredentials, stream = true): Record<string, string> {
-    return {
-      "Content-Type": "application/json",
-      ...(stream ? { Accept: "text/event-stream" } : {}),
-    };
-  }
-
   async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }: ExecuteInput) {
-    const headers = this.buildHeaders(credentials, stream);
-    mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
+    const token = getAuthToken(credentials);
 
-    const pat = getPat(credentials);
-    if (!pat) {
+    if (!token) {
       return {
-        response: createQoderErrorResponse({
-          status: 400,
-          message:
-            "Qoder Personal Access Token is required. Connect Qoder with a PAT via qodercli transport.",
-          code: "pat_required",
-        }),
-        url: "qodercli://local",
-        headers,
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: "Qoder access token or API Key is required. Please sign in or set a PAT.",
+              type: "authentication_error",
+              code: "token_required",
+            },
+          }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        ),
+        url: "https://dashscope.aliyuncs.com",
+        headers: { "Content-Type": "application/json" },
         transformedBody: body,
       };
     }
 
-    const prompt = buildQoderPrompt(body);
-    const workspace = getQoderCliWorkspace();
-    const command = getQoderCliCommand();
+    const resolvedModel = model || "qwen3-coder-plus";
 
-    if (!stream) {
-      const result = await runQoderCliCommand({
-        token: pat,
-        prompt,
-        stream: false,
-        model,
-        workspace,
-        command,
+    // Check if it's a model-alias matching QwenCode
+    let mappedModel = resolvedModel;
+    if (resolvedModel === "qwen3.5-plus" || resolvedModel === "qwen3.6-plus") {
+      mappedModel = "coder-model"; // Translate alias to what DashScope compatible endpoint accepts via QwenCode tokens
+    } else if (resolvedModel === "vision-model") {
+      mappedModel = "qwen3-vl-plus";
+    }
+
+    // Determine the resource URL: Qwen CLI tokens usually target portal.qwen.ai natively,
+    // but the DashScope compatible endpoint works out of the box when authtype is set.
+    // If the token was mapped to a custom `resource_url`, we should use it. Otherwise default to dashscope Aliyun.
+    let endpointUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+
+    // We allow setting custom API base via credentials
+    let credentialsApiBase: unknown;
+    if (typeof credentials === "object" && credentials !== null) {
+      const credsObj = credentials as Record<string, unknown>;
+      credentialsApiBase = credsObj.customApiBase || credsObj.resourceUrl;
+    }
+    if (typeof credentialsApiBase === "string" && credentialsApiBase.trim()) {
+      let base = credentialsApiBase.trim();
+      if (!base.startsWith("http")) base = `https://${base}`;
+      if (!base.endsWith("/v1")) base = base.endsWith("/") ? `${base}v1` : `${base}/v1`;
+      endpointUrl = `${base}/chat/completions`;
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "x-dashscope-authtype": "qwen-oauth",
+      "x-dashscope-cachecontrol": "enable",
+      "user-agent": "QwenCode/0.11.1 (linux; x64)",
+      "x-dashscope-useragent": "QwenCode/0.11.1 (linux; x64)",
+      "x-stainless-arch": "x64",
+      "x-stainless-lang": "js",
+      "x-stainless-os": "Linux",
+    };
+
+    mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
+
+    const payload = {
+      ...(typeof body === "object" && body !== null ? body : {}),
+      model: mappedModel,
+    };
+
+    const bodyStr = JSON.stringify(payload);
+
+    try {
+      const response = await fetch(endpointUrl, {
+        method: "POST",
+        headers,
+        body: bodyStr,
         signal,
       });
 
-      if (!result.ok) {
-        const failure = parseQoderCliFailure(result.stderr || result.error || "", result.stdout);
+      const newHeaders = new Headers(response.headers);
+
+      if (!response.ok) {
+        let errText = await response.text();
         return {
-          response: createQoderErrorResponse(failure),
-          url: "qodercli://local",
+          response: new Response(
+            JSON.stringify({
+              error: {
+                message: `Qoder API failed with status ${response.status}: ${errText}`,
+                type: response.status === 401 ? "authentication_error" : "provider_error",
+              },
+            }),
+            { status: response.status, headers: { "Content-Type": "application/json" } }
+          ),
+          url: endpointUrl,
           headers,
-          transformedBody: body,
+          transformedBody: payload,
         };
       }
-
-      let assistantText = result.stdout.trim();
-      try {
-        const parsed = JSON.parse(assistantText);
-        assistantText = extractTextFromQoderEnvelope(parsed) || assistantText;
-      } catch {
-        // Fall back to raw stdout if the CLI printed plain text.
-      }
-
-      const payload = buildQoderCompletionPayload({
-        model,
-        text: assistantText,
-      });
 
       return {
-        response: new Response(JSON.stringify(payload), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
+        response: new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: newHeaders,
         }),
-        url: "qodercli://local",
+        url: endpointUrl,
         headers,
-        transformedBody: body,
+        transformedBody: payload,
+      };
+    } catch (e: unknown) {
+      const error = e as Error;
+      if (error.name === "AbortError") {
+        throw error;
+      }
+      return {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: `Qoder fetch error: ${error.message}`,
+              type: "provider_error",
+            },
+          }),
+          { status: 502, headers: { "Content-Type": "application/json" } }
+        ),
+        url: endpointUrl,
+        headers,
+        transformedBody: payload,
       };
     }
-
-    const qoderStream = new ReadableStream({
-      start: async (controller) => {
-        const encoder = new TextEncoder();
-        const created = Math.floor(Date.now() / 1000);
-        const responseId = `chatcmpl-${crypto.randomUUID()}`;
-        const responseModel = model || "qoder-rome-30ba3b";
-        const cliCommand = command;
-        const args = [
-          "-q",
-          "-p",
-          prompt,
-          "--max-turns",
-          "1",
-          "--workspace",
-          workspace,
-          "--output-format",
-          "stream-json",
-        ];
-        const level = mapQoderModelToLevel(responseModel);
-        if (level) {
-          args.push("--model", level);
-        }
-
-        const child = spawn(cliCommand, args, {
-          env: {
-            ...process.env,
-            QODER_PERSONAL_ACCESS_TOKEN: pat,
-          },
-          stdio: ["ignore", "pipe", "pipe"],
-          ...(process.platform === "win32" ? { shell: true } : {}),
-        });
-
-        let stdoutBuffer = "";
-        let stderrBuffer = "";
-        let emittedText = "";
-        let roleSent = false;
-        let finished = false;
-
-        const emitSse = (payload: unknown) => {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
-        };
-
-        const finish = () => {
-          if (finished) return;
-          finished = true;
-          emitSse(
-            buildQoderChunk({
-              id: responseId,
-              model: responseModel,
-              created,
-              delta: {},
-              finishReason: "stop",
-            })
-          );
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
-        };
-
-        const abortChild = () => {
-          try {
-            child.kill("SIGTERM");
-          } catch {}
-        };
-
-        if (signal?.aborted) {
-          abortChild();
-          controller.error(new Error("aborted"));
-          return;
-        }
-
-        signal?.addEventListener?.(
-          "abort",
-          () => {
-            abortChild();
-            controller.error(new Error("aborted"));
-          },
-          { once: true }
-        );
-
-        const emitDelta = (deltaText: string) => {
-          if (!deltaText) return;
-          const delta = roleSent
-            ? { content: deltaText }
-            : { role: "assistant", content: deltaText };
-          roleSent = true;
-          emitSse(
-            buildQoderChunk({
-              id: responseId,
-              model: responseModel,
-              created,
-              delta,
-            })
-          );
-        };
-
-        const drainStdout = () => {
-          let newlineIndex = stdoutBuffer.indexOf("\n");
-          while (newlineIndex >= 0) {
-            const rawLine = stdoutBuffer.slice(0, newlineIndex).trim();
-            stdoutBuffer = stdoutBuffer.slice(newlineIndex + 1);
-            newlineIndex = stdoutBuffer.indexOf("\n");
-
-            if (!rawLine) continue;
-
-            let parsed: unknown;
-            try {
-              parsed = JSON.parse(rawLine);
-            } catch {
-              continue;
-            }
-
-            const nextText = extractTextFromQoderEnvelope(parsed);
-            if (nextText) {
-              const delta = nextText.startsWith(emittedText)
-                ? nextText.slice(emittedText.length)
-                : nextText;
-              emittedText += delta;
-              emitDelta(delta);
-            }
-
-            const parsedRecord =
-              parsed && typeof parsed === "object" && !Array.isArray(parsed)
-                ? (parsed as Record<string, unknown>)
-                : {};
-            if (parsedRecord.type === "result" && parsedRecord.done === true) {
-              finish();
-              return;
-            }
-          }
-        };
-
-        child.stdout.setEncoding("utf8");
-        child.stderr.setEncoding("utf8");
-
-        child.stdout.on("data", (chunk) => {
-          stdoutBuffer += chunk;
-          drainStdout();
-        });
-
-        child.stderr.on("data", (chunk) => {
-          stderrBuffer += chunk;
-        });
-
-        child.on("error", (error) => {
-          if (finished) return;
-          controller.error(error);
-        });
-
-        child.on("close", (code) => {
-          if (finished) return;
-          drainStdout();
-          if (code !== 0) {
-            const failure = parseQoderCliFailure(stderrBuffer, stdoutBuffer);
-            controller.error(new Error(failure.message));
-            return;
-          }
-          finish();
-        });
-      },
-    });
-
-    return {
-      response: new Response(qoderStream, {
-        status: 200,
-        headers: {
-          "Content-Type": "text/event-stream; charset=utf-8",
-          "Cache-Control": "no-cache, no-transform",
-          Connection: "keep-alive",
-        },
-      }),
-      url: "qodercli://local",
-      headers,
-      transformedBody: body,
-    };
   }
 }
 
