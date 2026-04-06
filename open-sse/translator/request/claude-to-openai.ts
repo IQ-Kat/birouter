@@ -27,6 +27,12 @@ export function claudeToOpenAIRequest(model, body, stream) {
   if (body.temperature !== undefined) {
     result.temperature = body.temperature;
   }
+  if (body.top_p !== undefined) {
+    result.top_p = body.top_p;
+  }
+  if (body.stop_sequences !== undefined) {
+    result.stop = body.stop_sequences;
+  }
 
   // System message
   if (body.system) {
@@ -149,6 +155,7 @@ function convertClaudeMessage(msg) {
     const parts = [];
     const toolCalls = [];
     const toolResults = [];
+    let reasoningContent = null;
 
     for (const block of msg.content) {
       switch (block.type) {
@@ -164,6 +171,23 @@ function convertClaudeMessage(msg) {
                 url: `data:${block.source.media_type};base64,${block.source.data}`,
               },
             });
+          } else if (block.source?.type === "url" && typeof block.source.url === "string") {
+            parts.push({
+              type: "image_url",
+              image_url: {
+                url: block.source.url,
+              },
+            });
+          }
+          break;
+
+        case "thinking":
+          reasoningContent = block.thinking || block.text || "";
+          break;
+
+        case "redacted_thinking":
+          if (reasoningContent == null) {
+            reasoningContent = "";
           }
           break;
 
@@ -217,20 +241,35 @@ function convertClaudeMessage(msg) {
         result.content = parts.length === 1 && parts[0].type === "text" ? parts[0].text : parts;
       }
       result.tool_calls = toolCalls;
+      if (reasoningContent !== null) {
+        result.reasoning_content = reasoningContent;
+      }
       return result;
     }
 
     // Return content
     if (parts.length > 0) {
-      return {
+      const result: JsonRecord = {
         role,
         content: parts.length === 1 && parts[0].type === "text" ? parts[0].text : parts,
       };
+      if (reasoningContent !== null && role === "assistant") {
+        result.reasoning_content = reasoningContent;
+      }
+      return result;
     }
 
     // Empty content array
     if (msg.content.length === 0) {
-      return { role, content: "" };
+      const result: JsonRecord = { role, content: "" };
+      if (reasoningContent !== null && role === "assistant") {
+        result.reasoning_content = reasoningContent;
+      }
+      return result;
+    }
+
+    if (reasoningContent !== null && role === "assistant") {
+      return { role, content: "", reasoning_content: reasoningContent };
     }
   }
 

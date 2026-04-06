@@ -19,6 +19,8 @@ import {
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
 
+const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
+
 function usePageInfo(pathname: string | null): {
   title: string;
   description: string;
@@ -213,8 +215,8 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
         <ThemeToggle />
 
         {/* Degradation & Token health */}
-        <DegradationBadge />
-        <TokenHealthBadge />
+        {!isE2EMode && <DegradationBadge />}
+        {!isE2EMode && <TokenHealthBadge />}
 
         {/* Logout button */}
         <button

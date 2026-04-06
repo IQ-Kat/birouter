@@ -102,7 +102,7 @@ export default function MemorySkillsTab() {
 
   if (loading) {
     return (
-      <Card>
+      <Card data-testid="memory-settings-card">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-violet-500/10 text-violet-500">
             <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
@@ -148,6 +148,7 @@ export default function MemorySkillsTab() {
             <p className="text-xs text-text-muted mt-0.5">{t("memoryEnabledDesc")}</p>
           </div>
           <button
+            data-testid="memory-enabled-switch"
             onClick={() => save({ enabled: !config.enabled })}
             disabled={saving}
             className={`relative w-11 h-6 rounded-full transition-colors ${
@@ -176,6 +177,7 @@ export default function MemorySkillsTab() {
                 </span>
               </div>
               <input
+                data-testid="memory-max-tokens-slider"
                 type="range"
                 min="0"
                 max="16000"
@@ -201,6 +203,7 @@ export default function MemorySkillsTab() {
                 </span>
               </div>
               <input
+                data-testid="memory-retention-slider"
                 type="range"
                 min="1"
                 max="90"
@@ -221,6 +224,7 @@ export default function MemorySkillsTab() {
             <div className="grid grid-cols-3 gap-2">
               {STRATEGIES.map((s) => (
                 <button
+                  data-testid={`memory-strategy-${s.value}`}
                   key={s.value}
                   onClick={() => save({ strategy: s.value as "recent" | "semantic" | "hybrid" })}
                   disabled={loading || saving}
@@ -244,7 +248,7 @@ export default function MemorySkillsTab() {
       </Card>
 
       {/* Skills Settings (placeholder) */}
-      <Card>
+      <Card data-testid="skills-settings-card">
         <div className="flex items-center gap-3 mb-5">
           <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
             <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
@@ -263,6 +267,7 @@ export default function MemorySkillsTab() {
             <p className="text-xs text-text-muted mt-0.5">{t("skillsEnabledDesc")}</p>
           </div>
           <button
+            data-testid="skills-enabled-switch"
             onClick={() => save({ skillsEnabled: !config.skillsEnabled })}
             disabled={saving}
             className={`relative w-11 h-6 rounded-full transition-colors ${

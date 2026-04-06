@@ -20,7 +20,8 @@ import { formatSSE } from "./stream.ts";
  * @returns {object|null} Bypass response or null to proceed normally
  */
 export function handleBypassRequest(body, model, userAgent = "") {
-  if (!userAgent.includes("claude-cli")) return null;
+  const normalizedUserAgent = typeof userAgent === "string" ? userAgent : "";
+  if (!normalizedUserAgent.includes("claude-cli")) return null;
   if (!body.messages?.length) return null;
 
   const messages = body.messages;

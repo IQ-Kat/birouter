@@ -1,12 +1,14 @@
+# Changelog
+
+## [Unreleased]
+
+---
+
 ## [3.5.3] - 2026-04-05
 
 ### Fixed
 
 - **Middleware:** Resolved infinite redirect loop on dashboard for fresh instances when requireLogin is disabled.
-
-# Changelog
-
-## [Unreleased]
 
 ---
 

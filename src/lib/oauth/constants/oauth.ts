@@ -235,6 +235,7 @@ export const PROVIDERS = {
   QWEN: "qwen",
   QODER: "qoder",
   ANTIGRAVITY: "antigravity",
+  KIMI_CODING: "kimi-coding",
   OPENAI: "openai",
   GITHUB: "github",
   KIRO: "kiro",

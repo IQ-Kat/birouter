@@ -961,6 +961,7 @@ interface RefreshLoggerLike {
 export function isProviderBlocked(provider: string): boolean {
   const state = _circuitBreaker[provider];
   if (!state) return false;
+  if (!state.blockedUntil) return false;
   if (state.blockedUntil > Date.now()) return true;
   // Cooldown expired — reset
   delete _circuitBreaker[provider];
@@ -1016,10 +1017,23 @@ function recordFailure(provider: string, log: RefreshLoggerLike | null = null) {
  * Execute a function with a timeout.
  */
 async function withTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T | null> {
-  return Promise.race([
-    fn(),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
-  ]);
+  return await new Promise<T | null>((resolve, reject) => {
+    const timer = setTimeout(() => resolve(null), timeoutMs);
+    if (typeof timer === "object" && "unref" in timer) {
+      (timer as { unref?: () => void }).unref?.();
+    }
+
+    fn().then(
+      (result) => {
+        clearTimeout(timer);
+        resolve(result);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
 }
 
 export async function refreshWithRetry(

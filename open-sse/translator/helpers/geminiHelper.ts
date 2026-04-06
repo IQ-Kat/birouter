@@ -75,17 +75,20 @@ export function convertOpenAIContentToParts(content) {
     for (const item of content) {
       if (item.type === "text") {
         parts.push({ text: item.text });
-      } else if (item.type === "image_url" && item.image_url?.url?.startsWith("data:")) {
-        const url = item.image_url.url;
-        const commaIndex = url.indexOf(",");
-        if (commaIndex !== -1) {
-          const mimePart = url.substring(5, commaIndex); // skip "data:"
-          const data = url.substring(commaIndex + 1);
-          const mimeType = mimePart.split(";")[0];
+      } else {
+        const fileData =
+          item.image_url?.url || item.file_url?.url || item.file?.url || item.document?.url;
+        if (typeof fileData === "string" && fileData.startsWith("data:")) {
+          const commaIndex = fileData.indexOf(",");
+          if (commaIndex !== -1) {
+            const mimePart = fileData.substring(5, commaIndex); // skip "data:"
+            const data = fileData.substring(commaIndex + 1);
+            const mimeType = mimePart.split(";")[0];
 
-          parts.push({
-            inlineData: { mimeType, data },
-          });
+            parts.push({
+              inlineData: { mimeType, data },
+            });
+          }
         }
       }
     }

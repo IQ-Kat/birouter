@@ -18,6 +18,9 @@ export default defineConfig({
       "**/.git/**",
       "open-sse/services/autoCombo/__tests__/providerDiversity.test.ts",
     ],
+    coverage: {
+      reportsDirectory: "coverage",
+    },
   },
   plugins: [react()],
   resolve: {

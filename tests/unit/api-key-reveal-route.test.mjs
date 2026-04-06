@@ -42,7 +42,7 @@ test("GET /api/keys stays masked even when reveal is enabled", async () => {
   process.env.ALLOW_API_KEY_REVEAL = "true";
   const created = await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
 
-  const response = await listRoute.GET();
+  const response = await listRoute.GET(new Request("http://localhost/api/keys"));
   const body = await response.json();
 
   assert.equal(response.status, 200);

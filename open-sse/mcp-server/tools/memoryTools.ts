@@ -40,6 +40,7 @@ export const memoryTools = {
         persistAcrossModels: false,
         retentionDays: 30,
         scope: "apiKey" as const,
+        query: args.query,
       };
 
       const memories = await retrieveMemories(args.apiKeyId, config);

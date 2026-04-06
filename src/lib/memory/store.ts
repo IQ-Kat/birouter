@@ -2,11 +2,25 @@
  * Memory store - CRUD operations with prepared statements and caching
  */
 
-import { getDbInstance, rowToCamel } from "../db/core";
+import { getDbInstance } from "../db/core";
 import { Memory, MemoryType } from "./types";
+
 interface CacheEntry<T> {
   value: T;
   timestamp: number;
+}
+
+interface MemoryRow {
+  id: string;
+  api_key_id: string;
+  session_id: string | null;
+  type: MemoryType;
+  key: string | null;
+  content: string;
+  metadata: string | null;
+  created_at: string;
+  updated_at: string;
+  expires_at: string | null;
 }
 
 // Memory cache configuration
@@ -29,14 +43,10 @@ function parseJSON(value: unknown): Record<string, unknown> {
   }
 }
 
-// Cache invalidation strategy
 function invalidateMemoryCache(key: string) {
   _memoryCache.delete(key);
 }
 
-/**
- * Memory cache management with size control
- */
 function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
   if (cache.size > MEMORY_MAX_CACHE_SIZE) {
     // Remove oldest entries first
@@ -48,57 +58,19 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
   }
 }
 
-/**
- * Get or compile regex for wildcard pattern
- */
-function getWildcardRegex(pattern: string): RegExp {
-  // This function is copied from apiKeys.ts pattern
-  let regex = _regexCache.get(pattern);
-  if (!regex) {
-    const regexStr = pattern.replace(/\*/g, ".*");
-    regex = new RegExp(`^${regexStr}$`);
-    _regexCache.set(pattern, regex);
-    // Prevent unbounded growth
-    if (_regexCache.size > 100) {
-      const firstKey = _regexCache.keys().next().value;
-      if (firstKey) _regexCache.delete(firstKey);
-    }
-  }
-  return regex;
-}
-
-// Compiled regex cache for wildcard patterns
-const _regexCache = new Map<string, RegExp>();
-
-// Cache for memory validation (similar to apiKeys)
-const _memoryValidationCache = new Map<string, { exists: boolean; timestamp: number }>();
-const MEMORY_VALIDATION_CACHE_TTL = 60 * 1000; // 1 minute TTL
-
-/**
- * Check if memory exists with caching
- */
-async function memoryExists(id: string): Promise<boolean> {
-  if (!id || typeof id !== "string") return false;
-
-  const now = Date.now();
-
-  // Check cache first
-  const cached = _memoryValidationCache.get(id);
-  if (cached && now - cached.timestamp < MEMORY_VALIDATION_CACHE_TTL) {
-    return cached.exists;
-  }
-
-  const db = getDbInstance();
-  const stmt = db.prepare("SELECT 1 FROM memory WHERE id = ?");
-  const row = stmt.get(id);
-  const exists = !!row;
-
-  // Cache the result to prevent cache pollution
-  if (exists) {
-    _memoryValidationCache.set(id, { exists: true, timestamp: now });
-  }
-
-  return exists;
+function rowToMemory(row: MemoryRow): Memory {
+  return {
+    id: String(row.id),
+    apiKeyId: String(row.api_key_id),
+    sessionId: typeof row.session_id === "string" ? row.session_id : "",
+    type: row.type as MemoryType,
+    key: typeof row.key === "string" ? row.key : "",
+    content: String(row.content),
+    metadata: parseJSON(row.metadata),
+    createdAt: new Date(String(row.created_at)),
+    updatedAt: new Date(String(row.updated_at)),
+    expiresAt: row.expires_at ? new Date(String(row.expires_at)) : null,
+  };
 }
 
 /**
@@ -112,7 +84,7 @@ export async function createMemory(
   const now = new Date().toISOString();
 
   const stmt = db.prepare(
-    "INSERT INTO memory (id, apiKeyId, sessionId, type, key, content, metadata, createdAt, updatedAt, expiresAt) " +
+    "INSERT INTO memories (id, api_key_id, session_id, type, key, content, metadata, created_at, updated_at, expires_at) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
 
@@ -123,7 +95,7 @@ export async function createMemory(
     memory.type,
     memory.key,
     memory.content,
-    JSON.stringify(memory.metadata),
+    JSON.stringify(memory.metadata ?? {}),
     now,
     now,
     memory.expiresAt?.toISOString() ?? null
@@ -163,8 +135,8 @@ export async function getMemory(id: string): Promise<Memory | null> {
   }
 
   const db = getDbInstance();
-  const stmt = db.prepare("SELECT * FROM memory WHERE id = ?");
-  const row = stmt.get(id) as any;
+  const stmt = db.prepare("SELECT * FROM memories WHERE id = ?");
+  const row = stmt.get(id) as MemoryRow | undefined;
 
   if (!row) {
     // Cache negative result briefly to prevent repeated DB hits
@@ -173,18 +145,7 @@ export async function getMemory(id: string): Promise<Memory | null> {
     return null;
   }
 
-  const memory: Memory = {
-    id: String(row.id),
-    apiKeyId: String(row.apiKeyId),
-    sessionId: String(row.sessionId),
-    type: row.type as MemoryType,
-    key: String(row.key),
-    content: String(row.content),
-    metadata: parseJSON(row.metadata),
-    createdAt: new Date(String(row.createdAt)),
-    updatedAt: new Date(String(row.updatedAt)),
-    expiresAt: row.expiresAt ? new Date(String(row.expiresAt)) : null,
-  };
+  const memory = rowToMemory(row);
 
   // Cache the result
   evictIfNeeded(_memoryCache);
@@ -207,7 +168,7 @@ export async function updateMemory(
 
   // Build dynamic update query
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
 
   if (updates.type !== undefined) {
     fields.push("type = ?");
@@ -226,21 +187,17 @@ export async function updateMemory(
     values.push(JSON.stringify(updates.metadata));
   }
   if (updates.expiresAt !== undefined) {
-    fields.push("expiresAt = ?");
+    fields.push("expires_at = ?");
     values.push(updates.expiresAt?.toISOString() ?? null);
   }
 
   // Always update the updatedAt timestamp
-  fields.push("updatedAt = ?");
+  fields.push("updated_at = ?");
   values.push(now);
-
-  if (fields.length === 0) {
-    return false; // No updates to apply
-  }
 
   values.push(id); // For WHERE clause
 
-  const stmt = db.prepare(`UPDATE memory SET ${fields.join(", ")} WHERE id = ?`);
+  const stmt = db.prepare(`UPDATE memories SET ${fields.join(", ")} WHERE id = ?`);
 
   const result = stmt.run(...values);
 
@@ -261,7 +218,7 @@ export async function deleteMemory(id: string): Promise<boolean> {
   if (!id || typeof id !== "string") return false;
 
   const db = getDbInstance();
-  const stmt = db.prepare("DELETE FROM memory WHERE id = ?");
+  const stmt = db.prepare("DELETE FROM memories WHERE id = ?");
   const result = stmt.run(id);
 
   if (result.changes === 0) {
@@ -287,12 +244,12 @@ export async function listMemories(filters: {
   const db = getDbInstance();
 
   // Build dynamic query
-  let query = "SELECT * FROM memory";
-  const params: any[] = [];
+  let query = "SELECT * FROM memories";
+  const params: unknown[] = [];
   const whereClauses: string[] = [];
 
   if (filters.apiKeyId) {
-    whereClauses.push("apiKeyId = ?");
+    whereClauses.push("api_key_id = ?");
     params.push(filters.apiKeyId);
   }
 
@@ -302,7 +259,7 @@ export async function listMemories(filters: {
   }
 
   if (filters.sessionId) {
-    whereClauses.push("sessionId = ?");
+    whereClauses.push("session_id = ?");
     params.push(filters.sessionId);
   }
 
@@ -311,7 +268,7 @@ export async function listMemories(filters: {
   }
 
   // Add ordering and pagination
-  query += " ORDER BY createdAt DESC";
+  query += " ORDER BY created_at DESC";
 
   if (filters.limit !== undefined) {
     query += " LIMIT ?";
@@ -319,6 +276,9 @@ export async function listMemories(filters: {
   }
 
   if (filters.offset !== undefined) {
+    if (filters.limit === undefined) {
+      query += " LIMIT -1";
+    }
     query += " OFFSET ?";
     params.push(filters.offset);
   }
@@ -326,16 +286,5 @@ export async function listMemories(filters: {
   const stmt = db.prepare(query);
   const rows = stmt.all(...params);
 
-  return (rows as any[]).map((row: any) => ({
-    id: String(row.id),
-    apiKeyId: String(row.apiKeyId),
-    sessionId: String(row.sessionId),
-    type: row.type as MemoryType,
-    key: String(row.key),
-    content: String(row.content),
-    metadata: parseJSON(row.metadata),
-    createdAt: new Date(String(row.createdAt)),
-    updatedAt: new Date(String(row.updatedAt)),
-    expiresAt: row.expiresAt ? new Date(String(row.expiresAt)) : null,
-  }));
+  return (rows as MemoryRow[]).map(rowToMemory);
 }

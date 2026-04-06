@@ -10,6 +10,9 @@ export default defineConfig({
       "open-sse/services/autoCombo/__tests__/**/*.test.ts",
     ],
     exclude: ["**/node_modules/**", "**/.git/**"],
+    coverage: {
+      reportsDirectory: "coverage",
+    },
   },
   resolve: {
     alias: {

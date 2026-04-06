@@ -31,9 +31,15 @@ export async function interceptToolCalls(
           sessionId: context.sessionId,
         });
 
+        const result =
+          execution.output ??
+          (execution.errorMessage
+            ? { error: execution.errorMessage }
+            : { error: "Skill execution returned no output" });
+
         return {
           id: call.id,
-          result: execution.output,
+          result,
         };
       } catch (err) {
         return {
@@ -51,12 +57,21 @@ export function extractToolCalls(response: any, modelId: string): ToolCall[] {
   const provider = detectProvider(modelId);
 
   switch (provider) {
-    case "openai":
-      return (response.tool_calls || []).map((tc: any) => ({
+    case "openai": {
+      const rootToolCalls = Array.isArray(response?.tool_calls) ? response.tool_calls : [];
+      const choiceToolCalls = Array.isArray(response?.choices)
+        ? response.choices.flatMap((choice: any) =>
+            Array.isArray(choice?.message?.tool_calls) ? choice.message.tool_calls : []
+          )
+        : [];
+      const toolCalls = rootToolCalls.length > 0 ? rootToolCalls : choiceToolCalls;
+
+      return toolCalls.map((tc: any) => ({
         id: tc.id || `call_${Date.now()}`,
         name: tc.function?.name || "",
         arguments: parseArguments(tc.function?.arguments || "{}"),
       }));
+    }
 
     case "anthropic":
       return (response.content || [])

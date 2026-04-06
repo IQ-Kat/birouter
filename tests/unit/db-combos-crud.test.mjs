@@ -1,0 +1,103 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-db-combos-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const core = await import("../../src/lib/db/core.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
+
+async function resetStorage() {
+  core.resetDbInstance();
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    try {
+      if (fs.existsSync(TEST_DATA_DIR)) {
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      }
+      break;
+    } catch (error) {
+      if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
+        await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+test.beforeEach(async () => {
+  await resetStorage();
+});
+
+test.after(async () => {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("createCombo stores default strategy and supports lookup by id and name", async () => {
+  const combo = await combosDb.createCombo({
+    name: "Priority Combo",
+    models: [{ provider: "openai", model: "gpt-4.1" }],
+  });
+
+  assert.equal(combo.strategy, "priority");
+  assert.deepEqual(await combosDb.getComboById(combo.id), combo);
+  assert.deepEqual(await combosDb.getComboByName("Priority Combo"), combo);
+});
+
+test("getCombos returns parsed combos sorted by name", async () => {
+  await combosDb.createCombo({
+    name: "Zulu",
+    models: [{ provider: "openai", model: "gpt-4.1" }],
+  });
+  await combosDb.createCombo({
+    name: "Alpha",
+    models: [{ provider: "anthropic", model: "claude-3-7-sonnet" }],
+  });
+
+  const combos = await combosDb.getCombos();
+
+  assert.deepEqual(
+    combos.map((combo) => combo.name),
+    ["Alpha", "Zulu"]
+  );
+});
+
+test("updateCombo merges fields while preserving immutable data", async () => {
+  const combo = await combosDb.createCombo({
+    name: "Routing Combo",
+    models: [{ provider: "openai", model: "gpt-4.1" }],
+    config: { retries: 1 },
+  });
+
+  const updated = await combosDb.updateCombo(combo.id, {
+    strategy: "round-robin",
+    config: { retries: 3, timeoutMs: 2000 },
+    isHidden: true,
+  });
+
+  assert.equal(updated.id, combo.id);
+  assert.equal(updated.name, "Routing Combo");
+  assert.deepEqual(updated.models, combo.models);
+  assert.deepEqual(updated.config, { retries: 3, timeoutMs: 2000 });
+  assert.equal(updated.strategy, "round-robin");
+  assert.equal(updated.isHidden, true);
+  assert.deepEqual(await combosDb.getComboById(combo.id), updated);
+});
+
+test("deleteCombo reports missing ids and removes existing rows", async () => {
+  const combo = await combosDb.createCombo({
+    name: "Delete Me",
+    models: [{ provider: "openai", model: "gpt-4.1-mini" }],
+  });
+
+  assert.equal(await combosDb.deleteCombo("missing-combo"), false);
+  assert.equal(await combosDb.deleteCombo(combo.id), true);
+  assert.equal(await combosDb.getComboById(combo.id), null);
+});

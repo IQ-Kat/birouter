@@ -8,6 +8,7 @@ import NotificationToast from "../NotificationToast";
 import MaintenanceBanner from "../MaintenanceBanner";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
+const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -56,7 +57,7 @@ export default function DashboardLayout({ children }) {
         className="flex flex-col flex-1 h-full min-w-0 relative transition-colors duration-300"
       >
         <Header onMenuClick={() => setSidebarOpen(true)} />
-        <MaintenanceBanner />
+        {!isE2EMode && <MaintenanceBanner />}
         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
           <div className="max-w-7xl mx-auto w-full">
             <Breadcrumbs />

@@ -62,6 +62,16 @@ import {
   isFallbackDecision,
   shouldUseFallback,
 } from "@omniroute/open-sse/services/emergencyFallback.ts";
+import {
+  registerCodexQuotaFetcher,
+  registerCodexConnection,
+  fetchCodexQuota,
+} from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
+
+// Register Codex quota fetcher at module load (once per server start).
+// This hooks into the quotaPreflight + quotaMonitor systems so that combos
+// can proactively switch accounts before the 5h or 7d quota is exhausted.
+registerCodexQuotaFetcher();
 
 /**
  * Handle chat completion request
@@ -262,6 +272,35 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         modelInfo.model || modelString
       );
       if (!creds || creds.allRateLimited) return false;
+
+      // ── Codex Quota Preflight (Item 1-2) ──────────────────────────────────
+      // Proactively skip Codex accounts that have consumed >= 95% of either
+      // their 5h or 7d quota window. This prevents requests from failing with
+      // a 429 and then retrying — we switch accounts early instead.
+      if (provider === "codex" && creds.connectionId) {
+        // Register connection metadata so the fetcher can call the usage API
+        if (creds.accessToken) {
+          registerCodexConnection(creds.connectionId, {
+            accessToken: creds.accessToken,
+            workspaceId:
+              typeof creds.providerSpecificData?.workspaceId === "string"
+                ? creds.providerSpecificData.workspaceId
+                : undefined,
+          });
+        }
+
+        const quotaInfo = await fetchCodexQuota(creds.connectionId);
+        if (quotaInfo && quotaInfo.percentUsed >= 0.95) {
+          const pct = (quotaInfo.percentUsed * 100).toFixed(1);
+          log.info(
+            "QUOTA_PREFLIGHT",
+            `Skipping Codex account ${creds.connectionId.slice(0, 8)}...: quota at ${pct}% (preflight)`
+          );
+          return false;
+        }
+      }
+      // ──────────────────────────────────────────────────────────────────────
+
       return true;
     };
 
