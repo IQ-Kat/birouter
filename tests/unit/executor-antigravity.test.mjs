@@ -3,6 +3,25 @@ import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 
+async function withEnv(name, value, fn) {
+  const previous = process.env[name];
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+
+  try {
+    return await fn();
+  } finally {
+    if (previous === undefined) {
+      delete process.env[name];
+    } else {
+      process.env[name] = previous;
+    }
+  }
+}
+
 test("AntigravityExecutor.buildUrl always targets the streaming endpoint", () => {
   const executor = new AntigravityExecutor();
   assert.match(
@@ -76,6 +95,29 @@ test("AntigravityExecutor.transformRequest returns a structured error response w
   assert.match(payload.error.message, /Missing Google projectId/);
 });
 
+test("AntigravityExecutor.transformRequest allows body project overrides when the env flag is enabled", async () => {
+  const executor = new AntigravityExecutor();
+
+  await withEnv("OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE", "1", async () => {
+    const result = await executor.transformRequest(
+      "antigravity/gemini-2.5-pro",
+      {
+        project: "body-project",
+        request: {
+          contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+          sessionId: "session-fixed",
+        },
+      },
+      true,
+      { projectId: "credential-project" }
+    );
+
+    assert.equal(result.project, "body-project");
+    assert.equal(result.request.sessionId, "session-fixed");
+    assert.equal(result.model, "gemini-2.5-pro");
+  });
+});
+
 test("AntigravityExecutor parses retry timing from headers and error strings", () => {
   const executor = new AntigravityExecutor();
   const headers = new Headers({
@@ -87,6 +129,20 @@ test("AntigravityExecutor parses retry timing from headers and error strings", (
   assert.equal(
     executor.parseRetryFromErrorMessage("Your quota will reset after 2h7m23s"),
     7_643_000
+  );
+});
+
+test("AntigravityExecutor.parseRetryHeaders falls back to reset-after and reset timestamps", () => {
+  const executor = new AntigravityExecutor();
+  const futureSeconds = Math.floor(Date.now() / 1000) + 90;
+
+  assert.equal(
+    executor.parseRetryHeaders(new Headers({ "x-ratelimit-reset-after": "45" })),
+    45_000
+  );
+  assert.ok(
+    executor.parseRetryHeaders(new Headers({ "x-ratelimit-reset": String(futureSeconds) })) >=
+      89_000
   );
 });
 
@@ -149,6 +205,96 @@ test("AntigravityExecutor.refreshCredentials refreshes Google OAuth tokens", asy
       expiresIn: 3600,
       projectId: "project-1",
     });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("AntigravityExecutor.execute auto-retries short 429 responses and collects SSE for non-stream clients", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls = [];
+
+  globalThis.fetch = async (url) => {
+    calls.push(String(url));
+
+    if (calls.length === 1) {
+      return new Response(JSON.stringify({ error: { message: "rate limited" } }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(
+      [
+        'data: {"response":{"candidates":[{"content":{"parts":[{"text":"Hello "}]},"finishReason":"STOP"}]}}\n\n',
+        'data: {"response":{"candidates":[{"content":{"parts":[{"text":"again"}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":2,"candidatesTokenCount":3,"totalTokenCount":5}}}\n\n',
+      ].join(""),
+      {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      }
+    );
+  };
+  globalThis.setTimeout = (callback) => {
+    callback();
+    return 0;
+  };
+
+  try {
+    const result = await executor.execute({
+      model: "antigravity/gemini-2.5-flash",
+      body: { request: { contents: [] } },
+      stream: false,
+      credentials: { accessToken: "token", projectId: "project-1" },
+      log: { debug() {}, warn() {} },
+    });
+    const payload = await result.response.json();
+
+    assert.equal(calls.length, 2);
+    assert.equal(result.response.status, 200);
+    assert.equal(payload.choices[0].message.content, "Hello again");
+    assert.deepEqual(payload.usage, {
+      prompt_tokens: 2,
+      completion_tokens: 3,
+      total_tokens: 5,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for a long wait", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        error: {
+          message: "Your quota will reset after 2h",
+        },
+      }),
+      {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+  try {
+    const result = await executor.execute({
+      model: "antigravity/gemini-2.5-flash",
+      body: { request: { contents: [] } },
+      stream: true,
+      credentials: { accessToken: "token", projectId: "project-1" },
+      log: { debug() {}, warn() {} },
+    });
+    const payload = await result.response.json();
+
+    assert.equal(result.response.status, 429);
+    assert.equal(payload.retryAfterMs, 7_200_000);
   } finally {
     globalThis.fetch = originalFetch;
   }

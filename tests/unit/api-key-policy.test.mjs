@@ -16,6 +16,85 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-api-key-policy-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-607-api-key-secret";
+
+const coreDb = await import("../../src/lib/db/core.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const costRules = await import("../../src/domain/costRules.ts");
+
+async function resetStorage() {
+  apiKeysDb.resetApiKeyState();
+  costRules.resetCostData();
+  coreDb.resetDbInstance();
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    try {
+      if (fs.existsSync(TEST_DATA_DIR)) {
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+      }
+      break;
+    } catch (error) {
+      if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
+        await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+async function loadPolicy(label) {
+  const modulePath = path.join(process.cwd(), "src/shared/utils/apiKeyPolicy.ts");
+  return import(`${pathToFileURL(modulePath).href}?case=${label}-${Date.now()}`);
+}
+
+async function createKeyWithPolicy(update = {}) {
+  const created = await apiKeysDb.createApiKey("Policy Key", "machine-607");
+  if (Object.keys(update).length > 0) {
+    await apiKeysDb.updateApiKeyPermissions(created.id, update);
+  }
+  return created;
+}
+
+function makePolicyRequest(apiKey) {
+  return new Request("http://localhost/api/v1/chat/completions", {
+    method: "POST",
+    headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+  });
+}
+
+async function readErrorMessage(response) {
+  const body = await response.json();
+  return body.error.message;
+}
+
+function getCurrentUtcDay() {
+  const dayName = new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    weekday: "short",
+  }).format(new Date());
+  return { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[dayName];
+}
+
+test.beforeEach(async () => {
+  await resetStorage();
+});
+
+test.after(async () => {
+  apiKeysDb.resetApiKeyState();
+  costRules.resetCostData();
+  coreDb.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
 
 // ─── Replicate the isWithinSchedule logic for pure unit testing ───────────────
 //
@@ -310,4 +389,93 @@ test("isWithinSchedule: America/Sao_Paulo — outside window", () => {
     tz: "America/Sao_Paulo",
   };
   assert.equal(isWithinSchedule(schedule, utc(2024, 3, 11, 22, 0)), false);
+});
+
+test("enforceApiKeyPolicy bypasses local mode and unknown keys", async () => {
+  const policy = await loadPolicy("bypass");
+
+  assert.deepEqual(await policy.enforceApiKeyPolicy(makePolicyRequest(null), "openai/gpt-4.1"), {
+    apiKey: null,
+    apiKeyInfo: null,
+    rejection: null,
+  });
+
+  const unknown = await policy.enforceApiKeyPolicy(
+    makePolicyRequest("sk-unknown"),
+    "openai/gpt-4.1"
+  );
+  assert.equal(unknown.apiKey, "sk-unknown");
+  assert.equal(unknown.apiKeyInfo, null);
+  assert.equal(unknown.rejection, null);
+});
+
+test("enforceApiKeyPolicy rejects disabled keys and blocked schedules", async () => {
+  const disabledKey = await createKeyWithPolicy({ isActive: false });
+  const blockedDay = (getCurrentUtcDay() + 1) % 7;
+  const scheduledKey = await createKeyWithPolicy({
+    accessSchedule: {
+      enabled: true,
+      from: "00:00",
+      until: "23:59",
+      days: [blockedDay],
+      tz: "UTC",
+    },
+  });
+  const policy = await loadPolicy("disabled-and-schedule");
+
+  const disabled = await policy.enforceApiKeyPolicy(makePolicyRequest(disabledKey.key), null);
+  assert.equal(disabled.rejection.status, 403);
+  assert.equal(await readErrorMessage(disabled.rejection), "This API key is disabled");
+
+  const blocked = await policy.enforceApiKeyPolicy(makePolicyRequest(scheduledKey.key), null);
+  assert.equal(blocked.rejection.status, 403);
+  assert.match(await readErrorMessage(blocked.rejection), /Access denied outside allowed hours/);
+});
+
+test("enforceApiKeyPolicy rejects disallowed models and exhausted budgets", async () => {
+  const restrictedKey = await createKeyWithPolicy({
+    allowedModels: ["openai/gpt-4.1"],
+  });
+  const budgetedKey = await createKeyWithPolicy();
+  const policy = await loadPolicy("model-and-budget");
+
+  const disallowed = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(restrictedKey.key),
+    "anthropic/claude-3-7-sonnet"
+  );
+  assert.equal(disallowed.rejection.status, 403);
+  assert.match(await readErrorMessage(disallowed.rejection), /not allowed/);
+
+  const budgetMeta = await apiKeysDb.getApiKeyMetadata(budgetedKey.key);
+  costRules.setBudget(budgetMeta.id, { dailyLimitUsd: 1, warningThreshold: 0.5 });
+  costRules.recordCost(budgetMeta.id, 2);
+
+  const overBudget = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(budgetedKey.key),
+    "openai/gpt-4.1"
+  );
+  assert.equal(overBudget.rejection.status, 429);
+  assert.match(await readErrorMessage(overBudget.rejection), /Daily budget exceeded/);
+});
+
+test("enforceApiKeyPolicy enforces request-per-minute limits and returns success when allowed", async () => {
+  const limitedKey = await createKeyWithPolicy({
+    allowedModels: ["openai/*"],
+    maxRequestsPerMinute: 1,
+  });
+  const policy = await loadPolicy("request-limits");
+
+  const first = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(limitedKey.key),
+    "openai/gpt-4.1"
+  );
+  assert.equal(first.rejection, null);
+  assert.equal(first.apiKeyInfo.maxRequestsPerMinute, 1);
+
+  const second = await policy.enforceApiKeyPolicy(
+    makePolicyRequest(limitedKey.key),
+    "openai/gpt-4.1"
+  );
+  assert.equal(second.rejection.status, 429);
+  assert.match(await readErrorMessage(second.rejection), /Per-minute request limit exceeded/);
 });

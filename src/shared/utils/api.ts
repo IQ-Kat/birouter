@@ -12,38 +12,38 @@ interface ApiOptions extends RequestInit {
 
 export async function get(url: string, options: ApiOptions = {}) {
   const response = await fetch(url, {
+    ...options,
     method: "GET",
     headers: { ...DEFAULT_HEADERS, ...options.headers },
-    ...options,
   });
   return handleResponse(response);
 }
 
 export async function post(url: string, data: unknown, options: ApiOptions = {}) {
   const response = await fetch(url, {
+    ...options,
     method: "POST",
     headers: { ...DEFAULT_HEADERS, ...options.headers },
     body: JSON.stringify(data),
-    ...options,
   });
   return handleResponse(response);
 }
 
 export async function put(url: string, data: unknown, options: ApiOptions = {}) {
   const response = await fetch(url, {
+    ...options,
     method: "PUT",
     headers: { ...DEFAULT_HEADERS, ...options.headers },
     body: JSON.stringify(data),
-    ...options,
   });
   return handleResponse(response);
 }
 
 export async function del(url: string, options: ApiOptions = {}) {
   const response = await fetch(url, {
+    ...options,
     method: "DELETE",
     headers: { ...DEFAULT_HEADERS, ...options.headers },
-    ...options,
   });
   return handleResponse(response);
 }

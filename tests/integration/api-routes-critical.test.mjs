@@ -181,6 +181,86 @@ test("critical routes: v1 management proxies covers auth, lookup, where-used, pa
   assert.equal(forcedDeleteBody.success, true);
 });
 
+test("critical routes: v1 management proxies validates create payloads and clamps pagination", async () => {
+  await enableManagementAuth();
+  const authKey = await createManagementKey();
+
+  const invalidJsonPost = await proxiesRoute.POST(
+    new Request("http://localhost/api/v1/management/proxies", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${authKey.key}`,
+        "content-type": "application/json",
+      },
+      body: "{",
+    })
+  );
+  const invalidPost = await proxiesRoute.POST(
+    makeRequest("http://localhost/api/v1/management/proxies", {
+      method: "POST",
+      token: authKey.key,
+      body: {},
+    })
+  );
+
+  const createdIds = [];
+  for (let index = 0; index < 3; index += 1) {
+    const createResponse = await proxiesRoute.POST(
+      makeRequest("http://localhost/api/v1/management/proxies", {
+        method: "POST",
+        token: authKey.key,
+        body: {
+          name: `Paged Proxy ${index + 1}`,
+          type: index % 2 === 0 ? "http" : "https",
+          host: `paged-${index + 1}.local`,
+          port: 8000 + index,
+        },
+      })
+    );
+    const created = await createResponse.json();
+    createdIds.push(created.id);
+    assert.equal(createResponse.status, 201);
+  }
+
+  const pagedList = await proxiesRoute.GET(
+    makeRequest("http://localhost/api/v1/management/proxies?limit=999&offset=-5", {
+      token: authKey.key,
+    })
+  );
+  const missingPatch = await proxiesRoute.PATCH(
+    makeRequest("http://localhost/api/v1/management/proxies", {
+      method: "PATCH",
+      token: authKey.key,
+      body: { id: "missing", host: "absent.local" },
+    })
+  );
+  const missingDelete = await proxiesRoute.DELETE(
+    makeRequest("http://localhost/api/v1/management/proxies?id=missing", {
+      method: "DELETE",
+      token: authKey.key,
+    })
+  );
+
+  const invalidJsonPostBody = await invalidJsonPost.json();
+  const invalidPostBody = await invalidPost.json();
+  const pagedListBody = await pagedList.json();
+  const missingPatchBody = await missingPatch.json();
+  const missingDeleteBody = await missingDelete.json();
+
+  assert.equal(invalidJsonPost.status, 400);
+  assert.equal(invalidJsonPostBody.error.message, "Invalid JSON body");
+  assert.equal(invalidPost.status, 400);
+  assert.equal(invalidPostBody.error.message, "Invalid request");
+  assert.equal(pagedList.status, 200);
+  assert.equal(pagedListBody.page.limit, 200);
+  assert.equal(pagedListBody.page.offset, 0);
+  assert.equal(pagedListBody.items.length, createdIds.length);
+  assert.equal(missingPatch.status, 404);
+  assert.equal(missingPatchBody.error.message, "Proxy not found");
+  assert.equal(missingDelete.status, 404);
+  assert.equal(missingDeleteBody.error.message, "Proxy not found");
+});
+
 test("critical routes: settings proxy resolves config, validates payloads, and deletes scoped entries", async () => {
   const connection = await localDb.createProviderConnection({
     provider: "openai",
@@ -285,6 +365,69 @@ test("critical routes: settings proxy prefers registry assignment for global loo
   assert.equal(body.proxy.type, "https");
   assert.equal(body.proxy.host, "registry.proxy.local");
   assert.equal(body.proxy.username, "global-user");
+});
+
+test("critical routes: settings proxy covers global fallback and socks5 gating", async () => {
+  const setLegacyGlobalProxy = await settingsProxyRoute.PUT(
+    makeRequest("http://localhost/api/settings/proxy", {
+      method: "PUT",
+      body: {
+        level: "global",
+        proxy: {
+          type: "https",
+          host: "legacy.proxy.local",
+          port: 9443,
+        },
+      },
+    })
+  );
+  const getLegacyGlobalProxy = await settingsProxyRoute.GET(
+    new Request("http://localhost/api/settings/proxy?level=global")
+  );
+  const socksDisabled = await settingsProxyRoute.PUT(
+    makeRequest("http://localhost/api/settings/proxy", {
+      method: "PUT",
+      body: {
+        level: "provider",
+        id: "openai",
+        proxy: {
+          type: "socks5",
+          host: "socks.disabled.local",
+          port: 1080,
+        },
+      },
+    })
+  );
+
+  process.env.ENABLE_SOCKS5_PROXY = "true";
+  const socksEnabled = await settingsProxyRoute.PUT(
+    makeRequest("http://localhost/api/settings/proxy", {
+      method: "PUT",
+      body: {
+        level: "provider",
+        id: "openai",
+        proxy: {
+          type: "SOCKS5",
+          host: "socks.enabled.local",
+          port: 1080,
+        },
+      },
+    })
+  );
+
+  const setLegacyGlobalProxyBody = await setLegacyGlobalProxy.json();
+  const getLegacyGlobalProxyBody = await getLegacyGlobalProxy.json();
+  const socksDisabledBody = await socksDisabled.json();
+  const socksEnabledBody = await socksEnabled.json();
+
+  assert.equal(setLegacyGlobalProxy.status, 200);
+  assert.equal(setLegacyGlobalProxyBody.global.host, "legacy.proxy.local");
+  assert.equal(getLegacyGlobalProxy.status, 200);
+  assert.equal(getLegacyGlobalProxyBody.proxy.host, "legacy.proxy.local");
+  assert.equal(socksDisabled.status, 400);
+  assert.match(socksDisabledBody.error.message, /SOCKS5 proxy is disabled/i);
+  assert.equal(socksEnabled.status, 200);
+  assert.equal(socksEnabledBody.providers.openai.type, "socks5");
 });
 
 test("critical routes: v1 models route exposes CORS and list contracts", async () => {

@@ -26,6 +26,15 @@ test("extractTryCloudflareUrl returns null when no tunnel URL is present", () =>
   assert.equal(extractTryCloudflareUrl("cloudflared starting without assigned URL"), null);
 });
 
+test("extractTryCloudflareUrl ignores the cloudflared API endpoint host", () => {
+  assert.equal(
+    extractTryCloudflareUrl(
+      'ERR failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": tls: failed to verify certificate'
+    ),
+    null
+  );
+});
+
 test("extractCloudflaredErrorMessage keeps the actionable stderr line", () => {
   const error = extractCloudflaredErrorMessage(
     '2026-03-30T19:56:12Z INF Requesting new quick Tunnel on trycloudflare.com...\n2026-03-30T19:56:12Z ERR failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": tls: failed to verify certificate: x509: certificate signed by unknown authority'

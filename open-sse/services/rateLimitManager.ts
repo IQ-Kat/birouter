@@ -471,6 +471,18 @@ export function getLearnedLimits() {
 
 // ─── Persistence ────────────────────────────────────────────────────────────
 
+async function persistLearnedLimitsNow() {
+  try {
+    const { updateSettings } = await import("@/lib/db/settings");
+    await updateSettings({ learnedRateLimits: JSON.stringify(learnedLimits) });
+    console.log(
+      `💾 [RATE-LIMIT] Persisted learned limits for ${Object.keys(learnedLimits).length} provider(s)`
+    );
+  } catch (err) {
+    console.error("[RATE-LIMIT] Failed to persist learned limits:", err.message);
+  }
+}
+
 /**
  * Record a learned limit for debounced persistence.
  */
@@ -492,16 +504,34 @@ function recordLearnedLimit(
   if (!persistTimer) {
     persistTimer = setTimeout(async () => {
       persistTimer = null;
-      try {
-        const { updateSettings } = await import("@/lib/db/settings");
-        await updateSettings({ learnedRateLimits: JSON.stringify(learnedLimits) });
-        console.log(
-          `💾 [RATE-LIMIT] Persisted learned limits for ${Object.keys(learnedLimits).length} provider(s)`
-        );
-      } catch (err) {
-        console.error("[RATE-LIMIT] Failed to persist learned limits:", err.message);
-      }
+      await persistLearnedLimitsNow();
     }, PERSIST_DEBOUNCE_MS);
+  }
+}
+
+export async function __flushLearnedLimitsForTests() {
+  if (persistTimer) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  await persistLearnedLimitsNow();
+}
+
+export function __resetRateLimitManagerForTests() {
+  if (persistTimer) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+
+  for (const limiter of limiters.values()) {
+    limiter.disconnect();
+  }
+  limiters.clear();
+  enabledConnections.clear();
+  initialized = false;
+
+  for (const key of Object.keys(learnedLimits)) {
+    delete learnedLimits[key];
   }
 }
 

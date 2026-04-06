@@ -10,6 +10,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 
 const core = await import("../../src/lib/db/core.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 
 async function resetStorage() {
@@ -149,6 +151,54 @@ test("LKGP values can be set, read and cleared", async () => {
   assert.equal(await settingsDb.getLKGP("combo-a", "model-a"), null);
 });
 
+test("pricing helpers ignore malformed synced data and LKGP falls back to raw values", async () => {
+  const db = core.getDbInstance();
+
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "models_dev_pricing",
+    "broken-provider",
+    "{not-json"
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "pricing",
+    "alias-provider",
+    JSON.stringify({
+      "model-a": { prompt: 7 },
+    })
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "lkgp",
+    "combo-raw:model-raw",
+    "raw-provider-id"
+  );
+
+  const pricing = await settingsDb.getPricing();
+
+  assert.equal(pricing["broken-provider"], undefined);
+  assert.equal(await settingsDb.getPricingForModel("alias-provider", "missing-model"), null);
+  assert.equal(await settingsDb.getLKGP("combo-raw", "model-raw"), "raw-provider-id");
+});
+
+test("pricing helpers resolve aliased providers and tolerate no-op resets", async () => {
+  const db = core.getDbInstance();
+
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "pricing",
+    "cc",
+    JSON.stringify({
+      "claude-3-5-sonnet": { prompt: 4, completion: 6 },
+    })
+  );
+
+  const aliasPricing = await settingsDb.getPricingForModel("claude", "claude-3-5-sonnet");
+  const missingPricing = await settingsDb.getPricingForModel("missing-provider", "missing-model");
+  const afterUnknownReset = await settingsDb.resetPricing("missing-provider", "missing-model");
+
+  assert.deepEqual(aliasPricing, { prompt: 4, completion: 6 });
+  assert.equal(missingPricing, null);
+  assert.equal(afterUnknownReset["missing-provider"], undefined);
+});
+
 test("proxy config migrates legacy strings and supports bulk merge updates", async () => {
   const db = core.getDbInstance();
 
@@ -206,6 +256,182 @@ test("proxy config migrates legacy strings and supports bulk merge updates", asy
   await settingsDb.deleteProxyForLevel("key", "key123");
 
   assert.equal(await settingsDb.getProxyForLevel("key", "key123"), null);
+});
+
+test("proxy config migrates socks5 and host-only entries while preserving plural lookups", async () => {
+  const db = core.getDbInstance();
+
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "proxyConfig",
+    "global",
+    JSON.stringify("fallback-only-host")
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "proxyConfig",
+    "providers",
+    JSON.stringify({
+      claude: "socks5://sockshost",
+    })
+  );
+
+  const migrated = await settingsDb.getProxyConfig();
+  assert.deepEqual(migrated.global, {
+    type: "http",
+    host: "fallback-only-host",
+    port: "8080",
+    username: "",
+    password: "",
+  });
+  assert.deepEqual(migrated.providers.claude, {
+    type: "socks5",
+    host: "sockshost",
+    port: "1080",
+    username: "",
+    password: "",
+  });
+  assert.equal((await settingsDb.getProxyForLevel("providers", "claude")).host, "sockshost");
+
+  const updated = await settingsDb.setProxyConfig({
+    global: null,
+    providers: {},
+  });
+
+  assert.equal(updated.global, null);
+  assert.equal(await settingsDb.getProxyForLevel("global"), null);
+
+  await settingsDb.deleteProxyForLevel("provider", null);
+
+  assert.equal((await settingsDb.getProxyForLevel("provider", "claude")).host, "sockshost");
+});
+
+test("proxy helpers resolve key, provider, global, and direct paths while tolerating malformed combo rows", async () => {
+  const db = core.getDbInstance();
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Proxy Resolution Target",
+    apiKey: "sk-proxy-resolution",
+  });
+
+  await settingsDb.setProxyConfig({
+    level: "global",
+    proxy: {
+      type: "http",
+      host: "global.local",
+      port: 8080,
+    },
+  });
+  await settingsDb.setProxyForLevel("provider", "openai", {
+    type: "https",
+    host: "provider.local",
+    port: 8443,
+  });
+  await settingsDb.setProxyForLevel("combo", "combo-broken", {
+    type: "socks5",
+    host: "combo.local",
+    port: 1080,
+  });
+  const combo = await combosDb.createCombo({
+    name: "combo-broken",
+    models: ["openai/gpt-4o-mini"],
+    strategy: "priority",
+  });
+  db.prepare("UPDATE combos SET data = ? WHERE id = ?").run("{not-json", combo.id);
+
+  const providerResolved = await settingsDb.resolveProxyForConnection(connection.id);
+
+  assert.equal(providerResolved.level, "provider");
+  assert.equal(providerResolved.proxy.host, "provider.local");
+  assert.deepEqual(await settingsDb.getProxyForLevel("combo", "combo-broken"), {
+    type: "socks5",
+    host: "combo.local",
+    port: 1080,
+  });
+
+  await settingsDb.deleteProxyForLevel("provider", "openai");
+
+  const globalResolved = await settingsDb.resolveProxyForConnection(connection.id);
+
+  assert.equal(globalResolved.level, "global");
+  assert.equal(globalResolved.proxy.host, "global.local");
+
+  await settingsDb.setProxyForLevel("key", connection.id, {
+    type: "http",
+    host: "key.local",
+    port: 3128,
+  });
+
+  const keyResolved = await settingsDb.resolveProxyForConnection(connection.id);
+
+  assert.equal(keyResolved.level, "key");
+  assert.equal(keyResolved.proxy.host, "key.local");
+
+  await settingsDb.deleteProxyForLevel("key", connection.id);
+  await settingsDb.deleteProxyForLevel("global", null);
+
+  const directResolved = await settingsDb.resolveProxyForConnection(connection.id);
+
+  assert.equal(directResolved.level, "direct");
+  assert.equal(directResolved.proxy, null);
+});
+
+test("proxy resolution skips combos without serialized data and falls back to provider proxies", async () => {
+  const db = core.getDbInstance();
+  const connection = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "apikey",
+    name: "Proxy Null Combo",
+    apiKey: "sk-claude-proxy",
+  });
+
+  await settingsDb.setProxyForLevel("provider", "claude", {
+    type: "https",
+    host: "provider-claude.local",
+    port: 443,
+  });
+
+  const combo = await combosDb.createCombo({
+    name: "combo-null-data",
+    models: ["claude/claude-3-5-sonnet"],
+    strategy: "priority",
+  });
+  await settingsDb.setProxyForLevel("combo", combo.id, {
+    type: "http",
+    host: "combo-null.local",
+    port: 8080,
+  });
+  db.prepare("UPDATE combos SET data = ? WHERE id = ?").run(0, combo.id);
+
+  const resolved = await settingsDb.resolveProxyForConnection(connection.id);
+
+  assert.equal(resolved.level, "provider");
+  assert.equal(resolved.proxy.host, "provider-claude.local");
+});
+
+test("proxy resolution matches combo proxies through aliased model entries", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "apikey",
+    name: "Proxy Alias Combo",
+    apiKey: "sk-claude-alias",
+  });
+
+  const combo = await combosDb.createCombo({
+    name: "combo-aliased-model",
+    models: [{ model: "cc/claude-3-5-sonnet" }],
+    strategy: "priority",
+  });
+  await settingsDb.setProxyForLevel("combo", combo.id, {
+    type: "https",
+    host: "combo-alias.local",
+    port: 443,
+  });
+
+  const resolved = await settingsDb.resolveProxyForConnection(connection.id);
+
+  assert.equal(resolved.level, "combo");
+  assert.equal(resolved.levelId, combo.id);
+  assert.equal(resolved.proxy.host, "combo-alias.local");
 });
 
 test("cache metrics, trend and no-op update/reset methods read from usage_history", async () => {
@@ -270,4 +496,26 @@ test("cache metrics, trend and no-op update/reset methods read from usage_histor
   assert.ok(trend.length >= 1);
   assert.equal(updateNoOp.totalCachedTokens, metrics.totalCachedTokens);
   assert.equal(resetNoOp.totalCachedTokens, metrics.totalCachedTokens);
+});
+
+test("cache metric helpers degrade gracefully when SQLite aggregation fails", async () => {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+  db.prepare = () => {
+    throw new Error("db offline");
+  };
+
+  try {
+    const metrics = await settingsDb.getCacheMetrics();
+    const updated = await settingsDb.updateCacheMetrics({ force: true });
+    const trend = await settingsDb.getCacheTrend(6);
+    const reset = await settingsDb.resetCacheMetrics();
+
+    assert.equal(metrics.totalRequests, 0);
+    assert.equal(updated.totalCachedTokens, 0);
+    assert.deepEqual(trend, []);
+    assert.equal(reset.requestsWithCacheControl, 0);
+  } finally {
+    db.prepare = originalPrepare;
+  }
 });

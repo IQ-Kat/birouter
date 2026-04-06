@@ -7,6 +7,11 @@ function buildFile(contents, name, type) {
   return new File([Buffer.from(contents)], name, { type });
 }
 
+function immediateTimeout(callback, _ms, ...args) {
+  if (typeof callback === "function") callback(...args);
+  return 0;
+}
+
 test("handleAudioTranscription requires model", async () => {
   const formData = new FormData();
   formData.append("file", buildFile("abc", "audio.wav", "audio/wav"));
@@ -224,4 +229,231 @@ test("handleAudioTranscription requires credentials for authenticated providers"
 
   assert.equal(response.status, 401);
   assert.equal(payload.error.message, "No credentials for transcription provider: openai");
+});
+
+test("handleAudioTranscription routes AssemblyAI uploads and polls until completion", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls = [];
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    calls.push({ url: stringUrl, method: options?.method || "GET" });
+
+    if (stringUrl === "https://api.assemblyai.com/v2/upload") {
+      assert.ok(options.body instanceof ArrayBuffer);
+      return new Response(JSON.stringify({ upload_url: "https://upload.example.com/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.assemblyai.com/v2/transcript") {
+      const payload = JSON.parse(String(options.body || "{}"));
+      assert.deepEqual(payload, {
+        audio_url: "https://upload.example.com/audio.wav",
+        speech_models: ["universal-3-pro"],
+        language_detection: true,
+      });
+      return new Response(JSON.stringify({ id: "transcript-1" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.assemblyai.com/v2/transcript/transcript-1") {
+      return new Response(JSON.stringify({ status: "completed", text: "assembly result" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "assemblyai/universal-3-pro");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "assembly-key" },
+    });
+
+    assert.deepEqual(await response.json(), { text: "assembly result" });
+    assert.deepEqual(
+      calls.map((entry) => entry.url),
+      [
+        "https://api.assemblyai.com/v2/upload",
+        "https://api.assemblyai.com/v2/transcript",
+        "https://api.assemblyai.com/v2/transcript/transcript-1",
+      ]
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleAudioTranscription returns an error when AssemblyAI reports a terminal failure", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.assemblyai.com/v2/upload") {
+      return new Response(JSON.stringify({ upload_url: "https://upload.example.com/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.assemblyai.com/v2/transcript") {
+      return new Response(JSON.stringify({ id: "transcript-2" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.assemblyai.com/v2/transcript/transcript-2") {
+      return new Response(JSON.stringify({ status: "error", error: "corrupt audio payload" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "assemblyai/universal-2");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "assembly-key" },
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 500);
+    assert.equal(payload.error.message, "corrupt audio payload");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleAudioTranscription routes HuggingFace providers with raw audio uploads", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl;
+  let capturedHeaders;
+  let capturedBody;
+
+  globalThis.fetch = async (url, options = {}) => {
+    capturedUrl = String(url);
+    capturedHeaders = options.headers;
+    capturedBody = options.body;
+
+    return new Response(JSON.stringify({ text: "huggingface transcript" }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "huggingface/openai/whisper-large-v3");
+    formData.append("file", buildFile("abc", "clip.mp3", "audio/mpeg"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "hf-key" },
+    });
+
+    assert.equal(
+      capturedUrl,
+      "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
+    );
+    assert.equal(capturedHeaders.Authorization, "Bearer hf-key");
+    assert.equal(capturedHeaders["Content-Type"], "audio/mpeg");
+    assert.ok(capturedBody instanceof ArrayBuffer);
+    assert.deepEqual(await response.json(), { text: "huggingface transcript" });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioTranscription rejects unsupported providers", async () => {
+  const formData = new FormData();
+  formData.append("model", "unknown/provider");
+  formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+  const response = await handleAudioTranscription({
+    formData,
+    credentials: { apiKey: "x" },
+  });
+  const payload = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.match(
+    payload.error.message,
+    /No transcription provider found for model "unknown\/provider"/
+  );
+});
+
+test("handleAudioTranscription surfaces parsed upstream errors for OpenAI-compatible providers", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: { message: "too many requests" } }), {
+      status: 429,
+      headers: { "content-type": "application/json" },
+    });
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "openai/whisper-1");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "openai-key" },
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 429);
+    assert.equal(payload.error.message, "too many requests");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioTranscription returns a 500 when upstream fetch throws", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => {
+    throw new Error("network timeout");
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "openai/whisper-1");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "openai-key" },
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 500);
+    assert.equal(payload.error.message, "Transcription request failed: network timeout");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

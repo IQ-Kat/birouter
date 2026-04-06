@@ -6,6 +6,11 @@ import os from "node:os";
 import Database from "better-sqlite3";
 
 const fileTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-dbupc-test-"));
+const moduleDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-dbupc-module-"));
+process.env.DATA_DIR = moduleDataDir;
+
+const coreDb = await import("../../src/lib/db/core.ts");
+const upstreamProxyDb = await import("../../src/lib/db/upstreamProxy.ts");
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS upstream_proxy_config (
@@ -40,6 +45,12 @@ afterEach(() => {
 after(() => {
   if (fs.existsSync(fileTmpDir)) fs.rmSync(fileTmpDir, { recursive: true, force: true });
 });
+
+async function resetModuleStorage() {
+  coreDb.resetDbInstance();
+  fs.rmSync(moduleDataDir, { recursive: true, force: true });
+  fs.mkdirSync(moduleDataDir, { recursive: true });
+}
 
 function upsert(db, data) {
   db.prepare(
@@ -336,5 +347,88 @@ describe("db/upstreamProxy (logic)", () => {
       upsert(testDb, { providerId: "dis-fb", mode: "fallback", enabled: false });
       assert.deepEqual(getFallbackChain(testDb, "dis-fb"), []);
     });
+  });
+});
+
+describe("db/upstreamProxy (module coverage)", () => {
+  beforeEach(async () => {
+    await resetModuleStorage();
+  });
+
+  after(async () => {
+    coreDb.resetDbInstance();
+    fs.rmSync(moduleDataDir, { recursive: true, force: true });
+  });
+
+  it("validates proxy URLs and blocks unsupported or private destinations", async () => {
+    assert.deepEqual(upstreamProxyDb.validateProxyUrl("https://proxy.example.com"), {
+      valid: true,
+      url: "https://proxy.example.com",
+    });
+    assert.equal(upstreamProxyDb.validateProxyUrl("ftp://proxy.example.com").valid, false);
+    assert.match(
+      upstreamProxyDb.validateProxyUrl("http://169.254.169.254").error,
+      /private\/internal address/
+    );
+    assert.match(upstreamProxyDb.validateProxyUrl("not-a-url").error, /Invalid URL/);
+  });
+
+  it("round-trips configs through upsert, update, mode filters and fallback ordering", async () => {
+    await upstreamProxyDb.upsertUpstreamProxyConfig({
+      providerId: "claude",
+      mode: "fallback",
+      cliproxyapiModelMapping: { "claude-4": "claude-4-cli" },
+      nativePriority: 10,
+      cliproxyapiPriority: 1,
+    });
+    await upstreamProxyDb.upsertUpstreamProxyConfig({
+      providerId: "openai",
+      mode: "native",
+      enabled: false,
+    });
+
+    const loaded = await upstreamProxyDb.getUpstreamProxyConfig("claude");
+    assert.deepEqual(loaded.cliproxyapiModelMapping, { "claude-4": "claude-4-cli" });
+
+    const updated = await upstreamProxyDb.updateUpstreamProxyConfig("claude", {
+      mode: "cliproxyapi",
+      cliproxyapiModelMapping: null,
+      enabled: true,
+    });
+    assert.equal(updated.mode, "cliproxyapi");
+    assert.equal(updated.cliproxyapiModelMapping, null);
+
+    const byMode = await upstreamProxyDb.getProvidersByMode("cliproxyapi");
+    assert.equal(byMode.length, 1);
+    assert.equal(byMode[0].providerId, "claude");
+
+    const chain = await upstreamProxyDb.getFallbackChainForProvider("claude");
+    assert.deepEqual(chain, [
+      { executor: "cliproxyapi", priority: 1 },
+      { executor: "native", priority: 10 },
+    ]);
+  });
+
+  it("handles invalid stored JSON, missing rows and deletion", async () => {
+    const db = coreDb.getDbInstance();
+    db.prepare(
+      `
+      INSERT INTO upstream_proxy_config
+      (provider_id, mode, cliproxyapi_model_mapping, native_priority, cliproxyapi_priority, enabled, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    `
+    ).run("broken", "fallback", "{not-json", 1, 2, 1);
+
+    const broken = await upstreamProxyDb.getUpstreamProxyConfig("broken");
+    assert.equal(broken.cliproxyapiModelMapping, null);
+
+    await assert.rejects(
+      upstreamProxyDb.updateUpstreamProxyConfig("ghost", { mode: "native" }),
+      /Provider ghost not found/
+    );
+
+    assert.equal(await upstreamProxyDb.deleteUpstreamProxyConfig("broken"), true);
+    assert.equal(await upstreamProxyDb.deleteUpstreamProxyConfig("broken"), false);
+    assert.deepEqual(await upstreamProxyDb.getFallbackChainForProvider("ghost"), []);
   });
 });

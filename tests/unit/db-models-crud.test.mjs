@@ -215,3 +215,115 @@ test("sanitizeUpstreamHeadersMap keeps only safe trimmed headers", () => {
     "X-Second": "42",
   });
 });
+
+test("compat overrides ignore invalid protocol keys and can be fully removed again", () => {
+  modelsDb.mergeModelCompatOverride("openai", "gpt-4.1-mini", {
+    normalizeToolCallId: true,
+    preserveOpenAIDeveloperRole: true,
+    isHidden: true,
+    upstreamHeaders: {
+      "X-Test": "enabled",
+      Host: "blocked",
+    },
+    compatByProtocol: {
+      openai: {
+        normalizeToolCallId: false,
+      },
+      invalid: {
+        normalizeToolCallId: true,
+      },
+    },
+  });
+
+  let overrides = modelsDb.getModelCompatOverrides("openai");
+
+  assert.equal(overrides.length, 1);
+  assert.equal(overrides[0].compatByProtocol.invalid, undefined);
+  assert.deepEqual(overrides[0].upstreamHeaders, { "X-Test": "enabled" });
+
+  modelsDb.mergeModelCompatOverride("openai", "gpt-4.1-mini", {
+    normalizeToolCallId: false,
+    preserveOpenAIDeveloperRole: null,
+    isHidden: null,
+    upstreamHeaders: null,
+    compatByProtocol: {
+      openai: {
+        upstreamHeaders: {},
+      },
+    },
+  });
+
+  overrides = modelsDb.getModelCompatOverrides("openai");
+
+  assert.deepEqual(overrides, [
+    {
+      id: "gpt-4.1-mini",
+      compatByProtocol: {
+        openai: {
+          normalizeToolCallId: false,
+        },
+      },
+    },
+  ]);
+});
+
+test("compat getters fall back to override rows when custom model storage is malformed", async () => {
+  await modelsDb.addCustomModel("anthropic", "claude-edge", "Claude Edge");
+  await modelsDb.updateCustomModel("anthropic", "claude-edge", {
+    normalizeToolCallId: true,
+    preserveOpenAIDeveloperRole: false,
+    upstreamHeaders: {
+      "X-Custom": "top",
+    },
+    compatByProtocol: {
+      openai: {
+        normalizeToolCallId: false,
+        preserveOpenAIDeveloperRole: true,
+        upstreamHeaders: {
+          "X-Proto": "proto",
+        },
+      },
+    },
+  });
+
+  modelsDb.mergeModelCompatOverride("anthropic", "claude-edge", {
+    normalizeToolCallId: true,
+    preserveOpenAIDeveloperRole: false,
+    isHidden: true,
+    upstreamHeaders: {
+      "X-Compat": "fallback",
+    },
+    compatByProtocol: {
+      openai: {
+        normalizeToolCallId: false,
+        preserveOpenAIDeveloperRole: true,
+        upstreamHeaders: {
+          "X-Compat-Proto": "fallback-proto",
+        },
+      },
+    },
+  });
+
+  const db = core.getDbInstance();
+  db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
+    "{not-json",
+    "anthropic"
+  );
+
+  assert.equal(modelsDb.getModelNormalizeToolCallId("anthropic", "claude-edge", "openai"), false);
+  assert.equal(
+    modelsDb.getModelPreserveOpenAIDeveloperRole("anthropic", "claude-edge", "openai"),
+    true
+  );
+  assert.equal(modelsDb.getModelIsHidden("anthropic", "claude-edge"), true);
+  assert.deepEqual(modelsDb.getModelUpstreamExtraHeaders("anthropic", "claude-edge", "openai"), {
+    "X-Compat": "fallback",
+    "X-Compat-Proto": "fallback-proto",
+  });
+});
+
+test("missing alias helpers return empty results for unknown tools and providers", async () => {
+  assert.deepEqual(await modelsDb.getMitmAlias("missing-tool"), {});
+  assert.deepEqual(await modelsDb.getCustomModels("missing-provider"), []);
+  assert.deepEqual(await modelsDb.getAllSyncedAvailableModels(), {});
+});

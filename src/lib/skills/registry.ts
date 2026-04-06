@@ -76,7 +76,7 @@ class SkillRegistry {
       if (skill && (!apiKeyId || skill.apiKeyId === apiKeyId)) {
         db.prepare("DELETE FROM skills WHERE id = ?").run(skill.id);
         this.registeredSkills.delete(key);
-        this.clearVersionCache(name);
+        this.rebuildVersionCache(name);
         return true;
       }
     } else {
@@ -85,11 +85,11 @@ class SkillRegistry {
         .run(name, apiKeyId || null, apiKeyId || null);
 
       if (deleted.changes > 0) {
-        const keysToDelete = Array.from(this.registeredSkills.keys()).filter((k) =>
-          k.startsWith(`${name}@`)
-        );
+        const keysToDelete = Array.from(this.registeredSkills.entries())
+          .filter(([, skill]) => skill.name === name && (!apiKeyId || skill.apiKeyId === apiKeyId))
+          .map(([key]) => key);
         keysToDelete.forEach((k) => this.registeredSkills.delete(k));
-        this.clearVersionCache(name);
+        this.rebuildVersionCache(name);
         return true;
       }
     }
@@ -101,14 +101,15 @@ class SkillRegistry {
     const db = getDbInstance();
     const deleted = db.prepare("DELETE FROM skills WHERE id = ?").run(id);
     if (deleted.changes > 0) {
+      const affectedNames = new Set<string>();
       const keysToDelete = Array.from(this.registeredSkills.entries())
         .filter(([, skill]) => skill.id === id)
-        .map(([key]) => key);
-      keysToDelete.forEach((k) => {
-        const skill = this.registeredSkills.get(k);
-        if (skill) this.clearVersionCache(skill.name);
-        this.registeredSkills.delete(k);
-      });
+        .map(([key, skill]) => {
+          affectedNames.add(skill.name);
+          return key;
+        });
+      keysToDelete.forEach((k) => this.registeredSkills.delete(k));
+      affectedNames.forEach((name) => this.rebuildVersionCache(name));
       return true;
     }
     return false;
@@ -199,6 +200,15 @@ class SkillRegistry {
 
   private clearVersionCache(name: string): void {
     this.versionCache.delete(name);
+  }
+
+  private rebuildVersionCache(name: string): void {
+    this.clearVersionCache(name);
+    for (const skill of this.registeredSkills.values()) {
+      if (skill.name === name) {
+        this.updateVersionCache(skill);
+      }
+    }
   }
 
   async loadFromDatabase(apiKeyId?: string): Promise<void> {

@@ -245,6 +245,7 @@ function buildOpenAIStreamResponse(text = "streamed from openai") {
 
 async function resetStorage() {
   globalThis.fetch = originalFetch;
+  process.env.REQUIRE_API_KEY = "false";
   clearInflight();
   resetAllAvailability();
   resetAllCircuitBreakers();
@@ -308,9 +309,35 @@ function ensureLegacyMemoryTable() {
 }
 
 function insertLegacyMemory(apiKeyId, content) {
-  ensureLegacyMemoryTable();
   const db = core.getDbInstance();
   const now = new Date().toISOString();
+  const hasModernTable = Boolean(
+    db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'memories'").get()
+  );
+
+  if (hasModernTable) {
+    db.prepare(
+      `
+        INSERT INTO memories (
+          id, api_key_id, session_id, type, key, content, metadata, created_at, updated_at, expires_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `
+    ).run(
+      `mem_${Math.random().toString(16).slice(2, 10)}`,
+      apiKeyId,
+      "",
+      "factual",
+      "pref",
+      content,
+      "{}",
+      now,
+      now,
+      null
+    );
+    return;
+  }
+
+  ensureLegacyMemoryTable();
   db.prepare(
     `
       INSERT INTO memory (
@@ -558,6 +585,62 @@ test("chat pipeline rejects invalid API keys and malformed JSON bodies", async (
   assert.match(invalidKeyJson.error.message, /Invalid API key/i);
   assert.equal(invalidJsonResponse.status, 400);
   assert.match(invalidJson.error.message, /Invalid JSON body/i);
+});
+
+test("chat pipeline rejects requests without a bearer key when strict API key mode is enabled", async () => {
+  process.env.REQUIRE_API_KEY = "true";
+
+  const response = await handleChat(
+    buildRequest({
+      body: {
+        model: "openai/gpt-4o-mini",
+        stream: false,
+        messages: [{ role: "user", content: "Missing auth" }],
+      },
+    })
+  );
+  const json = await response.json();
+
+  assert.equal(response.status, 401);
+  assert.match(json.error.message, /Missing API key/i);
+});
+
+test("chat pipeline returns 400 when the model field is omitted", async () => {
+  const response = await handleChat(
+    buildRequest({
+      body: {
+        stream: false,
+        messages: [{ role: "user", content: "No model selected" }],
+      },
+    })
+  );
+  const json = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.match(json.error.message, /Missing model/i);
+});
+
+test("chat pipeline treats Accept text/event-stream as streaming mode and returns a session header", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-accept-stream" });
+
+  globalThis.fetch = async () => buildOpenAIStreamResponse("Accept header stream");
+
+  const response = await handleChat(
+    buildRequest({
+      headers: { Accept: "application/json, text/event-stream" },
+      body: {
+        model: "openai/gpt-4o-mini",
+        messages: [{ role: "user", content: "Stream via Accept" }],
+      },
+    })
+  );
+
+  const raw = await response.text();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Content-Type"), "text/event-stream");
+  assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
+  assert.match(raw, /Accept header stream/);
+  assert.match(raw, /\[DONE\]/);
 });
 
 test("chat pipeline supports local mode without Authorization on explicit combos", async () => {

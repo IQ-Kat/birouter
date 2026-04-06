@@ -205,3 +205,107 @@ test("proxy health stats aggregate proxy_logs and force delete removes assignmen
   assert.equal((await proxiesDb.getProxyAssignments()).length, 0);
   assert.equal(await proxiesDb.getProxyById(proxy.id), null);
 });
+
+test("assignProxyToScope normalizes key scope, supports removal, and blocks deleting in-use proxies", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Assigned Account",
+    apiKey: "sk-assigned",
+  });
+  const proxy = await proxiesDb.createProxy({
+    name: "Assigned Proxy",
+    type: "http",
+    host: "assigned.local",
+    port: 8080,
+  });
+
+  const assignment = await proxiesDb.assignProxyToScope("key", connection.id, proxy.id);
+
+  assert.equal(assignment.scope, "account");
+  assert.equal((await proxiesDb.getProxyAssignments({ scope: "key" })).length, 1);
+
+  await assert.rejects(
+    () => proxiesDb.deleteProxyById(proxy.id),
+    /Remove assignments first or use force=true/
+  );
+
+  const removed = await proxiesDb.assignProxyToScope("key", connection.id, null);
+
+  assert.equal(removed, null);
+  assert.equal((await proxiesDb.getProxyAssignments({ scope: "account" })).length, 0);
+  assert.equal(await proxiesDb.deleteProxyById(proxy.id), true);
+});
+
+test("legacy proxy config migrates into the registry and subsequent runs can be skipped", async () => {
+  const db = core.getDbInstance();
+
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "proxyConfig",
+    "global",
+    JSON.stringify("http://global-user:global-pass@global.local:8080")
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "proxyConfig",
+    "providers",
+    JSON.stringify({
+      openai: "https://provider.local:8443",
+      broken: "not a proxy url",
+    })
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "proxyConfig",
+    "combos",
+    JSON.stringify({
+      "combo-1": {
+        type: "socks5",
+        host: "combo.local",
+        port: 1080,
+      },
+    })
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "proxyConfig",
+    "keys",
+    JSON.stringify({
+      "conn-1": {
+        type: "http",
+        host: "account.local",
+        port: 9000,
+      },
+    })
+  );
+
+  const migrated = await proxiesDb.migrateLegacyProxyConfigToRegistry();
+  const assignments = await proxiesDb.getProxyAssignments();
+  const proxies = await proxiesDb.listProxies({ includeSecrets: true });
+  const skipped = await proxiesDb.migrateLegacyProxyConfigToRegistry();
+
+  assert.equal(migrated.skipped, false);
+  assert.equal(migrated.migrated, 4);
+  assert.equal(proxies.length, 4);
+  assert.equal(assignments.length, 4);
+  assert.equal(skipped.skipped, true);
+  assert.equal(skipped.reason, "registry_not_empty");
+});
+
+test("provider resolution falls back to the global assignment and health stats stay nullable without logs", async () => {
+  const globalProxy = await proxiesDb.createProxy({
+    name: "Global Only",
+    type: "http",
+    host: "fallback.local",
+    port: 8080,
+  });
+
+  await proxiesDb.assignProxyToScope("global", null, globalProxy.id);
+
+  const resolved = await proxiesDb.resolveProxyForProvider("missing-provider");
+  const stats = await proxiesDb.getProxyHealthStats({ hours: 24 * 400 });
+
+  assert.equal(resolved.host, "fallback.local");
+  assert.equal(stats[0].proxyId, globalProxy.id);
+  assert.equal(stats[0].totalRequests, 0);
+  assert.equal(stats[0].successRate, null);
+  assert.equal(stats[0].avgLatencyMs, null);
+  assert.equal((await proxiesDb.resolveProxyForProvider("openai")).host, "fallback.local");
+});

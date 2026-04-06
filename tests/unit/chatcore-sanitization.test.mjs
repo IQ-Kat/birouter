@@ -9,7 +9,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
-const { createMemory } = await import("../../src/lib/memory/store.ts");
+const { createMemory, listMemories } = await import("../../src/lib/memory/store.ts");
 const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
 const core = await import("../../src/lib/db/core.ts");
 
@@ -82,6 +82,11 @@ function ensureLegacyMemoryTable() {
       expiresAt TEXT
     )
   `);
+}
+
+async function waitForAsyncMemoryFlush() {
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setTimeout(resolve, 10));
 }
 
 async function invokeChatCore({
@@ -220,6 +225,7 @@ test("chatCore sanitization normalizes mixed content blocks and removes unsuppor
             { type: "file_url", file_url: { url: "data:text/plain;base64,SGk=" } },
             { type: "file", file: { name: "README.md", content: "Read me please." } },
             { type: "file", file: { name: "blob.bin", data: "AAEC" } },
+            { type: "file", file: { name: "draft.txt", text: "Draft text" } },
             { type: "document", name: "notes.txt", text: "Meeting notes" },
             { type: "document", document: { url: "data:text/plain;base64,SGVsbG8=" } },
             { type: "tool_result", tool_use_id: "tool-1", content: "done" },
@@ -227,6 +233,11 @@ test("chatCore sanitization normalizes mixed content blocks and removes unsuppor
               type: "tool_result",
               tool_use_id: "tool-2",
               content: [{ type: "text", text: "structured result" }],
+            },
+            {
+              type: "tool_result",
+              tool_use_id: "tool-3",
+              content: { status: "ok", count: 2 },
             },
             { type: "unknown_block", value: "drop me" },
           ],
@@ -277,11 +288,19 @@ test("chatCore sanitization normalizes mixed content blocks and removes unsuppor
     true
   );
   assert.equal(
+    textBlocks.some((block) => block.text === "[draft.txt]\nDraft text"),
+    true
+  );
+  assert.equal(
     textBlocks.some((block) => block.text === "[Tool Result: tool-1]\ndone"),
     true
   );
   assert.equal(
     textBlocks.some((block) => block.text === "[Tool Result: tool-2]\nstructured result"),
+    true
+  );
+  assert.equal(
+    textBlocks.some((block) => block.text === '[Tool Result: tool-3]\n{"status":"ok","count":2}'),
     true
   );
 });
@@ -394,4 +413,86 @@ test("chatCore skips memory injection when shouldInjectMemory returns false for 
   });
 
   assert.deepEqual(call.body.messages, []);
+});
+
+test("chatCore extracts memories from Claude content arrays and Responses output_text payloads", async () => {
+  await settingsDb.updateSettings({
+    memoryEnabled: true,
+    memoryMaxTokens: 1024,
+    memoryRetentionDays: 30,
+    memoryStrategy: "recent",
+  });
+  invalidateMemorySettingsCache();
+
+  const claudeKeyId = `key-claude-memory-${Date.now()}`;
+  const claudeResult = await invokeChatCore({
+    provider: "claude",
+    model: "claude-sonnet-4-6",
+    endpoint: "/v1/messages",
+    credentials: { apiKey: "claude-key", providerSpecificData: {} },
+    apiKeyInfo: { id: claudeKeyId, name: "Claude Memory Key" },
+    body: {
+      model: "claude-sonnet-4-6",
+      messages: [{ role: "user", content: [{ type: "text", text: "Remember this." }] }],
+    },
+    responseFactory: () =>
+      new Response(
+        JSON.stringify({
+          id: "msg_memory",
+          type: "message",
+          role: "assistant",
+          model: "claude-sonnet-4-6",
+          content: [{ type: "text", text: "I like strongly typed APIs." }],
+          stop_reason: "end_turn",
+          usage: { input_tokens: 4, output_tokens: 3 },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      ),
+  });
+
+  assert.equal(claudeResult.result.success, true);
+
+  const responsesKeyId = `key-responses-memory-${Date.now()}`;
+  const responsesResult = await invokeChatCore({
+    endpoint: "/v1/responses",
+    apiKeyInfo: { id: responsesKeyId, name: "Responses Memory Key" },
+    body: {
+      model: "gpt-4o-mini",
+      input: "Remember this too.",
+    },
+    responseFactory: () =>
+      new Response(
+        JSON.stringify({
+          id: "resp_memory",
+          object: "response",
+          status: "completed",
+          model: "gpt-4o-mini",
+          output_text: "I prefer TypeScript for backend services.",
+          usage: {
+            input_tokens: 3,
+            output_tokens: 5,
+            total_tokens: 8,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      ),
+  });
+
+  assert.equal(responsesResult.result.success, true);
+
+  await waitForAsyncMemoryFlush();
+
+  const claudeMemories = await listMemories({ apiKeyId: claudeKeyId });
+  const responsesMemories = await listMemories({ apiKeyId: responsesKeyId });
+
+  assert.equal(claudeMemories.length, 1);
+  assert.equal(claudeMemories[0].content, "strongly typed APIs");
+  assert.equal(responsesMemories.length, 1);
+  assert.equal(responsesMemories[0].content, "TypeScript for backend services");
 });

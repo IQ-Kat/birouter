@@ -46,6 +46,15 @@ function buildTextFrame(text) {
   );
 }
 
+function buildCompressedTextFrame(text) {
+  return Buffer.from(
+    wrapConnectRPCFrame(
+      encodeField(TOP_LEVEL_RESPONSE, LEN, encodeField(RESPONSE_TEXT, LEN, text)),
+      true
+    )
+  );
+}
+
 function buildToolCallFrame({ id, name, args, isLast }) {
   return Buffer.from(
     wrapConnectRPCFrame(
@@ -157,6 +166,61 @@ test("CursorExecutor.transformProtobufToJSON aggregates text and split tool call
   assert.equal(payload.usage.estimated, true);
 });
 
+test("CursorExecutor.transformProtobufToJSON finalizes incomplete tool calls when the stream ends early", async () => {
+  const executor = new CursorExecutor();
+  const response = executor.transformProtobufToJSON(
+    Buffer.concat([
+      buildToolCallFrame({
+        id: "call_2",
+        name: "list_files",
+        args: '{"path":"/tmp"}',
+        isLast: false,
+      }),
+    ]),
+    "cursor-small",
+    { messages: [{ role: "user", content: "hi" }] }
+  );
+  const payload = await response.json();
+
+  assert.equal(payload.choices[0].finish_reason, "tool_calls");
+  assert.equal(payload.choices[0].message.tool_calls[0].id, "call_2");
+  assert.equal(payload.choices[0].message.tool_calls[0].function.name, "list_files");
+});
+
+test("CursorExecutor.transformProtobufToJSON keeps prior content when an error frame arrives after output", async () => {
+  const executor = new CursorExecutor();
+  const response = executor.transformProtobufToJSON(
+    Buffer.concat([
+      buildTextFrame("Partial answer"),
+      buildJsonErrorFrame({
+        error: {
+          code: "resource_exhausted",
+          message: "late error",
+        },
+      }),
+    ]),
+    "cursor-small",
+    { messages: [{ role: "user", content: "hi" }] }
+  );
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.choices[0].message.content, "Partial answer");
+  assert.equal(payload.choices[0].finish_reason, "stop");
+});
+
+test("CursorExecutor.transformProtobufToJSON decompresses gzip frames", async () => {
+  const executor = new CursorExecutor();
+  const response = executor.transformProtobufToJSON(
+    Buffer.concat([buildCompressedTextFrame("Compressed answer")]),
+    "cursor-small",
+    { messages: [{ role: "user", content: "hi" }] }
+  );
+  const payload = await response.json();
+
+  assert.equal(payload.choices[0].message.content, "Compressed answer");
+});
+
 test("CursorExecutor.transformProtobufToSSE emits assistant chunks, tool deltas and DONE marker", async () => {
   const executor = new CursorExecutor();
   const body = { messages: [{ role: "user", content: "hi" }] };
@@ -185,6 +249,105 @@ test("CursorExecutor.transformProtobufToSSE emits assistant chunks, tool deltas 
   assert.match(text, /"tool_calls":\[/);
   assert.match(text, /"name":"read_file"/);
   assert.match(text, /"finish_reason":"tool_calls"/);
+  assert.match(text, /\[DONE\]/);
+});
+
+test("CursorExecutor.transformProtobufToSSE finalizes unterminated tool calls at stream end", async () => {
+  const executor = new CursorExecutor();
+  const response = executor.transformProtobufToSSE(
+    Buffer.concat([
+      buildToolCallFrame({
+        id: "call_2",
+        name: "read_file",
+        args: '{"path":"/tmp/b"}',
+        isLast: false,
+      }),
+    ]),
+    "cursor-small",
+    { messages: [{ role: "user", content: "hi" }] }
+  );
+  const text = await response.text();
+
+  assert.match(text, /"name":"read_file"/);
+  assert.match(text, /"finish_reason":"tool_calls"/);
+  assert.match(text, /\[DONE\]/);
+});
+
+test("CursorExecutor.transformProtobufToSSE returns a JSON error before any content is streamed", async () => {
+  const executor = new CursorExecutor();
+  const response = executor.transformProtobufToSSE(
+    buildJsonErrorFrame({
+      error: {
+        code: "resource_exhausted",
+        message: "too many requests",
+        details: [{ debug: { error: "LIMIT", details: { title: "Limit hit" } } }],
+      },
+    }),
+    "cursor-small",
+    { messages: [{ role: "user", content: "hi" }] }
+  );
+  const payload = await response.json();
+
+  assert.equal(response.status, 429);
+  assert.equal(payload.error.type, "rate_limit_error");
+  assert.equal(payload.error.message, "Limit hit");
+  assert.equal(payload.error.code, "LIMIT");
+});
+
+test("CursorExecutor.transformProtobufToSSE stops gracefully when a JSON error arrives after content", async () => {
+  const executor = new CursorExecutor();
+  const response = executor.transformProtobufToSSE(
+    Buffer.concat([
+      buildTextFrame("Partial Cursor answer"),
+      buildJsonErrorFrame({
+        error: {
+          code: "resource_exhausted",
+          message: "late limit",
+        },
+      }),
+    ]),
+    "cursor-small",
+    { messages: [{ role: "user", content: "hi" }] }
+  );
+  const text = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(text, /Partial Cursor answer/);
+  assert.match(text, /"finish_reason":"stop"/);
+  assert.match(text, /\[DONE\]/);
+});
+
+test("CursorExecutor.transformProtobufToSSE emits plain content deltas after tool call chunks", async () => {
+  const executor = new CursorExecutor();
+  const response = executor.transformProtobufToSSE(
+    Buffer.concat([
+      buildToolCallFrame({
+        id: "call_3",
+        name: "read_file",
+        args: '{"path":"/tmp/c"}',
+        isLast: false,
+      }),
+      buildTextFrame("Follow-up text"),
+    ]),
+    "cursor-small",
+    { messages: [{ role: "user", content: "hi" }] }
+  );
+  const text = await response.text();
+
+  assert.match(text, /"name":"read_file"/);
+  assert.match(text, /"delta":\{"content":"Follow-up text"\}/);
+  assert.match(text, /"finish_reason":"tool_calls"/);
+});
+
+test("CursorExecutor.transformProtobufToSSE emits an empty assistant envelope for empty responses", async () => {
+  const executor = new CursorExecutor();
+  const response = executor.transformProtobufToSSE(Buffer.alloc(0), "cursor-small", {
+    messages: [{ role: "user", content: "hi" }],
+  });
+  const text = await response.text();
+
+  assert.match(text, /"role":"assistant","content":""/);
+  assert.match(text, /"finish_reason":"stop"/);
   assert.match(text, /\[DONE\]/);
 });
 

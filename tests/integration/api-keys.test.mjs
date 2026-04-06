@@ -7,6 +7,7 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-api-keys-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret";
+process.env.CLOUD_URL = "http://cloud.example";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
@@ -124,6 +125,26 @@ test("POST /api/keys validates missing and oversized names", async () => {
   assert.equal(oversizedName.status, 400);
 });
 
+test("POST /api/keys returns a server error for malformed JSON payloads", async () => {
+  await enableManagementAuth();
+  const authKey = await createManagementKey();
+
+  const response = await listRoute.POST(
+    new Request("http://localhost/api/keys", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${authKey.key}`,
+        "content-type": "application/json",
+      },
+      body: "{",
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 500);
+  assert.equal(body.error, "Failed to create key");
+});
+
 test("GET /api/keys lists masked keys with pagination and GET /api/keys/[id] stays masked", async () => {
   await enableManagementAuth();
   const authKey = await createManagementKey();
@@ -154,6 +175,58 @@ test("GET /api/keys lists masked keys with pagination and GET /api/keys/[id] sta
   assert.equal(getBody.id, createdB.id);
   assert.notEqual(getBody.key, createdB.key);
   assert.match(getBody.key, /\*{4}/);
+});
+
+test("GET /api/keys falls back to default pagination for invalid query params", async () => {
+  await enableManagementAuth();
+  const authKey = await createManagementKey();
+  await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
+  await apiKeysDb.createApiKey("Beta", MACHINE_ID);
+
+  const response = await listRoute.GET(
+    makeRequest("http://localhost/api/keys?limit=0&offset=-25", {
+      token: authKey.key,
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.total, 3);
+  assert.equal(body.keys.length, 3);
+  assert.equal(body.keys[0].name, "management");
+});
+
+test("POST /api/keys triggers cloud sync when cloud mode is enabled", async () => {
+  await enableManagementAuth();
+  await localDb.updateSettings({ cloudEnabled: true });
+  const authKey = await createManagementKey();
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url, options });
+    return Response.json({ changes: { apiKeys: 1 } });
+  };
+
+  try {
+    const response = await listRoute.POST(
+      makeRequest("http://localhost/api/keys", {
+        method: "POST",
+        token: authKey.key,
+        body: { name: "Cloud Synced Key" },
+      })
+    );
+    const body = await response.json();
+    const syncPayload = JSON.parse(calls[0].options.body);
+
+    assert.equal(response.status, 201);
+    assert.equal(body.name, "Cloud Synced Key");
+    assert.equal(calls.length, 1);
+    assert.match(String(calls[0].url), /^http:\/\/cloud\.example\/sync\//);
+    assert.ok(Array.isArray(syncPayload.providers));
+    assert.ok(Array.isArray(syncPayload.apiKeys));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("GET /api/keys/[id] returns 404 for an unknown key and reveal is gated by the feature flag", async () => {

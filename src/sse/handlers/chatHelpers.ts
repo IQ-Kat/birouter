@@ -1,47 +1,31 @@
-/**
- * Chat Handler Helpers — FASE-09 (T-28)
- *
- * Extracted from handleSingleModelChat to keep the main handler
- * under 80 lines. These helpers encapsulate:
- *
- *   resolveModelOrError — Model lookup + error response generation
- *   logProxyAndTranslation — Side-effect logging (proxy + translation events)
- *   buildChatCoreParams — Assembles the parameter object for handleChatCore
- *
- * @module sse/handlers/chatHelpers
- */
-
 import { getModelInfo } from "../services/model";
-import { detectFormat, getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
+import { clearAccountError } from "../services/auth";
+import * as log from "../utils/logger";
+import { updateProviderCredentials } from "../services/tokenRefresh";
+import {
+  detectFormatFromEndpoint,
+  getTargetFormat,
+} from "@omniroute/open-sse/services/provider.ts";
 import {
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
+import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.ts";
+import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import {
+  runWithProxyContext,
+  runWithTlsTracking,
+  isTlsFingerprintActive,
+} from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { resolveProxyForConnection } from "@/lib/localDb";
+import { getCircuitBreaker, CircuitBreakerOpenError } from "../../shared/utils/circuitBreaker";
+import { isModelAvailable } from "../../domain/modelAvailability";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
-// updateProviderCredentials is dynamically imported from ../services/auth when needed
 
-const HTTP_STATUS = {
-  BAD_REQUEST: 400,
-  SERVICE_UNAVAILABLE: 503,
-};
-
-/**
- * Resolve a model string to provider/model or return an error response.
- *
- * @param {string} modelStr - Raw model string from request
- * @param {Function} log - Logger instance
- * @param {Function} errorResponse - Error response factory
- * @returns {Promise<{ error?: Response, provider: string, model: string, sourceFormat: string, targetFormat: string }>}
- */
-export async function resolveModelOrError(
-  modelStr: string,
-  body: any,
-  log: any,
-  errorResponse: Function
-) {
+export async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
   const modelInfo = await getModelInfo(modelStr);
-
   if (!modelInfo.provider) {
     if ((modelInfo as any).errorType === "ambiguous_model") {
       const message =
@@ -54,39 +38,208 @@ export async function resolveModelOrError(
       });
       return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
     }
-
     log.warn("CHAT", "Invalid model format", { model: modelStr });
     return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format") };
   }
 
-  const { provider, model } = modelInfo;
-  const sourceFormat = detectFormat(body);
+  const { provider, model, extendedContext } = modelInfo;
+  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
-
-  // If the custom model specifies apiFormat="responses", override targetFormat
-  // to route through the Responses API translator instead of Chat Completions
   let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
   if ((modelInfo as any).apiFormat === "responses") {
     targetFormat = "openai-responses";
     log.info("ROUTING", `Custom model apiFormat=responses → targetFormat=openai-responses`);
   }
 
-  // Log routing
+  const ctxTag = extendedContext && providerAlias === "claude" ? " [1m]" : "";
   if (modelStr !== `${provider}/${model}`) {
-    log.info("ROUTING", `${modelStr} → ${provider}/${model}`);
+    log.info("ROUTING", `${modelStr} → ${provider}/${model}${ctxTag}`);
   } else {
-    log.info("ROUTING", `Provider: ${provider}, Model: ${model}`);
+    log.info("ROUTING", `Provider: ${provider}, Model: ${model}${ctxTag}`);
   }
 
-  return { provider, model, sourceFormat, targetFormat };
+  return { provider, model, sourceFormat, targetFormat, extendedContext };
 }
 
-/**
- * Log proxy and translation events (fire-and-forget, never throws).
- *
- * @param {Object} params
- */
-export function logProxyAndTranslation({
+export function checkPipelineGates(
+  provider: string,
+  model: string,
+  options: { ignoreCircuitBreaker?: boolean; ignoreModelCooldown?: boolean } = {}
+) {
+  const modelAvailable = isModelAvailable(provider, model);
+  if (!modelAvailable && options.ignoreModelCooldown) {
+    log.info("AVAILABILITY", `${provider}/${model} cooldown bypassed for combo live test`);
+  } else if (!modelAvailable) {
+    log.warn("AVAILABILITY", `${provider}/${model} is in cooldown, rejecting request`);
+    return unavailableResponse(
+      HTTP_STATUS.SERVICE_UNAVAILABLE,
+      `Model ${provider}/${model} is temporarily unavailable (cooldown)`,
+      30
+    );
+  }
+
+  const breaker = getCircuitBreaker(provider, {
+    failureThreshold: 5,
+    resetTimeout: 30000,
+    onStateChange: (name: string, from: string, to: string) =>
+      log.info("CIRCUIT", `${name}: ${from} → ${to}`),
+  });
+  if (options.ignoreCircuitBreaker && !breaker.canExecute()) {
+    log.info("CIRCUIT", `Bypassing OPEN circuit breaker for combo live test: ${provider}`);
+  } else if (!breaker.canExecute()) {
+    log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
+    return unavailableResponse(
+      HTTP_STATUS.SERVICE_UNAVAILABLE,
+      `Provider ${provider} circuit breaker is open`,
+      30
+    );
+  }
+
+  return null;
+}
+
+export async function executeChatWithBreaker({
+  bypassCircuitBreaker,
+  breaker,
+  body,
+  provider,
+  model,
+  refreshedCredentials,
+  proxyInfo,
+  log: handlerLog,
+  clientRawRequest,
+  credentials,
+  apiKeyInfo,
+  userAgent,
+  comboName,
+  comboStrategy,
+  isCombo,
+  extendedContext,
+}: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
+  let tlsFingerprintUsed = false;
+
+  try {
+    const chatFn = () =>
+      runWithProxyContext(proxyInfo?.proxy || null, () =>
+        (handleChatCore as any)({
+          body: { ...body, model: `${provider}/${model}` },
+          modelInfo: { provider, model, extendedContext },
+          credentials: refreshedCredentials,
+          log: handlerLog,
+          clientRawRequest,
+          connectionId: credentials.connectionId,
+          apiKeyInfo,
+          userAgent,
+          comboName,
+          comboStrategy,
+          isCombo,
+          onCredentialsRefreshed: async (newCreds: any) => {
+            await updateProviderCredentials(credentials.connectionId, {
+              accessToken: newCreds.accessToken,
+              refreshToken: newCreds.refreshToken,
+              providerSpecificData: newCreds.providerSpecificData,
+              testStatus: "active",
+            });
+          },
+          onRequestSuccess: async () => {
+            await clearAccountError(credentials.connectionId, credentials);
+          },
+        })
+      );
+
+    if (bypassCircuitBreaker) {
+      if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
+        const tracked = await runWithTlsTracking(chatFn);
+        return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
+      }
+
+      const result = await chatFn();
+      return { result, tlsFingerprintUsed: false };
+    }
+
+    if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
+      const tracked = await breaker.execute(async () => runWithTlsTracking(chatFn));
+      return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
+    }
+
+    const result = await breaker.execute(chatFn);
+    return { result, tlsFingerprintUsed: false };
+  } catch (cbErr: any) {
+    if (cbErr instanceof CircuitBreakerOpenError) {
+      log.warn("CIRCUIT", `${provider} circuit open during retry: ${cbErr.message}`);
+      return {
+        result: {
+          success: false,
+          response: unavailableResponse(
+            HTTP_STATUS.SERVICE_UNAVAILABLE,
+            `Provider ${provider} circuit breaker is open`,
+            Math.ceil(cbErr.retryAfterMs / 1000)
+          ),
+          status: HTTP_STATUS.SERVICE_UNAVAILABLE,
+        },
+        tlsFingerprintUsed: false,
+      };
+    }
+
+    if (cbErr?.code === "PROXY_UNREACHABLE" || /proxy unreachable/i.test(cbErr?.message || "")) {
+      const detail = cbErr?.message || "Proxy unreachable";
+      log.warn("PROXY", detail);
+      return {
+        result: {
+          success: false,
+          response: unavailableResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, detail, 2),
+          status: HTTP_STATUS.SERVICE_UNAVAILABLE,
+          error: detail,
+        },
+        tlsFingerprintUsed: false,
+      };
+    }
+
+    throw cbErr;
+  }
+}
+
+export function handleNoCredentials(
+  credentials: any,
+  excludeConnectionId: string | null,
+  provider: string,
+  model: string,
+  lastError: string | null,
+  lastStatus: number | null
+) {
+  if (credentials?.allRateLimited) {
+    const errorMsg = lastError || credentials.lastError || "Unavailable";
+    const status =
+      lastStatus || Number(credentials.lastErrorCode) || HTTP_STATUS.SERVICE_UNAVAILABLE;
+    log.warn("CHAT", `[${provider}/${model}] ${errorMsg} (${credentials.retryAfterHuman})`);
+    return unavailableResponse(
+      status,
+      `[${provider}/${model}] ${errorMsg}`,
+      credentials.retryAfter,
+      credentials.retryAfterHuman
+    );
+  }
+  if (!excludeConnectionId) {
+    log.error("AUTH", `No credentials for provider: ${provider}`);
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+  }
+  log.warn("CHAT", "No more accounts available", { provider });
+  return errorResponse(
+    lastStatus || HTTP_STATUS.SERVICE_UNAVAILABLE,
+    lastError || "All accounts unavailable"
+  );
+}
+
+export async function safeResolveProxy(connectionId: string) {
+  try {
+    return await resolveProxyForConnection(connectionId);
+  } catch (proxyErr: any) {
+    log.debug("PROXY", `Failed to resolve proxy: ${proxyErr.message}`);
+    return null;
+  }
+}
+
+export function safeLogEvents({
   result,
   proxyInfo,
   proxyLatency,
@@ -97,17 +250,16 @@ export function logProxyAndTranslation({
   credentials,
   comboName,
   clientRawRequest,
+  tlsFingerprintUsed = false,
 }) {
-  // Proxy event
   try {
-    const proxyData = proxyInfo?.proxy || null;
     logProxyEvent({
       status: result.success
         ? "success"
         : result.status === 408 || result.status === 504
           ? "timeout"
           : "error",
-      proxy: proxyData,
+      proxy: proxyInfo?.proxy || null,
       level: proxyInfo?.level || "direct",
       levelId: proxyInfo?.levelId || null,
       provider,
@@ -117,12 +269,10 @@ export function logProxyAndTranslation({
       connectionId: credentials.connectionId,
       comboId: comboName || null,
       account: credentials.connectionId?.slice(0, 8) || null,
+      tlsFingerprint: tlsFingerprintUsed,
     });
-  } catch {
-    // Never let logging break the request pipeline
-  }
+  } catch {}
 
-  // Translation event
   try {
     logTranslationEvent({
       provider,
@@ -136,50 +286,22 @@ export function logProxyAndTranslation({
       connectionId: credentials.connectionId || null,
       comboName: comboName || null,
     });
-  } catch {
-    // Never let logging break the request pipeline
-  }
+  } catch {}
 }
 
-/**
- * Build the params object for handleChatCore.
- *
- * @param {Object} params
- * @returns {Object} handleChatCore params
- */
-export function buildChatCoreParams({
-  body,
-  provider,
-  model,
-  credentials,
-  log,
-  clientRawRequest,
-  apiKeyInfo,
-  userAgent,
-  comboName,
-}) {
-  return {
-    body: { ...body, model: `${provider}/${model}` },
-    modelInfo: { provider, model },
-    credentials,
-    log,
-    clientRawRequest,
-    connectionId: credentials.connectionId,
-    apiKeyInfo,
-    userAgent,
-    comboName,
-    onCredentialsRefreshed: async (newCreds: any) => {
-      const { updateProviderCredentials } = await import("../services/tokenRefresh");
-      await updateProviderCredentials(credentials.connectionId, {
-        accessToken: newCreds.accessToken,
-        refreshToken: newCreds.refreshToken,
-        providerSpecificData: newCreds.providerSpecificData,
-        testStatus: "active",
-      });
-    },
-    onRequestSuccess: async () => {
-      const { clearAccountError } = await import("../services/auth");
-      await clearAccountError(credentials.connectionId, credentials);
-    },
-  };
+export function withSessionHeader(response: Response, sessionId: string | null): Response {
+  if (!response || !sessionId) return response;
+
+  try {
+    response.headers.set("X-OmniRoute-Session-Id", sessionId);
+    return response;
+  } catch {
+    const cloned = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+    cloned.headers.set("X-OmniRoute-Session-Id", sessionId);
+    return cloned;
+  }
 }
