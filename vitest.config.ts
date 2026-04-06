@@ -12,6 +12,7 @@ export default defineConfig({
       "src/lib/skills/__tests__/**/*.test.ts",
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",
+      "tests/e2e/ecosystem.test.ts",
     ],
     exclude: [
       "**/node_modules/**",

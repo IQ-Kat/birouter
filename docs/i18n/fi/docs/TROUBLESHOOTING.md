@@ -4,86 +4,68 @@
 
 ---
 
-Common problems and solutions for OmniRoute.
-
----
+OmniRouten yleisiä ongelmia ja ratkaisuja.---
 
 ## Quick Fixes
 
-| Problem                       | Solution                                                           |
-| ----------------------------- | ------------------------------------------------------------------ |
-| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
-| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
-| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
-| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
-| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
-
----
+| Ongelma                            | Ratkaisu                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------- | --- |
+| Ensimmäinen kirjautuminen ei toimi | Aseta 'INITIAL_PASSWORD' .env:ssä (ei kovakoodattua oletusarvoa)                |
+| Kojelauta avautuu väärään porttiin | Aseta `PORT=20128` ja `NEXT_PUBLIC_BASE_URL=http://localhost:20128`             |
+| Ei pyyntölokeja kohdassa "lokit/"  | Aseta ENABLE_REQUEST_LOGS=true                                                  |
+| EACCES: lupa evätty                | Aseta "DATA_DIR=/polku/kirjoitettavaan/hakemistoon" ohittaaksesi "~/.omniroute" |
+| Reititysstrategia ei tallennu      | Päivitys versioon 1.4.11+ (Zod-skeeman korjaus asetusten pysyvyyttä varten)     | --- |
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**Cause:** Provider quota exhausted.
+**Syy:**Palveluntarjoajan kiintiö käytetty.
 
-**Fix:**
+**Korjaa:**
 
-1. Check dashboard quota tracker
-2. Use a combo with fallback tiers
-3. Switch to cheaper/free tier
+1. Tarkista kojelaudan kiintiöiden seuranta
+2. Käytä yhdistelmää varatasoilla
+3. Vaihda halvempaan/ilmaiseen tasoon### Rate Limiting
 
-### Rate Limiting
+**Syy:**Tilauskiintiö käytetty.
 
-**Cause:** Subscription quota exhausted.
+**Korjaa:**
 
-**Fix:**
+- Lisää vara: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Käytä GLM/MiniMaxia halvana varmuuskopiona### OAuth Token Expired
 
-- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Use GLM/MiniMax as cheap backup
+OmniRoute päivittää tunnukset automaattisesti. Jos ongelmat jatkuvat:
 
-### OAuth Token Expired
-
-OmniRoute auto-refreshes tokens. If issues persist:
-
-1. Dashboard → Provider → Reconnect
-2. Delete and re-add the provider connection
-
----
+1. Kojelauta → Palveluntarjoaja → Yhdistä uudelleen
+2. Poista ja lisää palveluntarjoajan yhteys uudelleen---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
-2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
-3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
+1. Varmista, että BASE_URL osoittaa käynnissä olevaan esiintymääsi (esim. http://localhost:20128)
+2. Varmista, että CLOUD_URL-osoite osoittaa pilvipäätepisteeseesi (esim. https://omniroute.dev).
+3. Pidä NEXT*PUBLIC*\*-arvot kohdakkain palvelinpuolen arvojen kanssa### Cloud `stream=false` Returns 500
 
-### Cloud `stream=false` Returns 500
+**Oire:**"Odottamaton tunnus "d"..." pilvipäätepisteessä ei-suoratoistopuheluille.
 
-**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
+**Syy:**Upstream palauttaa SSE-hyötykuorman, kun asiakas odottaa JSONia.
 
-**Cause:** Upstream returns SSE payload while client expects JSON.
+**Ratkaisu:**Käytä "stream=true" pilvisuorapuheluissa. Paikallinen suoritusaika sisältää SSE→JSON-varavaihtoehdon.### Cloud Says Connected but "Invalid API key"
 
-**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
-
-### Cloud Says Connected but "Invalid API key"
-
-1. Create a fresh key from local dashboard (`/api/keys`)
-2. Run cloud sync: Enable Cloud → Sync Now
-3. Old/non-synced keys can still return `401` on cloud
-
----
+1. Luo uusi avain paikallisesta hallintapaneelista (`/api/keys`)
+2. Suorita pilvisynkronointi: Ota pilvi käyttöön → Synkronoi nyt
+3. Vanhat/synkronoimattomat avaimet voivat edelleen palauttaa 401:n pilvessä---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. For portable mode: use image target `runner-cli` (bundled CLIs)
-3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
-4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
-
-### Quick Runtime Validation
+1. Tarkista ajonaikaiset kentät: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. Kannettava tila: käytä kuvakohdetta "runner-cli" (niputetut CLI:t)
+3. Isäntäliitostila: aseta CLI_EXTRA_PATHS ja liitä isäntäalustahakemisto vain luku -muotoiseksi
+4. Jos "installed=true" ja "runnable=false": binaari löytyi, mutta kuntotarkastus epäonnistui### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -97,20 +79,16 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. Check usage stats in Dashboard → Usage
-2. Switch primary model to GLM/MiniMax
-3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
-4. Set cost budgets per API key: Dashboard → API Keys → Budget
-
----
+1. Tarkista käyttötilastot kohdassa Dashboard → Usage
+2. Vaihda ensisijaiseksi malliksi GLM/MiniMax
+3. Käytä ilmaista tasoa (Gemini CLI, Qoder) ei-kriittisiin tehtäviin
+4. Aseta kustannusbudjetit API-avainta kohti: Dashboard → API Keys → Budget---
 
 ## Debugging
 
 ### Enable Request Logs
 
-Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
-
-### Check Provider Health
+Aseta ENABLE_REQUEST_LOGS=true .env-tiedostoosi. Lokit näkyvät lokit/hakemistossa.### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -122,135 +100,101 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
-- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
-- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
-
----
+- Päätila: `${DATA_DIR}/storage.sqlite` (palveluntarjoajat, yhdistelmät, aliakset, avaimet, asetukset)
+- Käyttö: SQLite-taulukot tiedostossa "storage.sqlite" ("usage_history", "call_logs", "proxy_logs") + valinnainen "${DATA_DIR}/log.txt" ja "${DATA_DIR}/call_logs/"
+- Pyydä lokeja: `<repo>/logs/...` (kun `ENABLE_REQUEST_LOGS=true`)---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
+Kun palveluntarjoajan katkaisija on AUKI, pyynnöt estetään, kunnes jäähdytys päättyy.
 
-**Fix:**
+**Korjaa:**
 
-1. Go to **Dashboard → Settings → Resilience**
-2. Check the circuit breaker card for the affected provider
-3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
-4. Verify the provider is actually available before resetting
+1. Siirry kohtaan**Käyttöpaneeli → Asetukset → Resilience**
+2. Tarkista asianomaisen palveluntarjoajan katkaisijakortti
+3. Napsauta**Nollaa kaikki**tyhjentääksesi kaikki katkaisijat tai odota jäähdytysajan päättymistä
+4. Varmista, että palveluntarjoaja on todella saatavilla, ennen kuin nollaat### Provider keeps tripping the circuit breaker
 
-### Provider keeps tripping the circuit breaker
+Jos palveluntarjoaja siirtyy toistuvasti OPEN-tilaan:
 
-If a provider repeatedly enters OPEN state:
-
-1. Check **Dashboard → Health → Provider Health** for the failure pattern
-2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
-3. Check if the provider has changed API limits or requires re-authentication
-4. Review latency telemetry — high latency may cause timeout-based failures
-
----
+1. Tarkista vikakuvio kohdasta**Dashboard → Health → Provider Health**
+2. Siirry kohtaan**Settings → Resilience → Provider Profiles**ja nosta vikakynnystä.
+3. Tarkista, onko palveluntarjoaja muuttanut API-rajoja tai vaatiiko todennuksen uudelleen
+4. Tarkista viiveen telemetria — korkea latenssi voi aiheuttaa aikakatkaisuun perustuvia virheitä---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
-- Verify the provider is connected in **Dashboard → Providers**
+- Varmista, että käytät oikeaa etuliitettä: "deepgram/nova-3" tai "assemblyai/best"
+- Varmista, että palveluntarjoaja on yhdistetty kohdassa**Dashboard → Providers**### Transcription returns empty or fails
 
-### Transcription returns empty or fails
-
-- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Verify file size is within provider limits (typically < 25MB)
-- Check provider API key validity in the provider card
-
----
+- Tarkista tuetut äänimuodot: "mp3", "wav", "m4a", "flac", "ogg", "webm"
+- Varmista, että tiedostokoko on palveluntarjoajan rajoissa (yleensä < 25 Mt)
+- Tarkista palveluntarjoajan API-avaimen voimassaolo toimittajakortista---
 
 ## Translator Debugging
 
-Use **Dashboard → Translator** to debug format translation issues:
+Käytä**Käyttöpaneeli → Kääntäjä**muotojen käännösongelmien korjaamiseen:
 
-| Mode             | When to Use                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------------------- |
-| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
-| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
-| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
-| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
+| Tila                      | Milloin käyttää                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------ |
+| **Leikkikenttä**          | Vertaa syöttö-/tulostusmuotoja vierekkäin – liitä epäonnistunut pyyntö nähdäksesi, miten se käännetään  |
+| **Pikaviestien testaaja** | Lähetä reaaliaikaisia ​​viestejä ja tarkasta koko pyynnön/vastauksen hyötykuorma, mukaan lukien otsikot |
+| **Testipenkki**           | Suorita erätestejä muotoyhdistelmille selvittääksesi, mitkä käännökset ovat rikki                       |
+| **Live Monitor**          | Tarkkaile reaaliaikaista pyyntövirtaa havaitaksesi ajoittaiset käännösongelmat                          | ### Common format issues |
 
-### Common format issues
-
-- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
-- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
-- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
-- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
-- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
-- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
-- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
-
----
+-**Ajattelevat tunnisteet eivät näy**— Tarkista, tukeeko kohdetoimittaja ajattelua ja ajattelun budjettiasetusta -**Työkalukutsujen pudottaminen**— Jotkin muotokäännökset voivat poistaa ei-tuetut kentät. vahvista leikkikenttätilassa -**Järjestelmäkehote puuttuu**— Claude ja Gemini kahvajärjestelmä kehottaa eri tavalla; tarkista käännöstulos -**SDK palauttaa raakamerkkijonon objektin sijaan**— Korjattu versiossa 1.1.0: vastauspuhdistin poistaa nyt standardista poikkeavat kentät ("x_groq", "usage_breakdown" jne.), jotka aiheuttavat OpenAI SDK Pydantic -tarkistusvirheitä -**GLM/ERNIE hylkää "järjestelmän" roolin**- Korjattu versiossa 1.1.0: roolin normalisoija yhdistää automaattisesti järjestelmäviestit käyttäjäviesteiksi yhteensopimattomissa malleissa -**"kehittäjäroolia" ei tunnistettu**- Korjattu versiossa 1.1.0: muunnetaan automaattisesti "järjestelmäksi" muille kuin OpenAI-palveluntarjoajille -**`json_schema` ei toimi Geminin kanssa**— Korjattu versiossa 1.1.0: `response_format` muunnetaan nyt Geminin `responseMimeType` + `responseSchema` -muotoon.---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- Auto rate-limit only applies to API key providers (not OAuth/subscription)
-- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
-- Check if the provider returns `429` status codes or `Retry-After` headers
+- Automaattinen nopeusrajoitus koskee vain API-avainten toimittajia (ei OAuth-tilausta)
+- Varmista, että**Asetukset → Resilienssi → Palveluntarjoajan profiilit**on automaattinen rajoitus käytössä
+- Tarkista, palauttaako palveluntarjoaja "429"-tilakoodit tai "Retry-After"-otsikot### Tuning exponential backoff
 
-### Tuning exponential backoff
+Palveluntarjoajan profiilit tukevat näitä asetuksia:
 
-Provider profiles support these settings:
+-**Perusviive**— Ensimmäinen odotusaika ensimmäisen epäonnistumisen jälkeen (oletus: 1 s) -**Maksimiviive**- Odotusajan enimmäisraja (oletus: 30 s) -**Kerroin**— Kuinka paljon viivettä lisätään peräkkäistä vikaa kohti (oletus: 2x)### Anti-thundering herd
 
-- **Base delay** — Initial wait time after first failure (default: 1s)
-- **Max delay** — Maximum wait time cap (default: 30s)
-- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
-
-### Anti-thundering herd
-
-When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
-
----
+Kun monet samanaikaiset pyynnöt osuvat nopeusrajoitettuun palveluntarjoajaan, OmniRoute käyttää mutex + automaattista nopeuden rajoitusta sarjoittamaan pyynnöt ja estämään peräkkäiset epäonnistumiset. Tämä on automaattinen API-avainten tarjoajille.---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
+Jotkut OmniRouten käyttäjät sijoittavat yhdyskäytävän RAG- tai agenttipinojen eteen. Näissä asetuksissa on tavallista nähdä outo kuvio: OmniRoute näyttää terveeltä (palveluntarjoajat valmiina, reititysprofiilit kunnossa, ei nopeusrajoitushälytyksiä), mutta lopullinen vastaus on silti väärä.
 
-In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
+Käytännössä nämä tapaukset tulevat yleensä loppupään RAG-putkistosta, eivät itse yhdyskäytävästä.
 
-If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
+Jos haluat jaetun sanaston kuvaamaan näitä vikoja, voit käyttää WFGY ProblemMapia, ulkoista MIT-lisenssitekstiresurssia, joka määrittelee kuusitoista toistuvaa RAG/LLM-vikamallia. Korkealla tasolla se kattaa:
 
-- retrieval drift and broken context boundaries
-- empty or stale indexes and vector stores
-- embedding versus semantic mismatch
-- prompt assembly and context window issues
-- logic collapse and overconfident answers
-- long chain and agent coordination failures
-- multi agent memory and role drift
-- deployment and bootstrap ordering problems
+- haun ajautuminen ja rikotut kontekstin rajat
+- tyhjät tai vanhentuneet indeksit ja vektorivarastot
+- upottaminen vs. semanttinen yhteensopivuus
+- Nopeat kokoonpano- ja kontekstiikkuna-ongelmat
+- logiikka romahtaa ja liian itsevarmat vastaukset
+- pitkän ketjun ja agenttien koordinaatiohäiriöt
+- monen agentin muisti ja roolien siirtyminen
+- käyttöönotto- ja käynnistystilausongelmat
 
-The idea is simple:
+Idea on yksinkertainen:
 
-1. When you investigate a bad response, capture:
-   - user task and request
-   - route or provider combo in OmniRoute
-   - any RAG context used downstream (retrieved documents, tool calls, etc)
-2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
-3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
-4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
+1. Kun tutkit huonoa vastausta, tallenna:
+   - käyttäjän tehtävä ja pyyntö
+   - reitti- tai tarjoajayhdistelmä OmniRoutessa
+   - mikä tahansa loppupäässä käytetty RAG-konteksti (haettu asiakirjat, työkalukutsut jne.)
+2. Kartoita tapahtuma yhteen tai kahteen WFGY-ongelmakarttanumeroon (`No.1` … `No.16`).
+3. Tallenna numero omaan kojelautaan, runbookiin tai tapahtumaseurantaan OmniRoute-lokien viereen.
+4. Käytä vastaavaa WFGY-sivua päättääksesi, onko sinun muutettava RAG-pinoa, noutajaa tai reititysstrategiaa.
 
-Full text and concrete recipes live here (MIT license, text only):
+Koko teksti ja konkreettiset reseptit löytyvät täältä (MIT-lisenssi, vain teksti):
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
-
----
+Voit jättää tämän osion huomioimatta, jos et käytä RAG- tai agenttiputkia OmniRouten takana.---
 
 ## Still Stuck?
 
-- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
-- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
-- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
-- **Translator**: Use **Dashboard → Translator** to debug format issues
+-**GitHub-ongelmat**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Arkkitehtuuri**: Katso sisäiset tiedot osoitteesta [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) -**API-viite**: Katso [`docs/API_REFERENCE.md`](API_REFERENCE.md) kaikista päätepisteistä -**Health Dashboard**: Tarkista järjestelmän reaaliaikainen tila kohdasta**Dashboard → Health** -**Kääntäjä**: Käytä**Käyttöpaneeli → Kääntäjä**muotoongelmien korjaamiseen

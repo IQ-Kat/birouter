@@ -4,42 +4,29 @@
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> Cadenas de modelos autogestionables con puntuación adaptativa## How It Works
 
-## How It Works
+El motor Auto-Combo selecciona dinámicamente el mejor proveedor/modelo para cada solicitud utilizando una**función de puntuación de 6 factores**:
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+| factor           | Peso | Descripción                                      |
+| :--------------- | :--- | :----------------------------------------------- | ------------- |
+| Cuota            | 0,20 | Capacidad restante [0..1]                        |
+| Salud            | 0,25 | Disyuntor: CERRADO=1,0, MITAD=0,5, ABIERTO=0,0   |
+| InvCosto         | 0,20 | Costo inverso (más barato = puntuación más alta) |
+| LatenciaInv      | 0,15 | Latencia p95 inversa (más rápida = mayor)        |
+| Ajuste de tareas | 0,10 | Modelo × puntuación de aptitud del tipo de tarea |
+| Estabilidad      | 0,10 | Baja variación en latencia/errores               | ## Mode Packs |
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+| Paquete                       | Enfoque        | Peso clave        |
+| :---------------------------- | :------------- | :---------------- | --------------- |
+| 🚀**Envío rápido**            | Velocidad      | latenciaInv: 0,35 |
+| 💰**Ahorro de costos**        | Economía       | costoInv: 0,40    |
+| 🎯**Calidad primero**         | Mejor modelo   | tareaFit: 0,40    |
+| 📡**Compatible sin conexión** | Disponibilidad | cuota: 0,40       | ## Self-Healing |
 
-## Mode Packs
+-**Exclusión temporal**: Puntuación < 0,2 → excluido durante 5 min (retroceso progresivo, máximo 30 min) -**Reconocimiento del disyuntor**: ABIERTO → autoexcluido; HALF_OPEN → solicitudes de sondeo -**Modo incidente**: >50% ABIERTO → deshabilita la exploración, maximiza la estabilidad -**Recuperación de tiempo de reutilización**: después de la exclusión, la primera solicitud es una "sonda" con tiempo de espera reducido## Bandit Exploration
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
-
-## Self-Healing
-
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
-
-## Bandit Exploration
-
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
-
-## API
+El 5 % de las solicitudes (configurables) se enrutan a proveedores aleatorios para su exploración. Deshabilitado en modo incidente.## API
 
 ```bash
 # Create auto-combo
@@ -53,15 +40,13 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+Más de 30 modelos puntuados en 6 tipos de tareas (`codificación`, `revisión`, `planificación`, `análisis`, `depuración`, `documentación`). Admite patrones comodín (por ejemplo, `*-coder` → puntuación de codificación alta).## Files
 
-## Files
-
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+| Archivo                                      | Propósito                                           |
+| :------------------------------------------- | :-------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`     | Función de puntuación y normalización del grupo     |
+| `open-sse/services/autoCombo/taskFitness.ts` | Búsqueda de aptitud modelo × tarea                  |
+| `open-sse/services/autoCombo/engine.ts`      | Lógica de selección, bandido, límite presupuestario |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusión, sondas, modo incidente                   |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 perfiles de peso                                  |
+| `src/app/api/combos/auto/route.ts`           | API REST                                            |

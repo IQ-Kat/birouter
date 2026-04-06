@@ -4,25 +4,17 @@
 
 ---
 
-Complete reference for all OmniRoute API endpoints.
+مرجع كامل لجميع نهاية نقاط OmniRoute API.---## Table of Contents
 
----
-
-## Table of Contents
-
-- [Chat Completions](#chat-completions)
-- [Embeddings](#embeddings)
-- [Image Generation](#image-generation)
-- [List Models](#list-models)
-- [Compatibility Endpoints](#compatibility-endpoints)
-- [Semantic Cache](#semantic-cache)
-- [Dashboard & Management](#dashboard--management)
-- [Request Processing](#request-processing)
-- [Authentication](#authentication)
-
----
-
-## Chat Completions
+- [إكمالات الدردشة](#إكمالات الدردشة)
+- [التضمينات](#التضمينات)
+- [ إنشاء الصور ](#image-generation)
+- [قائمة التطورات](#list-models)
+- [نقاط نهاية التوافق](#نقاط نهاية التوافق)
+- [ذاكرة التخزين المؤقتة الدلالية](#ذاكرة التخزين المؤقتة الدلالية)
+- [لوحة التحكم والإدارة](#dashboard--management)
+- [معالجة الطلب](#request-processing)
+- [المصادقة](#المصادقة)---## Chat Completions
 
 ```bash
 POST /v1/chat/completions
@@ -40,24 +32,20 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| Header                   | Direction | Description                                      |
-| ------------------------ | --------- | ------------------------------------------------ |
-| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
-| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
-| `X-Session-Id`           | Request   | Sticky session key for external session affinity |
-| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
-| `Idempotency-Key`        | Request   | Dedup key (5s window)                            |
-| `X-Request-Id`           | Request   | Alternative dedup key                            |
-| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                  |
-| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
-| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
-| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
+| رأس                      |      | الوصف                                        |
+| ------------------------ | ---- | -------------------------------------------- |
+| `X-OmniRoute-No-Cache`   | طلب  | اضبط على "صحيح" لتجاوز ذاكرة التخزين المؤقتة |
+| `X-OmniRoute-Progress`   | طلب  | اضبط على "صحيح" لأحداث التقدم                |
+| `معرف الاستماع X`        | طلب  | مفتاح جلسة لوجه الفعل                        |
+| `x_session_id`           | طلب  | يتم أيضًا قبول التكيف البيئي (HTTP)          |
+| `مفتاح العجز`            | طلب  | مفتاح Dedup (نافذة 5 ثواني)                  |
+| `معرف الطلب X`           | طلب  | مفتاح إلغاء الحذف الحذف                      |
+| `X-OmniRoute-Cache`      | الرد | `HIT` أو `MISS` (غير متدفق)                  |
+| `X-OmniRoute-Idempotent` | الرد | `صحيح` إذا تم إلغاء التكرار                  |
+| `X-OmniRoute-Progress`   | الرد | `ممكن تشغيل` في حالة تتبع التقدم             |
+| `معرف جلسة X-OmniRoute`  | الرد | الرقم التعريفي الفعال الذي يستخدمه OmniRoute |
 
-> Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
-
----
-
-## Embeddings
+> لاحظ Nginx: إذا كنت تعتمد على التكييف الهوائي (على سبيل المثال `x_session_id`)، إلا بتمكين `الشرطات الكهربائية_in_headers on;`.---## Embeddings
 
 ```bash
 POST /v1/embeddings
@@ -70,35 +58,31 @@ Content-Type: application/json
 }
 ```
 
-Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.
+مقدمو خدمة متاحون: Nebius، وOpenAI، وMistral، وTogether AI، وFireworks، وNVIDIA.```bash
 
-```bash
-# List all embedding models
-GET /v1/embeddings
-```
+# قائمة بجميع نماذج التضمين
+
+الحصول على /v1/embeddings```
 
 ---
 
 ## Image Generation
 
-```bash
-POST /v1/images/generations
-Authorization: Bearer your-api-key
-Content-Type: application/json
+````bash
+ما بعد /v1/صور/أجيال
+التفويض: حامل مفتاح API الخاص بك
+نوع المحتوى: application/json
 
 {
-  "model": "openai/dall-e-3",
-  "prompt": "A beautiful sunset over mountains",
-  "size": "1024x1024"
-}
-```
+  "نموذج": "openai/dall-e-3"،
+  "prompt": "غروب الشمس الجميل فوق الجبال"،
+  "الحجم": "1024x1024"
+}```
 
-Available providers: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.
-
-```bash
+الموفرون المتاحون: OpenAI (DALL-E)، xAI (Grok Image)، Together AI (FLUX)، Fireworks AI.```bash
 # List all image models
 GET /v1/images/generations
-```
+````
 
 ---
 
@@ -115,32 +99,26 @@ Authorization: Bearer your-api-key
 
 ## Compatibility Endpoints
 
-| Method | Path                        | Format                 |
-| ------ | --------------------------- | ---------------------- |
-| POST   | `/v1/chat/completions`      | OpenAI                 |
-| POST   | `/v1/messages`              | Anthropic              |
-| POST   | `/v1/responses`             | OpenAI Responses       |
-| POST   | `/v1/embeddings`            | OpenAI                 |
-| POST   | `/v1/images/generations`    | OpenAI                 |
-| GET    | `/v1/models`                | OpenAI                 |
-| POST   | `/v1/messages/count_tokens` | Anthropic              |
-| GET    | `/v1beta/models`            | Gemini                 |
-| POST   | `/v1beta/models/{...path}`  | Gemini generateContent |
-| POST   | `/v1/api/chat`              | Ollama                 |
+| الطريقة  | المسار                      | التنسيق               |
+| -------- | --------------------------- | --------------------- | -------------------------------- |
+| مشاركة   | `/v1/chat/completions`      | أوبن آي               |
+| مشاركة   | `/v1/messages`              | انثروبى               |
+| مشاركة   | `/v1/الردود`                | ردود OpenAI           |
+| مشاركة   | `/v1/embeddings`            | أوبن آي               |
+| مشاركة   | `/v1/images/أجيال`          | أوبن آي               |
+| احصل على | `/v1/ النماذج`              | أوبن آي               |
+| مشاركة   | `/v1/messages/count_tokens` | انثروبى               |
+| احصل على | `/v1beta/models`            | الجوزاء               |
+| مشاركة   | `/v1beta/models/{...path}`  | الجوزاء توليد المحتوى |
+| مشاركة   | `/v1/api/chat`              | أولاما                | ### مسارات الموفر المخصصة```bash |
 
-### Dedicated Provider Routes
-
-```bash
 POST /v1/providers/{provider}/chat/completions
 POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
-```
 
-The provider prefix is auto-added if missing. Mismatched models return `400`.
+````
 
----
-
-## Semantic Cache
+تتم إضافة المبادئ الأصلية للمنتج الأصلي في حالة اشتعالها. الاستعلام عن الارتباطات غير المتطابقة "400".---## Semantic Cache
 
 ```bash
 # Get cache stats
@@ -148,24 +126,21 @@ GET /api/cache/stats
 
 # Clear all caches
 DELETE /api/cache/stats
-```
+````
 
-Response example:
-
-```json
+المثال النموذجي:`json
 {
-  "semanticCache": {
-    "memorySize": 42,
-    "memoryMaxSize": 500,
-    "dbSize": 128,
-    "hitRate": 0.65
+  "ذاكرة التخزين المؤقت الدلالية": {
+    "حجم الذاكرة": 42،
+    "memoryMaxSize": 500،
+    "حجم ديسيبل": 128،
+    "معدل الإصابة": 0.65
   },
-  "idempotency": {
-    "activeKeys": 3,
-    "windowMs": 5000
+  "العجز": {
+    "المفاتيح النشطة": 3،
+    "windows": 5000
   }
-}
-```
+}`
 
 ---
 
@@ -173,293 +148,241 @@ Response example:
 
 ### Authentication
 
-| Endpoint                      | Method  | Description           |
-| ----------------------------- | ------- | --------------------- |
-| `/api/auth/login`             | POST    | Login                 |
-| `/api/auth/logout`            | POST    | Logout                |
-| `/api/settings/require-login` | GET/PUT | Toggle login required |
+| نقطة النهاية                  | الطريقة        | الوصف                    |
+| ----------------------------- | -------------- | ------------------------ | ----------------------- |
+| `/api/auth/login`             | مشاركة         | تسجيل الدخول             |
+| `/api/auth/logout`            | مشاركة         | تسجيل الخروج             |
+| `/api/settings/require-login` | الحصول على/وضع | تبديل تسجيل الدخول مطلوب | ### Provider Management |
 
-### Provider Management
+| نقطة النهاية                 | الطريقة            | الوصف                       |
+| ---------------------------- | ------------------ | --------------------------- | --------------- |
+| `/api/providers`             | الحصول على/النشر   | قائمة / إنشاء مقدمي الخدمات |
+| `/api/providers/[id]`        | الحصول على/وضع/حذف | إدارة مزود                  |
+| `/api/providers/[id]/test`   | مشاركة             | اختبار اتصال الموفر         |
+| `/api/providers/[id]/models` | احصل على           | قائمة نماذج المزود          |
+| `/api/providers/validate`    | مشاركة             | التحقق من صحة تكوين الموفر  |
+| `/api/provider-nodes*`       | منوعه              | إدارة عقدة الموفر           |
+| `/api/provider-models`       | الحصول على/نشر/حذف | نماذج مخصصة                 | ### OAuth Flows |
 
-| Endpoint                     | Method          | Description              |
-| ---------------------------- | --------------- | ------------------------ |
-| `/api/providers`             | GET/POST        | List / create providers  |
-| `/api/providers/[id]`        | GET/PUT/DELETE  | Manage a provider        |
-| `/api/providers/[id]/test`   | POST            | Test provider connection |
-| `/api/providers/[id]/models` | GET             | List provider models     |
-| `/api/providers/validate`    | POST            | Validate provider config |
-| `/api/provider-nodes*`       | Various         | Provider node management |
-| `/api/provider-models`       | GET/POST/DELETE | Custom models            |
+| نقطة النهاية                     | الطريقة | الوصف                    |
+| -------------------------------- | ------- | ------------------------ | -------------------- |
+| `/api/oauth/[provider]/[action]` | متنوع   | OAuth الخاص بموفر الخدمة | ### Routing & Config |
 
-### OAuth Flows
+| نقطة النهاية          | الطريقة          | الوصف                             |
+| --------------------- | ---------------- | --------------------------------- | --------------------- |
+| `/api/models/alias`   | الحصول على/النشر | الأسماء المستعارة للنموذج         |
+| `/api/models/catalog` | احصل على         | جميع الموديلات حسب المزود + النوع |
+| `/api/combos*`        | متنوع            | إدارة التحرير والسرد              |
+| `/api/keys*`          | متنوع            | إدارة مفاتيح API                  |
+| `/api/pricing`        | احصل على         | التسعير النموذجي                  | ### Usage & Analytics |
 
-| Endpoint                         | Method  | Description             |
-| -------------------------------- | ------- | ----------------------- |
-| `/api/oauth/[provider]/[action]` | Various | Provider-specific OAuth |
+| نقطة النهاية                | الطريقة  | الوصف                 |
+| --------------------------- | -------- | --------------------- | ------------ |
+| `/api/usage/history`        | احصل على | تاريخ الاستخدام       |
+| `/api/usage/logs`           | احصل على | سجلات الاستخدام       |
+| `/api/usage/request-logs`   | احصل على | سجلات على مستوى الطلب |
+| `/api/usage/[connectionId]` | احصل على | الاستخدام لكل اتصال   | ### Settings |
 
-### Routing & Config
+| نقطة النهاية                    | الطريقة                | الوصف                                           |
+| ------------------------------- | ---------------------- | ----------------------------------------------- | -------------- |
+| `/api/settings`                 | الحصول على/وضع/التصحيح | الإعدادات العامة                                |
+| `/api/settings/proxy`           | الحصول على/وضع         | تكوين وكيل الشبكة                               |
+| `/api/settings/proxy/test`      | مشاركة                 | اختبار اتصال الوكيل                             |
+| `/api/settings/ip-filter`       | الحصول على/وضع         | القائمة المسموح بها/القائمة المحظورة لعناوين IP |
+| `/api/settings/thinking-budget` | الحصول على/وضع         | الميزانية الرمزية المنطقية                      |
+| `/api/settings/system-prompt`   | الحصول على/وضع         | موجه النظام العالمي                             | ### Monitoring |
 
-| Endpoint              | Method   | Description                   |
-| --------------------- | -------- | ----------------------------- |
-| `/api/models/alias`   | GET/POST | Model aliases                 |
-| `/api/models/catalog` | GET      | All models by provider + type |
-| `/api/combos*`        | Various  | Combo management              |
-| `/api/keys*`          | Various  | API key management            |
-| `/api/pricing`        | GET      | Model pricing                 |
+| نقطة النهاية             | الطريقة        | الوصف                                                                                              |
+| ------------------------ | -------------- | -------------------------------------------------------------------------------------------------- | -------------------------- |
+| `/api/sessions`          | احصل على       | تتبع الجلسة النشطة                                                                                 |
+| `/api/rate-limits`       | احصل على       | حدود المعدل لكل حساب                                                                               |
+| `/api/monitoring/health` | احصل على       | التحقق من الصحة + ملخص الموفر (`catalogCount`، `configuredCount`، `activeCount`، `monitoredCount`) |
+| `/api/cache/stats`       | الحصول على/حذف | إحصائيات ذاكرة التخزين المؤقت / مسح                                                                | ### Backup & Export/Import |
 
-### Usage & Analytics
+| نقطة النهاية                | الطريقة  | الوصف                                              |
+| --------------------------- | -------- | -------------------------------------------------- | -------------- |
+| `/api/db-backups`           | احصل على | قائمة النسخ الاحتياطية المتاحة                     |
+| `/api/db-backups`           | ضع       | إنشاء نسخة احتياطية يدوية                          |
+| `/api/db-backups`           | مشاركة   | استعادة من نسخة احتياطية محددة                     |
+| `/api/db-backups/export`    | احصل على | تنزيل قاعدة البيانات كملف .sqlite                  |
+| `/api/db-backups/import`    | مشاركة   | قم بتحميل ملف .sqlite لاستبدال قاعدة البيانات      |
+| `/api/db-backups/exportAll` | احصل على | قم بتنزيل النسخة الاحتياطية الكاملة كأرشيف .tar.gz | ### Cloud Sync |
 
-| Endpoint                    | Method | Description          |
-| --------------------------- | ------ | -------------------- |
-| `/api/usage/history`        | GET    | Usage history        |
-| `/api/usage/logs`           | GET    | Usage logs           |
-| `/api/usage/request-logs`   | GET    | Request-level logs   |
-| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+| نقطة النهاية           | الطريقة | الوصف                    |
+| ---------------------- | ------- | ------------------------ | ----------- |
+| `/api/sync/cloud`      | متنوع   | عمليات المزامنة السحابية |
+| `/api/sync/initialize` | مشاركة  | تهيئة المزامنة           |
+| `/api/cloud/*`         | متنوع   | إدارة السحابة            | ### Tunnels |
 
-### Settings
+| نقطة النهاية               | الطريقة  | الوصف                                                         |
+| -------------------------- | -------- | ------------------------------------------------------------- | ------------- |
+| `/api/tunnels/cloudflared` | احصل على | اقرأ حالة تثبيت/تشغيل Cloudflare Quick Tunnel للوحة المعلومات |
+| `/api/tunnels/cloudflared` | مشاركة   | تمكين أو تعطيل نفق Cloudflare السريع (`الإجراء=تمكين/تعطيل`)  | ### CLI Tools |
 
-| Endpoint                        | Method        | Description            |
-| ------------------------------- | ------------- | ---------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings       |
-| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
-| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
-| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
-| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
-| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
+| نقطة النهاية                       | الطريقة  | الوصف               |
+| ---------------------------------- | -------- | ------------------- |
+| `/api/cli-tools/claude-settings`   | احصل على | حالة كلود CLI       |
+| `/api/cli-tools/codex-settings`    | احصل على | حالة Codex CLI      |
+| `/api/cli-tools/droid-settings`    | احصل على | حالة Droid CLI      |
+| `/api/cli-tools/openclaw-settings` | احصل على | حالة OpenClaw CLI   |
+| `/api/cli-tools/runtime/[toolId]`  | احصل على | وقت تشغيل CLI العام |
 
-### Monitoring
+تتضمن استجابات واجهة سطر الأوامر: `تم التثبيت`، و`القابل للتشغيل`، و`الأمر`، و`commandPath`، و`runtimeMode`، و`السبب`.### ACP Agents
 
-| Endpoint                 | Method     | Description                                                                                          |
-| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
-| `/api/sessions`          | GET        | Active session tracking                                                                              |
-| `/api/rate-limits`       | GET        | Per-account rate limits                                                                              |
-| `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
-| `/api/cache/stats`       | GET/DELETE | Cache stats / clear                                                                                  |
+| نقطة النهاية      | الطريقة  | الوصف                                                          |
+| ----------------- | -------- | -------------------------------------------------------------- |
+| `/api/acp/agents` | احصل على | قم بإدراج جميع الوكلاء المكتشفين (المضمنين + المخصصين) بالحالة |
+| `/api/acp/agents` | مشاركة   | إضافة وكيل مخصص أو تحديث ذاكرة التخزين المؤقت للكشف            |
+| `/api/acp/agents` | حذف      | قم بإزالة وكيل مخصص بواسطة معلمة الاستعلام `id`                |
 
-### Backup & Export/Import
+تتضمن استجابة GET `الوكلاء []` (المعرف، الاسم، الثنائي، الإصدار، المثبت، البروتوكول، isCustom) و`الملخص` (الإجمالي، المثبت، غير موجود، مدمج، مخصص).### Resilience & Rate Limits
 
-| Endpoint                    | Method | Description                             |
-| --------------------------- | ------ | --------------------------------------- |
-| `/api/db-backups`           | GET    | List available backups                  |
-| `/api/db-backups`           | PUT    | Create a manual backup                  |
-| `/api/db-backups`           | POST   | Restore from a specific backup          |
-| `/api/db-backups/export`    | GET    | Download database as .sqlite file       |
-| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database |
-| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive |
+| نقطة النهاية            | الطريقة            | الوصف                                |
+| ----------------------- | ------------------ | ------------------------------------ | --------- |
+| `/api/المرونة`          | الحصول على/التصحيح | الحصول على/تحديث ملفات تعريف المرونة |
+| `/api/resilience/reset` | مشاركة             | إعادة ضبط قواطع الدائرة              |
+| `/api/rate-limits`      | احصل على           | حالة حد المعدل لكل حساب              |
+| `/api/rate-limit`       | احصل على           | تكوين حد المعدل العالمي              | ### Evals |
 
-### Cloud Sync
+| نقطة النهاية | الطريقة          | الوصف                                 |
+| ------------ | ---------------- | ------------------------------------- | ------------ |
+| `/api/evals` | الحصول على/النشر | قائمة مجموعات التقييم / تشغيل التقييم | ### Policies |
 
-| Endpoint               | Method  | Description           |
-| ---------------------- | ------- | --------------------- |
-| `/api/sync/cloud`      | Various | Cloud sync operations |
-| `/api/sync/initialize` | POST    | Initialize sync       |
-| `/api/cloud/*`         | Various | Cloud management      |
+| نقطة النهاية    | الطريقة            | الوصف                |
+| --------------- | ------------------ | -------------------- | -------------- |
+| `/api/policies` | الحصول على/نشر/حذف | إدارة سياسات التوجيه | ### Compliance |
 
-### Tunnels
+| نقطة النهاية                | الطريقة  | الوصف                        |
+| --------------------------- | -------- | ---------------------------- | ------------------------------ |
+| `/api/compliance/audit-log` | احصل على | سجل تدقيق الامتثال (آخر رقم) | ### v1beta (Gemini-Compatible) |
 
-| Endpoint                   | Method | Description                                                             |
-| -------------------------- | ------ | ----------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
-| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
+| نقطة النهاية               | الطريقة  | الوصف                                |
+| -------------------------- | -------- | ------------------------------------ |
+| `/v1beta/models`           | احصل على | قائمة النماذج بصيغة الجوزاء          |
+| `/v1beta/models/{...path}` | مشاركة   | الجوزاء `توليد المحتوى` نقطة النهاية |
 
-### CLI Tools
+تعكس نقاط النهاية هذه تنسيق Gemini API للعملاء الذين يتوقعون توافق Gemini SDK الأصلي.### Internal / System APIs
 
-| Endpoint                           | Method | Description         |
-| ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Claude CLI status   |
-| `/api/cli-tools/codex-settings`    | GET    | Codex CLI status    |
-| `/api/cli-tools/droid-settings`    | GET    | Droid CLI status    |
-| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI status |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Generic CLI runtime |
+| نقطة النهاية    | الطريقة  | الوصف                                              |
+| --------------- | -------- | -------------------------------------------------- |
+| `/api/init`     | احصل على | فحص تهيئة التطبيق (يستخدم عند التشغيل لأول مرة)    |
+| `/api/tags`     | احصل على | علامات النماذج المتوافقة مع Ollama (لعملاء Ollama) |
+| `/api/restart`  | مشاركة   | تشغيل إعادة تشغيل الخادم الرشيقة                   |
+| `/api/shutdown` | مشاركة   | تشغيل إيقاف تشغيل الخادم بشكل رشيق                 |
 
-CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
-
-### ACP Agents
-
-| Endpoint          | Method | Description                                              |
-| ----------------- | ------ | -------------------------------------------------------- |
-| `/api/acp/agents` | GET    | List all detected agents (built-in + custom) with status |
-| `/api/acp/agents` | POST   | Add custom agent or refresh detection cache              |
-| `/api/acp/agents` | DELETE | Remove a custom agent by `id` query param                |
-
-GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
-
-### Resilience & Rate Limits
-
-| Endpoint                | Method    | Description                     |
-| ----------------------- | --------- | ------------------------------- |
-| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
-| `/api/resilience/reset` | POST      | Reset circuit breakers          |
-| `/api/rate-limits`      | GET       | Per-account rate limit status   |
-| `/api/rate-limit`       | GET       | Global rate limit configuration |
-
-### Evals
-
-| Endpoint     | Method   | Description                       |
-| ------------ | -------- | --------------------------------- |
-| `/api/evals` | GET/POST | List eval suites / run evaluation |
-
-### Policies
-
-| Endpoint        | Method          | Description             |
-| --------------- | --------------- | ----------------------- |
-| `/api/policies` | GET/POST/DELETE | Manage routing policies |
-
-### Compliance
-
-| Endpoint                    | Method | Description                   |
-| --------------------------- | ------ | ----------------------------- |
-| `/api/compliance/audit-log` | GET    | Compliance audit log (last N) |
-
-### v1beta (Gemini-Compatible)
-
-| Endpoint                   | Method | Description                       |
-| -------------------------- | ------ | --------------------------------- |
-| `/v1beta/models`           | GET    | List models in Gemini format      |
-| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint |
-
-These endpoints mirror Gemini's API format for clients that expect native Gemini SDK compatibility.
-
-### Internal / System APIs
-
-| Endpoint        | Method | Description                                          |
-| --------------- | ------ | ---------------------------------------------------- |
-| `/api/init`     | GET    | Application initialization check (used on first run) |
-| `/api/tags`     | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`  | POST   | Trigger graceful server restart                      |
-| `/api/shutdown` | POST   | Trigger graceful server shutdown                     |
-
-> **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
-
----
+> **ملاحظة:**يتم استخدام نقاط النهاية هذه داخليًا بواسطة النظام أو للتوافق مع عميل Ollama. ولا يتم استدعاؤها عادة من قبل المستخدمين النهائيين.---
 
 ## Audio Transcription
 
-```bash
+````bash
 POST /v1/audio/transcriptions
-Authorization: Bearer your-api-key
-Content-Type: multipart/form-data
-```
+التفويض: حامل مفتاح API الخاص بك
+نوع المحتوى: بيانات متعددة الأجزاء/النموذج```
 
-Transcribe audio files using Deepgram or AssemblyAI.
+قم بنسخ الملفات الصوتية باستخدام Deepgram أو AssemblyAI.
 
-**Request:**
-
-```bash
+**طلب:**```bash
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@recording.mp3" \
   -F "model=deepgram/nova-3"
-```
+````
 
-**Response:**
-
-```json
+**إجابة:**`json
 {
-  "text": "Hello, this is the transcribed audio content.",
-  "task": "transcribe",
-  "language": "en",
-  "duration": 12.5
-}
-```
+  "text": "مرحبًا، هذا هو المحتوى الصوتي المكتوب.",
+  "مهمة": "نسخ"،
+  "اللغة": "ar"،
+  "المدة": 12.5
+}`
 
-**Supported providers:** `deepgram/nova-3`, `assemblyai/best`.
+**مقدمو الخدمة المدعومين:**`deepgram/nova-3`، `assemblyai/best`.
 
-**Supported formats:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
-
----
+**الصيغ المدعومة:**`mp3`، `wav`، `m4a`، `flac`، `ogg`، `webm`.---
 
 ## Ollama Compatibility
 
-For clients that use Ollama's API format:
+للعملاء الذين يستخدمون تنسيق واجهة برمجة تطبيقات Olma:```bash
 
-```bash
 # Chat endpoint (Ollama format)
+
 POST /v1/api/chat
 
 # Model listing (Ollama format)
+
 GET /api/tags
-```
 
-Requests are automatically translated between Ollama and internal formats.
+````
 
----
-
-## Telemetry
+ترجمة الطلبات الأصلية بين التنسيقات التنسيقات الداخلية.---## Telemetry
 
 ```bash
 # Get latency telemetry summary (p50/p95/p99 per provider)
 GET /api/telemetry/summary
-```
+````
 
-**Response:**
-
-```json
+**إجابة:**`json
 {
-  "providers": {
+  "مقدمو الخدمات": {
     "claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
-    "github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
+    "github": { "p50": 180، "p95": 620، "p99": 950، "count": 320 }
   }
-}
-```
+}`
 
 ---
 
 ## Budget
 
-```bash
-# Get budget status for all API keys
-GET /api/usage/budget
+````bash
+# احصل على حالة الميزانية لجميع مفاتيح API
+الحصول على /api/usage/budget
 
-# Set or update a budget
+# تعيين أو تحديث الميزانية
 POST /api/usage/budget
-Content-Type: application/json
+نوع المحتوى: application/json
 
 {
-  "keyId": "key-123",
-  "limit": 50.00,
-  "period": "monthly"
-}
-```
+  "معرف المفتاح": "مفتاح-123"،
+  "الحد": 50.00،
+  "الفترة": "الشهرية"
+}```
 
 ---
 
 ## Model Availability
 
 ```bash
-# Get real-time model availability across all providers
-GET /api/models/availability
+# احصل على توفر النموذج في الوقت الفعلي عبر جميع مقدمي الخدمة
+الحصول على /api/models/availability
 
-# Check availability for a specific model
+# التحقق من توفر طراز معين
 POST /api/models/availability
-Content-Type: application/json
+نوع المحتوى: application/json
 
 {
-  "model": "claude-sonnet-4-5-20250929"
-}
-```
+  "نموذج": "كلود السوناتة-4-5-20250929"
+}```
 
 ---
 
 ## Request Processing
 
-1. Client sends request to `/v1/*`
-2. Route handler calls `handleChat`, `handleEmbedding`, `handleAudioTranscription`, or `handleImageGeneration`
-3. Model is resolved (direct provider/model or alias/combo)
-4. Credentials selected from local DB with account availability filtering
-5. For chat: `handleChatCore` — format detection, translation, cache check, idempotency check
-6. Provider executor sends upstream request
-7. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
-8. Usage/logging recorded
-9. Fallback applies on errors according to combo rules
+1. يرسل العميل طلبًا إلى `/v1/*`
+2. يستدعي معالج المسار "handleChat"، أو "handleEmbedding"، أو "handleAudioTranscription"، أو "handleImageGeneration".
+3. تم حل النموذج (المزود/النموذج المباشر أو الاسم المستعار/السرد)
+4. تم تحديد بيانات الاعتماد من قاعدة البيانات المحلية مع تصفية توفر الحساب
+5. للدردشة: `handleChatCore` - اكتشاف التنسيق، والترجمة، والتحقق من ذاكرة التخزين المؤقت، والتحقق من الكفاءة
+6. يقوم منفذ الموفر بإرسال طلب المنبع
+7. تتم ترجمة الاستجابة مرة أخرى إلى تنسيق العميل (الدردشة) أو إعادتها كما هي (التضمينات/الصور/الصوت)
+8. تم تسجيل الاستخدام/التسجيل
+9. يتم تطبيق الإجراء الاحتياطي على الأخطاء وفقًا لقواعد التحرير والسرد
 
-Full architecture reference: [`ARCHITECTURE.md`](ARCHITECTURE.md)
-
----
+مرجع البنية الكاملة: [`ARCHITECTURE.md`](ARCHITECTURE.md)---
 
 ## Authentication
 
-- Dashboard routes (`/dashboard/*`) use `auth_token` cookie
-- Login uses saved password hash; fallback to `INITIAL_PASSWORD`
-- `requireLogin` toggleable via `/api/settings/require-login`
-- `/v1/*` routes optionally require Bearer API key when `REQUIRE_API_KEY=true`
+- تستخدم مسارات لوحة المعلومات (`/dashboard/*`) ملف تعريف الارتباط `auth_token`
+- يستخدم تسجيل الدخول تجزئة كلمة المرور المحفوظة؛ الرجوع إلى `INITIAL_PASSWORD`
+- `requireLogin` قابل للتبديل عبر `/api/settings/require-login`
+- تتطلب المسارات `/v1/*` بشكل اختياري مفتاح Bearer API عندما يكون `REQUIRE_API_KEY=true`
+````

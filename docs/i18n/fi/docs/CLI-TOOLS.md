@@ -4,11 +4,9 @@
 
 ---
 
-This guide explains how to install and configure all supported AI coding CLI tools
-to use **OmniRoute** as the unified backend, giving you centralized key management,
-cost tracking, model switching, and request logging across every tool.
-
----
+Tämä opas selittää, kuinka asentaa ja määrittää kaikki tuetut AI-koodauksen CLI-työkalut
+käyttää**OmniRoutea**yhtenäisenä taustajärjestelmänä, mikä antaa sinulle keskitetyn avaintenhallinnan,
+kustannusseuranta, mallin vaihto ja pyyntöjen kirjaaminen kaikissa työkaluissa.---
 
 ## How It Works
 
@@ -22,118 +20,113 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilo
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
-**Benefits:**
+**Edut:**
 
-- One API key to manage all tools
-- Cost tracking across all CLIs in the dashboard
-- Model switching without reconfiguring every tool
-- Works locally and on remote servers (VPS)
-
----
+- Yksi API-avain kaikkien työkalujen hallintaan
+- Kustannusten seuranta kaikissa hallintapaneelin CLI:issä
+- Mallinvaihto ilman jokaisen työkalun uudelleenkonfigurointia
+- Toimii paikallisesti ja etäpalvelimilla (VPS)---
 
 ## Supported Tools (Dashboard Source of Truth)
 
-The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
-Current list (v3.0.0-rc.16):
+Kohteen "/dashboard/cli-tools" kojelautakortit luodaan tiedostosta "src/shared/constants/cliTools.ts".
+Nykyinen luettelo (v3.0.0-rc.16):
 
-| Tool               | ID            | Command    | Setup Mode | Install Method |
-| ------------------ | ------------- | ---------- | ---------- | -------------- |
-| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
-| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
-| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
-| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
-| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
-| **Cline**          | `cline`       | `cline`    | custom     | npm            |
-| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
-| **Continue**       | `continue`    | extension  | guide      | VS Code        |
-| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
-| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
-| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
-| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
+| Työkalu             | ID                | Komento       | Asennustila | Asennusmenetelmä |
+| ------------------- | ----------------- | ------------- | ----------- | ---------------- | -------------------------------------------- |
+| **Claude Code**     | `claude`          | `claude`      | env         | npm              |
+| **OpenAI Codex**    | "koodi"           | "koodi"       | mukautettu  | npm              |
+| **Tehdasdroidi**    | "droidi"          | "droidi"      | mukautettu  | niputettu/CLI    |
+| **OpenClaw**        | "avokynsi"        | "avokynsi"    | mukautettu  | niputettu/CLI    |
+| **Osoitin**         | `kursori`         | sovellus      | opas        | työpöytäsovellus |
+| **Cline**           | "cline"           | "cline"       | mukautettu  | npm              |
+| **Kilokoodi**       | "kilo"            | "kilokoodi"   | mukautettu  | npm              |
+| **Jatka**           | "jatka"           | laajennus     | opas        | VS-koodi         |
+| **Antigravitaatio** | "antigravitaatio" | sisäinen      | mitm        | OmniRoute        |
+| **GitHub Copilot**  | "kakkospilotti"   | laajennus     | mukautettu  | VS-koodi         |
+| **OpenCode**        | "avoin koodi"     | "avoin koodi" | opas        | npm              |
+| **Kiro AI**         | "kiro"            | app/cli       | mitm        | työpöytä/CLI     | ### CLI fingerprint sync (Agents + Settings) |
 
-### CLI fingerprint sync (Agents + Settings)
+"/dashboard/agents" ja "Settings > CLI Fingerprint" käyttävät "src/shared/constants/cliCompatProviders.ts".
+Tämä pitää palveluntarjoajan tunnukset kohdakkain CLI-korttien ja vanhojen tunnuksien kanssa.
 
-`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
-This keeps provider IDs aligned with CLI cards and legacy IDs.
+| CLI ID                                                                                                 | Sormenjälkien tarjoajan tunnus |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------ |
+| "kilo"                                                                                                 | "kilokoodi"                    |
+| "kakkospilotti"                                                                                        | "github"                       |
+| "claude" / "codex" / "antigravity" / "kiro" / "kursori" / "cline" / "avokoodi" / "droidi" / "avokynsi" | sama tunnus                    |
 
-| CLI ID                                                                                               | Fingerprint Provider ID |
-| ---------------------------------------------------------------------------------------------------- | ----------------------- |
-| `kilo`                                                                                               | `kilocode`              |
-| `copilot`                                                                                            | `github`                |
-| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
-
-Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
-
----
+Vanhat tunnukset hyväksytään edelleen yhteensopivuutta varten: "copilot", "kimi-coding", "qwen".---
 
 ## Step 1 — Get an OmniRoute API Key
 
-1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
-2. Click **Create API Key**
-3. Give it a name (e.g. `cli-tools`) and select all permissions
-4. Copy the key — you'll need it for every CLI below
+1. Avaa OmniRoute-hallintapaneeli →**API Manager**(`/dashboard/api-manager`)
+2. Napsauta**Luo API-avain**
+3. Anna sille nimi (esim. "cli-tools") ja valitse kaikki käyttöoikeudet
+4. Kopioi avain – tarvitset sitä jokaiseen alla olevaan CLI:hen
 
-> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
-
----
+> Avaimesi näyttää tältä: "sk-xxxxxxxxxxxxxxxxx-xxxxxxxxxx"---
 
 ## Step 2 — Install CLI Tools
 
-All npm-based tools require Node.js 18+:
+Kaikki npm-pohjaiset työkalut vaativat Node.js 18+:n:```bash
 
-```bash
 # Claude Code (Anthropic)
+
 npm install -g @anthropic-ai/claude-code
 
 # OpenAI Codex
+
 npm install -g @openai/codex
 
 # OpenCode
+
 npm install -g opencode-ai
 
 # Cline
+
 npm install -g cline
 
 # KiloCode
+
 npm install -g kilocode
 
 # Kiro CLI (Amazon — requires curl + unzip)
-apt-get install -y unzip   # on Debian/Ubuntu
+
+apt-get install -y unzip # on Debian/Ubuntu
 curl -fsSL https://cli.kiro.dev/install | bash
-export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
-```
+export PATH="$HOME/.local/bin:$PATH" # add to ~/.bashrc
 
-**Verify:**
+````
 
-```bash
+**Vahvista:**```bash
 claude --version     # 2.x.x
 codex --version      # 0.x.x
 opencode --version   # x.x.x
 cline --version      # 2.x.x
 kilocode --version   # x.x.x (or: kilo --version)
 kiro-cli --version   # 1.x.x
-```
+````
 
 ---
 
 ## Step 3 — Set Global Environment Variables
 
-Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
+Lisää tiedostoon `~/.bashrc` (tai `~/.zshrc`) ja suorita sitten `source ~/.bashrc`:```bash
 
-```bash
 # OmniRoute Universal Endpoint
+
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
 export ANTHROPIC_API_KEY="sk-your-omniroute-key"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
 export GEMINI_API_KEY="sk-your-omniroute-key"
-```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain,
-> e.g. `http://192.168.0.15:20128`.
+````
 
----
+> Jos kyseessä on**etäpalvelin**, korvaa "localhost:20128" palvelimen IP-osoitteella tai toimialueella,
+> esim. "http://192.168.0.15:20128".---
 
 ## Step 4 — Configure Each Tool
 
@@ -150,11 +143,9 @@ mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
   "apiKey": "sk-your-omniroute-key"
 }
 EOF
-```
+````
 
-**Test:** `claude "say hello"`
-
----
+**Testi:**`claude "say hello"`---
 
 ### OpenAI Codex
 
@@ -166,9 +157,7 @@ apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
 
-**Test:** `codex "what is 2+2?"`
-
----
+**Testi:**`koodi "mikä on 2+2?"---
 
 ### OpenCode
 
@@ -180,57 +169,45 @@ api_key = "sk-your-omniroute-key"
 EOF
 ```
 
-**Test:** `opencode`
-
----
+**Testi:**`avoin koodi`---
 
 ### Cline (CLI or VS Code)
 
-**CLI mode:**
-
-```bash
+**CLI-tila:**```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
-  "apiProvider": "openai",
-  "openAiBaseUrl": "http://localhost:20128/v1",
-  "openAiApiKey": "sk-your-omniroute-key"
+"apiProvider": "openai",
+"openAiBaseUrl": "http://localhost:20128/v1",
+"openAiApiKey": "sk-your-omniroute-key"
 }
 EOF
-```
 
-**VS Code mode:**
-Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+````
 
-Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
+**VS-kooditila:**
+Cline-laajennusasetukset → API-palveluntarjoaja: "OpenAI-yhteensopiva" → Perus-URL-osoite: "http://localhost:20128/v1"
 
----
+Tai käytä OmniRoute-hallintapaneelia →**CLI-työkalut → Cline → Apply Config**.---
 
 ### KiloCode (CLI or VS Code)
 
-**CLI mode:**
-
-```bash
+**CLI-tila:**```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
-```
+````
 
-**VS Code settings:**
-
-```json
+**VS-koodin asetukset:**```json
 {
-  "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-  "kilo-code.apiKey": "sk-your-omniroute-key"
+"kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
+"kilo-code.apiKey": "sk-your-omniroute-key"
 }
-```
 
-Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
+````
 
----
+Tai käytä OmniRoute-hallintapaneelia →**CLI-työkalut → KiloCode → Apply Config**.---
 
 ### Continue (VS Code Extension)
 
-Edit `~/.continue/config.yaml`:
-
-```yaml
+Muokkaa `~/.continue/config.yaml`:```yaml
 models:
   - name: OmniRoute
     provider: openai
@@ -238,11 +215,9 @@ models:
     apiBase: http://localhost:20128/v1
     apiKey: sk-your-omniroute-key
     default: true
-```
+````
 
-Restart VS Code after editing.
-
----
+Käynnistä VS-koodi uudelleen muokkauksen jälkeen.---
 
 ### Kiro CLI (Amazon)
 
@@ -259,65 +234,55 @@ kiro-cli status
 
 ### Cursor (Desktop App)
 
-> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
-> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
+> **Huomaa:**Kursori reitittää pyynnöt pilvensä kautta. OmniRoute-integraatiota varten
+> ota**Cloud Endpoint**käyttöön OmniRoute-asetuksissa ja käytä julkista URL-osoitettasi.
 
-Via GUI: **Settings → Models → OpenAI API Key**
+GUI:n kautta:**Asetukset → Mallit → OpenAI API-avain**
 
-- Base URL: `https://your-domain.com/v1`
-- API Key: your OmniRoute key
-
----
+- Perus-URL-osoite: "https://oma-verkkotunnus.com/v1".
+- API-avain: OmniRoute-avaimesi---
 
 ## Dashboard Auto-Configuration
 
-The OmniRoute dashboard automates configuration for most tools:
+OmniRoute-hallintapaneeli automatisoi useimpien työkalujen määrityksen:
 
-1. Go to `http://localhost:20128/dashboard/cli-tools`
-2. Expand any tool card
-3. Select your API key from the dropdown
-4. Click **Apply Config** (if tool is detected as installed)
-5. Or copy the generated config snippet manually
-
----
+1. Siirry osoitteeseen "http://localhost:20128/dashboard/cli-tools"
+2. Laajenna mitä tahansa työkalukorttia
+3. Valitse sovellusliittymäavaimesi pudotusvalikosta
+4. Napsauta**Apply Config**(jos työkalu havaitaan asennetuksi).
+5. Tai kopioi luotu määrityskoodinpätkä manuaalisesti---
 
 ## Built-in Agents: Droid & OpenClaw
 
-**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
-They run as internal routes and use OmniRoute's model routing automatically.
+**Droid**ja**OpenClaw**ovat tekoälyagentteja, jotka on rakennettu suoraan OmniRouteen – asennusta ei tarvita.
+Ne toimivat sisäisinä reiteinä ja käyttävät OmniRouten mallireititystä automaattisesti.
 
-- Access: `http://localhost:20128/dashboard/agents`
-- Configure: same combos and providers as all other tools
-- No API key or CLI install required
-
----
+- Pääsy: "http://localhost:20128/dashboard/agents".
+- Määritä: samat yhdistelmät ja palveluntarjoajat kuin kaikki muut työkalut
+- API-avainta tai CLI-asennusta ei tarvita---
 
 ## Available API Endpoints
 
-| Endpoint                   | Description                   | Use For                     |
-| -------------------------- | ----------------------------- | --------------------------- |
-| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
-| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
-| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
-| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
-| `/v1/images/generations`   | Image generation              | DALL-E, Flux, etc.          |
-| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
-| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
-
----
+| Päätepiste                | Kuvaus                                   | Käytä                                             |
+| ------------------------- | ---------------------------------------- | ------------------------------------------------- | --- |
+| "/v1/chat/completions"    | Normaali chat (kaikki palveluntarjoajat) | Kaikki nykyaikaiset työkalut                      |
+| "/v1/responses"           | Responses API (OpenAI-muoto)             | Codex, agenttityönkulut                           |
+| "/v1/completions"         | Vanhat tekstin täydennykset              | Vanhemmat työkalut, joissa käytetään "kehotetta:" |
+| "/v1/embeddings"          | Tekstin upotukset                        | RAG, haku                                         |
+| "/v1/images/generations"  | Kuvan luominen                           | DALL-E, Flux jne.                                 |
+| "/v1/audio/speech"        | Tekstistä puheeksi                       | ElevenLabs, OpenAI TTS                            |
+| `/v1/audio/transkriptiot` | Puhe tekstiksi                           | Deepgram, AssemblyAI                              | --- |
 
 ## Vianmääritys
 
-| Error                     | Cause                   | Fix                                        |
-| ------------------------- | ----------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
-| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
-| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
-| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
-| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
-| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
-
----
+| Virhe                           | Syy                               | Korjaa                                          |
+| ------------------------------- | --------------------------------- | ----------------------------------------------- | --- |
+| "Yhteys evätty"                 | OmniRoute ei ole käynnissä        | `pm2 start omniroute`                           |
+| "401 Luvaton"                   | Väärä API-avain                   | Kirjaudu sisään `/dashboard/api-manager`        |
+| "Yhdistelmää ei ole määritetty" | Ei aktiivista reititysyhdistelmää | Määritä kohdassa `/dashboard/combos'            |
+| "virheellinen malli"            | Malli ei ole luettelossa          | Käytä "auto" tai valitse "/dashboard/providers" |
+| CLI näyttää "ei asennettu"      | Binaari ei sisällä PATH           | Tarkista `mikä <komento>`                       |
+| `kiro-cli: ei löydy`            | Ei sisällä PATH                   | `export PATH="$HOME/.local/bin:$PATH"`          | --- |
 
 ## Quick Setup Script (One Command)
 

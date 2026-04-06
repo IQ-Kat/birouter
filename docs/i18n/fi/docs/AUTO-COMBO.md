@@ -4,42 +4,29 @@
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> Itseohjautuvat malliketjut mukautuvalla pisteytyksellä## How It Works
 
-## How It Works
+Auto-Combo Engine valitsee dynaamisesti parhaan palveluntarjoajan/mallin kullekin pyynnölle käyttämällä**6-faktorista pisteytystoimintoa**:
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+| tekijä     | Paino | Kuvaus                                                    |
+| :--------- | :---- | :-------------------------------------------------------- | ------------- |
+| Kiintiö    | 0,20  | Jäljellä oleva kapasiteetti [0..1]                        |
+| Terveys    | 0,25  | Katkaisija: KIINNI=1,0, PUOLI=0,5, AUKI=0,0               |
+| CostInv    | 0,20  | Käänteiset kustannukset (halvempi = korkeampi pistemäärä) |
+| LatencyInv | 0,15  | Käänteinen p95-latenssi (nopeampi = suurempi)             |
+| TaskFit    | 0,10  | Malli × tehtävätyypin kuntopisteet                        |
+| Vakaus     | 0,10  | Alhainen latenssin/virheiden varianssi                    | ## Mode Packs |
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+| Pakkaus                    | Keskity     | Avaimen paino      |
+| :------------------------- | :---------- | :----------------- | --------------- |
+| 🚀**Toimita nopeasti**     | Nopeus      | latencyInv: 0,35   |
+| 💰**Säästö**               | Talous      | kustannusInv: 0,40 |
+| 🎯**Laatu ensin**          | Paras malli | taskFit: 0.40      |
+| 📡**Offline-ystävällinen** | Saatavuus   | kiintiö: 0,40      | ## Self-Healing |
 
-## Mode Packs
+-**Tilapäinen poissulkeminen**: pisteet < 0,2 → poissuljettu 5 minuutin ajan (progressiivinen peruutus, enintään 30 min) -**Katkaisijatietoisuus**: AUKI → automaattinen poissulkeminen; HALF_OPEN → tutkia pyyntöjä -**Tapahtumatila**: >50 % AUKI → poista tutkimus käytöstä, maksimoi vakaus -**Jäähdytyspalautus**: Poissulkemisen jälkeen ensimmäinen pyyntö on "koetus", jolla on lyhennetty aikakatkaisu## Bandit Exploration
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
-
-## Self-Healing
-
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
-
-## Bandit Exploration
-
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
-
-## API
+5 % pyynnöistä (konfiguroitavissa) reititetään satunnaisille palveluntarjoajille tutkittavaksi. Pois käytöstä tapahtumatilassa.## API
 
 ```bash
 # Create auto-combo
@@ -53,15 +40,13 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+Yli 30 mallia pisteytettiin kuudessa tehtävätyypissä ("koodaus", "tarkistus", "suunnittelu", "analyysi", "virheenkorjaus", "dokumentaatio"). Tukee jokerimerkkikuvioita (esim. "\*-kooderi" → korkea koodauspistemäärä).## Files
 
-## Files
-
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+| Tiedosto                                     | Tarkoitus                                 |
+| :------------------------------------------- | :---------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`     | Pisteytystoiminto ja poolin normalisointi |
+| `open-sse/services/autoCombo/taskFitness.ts` | Malli × tehtävä kuntohaku                 |
+| `open-sse/services/autoCombo/engine.ts`      | Valintalogiikka, rosvo, budjettikatto     |
+| `open-sse/services/autoCombo/selfHealing.ts` | Poissulkeminen, anturit, tapahtumatila    |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 painoprofiilia                          |
+| `src/app/api/combos/auto/route.ts`           | REST API                                  |

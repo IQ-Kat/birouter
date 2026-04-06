@@ -6,11 +6,9 @@
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
-_Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+_وكيل واجهة برمجة التطبيقات العالمي الخاص بك — نقطة نهاية واحدة، وأكثر من 60 موفرًا، بدون أي توقف عن العمل. الآن مع**خادم MCP (25 أداة)**و**بروتوكول A2A**و**أنظمة الذاكرة/المهارات**و**تطبيق Electron Desktop**._
 
-**Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
-
----
+**إكمالات الدردشة • التضمينات • إنشاء الصور • الفيديو • الموسيقى • الصوت • إعادة الترتيب •**بحث الويب**• خادم MCP • بروتوكول A2A • 100% TypeScript**---
 
 <div align="center">
 
@@ -41,13 +39,9 @@ _Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now wi
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
-[🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+[🌐 موقع الويب](https://omniroute.online) • [🚀 البداية السريعة](#-بدء سريع) • [💡 الميزات](#-key-features) • [📖 المستندات](#-وثائق) • [💰 التسعير](#-تسعير في لمحة) • [💬 واتساب](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)</div>
 
-</div>
-
-🌐 **Available in:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dansk](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [Magyar](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nederlands](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugal)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipino](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
-
----
+🌐**متوفر باللغة:**🇺🇸 [الإنجليزية](README.md) | 🇧🇷 [البرتغالية (البرازيل)](docs/i18n/pt-BR/README.md) | 🇪🇸 [الإسبانية](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [الإيطالية](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [الألمانية](docs/i18n/de/README.md) | 🇮🇳 [خبر](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [بلغارسكي](docs/i18n/bg/README.md) | 🇩🇰 [الدانسك](docs/i18n/da/README.md) | 🇫🇮 [سومي](docs/i18n/fi/README.md) | 🇮🇱 [العربية](docs/i18n/he/README.md) | 🇭🇺 [المجرية](docs/i18n/hu/README.md) | 🇮🇩 [البهاسا الإندونيسية](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [البهاسا ملايو](docs/i18n/ms/README.md) | 🇳🇱 [هولندا](docs/i18n/nl/README.md) | 🇳🇴 [نورسك](docs/i18n/no/README.md) | 🇵🇹 [البرتغالية (البرتغال)](docs/i18n/pt/README.md) | 🇷🇴 [روماني](docs/i18n/ro/README.md) | 🇵🇱 [بولسكي](docs/i18n/pl/README.md) | 🇸🇰 [سلوفينسينا](docs/i18n/sk/README.md) | 🇸🇪 [السفينسكا](docs/i18n/sv/README.md) | 🇵🇭 [الفلبينية](docs/i18n/phi/README.md) | 🇨🇿 [تشيستينا](docs/i18n/cs/README.md)---
 
 ## 🖼️ Main Dashboard
 
@@ -59,629 +53,554 @@ _Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now wi
 
 ## 📸 Dashboard Preview
 
-<details>
-<summary><b>Click to see dashboard screenshots</b></summary>
+<التفاصيل>
 
-| Page           | Screenshot                                        |
-| -------------- | ------------------------------------------------- |
-| **Providers**  | ![Providers](docs/screenshots/01-providers.png)   |
-| **Combos**     | ![Combos](docs/screenshots/02-combos.png)         |
-| **Analytics**  | ![Analytics](docs/screenshots/03-analytics.png)   |
-| **Health**     | ![Health](docs/screenshots/04-health.png)         |
-| **Translator** | ![Translator](docs/screenshots/05-translator.png) |
-| **Settings**   | ![Settings](docs/screenshots/06-settings.png)     |
-| **CLI Tools**  | ![CLI Tools](docs/screenshots/07-cli-tools.png)   |
-| **Usage Logs** | ![Usage](docs/screenshots/08-usage.png)           |
-| **Endpoints**  | ![Endpoints](docs/screenshots/09-endpoint.png)    |
+<summary><b>انقر لرؤية لقطات شاشة لوحة التحكم</b></summary>
 
-</details>
+| صفحة                  | لقطة شاشة                                         |
+| --------------------- | ------------------------------------------------- | ---------- |
+| **مقدمو الخدمة**      | ![Providers](docs/screenshots/01-providers.png)   |
+| **المجموعات**         | ![Combos](docs/screenshots/02-combos.png)         |
+| **تحليلات**           | ![تحليلات](docs/screenshots/03-analytics.png)     |
+| **الصحة**             | ![الصحة](docs/screenshots/04-health.png)          |
+| **مترجم**             | ![مترجم](docs/screenshots/05-translator.png)      |
+| **الإعدادات**         | ![الإعدادات](docs/screenshots/06-settings.png)    |
+| **أدوات سطر الأوامر** | ![أدوات CLI](docs/screenshots/07-cli-tools.png)   |
+| **سجلات الاستخدام**   | ![الاستخدام](docs/screenshots/08-usage.png)       |
+| **نقاط النهاية**      | ![نقاط النهاية](docs/screenshots/09-endpoint.png) | </details> |
 
 ---
 
 ### 🤖 Free AI Provider for your favorite coding agents
 
-_Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway for unlimited coding._
+_قم بتوصيل أي أداة IDE أو CLI مدعومة بالذكاء الاصطناعي من خلال OmniRoute - بوابة واجهة برمجة التطبيقات المجانية للترميز غير المحدود._
 
-  <table>
-    <tr>
-      <td align="center" width="110">
-        <a href="https://github.com/openclaw/openclaw">
-          <img src="./public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
-          <b>OpenClaw</b>
-        </a><br/>
-        <sub>⭐ 205K</sub>
-      </td>
-      <td align="center" width="110">
-        <a href="https://github.com/HKUDS/nanobot">
-          <img src="./public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
-          <b>NanoBot</b>
-        </a><br/>
-        <sub>⭐ 20.9K</sub>
-      </td>
-      <td align="center" width="110">
-        <a href="https://github.com/sipeed/picoclaw">
-          <img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
-          <b>PicoClaw</b>
-        </a><br/>
-        <sub>⭐ 14.6K</sub>
-      </td>
-      <td align="center" width="110">
-        <a href="https://github.com/zeroclaw-labs/zeroclaw">
-          <img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
-          <b>ZeroClaw</b>
-        </a><br/>
-        <sub>⭐ 9.9K</sub>
-      </td>
-      <td align="center" width="110">
-        <a href="https://github.com/nearai/ironclaw">
-          <img src="./public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
-          <b>IronClaw</b>
-        </a><br/>
-        <sub>⭐ 2.1K</sub>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="110">
-        <a href="https://github.com/anomalyco/opencode">
-          <img src="./public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
-          <b>OpenCode</b>
-        </a><br/>
-        <sub>⭐ 106K</sub>
-      </td>
-      <td align="center" width="110">
-        <a href="https://github.com/openai/codex">
-          <img src="./public/providers/codex.png" alt="Codex CLI" width="48"/><br/>
-          <b>Codex CLI</b>
-        </a><br/>
-        <sub>⭐ 60.8K</sub>
-      </td>
-      <td align="center" width="110">
-        <a href="https://github.com/anthropics/claude-code">
-          <img src="./public/providers/claude.png" alt="Claude Code" width="48"/><br/>
-          <b>Claude Code</b>
-        </a><br/>
-        <sub>⭐ 67.3K</sub>
-      </td>
-      <td align="center" width="110">
-        <a href="https://github.com/google-gemini/gemini-cli">
-          <img src="./public/providers/gemini-cli.png" alt="Gemini CLI" width="48"/><br/>
-          <b>Gemini CLI</b>
-        </a><br/>
-        <sub>⭐ 94.7K</sub>
-      </td>
-      <td align="center" width="110">
-        <a href="https://github.com/Kilo-Org/kilocode">
-          <img src="./public/providers/kilocode.png" alt="Kilo Code" width="48"/><br/>
-          <b>Kilo Code</b>
-        </a><br/>
-        <sub>⭐ 15.5K</sub>
-      </td>
-    </tr>
-  </table>
+<الجدول>
+<تر>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/openclaw/openclaw">
+<img src="./public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
+<b>أوبنكلاو</b>
+</a><br/>
+<sub>⭐ 205 ألف</sub>
+</TD>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/HKUDS/nanobot">
+<img src="./public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
+<b>نانوبوت</b>
+</a><br/>
+<sub>⭐ 20.9 ألف</sub>
+</TD>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/sipeed/picoclaw">
+<img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
+<b>بيكوكلاو</b>
+</a><br/>
+<sub>⭐ 14.6 ألف</sub>
+</TD>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/zeroclaw-labs/zeroclaw">
+<img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
+<b>المخلب الصفري</b>
+</a><br/>
+<sub>⭐ 9.9 ألف</sub>
+</TD>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/nearai/ironclaw">
+<img src="./public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
+<b>المخلب الحديدي</b>
+</a><br/>
+<sub>⭐ 2.1 كيلو</sub>
+</TD>
+</tr>
+<تر>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/anomalyco/opencode">
+<img src="./public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
+<b>الرمز المفتوح</b>
+</a><br/>
+<sub>⭐ 106 كيلو</sub>
+</TD>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/openai/codex">
+<img src="./public/providers/codex.png" alt="Codex CLI" width="48"/><br/>
+<b>Codex CLI</b>
+</a><br/>
+<sub>⭐ 60.8 ألف</sub>
+</TD>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/anthropics/claude-code">
+<img src="./public/providers/claude.png" alt="Claude Code" width="48"/><br/>
+<b>كلود كود</b>
+</a><br/>
+<sub>⭐ 67.3 ألف</sub>
+</TD>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/google-gemini/gemini-cli">
+<img src="./public/providers/gemini-cli.png" alt="Gemini CLI" width="48"/><br/>
+<b>CLI الجوزاء</b>
+</a><br/>
+<sub>⭐ 94.7 ألف</sub>
+</TD>
+<td محاذاة = "مركز" العرض = "110">
+<a href="https://github.com/Kilo-Org/kilocode">
+<img src="./public/providers/kilocode.png" alt="Kilo Code" width="48"/><br/>
+<b>كود الكيلو</b>
+</a><br/>
+<sub>⭐ 15.5 ألف</sub>
+</TD>
+</tr>
+</الجدول>
 
-<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config, unlimited models and quota</sub>
-
----
+<sub>📡 يتصل جميع الوكلاء عبر <code>http://localhost:20128/v1</code> أو <code>http://cloud.omniroute.online/v1</code> - تكوين واحد ونماذج وحصة غير محدودة</sub>---
 
 ## 🤔 Why OmniRoute?
 
-**Stop wasting money and hitting limits:**
+**توقف عن إهدار المال وضرب الحدود:**
 
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Subscription quota expires unused every month
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Rate limits stop you mid-coding
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Expensive APIs ($20-50/month per provider)
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Manual switching between providers
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> تنتهي صلاحية حصة الاشتراك غير المستخدمة كل شهر
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> حدود المعدل تمنعك من الترميز المتوسط
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> واجهات برمجة التطبيقات باهظة الثمن (20-50 دولارًا شهريًا لكل مزود)
+- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> التبديل اليدوي بين مقدمي الخدمة
 
-**OmniRoute solves this:**
+**OmniRoute يحل هذا:**
 
-- ✅ **Maximize subscriptions** - Track quota, use every bit before reset
-- ✅ **Auto fallback** - Subscription → API Key → Cheap → Free, zero downtime
-- ✅ **Multi-account** - Round-robin between accounts per provider
-- ✅ **Universal** - Works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
-
----
+- ✅**تعظيم الاشتراكات**- تتبع الحصة، استخدم كل جزء منها قبل إعادة التعيين
+- ✅**الرجوع التلقائي**- الاشتراك → مفتاح واجهة برمجة التطبيقات → رخيص → مجاني، بدون توقف
+- ✅**حسابات متعددة**- جولة روبن بين الحسابات لكل مزود
+- ✅**عالمي**- يعمل مع Claude Code وCodex وGemini CLI وCursor وCline وOpenClaw وأي أداة CLI---
 
 ## 📧 Support
 
-> 💬 **Join our community!** [WhatsApp Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Get help, share tips, and stay updated.
+> 💬**انضم إلى مجتمعنا!**[مجموعة WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — احصل على المساعدة وشارك النصائح وابق على اطلاع.
 
-- **Website**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
-- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md), open a PR, or pick a `good first issue`
-- **Original Project**: [9router by decolua](https://github.com/decolua/9router)
+-**الموقع الإلكتروني**: [omniroute.online](https://omniroute.online) -**GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) -**المشاكل**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**WhatsApp**: [مجموعة المجتمع](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) -**المساهمة**: راجع [CONTRIBUTING.md](CONTRIBUTING.md)، أو افتح علاقة عامة، أو اختر `العدد الأول الجيد` -**المشروع الأصلي**: [9router بواسطة decolua](https://github.com/decolua/9router)### 🐛 Reporting a Bug?
 
-### 🐛 Reporting a Bug?
-
-When opening an issue, please run the system-info command and attach the generated file:
-
-```bash
+عند فتح مشكلة، يرجى تشغيل أمر معلومات النظام وإرفاق الملف الذي تم إنشاؤه:```bash
 npm run system-info
+
 ```
 
-This generates a `system-info.txt` with your Node.js version, OmniRoute version, OS details, installed CLI tools (qoder, gemini, claude, codex, antigravity, droid, etc.), Docker/PM2 status, and system packages — everything we need to reproduce your issue quickly. Attach the file directly to your GitHub issue.
-
----
+يؤدي هذا إلى إنشاء ملف "system-info.txt" مع إصدار Node.js، وإصدار OmniRoute، وتفاصيل نظام التشغيل، وأدوات CLI المثبتة (qoder، وgemini، و claude، وcodex، وantigravity، وdroid، وما إلى ذلك)، وحالة Docker/PM2، وحزم النظام - كل ما نحتاجه لإعادة إنتاج مشكلتك بسرعة. قم بإرفاق الملف مباشرة بمشكلة GitHub الخاصة بك.---
 
 ## 🔄 How It Works
 
 ```
+
 ┌─────────────┐
-│  Your CLI   │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
-│   Tool      │
+│ Your CLI │ (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
+│ Tool │
 └──────┬──────┘
-       │ http://localhost:20128/v1
-       ↓
+│ http://localhost:20128/v1
+↓
 ┌─────────────────────────────────────────┐
-│           OmniRoute (Smart Router)        │
-│  • Format translation (OpenAI ↔ Claude) │
-│  • Quota tracking + Embeddings + Images │
-│  • Auto token refresh                   │
+│ OmniRoute (Smart Router) │
+│ • Format translation (OpenAI ↔ Claude) │
+│ • Quota tracking + Embeddings + Images │
+│ • Auto token refresh │
 └──────┬──────────────────────────────────┘
-       │
-       ├─→ [Tier 1: SUBSCRIPTION] Claude Code, Codex, Gemini CLI
-       │   ↓ quota exhausted
-       ├─→ [Tier 2: API KEY] DeepSeek, Groq, xAI, Mistral, NVIDIA NIM, etc.
-       │   ↓ budget limit
-       ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
-       │   ↓ budget limit
-       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
+│
+├─→ [Tier 1: SUBSCRIPTION] Claude Code, Codex, Gemini CLI
+│ ↓ quota exhausted
+├─→ [Tier 2: API KEY] DeepSeek, Groq, xAI, Mistral, NVIDIA NIM, etc.
+│ ↓ budget limit
+├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
+│ ↓ budget limit
+└─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
 Result: Never stop coding, minimal cost
-```
+
+````
 
 ---
 
 ## 🎯 What OmniRoute Solves — 30 Real Pain Points & Use Cases
 
-> **Every developer using AI tools faces these problems daily.** OmniRoute was built to solve them all — from cost overruns to regional blocks, from broken OAuth flows to protocol operations and enterprise observability.
+>**يواجه كل مطور يستخدم أدوات الذكاء الاصطناعي هذه المشكلات يوميًا.**تم تصميم OmniRoute لحلها جميعًا — بدءًا من تجاوز التكاليف وحتى الكتل الإقليمية، ومن تدفقات OAuth المعطلة إلى عمليات البروتوكول وإمكانية مراقبة المؤسسة.
 
-<details>
-<summary><b>💸 1. "I pay for an expensive subscription but still get interrupted by limits"</b></summary>
+<التفاصيل>
+<summary><b>💸 1. "أدفع مقابل اشتراك باهظ الثمن ولكن لا يزال يتم مقاطعتي بسبب الحدود"</b></summary>
 
-Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Even paying, quota has a ceiling — 5h of usage, weekly limits, or per-minute rate limits. Mid-coding session, the provider stops responding and the developer loses flow and productivity.
+يدفع المطورون ما بين 20 إلى 200 دولار شهريًا مقابل Claude Pro أو Codex Pro أو GitHub Copilot. حتى عند الدفع، فإن الحصة لها حد أقصى — 5 ساعات من الاستخدام، أو حدود أسبوعية، أو حدود لسعر الدقيقة. في منتصف جلسة الترميز، يتوقف الموفر عن الاستجابة ويفقد المطور التدفق والإنتاجية.
 
-**How OmniRoute solves it:**
+**كيف يحل OmniRoute المشكلة:**
 
-- **Smart 4-Tier Fallback** — If subscription quota runs out, automatically redirects to API Key → Cheap → Free with zero manual intervention
-- **Provider Limits Tracking** — Cached quota snapshots refresh on a server-side schedule (default `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) with manual refresh available in the UI
-- **Multi-Account Support** — Multiple accounts per provider with auto round-robin — when one runs out, switches to the next
-- **Custom Combos** — Customizable fallback chains with 9 balancing strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, strict-random)
-- **Codex Business Quotas** — Business/Team workspace quota monitoring directly in the dashboard
+-**الاحتياطي الذكي ذو 4 طبقات**— في حالة نفاد حصة الاشتراك، تتم إعادة التوجيه تلقائيًا إلى مفتاح واجهة برمجة التطبيقات ← رخيص ← مجاني بدون أي تدخل يدوي
+-**تتبع حدود الموفر**— يتم تحديث لقطات الحصص المخزنة مؤقتًا وفقًا لجدول من جانب الخادم (الافتراضي `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) مع توفر التحديث اليدوي في واجهة المستخدم
+-**دعم الحسابات المتعددة**— حسابات متعددة لكل مزود مع نظام روبن تلقائي — عند نفاد الحساب، يتم التبديل إلى التالي
+-**مجموعات مخصصة**— سلاسل احتياطية قابلة للتخصيص مع 9 إستراتيجيات موازنة (الأولوية، الموزونة، التعبئة أولاً، جولة روبن، P2C، عشوائي، الأقل استخدامًا، محسنة التكلفة، عشوائية صارمة)
+-**حصص الدستور الغذائي**— مراقبة حصص مساحة عمل الشركة/الفريق مباشرة في لوحة المعلومات</details>
 
-</details>
+<التفاصيل>
+<summary><b>🔌 2. "أحتاج إلى استخدام عدة موفري خدمات ولكن لكل منهم واجهة برمجة تطبيقات مختلفة"</b></summary>
 
-<details>
-<summary><b>🔌 2. "I need to use multiple providers but each has a different API"</b></summary>
+يستخدم OpenAI تنسيقًا واحدًا، ويستخدم Claude (Anthropic) تنسيقًا آخر، ويستخدم Gemini تنسيقًا آخر. إذا أراد أحد المطورين اختبار النماذج من موفري خدمات مختلفين أو إجراء بديل فيما بينهم، فسيحتاج إلى إعادة تكوين مجموعات تطوير البرامج (SDK)، وتغيير نقاط النهاية، والتعامل مع التنسيقات غير المتوافقة. لدى موفري الخدمة المخصصين (FriendLI، NIM) نقاط نهاية نموذجية غير قياسية.
 
-OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If a dev wants to test models from different providers or fallback between them, they need to reconfigure SDKs, change endpoints, deal with incompatible formats. Custom providers (FriendLI, NIM) have non-standard model endpoints.
+**كيف يحل OmniRoute المشكلة:**
 
-**How OmniRoute solves it:**
+-**نقطة النهاية الموحدة**— يعمل `http://localhost:20128/v1` كوكيل لجميع مقدمي الخدمة الذين يزيد عددهم عن 60
+-**تنسيق الترجمة**— تلقائي وشفاف: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
+-**تطهير الاستجابة**— إزالة الحقول غير القياسية (`x_groq`، `usage_breakdown`، `service_tier`) التي تكسر OpenAI SDK v1.83+
+-**تطبيع الدور**— تحويل "المطور" → "النظام" لمقدمي الخدمات غير التابعين لـ OpenAI؛ "النظام" → "المستخدم" لـ GLM/ERNIE
+-**Think Tag Extraction**— يستخرج كتل `<think>` من نماذج مثل DeepSeek R1 إلى ``reasoning_content'' القياسي
+-**الإخراج المنظم لـ Gemini**— التحويل التلقائي `json_schema` ← `responseMimeType`/`responseSchema`
+-**`stream` الافتراضي هو `false`**- يتماشى مع مواصفات OpenAI، ويتجنب SSE غير المتوقع في Python/Rust/Go SDKs</details>
 
-- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 60+ providers
-- **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
-- **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
-- **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
-- **Think Tag Extraction** — Extracts `<think>` blocks from models like DeepSeek R1 into standardized `reasoning_content`
-- **Structured Output for Gemini** — `json_schema` → `responseMimeType`/`responseSchema` automatic conversion
-- **`stream` defaults to `false`** — Aligns with OpenAI spec, avoiding unexpected SSE in Python/Rust/Go SDKs
+<التفاصيل>
+<summary><b>🌐 3. "يحظر مزود الذكاء الاصطناعي الخاص بي منطقتي/بلدي"</b></summary>
 
-</details>
+يقوم مقدمو الخدمة مثل OpenAI/Codex بحظر الوصول من مناطق جغرافية معينة. يحصل المستخدمون على أخطاء مثل `unsupported_country_region_territory` أثناء اتصالات OAuth وAPI. وهذا أمر محبط بشكل خاص للمطورين من البلدان النامية.
 
-<details>
-<summary><b>🌐 3. "My AI provider blocks my region/country"</b></summary>
+**كيف يحل OmniRoute المشكلة:**
 
-Providers like OpenAI/Codex block access from certain geographic regions. Users get errors like `unsupported_country_region_territory` during OAuth and API connections. This is especially frustrating for developers from developing countries.
+-**تكوين الوكيل ثلاثي المستوى**— وكيل قابل للتكوين على 3 مستويات: عالمي (كل حركة المرور)، لكل مزود (موفر واحد فقط)، ولكل اتصال/مفتاح
+-**شارات الوكيل المرمزة بالألوان**— المؤشرات المرئية: 🟢 الوكيل العالمي، 🟡 وكيل الموفر، 🔵 وكيل الاتصال، يظهر دائمًا عنوان IP
+-**تبادل رمز OAuth عبر الوكيل**— يمر تدفق OAuth أيضًا عبر الوكيل، مما يؤدي إلى حل مشكلة `unsupported_country_region_territory`
+-**اختبارات الاتصال عبر الوكيل**— تستخدم اختبارات الاتصال الوكيل الذي تم تكوينه (لا مزيد من التجاوز المباشر)
+-**دعم SOCKS5**— دعم وكيل SOCKS5 الكامل للتوجيه الخارجي
+-**انتحال بصمة إصبع TLS**— بصمة TLS تشبه المتصفح عبر `wreq-js` لتجاوز اكتشاف الروبوتات
+-**🔏 مطابقة بصمة CLI**— إعادة ترتيب الرؤوس وحقول النص لمطابقة التوقيعات الثنائية لـ CLI الأصلية، مما يقلل بشكل كبير من مخاطر الإبلاغ عن الحساب. يتم الحفاظ على عنوان IP الخاص بالوكيل — حيث يمكنك الحصول على إخفاء**و**IP في وقت واحد</details>
 
-**How OmniRoute solves it:**
+<التفاصيل>
+<summary><b>🆓 4. "أريد استخدام الذكاء الاصطناعي في البرمجة ولكن ليس لدي المال"</b></summary>
 
-- **3-Level Proxy Config** — Configurable proxy at 3 levels: global (all traffic), per-provider (one provider only), and per-connection/key
-- **Color-Coded Proxy Badges** — Visual indicators: 🟢 global proxy, 🟡 provider proxy, 🔵 connection proxy, always showing the IP
-- **OAuth Token Exchange Through Proxy** — OAuth flow also goes through the proxy, solving `unsupported_country_region_territory`
-- **Connection Tests via Proxy** — Connection tests use the configured proxy (no more direct bypass)
-- **SOCKS5 Support** — Full SOCKS5 proxy support for outbound routing
-- **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint via `wreq-js` to bypass bot detection
-- **🔏 CLI Fingerprint Matching** — Reorders headers and body fields to match native CLI binary signatures, drastically reducing account flagging risk. The proxy IP is preserved — you get both stealth **and** IP masking simultaneously
+لا يستطيع الجميع دفع ما بين 20 إلى 200 دولار شهريًا مقابل اشتراكات الذكاء الاصطناعي. يحتاج الطلاب والمطورون من البلدان الناشئة والهواة والمستقلون إلى الوصول إلى نماذج عالية الجودة بدون تكلفة.
 
-</details>
+**كيف يحل OmniRoute المشكلة:**
 
-<details>
-<summary><b>🆓 4. "I want to use AI for coding but I have no money"</b></summary>
+-**موفرو الطبقة المجانية المضمنون**— دعم أصلي لمقدمي الخدمة المجانية بنسبة 100%: Qoder (5 نماذج غير محدودة عبر OAuth: kimi-k2-thinking، qwen3-coder-plus، Deepseek-r1، minimax-m2، kimi-k2)، Qwen (4 نماذج غير محدودة: qwen3-coder-plus، qwen3-coder-flash، qwen3-coder-next، Vision-model)، Kiro (Claude + AWS Builder ID مجانًا)، Gemini CLI (180 ألف رمز مميز شهريًا مجانًا)
+-**Ollama Cloud**— نماذج Ollama المستضافة على السحابة على `api.ollama.com` مع فئة "الاستخدام الخفيف" مجانًا؛ استخدم البادئة `olmacloud/<model>`
+-**المجموعات المجانية فقط**— السلسلة `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = 0 USD/الشهر بدون أي توقف عن العمل
+-**NVIDIA NIM Free Access**— ~40 دورة في الدقيقة وصول مجاني للأبد إلى أكثر من 70 نموذجًا على build.nvidia.com (الانتقال من الاعتمادات إلى حدود المعدل النقي)
+-**استراتيجية التكلفة المحسنة**— استراتيجية التوجيه التي تختار تلقائيًا أرخص مزود متاح</details>
 
-Not everyone can pay $20–200/month for AI subscriptions. Students, devs from emerging countries, hobbyists, and freelancers need access to quality models at zero cost.
+<التفاصيل>
+<summary><b>🔒 5. "أحتاج إلى حماية بوابة الذكاء الاصطناعي الخاصة بي من الوصول غير المصرح به"</b></summary>
 
-**How OmniRoute solves it:**
+عند تعريض بوابة AI للشبكة (LAN، VPS، Docker)، يمكن لأي شخص لديه العنوان استهلاك الرموز المميزة/الحصة النسبية للمطور. بدون الحماية، تكون واجهات برمجة التطبيقات (API) عرضة لإساءة الاستخدام والحقن الفوري وإساءة الاستخدام.
 
-- **Free Tier Providers Built-in** — Native support for 100% free providers: Qoder (5 unlimited models via OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 unlimited models: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID for free), Gemini CLI (180K tokens/month free)
-- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
-- **Free-Only Combos** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
-- **NVIDIA NIM Free Access** — ~40 RPM dev-forever free access to 70+ models at build.nvidia.com (transitioning from credits to pure rate limits)
-- **Cost Optimized Strategy** — Routing strategy that automatically chooses the cheapest available provider
+**كيف يحل OmniRoute المشكلة:**
 
-</details>
+-**إدارة مفاتيح واجهة برمجة التطبيقات**— الإنشاء والتدوير وتحديد النطاق لكل مزود من خلال صفحة `/dashboard/api-manager` المخصصة
+-**أذونات على مستوى النموذج**— تقييد مفاتيح واجهة برمجة التطبيقات (API) على نماذج محددة (`openai/*`، أنماط أحرف البدل)، مع تبديل السماح للكل/تقييد
+-**API Endpoint Protection**— اطلب مفتاحًا لـ `/v1/models` واحظر موفري خدمة محددين من القائمة
+-**Auth Guard + CSRF Protection**— جميع مسارات لوحة المعلومات محمية بالبرمجيات الوسيطة `withAuth` + رموز CSRF المميزة
+-**محدد المعدل**— تحديد معدل لكل IP مع نوافذ قابلة للتكوين
+-**تصفية IP**— القائمة المسموح بها/القائمة المحظورة للتحكم في الوصول
+-**حماية الحقن الفوري**— التعقيم ضد أنماط المطالبة الضارة
+-**تشفير AES-256-GCM**— بيانات الاعتماد مشفرة في حالة عدم النشاط</details>
 
-<details>
-<summary><b>🔒 5. "I need to protect my AI gateway from unauthorized access"</b></summary>
+<التفاصيل>
+<summary><b>🛑 6. "تعطل مزود الخدمة الخاص بي وفقدت تدفق الترميز الخاص بي"</b></summary>
 
-When exposing an AI gateway to the network (LAN, VPS, Docker), anyone with the address can consume the developer's tokens/quota. Without protection, APIs are vulnerable to misuse, prompt injection, and abuse.
+يمكن أن يصبح موفرو الذكاء الاصطناعي غير مستقرين، أو يعرضون أخطاء 5xx، أو يصلون إلى حدود المعدلات المؤقتة. إذا كان أحد المطورين يعتمد على موفر واحد، فسيتم مقاطعته. بدون قواطع الدائرة، يمكن أن تؤدي عمليات إعادة المحاولة المتكررة إلى تعطل التطبيق.
 
-**How OmniRoute solves it:**
+**كيف يحل OmniRoute المشكلة:**
 
-- **API Key Management** — Generation, rotation, and scoping per provider with a dedicated `/dashboard/api-manager` page
-- **Model-Level Permissions** — Restrict API keys to specific models (`openai/*`, wildcard patterns), with Allow All/Restrict toggle
-- **API Endpoint Protection** — Require a key for `/v1/models` and block specific providers from the listing
-- **Auth Guard + CSRF Protection** — All dashboard routes protected with `withAuth` middleware + CSRF tokens
-- **Rate Limiter** — Per-IP rate limiting with configurable windows
-- **IP Filtering** — Allowlist/blocklist for access control
-- **Prompt Injection Guard** — Sanitization against malicious prompt patterns
-- **AES-256-GCM Encryption** — Credentials encrypted at rest
+-**قاطع الدائرة لكل نموذج**— فتح/إغلاق تلقائي مع حدود قابلة للتكوين وفترة تهدئة (مغلق/مفتوح/نصف مفتوح)، محدد النطاق لكل نموذج لتجنب الكتل المتتالية
+-**التراجع الأسي**— تأخير إعادة المحاولة التدريجي
+-**مكافحة الرعد القطيع**— Mutex + حماية الإشارة ضد عواصف إعادة المحاولة المتزامنة
+-**السلاسل الاحتياطية المجمعة**— إذا فشل الموفر الأساسي، فسيتم دخوله تلقائيًا عبر السلسلة دون أي تدخل
+-**Combo Circuit Breaker**— التعطيل التلقائي لمقدمي الخدمات الفاشلين ضمن سلسلة التحرير والسرد
+-**لوحة معلومات الصحة**— مراقبة وقت التشغيل، وحالات قاطع الدائرة، وعمليات التأمين، وإحصائيات ذاكرة التخزين المؤقت، ووقت الاستجابة p50/p95/p99</details>
 
-</details>
+<التفاصيل>
+<summary><b>🔧 7. "تكوين كل أداة من أدوات الذكاء الاصطناعي أمر ممل ومتكرر"</b></summary>
 
-<details>
-<summary><b>🛑 6. "My provider went down and I lost my coding flow"</b></summary>
+يستخدم المطورون Cursor وClaude Code وCodex CLI وOpenClaw وGemini CLI وKilo Code... تحتاج كل أداة إلى تكوين مختلف (نقطة نهاية واجهة برمجة التطبيقات، المفتاح، النموذج). تعد إعادة التكوين عند تبديل مقدمي الخدمات أو النماذج مضيعة للوقت.
 
-AI providers can become unstable, return 5xx errors, or hit temporary rate limits. If a dev depends on a single provider, they're interrupted. Without circuit breakers, repeated retries can crash the application.
+**كيف يحل OmniRoute المشكلة:**
 
-**How OmniRoute solves it:**
+-**لوحة تحكم أدوات CLI**— صفحة مخصصة مع إعداد بنقرة واحدة لـ Claude Code، وCodex CLI، وOpenClaw، وKilo Code، وAntigravity، وCline
+-**GitHub Copilot Config Generator**— يُنشئ `chatLanguageModels.json` لرمز VS مع تحديد نموذج مجمع
+-**معالج الإعداد**— إعداد إرشادي من 4 خطوات للمستخدمين لأول مرة
+-**نقطة نهاية واحدة، جميع النماذج**— قم بتكوين `http://localhost:20128/v1` مرة واحدة، والوصول إلى أكثر من 60 موفرًا</details>
 
-- **Circuit Breaker per-model** — Auto-open/close with configurable thresholds and cooldown (Closed/Open/Half-Open), scoped per-model to avoid cascading blocks
-- **Exponential Backoff** — Progressive retry delays
-- **Anti-Thundering Herd** — Mutex + semaphore protection against concurrent retry storms
-- **Combo Fallback Chains** — If the primary provider fails, automatically falls through the chain with no intervention
-- **Combo Circuit Breaker** — Auto-disables failing providers within a combo chain
-- **Health Dashboard** — Uptime monitoring, circuit breaker states, lockouts, cache stats, p50/p95/p99 latency
+<التفاصيل>
+<summary><b>🔑 8. "إدارة رموز OAuth المميزة من موفري خدمات متعددين أمر جحيم"</b></summary>
 
-</details>
+Claude Code، وCodex، وGemini CLI، وCopilot — جميعهم يستخدمون OAuth 2.0 مع الرموز المميزة التي تنتهي صلاحيتها. يحتاج المطورون إلى إعادة المصادقة باستمرار، والتعامل مع "سر_العميل مفقود"، و"إعادة توجيه_uri_mismatch"، وحالات الفشل على الخوادم البعيدة. يمثل OAuth على LAN/VPS مشكلة بشكل خاص.
 
-<details>
-<summary><b>🔧 7. "Configuring each AI tool is tedious and repetitive"</b></summary>
+**كيف يحل OmniRoute المشكلة:**
 
-Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code... Each tool needs a different config (API endpoint, key, model). Reconfiguring when switching providers or models is a waste of time.
+-**التحديث التلقائي للرمز المميز**— يتم تحديث رموز OAuth المميزة في الخلفية قبل انتهاء الصلاحية
+-**OAuth 2.0 (PKCE) مدمج**— التدفق التلقائي لـ Claude Code وCodex وGemini CLI وCopilot وKiro وQwen وQoder
+-**OAuth متعدد الحسابات**— حسابات متعددة لكل مزود عبر استخراج الرمز المميز JWT/ID
+-**OAuth LAN/Remote Fix**— اكتشاف IP الخاص لـ `redirect_uri` + وضع URL اليدوي للخوادم البعيدة
+-**OAuth Behind Nginx**— يستخدم window.location.origin للتوافق العكسي مع الوكيل
+-**دليل OAuth عن بعد**— دليل خطوة بخطوة لبيانات اعتماد Google Cloud على VPS/Docker</details>
 
-**How OmniRoute solves it:**
+<التفاصيل>
+<summary><b>📊 9. "لا أعرف كم أنفق أو أين"</b></summary>
 
-- **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
-- **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
-- **Onboarding Wizard** — Guided 4-step setup for first-time users
-- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 60+ providers
+يستخدم المطورون العديد من مقدمي الخدمات المدفوعة ولكن ليس لديهم رؤية موحدة للإنفاق. يمتلك كل مزود خدمة لوحة تحكم الفوترة الخاصة به، ولكن لا يوجد عرض موحد. التكاليف غير المتوقعة يمكن أن تتراكم.
 
-</details>
+**كيف يحل OmniRoute المشكلة:**
 
-<details>
-<summary><b>🔑 8. "Managing OAuth tokens from multiple providers is hell"</b></summary>
+-**لوحة معلومات تحليلات التكلفة**— تتبع التكلفة لكل رمز مميز وإدارة الميزانية لكل مزود
+-**حدود الميزانية لكل طبقة**— سقف الإنفاق لكل طبقة يؤدي إلى حدوث تراجع تلقائي
+-**تكوين التسعير لكل نموذج**— أسعار قابلة للتكوين لكل نموذج
+-**إحصاءات الاستخدام لكل مفتاح API**— عدد الطلبات والطابع الزمني الأخير المستخدم لكل مفتاح
+-**لوحة التحكم التحليلية**— بطاقات الإحصائيات، ومخطط استخدام النموذج، وجدول الموفر مع معدلات النجاح وزمن الوصول</details>
 
-Claude Code, Codex, Gemini CLI, Copilot — all use OAuth 2.0 with expiring tokens. Developers need to re-authenticate constantly, deal with `client_secret is missing`, `redirect_uri_mismatch`, and failures on remote servers. OAuth on LAN/VPS is particularly problematic.
+<التفاصيل>
+<summary><b>🐛 10. "لا أستطيع تشخيص الأخطاء والمشكلات في مكالمات الذكاء الاصطناعي"</b></summary>
 
-**How OmniRoute solves it:**
+عندما تفشل المكالمة، لا يعرف المطور ما إذا كان هناك حد للسعر، أو رمز مميز منتهي الصلاحية، أو تنسيق خاطئ، أو خطأ في الموفر. سجلات مجزأة عبر محطات مختلفة. وبدون إمكانية الملاحظة، يكون تصحيح الأخطاء عبارة عن تجربة وخطأ.
 
-- **Auto Token Refresh** — OAuth tokens refresh in background before expiration
-- **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
-- **Multi-Account OAuth** — Multiple accounts per provider via JWT/ID token extraction
-- **OAuth LAN/Remote Fix** — Private IP detection for `redirect_uri` + manual URL mode for remote servers
-- **OAuth Behind Nginx** — Uses `window.location.origin` for reverse proxy compatibility
-- **Remote OAuth Guide** — Step-by-step guide for Google Cloud credentials on VPS/Docker
+**كيف يحل OmniRoute المشكلة:**
 
-</details>
+-**لوحة تحكم السجلات الموحدة**— 4 علامات تبويب: سجلات الطلبات، وسجلات الوكيل، وسجلات التدقيق، ووحدة التحكم
+-**عارض سجل وحدة التحكم**— عارض بنمط المحطة الطرفية في الوقت الفعلي مع مستويات مرمزة بالألوان، والتمرير التلقائي، والبحث، والتصفية
+-**سجلات وكيل SQLite**— السجلات المستمرة التي تستمر حتى بعد إعادة تشغيل الخادم
+-**ساحة المترجم**— 4 أوضاع لتصحيح الأخطاء: ساحة اللعب (ترجمة التنسيق)، اختبار الدردشة (ذهابًا وإيابًا)، منصة الاختبار (دفعة)، المراقبة المباشرة (في الوقت الفعلي)
+-**قياس الطلب عن بعد**— زمن الاستجابة p50/p95/p99 + تتبع معرف طلب X
+-**التسجيل المستند إلى الملف مع التدوير**— يتم تدوير سجلات التطبيق حسب الحجم وأيام الاحتفاظ وعدد الأرشيف؛ يتم تدوير عناصر سجل المكالمات حسب أيام الاحتفاظ وعدد الملفات
+-**تقرير معلومات النظام**— يُنشئ `npm run system-info` ملف `system-info.txt` مع بيئتك الكاملة (إصدار Node، إصدار OmniRoute، نظام التشغيل، أدوات CLI، حالة Docker/PM2). قم بإرفاقه عند الإبلاغ عن مشكلات للفرز الفوري.</details>
 
-<details>
-<summary><b>📊 9. "I don't know how much I'm spending or where"</b></summary>
+<التفاصيل>
+<summary><b>🏗️ 11. "إن نشر البوابة وصيانتها أمر معقد"</b></summary>
 
-Developers use multiple paid providers but have no unified view of spending. Each provider has its own billing dashboard, but there's no consolidated view. Unexpected costs can pile up.
+يعد تثبيت وكيل AI وتكوينه وصيانته عبر بيئات مختلفة (محلية، VPS، Docker، سحابية) عملية كثيفة العمالة. مشاكل مثل المسارات المضمنة، EACCES في الدلائل، وتعارضات المنافذ، والبنيات عبر الأنظمة الأساسية تزيد من الاحتكاك.
 
-**How OmniRoute solves it:**
+**كيف يحل OmniRoute المشكلة:**
 
-- **Cost Analytics Dashboard** — Per-token cost tracking and budget management per provider
-- **Budget Limits per Tier** — Spending ceiling per tier that triggers automatic fallback
-- **Per-Model Pricing Configuration** — Configurable prices per model
-- **Usage Statistics Per API Key** — Request count and last-used timestamp per key
-- **Analytics Dashboard** — Stat cards, model usage chart, provider table with success rates and latency
+-**تثبيت npm الشامل**— `npm install -g omniroute && omniroute` - تم
+-**منصة Docker المتعددة**— AMD64 + ARM64 الأصلي (Apple Silicon، AWS Graviton، Raspberry Pi)
+-**Docker Compose Profiles**— `base` (بدون أدوات CLI) و`cli` (مع Claude Code، وCodex، وOpenClaw)
+-**Electron Desktop App**— تطبيق أصلي لنظام التشغيل Windows/macOS/Linux مع علبة النظام، والتشغيل التلقائي، ووضع عدم الاتصال
+-**وضع المنفذ المقسم**— واجهة برمجة التطبيقات ولوحة المعلومات على منافذ منفصلة للسيناريوهات المتقدمة (الوكيل العكسي، وشبكات الحاويات)
+-**Cloud Sync**— مزامنة التكوين عبر الأجهزة عبر Cloudflare Workers
+-**النسخ الاحتياطية لقاعدة البيانات**— النسخ الاحتياطي التلقائي لجميع الإعدادات واستعادتها وتصديرها واستيرادها، باستخدام `DISABLE_SQLITE_AUTO_BACKUP` للنسخ الاحتياطية المُدارة خارجيًا</details>
 
-</details>
+<التفاصيل>
+<summary><b>🌍 12. "الواجهة باللغة الإنجليزية فقط وفريقي لا يتحدث الإنجليزية"</b></summary>
 
-<details>
-<summary><b>🐛 10. "I can't diagnose errors and problems in AI calls"</b></summary>
+تواجه الفرق في البلدان غير الناطقة باللغة الإنجليزية، وخاصة في أمريكا اللاتينية وآسيا وأوروبا، صعوبة في التعامل مع الواجهات التي تستخدم اللغة الإنجليزية فقط. تعمل حواجز اللغة على تقليل الاعتماد وزيادة أخطاء التكوين.
 
-When a call fails, the dev doesn't know if it was a rate limit, expired token, wrong format, or provider error. Fragmented logs across different terminals. Without observability, debugging is trial-and-error.
+**كيف يحل OmniRoute المشكلة:**
 
-**How OmniRoute solves it:**
+-**لوحة المعلومات i18n — 30 لغة**— أكثر من 500 مفتاح مترجم بما في ذلك العربية والبلغارية والدنماركية والألمانية والإسبانية والفنلندية والفرنسية والعبرية والهندية والمجرية والإندونيسية والإيطالية واليابانية والكورية والماليزية والهولندية والنرويجية والبولندية والبرتغالية (PT/BR) والرومانية والروسية والسلوفاكية والسويدية والتايلاندية والأوكرانية والفيتنامية والصينية والفلبينية والإنجليزية
+-**دعم RTL**— دعم من اليمين إلى اليسار للغتين العربية والعبرية
+-**الملفات التمهيدية متعددة اللغات**— 30 ترجمة كاملة للوثائق
+-**محدد اللغة**— رمز الكرة الأرضية في رأس الصفحة للتبديل في الوقت الفعلي</details>
 
-- **Unified Logs Dashboard** — 4 tabs: Request Logs, Proxy Logs, Audit Logs, Console
-- **Console Log Viewer** — Real-time terminal-style viewer with color-coded levels, auto-scroll, search, filter
-- **SQLite Proxy Logs** — Persistent logs that survive server restarts
-- **Translator Playground** — 4 debugging modes: Playground (format translation), Chat Tester (round-trip), Test Bench (batch), Live Monitor (real-time)
-- **Request Telemetry** — p50/p95/p99 latency + X-Request-Id tracing
-- **File-Based Logging with Rotation** — App logs rotate by size, retention days, and archive count; call log artifacts rotate by retention days and file count
-- **System Info Report** — `npm run system-info` generates `system-info.txt` with your full environment (Node version, OmniRoute version, OS, CLI tools, Docker/PM2 status). Attach it when reporting issues for instant triage.
+<التفاصيل>
+<summary><b>🔄 13. "أحتاج إلى أكثر من مجرد الدردشة - أحتاج إلى التضمين والصور والصوت"</b></summary>
 
-</details>
+الذكاء الاصطناعي ليس مجرد استكمال للدردشة. يحتاج المطورون إلى إنشاء صور، ونسخ الصوت، وإنشاء تضمينات لـ RAG، وإعادة ترتيب المستندات، والإشراف على المحتوى. تحتوي كل واجهة برمجة تطبيقات على نقطة نهاية وتنسيق مختلفين.
 
-<details>
-<summary><b>🏗️ 11. "Deploying and maintaining the gateway is complex"</b></summary>
+**كيف يحل OmniRoute المشكلة:**
 
-Installing, configuring, and maintaining an AI proxy across different environments (local, VPS, Docker, cloud) is labor-intensive. Problems like hardcoded paths, `EACCES` on directories, port conflicts, and cross-platform builds add friction.
+-**Embeddings**— `/v1/embeddings` مع 6 موفري خدمات وأكثر من 9 نماذج
+-**إنشاء الصور**— `/v1/images/ Generations` مع 10 موفرين وأكثر من 20 نموذجًا (OpenAI، وxAI، وTogether، وFireworks، وNebius، وHyperbolic، وNanoBanana، وAntigravity، وSD WebUI، وComfyUI)
+-**تحويل النص إلى فيديو**— `/v1/videos/أجيال` — ComfyUI (AnimateDiff، SVD) وSD WebUI
+-**تحويل النص إلى موسيقى**— `/v1/music/generations` — ComfyUI (صوت ثابت مفتوح، MusicGen)
+-**نسخ الصوت**— `/v1/audio/transcriptions` — Whisper + Nvidia NIM، HuggingFace، Qwen3
+-**تحويل النص إلى كلام**— `/v1/audio/speech` — ElevenLabs، Nvidia NIM، HuggingFace، Coqui، Tortoise، Qwen3،**Inworld**،**Cartesia**،**PlayHT**، + مقدمي الخدمة الحاليين
+-**الإشراف**— `/v1/moderations` — التحقق من سلامة المحتوى
+-**إعادة الترتيب**— `/v1/rerank` — إعادة ترتيب مدى ملاءمة الوثيقة
+-**Responses API**— الدعم الكامل `/v1/responses` لـ Codex</details>
 
-**How OmniRoute solves it:**
+<التفاصيل>
+<summary><b>🧪 14. "ليس لدي طريقة لاختبار ومقارنة الجودة عبر النماذج"</b></summary>
 
-- **npm global install** — `npm install -g omniroute && omniroute` — done
-- **Docker Multi-Platform** — AMD64 + ARM64 native (Apple Silicon, AWS Graviton, Raspberry Pi)
-- **Docker Compose Profiles** — `base` (no CLI tools) and `cli` (with Claude Code, Codex, OpenClaw)
-- **Electron Desktop App** — Native app for Windows/macOS/Linux with system tray, auto-start, offline mode
-- **Split-Port Mode** — API and Dashboard on separate ports for advanced scenarios (reverse proxy, container networking)
-- **Cloud Sync** — Config synchronization across devices via Cloudflare Workers
-- **DB Backups** — Automatic backup, restore, export and import of all settings, with `DISABLE_SQLITE_AUTO_BACKUP` for externally managed backups
+يرغب المطورون في معرفة النموذج الأفضل لحالة الاستخدام الخاصة بهم - التعليمات البرمجية، والترجمة، والتفكير - ولكن المقارنة يدويًا بطيئة. لا توجد أدوات تقييم متكاملة.
 
-</details>
+**كيف يحل OmniRoute المشكلة:**
 
-<details>
-<summary><b>🌍 12. "The interface is English-only and my team doesn't speak English"</b></summary>
+-**تقييمات LLM**— اختبار المجموعة الذهبية مع 10 حالات محملة مسبقًا تغطي التحيات، والرياضيات، والجغرافيا، وإنشاء التعليمات البرمجية، والامتثال لـ JSON، والترجمة، وتخفيض السعر، والرفض الآمن
+-**4 إستراتيجيات المطابقة**— `exact`، `contains`، `regex`، `custom` (وظيفة JS)
+-**منصة اختبار ساحة المترجم**— اختبار الدفعات بمدخلات متعددة ومخرجات متوقعة، ومقارنة بين الموفرين
+-**أداة اختبار الدردشة**— رحلة ذهابًا وإيابًا كاملة مع عرض الاستجابة المرئية
+-**المراقبة المباشرة**— البث المباشر لجميع الطلبات المتدفقة عبر الوكيل</details>
 
-Teams in non-English-speaking countries, especially in Latin America, Asia, and Europe, struggle with English-only interfaces. Language barriers reduce adoption and increase configuration errors.
+<التفاصيل>
+<summary><b>📈 15. "أحتاج إلى التوسع دون فقدان الأداء"</b></summary>
 
-**How OmniRoute solves it:**
+مع نمو حجم الطلب، يؤدي عدم التخزين المؤقت لنفس الأسئلة إلى توليد تكاليف مكررة. دون العجز، طلبات مكررة معالجة النفايات. يجب احترام حدود الأسعار لكل مزود.
 
-- **Dashboard i18n — 30 Languages** — All 500+ keys translated including Arabic, Bulgarian, Danish, German, Spanish, Finnish, French, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese (PT/BR), Romanian, Russian, Slovak, Swedish, Thai, Ukrainian, Vietnamese, Chinese, Filipino, English
-- **RTL Support** — Right-to-left support for Arabic and Hebrew
-- **Multi-Language READMEs** — 30 complete documentation translations
-- **Language Selector** — Globe icon in header for real-time switching
+**كيف يحل OmniRoute المشكلة:**
 
-</details>
+-**ذاكرة التخزين المؤقت الدلالية**— تعمل ذاكرة التخزين المؤقت ذات المستويين (التوقيع + الدلالي) على تقليل التكلفة ووقت الاستجابة
+-**صلاحية الطلب**— نافذة إلغاء البيانات المكررة لمدة 5 ثوانٍ للطلبات المتماثلة
+-**الكشف عن حدود المعدل**— عدد الدورات في الدقيقة لكل مزود، والفجوة الدنيا، والحد الأقصى للتتبع المتزامن
+-**حدود المعدل القابلة للتحرير**— الإعدادات الافتراضية القابلة للتكوين في الإعدادات → المرونة مع الثبات
+-**ذاكرة التخزين المؤقت للتحقق من صحة مفتاح واجهة برمجة التطبيقات**— ذاكرة تخزين مؤقت ثلاثية الطبقات لأداء الإنتاج
+-**لوحة معلومات الصحة مع القياس عن بعد**— زمن الاستجابة p50/p95/p99، وإحصائيات ذاكرة التخزين المؤقت، ووقت التشغيل</details>
 
-<details>
-<summary><b>🔄 13. "I need more than chat — I need embeddings, images, audio"</b></summary>
+<التفاصيل>
+<summary><b>🤖 16. "أريد التحكم في سلوك النموذج عالميًا"</b></summary>
 
-AI isn't just chat completion. Devs need to generate images, transcribe audio, create embeddings for RAG, rerank documents, and moderate content. Each API has a different endpoint and format.
+المطورون الذين يريدون جميع الاستجابات بلغة معينة، بنبرة معينة، أو يريدون الحد من الرموز المميزة للاستدلال. يعد تكوين هذا في كل أداة/طلب أمرًا غير عملي.
 
-**How OmniRoute solves it:**
+**كيف يحل OmniRoute المشكلة:**
 
-- **Embeddings** — `/v1/embeddings` with 6 providers and 9+ models
-- **Image Generation** — `/v1/images/generations` with 10 providers and 20+ models (OpenAI, xAI, Together, Fireworks, Nebius, Hyperbolic, NanoBanana, Antigravity, SD WebUI, ComfyUI)
-- **Text-to-Video** — `/v1/videos/generations` — ComfyUI (AnimateDiff, SVD) and SD WebUI
-- **Text-to-Music** — `/v1/music/generations` — ComfyUI (Stable Audio Open, MusicGen)
-- **Audio Transcription** — `/v1/audio/transcriptions` — Whisper + Nvidia NIM, HuggingFace, Qwen3
-- **Text-to-Speech** — `/v1/audio/speech` — ElevenLabs, Nvidia NIM, HuggingFace, Coqui, Tortoise, Qwen3, **Inworld**, **Cartesia**, **PlayHT**, + existing providers
-- **Moderations** — `/v1/moderations` — Content safety checks
-- **Reranking** — `/v1/rerank` — Document relevance reranking
-- **Responses API** — Full `/v1/responses` support for Codex
+-**الحقن الفوري للنظام**— يتم تطبيق المطالبة العامة على جميع الطلبات
+-**التحقق من صحة ميزانية التفكير**— التحكم في تخصيص الرمز المميز لكل طلب (العبور، التلقائي، المخصص، التكيفي)
+-**9 استراتيجيات التوجيه**— استراتيجيات عالمية تحدد كيفية توزيع الطلبات
+-**Wildcard Router**— يتم توجيه أنماط `المزود/*` ديناميكيًا إلى أي مزود
+-**تبديل تمكين/تعطيل التحرير والسرد**— تبديل المجموعات مباشرة من لوحة المعلومات
+-**تبديل الموفر**— تمكين/تعطيل جميع اتصالات الموفر بنقرة واحدة
+-**موفري الخدمة المحظورون**— استبعاد موفري خدمة محددين من قائمة `/v1/models`</details>
 
-</details>
+<التفاصيل>
+<summary><b>🧰 17. "أحتاج إلى أدوات MCP كقدرات منتج من الدرجة الأولى"</b></summary>
 
-<details>
-<summary><b>🧪 14. "I have no way to test and compare quality across models"</b></summary>
+تعرض العديد من بوابات الذكاء الاصطناعي MCP فقط كتفاصيل تنفيذ مخفية. تحتاج الفرق إلى طبقة تشغيل مرئية ويمكن التحكم فيها.
 
-Developers want to know which model is best for their use case — code, translation, reasoning — but comparing manually is slow. No integrated eval tools exist.
+**كيف يحل OmniRoute المشكلة:**
 
-**How OmniRoute solves it:**
+- يظهر MCP في لوحة التحكم وعلامة تبويب بروتوكول نقطة النهاية
+- صفحة إدارة MCP مخصصة تحتوي على العمليات والأدوات والنطاقات والتدقيق
+- بداية سريعة مدمجة لـ `omniroute --mcp` وتأهيل العميل</details>
 
-- **LLM Evaluations** — Golden set testing with 10 pre-loaded cases covering greetings, math, geography, code generation, JSON compliance, translation, markdown, safety refusal
-- **4 Match Strategies** — `exact`, `contains`, `regex`, `custom` (JS function)
-- **Translator Playground Test Bench** — Batch testing with multiple inputs and expected outputs, cross-provider comparison
-- **Chat Tester** — Full round-trip with visual response rendering
-- **Live Monitor** — Real-time stream of all requests flowing through the proxy
+<التفاصيل>
+<summary><b>🧠 18. "أحتاج إلى تنسيق A2A مع مسارات المهام المتزامنة والدفقية"</b></summary>
 
-</details>
+تحتاج مسارات عمل الوكيل إلى ردود مباشرة وتنفيذ متدفق طويل الأمد مع التحكم في دورة الحياة.
 
-<details>
-<summary><b>📈 15. "I need to scale without losing performance"</b></summary>
+**كيف يحل OmniRoute المشكلة:**
 
-As request volume grows, without caching the same questions generate duplicate costs. Without idempotency, duplicate requests waste processing. Per-provider rate limits must be respected.
+- نقطة نهاية A2A JSON-RPC (`POST /a2a`) مع `message/send` و`message/stream`
+- تدفق SSE مع انتشار الحالة الطرفية
+- واجهات برمجة التطبيقات الخاصة بدورة حياة المهام لـ "المهام/الحصول" و"المهام/الإلغاء".</details>
 
-**How OmniRoute solves it:**
+<التفاصيل>
+<summary><b>🛰️ 19. "أحتاج إلى صحة عملية MCP حقيقية، وليس حالة تخمينية"</b></summary>
 
-- **Semantic Cache** — Two-tier cache (signature + semantic) reduces cost and latency
-- **Request Idempotency** — 5s deduplication window for identical requests
-- **Rate Limit Detection** — Per-provider RPM, min gap, and max concurrent tracking
-- **Editable Rate Limits** — Configurable defaults in Settings → Resilience with persistence
-- **API Key Validation Cache** — 3-tier cache for production performance
-- **Health Dashboard with Telemetry** — p50/p95/p99 latency, cache stats, uptime
+تحتاج الفرق التشغيلية إلى معرفة ما إذا كان MCP حيًا بالفعل، وليس فقط ما إذا كان يمكن الوصول إلى واجهة برمجة التطبيقات (API).
 
-</details>
+**كيف يحل OmniRoute المشكلة:**
 
-<details>
-<summary><b>🤖 16. "I want to control model behavior globally"</b></summary>
+- ملف نبضات وقت التشغيل مع PID والطوابع الزمنية والنقل وعدد الأدوات ووضع النطاق
+- واجهة برمجة تطبيقات حالة MCP التي تجمع بين نبضات القلب + النشاط الأخير
+- بطاقات حالة واجهة المستخدم للعملية/وقت التشغيل/نضارة نبضات القلب</details>
 
-Developers who want all responses in a specific language, with a specific tone, or want to limit reasoning tokens. Configuring this in every tool/request is impractical.
+<التفاصيل>
+<summary><b>📋 20. "أحتاج إلى تنفيذ أداة MCP قابلة للتدقيق"</b></summary>
 
-**How OmniRoute solves it:**
+عندما تقوم الأدوات بتغيير التكوين أو تشغيل إجراءات العمليات، تحتاج الفرق إلى إمكانية التتبع الجنائي.
 
-- **System Prompt Injection** — Global prompt applied to all requests
-- **Thinking Budget Validation** — Reasoning token allocation control per request (passthrough, auto, custom, adaptive)
-- **9 Routing Strategies** — Global strategies that determine how requests are distributed
-- **Wildcard Router** — `provider/*` patterns route dynamically to any provider
-- **Combo Enable/Disable Toggle** — Toggle combos directly from the dashboard
-- **Provider Toggle** — Enable/disable all connections for a provider with one click
-- **Blocked Providers** — Exclude specific providers from `/v1/models` listing
+**كيف يحل OmniRoute المشكلة:**
 
-</details>
+- تسجيل التدقيق المدعوم من SQLite لاستدعاءات أداة MCP
+- عوامل التصفية حسب الأداة، والنجاح/الفشل، ومفتاح API، وترقيم الصفحات
+- جدول تدقيق لوحة المعلومات + إحصائيات نقاط النهاية للأتمتة</details>
 
-<details>
-<summary><b>🧰 17. "I need MCP tools as first-class product capabilities"</b></summary>
+<التفاصيل>
+<summary><b>🔐 21. "أحتاج إلى أذونات MCP محددة لكل عملية تكامل"</b></summary>
 
-Many AI gateways expose MCP only as a hidden implementation detail. Teams need a visible, manageable operation layer.
+يجب أن يتمتع العملاء المختلفون بإمكانية الوصول الأقل امتيازًا إلى فئات الأدوات.
 
-**How OmniRoute solves it:**
+**كيف يحل OmniRoute المشكلة:**
 
-- MCP appears in the dashboard navigation and endpoint protocol tab
-- Dedicated MCP management page with process, tools, scopes, and audit
-- Built-in quick-start for `omniroute --mcp` and client onboarding
+- 10 نطاقات MCP محببة للتحكم في الوصول إلى الأدوات
+- إنفاذ النطاق والرؤية في واجهة مستخدم إدارة MCP
+- الوضع الافتراضي الآمن للأدوات التشغيلية</details>
 
-</details>
+<التفاصيل>
+<summary><b>⚙️ 22. "أحتاج إلى ضوابط تشغيلية دون إعادة الانتشار"</b></summary>
 
-<details>
-<summary><b>🧠 18. "I need A2A orchestration with sync + stream task paths"</b></summary>
+تحتاج الفرق إلى تغييرات سريعة في وقت التشغيل أثناء الحوادث أو أحداث التكلفة.
 
-Agent workflows need both direct replies and long-running streamed execution with lifecycle control.
+**كيف يحل OmniRoute المشكلة:**
 
-**How OmniRoute solves it:**
+- قم بتبديل تنشيط التحرير والسرد مباشرةً من لوحة معلومات MCP
+- تطبيق ملفات تعريف المرونة من حزم السياسات المحددة مسبقًا
+- إعادة ضبط حالة قاطع الدائرة من نفس لوحة العمليات</details>
 
-- A2A JSON-RPC endpoint (`POST /a2a`) with `message/send` and `message/stream`
-- SSE streaming with terminal state propagation
-- Task lifecycle APIs for `tasks/get` and `tasks/cancel`
+<التفاصيل>
+<summary><b>🔄 23. "أحتاج إلى رؤية وإلغاء مباشر لدورة حياة مهمة A2A"</b></summary>
 
-</details>
+وبدون رؤية دورة الحياة، يصبح من الصعب فرز حوادث المهام.
 
-<details>
-<summary><b>🛰️ 19. "I need real MCP process health, not guessed status"</b></summary>
+**كيف يحل OmniRoute المشكلة:**
 
-Operational teams need to know if MCP is actually alive, not just whether an API is reachable.
+- قائمة المهام/التصفية حسب الحالة/المهارة مع ترقيم الصفحات
+- التعمق في البيانات الوصفية للمهمة، والأحداث، والتحف
+- نقطة نهاية إلغاء المهمة وإجراء واجهة المستخدم مع التأكيد</details>
 
-**How OmniRoute solves it:**
+<التفاصيل>
+<summary><b>🌊 24. "أحتاج إلى مقاييس تيار نشطة لتحميل A2A"</b></summary>
 
-- Runtime heartbeat file with PID, timestamps, transport, tool count, and scope mode
-- MCP status API combining heartbeat + recent activity
-- UI status cards for process/uptime/heartbeat freshness
+يتطلب تدفق سير العمل رؤية تشغيلية للتزامن والاتصالات المباشرة.
 
-</details>
+**كيف يحل OmniRoute المشكلة:**
 
-<details>
-<summary><b>📋 20. "I need auditable MCP tool execution"</b></summary>
+- عدادات التدفق النشطة مدمجة في حالة A2A
+- الطابع الزمني للمهمة الأخيرة وعدد كل ولاية
+- بطاقات لوحة القيادة A2A لمراقبة العمليات في الوقت الفعلي</details>
 
-When tools mutate config or trigger ops actions, teams need forensic traceability.
+<التفاصيل>
+<summary><b>🪪 25. "أحتاج إلى اكتشاف وكيل قياسي للعملاء"</b></summary>
 
-**How OmniRoute solves it:**
+يحتاج العملاء والمنسقون الخارجيون إلى بيانات تعريف يمكن قراءتها آليًا من أجل الإعداد.
 
-- SQLite-backed audit logging for MCP tool calls
-- Filters by tool, success/failure, API key, and pagination
-- Dashboard audit table + stats endpoints for automation
+**كيف يحل OmniRoute المشكلة:**
 
-</details>
+- بطاقة الوكيل معروضة على `/.well-known/agent.json`
+- القدرات والمهارات الموضحة في واجهة المستخدم الإدارية
+- تتضمن واجهة برمجة التطبيقات لحالة A2A بيانات تعريف الاكتشاف للأتمتة</details>
 
-<details>
-<summary><b>🔐 21. "I need scoped MCP permissions per integration"</b></summary>
+<التفاصيل>
+<summary><b>🧭 26. "أحتاج إلى إمكانية اكتشاف البروتوكول في تجربة المستخدم للمنتج"</b></summary>
 
-Different clients should have least-privilege access to tool categories.
+إذا لم يتمكن المستخدمون من اكتشاف أسطح البروتوكول، فسوف ينخفض جودة الاعتماد والدعم.
 
-**How OmniRoute solves it:**
+**كيف يحل OmniRoute المشكلة:**
 
-- 10 granular MCP scopes for controlled tool access
-- Scope enforcement and visibility in MCP management UI
-- Safe default posture for operational tooling
+- صفحة**نقاط النهاية**الموحدة مع علامات تبويب Proxy وMCP وA2A وAPI Endpoints
+- تبديل حالة الخدمة المضمنة (متصل/غير متصل) لـ MCP وA2A
+- روابط من النظرة العامة إلى علامات تبويب الإدارة المخصصة</details>
 
-</details>
+<التفاصيل>
+<summary><b>🧪 27. "أحتاج إلى التحقق من صحة البروتوكول الشامل مع عملاء حقيقيين"</b></summary>
 
-<details>
-<summary><b>⚙️ 22. "I need operational controls without redeploying"</b></summary>
+الاختبارات الوهمية ليست كافية للتحقق من توافق البروتوكول قبل الإصدار.
 
-Teams need quick runtime changes during incidents or cost events.
+**كيف يحل OmniRoute المشكلة:**
 
-**How OmniRoute solves it:**
+- مجموعة E2E التي تعمل على تشغيل التطبيق وتستخدم نقل عميل MCP SDK الحقيقي
+- اختبارات عميل A2A لاكتشاف التدفقات وإرسالها ودفقها والحصول عليها وإلغائها
+- التحقق من التأكيدات ضد تدقيق MCP وواجهات برمجة تطبيقات مهام A2A</details>
 
-- Switch combo activation directly from MCP dashboard
-- Apply resilience profiles from pre-defined policy packs
-- Reset circuit breaker state from the same operations panel
+<التفاصيل>
+<summary><b>📡 28. "أحتاج إلى إمكانية ملاحظة موحدة عبر جميع الواجهات"</b></summary>
 
-</details>
+يؤدي تقسيم إمكانية المراقبة حسب البروتوكول إلى إنشاء نقاط عمياء وMTTR أطول.
 
-<details>
-<summary><b>🔄 23. "I need live A2A task lifecycle visibility and cancellation"</b></summary>
+**كيف يحل OmniRoute المشكلة:**
 
-Without lifecycle visibility, task incidents become hard to triage.
+- لوحات معلومات/سجلات/تحليلات موحدة في منتج واحد
+- الصحة + التدقيق + طلب القياس عن بعد عبر طبقات OpenAI وMCP وA2A
+- واجهات برمجة التطبيقات التشغيلية للحالة والأتمتة</details>
 
-**How OmniRoute solves it:**
+<التفاصيل>
+<summary><b>💼 29. "أحتاج إلى وقت تشغيل واحد للوكيل + الأدوات + تنسيق الوكيل"</b></summary>
 
-- Task listing/filtering by state/skill with pagination
-- Drill-down on task metadata, events, and artifacts
-- Task cancellation endpoint and UI action with confirmation
+يؤدي تشغيل العديد من الخدمات المنفصلة إلى زيادة تكلفة التشغيل وأوضاع الفشل.
 
-</details>
+**كيف يحل OmniRoute المشكلة:**
 
-<details>
-<summary><b>🌊 24. "I need active stream metrics for A2A load"</b></summary>
+- وكيل متوافق مع OpenAI وخادم MCP وخادم A2A في مكدس واحد
+- المصادقة المشتركة والمرونة وتخزين البيانات وإمكانية الملاحظة
+- نموذج سياسة متسق عبر جميع أسطح التفاعل</details>
 
-Streaming workflows require operational insight into concurrency and live connections.
+<التفاصيل>
+<summary><b>🚀 30. "أحتاج إلى إرسال مهام سير عمل الوكيل دون امتداد التعليمات البرمجية اللاصقة"</b></summary>
 
-**How OmniRoute solves it:**
+تفقد الفرق سرعتها عند دمج العديد من الخدمات والبرامج النصية المخصصة.
 
-- Active stream counters integrated into A2A status
-- Last task timestamp and per-state counts
-- A2A dashboard cards for real-time ops monitoring
+**كيف يحل OmniRoute المشكلة:**
 
-</details>
-
-<details>
-<summary><b>🪪 25. "I need standard agent discovery for clients"</b></summary>
-
-External clients and orchestrators need machine-readable metadata for onboarding.
-
-**How OmniRoute solves it:**
-
-- Agent Card exposed at `/.well-known/agent.json`
-- Capabilities and skills shown in management UI
-- A2A status API includes discovery metadata for automation
-
-</details>
-
-<details>
-<summary><b>🧭 26. "I need protocol discoverability in the product UX"</b></summary>
-
-If users cannot discover protocol surfaces, adoption and support quality drop.
-
-**How OmniRoute solves it:**
-
-- Consolidated **Endpoints** page with tabs for Proxy, MCP, A2A, and API Endpoints
-- Inline service status toggles (Online/Offline) for MCP and A2A
-- Links from overview to dedicated management tabs
-
-</details>
-
-<details>
-<summary><b>🧪 27. "I need end-to-end protocol validation with real clients"</b></summary>
-
-Mock tests are not enough to validate protocol compatibility before release.
-
-**How OmniRoute solves it:**
-
-- E2E suite that boots app and uses real MCP SDK client transport
-- A2A client tests for discovery, send, stream, get, and cancel flows
-- Cross-check assertions against MCP audit and A2A tasks APIs
-
-</details>
-
-<details>
-<summary><b>📡 28. "I need unified observability across all interfaces"</b></summary>
-
-Splitting observability by protocol creates blind spots and longer MTTR.
-
-**How OmniRoute solves it:**
-
-- Unified dashboards/logs/analytics in one product
-- Health + audit + request telemetry across OpenAI, MCP, and A2A layers
-- Operational APIs for status and automation
-
-</details>
-
-<details>
-<summary><b>💼 29. "I need one runtime for proxy + tools + agent orchestration"</b></summary>
-
-Running many separate services increases operational cost and failure modes.
-
-**How OmniRoute solves it:**
-
-- OpenAI-compatible proxy, MCP server, and A2A server in one stack
-- Shared auth, resilience, data store, and observability
-- Consistent policy model across all interaction surfaces
-
-</details>
-
-<details>
-<summary><b>🚀 30. "I need to ship agentic workflows without glue-code sprawl"</b></summary>
-
-Teams lose velocity when stitching multiple ad-hoc services and scripts.
-
-**How OmniRoute solves it:**
-
-- Unified endpoint strategy for clients and agents
-- Built-in protocol management UIs and smoke validation paths
-- Production-ready foundations (security, logging, resilience, backup)
-
-</details>
+- استراتيجية نقطة النهاية الموحدة للعملاء والوكلاء
+- واجهات مستخدم لإدارة البروتوكول مدمجة ومسارات التحقق من صحة الدخان
+- أسس جاهزة للإنتاج (الأمان، التسجيل، المرونة، النسخ الاحتياطي)</details>
 
 ### Example Playbooks (Integrated Use Cases)
 
-**Playbook A: Maximize paid subscription + cheap backup**
-
-```txt
+**قواعد اللعبة أ: زيادة الاشتراك المدفوع إلى الحد الأقصى + نسخة احتياطية رخيصة**```txt
 Combo: "maximize-claude"
   1. cc/claude-opus-4-6
   2. glm/glm-4.7
@@ -689,23 +608,21 @@ Combo: "maximize-claude"
 
 Monthly cost: $20 + small backup spend
 Outcome: higher quality, near-zero interruption
-```
+````
 
-**Playbook B: Zero-cost coding stack**
-
-```txt
+**دليل التشغيل ب: مكدس البرمجة بدون تكلفة**```txt
 Combo: "free-forever"
-  1. gc/gemini-3-flash
-  2. if/kimi-k2-thinking
-  3. qw/qwen3-coder-plus
+
+1. gc/gemini-3-flash
+2. if/kimi-k2-thinking
+3. qw/qwen3-coder-plus
 
 Monthly cost: $0
 Outcome: stable free coding workflow
-```
 
-**Playbook C: 24/7 always-on fallback chain**
+````
 
-```txt
+**Playbook C: سلسلة احتياطية متاحة دائمًا على مدار 24 ساعة طوال أيام الأسبوع**```txt
 Combo: "always-on"
   1. cc/claude-opus-4-6
   2. cx/gpt-5.2-codex
@@ -714,134 +631,122 @@ Combo: "always-on"
   5. if/kimi-k2-thinking
 
 Outcome: deep fallback depth for deadline-critical workloads
-```
+````
 
-**Playbook D: Agent ops with MCP + A2A**
+**قواعد اللعبة د: عمليات العميل مع MCP + A2A**```txt
 
-```txt
-1) Start MCP transport (`omniroute --mcp`) for tool-driven operations
-2) Run A2A tasks via `message/send` and `message/stream`
-3) Observe via /dashboard/endpoint (MCP and A2A tabs)
-4) Toggle services via inline status controls
-```
+1. Start MCP transport (`omniroute --mcp`) for tool-driven operations
+2. Run A2A tasks via `message/send` and `message/stream`
+3. Observe via /dashboard/endpoint (MCP and A2A tabs)
+4. Toggle services via inline status controls
+
+````
 
 ---
 
 ## 🆓 Start Free — Zero Configuration Cost
 
-> Setup AI coding in minutes at **$0/month**. Connect these free accounts and use the built-in **Free Stack** combo.
+> قم بإعداد ترميز الذكاء الاصطناعي في دقائق بسعر**$0/الشهر**. قم بتوصيل هذه الحسابات المجانية واستخدم المجموعة المدمجة**Free Stack**.
 
-| Step | Action                                             | Providers Unlocked                                                 |
+| خطوة | العمل | مقدمي الخدمات مقفلة |
 | ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
-| 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
-| 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
-| 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
-| 4    | Connect **Gemini CLI** (Google OAuth)              | gemini-3-flash, gemini-2.5-pro — **180K/mo free**                  |
-| 5    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                       |
+| 1 | الاتصال**Kiro**(معرف AWS Builder OAuth) | كلود سونيت 4.5، هايكو 4.5 —**غير محدود**|
+| 2 | ربط**Qoder**(Google OAuth) | kimi-k2-thinking, qwen3-coder-plus, Deepseek-r1... —**غير محدود**|
+| 3 | ربط**كوين**(رمز الجهاز) | qwen3-coder-plus، qwen3-coder-flash... —**غير محدود**|
+| 4 | الاتصال**Gemini CLI**(Google OAuth) | gemini-3-flash,gemini-2.5-pro —**180 ألف/الشهر مجانًا**|
+| 5 | `/dashboard/combos` →**قالب مكدس مجاني ($0)**| جولة روبن لجميع مقدمي الخدمات المجانية تلقائيًا |
 
-**Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
+**قم بتوجيه أي IDE/CLI إلى:**`http://localhost:20128/v1` · مفتاح API: `any-string` · تم.
 
-> **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day), LongCat API key (50M tokens/day!), Cloudflare Workers AI (10K Neurons/day, 50+ models).
-
-## بداية سريعة
+>**تغطية إضافية اختيارية (مجانية أيضًا):**مفتاح Groq API (30 دورة في الدقيقة مجانًا)، NVIDIA NIM (40 دورة في الدقيقة مجانًا، أكثر من 70 طرازًا)، Cerebras (1 مليون tok/يوم)، مفتاح LongCat API (50 مليون رمز مميز/يوم!)، Cloudflare Workers AI (10 آلاف خلية عصبية/يوم، أكثر من 50 نموذجًا).## بداية سريعة
 
 ### 1) Install and run
 
 ```bash
 npm install -g omniroute
 omniroute
-```
+````
 
-> **pnpm users:** Run `pnpm approve-builds -g` after install to enable native build scripts required by `better-sqlite3` and `@swc/core`:
+> **مستخدمي pnpm:**قم بتشغيل `pnpmوافق-builds -g` بعد التثبيت لتمكين البرامج النصية للبناء الأصلي المطلوبة من قبل `better-sqlite3` و`@swc/core`:
 >
-> ```bash
-> pnpm install -g omniroute
-> pnpm approve-builds -g   # Select all packages → approve
-> omniroute
+> ```باش
+> تثبيت pnpm -g في كل الاتجاهات
+> pnpm Approved-builds -g # حدد جميع الحزم → الموافقة
+> الطريق الشامل
 > ```
 
-Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
+تفتح لوحة المعلومات على `http://localhost:20128` ويكون عنوان URL الأساسي لواجهة برمجة التطبيقات هو `http://localhost:20128/v1`.
 
-| Command                 | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port) |
-| `omniroute --port 3000` | Set canonical/API port to 3000                              |
-| `omniroute --mcp`       | Start MCP server (stdio transport)                          |
-| `omniroute --no-open`   | Don't auto-open browser                                     |
-| `omniroute --help`      | Show help                                                   |
+| الأمر                         | الوصف                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| "الطريق الشامل"               | بدء تشغيل الخادم (`PORT=20128` وواجهة برمجة التطبيقات ولوحة المعلومات على نفس المنفذ) |
+| `الطريق الشامل --المنفذ 3000` | اضبط منفذ Canonical/API على 3000                                                      |
+| `الطريق الشامل --mcp`         | بدء تشغيل خادم MCP (نقل stdio)                                                        |
+| `الطريق الشامل --no-open`     | لا تفتح المتصفح تلقائيًا                                                              |
+| `الطريق الشامل --مساعدة`      | عرض المساعدة                                                                          |
 
-Optional split-port mode:
-
-```bash
+وضع المنفذ المقسم الاختياري:```bash
 PORT=20128 DASHBOARD_PORT=20129 omniroute
-# API:       http://localhost:20128/v1
+
+# API: http://localhost:20128/v1
+
 # Dashboard: http://localhost:20129
-```
+
+````
 
 ### Long-Running Streaming Timeouts
 
-For most deployments, you only need:
+بالنسبة لمعظم عمليات النشر، تحتاج فقط إلى:
 
-| Variable                 | Default                       | Purpose                                                                                                                     |
-| ------------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `REQUEST_TIMEOUT_MS`     | `600000`                      | Shared baseline for upstream fetch, hidden Undici timeouts, TLS fingerprint requests, and API bridge request/proxy timeouts |
-| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Maximum gap between streaming chunks before OmniRoute aborts the SSE stream                                                 |
+| متغير | الافتراضي | الغرض |
+| ------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `REQUEST_TIMEOUT_MS` | `600000` | خط أساسي مشترك للجلب الأولي، ومهلات Undici المخفية، وطلبات بصمة TLS، ومهلة طلب/وكيل جسر واجهة برمجة التطبيقات |
+| `STREAM_IDLE_TIMEOUT_MS` | يرث `REQUEST_TIMEOUT_MS` | الحد الأقصى للفجوة بين قطع الدفق قبل أن يقوم OmniRoute بإحباط دفق SSE |
 
-Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, and other per-layer timeout vars still work and override the shared baseline.
+يتم الحفاظ على التوافق مع الإصدارات السابقة: لا تزال متغيرات مهلة `FETCH_TIMEOUT_MS` وAPI_BRIDGE_PROXY_TIMEOUT_MS الموجودة ومتغيرات المهلة الأخرى لكل طبقة تعمل وتتجاوز الخط الأساسي المشترك.
 
-Advanced overrides are available if you need finer control:
-
-| Variable                                 | Default                                    | Purpose                                                              |
+تتوفر التجاوزات المتقدمة إذا كنت بحاجة إلى تحكم أفضل:| متغير | الافتراضي | الغرض |
 | ---------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
-| `FETCH_TIMEOUT_MS`                       | inherits `REQUEST_TIMEOUT_MS`              | Total upstream request timeout used by the main fetch abort signal   |
-| `FETCH_HEADERS_TIMEOUT_MS`               | inherits `FETCH_TIMEOUT_MS`                | Undici time limit for receiving upstream response headers            |
-| `FETCH_BODY_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)     |
-| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                    | Undici TCP connect timeout                                           |
-| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`                                     | Undici idle keep-alive socket timeout                                |
-| `TLS_CLIENT_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Timeout for TLS fingerprint requests made through `wreq-js`          |
-| `API_BRIDGE_PROXY_TIMEOUT_MS`            | inherits `REQUEST_TIMEOUT_MS` or `30000`   | Timeout for `/v1` proxy forwarding from API port to dashboard port   |
-| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)` | Incoming request timeout on the API bridge server                    |
-| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Incoming header timeout on the API bridge server                     |
-| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Keep-alive timeout on the API bridge server                          |
-| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        | Socket inactivity timeout on the API bridge server (`0` disables it) |
+| `FETCH_TIMEOUT_MS` | يرث `REQUEST_TIMEOUT_MS` | إجمالي مهلة طلب المنبع المستخدمة بواسطة إشارة إحباط الجلب الرئيسية |
+| `FETCH_HEADERS_TIMEOUT_MS` | يرث `FETCH_TIMEOUT_MS` | الحد الزمني لـ Undici لتلقي رؤوس الاستجابة الأولية |
+| `FETCH_BODY_TIMEOUT_MS` | يرث `FETCH_TIMEOUT_MS` | الحد الزمني Undici بين قطع النص الأساسي (`0` يعطله) |
+| `FETCH_CONNECT_TIMEOUT_MS` | `30000` | Undici TCP مهلة الاتصال |
+| `FETCH_KEEPALIVE_TIMEOUT_MS` | `4000` | Undici مهلة مأخذ التوصيل الخامل |
+| `TLS_CLIENT_TIMEOUT_MS` | يرث `FETCH_TIMEOUT_MS` | انتهت المهلة لطلبات بصمة TLS التي تم إجراؤها من خلال `wreq-js` |
+| `API_BRIDGE_PROXY_TIMEOUT_MS` | يرث `REQUEST_TIMEOUT_MS` أو `30000` | انتهت المهلة لإعادة توجيه الوكيل `/v1` من منفذ API إلى منفذ لوحة المعلومات |
+| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS` | `الحد الأقصى (API_BRIDGE_PROXY_TIMEOUT_MS، 300000)` | انتهت مهلة الطلب الوارد على خادم جسر API |
+| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS` | `60000` | انتهت مهلة الرأس الوارد على خادم جسر API |
+| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000` | مهلة البقاء على قيد الحياة على خادم جسر API |
+| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS` | `0` | انتهت مهلة عدم نشاط مأخذ التوصيل على خادم جسر واجهة برمجة التطبيقات (`0` يعطله) |
 
-If you run OmniRoute behind Nginx, Caddy, Cloudflare, or another reverse proxy, make sure the proxy
-timeouts are also higher than your OmniRoute stream/fetch timeouts.
+إذا قمت بتشغيل OmniRoute خلف Nginx أو Caddy أو Cloudflare أو وكيل عكسي آخر، فتأكد من الوكيل
+تعد المهلات أيضًا أعلى من مهلات البث/الجلب في OmniRoute.### 2) Connect providers and create your API key
 
-### 2) Connect providers and create your API key
-
-1. Open Dashboard → `Providers` and connect at least one provider (OAuth or API key).
-2. Open Dashboard → `Endpoints` and create an API key.
-3. (Optional) Open Dashboard → `Combos` and set your fallback chain.
-
-### 3) Point your coding tool to OmniRoute
+1. افتح لوحة المعلومات → "الموفرون" وقم بتوصيل موفر واحد على الأقل (مفتاح OAuth أو API).
+2. افتح لوحة المعلومات ← "نقاط النهاية" وأنشئ مفتاح واجهة برمجة التطبيقات.
+3. (اختياري) افتح لوحة المعلومات → `المجموعات` وقم بتعيين السلسلة الاحتياطية.### 3) Point your coding tool to OmniRoute
 
 ```txt
 Base URL: http://localhost:20128/v1
 API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
-```
+````
 
-Works with Claude Code, Codex CLI, Gemini CLI, Cursor, Cline, OpenClaw, OpenCode, and OpenAI-compatible SDKs.
+يعمل مع Claude Code، وCodex CLI، وGemini CLI، وCursor، وCline، وOpenClaw، وOpenCode، وحزم SDK المتوافقة مع OpenAI.### 4) Enable and validate protocols (v2.0)
 
-### 4) Enable and validate protocols (v2.0)
-
-**MCP (for tool-driven operations):**
-
-```bash
+**MCP (للعمليات التي تعتمد على الأدوات):**```bash
 omniroute --mcp
-```
 
-Then connect your MCP client over `stdio` and test tools like:
+````
+
+ثم قم بتوصيل عميل MCP الخاص بك عبر أدوات "stdio" واختبار مثل:
 
 - `omniroute_get_health`
 - `omniroute_list_combos`
 
-**A2A (for agent-to-agent workflows):**
-
-```bash
+**A2A (لسير العمل من وكيل إلى وكيل):**```bash
 curl http://localhost:20128/.well-known/agent.json
-```
+````
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -855,9 +760,7 @@ curl -X POST http://localhost:20128/a2a \
 npm run test:protocols:e2e
 ```
 
-This suite validates real MCP and A2A client flows against a running app.
-
-### Alternative: run from source
+يتحقق هذا الجناح من تدفقات عميل MCP وA2A الحقيقية مقابل تطبيق قيد التشغيل.### Alternative: run from source
 
 ```bash
 cp .env.example .env
@@ -865,13 +768,14 @@ npm install
 PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
 ```
 
-<details>
-<summary><b>Void Linux (`xbps-src` template)</b></summary>
+<التفاصيل>
 
-For Void Linux users, you can build a native package using `xbps-src`. Save this block as `srcpkgs/omniroute/template`:
+<summary><b>إبطال Linux (قالب `xbps-src`)</b></summary>
 
-```bash
+بالنسبة لمستخدمي Void Linux، يمكنك إنشاء حزمة أصلية باستخدام `xbps-src`. احفظ هذه الكتلة باسم `srcpkgs/omniroute/template`:```bash
+
 # Template file for 'omniroute'
+
 pkgname=omniroute
 version=3.4.1
 revision=1
@@ -883,7 +787,7 @@ license="MIT"
 homepage="https://github.com/diegosouzapw/OmniRoute"
 distfiles="https://github.com/diegosouzapw/OmniRoute/archive/refs/tags/v${version}.tar.gz"
 checksum=009400afee90a9f32599d8fe734145cfd84098140b7287990183dde45ae2245b
-system_accounts="_omniroute"
+system_accounts="\_omniroute"
 omniroute_homedir="/var/lib/omniroute"
 export NODE_ENV=production
 export npm_config_engine_strict=false
@@ -891,70 +795,71 @@ export npm_config_loglevel=error
 export npm_config_fund=false
 export npm_config_audit=false
 
-do_build() {
-	# Determine target CPU arch for node-gyp
-	local _gyp_arch
-	case "$XBPS_TARGET_MACHINE" in
-		aarch64*) _gyp_arch=arm64 ;;
-		armv7*|armv6*) _gyp_arch=arm ;;
-		i686*) _gyp_arch=ia32 ;;
-		*) _gyp_arch=x64 ;;
-	esac
+do_build() { # Determine target CPU arch for node-gyp
+local \_gyp_arch
+case "$XBPS_TARGET_MACHINE" in
+aarch64*) \_gyp_arch=arm64 ;;
+armv7*|armv6*) \_gyp_arch=arm ;;
+i686*) \_gyp_arch=ia32 ;;
+\*) \_gyp_arch=x64 ;;
+esac
 
-	# 1) Install all deps – skip scripts (no network in do_build, native modules
-	#    compiled separately below; better-sqlite3 is serverExternalPackage so
-	#    Next.js does not execute it during next build)
-	NODE_ENV=development npm ci --ignore-scripts
+    # 1) Install all deps – skip scripts (no network in do_build, native modules
+    #    compiled separately below; better-sqlite3 is serverExternalPackage so
+    #    Next.js does not execute it during next build)
+    NODE_ENV=development npm ci --ignore-scripts
 
-	# 2) Build the Next.js standalone bundle
-	npm run build
+    # 2) Build the Next.js standalone bundle
+    npm run build
 
-	# 3) Copy static assets into standalone
-	cp -r .next/static .next/standalone/.next/static
-	[ -d public ] && cp -r public .next/standalone/public || true
+    # 3) Copy static assets into standalone
+    cp -r .next/static .next/standalone/.next/static
+    [ -d public ] && cp -r public .next/standalone/public || true
 
-	# 4) Compile better-sqlite3 native binding for the target architecture.
-	#    Use node-gyp directly so CC/CXX from xbps-src cross-toolchain are used
-	#    without npm altering them.
-	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
-	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
+    # 4) Compile better-sqlite3 native binding for the target architecture.
+    #    Use node-gyp directly so CC/CXX from xbps-src cross-toolchain are used
+    #    without npm altering them.
+    local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
+    (cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
 
-	# 5) Place the compiled binding into the standalone bundle
-	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
-	mkdir -p "$_bs3_release"
-	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
+    # 5) Place the compiled binding into the standalone bundle
+    local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
+    mkdir -p "$_bs3_release"
+    cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
 
-	# 6) Remove arch-specific sharp bundles – upstream sets images.unoptimized=true
-	#    so sharp is not used at runtime; x64 .so files would break aarch64 strip
-	rm -rf .next/standalone/node_modules/@img
+    # 6) Remove arch-specific sharp bundles – upstream sets images.unoptimized=true
+    #    so sharp is not used at runtime; x64 .so files would break aarch64 strip
+    rm -rf .next/standalone/node_modules/@img
 
-	# 7) Copy pino runtime deps omitted by Next.js static analysis:
-	#    pino-abstract-transport – required by pino's worker thread
-	#    split2 – dep of pino-abstract-transport
-	#    process-warning – dep of pino itself
-	for _mod in pino-abstract-transport split2 process-warning; do
-		cp -r "node_modules/$_mod" .next/standalone/node_modules/
-	done
+    # 7) Copy pino runtime deps omitted by Next.js static analysis:
+    #    pino-abstract-transport – required by pino's worker thread
+    #    split2 – dep of pino-abstract-transport
+    #    process-warning – dep of pino itself
+    for _mod in pino-abstract-transport split2 process-warning; do
+    	cp -r "node_modules/$_mod" .next/standalone/node_modules/
+    done
+
 }
 
 do_check() {
-	npm run test:unit
+npm run test:unit
 }
 
 do_install() {
-	vmkdir usr/lib/omniroute/.next
+vmkdir usr/lib/omniroute/.next
 
-	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
+    vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 
-	# Prevent removal of empty Next.js app router dirs by the post-install hook
-	for _d in \
-		.next/standalone/.next/server/app/dashboard \
-		.next/standalone/.next/server/app/dashboard/settings \
-		.next/standalone/.next/server/app/dashboard/providers; do
-		touch "${DESTDIR}/usr/lib/omniroute/${_d}/.keep"
-	done
+    # Prevent removal of empty Next.js app router dirs by the post-install hook
+    for _d in \
+    	.next/standalone/.next/server/app/dashboard \
+    	.next/standalone/.next/server/app/dashboard/settings \
+    	.next/standalone/.next/server/app/dashboard/providers; do
+    	touch "${DESTDIR}/usr/lib/omniroute/${_d}/.keep"
+    done
 
-	cat > "${WRKDIR}/omniroute" <<'EOF'
+    cat > "${WRKDIR}/omniroute" <<'EOF'
+
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
@@ -966,9 +871,10 @@ EOF
 }
 
 post_install() {
-	vlicense LICENSE
+vlicense LICENSE
 }
-```
+
+````
 
 </details>
 
@@ -976,11 +882,9 @@ post_install() {
 
 ## 🐳 Docker
 
-OmniRoute is available as a public Docker image on [Docker Hub](https://hub.docker.com/r/diegosouzapw/omniroute).
+OmniRoute متاح كصورة Docker عامة على [Docker Hub](https://hub.docker.com/r/diegosouzapw/omniroute).
 
-**Quick run:**
-
-```bash
+**الجري السريع:**```bash
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
@@ -988,96 +892,85 @@ docker run -d \
   -p 20128:20128 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
-```
+````
 
-**With environment file:**
+**مع ملف البيئة:**```bash
 
-```bash
 # Copy and edit .env first
+
 cp .env.example .env
 
 docker run -d \
-  --name omniroute \
-  --restart unless-stopped \
-  --stop-timeout 40 \
-  --env-file .env \
-  -p 20128:20128 \
-  -v omniroute-data:/app/data \
-  diegosouzapw/omniroute:latest
-```
+ --name omniroute \
+ --restart unless-stopped \
+ --stop-timeout 40 \
+ --env-file .env \
+ -p 20128:20128 \
+ -v omniroute-data:/app/data \
+ diegosouzapw/omniroute:latest
 
-**Using Docker Compose:**
+````
 
-```bash
+**استخدام Docker Compose:**```bash
 # Base profile (no CLI tools)
 docker compose --profile base up -d
 
 # CLI profile (Claude Code, Codex, OpenClaw built-in)
 docker compose --profile cli up -d
-```
+````
 
-Dashboard support for Docker deployments now includes a one-click **Cloudflare Quick Tunnel** on `Dashboard → Endpoints`. The first enable downloads `cloudflared` only when needed, starts a temporary tunnel to your current `/v1` endpoint, and shows the generated `https://*.trycloudflare.com/v1` URL directly below your normal public URL.
+يتضمن دعم لوحة المعلومات لعمليات نشر Docker الآن نقرة واحدة**Cloudflare Quick Tunnel**على `Dashboard → Endpoints`. يقوم الأول بتمكين التنزيلات `cloudflared` فقط عند الحاجة، ويبدأ نفقًا مؤقتًا إلى نقطة النهاية `/v1` الحالية، ويعرض عنوان URL الذي تم إنشاؤه `https://*.trycloudflare.com/v1` مباشرةً أسفل عنوان URL العام العادي.
 
-Notes:
+ملاحظات:
 
-- Quick Tunnel URLs are temporary and change after every restart.
-- Quick Tunnels are not auto-restored after an OmniRoute or container restart. Re-enable them from the dashboard when needed.
-- Managed install currently supports Linux, macOS, and Windows on `x64` / `arm64`.
-- Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained container environments. Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want a different transport.
-- Docker images bundle system CA roots and pass them to managed `cloudflared`, which avoids TLS trust failures when the tunnel bootstraps inside the container.
-- SQLite runs in WAL mode. `docker stop` should be allowed to finish so OmniRoute can checkpoint the latest changes back into `storage.sqlite`.
-- The bundled Compose files already set a 40s stop grace period. If you run the image directly, keep `--stop-timeout 40` (or similar) so manual stops do not cut off shutdown cleanup.
-- Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want OmniRoute to use an existing binary instead of downloading one.
+- عناوين URL للنفق السريع مؤقتة وتتغير بعد كل إعادة تشغيل.
+- لا تتم استعادة الأنفاق السريعة تلقائيًا بعد إعادة تشغيل OmniRoute أو الحاوية. أعد تمكينها من لوحة التحكم عند الحاجة.
+- التثبيت المُدار يدعم حاليًا Linux وmacOS وWindows على `x64` / `arm64`.
+- الأنفاق السريعة المُدارة هي النقل الافتراضي عبر HTTP/2 لتجنب تحذيرات المخزن المؤقت QUIC UDP المزعجة في بيئات الحاويات المقيدة. قم بتعيين `CLOUDFLARED_PROTOCOL=quic` أو `auto` إذا كنت تريد وسيلة نقل مختلفة.
+- تقوم صور Docker بتجميع جذور CA للنظام وتمريرها إلى `cloudflared` المُدارة، مما يتجنب فشل ثقة TLS عندما يبدأ النفق داخل الحاوية.
+- يعمل SQLite في وضع WAL. يجب السماح لـ "docker stop" بالانتهاء حتى يتمكن OmniRoute من التحقق من أحدث التغييرات مرة أخرى في "storage.sqlite".
+- قامت ملفات الإنشاء المجمعة بالفعل بتعيين فترة سماح للتوقف مدتها 40 ثانية. إذا قمت بتشغيل الصورة مباشرة، فاحتفظ بـ `--stop-timeout 40` (أو ما شابه) حتى لا تؤدي عمليات الإيقاف اليدوية إلى قطع عملية تنظيف إيقاف التشغيل.
+- قم بتعيين `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` إذا كنت تريد أن يستخدم OmniRoute ملفًا ثنائيًا موجودًا بدلاً من تنزيله.
 
-**Using Docker Compose with Caddy (HTTPS Auto-TLS):**
+**استخدام Docker Compose مع Caddy (HTTPS Auto-TLS):**
 
-OmniRoute can be securely exposed using Caddy's automatic SSL provisioning. Ensure your domain's DNS A record points to your server's IP.
-
-```yaml
+يمكن كشف OmniRoute بشكل آمن باستخدام توفير SSL التلقائي من Caddy. تأكد من أن سجل DNS A الخاص بنطاقك يشير إلى عنوان IP الخاص بخادمك.```yaml
 services:
-  omniroute:
-    image: diegosouzapw/omniroute:latest
-    container_name: omniroute
-    restart: unless-stopped
-    volumes:
-      - omniroute-data:/app/data
-    environment:
-      - PORT=20128
-      - NEXT_PUBLIC_BASE_URL=https://your-domain.com
+omniroute:
+image: diegosouzapw/omniroute:latest
+container_name: omniroute
+restart: unless-stopped
+volumes: - omniroute-data:/app/data
+environment: - PORT=20128 - NEXT_PUBLIC_BASE_URL=https://your-domain.com
 
-  caddy:
-    image: caddy:latest
-    container_name: caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    command: caddy reverse-proxy --from https://your-domain.com --to http://omniroute:20128
+caddy:
+image: caddy:latest
+container_name: caddy
+restart: unless-stopped
+ports: - "80:80" - "443:443"
+command: caddy reverse-proxy --from https://your-domain.com --to http://omniroute:20128
 
 volumes:
-  omniroute-data:
-```
+omniroute-data:
 
-| Image                    | Tag      | Size   | Description           |
+````
+
+| صورة | العلامة | الحجم | الوصف |
 | ------------------------ | -------- | ------ | --------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `1.0.3`  | ~250MB | Current version       |
-
----
+| `diegosouzapw/omniroute` | `الأحدث` | ~250 ميجابايت | أحدث إصدار مستقر |
+| `diegosouzapw/omniroute` | `1.0.3` | ~250 ميجابايت | النسخة الحالية |---
 
 ## 🖥️ Desktop App — Offline & Always-On
 
-> 🆕 **NEW!** OmniRoute is now available as a **native desktop application** for Windows, macOS, and Linux.
+> 🆕**جديد!**OmniRoute متوفر الآن كتطبيق سطح مكتب أصلي**لأنظمة التشغيل Windows وmacOS وLinux.
 
-Run OmniRoute as a standalone desktop app — no terminal, no browser, no internet required for local models. The Electron-based app includes:
+قم بتشغيل OmniRoute كتطبيق مستقل لسطح المكتب - لا توجد محطة طرفية أو متصفح أو إنترنت مطلوب للطرز المحلية. يتضمن التطبيق المعتمد على Electron ما يلي:
 
-- 🖥️ **Native Window** — Dedicated app window with system tray integration
-- 🔄 **Auto-Start** — Launch OmniRoute on system login
-- 🔔 **Native Notifications** — Get alerts for quota exhaustion or provider issues
-- ⚡ **One-Click Install** — NSIS (Windows), DMG (macOS), AppImage (Linux)
-- 🌐 **Offline Mode** — Works fully offline with bundled server
-
-### بداية سريعة
+- 🖥️**النافذة الأصلية**— نافذة تطبيق مخصصة مع تكامل علبة النظام
+- 🔄**البدء التلقائي**— قم بتشغيل OmniRoute عند تسجيل الدخول إلى النظام
+- 🔔**الإشعارات الأصلية**— احصل على تنبيهات بشأن استنفاد الحصص أو مشكلات المزود
+- ⚡**التثبيت بنقرة واحدة**— NSIS (Windows)، DMG (macOS)، AppImage (Linux)
+- 🌐**وضع عدم الاتصال بالإنترنت**— يعمل بشكل كامل دون اتصال بالإنترنت مع الخادم المُجمَّع### بداية سريعة
 
 ```bash
 # Development mode
@@ -1088,359 +981,308 @@ npm run electron:build         # Current platform
 npm run electron:build:win     # Windows (.exe)
 npm run electron:build:mac     # macOS (.dmg) — x64 & arm64
 npm run electron:build:linux   # Linux (.AppImage)
-```
+````
 
 ### System Tray
 
-When minimized, OmniRoute lives in your system tray with quick actions:
+عند تصغيره، يظل OmniRoute موجودًا في علبة النظام لديك من خلال الإجراءات السريعة:
 
-- Open dashboard
-- Change server port
-- Quit application
+- فتح لوحة القيادة
+- تغيير منفذ الخادم
+- قم بإنهاء التطبيق
 
-📖 Full documentation: [`electron/README.md`](electron/README.md)
-
----
+📖 التوثيق الكامل: [`electron/README.md`](electron/README.md)---
 
 ## 💰 Pricing at a Glance
 
-| Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
-| ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                    | 5h + weekly      | Already subscribed                |
-|                     | Codex (Plus/Pro)            | $20-200/mo                | 5h + weekly      | OpenAI users                      |
-|                     | Gemini CLI                  | **FREE**                  | 180K/mo + 1K/day | Everyone!                         |
-|                     | GitHub Copilot              | $10-19/mo                 | Monthly          | GitHub users                      |
-| **🔑 API KEY**      | NVIDIA NIM                  | **FREE** (dev forever)    | ~40 RPM          | 70+ open models                   |
-|                     | Cerebras                    | **FREE** (1M tok/day)     | 60K TPM / 30 RPM | World's fastest                   |
-|                     | Groq                        | **FREE** (30 RPM)         | 14.4K RPD        | Ultra-fast Llama/Gemma            |
-|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M        | None             | Best price/quality reasoning      |
-|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕 | None             | Fastest + tool calling, ultralow  |
-|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Reasoning flagship from xAI       |
-|                     | Mistral                     | Free trial + paid         | Rate limited     | European AI                       |
-|                     | OpenRouter                  | Pay-per-use               | None             | 100+ models aggr.                 |
-| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
-|                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
-|                     | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use               | None             | Direct Moonshot API access        |
-|                     | Kimi K2                     | $9/mo flat                | 10M tokens/mo    | Predictable cost                  |
-| **🆓 FREE**         | Qoder                       | **$0**                    | Unlimited        | 5 models unlimited                |
-|                     | Qwen                        | **$0**                    | Unlimited        | 4 models unlimited                |
-|                     | Kiro                        | **$0**                    | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
-|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)   | 1 RPS            | Largest free quota on Earth       |
-|                     | Pollinations AI 🆕          | **$0** (no key needed)    | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
-|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ models, global edge           |
-|                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
+| الطبقة                             | مقدم                         | التكلفة                               | إعادة ضبط الحصص                             | الأفضل لـ                                                              |
+| ---------------------------------- | ---------------------------- | ------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **💳الإشتراك**                     | كلود كود (برو)               | 20 دولارًا شهريًا                     | 5 ساعات + أسبوعي                            | اشتركت بالفعل                                                          |
+|                                    | الدستور الغذائي (زائد / برو) | 20-200 دولار شهريًا                   | 5 ساعات + أسبوعي                            | مستخدمي OpenAI                                                         |
+|                                    | الجوزاء CLI                  | **مجاني**                             | 180 ألف/شهر + 1 ألف/يوم                     | الجميع!                                                                |
+|                                    | جيثب مساعد الطيار            | 10-19 دولارًا شهريًا                  | شهري                                        | مستخدمي جيثب                                                           |
+| **🔑 مفتاح واجهة برمجة التطبيقات** | نفيديا نيم                   | **مجانًا**(مطور للأبد)                | ~40 دورة في الدقيقة                         | 70+ نماذج مفتوحة                                                       |
+|                                    | المخيخ                       | **مجانًا**(1 مليون توك/يوم)           | 60 ألف دورة في الدقيقة / 30 دورة في الدقيقة | الأسرع في العالم                                                       |
+|                                    | جروك                         | **مجانًا**(30 دورة في الدقيقة)        | 14.4K دورة في الدقيقة                       | لاما/جيما فائقة السرعة                                                 |
+|                                    | ديب سيك V3.2                 | 0.27 دولار/1.10 دولار لكل مليون       | لا شيء                                      | أفضل منطق السعر/الجودة                                                 |
+|                                    | xAI Grok-4 سريع              | **0.20 دولار/0.50 دولار لكل مليون**🆕 | لا شيء                                      | أسرع + أداة استدعاء، منخفضة للغاية                                     |
+|                                    | xAI Grok-4 (قياسي)           | 0.20 دولار/1.50 دولار لكل مليون 🆕    | لا شيء                                      | المنطق الرائد من xAI                                                   |
+|                                    | ميسترال                      | تجربة مجانية + مدفوعة                 | معدل محدود                                  | الذكاء الاصطناعي الأوروبي                                              |
+|                                    | اوبن راوتر                   | الدفع لكل استخدام                     | لا شيء                                      | 100+ نماذج مجمعة.                                                      |
+| **💰 رخيص**                        | GLM-5 (عبر Z.AI) 🆕          | 0.5 دولار/1 مليون                     | يوميا 10 صباحا                              | إخراج 128 كيلو، أحدث الرائد                                            |
+|                                    | جي إل إم-4.7                 | 0.6 دولار/1 مليون                     | يوميا 10 صباحا                              | نسخة احتياطية للميزانية                                                |
+|                                    | ميني ماكس M2.5 🆕            | إدخال 0.3 دولار/1 مليون               | المتداول لمدة 5 ساعات                       | الاستدلال + المهام الوكيلة                                             |
+|                                    | ميني ماكس M2.1               | 0.2 دولار/1 مليون                     | المتداول لمدة 5 ساعات                       | الخيار الأرخص                                                          |
+|                                    | كيمي K2.5 (Moonshot API) 🆕  | الدفع لكل استخدام                     | لا شيء                                      | الوصول المباشر إلى Moonshot API                                        |
+|                                    | كيمي ك2                      | 9 دولارات شهريًا مسطحة                | 10 مليون رمز/شهر                            | التكلفة المتوقعة                                                       |
+| **🆓مجانًا**                       | قدير                         | **$0**                                | غير محدود                                   | 5 نماذج غير محدودة                                                     |
+|                                    | كوين                         | **$0**                                | غير محدود                                   | 4 نماذج غير محدودة                                                     |
+|                                    | كيرو                         | **$0**                                | غير محدود                                   | كلود سونيت/هايكو (AWS Builder)                                         |
+|                                    | LongCat Flash-Lite 🆕        | **$0**(50 مليون توك/يوم 🔥)           | 1 دورة في الثانية                           | أكبر حصة مجانية على وجه الأرض                                          |
+|                                    | التلقيحات AI 🆕              | **$0**(لا حاجة لمفتاح)                | 1 متطلب/15 ثانية                            | جي بي تي-5، كلود، ديب سيك، لاما 4                                      |
+|                                    | Cloudflare Workers AI 🆕     | **$0**(10 آلاف خلية عصبية/اليوم)      | ~150 راحة/يوم                               | أكثر من 50 نموذجًا، حافة عالمية                                        |
+|                                    | سكيليواي AI 🆕               | **$0**(إجمالي 1 مليون رمز)            | معدل محدود                                  | الاتحاد الأوروبي/اللائحة العامة لحماية البيانات، Qwen3 235B، Llama 70B | > 🆕**تمت إضافة نماذج جديدة (مارس 2026):**عائلة Grok-4 Fast بسعر 0.20 دولار أمريكي/0.50 دولار أمريكي/م (تم قياسها عند 1143 مللي ثانية - أسرع بنسبة 30% من Gemini 2.5 Flash)، GLM-5 عبر Z.AI بإخراج 128 ألف، واستدلال MiniMax M2.5، وتسعير DeepSeek V3.2 المحدث، وKimi K2.5 عبر Moonshot direct API. |
 
-> 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
+**💡 $0 Combo Stack — الإعداد المجاني الكامل:**```
 
-**💡 $0 Combo Stack — The Complete Free Setup:**
-
-```
 # 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
-Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
-LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
-Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
-Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
-Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free API key
-Cloudflare AI (cf/)    → Llama 70B, Gemma 3, Mistral — 10K Neurons/day
-Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
-Groq (groq/)           → Llama/Gemma ultra-fast — 14.4K req/day
-NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
-Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
-```
 
-**Zero cost. Never stops coding.** Configure this as one OmniRoute combo and all fallbacks happen automatically — no manual switching ever.
+Kiro (kr/) → Claude Sonnet/Haiku UNLIMITED
+Qoder (if/) → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
+LongCat Lite (lc/) → LongCat-Flash-Lite — 50M tokens/day 🔥
+Pollinations (pol/) → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
+Qwen (qw/) → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
+Gemini (gemini/) → Gemini 2.5 Flash — 1,500 req/day free API key
+Cloudflare AI (cf/) → Llama 70B, Gemma 3, Mistral — 10K Neurons/day
+Scaleway (scw/) → Qwen3 235B, Llama 70B — 1M free tokens (EU)
+Groq (groq/) → Llama/Gemma ultra-fast — 14.4K req/day
+NVIDIA NIM (nvidia/) → 70+ open models — 40 RPM forever
+Cerebras (cerebras/) → Llama/Qwen world-fastest — 1M tok/day
 
----
+````
+
+**تكلفة صفر. لا تتوقف أبدًا عن البرمجة.**قم بتكوين هذا كمجموعة واحدة من OmniRoute وستحدث جميع الإجراءات الاحتياطية تلقائيًا - لا يوجد تبديل يدوي على الإطلاق.---
 
 ---
 
 ## 🆓 Free Models — What You Actually Get
 
-> All models below are **100% free with zero credit card required**. OmniRoute auto-routes between them when one quota runs out — combine them all for an unbreakable $0 combo.
+> جميع الموديلات أدناه**مجانية بنسبة 100% ولا تتطلب أي بطاقة ائتمان**. يقوم OmniRoute بالمسارات التلقائية بينهما عند نفاد حصة واحدة - اجمعها جميعًا للحصول على مجموعة غير قابلة للكسر بقيمة 0 دولار.### 🔵 CLAUDE MODELS (via Kiro — AWS Builder ID)
 
-### 🔵 CLAUDE MODELS (via Kiro — AWS Builder ID)
-
-| Model               | Prefix | Limit         | Rate Limit            |
+| نموذج | البادئة | الحد | حد السعر |
 | ------------------- | ------ | ------------- | --------------------- |
-| `claude-sonnet-4.5` | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
+| `كلود-السوناتة-4.5` | `كر/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى اليومي |
+| `كلود-هايكو-4.5` | `كر/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى اليومي |
+| `كلود-أوبوس-4.6` | `كر/` |**غير محدود**| أحدث أعمال أوبوس عبر كيرو |### 🟢 QODER MODELS (Free PAT via qodercli)
 
-### 🟢 QODER MODELS (Free PAT via qodercli)
-
-| Model              | Prefix | Limit         | Rate Limit      |
+| نموذج | البادئة | الحد | حد السعر |
 | ------------------ | ------ | ------------- | --------------- |
-| `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
-| `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
-| `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
-| `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+| `تفكير كيمي-ك2` | `إذا/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى |
+| `qwen3-coder-plus` | `إذا/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى |
+| `ديبسيك-R1` | `إذا/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى |
+| `مينيماكس-m2.1` | `إذا/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى |
+| `كيمي-k2` | `إذا/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى |
 
-> Recommended connection method: **Personal Access Token + `qodercli`**. Browser OAuth is
-> experimental and disabled by default unless `QODER_OAUTH_*` environment variables are configured.
+> طريقة الاتصال الموصى بها:**رمز الوصول الشخصي + `qodercli`**. متصفح OAuth هو
+> تجريبي ومعطل افتراضيًا ما لم يتم تكوين متغيرات البيئة `QODER_OAUTH_*`.### 🟡 QWEN MODELS (Device Code Auth)
 
-### 🟡 QWEN MODELS (Device Code Auth)
-
-| Model               | Prefix | Limit         | Rate Limit          |
+| نموذج | البادئة | الحد | حد السعر |
 | ------------------- | ------ | ------------- | ------------------- |
-| `qwen3-coder-plus`  | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-flash` | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
-| `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
+| `qwen3-coder-plus` | `س/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى |
+| `qwen3-coder-flash` | `س/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى |
+| `qwen3-coder-next` | `س/` |**غير محدود**| لم يتم الإبلاغ عن الحد الأقصى |
+| `نموذج الرؤية` | `س/` |**غير محدود**| الوسائط المتعددة (صور) |### 🟣 GEMINI CLI (Google OAuth)
 
-### 🟣 GEMINI CLI (Google OAuth)
-
-| Model                    | Prefix | Limit                       | Rate Limit    |
+| نموذج | البادئة | الحد | حد السعر |
 | ------------------------ | ------ | --------------------------- | ------------- |
-| `gemini-3-flash-preview` | `gc/`  | **180K tok/month** + 1K/day | Monthly reset |
-| `gemini-2.5-pro`         | `gc/`  | 180K/month (shared pool)    | High quality  |
+| `الجوزاء-3-معاينة فلاش` | `جي سي/` |**180 ألف توك/شهر**+ 1 ألف/يوم | إعادة الضبط الشهرية |
+| `الجوزاء-2.5-برو` | `جي سي/` | 180 ألف/شهر (مسبح مشترك) | جودة عالية |### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
-### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
-
-| Tier       | Daily Limit  | Rate Limit  | Notes                                                  |
+| الطبقة | الحد اليومي | حد السعر | ملاحظات |
 | ---------- | ------------ | ----------- | ------------------------------------------------------ |
-| Free (Dev) | No token cap | **~40 RPM** | 70+ models; transitioning to pure rate limits mid-2025 |
+| مجاني (ديف) | لا يوجد غطاء رمزي |**~40 دورة في الدقيقة**| أكثر من 70 نموذجًا؛ الانتقال إلى حدود المعدل النقي منتصف عام 2025 |
 
-Popular free models: `moonshotai/kimi-k2.5` (Kimi K2.5), `z-ai/glm4.7` (GLM 4.7), `deepseek-ai/deepseek-v3.2` (DeepSeek V3.2), `nvidia/llama-3.3-70b-instruct`, `deepseek/deepseek-r1`
+النماذج المجانية المشهورة: `moonshotai/kimi-k2.5` (Kimi K2.5)، `z-ai/glm4.7` (GLM 4.7)، `deepseek-ai/deepseek-v3.2` (DeepSeek V3.2)، `nvidia/llama-3.3-70b-instruct`، `deepseek/deepseek-r1`### ⚪ CEREBRAS (Free API Key — inference.cerebras.ai)
 
-### ⚪ CEREBRAS (Free API Key — inference.cerebras.ai)
-
-| Tier | Daily Limit       | Rate Limit       | Notes                                       |
+| الطبقة | الحد اليومي | حد السعر | ملاحظات |
 | ---- | ----------------- | ---------------- | ------------------------------------------- |
-| Free | **1M tokens/day** | 60K TPM / 30 RPM | World's fastest LLM inference; resets daily |
+| مجاني |**1 مليون قطعة/يوم**| 60 ألف دورة في الدقيقة / 30 دورة في الدقيقة | أسرع استنتاج LLM في العالم؛ يعيد يوميا |
 
-Available free: `llama-3.3-70b`, `llama-3.1-8b`, `deepseek-r1-distill-llama-70b`
+متاح مجانًا: `llama-3.3-70b`، `llama-3.1-8b`، `deepseek-r1-distill-llama-70b`### 🔴 GROQ (Free API Key — console.groq.com)
 
-### 🔴 GROQ (Free API Key — console.groq.com)
-
-| Tier | Daily Limit   | Rate Limit       | Notes                                     |
+| الطبقة | الحد اليومي | حد السعر | ملاحظات |
 | ---- | ------------- | ---------------- | ----------------------------------------- |
-| Free | **14.4K RPD** | 30 RPM per model | No credit card; 429 on limit, not charged |
+| مجاني |**14.4 كيلو دورة في الدقيقة**| 30 دورة في الدقيقة لكل موديل | لا توجد بطاقة ائتمان؛ 429 على الحد، غير مشحونة |
 
-Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whisper-large-v3`
+متاحة مجانًا: `llama-3.3-70b-versatile`، `gemma2-9b-it`، `mixtral-8x7b`، `whisper-large-v3`### 🔴 LONGCAT AI (Free API Key — longcat.chat) 🆕
 
-### 🔴 LONGCAT AI (Free API Key — longcat.chat) 🆕
-
-| Model                         | Prefix | Daily Free Quota  | Notes                   |
+| نموذج | البادئة | الحصة اليومية المجانية | ملاحظات |
 | ----------------------------- | ------ | ----------------- | ----------------------- |
-| `LongCat-Flash-Lite`          | `lc/`  | **50M tokens** 💥 | Largest free quota ever |
-| `LongCat-Flash-Chat`          | `lc/`  | 500K tokens       | Multi-turn chat         |
-| `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens       | Reasoning / CoT         |
-| `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens       | Jan 2026 version        |
-| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens       | Multimodal              |
+| `لونجكات-فلاش-لايت` | `لك/` |**50 مليون رمز**💥 | أكبر حصة مجانية على الإطلاق |
+| `LongCat-Flash-Chat` | `لك/` | 500 ألف رمز | دردشة متعددة المنعطفات |
+| ``التفكير الخاطف الطويل`` | `لك/` | 500 ألف رمز | الاستدلال / CoT |
+| `لونجكات-فلاش-التفكير-2601` | `لك/` | 500 ألف رمز | نسخة يناير 2026 |
+| `لونج كات-فلاش-أومني-2603` | `لك/` | 500 ألف رمز | الوسائط المتعددة |
 
-> 100% free while in public beta. Sign up at [longcat.chat](https://longcat.chat) with email or phone. Resets daily 00:00 UTC.
+> مجاني 100% أثناء وجودك في النسخة التجريبية العامة. قم بالتسجيل في [longcat.chat](https://longcat.chat) باستخدام البريد الإلكتروني أو الهاتف. تتم إعادة الضبط يوميًا في تمام الساعة 00:00 بالتوقيت العالمي المنسق.### 🟢 POLLINATIONS AI (No API Key Required) 🆕
 
-### 🟢 POLLINATIONS AI (No API Key Required) 🆕
-
-| Model      | Prefix | Rate Limit | Provider Behind    |
+| نموذج | البادئة | حد السعر | مقدم خلف |
 | ---------- | ------ | ---------- | ------------------ |
-| `openai`   | `pol/` | 1 req/15s  | GPT-5              |
-| `claude`   | `pol/` | 1 req/15s  | Anthropic Claude   |
-| `gemini`   | `pol/` | 1 req/15s  | Google Gemini      |
-| `deepseek` | `pol/` | 1 req/15s  | DeepSeek V3        |
-| `llama`    | `pol/` | 1 req/15s  | Meta Llama 4 Scout |
-| `mistral`  | `pol/` | 1 req/15s  | Mistral AI         |
+| `أوبيني` | `بول/` | 1 متطلب/15 ثانية | جي بي تي-5 |
+| "كلود" | `بول/` | 1 متطلب/15 ثانية | أنثروبي كلود |
+| `الجوزاء` | `بول/` | 1 متطلب/15 ثانية | جوجل الجوزاء |
+| `البحث العميق` | `بول/` | 1 متطلب/15 ثانية | ديب سيك V3 |
+| اللاما | `بول/` | 1 متطلب/15 ثانية | ميتا لاما 4 كشاف |
+| `ميسترال` | `بول/` | 1 متطلب/15 ثانية | ميسترال لمنظمة العفو الدولية |
 
-> ✨ **Zero friction:** No signup, no API key. Add the Pollinations provider with an empty key field and it works immediately.
+> ✨**بدون احتكاك:**لا يوجد اشتراك، ولا يوجد مفتاح API. أضف موفر التلقيح بحقل مفتاح فارغ وسيعمل على الفور.### 🟠 CLOUDFLARE WORKERS AI (Free API Key — cloudflare.com) 🆕
 
-### 🟠 CLOUDFLARE WORKERS AI (Free API Key — cloudflare.com) 🆕
-
-| Tier | Daily Neurons | Equivalent Usage                        | Notes                   |
+| الطبقة | الخلايا العصبية اليومية | الاستخدام المعادل | ملاحظات |
 | ---- | ------------- | --------------------------------------- | ----------------------- |
-| Free | **10,000**    | ~150 LLM resp / 500s audio / 15K embeds | Global edge, 50+ models |
+| مجاني |**10,000**| ~150 LLM resp / 500 ثانية صوت / 15 ألف تضمين | الحافة العالمية، أكثر من 50 نموذجًا |
 
-Popular free models: `@cf/meta/llama-3.3-70b-instruct`, `@cf/google/gemma-3-12b-it`, `@cf/openai/whisper-large-v3-turbo` (free audio!), `@cf/qwen/qwen2.5-coder-15b-instruct`
+النماذج المجانية الشهيرة: `@cf/meta/llama-3.3-70b-instruct`، `@cf/google/gemma-3-12b-it`، `@cf/openai/whisper-large-v3-turbo` (صوت مجاني!)، `@cf/qwen/qwen2.5-coder-15b-instruct`
 
-> Requires API Token + Account ID from [dash.cloudflare.com](https://dash.cloudflare.com). Store Account ID in provider settings.
+> يتطلب رمز API المميز + معرف الحساب من [dash.cloudflare.com](https://dash.cloudflare.com). قم بتخزين معرف الحساب في إعدادات الموفر.### 🟣 SCALEWAY AI (1M Free Tokens — scaleway.com) 🆕
 
-### 🟣 SCALEWAY AI (1M Free Tokens — scaleway.com) 🆕
-
-| Tier | Free Quota    | Location     | Notes                               |
+| الطبقة | حصة مجانية | الموقع | ملاحظات |
 | ---- | ------------- | ------------ | ----------------------------------- |
-| Free | **1M tokens** | 🇫🇷 Paris, EU | No credit card needed within limits |
+| مجاني |**مليون قطعة**| 🇫🇷 باريس، الاتحاد الأوروبي | لا حاجة لبطاقة الائتمان ضمن الحدود |
 
-Available free: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-instruct`, `mistral-small-3.2-24b-instruct-2506`, `deepseek-v3-0324`
+متاح مجانًا: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!)
 
-> EU/GDPR compliant. Get API key at [console.scaleway.com](https://console.scaleway.com).
+> متوافقة مع الاتحاد الأوروبي/اللائحة العامة لحماية البيانات. احصل على مفتاح واجهة برمجة التطبيقات على [console.scaleway.com](https://console.scaleway.com).
 
-> **💡 The Ultimate Free Stack (11 Providers, $0 Forever):**
+>**💡 المجموعة المجانية المطلقة (11 مقدمًا، 0 دولار للأبد):**
 >
 > ```
-> Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
-> LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
-> Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
-> Qwen (qw/)             → qwen3-coder models UNLIMITED
-> Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free
-> Cloudflare AI (cf/)    → 50+ models — 10K Neurons/day
-> Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
-> Groq (groq/)           → Llama/Gemma — 14.4K req/day ultra-fast
-> NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
-> Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
-> ```
+> كيرو (kr/) → كلود سونيت/هايكو غير محدود
+> Qoder (if/) → kimi-k2-thinking، qwen3-coder-plus، Deepseek-r1 غير محدود
+> LongCat Lite (lc/) → LongCat-Flash-Lite — 50 مليون رمز/يوم 🔥
+> التلقيح (pol/) → GPT-5، Claude، DeepSeek، Llama 4 - لا حاجة إلى مفتاح
+> Qwen (qw/) → نماذج qwen3-coder غير محدودة
+> Gemini (gemini/) → Gemini 2.5 Flash — 1500 طلب/يوم مجانًا
+> Cloudflare AI (cf/) → أكثر من 50 نموذجًا - 10 آلاف خلية عصبية/اليوم
+> Scaleway (scw/) → Qwen3 235B، Llama 70B — مليون رمز مجاني (الاتحاد الأوروبي)
+> Groq (groq/) → Llama/Gemma — 14.4 ألف طلب/يوم بسرعة فائقة
+> NVIDIA NIM (nvidia/) → أكثر من 70 طرازًا مفتوحًا - 40 دورة في الدقيقة إلى الأبد
+> المخيخ (cerebras/) → اللاما/كوين الأسرع في العالم — مليون توك/اليوم
+> ```## 🎙️ Free Transcription Combo
 
-## 🎙️ Free Transcription Combo
+> قم بنسخ أي صوت/فيديو مقابل**$0**— تقدم Deepgram مبلغًا مجانيًا بقيمة 200 دولار أمريكي، ونسخة احتياطية من AssemblyAI بقيمة 50 دولارًا أمريكيًا، وGroq Whisper كنسخة احتياطية غير محدودة للطوارئ.
 
-> Transcribe any audio/video for **$0** — Deepgram leads with $200 free, AssemblyAI $50 fallback, Groq Whisper as unlimited emergency backup.
-
-| Provider          | Free Credits           | Best Model                                   | Rate Limit                   |
+| مقدم | اعتمادات مجانية | أفضل موديل | حد السعر |
 | ----------------- | ---------------------- | -------------------------------------------- | ---------------------------- |
-| 🟢 **Deepgram**   | **$200 free** (signup) | `nova-3` — best accuracy, 30+ languages      | No RPM limit on free credits |
-| 🔵 **AssemblyAI** | **$50 free** (signup)  | `universal-3-pro` — chapters, sentiment, PII | No RPM limit on free credits |
-| 🔴 **Groq**       | **Free forever**       | `whisper-large-v3` — OpenAI Whisper          | 30 RPM (rate limited)        |
+| 🟢**ديبجرام**|**200 دولار مجانًا**(اشتراك) | `nova-3` — أفضل دقة، أكثر من 30 لغة | لا يوجد حد لعدد RPM على الاعتمادات المجانية |
+| 🔵**AssemblyAI**|**50 دولارًا مجانًا**(اشتراك) | `universal-3-pro` - الفصول، المشاعر، معلومات تحديد الهوية الشخصية | لا يوجد حد لعدد RPM على الاعتمادات المجانية |
+| 🔴**جروق**|**مجاني للأبد**| `whisper-large-v3` — OpenAI Whisper | 30 دورة في الدقيقة (معدل محدود) |
 
-**Suggested combo in `/dashboard/combos`:**
-
-```
+**التحرير والسرد المقترح في `/dashboard/combos`:**```
 Name: free-transcription
 Strategy: Priority
 Nodes:
   [1] deepgram/nova-3          → uses $200 free first
   [2] assemblyai/universal-3-pro → fallback when Deepgram credits run out
   [3] groq/whisper-large-v3    → free forever, emergency fallback
-```
+````
 
-Then in `/dashboard/media` → **Transcription** tab: upload any audio or video file → select your combo endpoint → get transcription in supported formats.
+ثم في `/dashboard/media` → علامة التبويب**Transcription**: قم بتحميل أي ملف صوت أو فيديو ← حدد نقطة نهاية التحرير والسرد الخاصة بك ← احصل على النسخ بتنسيقات مدعومة.## 💡 Key Features
 
-## 💡 Key Features
+تم تصميم OmniRoute v2.0 كمنصة تشغيلية، وليس مجرد وكيل ترحيل.### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
 
-OmniRoute v2.0 is built as an operational platform, not just a relay proxy.
+| ميزة                                             | ماذا يفعل                                                                                                                                    |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| ⚡**Grok-4 Fast Family**                         | طرازات xAI بسعر 0.20 دولارًا أمريكيًا/0.50 دولارًا أمريكيًا للمتر المربع - تم قياسها بـ 1143 مللي ثانية (أسرع بنسبة 30% من Gemini 2.5 Flash) |
+| 🧠**GLM-5 عبر Z.AI**                             | سياق إخراج 128 ألفًا، 0.5 دولار أمريكي/1 مليون — أحدث منتج رئيسي من عائلة GLM                                                                |
+| 🔮**ميني ماكس M2.5**                             | الاستدلال + المهام الوكيلة بسعر 0.30 دولارًا أمريكيًا/مليون واحد — ترقية كبيرة من M2.1                                                       |
+| 🎯**أداة استدعاء العلم لكل نموذج**               | لكل نموذج `toolCalling: true/false` في التسجيل - يتخطى AutoCombo النماذج التي لا تحتوي على أدوات                                             |
+| 🌍**كشف النوايا المتعددة اللغات**                | الكلمات الأساسية PT/ZH/ES/AR في تسجيل AutoCombo — اختيار نموذج أفضل للمحتوى غير الإنجليزي                                                    |
+| 📊**الإجراءات الاحتياطية المستندة إلى المعايير** | زمن استجابة حقيقي p95 من الطلبات المباشرة يغذي تسجيل التحرير والسرد - يتعلم AutoCombo من البيانات الفعلية                                    |
+| 🔁**طلب إلغاء البيانات المكررة**                 | نافذة إلغاء البيانات المستندة إلى تجزئة المحتوى — آمنة متعددة الوكلاء، وتمنع الرسوم المكررة                                                  |
+| 🔌**استراتيجية جهاز التوجيه القابل للتوصيل**     | واجهة "RouterStrategy" القابلة للتوسيع - أضف منطق توجيه مخصص كمكونات إضافية                                                                  | ### 🚀 Previous v2.0.9+ — Playground, CLI Fingerprints & ACP |
 
-### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
+| ميزة                                   | ماذا يفعل                                                                                                                                                                                                                               |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| 🎮**ساحة اللعب النموذجية**             | صفحة لوحة التحكم لاختبار أي نموذج مباشرة - محددات الموفر/النموذج/نقطة النهاية، محرر موناكو، البث، الإجهاض، التوقيت                                                                                                                      |
+| 🔏**مطابقة بصمة CLI**                  | ترتيب الرأس/النص لكل موفر لمطابقة توقيعات CLI الأصلية - قم بالتبديل لكل موفر في الإعدادات > الأمان.**يتم الاحتفاظ بـ IP الوكيل الخاص بك**                                                                                               |
+| 🤝**دعم ACP (بروتوكول العميل الوكيل)** | اكتشاف وكيل CLI (Codex، Claude، Goose، Gemini CLI، OpenClaw + 9 آخرين)، مولد العمليات، `/api/acp/agents` نقطة النهاية                                                                                                                   |
+| 🤖**لوحة تحكم وكلاء ACP**              | التصحيح › صفحة الوكلاء - شبكة مكونة من 14 وكيلًا مع حالة التثبيت والإصدار ونموذج الوكيل المخصص لأي أداة CLI. يحصل مستخدمو**OpenCode**على زر "تنزيل opencode.json" الذي يقوم تلقائيًا بإنشاء تكوين جاهز للاستخدام مع جميع الطرز المتاحة. |
+| 🔧**توجيه نموذج مخصص `apiFormat`**     | النماذج المخصصة ذات `apiFormat: "responses"` توجه الآن بشكل صحيح إلى مترجم Responses API                                                                                                                                                |
+| 🏢**عزل مساحة عمل الدستور الغذائي**    | مساحات عمل Codex متعددة لكل بريد إلكتروني - يفصل OAuth الاتصالات بشكل صحيح عن طريق معرف مساحة العمل                                                                                                                                     |
+| 🔄**التحديث التلقائي الإلكتروني**      | يتحقق تطبيق سطح المكتب من التحديثات + التثبيت التلقائي عند إعادة التشغيل                                                                                                                                                                | ### 🤖 Agent & Protocol Operations (v2.0) |
 
-| Feature                              | What It Does                                                                                |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| ⚡ **Grok-4 Fast Family**            | xAI models at $0.20/$0.50/M — benchmarked 1143ms (30% faster than Gemini 2.5 Flash)         |
-| 🧠 **GLM-5 via Z.AI**                | 128K output context, $0.5/1M — newest flagship from the GLM family                          |
-| 🔮 **MiniMax M2.5**                  | Reasoning + agentic tasks at $0.30/1M — significant upgrade from M2.1                       |
-| 🎯 **toolCalling Flag per Model**    | Per-model `toolCalling: true/false` in registry — AutoCombo skips non-tool-capable models   |
-| 🌍 **Multilingual Intent Detection** | PT/ZH/ES/AR keywords in AutoCombo scoring — better model selection for non-English content  |
-| 📊 **Benchmark-Driven Fallbacks**    | Real p95 latency from live requests feeds combo scoring — AutoCombo learns from actual data |
-| 🔁 **Request Deduplication**         | Content-hash based dedup window — multi-agent safe, prevents duplicate charges              |
-| 🔌 **Pluggable RouterStrategy**      | Extensible `RouterStrategy` interface — add custom routing logic as plugins                 |
+| ميزة                             | ماذا يفعل                                                                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| 🔧**خادم MCP (25 أداة)**         | أدوات IDE/agent عبر 3 وسائل نقل: stdio، وSSE (`/api/mcp/sse`)، وHTTP القابل للتدفق (`/api/mcp/stream`). 18 نواة + 3 ذاكرة + 4 أدوات مهارات |
+| 🤝**خادم A2A (JSON-RPC + SSE)**  | تنفيذ المهام من وكيل إلى وكيل مع تدفقات المزامنة والتدفق                                                                                   |
+| 🧭**صفحة نقاط النهاية الموحدة**  | صفحة إدارة مبوبة مع علامات تبويب Endpoint Proxy وMCP وA2A وAPI Endpoints                                                                   |
+| 🎚️**تبديل تمكين / تعطيل الخدمة** | مفاتيح التشغيل/الإيقاف لـ MCP وA2A مع ثبات الإعدادات (الافتراضي: OFF)                                                                      |
+| 🛰️**نبضات وقت تشغيل MCP**        | حالة العملية الحقيقية (معرف المنتج، وقت التشغيل، عمر نبضات القلب، النقل، وضع النطاق)                                                       |
+| 📋**مسار تدقيق MCP**             | سجلات التدقيق القابلة للتصفية مع النجاح/الفشل والإسناد الرئيسي                                                                             |
+| 🔐**تنفيذ نطاق MCP**             | 10 أذونات نطاق تفصيلية للوصول إلى الأدوات الخاضعة للرقابة                                                                                  |
+| 📡**إدارة دورة حياة المهام A2A** | قائمة/تصفية المهام، فحص الأحداث/التحف، إلغاء المهام قيد التشغيل                                                                            |
+| 📋**اكتشاف بطاقة الوكيل**        | `/.well-known/agent.json` للاكتشاف التلقائي للعميل                                                                                         |
+| 🧪**أداة اختبار البروتوكول E2E** | يتدفق عميل MCP SDK + A2A الحقيقي في "اختبار: البروتوكولات: e2e"                                                                            |
+| ⚙️**ضوابط التشغيل**              | مجموعة التبديل، وتطبيق ملفات تعريف المرونة، وإعادة ضبط القواطع من سطح تحكم واحد                                                            | ### 🧠 Routing & Intelligence |
 
-### 🚀 Previous v2.0.9+ — Playground, CLI Fingerprints & ACP
+| ميزة                                     | ماذا يفعل                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------- | ----------------------- |
+| 🎯**احتياطي ذكي من 4 طبقات**             | المسار التلقائي: الاشتراك → مفتاح API → رخيص → مجاني                       |
+| 📊**تتبع الحصص في الوقت الفعلي**         | عدد الرموز الحية + إعادة تعيين العد التنازلي لكل مزود                      |
+| 🔄**تنسيق الترجمة**                      | OpenAI ↔ Claude ↔ Gemini ↔ الردود مع التحويلات الآمنة للمخطط               |
+| 👥**دعم الحسابات المتعددة**              | حسابات متعددة لكل مزود مع اختيار ذكي                                       |
+| 🔄**تحديث تلقائي للرمز**                 | يتم تحديث رموز OAuth المميزة تلقائيًا من خلال إعادة المحاولة               |
+| 🎨**مجموعات مخصصة**                      | 9 استراتيجيات موازنة + التحكم في السلسلة الاحتياطية                        |
+| 🌐**جهاز توجيه Wildcard**                | `المزود/*` التوجيه الديناميكي                                              |
+| 🧠**التفكير في ضوابط الميزانية**         | حدود التفكير المنطقي والتلقائي والمخصص والتكيفي                            |
+| 🔀**الأسماء المستعارة للنماذج**          | مدمج + اسم مستعار للنموذج المخصص وأمان الترحيل                             |
+| ⚡**تدهور الخلفية**                      | قم بتوجيه مهام الخلفية ذات الأولوية المنخفضة إلى نماذج أرخص                |
+| 🧪**التوجيه الذكي المدرك للمهام**        | تحديد النموذج تلقائيًا حسب نوع المحتوى (الترميز/الرؤية/التحليل/التلخيص)    |
+| 🔄**سير عمل وكيل A2A**                   | منسق ولايات ميكرونيزيا الموحدة الحتمية لعمليات إعدام الوكيل متعددة الخطوات |
+| 🔀**التوجيه التكيفي**                    | تجاوز الإستراتيجية الديناميكية بناءً على حجم الرمز المميز والتعقيد الفوري  |
+| 🎲**تنوع مقدمي الخدمة**                  | شانون الإنتروبيا التهديف موازنة توزيع حركة المرور والسرد التلقائي          |
+| 💬**الحقن الفوري للنظام**                | يتم تطبيق ضوابط السلوك العالمية بشكل متسق                                  |
+| 📄**توافق واجهة برمجة التطبيقات للردود** | الدعم الكامل `/v1/responses` لـ Codex وسير العمل الوكيل المتقدم            | ### 🎵 Multi-Modal APIs |
 
-| Feature                                    | What It Does                                                                                                                                                                                                                            |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw + 9 more), process spawner, `/api/acp/agents` endpoint                                                                                                                  |
-| 🤖 **ACP Agents Dashboard**                | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
+| ميزة                      | ماذا يفعل                                                                                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
+| 🖼️**إنشاء الصور**         | `/v1/images/ Generations` مع الواجهات الخلفية السحابية والمحلية                                                                                                          |
+| 📐**المضامين**            | `/v1/embeddings` لخطوط أنابيب البحث وRAG                                                                                                                                 |
+| 🎤**نسخ صوتي**            | `/v1/audio/transcriptions` - 7 مقدمي خدمات (Deepgram Nova 3، AssemblyAI، Groq Whisper، HuggingFace، ElevenLabs، OpenAI، Azure)، الكشف التلقائي عن اللغة، دعم MP4/MP3/WAV |
+| 🔊**تحويل النص إلى كلام** | `/v1/audio/speech` - 10 مقدمي خدمات (ElevenLabs، OpenAI، Deepgram، Cartesia، PlayHT، HuggingFace، Nvidia NIM، Inworld، Coqui، Tortoise) مع رسائل الخطأ الصحيحة           |
+| 🎬**توليد الفيديو**       | `/v1/videos/أجيال` (سير عمل ComfyUI + SD WebUI)                                                                                                                          |
+| 🎵**جيل الموسيقى**        | `/v1/music/generations` (سير عمل ComfyUI)                                                                                                                                |
+| 🛡️**اعتدالات**            | `/v1/moderations` فحوصات السلامة                                                                                                                                         |
+| 🔀**إعادة الترتيب**       | `/v1/rerank` لدرجات الملاءمة                                                                                                                                             |
+| 🔍**بحث الويب**🆕         | `/v1/search` - 5 مقدمي خدمات (Serper، Brave، Perplexity، Exa، Tavily)، أكثر من 6500 خدمة مجانية شهريًا، تجاوز الفشل التلقائي، ذاكرة التخزين المؤقت                       | ### 🛡️ Resilience, Security & Governance |
 
-### 🤖 Agent & Protocol Operations (v2.0)
+| ميزة                                                      | ماذا يفعل                                                                                                       |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| 🔌**قواطع الدائرة**                                       | رحلة/استرداد لكل نموذج مع عناصر التحكم في العتبة                                                                |
+| 🎯**نماذج تدرك نقطة النهاية**                             | تعلن النماذج المخصصة عن نقاط النهاية المدعومة + تنسيق API                                                       |
+| 🛡️**القطيع المضاد للرعد**                                 | حماية Mutex + الإشارة في أحداث إعادة المحاولة/التقييم                                                           |
+| 🧠**ذاكرة التخزين المؤقت الدلالية + التوقيع**             | تقليل التكلفة/زمن الوصول باستخدام طبقتين من ذاكرة التخزين المؤقت                                                |
+| ⚡**طلب العجز**                                           | نافذة الحماية المكررة                                                                                           |
+| 🔒**انتحال بصمة الإصبع TLS**                              | بصمة TLS الشبيهة بالمتصفح -**تقلل من اكتشاف الروبوتات ووضع علامة على الحساب**                                   |
+| 🔏**مطابقة بصمة CLI**                                     | يطابق توقيعات طلب واجهة سطر الأوامر (CLI) الأصلية -**يقلل من مخاطر الحظر مع الحفاظ على عنوان IP الخاص بالوكيل** |
+| 🌐**تصفية IP**                                            | التحكم في القائمة المسموح بها/القائمة المحظورة لعمليات النشر المكشوفة                                           |
+| 📊**حدود المعدل القابلة للتحرير**                         | حدود عالمية/مستوى مزود قابلة للتكوين مع الثبات                                                                  |
+| 📉**التحلل الرشيق**                                       | قدرات احتياطية متعددة الطبقات تحمي عمليات البوابة الأساسية                                                      |
+| 📜**مسار تدقيق التكوين**                                  | تتبع التغيير القائم على الاختلاف يمنع الانحراف التشغيلي من خلال عمليات التراجع البسيطة                          |
+| ⏳**مزامنة صحة الموفر**                                   | مراقبة استباقية لانتهاء صلاحية الرمز المميز، مما يؤدي إلى تنبيهات قبل فشل التفويض                               |
+| 🚪**تعطيل الحسابات المحظورة تلقائيًا**                    | يقوم قاطع الدائرة التشغيلية بإغلاق حسابات الرموز المميزة المحظورة بشكل دائم تلقائيًا                            |
+| 🔑**إدارة مفاتيح واجهة برمجة التطبيقات + تحديد النطاق**   | تأمين إصدار/تدوير المفتاح وضوابط النموذج/المزود                                                                 |
+| 👁️**الكشف عن مفتاح واجهة برمجة التطبيقات (Scoped API)**🆕 | الاشتراك في استرداد مفاتيح واجهة برمجة التطبيقات عبر `ALLOW_API_KEY_REVEAL`                                     |
+| 🛡️**محميه `/موديلات`**                                    | بوابة مصادقة اختيارية وإخفاء الموفر لكتالوج النماذج                                                             | ### 📊 Observability & Analytics |
 
-| Feature                               | What It Does                                                                                                                           |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔧 **MCP Server (25 tools)**          | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 18 core + 3 memory + 4 skill tools |
-| 🤝 **A2A Server (JSON-RPC + SSE)**    | Agent-to-agent task execution with sync and streaming flows                                                                            |
-| 🧭 **Consolidated Endpoints Page**    | Tabbed management page with Endpoint Proxy, MCP, A2A, and API Endpoints tabs                                                           |
-| 🎚️ **Service Enable/Disable Toggles** | ON/OFF switches for MCP and A2A with settings persistence (default: OFF)                                                               |
-| 🛰️ **MCP Runtime Heartbeat**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                |
-| 📋 **MCP Audit Trail**                | Filterable audit logs with success/failure and key attribution                                                                         |
-| 🔐 **MCP Scope Enforcement**          | 10 granular scope permissions for controlled tool access                                                                               |
-| 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
-| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                    |
-| 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                |
-| ⚙️ **Operational Controls**           | Switch combo, apply resilience profiles, reset breakers from one control surface                                                       |
+| ميزة                               | ماذا يفعل                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------- | ---------------------------- |
+| 📝**الطلب + تسجيل الوكيل**         | الطلب/الاستجابة الكاملة وتسجيل الوكيل                                     |
+| 📉**السجلات التفصيلية المتدفقة**🆕 | يعيد بناء تدفقات حمولة SSE بشكل واضح في واجهة المستخدم                    |
+| 📋**لوحة تحكم السجلات الموحدة**    | طلب العروض والوكيل والتدقيق ووحدة التحكم في صفحة واحدة                    |
+| 🔍**طلب القياس عن بعد**            | زمن الاستجابة p50/p95/p99 وطلب التتبع                                     |
+| 🏥**لوحة المعلومات الصحية**        | وقت التشغيل، حالات الكسارة، عمليات الإغلاق، إحصائيات ذاكرة التخزين المؤقت |
+| 💰**تتبع التكلفة**                 | ضوابط الميزانية ورؤية التسعير لكل نموذج                                   |
+| 📈**تصورات التحليلات**             | رؤى استخدام النموذج/الموفر وطرق عرض الاتجاه                               |
+| 🧪**إطار التقييم**                 | اختبار المجموعة الذهبية مع استراتيجيات المطابقة القابلة للتكوين           |
+| 📡**تشخيص مباشر**🆕                | تجاوز ذاكرة التخزين المؤقت الدلالية لإجراء اختبار مباشر دقيق للسرد        | ### ☁️ Deployment & Platform |
 
-### 🧠 Routing & Intelligence
-
-| Feature                            | What It Does                                                             |
-| ---------------------------------- | ------------------------------------------------------------------------ |
-| 🎯 **Smart 4-Tier Fallback**       | Auto-route: Subscription → API Key → Cheap → Free                        |
-| 📊 **Real-Time Quota Tracking**    | Live token count + reset countdown per provider                          |
-| 🔄 **Format Translation**          | OpenAI ↔ Claude ↔ Gemini ↔ Responses with schema-safe conversions        |
-| 👥 **Multi-Account Support**       | Multiple accounts per provider with intelligent selection                |
-| 🔄 **Auto Token Refresh**          | OAuth tokens refresh automatically with retry                            |
-| 🎨 **Custom Combos**               | 9 balancing strategies + fallback chain control                          |
-| 🌐 **Wildcard Router**             | `provider/*` dynamic routing                                             |
-| 🧠 **Thinking Budget Controls**    | Passthrough, auto, custom, and adaptive reasoning limits                 |
-| 🔀 **Model Aliases**               | Built-in + custom model aliasing and migration safety                    |
-| ⚡ **Background Degradation**      | Route low-priority background tasks to cheaper models                    |
-| 🧪 **Task-Aware Smart Routing**    | Auto-select model by content type (coding/vision/analysis/summarization) |
-| 🔄 **A2A Agent Workflows**         | Deterministic FSM orchestrator for stateful multi-step agent executions  |
-| 🔀 **Adaptive Routing**            | Dynamic strategy override based on token volume and prompt complexity    |
-| 🎲 **Provider Diversity**          | Shannon entropy scoring balancing auto-combo traffic distribution        |
-| 💬 **System Prompt Injection**     | Global behavior controls applied consistently                            |
-| 📄 **Responses API Compatibility** | Full `/v1/responses` support for Codex and advanced agentic workflows    |
-
-### 🎵 Multi-Modal APIs
-
-| Feature                    | What It Does                                                                                                                                                               |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🖼️ **Image Generation**    | `/v1/images/generations` with cloud and local backends                                                                                                                     |
-| 📐 **Embeddings**          | `/v1/embeddings` for search and RAG pipelines                                                                                                                              |
-| 🎤 **Audio Transcription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
-| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — 10 providers (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) with correct error messages          |
-| 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)                                                                                                                    |
-| 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                                                                                                                                |
-| 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                                                                                            |
-| 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                                                                                                                                         |
-| 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache                                                               |
-
-### 🛡️ Resilience, Security & Governance
-
-| Feature                             | What It Does                                                                           |
-| ----------------------------------- | -------------------------------------------------------------------------------------- |
-| 🔌 **Circuit Breakers**             | Per-model trip/recover with threshold controls                                         |
-| 🎯 **Endpoint-Aware Models**        | Custom models declare supported endpoints + API format                                 |
-| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                     |
-| 🧠 **Semantic + Signature Cache**   | Cost/latency reduction with two cache layers                                           |
-| ⚡ **Request Idempotency**          | Duplicate protection window                                                            |
-| 🔒 **TLS Fingerprint Spoofing**     | Browser-like TLS fingerprint — **reduces bot detection and account flagging**          |
-| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP** |
-| 🌐 **IP Filtering**                 | Allowlist/blocklist control for exposed deployments                                    |
-| 📊 **Editable Rate Limits**         | Configurable global/provider-level limits with persistence                             |
-| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                    |
-| 📜 **Config Audit Trail**           | Diff-based change tracking preventing operational drift with simple rollbacks          |
-| ⏳ **Provider Health Sync**         | Proactive token expiration monitoring triggering alerts before authorization failures  |
-| 🚪 **Auto-Disable Banned Accounts** | Operational circuit breaker sealing permanently blocked token accounts automatically   |
-| 🔑 **API Key Management + Scoping** | Secure key issuance/rotation and model/provider controls                               |
-| 👁️ **Scoped API Key Reveal** 🆕     | Opt-in recovery of API keys via `ALLOW_API_KEY_REVEAL`                                 |
-| 🛡️ **Protected `/models`**          | Optional auth gating and provider hiding for model catalog                             |
-
-### 📊 Observability & Analytics
-
-| Feature                          | What It Does                                          |
-| -------------------------------- | ----------------------------------------------------- |
-| 📝 **Request + Proxy Logging**   | Full request/response and proxy logging               |
-| 📉 **Streamed Detailed Logs** 🆕 | Reconstructs SSE payload streams cleanly into the UI  |
-| 📋 **Unified Logs Dashboard**    | Request, proxy, audit, and console views in one page  |
-| 🔍 **Request Telemetry**         | p50/p95/p99 latency and request tracing               |
-| 🏥 **Health Dashboard**          | Uptime, breaker states, lockouts, cache stats         |
-| 💰 **Cost Tracking**             | Budget controls and per-model pricing visibility      |
-| 📈 **Analytics Visualizations**  | Model/provider usage insights and trend views         |
-| 🧪 **Evaluation Framework**      | Golden set testing with configurable match strategies |
-| 📡 **Live Diagnostics** 🆕       | Semantic cache bypass for accurate combo live testing |
-
-### ☁️ Deployment & Platform
-
-| Feature                        | What It Does                                                          |
-| ------------------------------ | --------------------------------------------------------------------- |
-| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                            |
-| 🚇 **Cloudflare Tunnel** 🆕    | One-click Quick Tunnel integration from the dashboard                 |
-| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles |
-| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls               |
-| 🔄 **Backup/Restore**          | Export/import and disaster recovery flows                             |
-| 🧙 **Onboarding Wizard**       | First-run guided setup                                                |
-| 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                              |
-| 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                   |
-| 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security              |
-| 🌐 **i18n (30 languages)**     | Full dashboard + docs language support with RTL coverage              |
-| 🧹 **Clear All Models**        | One-click model list clearing in provider details                     |
-| 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
-| 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |
-| 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                              |
-
-### Feature Deep Dive
+| ميزة                                          | ماذا يفعل                                                            |
+| --------------------------------------------- | -------------------------------------------------------------------- | --------------------- |
+| 🌐**النشر في أي مكان**                        | المضيف المحلي، VPS، Docker، البيئات السحابية                         |
+| 🚇**نفق كلاود فلير**🆕                        | تكامل النفق السريع بنقرة واحدة من لوحة المعلومات                     |
+| 🔑**تصفية نموذج مفتاح واجهة برمجة التطبيقات** | تمت تصفية الاستجابة الأصلية /v1/models عبر أدوار سياق الحامل المعينة |
+| ⚡**تجاوز ذاكرة التخزين المؤقت الذكية**       | استدلالات TTL قابلة للتكوين وضوابط إعادة الجلب القسري                |
+| 🔄**النسخ الاحتياطي/الاستعادة**               | تدفقات التصدير/الاستيراد والتعافي من الكوارث                         |
+| 🧙**معالج الإعداد**                           | الإعداد الموجه لأول مرة                                              |
+| 🔧**لوحة تحكم أدوات CLI**                     | إعداد بنقرة واحدة لأدوات الترميز الشائعة                             |
+| 🎮**ساحة اللعب النموذجية**                    | اختبر أي موفر/نموذج/نقطة نهاية من لوحة المعلومات                     |
+| 🔏**تبديل بصمة الإصبع CLI**                   | مطابقة بصمات الأصابع لكل موفر في الإعدادات > الأمان                  |
+| 🌐**i18n (30 لغة)**                           | لوحة تحكم كاملة + دعم لغة المستندات مع تغطية RTL                     |
+| 🧹**مسح كافة النماذج**                        | مسح قائمة النماذج بنقرة واحدة في تفاصيل المزود                       |
+| 👁️**عناصر التحكم في الشريط الجانبي**🆕        | إخفاء المكونات وعمليات التكامل من إعدادات المظهر                     |
+| 📋**نماذج الإصدارات**                         | قوالب GitHub الموحدة للأخطاء والميزات                                |
+| 📂**دليل البيانات المخصصة**                   | تجاوز `DATA_DIR` لموقع التخزين                                       | ### Feature Deep Dive |
 
 #### Smart fallback with practical cost control
 
@@ -1452,132 +1294,105 @@ Combo: "my-coding-stack"
   4. if/kimi-k2-thinking
 ```
 
-When quota, rate, or health fails, OmniRoute automatically moves to the next candidate without manual switching.
+عند فشل الحصة أو المعدل أو الصحة، ينتقل OmniRoute تلقائيًا إلى المرشح التالي دون التبديل اليدوي.#### Protocol management that is visible and operable
 
-#### Protocol management that is visible and operable
+- يمكن اكتشاف MCP + A2A في واجهة المستخدم والمستندات (غير مخفية)
+- تعرض واجهات برمجة التطبيقات لحالة البروتوكول البيانات التشغيلية المباشرة (`/api/mcp/*`، `/api/a2a/*`)
+- تتضمن لوحات المعلومات إجراءات لعمليات اليوم الثاني (تبديل التحرير والسرد، وإعادة ضبط الكسارة، وإلغاء المهام)#### Translator + validation workflow
 
-- MCP + A2A are discoverable in UI and docs (not hidden)
-- Protocol status APIs expose live operational data (`/api/mcp/*`, `/api/a2a/*`)
-- Dashboards include actions for day-2 ops (combo toggles, breaker resets, task cancellation)
+منطقة المترجم تشمل:
 
-#### Translator + validation workflow
+-**الملعب**: طلب عمليات التحقق من التحويل -**أداة اختبار الدردشة**: الطلب/الإجابة الكاملة ذهابًا وإيابًا -**منصة الاختبار**: حالات متعددة في جولة واحدة -**المراقبة المباشرة**: عرض حركة المرور في الوقت الحقيقي
 
-The Translator area includes:
+بالإضافة إلى التحقق من صحة البروتوكول مع عملاء حقيقيين عبر اختبار تشغيل npm:البروتوكولات:e2e.
 
-- **Playground**: request transformation checks
-- **Chat Tester**: full request/response round-trip
-- **Test Bench**: multiple cases in one run
-- **Live Monitor**: real-time traffic view
-
-Plus protocol validation with real clients via `npm run test:protocols:e2e`.
-
-> 📖 **[MCP Server README](open-sse/mcp-server/README.md)** — Tool reference, IDE configs, and client examples
+> 📖**[MCP Server README](open-sse/mcp-server/README.md)**— مرجع الأداة، وتكوينات IDE، وأمثلة العميل
 >
-> 📖 **[A2A Server README](src/lib/a2a/README.md)** — Skills, JSON-RPC methods, streaming, and task lifecycle
+> 📖**[A2A Server README](src/lib/a2a/README.md)**— المهارات، وأساليب JSON-RPC، والبث، ودورة حياة المهمة## 🧪 Evaluations (Evals)
 
-## 🧪 Evaluations (Evals)
+يشتمل OmniRoute على إطار تقييم مدمج لاختبار جودة استجابة LLM مقابل المجموعة الذهبية. يمكنك الوصول إليه عبر**Analytics → Evals**في لوحة التحكم.### Built-in Golden Set
 
-OmniRoute includes a built-in evaluation framework to test LLM response quality against a golden set. Access it via **Analytics → Evals** in the dashboard.
+تحتوي "OmniRoute Golden Set" المحملة مسبقًا على حالات اختبار لما يلي:
 
-### Built-in Golden Set
+- تحياتي، الرياضيات، الجغرافيا، توليد التعليمات البرمجية
+- الامتثال لتنسيق JSON والترجمة وإنشاء تخفيض السعر
+- رفض السلامة (المحتوى الضار)، العد، المنطق المنطقي### Evaluation Strategies
 
-The pre-loaded "OmniRoute Golden Set" contains test cases for:
-
-- Greetings, math, geography, code generation
-- JSON format compliance, translation, markdown generation
-- Safety refusal (harmful content), counting, boolean logic
-
-### Evaluation Strategies
-
-| Strategy   | Description                                      | Example                          |
-| ---------- | ------------------------------------------------ | -------------------------------- |
-| `exact`    | Output must match exactly                        | `"4"`                            |
-| `contains` | Output must contain substring (case-insensitive) | `"Paris"`                        |
-| `regex`    | Output must match regex pattern                  | `"1.*2.*3"`                      |
-| `custom`   | Custom JS function returns true/false            | `(output) => output.length > 10` |
-
----
+| استراتيجية       | الوصف                                                         | مثال                              |
+| ---------------- | ------------------------------------------------------------- | --------------------------------- | --- |
+| `بالضبط`         | يجب أن يتطابق الإخراج تمامًا مع                               | `"4"`                             |
+| `يحتوي على`      | يجب أن يحتوي الإخراج على سلسلة فرعية (غير حساسة لحالة الأحرف) | `"باريس"`                         |
+| "التعبير العادي" | يجب أن يتطابق الإخراج مع نمط regex                            | `"1.*2.*3"`                       |
+| "مخصص"           | ترجع دالة JS المخصصة صواب/خطأ                                 | `(الإخراج) => الإخراج.الطول > 10` | --- |
 
 ## 📖 Setup Guide
 
 ### Protocol Setup (MCP + A2A)
 
-<details>
-<summary><b>🧩 MCP Setup (Model Context Protocol)</b></summary>
+<التفاصيل>
 
-Start MCP transport in stdio mode:
+<summary><b>🧩 إعداد MCP (بروتوكول السياق النموذجي)</b></summary>
 
-```bash
+بدء نقل MCP في وضع stdio:```bash
 omniroute --mcp
-```
 
-Recommended validation flow:
+````
 
-1. Connect your MCP client over stdio.
-2. Run `omniroute_get_health`.
-3. Run `omniroute_list_combos`.
-4. Open `/dashboard/mcp` to confirm heartbeat, activity, and audit.
+تدفق التحقق الموصى به:
 
-Useful APIs for automation:
+1. قم بتوصيل عميل MCP الخاص بك عبر stdio.
+2. قم بتشغيل "omniroute_get_health".
+3. قم بتشغيل "omniroute_list_combos".
+4. افتح `/dashboard/mcp` لتأكيد نبضات القلب والنشاط والتدقيق.
 
-- `GET /api/mcp/status`
-- `GET /api/mcp/tools`
-- `GET /api/mcp/audit`
-- `GET /api/mcp/audit/stats`
+واجهات برمجة التطبيقات المفيدة للأتمتة:
 
-</details>
+- `الحصول على /api/mcp/status`
+- `الحصول على /api/mcp/tools`
+- `الحصول على /api/mcp/audit`
+- `الحصول على /api/mcp/audit/stats`</details>
 
-<details>
-<summary><b>🤝 A2A Setup (Agent2Agent)</b></summary>
+<التفاصيل>
+<summary><b>🤝 إعداد A2A (Agent2Agent)</b></summary>
 
-Discover the agent:
-
-```bash
+اكتشف الوكيل:```bash
 curl http://localhost:20128/.well-known/agent.json
-```
+````
 
-Send a task:
-
-```bash
+إرسال مهمة:```bash
 curl -X POST http://localhost:20128/a2a \
-  -H 'content-type: application/json' \
-  -d '{"jsonrpc":"2.0","id":"setup-a2a","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Summarize quota status."}]}}'
-```
+ -H 'content-type: application/json' \
+ -d '{"jsonrpc":"2.0","id":"setup-a2a","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Summarize quota status."}]}}'
 
-Manage lifecycle:
+````
 
-- `GET /api/a2a/status`
-- `GET /api/a2a/tasks`
-- `GET /api/a2a/tasks/:id`
+إدارة دورة الحياة:
+
+- `الحصول على /api/a2a/status`
+- `الحصول على /api/a2a/tasks`
+- `الحصول على /api/a2a/tasks/:id`
 - `POST /api/a2a/tasks/:id/cancel`
 
-Operational UI:
+واجهة المستخدم التشغيلية:
 
-- `/dashboard/a2a` for task/state/stream observability and smoke actions
+- `/dashboard/a2a` لإمكانية ملاحظة المهمة/الحالة/الدفق وإجراءات الدخان</details>
 
-</details>
+<التفاصيل>
+<summary><b>🧪 التحقق من صحة البروتوكول الشامل</b></summary>
 
-<details>
-<summary><b>🧪 End-to-end protocol validation</b></summary>
-
-Validate both protocols with real clients:
-
-```bash
+التحقق من صحة كلا البروتوكولين مع عملاء حقيقيين:```bash
 npm run test:protocols:e2e
-```
+````
 
-This verifies:
+هذا يتحقق:
 
-- MCP SDK client connect/list/call
-- A2A discovery/send/stream/get/cancel
-- Cross-check data in MCP audit and A2A task management APIs
+- اتصال/قائمة/اتصال عميل MCP SDK
+- اكتشاف A2A/إرسال/دفق/حصول على/إلغاء
+- التحقق من البيانات في تدقيق MCP وواجهات برمجة التطبيقات لإدارة المهام A2A</details>
 
-</details>
+<التفاصيل>
 
-<details>
-<summary><b>💳 Subscription Providers</b></summary>
-
-### Claude Code (Pro/Max)
+<summary><b>💳 مقدمو الاشتراكات</b></summary>### Claude Code (Pro/Max)
 
 ```bash
 Dashboard → Providers → Connect Claude Code
@@ -1590,9 +1405,7 @@ Models:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
-
-### OpenAI Codex (Plus/Pro)
+**نصيحة احترافية:**استخدم Opus للمهام المعقدة، وSonnet للسرعة. OmniRoute يتتبع الحصة لكل نموذج!### OpenAI Codex (Plus/Pro)
 
 ```bash
 Dashboard → Providers → Connect Codex
@@ -1606,22 +1419,20 @@ Models:
 
 #### Codex Account Limit Management (5h + Weekly)
 
-Each Codex account now has policy toggles in `Dashboard -> Providers`:
+يحتوي كل حساب Codex الآن على تبديل السياسة في "لوحة المعلومات -> مقدمي الخدمة":
 
-- `5h` (ON/OFF): enforce the 5-hour window threshold policy.
-- `Weekly` (ON/OFF): enforce the weekly window threshold policy.
-- Threshold behavior: when an enabled window reaches >=90% usage, that account is skipped.
-- Rotation behavior: OmniRoute routes to the next eligible Codex account automatically.
-- Reset behavior: when the provider `resetAt` time passes, the account becomes eligible again automatically.
+- `5h` (تشغيل/إيقاف): فرض سياسة عتبة النافذة البالغة 5 ساعات.
+- `أسبوعيًا` (تشغيل/إيقاف): فرض سياسة حد النافذة الأسبوعية.
+- سلوك العتبة: عندما تصل النافذة الممكّنة إلى >=90% من الاستخدام، يتم تخطي هذا الحساب.
+- سلوك التناوب: يقوم OmniRoute بتوجيه حساب Codex المؤهل التالي تلقائيًا.
+- إعادة تعيين السلوك: عندما يمر وقت الموفر `resetAt`، يصبح الحساب مؤهلاً مرة أخرى تلقائيًا.
 
-Scenarios:
+السيناريوهات:
 
-- `5h ON` + `Weekly ON`: account is skipped when either window reaches threshold.
-- `5h OFF` + `Weekly ON`: only weekly usage can block the account.
-- `5h ON` + `Weekly OFF`: only 5-hour usage can block the account.
-- `resetAt` passed: account re-enters rotation automatically (no manual re-enable).
-
-### Gemini CLI (FREE 180K/month!)
+- `5h ON' + `Weekly ON`: يتم تخطي الحساب عندما تصل أي من النافذتين إلى الحد الأدنى.
+- `إيقاف لمدة 5 ساعات` + `تشغيل أسبوعي`: الاستخدام الأسبوعي فقط يمكنه حظر الحساب.
+- `5 ساعات تشغيل' + `إيقاف أسبوعي`: الاستخدام لمدة 5 ساعات فقط يمكنه حظر الحساب.
+- تم `resetAt`: يعود الحساب إلى التدوير تلقائيًا (لا توجد إعادة تمكين يدوية).### Gemini CLI (FREE 180K/month!)
 
 ```bash
 Dashboard → Providers → Connect Gemini CLI
@@ -1633,9 +1444,7 @@ Models:
   gc/gemini-2.5-pro
 ```
 
-**Best Value:** Huge free tier! Use this before paid tiers.
-
-### GitHub Copilot
+**أفضل قيمة:**طبقة مجانية ضخمة! استخدم هذا قبل المستويات المدفوعة.### GitHub Copilot
 
 ```bash
 Dashboard → Providers → Connect GitHub
@@ -1650,91 +1459,74 @@ Models:
 
 </details>
 
-<details>
-<summary><b>🔑 API Key Providers</b></summary>
+<التفاصيل>
 
-### NVIDIA NIM (FREE developer access — 70+ models)
+<summary><b>🔑 موفري مفاتيح واجهة برمجة التطبيقات</b></summary>### NVIDIA NIM (FREE developer access — 70+ models)
 
-1. Sign up: [build.nvidia.com](https://build.nvidia.com)
-2. Get free API key (1000 inference credits included)
-3. Dashboard → Add Provider → NVIDIA NIM:
-   - API Key: `nvapi-your-key`
+1. قم بالتسجيل: [build.nvidia.com](https://build.nvidia.com)
+2. احصل على مفتاح واجهة برمجة التطبيقات (API) مجانًا (يتضمن 1000 نقطة استدلال)
+3. لوحة المعلومات → إضافة موفر → NVIDIA NIM:
+   - مفتاح API: `nvapi-your-key`
 
-**Models:** `nvidia/llama-3.3-70b-instruct`, `nvidia/mistral-7b-instruct`, and 50+ more
+**النماذج:**`nvidia/llama-3.3-70b-instruct`، `nvidia/mistral-7b-instruct`، وأكثر من 50 طرازًا آخر
 
-**Pro Tip:** OpenAI-compatible API — works seamlessly with OmniRoute's format translation!
+**نصيحة احترافية:**واجهة برمجة التطبيقات المتوافقة مع OpenAI — تعمل بسلاسة مع ترجمة تنسيق OmniRoute!### DeepSeek
 
-### DeepSeek
+1. قم بالتسجيل: [platform.deepseek.com](https://platform.deepseek.com)
+2. احصل على مفتاح API
+3. لوحة المعلومات → إضافة موفر → DeepSeek
 
-1. Sign up: [platform.deepseek.com](https://platform.deepseek.com)
-2. Get API key
-3. Dashboard → Add Provider → DeepSeek
+**النماذج:**`deepseek/deepseek-chat`، `deepseek/deepseek-coder`### Groq (Free Tier Available!)
 
-**Models:** `deepseek/deepseek-chat`, `deepseek/deepseek-coder`
+1. قم بالتسجيل: [console.groq.com](https://console.groq.com)
+2. احصل على مفتاح API (الطبقة المجانية متضمنة)
+3. لوحة المعلومات → إضافة موفر → Groq
 
-### Groq (Free Tier Available!)
+**النماذج:**`groq/llama-3.3-70b`، `groq/mixtral-8x7b`
 
-1. Sign up: [console.groq.com](https://console.groq.com)
-2. Get API key (free tier included)
-3. Dashboard → Add Provider → Groq
+**نصيحة احترافية:**استنتاج فائق السرعة — الأفضل للبرمجة في الوقت الفعلي!### OpenRouter (100+ Models)
 
-**Models:** `groq/llama-3.3-70b`, `groq/mixtral-8x7b`
+1. قم بالتسجيل: [openrouter.ai](https://openrouter.ai)
+2. احصل على مفتاح API
+3. لوحة المعلومات → إضافة موفر → OpenRouter
 
-**Pro Tip:** Ultra-fast inference — best for real-time coding!
+**النماذج:**يمكنك الوصول إلى أكثر من 100 نموذج من جميع المزودين الرئيسيين من خلال مفتاح واجهة برمجة التطبيقات (API) واحد.
 
-### OpenRouter (100+ Models)
+**سلوك لوحة المعلومات:**تتم إدارة نماذج OpenRouter من**النماذج المتوفرة**. تعمل عمليات الإضافة والاستيراد والمزامنة التلقائية يدويًا على تحديث نفس القائمة.</details>
 
-1. Sign up: [openrouter.ai](https://openrouter.ai)
-2. Get API key
-3. Dashboard → Add Provider → OpenRouter
+<التفاصيل>
 
-**Models:** Access 100+ models from all major providers through a single API key.
+<summary><b>💰 مقدمو الخدمة الرخيصة (النسخ الاحتياطي)</b></summary>### GLM-4.7 (Daily reset, $0.6/1M)
 
-**Dashboard behavior:** OpenRouter models are managed from **Available Models**. Manual add, import, and auto-sync all update the same list.
+1. قم بالتسجيل: [Zhipu AI](https://open.bigmodel.cn/)
+2. احصل على مفتاح API من خطة الترميز
+3. لوحة المعلومات → إضافة مفتاح واجهة برمجة التطبيقات:
+   - المزود: `glm`
+   - مفتاح واجهة برمجة التطبيقات: "مفتاحك".
 
-</details>
+**الاستخدام:**`glm/glm-4.7`
 
-<details>
-<summary><b>💰 Cheap Providers (Backup)</b></summary>
+**نصيحة احترافية:**توفر خطة البرمجة حصة 3× بتكلفة 1/7! إعادة الضبط يوميًا الساعة 10:00 صباحًا.### MiniMax M2.1 (5h reset, $0.20/1M)
 
-### GLM-4.7 (Daily reset, $0.6/1M)
+1. قم بالتسجيل: [MiniMax](https://www.minimax.io/)
+2. احصل على مفتاح API
+3. لوحة المعلومات → إضافة مفتاح API
 
-1. Sign up: [Zhipu AI](https://open.bigmodel.cn/)
-2. Get API key from Coding Plan
-3. Dashboard → Add API Key:
-   - Provider: `glm`
-   - API Key: `your-key`
+**الاستخدام:**`minimax/MiniMax-M2.1`
 
-**Use:** `glm/glm-4.7`
+**نصيحة احترافية:**الخيار الأرخص للسياق الطويل (مليون رمز)!### Kimi K2 ($9/month flat)
 
-**Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
+1. اشترك: [Moonshot AI](https://platform.moonshot.ai/)
+2. احصل على مفتاح API
+3. لوحة المعلومات → إضافة مفتاح API
 
-### MiniMax M2.1 (5h reset, $0.20/1M)
+**الاستخدام:**`كيمي/كيمي-أحدث`
 
-1. Sign up: [MiniMax](https://www.minimax.io/)
-2. Get API key
-3. Dashboard → Add API Key
+**نصيحة احترافية:**سعر ثابت قدره 9 دولارات شهريًا مقابل 10 ملايين رمز مميز = 0.90 دولارًا أمريكيًا/مليون تكلفة فعالة!</details>
 
-**Use:** `minimax/MiniMax-M2.1`
+<التفاصيل>
 
-**Pro Tip:** Cheapest option for long context (1M tokens)!
-
-### Kimi K2 ($9/month flat)
-
-1. Subscribe: [Moonshot AI](https://platform.moonshot.ai/)
-2. Get API key
-3. Dashboard → Add API Key
-
-**Use:** `kimi/kimi-latest`
-
-**Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
-
-</details>
-
-<details>
-<summary><b>🆓 FREE Providers (Emergency Backup)</b></summary>
-
-### Qoder (5 FREE models via OAuth)
+<summary><b>🆓 مقدمو الخدمة مجانًا (النسخ الاحتياطي في حالات الطوارئ)</b></summary>### Qoder (5 FREE models via OAuth)
 
 ```bash
 Dashboard → Connect Qoder
@@ -1775,10 +1567,9 @@ Models:
 
 </details>
 
-<details>
-<summary><b>🎨 Create Combos</b></summary>
+<التفاصيل>
 
-### Example 1: Maximize Subscription → Cheap Backup
+<summary><b>🎨 أنشئ مجموعات</b></summary>### Example 1: Maximize Subscription → Cheap Backup
 
 ```
 Dashboard → Combos → Create New
@@ -1806,10 +1597,9 @@ Cost: $0 forever!
 
 </details>
 
-<details>
-<summary><b>🔧 CLI Integration</b></summary>
+<التفاصيل>
 
-### Cursor IDE
+<summary><b>🔧 تكامل CLI</b></summary>### Cursor IDE
 
 ```
 Settings → Models → Advanced:
@@ -1820,9 +1610,7 @@ Settings → Models → Advanced:
 
 ### Claude Code
 
-Use the **CLI Tools** page in the dashboard for one-click configuration, or edit `~/.claude/settings.json` manually.
-
-### Codex CLI
+استخدم صفحة**أدوات CLI**في لوحة المعلومات للتكوين بنقرة واحدة، أو قم بتحرير `~/.claude/settings.json` يدويًا.### Codex CLI
 
 ```bash
 export OPENAI_BASE_URL="http://localhost:20128"
@@ -1833,15 +1621,12 @@ codex "your prompt"
 
 ### OpenClaw
 
-**Option 1 — Dashboard (recommended):**
-
-```
+**الخيار 1 — لوحة التحكم (مستحسن):**```
 Dashboard → CLI Tools → OpenClaw → Select Model → Apply
-```
 
-**Option 2 — Manual:** Edit `~/.openclaw/openclaw.json`:
+````
 
-```json
+**الخيار 2 - يدويًا:**تحرير `~/.openclaw/openclaw.json`:```json
 {
   "models": {
     "providers": {
@@ -1853,11 +1638,9 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
     }
   }
 }
-```
+````
 
-> **Note:** OpenClaw only works with local OmniRoute. Use `127.0.0.1` instead of `localhost` to avoid IPv6 resolution issues.
-
-### Cline / Continue / RooCode
+> **ملاحظة:**يعمل OpenClaw فقط مع OmniRoute المحلي. استخدم "127.0.0.1" بدلاً من "المضيف المحلي" لتجنب مشكلات دقة IPv6.### Cline / Continue / RooCode
 
 ```
 Settings → API Configuration:
@@ -1869,17 +1652,15 @@ Settings → API Configuration:
 
 ### OpenCode
 
-**Step 1:** Add OmniRoute as a custom provider:
-
-```bash
+**الخطوة 1:**أضف OmniRoute كموفر مخصص:```bash
 opencode
 /connect
+
 # Select "Other" → Enter ID: "omniroute" → Enter your OmniRoute API key
-```
 
-**Step 2:** Create/edit `opencode.json` in your project root:
+````
 
-```json
+**الخطوة 2:**إنشاء/تحرير `opencode.json` في جذر مشروعك:```json
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
@@ -1897,130 +1678,117 @@ opencode
     }
   }
 }
-```
+````
 
-**Step 3:** Select the model in OpenCode:
-
-```bash
+**الخطوة 3:**حدد النموذج في OpenCode:```bash
 /models
+
 # Select any OmniRoute model from the list
-```
 
-> **Tip:** Add any model available in your OmniRoute `/v1/models` endpoint to the `models` section. Use the format `provider/model-id` from your OmniRoute dashboard.
+````
 
-</details>
+>**نصيحة:**أضف أي نموذج متوفر في نقطة نهاية OmniRoute `/v1/models` إلى قسم `models`. استخدم التنسيق "provider/model-id" من لوحة معلومات OmniRoute.</details>
 
 ---
 
 ## استكشاف الأخطاء
 
-<details>
-<summary><b>Click to expand troubleshooting guide</b></summary>
+<التفاصيل>
+<summary><b>انقر لتوسيع دليل استكشاف الأخطاء وإصلاحها</b></summary>
 
-**"Language model did not provide messages"**
+**"نموذج اللغة لم يقدم رسائل"**
 
-- Provider quota exhausted → Check dashboard quota tracker
-- Solution: Use combo fallback or switch to cheaper tier
+- استنفدت حصة الموفر → تحقق من تعقب حصة الموفر في لوحة المعلومات
+- الحل: استخدم خيار التحرير والسرد الاحتياطي أو قم بالتبديل إلى مستوى أرخص
 
-**Rate limiting**
+**الحد من المعدل**
 
-- Subscription quota out → Fallback to GLM/MiniMax
-- Add combo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- حصة الاشتراك المحددة → الرجوع إلى GLM/MiniMax
+- إضافة التحرير والسرد: `cc/clude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
 
-**OAuth token expired**
+**انتهت صلاحية رمز OAuth**
 
-- Auto-refreshed by OmniRoute
-- If issues persist: Dashboard → Provider → Reconnect
+- يتم التحديث تلقائيًا بواسطة OmniRoute
+- إذا استمرت المشكلات: لوحة المعلومات → الموفر → إعادة الاتصال
 
-**High costs**
+**تكاليف مرتفعة**
 
-- Check usage stats in Dashboard → Costs
-- Switch primary model to GLM/MiniMax
-- Use free tier (Gemini CLI, Qoder) for non-critical tasks
+- التحقق من إحصائيات الاستخدام في لوحة المعلومات → التكاليف
+- تبديل النموذج الأساسي إلى GLM/MiniMax
+- استخدم الطبقة المجانية (Gemini CLI، Qoder) للمهام غير الحرجة
 
-**Dashboard/API ports are wrong**
+**منافذ لوحة المعلومات/واجهة برمجة التطبيقات غير صحيحة**
 
-- `PORT` is the canonical base port (and API port by default)
-- `API_PORT` overrides only OpenAI-compatible API listener
-- `DASHBOARD_PORT` overrides only dashboard/Next.js listener
-- Set `NEXT_PUBLIC_BASE_URL` to your dashboard/public URL (for OAuth callbacks)
+- `PORT` هو المنفذ الأساسي الأساسي (ومنفذ API افتراضيًا)
+- `API_PORT` يتخطى فقط مستمع واجهة برمجة التطبيقات المتوافق مع OpenAI
+- `DASHBOARD_PORT` يتجاوز مستمع لوحة المعلومات/Next.js فقط
+- قم بتعيين `NEXT_PUBLIC_BASE_URL` على لوحة التحكم/عنوان URL العام (لردود اتصال OAuth)
 
-**Cloud sync errors**
+**أخطاء المزامنة السحابية**
 
-- Verify `BASE_URL` points to your running instance
-- Verify `CLOUD_URL` points to your expected cloud endpoint
-- Keep `NEXT_PUBLIC_*` values aligned with server-side values
+- تحقق من نقاط `BASE_URL` لمثيلك قيد التشغيل
+- تحقق من نقاط `CLOUD_URL` إلى نقطة النهاية السحابية المتوقعة
+- حافظ على محاذاة قيم `NEXT_PUBLIC_*` مع القيم الموجودة على جانب الخادم
 
-**First login not working**
+**تسجيل الدخول الأول لا يعمل**
 
-- Check `INITIAL_PASSWORD` in `.env`
-- If unset, fallback password is `123456`
+- حدد "INITIAL_PASSWORD" في ".env".
+- في حالة عدم تعيينها، تكون كلمة المرور الاحتياطية هي `123456`
 
-**No request logs**
+**لا توجد سجلات الطلب**
 
-- Request artifacts are written to `DATA_DIR/call_logs/` as one JSON file per request
-- Enable pipeline capture from Dashboard → Logs → Request Logs if you need detailed per-stage payloads
-- Set `APP_LOG_TO_FILE=true` if you also want application console logs in `logs/application/app.log`
-- Adjust `APP_LOG_MAX_FILE_SIZE`, `APP_LOG_RETENTION_DAYS`, `APP_LOG_MAX_FILES`, and `CALL_LOG_MAX_ENTRIES` as needed
+- تتم كتابة عناصر الطلب إلى `DATA_DIR/call_logs/` كملف JSON واحد لكل طلب
+- تمكين التقاط خط الأنابيب من لوحة المعلومات → السجلات → طلب السجلات إذا كنت بحاجة إلى حمولات مفصلة لكل مرحلة
+- اضبط `APP_LOG_TO_FILE=true` إذا كنت تريد أيضًا وجود سجلات لوحدة تحكم التطبيق في `logs/application/app.log`
+- اضبط `APP_LOG_MAX_FILE_SIZE`، و`APP_LOG_RETENTION_DAYS`، و`APP_LOG_MAX_FILES`، و`CALL_LOG_MAX_ENTRIES` حسب الحاجة
 
-**Connection test shows "Invalid" for OpenAI-compatible providers**
+**يظهر اختبار الاتصال "غير صالح" لمقدمي الخدمات المتوافقين مع OpenAI**
 
-- Many providers don't expose a `/models` endpoint
-- OmniRoute v1.0.6+ includes fallback validation via chat completions
-- Ensure base URL includes `/v1` suffix
-
-### 🔐 OAuth on a Remote Server
+- لا يكشف العديد من مقدمي الخدمة عن نقطة نهاية `/models`
+- يتضمن OmniRoute v1.0.6+ التحقق الاحتياطي من خلال إكمال الدردشة
+- تأكد من أن عنوان URL الأساسي يتضمن لاحقة `/v1`### 🔐 OAuth on a Remote Server
 
 <a name="oauth-on-a-remote-server"></a>
 <a name="oauth-em-servidor-remoto"></a>
 
-> **⚠️ Important for users running OmniRoute on a VPS, Docker, or any remote server**
+>**⚠️ مهم للمستخدمين الذين يقومون بتشغيل OmniRoute على VPS أو Docker أو أي خادم بعيد**#### Why does Antigravity / Gemini CLI OAuth fail on remote servers?
 
-#### Why does Antigravity / Gemini CLI OAuth fail on remote servers?
+يستخدم موفرو**Antigravity**و**Gemini CLI****Google OAuth 2.0**. تتطلب Google أن يكون `redirect_uri` في تدفق OAuth مطابقًا تمامًا لأحد معرفات URI المسجلة مسبقًا في Google Cloud Console للتطبيق.
 
-The **Antigravity** and **Gemini CLI** providers use **Google OAuth 2.0**. Google requires the `redirect_uri` in the OAuth flow to exactly match one of the pre-registered URIs in the app's Google Cloud Console.
-
-The OAuth credentials bundled in OmniRoute are registered **for `localhost` only**. When you access OmniRoute on a remote server (e.g. `https://omniroute.myserver.com`), Google rejects the authentication with:
-
-```
+يتم تسجيل بيانات اعتماد OAuth المجمعة في OmniRoute**لـ `المضيف المحلي` فقط**. عند الوصول إلى OmniRoute على خادم بعيد (على سبيل المثال، `https://omniroute.myserver.com`)، يرفض Google المصادقة باستخدام:```
 Error 400: redirect_uri_mismatch
-```
+````
 
 #### Solution: Configure your own OAuth credentials
 
-You need to create an **OAuth 2.0 Client ID** in Google Cloud Console with your server's URI.
+يلزمك إنشاء**OAuth 2.0 Client ID**في Google Cloud Console باستخدام معرف URI الخاص بخادمك.#### Step-by-step
 
-#### Step-by-step
+**1. افتح Google Cloud Console**
 
-**1. Open Google Cloud Console**
+انتقل إلى: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
 
-Go to: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+**2. قم بإنشاء معرف عميل OAuth 2.0 جديد**
 
-**2. Create a new OAuth 2.0 Client ID**
+- انقر على**"+ إنشاء بيانات اعتماد"**→**"معرف عميل OAuth"**
+- نوع التطبيق:**"تطبيق ويب"**
+- الاسم: أي شيء تريده (على سبيل المثال، "OmniRoute Remote")
 
-- Click **"+ Create Credentials"** → **"OAuth client ID"**
-- Application type: **"Web application"**
-- Name: anything you like (e.g. `OmniRoute Remote`)
+**3. أضف عناوين URI لإعادة التوجيه المعتمدة**
 
-**3. Add Authorized Redirect URIs**
-
-In the **"Authorized redirect URIs"** field, add:
-
-```
+في الحقل**"عناوين URI لإعادة التوجيه المعتمدة"**، أضف:```
 https://your-server.com/callback
-```
 
-> Replace `your-server.com` with your server's domain or IP (include the port if needed, e.g. `http://45.33.32.156:20128/callback`).
+````
 
-**4. Save and copy the credentials**
+> استبدل "your-server.com" بنطاق الخادم الخاص بك أو عنوان IP (قم بتضمين المنفذ إذا لزم الأمر، على سبيل المثال "http://45.33.32.156:20128/callback").
 
-After creating, Google will show the **Client ID** and **Client Secret**.
+**4. حفظ ونسخ بيانات الاعتماد**
 
-**5. Set environment variables**
+بعد الإنشاء، ستعرض Google**معرف العميل**و**سر العميل**.
 
-In your `.env` (or Docker environment variables):
+**5. تعيين متغيرات البيئة**
 
-```bash
+في `.env` (أو متغيرات بيئة Docker):```bash
 # For Antigravity:
 ANTIGRAVITY_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
@@ -2029,88 +1797,77 @@ ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
 GEMINI_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
 GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
-```
+````
 
-**6. Restart OmniRoute**
+**6. أعد تشغيل OmniRoute**```bash
 
-```bash
 # npm:
+
 npm run dev
 
 # Docker:
+
 docker restart omniroute
-```
 
-**7. Try connecting again**
+````
 
-Dashboard → Providers → Antigravity (or Gemini CLI) → OAuth
+**7. حاول الاتصال مرة أخرى**
 
-Google will now redirect correctly to `https://your-server.com/callback`.
+لوحة المعلومات → الموفرون → Antigravity (أو Gemini CLI) → OAuth
 
----
+سيقوم Google الآن بإعادة التوجيه بشكل صحيح إلى `https://your-server.com/callback`.---
 
 #### Temporary workaround (without custom credentials)
 
-If you don't want to set up your own credentials right now, you can still use the **manual URL flow**:
+إذا كنت لا ترغب في إعداد بيانات الاعتماد الخاصة بك الآن، فلا يزال بإمكانك استخدام**تدفق عنوان URL اليدوي**:
 
-1. OmniRoute opens the Google authorization URL
-2. After authorizing, Google tries to redirect to `localhost` (which fails on the remote server)
-3. **Copy the full URL** from your browser's address bar (even if the page doesn't load)
-4. Paste that URL into the field shown in the OmniRoute connection modal
-5. Click **"Connect"**
+1. يفتح OmniRoute عنوان URL لتفويض Google
+2. بعد التفويض، يحاول Google إعادة التوجيه إلى "المضيف المحلي" (والذي يفشل على الخادم البعيد)
+3.**انسخ عنوان URL الكامل**من شريط عنوان المتصفح (حتى لو لم يتم تحميل الصفحة)
+4. الصق عنوان URL هذا في الحقل الموضح في نموذج اتصال OmniRoute
+5. انقر**"اتصال"**
 
-> This works because the authorization code in the URL is valid regardless of whether the redirect page loaded.
+> يعمل هذا لأن رمز التفويض الموجود في عنوان URL صالح بغض النظر عما إذا تم تحميل صفحة إعادة التوجيه أم لا.---
 
----
+<التفاصيل>
+<summary><b>🇧🇷 النسخة البرتغالية</b></summary>#### Por que o OAuth do Antigravity / Gemini CLI falha em servidores remotos?
 
-<details>
-<summary><b>🇧🇷 Versão em Português</b></summary>
+تم إثبات**Antigravity**و**Gemini CLI**باستخدام**Google OAuth 2.0**للمصادقة. تطلب Google أن يتم استخدام `redirect_uri` دون تدفق OAuth**بالتأكيد**إلى عناوين URI المسبقة لتطبيق Google Cloud Console.
 
-#### Por que o OAuth do Antigravity / Gemini CLI falha em servidores remotos?
-
-Os provedores **Antigravity** e **Gemini CLI** usam **Google OAuth 2.0** para autenticação. O Google exige que a `redirect_uri` usada no fluxo OAuth seja **exatamente** uma das URIs pré-cadastradas no Google Cloud Console do aplicativo.
-
-As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
-
-```
+نظرًا لأن اعتمادات OAuth المُدخلة ليست في OmniRoute، فهي عبارة عن سجلات**apenas لـ `المضيف المحلي`**. عند الوصول إلى OmniRoute من خادم بعيد (على سبيل المثال: `https://omniroute.meuservidor.com`)، أو تحصل Google على مصادقة عبر:```
 Error 400: redirect_uri_mismatch
-```
+````
 
 #### Solução: Configure suas próprias credenciais OAuth
 
-Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
+يجب عليك إنشاء**OAuth 2.0 Client ID**على Google Cloud Console باستخدام URI لخادمك.#### Passo a passo
 
-#### Passo a passo
+**1. الوصول إلى Google Cloud Console**
 
-**1. Acesse o Google Cloud Console**
+العبرة: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
 
-Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+**2. طلب معرف عميل OAuth 2.0**
 
-**2. Crie um novo OAuth 2.0 Client ID**
+- انقر على**"+ إنشاء بيانات الاعتماد"**→**"معرف عميل OAuth"**
+- نوع التطبيق:**"تطبيق ويب"**
+- الاسم: escolha qualquer nome (على سبيل المثال: `OmniRoute Remote`)
 
-- Clique em **"+ Create Credentials"** → **"OAuth client ID"**
-- Tipo de aplicativo: **"Web application"**
-- Nome: escolha qualquer nome (ex: `OmniRoute Remote`)
+**3. Adicione كمحددات URI لإعادة التوجيه المعتمدة**
 
-**3. Adicione as Authorized Redirect URIs**
-
-No campo **"Authorized redirect URIs"**, adicione:
-
-```
+ليس هناك مجال**"عناوين URI لإعادة التوجيه المعتمدة"**، أضف:```
 https://seu-servidor.com/callback
-```
 
-> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
+````
 
-**4. Salve e copie as credenciais**
+> استبدل `seu-servidor.com` بمنطقتك أو IP بخادمك (بما في ذلك البوابة إذا لزم الأمر، على سبيل المثال: `http://45.33.32.156:20128/callback`).
 
-Após criar, o Google mostrará o **Client ID** e o **Client Secret**.
+**4. حفظ ونسخ كموثقات**
 
-**5. Configure as variáveis de ambiente**
+وبعد ذلك، قم بإنشاء أو عرض Google o**معرف العميل**أو**سر العميل**.
 
-No seu `.env` (ou nas variáveis de ambiente do Docker):
+**5. تكوين كمتغيرات البيئة**
 
-```bash
+ليس لديك `.env` (أو في بيئة Docker المتنوعة):```bash
 # Para Antigravity:
 ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
 ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
@@ -2119,39 +1876,37 @@ ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
 GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
 GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
 GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-```
+````
 
-**6. Reinicie o OmniRoute**
+**6. Reinicie أو OmniRoute**```bash
 
-```bash
 # Se usando npm:
+
 npm run dev
 
 # Se usando Docker:
+
 docker restart omniroute
-```
 
-**7. Tente conectar novamente**
+````
 
-Dashboard → Providers → Antigravity (ou Gemini CLI) → OAuth
+**7. خيمة تواصل جديدة**
 
-Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
+لوحة المعلومات → الموفرون → Antigravity (ou Gemini CLI) → OAuth
 
----
+قم بإعادة توجيه Google بشكل صحيح إلى `https://seu-servidor.com/callback` ووظيفة المصادقة.---
 
 #### Workaround temporário (sem configurar credenciais próprias)
 
-Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
+إذا لم ترغب في إنشاء بيانات اعتماد خاصة بك منذ الآن، فمن الممكن استخدام التدفق**دليل URL**:
 
-1. O OmniRoute abrirá a URL de autorização do Google
-2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
-3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
-4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
-5. Clique em **"Connect"**
+1. يفتح OmniRoute عنوان URL لتفويض Google
+2. نسمح لك بأن تقوم Google بإعادة التوجيه إلى "المضيف المحلي" (الذي لا يوجد خادم عن بعد)
+3.**انسخ عنوان URL كاملاً**من شريط الإدخال في متصفحك (حتى لا يتم نقل الصفحة)
+4. هذا هو عنوان URL الذي يظهر في وضع الاتصال بـ OmniRoute
+5. انقر على**"الاتصال"**
 
-> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
-
-</details>
+> يعمل هذا الحل البديل لأن رمز التفويض الموجود على عنوان URL يكون صالحًا بشكل مستقل لإعادة التوجيه حيث يتم تحميله أو لا.</details>
 
 ---
 
@@ -2159,72 +1914,64 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## 🛠️ Tech Stack
 
-<details>
-<summary><b>Click to expand tech stack details</b></summary>
+<التفاصيل>
+<summary><b>انقر لتوسيع تفاصيل المجموعة التقنية</b></summary>
 
-- **Runtime**: Node.js 18–22 LTS (⚠️ Node.js 24+ is **not supported** — `better-sqlite3` native binaries are incompatible)
-- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
-- **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
-- **Database**: LowDB (JSON) + SQLite (domain state + proxy logs + MCP audit + routing decisions)
-- **Schemas**: Zod (MCP tool I/O validation, API contracts)
-- **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
-- **Streaming**: Server-Sent Events (SSE)
-- **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys + MCP Scoped Authorization
-- **Testing**: Node.js test runner + Vitest (900+ tests including unit, integration, E2E)
-- **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
-- **Website**: [omniroute.online](https://omniroute.online)
-- **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
-- **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
-- **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing, auto-combo self-healing
-
-</details>
+-**وقت التشغيل**: Node.js 18–22 LTS (⚠️ Node.js 24+**غير مدعومة**— الثنائيات الأصلية `better-sqlite3` غير متوافقة)
+-**اللغة**: TypeScript 5.9 —**TypeScript بنسبة 100%**عبر `src/` و`open-sse/` (لا يوجد `any` في الوحدات الأساسية منذ الإصدار 2.0)
+-**الإطار**: Next.js 16 + React 19 + Tailwind CSS 4
+-**قاعدة البيانات**: LowDB (JSON) + SQLite (حالة المجال + سجلات الوكيل + تدقيق MCP + قرارات التوجيه)
+-**المخططات**: Zod (التحقق من صحة الإدخال/الإخراج لأداة MCP، وعقود API)
+-**البروتوكولات**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
+-**البث**: الأحداث المرسلة من الخادم (SSE)
+-**المصادقة**: OAuth 2.0 (PKCE) + JWT + مفاتيح API + ترخيص نطاق MCP
+-**الاختبار**: مشغل اختبار Node.js + Vitest (أكثر من 900 اختبار بما في ذلك الوحدة والتكامل وE2E)
+-**CI/CD**: إجراءات GitHub (نشر npm التلقائي + Docker Hub عند الإصدار)
+-**الموقع الإلكتروني**: [omniroute.online](https://omniroute.online)
+-**الحزمة**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
+-**دوكر**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
+-**المرونة**: قاطع الدائرة، والتراجع الأسي، وقطيع مكافحة الرعد، وانتحال TLS، والإصلاح الذاتي للتحرير والسرد التلقائي</details>
 
 ---
 
 ## التوثيق
 
-| Document                                       | Description                                         |
+| وثيقة | الوصف |
 | ---------------------------------------------- | --------------------------------------------------- |
-| [User Guide](docs/USER_GUIDE.md)               | Providers, combos, CLI integration, deployment      |
-| [API Reference](docs/API_REFERENCE.md)         | All endpoints with examples                         |
-| [MCP Server](open-sse/mcp-server/README.md)    | 16 MCP tools, IDE configs, Python/TS/Go clients     |
-| [A2A Server](src/lib/a2a/README.md)            | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
-| [Auto-Combo Engine](docs/auto-combo.md)        | 6-factor scoring, mode packs, self-healing          |
-| [Troubleshooting](docs/TROUBLESHOOTING.md)     | Common problems and solutions                       |
-| [Architecture](docs/ARCHITECTURE.md)           | System architecture and internals                   |
-| [Contributing](CONTRIBUTING.md)                | Development setup and guidelines                    |
-| [OpenAPI Spec](docs/openapi.yaml)              | OpenAPI 3.0 specification                           |
-| [Security Policy](SECURITY.md)                 | Vulnerability reporting and security practices      |
-| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)   | Complete guide: VM + nginx + Cloudflare setup       |
-| [Features Gallery](docs/FEATURES.md)           | Visual dashboard tour with screenshots              |
-| [Release Checklist](docs/RELEASE_CHECKLIST.md) | Pre-release validation steps                        |
-
----
+| [دليل المستخدم](docs/USER_GUIDE.md) | مقدمو الخدمات، والمجموعات، وتكامل CLI، والنشر |
+| [مرجع واجهة برمجة التطبيقات](docs/API_REFERENCE.md) | جميع نقاط النهاية مع الأمثلة |
+| [خادم MCP](open-sse/mcp-server/README.md) | 16 أدوات MCP وتكوينات IDE وعملاء Python/TS/Go |
+| [خادم A2A](src/lib/a2a/README.md) | بروتوكول JSON-RPC 2.0، المهارات، التدفق، إدارة المهام |
+| [محرك التحرير والسرد التلقائي](docs/auto-combo.md) | تسجيل 6 عوامل، حزم الوضع، الشفاء الذاتي |
+| [استكشاف الأخطاء وإصلاحها](docs/TROUBLESHOOTING.md) | المشاكل والحلول الشائعة |
+| [هندسة معمارية](docs/ARCHITECTURE.md) | بنية النظام والداخلية |
+| [مساهمة](CONTRIBUTING.md) | إعداد التطوير والمبادئ التوجيهية |
+| [مواصفات OpenAPI](docs/openapi.yaml) | مواصفات OpenAPI 3.0 |
+| [سياسة الأمان](SECURITY.md) | الإبلاغ عن الثغرات الأمنية والممارسات الأمنية |
+| [نشر الجهاز الافتراضي](docs/VM_DEPLOYMENT_GUIDE.md) | الدليل الكامل: إعداد VM + nginx + Cloudflare |
+| [معرض الميزات](docs/FEATURES.md) | جولة لوحة القيادة المرئية مع لقطات الشاشة |
+| [قائمة مراجعة الإصدار](docs/RELEASE_CHECKLIST.md) | خطوات التحقق من صحة الإصدار المسبق |---
 
 ## 🗺️ Roadmap
 
-OmniRoute has **210+ features planned** across multiple development phases. Here are the key areas:
+يحتوي OmniRoute على**210+ ميزات مخطط لها**عبر مراحل تطوير متعددة. فيما يلي المجالات الرئيسية:
 
-| Category                      | Planned Features | Highlights                                                                             |
+| الفئة | الميزات المخططة | أبرز الأحداث |
 | ----------------------------- | ---------------- | -------------------------------------------------------------------------------------- |
-| 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, P2C account selection      |
-| 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping   |
-| 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, cost tracking per model         |
-| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, provider cooldowns, multi-account Codex, Copilot quota parsing |
-| ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API         |
-| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode            |
+| 🧠**التوجيه والاستخبارات**| 25+ | التوجيه ذو زمن الاستجابة الأقل، والتوجيه القائم على العلامات، والاختبار المبدئي للحصة، واختيار حساب P2C |
+| 🔒**الأمان والامتثال**| 20+ | تقوية SSRF، وإخفاء بيانات الاعتماد، والحد الأقصى للمعدل لكل نقطة نهاية، وتحديد نطاق مفتاح الإدارة |
+| 📊**قابلية الملاحظة**| 15+ | تكامل OpenTelemetry ومراقبة الحصص في الوقت الفعلي وتتبع التكلفة لكل نموذج |
+| 🔄**تكامل الموفر**| 20+ | تسجيل النموذج الديناميكي، فترات تهدئة الموفر، الدستور الغذائي متعدد الحسابات، تحليل حصة الطيار المساعد |
+| ⚡**الأداء**| 15+ | طبقة ذاكرة التخزين المؤقت المزدوجة، ذاكرة التخزين المؤقت السريعة، ذاكرة التخزين المؤقت للاستجابة، استمرار البث، واجهة برمجة التطبيقات الدفعية |
+| 🌐**النظام البيئي**| 10+ | WebSocket API، إعادة تحميل التكوين السريع، مخزن التكوين الموزع، الوضع التجاري |### 🔜 Coming Soon
 
-### 🔜 Coming Soon
+- 🔗**تكامل OpenCode**— دعم الموفر الأصلي لـ OpenCode AI IDE للترميز
+- 🔗**تكامل TRAE**— الدعم الكامل لإطار تطوير TRAE AI
+- 📦**Batch API**— معالجة الدفعات غير المتزامنة للطلبات المجمعة
+- 🎯**التوجيه المعتمد على العلامات**— توجيه الطلبات بناءً على العلامات المخصصة والبيانات الوصفية
+- 💰**إستراتيجية أقل تكلفة**— تحديد أرخص مزود متاح تلقائيًا
 
-- 🔗 **OpenCode Integration** — Native provider support for the OpenCode AI coding IDE
-- 🔗 **TRAE Integration** — Full support for the TRAE AI development framework
-- 📦 **Batch API** — Asynchronous batch processing for bulk requests
-- 🎯 **Tag-Based Routing** — Route requests based on custom tags and metadata
-- 💰 **Lowest-Cost Strategy** — Automatically select the cheapest available provider
-
-> 📝 Full feature specifications available in [`docs/new-features/`](docs/new-features/) (217 detailed specs)
-
----
+> 📝 مواصفات الميزات الكاملة متوفرة في [`docs/new-features/`](docs/new-features/) (217 مواصفات تفصيلية)---
 
 ## 👥 Contributors
 
@@ -2232,20 +1979,18 @@ OmniRoute has **210+ features planned** across multiple development phases. Here
 
 ### How to Contribute
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. شوكة المستودع
+2. قم بإنشاء فرع الميزات الخاص بك (`git checkout -b feature/amazing-feature`)
+3. تنفيذ التغييرات ("git الالتزام -m "إضافة ميزة مذهلة")
+4. ادفع إلى الفرع ("ميزة git Push Origin/ميزة مذهلة")
+5. افتح طلب السحب
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
-
-### Releasing a New Version
+راجع [CONTRIBUTING.md](CONTRIBUTING.md) للحصول على إرشادات مفصلة.### Releasing a New Version
 
 ```bash
 # Create a release — npm publish happens automatically
 gh release create v2.0.0 --title "v2.0.0" --generate-notes
-```
+````
 
 ---
 
@@ -2257,17 +2002,13 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 
 ## 🙏 Acknowledgments
 
-Special thanks to **[9router](https://github.com/decolua/9router)** by **[decolua](https://github.com/decolua)** — the original project that inspired this fork. OmniRoute builds upon that incredible foundation with additional features, multi-modal APIs, and a full TypeScript rewrite.
+شكر خاص لـ**[9router](https://github.com/decolua/9router)**بواسطة**[decolua](https://github.com/decolua)**— المشروع الأصلي الذي ألهم هذه الشوكة. يعتمد OmniRoute على هذا الأساس المذهل مع ميزات إضافية وواجهات برمجة التطبيقات متعددة الوسائط وإعادة كتابة TypeScript كاملة.
 
-Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — the original Go implementation that inspired this JavaScript port.
-
----
+شكر خاص لـ**[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)**— تطبيق Go الأصلي الذي ألهم منفذ JavaScript هذا.---
 
 ## الرخصة
 
-MIT License - see [LICENSE](LICENSE) for details.
-
----
+ترخيص MIT - راجع [الترخيص](الترخيص) للحصول على التفاصيل.---
 
 <div align="center">
   <sub>Built with ❤️ for developers who code 24/7</sub>

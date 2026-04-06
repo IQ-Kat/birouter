@@ -4,142 +4,102 @@
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
-
----
+Визуално ръководство за всеки раздел на таблото за управление OmniRoute.---
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
-
-![Providers Dashboard](screenshots/01-providers.png)
+Управлявайте връзките на доставчици на AI: OAuth доставчици (Claude Code, Codex, Gemini CLI), доставчици на API ключове (Groq, DeepSeek, OpenRouter) и безплатни доставчици (Qoder, Qwen, Kiro). Сметките в Kiro включват проследяване на кредитния баланс — оставащи кредити, обща надбавка и дата на подновяване, видими в Табло за управление → Използване.![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Create model routing combos with 6 strategies: priority, weighted, round-robin, random, least-used, and cost-optimized. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-![Combos Dashboard](screenshots/02-combos.png)
+Създавайте комбинации за маршрутизиране на модели с 6 стратегии: приоритетни, претеглени, кръгови, произволни, най-малко използвани и оптимизирани по отношение на разходите. Всяка комбинация свързва няколко модела с автоматичен резервен вариант и включва бързи шаблони и проверки за готовност.![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
+Изчерпателни анализи на използването с потребление на токени, оценки на разходите, топлинни карти на активността, седмични диаграми на разпределение и разбивки по доставчик.![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
-
-![Health Dashboard](screenshots/04-health.png)
+Мониторинг в реално време: време на работа, памет, версия, процентили на латентност (p50/p95/p99), статистика на кеша и състояния на прекъсвача на доставчика.![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
-
-![Translator Playground](screenshots/05-translator.png)
+Четири режима за отстраняване на грешки в API преводи:**Playground**(конвертор на формати),**Chat Tester**(заявки на живо),**Test Bench**(пакетни тестове) и**Live Monitor**(поток в реално време).![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
-
----
+Тествайте всеки модел директно от таблото. Изберете доставчик, модел и крайна точка, пишете подкани с Monaco Editor, предавайте отговори в реално време, прекъсвайте по средата на потока и преглеждайте показатели за времето.---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
-
----
+Цветови теми с възможност за персонализиране за цялото табло. Изберете от 7 предварително зададени цвята (корал, син, червен, зелен, виолетов, оранжев, циан) или създайте персонализирана тема, като изберете всеки шестнадесетичен цвят. Поддържа светъл, тъмен и системен режим.---
 
 ## ⚙️ Settings
 
-Comprehensive settings panel with tabs:
+Изчерпателен панел с настройки с раздели:
 
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
+-**Общи**— Системно съхранение, управление на архивиране (база данни за експорт/импорт) -**Външен вид**— Селектор на тема (тъмно/светло/система), предварително зададени цветови теми и персонализирани цветове, видимост на журнала за здраве, контроли за видимост на елементи от страничната лента -**Сигурност**— API защита на крайната точка, персонализирано блокиране на доставчика, IP филтриране, информация за сесията -**Маршрутизиране**— Псевдоними на модела, влошаване на фоновата задача -**Устойчивост**— Устойчивост на лимита на скоростта, настройка на прекъсвача, автоматично деактивиране на забранени акаунти, наблюдение на изтичане на доставчика -**Разширени**— Замени на конфигурацията, одитна пътека на конфигурацията, резервен режим на влошаване![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+Конфигурация с едно кликване за инструменти за кодиране на AI: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor и Factory Droid. Включва автоматизирано прилагане/нулиране на конфигурация, профили на свързване и картографиране на модела.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
+Табло за откриване и управление на CLI агенти. Показва мрежа от 14 вградени агента (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) с:
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
-
----
+-**Състояние на инсталацията**— Инсталирано / Не е намерено с откриване на версия -**Протоколни значки**— stdio, HTTP и др. -**Персонализирани агенти**— Регистрирайте всеки CLI инструмент чрез формуляр (име, двоичен файл, команда за версия, аргументи за генериране) -**CLI съпоставяне на пръстови отпечатъци**— Превключване за всеки доставчик, за да съответства на собствените подписи на CLI заявка, намалявайки риска от забрана, като същевременно запазва прокси IP---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
+Генерирайте изображения, видеоклипове и музика от таблото за управление. Поддържа OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open и MusicGen.---
 
 ## 📝 Request Logs
 
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+Регистриране на заявки в реално време с филтриране по доставчик, модел, акаунт и API ключ. Показва кодове за състояние, използване на токени, латентност и подробности за отговора.![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
-
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+Вашата унифицирана крайна точка на API с разбивка на възможностите: завършвания на чатове, API за отговори, вграждания, генериране на изображения, прекласиране, аудио транскрипция, текст към говор, модериране и регистрирани ключове за API. Интегриране на Cloudflare Quick Tunnel и поддръжка на облачен прокси за отдалечен достъп.![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
-
----
+Създаване, обхват и отмяна на API ключове. Всеки ключ може да бъде ограничен до конкретни модели/доставчици с пълен достъп или разрешения само за четене. Визуално управление на ключове с проследяване на използването.---
 
 ## 📋 Audit Log
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
-
----
+Проследяване на административни действия с филтриране по тип действие, актьор, цел, IP адрес и клеймо за време. Пълна история на събитията за сигурност.---
 
 ## 🖥️ Desktop Application
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+Настолно приложение Native Electron за Windows, macOS и Linux. Стартирайте OmniRoute като самостоятелно приложение с интеграция в системната област, офлайн поддръжка, автоматично актуализиране и инсталиране с едно щракване.
 
-Key features:
+Ключови характеристики:
 
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- Проучване на готовността на сървъра (без празен екран при студен старт)
+- Системна област с управление на портове
+- Политика за сигурност на съдържанието
+- Еднократно заключване
+- Автоматична актуализация при рестартиране
+- Платформено условен потребителски интерфейс (светофари на MacOS, заглавна лента по подразбиране на Windows/Linux)
+- Hardened Electron build packaging — символично свързаните `node_modules` в самостоятелния пакет се откриват и отхвърлят преди опаковането, предотвратявайки зависимостта по време на изпълнение от машината за изграждане (v2.5.5+)
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+📖 Вижте [`electron/README.md`](../electron/README.md) за пълна документация.

@@ -4,37 +4,31 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
-
----
+Täydellinen opas OmniRouten asentamiseen ja määrittämiseen VM:lle (VPS), jonka toimialuetta hallitaan Cloudflaren kautta.---
 
 ## Prerequisites
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| Tuote       | Minimi                    | Suositeltava     |
+| ----------- | ------------------------- | ---------------- |
+| **CPU**     | 1 vCPU                    | 2 vCPU           |
+| **RAM**     | 1 Gt                      | 2 Gt             |
+| **Levy**    | 10 Gt SSD                 | 25 Gt SSD        |
+| **OS**      | Ubuntu 22.04 LTS          | Ubuntu 24.04 LTS |
+| **Domain**  | Rekisteröity Cloudflareen | —                |
+| **Dokkeri** | Docker Engine 24+         | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
-
----
+**Testatut palveluntarjoajat**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-On your preferred VPS provider:
+Valitsemallasi VPS-palveluntarjoajalla:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
-
-### 1.2 Connect via SSH
+- Valitse Ubuntu 24.04 LTS
+- Valitse vähimmäissuunnitelma (1 vCPU / 1 Gt RAM)
+- Aseta vahva root-salasana tai määritä SSH-avain
+- Huomaa**julkinen IP**(esim. `203.0.113.10`)### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -78,9 +72,7 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
-
----
+> **Vinkki**: Maksimaalista turvallisuutta varten rajaa portit 80 ja 443 vain Cloudflare-IP-osoitteisiin. Katso [Advanced Security](#advanced-security) -osio.---
 
 ## 2. Install OmniRoute
 
@@ -122,9 +114,7 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
-
-### 2.3 Start the container
+> ⚠️**TÄRKEÄÄ**: Luo ainutlaatuisia salaisia ​​avaimia! Käytä `openssl rand -hex 32` jokaiselle avaimelle.### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -145,32 +135,31 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
-
----
+Sen pitäisi näyttää: "[DB] SQLite-tietokanta valmis" ja "kuuntelu portissa 20128".---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+Cloudflare-hallintapaneelissa:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
-
-```bash
-mkdir -p /etc/nginx/ssl
+1. Siirry kohtaan**SSL/TLS → Origin Server**
+2. Napsauta**Luo varmenne**
+3. Säilytä oletusasetukset (15 vuotta, \*.omaverkkotunnus.com)
+4. Kopioi**alkuperätodistus**ja**yksityinen avain**```bash
+   mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
+
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
+
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-```
+
+````
 
 ### 3.2 Nginx Configuration
 
@@ -228,13 +217,11 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-```
+````
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
-
-### 3.3 Enable and Test
+Pidä käänteisen välityspalvelimen suoratoiston aikakatkaisut OmniRoute-aikakatkaisujen aikakatkaisujen mukaisina. Jos nostat
+"FETCH_TIMEOUT_MS" / "STREAM_IDLE_TIMEOUT_MS", korota "proxy_read_timeout" / "proxy_send_timeout"
+saman kynnyksen yläpuolella.### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -253,25 +240,21 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-In the Cloudflare dashboard → DNS:
+Cloudflaren kojelaudassa → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| Tyyppi | Nimi   | Sisältö                | Välityspalvelin    |
+| ------ | ------ | ---------------------- | ------------------ | --------------------- |
+| A      | "llms" | "203.0.113.10" (VM IP) | ✅ Välityspalvelin | ### 4.2 Configure SSL |
 
-### 4.2 Configure SSL
+Kohdassa**SSL/TLS → Yleiskatsaus**:
 
-Under **SSL/TLS → Overview**:
+- Tila:**Täysi (tiukka)**
 
-- Mode: **Full (Strict)**
+Alle**SSL/TLS → Edge-sertifikaatit**:
 
-Under **SSL/TLS → Edge Certificates**:
-
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
-
-### 4.3 Testing
+- Käytä aina HTTPS:ää: ✅ Käytössä
+- TLS:n vähimmäisversio: TLS 1.2
+- Automaattiset HTTPS-uudelleenkirjoitukset: ✅ Käytössä### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -350,11 +333,10 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
-
-```nginx
+Lisää seuraava `nginx.conf'-tiedostoon `http {}` -lohkon sisällä:```nginx
 include /etc/nginx/cloudflare-ips.conf;
-```
+
+````
 
 ### Install fail2ban
 
@@ -365,7 +347,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-```
+````
 
 ### Block direct access to the Docker port
 
@@ -383,25 +365,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Etäkäyttö Cloudflare Workersin kautta (paljastamatta virtuaalikonetta suoraan):```bash
 
-```bash
 # In the local repository
+
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
+
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
-
----
+Katso koko dokumentaatio osoitteessa [omnirouteCloud/README.md](../omnirouteCloud/README.md).---
 
 ## Port Summary
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| Portti | Palvelu | Pääsy |
+| ----- | ----------- | --------------------------- |
+| 22 | SSH | Julkinen (fail2banin kanssa) |
+| 80 | nginx HTTP | Uudelleenohjaus → HTTPS |
+| 443 | nginx HTTPS | Cloudflare-välityspalvelimen kautta |
+| 20128 | OmniRoute | Vain Localhost (nginxin kautta) |
+```

@@ -35,19 +35,20 @@ function readOpenSse(relPath) {
 
 describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
   const src = readSrc("sse/handlers/chat.ts");
+  const helpersSrc = readSrc("sse/handlers/chatHelpers.ts");
   const coreSrc = readOpenSse("handlers/chatCore.ts");
 
   it("should define resolveModelOrError helper", () => {
-    assert.ok(src, "chat.ts should exist");
-    assert.match(src, /function\s+resolveModelOrError/);
+    assert.ok(helpersSrc, "chatHelpers.ts should exist");
+    assert.match(helpersSrc, /function\s+resolveModelOrError/);
   });
 
   it("should define checkPipelineGates helper", () => {
-    assert.match(src, /function\s+checkPipelineGates/);
+    assert.match(helpersSrc, /function\s+checkPipelineGates/);
   });
 
   it("should define executeChatWithBreaker helper", () => {
-    assert.match(src, /function\s+executeChatWithBreaker/);
+    assert.match(helpersSrc, /function\s+executeChatWithBreaker/);
   });
 
   it("should keep cost accounting in the core chat pipeline", () => {
@@ -93,19 +94,19 @@ describe("Chat Pipeline — combo fallback support", () => {
 });
 
 describe("Chat Pipeline — circuit breaker integration", () => {
-  const src = readSrc("sse/handlers/chat.ts");
+  const helpersSrc = readSrc("sse/handlers/chatHelpers.ts");
 
   it("should import CircuitBreakerOpenError", () => {
-    assert.ok(src, "chat.ts should exist");
-    assert.match(src, /CircuitBreakerOpenError/);
+    assert.ok(helpersSrc, "chatHelpers.ts should exist");
+    assert.match(helpersSrc, /CircuitBreakerOpenError/);
   });
 
   it("should handle CircuitBreakerOpenError with retry-after", () => {
-    assert.match(src, /retryAfterMs/);
+    assert.match(helpersSrc, /retryAfterMs/);
   });
 
   it("should reject requests when circuit is open", () => {
-    assert.match(src, /circuit breaker is open/i);
+    assert.match(helpersSrc, /circuit breaker is open/i);
   });
 });
 
