@@ -4,11 +4,25 @@
 
 ---
 
-## [3.5.3] - 2026-04-05
+## [3.5.3] - 2026-04-06
+
+### Security
+
+- **Dependencies:** Upgraded Next.js to `^16.2.2` and Vite to `>=8.0.5` resolving critical DoS, arbitrary file reads and CSRF vectors in the build/server environments.
 
 ### Fixed
 
 - **Middleware:** Resolved infinite redirect loop on dashboard for fresh instances when requireLogin is disabled.
+- **Core Fallbacks:** Preserved primary failure contexts and enhanced Edge-case error handling pipelines across chat and fallback loops.
+- **Proxy/Hooks:** Optimized local git hooks, normalized token coverage endpoints into `/coverage`, and guarded GLM region lookups.
+
+### Documentation
+
+- **I18n Engine:** Synchronized and pushed deep Machine Translation updates across all 32 natively-supported languages (682 translation nodes aligned).
+
+### Coverage
+
+- **Testing:** Consolidated the workspace test coverage framework hitting 92.1% statement line coverage, with new rigid unit-tests matching API key policies and tool scopes.
 
 ---
 
