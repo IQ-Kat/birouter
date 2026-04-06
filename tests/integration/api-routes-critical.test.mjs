@@ -261,6 +261,70 @@ test("critical routes: v1 management proxies validates create payloads and clamp
   assert.equal(missingDeleteBody.error.message, "Proxy not found");
 });
 
+test("critical routes: v1 management proxies requires auth on mutating routes", async () => {
+  await enableManagementAuth();
+
+  const unauthenticatedPost = await proxiesRoute.POST(
+    makeRequest("http://localhost/api/v1/management/proxies", {
+      method: "POST",
+      body: {
+        name: "Denied Proxy",
+        type: "http",
+        host: "denied.local",
+        port: 8080,
+      },
+    })
+  );
+  const invalidPost = await proxiesRoute.POST(
+    makeRequest("http://localhost/api/v1/management/proxies", {
+      method: "POST",
+      token: "sk-invalid",
+      body: {
+        name: "Denied Proxy",
+        type: "http",
+        host: "denied.local",
+        port: 8080,
+      },
+    })
+  );
+  const unauthenticatedPatch = await proxiesRoute.PATCH(
+    makeRequest("http://localhost/api/v1/management/proxies", {
+      method: "PATCH",
+      body: { id: "proxy-1", host: "patched.local" },
+    })
+  );
+  const invalidPatch = await proxiesRoute.PATCH(
+    makeRequest("http://localhost/api/v1/management/proxies", {
+      method: "PATCH",
+      token: "sk-invalid",
+      body: { id: "proxy-1", host: "patched.local" },
+    })
+  );
+  const unauthenticatedDelete = await proxiesRoute.DELETE(
+    makeRequest("http://localhost/api/v1/management/proxies?id=proxy-1", {
+      method: "DELETE",
+    })
+  );
+  const invalidDelete = await proxiesRoute.DELETE(
+    makeRequest("http://localhost/api/v1/management/proxies?id=proxy-1", {
+      method: "DELETE",
+      token: "sk-invalid",
+    })
+  );
+
+  for (const response of [unauthenticatedPost, unauthenticatedPatch, unauthenticatedDelete]) {
+    const body = await response.json();
+    assert.equal(response.status, 401);
+    assert.equal(body.error.message, "Authentication required");
+  }
+
+  for (const response of [invalidPost, invalidPatch, invalidDelete]) {
+    const body = await response.json();
+    assert.equal(response.status, 403);
+    assert.equal(body.error.message, "Invalid management token");
+  }
+});
+
 test("critical routes: settings proxy resolves config, validates payloads, and deletes scoped entries", async () => {
   const connection = await localDb.createProviderConnection({
     provider: "openai",

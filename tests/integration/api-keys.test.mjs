@@ -81,6 +81,32 @@ test("API keys routes require management auth when login protection is enabled",
   assert.equal(invalidTokenBody.error.message, "Invalid management token");
 });
 
+test("API keys POST also requires management auth when login protection is enabled", async () => {
+  await enableManagementAuth();
+
+  const unauthenticated = await listRoute.POST(
+    makeRequest("http://localhost/api/keys", {
+      method: "POST",
+      body: { name: "Blocked Create" },
+    })
+  );
+  const invalidToken = await listRoute.POST(
+    makeRequest("http://localhost/api/keys", {
+      method: "POST",
+      token: "sk-invalid",
+      body: { name: "Blocked Create" },
+    })
+  );
+
+  const unauthenticatedBody = await unauthenticated.json();
+  const invalidTokenBody = await invalidToken.json();
+
+  assert.equal(unauthenticated.status, 401);
+  assert.equal(unauthenticatedBody.error.message, "Authentication required");
+  assert.equal(invalidToken.status, 403);
+  assert.equal(invalidTokenBody.error.message, "Invalid management token");
+});
+
 test("POST /api/keys creates a key, preserves special characters, and persists noLog", async () => {
   await enableManagementAuth();
   const authKey = await createManagementKey();
@@ -196,6 +222,31 @@ test("GET /api/keys falls back to default pagination for invalid query params", 
   assert.equal(body.keys[0].name, "management");
 });
 
+test("GET /api/keys uses default pagination when query params are absent and reports reveal support", async () => {
+  await enableManagementAuth();
+  process.env.ALLOW_API_KEY_REVEAL = "true";
+  const authKey = await createManagementKey();
+  const createdA = await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
+  const createdB = await apiKeysDb.createApiKey("Beta", MACHINE_ID);
+
+  const response = await listRoute.GET(
+    makeRequest("http://localhost/api/keys", {
+      token: authKey.key,
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.total, 3);
+  assert.equal(body.allowKeyReveal, true);
+  assert.equal(body.keys.length, 3);
+  assert.deepEqual(
+    body.keys.map((entry) => entry.id).sort(),
+    [authKey.id, createdA.id, createdB.id].sort()
+  );
+  assert.ok(body.keys.every((entry) => entry.key !== undefined && entry.key !== ""));
+});
+
 test("POST /api/keys triggers cloud sync when cloud mode is enabled", async () => {
   await enableManagementAuth();
   await localDb.updateSettings({ cloudEnabled: true });
@@ -224,6 +275,38 @@ test("POST /api/keys triggers cloud sync when cloud mode is enabled", async () =
     assert.match(String(calls[0].url), /^http:\/\/cloud\.example\/sync\//);
     assert.ok(Array.isArray(syncPayload.providers));
     assert.ok(Array.isArray(syncPayload.apiKeys));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("POST /api/keys still succeeds when cloud sync fails after creation", async () => {
+  await enableManagementAuth();
+  await localDb.updateSettings({ cloudEnabled: true });
+  const authKey = await createManagementKey();
+  const originalFetch = globalThis.fetch;
+  let syncAttempts = 0;
+
+  globalThis.fetch = async () => {
+    syncAttempts += 1;
+    throw new Error("cloud sync offline");
+  };
+
+  try {
+    const response = await listRoute.POST(
+      makeRequest("http://localhost/api/keys", {
+        method: "POST",
+        token: authKey.key,
+        body: { name: "Cloud Failure Tolerated" },
+      })
+    );
+    const body = await response.json();
+    const stored = await apiKeysDb.getApiKeyById(body.id);
+
+    assert.equal(response.status, 201);
+    assert.equal(body.name, "Cloud Failure Tolerated");
+    assert.equal(syncAttempts, 1);
+    assert.equal(stored?.name, "Cloud Failure Tolerated");
   } finally {
     globalThis.fetch = originalFetch;
   }

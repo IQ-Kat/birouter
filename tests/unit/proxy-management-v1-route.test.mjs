@@ -17,6 +17,25 @@ const proxyBulkAssignV1Route =
   await import("../../src/app/api/v1/management/proxies/bulk-assign/route.ts");
 const proxyLogger = await import("../../src/lib/proxyLogger.ts");
 
+async function withEnv(name, value, fn) {
+  const previous = process.env[name];
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+
+  try {
+    return await fn();
+  } finally {
+    if (previous === undefined) {
+      delete process.env[name];
+    } else {
+      process.env[name] = previous;
+    }
+  }
+}
+
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -199,4 +218,153 @@ test("v1 bulk assignment updates multiple scope IDs in one request", async () =>
   );
   const checkPayload = await checkRes.json();
   assert.equal(checkPayload.items.length >= 2, true);
+});
+
+test("v1 proxy management companion routes require auth when login protection is enabled", async () => {
+  await resetStorage();
+
+  await withEnv("INITIAL_PASSWORD", "secret", async () => {
+    const assignmentsGetRes = await proxyAssignmentsV1Route.GET(
+      new Request("http://localhost/api/v1/management/proxies/assignments")
+    );
+    assert.equal(assignmentsGetRes.status, 401);
+
+    const assignmentsPutRes = await proxyAssignmentsV1Route.PUT(
+      new Request("http://localhost/api/v1/management/proxies/assignments", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer invalid-management-token",
+        },
+        body: JSON.stringify({
+          scope: "global",
+          proxyId: null,
+        }),
+      })
+    );
+    assert.equal(assignmentsPutRes.status, 403);
+
+    const healthRes = await proxyHealthV1Route.GET(
+      new Request("http://localhost/api/v1/management/proxies/health", {
+        headers: {
+          Authorization: "Bearer invalid-management-token",
+        },
+      })
+    );
+    assert.equal(healthRes.status, 403);
+
+    const bulkRes = await proxyBulkAssignV1Route.PUT(
+      new Request("http://localhost/api/v1/management/proxies/bulk-assign", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scope: "global",
+          proxyId: null,
+        }),
+      })
+    );
+    assert.equal(bulkRes.status, 401);
+  });
+});
+
+test("v1 assignments route resolves connection proxies and bulk assignment covers validation branches", async () => {
+  await resetStorage();
+
+  const providerConn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "v1-resolve",
+    apiKey: "sk-test-v1-resolve",
+  });
+
+  const proxyRes = await proxyV1Route.POST(
+    new Request("http://localhost/api/v1/management/proxies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Resolve Proxy",
+        type: "http",
+        host: "resolve.local",
+        port: 9000,
+      }),
+    })
+  );
+  const proxy = await proxyRes.json();
+
+  const assignRes = await proxyAssignmentsV1Route.PUT(
+    new Request("http://localhost/api/v1/management/proxies/assignments", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scope: "account",
+        scopeId: providerConn.id,
+        proxyId: proxy.id,
+      }),
+    })
+  );
+  assert.equal(assignRes.status, 200);
+
+  const resolveRes = await proxyAssignmentsV1Route.GET(
+    new Request(
+      `http://localhost/api/v1/management/proxies/assignments?resolve_connection_id=${providerConn.id}`
+    )
+  );
+  assert.equal(resolveRes.status, 200);
+  const resolvePayload = await resolveRes.json();
+  assert.equal(resolvePayload.level, "account");
+  assert.equal(resolvePayload.proxy.host, "resolve.local");
+
+  const invalidJsonRes = await proxyBulkAssignV1Route.PUT(
+    new Request("http://localhost/api/v1/management/proxies/bulk-assign", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: "{",
+    })
+  );
+  assert.equal(invalidJsonRes.status, 400);
+
+  const invalidPayloadRes = await proxyBulkAssignV1Route.PUT(
+    new Request("http://localhost/api/v1/management/proxies/bulk-assign", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scope: "provider",
+        scopeIds: [],
+      }),
+    })
+  );
+  assert.equal(invalidPayloadRes.status, 400);
+
+  const normalizedRes = await proxyBulkAssignV1Route.PUT(
+    new Request("http://localhost/api/v1/management/proxies/bulk-assign", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scope: "key",
+        scopeIds: [providerConn.id, providerConn.id],
+        proxyId: proxy.id,
+      }),
+    })
+  );
+  assert.equal(normalizedRes.status, 200);
+  const normalizedPayload = await normalizedRes.json();
+  assert.equal(normalizedPayload.scope, "account");
+  assert.equal(normalizedPayload.requested, 2);
+  assert.equal(normalizedPayload.updated, 1);
+
+  const globalRes = await proxyBulkAssignV1Route.PUT(
+    new Request("http://localhost/api/v1/management/proxies/bulk-assign", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scope: "global",
+        proxyId: proxy.id,
+      }),
+    })
+  );
+  assert.equal(globalRes.status, 200);
+  const globalPayload = await globalRes.json();
+  assert.equal(globalPayload.scope, "global");
+  assert.equal(globalPayload.requested, 1);
+  assert.equal(globalPayload.updated, 1);
 });

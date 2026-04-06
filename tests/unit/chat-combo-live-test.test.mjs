@@ -10,23 +10,19 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const chatRoute = await import("../../src/app/api/v1/chat/completions/route.ts");
-const {
-  generateSignature,
-  invalidateBySignature,
-  setCachedResponse,
-} = await import("../../src/lib/semanticCache.ts");
-const {
-  clearModelUnavailability,
-  resetAllAvailability,
-  setModelUnavailable,
-} = await import("../../src/domain/modelAvailability.ts");
-const {
-  getCircuitBreaker,
-  resetAllCircuitBreakers,
-  STATE,
-} = await import("../../src/shared/utils/circuitBreaker.ts");
+const { generateSignature, invalidateBySignature, setCachedResponse } =
+  await import("../../src/lib/semanticCache.ts");
+const { clearModelUnavailability, resetAllAvailability, setModelUnavailable } =
+  await import("../../src/domain/modelAvailability.ts");
+const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
+  await import("../../src/shared/utils/circuitBreaker.ts");
 
 const originalFetch = globalThis.fetch;
+
+async function flushBackgroundWork() {
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  await new Promise((resolve) => setImmediate(resolve));
+}
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -80,13 +76,15 @@ test.beforeEach(async () => {
   await resetStorage();
 });
 
-test.afterEach(() => {
+test.afterEach(async () => {
+  await flushBackgroundWork();
   globalThis.fetch = originalFetch;
   resetAllAvailability();
   resetAllCircuitBreakers();
 });
 
-test.after(() => {
+test.after(async () => {
+  await flushBackgroundWork();
   globalThis.fetch = originalFetch;
   resetAllAvailability();
   resetAllCircuitBreakers();

@@ -725,6 +725,160 @@ test("provider-nodes validate route rejects CC mode when feature flag is disable
   assert.equal(response.status, 403);
 });
 
+test("provider-nodes validate route rejects invalid JSON and schema errors", async () => {
+  const invalidJsonResponse = await providerNodesValidateRoute.POST(
+    new Request("http://localhost/api/provider-nodes/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{",
+    })
+  );
+
+  assert.equal(invalidJsonResponse.status, 400);
+  assert.deepEqual(await invalidJsonResponse.json(), {
+    error: {
+      message: "Invalid request",
+      details: [{ field: "body", message: "Invalid JSON body" }],
+    },
+  });
+
+  const invalidBodyResponse = await providerNodesValidateRoute.POST(
+    new Request("http://localhost/api/provider-nodes/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        baseUrl: "",
+        apiKey: "",
+      }),
+    })
+  );
+
+  assert.equal(invalidBodyResponse.status, 400);
+  const invalidBodyPayload = await invalidBodyResponse.json();
+  assert.equal(invalidBodyPayload.error.message, "Invalid request");
+  assert.equal(invalidBodyPayload.error.details.length >= 2, true);
+});
+
+test("provider-nodes validate route validates anthropic compatible providers against the models endpoint", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url, init });
+    return new Response(JSON.stringify({ data: [] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  const response = await providerNodesValidateRoute.POST(
+    new Request("http://localhost/api/provider-nodes/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        baseUrl: "https://proxy.example.com/v1/messages?beta=true",
+        apiKey: "sk-anthropic-test",
+        type: "anthropic-compatible",
+        modelsPath: "/catalog",
+      }),
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    valid: true,
+    error: null,
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://proxy.example.com/v1/catalog");
+  assert.equal(calls[0].init.method, "GET");
+  assert.equal(calls[0].init.headers["x-api-key"], "sk-anthropic-test");
+  assert.equal(calls[0].init.headers["anthropic-version"], "2023-06-01");
+  assert.equal(calls[0].init.headers.Authorization, "Bearer sk-anthropic-test");
+});
+
+test("provider-nodes validate route supports enabled CC validation and OpenAI-style failures", async () => {
+  process.env.ENABLE_CC_COMPATIBLE_PROVIDER = "true";
+
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url, init });
+    if (calls.length === 1) {
+      return new Response(JSON.stringify({ data: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  const ccResponse = await providerNodesValidateRoute.POST(
+    new Request("http://localhost/api/provider-nodes/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        baseUrl: "https://proxy.example.com/v1/messages?beta=true",
+        apiKey: "sk-cc-test",
+        type: "anthropic-compatible",
+        compatMode: "cc",
+        chatPath: CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+      }),
+    })
+  );
+
+  assert.equal(ccResponse.status, 200);
+  assert.deepEqual(await ccResponse.json(), {
+    valid: true,
+    error: null,
+    warning: null,
+    method: "models_endpoint",
+  });
+  assert.equal(String(calls[0].url).includes("/v1/messages"), false);
+  assert.equal(calls[0].init.method, "GET");
+
+  const openAiResponse = await providerNodesValidateRoute.POST(
+    new Request("http://localhost/api/provider-nodes/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        baseUrl: "https://proxy.example.com/",
+        apiKey: "sk-openai-test",
+      }),
+    })
+  );
+
+  assert.equal(openAiResponse.status, 200);
+  assert.deepEqual(await openAiResponse.json(), {
+    valid: false,
+    error: "Invalid API key",
+  });
+  assert.equal(calls[1].url, "https://proxy.example.com/models");
+  assert.equal(calls[1].init.headers.Authorization, "Bearer sk-openai-test");
+});
+
+test("provider-nodes validate route reports unexpected upstream failures", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("boom");
+  };
+
+  const response = await providerNodesValidateRoute.POST(
+    new Request("http://localhost/api/provider-nodes/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        baseUrl: "https://proxy.example.com",
+        apiKey: "sk-openai-test",
+      }),
+    })
+  );
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), {
+    error: "Validation failed",
+  });
+});
+
 test("provider-nodes list route exposes CC flag state from server env", async () => {
   process.env.ENABLE_CC_COMPATIBLE_PROVIDER = "true";
 

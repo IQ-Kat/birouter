@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rate-limit-manager-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const core = await import("../../src/lib/db/core.ts");
 const rateLimitManager = await import("../../open-sse/services/rateLimitManager.ts");
 const accountFallback = await import("../../open-sse/services/accountFallback.ts");
 
@@ -8,9 +15,31 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function flushBackgroundWork() {
+  await wait(50);
+  await new Promise((resolve) => setImmediate(resolve));
+}
+
+async function resetStorage() {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+test.beforeEach(async () => {
+  await resetStorage();
+});
+
 test.afterEach(async () => {
   await rateLimitManager.__resetRateLimitManagerForTests();
-  await wait(5);
+  await flushBackgroundWork();
+});
+
+test.after(async () => {
+  await rateLimitManager.__resetRateLimitManagerForTests();
+  await flushBackgroundWork();
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
 test("rate limit manager bypasses disabled connections and exposes inactive status", async () => {

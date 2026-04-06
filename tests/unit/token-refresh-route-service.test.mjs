@@ -318,3 +318,59 @@ test("refreshGitHubAndCopilotTokens composes GitHub and Copilot refresh response
     }
   );
 });
+
+test("checkAndRefreshToken leaves credentials untouched when nothing is close to expiry", async () => {
+  const now = 1_700_000_200_000;
+  const credentials = {
+    connectionId: "conn-stable",
+    accessToken: "stable-access",
+    refreshToken: "stable-refresh",
+    expiresAt: new Date(now + tokenRefresh.TOKEN_EXPIRY_BUFFER_MS + 60_000).toISOString(),
+    providerSpecificData: {
+      copilotToken: "copilot-stable",
+      copilotTokenExpiresAt: Math.floor(
+        (now + tokenRefresh.TOKEN_EXPIRY_BUFFER_MS + 60_000) / 1000
+      ),
+    },
+  };
+
+  await withMockedNow(now, async () => {
+    await withMockedFetch(
+      async () => {
+        throw new Error("fetch should not be called");
+      },
+      async () => {
+        const refreshed = await tokenRefresh.checkAndRefreshToken("github", credentials);
+        assert.deepEqual(refreshed, credentials);
+      }
+    );
+  });
+});
+
+test("refreshGitHubAndCopilotTokens returns refreshed GitHub credentials when Copilot refresh fails", async () => {
+  await withMockedFetch(
+    async (url) => {
+      if (String(url) === OAUTH_ENDPOINTS.github.token) {
+        return jsonResponse({
+          access_token: "github-only-access",
+          refresh_token: "github-only-refresh",
+          expires_in: 1200,
+        });
+      }
+
+      assert.equal(String(url), "https://api.github.com/copilot_internal/v2/token");
+      return new Response("copilot unavailable", { status: 503 });
+    },
+    async () => {
+      const refreshed = await tokenRefresh.refreshGitHubAndCopilotTokens({
+        refreshToken: "github-refresh-only",
+      });
+
+      assert.deepEqual(refreshed, {
+        accessToken: "github-only-access",
+        refreshToken: "github-only-refresh",
+        expiresIn: 1200,
+      });
+    }
+  );
+});
