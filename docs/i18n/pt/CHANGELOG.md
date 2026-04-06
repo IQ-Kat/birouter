@@ -4,8 +4,15 @@
 
 ---
 
-
 ## [Unreleased]
+
+---
+
+## [3.5.3] - 2026-04-05
+
+### Fixed
+
+- **Middleware:** Resolved infinite redirect loop on dashboard for fresh instances when requireLogin is disabled.
 
 ---
 
@@ -1406,7 +1413,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 #### Developer Experience
 
 - **#489 — Antigravity:** Missing `googleProjectId` returns a structured 422 error with reconnect guidance instead of a cryptic crash.
-- **#510 — Windows paths:** MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...` automatically.
+- **#510 — Windows paths:** MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\Program Files\...` automatically.
 - **#492 — CLI startup:** `omniroute` CLI now detects `mise`/`nvm`-managed Node when `app/server.js` is missing and shows targeted fix instructions.
 
 ---
@@ -1528,7 +1535,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **#527** — Claude Code + Codex superpowers loop: `tool_result` blocks now converted to text instead of dropped
 - **#532** — OpenCode GO API key validation now uses the correct `zen/v1` endpoint (`testKeyBaseUrl`)
 - **#489** — Antigravity: missing `googleProjectId` returns structured 422 error with reconnect guidance
-- **#510** — Windows: MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...`
+- **#510** — Windows: MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\Program Files\...`
 - **#492** — `omniroute` CLI now detects `mise`/`nvm` when `app/server.js` is missing and shows targeted fix
 
 ### Documentação
@@ -1550,7 +1557,9 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 - **CLI tools save masked API key to config files** — `claude-settings`, `cline-settings`, and `openclaw-settings` POST routes now accept a `keyId` param and resolve the real API key from DB before writing to disk. `ClaudeToolCard` updated to send `keyId` instead of the masked display string. Fixes #523, #526.
 - **Custom embedding providers: `No credentials` error** — `/v1/embeddings` now tracks `credentialsProviderId` separately from the routing prefix, so credentials are fetched from the matching provider node ID rather than the public prefix string. Fixes a regression where `google/gemini-embedding-001` and similar custom-provider models would always fail with a credentials error. Fixes #532-related. (PR #528 by @jacob2826)
-- **Context cache protection regex misses `\n` prefix** — `CACHE_TAG_PATTERN` in `comboAgentMiddleware.ts` updated to match both literal `\n` (backslash-n) and actual newline U+000A that `combo.ts` streaming injects around the `<omniModel>` tag after fix #515. Fixes #531.
+- **Context cache protection regex misses `
+` prefix** — `CACHE_TAG_PATTERN` in `comboAgentMiddleware.ts` updated to match both literal `
+` (backslash-n) and actual newline U+000A that `combo.ts` streaming injects around the `<omniModel>` tag after fix #515. Fixes #531.
 
 ### ✨ New Providers
 
@@ -1570,9 +1579,10 @@ OmniRoute now automatically refreshes model lists for connected providers every 
   — The field is a cache-affinity signal used by Codex; stripping it was preventing prompt cache hits.
   Fixed in `openai-responses.ts` and `responsesApiHelper.ts`.
 
-- **fix(combo)**: Escape `\n` in `tagContent` so injected JSON string is valid (#515)
+- **fix(combo)**: Escape `
+` in `tagContent` so injected JSON string is valid (#515)
   — Template literal newlines (U+000A) are not allowed unescaped inside JSON string values.
-  Replaced with `\\n` literal sequences in `open-sse/services/combo.ts`.
+  Replaced with `\n` literal sequences in `open-sse/services/combo.ts`.
 
 - **fix(usage)**: Sync expired token status back to DB on live auth failure (#491)
   — When the Limits & Quotas live check returns 401/403, the connection `testStatus` is now updated
@@ -2121,7 +2131,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 ### 🐛 Bug Fixes
 
-- **fix(ci)**: Remove word "any" from comments in `openai-responses.ts` and `chatCore.ts` that were failing the t11 `\bany\b` budget check (false positive from regex counting comments)
+- **fix(ci)**: Remove word "any" from comments in `openai-responses.ts` and `chatCore.ts` that were failing the t11 `any` budget check (false positive from regex counting comments)
 - **fix(chatCore)**: Normalize unsupported content part types before forwarding to providers (#409 — Cursor sends `{type:"file"}` when `.md` files are attached; Copilot and other OpenAI-compat providers reject with "type has to be either 'image_url' or 'text'"; fix converts `file`/`document` blocks to `text` and drops unknown types)
 
 ### 🔧 Workflow
