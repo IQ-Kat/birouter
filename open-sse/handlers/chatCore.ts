@@ -440,6 +440,14 @@ function attachLogMeta(
 const _proxyConfigCache = new Map<string, { mode: string; enabled: boolean; ts: number }>();
 const PROXY_CONFIG_CACHE_TTL = 10_000;
 
+export function clearUpstreamProxyConfigCache(providerId?: string) {
+  if (providerId) {
+    _proxyConfigCache.delete(providerId);
+    return;
+  }
+  _proxyConfigCache.clear();
+}
+
 async function getUpstreamProxyConfigCached(providerId: string) {
   const cached = _proxyConfigCache.get(providerId);
   if (cached && Date.now() - cached.ts < PROXY_CONFIG_CACHE_TTL) return cached;
@@ -466,6 +474,7 @@ export async function handleChatCore({
   comboName,
   comboStrategy = null,
   isCombo = false,
+  disableEmergencyFallback = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   const requestedModel =
@@ -1855,71 +1864,81 @@ export async function handleChatCore({
         clientResponse: buildErrorBody(statusCode, errMsg),
       });
       persistFailureUsage(statusCode, `upstream_${statusCode}`);
-      return createErrorResult(statusCode, errMsg, retryAfterMs);
-    }
-    // ── End T5 ───────────────────────────────────────────────────────────────
 
-    // ── Emergency Fallback (ClawRouter Feature #09/017) ────────────────────
-    // When a non-streaming request fails with a budget-related error (402 or
-    // budget keywords), redirect to nvidia/gpt-oss-120b ($0.00/M) before
-    // returning the error to the combo router. This gives one last free-tier
-    // attempt so the user's session stays alive.
-    const requestHasTools = Array.isArray(translatedBody.tools) && translatedBody.tools.length > 0;
-    if (!stream) {
-      const fbDecision = shouldUseFallback(
-        statusCode,
-        message,
-        requestHasTools,
-        EMERGENCY_FALLBACK_CONFIG
-      );
-      if (isFallbackDecision(fbDecision)) {
-        log?.info?.("EMERGENCY_FALLBACK", fbDecision.reason);
-        try {
-          // Build a minimal fallback request using the original body but with
-          // the NVIDIA free-tier model and max_tokens capped to avoid overuse.
-          const fbExecutor = getExecutor(fbDecision.provider);
-          const fbResult = await fbExecutor.execute({
-            model: fbDecision.model,
-            body: {
-              ...translatedBody,
+      const requestHasTools =
+        Array.isArray(translatedBody.tools) && translatedBody.tools.length > 0;
+      let emergencyFallbackServed = false;
+
+      if (!disableEmergencyFallback && !stream) {
+        const fbDecision = shouldUseFallback(
+          statusCode,
+          message,
+          requestHasTools,
+          EMERGENCY_FALLBACK_CONFIG
+        );
+        if (isFallbackDecision(fbDecision)) {
+          log?.info?.("EMERGENCY_FALLBACK", fbDecision.reason);
+          try {
+            const originalProvider = provider;
+            const fbExecutor = getExecutor(fbDecision.provider);
+            const fbResult = await fbExecutor.execute({
               model: fbDecision.model,
-              max_tokens: Math.min(
-                typeof translatedBody.max_tokens === "number"
-                  ? translatedBody.max_tokens
-                  : fbDecision.maxOutputTokens,
-                fbDecision.maxOutputTokens
-              ),
-            },
-            stream: false,
-            credentials: credentials,
-            signal: streamController.signal,
-            log,
-            extendedContext,
-          });
-          if (fbResult.response.ok) {
-            providerResponse = fbResult.response;
-            providerUrl = fbResult.url;
-            providerHeaders = fbResult.headers;
-            finalBody = fbResult.transformedBody;
-            reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-            log?.info?.(
-              "EMERGENCY_FALLBACK",
-              `Serving ${fbDecision.provider}/${fbDecision.model} as budget fallback for ${provider}/${model}`
-            );
-            // Fall through to non-streaming handler — providerResponse is now OK
-          } else {
-            log?.warn?.(
-              "EMERGENCY_FALLBACK",
-              `Emergency fallback also failed (${fbResult.response.status})`
-            );
+              body: {
+                ...translatedBody,
+                model: fbDecision.model,
+                max_tokens: Math.min(
+                  typeof translatedBody.max_tokens === "number"
+                    ? translatedBody.max_tokens
+                    : fbDecision.maxOutputTokens,
+                  fbDecision.maxOutputTokens
+                ),
+                max_completion_tokens: Math.min(
+                  typeof translatedBody.max_completion_tokens === "number"
+                    ? translatedBody.max_completion_tokens
+                    : typeof translatedBody.max_tokens === "number"
+                      ? translatedBody.max_tokens
+                      : fbDecision.maxOutputTokens,
+                  fbDecision.maxOutputTokens
+                ),
+              },
+              stream: false,
+              credentials: credentials,
+              signal: streamController.signal,
+              log,
+              extendedContext,
+            });
+            if (fbResult.response.ok) {
+              provider = fbDecision.provider;
+              model = fbDecision.model;
+              translatedBody.model = fbDecision.model;
+              providerResponse = fbResult.response;
+              providerUrl = fbResult.url;
+              providerHeaders = fbResult.headers;
+              finalBody = fbResult.transformedBody;
+              reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+              log?.info?.(
+                "EMERGENCY_FALLBACK",
+                `Serving ${fbDecision.provider}/${fbDecision.model} as budget fallback for ${originalProvider}/${requestedModel}`
+              );
+              emergencyFallbackServed = true;
+            } else {
+              log?.warn?.(
+                "EMERGENCY_FALLBACK",
+                `Emergency fallback also failed (${fbResult.response.status})`
+              );
+            }
+          } catch (fbErr) {
+            const errMessage = fbErr instanceof Error ? fbErr.message : String(fbErr);
+            log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${errMessage}`);
           }
-        } catch (fbErr) {
-          const errMessage = fbErr instanceof Error ? fbErr.message : String(fbErr);
-          log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${errMessage}`);
         }
       }
+
+      if (!emergencyFallbackServed) {
+        return createErrorResult(statusCode, errMsg, retryAfterMs);
+      }
     }
-    // ── End Emergency Fallback ────────────────────────────────────────────
+    // ── End T5 ───────────────────────────────────────────────────────────────
   }
 
   // Non-streaming response

@@ -481,7 +481,7 @@ test("handleChat returns the primary budget error when emergency fallback also f
   const json = await response.json();
 
   assert.equal(response.status, 402);
-  assert.deepEqual(seenModels, ["gpt-4o-mini", "openai/gpt-oss-120b"]);
+  assert.deepEqual(seenModels, ["gpt-4o-mini", "openai/gpt-oss-120b", "openai/gpt-oss-120b"]);
   assert.match(json.error.message, /quota exceeded/i);
 });
 

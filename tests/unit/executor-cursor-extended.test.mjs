@@ -481,3 +481,26 @@ test("CursorExecutor.execute maps transport failures to connection_error and ref
   assert.equal(payload.error.message, "socket hang up");
   assert.equal(await executor.refreshCredentials(), null);
 });
+
+test("CursorExecutor.transformProtobufToSSE finalizes un-terminated tools when stream abruptly cuts before isLast", async () => {
+  const executor = new CursorExecutor();
+
+  // Send a tool call but never close it
+  const response = executor.transformProtobufToSSE(
+    Buffer.concat([
+      buildToolCallFrame({
+        id: "call_abrupt",
+        name: "write_file",
+        args: '{"content":"partial"',
+        isLast: false,
+      }),
+    ]),
+    "cursor-small",
+    { messages: [{ role: "user", content: "hi" }] }
+  );
+
+  const text = await response.text();
+  assert.match(text, /"name":"write_file"/);
+  assert.match(text, /"finish_reason":"tool_calls"/);
+  assert.match(text, /\[DONE\]/);
+});

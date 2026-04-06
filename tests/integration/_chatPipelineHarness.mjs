@@ -23,6 +23,8 @@ export async function createChatPipelineHarness(prefix) {
   const sandboxModule = await import("../../src/lib/skills/sandbox.ts");
   const skillsRouteModule = await import("../../src/app/api/skills/route.ts");
   const skillByIdRouteModule = await import("../../src/app/api/skills/[id]/route.ts");
+  const idempotencyLayerModule = await import("../../src/lib/idempotencyLayer.ts");
+  const semanticCacheModule = await import("../../src/lib/semanticCache.ts");
   const { handleChat } = await import("../../src/sse/handlers/chat.ts");
   const { initTranslators } = await import("../../open-sse/translator/index.ts");
   const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
@@ -278,6 +280,8 @@ export async function createChatPipelineHarness(prefix) {
     originalRetryDelayMs,
     resetStorage,
     sandboxModule,
+    idempotencyLayerModule,
+    semanticCacheModule,
     seedApiKey,
     seedConnection,
     setModelUnavailable,

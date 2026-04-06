@@ -23,7 +23,13 @@ const {
   setBackgroundDegradationConfig,
   resetStats: resetBackgroundStats,
 } = await import("../../open-sse/services/backgroundTaskDetector.ts");
-const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
+const { getCallLogs, getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
+const {
+  handleChatCore,
+  shouldUseNativeCodexPassthrough,
+  isTokenExpiringSoon,
+  clearUpstreamProxyConfigCache,
+} = await import("../../open-sse/handlers/chatCore.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { register, getRequestTranslator } = await import("../../open-sse/translator/registry.ts");
 
@@ -224,6 +230,7 @@ function collectTextBlocks(messages) {
 }
 
 async function resetStorage() {
+  clearUpstreamProxyConfigCache();
   register(FORMATS.OPENAI_RESPONSES, FORMATS.OPENAI, originalResponsesToOpenAI, null);
   invalidateCacheControlSettingsCache();
   clearCache();
@@ -236,6 +243,27 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+async function waitFor(fn, timeoutMs = 1500) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const result = await fn();
+    if (result) return result;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  return null;
+}
+
+async function waitForAsyncSideEffects() {
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setTimeout(resolve, 10));
+}
+
+async function getLatestCallLog() {
+  const rows = await getCallLogs({ limit: 5 });
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  return getCallLogById(rows[0].id);
 }
 
 async function invokeChatCore({
@@ -253,6 +281,8 @@ async function invokeChatCore({
   comboStrategy = null,
   requestHeaders = {},
   connectionId = null,
+  onCredentialsRefreshed = null,
+  onRequestSuccess = null,
 } = {}) {
   const calls = [];
 
@@ -298,7 +328,10 @@ async function invokeChatCore({
       userAgent,
       isCombo,
       comboStrategy,
+      onCredentialsRefreshed,
+      onRequestSuccess,
     });
+    await waitForAsyncSideEffects();
 
     return { result, calls, call: calls.at(-1) };
   } finally {
@@ -308,11 +341,13 @@ async function invokeChatCore({
 
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
+  await waitForAsyncSideEffects();
   await resetStorage();
 });
 
 test.after(async () => {
   globalThis.fetch = originalFetch;
+  await waitForAsyncSideEffects();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -341,6 +376,34 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
   assert.equal(call.body.store, false);
   assert.deepEqual(call.body.metadata, { source: "codex-client" });
   assert.equal("messages" in call.body, false);
+});
+
+test("chatCore helper exports detect responses passthrough paths and token expiry windows", () => {
+  assert.equal(
+    shouldUseNativeCodexPassthrough({
+      provider: "codex",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      endpointPath: "/v1/responses///",
+    }),
+    true
+  );
+  assert.equal(
+    shouldUseNativeCodexPassthrough({
+      provider: "codex",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      endpointPath: "/v1/chat/completions",
+    }),
+    false
+  );
+  assert.equal(
+    isTokenExpiringSoon(new Date(Date.now() + 60_000).toISOString(), 5 * 60 * 1000),
+    true
+  );
+  assert.equal(
+    isTokenExpiringSoon(new Date(Date.now() + 10 * 60 * 1000).toISOString(), 5 * 60 * 1000),
+    false
+  );
+  assert.equal(isTokenExpiringSoon(null), false);
 });
 
 test("chatCore builds Claude Code-compatible upstream requests for CC providers", async () => {
@@ -724,6 +787,70 @@ test("chatCore returns 500 when translation throws a generic error", async () =>
   assert.equal(result.error, "unexpected translator crash");
 });
 
+test("chatCore refreshes GitHub credentials after 401 and retries with the refreshed Copilot token", async () => {
+  let refreshedCredentials = null;
+  const { calls, result } = await invokeChatCore({
+    provider: "github",
+    model: "gpt-4o-mini",
+    credentials: {
+      accessToken: "gh-access-token",
+      refreshToken: "gh-refresh-token",
+      providerSpecificData: {},
+    },
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "retry after auth refresh" }],
+    },
+    onCredentialsRefreshed(updated) {
+      refreshedCredentials = updated;
+    },
+    responseFactory(captured, seenCalls) {
+      if (captured.url.includes("api.github.com/copilot_internal/v2/token")) {
+        return new Response(
+          JSON.stringify({
+            token: "copilot-refreshed-token",
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      const providerCalls = seenCalls.filter((entry) =>
+        entry.url.includes("api.githubcopilot.com")
+      );
+      if (providerCalls.length === 1) {
+        return new Response(
+          JSON.stringify({
+            error: { message: "token expired" },
+          }),
+          {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      return buildOpenAIResponse(false, "retry succeeded after refresh");
+    },
+  });
+
+  const payload = await result.response.json();
+  const providerCalls = calls.filter((entry) => entry.url.includes("api.githubcopilot.com"));
+
+  assert.equal(result.success, true);
+  assert.equal(providerCalls.length, 2);
+  assert.equal(
+    providerCalls[1].headers.authorization ?? providerCalls[1].headers.Authorization,
+    "Bearer copilot-refreshed-token"
+  );
+  assert.equal(refreshedCredentials?.providerSpecificData?.copilotToken, "copilot-refreshed-token");
+  assert.equal(payload.choices[0].message.content, "retry succeeded after refresh");
+});
+
 test("chatCore uses the native executor when no upstream proxy mode is enabled", async () => {
   const { call } = await invokeChatCore({
     provider: "openai",
@@ -766,6 +893,7 @@ test("chatCore fallback proxy mode retries through CLIProxyAPI after retryable n
     mode: "fallback",
     enabled: true,
   });
+  clearUpstreamProxyConfigCache("github");
 
   const { calls, result } = await invokeChatCore({
     provider: "github",
@@ -800,6 +928,7 @@ test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after a retryable
     mode: "fallback",
     enabled: true,
   });
+  clearUpstreamProxyConfigCache("github");
 
   const { calls, result } = await invokeChatCore({
     provider: "github",
@@ -834,6 +963,7 @@ test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after native exec
     mode: "fallback",
     enabled: true,
   });
+  clearUpstreamProxyConfigCache("github");
 
   const { calls, result } = await invokeChatCore({
     provider: "github",
@@ -1220,6 +1350,28 @@ test("chatCore rejects malformed non-streaming SSE payloads", async () => {
   assert.match(result.error, /Invalid SSE response/);
 });
 
+test("chatCore rejects malformed non-streaming JSON payloads", async () => {
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "return valid json" }],
+    },
+    responseFactory() {
+      return new Response("{oops", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  });
+
+  assert.equal(result.success, false);
+  assert.equal(result.status, 502);
+  assert.equal(result.error, "Invalid JSON response from provider");
+});
+
 test("chatCore falls back after an empty-content success response", async () => {
   const { calls, result } = await invokeChatCore({
     provider: "openai",
@@ -1259,6 +1411,164 @@ test("chatCore falls back after an empty-content success response", async () => 
   assert.equal(calls.length, 2);
   assert.equal(calls[1].body.model, "gpt-5.1-mini");
   assert.equal(payload.choices[0].message.content, "empty-content fallback ok");
+});
+
+test("chatCore returns a gateway error when the empty-content fallback responds with invalid JSON", async () => {
+  const { result, calls } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-5.1",
+    body: {
+      model: "gpt-5.1",
+      stream: false,
+      messages: [{ role: "user", content: "recover from empty content" }],
+    },
+    responseFactory(_captured, seenCalls) {
+      if (seenCalls.length === 1) {
+        return new Response(
+          JSON.stringify({
+            id: "chatcmpl-empty",
+            object: "chat.completion",
+            model: "gpt-5.1",
+            choices: [
+              {
+                index: 0,
+                message: { role: "assistant", content: "" },
+                finish_reason: "stop",
+              },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      return new Response("{invalid-json", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  });
+
+  assert.equal(result.success, false);
+  assert.equal(result.status, 502);
+  assert.equal(result.error, "Provider returned empty content");
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].body.model, "gpt-5.1-mini");
+});
+
+test("chatCore records Claude prompt cache and cache usage metadata in call logs", async () => {
+  await settingsDb.updateSettings({ alwaysPreserveClientCache: "always" });
+  invalidateCacheControlSettingsCache();
+
+  const { result } = await invokeChatCore({
+    provider: "claude",
+    model: "claude-sonnet-4-6",
+    endpoint: "/v1/messages",
+    credentials: { apiKey: "claude-key", providerSpecificData: {} },
+    requestHeaders: { "anthropic-beta": "prompt-caching-2024-07-31" },
+    userAgent: "Claude-Code/1.0.0",
+    responseFormat: "claude",
+    body: {
+      model: "claude-sonnet-4-6",
+      max_tokens: 64,
+      system: [{ type: "text", text: "system", cache_control: { type: "ephemeral", ttl: "5m" } }],
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "text", text: "question", cache_control: { type: "ephemeral" } }],
+        },
+        {
+          role: "assistant",
+          content: [
+            { type: "text", text: "answer", cache_control: { type: "ephemeral", ttl: "10m" } },
+          ],
+        },
+      ],
+      tools: [
+        {
+          name: "lookup_weather",
+          description: "Fetch weather",
+          input_schema: { type: "object" },
+          cache_control: { type: "ephemeral", ttl: "30m" },
+        },
+      ],
+    },
+    responseFactory() {
+      return new Response(
+        JSON.stringify({
+          id: "msg_json",
+          type: "message",
+          role: "assistant",
+          model: "claude-sonnet-4-6",
+          content: [{ type: "text", text: "cached answer" }],
+          stop_reason: "end_turn",
+          usage: {
+            input_tokens: 12,
+            output_tokens: 3,
+            cache_read_input_tokens: 4,
+            cache_creation_input_tokens: 2,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    },
+  });
+
+  const detail = await waitFor(() => getLatestCallLog());
+
+  assert.equal(result.success, true);
+  assert.ok(detail);
+  assert.equal(detail.requestBody._omniroute.claudePromptCache.applied, true);
+  assert.equal(detail.requestBody._omniroute.claudePromptCache.totalBreakpoints, 4);
+  assert.equal(detail.responseBody._omniroute.claudePromptCache.applied, true);
+  assert.equal(detail.responseBody._omniroute.claudePromptCache.totalBreakpoints, 4);
+  assert.equal(typeof detail.responseBody._omniroute.claudePromptCache.anthropicBeta, "string");
+  assert.match(detail.responseBody._omniroute.claudePromptCache.anthropicBeta, /prompt-caching/i);
+  assert.deepEqual(detail.responseBody._omniroute.claudePromptCacheUsage, {
+    cacheReadTokens: 4,
+    cacheCreationTokens: 2,
+  });
+});
+
+test("chatCore serves emergency fallback responses for budget errors on non-streaming requests", async () => {
+  const { calls, result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      max_tokens: 9000,
+      messages: [{ role: "user", content: "keep the request alive after budget exhaustion" }],
+    },
+    responseFactory(_captured, seenCalls) {
+      if (seenCalls.length === 1) {
+        return new Response(
+          JSON.stringify({
+            error: { message: "insufficient funds on this account" },
+          }),
+          {
+            status: 402,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      return buildOpenAIResponse(false, "served by emergency fallback");
+    },
+  });
+
+  const payload = await result.response.json();
+
+  assert.equal(result.success, true);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].body.model, "openai/gpt-oss-120b");
+  assert.equal(calls[1].body.max_tokens, 4096);
+  assert.equal(payload.choices[0].message.content, "served by emergency fallback");
 });
 
 test("chatCore injects progress events into streaming responses when requested", async () => {

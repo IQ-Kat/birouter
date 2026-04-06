@@ -13,7 +13,9 @@ const {
   validateComboDAG,
   resolveNestedComboModels,
   handleComboChat,
+  shouldFallbackComboBadRequest,
 } = await import("../../open-sse/services/combo.ts");
+const { registerStrategy } = await import("../../open-sse/services/autoCombo/routerStrategy.ts");
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
@@ -466,6 +468,15 @@ test("combo helpers short-circuit safely for missing combos, cycles, and excessi
   );
 });
 
+test("shouldFallbackComboBadRequest only flags known provider-scoped 400 patterns", () => {
+  assert.equal(shouldFallbackComboBadRequest(400, "prohibited_content"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "unsupported message role"), true);
+  assert.equal(shouldFallbackComboBadRequest(400, "tool_call weather_lookup not found"), true);
+  assert.equal(shouldFallbackComboBadRequest(429, "prohibited_content"), false);
+  assert.equal(shouldFallbackComboBadRequest(400, null), false);
+  assert.equal(shouldFallbackComboBadRequest(400, "generic bad request"), false);
+});
+
 test("handleComboChat accepts binary and Responses-style 200 bodies but falls through malformed success payloads", async () => {
   const binaryResult = await handleComboChat({
     body: {},
@@ -886,6 +897,50 @@ test("handleComboChat cost-optimized orders models by the cheapest configured in
   assert.equal(calls[0], "openai/gpt-4o-nano");
 });
 
+test("handleComboChat weighted strategy resolves nested combos before falling back to the next weighted target", async () => {
+  const originalRandom = Math.random;
+  const calls = [];
+  Math.random = () => 0.01;
+
+  try {
+    const result = await handleComboChat({
+      body: {},
+      combo: {
+        name: "weighted-nested-selection",
+        strategy: "weighted",
+        models: [
+          { model: "nested-priority", weight: 9 },
+          { model: "model-c", weight: 1 },
+        ],
+        config: { maxRetries: 0 },
+      },
+      handleSingleModel: async (_body, modelStr) => {
+        calls.push(modelStr);
+        if (modelStr === "model-a") return errorResponse(500, "nested-first-fail");
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      allCombos: [
+        {
+          name: "weighted-nested-selection",
+          models: [
+            { model: "nested-priority", weight: 9 },
+            { model: "model-c", weight: 1 },
+          ],
+        },
+        { name: "nested-priority", models: ["model-a", "model-b"] },
+      ],
+    });
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(calls, ["model-a", "model-b"]);
+  } finally {
+    Math.random = originalRandom;
+  }
+});
+
 test("handleComboChat context-optimized orders models by the largest synced context window", async () => {
   saveModelsDevCapabilities({
     openai: {
@@ -1037,6 +1092,72 @@ test("handleComboChat auto strategy falls back to the full pool when tool filter
   assert.equal(calls[0], "deepseek/reasoner");
 });
 
+test("handleComboChat auto strategy falls back to rules when a custom router strategy throws", async () => {
+  registerStrategy("throwing-test", {
+    name: "throwing-test",
+    description: "test strategy that always throws",
+    select() {
+      throw new Error("synthetic router failure");
+    },
+  });
+
+  const log = createLog();
+  const calls = [];
+  const result = await handleComboChat({
+    body: { prompt: "Hello there" },
+    combo: {
+      name: "auto-throwing-strategy",
+      strategy: "auto",
+      models: ["openai/gpt-4o-mini"],
+      autoConfig: { routingStrategy: "throwing-test" },
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log,
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
+  assert.ok(
+    log.entries.some(
+      (entry) => entry.level === "warn" && /falling back to rules/i.test(String(entry.msg))
+    )
+  );
+});
+
+test("handleComboChat auto strategy reads strategyName from combo.config.auto and can prefer latency", async () => {
+  const calls = [];
+  const result = await handleComboChat({
+    body: { prompt: "Just answer briefly" },
+    combo: {
+      name: "auto-latency-strategy-name",
+      strategy: "auto",
+      models: ["openai/gpt-4o-mini", "gemini/gemini-2.5-flash"],
+      config: {
+        auto: {
+          strategyName: "latency",
+        },
+      },
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls[0], "gemini/gemini-2.5-flash");
+});
+
 test("handleComboChat context cache protection pins the model and tags tool-call responses", async () => {
   const calls = [];
   const result = await handleComboChat({
@@ -1144,6 +1265,30 @@ test("handleComboChat context cache protection injects a hidden tag for tool-cal
   assert.doesNotMatch(text, /<omniModel>/);
 });
 
+test("handleComboChat context cache protection flushes cleanly when a stream ends without content", async () => {
+  const result = await handleComboChat({
+    body: { stream: true, messages: [{ role: "user", content: "empty stream" }] },
+    combo: {
+      name: "context-cache-empty-stream",
+      strategy: "priority",
+      models: ["openai/gpt-4o-mini"],
+      context_cache_protection: true,
+    },
+    handleSingleModel: async () => streamResponse(["data: [DONE]\n\n"]),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  const text = await result.text();
+  assert.equal(result.ok, true);
+  assert.equal(result.headers.get("X-OmniRoute-Model"), "openai/gpt-4o-mini");
+  assert.match(text, /data: \[DONE\]/);
+  assert.match(text, /"content":"\\\\n\\\\n"/);
+  assert.doesNotMatch(text, /<omniModel>/);
+});
+
 test("handleComboChat round-robin resolves nested combos and returns inactive when every target is skipped", async () => {
   const result = await handleComboChat({
     body: {},
@@ -1197,4 +1342,66 @@ test("handleComboChat round-robin returns circuit-breaker unavailable when every
 
   assert.equal(result.status, 503);
   assert.match((await result.json()).error.message, /circuit breakers open/);
+});
+
+test("handleComboChat round-robin retries a transient failure on the same model before succeeding", async () => {
+  const calls = [];
+  let attempts = 0;
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "rr-same-model-retry",
+      strategy: "round-robin",
+      models: ["model-a"],
+      config: { maxRetries: 1, retryDelayMs: 1, concurrencyPerModel: 1, queueTimeoutMs: 5 },
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      attempts += 1;
+      if (attempts === 1) return errorResponse(503, "try again");
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["model-a", "model-a"]);
+});
+
+test("handleComboChat round-robin recovers from provider-scoped 400s when a later model succeeds", async () => {
+  const calls = [];
+
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "rr-provider-400-recover",
+      strategy: "round-robin",
+      models: ["model-a", "model-b"],
+      config: { maxRetries: 0, retryDelayMs: 1, concurrencyPerModel: 1, queueTimeoutMs: 5 },
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      if (modelStr === "model-a") {
+        return new Response(
+          JSON.stringify({ error: { message: "unsupported message role for this provider" } }),
+          {
+            status: 400,
+            headers: { "content-type": "application/json" },
+          }
+        );
+      }
+      return okResponse({ choices: [{ message: { content: "recovered" } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["model-a", "model-b"]);
 });
