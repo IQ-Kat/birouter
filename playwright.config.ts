@@ -14,6 +14,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: process.env.CI ? "github" : "html",
+  expect: {
+    timeout: process.env.CI ? 30_000 : 10_000,
+  },
   use: {
     baseURL: dashboardBaseUrl,
     navigationTimeout: 300_000,

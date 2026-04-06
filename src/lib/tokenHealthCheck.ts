@@ -126,10 +126,16 @@ export function initTokenHealthCheck() {
 
   log(`${LOG_PREFIX} Starting proactive token health-check (tick every ${TICK_MS / 1000}s)`);
 
-  setTimeout(() => {
+  const timer = setTimeout(() => {
     sweep();
     state.interval = setInterval(sweep, TICK_MS);
+    if (state.interval && typeof state.interval === "object" && "unref" in state.interval) {
+      (state.interval as { unref?: () => void }).unref?.();
+    }
   }, 10_000);
+  if (timer && typeof timer === "object" && "unref" in timer) {
+    (timer as { unref?: () => void }).unref?.();
+  }
 }
 
 /**

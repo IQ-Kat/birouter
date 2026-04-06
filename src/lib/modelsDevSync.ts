@@ -643,6 +643,10 @@ export function startPeriodicSync(intervalMs?: number): void {
         console.warn("[MODELS_DEV] Periodic sync error:", err instanceof Error ? err.message : err);
       });
   }, interval);
+
+  if (syncTimer && typeof syncTimer === "object" && "unref" in syncTimer) {
+    (syncTimer as { unref?: () => void }).unref?.();
+  }
 }
 
 /**

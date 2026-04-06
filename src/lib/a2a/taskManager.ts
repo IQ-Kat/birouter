@@ -81,8 +81,14 @@ export class A2ATaskManager {
 
   constructor(ttlMinutes: number = 5) {
     this.ttlMs = ttlMinutes * 60 * 1000;
-    // Cleanup expired tasks every 60s
     this.cleanupInterval = setInterval(() => this.cleanupExpired(), 60_000);
+    if (
+      this.cleanupInterval &&
+      typeof this.cleanupInterval === "object" &&
+      "unref" in this.cleanupInterval
+    ) {
+      (this.cleanupInterval as { unref?: () => void }).unref?.();
+    }
   }
 
   createTask(input: TaskInput): A2ATask {

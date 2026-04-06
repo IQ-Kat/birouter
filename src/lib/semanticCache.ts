@@ -307,6 +307,9 @@ export function startAutoCleanup(intervalMs = 300_000): void {
       console.log(`[SemanticCache] Auto-cleaned ${removed} expired entries`);
     }
   }, intervalMs);
+  if (_cleanupTimer && typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
+    (_cleanupTimer as { unref?: () => void }).unref?.();
+  }
 }
 
 /**
