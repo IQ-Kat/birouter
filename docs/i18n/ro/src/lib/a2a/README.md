@@ -4,11 +4,9 @@
 
 ---
 
-> **Agent-to-Agent Protocol v0.3** — Enables any AI agent to use OmniRoute as an intelligent routing agent via JSON-RPC 2.0.
+> **Protocol agent la agent v0.3**— Permite oricărui agent AI să utilizeze OmniRoute ca agent de rutare inteligent prin JSON-RPC 2.0.
 
-The A2A Server exposes OmniRoute as a **first-class agent** that other agents can discover, delegate tasks to, and collaborate with using the [A2A Protocol](https://google.github.io/A2A/).
-
----
+Serverul A2A expune OmniRoute ca un**agent de primă clasă**pe care alți agenți îl pot descoperi, îi pot delega sarcini și cu care pot colabora folosind [Protocolul A2A](https://google.github.io/A2A/).---
 
 ## Arhitectură
 
@@ -43,15 +41,12 @@ The A2A Server exposes OmniRoute as a **first-class agent** that other agents ca
 
 ### Agent Discovery
 
-Every A2A-compatible agent exposes an **Agent Card** at `/.well-known/agent.json`:
-
-```bash
+Fiecare agent compatibil A2A expune un**Card de agent**la `/.well-known/agent.json`:```bash
 curl http://localhost:20128/.well-known/agent.json
-```
 
-**Response:**
+````
 
-```json
+**Răspuns:**```json
 {
   "name": "OmniRoute",
   "description": "Intelligent AI gateway with auto-routing across 50+ providers",
@@ -88,7 +83,7 @@ curl http://localhost:20128/.well-known/agent.json
     "apiKeyHeader": "Authorization"
   }
 }
-```
+````
 
 ---
 
@@ -96,27 +91,24 @@ curl http://localhost:20128/.well-known/agent.json
 
 ### `message/send` — Synchronous Execution
 
-Send a message to a skill and receive the complete response.
-
-```bash
+Trimiteți un mesaj unei abilități și primiți răspunsul complet.```bash
 curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/send",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Write a Python hello world"}],
-      "metadata": {"model": "auto", "combo": "fast-coding"}
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/send",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Write a Python hello world"}],
+"metadata": {"model": "auto", "combo": "fast-coding"}
+}
+}'
 
-**Response:**
+````
 
-```json
+**Răspuns:**```json
 {
   "jsonrpc": "2.0",
   "id": "1",
@@ -133,36 +125,33 @@ curl -X POST http://localhost:20128/a2a \
     }
   }
 }
-```
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+La fel ca „mesaj/trimitere”, dar returnează evenimentele trimise de server pentru streaming în timp real.```bash
 curl -N -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/stream",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Explain quantum computing"}]
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/stream",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Explain quantum computing"}]
+}
+}'
 
-**SSE Events:**
+````
 
-```
+**Evenimente SSE:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"Quantum computing..."}}}
 
 : heartbeat 2026-03-04T21:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -188,40 +177,36 @@ curl -X POST http://localhost:20128/a2a \
 
 ### `smart-routing`
 
-Routes prompts through OmniRoute's intelligent pipeline with full observability.
+Rută solicitări prin conducta inteligentă a OmniRoute cu observabilitate deplină.
 
-**Parameters (in `metadata`):**
+**Parametri (în `metadate`):**
 
-| Parameter | Type     | Default      | Description                                                                              |
-| --------- | -------- | ------------ | ---------------------------------------------------------------------------------------- |
-| `model`   | `string` | `"auto"`     | Target model (e.g., `claude-sonnet-4`, `gpt-4o`, `auto`)                                 |
-| `combo`   | `string` | active combo | Specific combo to route through                                                          |
-| `budget`  | `number` | none         | Maximum cost in USD for this request                                                     |
-| `role`    | `string` | none         | Task role hint: `coding`, `review`, `planning`, `analysis`, `debugging`, `documentation` |
+| Parametru | Tip     | Implicit    | Descriere                                                                                                       |
+| --------- | ------- | ----------- | --------------------------------------------------------------------------------------------------------------- |
+| `model`   | `șir`   | `"auto"`    | Model țintă (de exemplu, `claude-sonnet-4`, `gpt-4o`, `auto`)                                                   |
+| `combo`   | `șir`   | combo activ | Combo specific pentru a trece prin                                                                              |
+| `buget`   | `număr` | niciunul    | Costul maxim în USD pentru această solicitare                                                                   |
+| `rol`     | `șir`   | niciunul    | Sugestie pentru rolul sarcinii: `codificare`, `revizuire`, `planificare`, `analiza`, `depanare`, `documentație` |
 
-**Returns:**
+**Retururi:**
 
-| Field                          | Description                                               |
-| ------------------------------ | --------------------------------------------------------- |
-| `artifacts[].content`          | The LLM response text                                     |
-| `metadata.routing_explanation` | Human-readable explanation of routing decision            |
-| `metadata.cost_envelope`       | Estimated vs actual cost with currency                    |
-| `metadata.resilience_trace`    | Array of events (primary_selected, fallback_needed, etc.) |
-| `metadata.policy_verdict`      | Whether the request was allowed and why                   |
+| Câmp                           | Descriere                                                      |
+| ------------------------------ | -------------------------------------------------------------- | ---------------------- |
+| `artefacte[].conținut`         | Textul de răspuns LLM                                          |
+| `metadata.routing_explanation` | Explicație care poate fi citită de om a deciziei de rutare     |
+| `metadata.cost_envelope`       | Costul estimat vs real cu moneda                               |
+| `metadata.resilience_trace`    | Matrice de evenimente (primary_selected, fallback_needed etc.) |
+| `metadata.policy_verdict`      | Dacă cererea a fost admisă și de ce                            | ### `quota-management` |
 
-### `quota-management`
+Răspunde la întrebări în limbaj natural despre cotele furnizorilor.
 
-Answers natural-language queries about provider quotas.
+**Tipuri de interogare (deduse din conținutul mesajului):**
 
-**Query types (inferred from message content):**
-
-| Query Pattern                                  | Response Type                                            |
-| ---------------------------------------------- | -------------------------------------------------------- |
-| Contains `"ranking"`, `"most quota"`, `"best"` | Providers ranked by remaining quota                      |
-| Contains `"free"`, `"suggest"`                 | Lists free combos or suggests free-tier providers        |
-| Default                                        | Full quota summary with warnings for low-quota providers |
-
----
+| Model de interogare                                         | Tip de răspuns                                                            |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------- | --- |
+| Conține `"clasare"`, `"cea mai mare cotă"`, `"cel mai bun"` | Furnizori clasificați în funcție de cota rămasă                           |
+| Conține `"gratuit"`, `"sugerare"`                           | Listează combo-uri gratuite sau sugerează furnizori de nivel gratuit      |
+| Implicit                                                    | Rezumat complet al cotei cu avertismente pentru furnizorii cu cote reduse | --- |
 
 ## Task Lifecycle
 
@@ -231,19 +216,17 @@ submitted ──→ working ──→ completed
               ──────────→ cancelled
 ```
 
-| State       | Description                                           |
-| ----------- | ----------------------------------------------------- |
-| `submitted` | Task created, queued for execution                    |
-| `working`   | Skill handler is executing                            |
-| `completed` | Execution succeeded, artifacts available              |
-| `failed`    | Execution failed or task expired (TTL: 5 min default) |
-| `cancelled` | Cancelled by client via `tasks/cancel`                |
+| Stat       | Descriere                                                       |
+| ---------- | --------------------------------------------------------------- |
+| `depus`    | Sarcina creată, pusă în coadă pentru execuție                   |
+| `de lucru` | Skill handler-ul execută                                        |
+| `terminat` | Execuție reușită, artefacte disponibile                         |
+| `eșuat`    | Execuția a eșuat sau sarcina a expirat (TTL: implicit 5 minute) |
+| `anulat`   | Anulat de client prin `tasks/cancel`                            |
 
-- Terminal states: `completed`, `failed`, `cancelled` (no further transitions)
-- Expired tasks in `submitted` or `working` are auto-marked as `failed`
-- Tasks are garbage-collected after 2× TTL
-
----
+- Stări terminale: `terminat`, `eșuat`, `anulat` (fără alte tranziții)
+- Sarcinile expirate din „trimis” sau „de lucru” sunt marcate automat ca „eșuate”
+- Sarcinile sunt colectate de gunoi după 2× TTL---
 
 ## Client Examples
 
@@ -541,15 +524,12 @@ func main() {
 
 ### 🤖 Use Case 1: Multi-Agent Coding Pipeline
 
-An orchestrator agent delegates code generation to OmniRoute, then passes the output to a review agent.
-
-```python
-def coding_pipeline(task: str):
-    # Step 1: Generate code via OmniRoute A2A
-    code_result = a2a_send("smart-routing", [
-        {"role": "user", "content": f"Write production-quality code: {task}"}
-    ], metadata={"model": "auto", "role": "coding"})
-    code = code_result["artifacts"][0]["content"]
+Un agent orchestrator deleagă generarea codului către OmniRoute, apoi transmite rezultatul unui agent de revizuire.```python
+def coding_pipeline(task: str): # Step 1: Generate code via OmniRoute A2A
+code_result = a2a_send("smart-routing", [
+{"role": "user", "content": f"Write production-quality code: {task}"}
+], metadata={"model": "auto", "role": "coding"})
+code = code_result["artifacts"][0]["content"]
 
     # Step 2: Review the code via OmniRoute A2A (different model)
     review_result = a2a_send("smart-routing", [
@@ -562,13 +542,12 @@ def coding_pipeline(task: str):
     print(f"Review cost: ${review_result['metadata']['cost_envelope']['actual']}")
 
     return {"code": code, "review": review}
-```
+
+````
 
 ### 💡 Use Case 2: Quota-Aware Agent Swarm
 
-Multiple agents share quota through OmniRoute, using the quota skill to coordinate.
-
-```python
+Mai mulți agenți împart cota prin OmniRoute, folosind abilitățile de cotă pentru a coordona.```python
 async def quota_aware_agent(agent_name: str, task: str):
     # Check quota before starting
     quota = a2a_send("quota-management", [
@@ -591,32 +570,30 @@ async def quota_aware_agent(agent_name: str, task: str):
         print(f"[{agent_name}] Free alternatives: {quota['artifacts'][0]['content']}")
 
     return result
-```
+````
 
 ### 📊 Use Case 3: Real-Time Streaming Dashboard
 
-A monitoring agent streams responses and displays progress in real-time.
-
-```typescript
+Un agent de monitorizare transmite răspunsurile și afișează progresul în timp real.```typescript
 async function streamingDashboard(prompt: string) {
   const response = await fetch(`${BASE_URL}/a2a`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: "dash-1",
-      method: "message/stream",
-      params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
-    }),
-  });
+body: JSON.stringify({
+jsonrpc: "2.0",
+id: "dash-1",
+method: "message/stream",
+params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
+}),
+});
 
-  let totalChunks = 0;
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
+let totalChunks = 0;
+const reader = response.body!.getReader();
+const decoder = new TextDecoder();
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+while (true) {
+const { done, value } = await reader.read();
+if (done) break;
 
     for (const line of decoder.decode(value).split("\n")) {
       if (line.startsWith("data: ")) {
@@ -640,15 +617,15 @@ async function streamingDashboard(prompt: string) {
         }
       }
     }
-  }
+
 }
-```
+}
+
+````
 
 ### 🔁 Use Case 4: Task Polling Pattern
 
-For long-running tasks, poll the task status instead of waiting synchronously.
-
-```python
+Pentru sarcinile de lungă durată, interogați starea sarcinii în loc să așteptați sincron.```python
 import time
 
 def poll_task(task_id: str, timeout: int = 60):
@@ -678,75 +655,71 @@ def poll_task(task_id: str, timeout: int = 60):
         "params": {"taskId": task_id},
     })
     raise TimeoutError(f"Task {task_id} timed out after {timeout}s")
-```
+````
 
 ---
 
 ## Error Codes
 
-| Code   | Constant                 | Meaning                                  |
-| ------ | ------------------------ | ---------------------------------------- |
-| -32700 | —                        | Parse error (invalid JSON)               |
-| -32600 | `INVALID_REQUEST`        | Invalid JSON-RPC request or unauthorized |
-| -32601 | `METHOD_NOT_FOUND`       | Unknown method or skill                  |
-| -32602 | `INVALID_PARAMS`         | Missing or invalid parameters            |
-| -32603 | `INTERNAL_ERROR`         | Skill execution failed                   |
-| -32001 | `TASK_NOT_FOUND`         | Task ID not found                        |
-| -32002 | `TASK_ALREADY_COMPLETED` | Cannot modify a completed task           |
-| -32003 | `UNAUTHORIZED`           | Invalid or missing API key               |
-| -32004 | `BUDGET_EXCEEDED`        | Request exceeds configured budget        |
-| -32005 | `PROVIDER_UNAVAILABLE`   | No available providers                   |
-
----
+| Cod    | Constant               | Înțeles                                       |
+| ------ | ---------------------- | --------------------------------------------- | --- |
+| -32700 | —                      | Eroare de analiză (JSON nevalid)              |
+| -32600 | `CERERE_INVALIDĂ`      | Solicitare JSON-RPC nevalidă sau neautorizată |
+| -32601 | `METODA_NEGĂSITA`      | Metodă sau abilitate necunoscută              |
+| -32602 | `PARAMS_INVALID`       | Parametri lipsă sau nevalidi                  |
+| -32603 | `EROARE_INTERN`        | Execuția abilității a eșuat                   |
+| -32001 | `SARCINA_NEGĂSITA`     | ID-ul sarcinii nu a fost găsit                |
+| -32002 | `SARCINĂ_DEJA_FINANȚĂ` | Nu se poate modifica o sarcină finalizată     |
+| -32003 | `NEAUTORIZAT`          | Cheie API nevalidă sau lipsă                  |
+| -32004 | `BUDGET_EXCEEDED`      | Solicitarea depășește bugetul configurat      |
+| -32005 | `PROVIDER_UNAVAILABLE` | Nu există furnizori disponibili               | --- |
 
 ## Authentication
 
-All `/a2a` requests require a Bearer token via the `Authorization` header:
-
-```
+Toate cererile `/a2a` necesită un token Bearer prin antetul `Authorization`:```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+
 ```
 
-If no API key is configured on the server (`OMNIROUTE_API_KEY` is empty), authentication is bypassed.
-
----
+Dacă nu este configurată nicio cheie API pe server (`OMNIROUTE_API_KEY` este goală), autentificarea este ocolită.---
 
 ## File Structure
 
 ```
+
 src/lib/a2a/
-├── taskManager.ts         # Task lifecycle (create/update/cancel/list), TTL, cleanup
-├── taskExecution.ts       # Generic task executor with state management
-├── streaming.ts           # SSE stream formatting, heartbeat, chunk/completion events
-├── routingLogger.ts       # Routing decision logger (stats, history, retention)
+├── taskManager.ts # Task lifecycle (create/update/cancel/list), TTL, cleanup
+├── taskExecution.ts # Generic task executor with state management
+├── streaming.ts # SSE stream formatting, heartbeat, chunk/completion events
+├── routingLogger.ts # Routing decision logger (stats, history, retention)
 └── skills/
-    ├── smartRouting.ts    # Smart routing skill (routes via /v1/chat/completions)
-    └── quotaManagement.ts # Quota management skill (natural-language quota queries)
+├── smartRouting.ts # Smart routing skill (routes via /v1/chat/completions)
+└── quotaManagement.ts # Quota management skill (natural-language quota queries)
 
 src/app/a2a/
-└── route.ts               # Next.js API route handler (JSON-RPC 2.0 dispatch)
+└── route.ts # Next.js API route handler (JSON-RPC 2.0 dispatch)
 
 open-sse/mcp-server/
-└── schemas/a2a.ts         # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+└── schemas/a2a.ts # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+
 ```
 
 ---
 
 ## Comparison: MCP vs A2A
 
-| Feature           | MCP Server                   | A2A Server                                        |
+| Caracteristica | Server MCP | Server A2A |
 | ----------------- | ---------------------------- | ------------------------------------------------- |
-| **Protocol**      | Model Context Protocol       | Agent-to-Agent Protocol v0.3                      |
-| **Transport**     | stdio / HTTP                 | HTTP (JSON-RPC 2.0)                               |
-| **Discovery**     | Tool listing via MCP         | `/.well-known/agent.json`                         |
-| **Granularity**   | 16 individual tools          | 2 high-level skills                               |
-| **Best for**      | IDE agents (Cursor, VS Code) | Multi-agent systems (LangChain, CrewAI)           |
-| **Streaming**     | Not supported                | SSE via `message/stream`                          |
-| **Task tracking** | No                           | Full lifecycle (submitted → completed)            |
-| **Observability** | Audit log per tool call      | Cost envelope + resilience trace + policy verdict |
-
----
+|**Protocol**| Model Context Protocol | Protocol agent la agent v0.3 |
+|**Transport**| stdio / HTTP | HTTP (JSON-RPC 2.0) |
+|**Descoperire**| Listarea instrumentelor prin MCP | `/.well-cunoscut/agent.json` |
+|**Granularitate**| 16 unelte individuale | 2 abilități de nivel înalt |
+|**Cel mai bun pentru**| Agenți IDE (Cursor, Cod VS) | Sisteme multi-agenți (LangChain, CrewAI) |
+|**Streaming**| Nu este acceptat | SSE prin `mesaj/flux` |
+|**Urmărirea sarcinilor**| Nu | Ciclu de viață complet (depus → finalizat) |
+|**Observabilitate**| Jurnal de audit pentru fiecare apel de instrument | Plicul de cost + urmărirea rezistenței + verdictul politicii |---
 
 ## Licență
 
-Part of [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — MIT License.
+Parte din [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — Licența MIT.
+```

@@ -4,37 +4,28 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
-
-## Agent Discovery
+> Protocol Agent-to-Agent v0.3 — OmniRoute ca agent de rutare inteligent## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
-
----
+Returnează cardul de agent care descrie capacitățile, aptitudinile și cerințele de autentificare ale OmniRoute.---
 
 ## Authentication
 
-All `/a2a` requests require an API key via the `Authorization` header:
-
-```
+Toate solicitările `/a2a` necesită o cheie API prin antetul `Authorization`:```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
-```
 
-If no API key is configured on the server, authentication is bypassed.
+````
 
----
+Dacă nu este configurată nicio cheie API pe server, autentificarea este ocolită.---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Sends a message to a skill and waits for the complete response.
-
-```bash
+Trimite un mesaj unei aptitudini și așteaptă răspunsul complet.```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -48,34 +39,31 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-```
+````
 
-**Response:**
-
-```json
+**Răspuns:**```json
 {
-  "jsonrpc": "2.0",
-  "id": "1",
-  "result": {
-    "task": { "id": "uuid", "state": "completed" },
-    "artifacts": [{ "type": "text", "content": "..." }],
-    "metadata": {
-      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-      "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-      ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
-    }
-  }
+"jsonrpc": "2.0",
+"id": "1",
+"result": {
+"task": { "id": "uuid", "state": "completed" },
+"artifacts": [{ "type": "text", "content": "..." }],
+"metadata": {
+"routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
+"cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+"resilience_trace": [
+{ "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+],
+"policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
 }
-```
+}
+}
+
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+La fel ca „mesaj/trimitere”, dar returnează evenimentele trimise de server pentru streaming în timp real.```bash
 curl -N -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -88,17 +76,16 @@ curl -N -X POST http://localhost:20128/a2a \
       "messages": [{"role": "user", "content": "Explain quantum computing"}]
     }
   }'
-```
+````
 
-**SSE Events:**
-
-```
+**Evenimente SSE:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
 : heartbeat 2026-03-03T17:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -107,7 +94,7 @@ curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-```
+````
 
 ### `tasks/cancel` — Cancel a Task
 
@@ -122,12 +109,10 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
-
----
+| Îndemânare            | Descriere                                                                                                                             |
+| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------ | --- |
+| `rutare inteligentă`  | Rută solicitări prin conducta inteligentă a OmniRoute. Returnează răspunsul cu explicația de rutare, costul și urmărirea rezistenței. |
+| `gestionarea cotelor` | Răspunde la întrebări în limbaj natural despre cotele furnizorilor, sugerează combo-uri gratuite și oferă clasamente ale cotelor.     | --- |
 
 ## Task Lifecycle
 
@@ -137,23 +122,19 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
-
----
+- Sarcinile expiră după 5 minute (configurabil)
+- Stări terminale: `terminat`, `eșuat`, `anulat`
+- Jurnalul de evenimente urmărește fiecare tranziție de stare---
 
 ## Error Codes
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
-
----
+| Cod    | Înțeles                                 |
+| :----- | :-------------------------------------- | --- |
+| -32700 | Eroare de analiză (JSON nevalid)        |
+| -32600 | Solicitare nevalidă/Neautorizată        |
+| -32601 | Metoda sau deprinderea nu a fost găsită |
+| -32602 | Parametri nevalidi                      |
+| -32603 | Eroare internă                          | --- |
 
 ## Integration Examples
 

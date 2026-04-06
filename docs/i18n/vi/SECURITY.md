@@ -6,156 +6,132 @@
 
 ## Reporting Vulnerabilities
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+Nếu bạn phát hiện lỗ hổng bảo mật trong OmniRoute, vui lòng báo cáo lỗ hổng đó một cách có trách nhiệm:
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
+1.**KHÔNG**mở một vấn đề GitHub công khai 2. Sử dụng [Tư vấn bảo mật GitHub](https://github.com/diegosouzapw/OmniRoute/security/advisories/new) 3. Bao gồm: mô tả, các bước tái tạo và tác động tiềm ẩn## Response Timeline
 
-## Response Timeline
+| Sân khấu             | Mục tiêu                      |
+| -------------------- | ----------------------------- | --------------------- |
+| Lời cảm ơn           | 48 giờ                        |
+| Phân loại & Đánh giá | 5 ngày làm việc               |
+| Phát hành bản vá     | 14 ngày làm việc (quan trọng) | ## Supported Versions |
 
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
-
-## Supported Versions
-
-| Version | Support Status |
-| ------- | -------------- |
-| 3.4.x   | ✅ Active      |
-| 3.0.x   | ✅ Security    |
-| < 3.0.0 | ❌ Unsupported |
-
----
+| Phiên bản | Trạng thái hỗ trợ    |
+| --------- | -------------------- | --- |
+| 3.4.x     | ✅ Năng động         |
+| 3.0.x     | ✅ Bảo mật           |
+| < 3.0.0   | ❌ Không được hỗ trợ | --- |
 
 ## Security Architecture
 
-OmniRoute implements a multi-layered security model:
-
-```
+OmniRoute triển khai mô hình bảo mật nhiều lớp:```
 Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
-```
+
+````
 
 ### 🔐 Authentication & Authorization
 
-| Feature              | Implementation                                             |
+| Tính năng | Thực hiện |
 | -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
+|**Đăng nhập vào bảng điều khiển**| Xác thực dựa trên mật khẩu bằng mã thông báo JWT (cookie httpOnly) |
+|**Xác thực khóa API**| Khóa có chữ ký HMAC có xác thực CRC |
+|**OAuth 2.0 + PKCE**| Xác thực nhà cung cấp bảo mật (Claude, Codex, Gemini, Cursor, v.v.) |
+|**Làm mới mã thông báo**| Tự động làm mới mã thông báo OAuth trước khi hết hạn |
+|**Cookie bảo mật**| `AUTH_COOKIE_SECURE=true` cho môi trường HTTPS |
+|**Phạm vi MCP**| 10 phạm vi chi tiết để kiểm soát truy cập công cụ MCP |### 🛡️ Encryption at Rest
 
-### 🛡️ Encryption at Rest
+Tất cả dữ liệu nhạy cảm được lưu trữ trong SQLite đều được mã hóa bằng cách sử dụng**AES-256-GCM**với dẫn xuất khóa mã hóa:
 
-All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
-
-- API keys, access tokens, refresh tokens, and ID tokens
-- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
-
-```bash
+- Khóa API, mã thông báo truy cập, mã thông báo làm mới và mã thông báo ID
+- Định dạng được phiên bản: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- Chế độ chuyển qua (văn bản thuần túy) khi `STORAGE_ENCRYPTION_KEY` không được đặt```bash
 # Generate encryption key:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
+````
 
 ### 🧠 Prompt Injection Guard
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+Phần mềm trung gian phát hiện và chặn các cuộc tấn công tiêm nhiễm kịp thời trong các yêu cầu LLM:
 
-| Pattern Type        | Severity | Example                                        |
-| ------------------- | -------- | ---------------------------------------------- |
-| System Override     | High     | "ignore all previous instructions"             |
-| Role Hijack         | High     | "you are now DAN, you can do anything"         |
-| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
-| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
-| Instruction Leak    | Medium   | "show me your system prompt"                   |
+| Kiểu mẫu        | Mức độ nghiêm trọng | Ví dụ                                                  |
+| --------------- | ------------------- | ------------------------------------------------------ |
+| Ghi đè hệ thống | Cao                 | "bỏ qua tất cả các hướng dẫn trước đó"                 |
+| Cướp vai trò    | Cao                 | "bây giờ bạn là DAN, bạn có thể làm bất cứ điều gì"    |
+| Tiêm phân cách  | Trung bình          | Dấu phân cách được mã hóa để phá vỡ ranh giới ngữ cảnh |
+| DAN/Bẻ khóa     | Cao                 | Các mẫu nhắc nhở bẻ khóa đã biết                       |
+| Rò rỉ hướng dẫn | Trung bình          | "cho tôi xem lời nhắc hệ thống của bạn"                |
 
-Configure via dashboard (Settings → Security) or `.env`:
-
-```env
+Định cấu hình qua bảng điều khiển (Cài đặt → Bảo mật) hoặc `.env`:```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
-```
+INPUT_SANITIZER_MODE=block # warn | block | redact
+
+````
 
 ### 🔒 PII Redaction
 
-Automatic detection and optional redaction of personally identifiable information:
+Tự động phát hiện và tùy chọn chỉnh sửa thông tin nhận dạng cá nhân:
 
-| PII Type      | Pattern               | Replacement        |
+| Loại PII | Mẫu | Thay thế |
 | ------------- | --------------------- | ------------------ |
-| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
-| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
-| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
-| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
-| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
-
-```env
+| Email | `user@domain.com` | `[EMAIL_REDACTED]` |
+| CPF (Brazil) | `123.456.789-00` | `[CPF_REDACTED]` |
+| CNPJ (Brazil) | `12.345.678/0001-00` | `[CNPJ_REDACTED]` |
+| Thẻ Tín Dụng | `4111-1111-1111-1111` | `[CC_REDACTED]` |
+| Điện thoại | `+55 11 99999-9999` | `[PHONE_REDACTED]` |
+| SSN (Mỹ) | `123-45-6789` | `[SSN_REDACTED]` |```env
 PII_REDACTION_ENABLED=true
-```
+````
 
 ### 🌐 Network Security
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| Tính năng           | Mô tả                                                                          |
+| ------------------- | ------------------------------------------------------------------------------ | -------------------------------- |
+| **CORS**            | Kiểm soát nguồn gốc có thể định cấu hình (`CORS_ORIGIN` env var, mặc định `*`) |
+| **Lọc IP**          | Phạm vi IP danh sách cho phép/danh sách chặn trong trang tổng quan             |
+| **Giới hạn tỷ lệ**  | Giới hạn tỷ lệ cho mỗi nhà cung cấp với khả năng chờ đợi tự động               |
+| **Bầy Chống Sấm**   | Khóa Mutex + trên mỗi kết nối ngăn xếp tầng 502                                |
+| **Vân tay TLS**     | Giả mạo dấu vân tay TLS giống như trình duyệt để giảm khả năng phát hiện bot   |
+| **Dấu vân tay CLI** | Thứ tự tiêu đề/nội dung của mỗi nhà cung cấp để khớp với chữ ký CLI gốc        | ### 🔌 Resilience & Availability |
 
-### 🔌 Resilience & Availability
+| Tính năng                    | Mô tả                                                                  |
+| ---------------------------- | ---------------------------------------------------------------------- | ----------------- |
+| **Ngắt mạch**                | 3 trạng thái (Đóng → Mở → Nửa mở) cho mỗi nhà cung cấp, duy trì SQLite |
+| **Yêu cầu quyền bình đẳng**  | Khoảng thời gian khấu trừ 5 giây cho các yêu cầu trùng lặp             |
+| **Trở lại theo cấp số nhân** | Tự động thử lại với độ trễ ngày càng tăng                              |
+| **Bảng thông tin sức khỏe**  | Theo dõi sức khỏe của nhà cung cấp theo thời gian thực                 | ### 📋 Compliance |
 
-| Feature                 | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
-| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
-| **Exponential Backoff** | Automatic retry with increasing delays                             |
-| **Health Dashboard**    | Real-time provider health monitoring                               |
-
-### 📋 Compliance
-
-| Feature            | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
-| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
-| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
-
----
+| Tính năng                | Mô tả                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------- | --- |
+| **Lưu giữ nhật ký**      | Tự động dọn dẹp sau `CALL_LOG_RETENTION_DAYS`                                   |
+| **Chọn không đăng nhập** | Mỗi khóa API, cờ `noLog` vô hiệu hóa ghi nhật ký yêu cầu                        |
+| **Nhật ký kiểm tra**     | Các hoạt động quản trị được theo dõi trong bảng `aud_log`                       |
+| **Kiểm toán MCP**        | Ghi nhật ký kiểm tra được hỗ trợ bởi SQLite cho tất cả các lệnh gọi công cụ MCP |
+| **Xác thực Zod**         | Tất cả đầu vào API được xác thực bằng lược đồ Zod v4 khi tải mô-đun             | --- |
 
 ## Required Environment Variables
 
-All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
+Tất cả bí mật phải được đặt trước khi khởi động máy chủ. Máy chủ sẽ**hỏng nhanh**nếu chúng bị thiếu hoặc yếu.```bash
 
-```bash
 # REQUIRED — server will not start without these:
+
 JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
+API_KEY_SECRET=$(openssl rand -hex 32) # min 16 chars
 
 # RECOMMENDED — enables encryption at rest:
+
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
 
-The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
+````
 
----
+Máy chủ chủ động từ chối các giá trị yếu đã biết như `changeme`, `secret` hoặc `password`.---
 
 ## Docker Security
 
-- Use non-root user in production
-- Mount secrets as read-only volumes
-- Never copy `.env` files into Docker images
-- Use `.dockerignore` to exclude sensitive files
-- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
-
-```bash
+- Sử dụng người dùng không phải root trong sản xuất
+- Gắn kết bí mật dưới dạng khối lượng chỉ đọc
+- Không bao giờ sao chép file `.env` vào Docker image
+- Sử dụng `.dockerignore` để loại trừ các tập tin nhạy cảm
+- Đặt `AUTH_COOKIE_SECURE=true` khi ở sau HTTPS```bash
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
@@ -166,14 +142,14 @@ docker run -d \
   -e API_KEY_SECRET="$(openssl rand -hex 32)" \
   -e STORAGE_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   diegosouzapw/omniroute:latest
-```
+````
 
 ---
 
 ## Dependencies
 
-- Run `npm audit` regularly
-- Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- Chạy `npm Audit` thường xuyên
+- Luôn cập nhật các phụ thuộc
+- Dự án sử dụng `husky` + `lint-staged` để kiểm tra trước khi cam kết
+- Đường dẫn CI chạy các quy tắc bảo mật ESLint trên mỗi lần đẩy
+- Các hằng số nhà cung cấp được xác thực khi tải mô-đun thông qua Zod (`src/shared/validation/providerSchema.ts`)

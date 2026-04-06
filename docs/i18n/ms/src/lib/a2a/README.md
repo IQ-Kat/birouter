@@ -4,11 +4,9 @@
 
 ---
 
-> **Agent-to-Agent Protocol v0.3** — Enables any AI agent to use OmniRoute as an intelligent routing agent via JSON-RPC 2.0.
+> **Protokol Agen-ke-Ejen v0.3**— Membolehkan mana-mana ejen AI menggunakan OmniRoute sebagai ejen penghalaan pintar melalui JSON-RPC 2.0.
 
-The A2A Server exposes OmniRoute as a **first-class agent** that other agents can discover, delegate tasks to, and collaborate with using the [A2A Protocol](https://google.github.io/A2A/).
-
----
+Pelayan A2A mendedahkan OmniRoute sebagai**ejen kelas pertama**yang boleh ditemui oleh ejen lain, mewakilkan tugas dan bekerjasama dengan menggunakan [Protokol A2A](https://google.github.io/A2A/).---
 
 ## Seni Bina
 
@@ -43,15 +41,12 @@ The A2A Server exposes OmniRoute as a **first-class agent** that other agents ca
 
 ### Agent Discovery
 
-Every A2A-compatible agent exposes an **Agent Card** at `/.well-known/agent.json`:
-
-```bash
+Setiap ejen yang serasi dengan A2A mendedahkan**Kad Ejen**di `/.well-known/agent.json`:```bash
 curl http://localhost:20128/.well-known/agent.json
-```
 
-**Response:**
+````
 
-```json
+**Jawapan:**```json
 {
   "name": "OmniRoute",
   "description": "Intelligent AI gateway with auto-routing across 50+ providers",
@@ -88,7 +83,7 @@ curl http://localhost:20128/.well-known/agent.json
     "apiKeyHeader": "Authorization"
   }
 }
-```
+````
 
 ---
 
@@ -96,27 +91,24 @@ curl http://localhost:20128/.well-known/agent.json
 
 ### `message/send` — Synchronous Execution
 
-Send a message to a skill and receive the complete response.
-
-```bash
+Hantar mesej kepada kemahiran dan terima respons lengkap.```bash
 curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/send",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Write a Python hello world"}],
-      "metadata": {"model": "auto", "combo": "fast-coding"}
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/send",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Write a Python hello world"}],
+"metadata": {"model": "auto", "combo": "fast-coding"}
+}
+}'
 
-**Response:**
+````
 
-```json
+**Jawapan:**```json
 {
   "jsonrpc": "2.0",
   "id": "1",
@@ -133,36 +125,33 @@ curl -X POST http://localhost:20128/a2a \
     }
   }
 }
-```
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+Sama seperti `mesej/hantar` tetapi mengembalikan Acara Dihantar Pelayan untuk penstriman masa nyata.```bash
 curl -N -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/stream",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Explain quantum computing"}]
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/stream",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Explain quantum computing"}]
+}
+}'
 
-**SSE Events:**
+````
 
-```
+**Acara SSE:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"Quantum computing..."}}}
 
 : heartbeat 2026-03-04T21:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -188,40 +177,36 @@ curl -X POST http://localhost:20128/a2a \
 
 ### `smart-routing`
 
-Routes prompts through OmniRoute's intelligent pipeline with full observability.
+Laluan menggesa melalui saluran paip pintar OmniRoute dengan pemerhatian penuh.
 
-**Parameters (in `metadata`):**
+**Parameter (dalam `metadata`):**
 
-| Parameter | Type     | Default      | Description                                                                              |
-| --------- | -------- | ------------ | ---------------------------------------------------------------------------------------- |
-| `model`   | `string` | `"auto"`     | Target model (e.g., `claude-sonnet-4`, `gpt-4o`, `auto`)                                 |
-| `combo`   | `string` | active combo | Specific combo to route through                                                          |
-| `budget`  | `number` | none         | Maximum cost in USD for this request                                                     |
-| `role`    | `string` | none         | Task role hint: `coding`, `review`, `planning`, `analysis`, `debugging`, `documentation` |
+| Parameter | Taip       | Lalai       | Penerangan                                                                                                  |
+| --------- | ---------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| `model`   | `rentetan` | `"auto"`    | Model sasaran (cth., `claude-sonnet-4`, `gpt-4o`, `auto`)                                                   |
+| `kombo`   | `rentetan` | kombo aktif | Kombo khusus untuk laluan melalui                                                                           |
+| `bajet`   | `nombor`   | tiada       | Kos maksimum dalam USD untuk permintaan ini                                                                 |
+| `peranan` | `rentetan` | tiada       | Pembayang peranan tugas: `pengekodan`, `semakan`, `perancangan`, `analisis`, `penyahpepijat`, `dokumentasi` |
 
-**Returns:**
+**Pemulangan:**
 
-| Field                          | Description                                               |
-| ------------------------------ | --------------------------------------------------------- |
-| `artifacts[].content`          | The LLM response text                                     |
-| `metadata.routing_explanation` | Human-readable explanation of routing decision            |
-| `metadata.cost_envelope`       | Estimated vs actual cost with currency                    |
-| `metadata.resilience_trace`    | Array of events (primary_selected, fallback_needed, etc.) |
-| `metadata.policy_verdict`      | Whether the request was allowed and why                   |
+| Medan                          | Penerangan                                                             |
+| ------------------------------ | ---------------------------------------------------------------------- | ---------------------- |
+| `artifak[].kandungan`          | Teks respons LLM                                                       |
+| `metadata.routing_explanation` | Penjelasan yang boleh dibaca oleh manusia tentang keputusan penghalaan |
+| `metadata.cost_envelope`       | Anggaran lwn kos sebenar dengan mata wang                              |
+| `metadata.resilience_trace`    | Tatasusunan acara (primary_selected, fallback_needed, dll.)            |
+| `metadata.policy_verdict`      | Sama ada permintaan itu dibenarkan dan mengapa                         | ### `quota-management` |
 
-### `quota-management`
+Menjawab pertanyaan bahasa semula jadi tentang kuota pembekal.
 
-Answers natural-language queries about provider quotas.
+**Jenis pertanyaan (disimpulkan daripada kandungan mesej):**
 
-**Query types (inferred from message content):**
-
-| Query Pattern                                  | Response Type                                            |
-| ---------------------------------------------- | -------------------------------------------------------- |
-| Contains `"ranking"`, `"most quota"`, `"best"` | Providers ranked by remaining quota                      |
-| Contains `"free"`, `"suggest"`                 | Lists free combos or suggests free-tier providers        |
-| Default                                        | Full quota summary with warnings for low-quota providers |
-
----
+| Corak Pertanyaan                                            | Jenis Respons                                                            |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------ | --- |
+| Mengandungi `"kedudukan"`, `"kuota terbanyak"`, `"terbaik"` | Penyedia diberi kedudukan mengikut baki kuota                            |
+| Mengandungi `"percuma"`, `"cadangkan"`                      | Menyenaraikan kombo percuma atau mencadangkan pembekal peringkat percuma |
+| Lalai                                                       | Ringkasan kuota penuh dengan amaran untuk pembekal kuota rendah          | --- |
 
 ## Task Lifecycle
 
@@ -231,19 +216,17 @@ submitted ──→ working ──→ completed
               ──────────→ cancelled
 ```
 
-| State       | Description                                           |
-| ----------- | ----------------------------------------------------- |
-| `submitted` | Task created, queued for execution                    |
-| `working`   | Skill handler is executing                            |
-| `completed` | Execution succeeded, artifacts available              |
-| `failed`    | Execution failed or task expired (TTL: 5 min default) |
-| `cancelled` | Cancelled by client via `tasks/cancel`                |
+| Negeri       | Penerangan                                                   |
+| ------------ | ------------------------------------------------------------ |
+| `diserahkan` | Tugasan dibuat, beratur untuk pelaksanaan                    |
+| `bekerja`    | Pengendali kemahiran sedang melaksanakan                     |
+| `selesai`    | Pelaksanaan berjaya, artifak tersedia                        |
+| `gagal`      | Pelaksanaan gagal atau tugas tamat tempoh (TTL: lalai 5 min) |
+| `dibatalkan` | Dibatalkan oleh pelanggan melalui `tugas/batal`              |
 
-- Terminal states: `completed`, `failed`, `cancelled` (no further transitions)
-- Expired tasks in `submitted` or `working` are auto-marked as `failed`
-- Tasks are garbage-collected after 2× TTL
-
----
+- Terminal menyatakan: `selesai`, `gagal`, `dibatalkan` (tiada peralihan selanjutnya)
+- Tugasan tamat tempoh dalam `diserahkan` atau `berfungsi` ditandakan secara automatik sebagai `gagal`
+- Tugasan dikumpul sampah selepas 2× TTL---
 
 ## Client Examples
 
@@ -541,15 +524,12 @@ func main() {
 
 ### 🤖 Use Case 1: Multi-Agent Coding Pipeline
 
-An orchestrator agent delegates code generation to OmniRoute, then passes the output to a review agent.
-
-```python
-def coding_pipeline(task: str):
-    # Step 1: Generate code via OmniRoute A2A
-    code_result = a2a_send("smart-routing", [
-        {"role": "user", "content": f"Write production-quality code: {task}"}
-    ], metadata={"model": "auto", "role": "coding"})
-    code = code_result["artifacts"][0]["content"]
+Ejen orkestra mewakilkan penjanaan kod kepada OmniRoute, kemudian menyerahkan output kepada ejen semakan.```python
+def coding_pipeline(task: str): # Step 1: Generate code via OmniRoute A2A
+code_result = a2a_send("smart-routing", [
+{"role": "user", "content": f"Write production-quality code: {task}"}
+], metadata={"model": "auto", "role": "coding"})
+code = code_result["artifacts"][0]["content"]
 
     # Step 2: Review the code via OmniRoute A2A (different model)
     review_result = a2a_send("smart-routing", [
@@ -562,13 +542,12 @@ def coding_pipeline(task: str):
     print(f"Review cost: ${review_result['metadata']['cost_envelope']['actual']}")
 
     return {"code": code, "review": review}
-```
+
+````
 
 ### 💡 Use Case 2: Quota-Aware Agent Swarm
 
-Multiple agents share quota through OmniRoute, using the quota skill to coordinate.
-
-```python
+Berbilang ejen berkongsi kuota melalui OmniRoute, menggunakan kemahiran kuota untuk menyelaraskan.```python
 async def quota_aware_agent(agent_name: str, task: str):
     # Check quota before starting
     quota = a2a_send("quota-management", [
@@ -591,32 +570,30 @@ async def quota_aware_agent(agent_name: str, task: str):
         print(f"[{agent_name}] Free alternatives: {quota['artifacts'][0]['content']}")
 
     return result
-```
+````
 
 ### 📊 Use Case 3: Real-Time Streaming Dashboard
 
-A monitoring agent streams responses and displays progress in real-time.
-
-```typescript
+Ejen pemantauan menyalurkan respons dan memaparkan kemajuan dalam masa nyata.```typescript
 async function streamingDashboard(prompt: string) {
   const response = await fetch(`${BASE_URL}/a2a`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: "dash-1",
-      method: "message/stream",
-      params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
-    }),
-  });
+body: JSON.stringify({
+jsonrpc: "2.0",
+id: "dash-1",
+method: "message/stream",
+params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
+}),
+});
 
-  let totalChunks = 0;
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
+let totalChunks = 0;
+const reader = response.body!.getReader();
+const decoder = new TextDecoder();
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+while (true) {
+const { done, value } = await reader.read();
+if (done) break;
 
     for (const line of decoder.decode(value).split("\n")) {
       if (line.startsWith("data: ")) {
@@ -640,15 +617,15 @@ async function streamingDashboard(prompt: string) {
         }
       }
     }
-  }
+
 }
-```
+}
+
+````
 
 ### 🔁 Use Case 4: Task Polling Pattern
 
-For long-running tasks, poll the task status instead of waiting synchronously.
-
-```python
+Untuk tugasan yang berjalan lama, undi status tugas dan bukannya menunggu serentak.```python
 import time
 
 def poll_task(task_id: str, timeout: int = 60):
@@ -678,75 +655,71 @@ def poll_task(task_id: str, timeout: int = 60):
         "params": {"taskId": task_id},
     })
     raise TimeoutError(f"Task {task_id} timed out after {timeout}s")
-```
+````
 
 ---
 
 ## Error Codes
 
-| Code   | Constant                 | Meaning                                  |
-| ------ | ------------------------ | ---------------------------------------- |
-| -32700 | —                        | Parse error (invalid JSON)               |
-| -32600 | `INVALID_REQUEST`        | Invalid JSON-RPC request or unauthorized |
-| -32601 | `METHOD_NOT_FOUND`       | Unknown method or skill                  |
-| -32602 | `INVALID_PARAMS`         | Missing or invalid parameters            |
-| -32603 | `INTERNAL_ERROR`         | Skill execution failed                   |
-| -32001 | `TASK_NOT_FOUND`         | Task ID not found                        |
-| -32002 | `TASK_ALREADY_COMPLETED` | Cannot modify a completed task           |
-| -32003 | `UNAUTHORIZED`           | Invalid or missing API key               |
-| -32004 | `BUDGET_EXCEEDED`        | Request exceeds configured budget        |
-| -32005 | `PROVIDER_UNAVAILABLE`   | No available providers                   |
-
----
+| Kod    | Malar                     | Maksudnya                                            |
+| ------ | ------------------------- | ---------------------------------------------------- | --- |
+| -32700 | —                         | Ralat hurai (JSON tidak sah)                         |
+| -32600 | `INVALID_REQUEST`         | Permintaan JSON-RPC tidak sah atau                   |
+| -32601 | `KAEDAH_TIDAK_JUMPA`      | Kaedah atau kemahiran tidak diketahui                |
+| -32602 | `INVALID_PARAMS`          | Parameter tiada atau tidak sah                       |
+| -32603 | `ERROR_INTERNAL`          | Pelaksanaan kemahiran gagal                          |
+| -32001 | `TUGASAN_TIDAK_JUMPA`     | ID tugas tidak ditemui                               |
+| -32002 | `TUGASAN_SUDAH_SELESAI`   | Tidak boleh mengubah suai tugasan yang telah selesai |
+| -32003 | `TIDAK BOLEH`             | Kunci API tidak sah atau tiada                       |
+| -32004 | `BAJET_MELEBIHI`          | Permintaan melebihi belanjawan yang dikonfigurasikan |
+| -32005 | `PROVIDER_TIDAK TERSEDIA` | Tiada pembekal tersedia                              | --- |
 
 ## Authentication
 
-All `/a2a` requests require a Bearer token via the `Authorization` header:
-
-```
+Semua permintaan `/a2a` memerlukan token Pembawa melalui pengepala `Kebenaran`:```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+
 ```
 
-If no API key is configured on the server (`OMNIROUTE_API_KEY` is empty), authentication is bypassed.
-
----
+Jika tiada kunci API dikonfigurasikan pada pelayan (`OMNIROUTE_API_KEY` kosong), pengesahan akan dipintas.---
 
 ## File Structure
 
 ```
+
 src/lib/a2a/
-├── taskManager.ts         # Task lifecycle (create/update/cancel/list), TTL, cleanup
-├── taskExecution.ts       # Generic task executor with state management
-├── streaming.ts           # SSE stream formatting, heartbeat, chunk/completion events
-├── routingLogger.ts       # Routing decision logger (stats, history, retention)
+├── taskManager.ts # Task lifecycle (create/update/cancel/list), TTL, cleanup
+├── taskExecution.ts # Generic task executor with state management
+├── streaming.ts # SSE stream formatting, heartbeat, chunk/completion events
+├── routingLogger.ts # Routing decision logger (stats, history, retention)
 └── skills/
-    ├── smartRouting.ts    # Smart routing skill (routes via /v1/chat/completions)
-    └── quotaManagement.ts # Quota management skill (natural-language quota queries)
+├── smartRouting.ts # Smart routing skill (routes via /v1/chat/completions)
+└── quotaManagement.ts # Quota management skill (natural-language quota queries)
 
 src/app/a2a/
-└── route.ts               # Next.js API route handler (JSON-RPC 2.0 dispatch)
+└── route.ts # Next.js API route handler (JSON-RPC 2.0 dispatch)
 
 open-sse/mcp-server/
-└── schemas/a2a.ts         # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+└── schemas/a2a.ts # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+
 ```
 
 ---
 
 ## Comparison: MCP vs A2A
 
-| Feature           | MCP Server                   | A2A Server                                        |
+| Ciri | Pelayan MCP | Pelayan A2A |
 | ----------------- | ---------------------------- | ------------------------------------------------- |
-| **Protocol**      | Model Context Protocol       | Agent-to-Agent Protocol v0.3                      |
-| **Transport**     | stdio / HTTP                 | HTTP (JSON-RPC 2.0)                               |
-| **Discovery**     | Tool listing via MCP         | `/.well-known/agent.json`                         |
-| **Granularity**   | 16 individual tools          | 2 high-level skills                               |
-| **Best for**      | IDE agents (Cursor, VS Code) | Multi-agent systems (LangChain, CrewAI)           |
-| **Streaming**     | Not supported                | SSE via `message/stream`                          |
-| **Task tracking** | No                           | Full lifecycle (submitted → completed)            |
-| **Observability** | Audit log per tool call      | Cost envelope + resilience trace + policy verdict |
-
----
+|**Protokol**| Protokol Konteks Model | Protokol Agen-ke-Ejen v0.3 |
+|**Pengangkutan**| stdio / HTTP | HTTP (JSON-RPC 2.0) |
+|**Penemuan**| Penyenaraian alat melalui MCP | `/.well-known/agent.json` |
+|**Kebutiran**| 16 alatan individu | 2 kemahiran peringkat tinggi |
+|**Terbaik untuk**| Ejen IDE (Kursor, Kod VS) | Sistem berbilang ejen (LangChain, CrewAI) |
+|**Penstriman**| Tidak disokong | SSE melalui `mesej/strim` |
+|**Penjejakan tugas**| Tidak | Kitaran hayat penuh (diserahkan → selesai) |
+|**Kebolehlihatan**| Log audit setiap panggilan alat | Sampul kos + jejak ketahanan + keputusan dasar |---
 
 ## Lesen
 
-Part of [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — MIT License.
+Sebahagian daripada [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — Lesen MIT.
+```

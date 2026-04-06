@@ -4,42 +4,29 @@
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> 具有自适应评分功能的自我管理模型链## How It Works
 
-## How It Works
+自动组合引擎使用**6 因素评分函数**为每个请求动态选择最佳提供商/模型：
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+| 因素     | 重量 | 描述                                     |
+| :------- | :--- | :--------------------------------------- | ------------- |
+| 配额     | 0.20 | 0.20剩余容量[0..1]                       |
+| 健康     | 0.25 | 0.25断路器：闭合=1.0，一半=0.5，打开=0.0 |
+| 成本Inv  | 0.20 | 0.20逆成本（更便宜=更高的分数）          |
+| 延迟Inv  | 0.15 | 0.15逆 p95 延迟（更快 = 更高）           |
+| 任务适应 | 0.10 | 0.10模型×任务类型适应度评分              |
+| 稳定性   | 0.10 | 0.10延迟/错误的低方差                    | ## Mode Packs |
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+|包 |焦点|关键重量|
+| :---------------------- | ：---------- | ：-------------- |
+| 🚀**快速发货**|速度|延迟Inv：0.35 |
+| 💰**节省成本**|经济|成本：0.40 |
+| 🎯**品质第一**|最佳模特|任务适合度：0.40 |
+| 📡**离线友好**|可用性 |配额：0.40 |## Self-Healing
 
-## Mode Packs
+-**临时排除**：分数 < 0.2 → 排除 5 分钟（渐进退避，最长 30 分钟）-**断路器意识**：打开→自动排除； HALF_OPEN → 探测请求 -**事件模式**：>50% OPEN → 禁用探索，最大化稳定性 -**冷却恢复**：排除后，第一个请求是超时时间缩短的“探测”## Bandit Exploration
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
-
-## Self-Healing
-
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
-
-## Bandit Exploration
-
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
-
-## API
+5% 的请求（可配置）被路由到随机提供者进行探索。在事件模式下禁用。## API
 
 ```bash
 # Create auto-combo
@@ -53,15 +40,13 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+30 多个模型在 6 种任务类型（“编码”、“审查”、“规划”、“分析”、“调试”、“文档”）中进行评分。支持通配符模式（例如，“\*-coder”→高编码分数）。## Files
 
-## Files
-
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+|文件|目的|
+| ：-------------------------------------------------------- | :------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts` |评分函数和池标准化 |
+| `open-sse/services/autoCombo/taskFitness.ts` |模型×任务适应度查找|
+| `open-sse/services/autoCombo/engine.ts` |选择逻辑、强盗、预算上限 |
+| `open-sse/services/autoCombo/selfHealing.ts` |排除、探测、事件模式 |
+| `open-sse/services/autoCombo/modePacks.ts` | 4 种体重概况 |
+| `src/app/api/combos/auto/route.ts` |休息 API |

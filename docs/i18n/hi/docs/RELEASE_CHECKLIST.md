@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+किसी नई ओमनीरूट रिलीज़ को टैग करने या प्रकाशित करने से पहले इस चेकलिस्ट का उपयोग करें।## Version and Changelog
 
-## Version and Changelog
-
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
+1. रिलीज़ शाखा में `package.json` संस्करण (`x.y.z`) को बम्प करें।
+2. रिलीज नोट्स को `## [Unreleased]` से `CHANGELOG.md` में दिनांकित अनुभाग में ले जाएं:
    - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+3. आगामी कार्य के लिए `## [अप्रकाशित]` को पहले चेंजलॉग अनुभाग के रूप में रखें।
+4. सुनिश्चित करें कि `CHANGELOG.md` में नवीनतम सेमेस्टर अनुभाग `package.json` संस्करण के बराबर है।## API Docs
 
-## API Docs
+5. अद्यतन `docs/openapi.yaml`:
+   - `info.version` को `package.json` संस्करण के बराबर होना चाहिए।
+6. यदि एपीआई अनुबंध बदल गए हैं तो समापन बिंदु उदाहरणों को मान्य करें।## Runtime Docs
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
+7. स्टोरेज/रनटाइम ड्रिफ्ट के लिए `docs/ARCHITECTURE.md` की समीक्षा करें।
+8. env var और परिचालन बहाव के लिए `docs/TROUBLESHOOTING.md` की समीक्षा करें।
+9. यदि स्रोत दस्तावेज़ों में महत्वपूर्ण परिवर्तन हुआ है तो स्थानीयकृत दस्तावेज़ों को अपडेट करें।## Automated Check
 
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+पीआर खोलने से पहले सिंक गार्ड को स्थानीय रूप से चलाएँ:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+सीआई इस चेक को `.github/workflows/ci.yml` (लिंट जॉब) में भी चलाता है।
+```

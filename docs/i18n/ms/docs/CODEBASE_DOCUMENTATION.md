@@ -4,19 +4,15 @@
 
 ---
 
-> A comprehensive, beginner-friendly guide to the **omniroute** multi-provider AI proxy router.
-
----
+> Panduan komprehensif dan mesra pemula kepada penghala proksi AI**omniroute**berbilang pembekal.---
 
 ## 1. What Is omniroute?
 
-omniroute is a **proxy router** that sits between AI clients (Claude CLI, Codex, Cursor IDE, etc.) and AI providers (Anthropic, Google, OpenAI, AWS, GitHub, etc.). It solves one big problem:
+omniroute ialah**penghala proksi**yang terletak di antara klien AI (Claude CLI, Codex, Cursor IDE, dll.) dan penyedia AI (Anthropic, Google, OpenAI, AWS, GitHub, dsb.). Ia menyelesaikan satu masalah besar:
 
-> **Different AI clients speak different "languages" (API formats), and different AI providers expect different "languages" too.** omniroute translates between them automatically.
+> **Pelanggan AI yang berbeza bercakap "bahasa" yang berbeza (format API), dan pembekal AI yang berbeza juga mengharapkan "bahasa" yang berbeza.**omniroute menterjemah antara mereka secara automatik.
 
-Think of it like a universal translator at the United Nations — any delegate can speak any language, and the translator converts it for any other delegate.
-
----
+Anggaplah ia seperti penterjemah universal di Pertubuhan Bangsa-Bangsa Bersatu — mana-mana perwakilan boleh bercakap apa-apa bahasa, dan penterjemah menukarnya untuk mana-mana perwakilan lain.---
 
 ## 2. Architecture Overview
 
@@ -65,44 +61,43 @@ graph LR
 
 ### Core Principle: Hub-and-Spoke Translation
 
-All format translation passes through **OpenAI format as the hub**:
+Semua terjemahan format melalui**format OpenAI sebagai hab**:```
+Client Format → [OpenAI Hub] → Provider Format (request)
+Provider Format → [OpenAI Hub] → Client Format (response)
 
 ```
-Client Format → [OpenAI Hub] → Provider Format    (request)
-Provider Format → [OpenAI Hub] → Client Format    (response)
-```
 
-This means you only need **N translators** (one per format) instead of **N²** (every pair).
-
----
+Ini bermakna anda hanya memerlukan**N penterjemah**(satu setiap format) dan bukannya**N²**(setiap pasangan).---
 
 ## 3. Project Structure
 
 ```
+
 omniroute/
-├── open-sse/                  ← Core proxy library (portable, framework-agnostic)
-│   ├── index.js               ← Main entry point, exports everything
-│   ├── config/                ← Configuration & constants
-│   ├── executors/             ← Provider-specific request execution
-│   ├── handlers/              ← Request handling orchestration
-│   ├── services/              ← Business logic (auth, models, fallback, usage)
-│   ├── translator/            ← Format translation engine
-│   │   ├── request/           ← Request translators (8 files)
-│   │   ├── response/          ← Response translators (7 files)
-│   │   └── helpers/           ← Shared translation utilities (6 files)
-│   └── utils/                 ← Utility functions
-├── src/                       ← Application layer (Express/Worker runtime)
-│   ├── app/                   ← Web UI, API routes, middleware
-│   ├── lib/                   ← Database, auth, and shared library code
-│   ├── mitm/                  ← Man-in-the-middle proxy utilities
-│   ├── models/                ← Database models
-│   ├── shared/                ← Shared utilities (wrappers around open-sse)
-│   ├── sse/                   ← SSE endpoint handlers
-│   └── store/                 ← State management
-├── data/                      ← Runtime data (credentials, logs)
-│   └── provider-credentials.json   (external credentials override, gitignored)
-└── tester/                    ← Test utilities
-```
+├── open-sse/ ← Core proxy library (portable, framework-agnostic)
+│ ├── index.js ← Main entry point, exports everything
+│ ├── config/ ← Configuration & constants
+│ ├── executors/ ← Provider-specific request execution
+│ ├── handlers/ ← Request handling orchestration
+│ ├── services/ ← Business logic (auth, models, fallback, usage)
+│ ├── translator/ ← Format translation engine
+│ │ ├── request/ ← Request translators (8 files)
+│ │ ├── response/ ← Response translators (7 files)
+│ │ └── helpers/ ← Shared translation utilities (6 files)
+│ └── utils/ ← Utility functions
+├── src/ ← Application layer (Express/Worker runtime)
+│ ├── app/ ← Web UI, API routes, middleware
+│ ├── lib/ ← Database, auth, and shared library code
+│ ├── mitm/ ← Man-in-the-middle proxy utilities
+│ ├── models/ ← Database models
+│ ├── shared/ ← Shared utilities (wrappers around open-sse)
+│ ├── sse/ ← SSE endpoint handlers
+│ └── store/ ← State management
+├── data/ ← Runtime data (credentials, logs)
+│ └── provider-credentials.json (external credentials override, gitignored)
+└── tester/ ← Test utilities
+
+````
 
 ---
 
@@ -110,18 +105,16 @@ omniroute/
 
 ### 4.1 Config (`open-sse/config/`)
 
-The **single source of truth** for all provider configuration.
+**Sumber tunggal kebenaran**untuk semua konfigurasi pembekal.
 
-| File                          | Purpose                                                                                                                                                                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `constants.ts`                | `PROVIDERS` object with base URLs, OAuth credentials (defaults), headers, and default system prompts for every provider. Also defines `HTTP_STATUS`, `ERROR_TYPES`, `COOLDOWN_MS`, `BACKOFF_CONFIG`, and `SKIP_PATTERNS`. |
-| `credentialLoader.ts`         | Loads external credentials from `data/provider-credentials.json` and merges them over the hardcoded defaults in `PROVIDERS`. Keeps secrets out of source control while maintaining backwards compatibility.               |
-| `providerModels.ts`           | Central model registry: maps provider aliases → model IDs. Functions like `getModels()`, `getProviderByAlias()`.                                                                                                          |
-| `codexInstructions.ts`        | System instructions injected into Codex requests (editing constraints, sandbox rules, approval policies).                                                                                                                 |
-| `defaultThinkingSignature.ts` | Default "thinking" signatures for Claude and Gemini models.                                                                                                                                                               |
-| `ollamaModels.ts`             | Schema definition for local Ollama models (name, size, family, quantization).                                                                                                                                             |
-
-#### Credential Loading Flow
+| Fail | Tujuan |
+| ---------------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| `pemalar.ts` | Objek `PROVIDERS` dengan URL asas, bukti kelayakan OAuth (lalai), pengepala dan gesaan sistem lalai untuk setiap pembekal. Juga mentakrifkan `HTTP_STATUS`, `ERROR_TYPES`, `COOLDOWN_MS`, `BACKOFF_CONFIG` dan `SKIP_PATTERNS`. |
+| `credentialLoader.ts` | Memuatkan bukti kelayakan luaran daripada `data/provider-credentials.json` dan menggabungkannya pada lalai berkod keras dalam `PROVIDERS`. Menyimpan rahsia di luar kawalan sumber sambil mengekalkan keserasian ke belakang.               |
+| `providerModels.ts` | Pendaftaran model pusat: alias penyedia peta → ID model. Berfungsi seperti `getModels()`, `getProviderByAlias()`.                                                                                                          |
+| `codexInstructions.ts` | Arahan sistem disuntik ke dalam permintaan Codex (kekangan pengeditan, peraturan kotak pasir, dasar kelulusan).                                                                                                                 |
+| `defaultThinkingSignature.ts` | Tanda tangan "berfikir" lalai untuk model Claude dan Gemini.                                                                                                                                                               |
+| `ollamaModels.ts` | Takrif skema untuk model Ollama tempatan (nama, saiz, keluarga, pengkuantitian).                                                                                                                                             |#### Credential Loading Flow
 
 ```mermaid
 flowchart TD
@@ -140,24 +133,22 @@ flowchart TD
     J --> F
     F -->|Done| L["PROVIDERS ready with\nmerged credentials"]
     E --> L
-```
+````
 
 ---
 
 ### 4.2 Executors (`open-sse/executors/`)
 
-Executors encapsulate **provider-specific logic** using the **Strategy Pattern**. Each executor overrides base methods as needed.
-
-```mermaid
+Pelaksana merangkum**logik khusus pembekal**menggunakan**Corak Strategi**. Setiap pelaksana mengatasi kaedah asas seperti yang diperlukan.```mermaid
 classDiagram
-    class BaseExecutor {
-        +buildUrl(model, stream, options)
-        +buildHeaders(credentials, stream, body)
-        +transformRequest(body, model, stream, credentials)
-        +execute(url, options)
-        +shouldRetry(status, error)
-        +refreshCredentials(credentials, log)
-    }
+class BaseExecutor {
++buildUrl(model, stream, options)
++buildHeaders(credentials, stream, body)
++transformRequest(body, model, stream, credentials)
++execute(url, options)
++shouldRetry(status, error)
++refreshCredentials(credentials, log)
+}
 
     class DefaultExecutor {
         +refreshCredentials()
@@ -194,34 +185,31 @@ classDiagram
     BaseExecutor <|-- CodexExecutor
     BaseExecutor <|-- GeminiCLIExecutor
     BaseExecutor <|-- GithubExecutor
-```
 
-| Executor         | Provider                                   | Key Specializations                                                                                                 |
+````
+
+| Pelaksana | Pembekal | Pengkhususan Utama |
 | ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `base.ts`        | —                                          | Abstract base: URL building, headers, retry logic, credential refresh                                               |
-| `default.ts`     | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Generic OAuth token refresh for standard providers                                                                  |
-| `antigravity.ts` | Google Cloud Code                          | Project/session ID generation, multi-URL fallback, custom retry parsing from error messages ("reset after 2h7m23s") |
-| `cursor.ts`      | Cursor IDE                                 | **Most complex**: SHA-256 checksum auth, Protobuf request encoding, binary EventStream → SSE response parsing       |
-| `codex.ts`       | OpenAI Codex                               | Injects system instructions, manages thinking levels, removes unsupported parameters                                |
-| `gemini-cli.ts`  | Google Gemini CLI                          | Custom URL building (`streamGenerateContent`), Google OAuth token refresh                                           |
-| `github.ts`      | GitHub Copilot                             | Dual token system (GitHub OAuth + Copilot token), VSCode header mimicking                                           |
-| `kiro.ts`        | AWS CodeWhisperer                          | AWS EventStream binary parsing, AMZN event frames, token estimation                                                 |
-| `index.ts`       | —                                          | Factory: maps provider name → executor class, with default fallback                                                 |
-
----
+| `base.ts` | — | Asas abstrak: Pembinaan URL, pengepala, cuba semula logik, penyegaran semula kelayakan |
+| `default.ts` | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Muat semula token OAuth generik untuk pembekal standard |
+| `antigravity.ts` | Kod Awan Google | Penjanaan ID projek/sesi, sandaran berbilang URL, cuba semula tersuai menghuraikan daripada mesej ralat ("set semula selepas 2h7m23s") |
+| `cursor.ts` | IDE kursor |**Paling kompleks**: Pengesahan checksum SHA-256, pengekodan permintaan Protobuf, Perduaan EventStream → Penghuraian respons SSE |
+| `codex.ts` | OpenAI Codex | Menyuntik arahan sistem, mengurus tahap pemikiran, mengalih keluar parameter yang tidak disokong |
+| `gemini-cli.ts` | Google Gemini CLI | Pembinaan URL tersuai (`streamGenerateContent`), muat semula token Google OAuth |
+| `github.ts` | GitHub Copilot | Sistem token dwi (GitHub OAuth + Copilot token), pengepala VSCode meniru |
+| `kiro.ts` | AWS CodeWhisperer | Penghuraian binari AWS EventStream, bingkai acara AMZN, anggaran token |
+| `index.ts` | — | Kilang: nama pembekal peta → kelas pelaksana, dengan sandaran lalai |---
 
 ### 4.3 Handlers (`open-sse/handlers/`)
 
-The **orchestration layer** — coordinates translation, execution, streaming, and error handling.
+**Lapisan orkestrasi**— menyelaras terjemahan, pelaksanaan, penstriman dan pengendalian ralat.
 
-| File                  | Purpose                                                                                                                                                                                                                |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chatCore.ts`         | **Central orchestrator** (~600 lines). Handles the complete request lifecycle: format detection → translation → executor dispatch → streaming/non-streaming response → token refresh → error handling → usage logging. |
-| `responsesHandler.ts` | Adapter for OpenAI's Responses API: converts Responses format → Chat Completions → sends to `chatCore` → converts SSE back to Responses format.                                                                        |
-| `embeddings.ts`       | Embedding generation handler: resolves embedding model → provider, dispatches to provider API, returns OpenAI-compatible embedding response. Supports 6+ providers.                                                    |
-| `imageGeneration.ts`  | Image generation handler: resolves image model → provider, supports OpenAI-compatible, Gemini-image (Antigravity), and fallback (Nebius) modes. Returns base64 or URL images.                                          |
-
-#### Request Lifecycle (chatCore.ts)
+| Fail | Tujuan |
+| ---------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| `chatCore.ts` |**Orkestra pusat**(~600 baris). Mengendalikan kitaran hayat permintaan yang lengkap: pengesanan format → terjemahan → penghantaran pelaksana → respons penstriman/bukan penstriman → penyegaran token → pengendalian ralat → pengelogan penggunaan. |
+| `responsesHandler.ts` | Penyesuai untuk API Respons OpenAI: menukar format Respons → Selesai Sembang → menghantar ke `chatCore` → menukar SSE kembali kepada format Respons.                                                                        |
+| `embeddings.ts` | Pengendali penjanaan benam: menyelesaikan model pembenaman → pembekal, menghantar kepada API pembekal, mengembalikan respons pembenaman serasi OpenAI. Menyokong 6+ pembekal.                                                    |
+| `imageGeneration.ts` | Pengendali penjanaan imej: menyelesaikan model imej → pembekal, menyokong mod serasi OpenAI, imej Gemini (Antigraviti) dan sandaran (Nebius). Mengembalikan imej base64 atau URL.                                          |#### Request Lifecycle (chatCore.ts)
 
 ```mermaid
 sequenceDiagram
@@ -256,30 +244,28 @@ sequenceDiagram
         chatCore->>Executor: Retry with credential refresh
         chatCore->>chatCore: Account fallback logic
     end
-```
+````
 
 ---
 
 ### 4.4 Services (`open-sse/services/`)
 
-Business logic that supports the handlers and executors.
-
-| File                 | Purpose                                                                                                                                                                                                                                                                                                                                |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `provider.ts`        | **Format detection** (`detectFormat`): analyzes request body structure to identify Claude/OpenAI/Gemini/Antigravity/Responses formats (includes `max_tokens` heuristic for Claude). Also: URL building, header building, thinking config normalization. Supports `openai-compatible-*` and `anthropic-compatible-*` dynamic providers. |
-| `model.ts`           | Model string parsing (`claude/model-name` → `{provider: "claude", model: "model-name"}`), alias resolution with collision detection, input sanitization (rejects path traversal/control chars), and model info resolution with async alias getter support.                                                                             |
-| `accountFallback.ts` | Rate-limit handling: exponential backoff (1s → 2s → 4s → max 2min), account cooldown management, error classification (which errors trigger fallback vs. not).                                                                                                                                                                         |
-| `tokenRefresh.ts`    | OAuth token refresh for **every provider**: Google (Gemini, Antigravity), Claude, Codex, Qwen, Qoder, GitHub (OAuth + Copilot dual-token), Kiro (AWS SSO OIDC + Social Auth). Includes in-flight promise deduplication cache and retry with exponential backoff.                                                                       |
-| `combo.ts`           | **Combo models**: chains of fallback models. If model A fails with a fallback-eligible error, try model B, then C, etc. Returns actual upstream status codes.                                                                                                                                                                          |
-| `usage.ts`           | Fetches quota/usage data from provider APIs (GitHub Copilot quotas, Antigravity model quotas, Codex rate limits, Kiro usage breakdowns, Claude settings).                                                                                                                                                                              |
-| `accountSelector.ts` | Smart account selection with scoring algorithm: considers priority, health status, round-robin position, and cooldown state to pick the optimal account for each request.                                                                                                                                                              |
-| `contextManager.ts`  | Request context lifecycle management: creates and tracks per-request context objects with metadata (request ID, timestamps, provider info) for debugging and logging.                                                                                                                                                                  |
-| `ipFilter.ts`        | IP-based access control: supports allowlist and blocklist modes. Validates client IP against configured rules before processing API requests.                                                                                                                                                                                          |
-| `sessionManager.ts`  | Session tracking with client fingerprinting: tracks active sessions using hashed client identifiers, monitors request counts, and provides session metrics.                                                                                                                                                                            |
-| `signatureCache.ts`  | Request signature-based deduplication cache: prevents duplicate requests by caching recent request signatures and returning cached responses for identical requests within a time window.                                                                                                                                              |
-| `systemPrompt.ts`    | Global system prompt injection: prepends or appends a configurable system prompt to all requests, with per-provider compatibility handling.                                                                                                                                                                                            |
-| `thinkingBudget.ts`  | Reasoning token budget management: supports passthrough, auto (strip thinking config), custom (fixed budget), and adaptive (complexity-scaled) modes for controlling thinking/reasoning tokens.                                                                                                                                        |
-| `wildcardRouter.ts`  | Wildcard model pattern routing: resolves wildcard patterns (e.g., `*/claude-*`) to concrete provider/model pairs based on availability and priority.                                                                                                                                                                                   |
+| Logik perniagaan yang menyokong pengendali dan pelaksana. | File                                                                                                                                                                                                                                                                                                                                   | Purpose |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `provider.ts`                                             | **Format detection** (`detectFormat`): analyzes request body structure to identify Claude/OpenAI/Gemini/Antigravity/Responses formats (includes `max_tokens` heuristic for Claude). Also: URL building, header building, thinking config normalization. Supports `openai-compatible-*` and `anthropic-compatible-*` dynamic providers. |
+| `model.ts`                                                | Model string parsing (`claude/model-name` → `{provider: "claude", model: "model-name"}`), alias resolution with collision detection, input sanitization (rejects path traversal/control chars), and model info resolution with async alias getter support.                                                                             |
+| `accountFallback.ts`                                      | Rate-limit handling: exponential backoff (1s → 2s → 4s → max 2min), account cooldown management, error classification (which errors trigger fallback vs. not).                                                                                                                                                                         |
+| `tokenRefresh.ts`                                         | OAuth token refresh for **every provider**: Google (Gemini, Antigravity), Claude, Codex, Qwen, Qoder, GitHub (OAuth + Copilot dual-token), Kiro (AWS SSO OIDC + Social Auth). Includes in-flight promise deduplication cache and retry with exponential backoff.                                                                       |
+| `combo.ts`                                                | **Combo models**: chains of fallback models. If model A fails with a fallback-eligible error, try model B, then C, etc. Returns actual upstream status codes.                                                                                                                                                                          |
+| `usage.ts`                                                | Fetches quota/usage data from provider APIs (GitHub Copilot quotas, Antigravity model quotas, Codex rate limits, Kiro usage breakdowns, Claude settings).                                                                                                                                                                              |
+| `accountSelector.ts`                                      | Smart account selection with scoring algorithm: considers priority, health status, round-robin position, and cooldown state to pick the optimal account for each request.                                                                                                                                                              |
+| `contextManager.ts`                                       | Request context lifecycle management: creates and tracks per-request context objects with metadata (request ID, timestamps, provider info) for debugging and logging.                                                                                                                                                                  |
+| `ipFilter.ts`                                             | IP-based access control: supports allowlist and blocklist modes. Validates client IP against configured rules before processing API requests.                                                                                                                                                                                          |
+| `sessionManager.ts`                                       | Session tracking with client fingerprinting: tracks active sessions using hashed client identifiers, monitors request counts, and provides session metrics.                                                                                                                                                                            |
+| `signatureCache.ts`                                       | Request signature-based deduplication cache: prevents duplicate requests by caching recent request signatures and returning cached responses for identical requests within a time window.                                                                                                                                              |
+| `systemPrompt.ts`                                         | Global system prompt injection: prepends or appends a configurable system prompt to all requests, with per-provider compatibility handling.                                                                                                                                                                                            |
+| `thinkingBudget.ts`                                       | Reasoning token budget management: supports passthrough, auto (strip thinking config), custom (fixed budget), and adaptive (complexity-scaled) modes for controlling thinking/reasoning tokens.                                                                                                                                        |
+| `wildcardRouter.ts`                                       | Wildcard model pattern routing: resolves wildcard patterns (e.g., `*/claude-*`) to concrete provider/model pairs based on availability and priority.                                                                                                                                                                                   |
 
 #### Token Refresh Deduplication
 
@@ -348,9 +334,7 @@ flowchart LR
 
 ### 4.5 Translator (`open-sse/translator/`)
 
-The **format translation engine** using a self-registering plugin system.
-
-#### Seni Bina
+**enjin terjemahan format**menggunakan sistem pemalam pendaftaran sendiri.#### Seni Bina
 
 ```mermaid
 graph TD
@@ -376,15 +360,13 @@ graph TD
     end
 ```
 
-| Directory    | Files         | Description                                                                                                                                                                                                                                                      |
-| ------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `request/`   | 8 translators | Convert request bodies between formats. Each file self-registers via `register(from, to, fn)` on import.                                                                                                                                                         |
-| `response/`  | 7 translators | Convert streaming response chunks between formats. Handles SSE event types, thinking blocks, tool calls.                                                                                                                                                         |
-| `helpers/`   | 6 helpers     | Shared utilities: `claudeHelper` (system prompt extraction, thinking config), `geminiHelper` (parts/contents mapping), `openaiHelper` (format filtering), `toolCallHelper` (ID generation, missing response injection), `maxTokensHelper`, `responsesApiHelper`. |
-| `index.ts`   | —             | Translation engine: `translateRequest()`, `translateResponse()`, state management, registry.                                                                                                                                                                     |
-| `formats.ts` | —             | Format constants: `OPENAI`, `CLAUDE`, `GEMINI`, `ANTIGRAVITY`, `KIRO`, `CURSOR`, `OPENAI_RESPONSES`.                                                                                                                                                             |
-
-#### Key Design: Self-Registering Plugins
+| Direktori       | Fail          | Penerangan                                                                                                                                                                                                                                                            |
+| --------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `permintaan/`   | 8 penterjemah | Tukar badan permintaan antara format. Setiap fail mendaftar sendiri melalui `daftar (dari, kepada, fn)` semasa diimport.                                                                                                                                              |
+| `tindak balas/` | 7 penterjemah | Tukar ketulan respons penstriman antara format. Mengendalikan jenis acara SSE, blok pemikiran, panggilan alat.                                                                                                                                                        |
+| `pembantu/`     | 6 pembantu    | Utiliti kongsi: `claudeHelper` (pengekstrak segera sistem, konfigurasi pemikiran), `geminiHelper` (pemetaan bahagian/kandungan), `openaiHelper` (penapisan format), `toolCallHelper` (penjanaan ID, suntikan respons tiada), `maxTokensHelper`, `responsesApiHelper`. |
+| `index.ts`      | —             | Enjin terjemahan: `translateRequest()`, `translateResponse()`, pengurusan negeri, pendaftaran.                                                                                                                                                                        |
+| `formats.ts`    | —             | Pemalar format: `OPENAI`, `CLAUDE`, `GEMINI`, `ANTIGRAVITI`, `KIRO`, `CURSOR`, `OPENAI_RESPONSES`.                                                                                                                                                                    | #### Key Design: Self-Registering Plugins |
 
 ```javascript
 // Each translator file calls register() on import:
@@ -399,17 +381,15 @@ import "./request/claude-to-openai.js"; // ← self-registers
 
 ### 4.6 Utils (`open-sse/utils/`)
 
-| File               | Purpose                                                                                                                                                                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `error.ts`         | Error response building (OpenAI-compatible format), upstream error parsing, Antigravity retry-time extraction from error messages, SSE error streaming.                                                                                                                              |
-| `stream.ts`        | **SSE Transform Stream** — the core streaming pipeline. Two modes: `TRANSLATE` (full format translation) and `PASSTHROUGH` (normalize + extract usage). Handles chunk buffering, usage estimation, content length tracking. Per-stream encoder/decoder instances avoid shared state. |
-| `streamHelpers.ts` | Low-level SSE utilities: `parseSSELine` (whitespace-tolerant), `hasValuableContent` (filters empty chunks for OpenAI/Claude/Gemini), `fixInvalidId`, `formatSSE` (format-aware SSE serialization with `perf_metrics` cleanup).                                                       |
-| `usageTracking.ts` | Token usage extraction from any format (Claude/OpenAI/Gemini/Responses), estimation with separate tool/message char-per-token ratios, buffer addition (2000 tokens safety margin), format-specific field filtering, console logging with ANSI colors.                                |
-| `requestLogger.ts` | File-based request logging (opt-in via `ENABLE_REQUEST_LOGS=true`). Creates session folders with numbered files: `1_req_client.json` → `7_res_client.txt`. All I/O is async (fire-and-forget). Masks sensitive headers.                                                              |
-| `bypassHandler.ts` | Intercepts specific patterns from Claude CLI (title extraction, warmup, count) and returns fake responses without calling any provider. Supports both streaming and non-streaming. Intentionally limited to Claude CLI scope.                                                        |
-| `networkProxy.ts`  | Resolves outbound proxy URL for a given provider with precedence: provider-specific config → global config → environment variables (`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY`). Supports `NO_PROXY` exclusions. Caches config for 30s.                                                  |
-
-#### SSE Streaming Pipeline
+| Fail               | Tujuan                                                                                                                                                                                                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `error.ts`         | Pembinaan tindak balas ralat (format serasi OpenAI), penghuraian ralat huluan, Pengekstrakan masa percubaan semula Antigraviti daripada mesej ralat, penstriman ralat SSE.                                                                                                                                          |
+| `stream.ts`        | **SSE Transform Stream**— saluran paip penstriman teras. Dua mod: `TRANSLATE` (terjemahan format penuh) dan `PASTHROUGH` (normalkan + penggunaan ekstrak). Mengendalikan penimbalan bongkah, anggaran penggunaan, penjejakan panjang kandungan. Kejadian pengekod/penyahkod per strim mengelakkan keadaan dikongsi. |
+| `streamHelpers.ts` | Utiliti SSE peringkat rendah: `parseSSELine` (bertoleransi ruang putih), `hasValuableContent` (menapis bahagian kosong untuk OpenAI/Claude/Gemini), `fixInvalidId`, `formatSSE` (penyirian SSE sedar format dengan pembersihan `perf_metrics`).                                                                     |
+| `usageTracking.ts` | Pengekstrakan penggunaan token daripada sebarang format (Claude/OpenAI/Gemini/Responses), anggaran dengan nisbah char-per-token alat/mesej yang berasingan, penambahan penimbal (margin keselamatan 2000 token), penapisan medan khusus format, pengelogan konsol dengan warna ANSI.                                |
+| `requestLogger.ts` | Pengelogan permintaan berasaskan fail (ikut serta melalui `ENABLE_REQUEST_LOGS=true`). Mencipta folder sesi dengan fail bernombor: `1_req_client.json` → `7_res_client.txt`. Semua I/O tidak segerak (api-dan-lupa). Topeng tajuk sensitif.                                                                         |
+| `bypassHandler.ts` | Memintas corak tertentu daripada Claude CLI (pengeluaran tajuk, pemanasan, kiraan) dan mengembalikan respons palsu tanpa menghubungi mana-mana pembekal. Menyokong kedua-dua penstriman dan bukan penstriman. Sengaja dihadkan kepada skop Claude CLI.                                                              |
+| `networkProxy.ts`  | Menyelesaikan URL proksi keluar untuk pembekal tertentu dengan keutamaan: konfigurasi khusus pembekal → konfigurasi global → pembolehubah persekitaran (`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY`). Menyokong pengecualian `NO_PROXY`. Konfigurasi cache untuk 30s.                                                    | #### SSE Streaming Pipeline |
 
 ```mermaid
 flowchart TD
@@ -451,103 +431,81 @@ logs/
 
 ### 4.7 Application Layer (`src/`)
 
-| Directory     | Purpose                                                                |
-| ------------- | ---------------------------------------------------------------------- |
-| `src/app/`    | Web UI, API routes, Express middleware, OAuth callback handlers        |
-| `src/lib/`    | Database access (`localDb.ts`, `usageDb.ts`), authentication, shared   |
-| `src/mitm/`   | Man-in-the-middle proxy utilities for intercepting provider traffic    |
-| `src/models/` | Database model definitions                                             |
-| `src/shared/` | Wrappers around open-sse functions (provider, stream, error, etc.)     |
-| `src/sse/`    | SSE endpoint handlers that wire the open-sse library to Express routes |
-| `src/store/`  | Application state management                                           |
+| Direktori     | Tujuan                                                                        |
+| ------------- | ----------------------------------------------------------------------------- | ----------------------- |
+| `src/app/`    | UI Web, laluan API, perisian tengah Ekspres, pengendali panggil balik OAuth   |
+| `src/lib/`    | Akses pangkalan data (`localDb.ts`, `usageDb.ts`), pengesahan, dikongsi       |
+| `src/mitm/`   | Utiliti proksi man-in-the-middle untuk memintas trafik pembekal               |
+| `src/models/` | Takrif model pangkalan data                                                   |
+| `src/shared/` | Pembalut di sekeliling fungsi open-sse (penyedia, strim, ralat, dll.)         |
+| `src/sse/`    | Pengendali titik akhir SSE yang menghantar pustaka open-sse ke laluan Express |
+| `src/store/`  | Pengurusan keadaan aplikasi                                                   | #### Notable API Routes |
 
-#### Notable API Routes
-
-| Route                                         | Methods         | Purpose                                                                               |
-| --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
-| `/api/provider-models`                        | GET/POST/DELETE | CRUD for custom models per provider                                                   |
-| `/api/models/catalog`                         | GET             | Aggregated catalog of all models (chat, embedding, image, custom) grouped by provider |
-| `/api/settings/proxy`                         | GET/PUT/DELETE  | Hierarchical outbound proxy configuration (`global/providers/combos/keys`)            |
-| `/api/settings/proxy/test`                    | POST            | Validates proxy connectivity and returns public IP/latency                            |
-| `/v1/providers/[provider]/chat/completions`   | POST            | Dedicated per-provider chat completions with model validation                         |
-| `/v1/providers/[provider]/embeddings`         | POST            | Dedicated per-provider embeddings with model validation                               |
-| `/v1/providers/[provider]/images/generations` | POST            | Dedicated per-provider image generation with model validation                         |
-| `/api/settings/ip-filter`                     | GET/PUT         | IP allowlist/blocklist management                                                     |
-| `/api/settings/thinking-budget`               | GET/PUT         | Reasoning token budget configuration (passthrough/auto/custom/adaptive)               |
-| `/api/settings/system-prompt`                 | GET/PUT         | Global system prompt injection for all requests                                       |
-| `/api/sessions`                               | GET             | Active session tracking and metrics                                                   |
-| `/api/rate-limits`                            | GET             | Per-account rate limit status                                                         |
-
----
+| Laluan                                         | Kaedah               | Tujuan                                                                                    |
+| ---------------------------------------------- | -------------------- | ----------------------------------------------------------------------------------------- | --- |
+| `/api/provider-models`                         | DAPATKAN/POST/PADAM  | CRUD untuk model tersuai setiap pembekal                                                  |
+| `/api/models/catalog`                          | DAPATKAN             | Katalog agregat semua model (sembang, benam, imej, tersuai) dikumpulkan mengikut pembekal |
+| `/api/setting/proksi`                          | DAPATKAN/LETAK/PADAM | Konfigurasi proksi keluar hierarki (`global/penyedia/kombo/kunci`)                        |
+| `/api/settings/proxy/test`                     | POS                  | Mengesahkan sambungan proksi dan mengembalikan IP/kependaman awam                         |
+| `/v1/penyedia/[penyedia]/sembang/penyelesaian` | POS                  | Penyelesaian sembang khusus bagi setiap pembekal dengan pengesahan model                  |
+| `/v1/penyedia/[penyedia]/pembenaman`           | POS                  | Pembenaman khusus bagi setiap pembekal dengan pengesahan model                            |
+| `/v1/penyedia/[penyedia]/imej/generasi`        | POS                  | Penjanaan imej setiap pembekal khusus dengan pengesahan model                             |
+| `/api/setting/penapis-ip`                      | DAPATKAN/LETAK       | Pengurusan senarai dibenarkan/senarai sekat IP                                            |
+| `/api/setting/thinking-budget`                 | DAPATKAN/LETAK       | Konfigurasi belanjawan token penaakulan (laluan/auto/tersuai/suai)                        |
+| `/api/setting/system-prompt`                   | DAPATKAN/LETAK       | Suntikan segera sistem global untuk semua permintaan                                      |
+| `/api/sessions`                                | DAPATKAN             | Penjejakan dan metrik sesi aktif                                                          |
+| `/api/rate-limits`                             | DAPATKAN             | Status had kadar setiap akaun                                                             | --- |
 
 ## 5. Key Design Patterns
 
 ### 5.1 Hub-and-Spoke Translation
 
-All formats translate through **OpenAI format as the hub**. Adding a new provider only requires writing **one pair** of translators (to/from OpenAI), not N pairs.
+Semua format diterjemahkan melalui**format OpenAI sebagai hab**. Menambah penyedia baharu hanya memerlukan penulisan**sepasang**penterjemah (ke/dari OpenAI), bukan N pasangan.### 5.2 Executor Strategy Pattern
 
-### 5.2 Executor Strategy Pattern
+Setiap pembekal mempunyai kelas pelaksana khusus yang diwarisi daripada `BaseExecutor`. Kilang dalam `executors/index.ts` memilih yang betul semasa runtime.### 5.3 Self-Registering Plugin System
 
-Each provider has a dedicated executor class inheriting from `BaseExecutor`. The factory in `executors/index.ts` selects the right one at runtime.
+Modul penterjemah mendaftar sendiri pada import melalui `register()`. Menambah penterjemah baharu hanyalah mencipta fail dan mengimportnya.### 5.4 Account Fallback with Exponential Backoff
 
-### 5.3 Self-Registering Plugin System
+Apabila pembekal mengembalikan 429/401/500, sistem boleh bertukar ke akaun seterusnya, menggunakan tempoh bertenang eksponen (1s → 2s → 4s → maks 2min).### 5.5 Combo Model Chains
 
-Translator modules register themselves on import via `register()`. Adding a new translator is just creating a file and importing it.
+"Kombo" mengumpulkan berbilang rentetan `penyedia/model`. Jika yang pertama gagal, sandarkan kepada yang seterusnya secara automatik.### 5.6 Stateful Streaming Translation
 
-### 5.4 Account Fallback with Exponential Backoff
+Terjemahan respons mengekalkan keadaan merentas bahagian SSE (penjejakan blok pemikiran, pengumpulan panggilan alat, pengindeksan blok kandungan) melalui mekanisme `initState()`.### 5.7 Usage Safety Buffer
 
-When a provider returns 429/401/500, the system can switch to the next account, applying exponential cooldowns (1s → 2s → 4s → max 2min).
-
-### 5.5 Combo Model Chains
-
-A "combo" groups multiple `provider/model` strings. If the first fails, fallback to the next automatically.
-
-### 5.6 Stateful Streaming Translation
-
-Response translation maintains state across SSE chunks (thinking block tracking, tool call accumulation, content block indexing) via the `initState()` mechanism.
-
-### 5.7 Usage Safety Buffer
-
-A 2000-token buffer is added to reported usage to prevent clients from hitting context window limits due to overhead from system prompts and format translation.
-
----
+Penampan 2000-token ditambahkan pada penggunaan yang dilaporkan untuk menghalang pelanggan daripada mencapai had tetingkap konteks kerana overhed daripada gesaan sistem dan terjemahan format.---
 
 ## 6. Supported Formats
 
-| Format                  | Direction       | Identifier         |
-| ----------------------- | --------------- | ------------------ |
-| OpenAI Chat Completions | source + target | `openai`           |
-| OpenAI Responses API    | source + target | `openai-responses` |
-| Anthropic Claude        | source + target | `claude`           |
-| Google Gemini           | source + target | `gemini`           |
-| Google Gemini CLI       | target only     | `gemini-cli`       |
-| Antigravity             | source + target | `antigravity`      |
-| AWS Kiro                | target only     | `kiro`             |
-| Cursor                  | target only     | `cursor`           |
-
----
+| Format                 | Arah             | Pengecam         |
+| ---------------------- | ---------------- | ---------------- | --- |
+| Selesai Sembang OpenAI | sumber + sasaran | `openai`         |
+| API Respons OpenAI     | sumber + sasaran | `openai-respons` |
+| Claude Anthropic       | sumber + sasaran | `claude`         |
+| Google Gemini          | sumber + sasaran | `gemini`         |
+| Google Gemini CLI      | sasaran sahaja   | `gemini-cli`     |
+| Antigraviti            | sumber + sasaran | `antigraviti`    |
+| AWS Kiro               | sasaran sahaja   | `kiro`           |
+| Kursor                 | sasaran sahaja   | `kursor`         | --- |
 
 ## 7. Supported Providers
 
-| Provider                 | Auth Method            | Executor    | Key Notes                                     |
-| ------------------------ | ---------------------- | ----------- | --------------------------------------------- |
-| Anthropic Claude         | API key or OAuth       | Default     | Uses `x-api-key` header                       |
-| Google Gemini            | API key or OAuth       | Default     | Uses `x-goog-api-key` header                  |
-| Google Gemini CLI        | OAuth                  | GeminiCLI   | Uses `streamGenerateContent` endpoint         |
-| Antigravity              | OAuth                  | Antigravity | Multi-URL fallback, custom retry parsing      |
-| OpenAI                   | API key                | Default     | Standard Bearer auth                          |
-| Codex                    | OAuth                  | Codex       | Injects system instructions, manages thinking |
-| GitHub Copilot           | OAuth + Copilot token  | Github      | Dual token, VSCode header mimicking           |
-| Kiro (AWS)               | AWS SSO OIDC or Social | Kiro        | Binary EventStream parsing                    |
-| Cursor IDE               | Checksum auth          | Cursor      | Protobuf encoding, SHA-256 checksums          |
-| Qwen                     | OAuth                  | Default     | Standard auth                                 |
-| Qoder                    | OAuth (Basic + Bearer) | Default     | Dual auth header                              |
-| OpenRouter               | API key                | Default     | Standard Bearer auth                          |
-| GLM, Kimi, MiniMax       | API key                | Default     | Claude-compatible, use `x-api-key`            |
-| `openai-compatible-*`    | API key                | Default     | Dynamic: any OpenAI-compatible endpoint       |
-| `anthropic-compatible-*` | API key                | Default     | Dynamic: any Claude-compatible endpoint       |
-
----
+| Pembekal            | Kaedah Pengesahan        | Pelaksana   | Nota Utama                                               |
+| ------------------- | ------------------------ | ----------- | -------------------------------------------------------- | --- |
+| Claude Anthropic    | Kunci API atau OAuth     | Lalai       | Menggunakan pengepala `x-api-key`                        |
+| Google Gemini       | Kunci API atau OAuth     | Lalai       | Menggunakan pengepala `x-goog-api-key`                   |
+| Google Gemini CLI   | OAuth                    | GeminiCLI   | Menggunakan titik akhir `streamGenerateContent`          |
+| Antigraviti         | OAuth                    | Antigraviti | Undur berbilang URL, penghuraian cuba semula tersuai     |
+| OpenAI              | Kunci API                | Lalai       | Pengesahan Pembawa Standard                              |
+| Codex               | OAuth                    | Codex       | Menyuntik arahan sistem, mengurus pemikiran              |
+| GitHub Copilot      | Token OAuth + Copilot    | Github      | Token dwi, ​​pengepala VSCode meniru                     |
+| Kiro (AWS)          | AWS SSO OIDC atau Sosial | Kiro        | Perduaan EventStream parsing                             |
+| IDE kursor          | Pengesahan semak         | Kursor      | Pengekodan Protobuf, jumlah semak SHA-256                |
+| Qwen                | OAuth                    | Lalai       | Pengesahan standard                                      |
+| Qoder               | OAuth (Asas + Pembawa)   | Lalai       | Pengepala dwi pengesahan                                 |
+| OpenRouter          | Kunci API                | Lalai       | Pengesahan Pembawa Standard                              |
+| GLM, Kimi, MiniMax  | Kunci API                | Lalai       | Serasi Claude, gunakan `x-api-key`                       |
+| `serasi-openai-*`   | Kunci API                | Lalai       | Dinamik: mana-mana titik akhir serasi OpenAI             |
+| `serasi antropik-*` | Kunci API                | Lalai       | Dinamik: mana-mana titik akhir yang serasi dengan Claude | --- |
 
 ## 8. Data Flow Summary
 

@@ -4,42 +4,29 @@
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> Önmenedzselő modellláncok adaptív pontozással## How It Works
 
-## How It Works
+Az Auto-Combo Engine dinamikusan választja ki a legjobb szolgáltatót/modellt minden egyes kéréshez egy**6-faktoros pontozási funkcióval**:
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+| Tényező    | Súly | Leírás                                       |
+| :--------- | :--- | :------------------------------------------- | ------------- |
+| Kvóta      | 0,20 | Fennmaradó kapacitás [0..1]                  |
+| Egészség   | 0,25 | Megszakító: ZÁRVA=1,0, FÉL=0,5, NYITVA=0,0   |
+| CostInv    | 0,20 | Inverz költség (olcsóbb = magasabb pontszám) |
+| LatencyInv | 0,15 | Inverz p95 késleltetés (gyorsabb = magasabb) |
+| TaskFit    | 0,10 | Modell × feladattípus alkalmassági pontszám  |
+| Stabilitás | 0,10 | Alacsony eltérés a késleltetésben/hibákban   | ## Mode Packs |
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+| Csomag                | Fókusz         | Kulcs súlya      |
+| :-------------------- | :------------- | :--------------- | --------------- |
+| 🚀**Gyors szállítás** | Sebesség       | latencyInv: 0,35 |
+| 💰**Költségkímélő**   | Gazdaság       | költségInv: 0,40 |
+| 🎯**Első a minőség**  | Legjobb modell | taskFit: 0,40    |
+| 📡**Offline barát**   | Elérhetőség    | kvóta: 0,40      | ## Self-Healing |
 
-## Mode Packs
+-**Ideiglenes kizárás**: Pontszám < 0,2 → kizárva 5 percig (progresszív visszalépés, max. 30 perc) -**Megszakító tudatosság**: NYITÁS → automatikus kizárás; HALF_OPEN → vizsgálati kérések -**Incidens mód**: >50% NYITVA → tiltsa le a felfedezést, maximalizálja a stabilitást -**Cooldown helyreállítás**: A kizárást követően az első kérés egy „próba”, csökkentett időtúllépéssel## Bandit Exploration
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
-
-## Self-Healing
-
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
-
-## Bandit Exploration
-
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
-
-## API
+A kérelmek (konfigurálható) 5%-a véletlenszerű szolgáltatókhoz kerül felfedezésre. Incidens módban letiltva.## API
 
 ```bash
 # Create auto-combo
@@ -53,15 +40,13 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+Több mint 30 modell értékelt 6 feladattípusban ("kódolás", "áttekintés", "tervezés", "elemzés", "hibakeresés", "dokumentáció"). Támogatja a helyettesítő karaktermintákat (pl. "\*-coder" → magas kódolási pontszám).## Files
 
-## Files
-
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+| Fájl                                         | Cél                                               |
+| :------------------------------------------- | :------------------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`     | Pontozási függvény és a készlet normalizálása     |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup                       |
+| `open-sse/services/autoCombo/engine.ts`      | Kiválasztási logika, bandita, költségvetési sapka |
+| `open-sse/services/autoCombo/selfHealing.ts` | Kizárás, szondák, incidens mód                    |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 súlyprofil                                      |
+| `src/app/api/combos/auto/route.ts`           | REST API                                          |

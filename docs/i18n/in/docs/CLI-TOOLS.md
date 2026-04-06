@@ -4,11 +4,9 @@
 
 ---
 
-This guide explains how to install and configure all supported AI coding CLI tools
-to use **OmniRoute** as the unified backend, giving you centralized key management,
-cost tracking, model switching, and request logging across every tool.
-
----
+यह मार्गदर्शिका बताती है कि सभी समर्थित एआई कोडिंग सीएलआई टूल को कैसे स्थापित और कॉन्फ़िगर करें
+**OmniRoute**को एकीकृत बैकएंड के रूप में उपयोग करने के लिए, आपको केंद्रीकृत कुंजी प्रबंधन प्रदान करना,
+लागत ट्रैकिंग, मॉडल स्विचिंग, और प्रत्येक टूल में लॉगिंग का अनुरोध करें।---
 
 ## How It Works
 
@@ -22,118 +20,112 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilo
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
-**Benefits:**
+**फायदे:**
 
-- One API key to manage all tools
-- Cost tracking across all CLIs in the dashboard
-- Model switching without reconfiguring every tool
-- Works locally and on remote servers (VPS)
-
----
+- सभी उपकरणों को प्रबंधित करने के लिए एक एपीआई कुंजी
+- डैशबोर्ड में सभी सीएलआई पर लागत ट्रैकिंग
+- प्रत्येक उपकरण को पुन: कॉन्फ़िगर किए बिना मॉडल स्विचिंग
+- स्थानीय और दूरस्थ सर्वर (वीपीएस) पर काम करता है---
 
 ## Supported Tools (Dashboard Source of Truth)
 
-The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
-Current list (v3.0.0-rc.16):
+`/dashboard/cli-tools` में डैशबोर्ड कार्ड `src/shared/constents/cliTools.ts` से उत्पन्न होते हैं।
+वर्तमान सूची (v3.0.0-rc.16):
 
-| Tool               | ID            | Command    | Setup Mode | Install Method |
-| ------------------ | ------------- | ---------- | ---------- | -------------- |
-| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
-| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
-| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
-| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
-| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
-| **Cline**          | `cline`       | `cline`    | custom     | npm            |
-| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
-| **Continue**       | `continue`    | extension  | guide      | VS Code        |
-| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
-| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
-| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
-| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
+| उपकरण              | आईडी           | आदेश      | सेटअप मोड  | स्थापित करने की विधि |
+| ------------------ | -------------- | --------- | ---------- | -------------------- | -------------------------------------------- |
+| **क्लाउड कोड**     | 'क्लाउड'       | 'क्लाउड'  | env        | एनपीएम               |
+| **ओपनएआई कोडेक्स** | `कोडेक्स`      | `कोडेक्स` | कस्टम      | एनपीएम               |
+| **फ़ैक्टरी Droid** | 'ड्रॉयड'       | 'ड्रॉयड'  | कस्टम      | बंडल/सीएलआई          |
+| **खुला पंजा**      | `ओपनक्ला`      | `ओपनक्ला` | कस्टम      | बंडल/सीएलआई          |
+| **कर्सर**          | 'कर्सर'        | ऐप        | मार्गदर्शक | डेस्कटॉप ऐप          |
+| **क्लाइन**         | 'क्लाइन'       | 'क्लाइन'  | कस्टम      | एनपीएम               |
+| **किलो कोड**       | `किलो`         | `किलोकोड` | कस्टम      | एनपीएम               |
+| **जारी रखें**      | `जारी रखें`    | विस्तार   | मार्गदर्शक | वीएस कोड             |
+| **एंटीग्रेविटी**   | `एंटीग्रेविटी` | आंतरिक    | मिटम       | ओमनीरूट              |
+| **गिटहब कोपायलट**  | 'कोपायलट'      | विस्तार   | कस्टम      | वीएस कोड             |
+| **ओपनकोड**         | `ओपनकोड`       | `ओपनकोड`  | मार्गदर्शक | एनपीएम               |
+| **किरो ऐ**         | 'किरो'         | ऐप/सीएलआई | मिटम       | डेस्कटॉप/सीएलआई      | ### CLI fingerprint sync (Agents + Settings) |
 
-### CLI fingerprint sync (Agents + Settings)
+`/डैशबोर्ड/एजेंट` और `सेटिंग्स > सीएलआई फ़िंगरप्रिंट` `src/shared/constents/cliCompatProviders.ts` का उपयोग करते हैं।
+यह प्रदाता आईडी को सीएलआई कार्ड और लीगेसी आईडी के साथ संरेखित रखता है।
 
-`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
-This keeps provider IDs aligned with CLI cards and legacy IDs.
+| सीएलआई आईडी                                                                                           | फ़िंगरप्रिंट प्रदाता आईडी |
+| ----------------------------------------------------------------------------------------------------- | ------------------------- |
+| `किलो`                                                                                                | `किलोकोड`                 |
+| 'कोपायलट'                                                                                             | `जीथूब`                   |
+| `क्लाउड` / `कोडेक्स` / `एंटीग्रेविटी` / `किरो` / `कर्सर` / `क्लाइन` / `ओपनकोड` / `ड्रॉयड` / `ओपनक्ला` | एक ही आईडी                |
 
-| CLI ID                                                                                               | Fingerprint Provider ID |
-| ---------------------------------------------------------------------------------------------------- | ----------------------- |
-| `kilo`                                                                                               | `kilocode`              |
-| `copilot`                                                                                            | `github`                |
-| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
-
-Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
-
----
+संगतता के लिए लीगेसी आईडी अभी भी स्वीकार की जाती हैं: `कोपायलट`, `किमी-कोडिंग`, `क्वेन`।---
 
 ## Step 1 — Get an OmniRoute API Key
 
-1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
-2. Click **Create API Key**
-3. Give it a name (e.g. `cli-tools`) and select all permissions
-4. Copy the key — you'll need it for every CLI below
+1. ओमनीरूट डैशबोर्ड खोलें →**एपीआई मैनेजर**(`/डैशबोर्ड/एपीआई-मैनेजर`) 2.**एपीआई कुंजी बनाएं**पर क्लिक करें
+2. इसे एक नाम दें (उदाहरण के लिए `cli-tools`) और सभी अनुमतियाँ चुनें
+3. कुंजी की प्रतिलिपि बनाएँ - आपको नीचे दिए गए प्रत्येक सीएलआई के लिए इसकी आवश्यकता होगी
 
-> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
-
----
+> आपकी कुंजी इस तरह दिखती है: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`---
 
 ## Step 2 — Install CLI Tools
 
-All npm-based tools require Node.js 18+:
+सभी npm-आधारित टूल के लिए Node.js 18+ की आवश्यकता होती है:```bash
 
-```bash
 # Claude Code (Anthropic)
+
 npm install -g @anthropic-ai/claude-code
 
 # OpenAI Codex
+
 npm install -g @openai/codex
 
 # OpenCode
+
 npm install -g opencode-ai
 
 # Cline
+
 npm install -g cline
 
 # KiloCode
+
 npm install -g kilocode
 
 # Kiro CLI (Amazon — requires curl + unzip)
-apt-get install -y unzip   # on Debian/Ubuntu
+
+apt-get install -y unzip # on Debian/Ubuntu
 curl -fsSL https://cli.kiro.dev/install | bash
-export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
-```
+export PATH="$HOME/.local/bin:$PATH" # add to ~/.bashrc
 
-**Verify:**
+````
 
-```bash
+**सत्यापित करें:**```bash
 claude --version     # 2.x.x
 codex --version      # 0.x.x
 opencode --version   # x.x.x
 cline --version      # 2.x.x
 kilocode --version   # x.x.x (or: kilo --version)
 kiro-cli --version   # 1.x.x
-```
+````
 
 ---
 
 ## Step 3 — Set Global Environment Variables
 
-Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
+`~/.bashrc` (या `~/.zshrc`) में जोड़ें, फिर `source ~/.bashrc` चलाएँ:```bash
 
-```bash
 # OmniRoute Universal Endpoint
+
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
 export ANTHROPIC_API_KEY="sk-your-omniroute-key"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
 export GEMINI_API_KEY="sk-your-omniroute-key"
-```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain,
-> e.g. `http://192.168.0.15:20128`.
+````
 
----
+>**रिमोट सर्वर**के लिए `localhost:20128` को सर्वर आईपी या डोमेन से बदलें,
+> उदा. `http://192.168.0.15:20128`.---
 
 ## Step 4 — Configure Each Tool
 
@@ -150,11 +142,9 @@ mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
   "apiKey": "sk-your-omniroute-key"
 }
 EOF
-```
+````
 
-**Test:** `claude "say hello"`
-
----
+**टेस्ट:**`क्लाउड "हैलो कहो"`---
 
 ### OpenAI Codex
 
@@ -166,9 +156,7 @@ apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
 
-**Test:** `codex "what is 2+2?"`
-
----
+**टेस्ट:**`कोडेक्स "2+2 क्या है?"---
 
 ### OpenCode
 
@@ -180,57 +168,45 @@ api_key = "sk-your-omniroute-key"
 EOF
 ```
 
-**Test:** `opencode`
-
----
+**टेस्ट:**`ओपनकोड`---
 
 ### Cline (CLI or VS Code)
 
-**CLI mode:**
-
-```bash
+**सीएलआई मोड:**```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
-  "apiProvider": "openai",
-  "openAiBaseUrl": "http://localhost:20128/v1",
-  "openAiApiKey": "sk-your-omniroute-key"
+"apiProvider": "openai",
+"openAiBaseUrl": "http://localhost:20128/v1",
+"openAiApiKey": "sk-your-omniroute-key"
 }
 EOF
-```
 
-**VS Code mode:**
-Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+````
 
-Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
+**वीएस कोड मोड:**
+क्लाइन एक्सटेंशन सेटिंग्स → एपीआई प्रदाता: `ओपनएआई संगत` → बेस यूआरएल: `http://localhost:20128/v1`
 
----
+या ओमनीरूट डैशबोर्ड →**सीएलआई टूल्स → क्लाइन → कॉन्फिग लागू करें**का उपयोग करें।---
 
 ### KiloCode (CLI or VS Code)
 
-**CLI mode:**
-
-```bash
+**सीएलआई मोड:**```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
-```
+````
 
-**VS Code settings:**
-
-```json
+**वीएस कोड सेटिंग्स:**```json
 {
-  "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-  "kilo-code.apiKey": "sk-your-omniroute-key"
+"kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
+"kilo-code.apiKey": "sk-your-omniroute-key"
 }
-```
 
-Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
+````
 
----
+या ओमनीरूट डैशबोर्ड →**सीएलआई टूल्स → किलोकोड → कॉन्फिग लागू करें**का उपयोग करें।---
 
 ### Continue (VS Code Extension)
 
-Edit `~/.continue/config.yaml`:
-
-```yaml
+`~/.continue/config.yaml` संपादित करें:```yaml
 models:
   - name: OmniRoute
     provider: openai
@@ -238,11 +214,9 @@ models:
     apiBase: http://localhost:20128/v1
     apiKey: sk-your-omniroute-key
     default: true
-```
+````
 
-Restart VS Code after editing.
-
----
+संपादन के बाद वीएस कोड पुनः आरंभ करें।---
 
 ### Kiro CLI (Amazon)
 
@@ -259,65 +233,54 @@ kiro-cli status
 
 ### Cursor (Desktop App)
 
-> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
-> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
+> **ध्यान दें:**कर्सर अपने क्लाउड के माध्यम से अनुरोधों को रूट करता है। ओमनीरूट एकीकरण के लिए,
+> ओमनीरूट सेटिंग्स में**क्लाउड एंडपॉइंट**सक्षम करें और अपने सार्वजनिक डोमेन यूआरएल का उपयोग करें।
 
-Via GUI: **Settings → Models → OpenAI API Key**
+जीयूआई के माध्यम से:**सेटिंग्स → मॉडल → ओपनएआई एपीआई कुंजी**
 
-- Base URL: `https://your-domain.com/v1`
-- API Key: your OmniRoute key
-
----
+- बेस यूआरएल: `https://your-domain.com/v1`
+- एपीआई कुंजी: आपकी ओमनीरूट कुंजी---
 
 ## Dashboard Auto-Configuration
 
-The OmniRoute dashboard automates configuration for most tools:
+ओमनीरूट डैशबोर्ड अधिकांश टूल के लिए कॉन्फ़िगरेशन को स्वचालित करता है:
 
-1. Go to `http://localhost:20128/dashboard/cli-tools`
-2. Expand any tool card
-3. Select your API key from the dropdown
-4. Click **Apply Config** (if tool is detected as installed)
-5. Or copy the generated config snippet manually
-
----
+1. `http://localhost:20128/dashboard/cli-tools` पर जाएं
+2. किसी टूल कार्ड का विस्तार करें
+3. ड्रॉपडाउन से अपनी एपीआई कुंजी चुनें 4.**कॉन्फिग लागू करें**पर क्लिक करें (यदि उपकरण स्थापित पाया जाता है)
+4. या जनरेट किए गए कॉन्फ़िगरेशन स्निपेट को मैन्युअल रूप से कॉपी करें---
 
 ## Built-in Agents: Droid & OpenClaw
 
-**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
-They run as internal routes and use OmniRoute's model routing automatically.
+**Droid**और**OpenClaw**AI एजेंट हैं जो सीधे ओमनीरूट में निर्मित होते हैं - किसी इंस्टॉलेशन की आवश्यकता नहीं है।
+वे आंतरिक मार्गों के रूप में चलते हैं और स्वचालित रूप से ओमनीरूट के मॉडल रूटिंग का उपयोग करते हैं।
 
-- Access: `http://localhost:20128/dashboard/agents`
-- Configure: same combos and providers as all other tools
-- No API key or CLI install required
-
----
+- प्रवेश: `http://localhost:20128/डैशबोर्ड/एजेंट`
+- कॉन्फ़िगर करें: अन्य सभी टूल के समान कॉम्बो और प्रदाता
+- कोई एपीआई कुंजी या सीएलआई इंस्टॉल की आवश्यकता नहीं है---
 
 ## Available API Endpoints
 
-| Endpoint                   | Description                   | Use For                     |
-| -------------------------- | ----------------------------- | --------------------------- |
-| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
-| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
-| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
-| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
-| `/v1/images/generations`   | Image generation              | DALL-E, Flux, etc.          |
-| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
-| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
-
----
+| समापन बिंदु                 | विवरण                                | के लिए उपयोग करें            |
+| --------------------------- | ------------------------------------ | ---------------------------- | ------------------------------- |
+| `/v1/चैट/समापन`             | मानक चैट (सभी प्रदाता)               | सभी आधुनिक उपकरण             |
+| `/v1/प्रतिक्रियाएँ`         | प्रतिक्रियाएँ एपीआई (ओपनएआई प्रारूप) | कोडेक्स, एजेंटिक वर्कफ़्लोज़ |
+| `/v1/समापन`                 | विरासत पाठ पूर्णताएँ                 | `प्रॉम्प्ट:`                 | का उपयोग करने वाले पुराने उपकरण |
+| `/v1/एम्बेडिंग्स`           | टेक्स्ट एम्बेडिंग                    | आरएजी, खोज                   |
+| `/v1/छवियां/पीढ़ी`          | छवि निर्माण                          | DALL-ई, फ्लक्स, आदि          |
+| `/v1/ऑडियो/भाषण`            | पाठ से वाक्                          | इलेवनलैब्स, ओपनएआई टीटीएस    |
+| `/v1/ऑडियो/ट्रांस्क्रिप्शन` | भाषण-से-पाठ                          | दीपग्राम, असेंबलीएआई         | ---                             |
 
 ## समस्या निवारण
 
-| Error                     | Cause                   | Fix                                        |
-| ------------------------- | ----------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
-| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
-| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
-| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
-| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
-| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
-
----
+| त्रुटि                               | कारण                          | ठीक करें                                                |
+| ------------------------------------ | ----------------------------- | ------------------------------------------------------- | --- |
+| `कनेक्शन अस्वीकृत`                   | ओमनीरूट नहीं चल रहा है        | `pm2 सर्वव्यापी प्रारंभ करें`                           |
+| `401 अनधिकृत`                        | गलत एपीआई कुंजी               | `/डैशबोर्ड/एपीआई-मैनेजर` में चेक करें                   |
+| `कोई कॉम्बो कॉन्फ़िगर नहीं किया गया` | कोई सक्रिय रूटिंग कॉम्बो नहीं | `/डैशबोर्ड/कॉम्बोस` में सेट अप करें                     |
+| `अमान्य मॉडल`                        | मॉडल कैटलॉग में नहीं है       | `ऑटो` का प्रयोग करें या `/डैशबोर्ड/प्रदाताओं` को जांचें |
+| सीएलआई दिखाता है "स्थापित नहीं"      | बाइनरी पथ में नहीं है         | `कौन सा <कमांड>` जांचें                                 |
+| `कीरो-क्ली: नहीं मिला`               | पथ में नहीं                   | `export PATH='$HOME/.local/bin:$PATH'`                  | --- |
 
 ## Quick Setup Script (One Command)
 

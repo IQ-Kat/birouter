@@ -4,23 +4,19 @@
 
 ---
 
-Complete reference for all OmniRoute API endpoints.
-
----
+Referință completă pentru toate punctele finale API OmniRoute.---
 
 ## Table of Contents
 
-- [Chat Completions](#chat-completions)
+- [Finalizări de chat](#chat-completions)
 - [Embeddings](#embeddings)
-- [Image Generation](#image-generation)
-- [List Models](#list-models)
+- [Generarea imaginii](#image-generation)
+- [Lista modele](#list-models)
 - [Compatibility Endpoints](#compatibility-endpoints)
 - [Semantic Cache](#semantic-cache)
-- [Dashboard & Management](#dashboard--management)
-- [Request Processing](#request-processing)
-- [Authentication](#authentication)
-
----
+- [Tabloul de bord și management](#tabloul de bord--management)
+- [Procesarea cererii](#request-processing)
+- [Autentificare](#authentication)---
 
 ## Chat Completions
 
@@ -40,22 +36,20 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| Header                   | Direction | Description                                      |
-| ------------------------ | --------- | ------------------------------------------------ |
-| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
-| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
-| `X-Session-Id`           | Request   | Sticky session key for external session affinity |
-| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
-| `Idempotency-Key`        | Request   | Dedup key (5s window)                            |
-| `X-Request-Id`           | Request   | Alternative dedup key                            |
-| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                  |
-| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
-| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
-| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
+| Antet                    | Direcția | Descriere                                                      |
+| ------------------------ | -------- | -------------------------------------------------------------- |
+| `X-OmniRoute-No-Cache`   | Cerere   | Setați la `true` pentru a ocoli memoria cache                  |
+| `X-OmniRoute-Progress`   | Cerere   | Setați la „adevărat” pentru evenimentele de progres            |
+| `X-Session-Id`           | Cerere   | Cheie de sesiune lipicioasă pentru afinitatea sesiunii externe |
+| `x_session_id`           | Cerere   | Varianta de subliniere acceptată (HTTP direct)                 |
+| `Idempotenta-Cheie`      | Cerere   | Tasta Dedup (fereastră 5s)                                     |
+| `X-Request-Id`           | Cerere   | Cheie alternativă de deducție                                  |
+| `X-OmniRoute-Cache`      | Răspuns  | `HIT` sau `MISS` (non-streaming)                               |
+| `X-OmniRoute-Idempotent` | Răspuns  | `adevărat` dacă este deduplicat                                |
+| `X-OmniRoute-Progress`   | Răspuns  | `activat` dacă urmărirea progresului pe                        |
+| `X-OmniRoute-Session-Id` | Răspuns  | ID de sesiune efectiv utilizat de OmniRoute                    |
 
-> Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
-
----
+> Notă Nginx: dacă vă bazați pe anteturile de subliniere (de exemplu `x_session_id`), activați `Underscores_in_headers on;`.---
 
 ## Embeddings
 
@@ -70,12 +64,13 @@ Content-Type: application/json
 }
 ```
 
-Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.
+Furnizori disponibili: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.```bash
 
-```bash
 # List all embedding models
+
 GET /v1/embeddings
-```
+
+````
 
 ---
 
@@ -91,14 +86,15 @@ Content-Type: application/json
   "prompt": "A beautiful sunset over mountains",
   "size": "1024x1024"
 }
-```
+````
 
-Available providers: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.
+Furnizori disponibili: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.```bash
 
-```bash
 # List all image models
+
 GET /v1/images/generations
-```
+
+````
 
 ---
 
@@ -109,26 +105,24 @@ GET /v1/models
 Authorization: Bearer your-api-key
 
 → Returns all chat, embedding, and image models + combos in OpenAI format
-```
+````
 
 ---
 
 ## Compatibility Endpoints
 
-| Method | Path                        | Format                 |
-| ------ | --------------------------- | ---------------------- |
+| Metoda | Calea                       | Format                 |
+| ------ | --------------------------- | ---------------------- | ----------------------------- |
 | POST   | `/v1/chat/completions`      | OpenAI                 |
-| POST   | `/v1/messages`              | Anthropic              |
-| POST   | `/v1/responses`             | OpenAI Responses       |
+| POST   | `/v1/messages`              | antropic               |
+| POST   | `/v1/responses`             | Răspunsuri OpenAI      |
 | POST   | `/v1/embeddings`            | OpenAI                 |
 | POST   | `/v1/images/generations`    | OpenAI                 |
 | GET    | `/v1/models`                | OpenAI                 |
-| POST   | `/v1/messages/count_tokens` | Anthropic              |
-| GET    | `/v1beta/models`            | Gemini                 |
-| POST   | `/v1beta/models/{...path}`  | Gemini generateContent |
-| POST   | `/v1/api/chat`              | Ollama                 |
-
-### Dedicated Provider Routes
+| POST   | `/v1/messages/count_tokens` | antropic               |
+| GET    | `/v1beta/models`            | Gemeni                 |
+| POST   | `/v1beta/models/{...path}`  | Gemeni generateContent |
+| POST   | `/v1/api/chat`              | Ollama                 | ### Dedicated Provider Routes |
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -136,9 +130,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-The provider prefix is auto-added if missing. Mismatched models return `400`.
-
----
+Prefixul furnizorului este adăugat automat dacă lipsește. Modelele nepotrivite returnează `400`.---
 
 ## Semantic Cache
 
@@ -150,22 +142,21 @@ GET /api/cache/stats
 DELETE /api/cache/stats
 ```
 
-Response example:
-
-```json
+Exemplu de răspuns:```json
 {
-  "semanticCache": {
-    "memorySize": 42,
-    "memoryMaxSize": 500,
-    "dbSize": 128,
-    "hitRate": 0.65
-  },
-  "idempotency": {
-    "activeKeys": 3,
-    "windowMs": 5000
-  }
+"semanticCache": {
+"memorySize": 42,
+"memoryMaxSize": 500,
+"dbSize": 128,
+"hitRate": 0.65
+},
+"idempotency": {
+"activeKeys": 3,
+"windowMs": 5000
 }
-```
+}
+
+````
 
 ---
 
@@ -173,165 +164,129 @@ Response example:
 
 ### Authentication
 
-| Endpoint                      | Method  | Description           |
+| Punct final | Metoda | Descriere |
 | ----------------------------- | ------- | --------------------- |
-| `/api/auth/login`             | POST    | Login                 |
-| `/api/auth/logout`            | POST    | Logout                |
-| `/api/settings/require-login` | GET/PUT | Toggle login required |
+| `/api/auth/login` | POST | Autentificare |
+| `/api/auth/logout` | POST | Deconectare |
+| `/api/settings/require-login` | GET/PUT | Comutare autentificare necesară |### Provider Management
 
-### Provider Management
-
-| Endpoint                     | Method          | Description              |
+| Punct final | Metoda | Descriere |
 | ---------------------------- | --------------- | ------------------------ |
-| `/api/providers`             | GET/POST        | List / create providers  |
-| `/api/providers/[id]`        | GET/PUT/DELETE  | Manage a provider        |
-| `/api/providers/[id]/test`   | POST            | Test provider connection |
-| `/api/providers/[id]/models` | GET             | List provider models     |
-| `/api/providers/validate`    | POST            | Validate provider config |
-| `/api/provider-nodes*`       | Various         | Provider node management |
-| `/api/provider-models`       | GET/POST/DELETE | Custom models            |
+| `/api/providers` | GET/POST | Listează / creează furnizori |
+| `/api/providers/[id]` | GET/PUT/DELETE | Gestionați un furnizor |
+| `/api/providers/[id]/test` | POST | Testează conexiunea furnizorului |
+| `/api/providers/[id]/models` | GET | Listați modele de furnizori |
+| `/api/providers/validate` | POST | Validați configurația furnizorului |
+| `/api/provider-nodes*` | Diverse | Managementul nodului furnizorului |
+| `/api/provider-models` | GET/POST/DELETE | Modele personalizate |### OAuth Flows
 
-### OAuth Flows
+| Punct final | Metoda | Descriere |
+| --------------------------------- | ------- | ----------------------- |
+| `/api/oauth/[furnizor]/[acțiune]` | Diverse | OAuth specific furnizorului |### Routing & Config
 
-| Endpoint                         | Method  | Description             |
-| -------------------------------- | ------- | ----------------------- |
-| `/api/oauth/[provider]/[action]` | Various | Provider-specific OAuth |
-
-### Routing & Config
-
-| Endpoint              | Method   | Description                   |
+| Punct final | Metoda | Descriere |
 | --------------------- | -------- | ----------------------------- |
-| `/api/models/alias`   | GET/POST | Model aliases                 |
-| `/api/models/catalog` | GET      | All models by provider + type |
-| `/api/combos*`        | Various  | Combo management              |
-| `/api/keys*`          | Various  | API key management            |
-| `/api/pricing`        | GET      | Model pricing                 |
+| `/api/models/alias` | GET/POST | Aliasuri de model |
+| `/api/models/catalog` | GET | Toate modelele după furnizor + tip |
+| `/api/combos*` | Diverse | Combo management |
+| `/api/keys*` | Diverse | Gestionarea cheilor API |
+| `/api/pricing` | GET | Prețul modelului |### Usage & Analytics
 
-### Usage & Analytics
-
-| Endpoint                    | Method | Description          |
+| Punct final | Metoda | Descriere |
 | --------------------------- | ------ | -------------------- |
-| `/api/usage/history`        | GET    | Usage history        |
-| `/api/usage/logs`           | GET    | Usage logs           |
-| `/api/usage/request-logs`   | GET    | Request-level logs   |
-| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+| `/api/usage/history` | GET | Istoricul utilizării |
+| `/api/usage/logs` | GET | Jurnalele de utilizare |
+| `/api/usage/request-logs` | GET | Jurnalele la nivel de cerere |
+| `/api/usage/[connectionId]` | GET | Utilizare per conexiune |### Settings
 
-### Settings
-
-| Endpoint                        | Method        | Description            |
+| Punct final | Metoda | Descriere |
 | ------------------------------- | ------------- | ---------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings       |
-| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
-| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
-| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
-| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
-| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
+| `/api/settings` | GET/PUT/PATCH | Setări generale |
+| `/api/settings/proxy` | GET/PUT | Configurare proxy de rețea |
+| `/api/settings/proxy/test` | POST | Testați conexiunea proxy |
+| `/api/settings/ip-filter` | GET/PUT | Lista IP permisă/lista blocată |
+| `/api/settings/thinking-budget` | GET/PUT | Bugetul simbol de raționament |
+| `/api/settings/system-prompt` | GET/PUT | Sistem global prompt |### Monitoring
 
-### Monitoring
+| Punct final | Metoda | Descriere |
+| ------------------------ | ---------- | ------------------------------------------------------------------------------------------- |
+| `/api/sessions` | GET | Urmărire activă a sesiunii |
+| `/api/rate-limits` | GET | Limitele ratei per cont |
+| `/api/monitoring/health` | GET | Verificarea stării + rezumatul furnizorului (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
+| `/api/cache/stats` | GET/DELETE | Cache stats / clear |### Backup & Export/Import
 
-| Endpoint                 | Method     | Description                                                                                          |
-| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
-| `/api/sessions`          | GET        | Active session tracking                                                                              |
-| `/api/rate-limits`       | GET        | Per-account rate limits                                                                              |
-| `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
-| `/api/cache/stats`       | GET/DELETE | Cache stats / clear                                                                                  |
-
-### Backup & Export/Import
-
-| Endpoint                    | Method | Description                             |
+| Punct final | Metoda | Descriere |
 | --------------------------- | ------ | --------------------------------------- |
-| `/api/db-backups`           | GET    | List available backups                  |
-| `/api/db-backups`           | PUT    | Create a manual backup                  |
-| `/api/db-backups`           | POST   | Restore from a specific backup          |
-| `/api/db-backups/export`    | GET    | Download database as .sqlite file       |
-| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database |
-| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive |
+| `/api/db-backups` | GET | Listează copiile de rezervă disponibile |
+| `/api/db-backups` | PUNE | Creați o copie de rezervă manuală |
+| `/api/db-backups` | POST | Restaurare dintr-o anumită copie de rezervă |
+| `/api/db-backups/export` | GET | Descărcați baza de date ca fișier .sqlite |
+| `/api/db-backups/import` | POST | Încărcați fișierul .sqlite pentru a înlocui baza de date |
+| `/api/db-backups/exportAll` | GET | Descărcați backup complet ca arhivă .tar.gz |### Cloud Sync
 
-### Cloud Sync
-
-| Endpoint               | Method  | Description           |
+| Punct final | Metoda | Descriere |
 | ---------------------- | ------- | --------------------- |
-| `/api/sync/cloud`      | Various | Cloud sync operations |
-| `/api/sync/initialize` | POST    | Initialize sync       |
-| `/api/cloud/*`         | Various | Cloud management      |
+| `/api/sync/cloud` | Diverse | Operațiuni de sincronizare în cloud |
+| `/api/sync/initialize` | POST | Inițializați sincronizarea |
+| `/api/cloud/*` | Diverse | Management cloud |### Tunnels
 
-### Tunnels
+| Punct final | Metoda | Descriere |
+| -------------------------- | ------ | ---------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET | Citiți starea instalării/execuției Cloudflare Quick Tunnel pentru tabloul de bord |
+| `/api/tunnels/cloudflared` | POST | Activați sau dezactivați tunelul rapid Cloudflare (`action=enable/disable`) |### CLI Tools
 
-| Endpoint                   | Method | Description                                                             |
-| -------------------------- | ------ | ----------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
-| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
-
-### CLI Tools
-
-| Endpoint                           | Method | Description         |
+| Punct final | Metoda | Descriere |
 | ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Claude CLI status   |
-| `/api/cli-tools/codex-settings`    | GET    | Codex CLI status    |
-| `/api/cli-tools/droid-settings`    | GET    | Droid CLI status    |
-| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI status |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Generic CLI runtime |
+| `/api/cli-tools/claude-settings` | GET | Starea Claude CLI |
+| `/api/cli-tools/codex-settings` | GET | Status CLI Codex |
+| `/api/cli-tools/droid-settings` | GET | Stare CLI Droid |
+| `/api/cli-tools/openclaw-settings` | GET | Stare CLI OpenClaw |
+| `/api/cli-tools/runtime/[toolId]` | GET | Timp de rulare CLI generic |
 
-CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
+Răspunsurile CLI includ: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reson`.### ACP Agents
 
-### ACP Agents
+| Punct final | Metoda | Descriere |
+| ----------------- | ------ | ------------------------------------------------------- |
+| `/api/acp/agents` | GET | Listați toți agenții detectați (încorporați + personalizați) cu starea |
+| `/api/acp/agents` | POST | Adăugați agent personalizat sau reîmprospătați memoria cache de detectare |
+| `/api/acp/agents` | ȘTERGE | Eliminați un agent personalizat prin parametrul de interogare `id` |
 
-| Endpoint          | Method | Description                                              |
-| ----------------- | ------ | -------------------------------------------------------- |
-| `/api/acp/agents` | GET    | List all detected agents (built-in + custom) with status |
-| `/api/acp/agents` | POST   | Add custom agent or refresh detection cache              |
-| `/api/acp/agents` | DELETE | Remove a custom agent by `id` query param                |
+Răspunsul GET include `agents[]` (id, nume, binar, versiune, instalat, protocol, isCustom) și `rezumat` (total, instalat, notFound, builtIn, personalizat).### Resilience & Rate Limits
 
-GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
-
-### Resilience & Rate Limits
-
-| Endpoint                | Method    | Description                     |
+| Punct final | Metoda | Descriere |
 | ----------------------- | --------- | ------------------------------- |
-| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
-| `/api/resilience/reset` | POST      | Reset circuit breakers          |
-| `/api/rate-limits`      | GET       | Per-account rate limit status   |
-| `/api/rate-limit`       | GET       | Global rate limit configuration |
+| `/api/resilience` | GET/PATCH | Obține/actualizează profiluri de rezistență |
+| `/api/resilience/reset` | POST | Resetați întrerupătoarele |
+| `/api/rate-limits` | GET | Starea limitei ratei per cont |
+| `/api/rate-limit` | GET | Configurație globală a limitei ratei |### Evals
 
-### Evals
-
-| Endpoint     | Method   | Description                       |
+| Punct final | Metoda | Descriere |
 | ------------ | -------- | --------------------------------- |
-| `/api/evals` | GET/POST | List eval suites / run evaluation |
+| `/api/evals` | GET/POST | Listează suite de evaluare / rulează evaluarea |### Policies
 
-### Policies
-
-| Endpoint        | Method          | Description             |
+| Punct final | Metoda | Descriere |
 | --------------- | --------------- | ----------------------- |
-| `/api/policies` | GET/POST/DELETE | Manage routing policies |
+| `/api/policies` | GET/POST/DELETE | Gestionați politicile de rutare |### Compliance
 
-### Compliance
-
-| Endpoint                    | Method | Description                   |
+| Punct final | Metoda | Descriere |
 | --------------------------- | ------ | ----------------------------- |
-| `/api/compliance/audit-log` | GET    | Compliance audit log (last N) |
+| `/api/compliance/audit-log` | GET | Jurnal de audit de conformitate (ultimul N) |### v1beta (Gemini-Compatible)
 
-### v1beta (Gemini-Compatible)
-
-| Endpoint                   | Method | Description                       |
+| Punct final | Metoda | Descriere |
 | -------------------------- | ------ | --------------------------------- |
-| `/v1beta/models`           | GET    | List models in Gemini format      |
-| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint |
+| `/v1beta/models` | GET | Listează modele în format Gemeni |
+| `/v1beta/models/{...path}` | POST | Punct final `generateContent` Gemini |
 
-These endpoints mirror Gemini's API format for clients that expect native Gemini SDK compatibility.
+Aceste puncte finale reflectă formatul API al Gemini pentru clienții care se așteaptă la compatibilitate nativă cu SDK Gemini.### Internal / System APIs
 
-### Internal / System APIs
-
-| Endpoint        | Method | Description                                          |
+| Punct final | Metoda | Descriere |
 | --------------- | ------ | ---------------------------------------------------- |
-| `/api/init`     | GET    | Application initialization check (used on first run) |
-| `/api/tags`     | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`  | POST   | Trigger graceful server restart                      |
-| `/api/shutdown` | POST   | Trigger graceful server shutdown                     |
+| `/api/init` | GET | Verificarea inițializării aplicației (utilizată la prima rulare) |
+| `/api/tags` | GET | Etichete de model compatibile cu Ollama (pentru clienții Ollama) |
+| `/api/restart` | POST | Declanșează repornirea grațioasă a serverului |
+| `/api/shutdown` | POST | Declanșează închiderea grațioasă a serverului |
 
-> **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
-
----
+>**Notă:**Aceste puncte finale sunt utilizate intern de sistem sau pentru compatibilitatea clientului Ollama. De obicei, acestea nu sunt apelate de utilizatorii finali.---
 
 ## Audio Transcription
 
@@ -339,69 +294,63 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
-```
+````
 
-Transcribe audio files using Deepgram or AssemblyAI.
+Transcrie fișiere audio folosind Deepgram sau AssemblyAI.
 
-**Request:**
-
-```bash
+**Cerere:**```bash
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
-  -H "Authorization: Bearer your-api-key" \
-  -F "file=@recording.mp3" \
-  -F "model=deepgram/nova-3"
-```
+ -H "Authorization: Bearer your-api-key" \
+ -F "file=@recording.mp3" \
+ -F "model=deepgram/nova-3"
 
-**Response:**
+````
 
-```json
+**Răspuns:**```json
 {
   "text": "Hello, this is the transcribed audio content.",
   "task": "transcribe",
   "language": "en",
   "duration": 12.5
 }
-```
+````
 
-**Supported providers:** `deepgram/nova-3`, `assemblyai/best`.
+**Furnizori acceptați:**`deepgram/nova-3`, `assemblyai/best`.
 
-**Supported formats:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
-
----
+**Formate acceptate:**`mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.---
 
 ## Ollama Compatibility
 
-For clients that use Ollama's API format:
+Pentru clienții care folosesc formatul API al Ollama:```bash
 
-```bash
 # Chat endpoint (Ollama format)
+
 POST /v1/api/chat
 
 # Model listing (Ollama format)
+
 GET /api/tags
-```
 
-Requests are automatically translated between Ollama and internal formats.
+````
 
----
+Cererile sunt traduse automat între Ollama și formatele interne.---
 
 ## Telemetry
 
 ```bash
 # Get latency telemetry summary (p50/p95/p99 per provider)
 GET /api/telemetry/summary
-```
+````
 
-**Response:**
-
-```json
+**Răspuns:**```json
 {
-  "providers": {
-    "claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
-    "github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
-  }
+"providers": {
+"claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
+"github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
 }
-```
+}
+
+````
 
 ---
 
@@ -420,7 +369,7 @@ Content-Type: application/json
   "limit": 50.00,
   "period": "monthly"
 }
-```
+````
 
 ---
 
@@ -443,23 +392,21 @@ Content-Type: application/json
 
 ## Request Processing
 
-1. Client sends request to `/v1/*`
-2. Route handler calls `handleChat`, `handleEmbedding`, `handleAudioTranscription`, or `handleImageGeneration`
-3. Model is resolved (direct provider/model or alias/combo)
-4. Credentials selected from local DB with account availability filtering
-5. For chat: `handleChatCore` — format detection, translation, cache check, idempotency check
-6. Provider executor sends upstream request
-7. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
-8. Usage/logging recorded
-9. Fallback applies on errors according to combo rules
+1. Clientul trimite cererea către `/v1/*`
+2. Managerul de rută apelează `handleChat`, `handleEmbedding`, `handleAudioTranscription` sau `handleImageGeneration`
+3. Modelul este rezolvat (furnizor direct/model sau alias/combo)
+4. Acreditări selectate din DB local cu filtrarea disponibilității contului
+5. Pentru chat: `handleChatCore` — detectare format, traducere, verificare cache, verificare idempotity
+6. Executorul furnizorului trimite cererea în amonte
+7. Răspunsul tradus înapoi în formatul client (chat) sau returnat așa cum este (încorporare/imagini/audio)
+8. Utilizare/înregistrare înregistrată
+9. Fallback se aplică erorilor conform regulilor combinate
 
-Full architecture reference: [`ARCHITECTURE.md`](ARCHITECTURE.md)
-
----
+Referință completă pentru arhitectură: [`ARCHITECTURE.md`](ARCHITECTURE.md)---
 
 ## Authentication
 
-- Dashboard routes (`/dashboard/*`) use `auth_token` cookie
-- Login uses saved password hash; fallback to `INITIAL_PASSWORD`
-- `requireLogin` toggleable via `/api/settings/require-login`
-- `/v1/*` routes optionally require Bearer API key when `REQUIRE_API_KEY=true`
+- Rutele tabloului de bord (`/dashboard/*`) folosesc cookie-ul `auth_token`
+- Conectarea folosește hash-ul parolei salvate; revenire la `INITIAL_PASSWORD`
+- `requireLogin` poate fi comutat prin `/api/settings/require-login`
+- Rutele `/v1/*` necesită opțional cheia API Bearer când `REQUIRE_API_KEY=true`

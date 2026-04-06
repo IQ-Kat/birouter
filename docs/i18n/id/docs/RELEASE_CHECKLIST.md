@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Gunakan daftar periksa ini sebelum memberi tag atau menerbitkan rilis OmniRoute baru.## Version and Changelog
 
-## Version and Changelog
-
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
+1. Bump versi `package.json` (`x.y.z`) di cabang rilis.
+2. Pindahkan catatan rilis dari `## [Belum Dirilis]` di `CHANGELOG.md` ke bagian bertanggal:
    - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+3. Simpan `## [Belum Dirilis]` sebagai bagian log perubahan pertama untuk pekerjaan berikutnya.
+4. Pastikan bagian semver terbaru di `CHANGELOG.md` sama dengan versi `package.json`.## API Docs
 
-## API Docs
+5. Perbarui `docs/openapi.yaml`:
+   - `info.version` harus sama dengan versi `package.json`.
+6. Validasi contoh titik akhir jika kontrak API berubah.## Runtime Docs
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
+7. Tinjau `docs/ARCHITECTURE.md` untuk penyimpangan penyimpanan/runtime.
+8. Tinjau `docs/TROUBLESHOOTING.md` untuk env var dan penyimpangan operasional.
+9. Perbarui dokumen yang dilokalkan jika dokumen sumber berubah secara signifikan.## Automated Check
 
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Jalankan penjaga sinkronisasi secara lokal sebelum membuka PR:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI juga menjalankan pemeriksaan ini di `.github/workflows/ci.yml` (lint job).
+```

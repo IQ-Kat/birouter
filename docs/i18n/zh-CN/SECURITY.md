@@ -6,156 +6,132 @@
 
 ## Reporting Vulnerabilities
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+如果您发现 OmniRoute 中存在安全漏洞，请负责任地报告：
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
+1.**不要**打开公共 GitHub 问题 2.使用[GitHub安全建议](https://github.com/diegosouzapw/OmniRoute/security/advisories/new) 3. 包括：描述、重现步骤和潜在影响## Response Timeline
 
-## Response Timeline
+|舞台|目标|
+| ------------------- | ------------------------ | |
+|致谢| 48小时|
+|分类与评估 | 5 个工作日 |
+|补丁发布 | 14 个工作日（关键）|## Supported Versions
 
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
-
-## Supported Versions
-
-| Version | Support Status |
-| ------- | -------------- |
-| 3.4.x   | ✅ Active      |
-| 3.0.x   | ✅ Security    |
-| < 3.0.0 | ❌ Unsupported |
-
----
+| 版本    | 支持状态  |
+| ------- | --------- | --- |
+| 3.4.x   | ✅ 活跃   |
+| 3.0.x   | ✅ 安全   |
+| < 3.0.0 | ❌ 不支持 | --- |
 
 ## Security Architecture
 
-OmniRoute implements a multi-layered security model:
-
-```
+OmniRoute 实现了多层安全模型：```
 Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
-```
+
+````
 
 ### 🔐 Authentication & Authorization
 
-| Feature              | Implementation                                             |
-| -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
+|特色 |实施 |
+| -------------------- | ---------------------------------------------------------------------- |
+|**仪表板登录**|使用 JWT 令牌进行基于密码的身份验证（HttpOnly cookie）|
+|**API 密钥验证**|具有 CRC 验证的 HMAC 签名密钥 |
+|**OAuth 2.0 + PKCE**|安全提供商身份验证（Claude、Codex、Gemini、Cursor 等）|
+|**令牌刷新**|到期前自动 OAuth 令牌刷新 |
+|**安全 Cookie**| HTTPS 环境的“AUTH_COOKIE_SECURE=true” |
+|**MCP 范围**| MCP 工具访问控制的 10 个粒度范围 |### 🛡️ Encryption at Rest
 
-### 🛡️ Encryption at Rest
+SQLite 中存储的所有敏感数据均使用**AES-256-GCM**和 scrypt 密钥派生进行加密：
 
-All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
-
-- API keys, access tokens, refresh tokens, and ID tokens
-- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
-
-```bash
+- API 密钥、访问令牌、刷新令牌和 ID 令牌
+- 版本格式：`enc:v1:<iv>:<ciphertext>:<authTag>`
+- 未设置“STORAGE_ENCRYPTION_KEY”时的直通模式（明文）```bash
 # Generate encryption key:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
+````
 
 ### 🧠 Prompt Injection Guard
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+检测并阻止 LLM 请求中的提示注入攻击的中间件：
 
-| Pattern Type        | Severity | Example                                        |
-| ------------------- | -------- | ---------------------------------------------- |
-| System Override     | High     | "ignore all previous instructions"             |
-| Role Hijack         | High     | "you are now DAN, you can do anything"         |
-| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
-| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
-| Instruction Leak    | Medium   | "show me your system prompt"                   |
+| 图案类型   | 严重性 | 示例                            |
+| ---------- | ------ | ------------------------------- |
+| 系统覆盖   | 高     | “忽略之前的所有指示”            |
+| 角色劫持   | 高     | “你现在是DAN，你可以做任何事情” |
+| 分隔符注入 | 中等   | 打破上下文边界的编码分隔符      |
+| DAN/越狱   | 高     | 已知的越狱提示模式              |
+| 指令泄露   | 中等   | “显示你的系统提示符”            |
 
-Configure via dashboard (Settings → Security) or `.env`:
-
-```env
+通过仪表板（设置→安全）或“.env”进行配置：```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
-```
+INPUT_SANITIZER_MODE=block # warn | block | redact
+
+````
 
 ### 🔒 PII Redaction
 
-Automatic detection and optional redaction of personally identifiable information:
+自动检测和可选编辑个人身份信息：
 
-| PII Type      | Pattern               | Replacement        |
-| ------------- | --------------------- | ------------------ |
-| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
-| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
-| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
-| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
-| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
-
-```env
+| PII 类型 |图案|更换|
+| ------------- | -------------------- | ------------------ |
+|电子邮件 | `user@domain.com` | `[EMAIL_REDACTED]` |
+|公积金（巴西）| `123.456.789-00` | `[CPF_REDACTED]` |
+| CNPJ（巴西）| `12.345.678/0001-00` | `[CNPJ_REDACTED]` |
+|信用卡 | `4111-1111-1111-1111` | `[CC_REDACTED]` |
+|电话 | `+55 11 99999-9999` | `[PHONE_REDACTED]` |
+| SSN（美国）| `123-45-6789` | `[SSN_REDACTED]` |```env
 PII_REDACTION_ENABLED=true
-```
+````
 
 ### 🌐 Network Security
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| 特色         | 描述                                              |
+| ------------ | ------------------------------------------------- | -------------------------------- |
+| **CORS**     | 可配置的源控制（“CORS_ORIGIN”环境变量，默认“\*”） |
+| **IP 过滤**  | 仪表板中的允许列表/阻止列表 IP 范围               |
+| **速率限制** | 具有自动退避功能的每个提供商的速率限制            |
+| **抗雷群**   | 互斥锁 + 每个连接锁定可防止级联 502               |
+| **TLS 指纹** | 类似浏览器的 TLS 指纹欺骗可减少机器人检测         |
+| **CLI 指纹** | 每个提供商的标头/正文排序以匹配本机 CLI 签名      | ### 🔌 Resilience & Availability |
 
-### 🔌 Resilience & Availability
+| 特色           | 描述                                                     |
+| -------------- | -------------------------------------------------------- | ----------------- |
+| **断路器**     | 每个提供商的 3 状态（关闭 → 开放 → 半开放），SQLite 持久 |
+| **请求幂等性** | 重复请求的 5 秒重复数据删除窗口                          |
+| **指数退避**   | 随着延迟的增加自动重试                                   |
+| **健康仪表板** | 实时供应商健康状况监控                                   | ### 📋 Compliance |
 
-| Feature                 | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
-| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
-| **Exponential Backoff** | Automatic retry with increasing delays                             |
-| **Health Dashboard**    | Real-time provider health monitoring                               |
-
-### 📋 Compliance
-
-| Feature            | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
-| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
-| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
-
----
+| 特色               | 描述                                                |
+| ------------------ | --------------------------------------------------- | --- |
+| **日志保留**       | `CALL_LOG_RETENTION_DAYS` 之后自动清理              |
+| **无日志选择退出** | 每个 API 密钥“noLog”标志禁用请求日志记录            |
+| **审核日志**       | “audit_log”表中跟踪的管理操作                       |
+| **MCP 审核**       | 所有 MCP 工具调用的 SQLite 支持的审计日志记录       |
+| **Zod 验证**       | 所有 API 输入均在模块加载时使用 Zod v4 模式进行验证 | --- |
 
 ## Required Environment Variables
 
-All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
+必须在启动服务器之前设置所有机密。如果它们丢失或较弱，服务器将**快速失败**。```bash
 
-```bash
 # REQUIRED — server will not start without these:
+
 JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
+API_KEY_SECRET=$(openssl rand -hex 32) # min 16 chars
 
 # RECOMMENDED — enables encryption at rest:
+
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
 
-The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
+`````
 
----
+服务器主动拒绝已知的弱值，例如“changeme”、“secret”或“password”。---
 
 ## Docker Security
 
-- Use non-root user in production
-- Mount secrets as read-only volumes
-- Never copy `.env` files into Docker images
-- Use `.dockerignore` to exclude sensitive files
-- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
-
-```bash
+- 在生产中使用非root用户
+- 将机密安装为只读卷
+- 切勿将“.env”文件复制到 Docker 镜像中
+- 使用`.dockerignore`排除敏感文件
+- 当使用 HTTPS 时设置 `AUTH_COOKIE_SECURE=true````bash
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
@@ -166,14 +142,14 @@ docker run -d \
   -e API_KEY_SECRET="$(openssl rand -hex 32)" \
   -e STORAGE_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   diegosouzapw/omniroute:latest
-```
+`````
 
 ---
 
 ## Dependencies
 
-- Run `npm audit` regularly
-- Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- 定期运行“npmaudit”
+- 保持依赖更新
+- 该项目使用“husky”+“lint-staged”进行预提交检查
+- CI 管道在每次推送时运行 ESLint 安全规则
+- 通过 Zod 在模块加载时验证提供程序常量（`src/shared/validation/providerSchema.ts`）

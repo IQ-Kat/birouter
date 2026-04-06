@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Gebruik deze checklist voordat u een nieuwe OmniRoute-release tagt of publiceert.## Version and Changelog
 
-## Version and Changelog
+1. Bump de `package.json`-versie (`x.y.z`) in de releasebranch.
+2. Verplaats release-opmerkingen van `## [Unreleased]` in `CHANGELOG.md` naar een gedateerde sectie:
+   - `## [x.y.z] — JJJJ-MM-DD`
+3. Bewaar `## [Unreleased]` als de eerste changelog-sectie voor aankomend werk.
+4. Zorg ervoor dat de nieuwste semver-sectie in `CHANGELOG.md` gelijk is aan de `package.json`-versie.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Update `docs/openapi.yaml`:
+   - `info.version` moet gelijk zijn aan `package.json` versie.
+6. Valideer eindpuntvoorbeelden als API-contracten zijn gewijzigd.## Runtime Docs
 
-## API Docs
+7. Bekijk `docs/ARCHITECTURE.md` voor opslag-/runtime-afwijkingen.
+8. Bekijk `docs/TROUBLESHOOTING.md` voor env var en operationele drift.
+9. Werk gelokaliseerde documenten bij als de brondocumenten aanzienlijk zijn gewijzigd.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
-
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Voer de synchronisatiebeveiliging lokaal uit voordat u PR opent:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI voert deze controle ook uit in `.github/workflows/ci.yml` (lint job).
+```

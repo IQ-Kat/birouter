@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Pred označením alebo zverejnením nového vydania OmniRoute použite tento kontrolný zoznam.## Version and Changelog
 
-## Version and Changelog
+1. Presuňte verziu súboru `package.json` (`x.y.z`) vo vetve vydania.
+2. Presuňte poznámky k vydaniu z `## [Unreleased]` v `CHANGELOG.md` do sekcie s dátumom:
+   - `## [x.y.z] — RRRR-MM-DD`
+3. Ponechajte `## [Unreleased]` ako prvú sekciu protokolu zmien pre nadchádzajúcu prácu.
+4. Uistite sa, že najnovšia sekcia semver v `CHANGELOG.md` sa rovná verzii `package.json`.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Aktualizujte `docs/openapi.yaml`:
+   - „info.version“ sa musí rovnať verzii „package.json“.
+6. Overte príklady koncových bodov, ak sa zmenili zmluvy API.## Runtime Docs
 
-## API Docs
+7. Prezrite si `docs/ARCHITECTURE.md`, kde nájdete posun v úložisku/behu.
+8. Skontrolujte `docs/TROUBLESHOOTING.md` pre env var a operačný posun.
+9. Aktualizujte lokalizované dokumenty, ak sa zdrojové dokumenty výrazne zmenili.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
-
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Pred otvorením PR spustite ochranu synchronizácie lokálne:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI tiež spúšťa túto kontrolu v `.github/workflows/ci.yml` (úloha lint).
+```

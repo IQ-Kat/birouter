@@ -4,34 +4,28 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+在标记或发布新的 OmniRoute 版本之前，请使用此清单。## Version and Changelog
 
-## Version and Changelog
-
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
+1. 在发布分支中添加 `package.json` 版本 (`x.y.z`)。
+2. 将发行说明从“CHANGELOG.md”中的“## [Unreleased]”移动到指定日期的部分：
    - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+3. 将“## [未发布]”保留为后续工作的第一个变更日志部分。
+4. 确保“CHANGELOG.md”中最新的 semver 部分等于“package.json”版本。## API Docs
 
-## API Docs
+1.更新`docs/openapi.yaml`：
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
+- `info.version` 必须等于 `package.json` 版本。
 
-## Runtime Docs
+2. 如果 API 合同发生更改，则验证端点示例。## Runtime Docs
 
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
+1. 查看“docs/ARCHITECTURE.md”以了解存储/运行时偏差。
+1. 查看“docs/TROUBLESHOOTING.md”以了解环境变量和操作偏差。
+1. 如果源文档发生重大更改，请更新本地化文档。## Automated Check
 
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+打开 PR 之前在本地运行同步保护：```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI 还在 `.github/workflows/ci.yml` 中运行此检查（lint 作业）。
+```

@@ -6,156 +6,132 @@
 
 ## Reporting Vulnerabilities
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+Якщо ви виявите вразливість безпеки в OmniRoute, повідомте про це відповідально:
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
+1.**НЕ**відкривайте публічну проблему GitHub 2. Використовуйте [поради щодо безпеки GitHub](https://github.com/diegosouzapw/OmniRoute/security/advisories/new) 3. Включіть: опис, етапи відтворення та потенційний вплив## Response Timeline
 
-## Response Timeline
+| Етап                 | Цільовий                   |
+| -------------------- | -------------------------- | --------------------- |
+| Подяка               | 48 годин                   |
+| Сортування та оцінка | 5 робочих днів             |
+| Випуск патча         | 14 робочих днів (критично) | ## Supported Versions |
 
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
-
-## Supported Versions
-
-| Version | Support Status |
-| ------- | -------------- |
-| 3.4.x   | ✅ Active      |
-| 3.0.x   | ✅ Security    |
-| < 3.0.0 | ❌ Unsupported |
-
----
+| Версія  | Статус підтримки    |
+| ------- | ------------------- | --- |
+| 3.4.x   | ✅ Активний         |
+| 3.0.x   | ✅ Безпека          |
+| < 3.0.0 | ❌ Не підтримується | --- |
 
 ## Security Architecture
 
-OmniRoute implements a multi-layered security model:
-
-```
+OmniRoute реалізує багаторівневу модель безпеки:```
 Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
-```
+
+````
 
 ### 🔐 Authentication & Authorization
 
-| Feature              | Implementation                                             |
-| -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
+| Особливість | Реалізація |
+| -------------------- | ------------------------------------------------------------ |
+|**Вхід на інформаційну панель**| Автентифікація на основі пароля з маркерами JWT (файли cookie лише HttpOnly) |
+|**API Key Auth**| Підписані HMAC ключі з перевіркою CRC |
+|**OAuth 2.0 + PKCE**| Безпечна автентифікація постачальника (Claude, Codex, Gemini, Cursor тощо) |
+|**Оновлення маркера**| Автоматичне оновлення маркера OAuth перед закінченням терміну дії |
+|**Захищені файли cookie**| `AUTH_COOKIE_SECURE=true` для середовищ HTTPS |
+|**Області MCP**| 10 детальних областей для контролю доступу інструментів MCP |### 🛡️ Encryption at Rest
 
-### 🛡️ Encryption at Rest
+Усі конфіденційні дані, що зберігаються в SQLite, шифруються за допомогою**AES-256-GCM**із створенням ключа scrypt:
 
-All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
-
-- API keys, access tokens, refresh tokens, and ID tokens
-- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
-
-```bash
+- Ключі API, маркери доступу, маркери оновлення та ідентифікаційні маркери
+- Версійний формат: `enc:v1:<iv>:<шифрований текст>:<authTag>`
+- Наскрізний режим (відкритий текст), коли `STORAGE_ENCRYPTION_KEY` не встановлено```bash
 # Generate encryption key:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
+````
 
 ### 🧠 Prompt Injection Guard
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+Проміжне програмне забезпечення, яке виявляє та блокує атаки швидкого ін’єкції в запитах LLM:
 
-| Pattern Type        | Severity | Example                                        |
-| ------------------- | -------- | ---------------------------------------------- |
-| System Override     | High     | "ignore all previous instructions"             |
-| Role Hijack         | High     | "you are now DAN, you can do anything"         |
-| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
-| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
-| Instruction Leak    | Medium   | "show me your system prompt"                   |
+| Тип візерунка          | Тяжкість | Приклад                                            |
+| ---------------------- | -------- | -------------------------------------------------- |
+| Перевизначення системи | Високий  | "ігнорувати всі попередні інструкції"              |
+| Викрадення ролі        | Високий  | "тепер ти DAN, ти можеш все"                       |
+| Ін'єкція роздільника   | Середній | Закодовані роздільники для порушення меж контексту |
+| DAN/Втеча з в'язниці   | Високий  | Відомі шаблони втечі з в'язниці                    |
+| Витік інструкцій       | Середній | "покажи мені вашу системну підказку"               |
 
-Configure via dashboard (Settings → Security) or `.env`:
-
-```env
+Налаштуйте через інформаційну панель (Налаштування → Безпека) або `.env`:```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
-```
+INPUT_SANITIZER_MODE=block # warn | block | redact
+
+````
 
 ### 🔒 PII Redaction
 
-Automatic detection and optional redaction of personally identifiable information:
+Автоматичне виявлення та необов’язкове редагування особистої інформації:
 
-| PII Type      | Pattern               | Replacement        |
+| Тип PII | Візерунок | Заміна |
 | ------------- | --------------------- | ------------------ |
-| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
-| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
-| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
-| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
-| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
-
-```env
+| Електронна пошта | `user@domain.com` | `[EMAIL_REDACTED]` |
+| CPF (Бразилія) | `123.456.789-00` | `[CPF_REDACTED]` |
+| CNPJ (Бразилія) | `12.345.678/0001-00` | `[CNPJ_REDACTED]` |
+| Кредитна картка | `4111-1111-1111-1111` | `[CC_REDACTED]` |
+| Телефон | `+55 11 99999-9999` | `[PHONE_REDACTED]` |
+| SSN (США) | `123-45-6789` | `[SSN_REDACTED]` |```env
 PII_REDACTION_ENABLED=true
-```
+````
 
 ### 🌐 Network Security
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| Особливість             | Опис                                                                                    |
+| ----------------------- | --------------------------------------------------------------------------------------- | -------------------------------- |
+| **CORS**                | Настроюване джерело керування (`CORS_ORIGIN` env var, типове `*`)                       |
+| **IP Filtering**        | Список білих/чорних IP-адрес на інформаційній панелі                                    |
+| **Обмеження швидкості** | Обмеження тарифів для кожного постачальника з автоматичним відстрочкою                  |
+| **Протигромове стадо**  | Mutex + блокування кожного з’єднання запобігає каскаду 502s                             |
+| **Відбиток TLS**        | Підробка відбитків TLS, подібна до браузера, для зменшення виявлення ботів              |
+| **Відбиток CLI**        | Упорядкування заголовків/телів кожного постачальника відповідно до власних підписів CLI | ### 🔌 Resilience & Availability |
 
-### 🔌 Resilience & Availability
+| Особливість                      | Опис                                                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------------------- | ----------------- |
+| **Автоматичний вимикач**         | 3 стани (Закрито → Відкрито → Напіввідкрито) для кожного постачальника, зберігається SQLite |
+| **Запит на ідемпотентність**     | 5-секундне вікно дедупляції для дублікатів запитів                                          |
+| **Експоненціальний відкат**      | Автоматична повторна спроба зі збільшенням затримок                                         |
+| **Інформаційна панель здоров’я** | Моніторинг стану провайдера в реальному часі                                                | ### 📋 Compliance |
 
-| Feature                 | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
-| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
-| **Exponential Backoff** | Automatic retry with increasing delays                             |
-| **Health Dashboard**    | Real-time provider health monitoring                               |
-
-### 📋 Compliance
-
-| Feature            | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
-| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
-| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
-
----
+| Особливість                | Опис                                                                      |
+| -------------------------- | ------------------------------------------------------------------------- | --- |
+| **Зберігання журналу**     | Автоматичне очищення після `CALL_LOG_RETENTION_DAYS`                      |
+| **Відмова без реєстрації** | Для кожного ключа API позначка `noLog` вимикає журналювання запитів       |
+| **Аудиторський журнал**    | Адміністративні дії відстежуються в таблиці `audit_log`                   |
+| **Аудит MCP**              | Реєстрація аудиту за допомогою SQLite для всіх викликів інструментів MCP  |
+| **Перевірка Zod**          | Усі вхідні дані API перевірені схемами Zod v4 під час завантаження модуля | --- |
 
 ## Required Environment Variables
 
-All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
+Усі секрети необхідно встановити перед запуском сервера. Сервер**швидко вийде з ладу**, якщо вони відсутні або слабкі.```bash
 
-```bash
 # REQUIRED — server will not start without these:
+
 JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
+API_KEY_SECRET=$(openssl rand -hex 32) # min 16 chars
 
 # RECOMMENDED — enables encryption at rest:
+
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
 
-The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
+````
 
----
+Сервер активно відхиляє відомі слабкі значення, такі як `changeme`, `secret` або `password`.---
 
 ## Docker Security
 
-- Use non-root user in production
-- Mount secrets as read-only volumes
-- Never copy `.env` files into Docker images
-- Use `.dockerignore` to exclude sensitive files
-- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
-
-```bash
+- Використовуйте некореневе користувача у виробництві
+— Монтуйте секрети як томи, призначені лише для читання
+- Ніколи не копіюйте файли `.env` в образи Docker
+- Використовуйте `.dockerignore`, щоб виключити конфіденційні файли
+- Установіть `AUTH_COOKIE_SECURE=true`, якщо за протоколом HTTPS```bash
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
@@ -166,14 +142,14 @@ docker run -d \
   -e API_KEY_SECRET="$(openssl rand -hex 32)" \
   -e STORAGE_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   diegosouzapw/omniroute:latest
-```
+````
 
 ---
 
 ## Dependencies
 
-- Run `npm audit` regularly
-- Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- Регулярно запускайте `npm audit`
+- Оновлюйте залежності
+- Проект використовує `husky` + `lint-staged` для перевірок перед фіксацією
+- Конвеєр CI запускає правила безпеки ESLint під час кожного натискання
+- Константи постачальника перевіряються під час завантаження модуля через Zod (`src/shared/validation/providerSchema.ts`)

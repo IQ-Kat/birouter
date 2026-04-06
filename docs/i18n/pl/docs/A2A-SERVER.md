@@ -4,37 +4,28 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
-
-## Agent Discovery
+> Protokół Agent-Agent v0.3 — OmniRoute jako inteligentny agent routingu## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
-
----
+Zwraca kartę agenta opisującą możliwości, umiejętności i wymagania dotyczące uwierzytelniania OmniRoute.---
 
 ## Authentication
 
-All `/a2a` requests require an API key via the `Authorization` header:
-
-```
+Wszystkie żądania `/a2a` wymagają klucza API poprzez nagłówek `Authorization`:```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
-```
 
-If no API key is configured on the server, authentication is bypassed.
+````
 
----
+Jeśli na serwerze nie skonfigurowano klucza API, uwierzytelnianie zostanie pominięte.---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Sends a message to a skill and waits for the complete response.
-
-```bash
+Wysyła wiadomość do umiejętności i czeka na pełną odpowiedź.```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -48,34 +39,31 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-```
+````
 
-**Response:**
-
-```json
+**Odpowiedź:**```json
 {
-  "jsonrpc": "2.0",
-  "id": "1",
-  "result": {
-    "task": { "id": "uuid", "state": "completed" },
-    "artifacts": [{ "type": "text", "content": "..." }],
-    "metadata": {
-      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-      "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-      ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
-    }
-  }
+"jsonrpc": "2.0",
+"id": "1",
+"result": {
+"task": { "id": "uuid", "state": "completed" },
+"artifacts": [{ "type": "text", "content": "..." }],
+"metadata": {
+"routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
+"cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+"resilience_trace": [
+{ "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+],
+"policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
 }
-```
+}
+}
+
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+To samo co `wiadomość/wyślij`, ale zwraca zdarzenia wysłane przez serwer do przesyłania strumieniowego w czasie rzeczywistym.```bash
 curl -N -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -88,17 +76,16 @@ curl -N -X POST http://localhost:20128/a2a \
       "messages": [{"role": "user", "content": "Explain quantum computing"}]
     }
   }'
-```
+````
 
-**SSE Events:**
-
-```
+**Wydarzenia SSE:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
 : heartbeat 2026-03-03T17:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -107,7 +94,7 @@ curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-```
+````
 
 ### `tasks/cancel` — Cancel a Task
 
@@ -122,12 +109,10 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
-
----
+| Umiejętność            | Opis                                                                                                                                       |
+| :--------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `inteligentny routing` | Trasuje podpowiedzi poprzez inteligentny potok OmniRoute. Zwraca odpowiedź z wyjaśnieniem routingu, kosztem i śladem odporności.           |
+| „zarządzanie kwotami”  | Odpowiada na zapytania w języku naturalnym dotyczące przydziałów dostawców, sugeruje bezpłatne kombinacje i zapewnia rankingi przydziałów. | --- |
 
 ## Task Lifecycle
 
@@ -137,23 +122,19 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
-
----
+- Zadania wygasają po 5 minutach (konfigurowalne)
+- Stany terminala: „ukończone”, „nieudane”, „anulowane”.
+- Dziennik zdarzeń śledzi każdą zmianę stanu---
 
 ## Error Codes
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
-
----
+| Kod    | Znaczenie                               |
+| :----- | :-------------------------------------- | --- |
+| -32700 | Błąd analizy (nieprawidłowy JSON)       |
+| -32600 | Nieprawidłowe żądanie / Nieautoryzowane |
+| -32601 | Nie znaleziono metody lub umiejętności  |
+| -32602 | Nieprawidłowe parametry                 |
+| -32603 | Błąd wewnętrzny                         | --- |
 
 ## Integration Examples
 

@@ -4,155 +4,129 @@
 
 ---
 
-Last updated: 2026-03-28
+Senast uppdaterad: 2026-03-28## Baseline
 
-## Baseline
+Det finns flera täckningsnummer beroende på hur rapporten beräknas. För planering är bara en av dem användbar.
 
-There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful.
+| Metrisk                | Omfattning                                                | Uttalanden / rader | Filialer | Funktioner | Anteckningar                                                 |
+| ---------------------- | --------------------------------------------------------- | -----------------: | -------: | ---------: | ------------------------------------------------------------ |
+| Arvet                  | Gammal `npm run test:coverage`                            |            79,42 % |  75,15 % |    67,94 % | Uppblåst: räknar testfiler och exkluderar `open-sse`         |
+| Diagnostisk            | Endast källkod, exklusive tester och exklusive `open-sse` |            68,16 % |  63,55 % |    64,06 % | Användbar endast för att isolera `src/**`                    |
+| Rekommenderad baslinje | Endast källkod, exklusive tester och inklusive `open-sse` |            56,95 % |  66,05 % |    57,80 % | Detta är den projektövergripande baslinjen för att förbättra |
 
-| Metric               | Scope                                                 | Statements / Lines | Branches | Functions | Notes                                               |
-| -------------------- | ----------------------------------------------------- | -----------------: | -------: | --------: | --------------------------------------------------- |
-| Legacy               | Old `npm run test:coverage`                           |             79.42% |   75.15% |    67.94% | Inflated: counts test files and excludes `open-sse` |
-| Diagnostic           | Source-only, excluding tests and excluding `open-sse` |             68.16% |   63.55% |    64.06% | Useful only to isolate `src/**`                     |
-| Recommended baseline | Source-only, excluding tests and including `open-sse` |             56.95% |   66.05% |    57.80% | This is the project-wide baseline to improve        |
+Den rekommenderade baslinjen är antalet att optimera mot.## Rules
 
-The recommended baseline is the number to optimize against.
+- Täckningsmål gäller för källfiler, inte för `test/**`.
+- `open-sse/**` är en del av produkten och måste förbli inom omfattningen.
+  – Ny kod ska inte minska täckningen i berörda områden.
+- Föredrar testbeteende och grenresultat framför implementeringsdetaljer.
+- Föredrar tillfälliga SQLite-databaser och små fixturer framför breda hånar för `src/lib/db/**`.## Current command set
 
-## Rules
-
-- Coverage targets apply to source files, not to `tests/**`.
-- `open-sse/**` is part of the product and must remain in scope.
-- New code should not reduce coverage in touched areas.
-- Prefer testing behavior and branch outcomes over implementation details.
-- Prefer temp SQLite databases and small fixtures over broad mocks for `src/lib/db/**`.
-
-## Current command set
-
-- `npm run test:coverage`
-  - Main source coverage gate for the unit test suite
-  - Generates `text-summary`, `html`, `json-summary`, and `lcov`
-- `npm run coverage:report`
-  - Detailed file-by-file report from the latest run
+- `npm kör test:täckning`
+  - Huvudkällans täckningsport för enhetens testsvit
+  - Genererar "text-sammanfattning", "html", "json-sammanfattning" och "lcov"
+- `npm kör täckning:rapport`
+  - Detaljerad fil-för-fil-rapport från den senaste körningen
 - `npm run test:coverage:legacy`
-  - Historical comparison only
+  - Endast historisk jämförelse## Milestones
 
-## Milestones
+| Fas   |                    Mål | Fokus                                             |
+| ----- | ---------------------: | ------------------------------------------------- |
+| Fas 1 | 60% uttalanden / rader | Snabbvinster och lågrisktäckning för verktyg      |
+| Fas 2 | 65% uttalanden / rader | DB och väggrunder                                 |
+| Fas 3 | 70% uttalanden / rader | Providervalidering och användningsanalys          |
+| Fas 4 | 75% uttalanden / rader | `open-sse` översättare och medhjälpare            |
+| Fas 5 | 80% uttalanden / rader | `open-sse` hanterare och exekutörsgrenar          |
+| Fas 6 | 85% uttalanden / rader | Harder edge fall, filial skuld, regression sviter |
+| Fas 7 | 90% uttalanden / rader | Slutsvep, spaltstängning, strikt spärr            |
 
-| Phase   |                 Target | Focus                                             |
-| ------- | ---------------------: | ------------------------------------------------- |
-| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          |
-| Phase 2 | 65% statements / lines | DB and route foundations                          |
-| Phase 3 | 70% statements / lines | Provider validation and usage analytics           |
-| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                |
-| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         |
-| Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites |
-| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          |
+Grenar och funktioner bör spärra uppåt med varje fas, men det primära hårda målet är uttalanden/linjer.## Priority hotspots
 
-Branches and functions should ratchet upward with each phase, but the primary hard target is statements / lines.
+Dessa filer eller områden ger den bästa avkastningen för nästa faser:
 
-## Priority hotspots
-
-These files or areas offer the best return for the next phases:
-
-1. `open-sse/handlers`
-   - `chatCore.ts` at 7.57%
-   - Overall directory at 29.07%
+1. `öppen-sse/hanterare`
+   - "chatCore.ts" på 7,57 %
+   - Total katalog på 29,07 %
 2. `open-sse/translator/request`
-   - Overall directory at 36.39%
-   - Many translators are still near single-digit coverage
-3. `open-sse/translator/response`
-   - Overall directory at 8.07%
+   - Total katalog på 36,39 %
+     – Många översättare är fortfarande nära ensiffrig täckning
+3. `öppen-sse/översättare/svar`
+   - Total katalog på 8,07 %
 4. `open-sse/executors`
-   - Overall directory at 36.62%
+   - Total katalog på 36,62 %
 5. `src/lib/db`
-   - `models.ts` at 20.66%
-   - `registeredKeys.ts` at 34.46%
-   - `modelComboMappings.ts` at 36.25%
-   - `settings.ts` at 46.40%
-   - `webhooks.ts` at 33.33%
-6. `src/lib/usage`
-   - `usageHistory.ts` at 21.12%
-   - `usageStats.ts` at 9.56%
-   - `costCalculator.ts` at 30.00%
+   - "models.ts" på 20,66 %
+   - "registeredKeys.ts" på 34,46 %
+   - "modelComboMappings.ts" på 36,25 %
+   - "inställningar.ts" på 46,40 %
+   - "webhooks.ts" på 33,33 %
+6. `src/lib/användning`
+   - 'usageHistory.ts' på 21,12 %
+   - `usageStats.ts` på 9,56 %
+   - "costCalculator.ts" vid 30,00 %
 7. `src/lib/providers`
-   - `validation.ts` at 41.16%
-8. Low-risk utility and API files for early gains
+   - "validation.ts" på 41,16 %
+8. Lågriskverktyg och API-filer för tidiga vinster
    - `src/shared/utils/upstreamError.ts`
    - `src/shared/utils/apiAuth.ts`
    - `src/lib/api/errorResponse.ts`
    - `src/app/api/settings/require-login/route.ts`
-   - `src/app/api/providers/[id]/models/route.ts`
-
-## Execution checklist
+   - `src/app/api/providers/[id]/models/route.ts`## Execution checklist
 
 ### Phase 1: 56.95% -> 60%
 
-- [x] Fix coverage metric so it reflects source code instead of test files
-- [x] Keep a legacy coverage script for comparison
-- [x] Record the baseline and hotspots in-repo
-- [ ] Add focused tests for low-risk utilities:
+- [x] Fixa täckningsmått så att det återspeglar källkoden istället för testfiler
+- [x] Behåll ett äldre täckningsskript för jämförelse
+- [x] Spela in baslinjen och hotspots i repo
+- [ ] Lägg till fokuserade tester för lågriskverktyg:
   - `src/shared/utils/upstreamError.ts`
   - `src/shared/utils/fetchTimeout.ts`
   - `src/lib/api/errorResponse.ts`
   - `src/shared/utils/apiAuth.ts`
   - `src/lib/display/names.ts`
-- [ ] Add route tests for:
+- [ ] Lägg till rutttest för:
   - `src/app/api/settings/require-login/route.ts`
-  - `src/app/api/providers/[id]/models/route.ts`
+  - `src/app/api/providers/[id]/models/route.ts`### Phase 2: 60% -> 65%
 
-### Phase 2: 60% -> 65%
-
-- [ ] Add DB-backed tests for:
+- [ ] Lägg till DB-stödda tester för:
   - `src/lib/db/modelComboMappings.ts`
   - `src/lib/db/settings.ts`
   - `src/lib/db/registeredKeys.ts`
-- [ ] Cover branch behavior in:
+- [ ] Täckgrenbeteende i:
   - `src/lib/providers/validation.ts`
   - `src/app/api/v1/embeddings/route.ts`
-  - `src/app/api/v1/moderations/route.ts`
+  - `src/app/api/v1/moderations/route.ts`### Phase 3: 65% -> 70%
 
-### Phase 3: 65% -> 70%
-
-- [ ] Add usage analytics tests for:
+- [ ] Lägg till användningsanalystester för:
   - `src/lib/usage/usageHistory.ts`
   - `src/lib/usage/usageStats.ts`
   - `src/lib/usage/costCalculator.ts`
-- [ ] Expand route coverage for proxy management and settings branches
+- [ ] Utöka ruttäckningen för proxyhantering och inställningsgrenar### Phase 4: 70% -> 75%
 
-### Phase 4: 70% -> 75%
-
-- [ ] Cover translator helpers and central translation paths:
+- [ ] Täck översättarhjälpare och centrala översättningsvägar:
   - `open-sse/translator/index.ts`
   - `open-sse/translator/helpers/*`
   - `open-sse/translator/request/*`
-  - `open-sse/translator/response/*`
+  - `open-sse/translator/response/*`### Phase 5: 75% -> 80%
 
-### Phase 5: 75% -> 80%
-
-- [ ] Add handler-level tests for:
+- [ ] Lägg till tester på hanterarnivå för:
   - `open-sse/handlers/chatCore.ts`
   - `open-sse/handlers/responsesHandler.js`
   - `open-sse/handlers/imageGeneration.js`
   - `open-sse/handlers/embeddings.js`
-- [ ] Add executor branch coverage for provider-specific auth, retries, and endpoint overrides
+- [ ] Lägg till täckning för exekutorgren för leverantörsspecifik autentisering, återförsök och åsidosättande av slutpunkter### Phase 6: 80% -> 85%
 
-### Phase 6: 80% -> 85%
+- [ ] Slå ihop fler edge-case-sviter i huvudtäckningsvägen
+- [ ] Öka funktionstäckningen för DB-moduler med svag konstruktor-/hjälpartäckning
+- [ ] Stäng grenluckor i `settings.ts`, `registeredKeys.ts`, `validation.ts` och översättare### Phase 7: 85% -> 90%
 
-- [ ] Merge more edge-case suites into the main coverage path
-- [ ] Increase function coverage for DB modules with weak constructor/helper coverage
-- [ ] Close branch gaps in `settings.ts`, `registeredKeys.ts`, `validation.ts`, and translator helpers
+- [ ] Behandla de återstående lågtäckningsfilerna som blockerare
+- [ ] Lägg till regressionstester för varje upptäckt produktionsbugg fixad under push till 90 %
+- [ ] Höj täckningsgrinden i CI först efter att den lokala baslinjen är stabil under minst två på varandra följande körningar## Ratchet policy
 
-### Phase 7: 85% -> 90%
+Uppdatera trösklar för `npm run test:coverage` först efter att projektet faktiskt överskrider nästa milstolpe med en bekväm buffert.
 
-- [ ] Treat the remaining low-coverage files as blockers
-- [ ] Add regression tests for every uncovered production bug fixed during the push to 90%
-- [ ] Raise the coverage gate in CI only after the local baseline is stable for at least two consecutive runs
-
-## Ratchet policy
-
-Update `npm run test:coverage` thresholds only after the project actually exceeds the next milestone with a comfortable buffer.
-
-Recommended ratchet sequence:
+Rekommenderad spärrsekvens:
 
 1. 55/60/55
 2. 60/62/58
@@ -163,8 +137,6 @@ Recommended ratchet sequence:
 7. 85/80/84
 8. 90/85/88
 
-Order is `statements-lines / branches / functions`.
+Ordningen är `statement-rader / grenar / funktioner`.## Known gap
 
-## Known gap
-
-The current coverage command measures the main Node unit suite and includes source reached from it, including `open-sse`. It does not yet merge Vitest coverage into a single unified report. That merge is worth doing later, but it is not a blocker for starting the 60% -> 80% climb.
+Det aktuella täckningskommandot mäter huvudnodenhetssviten och inkluderar källa som nås från den, inklusive `open-sse`. Den slår ännu inte ihop Vitest-täckning till en enda enhetlig rapport. Den sammanslagningen är värd att göra senare, men det är inte en blockerare för att starta 60% -> 80% klättringen.

@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Gamitin ang checklist na ito bago mag-tag o mag-publish ng bagong release ng OmniRoute.## Version and Changelog
 
-## Version and Changelog
-
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
+1. Bump `package.json` na bersyon (`x.y.z`) sa release branch.
+2. Ilipat ang mga tala sa paglabas mula sa `## [Hindi Inilabas]` sa `CHANGELOG.md` sa isang may petsang seksyon:
    - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+3. Panatilihin ang `## [Hindi Inilabas]` bilang unang seksyon ng changelog para sa paparating na gawain.
+4. Tiyaking ang pinakabagong semver na seksyon sa `CHANGELOG.md` ay katumbas ng `package.json` na bersyon.## API Docs
 
-## API Docs
+5. I-update ang `docs/openapi.yaml`:
+   - Ang `info.version` ay dapat katumbas ng `package.json` na bersyon.
+6. I-validate ang mga halimbawa ng endpoint kung nagbago ang mga kontrata ng API.## Runtime Docs
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
+7. Suriin ang `docs/ARCHITECTURE.md` para sa storage/runtime drift.
+8. Suriin ang `docs/TROUBLESHOOTING.md` para sa env var at operational drift.
+9. I-update ang mga naka-localize na doc kung malaki ang pagbabago sa source docs.## Automated Check
 
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Patakbuhin ang sync guard nang lokal bago buksan ang PR:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+Pinapatakbo din ng CI ang pagsusuring ito sa `.github/workflows/ci.yml` (lint job).
+```

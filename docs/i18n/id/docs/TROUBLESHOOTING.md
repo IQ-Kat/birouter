@@ -4,86 +4,68 @@
 
 ---
 
-Common problems and solutions for OmniRoute.
-
----
+Masalah umum dan solusi untuk OmniRoute.---
 
 ## Quick Fixes
 
-| Problem                       | Solution                                                           |
-| ----------------------------- | ------------------------------------------------------------------ |
-| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
-| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
-| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
-| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
-| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
-
----
+| Masalah                                   | Solusi                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------- | --- |
+| Login pertama tidak berfungsi             | Setel `INITIAL_PASSWORD` di `.env` (tanpa hardcode default)             |
+| Dasbor terbuka pada port yang salah       | Setel `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`    |
+| Tidak ada log permintaan di bawah `logs/` | Setel `ENABLE_REQUEST_LOGS=true`                                        |
+| EACCES: izin ditolak                      | Setel `DATA_DIR=/path/to/writable/dir` untuk mengganti `~/.omniroute`   |
+| Strategi perutean tidak menyimpan         | Perbarui ke v1.4.11+ (perbaikan skema Zod untuk persistensi pengaturan) | --- |
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**Cause:** Provider quota exhausted.
+**Penyebab:**Kuota penyedia habis.
 
-**Fix:**
+**Perbaikan:**
 
-1. Check dashboard quota tracker
-2. Use a combo with fallback tiers
-3. Switch to cheaper/free tier
+1. Periksa pelacak kuota dasbor
+2. Gunakan kombo dengan tier fallback
+3. Beralih ke tingkat yang lebih murah/gratis### Rate Limiting
 
-### Rate Limiting
+**Penyebab:**Kuota berlangganan habis.
 
-**Cause:** Subscription quota exhausted.
+**Perbaikan:**
 
-**Fix:**
+- Tambahkan cadangan: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Gunakan GLM/MiniMax sebagai cadangan murah### OAuth Token Expired
 
-- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Use GLM/MiniMax as cheap backup
+OmniRoute menyegarkan token secara otomatis. Jika masalah terus berlanjut:
 
-### OAuth Token Expired
-
-OmniRoute auto-refreshes tokens. If issues persist:
-
-1. Dashboard → Provider → Reconnect
-2. Delete and re-add the provider connection
-
----
+1. Dasbor → Penyedia → Sambungkan kembali
+2. Hapus dan tambahkan kembali koneksi penyedia---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
-2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
-3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
+1. Verifikasikan `BASE_URL` menunjuk ke instance Anda yang sedang berjalan (misalnya, `http://localhost:20128`)
+2. Verifikasikan titik `CLOUD_URL` ke titik akhir cloud Anda (misalnya, `https://omniroute.dev`)
+3. Jaga agar nilai `NEXT_PUBLIC_*` selaras dengan nilai sisi server### Cloud `stream=false` Returns 500
 
-### Cloud `stream=false` Returns 500
+**Gejala:**`Token 'd'...` tak terduga di titik akhir cloud untuk panggilan non-streaming.
 
-**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
+**Penyebab:**Upstream mengembalikan payload SSE sementara klien mengharapkan JSON.
 
-**Cause:** Upstream returns SSE payload while client expects JSON.
+**Solusi:**Gunakan `stream=true` untuk panggilan cloud langsung. Waktu proses lokal mencakup penggantian SSE→JSON.### Cloud Says Connected but "Invalid API key"
 
-**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
-
-### Cloud Says Connected but "Invalid API key"
-
-1. Create a fresh key from local dashboard (`/api/keys`)
-2. Run cloud sync: Enable Cloud → Sync Now
-3. Old/non-synced keys can still return `401` on cloud
-
----
+1. Buat kunci baru dari dasbor lokal (`/api/keys`)
+2. Jalankan sinkronisasi cloud: Aktifkan Cloud → Sinkronkan Sekarang
+3. Kunci lama/tidak disinkronkan masih dapat mengembalikan `401` di cloud---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. For portable mode: use image target `runner-cli` (bundled CLIs)
-3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
-4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
-
-### Quick Runtime Validation
+1. Periksa kolom runtime: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. Untuk mode portabel: gunakan target gambar `runner-cli` (CLI yang dibundel)
+3. Untuk mode pemasangan host: setel `CLI_EXTRA_PATHS` dan pasang direktori host bin sebagai hanya-baca
+4. Jika `installed=true` dan `runnable=false`: biner ditemukan tetapi pemeriksaan kesehatan gagal### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -97,20 +79,16 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. Check usage stats in Dashboard → Usage
-2. Switch primary model to GLM/MiniMax
-3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
-4. Set cost budgets per API key: Dashboard → API Keys → Budget
-
----
+1. Periksa statistik penggunaan di Dashboard → Penggunaan
+2. Ganti model utama ke GLM/MiniMax
+3. Gunakan tingkat gratis (Gemini CLI, Qoder) untuk tugas-tugas yang tidak penting
+4. Tetapkan anggaran biaya per kunci API: Dasbor → Kunci API → Anggaran---
 
 ## Debugging
 
 ### Enable Request Logs
 
-Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
-
-### Check Provider Health
+Setel `ENABLE_REQUEST_LOGS=true` di file `.env` Anda. Log muncul di bawah direktori `logs/`.### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -122,135 +100,101 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
-- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
-- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
-
----
+- Status utama: `${DATA_DIR}/storage.sqlite` (penyedia, kombo, alias, kunci, pengaturan)
+- Penggunaan: Tabel SQLite di `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + opsional `${DATA_DIR}/log.txt` dan `${DATA_DIR}/call_logs/`
+- Log permintaan: `<repo>/logs/...` (bila `ENABLE_REQUEST_LOGS=true`)---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
+Ketika pemutus arus penyedia TERBUKA, permintaan diblokir hingga cooldown berakhir.
 
-**Fix:**
+**Perbaikan:**
 
-1. Go to **Dashboard → Settings → Resilience**
-2. Check the circuit breaker card for the affected provider
-3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
-4. Verify the provider is actually available before resetting
+1. Buka**Dasbor → Pengaturan → Ketahanan**
+2. Periksa kartu pemutus arus untuk penyedia yang terpengaruh
+3. Klik**Reset Semua**untuk menghapus semua pemutus, atau tunggu hingga cooldown berakhir
+4. Pastikan penyedia benar-benar tersedia sebelum melakukan reset### Provider keeps tripping the circuit breaker
 
-### Provider keeps tripping the circuit breaker
+Jika penyedia berulang kali memasuki status OPEN:
 
-If a provider repeatedly enters OPEN state:
-
-1. Check **Dashboard → Health → Provider Health** for the failure pattern
-2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
-3. Check if the provider has changed API limits or requires re-authentication
-4. Review latency telemetry — high latency may cause timeout-based failures
-
----
+1. Periksa**Dasbor → Kesehatan → Kesehatan Penyedia**untuk mengetahui pola kegagalannya
+2. Buka**Pengaturan → Ketahanan → Profil Penyedia**dan tingkatkan ambang kegagalan
+3. Periksa apakah penyedia telah mengubah batas API atau memerlukan autentikasi ulang
+4. Tinjau telemetri latensi — latensi tinggi dapat menyebabkan kegagalan berbasis waktu habis---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
-- Verify the provider is connected in **Dashboard → Providers**
+- Pastikan Anda menggunakan awalan yang benar: `deepgram/nova-3` atau `assemblyai/best`
+- Verifikasi penyedia terhubung di**Dasbor → Penyedia**### Transcription returns empty or fails
 
-### Transcription returns empty or fails
-
-- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Verify file size is within provider limits (typically < 25MB)
-- Check provider API key validity in the provider card
-
----
+- Periksa format audio yang didukung: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Pastikan ukuran file berada dalam batas penyedia (biasanya <25MB)
+- Periksa validitas kunci API penyedia di kartu penyedia---
 
 ## Translator Debugging
 
-Use **Dashboard → Translator** to debug format translation issues:
+Gunakan**Dasbor → Penerjemah**untuk men-debug masalah terjemahan format:
 
-| Mode             | When to Use                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------------------- |
-| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
-| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
-| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
-| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
+| Modus                | Kapan Menggunakan                                                                                                    |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| **Taman Bermain**    | Bandingkan format masukan/keluaran secara berdampingan — tempelkan permintaan yang gagal untuk melihat terjemahannya |
+| **Penguji Obrolan**  | Kirim pesan langsung dan periksa muatan permintaan/respons lengkap termasuk header                                   |
+| **Bangku Tes**       | Jalankan pengujian batch di seluruh kombinasi format untuk menemukan terjemahan mana yang rusak                      |
+| **Monitor Langsung** | Tonton alur permintaan waktu nyata untuk mengetahui masalah terjemahan yang terputus-putus                           | ### Common format issues |
 
-### Common format issues
-
-- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
-- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
-- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
-- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
-- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
-- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
-- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
-
----
+-**Tag berpikir tidak muncul**— Periksa apakah penyedia target mendukung pemikiran dan pengaturan anggaran pemikiran -**Panggilan alat terputus**— Beberapa terjemahan format mungkin menghapus bidang yang tidak didukung; verifikasi dalam mode Taman Bermain -**Perintah sistem hilang**— Claude dan Gemini menangani perintah sistem secara berbeda; periksa keluaran terjemahan -**SDK mengembalikan string mentah, bukan objek**— Diperbaiki di v1.1.0: pembersih respons sekarang menghapus kolom non-standar (`x_groq`, `usage_breakdown`, dll.) yang menyebabkan kegagalan validasi OpenAI SDK Pydantic -**GLM/ERNIE menolak peran `sistem`**— Diperbaiki di v1.1.0: penormal peran secara otomatis menggabungkan pesan sistem ke dalam pesan pengguna untuk model yang tidak kompatibel -**`peran pengembang` tidak dikenali**— Diperbaiki di v1.1.0: otomatis dikonversi ke `sistem` untuk penyedia non-OpenAI -**`json_schema` tidak berfungsi dengan Gemini**— Diperbaiki di v1.1.0: `response_format` sekarang dikonversi ke `responseMimeType` + `responseSchema` Gemini---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- Auto rate-limit only applies to API key providers (not OAuth/subscription)
-- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
-- Check if the provider returns `429` status codes or `Retry-After` headers
+- Batas tarif otomatis hanya berlaku untuk penyedia kunci API (bukan OAuth/langganan)
+- Verifikasi**Pengaturan → Ketahanan → Profil Penyedia**telah mengaktifkan batas tarif otomatis
+- Periksa apakah penyedia mengembalikan kode status `429` atau header `Retry-After`### Tuning exponential backoff
 
-### Tuning exponential backoff
+Profil penyedia mendukung pengaturan berikut:
 
-Provider profiles support these settings:
+-**Penundaan dasar**— Waktu tunggu awal setelah kegagalan pertama (default: 1 detik) -**Penundaan maksimal**— Batas waktu tunggu maksimum (default: 30 detik) -**Pengganda**— Berapa banyak peningkatan penundaan per kegagalan berturut-turut (default: 2x)### Anti-thundering herd
 
-- **Base delay** — Initial wait time after first failure (default: 1s)
-- **Max delay** — Maximum wait time cap (default: 30s)
-- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
-
-### Anti-thundering herd
-
-When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
-
----
+Ketika banyak permintaan bersamaan mencapai penyedia dengan tarif terbatas, OmniRoute menggunakan mutex + pembatasan tarif otomatis untuk membuat serialisasi permintaan dan mencegah kegagalan berjenjang. Ini otomatis untuk penyedia kunci API.---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
+Beberapa pengguna OmniRoute menempatkan gateway di depan tumpukan RAG atau agen. Dalam pengaturan tersebut, biasanya terlihat pola yang aneh: OmniRoute terlihat sehat (penyedia aktif, profil perutean baik-baik saja, tidak ada peringatan batas tarif) tetapi jawaban akhirnya masih salah.
 
-In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
+Dalam praktiknya, insiden ini biasanya berasal dari pipeline RAG hilir, bukan dari gateway itu sendiri.
 
-If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
+Jika Anda ingin kosakata bersama untuk menjelaskan kegagalan tersebut, Anda dapat menggunakan WFGY ProblemMap, sumber teks lisensi MIT eksternal yang mendefinisikan enam belas pola kegagalan RAG / LLM yang berulang. Pada tingkat tinggi mencakup:
 
-- retrieval drift and broken context boundaries
-- empty or stale indexes and vector stores
-- embedding versus semantic mismatch
-- prompt assembly and context window issues
-- logic collapse and overconfident answers
-- long chain and agent coordination failures
-- multi agent memory and role drift
-- deployment and bootstrap ordering problems
+- penyimpangan pengambilan dan batas konteks yang rusak
+- indeks dan penyimpanan vektor kosong atau basi
+- penyematan versus ketidakcocokan semantik
+- masalah perakitan cepat dan jendela konteks
+- logika runtuh dan jawaban terlalu percaya diri
+- kegagalan koordinasi rantai panjang dan agen
+- memori multi agen dan penyimpangan peran
+- masalah penerapan dan pemesanan bootstrap
 
-The idea is simple:
+Idenya sederhana:
 
-1. When you investigate a bad response, capture:
-   - user task and request
-   - route or provider combo in OmniRoute
-   - any RAG context used downstream (retrieved documents, tool calls, etc)
-2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
-3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
-4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
+1. Saat Anda menyelidiki respons yang buruk, catatlah:
+   - tugas dan permintaan pengguna
+   - kombo rute atau penyedia di OmniRoute
+   - konteks RAG apa pun yang digunakan di hilir (dokumen yang diambil, panggilan alat, dll)
+2. Petakan kejadian ke satu atau dua nomor Peta Masalah WFGY (`No.1` … `No.16`).
+3. Simpan nomor tersebut di dasbor, runbook, atau pelacak insiden Anda sendiri di samping log OmniRoute.
+4. Gunakan halaman WFGY yang sesuai untuk memutuskan apakah Anda perlu mengubah tumpukan RAG, retriever, atau strategi perutean Anda.
 
-Full text and concrete recipes live here (MIT license, text only):
+Teks lengkap dan resep konkret ada di sini (lisensi MIT, hanya teks):
 
-[WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
+[README Peta Masalah WFGY](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
-
----
+Anda dapat mengabaikan bagian ini jika Anda tidak menjalankan RAG atau alur agen di belakang OmniRoute.---
 
 ## Still Stuck?
 
-- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
-- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
-- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
-- **Translator**: Use **Dashboard → Translator** to debug format issues
+-**Masalah GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Arsitektur**: Lihat [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) untuk detail internal -**Referensi API**: Lihat [`docs/API_REFERENCE.md`](API_REFERENCE.md) untuk semua titik akhir -**Dasbor Kesehatan**: Periksa**Dasbor → Kesehatan**untuk status sistem waktu nyata -**Penerjemah**: Gunakan**Dasbor → Penerjemah**untuk men-debug masalah format

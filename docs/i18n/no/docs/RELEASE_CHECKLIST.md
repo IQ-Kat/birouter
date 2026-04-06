@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Bruk denne sjekklisten før du merker eller publiserer en ny OmniRoute-utgivelse.## Version and Changelog
 
-## Version and Changelog
+1. Bump `package.json`-versjonen (`x.y.z`) i utgivelsesgrenen.
+2. Flytt versjonsnotater fra `## [Uutgitt]` i `CHANGELOG.md` til en datert del:
+   - `## [x.y.z] — ÅÅÅÅ-MM-DD`
+3. Behold `## [Uutgitt]` som den første endringsloggdelen for kommende arbeid.
+4. Sørg for at den siste semver-delen i `CHANGELOG.md` er lik `package.json`-versjonen.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Oppdater `docs/openapi.yaml`:
+   - `info.version` må være lik `package.json`-versjonen.
+6. Valider endepunkteksempler hvis API-kontrakter endres.## Runtime Docs
 
-## API Docs
+7. Se gjennom `docs/ARCHITECTURE.md` for lagrings-/kjøretidsdrift.
+8. Se gjennom `docs/FEILSØKING.md` for env var og driftsavvik.
+9. Oppdater lokaliserte dokumenter hvis kildedokumentene endret seg betydelig.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
-
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Kjør synkroniseringsvakten lokalt før du åpner PR:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI kjører også denne sjekken i `.github/workflows/ci.yml` (lojobb).
+```

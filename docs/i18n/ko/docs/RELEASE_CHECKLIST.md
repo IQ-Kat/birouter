@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+새로운 OmniRoute 릴리스에 태그를 지정하거나 게시하기 전에 이 체크리스트를 사용하십시오.## Version and Changelog
 
-## Version and Changelog
-
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
+1. 릴리스 브랜치에서 `package.json` 버전(`x.y.z`)을 범프합니다.
+2. `CHANGELOG.md`의 `## [Unreleased]`에서 날짜가 지정된 섹션으로 릴리스 노트를 이동합니다.
    - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+3. '## [Unreleased]'를 향후 작업의 첫 번째 변경 로그 섹션으로 유지하세요.
+4. `CHANGELOG.md`의 최신 semver 섹션이 `package.json` 버전과 동일한지 확인하세요.## API Docs
 
-## API Docs
+5. `docs/openapi.yaml` 업데이트:
+   - `info.version`은 `package.json` 버전과 동일해야 합니다.
+6. API 계약이 변경된 경우 엔드포인트 예시를 확인합니다.## Runtime Docs
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
+7. 'docs/ARCHITECTURE.md'를 검토하여 저장/런타임 드리프트를 확인하세요.
+8. 환경 변수 및 작동 드리프트에 대한 `docs/TROUBLESHOOTING.md`를 검토합니다.
+9. 소스 문서가 크게 변경된 경우 현지화된 문서를 업데이트하세요.## Automated Check
 
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+PR을 열기 전에 로컬로 동기화 가드를 실행하세요.```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI는 `.github/workflows/ci.yml`(lint 작업)에서도 이 검사를 실행합니다.
+```

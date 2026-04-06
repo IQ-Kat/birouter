@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Скористайтеся цим контрольним списком, перш ніж додавати теги або публікувати новий випуск OmniRoute.## Version and Changelog
 
-## Version and Changelog
+1. Перегляньте версію `package.json` (`x.y.z`) у гілці випуску.
+2. Перемістіть примітки до випуску з `## [Unreleased]` в `CHANGELOG.md` до датованого розділу:
+   - `## [x.y.z] — РРРР-ММ-ДД`
+3. Збережіть `## [Unreleased]` як перший розділ журналу змін для майбутньої роботи.
+4. Переконайтеся, що останній розділ semver у `CHANGELOG.md` дорівнює версії `package.json`.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Оновіть `docs/openapi.yaml`:
+   - `info.version` має відповідати версії `package.json`.
+6. Перевірте приклади кінцевих точок, якщо контракти API змінилися.## Runtime Docs
 
-## API Docs
+7. Перегляньте `docs/ARCHITECTURE.md` для дрейфу зберігання/виконання.
+8. Перегляньте `docs/TROUBLESHOOTING.md` для env var та оперативного дрейфу.
+9. Оновіть локалізовані документи, якщо вихідні документи значно змінилися.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
-
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Запустіть синхронізацію локально перед відкриттям PR:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI також запускає цю перевірку в `.github/workflows/ci.yml` (завдання lint).
+```

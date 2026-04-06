@@ -4,84 +4,69 @@
 
 ---
 
-> Model Context Protocol server with 16 intelligent tools
+> Сервер Model Context Protocol із 16 інтелектуальними інструментами## Встановити
 
-## Встановити
-
-OmniRoute MCP is built-in. Start it with:
-
-```bash
+OmniRoute MCP є вбудованим. Почніть це з:```bash
 omniroute --mcp
-```
 
-Or via the open-sse transport:
+````
 
-```bash
+Або відкритим транспортом:```bash
 # HTTP streamable transport (port 20130)
 omniroute --dev  # MCP auto-starts on /mcp endpoint
-```
+````
 
 ## IDE Configuration
 
-See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
-
----
+Див. [IDE Configs](integrations/ide-configs.md) для налаштування Antigravity, Cursor, Copilot і Claude Desktop.---
 
 ## Essential Tools (8)
 
-| Tool                            | Description                              |
-| :------------------------------ | :--------------------------------------- |
-| `omniroute_get_health`          | Gateway health, circuit breakers, uptime |
-| `omniroute_list_combos`         | All configured combos with models        |
-| `omniroute_get_combo_metrics`   | Performance metrics for a specific combo |
-| `omniroute_switch_combo`        | Switch active combo by ID/name           |
-| `omniroute_check_quota`         | Quota status per provider or all         |
-| `omniroute_route_request`       | Send a chat completion through OmniRoute |
-| `omniroute_cost_report`         | Cost analytics for a time period         |
-| `omniroute_list_models_catalog` | Full model catalog with capabilities     |
+| Інструмент                      | Опис                                                            |
+| :------------------------------ | :-------------------------------------------------------------- | --------------------- |
+| `omniroute_get_health`          | Справність шлюзу, автоматичні вимикачі, час безвідмовної роботи |
+| `omniroute_list_combos`         | Усі налаштовані комбо з моделями                                |
+| `omniroute_get_combo_metrics`   | Показники продуктивності для конкретного комбо                  |
+| `omniroute_switch_combo`        | Перемикати активну комбінацію за ID/ім'ям                       |
+| `omniroute_check_quota`         | Статус квоти на постачальника або на всіх                       |
+| `omniroute_route_request`       | Надіслати завершення чату через OmniRoute                       |
+| `omniroute_cost_report`         | Аналітика витрат за період                                      |
+| `omniroute_list_models_catalog` | Повний каталог моделей з можливостями                           | ## Advanced Tools (8) |
 
-## Advanced Tools (8)
+| Інструмент                         | Опис                                                                                        |
+| :--------------------------------- | :------------------------------------------------------------------------------------------ | ----------------- |
+| `omniroute_simulate_route`         | Симуляція маршрутизації без використання за допомогою резервного дерева                     |
+| `omniroute_set_budget_guard`       | Бюджет сесії з діями зниження/блокування/сповіщення                                         |
+| `omniroute_set_resilience_profile` | Застосувати консервативний/збалансований/агресивний пресет                                  |
+| `omniroute_test_combo`             | Перевірте в реальному часі всі моделі в комбінації за допомогою реального висхідного запиту |
+| `omniroute_get_provider_metrics`   | Детальна метрика для одного провайдера                                                      |
+| `omniroute_best_combo_for_task`    | Завдання-придатність рекомендації з альтернативами                                          |
+| `omniroute_explain_route`          | Поясніть минуле рішення про маршрут                                                         |
+| `omniroute_get_session_snapshot`   | Повний стан сесії: витрати, токени, помилки                                                 | ## Authentication |
 
-| Tool                               | Description                                                 |
-| :--------------------------------- | :---------------------------------------------------------- |
-| `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree               |
-| `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions             |
-| `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
-| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
-| `omniroute_get_provider_metrics`   | Detailed metrics for one provider                           |
-| `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
-| `omniroute_explain_route`          | Explain a past routing decision                             |
-| `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
+Інструменти MCP автентифікуються за допомогою областей ключів API. Кожен інструмент вимагає певних областей:
 
-## Authentication
-
-MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
-
-| Scope          | Tools                                            |
-| :------------- | :----------------------------------------------- |
+| Сфера          | Інструменти                                      |
+| :------------- | :----------------------------------------------- | ---------------- |
 | `read:health`  | get_health, get_provider_metrics                 |
 | `read:combos`  | list_combos, get_combo_metrics                   |
 | `write:combos` | switch_combo                                     |
-| `read:quota`   | check_quota                                      |
+| `read:квота`   | перевірка_квоти                                  |
 | `write:route`  | route_request, simulate_route, test_combo        |
 | `read:usage`   | cost_report, get_session_snapshot, explain_route |
 | `write:config` | set_budget_guard, set_resilience_profile         |
-| `read:models`  | list_models_catalog, best_combo_for_task         |
+| `read:models`  | list_models_catalog, best_combo_for_task         | ## Audit Logging |
 
-## Audit Logging
+Кожен виклик інструменту реєструється в `mcp_tool_audit` з:
 
-Every tool call is logged to `mcp_tool_audit` with:
+- Назва інструменту, аргументи, результат
+- Тривалість (мс), успіх/невдача
+- Хеш ключа API, мітка часу## Files
 
-- Tool name, arguments, result
-- Duration (ms), success/failure
-- API key hash, timestamp
-
-## Files
-
-| File                                         | Purpose                                     |
-| :------------------------------------------- | :------------------------------------------ |
-| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
-| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
-| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
-| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |
+| Файл                                         | Призначення                                        |
+| :------------------------------------------- | :------------------------------------------------- |
+| `open-sse/mcp-server/server.ts`              | Створення сервера MCP + 16 реєстрацій інструментів |
+| `open-sse/mcp-server/transport.ts`           | Stdio + транспорт HTTP                             |
+| `open-sse/mcp-server/auth.ts`                | Ключ API + перевірка області                       |
+| `open-sse/mcp-server/audit.ts`               | Журнал аудиту викликів                             |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 просунутих обробників інструментів               |

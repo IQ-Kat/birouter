@@ -4,42 +4,29 @@
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> Самокеровані ланцюги моделей з адаптивним скорингом## How It Works
 
-## How It Works
+Механізм Auto-Combo динамічно вибирає найкращого постачальника/модель для кожного запиту за допомогою**6-факторної функції підрахунку балів**:
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+| Фактор       | Вага | Опис                                                           |
+| :----------- | :--- | :------------------------------------------------------------- | ------------- |
+| Квота        | 0,20 | Залишок потужності [0..1]                                      |
+| Здоров'я     | 0,25 | Автоматичний вимикач: ЗАМКНУТ=1,0, НАПОЛОВИНА=0,5, ВІДКРИТ=0,0 |
+| CostInv      | 0,20 | Зворотна вартість (дешевше = вищий бал)                        |
+| LatencyInv   | 0,15 | Інверсна затримка p95 (швидше = вище)                          |
+| TaskFit      | 0,10 | Модель × оцінка відповідності типу завдання                    |
+| Стабільність | 0,10 | Низька дисперсія в затримці/помилках                           | ## Mode Packs |
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+| Пакет                    | Фокус        | Вага ключа       |
+| :----------------------- | :----------- | :--------------- | --------------- |
+| 🚀**Швидка доставка**    | Швидкість    | latencyInv: 0,35 |
+| 💰**Економія**           | Економіка    | costInv: 0,40    |
+| 🎯**Якість перш за все** | Краща модель | taskFit: 0,40    |
+| 📡**Дружній офлайн**     | Наявність    | квота: 0,40      | ## Self-Healing |
 
-## Mode Packs
+-**Тимчасове виключення**: Оцінка < 0,2 → виключено на 5 хвилин (поступове відставання, макс. 30 хвилин) -**Поінформованість про автоматичний вимикач**: ВІДКРИТО → автоматично виключено; HALF_OPEN → перевірити запити -**Режим інцидентів**: >50% ВІДКРИТО → вимкнути дослідження, збільшити стабільність -**Відновлення часу відновлення**: після виключення перший запит є «зондом» зі скороченим часом очікування## Bandit Exploration
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
-
-## Self-Healing
-
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
-
-## Bandit Exploration
-
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
-
-## API
+5% запитів (може налаштувати) направляються до випадкових постачальників для дослідження. Вимкнено в режимі інциденту.## API
 
 ```bash
 # Create auto-combo
@@ -53,15 +40,13 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+30+ моделей, оцінених за 6 типами завдань ("кодування", "перегляд", "планування", "аналіз", "налагодження", "документація"). Підтримує шаблони підстановки (наприклад, `*-coder` → висока оцінка кодування).## Files
 
-## Files
-
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+| Файл                                         | Призначення                              |
+| :------------------------------------------- | :--------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`     | Функція скорингу та нормалізація пулу    |
+| `open-sse/services/autoCombo/taskFitness.ts` | Модель × пошук придатності завдання      |
+| `open-sse/services/autoCombo/engine.ts`      | Логіка вибору, бандит, обмеження бюджету |
+| `open-sse/services/autoCombo/selfHealing.ts` | Виключення, зонди, режим інциденту       |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 вагові профілі                         |
+| `src/app/api/combos/auto/route.ts`           | REST API                                 |

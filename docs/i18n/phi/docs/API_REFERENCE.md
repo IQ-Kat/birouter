@@ -4,23 +4,19 @@
 
 ---
 
-Complete reference for all OmniRoute API endpoints.
-
----
+Kumpletong sanggunian para sa lahat ng endpoint ng OmniRoute API.---
 
 ## Table of Contents
 
-- [Chat Completions](#chat-completions)
-- [Embeddings](#embeddings)
-- [Image Generation](#image-generation)
+- [Mga Pagkumpleto sa Chat](#chat-completions)
+- [Mga Embedding](#embeddings)
+- [Pagbuo ng Larawan](#pagbuo ng larawan)
 - [List Models](#list-models)
 - [Compatibility Endpoints](#compatibility-endpoints)
 - [Semantic Cache](#semantic-cache)
-- [Dashboard & Management](#dashboard--management)
-- [Request Processing](#request-processing)
-- [Authentication](#authentication)
-
----
+- [Dashboard at Pamamahala](#dashboard--pamamahala)
+- [Pagproseso ng Kahilingan](#request-processing)
+- [Authentication](#authentication)---
 
 ## Chat Completions
 
@@ -40,22 +36,20 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| Header                   | Direction | Description                                      |
-| ------------------------ | --------- | ------------------------------------------------ |
-| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
-| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
-| `X-Session-Id`           | Request   | Sticky session key for external session affinity |
-| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
-| `Idempotency-Key`        | Request   | Dedup key (5s window)                            |
-| `X-Request-Id`           | Request   | Alternative dedup key                            |
-| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                  |
-| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
-| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
-| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
+| Header                   | Direksyon  | Paglalarawan                                                 |
+| ------------------------ | ---------- | ------------------------------------------------------------ |
+| `X-OmniRoute-No-Cache`   | Kahilingan | Itakda sa `true` para i-bypass ang cache                     |
+| `X-OmniRoute-Progress`   | Kahilingan | Itakda sa `true` para sa mga kaganapan sa pag-unlad          |
+| `X-Session-Id`           | Kahilingan | Malagkit na session key para sa external na session affinity |
+| `x_session_id`           | Kahilingan | Tinanggap din ang variant ng underscore (direktang HTTP)     |
+| `Idempotency-Key`        | Kahilingan | Dedup key (5s window)                                        |
+| `X-Request-Id`           | Kahilingan | Alternatibong susi sa pagtanggal                             |
+| `X-OmniRoute-Cache`      | Tugon      | `HIT` o `MISS` (non-streaming)                               |
+| `X-OmniRoute-Idempotent` | Tugon      | `true` kung i-deduplicate                                    |
+| `X-OmniRoute-Progress`   | Tugon      | `enabled` kung ang pagsubaybay sa pag-usad sa                |
+| `X-OmniRoute-Session-Id` | Tugon      | Epektibong session ID na ginagamit ng OmniRoute              |
 
-> Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
-
----
+> Nginx note: kung umaasa ka sa mga underscore na header (halimbawa `x_session_id`), paganahin ang `underscores_in_headers on;`.---
 
 ## Embeddings
 
@@ -70,12 +64,13 @@ Content-Type: application/json
 }
 ```
 
-Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.
+Mga available na provider: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.```bash
 
-```bash
 # List all embedding models
+
 GET /v1/embeddings
-```
+
+````
 
 ---
 
@@ -91,14 +86,15 @@ Content-Type: application/json
   "prompt": "A beautiful sunset over mountains",
   "size": "1024x1024"
 }
-```
+````
 
-Available providers: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.
+Mga available na provider: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.```bash
 
-```bash
 # List all image models
+
 GET /v1/images/generations
-```
+
+````
 
 ---
 
@@ -109,26 +105,24 @@ GET /v1/models
 Authorization: Bearer your-api-key
 
 → Returns all chat, embedding, and image models + combos in OpenAI format
-```
+````
 
 ---
 
 ## Compatibility Endpoints
 
-| Method | Path                        | Format                 |
-| ------ | --------------------------- | ---------------------- |
+| Paraan | Landas                      | Format                 |
+| ------ | --------------------------- | ---------------------- | ----------------------------- |
 | POST   | `/v1/chat/completions`      | OpenAI                 |
-| POST   | `/v1/messages`              | Anthropic              |
-| POST   | `/v1/responses`             | OpenAI Responses       |
+| POST   | `/v1/mensahe`               | Antropiko              |
+| POST   | `/v1/mga tugon`             | Mga Tugon sa OpenAI    |
 | POST   | `/v1/embeddings`            | OpenAI                 |
 | POST   | `/v1/images/generations`    | OpenAI                 |
-| GET    | `/v1/models`                | OpenAI                 |
-| POST   | `/v1/messages/count_tokens` | Anthropic              |
-| GET    | `/v1beta/models`            | Gemini                 |
+| KUMUHA | `/v1/mga modelo`            | OpenAI                 |
+| POST   | `/v1/messages/count_tokens` | Antropiko              |
+| KUMUHA | `/v1beta/mga modelo`        | Gemini                 |
 | POST   | `/v1beta/models/{...path}`  | Gemini generateContent |
-| POST   | `/v1/api/chat`              | Ollama                 |
-
-### Dedicated Provider Routes
+| POST   | `/v1/api/chat`              | Ollama                 | ### Dedicated Provider Routes |
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -136,9 +130,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-The provider prefix is auto-added if missing. Mismatched models return `400`.
-
----
+Ang prefix ng provider ay awtomatikong idinaragdag kung nawawala. Ang mga hindi tugmang modelo ay nagbabalik ng `400`.---
 
 ## Semantic Cache
 
@@ -150,22 +142,21 @@ GET /api/cache/stats
 DELETE /api/cache/stats
 ```
 
-Response example:
-
-```json
+Halimbawa ng tugon:```json
 {
-  "semanticCache": {
-    "memorySize": 42,
-    "memoryMaxSize": 500,
-    "dbSize": 128,
-    "hitRate": 0.65
-  },
-  "idempotency": {
-    "activeKeys": 3,
-    "windowMs": 5000
-  }
+"semanticCache": {
+"memorySize": 42,
+"memoryMaxSize": 500,
+"dbSize": 128,
+"hitRate": 0.65
+},
+"idempotency": {
+"activeKeys": 3,
+"windowMs": 5000
 }
-```
+}
+
+````
 
 ---
 
@@ -173,165 +164,129 @@ Response example:
 
 ### Authentication
 
-| Endpoint                      | Method  | Description           |
-| ----------------------------- | ------- | --------------------- |
-| `/api/auth/login`             | POST    | Login                 |
-| `/api/auth/logout`            | POST    | Logout                |
-| `/api/settings/require-login` | GET/PUT | Toggle login required |
+| Endpoint | Paraan | Paglalarawan |
+| ----------------------------- | ------- | ---------------------- |
+| `/api/auth/login` | POST | Mag-login |
+| `/api/auth/logout` | POST | Logout |
+| `/api/settings/require-login` | GET/PUT | Kailangang i-toggle ang pag-login |### Provider Management
 
-### Provider Management
+| Endpoint | Paraan | Paglalarawan |
+| ---------------------------- | --------------- | ------------------------- |
+| `/api/providers` | GET/POST | Maglista / gumawa ng mga provider |
+| `/api/providers/[id]` | GET/PUT/DELETE | Pamahalaan ang isang provider |
+| `/api/providers/[id]/test` | POST | Subukan ang koneksyon ng provider |
+| `/api/providers/[id]/models` | KUMUHA | Maglista ng mga modelo ng provider |
+| `/api/providers/validate` | POST | I-validate ang config ng provider |
+| `/api/provider-nodes*` | Iba't ibang | Pamamahala ng node ng provider |
+| `/api/provider-models` | GET/POST/DELETE | Mga custom na modelo |### OAuth Flows
 
-| Endpoint                     | Method          | Description              |
-| ---------------------------- | --------------- | ------------------------ |
-| `/api/providers`             | GET/POST        | List / create providers  |
-| `/api/providers/[id]`        | GET/PUT/DELETE  | Manage a provider        |
-| `/api/providers/[id]/test`   | POST            | Test provider connection |
-| `/api/providers/[id]/models` | GET             | List provider models     |
-| `/api/providers/validate`    | POST            | Validate provider config |
-| `/api/provider-nodes*`       | Various         | Provider node management |
-| `/api/provider-models`       | GET/POST/DELETE | Custom models            |
+| Endpoint | Paraan | Paglalarawan |
+| -------------------------------- | ------- | ------------------------ |
+| `/api/oauth/[provider]/[action]` | Iba't ibang | OAuth na partikular sa provider |### Routing & Config
 
-### OAuth Flows
+| Endpoint | Paraan | Paglalarawan |
+| ---------------------- | -------- | ----------------------------- |
+| `/api/models/alias` | GET/POST | Mga alyas ng modelo |
+| `/api/models/catalog` | KUMUHA | Lahat ng modelo ayon sa provider + uri |
+| `/api/combos*` | Iba't ibang | Pamamahala ng combo |
+| `/api/keys*` | Iba't ibang | Pamamahala ng key ng API |
+| `/api/pricing` | KUMUHA | Pagpepresyo ng modelo |### Usage & Analytics
 
-| Endpoint                         | Method  | Description             |
-| -------------------------------- | ------- | ----------------------- |
-| `/api/oauth/[provider]/[action]` | Various | Provider-specific OAuth |
-
-### Routing & Config
-
-| Endpoint              | Method   | Description                   |
-| --------------------- | -------- | ----------------------------- |
-| `/api/models/alias`   | GET/POST | Model aliases                 |
-| `/api/models/catalog` | GET      | All models by provider + type |
-| `/api/combos*`        | Various  | Combo management              |
-| `/api/keys*`          | Various  | API key management            |
-| `/api/pricing`        | GET      | Model pricing                 |
-
-### Usage & Analytics
-
-| Endpoint                    | Method | Description          |
+| Endpoint | Paraan | Paglalarawan |
 | --------------------------- | ------ | -------------------- |
-| `/api/usage/history`        | GET    | Usage history        |
-| `/api/usage/logs`           | GET    | Usage logs           |
-| `/api/usage/request-logs`   | GET    | Request-level logs   |
-| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+| `/api/usage/history` | KUMUHA | Kasaysayan ng paggamit |
+| `/api/usage/logs` | KUMUHA | Mga log ng paggamit |
+| `/api/usage/request-logs` | KUMUHA | Mga log sa antas ng kahilingan |
+| `/api/usage/[connectionId]` | KUMUHA | Paggamit sa bawat koneksyon |### Settings
 
-### Settings
+| Endpoint | Paraan | Paglalarawan |
+| ------------------------------- | ------------- | ----------------------- |
+| `/api/setting` | GET/PUT/PATCH | Mga pangkalahatang setting |
+| `/api/setting/proxy` | GET/PUT | Network proxy config |
+| `/api/settings/proxy/test` | POST | Subukan ang proxy na koneksyon |
+| `/api/settings/ip-filter` | GET/PUT | IP allowlist/blocklist |
+| `/api/settings/thinking-budget` | GET/PUT | Rasoning token budget |
+| `/api/setting/system-prompt` | GET/PUT | Global system prompt |### Monitoring
 
-| Endpoint                        | Method        | Description            |
-| ------------------------------- | ------------- | ---------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings       |
-| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
-| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
-| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
-| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
-| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
+| Endpoint | Paraan | Paglalarawan |
+| ------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
+| `/api/sessions` | KUMUHA | Aktibong pagsubaybay sa session |
+| `/api/rate-limits` | KUMUHA | Mga limitasyon sa rate ng bawat account |
+| `/api/monitoring/health` | KUMUHA | Pagsusuri sa kalusugan + buod ng provider (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
+| `/api/cache/stats` | GET/DELETE | Mga istatistika ng cache / i-clear |### Backup & Export/Import
 
-### Monitoring
-
-| Endpoint                 | Method     | Description                                                                                          |
-| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
-| `/api/sessions`          | GET        | Active session tracking                                                                              |
-| `/api/rate-limits`       | GET        | Per-account rate limits                                                                              |
-| `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
-| `/api/cache/stats`       | GET/DELETE | Cache stats / clear                                                                                  |
-
-### Backup & Export/Import
-
-| Endpoint                    | Method | Description                             |
+| Endpoint | Paraan | Paglalarawan |
 | --------------------------- | ------ | --------------------------------------- |
-| `/api/db-backups`           | GET    | List available backups                  |
-| `/api/db-backups`           | PUT    | Create a manual backup                  |
-| `/api/db-backups`           | POST   | Restore from a specific backup          |
-| `/api/db-backups/export`    | GET    | Download database as .sqlite file       |
-| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database |
-| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive |
+| `/api/db-backups` | KUMUHA | Maglista ng mga available na backup |
+| `/api/db-backups` | ILAGAY | Gumawa ng manu-manong backup |
+| `/api/db-backups` | POST | Ibalik mula sa isang partikular na backup |
+| `/api/db-backups/export` | KUMUHA | I-download ang database bilang .sqlite file |
+| `/api/db-backups/import` | POST | Mag-upload ng .sqlite file upang palitan ang database |
+| `/api/db-backups/exportAll` | KUMUHA | I-download ang buong backup bilang .tar.gz archive |### Cloud Sync
 
-### Cloud Sync
+| Endpoint | Paraan | Paglalarawan |
+| ----------------------- | ------- | ---------------------- |
+| `/api/sync/cloud` | Iba't ibang | Mga pagpapatakbo ng cloud sync |
+| `/api/sync/initialize` | POST | Simulan ang pag-sync |
+| `/api/cloud/*` | Iba't ibang | Pamamahala ng ulap |### Tunnels
 
-| Endpoint               | Method  | Description           |
-| ---------------------- | ------- | --------------------- |
-| `/api/sync/cloud`      | Various | Cloud sync operations |
-| `/api/sync/initialize` | POST    | Initialize sync       |
-| `/api/cloud/*`         | Various | Cloud management      |
+| Endpoint | Paraan | Paglalarawan |
+| -------------------------- | ------ | ---------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | KUMUHA | Basahin ang Cloudflare Quick Tunnel install/runtime status para sa dashboard |
+| `/api/tunnels/cloudflared` | POST | Paganahin o huwag paganahin ang Cloudflare Quick Tunnel (`action=enable/disable`) |### CLI Tools
 
-### Tunnels
+| Endpoint | Paraan | Paglalarawan |
+| ------------------------------------ | ------ | ------------------- |
+| `/api/cli-tools/claude-settings` | KUMUHA | Claude CLI status |
+| `/api/cli-tools/codex-settings` | KUMUHA | Katayuan ng Codex CLI |
+| `/api/cli-tools/droid-settings` | KUMUHA | Katayuan ng Droid CLI |
+| `/api/cli-tools/openclaw-settings` | KUMUHA | Katayuan ng OpenClaw CLI |
+| `/api/cli-tools/runtime/[toolId]` | KUMUHA | Generic na CLI runtime |
 
-| Endpoint                   | Method | Description                                                             |
-| -------------------------- | ------ | ----------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
-| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
+Kasama sa mga tugon ng CLI ang: `naka-install`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.### ACP Agents
 
-### CLI Tools
-
-| Endpoint                           | Method | Description         |
-| ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Claude CLI status   |
-| `/api/cli-tools/codex-settings`    | GET    | Codex CLI status    |
-| `/api/cli-tools/droid-settings`    | GET    | Droid CLI status    |
-| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI status |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Generic CLI runtime |
-
-CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
-
-### ACP Agents
-
-| Endpoint          | Method | Description                                              |
+| Endpoint | Paraan | Paglalarawan |
 | ----------------- | ------ | -------------------------------------------------------- |
-| `/api/acp/agents` | GET    | List all detected agents (built-in + custom) with status |
-| `/api/acp/agents` | POST   | Add custom agent or refresh detection cache              |
-| `/api/acp/agents` | DELETE | Remove a custom agent by `id` query param                |
+| `/api/acp/agents` | KUMUHA | Ilista ang lahat ng nakitang ahente (built-in + custom) na may status |
+| `/api/acp/agents` | POST | Magdagdag ng custom na ahente o i-refresh ang detection cache |
+| `/api/acp/agents` | TANGGALIN | Mag-alis ng custom na ahente sa pamamagitan ng `id` query param |
 
-GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
+Kasama sa tugon ng GET ang `mga ahente[]` (id, pangalan, binary, bersyon, naka-install, protocol, isCustom) at `buod` (kabuuan, naka-install, hindi nahanap, builtIn, custom).### Resilience & Rate Limits
 
-### Resilience & Rate Limits
+| Endpoint | Paraan | Paglalarawan |
+| ------------------------ | --------- | ------------------------------- |
+| `/api/resilience` | GET/PATCH | Kumuha/mag-update ng mga profile ng resilience |
+| `/api/resilience/reset` | POST | I-reset ang mga circuit breaker |
+| `/api/rate-limits` | KUMUHA | Katayuan ng limitasyon sa rate ng bawat account |
+| `/api/rate-limit` | KUMUHA | Pagsasaayos ng limitasyon sa pandaigdigang rate |### Evals
 
-| Endpoint                | Method    | Description                     |
-| ----------------------- | --------- | ------------------------------- |
-| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
-| `/api/resilience/reset` | POST      | Reset circuit breakers          |
-| `/api/rate-limits`      | GET       | Per-account rate limit status   |
-| `/api/rate-limit`       | GET       | Global rate limit configuration |
-
-### Evals
-
-| Endpoint     | Method   | Description                       |
+| Endpoint | Paraan | Paglalarawan |
 | ------------ | -------- | --------------------------------- |
-| `/api/evals` | GET/POST | List eval suites / run evaluation |
+| `/api/evals` | GET/POST | Maglista ng mga eval suite / run evaluation |### Policies
 
-### Policies
+| Endpoint | Paraan | Paglalarawan |
+| --------------- | --------------- | ------------------------ |
+| `/api/policies` | GET/POST/DELETE | Pamahalaan ang mga patakaran sa pagruruta |### Compliance
 
-| Endpoint        | Method          | Description             |
-| --------------- | --------------- | ----------------------- |
-| `/api/policies` | GET/POST/DELETE | Manage routing policies |
-
-### Compliance
-
-| Endpoint                    | Method | Description                   |
+| Endpoint | Paraan | Paglalarawan |
 | --------------------------- | ------ | ----------------------------- |
-| `/api/compliance/audit-log` | GET    | Compliance audit log (last N) |
+| `/api/compliance/audit-log` | KUMUHA | Log ng audit ng pagsunod (huling N) |### v1beta (Gemini-Compatible)
 
-### v1beta (Gemini-Compatible)
-
-| Endpoint                   | Method | Description                       |
+| Endpoint | Paraan | Paglalarawan |
 | -------------------------- | ------ | --------------------------------- |
-| `/v1beta/models`           | GET    | List models in Gemini format      |
-| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint |
+| `/v1beta/mga modelo` | KUMUHA | Listahan ng mga modelo sa Gemini format |
+| `/v1beta/models/{...path}` | POST | Gemini `generateContent` endpoint |
 
-These endpoints mirror Gemini's API format for clients that expect native Gemini SDK compatibility.
+Ang mga endpoint na ito ay sumasalamin sa format ng API ng Gemini para sa mga kliyenteng umaasa sa native na Gemini SDK compatibility.### Internal / System APIs
 
-### Internal / System APIs
-
-| Endpoint        | Method | Description                                          |
+| Endpoint | Paraan | Paglalarawan |
 | --------------- | ------ | ---------------------------------------------------- |
-| `/api/init`     | GET    | Application initialization check (used on first run) |
-| `/api/tags`     | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`  | POST   | Trigger graceful server restart                      |
-| `/api/shutdown` | POST   | Trigger graceful server shutdown                     |
+| `/api/init` | KUMUHA | Pagsusuri sa pagsisimula ng application (ginamit sa unang pagtakbo) |
+| `/api/tags` | KUMUHA | Mga tag ng modelong katugma sa Ollama (para sa mga kliyente ng Ollama) |
+| `/api/restart` | POST | I-trigger ang magandang pag-restart ng server |
+| `/api/shutdown` | POST | Mag-trigger ng magandang pag-shutdown ng server |
 
-> **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
-
----
+>**Tandaan:**Ang mga endpoint na ito ay panloob na ginagamit ng system o para sa Ollama client compatibility. Hindi sila karaniwang tinatawag ng mga end user.---
 
 ## Audio Transcription
 
@@ -339,69 +294,63 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
-```
+````
 
-Transcribe audio files using Deepgram or AssemblyAI.
+I-transcribe ang mga audio file gamit ang Deepgram o AssemblyAI.
 
-**Request:**
-
-```bash
+**Kahilingan:**```bash
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
-  -H "Authorization: Bearer your-api-key" \
-  -F "file=@recording.mp3" \
-  -F "model=deepgram/nova-3"
-```
+ -H "Authorization: Bearer your-api-key" \
+ -F "file=@recording.mp3" \
+ -F "model=deepgram/nova-3"
 
-**Response:**
+````
 
-```json
+**Tugon:**```json
 {
   "text": "Hello, this is the transcribed audio content.",
   "task": "transcribe",
   "language": "en",
   "duration": 12.5
 }
-```
+````
 
-**Supported providers:** `deepgram/nova-3`, `assemblyai/best`.
+**Mga sinusuportahang provider:**`deepgram/nova-3`, `assemblyai/best`.
 
-**Supported formats:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
-
----
+**Mga sinusuportahang format:**`mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.---
 
 ## Ollama Compatibility
 
-For clients that use Ollama's API format:
+Para sa mga kliyenteng gumagamit ng format ng API ng Ollama:```bash
 
-```bash
 # Chat endpoint (Ollama format)
+
 POST /v1/api/chat
 
 # Model listing (Ollama format)
+
 GET /api/tags
-```
 
-Requests are automatically translated between Ollama and internal formats.
+````
 
----
+Awtomatikong isinasalin ang mga kahilingan sa pagitan ng Ollama at mga panloob na format.---
 
 ## Telemetry
 
 ```bash
 # Get latency telemetry summary (p50/p95/p99 per provider)
 GET /api/telemetry/summary
-```
+````
 
-**Response:**
-
-```json
+**Tugon:**```json
 {
-  "providers": {
-    "claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
-    "github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
-  }
+"providers": {
+"claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
+"github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
 }
-```
+}
+
+````
 
 ---
 
@@ -420,7 +369,7 @@ Content-Type: application/json
   "limit": 50.00,
   "period": "monthly"
 }
-```
+````
 
 ---
 
@@ -443,23 +392,21 @@ Content-Type: application/json
 
 ## Request Processing
 
-1. Client sends request to `/v1/*`
-2. Route handler calls `handleChat`, `handleEmbedding`, `handleAudioTranscription`, or `handleImageGeneration`
-3. Model is resolved (direct provider/model or alias/combo)
-4. Credentials selected from local DB with account availability filtering
-5. For chat: `handleChatCore` — format detection, translation, cache check, idempotency check
-6. Provider executor sends upstream request
-7. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
-8. Usage/logging recorded
-9. Fallback applies on errors according to combo rules
+1. Nagpapadala ang kliyente ng kahilingan sa `/v1/*`
+2. Tumatawag ang tagapangasiwa ng ruta ng `handleChat`, `handleEmbedding`, `handleAudioTranscription`, o `handleImageGeneration`
+3. Nalutas ang modelo (direktang provider/modelo o alias/combo)
+4. Pinili ang mga kredensyal mula sa lokal na DB na may pagsasala ng availability ng account
+5. Para sa chat: `handleChatCore` — format detection, translation, cache check, idempotency check
+6. Nagpapadala ang tagapagpatupad ng provider ng upstream na kahilingan
+7. Ang tugon ay isinalin pabalik sa format ng kliyente (chat) o ibinalik sa dati (mga pag-embed/mga larawan/audio)
+8. Naitala ang paggamit/pag-log
+9. Nalalapat ang Fallback sa mga error ayon sa combo rules
 
-Full architecture reference: [`ARCHITECTURE.md`](ARCHITECTURE.md)
-
----
+Buong sanggunian sa arkitektura: [`ARCHITECTURE.md`](ARCHITECTURE.md)---
 
 ## Authentication
 
-- Dashboard routes (`/dashboard/*`) use `auth_token` cookie
-- Login uses saved password hash; fallback to `INITIAL_PASSWORD`
-- `requireLogin` toggleable via `/api/settings/require-login`
-- `/v1/*` routes optionally require Bearer API key when `REQUIRE_API_KEY=true`
+- Gumagamit ang mga ruta ng dashboard (`/dashboard/*`) ng cookie ng `auth_token`
+- Gumagamit ang pag-login ng naka-save na hash ng password; fallback sa `INITIAL_PASSWORD`
+- `requireLogin` toggleable sa pamamagitan ng `/api/settings/require-login`
+- Opsyonal na nangangailangan ang mga ruta ng `/v1/*` ng Bearer API key kapag `REQUIRE_API_KEY=true`

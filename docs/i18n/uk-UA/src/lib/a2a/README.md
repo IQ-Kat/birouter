@@ -4,11 +4,9 @@
 
 ---
 
-> **Agent-to-Agent Protocol v0.3** — Enables any AI agent to use OmniRoute as an intelligent routing agent via JSON-RPC 2.0.
+> **Agent-to-Agent Protocol v0.3**— дозволяє будь-якому агенту AI використовувати OmniRoute як агента інтелектуальної маршрутизації через JSON-RPC 2.0.
 
-The A2A Server exposes OmniRoute as a **first-class agent** that other agents can discover, delegate tasks to, and collaborate with using the [A2A Protocol](https://google.github.io/A2A/).
-
----
+Сервер A2A представляє OmniRoute як**першокласного агента**, якого інші агенти можуть виявляти, делегувати завдання та співпрацювати з ним за допомогою [протоколу A2A](https://google.github.io/A2A/).---
 
 ## Архітектура
 
@@ -43,15 +41,12 @@ The A2A Server exposes OmniRoute as a **first-class agent** that other agents ca
 
 ### Agent Discovery
 
-Every A2A-compatible agent exposes an **Agent Card** at `/.well-known/agent.json`:
-
-```bash
+Кожен A2A-сумісний агент відкриває**картку агента**в `/.well-known/agent.json`:```bash
 curl http://localhost:20128/.well-known/agent.json
-```
 
-**Response:**
+````
 
-```json
+**Відповідь:**```json
 {
   "name": "OmniRoute",
   "description": "Intelligent AI gateway with auto-routing across 50+ providers",
@@ -88,7 +83,7 @@ curl http://localhost:20128/.well-known/agent.json
     "apiKeyHeader": "Authorization"
   }
 }
-```
+````
 
 ---
 
@@ -96,27 +91,24 @@ curl http://localhost:20128/.well-known/agent.json
 
 ### `message/send` — Synchronous Execution
 
-Send a message to a skill and receive the complete response.
-
-```bash
+Надішліть повідомлення навичці та отримайте повну відповідь.```bash
 curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/send",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Write a Python hello world"}],
-      "metadata": {"model": "auto", "combo": "fast-coding"}
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/send",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Write a Python hello world"}],
+"metadata": {"model": "auto", "combo": "fast-coding"}
+}
+}'
 
-**Response:**
+````
 
-```json
+**Відповідь:**```json
 {
   "jsonrpc": "2.0",
   "id": "1",
@@ -133,36 +125,33 @@ curl -X POST http://localhost:20128/a2a \
     }
   }
 }
-```
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+Те саме, що `message/send`, але повертає події, надіслані сервером, для трансляції в реальному часі.```bash
 curl -N -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/stream",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Explain quantum computing"}]
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/stream",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Explain quantum computing"}]
+}
+}'
 
-**SSE Events:**
+````
 
-```
+**Події SSE:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"Quantum computing..."}}}
 
 : heartbeat 2026-03-04T21:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -188,40 +177,36 @@ curl -X POST http://localhost:20128/a2a \
 
 ### `smart-routing`
 
-Routes prompts through OmniRoute's intelligent pipeline with full observability.
+Підказки про маршрути через інтелектуальний конвеєр OmniRoute з повною видимістю.
 
-**Parameters (in `metadata`):**
+**Параметри (в `метаданих`):**
 
-| Parameter | Type     | Default      | Description                                                                              |
-| --------- | -------- | ------------ | ---------------------------------------------------------------------------------------- |
-| `model`   | `string` | `"auto"`     | Target model (e.g., `claude-sonnet-4`, `gpt-4o`, `auto`)                                 |
-| `combo`   | `string` | active combo | Specific combo to route through                                                          |
-| `budget`  | `number` | none         | Maximum cost in USD for this request                                                     |
-| `role`    | `string` | none         | Task role hint: `coding`, `review`, `planning`, `analysis`, `debugging`, `documentation` |
+| Параметр | Тип     | За замовчуванням | Опис                                                                                                        |
+| -------- | ------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| `модель` | `рядок` | `"авто"`         | Цільова модель (наприклад, `claude-sonnet-4`, `gpt-4o`, `auto`)                                             |
+| `combo`  | `рядок` | активний комбо   | Спеціальне комбо для маршруту через                                                                         |
+| `бюджет` | `число` | немає            | Максимальна вартість у доларах США для цього запиту                                                         |
+| `роль`   | `рядок` | немає            | Підказка про роль завдання: `кодування`, `перегляд`, `планування`, `аналіз`, `налагодження`, `документація` |
 
-**Returns:**
+**Повернення:**
 
-| Field                          | Description                                               |
-| ------------------------------ | --------------------------------------------------------- |
-| `artifacts[].content`          | The LLM response text                                     |
-| `metadata.routing_explanation` | Human-readable explanation of routing decision            |
-| `metadata.cost_envelope`       | Estimated vs actual cost with currency                    |
-| `metadata.resilience_trace`    | Array of events (primary_selected, fallback_needed, etc.) |
-| `metadata.policy_verdict`      | Whether the request was allowed and why                   |
+| Поле                           | Опис                                                 |
+| ------------------------------ | ---------------------------------------------------- | ---------------------- |
+| `artifacts[].content`          | Текст відповіді LLM                                  |
+| `metadata.routing_explanation` | Зрозуміле пояснення рішення про маршрутизацію        |
+| `metadata.cost_envelope`       | Орієнтовна порівняно з фактичною вартістю з валютою  |
+| `metadata.resilience_trace`    | Масив подій (primary_selected, fallback_needed тощо) |
+| `metadata.policy_verdict`      | Чи дозволено запит і чому                            | ### `quota-management` |
 
-### `quota-management`
+Відповідає на запити природною мовою щодо квот постачальника.
 
-Answers natural-language queries about provider quotas.
+**Типи запитів (виходячи зі змісту повідомлення):**
 
-**Query types (inferred from message content):**
-
-| Query Pattern                                  | Response Type                                            |
-| ---------------------------------------------- | -------------------------------------------------------- |
-| Contains `"ranking"`, `"most quota"`, `"best"` | Providers ranked by remaining quota                      |
-| Contains `"free"`, `"suggest"`                 | Lists free combos or suggests free-tier providers        |
-| Default                                        | Full quota summary with warnings for low-quota providers |
-
----
+| Шаблон запиту                                           | Тип відповіді                                                               |
+| ------------------------------------------------------- | --------------------------------------------------------------------------- | --- |
+| Містить `"рейтинг"`, `"найбільша квота"`, `"найкращий"` | Постачальники впорядковані за квотою, що залишилася                         |
+| Містить `"безкоштовно"`, `"запропонувати"`              | Перелічує безкоштовні комбінації або пропонує безкоштовних постачальників   |
+| За замовчуванням                                        | Повний підсумок квот із попередженнями для постачальників із низькою квотою | --- |
 
 ## Task Lifecycle
 
@@ -231,19 +216,17 @@ submitted ──→ working ──→ completed
               ──────────→ cancelled
 ```
 
-| State       | Description                                           |
-| ----------- | ----------------------------------------------------- |
-| `submitted` | Task created, queued for execution                    |
-| `working`   | Skill handler is executing                            |
-| `completed` | Execution succeeded, artifacts available              |
-| `failed`    | Execution failed or task expired (TTL: 5 min default) |
-| `cancelled` | Cancelled by client via `tasks/cancel`                |
+| Держава      | Опис                                                                      |
+| ------------ | ------------------------------------------------------------------------- |
+| `надіслано`  | Завдання створено, поставлено в чергу на виконання                        |
+| `працює`     | Навичок обробки виконує                                                   |
+| `завершено`  | Виконання виконано успішно, артефакти доступні                            |
+| `не вдалося` | Помилка виконання або термін дії завдання минув (TTL: 5 хв за умовчанням) |
+| `скасовано`  | Скасовано клієнтом через `tasks/cancel`                                   |
 
-- Terminal states: `completed`, `failed`, `cancelled` (no further transitions)
-- Expired tasks in `submitted` or `working` are auto-marked as `failed`
-- Tasks are garbage-collected after 2× TTL
-
----
+- Стан терміналу: `completed`, `failed`, `cancelled` (без подальших переходів)
+- Завдання, термін дії яких минув, у розділах «надіслано» або «працює» автоматично позначаються як «не виконано».
+- Завдання прибираються після 2× TTL---
 
 ## Client Examples
 
@@ -541,15 +524,12 @@ func main() {
 
 ### 🤖 Use Case 1: Multi-Agent Coding Pipeline
 
-An orchestrator agent delegates code generation to OmniRoute, then passes the output to a review agent.
-
-```python
-def coding_pipeline(task: str):
-    # Step 1: Generate code via OmniRoute A2A
-    code_result = a2a_send("smart-routing", [
-        {"role": "user", "content": f"Write production-quality code: {task}"}
-    ], metadata={"model": "auto", "role": "coding"})
-    code = code_result["artifacts"][0]["content"]
+Агент оркестратора делегує створення коду OmniRoute, а потім передає вихід агенту перегляду.```python
+def coding_pipeline(task: str): # Step 1: Generate code via OmniRoute A2A
+code_result = a2a_send("smart-routing", [
+{"role": "user", "content": f"Write production-quality code: {task}"}
+], metadata={"model": "auto", "role": "coding"})
+code = code_result["artifacts"][0]["content"]
 
     # Step 2: Review the code via OmniRoute A2A (different model)
     review_result = a2a_send("smart-routing", [
@@ -562,13 +542,12 @@ def coding_pipeline(task: str):
     print(f"Review cost: ${review_result['metadata']['cost_envelope']['actual']}")
 
     return {"code": code, "review": review}
-```
+
+````
 
 ### 💡 Use Case 2: Quota-Aware Agent Swarm
 
-Multiple agents share quota through OmniRoute, using the quota skill to coordinate.
-
-```python
+Кілька агентів ділять квоту через OmniRoute, використовуючи навик квоти для координації.```python
 async def quota_aware_agent(agent_name: str, task: str):
     # Check quota before starting
     quota = a2a_send("quota-management", [
@@ -591,32 +570,30 @@ async def quota_aware_agent(agent_name: str, task: str):
         print(f"[{agent_name}] Free alternatives: {quota['artifacts'][0]['content']}")
 
     return result
-```
+````
 
 ### 📊 Use Case 3: Real-Time Streaming Dashboard
 
-A monitoring agent streams responses and displays progress in real-time.
-
-```typescript
+Агент моніторингу транслює відповіді та відображає прогрес у режимі реального часу.```typescript
 async function streamingDashboard(prompt: string) {
   const response = await fetch(`${BASE_URL}/a2a`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: "dash-1",
-      method: "message/stream",
-      params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
-    }),
-  });
+body: JSON.stringify({
+jsonrpc: "2.0",
+id: "dash-1",
+method: "message/stream",
+params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
+}),
+});
 
-  let totalChunks = 0;
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
+let totalChunks = 0;
+const reader = response.body!.getReader();
+const decoder = new TextDecoder();
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+while (true) {
+const { done, value } = await reader.read();
+if (done) break;
 
     for (const line of decoder.decode(value).split("\n")) {
       if (line.startsWith("data: ")) {
@@ -640,15 +617,15 @@ async function streamingDashboard(prompt: string) {
         }
       }
     }
-  }
+
 }
-```
+}
+
+````
 
 ### 🔁 Use Case 4: Task Polling Pattern
 
-For long-running tasks, poll the task status instead of waiting synchronously.
-
-```python
+Для довгострокових завдань опитуйте статус завдання замість синхронного очікування.```python
 import time
 
 def poll_task(task_id: str, timeout: int = 60):
@@ -678,75 +655,71 @@ def poll_task(task_id: str, timeout: int = 60):
         "params": {"taskId": task_id},
     })
     raise TimeoutError(f"Task {task_id} timed out after {timeout}s")
-```
+````
 
 ---
 
 ## Error Codes
 
-| Code   | Constant                 | Meaning                                  |
-| ------ | ------------------------ | ---------------------------------------- |
-| -32700 | —                        | Parse error (invalid JSON)               |
-| -32600 | `INVALID_REQUEST`        | Invalid JSON-RPC request or unauthorized |
-| -32601 | `METHOD_NOT_FOUND`       | Unknown method or skill                  |
-| -32602 | `INVALID_PARAMS`         | Missing or invalid parameters            |
-| -32603 | `INTERNAL_ERROR`         | Skill execution failed                   |
-| -32001 | `TASK_NOT_FOUND`         | Task ID not found                        |
-| -32002 | `TASK_ALREADY_COMPLETED` | Cannot modify a completed task           |
-| -32003 | `UNAUTHORIZED`           | Invalid or missing API key               |
-| -32004 | `BUDGET_EXCEEDED`        | Request exceeds configured budget        |
-| -32005 | `PROVIDER_UNAVAILABLE`   | No available providers                   |
-
----
+| Код    | Постійний                  | Значення                                     |
+| ------ | -------------------------- | -------------------------------------------- | --- |
+| -32700 | —                          | Помилка аналізу (недійсний JSON)             |
+| -32600 | `INVALID_REQUEST`          | Недійсний запит JSON-RPC або неавторизований |
+| -32601 | `МЕТОД_НЕ_ЗНАЙДЕНО`        | Невідомий метод чи навик                     |
+| -32602 | `INVALID_PARAMS`           | Відсутні або недійсні параметри              |
+| -32603 | `INTERNAL_ERROR`           | Помилка виконання навику                     |
+| -32001 | `ЗАВДАННЯ_НЕ_ЗНАЙДЕНО`     | ID завдання не знайдено                      |
+| -32002 | `ЗАВДАННЯ_ВЖЕ ВИКОНАНО`    | Неможливо змінити виконане завдання          |
+| -32003 | `НЕАВТОРИЗОВАНИЙ`          | Недійсний або відсутній ключ API             |
+| -32004 | `БЮДЖЕТ_ПЕРЕВИЩЕНИЙ`       | Запит перевищує налаштований бюджет          |
+| -32005 | `ПОСТАЧАЛЬНИК_НЕДОСТУПНИЙ` | Немає доступних постачальників               | --- |
 
 ## Authentication
 
-All `/a2a` requests require a Bearer token via the `Authorization` header:
-
-```
+Для всіх запитів `/a2a` потрібен маркер носія через заголовок `Authorization`:```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+
 ```
 
-If no API key is configured on the server (`OMNIROUTE_API_KEY` is empty), authentication is bypassed.
-
----
+Якщо на сервері не налаштовано ключ API (`OMNIROUTE_API_KEY` порожній), автентифікація обходиться.---
 
 ## File Structure
 
 ```
+
 src/lib/a2a/
-├── taskManager.ts         # Task lifecycle (create/update/cancel/list), TTL, cleanup
-├── taskExecution.ts       # Generic task executor with state management
-├── streaming.ts           # SSE stream formatting, heartbeat, chunk/completion events
-├── routingLogger.ts       # Routing decision logger (stats, history, retention)
+├── taskManager.ts # Task lifecycle (create/update/cancel/list), TTL, cleanup
+├── taskExecution.ts # Generic task executor with state management
+├── streaming.ts # SSE stream formatting, heartbeat, chunk/completion events
+├── routingLogger.ts # Routing decision logger (stats, history, retention)
 └── skills/
-    ├── smartRouting.ts    # Smart routing skill (routes via /v1/chat/completions)
-    └── quotaManagement.ts # Quota management skill (natural-language quota queries)
+├── smartRouting.ts # Smart routing skill (routes via /v1/chat/completions)
+└── quotaManagement.ts # Quota management skill (natural-language quota queries)
 
 src/app/a2a/
-└── route.ts               # Next.js API route handler (JSON-RPC 2.0 dispatch)
+└── route.ts # Next.js API route handler (JSON-RPC 2.0 dispatch)
 
 open-sse/mcp-server/
-└── schemas/a2a.ts         # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+└── schemas/a2a.ts # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+
 ```
 
 ---
 
 ## Comparison: MCP vs A2A
 
-| Feature           | MCP Server                   | A2A Server                                        |
-| ----------------- | ---------------------------- | ------------------------------------------------- |
-| **Protocol**      | Model Context Protocol       | Agent-to-Agent Protocol v0.3                      |
-| **Transport**     | stdio / HTTP                 | HTTP (JSON-RPC 2.0)                               |
-| **Discovery**     | Tool listing via MCP         | `/.well-known/agent.json`                         |
-| **Granularity**   | 16 individual tools          | 2 high-level skills                               |
-| **Best for**      | IDE agents (Cursor, VS Code) | Multi-agent systems (LangChain, CrewAI)           |
-| **Streaming**     | Not supported                | SSE via `message/stream`                          |
-| **Task tracking** | No                           | Full lifecycle (submitted → completed)            |
-| **Observability** | Audit log per tool call      | Cost envelope + resilience trace + policy verdict |
-
----
+| Особливість | Сервер MCP | Сервер A2A |
+| ------------------ | ---------------------------- | -------------------------------------------------- |
+|**Протокол**| Модель контекстного протоколу | Протокол між агентами v0.3 |
+|**Транспорт**| stdio / HTTP | HTTP (JSON-RPC 2.0) |
+|**Відкриття**| Список інструментів через MCP | `/.well-known/agent.json` |
+|**Деталізація**| 16 окремих інструментів | 2 навички високого рівня |
+|**Найкраще для**| Агенти IDE (Курсор, код VS) | Мультиагентні системи (LangChain, CrewAI) |
+|**Потокове передавання**| Не підтримується | SSE через `повідомлення/потік` |
+|**Відстеження завдань**| Ні | Повний життєвий цикл (надіслано → завершено) |
+|**Спостережливість**| Журнал аудиту на виклик інструменту | Конверт витрат + трасування стійкості + політичний вердикт |---
 
 ## Ліцензія
 
-Part of [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — MIT License.
+Частина [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — Ліцензія MIT.
+```

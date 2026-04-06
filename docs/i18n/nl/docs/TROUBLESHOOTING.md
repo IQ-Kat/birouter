@@ -4,86 +4,68 @@
 
 ---
 
-Common problems and solutions for OmniRoute.
-
----
+Veelvoorkomende problemen en oplossingen voor OmniRoute.---
 
 ## Quick Fixes
 
-| Problem                       | Solution                                                           |
-| ----------------------------- | ------------------------------------------------------------------ |
-| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
-| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
-| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
-| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
-| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
-
----
+| Probleem                            | Oplossing                                                                   |
+| ----------------------------------- | --------------------------------------------------------------------------- | --- |
+| Eerste login werkt niet             | Stel `INITIAL_PASSWORD` in `.env` in (geen hardgecodeerde standaard)        |
+| Dashboard opent op verkeerde poort  | Stel `PORT=20128` en `NEXT_PUBLIC_BASE_URL=http://localhost:20128`          |
+| Geen verzoeklogboeken onder `logs/` | Stel `ENABLE_REQUEST_LOGS=true`                                             | in  |
+| EACCES: toestemming geweigerd       | Stel `DATA_DIR=/path/to/writable/dir` in om `~/.omniroute` te overschrijven |
+| Routeringsstrategie bespaart niet   | Update naar v1.4.11+ (Zod-schemafix voor persistentie van instellingen)     | --- |
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**Cause:** Provider quota exhausted.
+**Oorzaak:**Providerquotum is opgebruikt.
 
-**Fix:**
+**Opgelost:**
 
-1. Check dashboard quota tracker
-2. Use a combo with fallback tiers
-3. Switch to cheaper/free tier
+1. Controleer de dashboardquotatracker
+2. Gebruik een combo met fallback-lagen
+3. Schakel over naar het goedkopere/gratis niveau### Rate Limiting
 
-### Rate Limiting
+**Oorzaak:**Abonnementsquota zijn opgebruikt.
 
-**Cause:** Subscription quota exhausted.
+**Opgelost:**
 
-**Fix:**
+- Terugval toevoegen: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Gebruik GLM/MiniMax als goedkope back-up### OAuth Token Expired
 
-- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Use GLM/MiniMax as cheap backup
+OmniRoute vernieuwt tokens automatisch. Als de problemen aanhouden:
 
-### OAuth Token Expired
-
-OmniRoute auto-refreshes tokens. If issues persist:
-
-1. Dashboard → Provider → Reconnect
-2. Delete and re-add the provider connection
-
----
+1. Dashboard → Provider → Opnieuw verbinden
+2. Verwijder de providerverbinding en voeg deze opnieuw toe---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
-2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
-3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
+1. Controleer of `BASE_URL` verwijst naar uw actieve exemplaar (bijvoorbeeld `http://localhost:20128`)
+2. Controleer of `CLOUD_URL` verwijst naar uw cloudeindpunt (bijvoorbeeld `https://omniroute.dev`)
+3. Zorg ervoor dat de waarden van `NEXT_PUBLIC_*` uitgelijnd zijn met de waarden op de server### Cloud `stream=false` Returns 500
 
-### Cloud `stream=false` Returns 500
+**Symptoom:**`Onverwacht token 'd'...` op cloudeindpunt voor niet-streaming oproepen.
 
-**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
+**Oorzaak:**Upstream retourneert SSE-payload terwijl de client JSON verwacht.
 
-**Cause:** Upstream returns SSE payload while client expects JSON.
+**Oplossing:**Gebruik `stream=true` voor directe cloudoproepen. Lokale runtime omvat SSE → JSON-fallback.### Cloud Says Connected but "Invalid API key"
 
-**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
-
-### Cloud Says Connected but "Invalid API key"
-
-1. Create a fresh key from local dashboard (`/api/keys`)
-2. Run cloud sync: Enable Cloud → Sync Now
-3. Old/non-synced keys can still return `401` on cloud
-
----
+1. Maak een nieuwe sleutel vanuit het lokale dashboard (`/api/keys`)
+2. Voer cloudsynchronisatie uit: Schakel Cloud in → Nu synchroniseren
+3. Oude/niet-gesynchroniseerde sleutels kunnen nog steeds '401' retourneren in de cloud---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. For portable mode: use image target `runner-cli` (bundled CLIs)
-3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
-4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
-
-### Quick Runtime Validation
+1. Controleer runtimevelden: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. Voor draagbare modus: gebruik afbeeldingsdoel `runner-cli` (gebundelde CLI's)
+3. Voor host-aankoppelmodus: stel `CLI_EXTRA_PATHS` in en koppel de hostbin-directory aan als alleen-lezen
+4. Indien `geïnstalleerd=true` en `runnable=false`: binair bestand is gevonden maar de gezondheidscontrole is mislukt### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -97,20 +79,16 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. Check usage stats in Dashboard → Usage
-2. Switch primary model to GLM/MiniMax
-3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
-4. Set cost budgets per API key: Dashboard → API Keys → Budget
-
----
+1. Controleer gebruiksstatistieken in Dashboard → Gebruik
+2. Schakel het primaire model over naar GLM/MiniMax
+3. Gebruik de gratis laag (Gemini CLI, Qoder) voor niet-kritieke taken
+4. Stel kostenbudgetten per API-sleutel in: Dashboard → API-sleutels → Budget---
 
 ## Debugging
 
 ### Enable Request Logs
 
-Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
-
-### Check Provider Health
+Stel `ENABLE_REQUEST_LOGS=true` in uw `.env`-bestand in. Logboeken verschijnen onder de map `logs/`.### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -122,135 +100,101 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
-- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
-- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
-
----
+- Hoofdstatus: `${DATA_DIR}/storage.sqlite` (providers, combo's, aliassen, sleutels, instellingen)
+- Gebruik: SQLite-tabellen in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optioneel `${DATA_DIR}/log.txt` en `${DATA_DIR}/call_logs/`
+- Logboeken aanvragen: `<repo>/logs/...` (wanneer `ENABLE_REQUEST_LOGS=true`)---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
+Wanneer de stroomonderbreker van een provider OPEN is, worden verzoeken geblokkeerd totdat de cooldown is verstreken.
 
-**Fix:**
+**Opgelost:**
 
-1. Go to **Dashboard → Settings → Resilience**
-2. Check the circuit breaker card for the affected provider
-3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
-4. Verify the provider is actually available before resetting
+1. Ga naar**Dashboard → Instellingen → Veerkracht**
+2. Controleer de stroomonderbrekerkaart van de betreffende provider
+3. Klik op**Alles resetten**om alle onderbrekers te wissen, of wacht tot de cooldown is verstreken
+4. Controleer of de provider daadwerkelijk beschikbaar is voordat u reset### Provider keeps tripping the circuit breaker
 
-### Provider keeps tripping the circuit breaker
+Als een aanbieder herhaaldelijk in de OPEN-status komt:
 
-If a provider repeatedly enters OPEN state:
-
-1. Check **Dashboard → Health → Provider Health** for the failure pattern
-2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
-3. Check if the provider has changed API limits or requires re-authentication
-4. Review latency telemetry — high latency may cause timeout-based failures
-
----
+1. Controleer**Dashboard → Gezondheid → Providergezondheid**voor het foutpatroon
+2. Ga naar**Instellingen → Veerkracht → Providerprofielen**en verhoog de foutdrempel
+3. Controleer of de provider de API-limieten heeft gewijzigd of herauthenticatie vereist
+4. Controleer latentie-telemetrie: hoge latentie kan op time-outs gebaseerde fouten veroorzaken---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
-- Verify the provider is connected in **Dashboard → Providers**
+- Zorg ervoor dat u het juiste voorvoegsel gebruikt: `deepgram/nova-3` of `assemblyai/best`
+- Controleer of de provider is verbonden in**Dashboard → Providers**### Transcription returns empty or fails
 
-### Transcription returns empty or fails
-
-- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Verify file size is within provider limits (typically < 25MB)
-- Check provider API key validity in the provider card
-
----
+- Controleer ondersteunde audioformaten: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Controleer of de bestandsgrootte binnen de limieten van de provider ligt (doorgaans < 25 MB)
+- Controleer de geldigheid van de API-sleutel van de provider op de providerkaart---
 
 ## Translator Debugging
 
-Use **Dashboard → Translator** to debug format translation issues:
+Gebruik**Dashboard → Vertaler**om problemen met de vertaling van formaten op te lossen:
 
-| Mode             | When to Use                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------------------- |
-| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
-| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
-| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
-| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
+| Modus           | Wanneer gebruiken                                                                                          |
+| --------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------ |
+| **Speeltuin**   | Vergelijk invoer-/uitvoerformaten naast elkaar - plak een mislukt verzoek om te zien hoe het zich vertaalt |
+| **Chattester**  | Verzend live berichten en inspecteer de volledige payload van verzoeken/antwoorden, inclusief headers      |
+| **Proefbank**   | Voer batchtests uit voor indelingscombinaties om te ontdekken welke vertalingen niet werken                |
+| **Livemonitor** | Bekijk de realtime aanvraagstroom om intermitterende vertaalproblemen op te sporen                         | ### Common format issues |
 
-### Common format issues
-
-- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
-- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
-- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
-- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
-- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
-- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
-- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
-
----
+-**Thinking-tags verschijnen niet**— Controleer of de doelaanbieder het denken en de instelling van het denkbudget ondersteunt -**Tooloproepen vervallen**— Bij sommige formaatvertalingen kunnen niet-ondersteunde velden worden verwijderd; verifiëren in Speeltuinmodus -**Systeemprompt ontbreekt**— Claude en Gemini behandelen de systeemprompts anders; controleer de vertalingsuitvoer -**SDK retourneert onbewerkte tekenreeks in plaats van object**— Opgelost in v1.1.0: respons sanitizer verwijdert nu niet-standaard velden (`x_groq`, `usage_breakdown`, enz.) die OpenAI SDK Pydantic-validatiefouten veroorzaken -**GLM/ERNIE wijst de `systeem`-rol af**— Opgelost in v1.1.0: de rolnormalizer voegt systeemberichten automatisch samen met gebruikersberichten voor incompatibele modellen -**`rol van ontwikkelaar` wordt niet herkend**— Opgelost in v1.1.0: automatisch geconverteerd naar `systeem` voor niet-OpenAI-providers -**`json_schema` werkt niet met Gemini**— Opgelost in v1.1.0: `response_format` wordt nu geconverteerd naar Gemini's `responseMimeType` + `responseSchema`---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- Auto rate-limit only applies to API key providers (not OAuth/subscription)
-- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
-- Check if the provider returns `429` status codes or `Retry-After` headers
+- Automatische tarieflimiet is alleen van toepassing op API-sleutelproviders (niet op OAuth/abonnement)
+- Controleer of bij Instellingen → Veerkracht → Providerprofielen\*\*automatische tarieflimiet is ingeschakeld
+- Controleer of de provider statuscodes '429' of headers 'Retry-After' retourneert### Tuning exponential backoff
 
-### Tuning exponential backoff
+Providerprofielen ondersteunen deze instellingen:
 
-Provider profiles support these settings:
+-**Basisvertraging**— Initiële wachttijd na eerste storing (standaard: 1s) -**Max. vertraging**— Maximale wachttijdlimiet (standaard: 30s) -**Vermenigvuldiger**— Hoeveel vertraging per opeenvolgende fout moet worden vergroot (standaard: 2x)### Anti-thundering herd
 
-- **Base delay** — Initial wait time after first failure (default: 1s)
-- **Max delay** — Maximum wait time cap (default: 30s)
-- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
-
-### Anti-thundering herd
-
-When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
-
----
+Wanneer veel gelijktijdige verzoeken een provider met een beperkte snelheid bereiken, gebruikt OmniRoute mutex + automatische snelheidsbeperking om verzoeken te serialiseren en trapsgewijze fouten te voorkomen. Dit gebeurt automatisch voor API-sleutelproviders.---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
+Sommige OmniRoute-gebruikers plaatsen de gateway vóór RAG- of agentstacks. In deze instellingen is het gebruikelijk om een ​​vreemd patroon te zien: OmniRoute ziet er gezond uit (providers actief, routeringsprofielen ok, geen waarschuwingen over de snelheidslimiet), maar het uiteindelijke antwoord is nog steeds verkeerd.
 
-In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
+In de praktijk komen deze incidenten meestal van de stroomafwaartse RAG-pijpleiding en niet van de gateway zelf.
 
-If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
+Als u een gedeelde woordenschat wilt om deze fouten te beschrijven, kunt u de WFGY ProblemMap gebruiken, een externe MIT-licentietekstbron die zestien terugkerende RAG / LLM-foutpatronen definieert. Op een hoog niveau omvat het:
 
-- retrieval drift and broken context boundaries
-- empty or stale indexes and vector stores
-- embedding versus semantic mismatch
-- prompt assembly and context window issues
-- logic collapse and overconfident answers
-- long chain and agent coordination failures
-- multi agent memory and role drift
-- deployment and bootstrap ordering problems
+- retrieval drift en verbroken contextgrenzen
+- lege of verouderde indexen en vectorwinkels
+- inbedding versus semantische mismatch
+- problemen met snelle montage en contextvensters
+- logische ineenstorting en overmoedige antwoorden
+- mislukkingen in de lange keten en de coördinatie van agenten
+- Multi-agentgeheugen en rolafwijking
+- implementatie- en bootstrap-bestellingsproblemen
 
-The idea is simple:
+Het idee is simpel:
 
-1. When you investigate a bad response, capture:
-   - user task and request
-   - route or provider combo in OmniRoute
-   - any RAG context used downstream (retrieved documents, tool calls, etc)
-2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
-3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
-4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
+1. Wanneer je een slechte reactie onderzoekt, leg dan vast:
+   - gebruikerstaak en -verzoek
+   - route- of providercombinatie in OmniRoute
+   - elke RAG-context die stroomafwaarts wordt gebruikt (opgehaalde documenten, tooloproepen, enz.)
+2. Wijs het incident toe aan een of twee WFGY ProblemMap-nummers (`No.1` … `No.16`).
+3. Bewaar het nummer in uw eigen dashboard, runbook of incidenttracker naast de OmniRoute-logboeken.
+4. Gebruik de bijbehorende WFGY-pagina om te beslissen of u uw RAG-stack, retriever of routeringsstrategie moet wijzigen.
 
-Full text and concrete recipes live here (MIT license, text only):
+Volledige tekst en concrete recepten staan hier (MIT-licentie, alleen tekst):
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
-
----
+U kunt deze sectie negeren als u geen RAG- of agentpijplijnen achter OmniRoute uitvoert.---
 
 ## Still Stuck?
 
-- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
-- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
-- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
-- **Translator**: Use **Dashboard → Translator** to debug format issues
+-**GitHub-problemen**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Architectuur**: zie [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) voor interne details -**API-referentie**: zie [`docs/API_REFERENCE.md`](API_REFERENCE.md) voor alle eindpunten -**Gezondheidsdashboard**: controleer**Dashboard → Gezondheid**voor de realtime systeemstatus -**Vertaler**: gebruik**Dashboard → Vertaler**om formaatproblemen op te lossen

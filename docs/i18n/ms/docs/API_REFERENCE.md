@@ -4,23 +4,19 @@
 
 ---
 
-Complete reference for all OmniRoute API endpoints.
-
----
+Rujukan lengkap untuk semua titik akhir API OmniRoute.---
 
 ## Table of Contents
 
-- [Chat Completions](#chat-completions)
-- [Embeddings](#embeddings)
-- [Image Generation](#image-generation)
-- [List Models](#list-models)
-- [Compatibility Endpoints](#compatibility-endpoints)
-- [Semantic Cache](#semantic-cache)
-- [Dashboard & Management](#dashboard--management)
-- [Request Processing](#request-processing)
-- [Authentication](#authentication)
-
----
+- [Sembang Selesai](#sembang-selesai)
+- [Pembenaman](#pembenaman)
+- [Penjanaan Imej](#penjanaan imej)
+- [Senarai Model](#senarai-model)
+- [Titik Tamat Keserasian](#titik akhir keserasian)
+- [Cache Semantik](#semantic-cache)
+- [Papan Pemuka & Pengurusan](#papan pemuka--pengurusan)
+- [Pemprosesan Permintaan](#pemprosesan-permintaan)
+- [Pengesahan](#authentication)---
 
 ## Chat Completions
 
@@ -40,22 +36,20 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| Header                   | Direction | Description                                      |
-| ------------------------ | --------- | ------------------------------------------------ |
-| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
-| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
-| `X-Session-Id`           | Request   | Sticky session key for external session affinity |
-| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
-| `Idempotency-Key`        | Request   | Dedup key (5s window)                            |
-| `X-Request-Id`           | Request   | Alternative dedup key                            |
-| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                  |
-| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
-| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
-| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
+| Pengepala                | Arah         | Penerangan                                       |
+| ------------------------ | ------------ | ------------------------------------------------ |
+| `X-OmniRoute-No-Cache`   | Permintaan   | Tetapkan kepada `true` untuk memintas cache      |
+| `X-OmniRoute-Progress`   | Permintaan   | Tetapkan kepada `true` untuk acara kemajuan      |
+| `Id-Sesi-X`              | Permintaan   | Kunci sesi melekit untuk perkaitan sesi luaran   |
+| `x_session_id`           | Permintaan   | Varian garis bawah juga diterima (HTTP langsung) |
+| `Kunci Idempotensi`      | Permintaan   | Kekunci dedup (tetingkap 5s)                     |
+| `Id-Permintaan-X`        | Permintaan   | Kunci pelupusan alternatif                       |
+| `X-OmniRoute-Cache`      | Maklum balas | `HIT` atau `MISS` (bukan penstriman)             |
+| `X-OmniRoute-Idempotent` | Maklum balas | `benar` jika dinyahduplikasi                     |
+| `X-OmniRoute-Progress`   | Maklum balas | `didayakan` jika penjejakan kemajuan pada        |
+| `Id-Sesi-X-OmniRoute`    | Maklum balas | ID sesi berkesan digunakan oleh OmniRoute        |
 
-> Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
-
----
+> Nota Nginx: jika anda bergantung pada pengepala underscore (contohnya `x_session_id`), dayakan `underscores_in_headers on;`.---
 
 ## Embeddings
 
@@ -70,12 +64,13 @@ Content-Type: application/json
 }
 ```
 
-Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.
+Pembekal yang tersedia: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.```bash
 
-```bash
 # List all embedding models
+
 GET /v1/embeddings
-```
+
+````
 
 ---
 
@@ -91,14 +86,15 @@ Content-Type: application/json
   "prompt": "A beautiful sunset over mountains",
   "size": "1024x1024"
 }
-```
+````
 
-Available providers: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.
+Pembekal tersedia: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.```bash
 
-```bash
 # List all image models
+
 GET /v1/images/generations
-```
+
+````
 
 ---
 
@@ -109,26 +105,24 @@ GET /v1/models
 Authorization: Bearer your-api-key
 
 → Returns all chat, embedding, and image models + combos in OpenAI format
-```
+````
 
 ---
 
 ## Compatibility Endpoints
 
-| Method | Path                        | Format                 |
-| ------ | --------------------------- | ---------------------- |
-| POST   | `/v1/chat/completions`      | OpenAI                 |
-| POST   | `/v1/messages`              | Anthropic              |
-| POST   | `/v1/responses`             | OpenAI Responses       |
-| POST   | `/v1/embeddings`            | OpenAI                 |
-| POST   | `/v1/images/generations`    | OpenAI                 |
-| GET    | `/v1/models`                | OpenAI                 |
-| POST   | `/v1/messages/count_tokens` | Anthropic              |
-| GET    | `/v1beta/models`            | Gemini                 |
-| POST   | `/v1beta/models/{...path}`  | Gemini generateContent |
-| POST   | `/v1/api/chat`              | Ollama                 |
-
-### Dedicated Provider Routes
+| Kaedah   | Laluan                     | Format                  |
+| -------- | -------------------------- | ----------------------- | ----------------------------- |
+| POS      | `/v1/sembang/penyelesaian` | OpenAI                  |
+| POS      | `/v1/mesej`                | Antroppik               |
+| POS      | `/v1/respons`              | Respons OpenAI          |
+| POS      | `/v1/benam`                | OpenAI                  |
+| POS      | `/v1/imej/generasi`        | OpenAI                  |
+| DAPATKAN | `/v1/model`                | OpenAI                  |
+| POS      | `/v1/message/count_token`  | Antroppik               |
+| DAPATKAN | `/v1beta/model`            | Gemini                  |
+| POS      | `/v1beta/models/{...path}` | Gemini menjanaKandungan |
+| POS      | `/v1/api/sembang`          | Ollama                  | ### Dedicated Provider Routes |
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -136,9 +130,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-The provider prefix is auto-added if missing. Mismatched models return `400`.
-
----
+Awalan pembekal ditambah secara automatik jika tiada. Model yang tidak sepadan mengembalikan `400`.---
 
 ## Semantic Cache
 
@@ -150,22 +142,21 @@ GET /api/cache/stats
 DELETE /api/cache/stats
 ```
 
-Response example:
-
-```json
+Contoh jawapan:```json
 {
-  "semanticCache": {
-    "memorySize": 42,
-    "memoryMaxSize": 500,
-    "dbSize": 128,
-    "hitRate": 0.65
-  },
-  "idempotency": {
-    "activeKeys": 3,
-    "windowMs": 5000
-  }
+"semanticCache": {
+"memorySize": 42,
+"memoryMaxSize": 500,
+"dbSize": 128,
+"hitRate": 0.65
+},
+"idempotency": {
+"activeKeys": 3,
+"windowMs": 5000
 }
-```
+}
+
+````
 
 ---
 
@@ -173,165 +164,129 @@ Response example:
 
 ### Authentication
 
-| Endpoint                      | Method  | Description           |
-| ----------------------------- | ------- | --------------------- |
-| `/api/auth/login`             | POST    | Login                 |
-| `/api/auth/logout`            | POST    | Logout                |
-| `/api/settings/require-login` | GET/PUT | Toggle login required |
+| Titik akhir | Kaedah | Penerangan |
+| ---------------------------- | ------- | ---------------------- |
+| `/api/auth/log masuk` | POS | Log masuk |
+| `/api/auth/logout` | POS | Log keluar |
+| `/api/setting/require-login` | DAPATKAN/LETAK | Togol log masuk diperlukan |### Provider Management
 
-### Provider Management
+| Titik akhir | Kaedah | Penerangan |
+| ---------------------------- | --------------- | ------------------------- |
+| `/api/penyedia` | DAPATKAN/POS | Senaraikan / buat pembekal |
+| `/api/penyedia/[id]` | DAPATKAN/LETAK/PADAM | Urus pembekal |
+| `/api/penyedia/[id]/ujian` | POS | Sambungan pembekal ujian |
+| `/api/providers/[id]/models` | DAPATKAN | Senaraikan model pembekal |
+| `/api/providers/validate` | POS | Sahkan konfigurasi pembekal |
+| `/api/provider-nodes*` | Pelbagai | Pengurusan nod pembekal |
+| `/api/provider-models` | DAPATKAN/POST/PADAM | Model tersuai |### OAuth Flows
 
-| Endpoint                     | Method          | Description              |
-| ---------------------------- | --------------- | ------------------------ |
-| `/api/providers`             | GET/POST        | List / create providers  |
-| `/api/providers/[id]`        | GET/PUT/DELETE  | Manage a provider        |
-| `/api/providers/[id]/test`   | POST            | Test provider connection |
-| `/api/providers/[id]/models` | GET             | List provider models     |
-| `/api/providers/validate`    | POST            | Validate provider config |
-| `/api/provider-nodes*`       | Various         | Provider node management |
-| `/api/provider-models`       | GET/POST/DELETE | Custom models            |
+| Titik akhir | Kaedah | Penerangan |
+| -------------------------------- | ------- | ------------------------ |
+| `/api/oauth/[penyedia]/[tindakan]` | Pelbagai | OAuth khusus pembekal |### Routing & Config
 
-### OAuth Flows
+| Titik akhir | Kaedah | Penerangan |
+| ---------------------- | -------- | ---------------------------- |
+| `/api/models/alias` | DAPATKAN/POS | Alias ​​model |
+| `/api/models/catalog` | DAPATKAN | Semua model mengikut pembekal + jenis |
+| `/api/combos*` | Pelbagai | Pengurusan kombo |
+| `/api/keys*` | Pelbagai | Pengurusan kunci API |
+| `/api/pricing` | DAPATKAN | Harga model |### Usage & Analytics
 
-| Endpoint                         | Method  | Description             |
-| -------------------------------- | ------- | ----------------------- |
-| `/api/oauth/[provider]/[action]` | Various | Provider-specific OAuth |
-
-### Routing & Config
-
-| Endpoint              | Method   | Description                   |
-| --------------------- | -------- | ----------------------------- |
-| `/api/models/alias`   | GET/POST | Model aliases                 |
-| `/api/models/catalog` | GET      | All models by provider + type |
-| `/api/combos*`        | Various  | Combo management              |
-| `/api/keys*`          | Various  | API key management            |
-| `/api/pricing`        | GET      | Model pricing                 |
-
-### Usage & Analytics
-
-| Endpoint                    | Method | Description          |
+| Titik akhir | Kaedah | Penerangan |
 | --------------------------- | ------ | -------------------- |
-| `/api/usage/history`        | GET    | Usage history        |
-| `/api/usage/logs`           | GET    | Usage logs           |
-| `/api/usage/request-logs`   | GET    | Request-level logs   |
-| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+| `/api/usage/history` | DAPATKAN | Sejarah penggunaan |
+| `/api/usage/logs` | DAPATKAN | Log penggunaan |
+| `/api/usage/request-logs` | DAPATKAN | Log peringkat permintaan |
+| `/api/usage/[connectionId]` | DAPATKAN | Penggunaan setiap sambungan |### Settings
 
-### Settings
+| Titik akhir | Kaedah | Penerangan |
+| ------------------------------- | ------------- | ----------------------- |
+| `/api/setting` | DAPATKAN/LETAK/PATCH | Tetapan umum |
+| `/api/setting/proksi` | DAPATKAN/LETAK | Konfigurasi proksi rangkaian |
+| `/api/settings/proxy/test` | POS | Uji sambungan proksi |
+| `/api/setting/penapis-ip` | DAPATKAN/LETAK | Senarai dibenarkan/senarai sekatan IP |
+| `/api/setting/thinking-budget` | DAPATKAN/LETAK | Belanjawan token penaakulan |
+| `/api/setting/system-prompt` | DAPATKAN/LETAK | Gesaan sistem global |### Monitoring
 
-| Endpoint                        | Method        | Description            |
-| ------------------------------- | ------------- | ---------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings       |
-| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
-| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
-| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
-| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
-| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
+| Titik akhir | Kaedah | Penerangan |
+| ------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
+| `/api/sessions` | DAPATKAN | Penjejakan sesi aktif |
+| `/api/rate-limits` | DAPATKAN | Had kadar setiap akaun |
+| `/api/pemantauan/kesihatan` | DAPATKAN | Semakan kesihatan + ringkasan pembekal (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
+| `/api/cache/stats` | DAPATKAN/PADAM | Statistik cache / kosongkan |### Backup & Export/Import
 
-### Monitoring
+| Titik akhir | Kaedah | Penerangan |
+| --------------------------- | ------ | ---------------------------------------------------- |
+| `/api/db-backups` | DAPATKAN | Senaraikan sandaran yang tersedia |
+| `/api/db-backups` | LETAK | Buat sandaran manual |
+| `/api/db-backups` | POS | Pulihkan daripada sandaran khusus |
+| `/api/db-backups/eksport` | DAPATKAN | Muat turun pangkalan data sebagai fail .sqlite |
+| `/api/db-backups/import` | POS | Muat naik fail .sqlite untuk menggantikan pangkalan data |
+| `/api/db-backups/exportAll` | DAPATKAN | Muat turun sandaran penuh sebagai arkib .tar.gz |### Cloud Sync
 
-| Endpoint                 | Method     | Description                                                                                          |
-| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
-| `/api/sessions`          | GET        | Active session tracking                                                                              |
-| `/api/rate-limits`       | GET        | Per-account rate limits                                                                              |
-| `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
-| `/api/cache/stats`       | GET/DELETE | Cache stats / clear                                                                                  |
+| Titik akhir | Kaedah | Penerangan |
+| ----------------------- | ------- | ---------------------- |
+| `/api/sync/cloud` | Pelbagai | Operasi penyegerakan awan |
+| `/api/sync/initialize` | POS | Mulakan penyegerakan |
+| `/api/cloud/*` | Pelbagai | Pengurusan awan |### Tunnels
 
-### Backup & Export/Import
+| Titik akhir | Kaedah | Penerangan |
+| -------------------------- | ------ | ---------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | DAPATKAN | Baca status pemasangan/masa jalan Cloudflare Quick Tunnel untuk papan pemuka |
+| `/api/tunnels/cloudflared` | POS | Dayakan atau lumpuhkan Cloudflare Quick Tunnel (`action=enable/disable`) |### CLI Tools
 
-| Endpoint                    | Method | Description                             |
-| --------------------------- | ------ | --------------------------------------- |
-| `/api/db-backups`           | GET    | List available backups                  |
-| `/api/db-backups`           | PUT    | Create a manual backup                  |
-| `/api/db-backups`           | POST   | Restore from a specific backup          |
-| `/api/db-backups/export`    | GET    | Download database as .sqlite file       |
-| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database |
-| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive |
-
-### Cloud Sync
-
-| Endpoint               | Method  | Description           |
-| ---------------------- | ------- | --------------------- |
-| `/api/sync/cloud`      | Various | Cloud sync operations |
-| `/api/sync/initialize` | POST    | Initialize sync       |
-| `/api/cloud/*`         | Various | Cloud management      |
-
-### Tunnels
-
-| Endpoint                   | Method | Description                                                             |
-| -------------------------- | ------ | ----------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
-| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
-
-### CLI Tools
-
-| Endpoint                           | Method | Description         |
+| Titik akhir | Kaedah | Penerangan |
 | ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Claude CLI status   |
-| `/api/cli-tools/codex-settings`    | GET    | Codex CLI status    |
-| `/api/cli-tools/droid-settings`    | GET    | Droid CLI status    |
-| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI status |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Generic CLI runtime |
+| `/api/cli-tools/claude-settings` | DAPATKAN | Status CLI Claude |
+| `/api/cli-tools/codex-settings` | DAPATKAN | Status Codex CLI |
+| `/api/cli-tools/droid-settings` | DAPATKAN | Status Droid CLI |
+| `/api/cli-tools/openclaw-settings` | DAPATKAN | Status OpenClaw CLI |
+| `/api/cli-tools/runtime/[toolId]` | DAPATKAN | Masa jalan CLI generik |
 
-CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
+Respons CLI termasuk: `dipasang`, `boleh dijalankan`, `perintah`, `commandPath`, `runtimeMode`, `sebab`.### ACP Agents
 
-### ACP Agents
-
-| Endpoint          | Method | Description                                              |
+| Titik akhir | Kaedah | Penerangan |
 | ----------------- | ------ | -------------------------------------------------------- |
-| `/api/acp/agents` | GET    | List all detected agents (built-in + custom) with status |
-| `/api/acp/agents` | POST   | Add custom agent or refresh detection cache              |
-| `/api/acp/agents` | DELETE | Remove a custom agent by `id` query param                |
+| `/api/acp/agen` | DAPATKAN | Senaraikan semua ejen yang dikesan (terbina dalam + tersuai) dengan status |
+| `/api/acp/agen` | POS | Tambahkan ejen tersuai atau muat semula cache pengesanan |
+| `/api/acp/agen` | PADAM | Alih keluar ejen tersuai mengikut param pertanyaan `id` |
 
-GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
+GET respons termasuk `ejen[]` (id, nama, perduaan, versi, dipasang, protokol, isCustom) dan `ringkasan` (jumlah, dipasang, notFound, terbina Dalam, tersuai).### Resilience & Rate Limits
 
-### Resilience & Rate Limits
+| Titik akhir | Kaedah | Penerangan |
+| ------------------------ | --------- | ------------------------------- |
+| `/api/ketahanan` | DAPATKAN/PATCH | Dapatkan/kemas kini profil ketahanan |
+| `/api/resilience/reset` | POS | Tetapkan semula pemutus litar |
+| `/api/rate-limits` | DAPATKAN | Status had kadar setiap akaun |
+| `/api/rate-limit` | DAPATKAN | Konfigurasi had kadar global |### Evals
 
-| Endpoint                | Method    | Description                     |
-| ----------------------- | --------- | ------------------------------- |
-| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
-| `/api/resilience/reset` | POST      | Reset circuit breakers          |
-| `/api/rate-limits`      | GET       | Per-account rate limit status   |
-| `/api/rate-limit`       | GET       | Global rate limit configuration |
-
-### Evals
-
-| Endpoint     | Method   | Description                       |
+| Titik akhir | Kaedah | Penerangan |
 | ------------ | -------- | --------------------------------- |
-| `/api/evals` | GET/POST | List eval suites / run evaluation |
+| `/api/evals` | DAPATKAN/POS | Senaraikan suite eval / penilaian jalankan |### Policies
 
-### Policies
+| Titik akhir | Kaedah | Penerangan |
+| --------------- | --------------- | ------------------------ |
+| `/api/dasar` | DAPATKAN/POST/PADAM | Urus dasar penghalaan |### Compliance
 
-| Endpoint        | Method          | Description             |
-| --------------- | --------------- | ----------------------- |
-| `/api/policies` | GET/POST/DELETE | Manage routing policies |
+| Titik akhir | Kaedah | Penerangan |
+| --------------------------- | ------ | ---------------------------- |
+| `/api/compliance/audit-log` | DAPATKAN | Log audit pematuhan (N terakhir) |### v1beta (Gemini-Compatible)
 
-### Compliance
-
-| Endpoint                    | Method | Description                   |
-| --------------------------- | ------ | ----------------------------- |
-| `/api/compliance/audit-log` | GET    | Compliance audit log (last N) |
-
-### v1beta (Gemini-Compatible)
-
-| Endpoint                   | Method | Description                       |
+| Titik akhir | Kaedah | Penerangan |
 | -------------------------- | ------ | --------------------------------- |
-| `/v1beta/models`           | GET    | List models in Gemini format      |
-| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint |
+| `/v1beta/model` | DAPATKAN | Senaraikan model dalam format Gemini |
+| `/v1beta/models/{...path}` | POS | Gemini `generateContent` titik akhir |
 
-These endpoints mirror Gemini's API format for clients that expect native Gemini SDK compatibility.
+Titik akhir ini mencerminkan format API Gemini untuk pelanggan yang mengharapkan keserasian SDK Gemini asli.### Internal / System APIs
 
-### Internal / System APIs
-
-| Endpoint        | Method | Description                                          |
+| Titik akhir | Kaedah | Penerangan |
 | --------------- | ------ | ---------------------------------------------------- |
-| `/api/init`     | GET    | Application initialization check (used on first run) |
-| `/api/tags`     | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`  | POST   | Trigger graceful server restart                      |
-| `/api/shutdown` | POST   | Trigger graceful server shutdown                     |
+| `/api/init` | DAPATKAN | Semakan permulaan aplikasi (digunakan pada larian pertama) |
+| `/api/tags` | DAPATKAN | Tag model yang serasi dengan Ollama (untuk pelanggan Ollama) |
+| `/api/restart` | POS | Pencetus pelayan anggun mulakan semula |
+| `/api/shutdown` | POS | Cetuskan penutupan pelayan yang anggun |
 
-> **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
-
----
+>**Nota:**Titik akhir ini digunakan secara dalaman oleh sistem atau untuk keserasian pelanggan Ollama. Mereka biasanya tidak dipanggil oleh pengguna akhir.---
 
 ## Audio Transcription
 
@@ -339,69 +294,63 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
-```
+````
 
-Transcribe audio files using Deepgram or AssemblyAI.
+Transkripsikan fail audio menggunakan Deepgram atau AssemblyAI.
 
-**Request:**
-
-```bash
+**Permintaan:**```bash
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
-  -H "Authorization: Bearer your-api-key" \
-  -F "file=@recording.mp3" \
-  -F "model=deepgram/nova-3"
-```
+ -H "Authorization: Bearer your-api-key" \
+ -F "file=@recording.mp3" \
+ -F "model=deepgram/nova-3"
 
-**Response:**
+````
 
-```json
+**Jawapan:**```json
 {
   "text": "Hello, this is the transcribed audio content.",
   "task": "transcribe",
   "language": "en",
   "duration": 12.5
 }
-```
+````
 
-**Supported providers:** `deepgram/nova-3`, `assemblyai/best`.
+**Pembekal yang disokong:**`deepgram/nova-3`, `assemblyai/best`.
 
-**Supported formats:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
-
----
+**Format yang disokong:**`mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.---
 
 ## Ollama Compatibility
 
-For clients that use Ollama's API format:
+Untuk pelanggan yang menggunakan format API Ollama:```bash
 
-```bash
 # Chat endpoint (Ollama format)
+
 POST /v1/api/chat
 
 # Model listing (Ollama format)
+
 GET /api/tags
-```
 
-Requests are automatically translated between Ollama and internal formats.
+````
 
----
+Permintaan diterjemahkan secara automatik antara Ollama dan format dalaman.---
 
 ## Telemetry
 
 ```bash
 # Get latency telemetry summary (p50/p95/p99 per provider)
 GET /api/telemetry/summary
-```
+````
 
-**Response:**
-
-```json
+**Jawapan:**```json
 {
-  "providers": {
-    "claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
-    "github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
-  }
+"providers": {
+"claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
+"github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
 }
-```
+}
+
+````
 
 ---
 
@@ -420,7 +369,7 @@ Content-Type: application/json
   "limit": 50.00,
   "period": "monthly"
 }
-```
+````
 
 ---
 
@@ -443,23 +392,21 @@ Content-Type: application/json
 
 ## Request Processing
 
-1. Client sends request to `/v1/*`
-2. Route handler calls `handleChat`, `handleEmbedding`, `handleAudioTranscription`, or `handleImageGeneration`
-3. Model is resolved (direct provider/model or alias/combo)
-4. Credentials selected from local DB with account availability filtering
-5. For chat: `handleChatCore` — format detection, translation, cache check, idempotency check
-6. Provider executor sends upstream request
-7. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
-8. Usage/logging recorded
-9. Fallback applies on errors according to combo rules
+1. Pelanggan menghantar permintaan kepada `/v1/*`
+2. Pengendali laluan memanggil `handleChat`, `handleEmbedding`, `handleAudioTranscription` atau `handleImageGeneration`
+3. Model telah diselesaikan (pembekal langsung/model atau alias/kombo)
+4. Bukti kelayakan dipilih daripada DB tempatan dengan penapisan ketersediaan akaun
+5. Untuk sembang: `handleChatCore` — pengesanan format, terjemahan, semakan cache, semakan mati pucuk
+6. Pelaksana pembekal menghantar permintaan huluan
+7. Respons diterjemahkan kembali kepada format pelanggan (sembang) atau dikembalikan seperti sedia ada (benam/imej/audio)
+8. Penggunaan / pembalakan direkodkan
+9. Fallback terpakai pada ralat mengikut peraturan kombo
 
-Full architecture reference: [`ARCHITECTURE.md`](ARCHITECTURE.md)
-
----
+Rujukan seni bina penuh: [`ARCHITECTURE.md`](ARCHITECTURE.md)---
 
 ## Authentication
 
-- Dashboard routes (`/dashboard/*`) use `auth_token` cookie
-- Login uses saved password hash; fallback to `INITIAL_PASSWORD`
-- `requireLogin` toggleable via `/api/settings/require-login`
-- `/v1/*` routes optionally require Bearer API key when `REQUIRE_API_KEY=true`
+- Laluan papan pemuka (`/papan pemuka/*`) menggunakan kuki `auth_token`
+- Log masuk menggunakan cincang kata laluan yang disimpan; sandarkan kepada `INITIAL_PASSWORD`
+- `requireLogin` boleh togol melalui `/api/settings/require-login`
+- Laluan `/v1/*` secara pilihan memerlukan kunci API Pembawa apabila `REQUIRE_API_KEY=true`
