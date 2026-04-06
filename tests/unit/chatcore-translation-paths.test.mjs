@@ -824,8 +824,8 @@ test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after a retryable
 
   assert.equal(calls.length, 2);
   assert.equal(result.success, false);
-  assert.equal(result.status, 500);
-  assert.equal(result.error, "cliproxy retry failed");
+  assert.equal(result.status, 502);
+  assert.equal(result.error, "[502]: cliproxy retry failed");
 });
 
 test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after native executor throws", async () => {
@@ -855,8 +855,8 @@ test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after native exec
 
   assert.equal(calls.length, 2);
   assert.equal(result.success, false);
-  assert.equal(result.status, 500);
-  assert.equal(result.error, "cliproxy transport exploded");
+  assert.equal(result.status, 502);
+  assert.equal(result.error, "[502]: cliproxy transport exploded");
 });
 
 test("chatCore serves a cached idempotent response without hitting the provider twice", async () => {

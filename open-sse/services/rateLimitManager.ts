@@ -55,6 +55,7 @@ const enabledConnections = new Set<string>();
 // Store learned limits for persistence (debounced)
 const learnedLimits: Record<string, LearnedLimitEntry> = {};
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
+const pendingAsyncOperations = new Set<Promise<unknown>>();
 const PERSIST_DEBOUNCE_MS = 60_000; // Debounce persistence to every 60s max
 
 // Track initialization
@@ -74,6 +75,14 @@ const DEFAULT_SETTINGS = {
   reservoirRefreshInterval: null,
   maxWait: MAX_WAIT_MS, // Fail-fast: don't queue forever on 429 exhaustion
 };
+
+function trackAsyncOperation<T>(promise: Promise<T>): Promise<T> {
+  pendingAsyncOperations.add(promise);
+  promise.finally(() => {
+    pendingAsyncOperations.delete(promise);
+  });
+  return promise;
+}
 
 /**
  * Initialize rate limit protection from persisted connection settings.
@@ -363,9 +372,11 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // be hours for providers like Codex with long rate limit windows).
     // This lets upstream callers (e.g. LiteLLM) trigger fallback to other providers.
     // After stop, delete from Map so getLimiter() creates a fresh instance.
-    limiter.stop({ dropWaitingJobs: true }).finally(() => {
-      limiters.delete(limiterKey);
-    });
+    trackAsyncOperation(
+      limiter.stop({ dropWaitingJobs: true }).finally(() => {
+        limiters.delete(limiterKey);
+      })
+    );
     return;
   }
 
@@ -504,7 +515,7 @@ function recordLearnedLimit(
   if (!persistTimer) {
     persistTimer = setTimeout(async () => {
       persistTimer = null;
-      await persistLearnedLimitsNow();
+      await trackAsyncOperation(persistLearnedLimitsNow());
     }, PERSIST_DEBOUNCE_MS);
   }
 }
@@ -514,10 +525,13 @@ export async function __flushLearnedLimitsForTests() {
     clearTimeout(persistTimer);
     persistTimer = null;
   }
-  await persistLearnedLimitsNow();
+  await trackAsyncOperation(persistLearnedLimitsNow());
+  if (pendingAsyncOperations.size > 0) {
+    await Promise.allSettled(Array.from(pendingAsyncOperations));
+  }
 }
 
-export function __resetRateLimitManagerForTests() {
+export async function __resetRateLimitManagerForTests() {
   if (persistTimer) {
     clearTimeout(persistTimer);
     persistTimer = null;
@@ -532,6 +546,10 @@ export function __resetRateLimitManagerForTests() {
 
   for (const key of Object.keys(learnedLimits)) {
     delete learnedLimits[key];
+  }
+
+  if (pendingAsyncOperations.size > 0) {
+    await Promise.allSettled(Array.from(pendingAsyncOperations));
   }
 }
 

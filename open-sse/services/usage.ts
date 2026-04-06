@@ -1344,3 +1344,11 @@ async function getIflowUsage(accessToken) {
     return { message: "Unable to fetch Qoder usage." };
   }
 }
+
+export const __testing = {
+  parseResetTime,
+  formatGitHubQuotaSnapshot,
+  inferGitHubPlanName,
+  getGeminiCliPlanLabel,
+  getAntigravityPlanLabel,
+};

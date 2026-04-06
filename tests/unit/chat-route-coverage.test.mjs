@@ -287,6 +287,47 @@ test("handleChat routes exact combo names and can recover via global fallback", 
   assert.equal(json.choices[0].message.content, "Global fallback answered");
 });
 
+test("handleChat keeps the combo error when the global fallback throws", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-combo-fail" });
+  await seedConnection("claude", { apiKey: "sk-claude-fallback-throw" });
+  await combosDb.createCombo({
+    name: "router-global-fallback-throw",
+    strategy: "priority",
+    config: { maxRetries: 0, retryDelayMs: 0 },
+    models: ["openai/gpt-4o-mini"],
+  });
+  await settingsDb.updateSettings({
+    globalFallbackModel: "claude/claude-3-5-sonnet-20241022",
+  });
+
+  let attempts = 0;
+  globalThis.fetch = async () => {
+    attempts += 1;
+    if (attempts === 1) {
+      return new Response(JSON.stringify({ error: { message: "primary combo failed" } }), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    throw new Error("fallback transport crashed");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      body: {
+        model: "router-global-fallback-throw",
+        stream: false,
+        messages: [{ role: "user", content: "Use combo fallback but force a throw" }],
+      },
+    })
+  );
+  const json = await response.json();
+
+  assert.equal(response.status, 503);
+  assert.equal(attempts, 2);
+  assert.match(json.error.message, /primary combo failed/i);
+});
+
 test("handleChat returns 400 when no provider credentials exist", async () => {
   const response = await handleChat(
     buildRequest({
@@ -365,6 +406,83 @@ test("handleChat maps upstream timeouts to HTTP 504", async () => {
 
   assert.equal(response.status, 504);
   assert.match(json.error.message, /\[504\]: upstream timed out/);
+});
+
+test("handleChat uses the emergency fallback model on budget exhaustion", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-billing" });
+  await seedConnection("nvidia", { apiKey: "sk-nvidia-fallback" });
+  const seenBodies = [];
+
+  globalThis.fetch = async (_url, init = {}) => {
+    const body = JSON.parse(String(init.body));
+    seenBodies.push(body);
+
+    if (seenBodies.length === 1) {
+      return new Response(JSON.stringify({ error: { message: "billing limit exceeded" } }), {
+        status: 402,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return buildOpenAIResponse("Emergency fallback answered", "gpt-oss-120b");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      body: {
+        model: "openai/gpt-4o-mini",
+        stream: false,
+        max_tokens: 9000,
+        messages: [{ role: "user", content: "budget exhausted" }],
+      },
+    })
+  );
+  const json = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(seenBodies.length, 2);
+  assert.equal(seenBodies[1].model, "openai/gpt-oss-120b");
+  assert.equal(seenBodies[1].max_tokens, 4096);
+  assert.equal(seenBodies[1].max_completion_tokens, 4096);
+  assert.equal(json.choices[0].message.content, "Emergency fallback answered");
+});
+
+test("handleChat returns the primary budget error when emergency fallback also fails", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-billing-fail" });
+  await seedConnection("nvidia", { apiKey: "sk-nvidia-fallback-fail" });
+  const seenModels = [];
+
+  globalThis.fetch = async (_url, init = {}) => {
+    const body = JSON.parse(String(init.body));
+    seenModels.push(body.model);
+
+    if (seenModels.length === 1) {
+      return new Response(JSON.stringify({ error: { message: "quota exceeded" } }), {
+        status: 402,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: { message: "fallback unavailable" } }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      body: {
+        model: "openai/gpt-4o-mini",
+        stream: false,
+        messages: [{ role: "user", content: "budget exhausted again" }],
+      },
+    })
+  );
+  const json = await response.json();
+
+  assert.equal(response.status, 402);
+  assert.deepEqual(seenModels, ["gpt-4o-mini", "openai/gpt-oss-120b"]);
+  assert.match(json.error.message, /quota exceeded/i);
 });
 
 test("handleChat rejects models that are not allowed by the caller API key policy", async () => {

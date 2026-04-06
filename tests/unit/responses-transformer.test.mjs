@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readdirSync, readFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -178,4 +178,59 @@ test("createResponsesLogger persists input and output event logs on flush", asyn
   assert.match(inputLog, /"content":"hi"/);
   assert.match(outputLog, /response\.completed/);
   assert.match(output, /data: \[DONE]/);
+});
+
+test("createResponsesApiTransformStream ignores malformed events and preserves usage-only chunks", async () => {
+  const output = await runTransformStream([
+    "event: ping\n\n",
+    "data: [DONE]\n\n",
+    'data: {"usage":{"prompt_tokens":2,"completion_tokens":1,"total_tokens":3}}\n\n',
+    "data: {not-json}\n\n",
+    'data: {"id":"chatcmpl_edge","choices":[{"index":0,"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  assert.equal(completed.id, "resp_chatcmpl_edge");
+  assert.equal(completed.output[0].content[0].text, "ok");
+  assert.deepEqual(completed.usage, {
+    prompt_tokens: 2,
+    completion_tokens: 1,
+    total_tokens: 3,
+  });
+});
+
+test("createResponsesLogger returns null for invalid base paths and swallows flush write failures", () => {
+  const blockedPath = join(tmpdir(), `responses-transformer-blocked-${Date.now()}`);
+  writeFileSync(blockedPath, "blocked");
+
+  try {
+    const blockedLogger = createResponsesLogger("gpt-4o", blockedPath);
+    assert.equal(blockedLogger, null);
+  } finally {
+    unlinkSync(blockedPath);
+  }
+
+  const logsDir = mkdtempSync(join(tmpdir(), "responses-transformer-broken-"));
+  const logger = createResponsesLogger("gpt-4o", logsDir);
+  const capturedLogs = [];
+  const originalConsoleLog = console.log;
+
+  logger.logInput("input");
+  logger.logOutput("output");
+
+  const sessionDir = readdirSync(join(logsDir, "logs"))[0];
+  rmSync(join(logsDir, "logs", sessionDir), { recursive: true, force: true });
+  console.log = (...args) => capturedLogs.push(args.join(" "));
+
+  try {
+    logger.flush();
+  } finally {
+    console.log = originalConsoleLog;
+  }
+
+  assert.ok(capturedLogs.some((entry) => entry.includes("[RESPONSES] Failed to write logs:")));
 });

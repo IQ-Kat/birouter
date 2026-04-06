@@ -1246,22 +1246,9 @@ export async function handleChatCore({
       log?: unknown;
       upstreamExtraHeaders?: Record<string, string> | null;
     }) => {
+      let result;
       try {
-        const result = await nativeExec.execute(input);
-        if (isRetryableStatus(result.response.status)) {
-          log?.info?.(
-            "UPSTREAM_PROXY",
-            `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
-          );
-          try {
-            return await proxyExec.execute(input);
-          } catch (proxyErr) {
-            const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
-            log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
-            throw proxyErr;
-          }
-        }
-        return result;
+        result = await nativeExec.execute(input);
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
         log?.info?.("UPSTREAM_PROXY", `${prov} native error (${errMsg}), retrying via CLIProxyAPI`);
@@ -1272,6 +1259,21 @@ export async function handleChatCore({
           log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
           throw proxyErr;
         }
+      }
+
+      if (!isRetryableStatus(result.response.status)) {
+        return result;
+      }
+      log?.info?.(
+        "UPSTREAM_PROXY",
+        `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
+      );
+      try {
+        return await proxyExec.execute(input);
+      } catch (proxyErr) {
+        const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
+        log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
+        throw proxyErr;
       }
     };
     return wrapper;
@@ -2125,6 +2127,7 @@ export async function handleChatCore({
           toolNameMap as Map<string, string> | null
         )
       : responseBody;
+    const memoryExtractionResponse = translatedResponse;
 
     // T26: Strip markdown code blocks if provider format is Claude
     if (sourceFormat === "claude" && !stream) {
@@ -2180,7 +2183,7 @@ export async function handleChatCore({
           )) || skillRequestId;
 
     if (apiKeyInfo?.id && memorySettings?.enabled && memorySettings.maxTokens > 0) {
-      const memoryText = extractMemoryTextFromResponse(translatedResponse);
+      const memoryText = extractMemoryTextFromResponse(memoryExtractionResponse);
       if (memoryText) {
         extractFacts(memoryText, apiKeyInfo.id, pipelineSessionId);
       }

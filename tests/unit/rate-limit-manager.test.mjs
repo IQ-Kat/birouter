@@ -9,7 +9,7 @@ function wait(ms) {
 }
 
 test.afterEach(async () => {
-  rateLimitManager.__resetRateLimitManagerForTests();
+  await rateLimitManager.__resetRateLimitManagerForTests();
   await wait(5);
 });
 

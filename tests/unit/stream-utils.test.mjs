@@ -298,6 +298,166 @@ test("createSSEStream passthrough fixes generic ids and normalizes reasoning ali
   assert.equal(text.includes('"reasoning":"Let me think first"'), false);
 });
 
+test("createSSEStream passthrough splits mixed reasoning and content deltas and estimates usage", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_reasoning",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              reasoning_content: "First think",
+              content: "Then answer",
+            },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_reasoning",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      body: {
+        messages: [{ role: "user", content: "hello world" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const reasoningIndex = text.indexOf('"reasoning_content":"First think"');
+  const contentIndex = text.indexOf('"content":"Then answer"');
+
+  assert.ok(reasoningIndex >= 0);
+  assert.ok(contentIndex > reasoningIndex);
+  assert.match(text, /"total_tokens":\d+/);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.reasoning_content, "First think");
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Then answer");
+  assert.ok(onCompletePayload.responseBody.usage.total_tokens > 0);
+});
+
+test("createSSEStream passthrough merges Claude usage chunks and restores mapped tool names", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        type: "message_start",
+        message: {
+          id: "msg_passthrough",
+          model: "claude-sonnet-4",
+          role: "assistant",
+          usage: { input_tokens: 6 },
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_start",
+        index: 0,
+        content_block: {
+          type: "tool_use",
+          id: "tool_1",
+          name: "tool_alias",
+          input: { path: "/tmp/a" },
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_delta",
+        index: 1,
+        delta: { text: "Claude says hi" },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "message_delta",
+        delta: { stop_reason: "end_turn" },
+        usage: { output_tokens: 4 },
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.CLAUDE,
+      provider: "claude",
+      model: "claude-sonnet-4",
+      toolNameMap: new Map([["tool_alias", "read_file"]]),
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.match(text, /"name":"read_file"/);
+  assert.equal(text.includes('"name":"tool_alias"'), false);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Claude says hi");
+  assert.equal(onCompletePayload.responseBody.usage.prompt_tokens, 6);
+  assert.equal(onCompletePayload.responseBody.usage.completion_tokens, 4);
+  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 10);
+});
+
+test("createSSETransformStreamWithLogger flushes a trailing Claude usage event without a newline", async () => {
+  let onCompletePayload = null;
+  const text = await readWithTransform(
+    [
+      `data: ${JSON.stringify({
+        type: "message_start",
+        message: {
+          id: "msg_tail",
+          model: "claude-sonnet-4",
+          role: "assistant",
+          usage: { input_tokens: 3 },
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_start",
+        index: 0,
+        content_block: { type: "text", text: "" },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "text_delta", text: "Buffered tail" },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "message_delta",
+        delta: { stop_reason: "end_turn" },
+        usage: { output_tokens: 5 },
+      })}`,
+    ],
+    createSSETransformStreamWithLogger(
+      FORMATS.CLAUDE,
+      FORMATS.OPENAI,
+      "claude",
+      null,
+      null,
+      "claude-sonnet-4",
+      null,
+      { messages: [{ role: "user", content: "hello" }] },
+      (payload) => {
+        onCompletePayload = payload;
+      }
+    )
+  );
+
+  assert.match(text, /Buffered tail/);
+  assert.match(text, /\[DONE\]/);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Buffered tail");
+  assert.equal(onCompletePayload.responseBody.usage.completion_tokens, 5);
+  assert.equal(onCompletePayload.responseBody.usage.total_tokens, 5);
+});
+
 test("buildStreamSummaryFromEvents compacts Responses API deltas into a synthetic response", () => {
   const summary = buildStreamSummaryFromEvents(
     [

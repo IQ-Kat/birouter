@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const usageService = await import("../../open-sse/services/usage.ts");
+const { __testing } = usageService;
 
 const originalFetch = globalThis.fetch;
 
@@ -753,5 +754,165 @@ test("usage service covers Qwen, Qoder and GLM branches", async () => {
         apiKey: "glm-bad",
       }),
     /Invalid API key/
+  );
+});
+
+test("usage helper branches cover reset parsing, GitHub quota math, and plan inference fallbacks", () => {
+  const fixedDate = new Date("2026-01-02T03:04:05.000Z");
+
+  assert.equal(__testing.parseResetTime(null), null);
+  assert.equal(__testing.parseResetTime(0), null);
+  assert.equal(__testing.parseResetTime(fixedDate), fixedDate.toISOString());
+  assert.equal(__testing.parseResetTime(fixedDate.getTime()), fixedDate.toISOString());
+  assert.equal(__testing.parseResetTime("not-a-date"), null);
+
+  assert.equal(__testing.formatGitHubQuotaSnapshot({}), null);
+  assert.deepEqual(
+    __testing.formatGitHubQuotaSnapshot({ entitlement: 20, remaining: 5 }, fixedDate.toISOString()),
+    {
+      used: 15,
+      total: 20,
+      remaining: 5,
+      remainingPercentage: 25,
+      resetAt: fixedDate.toISOString(),
+      unlimited: false,
+    }
+  );
+  assert.deepEqual(__testing.formatGitHubQuotaSnapshot({ total: 10, used: 4 }), {
+    used: 4,
+    total: 10,
+    remaining: 6,
+    remainingPercentage: 60,
+    resetAt: null,
+    unlimited: false,
+  });
+  assert.deepEqual(__testing.formatGitHubQuotaSnapshot({ percent_remaining: 30 }), {
+    used: 70,
+    total: 100,
+    remaining: 30,
+    remainingPercentage: 30,
+    resetAt: null,
+    unlimited: false,
+  });
+  assert.deepEqual(__testing.formatGitHubQuotaSnapshot({ unlimited: true }), {
+    used: 0,
+    total: 0,
+    remaining: undefined,
+    remainingPercentage: undefined,
+    resetAt: null,
+    unlimited: true,
+  });
+
+  assert.equal(
+    __testing.inferGitHubPlanName(
+      { access_type_sku: "copilot_pro_plus" },
+      { used: 0, total: 0, resetAt: null, unlimited: false }
+    ),
+    "Copilot Pro+"
+  );
+  assert.equal(
+    __testing.inferGitHubPlanName(
+      { copilot_plan: "enterprise" },
+      { used: 0, total: 0, resetAt: null, unlimited: false }
+    ),
+    "Copilot Enterprise"
+  );
+  assert.equal(
+    __testing.inferGitHubPlanName(
+      {
+        copilot_plan: "individual",
+        monthly_quotas: { premium_interactions: 300 },
+      },
+      { used: 10, total: 300, resetAt: null, unlimited: false }
+    ),
+    "Copilot Pro"
+  );
+  assert.equal(
+    __testing.inferGitHubPlanName(
+      {
+        monthly_quotas: { premium_interactions: 300 },
+      },
+      { used: 10, total: 300, resetAt: null, unlimited: false }
+    ),
+    "Copilot Business"
+  );
+  assert.equal(
+    __testing.inferGitHubPlanName(
+      {
+        monthly_quotas: { chat: 50 },
+      },
+      null
+    ),
+    "Copilot Free"
+  );
+  assert.equal(
+    __testing.inferGitHubPlanName(
+      {
+        access_type_sku: "student_seat",
+      },
+      null
+    ),
+    "Copilot Student"
+  );
+  assert.equal(__testing.inferGitHubPlanName({}, null), "GitHub Copilot");
+});
+
+test("usage helper branches cover Gemini CLI and Antigravity plan label fallbacks", () => {
+  assert.equal(__testing.getGeminiCliPlanLabel(null), "Free");
+  assert.equal(
+    __testing.getGeminiCliPlanLabel({
+      allowedTiers: [{ id: "tier_ultra", isDefault: true }],
+    }),
+    "Ultra"
+  );
+  assert.equal(
+    __testing.getGeminiCliPlanLabel({
+      currentTier: { id: "tier_business" },
+    }),
+    "Business"
+  );
+  assert.equal(
+    __testing.getGeminiCliPlanLabel({
+      subscriptionType: "enterprise",
+    }),
+    "Enterprise"
+  );
+  assert.equal(
+    __testing.getGeminiCliPlanLabel({
+      currentTier: { upgradeSubscriptionType: "tier_pro" },
+    }),
+    "Free"
+  );
+  assert.equal(
+    __testing.getGeminiCliPlanLabel({
+      currentTier: { name: "custom neon" },
+    }),
+    "Custom neon"
+  );
+
+  assert.equal(__testing.getAntigravityPlanLabel(null), "Free");
+  assert.equal(
+    __testing.getAntigravityPlanLabel({
+      allowedTiers: [{ id: "tier_pro", isDefault: true }],
+    }),
+    "Pro"
+  );
+  assert.equal(
+    __testing.getAntigravityPlanLabel({
+      currentTier: { displayName: "Standard" },
+    }),
+    "Business"
+  );
+  assert.equal(
+    __testing.getAntigravityPlanLabel({
+      currentTier: { id: "tier_legacy" },
+    }),
+    "Free"
+  );
+  assert.equal(
+    __testing.getAntigravityPlanLabel({
+      currentTier: { name: "custom sky" },
+    }),
+    "Custom sky"
   );
 });

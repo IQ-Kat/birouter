@@ -134,3 +134,101 @@ test("handleMusicGeneration rejects unsupported provider formats", async () => {
     }
   }
 });
+
+test("handleMusicGeneration returns unknown provider when registry lookup disappears after parsing", async () => {
+  Object.defineProperty(MUSIC_PROVIDERS, "flakyprovider", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      delete MUSIC_PROVIDERS.flakyprovider;
+      return {
+        id: "flakyprovider",
+        baseUrl: "http://localhost:9999",
+        authType: "none",
+        authHeader: "none",
+        format: "comfyui",
+        models: [{ id: "ghost-model", name: "Ghost Model" }],
+      };
+    },
+  });
+
+  const result = await handleMusicGeneration({
+    body: { model: "flakyprovider/ghost-model", prompt: "x" },
+    credentials: null,
+    log: null,
+  });
+
+  assert.equal(result.success, false);
+  assert.equal(result.status, 400);
+  assert.match(result.error, /Unknown music provider: flakyprovider/);
+});
+
+test("handleMusicGeneration returns provider errors for ComfyUI failures and logs defaults", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const logEntries = [];
+  let promptBody;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "http://localhost:8188/prompt") {
+      promptBody = JSON.parse(String(options.body || "{}"));
+      return new Response(JSON.stringify({ prompt_id: "music-fail" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "http://localhost:8188/history/music-fail") {
+      return new Response(
+        JSON.stringify({
+          "music-fail": {
+            outputs: {
+              7: {
+                audio: [{ filename: "broken.wav", subfolder: "out", type: "output" }],
+              },
+            },
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    if (stringUrl.includes("/view?")) {
+      return new Response("missing output", { status: 500 });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleMusicGeneration({
+      body: {
+        model: "comfyui/musicgen-medium",
+        prompt: "slow piano",
+      },
+      credentials: null,
+      log: {
+        info: (...args) => logEntries.push(["info", ...args]),
+        error: (...args) => logEntries.push(["error", ...args]),
+      },
+    });
+
+    assert.equal(promptBody.prompt["4"].inputs.seconds, 10);
+    assert.equal(promptBody.prompt["5"].inputs.steps, 100);
+    assert.equal(promptBody.prompt["5"].inputs.cfg, 7);
+    assert.equal(result.success, false);
+    assert.equal(result.status, 502);
+    assert.match(result.error, /ComfyUI fetch output failed \(500\)/);
+    assert.deepEqual(
+      logEntries.map((entry) => entry[0]),
+      ["info", "error"]
+    );
+    assert.match(logEntries[1][2], /comfyui error/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
