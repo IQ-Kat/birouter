@@ -171,6 +171,72 @@ test("fetchModelsDev caches successful responses and rejects invalid JSON or non
   await assert.rejects(() => nonOk.fetchModelsDev(), /models\.dev fetch failed \[503\]/);
 });
 
+test("modelsDev interval falls back to the default when env values are invalid or non-positive", async () => {
+  process.env.MODELS_DEV_SYNC_INTERVAL = "0";
+  const zeroInterval = await importFresh("interval-zero");
+  zeroInterval.startPeriodicSync();
+  assert.equal(zeroInterval.getSyncStatus().intervalMs, 86400 * 1000);
+  zeroInterval.stopPeriodicSync();
+
+  process.env.MODELS_DEV_SYNC_INTERVAL = "not-a-number";
+  const invalidInterval = await importFresh("interval-invalid");
+  invalidInterval.startPeriodicSync();
+  assert.equal(invalidInterval.getSyncStatus().intervalMs, 86400 * 1000);
+  invalidInterval.stopPeriodicSync();
+});
+
+test("transform helpers skip incomplete pricing entries and preserve partial capability defaults", async () => {
+  const modelsDev = await importFresh("transform-edge-cases");
+  const raw = {
+    sparse: {
+      id: "sparse",
+      models: {
+        "missing-cost": {
+          id: "missing-cost",
+          name: "Missing Cost",
+        },
+        "missing-input": {
+          id: "missing-input",
+          name: "Missing Input",
+          cost: { output: 4.2 },
+        },
+        complete: {
+          id: "complete",
+          name: "Complete",
+          cost: { input: 1.5 },
+          interleaved: { field: "" },
+        },
+      },
+    },
+    nomodels: {
+      id: "nomodels",
+    },
+  };
+
+  const pricing = modelsDev.transformModelsDevToPricing(raw);
+  assert.deepEqual(pricing.sparse, {
+    complete: {
+      input: 1.5,
+      output: 0,
+    },
+  });
+  assert.equal(pricing.nomodels, undefined);
+
+  const capabilities = modelsDev.transformModelsDevToCapabilities(raw);
+  assert.equal(capabilities.sparse.complete.tool_call, null);
+  assert.equal(capabilities.sparse.complete.reasoning, null);
+  assert.equal(capabilities.sparse.complete.attachment, null);
+  assert.equal(capabilities.sparse.complete.structured_output, null);
+  assert.equal(capabilities.sparse.complete.temperature, null);
+  assert.equal(capabilities.sparse.complete.modalities_input, "[]");
+  assert.equal(capabilities.sparse.complete.modalities_output, "[]");
+  assert.equal(capabilities.sparse.complete.limit_context, null);
+  assert.equal(capabilities.sparse.complete.limit_input, null);
+  assert.equal(capabilities.sparse.complete.limit_output, null);
+  assert.equal(capabilities.sparse.complete.interleaved_field, null);
+  assert.equal(capabilities.nomodels, undefined);
+});
+
 test("modelsDev pricing helpers persist records, skip corrupted rows, and clear the namespace", async () => {
   const modelsDev = await importFresh("pricing-storage");
   const pricing = modelsDev.transformModelsDevToPricing(MOCK_MODELS_DEV_DATA);
@@ -215,6 +281,157 @@ test("modelsDev capabilities helpers create the table, persist rows, filter by p
   assert.deepEqual(modelsDev.getSyncedCapabilities(), {});
 });
 
+test("modelsDev capability helpers coerce false/null values and ignore malformed rows", async () => {
+  const modelsDev = await importFresh("capabilities-malformed");
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+  db.prepare = (sql) => {
+    if (String(sql).includes("SELECT * FROM model_capabilities")) {
+      return {
+        all: () => [
+          123,
+          { provider: null, model_id: "missing-provider" },
+          {
+            provider: "openai",
+            model_id: "coerced-model",
+            tool_call: 0,
+            reasoning: null,
+            attachment: 0,
+            structured_output: 0,
+            temperature: 0,
+            modalities_input: null,
+            modalities_output: 42,
+            knowledge_cutoff: 77,
+            release_date: 88,
+            last_updated: 99,
+            status: 123,
+            family: 456,
+            open_weights: null,
+            limit_context: "bad",
+            limit_input: 4096,
+            limit_output: "nope",
+            interleaved_field: 321,
+          },
+        ],
+      };
+    }
+    return originalPrepare(sql);
+  };
+
+  try {
+    const openai = modelsDev.getSyncedCapabilities("openai");
+    assert.deepEqual(openai.openai["coerced-model"], {
+      tool_call: false,
+      reasoning: null,
+      attachment: false,
+      structured_output: false,
+      temperature: false,
+      modalities_input: "[]",
+      modalities_output: "[]",
+      knowledge_cutoff: null,
+      release_date: null,
+      last_updated: null,
+      status: null,
+      family: null,
+      open_weights: null,
+      limit_context: null,
+      limit_input: 4096,
+      limit_output: null,
+      interleaved_field: null,
+    });
+
+    const all = modelsDev.getSyncedCapabilities();
+    assert.equal(all["7"], undefined);
+    assert.equal(all.openai["missing-provider"], undefined);
+  } finally {
+    db.prepare = originalPrepare;
+  }
+});
+
+test("modelsDev pricing helpers ignore malformed sqlite rows without crashing", async () => {
+  const modelsDev = await importFresh("pricing-malformed");
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+  db.prepare = (sql) => {
+    if (String(sql).includes("SELECT key, value FROM key_value")) {
+      return {
+        all: () => [
+          123,
+          { key: 123, value: JSON.stringify({ ignored: true }) },
+          { key: "missing-value", value: 456 },
+          { key: "broken", value: "{oops" },
+          { key: "openai", value: JSON.stringify({ "gpt-4o": { input: 2.5, output: 10 } }) },
+        ],
+      };
+    }
+    return originalPrepare(sql);
+  };
+
+  try {
+    assert.deepEqual(modelsDev.getModelsDevPricing(), {
+      openai: {
+        "gpt-4o": {
+          input: 2.5,
+          output: 10,
+        },
+      },
+    });
+  } finally {
+    db.prepare = originalPrepare;
+  }
+});
+
+test("saveModelsDevCapabilities round-trips false and null booleans", async () => {
+  const modelsDev = await importFresh("capabilities-roundtrip-falsey");
+  modelsDev.saveModelsDevCapabilities({
+    openai: {
+      "gpt-falsey": {
+        tool_call: false,
+        reasoning: null,
+        attachment: false,
+        structured_output: false,
+        temperature: null,
+        modalities_input: "[]",
+        modalities_output: '["text"]',
+        knowledge_cutoff: null,
+        release_date: null,
+        last_updated: null,
+        status: null,
+        family: null,
+        open_weights: false,
+        limit_context: null,
+        limit_input: null,
+        limit_output: 1024,
+        interleaved_field: null,
+      },
+    },
+  });
+
+  assert.deepEqual(modelsDev.getSyncedCapabilities("openai", "gpt-falsey"), {
+    openai: {
+      "gpt-falsey": {
+        tool_call: false,
+        reasoning: null,
+        attachment: false,
+        structured_output: false,
+        temperature: null,
+        modalities_input: "[]",
+        modalities_output: '["text"]',
+        knowledge_cutoff: null,
+        release_date: null,
+        last_updated: null,
+        status: null,
+        family: null,
+        open_weights: false,
+        limit_context: null,
+        limit_input: null,
+        limit_output: 1024,
+        interleaved_field: null,
+      },
+    },
+  });
+});
+
 test("syncModelsDev supports dry-run mode, persistence, capability toggles, and failure reporting", async () => {
   const modelsDev = await importFresh("sync-main");
   mockFetchWith(MOCK_MODELS_DEV_DATA);
@@ -242,6 +459,18 @@ test("syncModelsDev supports dry-run mode, persistence, capability toggles, and 
   const failed = await failing.syncModelsDev();
   assert.equal(failed.success, false);
   assert.match(failed.error, /network down/);
+});
+
+test("syncModelsDev string failures are normalized into an error payload", async () => {
+  const modelsDev = await importFresh("sync-string-error");
+  globalThis.fetch = async () => {
+    throw "hard fail";
+  };
+
+  const failed = await modelsDev.syncModelsDev({ dryRun: true });
+  assert.equal(failed.success, false);
+  assert.equal(failed.error, "hard fail");
+  assert.equal(failed.dryRun, true);
 });
 
 test("startPeriodicSync, stopPeriodicSync, getSyncStatus, and initModelsDevSync honor settings and avoid duplicate timers", async () => {

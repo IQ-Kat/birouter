@@ -222,6 +222,28 @@ test("GET /api/keys falls back to default pagination for invalid query params", 
   assert.equal(body.keys[0].name, "management");
 });
 
+test("GET /api/keys treats non-numeric pagination params as defaults", async () => {
+  await enableManagementAuth();
+  const authKey = await createManagementKey();
+  await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
+  await apiKeysDb.createApiKey("Beta", MACHINE_ID);
+
+  const response = await listRoute.GET(
+    makeRequest("http://localhost/api/keys?limit=abc&offset=xyz", {
+      token: authKey.key,
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.total, 3);
+  assert.equal(body.keys.length, 3);
+  assert.deepEqual(
+    body.keys.map((entry) => entry.name),
+    ["management", "Alpha", "Beta"]
+  );
+});
+
 test("GET /api/keys uses default pagination when query params are absent and reports reveal support", async () => {
   await enableManagementAuth();
   process.env.ALLOW_API_KEY_REVEAL = "true";
@@ -277,6 +299,39 @@ test("POST /api/keys triggers cloud sync when cloud mode is enabled", async () =
     assert.ok(Array.isArray(syncPayload.apiKeys));
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("GET /api/keys returns 500 when the key store throws unexpectedly", async () => {
+  await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
+
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+  const originalLog = console.log;
+  const logs = [];
+
+  db.prepare = (sql) => {
+    if (String(sql).includes("FROM api_keys")) {
+      throw new Error("api keys offline");
+    }
+    return originalPrepare(sql);
+  };
+  apiKeysDb.resetApiKeyState();
+  console.log = (...args) => {
+    logs.push(args.map((arg) => String(arg)).join(" "));
+  };
+
+  try {
+    const response = await listRoute.GET(new Request("http://localhost/api/keys"));
+    const body = await response.json();
+
+    assert.equal(response.status, 500);
+    assert.equal(body.error, "Failed to fetch keys");
+    assert.ok(logs.some((entry) => entry.includes("Error fetching keys:")));
+  } finally {
+    db.prepare = originalPrepare;
+    apiKeysDb.resetApiKeyState();
+    console.log = originalLog;
   }
 });
 

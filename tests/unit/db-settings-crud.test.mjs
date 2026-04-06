@@ -199,6 +199,97 @@ test("pricing helpers resolve aliased providers and tolerate no-op resets", asyn
   assert.equal(afterUnknownReset["missing-provider"], undefined);
 });
 
+test("settings and pricing readers skip malformed rows while merging surviving layers", async () => {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+
+  db.prepare = (sql) => {
+    const text = String(sql);
+
+    if (text.includes("namespace = 'settings'")) {
+      return {
+        all: () => [
+          123,
+          { key: 456, value: "true" },
+          { key: "cloudEnabled", value: "true" },
+          { key: "requireLogin", value: null },
+        ],
+      };
+    }
+
+    if (text.includes("namespace = 'pricing_synced'")) {
+      return {
+        all: () => [
+          123,
+          { key: 456, value: JSON.stringify({ ignored: true }) },
+          {
+            key: "layered-provider",
+            value: JSON.stringify({
+              "model-a": { prompt: 1, completion: 2 },
+            }),
+          },
+        ],
+      };
+    }
+
+    if (text.includes("namespace = 'models_dev_pricing'")) {
+      return {
+        all: () => [
+          { key: "broken-provider", value: "{bad" },
+          { key: "missing-value", value: null },
+          {
+            key: "layered-provider",
+            value: JSON.stringify({
+              "model-a": { cached: 3 },
+            }),
+          },
+        ],
+      };
+    }
+
+    if (text.includes("namespace = 'pricing'")) {
+      return {
+        all: () => [
+          {
+            key: "layered-provider",
+            value: JSON.stringify({
+              "model-a": { prompt: 9, custom: 42 },
+              "model-b": { prompt: 7 },
+            }),
+          },
+          { key: null, value: JSON.stringify({ ignored: true }) },
+        ],
+      };
+    }
+
+    return originalPrepare(sql);
+  };
+
+  try {
+    const settings = await settingsDb.getSettings();
+    const pricing = await settingsDb.getPricing();
+    const modelPricing = await settingsDb.getPricingForModel("layered-provider", "model-a");
+
+    assert.equal(settings.cloudEnabled, true);
+    assert.equal(settings.requireLogin, true);
+    assert.deepEqual(pricing["layered-provider"]["model-a"], {
+      prompt: 9,
+      completion: 2,
+      cached: 3,
+      custom: 42,
+    });
+    assert.deepEqual(modelPricing, {
+      prompt: 9,
+      completion: 2,
+      cached: 3,
+      custom: 42,
+    });
+    assert.equal(pricing["broken-provider"], undefined);
+  } finally {
+    db.prepare = originalPrepare;
+  }
+});
+
 test("proxy config migrates legacy strings and supports bulk merge updates", async () => {
   const db = core.getDbInstance();
 
@@ -434,6 +525,64 @@ test("proxy resolution matches combo proxies through aliased model entries", asy
   assert.equal(resolved.proxy.host, "combo-alias.local");
 });
 
+test("proxy readers normalize legacy rows, skip malformed entries, and coerce invalid globals to null", async () => {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+
+  db.prepare = (sql) => {
+    const text = String(sql);
+
+    if (text.includes("namespace = 'proxyConfig'") && text.startsWith("SELECT")) {
+      return {
+        all: () => [
+          123,
+          { key: 456, value: JSON.stringify({ ignored: true }) },
+          { key: "global", value: JSON.stringify("https://user%40name:pass%2Fword@proxy.example") },
+          {
+            key: "providers",
+            value: JSON.stringify({
+              openai: "http://provider.example",
+            }),
+          },
+          { key: "combos", value: JSON.stringify("not-a-map") },
+          { key: "keys", value: null },
+        ],
+      };
+    }
+
+    if (text.includes("namespace = 'proxyConfig'") && text.startsWith("INSERT OR REPLACE")) {
+      return { run: () => ({ changes: 1 }) };
+    }
+
+    return originalPrepare(sql);
+  };
+
+  try {
+    const config = await settingsDb.getProxyConfig();
+    assert.deepEqual(config.global, {
+      type: "https",
+      host: "proxy.example",
+      port: "443",
+      username: "user@name",
+      password: "pass/word",
+    });
+    assert.deepEqual(config.providers.openai, {
+      type: "http",
+      host: "provider.example",
+      port: "8080",
+      username: "",
+      password: "",
+    });
+    assert.equal(await settingsDb.getProxyForLevel("combo", "missing"), null);
+  } finally {
+    db.prepare = originalPrepare;
+  }
+
+  const updated = await settingsDb.setProxyConfig({ level: 123, id: 456, proxy: 0 });
+  assert.equal(updated.global, null);
+  assert.equal(await settingsDb.getProxyForLevel("global"), null);
+});
+
 test("cache metrics, trend and no-op update/reset methods read from usage_history", async () => {
   const db = core.getDbInstance();
   const now = new Date().toISOString();
@@ -515,6 +664,117 @@ test("cache metric helpers degrade gracefully when SQLite aggregation fails", as
     assert.equal(updated.totalCachedTokens, 0);
     assert.deepEqual(trend, []);
     assert.equal(reset.requestsWithCacheControl, 0);
+  } finally {
+    db.prepare = originalPrepare;
+  }
+});
+
+test("cache metrics and trend coerce null aggregate fields to zero", async () => {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+
+  db.prepare = (sql) => {
+    const text = String(sql);
+
+    if (text.includes("COUNT(*) as totalRequests") && text.includes("tokens_cache_read > 0")) {
+      return {
+        get: () => ({
+          totalRequests: 2,
+          totalInputTokens: null,
+          totalCachedTokens: null,
+          totalCacheCreationTokens: null,
+        }),
+      };
+    }
+
+    if (text.includes("SELECT COUNT(*) as totalRequests") && text.includes("FROM usage_history")) {
+      return {
+        get: () => ({
+          totalRequests: 5,
+        }),
+      };
+    }
+
+    if (text.includes("GROUP BY provider")) {
+      return {
+        all: () => [
+          {
+            provider: "openai",
+            requests: 1,
+            inputTokens: null,
+            cachedTokens: null,
+            cacheCreationTokens: null,
+          },
+        ],
+      };
+    }
+
+    if (text.includes("GROUP BY 'direct'")) {
+      return {
+        all: () => [
+          {
+            strategy: "direct",
+            requests: 2,
+            inputTokens: null,
+            cachedTokens: null,
+            cacheCreationTokens: null,
+          },
+        ],
+      };
+    }
+
+    if (text.includes("strftime('%Y-%m-%dT%H:00:00Z', timestamp) as hour")) {
+      return {
+        all: () => [
+          {
+            hour: "2026-01-01T10:00:00Z",
+            requests: 3,
+            cachedRequests: 1,
+            inputTokens: null,
+            cachedTokens: null,
+            cacheCreationTokens: null,
+          },
+        ],
+      };
+    }
+
+    return originalPrepare(sql);
+  };
+
+  try {
+    const metrics = await settingsDb.getCacheMetrics();
+    const updated = await settingsDb.updateCacheMetrics({ force: true });
+    const trend = await settingsDb.getCacheTrend(2);
+    const reset = await settingsDb.resetCacheMetrics();
+
+    assert.equal(metrics.totalRequests, 5);
+    assert.equal(metrics.totalInputTokens, 0);
+    assert.equal(metrics.totalCachedTokens, 0);
+    assert.equal(metrics.totalCacheCreationTokens, 0);
+    assert.deepEqual(metrics.byProvider.openai, {
+      requests: 1,
+      inputTokens: 0,
+      cachedTokens: 0,
+      cacheCreationTokens: 0,
+    });
+    assert.deepEqual(metrics.byStrategy.direct, {
+      requests: 2,
+      inputTokens: 0,
+      cachedTokens: 0,
+      cacheCreationTokens: 0,
+    });
+    assert.deepEqual(trend, [
+      {
+        timestamp: "2026-01-01T10:00:00Z",
+        requests: 3,
+        cachedRequests: 1,
+        inputTokens: 0,
+        cachedTokens: 0,
+        cacheCreationTokens: 0,
+      },
+    ]);
+    assert.equal(updated.totalCachedTokens, 0);
+    assert.equal(reset.totalCachedTokens, 0);
   } finally {
     db.prepare = originalPrepare;
   }

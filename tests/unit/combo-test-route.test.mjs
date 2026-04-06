@@ -50,6 +50,40 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("combo test route validates request payloads and combo existence", async () => {
+  const invalidJsonResponse = await route.POST(
+    new Request("http://localhost/api/combos/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{",
+    })
+  );
+
+  assert.equal(invalidJsonResponse.status, 400);
+  assert.deepEqual(await invalidJsonResponse.json(), {
+    error: {
+      message: "Invalid request",
+      details: [{ field: "body", message: "Invalid JSON body" }],
+    },
+  });
+
+  const invalidBodyResponse = await route.POST(
+    new Request("http://localhost/api/combos/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ comboName: "" }),
+    })
+  );
+  const invalidBody = await invalidBodyResponse.json();
+  assert.equal(invalidBodyResponse.status, 400);
+  assert.equal(invalidBody.error.message, "Invalid request");
+
+  const missingResponse = await route.POST(makeRequest("missing-combo"));
+  const missingBody = await missingResponse.json();
+  assert.equal(missingResponse.status, 404);
+  assert.equal(missingBody.error, "Combo not found");
+});
+
 test("combo test route marks a model healthy only when it returns assistant text", async () => {
   await createTestCombo();
 
@@ -250,6 +284,94 @@ test("combo test route launches model probes concurrently while preserving combo
       { model: "provider/first", status: "ok", responseText: "FIRST" },
       { model: "provider/second", status: "ok", responseText: "SECOND" },
       { model: "provider/third", status: "ok", responseText: "THIRD" },
+    ]
+  );
+});
+
+test("combo test route rejects empty combos and respects forwarded base URLs", async () => {
+  await createTestCombo([]);
+
+  const emptyResponse = await route.POST(makeRequest());
+  const emptyBody = await emptyResponse.json();
+  assert.equal(emptyResponse.status, 400);
+  assert.equal(emptyBody.error, "Combo has no models");
+
+  await resetStorage();
+  await createTestCombo(["provider/forwarded"]);
+
+  const fetchCalls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({ url: String(url), init });
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "FORWARDED" } }],
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  const forwardedResponse = await route.POST(
+    new Request("http://localhost/api/combos/test", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-host": "router.example.com",
+        "x-forwarded-proto": "https",
+      },
+      body: JSON.stringify({ comboName: "strict-live-test" }),
+    })
+  );
+
+  assert.equal(forwardedResponse.status, 200);
+  assert.equal(fetchCalls.length, 1);
+  assert.equal(fetchCalls[0].url, "https://router.example.com/v1/chat/completions");
+});
+
+test("combo test route handles upstream timeouts and non-JSON error bodies", async () => {
+  await createTestCombo(["provider/timeout", "provider/error"]);
+
+  let callCount = 0;
+  globalThis.fetch = async () => {
+    callCount += 1;
+    if (callCount === 1) {
+      const error = new Error("aborted");
+      error.name = "AbortError";
+      throw error;
+    }
+    return new Response("bad gateway", {
+      status: 502,
+      statusText: "Bad Gateway",
+    });
+  };
+
+  const response = await route.POST(makeRequest());
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.resolvedBy, null);
+  assert.deepEqual(
+    body.results.map((result) => ({
+      model: result.model,
+      status: result.status,
+      error: result.error,
+      statusCode: result.statusCode ?? null,
+    })),
+    [
+      {
+        model: "provider/timeout",
+        status: "error",
+        error: "Timeout (20s)",
+        statusCode: null,
+      },
+      {
+        model: "provider/error",
+        status: "error",
+        error: "Bad Gateway",
+        statusCode: 502,
+      },
     ]
   );
 });

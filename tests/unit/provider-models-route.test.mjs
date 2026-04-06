@@ -59,6 +59,20 @@ test("provider models route returns 404 for unknown connections", async () => {
   assert.deepEqual(await response.json(), { error: "Connection not found" });
 });
 
+test("provider models route rejects connections with an empty provider id", async () => {
+  const connection = await seedConnection("openai", {
+    apiKey: "sk-openai",
+  });
+  const db = core.getDbInstance();
+
+  db.prepare("UPDATE provider_connections SET provider = '' WHERE id = ?").run(connection.id);
+
+  const response = await callRoute(connection.id);
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: "Invalid connection provider" });
+});
+
 test("provider models route rejects OpenAI-compatible providers without a base URL", async () => {
   const connection = await seedConnection("openai-compatible-demo", {
     apiKey: "sk-openai-compatible",
@@ -190,6 +204,92 @@ test("provider models route returns the local catalog for OAuth-backed Qwen conn
   assert.equal(response.status, 200);
   assert.equal(body.source, "local_catalog");
   assert.ok(Array.isArray(body.models));
+});
+
+test("provider models route filters hidden models from the static Claude catalog when requested", async () => {
+  const connection = await seedConnection("claude", {
+    authType: "oauth",
+    accessToken: "claude-access",
+    apiKey: null,
+  });
+  modelsDb.mergeModelCompatOverride("claude", "claude-sonnet-4-6", { isHidden: true });
+
+  const response = await callRoute(connection.id, "?excludeHidden=true");
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "claude");
+  assert.equal(
+    body.models.some((model) => model.id === "claude-sonnet-4-6"),
+    false
+  );
+  assert.ok(body.models.some((model) => model.id === "claude-opus-4-6"));
+});
+
+test("provider models route rejects Anthropic-compatible providers without a base URL", async () => {
+  const connection = await seedConnection("anthropic-compatible-demo", {
+    apiKey: "sk-anthropic-compatible",
+  });
+
+  const response = await callRoute(connection.id);
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    error: "No base URL configured for Anthropic compatible provider",
+  });
+});
+
+test("provider models route trims Anthropic-compatible message URLs and filters hidden upstream models", async () => {
+  const connection = await seedConnection("anthropic-compatible-demo", {
+    apiKey: "sk-anthropic-compatible",
+    accessToken: "anthropic-access",
+    providerSpecificData: {
+      baseUrl: "https://proxy.example.com/v1/messages",
+    },
+  });
+  modelsDb.mergeModelCompatOverride("anthropic-compatible-demo", "hidden-model", {
+    isHidden: true,
+  });
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://proxy.example.com/v1/models");
+    assert.equal(init.method, "GET");
+    assert.equal(init.headers["Content-Type"], "application/json");
+    assert.equal(init.headers["x-api-key"], "sk-anthropic-compatible");
+    assert.equal(init.headers.Authorization, "Bearer anthropic-access");
+    assert.equal(init.headers["anthropic-version"], "2023-06-01");
+
+    return Response.json({
+      data: [
+        { id: "visible-model", name: "Visible Model" },
+        { id: "hidden-model", name: "Hidden Model" },
+      ],
+    });
+  };
+
+  const response = await callRoute(connection.id, "?excludeHidden=true");
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.models, [{ id: "visible-model", name: "Visible Model" }]);
+});
+
+test("provider models route forwards Anthropic-compatible upstream failures", async () => {
+  const connection = await seedConnection("anthropic-compatible-demo", {
+    apiKey: "sk-anthropic-compatible",
+    providerSpecificData: {
+      baseUrl: "https://proxy.example.com/v1/messages",
+    },
+  });
+
+  globalThis.fetch = async () => new Response("upstream unavailable", { status: 502 });
+
+  const response = await callRoute(connection.id);
+
+  assert.equal(response.status, 502);
+  assert.deepEqual(await response.json(), {
+    error: "Failed to fetch models: 502",
+  });
 });
 
 test("provider models route paginates generic providers and filters hidden models when requested", async () => {
@@ -331,4 +431,28 @@ test("provider models route rejects unsupported providers without a models confi
   assert.deepEqual(await response.json(), {
     error: "Provider unsupported-provider does not support models listing",
   });
+});
+
+test("provider models route uses provider-specific auth headers for Kimi Coding", async () => {
+  const connection = await seedConnection("kimi-coding", {
+    apiKey: "kimi-coding-key",
+  });
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://api.kimi.com/coding/v1/models");
+    assert.equal(init.method, "GET");
+    assert.equal(init.headers["x-api-key"], "kimi-coding-key");
+    assert.equal(init.headers.Authorization, undefined);
+
+    return Response.json({
+      data: [{ id: "kimi-k2.5", name: "Kimi K2.5" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "kimi-coding");
+  assert.deepEqual(body.models, [{ id: "kimi-k2.5", name: "Kimi K2.5" }]);
 });

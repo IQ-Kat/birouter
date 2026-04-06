@@ -80,6 +80,47 @@ async function seedOpenAIConnection({
   });
 }
 
+async function withPrepareFailure(match, message, fn) {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+
+  db.prepare = (sql, ...args) => {
+    const sqlText = String(sql);
+    const matched = typeof match === "function" ? match(sqlText) : sqlText.includes(match);
+    if (matched) {
+      throw new Error(message);
+    }
+    return originalPrepare(sql, ...args);
+  };
+
+  try {
+    return await fn();
+  } finally {
+    db.prepare = originalPrepare;
+  }
+}
+
+async function withPrepareOverride(match, override, fn) {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+
+  db.prepare = (sql, ...args) => {
+    const sqlText = String(sql);
+    const matched = typeof match === "function" ? match(sqlText) : sqlText.includes(match);
+    const statement = originalPrepare(sql, ...args);
+    if (!matched) {
+      return statement;
+    }
+    return override({ sqlText, statement, args });
+  };
+
+  try {
+    return await fn();
+  } finally {
+    db.prepare = originalPrepare;
+  }
+}
+
 test.beforeEach(async () => {
   await resetStorage();
 });
@@ -347,6 +388,118 @@ test("settings proxy route prefers proxy registry assignments and enforces socks
   assert.equal(enabledSocksBody.global.type, "socks5");
 });
 
+test("settings proxy route covers default types, null maps, registry fallback, and server-error branches", async () => {
+  const defaultTypePut = await settingsProxyRoute.PUT(
+    makeRequest("http://localhost/api/settings/proxy", {
+      method: "PUT",
+      body: {
+        level: "global",
+        proxy: { host: "default-type.local", port: "8088" },
+      },
+    })
+  );
+  assert.equal(defaultTypePut.status, 200);
+  const defaultTypeBody = await defaultTypePut.json();
+  assert.equal(defaultTypeBody.global.type, "http");
+
+  const clearMapPut = await settingsProxyRoute.PUT(
+    makeRequest("http://localhost/api/settings/proxy", {
+      method: "PUT",
+      body: {
+        global: null,
+        providers: { openai: null },
+      },
+    })
+  );
+  assert.equal(clearMapPut.status, 200);
+  const clearMapBody = await clearMapPut.json();
+  assert.equal(clearMapBody.global, null);
+  assert.equal(Object.prototype.hasOwnProperty.call(clearMapBody.providers || {}, "openai"), false);
+
+  await settingsProxyRoute.PUT(
+    makeRequest("http://localhost/api/settings/proxy", {
+      method: "PUT",
+      body: {
+        level: "global",
+        proxy: { type: "https", host: "legacy-fallback.local", port: "9443" },
+      },
+    })
+  );
+
+  const missingRegistryProxy = await localDb.createProxy({
+    name: "Missing Registry Proxy",
+    type: "http",
+    host: "missing-registry.local",
+    port: 8080,
+  });
+  await localDb.assignProxyToScope("global", null, missingRegistryProxy.id);
+
+  await withPrepareOverride(
+    "FROM proxy_registry WHERE id = ?",
+    ({ statement }) => ({
+      ...statement,
+      get() {
+        return undefined;
+      },
+    }),
+    async () => {
+      const response = await settingsProxyRoute.GET(
+        new Request("http://localhost/api/settings/proxy?level=global")
+      );
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.level, "global");
+      assert.equal(body.proxy.host, "legacy-fallback.local");
+    }
+  );
+
+  await withPrepareFailure(
+    "SELECT key, value FROM key_value WHERE namespace = 'proxyConfig'",
+    "proxy config read failure",
+    async () => {
+      const response = await settingsProxyRoute.GET(
+        new Request("http://localhost/api/settings/proxy")
+      );
+      assert.equal(response.status, 500);
+      assert.match((await response.json()).error.message, /proxy config read failure/i);
+    }
+  );
+
+  await withPrepareFailure(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('proxyConfig', 'global', ?)",
+    "proxy config write failure",
+    async () => {
+      const response = await settingsProxyRoute.PUT(
+        makeRequest("http://localhost/api/settings/proxy", {
+          method: "PUT",
+          body: {
+            level: "global",
+            proxy: { host: "broken-write.local", port: "8080" },
+          },
+        })
+      );
+      assert.equal(response.status, 500);
+      const body = await response.json();
+      assert.equal(body.error.type, "server_error");
+      assert.match(body.error.message, /proxy config write failure/i);
+    }
+  );
+
+  await withPrepareFailure(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('proxyConfig', 'global', ?)",
+    "proxy config delete failure",
+    async () => {
+      const response = await settingsProxyRoute.DELETE(
+        new Request("http://localhost/api/settings/proxy?level=global", {
+          method: "DELETE",
+        })
+      );
+      assert.equal(response.status, 500);
+      assert.match((await response.json()).error.message, /proxy config delete failure/i);
+    }
+  );
+});
+
 test("management proxies route covers auth, pagination, lookup, where-used, patch and delete flows", async () => {
   await enableManagementAuth();
   const managementKey = await createManagementKey();
@@ -597,4 +750,337 @@ test("embeddings route enforces caller auth, missing credentials and provider ra
   assert.match(missingCredentialsBody.error.message, /No credentials for embedding provider/);
   assert.equal(allRateLimited.status, 429);
   assert.match(allRateLimitedBody.error.message, /All accounts rate limited/);
+});
+
+test("embeddings route tolerates custom-model and provider-node lookup failures", async () => {
+  await seedOpenAIConnection();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    Response.json({
+      data: [{ object: "embedding", index: 0, embedding: [0.1, 0.2] }],
+      usage: { prompt_tokens: 3, total_tokens: 3 },
+    });
+
+  try {
+    await withPrepareFailure(
+      "SELECT key, value FROM key_value WHERE namespace = 'customModels'",
+      "custom models unavailable",
+      async () => {
+        const response = await embeddingsRoute.GET();
+        const body = await response.json();
+
+        assert.equal(response.status, 200);
+        assert.ok(body.data.some((model) => model.id === "openai/text-embedding-3-small"));
+      }
+    );
+
+    await withPrepareFailure(
+      "SELECT * FROM provider_nodes",
+      "provider nodes unavailable",
+      async () => {
+        const response = await embeddingsRoute.POST(
+          makeRequest("http://localhost/v1/embeddings", {
+            method: "POST",
+            body: { model: "openai/text-embedding-3-small", input: "hello" },
+          })
+        );
+        const body = await response.json();
+
+        assert.equal(response.status, 200);
+        assert.equal(body.model, "openai/text-embedding-3-small");
+      }
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("embeddings route supports local provider nodes without credentials and enforces model policy", async () => {
+  await providersDb.createProviderNode({
+    id: "local-embed-node",
+    type: "openai-compatible",
+    name: "Local Embed Node",
+    prefix: "localembed",
+    apiType: "chat",
+    baseUrl: "http://localhost:7788/v1",
+  });
+
+  const localFetchCalls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    localFetchCalls.push({
+      url: String(url),
+      headers: init.headers,
+      body: JSON.parse(String(init.body)),
+    });
+    return Response.json({
+      data: [{ object: "embedding", index: 0, embedding: [0.9, 0.1] }],
+      usage: { prompt_tokens: 2, total_tokens: 2 },
+    });
+  };
+
+  try {
+    const localResponse = await embeddingsRoute.POST(
+      makeRequest("http://localhost/v1/embeddings", {
+        method: "POST",
+        body: {
+          model: "localembed/demo-embed",
+          input: "hello",
+          user: "user-123",
+        },
+      })
+    );
+    const localBody = await localResponse.json();
+
+    assert.equal(localResponse.status, 200);
+    assert.equal(localBody.model, "localembed/demo-embed");
+    assert.equal(localFetchCalls.length, 1);
+    assert.equal(localFetchCalls[0].url, "http://localhost:7788/v1/embeddings");
+    assert.equal(localFetchCalls[0].headers.Authorization, undefined);
+    assert.equal(localFetchCalls[0].body.model, "demo-embed");
+    assert.equal(localFetchCalls[0].body.user, "user-123");
+
+    process.env.REQUIRE_API_KEY = "true";
+    const restrictedKey = await apiKeysDb.createApiKey("embeddings-policy", MACHINE_ID);
+    await apiKeysDb.updateApiKeyPermissions(restrictedKey.id, {
+      allowedModels: ["openai/text-embedding-ada-002"],
+    });
+
+    const rejected = await embeddingsRoute.POST(
+      new Request("http://localhost/v1/embeddings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${restrictedKey.key}`,
+        },
+        body: JSON.stringify({
+          model: "openai/text-embedding-3-small",
+          input: "hello",
+        }),
+      })
+    );
+    const rejectedBody = await rejected.json();
+
+    assert.equal(rejected.status, 403);
+    assert.match(rejectedBody.error.message, /not allowed/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("embeddings route returns normalized upstream failures", async () => {
+  await seedOpenAIConnection();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("upstream boom", { status: 502 });
+
+  try {
+    const response = await embeddingsRoute.POST(
+      makeRequest("http://localhost/v1/embeddings", {
+        method: "POST",
+        body: { model: "openai/text-embedding-3-small", input: "hello" },
+      })
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 502);
+    assert.equal(body.error.message, "upstream boom");
+    assert.equal(body.error.type, "upstream_error");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("embeddings route GET skips malformed, non-embedding, and duplicate custom model rows", async () => {
+  await modelsDb.addCustomModel(
+    "openai",
+    "text-embedding-3-small",
+    "Duplicate OpenAI Embed",
+    "manual",
+    "responses",
+    ["embeddings"]
+  );
+
+  const db = core.getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
+  ).run("broken-embed-provider", JSON.stringify({ invalid: true }));
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
+  ).run(
+    "mixed-embed-provider",
+    JSON.stringify([
+      { name: "Missing Id", supportedEndpoints: ["embeddings"] },
+      { id: "chat-only", supportedEndpoints: ["chat"] },
+      { id: "edge-embed", supportedEndpoints: ["embeddings"] },
+    ])
+  );
+
+  const response = await embeddingsRoute.GET();
+  const body = await response.json();
+  const ids = body.data.map((model) => model.id);
+
+  assert.equal(response.status, 200);
+  assert.equal(ids.filter((id) => id === "openai/text-embedding-3-small").length, 1);
+  assert.ok(ids.includes("mixed-embed-provider/edge-embed"));
+  assert.equal(ids.includes("mixed-embed-provider/chat-only"), false);
+  assert.equal(ids.includes("broken-embed-provider/edge-embed"), false);
+});
+
+test("embeddings route tolerates non-array provider nodes and remote fallback lookup errors", async () => {
+  await seedOpenAIConnection();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    Response.json({
+      data: [{ object: "embedding", index: 0, embedding: [0.3, 0.4] }],
+      usage: { prompt_tokens: 2, total_tokens: 2 },
+    });
+
+  try {
+    await withPrepareOverride(
+      "SELECT * FROM provider_nodes",
+      ({ statement }) =>
+        new Proxy(statement, {
+          get(target, prop, receiver) {
+            if (prop === "all") {
+              return () => ({ broken: true });
+            }
+            return Reflect.get(target, prop, receiver);
+          },
+        }),
+      async () => {
+        const response = await embeddingsRoute.POST(
+          makeRequest("http://localhost/v1/embeddings", {
+            method: "POST",
+            body: { model: "openai/text-embedding-3-small", input: "hello" },
+          })
+        );
+        assert.equal(response.status, 200);
+      }
+    );
+
+    let providerNodeSelects = 0;
+    const remoteFallback = await withPrepareOverride(
+      "SELECT * FROM provider_nodes",
+      ({ statement }) =>
+        new Proxy(statement, {
+          get(target, prop, receiver) {
+            if (prop === "all") {
+              return (...args) => {
+                providerNodeSelects++;
+                if (providerNodeSelects === 1) {
+                  return [];
+                }
+                throw new Error("remote provider node lookup failed");
+              };
+            }
+            return Reflect.get(target, prop, receiver);
+          },
+        }),
+      async () =>
+        embeddingsRoute.POST(
+          makeRequest("http://localhost/v1/embeddings", {
+            method: "POST",
+            body: { model: "remote/demo-embed", input: "hello" },
+          })
+        )
+    );
+    const remoteFallbackBody = await remoteFallback.json();
+
+    assert.equal(remoteFallback.status, 400);
+    assert.match(remoteFallbackBody.error.message, /Unknown embedding provider|No matching/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("embeddings route handles responses provider nodes, invalid local nodes, and id-less remote fallback", async () => {
+  await providersDb.createProviderNode({
+    type: "openai-compatible",
+    name: "Local Responses Embed Node",
+    prefix: "localresponses",
+    apiType: "responses",
+    baseUrl: "http://localhost:7790/v1",
+  });
+  await providersDb.createProviderNode({
+    type: "openai-compatible",
+    name: "Invalid URL Node",
+    prefix: "badurl",
+    apiType: "chat",
+    baseUrl: "not a valid url",
+  });
+  await providersDb.createProviderNode({
+    type: "openai-compatible",
+    name: "Invalid Prefix Node",
+    prefix: "bad/prefix",
+    apiType: "chat",
+    baseUrl: "http://localhost:7791/v1",
+  });
+  await providersDb.createProviderConnection({
+    provider: "remoteprefix",
+    authType: "apikey",
+    name: "remoteprefix-key",
+    apiKey: "sk-remoteprefix",
+  });
+
+  const originalFetch = globalThis.fetch;
+  const fetchCalls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({
+      url: String(url),
+      headers: init.headers,
+      body: JSON.parse(String(init.body)),
+    });
+    return Response.json({
+      data: [{ object: "embedding", index: 0, embedding: [0.7, 0.8] }],
+      usage: { prompt_tokens: 4, total_tokens: 4 },
+    });
+  };
+
+  try {
+    const localResponse = await embeddingsRoute.POST(
+      makeRequest("http://localhost/v1/embeddings", {
+        method: "POST",
+        body: { model: "localresponses/demo-embed", input: "hello" },
+      })
+    );
+    assert.equal(localResponse.status, 200);
+    assert.equal(fetchCalls[0].url, "http://localhost:7790/v1/embeddings");
+
+    const remoteResponse = await withPrepareOverride(
+      "SELECT * FROM provider_nodes",
+      ({ statement }) =>
+        new Proxy(statement, {
+          get(target, prop, receiver) {
+            if (prop === "all") {
+              return () => [
+                {
+                  prefix: "remoteprefix",
+                  apiType: "responses",
+                  baseUrl: "https://remote.example.com/v1beta/openai",
+                },
+              ];
+            }
+            return Reflect.get(target, prop, receiver);
+          },
+        }),
+      async () =>
+        embeddingsRoute.POST(
+          makeRequest("http://localhost/v1/embeddings", {
+            method: "POST",
+            body: { model: "remoteprefix/demo-embed", input: "hello" },
+          })
+        )
+    );
+    const remoteBody = await remoteResponse.json();
+
+    assert.equal(remoteResponse.status, 200);
+    assert.equal(fetchCalls[1].url, "https://remote.example.com/v1beta/openai/embeddings");
+    assert.equal(fetchCalls[1].headers.Authorization, "Bearer sk-remoteprefix");
+    assert.equal(remoteBody.model, "remoteprefix/demo-embed");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

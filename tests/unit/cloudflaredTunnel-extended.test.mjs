@@ -38,6 +38,45 @@ async function createCloudflaredDataDir(prefix) {
   return dir;
 }
 
+async function readJsonFileWithRetry(filePath, attempts = 20) {
+  const parseJsonSnapshot = (content) => {
+    const trimmed = String(content || "").trim();
+    if (!trimmed) {
+      throw new SyntaxError("Empty JSON payload");
+    }
+
+    try {
+      return JSON.parse(trimmed);
+    } catch (error) {
+      const snapshots = trimmed
+        .split(/\n(?=\{)/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+
+      for (let index = snapshots.length - 1; index >= 0; index -= 1) {
+        try {
+          return JSON.parse(snapshots[index]);
+        } catch {
+          // Keep trying older complete snapshots.
+        }
+      }
+
+      throw error;
+    }
+  };
+
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return parseJsonSnapshot(await fs.readFile(filePath, "utf8"));
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+  }
+  throw lastError;
+}
+
 function createFakeChild(pid) {
   const child = new EventEmitter();
   child.stdout = new PassThrough();
@@ -216,7 +255,7 @@ test("startCloudflaredTunnel reaches running state and stopCloudflaredTunnel cle
   const started = await tunnel.startCloudflaredTunnel();
   const statePath = path.join(dataDir, "cloudflared", "quick-tunnel-state.json");
   const logPath = path.join(dataDir, "cloudflared", "quick-tunnel.log");
-  const startedState = JSON.parse(await fs.readFile(statePath, "utf8"));
+  const startedState = await readJsonFileWithRetry(statePath);
 
   assert.equal(spawnCalls.length, 1);
   assert.equal(spawnCalls[0].command, binaryPath);
@@ -240,7 +279,7 @@ test("startCloudflaredTunnel reaches running state and stopCloudflaredTunnel cle
   assert.match(await fs.readFile(logPath, "utf8"), /violet-cloud\.trycloudflare\.com/);
 
   const stopped = await tunnel.stopCloudflaredTunnel();
-  const stoppedState = JSON.parse(await fs.readFile(statePath, "utf8"));
+  const stoppedState = await readJsonFileWithRetry(statePath);
 
   assert.equal(stopped.running, false);
   assert.equal(stopped.phase, "stopped");
@@ -296,8 +335,8 @@ test("startCloudflaredTunnel records an error state when the child exits before 
     /(cloudflared exited before tunnel URL was ready \(1\)|certificate signed by unknown authority)/
   );
 
-  const state = JSON.parse(
-    await fs.readFile(path.join(dataDir, "cloudflared", "quick-tunnel-state.json"), "utf8")
+  const state = await readJsonFileWithRetry(
+    path.join(dataDir, "cloudflared", "quick-tunnel-state.json")
   );
 
   assert.equal(state.status, "error");

@@ -14,6 +14,7 @@ const backupDb = await import("../../src/lib/db/backup.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const localDb = await import("../../src/lib/localDb.ts");
 const tokenRefresh = await import("../../open-sse/services/tokenRefresh.ts");
 const proxyFetch = await import("../../open-sse/utils/proxyFetch.ts");
 const proxyDispatcher = await import("../../open-sse/utils/proxyDispatcher.ts");
@@ -536,4 +537,112 @@ test("proxy test route runs socks5 test when backend flag is enabled", async () 
     assert.equal(payload.success, false);
     assert.equal(payload.proxyUrl, "socks5://127.0.0.1:1");
   });
+});
+
+test("proxy test route validates JSON, schema, and proxy types before dispatching", async () => {
+  await resetStorage();
+
+  const invalidJsonResponse = await proxyTestRoute.POST(
+    new Request("http://localhost/api/settings/proxy/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{",
+    })
+  );
+  const invalidJsonBody = await invalidJsonResponse.json();
+  assert.equal(invalidJsonResponse.status, 400);
+  assert.equal(invalidJsonBody.error.message, "Invalid JSON body");
+
+  const invalidBodyResponse = await proxyTestRoute.POST(
+    new Request("http://localhost/api/settings/proxy/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ proxy: { port: "8080" } }),
+    })
+  );
+  const invalidBody = await invalidBodyResponse.json();
+  assert.equal(invalidBodyResponse.status, 400);
+  assert.equal(invalidBody.error.message, "Invalid request");
+
+  const socks4Response = await proxyTestRoute.POST(
+    new Request("http://localhost/api/settings/proxy/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        proxy: {
+          type: "socks4",
+          host: "127.0.0.1",
+          port: "1080",
+        },
+      }),
+    })
+  );
+  const socks4Body = await socks4Response.json();
+  assert.equal(socks4Response.status, 400);
+  assert.match(socks4Body.error.message, /proxy\.type must be http or https/i);
+
+  const unsupportedResponse = await proxyTestRoute.POST(
+    new Request("http://localhost/api/settings/proxy/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        proxy: {
+          type: "ftp",
+          host: "127.0.0.1",
+          port: "21",
+        },
+      }),
+    })
+  );
+  const unsupportedBody = await unsupportedResponse.json();
+  assert.equal(unsupportedResponse.status, 400);
+  assert.match(unsupportedBody.error.message, /proxy\.type must be http or https/i);
+});
+
+test("proxy test route handles invalid proxy ports and uses stored proxy config when proxyId is provided", async () => {
+  await resetStorage();
+
+  const invalidPortResponse = await proxyTestRoute.POST(
+    new Request("http://localhost/api/settings/proxy/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        proxy: {
+          type: "http",
+          host: "127.0.0.1",
+          port: "70000",
+        },
+      }),
+    })
+  );
+  const invalidPortBody = await invalidPortResponse.json();
+  assert.equal(invalidPortResponse.status, 400);
+  assert.match(invalidPortBody.error.message, /invalid proxy port/i);
+
+  const storedProxy = await localDb.createProxy({
+    name: "Stored Proxy",
+    type: "http",
+    host: "127.0.0.1",
+    port: 1,
+    username: "alice",
+    password: "secret",
+  });
+
+  const proxyIdResponse = await proxyTestRoute.POST(
+    new Request("http://localhost/api/settings/proxy/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        proxyId: storedProxy.id,
+        proxy: {
+          host: "127.0.0.1",
+          port: 0,
+        },
+      }),
+    })
+  );
+  const proxyIdBody = await proxyIdResponse.json();
+  assert.notEqual(proxyIdResponse.status, 400);
+  assert.equal(proxyIdBody.success, false);
+  assert.equal(proxyIdBody.proxyUrl, "http://127.0.0.1:1");
 });

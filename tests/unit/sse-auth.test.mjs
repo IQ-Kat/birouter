@@ -518,13 +518,13 @@ test("getProviderCredentials least-used prefers the oldest timestamp when all ac
 
 test("getProviderCredentials cost-optimized selects the lowest priority account", async () => {
   await settingsDb.updateSettings({ fallbackStrategy: "cost-optimized" });
-  await seedConnection("openai", {
-    name: "cost-high",
-    priority: 8,
-  });
   const cheapest = await seedConnection("openai", {
     name: "cost-low",
     priority: 1,
+  });
+  await seedConnection("openai", {
+    name: "cost-high",
+    priority: 8,
   });
 
   const selected = await auth.getProviderCredentials("openai");
