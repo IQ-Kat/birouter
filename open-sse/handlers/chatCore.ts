@@ -1060,7 +1060,9 @@ export async function handleChatCore({
                   block.type === "document"
                 ) {
                   // Only extract text if it's explicitly a text-only representation without data
-                  const fileData = (block.file_url ?? block.file ?? block.document) as any;
+                  const fileData = (block.file_url ?? block.file ?? block.document) as
+                    | Record<string, unknown>
+                    | undefined;
                   if (
                     (block.type === "file" || block.type === "document") &&
                     !fileData?.url &&
