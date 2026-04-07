@@ -62,6 +62,23 @@ async function main() {
     }
 
     const result = await runNextBuild();
+    if (result.code === 0 && (await exists(path.join(projectRoot, ".next", "standalone")))) {
+      console.log("[build-next-isolated] Copying static assets for standalone server...");
+      try {
+        await fs.cp(
+          path.join(projectRoot, "public"),
+          path.join(projectRoot, ".next", "standalone", "public"),
+          { recursive: true }
+        );
+        await fs.cp(
+          path.join(projectRoot, ".next", "static"),
+          path.join(projectRoot, ".next", "standalone", ".next", "static"),
+          { recursive: true }
+        );
+      } catch (copyErr) {
+        console.warn("[build-next-isolated] Non-fatal error copying static assets:", copyErr);
+      }
+    }
     process.exitCode = result.code;
   } catch (error) {
     console.error("[build-next-isolated] Build failed:", error);
