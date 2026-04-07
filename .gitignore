@@ -120,6 +120,7 @@ security-analysis/
 clipr/
 app.log
 *.tgz
+.gh-discussions.json
 
 # Backup directories
 app.__qa_backup/

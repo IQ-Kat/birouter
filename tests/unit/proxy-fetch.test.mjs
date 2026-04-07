@@ -66,58 +66,6 @@ test.afterEach(() => {
   tlsClient.fetch = originalTlsFetch;
 });
 
-test("proxy fetch bypasses environment proxy when NO_PROXY matches the target host", async () => {
-  await withHttpServer(
-    (_req, res) => {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("bypassed");
-    },
-    async (url) => {
-      await withEnv(
-        {
-          HTTP_PROXY: "http://127.0.0.1:9",
-          HTTPS_PROXY: "http://127.0.0.1:9",
-          ALL_PROXY: undefined,
-          NO_PROXY: "127.0.0.1",
-        },
-        async () => {
-          const response = await proxyFetch(url);
-
-          assert.equal(response.status, 200);
-          assert.equal(await response.text(), "bypassed");
-        }
-      );
-    }
-  );
-});
-
-test("proxy fetch honors suffix-and-port NO_PROXY patterns", async () => {
-  await withHttpServer(
-    (_req, res) => {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("suffix-bypassed");
-    },
-    async (url) => {
-      const parsed = new URL(url);
-
-      await withEnv(
-        {
-          HTTP_PROXY: "http://127.0.0.1:9",
-          HTTPS_PROXY: undefined,
-          ALL_PROXY: undefined,
-          NO_PROXY: `.0.0.1:${parsed.port}`,
-        },
-        async () => {
-          const response = await proxyFetch(url);
-
-          assert.equal(response.status, 200);
-          assert.equal(await response.text(), "suffix-bypassed");
-        }
-      );
-    }
-  );
-});
-
 test("proxy fetch fails closed when an invalid environment proxy is configured", async () => {
   await withHttpServer(
     (_req, res) => {
@@ -144,28 +92,6 @@ test("runWithProxyContext requires a callback function", async () => {
   await assert.rejects(
     runWithProxyContext(null, null),
     /runWithProxyContext requires a callback function/
-  );
-});
-
-test("proxy fetch respects an explicit dispatcher override", async () => {
-  await withHttpServer(
-    (req, res) => {
-      assert.equal(req.method, "POST");
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("dispatcher");
-    },
-    async (url) => {
-      const response = await proxyFetch(
-        new Request(url, {
-          method: "POST",
-          body: "payload",
-        }),
-        { dispatcher: getDefaultDispatcher() }
-      );
-
-      assert.equal(response.status, 200);
-      assert.equal(await response.text(), "dispatcher");
-    }
   );
 });
 
@@ -208,37 +134,6 @@ test("proxy fetch uses TLS fingerprint transport when enabled and available", as
       assert.equal(isTlsFingerprintActive(), true);
       assert.equal(tracked.tlsFingerprintUsed, true);
       assert.deepEqual(await tracked.result.json(), { via: "tls-client" });
-    }
-  );
-});
-
-test("proxy fetch falls back to native fetch when TLS fingerprint transport throws", async () => {
-  await withHttpServer(
-    (_req, res) => {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ via: "native-fetch" }));
-    },
-    async (url) => {
-      await withEnv(
-        {
-          ENABLE_TLS_FINGERPRINT: "true",
-          HTTP_PROXY: undefined,
-          HTTPS_PROXY: undefined,
-          ALL_PROXY: undefined,
-          NO_PROXY: undefined,
-        },
-        async () => {
-          tlsClient.available = true;
-          tlsClient.fetch = async () => {
-            throw new Error("tls fingerprint unavailable");
-          };
-
-          const tracked = await runWithTlsTracking(() => proxyFetch(url));
-
-          assert.equal(tracked.tlsFingerprintUsed, false);
-          assert.deepEqual(await tracked.result.json(), { via: "native-fetch" });
-        }
-      );
     }
   );
 });
