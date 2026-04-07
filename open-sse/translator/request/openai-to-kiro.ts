@@ -4,7 +4,7 @@
  */
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
 
 /**
  * Convert OpenAI messages to Kiro format
@@ -252,7 +252,7 @@ function convertMessages(messages, tools, model) {
 export function buildKiroPayload(model, body, stream, credentials) {
   const messages = body.messages || [];
   const tools = body.tools || [];
-  const maxTokens = 32000;
+  const maxTokens = body.max_tokens ?? body.max_completion_tokens ?? 32000;
   const temperature = body.temperature;
   const topP = body.top_p;
 
@@ -310,7 +310,6 @@ export function buildKiroPayload(model, body, stream, credentials) {
       : finalContent;
 
   // Use uuidv5 with the hash of the system prompt / first message to maintain AWS Builder ID context cache
-  const { v5: uuidv5 } = require("uuid");
   payload.conversationState.conversationId = uuidv5(
     (firstContent || "").substring(0, 4000),
     NAMESPACE_KIRO

@@ -4,37 +4,30 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
-
----
+Cloudflare経由でドメインが管理されているVM（VPS）にOmniRouteをインストールして構成するための完全なガイド。---
 
 ## Prerequisites
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| アイテム     | 最小                 | おすすめ         |
+| ------------ | -------------------- | ---------------- |
+| **CPU**      | 1 vCPU               | 2 vCPU           |
+| **RAM**      | 1GB                  | 2GB              |
+| **ディスク** | 10GB SSD             | 25 GB SSD        |
+| **OS**       | Ubuntu 22.04 LTS     | Ubuntu 24.04 LTS |
+| **ドメイン** | Cloudflareに登録済み | —                |
+| **ドッカー** | Docker エンジン 24+  | ドッカー 27+     |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
-
----
+**テスト済みプロバイダ**: Akamai (Linode)、DigitalOcean、Vultr、Hetzner、AWS Lightsail。---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-On your preferred VPS provider:
+好みの VPS プロバイダーで:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
-
-### 1.2 Connect via SSH
+- Ubuntu 24.04 LTS を選択します
+- 最小プラン (1 vCPU / 1 GB RAM) を選択します。
+- 強力な root パスワードを設定するか、SSH キーを構成します -**パブリック IP**(例: `203.0.113.10`) に注意してください。### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -78,9 +71,7 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
-
----
+> **ヒント**: セキュリティを最大限に高めるには、ポート 80 と 443 を Cloudflare IP のみに制限します。 [高度なセキュリティ](#advanced-security) セクションを参照してください。---
 
 ## 2. Install OmniRoute
 
@@ -122,9 +113,7 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
-
-### 2.3 Start the container
+> ⚠️**重要**: 一意の秘密キーを生成してください。各キーに「openssl rand -hex 32」を使用します。### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -145,32 +134,28 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
-
----
+「[DB] SQLite データベースの準備ができました」および「ポート 20128 でリッスンしています」と表示されるはずです。---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+Cloudflareダッシュボードで:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
-
-```bash
+1.**SSL/TLS → オリジンサーバー**に移動します。2. [**証明書の作成**] をクリックします。3. デフォルトのまま (15 年、\*.yourdomain.com) 4.**送信元証明書**と**秘密キー**をコピーします。```bash
 mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
+
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
+
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-```
+
+````
 
 ### 3.2 Nginx Configuration
 
@@ -228,13 +213,11 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-```
+````
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
-
-### 3.3 Enable and Test
+リバース プロキシ ストリーム タイムアウトを OmniRoute タイムアウト環境変数と一致させてください。上げるなら
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`、`proxy_read_timeout` / `proxy_send_timeout` を上げます
+同じ閾値を超えています。### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -253,25 +236,21 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-In the Cloudflare dashboard → DNS:
+Cloudflareダッシュボード → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| タイプ | 名前   | コンテンツ             | プロキシ    |
+| ------ | ------ | ---------------------- | ----------- | --------------------- |
+| あ     | `llms` | `203.0.113.10` (VM IP) | ✅ プロキシ | ### 4.2 Configure SSL |
 
-### 4.2 Configure SSL
+**SSL/TLS → 概要**の下:
 
-Under **SSL/TLS → Overview**:
+- モード:**フル (厳密)**
 
-- Mode: **Full (Strict)**
+**SSL/TLS → エッジ証明書**の下:
 
-Under **SSL/TLS → Edge Certificates**:
-
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
-
-### 4.3 Testing
+- 常に HTTPS を使用する: ✅ オン
+- 最小 TLS バージョン: TLS 1.2
+- 自動 HTTPS 書き換え: ✅ オン### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -350,11 +329,10 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
-
-```nginx
+以下を「nginx.conf」の「http {}」ブロック内に追加します。```nginx
 include /etc/nginx/cloudflare-ips.conf;
-```
+
+````
 
 ### Install fail2ban
 
@@ -365,7 +343,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-```
+````
 
 ### Block direct access to the Docker port
 
@@ -383,25 +361,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Cloudflare Workersを介したリモートアクセスの場合(VMを直接公開しない):```bash
 
-```bash
 # In the local repository
+
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
+
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
-
----
+[omnirouteCloud/README.md](../omnirouteCloud/README.md) で完全なドキュメントを参照してください。---
 
 ## Port Summary
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+|ポート |サービス |アクセス |
+| ----- | ----------- | ------------------------ |
+| 22 | SSH |パブリック (fail2ban あり) |
+| 80 | nginx HTTP |リダイレクト → HTTPS |
+| 443 | nginx HTTPS | Cloudflare プロキシ経由 |
+| 20128 |オムニルート |ローカルホストのみ (nginx 経由) |
+```

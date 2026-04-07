@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Use esta lista de verificação antes de marcar ou publicar uma nova versão do OmniRoute.## Version and Changelog
 
-## Version and Changelog
+1. Coloque a versão `package.json` (`x.y.z`) no branch de lançamento.
+2. Mova as notas de lançamento de `## [Unreleased]` em `CHANGELOG.md` para uma seção datada:
+   - `## [x.y.z] — AAAA-MM-DD`
+3. Mantenha `## [Unreleased]` como a primeira seção do changelog para trabalhos futuros.
+4. Certifique-se de que a seção semver mais recente em `CHANGELOG.md` seja igual à versão `package.json`.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Atualize `docs/openapi.yaml`:
+   - `info.version` deve ser igual à versão `package.json`.
+6. Valide exemplos de endpoint se os contratos de API forem alterados.## Runtime Docs
 
-## API Docs
+7. Revise `docs/ARCHITECTURE.md` para desvios de armazenamento/tempo de execução.
+8. Revise `docs/TROUBLESHOOTING.md` para env var e desvio operacional.
+9. Atualize os documentos localizados se os documentos de origem tiverem mudado significativamente.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
-
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Execute o protetor de sincronização localmente antes de abrir o PR:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+O CI também executa essa verificação em `.github/workflows/ci.yml` (lint job).
+```

@@ -4,37 +4,28 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
-
-## Agent Discovery
+> Agent-to-Agent Protocol v0.3 — OmniRoute bilang isang matalinong ahente sa pagruruta## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
-
----
+Ibinabalik ang Agent Card na naglalarawan sa mga kakayahan, kasanayan, at kinakailangan sa pagpapatotoo ng OmniRoute.---
 
 ## Authentication
 
-All `/a2a` requests require an API key via the `Authorization` header:
-
-```
+Lahat ng hiling na `/a2a` ay nangangailangan ng API key sa pamamagitan ng header ng `Authorization`:```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
-```
 
-If no API key is configured on the server, authentication is bypassed.
+````
 
----
+Kung walang API key na naka-configure sa server, ang pagpapatotoo ay na-bypass.---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Sends a message to a skill and waits for the complete response.
-
-```bash
+Nagpapadala ng mensahe sa isang kasanayan at naghihintay para sa kumpletong tugon.```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -48,34 +39,31 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-```
+````
 
-**Response:**
-
-```json
+**Tugon:**```json
 {
-  "jsonrpc": "2.0",
-  "id": "1",
-  "result": {
-    "task": { "id": "uuid", "state": "completed" },
-    "artifacts": [{ "type": "text", "content": "..." }],
-    "metadata": {
-      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-      "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-      ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
-    }
-  }
+"jsonrpc": "2.0",
+"id": "1",
+"result": {
+"task": { "id": "uuid", "state": "completed" },
+"artifacts": [{ "type": "text", "content": "..." }],
+"metadata": {
+"routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
+"cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+"resilience_trace": [
+{ "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+],
+"policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
 }
-```
+}
+}
+
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+Kapareho ng `mensahe/ipadala` ngunit ibinabalik ang Mga Kaganapang Ipinadala ng Server para sa real-time na streaming.```bash
 curl -N -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -88,17 +76,16 @@ curl -N -X POST http://localhost:20128/a2a \
       "messages": [{"role": "user", "content": "Explain quantum computing"}]
     }
   }'
-```
+````
 
-**SSE Events:**
-
-```
+**Mga Kaganapan sa SSE:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
 : heartbeat 2026-03-03T17:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -107,7 +94,7 @@ curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-```
+````
 
 ### `tasks/cancel` — Cancel a Task
 
@@ -122,12 +109,10 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
-
----
+| Kasanayan          | Paglalarawan                                                                                                                                                      |
+| :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `smart-routing`    | Nag-prompt ang mga ruta sa pamamagitan ng intelligent na pipeline ng OmniRoute. Nagbabalik ng tugon na may paliwanag sa pagruruta, gastos, at bakas ng katatagan. |
+| `quota-management` | Sumasagot sa mga query sa natural na wika tungkol sa mga quota ng provider, nagmumungkahi ng mga libreng combo, at nagbibigay ng mga ranking ng quota.            | --- |
 
 ## Task Lifecycle
 
@@ -137,23 +122,19 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Tasks expire after 5 minutes (configurable)
+- Mag-e-expire ang mga gawain pagkalipas ng 5 minuto (mako-configure)
 - Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
-
----
+- Sinusubaybayan ng log ng kaganapan ang bawat paglipat ng estado---
 
 ## Error Codes
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
-
----
+| Code   | Ibig sabihin                               |
+| :----- | :----------------------------------------- | --- |
+| -32700 | Error sa pag-parse (di-wastong JSON)       |
+| -32600 | Di-wastong kahilingan / Hindi awtorisado   |
+| -32601 | Hindi natagpuan ang pamamaraan o kasanayan |
+| -32602 | Di-wastong mga param                       |
+| -32603 | Panloob na error                           | --- |
 
 ## Integration Examples
 

@@ -251,7 +251,16 @@ async function appendTunnelLog(source: "stdout" | "stderr", message: string) {
 
 export function extractTryCloudflareUrl(text: string) {
   const match = text.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com\b/i);
-  return match ? match[0] : null;
+  if (!match) return null;
+
+  try {
+    const hostname = new URL(match[0]).hostname.toLowerCase();
+    if (hostname === "api.trycloudflare.com") return null;
+  } catch {
+    return null;
+  }
+
+  return match[0];
 }
 
 function normalizeCloudflaredLogLine(line: string) {

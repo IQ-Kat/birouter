@@ -4,84 +4,69 @@
 
 ---
 
-> Model Context Protocol server with 16 intelligent tools
+> Server Model Context Protocol dengan 16 alat cerdas## Instal
 
-## Instal
-
-OmniRoute MCP is built-in. Start it with:
-
-```bash
+OmniRoute MCP sudah terpasang. Mulailah dengan:```bash
 omniroute --mcp
-```
 
-Or via the open-sse transport:
+````
 
-```bash
+Atau melalui transportasi terbuka:```bash
 # HTTP streamable transport (port 20130)
 omniroute --dev  # MCP auto-starts on /mcp endpoint
-```
+````
 
 ## IDE Configuration
 
-See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
-
----
+Lihat [Konfigurasi IDE](integrations/ide-configs.md) untuk pengaturan Antigravity, Cursor, Copilot, dan Claude Desktop.---
 
 ## Essential Tools (8)
 
-| Tool                            | Description                              |
-| :------------------------------ | :--------------------------------------- |
-| `omniroute_get_health`          | Gateway health, circuit breakers, uptime |
-| `omniroute_list_combos`         | All configured combos with models        |
-| `omniroute_get_combo_metrics`   | Performance metrics for a specific combo |
-| `omniroute_switch_combo`        | Switch active combo by ID/name           |
-| `omniroute_check_quota`         | Quota status per provider or all         |
-| `omniroute_route_request`       | Send a chat completion through OmniRoute |
-| `omniroute_cost_report`         | Cost analytics for a time period         |
-| `omniroute_list_models_catalog` | Full model catalog with capabilities     |
+| Alat                            | Deskripsi                                       |
+| :------------------------------ | :---------------------------------------------- | --------------------- |
+| `omniroute_get_health`          | Kesehatan gerbang, pemutus sirkuit, waktu aktif |
+| `omniroute_list_combos`         | Semua kombo yang dikonfigurasi dengan model     |
+| `omniroute_get_combo_metrics`   | Metrik kinerja untuk kombo tertentu             |
+| `omniroute_switch_combo`        | Ganti kombo aktif berdasarkan ID/nama           |
+| `omniroute_check_quota`         | Status kuota per penyedia atau semua            |
+| `omniroute_route_request`       | Kirim penyelesaian obrolan melalui OmniRoute    |
+| `omniroute_cost_report`         | Analisis biaya untuk jangka waktu tertentu      |
+| `omniroute_list_models_catalog` | Katalog model lengkap dengan kemampuan          | ## Advanced Tools (8) |
 
-## Advanced Tools (8)
+| Alat                               | Deskripsi                                                              |
+| :--------------------------------- | :--------------------------------------------------------------------- | ----------------- |
+| `omniroute_simulate_route`         | Simulasi routing dry-run dengan pohon fallback                         |
+| `omniroute_set_budget_guard`       | Anggaran sesi dengan tindakan penurunan/blokir/peringatan              |
+| `omniroute_set_resilience_profile` | Terapkan preset konservatif/seimbang/agresif                           |
+| `omniroute_test_combo`             | Uji langsung semua model dalam kombo melalui permintaan upstream nyata |
+| `omniroute_get_provider_metrics`   | Metrik terperinci untuk satu penyedia                                  |
+| `omniroute_best_combo_for_task`    | Rekomendasi kesesuaian tugas dengan alternatif                         |
+| `omniroute_jelaskan_route`         | Jelaskan keputusan perutean masa lalu                                  |
+| `omniroute_get_session_snapshot`   | Status sesi penuh: biaya, token, kesalahan                             | ## Authentication |
 
-| Tool                               | Description                                                 |
-| :--------------------------------- | :---------------------------------------------------------- |
-| `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree               |
-| `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions             |
-| `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
-| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
-| `omniroute_get_provider_metrics`   | Detailed metrics for one provider                           |
-| `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
-| `omniroute_explain_route`          | Explain a past routing decision                             |
-| `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
+Alat MCP diautentikasi melalui cakupan kunci API. Setiap alat memerlukan cakupan spesifik:
 
-## Authentication
+| Ruang Lingkup       | Alat                                              |
+| :------------------ | :------------------------------------------------ | ---------------- |
+| `baca:kesehatan`    | get_health, get_provider_metrics                  |
+| `baca:kombo`        | daftar_combos, get_combo_metrics                  |
+| `tulis: kombo`      | saklar_kombo                                      |
+| `baca:kuota`        | check_quota                                       |
+| `tulis: rute`       | rute_permintaan, simulasi_route, test_combo       |
+| `baca:penggunaan`   | cost_report, get_session_snapshot, jelaskan_route |
+| `tulis:konfigurasi` | set_budget_guard, set_resilience_profile          |
+| `baca:model`        | list_models_catalog, best_combo_for_task          | ## Audit Logging |
 
-MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
+Setiap panggilan alat dicatat ke `mcp_tool_audit` dengan:
 
-| Scope          | Tools                                            |
-| :------------- | :----------------------------------------------- |
-| `read:health`  | get_health, get_provider_metrics                 |
-| `read:combos`  | list_combos, get_combo_metrics                   |
-| `write:combos` | switch_combo                                     |
-| `read:quota`   | check_quota                                      |
-| `write:route`  | route_request, simulate_route, test_combo        |
-| `read:usage`   | cost_report, get_session_snapshot, explain_route |
-| `write:config` | set_budget_guard, set_resilience_profile         |
-| `read:models`  | list_models_catalog, best_combo_for_task         |
+- Nama alat, argumen, hasil
+- Durasi (ms), berhasil/gagal
+- Hash kunci API, stempel waktu## Files
 
-## Audit Logging
-
-Every tool call is logged to `mcp_tool_audit` with:
-
-- Tool name, arguments, result
-- Duration (ms), success/failure
-- API key hash, timestamp
-
-## Files
-
-| File                                         | Purpose                                     |
-| :------------------------------------------- | :------------------------------------------ |
-| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
-| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
-| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
-| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |
+| Berkas                                       | Tujuan                                    |
+| :------------------------------------------- | :---------------------------------------- |
+| `open-sse/mcp-server/server.ts`              | Pembuatan server MCP + 16 registrasi alat |
+| `open-sse/mcp-server/transport.ts`           | Transportasi Stdio + HTTP                 |
+| `open-sse/mcp-server/auth.ts`                | Kunci API + validasi cakupan              |
+| `open-sse/mcp-server/audit.ts`               | Pencatatan audit panggilan alat           |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 penangan alat canggih                   |

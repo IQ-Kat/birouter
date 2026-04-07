@@ -57,6 +57,73 @@ test("clearAccountError clears stale provider error metadata after recovery", as
   assert.equal(updated.backoffLevel, 0);
 });
 
+test("clearAccountError is a no-op when the connection is already clean", async () => {
+  await resetStorage();
+
+  const created = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "already-clean",
+    apiKey: "sk-clean",
+    testStatus: "active",
+  });
+
+  await auth.clearAccountError(created.id, {
+    connectionId: created.id,
+    testStatus: "active",
+    lastError: null,
+    rateLimitedUntil: null,
+    errorCode: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+  });
+
+  const updated = await providersDb.getProviderConnectionById(created.id);
+  assert.equal(updated.testStatus, "active");
+  assert.equal(updated.backoffLevel, 0);
+  assert.equal(updated.lastError, undefined);
+});
+
+test("clearRecoveredProviderState ignores empty payloads and clears recoverable connections", async () => {
+  await resetStorage();
+
+  const created = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    email: "recover-state@example.com",
+    accessToken: "access",
+    refreshToken: "refresh",
+    testStatus: "unavailable",
+    lastError: "temporary failure",
+    lastErrorType: "transient",
+    lastErrorSource: "executor",
+    errorCode: 503,
+    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+    backoffLevel: 2,
+  });
+
+  await auth.clearRecoveredProviderState(null);
+  await auth.clearRecoveredProviderState({});
+  await auth.clearRecoveredProviderState({
+    connectionId: created.id,
+    testStatus: "unavailable",
+    lastError: "temporary failure",
+    lastErrorType: "transient",
+    lastErrorSource: "executor",
+    errorCode: 503,
+    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+  });
+
+  const updated = await providersDb.getProviderConnectionById(created.id);
+  assert.equal(updated.testStatus, "active");
+  assert.equal(updated.lastError, undefined);
+  assert.equal(updated.lastErrorType, undefined);
+  assert.equal(updated.lastErrorSource, undefined);
+  assert.equal(updated.errorCode, undefined);
+  assert.equal(updated.rateLimitedUntil, undefined);
+  assert.equal(updated.backoffLevel, 0);
+});
+
 test("getProviderCredentials resolves provider aliases to canonical DB records", async () => {
   await resetStorage();
 

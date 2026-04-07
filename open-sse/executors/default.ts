@@ -112,9 +112,9 @@ export class DefaultExecutor extends BaseExecutor {
 
     if (stream) headers["Accept"] = "text/event-stream";
 
-    // Qwen header cleanup: Remove X-Dashscope-* headers since Qwen uses an OpenAI-compatible endpoint
-    // (e.g. portal.qwen.ai) via its DefaultExecutor buildUrl override, which rejects native DashScope headers.
-    if (this.provider === "qwen") {
+    // Qwen header cleanup: Remove X-Dashscope-* headers if using an API key (DashScope compatible mode).
+    // If using OAuth (Qwen Code), we MUST keep them for portal.qwen.ai to accept the request.
+    if (this.provider === "qwen" && effectiveKey) {
       for (const key of Object.keys(headers)) {
         if (key.toLowerCase().startsWith("x-dashscope-")) {
           delete headers[key];

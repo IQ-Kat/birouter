@@ -4,167 +4,135 @@
 
 ---
 
-Last updated: 2026-03-28
+อัปเดตล่าสุด: 28-03-2026## Baseline
 
-## Baseline
+มีหมายเลขความคุ้มครองหลายหมายเลข ขึ้นอยู่กับวิธีคำนวณรายงาน ในการวางแผนมีเพียงสิ่งเดียวเท่านั้นที่มีประโยชน์
 
-There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful.
+| เมตริก          | ขอบเขต                                                      | คำสั่ง / บรรทัด |   สาขา | ฟังก์ชั่น | หมายเหตุ                                      |
+| --------------- | ----------------------------------------------------------- | --------------: | -----: | --------: | --------------------------------------------- |
+| มรดก            | การทดสอบการทำงาน `npm แบบเก่า: ความครอบคลุม`                |          79.42% | 75.15% |    67.94% | สูงเกินจริง: นับไฟล์ทดสอบและไม่รวม `open-sse` |
+| การวินิจฉัย     | เฉพาะแหล่งที่มาเท่านั้น ไม่รวมการทดสอบ และไม่รวม `open-sse` |          68.16% | 63.55% |    64.06% | มีประโยชน์เฉพาะเพื่อแยก `src/**`              |
+| พื้นฐานที่แนะนำ | แหล่งที่มาเท่านั้น ไม่รวมการทดสอบ และรวมถึง `open-sse`      |          56.95% | 66.05% |    57.80% | นี่เป็นพื้นฐานทั่วทั้งโครงการในการปรับปรุง    |
 
-| Metric               | Scope                                                 | Statements / Lines | Branches | Functions | Notes                                               |
-| -------------------- | ----------------------------------------------------- | -----------------: | -------: | --------: | --------------------------------------------------- |
-| Legacy               | Old `npm run test:coverage`                           |             79.42% |   75.15% |    67.94% | Inflated: counts test files and excludes `open-sse` |
-| Diagnostic           | Source-only, excluding tests and excluding `open-sse` |             68.16% |   63.55% |    64.06% | Useful only to isolate `src/**`                     |
-| Recommended baseline | Source-only, excluding tests and including `open-sse` |             56.95% |   66.05% |    57.80% | This is the project-wide baseline to improve        |
+ค่าพื้นฐานที่แนะนำคือตัวเลขที่ต้องเพิ่มประสิทธิภาพ## Rules
 
-The recommended baseline is the number to optimize against.
+- เป้าหมายความครอบคลุมมีผลกับไฟล์ต้นฉบับ ไม่ใช่กับ `tests/**`
+- `open-sse/**` เป็นส่วนหนึ่งของผลิตภัณฑ์และต้องอยู่ในขอบเขต
+- รหัสใหม่ไม่ควรลดความครอบคลุมในพื้นที่สัมผัส
+- ชอบพฤติกรรมการทดสอบและผลลัพธ์สาขามากกว่ารายละเอียดการใช้งาน
+- ต้องการฐานข้อมูลชั่วคราว SQLite และฟิกซ์เจอร์ขนาดเล็ก มากกว่าการจำลองแบบกว้างๆ สำหรับ `src/lib/db/**`## Current command set
 
-## Rules
+- `การทดสอบการทำงาน NPM: ความครอบคลุม`
+  - ประตูครอบคลุมแหล่งที่มาหลักสำหรับชุดทดสอบหน่วย
+  - สร้าง `ข้อความสรุป`, `html`, `json-summary` และ `lcov`
+- `ความคุ้มครองการทำงาน NPM: รายงาน`
+  - รายงานแบบไฟล์ต่อไฟล์โดยละเอียดจากการรันครั้งล่าสุด
+- `การทดสอบการทำงาน NPM: ความครอบคลุม: ดั้งเดิม`
+  - การเปรียบเทียบทางประวัติศาสตร์เท่านั้น## Milestones
 
-- Coverage targets apply to source files, not to `tests/**`.
-- `open-sse/**` is part of the product and must remain in scope.
-- New code should not reduce coverage in touched areas.
-- Prefer testing behavior and branch outcomes over implementation details.
-- Prefer temp SQLite databases and small fixtures over broad mocks for `src/lib/db/**`.
+| เฟส       |            เป้าหมาย | โฟกัส                                                           |
+| --------- | ------------------: | --------------------------------------------------------------- |
+| ระยะที่ 1 | คำสั่ง / บรรทัด 60% | ชนะอย่างรวดเร็วและความคุ้มครองด้านสาธารณูปโภคที่มีความเสี่ยงต่ำ |
+| ระยะที่ 2 | คำสั่ง / บรรทัด 65% | ฐานฐานข้อมูลและเส้นทาง                                          |
+| ระยะที่ 3 |     งบ 70% / บรรทัด | การตรวจสอบผู้ให้บริการและการวิเคราะห์การใช้งาน                  |
+| ระยะที่ 4 |     งบ 75% / บรรทัด | นักแปลและผู้ช่วย `open-sse`                                     |
+| ระยะที่ 5 |     งบ 80% / บรรทัด | ตัวจัดการ `open-sse` และสาขาผู้ดำเนินการ                        |
+| ระยะที่ 6 |     งบ 85% / บรรทัด | กรณีขอบที่แข็งกว่า หนี้สาขา ชุดการถดถอย                         |
+| ระยะที่ 7 |     งบ 90% / บรรทัด | กวาดครั้งสุดท้าย ปิดช่องว่าง วงล้อที่เข้มงวด                    |
 
-## Current command set
+สาขาและฟังก์ชันควรขยับขึ้นในแต่ละเฟส แต่เป้าหมายหลักหลักคือคำสั่ง / บรรทัด## Priority hotspots
 
-- `npm run test:coverage`
-  - Main source coverage gate for the unit test suite
-  - Generates `text-summary`, `html`, `json-summary`, and `lcov`
-- `npm run coverage:report`
-  - Detailed file-by-file report from the latest run
-- `npm run test:coverage:legacy`
-  - Historical comparison only
+ไฟล์หรือพื้นที่เหล่านี้ให้ผลตอบแทนที่ดีที่สุดสำหรับระยะถัดไป:
 
-## Milestones
-
-| Phase   |                 Target | Focus                                             |
-| ------- | ---------------------: | ------------------------------------------------- |
-| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          |
-| Phase 2 | 65% statements / lines | DB and route foundations                          |
-| Phase 3 | 70% statements / lines | Provider validation and usage analytics           |
-| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                |
-| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         |
-| Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites |
-| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          |
-
-Branches and functions should ratchet upward with each phase, but the primary hard target is statements / lines.
-
-## Priority hotspots
-
-These files or areas offer the best return for the next phases:
-
-1. `open-sse/handlers`
-   - `chatCore.ts` at 7.57%
-   - Overall directory at 29.07%
-2. `open-sse/translator/request`
-   - Overall directory at 36.39%
-   - Many translators are still near single-digit coverage
-3. `open-sse/translator/response`
-   - Overall directory at 8.07%
+1. `open-sse/ตัวจัดการ`
+   - `chatCore.ts` ที่ 7.57%
+   - สารบบรวม 29.07%
+2. `open-sse/นักแปล/คำขอ`
+   - สารบบรวม 36.39%
+   - นักแปลจำนวนมากยังคงครอบคลุมถึงตัวเลขหลักเดียว
+3. `open-sse/นักแปล/ตอบกลับ`
+   - สารบบรวม 8.07%
 4. `open-sse/executors`
-   - Overall directory at 36.62%
+   - สารบบรวม 36.62%
 5. `src/lib/db`
-   - `models.ts` at 20.66%
-   - `registeredKeys.ts` at 34.46%
-   - `modelComboMappings.ts` at 36.25%
-   - `settings.ts` at 46.40%
-   - `webhooks.ts` at 33.33%
-6. `src/lib/usage`
-   - `usageHistory.ts` at 21.12%
-   - `usageStats.ts` at 9.56%
-   - `costCalculator.ts` at 30.00%
-7. `src/lib/providers`
-   - `validation.ts` at 41.16%
-8. Low-risk utility and API files for early gains
+   - `models.ts` ที่ 20.66%
+   - `registeredKeys.ts` ที่ 34.46%
+   - `modelComboMappings.ts` ที่ 36.25%
+   - `settings.ts` ที่ 46.40%
+   - `webhooks.ts` ที่ 33.33%
+6. `src/lib/การใช้งาน`
+   - `usageHistory.ts` ที่ 21.12%
+   - `usageStats.ts` ที่ 9.56%
+   - `costCalculator.ts` ที่ 30.00%
+7. `src/lib/ผู้ให้บริการ`
+   - `validation.ts` ที่ 41.16%
+8. ยูทิลิตี้ที่มีความเสี่ยงต่ำและไฟล์ API เพื่อผลกำไรในช่วงแรก
    - `src/shared/utils/upstreamError.ts`
    - `src/shared/utils/apiAuth.ts`
    - `src/lib/api/errorResponse.ts`
    - `src/app/api/settings/require-login/route.ts`
-   - `src/app/api/providers/[id]/models/route.ts`
-
-## Execution checklist
+   - `src/app/api/providers/[id]/models/route.ts`## Execution checklist
 
 ### Phase 1: 56.95% -> 60%
 
-- [x] Fix coverage metric so it reflects source code instead of test files
-- [x] Keep a legacy coverage script for comparison
-- [x] Record the baseline and hotspots in-repo
-- [ ] Add focused tests for low-risk utilities:
+- [x] แก้ไขเมตริกความครอบคลุมเพื่อให้สะท้อนถึงซอร์สโค้ดแทนไฟล์ทดสอบ
+- [x] เก็บสคริปต์ความครอบคลุมแบบเดิมไว้เพื่อการเปรียบเทียบ
+- [x] บันทึกพื้นฐานและฮอตสปอตใน repo
+- [ ] เพิ่มการทดสอบที่เน้นสำหรับยูทิลิตี้ที่มีความเสี่ยงต่ำ:
   - `src/shared/utils/upstreamError.ts`
   - `src/shared/utils/fetchTimeout.ts`
   - `src/lib/api/errorResponse.ts`
   - `src/shared/utils/apiAuth.ts`
   - `src/lib/display/names.ts`
-- [ ] Add route tests for:
+- [ ] เพิ่มการทดสอบเส้นทางสำหรับ:
   - `src/app/api/settings/require-login/route.ts`
-  - `src/app/api/providers/[id]/models/route.ts`
+  - `src/app/api/providers/[id]/models/route.ts`### Phase 2: 60% -> 65%
 
-### Phase 2: 60% -> 65%
-
-- [ ] Add DB-backed tests for:
+- [ ] เพิ่มการทดสอบที่สนับสนุน DB สำหรับ:
   - `src/lib/db/modelComboMappings.ts`
   - `src/lib/db/settings.ts`
   - `src/lib/db/registeredKeys.ts`
-- [ ] Cover branch behavior in:
+- [ ] ครอบคลุมพฤติกรรมของสาขาใน:
   - `src/lib/providers/validation.ts`
   - `src/app/api/v1/embeddings/route.ts`
-  - `src/app/api/v1/moderations/route.ts`
+  - `src/app/api/v1/moderations/route.ts`### Phase 3: 65% -> 70%
 
-### Phase 3: 65% -> 70%
-
-- [ ] Add usage analytics tests for:
+- [ ] เพิ่มการทดสอบการวิเคราะห์การใช้งานสำหรับ:
   - `src/lib/usage/usageHistory.ts`
   - `src/lib/usage/usageStats.ts`
   - `src/lib/usage/costCalculator.ts`
-- [ ] Expand route coverage for proxy management and settings branches
+- [ ] ขยายความครอบคลุมเส้นทางสำหรับสาขาการจัดการพร็อกซีและการตั้งค่า### Phase 4: 70% -> 75%
 
-### Phase 4: 70% -> 75%
-
-- [ ] Cover translator helpers and central translation paths:
+- [ ] ครอบคลุมผู้ช่วยนักแปลและเส้นทางการแปลส่วนกลาง:
   - `open-sse/translator/index.ts`
-  - `open-sse/translator/helpers/*`
-  - `open-sse/translator/request/*`
-  - `open-sse/translator/response/*`
+  - `open-sse/นักแปล/ผู้ช่วย/*`
+  - `open-sse/นักแปล/คำขอ/*`
+  - `open-sse/นักแปล/ตอบกลับ/*`### Phase 5: 75% -> 80%
 
-### Phase 5: 75% -> 80%
-
-- [ ] Add handler-level tests for:
+- [ ] เพิ่มการทดสอบระดับตัวจัดการสำหรับ:
   - `open-sse/handlers/chatCore.ts`
   - `open-sse/handlers/responsesHandler.js`
   - `open-sse/handlers/imageGeneration.js`
   - `open-sse/handlers/embeddings.js`
-- [ ] Add executor branch coverage for provider-specific auth, retries, and endpoint overrides
+- [ ] เพิ่มความคุ้มครองสาขาผู้ดำเนินการสำหรับการตรวจสอบสิทธิ์เฉพาะผู้ให้บริการ การลองใหม่ และการแทนที่จุดสิ้นสุด### Phase 6: 80% -> 85%
 
-### Phase 6: 80% -> 85%
+- [ ] รวม Edge-case Suite เข้ากับเส้นทางการครอบคลุมหลักมากขึ้น
+- [ ] เพิ่มความครอบคลุมของฟังก์ชันสำหรับโมดูล DB ที่มีความครอบคลุมของคอนสตรัคเตอร์/ตัวช่วยที่อ่อนแอ
+- [ ] ปิดช่องว่างสาขาใน `settings.ts`, `registeredKeys.ts`, `validation.ts` และผู้ช่วยนักแปล### Phase 7: 85% -> 90%
 
-- [ ] Merge more edge-case suites into the main coverage path
-- [ ] Increase function coverage for DB modules with weak constructor/helper coverage
-- [ ] Close branch gaps in `settings.ts`, `registeredKeys.ts`, `validation.ts`, and translator helpers
+- [ ] ถือว่าไฟล์ที่มีการครอบคลุมต่ำที่เหลืออยู่เป็นตัวบล็อก
+- [ ] เพิ่มการทดสอบการถดถอยสำหรับข้อบกพร่องในการผลิตที่เปิดเผยทุกรายการซึ่งแก้ไขระหว่างการพุชเป็น 90%
+- [ ] เพิ่มประตูครอบคลุมใน CI หลังจากที่พื้นฐานในพื้นที่คงที่เป็นเวลาอย่างน้อยสองครั้งติดต่อกัน## Ratchet policy
 
-### Phase 7: 85% -> 90%
+อัปเดตเกณฑ์ `npm run test:coverage` หลังจากที่โปรเจ็กต์เกินเหตุการณ์สำคัญถัดไปด้วยบัฟเฟอร์ที่สะดวกสบายเท่านั้น
 
-- [ ] Treat the remaining low-coverage files as blockers
-- [ ] Add regression tests for every uncovered production bug fixed during the push to 90%
-- [ ] Raise the coverage gate in CI only after the local baseline is stable for at least two consecutive runs
+ลำดับวงล้อที่แนะนำ:
 
-## Ratchet policy
+1.55/60/55
+2.60/62/58
+3.65/64/62
+4.70/66/66 5. 75/70/72 6. 80/75/78 7. 85/80/84 8. 90/85/88
 
-Update `npm run test:coverage` thresholds only after the project actually exceeds the next milestone with a comfortable buffer.
+ลำดับคือ `คำสั่ง-บรรทัด / สาขา / ฟังก์ชัน`## Known gap
 
-Recommended ratchet sequence:
-
-1. 55/60/55
-2. 60/62/58
-3. 65/64/62
-4. 70/66/66
-5. 75/70/72
-6. 80/75/78
-7. 85/80/84
-8. 90/85/88
-
-Order is `statements-lines / branches / functions`.
-
-## Known gap
-
-The current coverage command measures the main Node unit suite and includes source reached from it, including `open-sse`. It does not yet merge Vitest coverage into a single unified report. That merge is worth doing later, but it is not a blocker for starting the 60% -> 80% climb.
+คำสั่งความครอบคลุมปัจจุบันจะวัดชุดหน่วยโหนดหลักและรวมถึงแหล่งที่มาที่เข้าถึงได้ รวมถึง `open-sse` ยังไม่ได้รวมความครอบคลุมของ Vitest ไว้ในรายงานแบบครบวงจรเพียงฉบับเดียว การผสานนั้นคุ้มค่าที่จะทำในภายหลัง แต่ไม่ใช่อุปสรรคในการเริ่มการไต่ระดับ 60% -> 80%

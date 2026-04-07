@@ -4,86 +4,69 @@
 
 ---
 
-Common problems and solutions for OmniRoute.
-
----
+Běžné problémy a řešení pro OmniRoute.---
 
 ## Quick Fixes
 
-| Problem                       | Solution                                                           |
-| ----------------------------- | ------------------------------------------------------------------ |
-| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
-| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
-| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
-| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
-| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
-
----
+| Problém                                  | Řešení                                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- | --- |
+| První přihlášení nefunguje               | Nastavit `INITIAL_PASSWORD` v `.env` (žádné napevno zakódované výchozí nastavení)     |
+| Dashboard se otevírá na nesprávném portu | Nastavit `PORT=20128` a `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                 |
+| Žádné záznamy požadavků pod `logs/`      | Nastavte `ENABLE_REQUEST_LOGS=true`                                                   |
+| EACCES: povolení odepřeno                | Nastavte `DATA_DIR=/cesta/k/zapisovatelnému/adresáři` tak, aby přepsal `~/.omniroute` |
+| Strategie směrování se neukládá          | Aktualizace na v1.4.11+ (oprava schématu Zod pro trvalost nastavení)                  | --- |
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**Cause:** Provider quota exhausted.
+**Příčina:**Kvóta poskytovatele je vyčerpána.
 
-**Fix:**
+**Oprava:**
 
-1. Check dashboard quota tracker
-2. Use a combo with fallback tiers
-3. Switch to cheaper/free tier
+1. Zkontrolujte sledování kvót na řídicím panelu
+2. Použijte kombinaci se záložními úrovněmi
+3. Přejděte na levnější/bezplatnou úroveň### Rate Limiting
 
-### Rate Limiting
+**Příčina:**Vyčerpaná kvóta předplatného.
 
-**Cause:** Subscription quota exhausted.
+**Oprava:**
 
-**Fix:**
+– Přidejte záložní: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
 
-- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Use GLM/MiniMax as cheap backup
+- Použijte GLM/MiniMax jako levnou zálohu### OAuth Token Expired
 
-### OAuth Token Expired
+OmniRoute automaticky obnovuje tokeny. Pokud problémy přetrvávají:
 
-OmniRoute auto-refreshes tokens. If issues persist:
-
-1. Dashboard → Provider → Reconnect
-2. Delete and re-add the provider connection
-
----
+1. Ovládací panel → Poskytovatel → Znovu připojit
+2. Odstraňte a znovu přidejte připojení poskytovatele---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
-2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
-3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
+1. Ověřte, že `BASE_URL` odkazuje na vaši spuštěnou instanci (např. `http://localhost:20128`)
+2. Ověřte, že `CLOUD_URL` odkazuje na váš koncový bod cloudu (např. `https://omniroute.dev`)
+3. Udržujte hodnoty `NEXT_PUBLIC_*` zarovnané s hodnotami na straně serveru### Cloud `stream=false` Returns 500
 
-### Cloud `stream=false` Returns 500
+**Příznak:**`Neočekávaný token 'd'...` na koncovém bodu cloudu pro nestreamovaná volání.
 
-**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
+**Příčina:**Upstream vrací užitečné zatížení SSE, zatímco klient očekává JSON.
 
-**Cause:** Upstream returns SSE payload while client expects JSON.
+**Řešení:**Pro přímá cloudová volání použijte `stream=true`. Místní běhové prostředí zahrnuje záložní SSE→JSON.### Cloud Says Connected but "Invalid API key"
 
-**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
-
-### Cloud Says Connected but "Invalid API key"
-
-1. Create a fresh key from local dashboard (`/api/keys`)
-2. Run cloud sync: Enable Cloud → Sync Now
-3. Old/non-synced keys can still return `401` on cloud
-
----
+1. Vytvořte nový klíč z místního řídicího panelu (`/api/keys`)
+2. Spusťte synchronizaci s cloudem: Povolte cloud → Synchronizovat nyní
+3. Staré/nesynchronizované klíče mohou v cloudu stále vracet „401“.---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. For portable mode: use image target `runner-cli` (bundled CLIs)
-3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
-4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
-
-### Quick Runtime Validation
+1. Zkontrolujte pole runtime: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. Pro přenosný režim: použijte cíl obrazu `runner-cli` (přibalená rozhraní CLI)
+3. Pro režim připojení hostitele: nastavte `CLI_EXTRA_PATHS` a připojte adresář hostitele bin jako pouze pro čtení
+4. Pokud `installed=true` a `runnable=false`: binární soubor byl nalezen, ale neprošel zdravotní kontrolou### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -97,20 +80,16 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. Check usage stats in Dashboard → Usage
-2. Switch primary model to GLM/MiniMax
-3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
-4. Set cost budgets per API key: Dashboard → API Keys → Budget
-
----
+1. Zkontrolujte statistiky využití v Dashboard → Usage
+2. Přepněte primární model na GLM/MiniMax
+3. Pro nekritické úkoly používejte bezplatnou vrstvu (Gemini CLI, Qoder).
+4. Nastavte rozpočty nákladů na klíč API: Dashboard → API Keys → Budget---
 
 ## Debugging
 
 ### Enable Request Logs
 
-Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
-
-### Check Provider Health
+V souboru `.env` nastavte `ENABLE_REQUEST_LOGS=true`. Protokoly se zobrazují v adresáři `logs/`.### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -122,135 +101,106 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
-- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
-- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
-
----
+- Hlavní stav: `${DATA_DIR}/storage.sqlite` (poskytovatelé, komba, aliasy, klíče, nastavení)
+- Použití: SQLite tabulky v `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + volitelné `${DATA_DIR}/log.txt` a `${DATA_DIR}/call_logs/`
+- Protokoly požadavků: `<repo>/logs/...` (když `ENABLE_REQUEST_LOGS=true`)---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
+Když je jistič poskytovatele OTEVŘENÝ, požadavky jsou blokovány, dokud nevyprší cooldown.
 
-**Fix:**
+**Oprava:**
 
-1. Go to **Dashboard → Settings → Resilience**
-2. Check the circuit breaker card for the affected provider
-3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
-4. Verify the provider is actually available before resetting
+1. Přejděte na**Hlavní panel → Nastavení → Odolnost**
+2. Zkontrolujte kartu jističe pro dotčeného poskytovatele
+3. Kliknutím na**Resetovat vše**vymažete všechny jističe nebo počkejte, až vyprší cooldown
+4. Před resetováním ověřte, zda je poskytovatel skutečně dostupný### Provider keeps tripping the circuit breaker
 
-### Provider keeps tripping the circuit breaker
+Pokud poskytovatel opakovaně přejde do stavu OTEVŘENO:
 
-If a provider repeatedly enters OPEN state:
-
-1. Check **Dashboard → Health → Provider Health** for the failure pattern
-2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
-3. Check if the provider has changed API limits or requires re-authentication
-4. Review latency telemetry — high latency may cause timeout-based failures
-
----
+1. Zkontrolujte**Dashboard → Health → Provider Health**pro vzor selhání
+2. Přejděte na**Nastavení → Odolnost → Profily poskytovatelů**a zvyšte práh selhání
+3. Zkontrolujte, zda poskytovatel nezměnil limity API nebo vyžaduje opětovné ověření
+4. Zkontrolujte telemetrii latence – vysoká latence může způsobit selhání na základě časového limitu---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
-- Verify the provider is connected in **Dashboard → Providers**
+- Ujistěte se, že používáte správnou předponu: `deepgram/nova-3` nebo `assemblyai/best`
+  – Ověřte, že je poskytovatel připojen v**Dashboard → Providers**### Transcription returns empty or fails
 
-### Transcription returns empty or fails
-
-- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Verify file size is within provider limits (typically < 25MB)
-- Check provider API key validity in the provider card
-
----
+- Zkontrolujte podporované zvukové formáty: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Ověřte, zda je velikost souboru v rámci limitů poskytovatele (obvykle < 25 MB)
+- Zkontrolujte platnost klíče API poskytovatele na kartě poskytovatele---
 
 ## Translator Debugging
 
-Use **Dashboard → Translator** to debug format translation issues:
+K ladění problémů s překladem formátu použijte**Dashboard → Translator**:
 
-| Mode             | When to Use                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------------------- |
-| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
-| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
-| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
-| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
+| Režim                | Kdy použít                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------ |
+| **Hřiště**           | Porovnejte vstupní/výstupní formáty vedle sebe — vložte neúspěšný požadavek, abyste viděli, jak se překládá |
+| **Chat Tester**      | Odesílejte živé zprávy a kontrolujte celý obsah požadavku/odpovědi včetně záhlaví                           |
+| **Zkušební stolice** | Spusťte dávkové testy napříč kombinacemi formátů, abyste zjistili, které překlady jsou poškozené            |
+| **Živý monitor**     | Sledujte tok požadavků v reálném čase, abyste zachytili občasné problémy s překladem                        | ### Common format issues |
 
-### Common format issues
+-**Značky myšlení se nezobrazují**— Zkontrolujte, zda cílový poskytovatel podporuje myšlení a nastavení rozpočtu na myšlení -**Přerušení volání nástroje**— Některé překlady formátů mohou odstranit nepodporovaná pole; ověřit v režimu Playground -**Chybí systémová výzva**– Claude a Gemini zacházejí s výzvami systému odlišně; zkontrolovat překladový výstup
+–**SDK vrací surový řetězec místo objektu**– Opraveno ve verzi 1.1.0: sanitizér odpovědi nyní odstraňuje nestandardní pole (`x_groq`, `usage_breakdown` atd.), která způsobují selhání ověření OpenAI SDK Pydantic -**GLM/ERNIE odmítá `systémovou` roli**— Opraveno ve verzi 1.1.0: normalizátor rolí automaticky spojuje systémové zprávy do uživatelských zpráv pro nekompatibilní modely
 
-- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
-- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
-- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
-- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
-- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
-- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
-- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
-
----
+- Role**`vývojáře` nebyla rozpoznána**— Opraveno ve verzi 1.1.0: automaticky převedeno na `systém` pro poskytovatele mimo OpenAI -**`json_schema` nefunguje s Gemini**– Opraveno ve verzi 1.1.0: `response_format` je nyní převeden na Gemini `responseMimeType` + `responseSchema`---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- Auto rate-limit only applies to API key providers (not OAuth/subscription)
-- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
-- Check if the provider returns `429` status codes or `Retry-After` headers
+– Automatický limit sazby se vztahuje pouze na poskytovatele klíčů API (nikoli OAuth/předplatné)
 
-### Tuning exponential backoff
+- Ověřte, zda je v**Nastavení → Odolnost → Profily poskytovatelů**povolen automatický limit rychlosti
+- Zkontrolujte, zda poskytovatel vrací stavové kódy `429` nebo záhlaví `Retry-After`### Tuning exponential backoff
 
-Provider profiles support these settings:
+Profily poskytovatelů podporují tato nastavení:
 
-- **Base delay** — Initial wait time after first failure (default: 1s)
-- **Max delay** — Maximum wait time cap (default: 30s)
-- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
+-**Základní zpoždění**— Počáteční doba čekání po prvním selhání (výchozí: 1s)
+–**Max. zpoždění**– Maximální doba čekání (výchozí: 30 s) -**Multiplikátor**– o kolik se má prodloužit zpoždění při po sobě jdoucím selhání (výchozí: 2x)### Anti-thundering herd
 
-### Anti-thundering herd
-
-When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
-
----
+Když mnoho souběžných požadavků zasáhne poskytovatele s omezenou rychlostí, OmniRoute použije mutex + automatické omezování rychlosti k serializaci požadavků a prevenci kaskádových selhání. To je automatické pro poskytovatele klíčů API.---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
+Někteří uživatelé OmniRoute umístí bránu před RAG nebo zásobníky agentů. V těchto nastaveních je běžné vidět podivný vzorec: OmniRoute vypadá zdravě (poskytovatelé jsou v pořádku, směrovací profily jsou v pořádku, žádná upozornění na omezení rychlosti), ale konečná odpověď je stále špatná.
 
-In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
+V praxi tyto incidenty obvykle pocházejí z navazujícího potrubí RAG, nikoli ze samotné brány.
 
-If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
+Pokud chcete sdílený slovník pro popis těchto selhání, můžete použít WFGY ProblemMap, externí textový zdroj licence MIT, který definuje šestnáct opakujících se vzorců selhání RAG / LLM. Na vysoké úrovni pokrývá:
 
-- retrieval drift and broken context boundaries
-- empty or stale indexes and vector stores
-- embedding versus semantic mismatch
-- prompt assembly and context window issues
-- logic collapse and overconfident answers
-- long chain and agent coordination failures
-- multi agent memory and role drift
-- deployment and bootstrap ordering problems
+- posun vyhledávání a porušené hranice kontextu
+- prázdné nebo zastaralé indexy a vektorová úložiště
+- vkládání versus sémantický nesoulad
+- rychlé sestavení a problémy s kontextovým oknem
+- logický kolaps a příliš sebevědomé odpovědi
+- selhání koordinace dlouhých řetězců a agentů
+- multiagentní paměť a posun rolí
+- problémy s nasazením a objednáním bootstrapu
 
-The idea is simple:
+Myšlenka je jednoduchá:
 
-1. When you investigate a bad response, capture:
-   - user task and request
-   - route or provider combo in OmniRoute
-   - any RAG context used downstream (retrieved documents, tool calls, etc)
-2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
-3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
-4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
+1. Když prozkoumáte špatnou odpověď, zachyťte:
+   - uživatelský úkol a požadavek
+   - kombinace trasy nebo poskytovatele v OmniRoute
+   - jakýkoli kontext RAG použitý po proudu (načtené dokumenty, volání nástrojů atd.)
+2. Namapujte incident na jedno nebo dvě čísla WFGY ProblemMap (`č.1` … `č.16`).
+3. Uložte číslo na svůj vlastní řídicí panel, runbook nebo sledovač incidentů vedle protokolů OmniRoute.
+4. Použijte příslušnou stránku WFGY k rozhodnutí, zda potřebujete změnit strategii zásobníku RAG, retrieveru nebo směrování.
 
-Full text and concrete recipes live here (MIT license, text only):
+Celý text a konkrétní recepty jsou k dispozici zde (licence MIT, pouze text):
 
-[WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
+[SOUBOR WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
-
----
+Tuto sekci můžete ignorovat, pokud za OmniRoute nespouštíte RAG nebo agenty.---
 
 ## Still Stuck?
 
-- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
-- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
-- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
-- **Translator**: Use **Dashboard → Translator** to debug format issues
+–**Problémy s GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Architecture**: Interní podrobnosti viz [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) -**Reference API**: Všechny koncové body viz [`docs/API_REFERENCE.md`](API_REFERENCE.md) -**Health Dashboard**: Zkontrolujte**Dashboard → Health**pro stav systému v reálném čase -**Translator**: K ladění problémů s formátem použijte**Dashboard → Translator**

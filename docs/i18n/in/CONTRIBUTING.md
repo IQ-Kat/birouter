@@ -4,19 +4,13 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
-
----
+योगदान देने में आपकी रुचि के लिए धन्यवाद! इस मार्गदर्शिका में वह सब कुछ शामिल है जो आपको आरंभ करने के लिए आवश्यक है।---
 
 ## Development Setup
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
-- **npm** 10+
-- **Git**
-
-### Clone & Install
+-**Node.js**>= 18 <24 (अनुशंसित: 22 एलटीएस) -**एनपीएम**10+ -**गिट**### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -35,28 +29,24 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+विकास के लिए मुख्य चर:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| परिवर्तनीय             | विकास डिफ़ॉल्ट           | विवरण                      |
+| ---------------------- | ------------------------ | -------------------------- | ---------------------- |
+| `पोर्ट`                | `20128`                  | सर्वर पोर्ट                |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | फ्रंटएंड के लिए बेस यूआरएल |
+| `JWT_SECRET`           | (ऊपर उत्पन्न करें)       | JWT हस्ताक्षर रहस्य        |
+| `प्रारंभिक_पासवर्ड`    | 'चेंजमे'                 | पहला लॉगिन पासवर्ड         |
+| `एपीपी_लॉग_लेवल`       | 'जानकारी'                | लॉग वर्बोसिटी स्तर         | ### Dashboard Settings |
 
-### Dashboard Settings
+डैशबोर्ड उन सुविधाओं के लिए यूआई टॉगल प्रदान करता है जिन्हें पर्यावरण चर के माध्यम से भी कॉन्फ़िगर किया जा सकता है:
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+| स्थान निर्धारित करना | टॉगल करें       | विवरण                             |
+| -------------------- | --------------- | --------------------------------- |
+| सेटिंग्स → उन्नत     | डिबग मोड        | डिबग अनुरोध लॉग सक्षम करें (यूआई) |
+| सेटिंग्स → सामान्य   | साइडबार दृश्यता | साइडबार अनुभाग दिखाएँ/छिपाएँ      |
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
-
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
-
-### Running Locally
+ये सेटिंग्स डेटाबेस में संग्रहीत होती हैं और सेट होने पर env var डिफ़ॉल्ट को ओवरराइड करते हुए, पुनरारंभ पर बनी रहती हैं।### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -70,51 +60,44 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+डिफ़ॉल्ट यूआरएल:
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
-
----
+-**डैशबोर्ड**: `http://localhost:20128/डैशबोर्ड` -**एपीआई**: `http://localhost:20128/v1`---
 
 ## Git Workflow
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️**कभी भी सीधे `मुख्य` पर प्रतिबद्ध न हों।**हमेशा फीचर शाखाओं का उपयोग करें।```bash
+> git checkout -b feat/your-feature-name
 
-```bash
-git checkout -b feat/your-feature-name
 # ... make changes ...
+
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
+
 # Open a Pull Request on GitHub
-```
+
+````
 
 ### Branch Naming
 
-| Prefix      | Purpose                   |
-| ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| उपसर्ग | उद्देश्य |
+| ----------- | -------------------------------- |
+| `करतब/` | नई सुविधाएँ |
+| `ठीक/` | बग फिक्स |
+| `रिफैक्टर/` | कोड पुनर्गठन |
+| `दस्तावेज़/` | दस्तावेज़ीकरण परिवर्तन |
+| `परीक्षण/` | परीक्षण परिवर्धन/सुधार |
+| `घर का काम/` | टूलींग, सीआई, निर्भरताएँ |### Commit Messages
 
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+[परंपरागत प्रतिबद्धताओं](https://www.conventionalcommits.org/) का पालन करें:```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-```
+````
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
+स्कोप: `db`, `sse`, `oauth`, `डैशबोर्ड`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`।---
 
 ## Running Tests
 
@@ -137,7 +120,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min statements/lines/functions; 60% branches)
+# Coverage (60% min statements/lines/functions/branches)
 npm run test:coverage
 npm run coverage:report
 
@@ -146,36 +129,37 @@ npm run lint
 npm run check
 ```
 
-Coverage notes:
+कवरेज नोट्स:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `एनपीएम रन टेस्ट:कवरेज` मुख्य इकाई परीक्षण सूट के लिए स्रोत कवरेज को मापता है, `परीक्षण/**` को छोड़कर, और `ओपन-एसएसई/**` को शामिल करता है
+- पुल अनुरोधों को स्टेटमेंट, लाइन, फ़ंक्शन और शाखाओं के लिए समग्र कवरेज गेट**60% या अधिक**पर रखना चाहिए
+- यदि कोई पीआर `src/`, `open-sse/`, `electron/`, या `bin/` में उत्पादन कोड बदलता है, तो उसे उसी पीआर में स्वचालित परीक्षण जोड़ना या अपडेट करना होगा
+- `एनपीएम रन कवरेज: रिपोर्ट` नवीनतम कवरेज रन से विस्तृत फ़ाइल-दर-फ़ाइल रिपोर्ट प्रिंट करता है
+- `एनपीएम रन टेस्ट:कवरेज:लिगेसी` ऐतिहासिक तुलना के लिए पुराने मीट्रिक को सुरक्षित रखता है
+- चरणबद्ध कवरेज सुधार रोडमैप के लिए `docs/COVERAGE_PLAN.md` देखें### Pull Request Requirements
 
-Current test status: **122 unit test files** covering:
+पीआर खोलने या विलय करने से पहले:
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- `एनपीएम रन टेस्ट: यूनिट` चलाएँ
+- `एनपीएम रन टेस्ट:कवरेज` चलाएँ
+- सुनिश्चित करें कि सभी मेट्रिक्स के लिए कवरेज गेट**60%+**पर रहे
+- उत्पादन कोड बदलने पर पीआर विवरण में परिवर्तित या जोड़ी गई परीक्षण फ़ाइलें शामिल करें
+- जब परियोजना रहस्य सीआई में कॉन्फ़िगर किए जाते हैं तो पीआर पर सोनारक्यूब परिणाम की जांच करें
 
----
+वर्तमान परीक्षण स्थिति:**122 यूनिट परीक्षण फ़ाइलें**कवरिंग:
+
+- प्रदाता अनुवादक और प्रारूप रूपांतरण
+- दर सीमित करना, सर्किट ब्रेकर, और लचीलापन
+- सिमेंटिक कैश, निष्क्रियता, प्रगति ट्रैकिंग
+- डेटाबेस संचालन और स्कीमा (21 डीबी मॉड्यूल)
+- OAuth प्रवाह और प्रमाणीकरण
+- एपीआई एंडपॉइंट सत्यापन (ज़ोड v4)
+- एमसीपी सर्वर उपकरण और स्कोप प्रवर्तन
+- मेमोरी और कौशल प्रणाली---
 
 ## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
-
----
+-**ESLint**- कमिट करने से पहले `npm run lint` चलाएँ -**प्रीटियर**- कमिट पर `लिंट-स्टेज्ड` के माध्यम से स्वतः स्वरूपित (2 रिक्त स्थान, अर्धविराम, दोहरे उद्धरण चिह्न, 100 वर्ण चौड़ाई, ईएस5 अनुगामी अल्पविराम) -**टाइपस्क्रिप्ट**- सभी `src/` कोड `.ts`/`.tsx` का उपयोग करता है; `open-sse/` `.ts`/`.js` का उपयोग करता है; TSDoc वाला दस्तावेज़ (`@param`, `@returns`, `@throws`) -**नहीं `eval()`**- ESLint `no-eval`, `no-implied-eval`, `no-new-func` लागू करता है -**ज़ोड सत्यापन**- सभी एपीआई इनपुट सत्यापन के लिए ज़ोड v4 स्कीमा का उपयोग करें -**नामकरण**: फ़ाइलें = कैमलकेस/कबाब-केस, घटक = पास्कलकेस, स्थिरांक = UPPER_SNAKE---
 
 ## Project Structure
 
@@ -244,56 +228,37 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+`src/shared/constents/providers.ts` में जोड़ें - मॉड्यूल लोड पर ज़ोड-मान्य।### Step 2: Add Executor (if custom logic needed)
 
-### Step 2: Add Executor (if custom logic needed)
+आधार निष्पादक का विस्तार करते हुए `open-sse/executors/your-provider.ts` में निष्पादक बनाएं।### Step 3: Add Translator (if non-OpenAI format)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+`ओपन-एसएसई/अनुवादक/` में अनुरोध/प्रतिक्रिया अनुवादक बनाएं।### Step 4: Add OAuth Config (if OAuth-based)
 
-### Step 3: Add Translator (if non-OpenAI format)
+`src/lib/oauth/constents/oauth.ts` में OAuth क्रेडेंशियल और `src/lib/oauth/services/` में सेवा जोड़ें।### Step 5: Register Models
 
-Create request/response translators in `open-sse/translator/`.
+`open-sse/config/providerRegistry.ts` में मॉडल परिभाषाएँ जोड़ें।### Step 6: Add Tests
 
-### Step 4: Add OAuth Config (if OAuth-based)
+यूनिट परीक्षणों को `टेस्ट/यूनिट/` में कम से कम कवर करते हुए लिखें:
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
-
-### Step 5: Register Models
-
-Add model definitions in `open-sse/config/providerRegistry.ts`.
-
-### Step 6: Add Tests
-
-Write unit tests in `tests/unit/` covering at minimum:
-
-- Provider registration
-- Request/response translation
-- Error handling
-
----
+- प्रदाता पंजीकरण
+- अनुरोध/प्रतिक्रिया अनुवाद
+- त्रुटि प्रबंधन---
 
 ## Pull Request Checklist
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
-
----
+- [ ] टेस्ट पास (`एनपीएम टेस्ट`)
+- [ ] लिंटिंग पास (`एनपीएम रन लिंट`)
+- [ ] बिल्ड सफल हुआ (`एनपीएम रन बिल्ड`)
+- [ ] नए सार्वजनिक कार्यों और इंटरफेस के लिए टाइपस्क्रिप्ट प्रकार जोड़े गए
+- [ ] कोई हार्डकोडेड रहस्य या फ़ॉलबैक मान नहीं
+- [ ] सभी इनपुट ज़ोड स्कीमा के साथ मान्य हैं
+- [ ] चेंजलॉग अपडेट किया गया (यदि उपयोगकर्ता के सामने परिवर्तन हो)
+- [ ] दस्तावेज़ अद्यतन (यदि लागू हो)---
 
 ## Releasing
 
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
-
----
+रिलीज़ को `/generate-release` वर्कफ़्लो के माध्यम से प्रबंधित किया जाता है। जब एक नया GitHub रिलीज़ बनाया जाता है, तो पैकेज GitHub क्रियाओं के माध्यम से**स्वचालित रूप से npm**पर प्रकाशित हो जाता है।---
 
 ## Getting Help
 
-- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+-**आर्किटेक्चर**: देखें [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**एपीआई संदर्भ**: देखें [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**मुद्दे**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**एडीआर**: वास्तुशिल्प निर्णय रिकॉर्ड के लिए `docs/adr/` देखें

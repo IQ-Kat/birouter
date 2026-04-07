@@ -4,37 +4,23 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+> بروتوكول وكيل إلى وكيل v0.3 — OmniRoute كوكيل توجيه ذكي## Agent Discovery```bash
+> curl http://localhost:20128/.well-known/agent.json
 
-## Agent Discovery
+````
 
-```bash
-curl http://localhost:20128/.well-known/agent.json
-```
+إرجاع بطاقة الوكيل التي تصف قدرات OmniRoute ومهاراتها ومتطلبات المصادقة.---## Authentication
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+تتطلب جميع الطلبات `/a2a` مفتاح برمجة التطبيقات عبر رأس `الإعلان`:```
+التفويض: الحامل YOUR_OMNIROUTE_API_KEY```
 
----
-
-## Authentication
-
-All `/a2a` requests require an API key via the `Authorization` header:
-
-```
-Authorization: Bearer YOUR_OMNIROUTE_API_KEY
-```
-
-If no API key is configured on the server, authentication is bypassed.
-
----
+إذا لم يتم تكوين أي مفتاح API على الخادم، فسيتم تجاوز المصادقة.---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Sends a message to a skill and waits for the complete response.
-
-```bash
+يرسل رسالة إلى المهارة وينتظر الرد الكامل.```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -48,153 +34,137 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-```
+````
 
-**Response:**
-
-```json
+**إجابة:**`json
 {
   "jsonrpc": "2.0",
-  "id": "1",
-  "result": {
-    "task": { "id": "uuid", "state": "completed" },
-    "artifacts": [{ "type": "text", "content": "..." }],
-    "metadata": {
-      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-      "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-      ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+  "المعرف": "1"،
+  "النتيجة": {
+    "المهمة": { "المعرف": "uuid"، "الحالة": "مكتمل" }،
+    "المصنوعات": [{ "النوع": "نص"، "محتوى": "..." }]،
+    "البيانات الوصفية": {
+      "routing_explanation": "سونيتة claude مختارة عبر الموفر \"anthropic\" (زمن الوصول: 1200 مللي ثانية، التكلفة: 0.003 USD)"،
+      "cost_envelope": { "المقدرة": 0.005، "الفعلي": 0.003، "العملة": "USD" }،
+      ""resilience_trace": [
+        { "الحدث": "primary_selected"، "provider": "anthropic"، "timestamp": "..." }
+      ]،
+      "policy_verdict": { "مسموح": صحيح، "السبب": "ضمن حدود الميزانية والحصة" }
     }
   }
-}
-```
+}`
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+نفس `الرسالة/الإرسال` ولكنها تُرجع الأحداث المرسلة من الخادم للبث في الوقت الفعلي.```bash
 curl -N -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/stream",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Explain quantum computing"}]
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/stream",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Explain quantum computing"}]
+}
+}'
 
-**SSE Events:**
+````
 
-```
-data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
+**أحداث SSE:**```
+البيانات: {"jsonrpc": "2.0"، "method": "message/stream"، "params": {"task": {"id": "..."، "state": "working"}، "chunk": {"type": "text"، "content": "..."}}}
 
-: heartbeat 2026-03-03T17:00:00Z
+: نبضات القلب 2026-03-03T17:00:00Z
 
-data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+البيانات: {"jsonrpc": "2.0"، "method": "message/stream"، "params": {"task": {"id": "..."، "state": "Completed"}، "بيانات التعريف": {...}}}```
 
 ### `tasks/get` — Query Task Status
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-```
+حليقة -X POST http://localhost:20128/a2a \
+  -H "نوع المحتوى: application/json" \
+  -H "التفويض: حامل YOUR_KEY" \
+  -d '{"jsonrpc": "2.0"، "id": "2"، "method": "tasks/get"، "params": {"taskId": "TASK_UUID"}}'```
 
 ### `tasks/cancel` — Cancel a Task
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{"jsonrpc":"2.0","id":"3","method":"tasks/cancel","params":{"taskId":"TASK_UUID"}}'
-```
+حليقة -X POST http://localhost:20128/a2a \
+  -H "نوع المحتوى: application/json" \
+  -H "التفويض: حامل YOUR_KEY" \
+  -d '{"jsonrpc": "2.0"، "id": "3"، "method": "tasks/cancel"، "params": {"taskId": "TASK_UUID"}}'```
 
 ---
 
 ## Available Skills
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
-
----
+| مهارة | الوصف |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| `التوجيه الذكي` | تطالب الطرق عبر خط أنابيب OmniRoute الذكي. إرجاع الاستجابة مع شرح التوجيه والتكلفة وتتبع المرونة. |
+| `إدارة الحصص` | يجيب على استفسارات اللغة الطبيعية حول حصص الموفرين، ويقترح مجموعات مجانية، ويوفر تصنيفات الحصص.                      |---
 
 ## Task Lifecycle
 
-```
-submitted → working → completed
-                    → failed
-                    → cancelled
-```
+````
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
+تم الإرسال ← العمل ← مكتمل
+→ فشل
+→ ألغيت```
 
----
+- تنتهي المهام بعد 5 دقائق (قابلة للتكوين)
+- حالات الوحدة الطرفية: "مكتمل"، "فشل"، "تم الإلغاء".
+- سجل الأحداث يتتبع كل انتقال للحالة---
 
 ## Error Codes
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
-
----
+| الكود  | معنى                                 |
+| :----- | :----------------------------------- | --- |
+| -32700 | خطأ في التحليل (JSON غير صالح)       |
+| -32600 | طلب غير صالح / غير مصرح به           |
+| -32601 | لم يتم العثور على الطريقة أو المهارة |
+| -32602 | معلمات غير صالحة                     |
+| -32603 | خطأ داخلي                            | --- |
 
 ## Integration Examples
 
 ### Python (requests)
 
-```python
-import requests
+````python
+طلبات الاستيراد
 
-resp = requests.post("http://localhost:20128/a2a", json={
-    "jsonrpc": "2.0", "id": "1",
-    "method": "message/send",
-    "params": {
-        "skill": "smart-routing",
+resp = request.post("http://localhost:20128/a2a", json={
+    "jsonrpc": "2.0"، "id": "1"،
+    "الطريقة": "رسالة/إرسال"،
+    "المعلمات": {
+        "المهارة": "التوجيه الذكي"،
         "messages": [{"role": "user", "content": "Hello"}]
     }
 }, headers={"Authorization": "Bearer YOUR_KEY"})
 
-result = resp.json()["result"]
-print(result["artifacts"][0]["content"])
-print(result["metadata"]["routing_explanation"])
-```
+النتيجة = resp.json () ["النتيجة"]
+طباعة (نتيجة ["المصنوعات"] [0] ["المحتوى"])
+طباعة (نتيجة ["بيانات التعريف"] ["routing_explanation"])```
 
 ### TypeScript (fetch)
 
 ```typescript
-const resp = await fetch("http://localhost:20128/a2a", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: "Bearer YOUR_KEY",
+const resp = انتظار الجلب("http://localhost:20128/a2a", {
+  الطريقة: "POST"،
+  رؤوس: {
+    "نوع المحتوى": "application/json"،
+    التفويض: "الحامل YOUR_KEY"،
   },
-  body: JSON.stringify({
-    jsonrpc: "2.0",
-    id: "1",
-    method: "message/send",
-    params: {
-      skill: "smart-routing",
-      messages: [{ role: "user", content: "Hello" }],
+  الجسم: JSON.stringify({
+    جسونربك: "2.0"،
+    المعرف: "1"،
+    الطريقة: "رسالة/إرسال"،
+    المعلمات: {
+      المهارة: "التوجيه الذكي"،
+      الرسائل: [{ الدور: "المستخدم"، المحتوى: "مرحبًا" }]،
     },
   }),
 });
-const { result } = await resp.json();
-console.log(result.metadata.routing_explanation);
-```
+const { result } = انتظار resp.json();
+console.log(result.metadata.routing_explanation);```
+````

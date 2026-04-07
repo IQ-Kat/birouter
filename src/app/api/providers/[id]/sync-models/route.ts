@@ -147,8 +147,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     channelLabel = getModelSyncChannelLabel(connection);
 
     // Fetch models from the existing /api/providers/[id]/models endpoint
-    const origin = new URL(request.url).origin;
-    const modelsUrl = `${origin}/api/providers/${encodeURIComponent(id)}/models`;
+    const parsedUrl = new URL(request.url);
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      return NextResponse.json({ error: "Invalid protocol" }, { status: 400 });
+    }
+    if (parsedUrl.hostname.includes("..")) {
+      return NextResponse.json({ error: "Invalid hostname" }, { status: 400 });
+    }
+    const modelsUrl = `${parsedUrl.origin}/api/providers/${encodeURIComponent(id)}/models`;
     const modelsRes = await fetch(modelsUrl, {
       method: "GET",
       headers: {

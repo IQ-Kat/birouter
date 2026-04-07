@@ -107,7 +107,10 @@ const GLM_QUOTA_URLS: Record<string, string> = {
 };
 
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
-  const region = providerSpecificData?.apiRegion || "international";
+  const region =
+    typeof providerSpecificData?.apiRegion === "string"
+      ? providerSpecificData.apiRegion
+      : "international";
   const quotaUrl = GLM_QUOTA_URLS[region] || GLM_QUOTA_URLS.international;
 
   const res = await fetch(quotaUrl, {
@@ -1344,3 +1347,11 @@ async function getIflowUsage(accessToken) {
     return { message: "Unable to fetch Qoder usage." };
   }
 }
+
+export const __testing = {
+  parseResetTime,
+  formatGitHubQuotaSnapshot,
+  inferGitHubPlanName,
+  getGeminiCliPlanLabel,
+  getAntigravityPlanLabel,
+};

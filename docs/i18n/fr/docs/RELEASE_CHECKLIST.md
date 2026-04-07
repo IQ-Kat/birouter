@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Utilisez cette liste de contrôle avant de baliser ou de publier une nouvelle version d'OmniRoute.## Version and Changelog
 
-## Version and Changelog
+1. Bump la version `package.json` (`x.y.z`) dans la branche release.
+2. Déplacez les notes de version de `## [Unreleased]` dans `CHANGELOG.md` vers une section datée :
+   - `## [x.y.z] — AAAA-MM-JJ`
+3. Conservez `## [Unreleased]` comme première section du journal des modifications pour les travaux à venir.
+4. Assurez-vous que la dernière section Semver dans `CHANGELOG.md` est égale à la version `package.json`.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Mettez à jour `docs/openapi.yaml` :
+   - `info.version` doit être égal à la version `package.json`.
+6. Validez les exemples de points de terminaison si les contrats d'API ont changé.## Runtime Docs
 
-## API Docs
+7. Consultez `docs/ARCHITECTURE.md` pour connaître la dérive de stockage/d'exécution.
+8. Consultez `docs/TROUBLESHOOTING.md` pour la variable d'environnement et la dérive opérationnelle.
+9. Mettez à jour les documents localisés si les documents sources ont changé de manière significative.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
-
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Exécutez le sync guard localement avant d'ouvrir PR :```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI exécute également cette vérification dans `.github/workflows/ci.yml` (tâche lint).
+```

@@ -4,34 +4,23 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Използвайте този контролиран списък, преди да маркирате или публикувате нова версия на OmniRoute.## Version and Changelog
 
-## Version and Changelog
+1. Премахнете версията на `package.json` (`x.y.z`) в клона за освобождаване.
+2. Преместете бележките по изданието от `## [Unreleased]` в `CHANGELOG.md` в раздел с данни:
+   - `## [x.y.z] — ГГГГ-ММ-ДД`
+3. Запазете `## [Unreleased]` като първа секция на регистъра, за да промените за предстояща работа.
+4. Уверете се, че последният раздел на semver в `CHANGELOG.md` е равен на версията `package.json`.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Актуализирайте `docs/openapi.yaml`:
+   - `info.version` трябва да е равно на `package.json` версия.
+6. Валидирайте примери за крайната точка, ако договорите за API са променени.## Runtime Docs
 
-## API Docs
+7. Прегледайте `docs/ARCHITECTURE.md` за дрейф за съхранение/изпълнение.
+8. Прегледайте `docs/TROUBLESHOOTING.md` за env var и оперативен drift.
+9. Актуализирайте локализираните документи, ако изходните документи са се променили значително.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
+Стартирайте защитата на синхронизирането локално, преди да отворите PR:`bash
+npm стартирайте проверка:docs-sync`
 
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
-npm run check:docs-sync
-```
-
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI също изпълнява тази проверка в `.github/workflows/ci.yml` (задание за мъх).

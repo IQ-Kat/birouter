@@ -4,25 +4,16 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
-
----
-
-## Development Setup
+Благодарим ви за интереса да допринесете! Това ръководство обхваща всичко необходимо, за да работи.---## Development Setup
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
-- **npm** 10+
-- **Git**
-
-### Clone & Install
-
-```bash
+-**Node.js**>= 18 < 24 (препоръчително: 22 LTS) -**npm**10+ -**Git**### Клониране и инсталиране```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
 cd OmniRoute
 npm install
-```
+
+````
 
 ### Environment Variables
 
@@ -33,90 +24,74 @@ cp .env.example .env
 # Generate required secrets
 echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
-```
+````
 
-Key variables for development:
+Ключови променливи за развитие:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| Променлива             | Разработка по подразбиране | Описание                                   |
+| ---------------------- | -------------------------- | ------------------------------------------ | ---------------------- |
+| `ПОРТ`                 | „20128“                    | Порт на сървъра                            |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128`   | Основен URL адрес за интерфейс             |
+| `JWT_SECRET`           | (генериране по-горе)       | Тайна за подписване на JWT                 |
+| `ПЪРВОНАЧАЛНА_ПАРОЛА`  | `CHANGEME`                 | Първа парола за влизане                    |
+| `APP_LOG_LEVEL`        | `информация`               | Ниво на подробност на регистрационния файл | ### Dashboard Settings |
 
-### Dashboard Settings
+Таблото за управление предоставя UI превключватели за функции, които също могат да бъдат конфигурирани чрез променливи на средата:
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+| Задаване на местоположение | Превключване                    | Описание                                                                          |
+| -------------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| Настройки → Разширени      | Режим на отстраняване на грешки | Активиране на регистрационните файлове на заявките за отстраняване на грешки (UI) |
+| Настройки → Общи           | Видимост на страничната лента   | Показване/скриване на секциите на страничната лента                               |
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+Тези настройки се запазват в базата данни и се запазват при рестартиране, като заменят настройките по подразбиране env var, когато са претърпени.### Running Locally```bash
 
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
-
-### Running Locally
-
-```bash
 # Development mode (hot reload)
+
 npm run dev
 
 # Production build
+
 npm run build
 npm run start
 
 # Common port configuration
+
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-```
 
-Default URLs:
+````
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
+URL адреси по подразбиране:
 
----
+-**Табло за управление**: `http://localhost:20128/табло за управление`
+-**API**: `http://localhost:20128/v1`---## Git Workflow
 
-## Git Workflow
-
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
-
-```bash
+> ⚠️**НИКОГА не се включва директно с `main`.**Винаги използват разклонения на функции.```bash
 git checkout -b feat/your-feature-name
-# ... make changes ...
-git commit -m "feat: describe your change"
+# ... направи промени ...
+git commit -m "feat: опишете вашата промяна"
 git push -u origin feat/your-feature-name
-# Open a Pull Request on GitHub
-```
+# Отворете заявка за изтегляне в GitHub```
 
 ### Branch Naming
 
-| Prefix      | Purpose                   |
-| ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| Префикс | Цел |
+| ----------- | ------------------------ |
+| `подвиг/` | Нови функции |
+| `поправи/` | Поправки на грешки |
+| `рефактор/` | Преструктуриране на код |
+| `документи/` | Промени в документацията |
+| `тест/` | Тестови допълнения/поправки |
+| `скучна работа/` | Инструментална екипировка, CI, зависимости |### Commit Messages
 
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+Следвайте [Конвенционални ангажименти](https://www.conventionalcommits.org/):```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-```
+````
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
-
-## Running Tests
+Обхвати: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---## Running Tests
 
 ```bash
 # All tests (unit + vitest + ecosystem + e2e)
@@ -137,7 +112,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min statements/lines/functions; 60% branches)
+# Coverage (60% min statements/lines/functions/branches)
 npm run test:coverage
 npm run coverage:report
 
@@ -146,38 +121,35 @@ npm run lint
 npm run check
 ```
 
-Coverage notes:
+Бележки за покритието:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` измерва покритието на източника за тестови пакети на основната единица, изключвайки `tests/**` и включва `open-sse/**`
+- Заявките за изтегляне трябва да поддържат общата врата за покритие на**60% или по-висока**за отчети, линии, функции и клонове
+- Ако PR промени производствения код в `src/`, `open-sse/`, `electron/` или `bin/`, той трябва да добави или актуализира автоматизирани тестове в същия PR
+- `npm run coverage:report` отпечатва подробния отчетен файл по файл от последното изпълнение на покритието
+- `npm run test:coverage:legacy` запазва по-старата метрика за историческо сравнение
+- Вижте `docs/COVERAGE_PLAN.md` за поетапна пътна карта за подобряване на покритието### Pull Request Requirements
 
-Current test status: **122 unit test files** covering:
+Преди да отворите или обедините PR:
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- Стартирайте `npm run test:unit`
+- Стартирайте `npm run test:coverage`
+- Уверете се, че вратата за покритие остава на**60%+**за всички показатели
+- Включете променените или добавени тестови файлове в PR описанието при промяна на производствения код
+- Проверете резултатите от SonarQube на PR, когато тайните на проекта са конфигурирани в CI
 
----
+Текущо състояние на теста:**122 файла за единичен тест**, обхващащи:
 
-## Code Style
+- Преводачи на доставчици и конвертиране на формати
+- Ограничаване на скоростта, прекъсвач и устойчивост
+- Семантичен кеш, идемпотентност, проследяване на напредъка
+- Операции с база данни и схема (21 DB модула)
+- OAuth потоци и удостоверяване
+- API валиден за крайни точки (Zod v4)
+- MCP сървърни инструменти и прилагане на обхват
+- Системи за памет и умения---## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
-
----
-
-## Project Structure
+-**ESLint**— Стартирайте `npm run lint` преди извършване -**Prettier**— Автоматично форматирано чрез `lint-staged` при ангажиране (2 интервала, точка и запетая, двойни кавички, ширина 100 знака, es5 запетая в края) -**TypeScript**— Всички `src/` кодове се използват `.ts`/`.tsx`; `open-sse/` използва `.ts`/`.js`; документ с TSDoc (`@param`, `@returns`, `@throws`) -**Без `eval()`**— ESLint налага `no-eval`, `no-implied-eval`, `no-new-func` -**Zod валидиране**— Използвайте Zod v4 схеми за всички входни валидации на API -**Именуване**: Файлове = camelCase/kebab-case, компоненти = PascalCase, константи = UPPER_SNAKE---## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
@@ -244,56 +216,31 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+Добавете към `src/shared/constants/providers.ts` — Zod-валидирано при зареждане на модула.### Стъпка 2: Добавяне на изпълнител (ако е необходима персонализирана логика)
 
-### Step 2: Add Executor (if custom logic needed)
+Създайте изпълнител в `open-sse/executors/your-provider.ts`, като разширите базовия изпълнител.### Стъпка 3: Добавете преводач (ако форматът не е OpenAI)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+Създайте преводачи на заявка/отговор в `open-sse/translator/`.### Стъпка 4: Добавете OAuth Config (ако е базиран на OAuth)
 
-### Step 3: Add Translator (if non-OpenAI format)
+Добавете идентификационни данни за OAuth в `src/lib/oauth/constants/oauth.ts` и услуга в `src/lib/oauth/services/`.### Стъпка 5: Регистрирайте модели
 
-Create request/response translators in `open-sse/translator/`.
+Добавете дефиниции на модели в `open-sse/config/providerRegistry.ts`.### Стъпка 6: Добавете тестове
 
-### Step 4: Add OAuth Config (if OAuth-based)
+Напишете модулни тестове в `tests/unit/`, покривайки минимум:
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+- Регистрация при доставчик
+- Превод на заявка/отговор
+- Обработка на грешки---## Pull Request Checklist
 
-### Step 5: Register Models
+- [ ] Тестовете преминават („npm тест“)
+- [ ] Linting преминава (`npm run lint`)
+- [ ] Компилацията е успешна (`npm run build`)
+- [] TypeScript типове, добавени за нови публични функции и интерфейси
+- [ ] Няма твърдо кодирани тайни или резервни стойности
+- [ ] Всички входове, валидирани със схеми на Zod
+- [ ] CHANGELOG актуализиран (ако промяната е пред потребителя)
+- [ ] Актуализирана документация (ако е приложимо)---## Releasing
 
-Add model definitions in `open-sse/config/providerRegistry.ts`.
+Изданията се управляват чрез работен процес `/generate-release`. Когато се създаде ново издание на GitHub, пакетът се**автоматично публикува в npm**чрез GitHub Actions.---## Getting Help
 
-### Step 6: Add Tests
-
-Write unit tests in `tests/unit/` covering at minimum:
-
-- Provider registration
-- Request/response translation
-- Error handling
-
----
-
-## Pull Request Checklist
-
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
-
----
-
-## Releasing
-
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
-
----
-
-## Getting Help
-
-- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+-**Архитектура**: Вижте [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**API справка**: Вижте [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Проблеми**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADRs**: Вижте `docs/adr/` за записи на архитектурни решения

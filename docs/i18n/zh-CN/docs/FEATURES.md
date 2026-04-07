@@ -4,142 +4,102 @@
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
-
----
+OmniRoute 仪表板每个部分的视觉指南。---
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
-
-![Providers Dashboard](screenshots/01-providers.png)
+管理 AI 提供商连接：OAuth 提供商（Claude Code、Codex、Gemini CLI）、API 密钥提供商（Groq、DeepSeek、OpenRouter）和免费提供商（Qoder、Qwen、Kiro）。 Kiro 账户包括信用余额跟踪 — 剩余信用、总限额和续订日期可在仪表板 → 使用情况中查看。![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Create model routing combos with 6 strategies: priority, weighted, round-robin, random, least-used, and cost-optimized. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-![Combos Dashboard](screenshots/02-combos.png)
+使用 6 种策略创建模型路由组合：优先级、加权、循环、随机、最少使用和成本优化。每个组合都通过自动回退链接多个模型，并包括快速模板和准备情况检查。![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
+全面的使用分析，包括代币消耗、成本估算、活动热图、每周分布图和每个提供商的细分。![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
-
-![Health Dashboard](screenshots/04-health.png)
+实时监控：正常运行时间、内存、版本、延迟百分位数 (p50/p95/p99)、缓存统计数据和提供商断路器状态。![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
-
-![Translator Playground](screenshots/05-translator.png)
+用于调试 API 翻译的四种模式：**Playground**（格式转换器）、**Chat Tester**（实时请求）、**Test Bench**（批量测试）和**Live Monitor**（实时流）。![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
-
----
+Test any model directly from the dashboard.选择提供商、模型和端点，使用 Monaco 编辑器编写提示、实时流式传输响应、中止中流以及查看计时指标。---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
-
----
+整个仪表板的可定制颜色主题。从 7 种预设颜色（珊瑚色、蓝色、红色、绿色、紫色、橙色、青色）中进行选择，或通过选择任何十六进制颜色来创建自定义主题。支持浅色、深色和系统模式。---
 
 ## ⚙️ Settings
 
-Comprehensive settings panel with tabs:
+带选项卡的综合设置面板：
 
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
+-**常规**— 系统存储、备份管理（导出/导入数据库）-**外观**- 主题选择器（深色/浅色/系统）、颜色主题预设和自定义颜色、运行状况日志可见性、侧边栏项目可见性控制 -**安全**— API 端点保护、自定义提供商阻止、IP 过滤、会话信息 -**路由**— 模型别名、后台任务降级 -**弹性**- 速率限制持久性、断路器调整、自动禁用被禁止的帐户、提供商到期监控 -**高级**— 配置覆盖、配置审计跟踪、回退降级模式![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+一键配置 AI 编码工具：Claude Code、Codex CLI、Gemini CLI、OpenClaw、Kilo Code、Antigravity、Cline、Continue、Cursor 和 Factory Droid。具有自动配置应用/重置、连接配置文件和模型映射功能。![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
+用于发现和管理 CLI 代理的仪表板。显示 14 个内置代理（Codex、Claude、Goose、Gemini CLI、OpenClaw、Aider、OpenCode、Cline、Qwen Code、ForgeCode、Amazon Q、Open Interpreter、Cursor CLI、Warp）的网格，其中：
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
-
----
+-**安装状态**— 已安装/未通过版本检测找到 -**协议徽章**— stdio、HTTP 等。-**自定义代理**— 通过表单注册任何 CLI 工具（名称、二进制文件、版本命令、spawn args）-**CLI 指纹匹配**— 每个提供商切换以匹配本机 CLI 请求签名，在保留代理 IP 的同时降低禁令风险---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
+从仪表板生成图像、视频和音乐。支持 OpenAI、xAI、Together、Hyperbolic、SD WebUI、ComfyUI、AnimateDiff、Stable Audio Open 和 MusicGen。---
 
 ## 📝 Request Logs
 
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+实时请求记录，并按提供商、模型、帐户和 API 密钥进行过滤。显示状态代码、令牌使用情况、延迟和响应详细信息。![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
-
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+您的统一 API 端点具有功能细分：聊天完成、响应 API、嵌入、图像生成、重新排名、音频转录、文本转语音、审核和注册 API 密钥。 Cloudflare Quick Tunnel 集成和云代理支持远程访问。![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
-
----
+创建、范围和撤销 API 密钥。每个密钥都可以限制为具有完全访问或只读权限的特定模型/提供商。具有使用跟踪功能的可视化密钥管理。---
 
 ## 📋 Audit Log
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
-
----
+管理操作跟踪，可按操作类型、参与者、目标、IP 地址和时间戳进行过滤。完整的安全事件历史记录。---
 
 ## 🖥️ Desktop Application
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+适用于 Windows、macOS 和 Linux 的本机 Electron 桌面应用程序。将 OmniRoute 作为独立应用程序运行，具有系统托盘集成、离线支持、自动更新和一键安装功能。
 
-Key features:
+主要特点：
 
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- 服务器就绪轮询（冷启动时无空白屏幕）
+- 带端口管理的系统托盘
+- 内容安全政策
+- 单实例锁
+- 重启时自动更新
+- 平台条件 UI（macOS 红绿灯、Windows/Linux 默认标题栏）
+- 强化 Electron 构建打包 - 在打包之前检测并拒绝独立包中的符号链接“node_modules”，从而防止运行时对构建机器的依赖（v2.5.5+）
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+📖 请参阅 [`electron/README.md`](../electron/README.md) 以获取完整文档。

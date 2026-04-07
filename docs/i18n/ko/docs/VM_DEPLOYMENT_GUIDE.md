@@ -4,37 +4,30 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
-
----
+Cloudflare를 통해 관리되는 도메인이 있는 VM(VPS)에 OmniRoute를 설치하고 구성하기 위한 전체 가이드입니다.---
 
 ## Prerequisites
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| 아이템     | 최소                | 추천             |
+| ---------- | ------------------- | ---------------- |
+| **CPU**    | vCPU 1개            | vCPU 2개         |
+| **램**     | 1GB                 | 2GB              |
+| **디스크** | 10GB SSD            | 25GB SSD         |
+| **OS**     | 우분투 22.04 LTS    | 우분투 24.04 LTS |
+| **도메인** | Cloudflare에 등록됨 | —                |
+| **도커**   | 도커 엔진 24+       | 도커 27+         |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
-
----
+**테스트된 공급자**: Akamai(Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-On your preferred VPS provider:
+선호하는 VPS 제공업체에서:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
-
-### 1.2 Connect via SSH
+- 우분투 24.04 LTS를 선택하세요
+- 최소 요금제 선택(vCPU 1개 / RAM 1GB)
+- 강력한 루트 비밀번호를 설정하거나 SSH 키를 구성하세요. -**공용 IP**(예: `203.0.113.10`)를 참고하세요.### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -78,9 +71,7 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
-
----
+> **팁**: 보안을 극대화하려면 포트 80과 443을 Cloudflare IP로만 제한하세요. [고급 보안](#advanced-security) 섹션을 참조하세요.---
 
 ## 2. Install OmniRoute
 
@@ -122,9 +113,7 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
-
-### 2.3 Start the container
+> ⚠️**중요**: 고유한 비밀 키를 생성하세요! 각 키에 `openssl rand -hex 32`를 사용하세요.### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -145,32 +134,28 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
-
----
+`[DB] SQLite 데이터베이스 준비됨` 및 `포트 20128에서 수신 중`이 표시되어야 합니다.---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+Cloudflare 대시보드에서:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
-
-```bash
+1.**SSL/TLS → 원본 서버**로 이동합니다. 2.**인증서 만들기**를 클릭하세요. 3. 기본값(15년, \*.yourdomain.com)을 유지합니다. 4.**원본 인증서**및**개인 키**를 복사합니다.```bash
 mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
+
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
+
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-```
+
+````
 
 ### 3.2 Nginx Configuration
 
@@ -228,13 +213,11 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-```
+````
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
-
-### 3.3 Enable and Test
+OmniRoute 시간 제한 환경 변수에 맞춰 역방향 프록시 스트림 시간 제한을 유지하세요. 인상하면
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, `proxy_read_timeout` / `proxy_send_timeout` 증가
+같은 기준치를 초과합니다.### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -253,25 +236,21 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-In the Cloudflare dashboard → DNS:
+Cloudflare 대시보드 → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| 유형 | 이름   | 내용                  | 프록시      |
+| ---- | ------ | --------------------- | ----------- | --------------------- |
+| A    | `llms` | `203.0.113.10`(VM IP) | ✅ 프록시됨 | ### 4.2 Configure SSL |
 
-### 4.2 Configure SSL
+**SSL/TLS → 개요**에서:
 
-Under **SSL/TLS → Overview**:
+- 모드:**전체(엄격)**
 
-- Mode: **Full (Strict)**
+**SSL/TLS → 에지 인증서**에서:
 
-Under **SSL/TLS → Edge Certificates**:
-
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
-
-### 4.3 Testing
+- 항상 HTTPS 사용: ✅ 켜기
+- 최소 TLS 버전: TLS 1.2
+- 자동 HTTPS 재작성: ✅ 켜짐### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -350,11 +329,10 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
-
-```nginx
+`http {}` 블록 내 `nginx.conf`에 다음을 추가합니다.```nginx
 include /etc/nginx/cloudflare-ips.conf;
-```
+
+````
 
 ### Install fail2ban
 
@@ -365,7 +343,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-```
+````
 
 ### Block direct access to the Docker port
 
@@ -383,25 +361,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Cloudflare Workers를 통한 원격 액세스의 경우(VM을 직접 노출하지 않고):```bash
 
-```bash
 # In the local repository
+
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
+
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
-
----
+[omnirouteCloud/README.md](../omnirouteCloud/README.md)에서 전체 문서를 참조하세요.---
 
 ## Port Summary
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| 포트 | 서비스 | 액세스 |
+| ----- | ----------- | ------------- |
+| 22 | SSH | 공개(fail2ban 포함) |
+| 80 | nginx HTTP | 리디렉션 → HTTPS |
+| 443 | nginx HTTPS | Cloudflare 프록시를 통해 |
+| 20128 | 옴니루트 | 로컬호스트 전용(nginx를 통해) |
+```

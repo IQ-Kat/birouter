@@ -137,7 +137,7 @@ export default function SkillsPage() {
       if (!res.ok) {
         setMpError(data.error || "Search failed");
       } else {
-        setMpResults(data.skills || []);
+        setMpResults(Array.isArray(data) ? data : data.skills || []);
       }
     } catch (err) {
       setMpError(err instanceof Error ? err.message : "Search failed");

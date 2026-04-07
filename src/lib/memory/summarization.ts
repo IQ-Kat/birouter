@@ -91,7 +91,10 @@ function estimateTokens(text: string): number {
 }
 
 function generateSummary(content: string): string {
-  const sentences = content.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+  const sentences = content
+    .split(/[.!?]+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length > 0);
   if (sentences.length <= 3) {
     return content;
   }

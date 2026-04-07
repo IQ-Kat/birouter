@@ -4,37 +4,30 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
-
----
+क्लाउडफ्लेयर के माध्यम से प्रबंधित डोमेन के साथ वीएम (वीपीएस) पर ओमनीरूट को स्थापित और कॉन्फ़िगर करने के लिए पूरी गाइड।---
 
 ## Prerequisites
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| आइटम       | न्यूनतम               | अनुशंसित           |
+| ---------- | --------------------- | ------------------ |
+| **सीपीयू** | 1 वीसीपीयू            | 2 वीसीपीयू         |
+| **राम**    | 1 जीबी                | 2 जीबी             |
+| **डिस्क**  | 10 जीबी एसएसडी        | 25 जीबी एसएसडी     |
+| **ओएस**    | उबंटू 22.04 एलटीएस    | उबंटू 24.04 एलटीएस |
+| **डोमेन**  | Cloudflare पर पंजीकृत | —                  |
+| **डॉकर**   | डॉकर इंजन 24+         | डॉकर 27+           |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
-
----
+**परीक्षित प्रदाता**: अकामाई (लिनोड), डिजिटलओशन, वल्चर, हेट्ज़नर, एडब्ल्यूएस लाइटसेल।---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-On your preferred VPS provider:
+आपके पसंदीदा VPS प्रदाता पर:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
-
-### 1.2 Connect via SSH
+- उबंटू 24.04 एलटीएस चुनें
+- न्यूनतम योजना चुनें (1 वीसीपीयू / 1 जीबी रैम)
+- एक मजबूत रूट पासवर्ड सेट करें या SSH कुंजी कॉन्फ़िगर करें -**सार्वजनिक आईपी**पर ध्यान दें (उदाहरण के लिए, `203.0.113.10`)### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -78,9 +71,7 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
-
----
+> **टिप**: अधिकतम सुरक्षा के लिए, पोर्ट 80 और 443 को केवल क्लाउडफ़ेयर आईपी तक सीमित रखें। [उन्नत सुरक्षा](#उन्नत-सुरक्षा) अनुभाग देखें।---
 
 ## 2. Install OmniRoute
 
@@ -122,9 +113,7 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
-
-### 2.3 Start the container
+> ⚠️**महत्वपूर्ण**: अद्वितीय गुप्त कुंजियाँ उत्पन्न करें! प्रत्येक कुंजी के लिए `openssl rand -hex 32` का उपयोग करें।### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -145,32 +134,28 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
-
----
+इसे प्रदर्शित करना चाहिए: `[DB] SQLite डेटाबेस तैयार` और `पोर्ट 20128 पर सुनना`।---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+क्लाउडफ्लेयर डैशबोर्ड में:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
-
-```bash
+1.**एसएसएल/टीएलएस → ओरिजिन सर्वर**पर जाएं 2.**प्रमाणपत्र बनाएं**पर क्लिक करें 3. डिफ़ॉल्ट रखें (15 वर्ष, \*.yourdomain.com) 4.**मूल प्रमाणपत्र**और**निजी कुंजी**की प्रतिलिपि बनाएँ```bash
 mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
+
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
+
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-```
+
+````
 
 ### 3.2 Nginx Configuration
 
@@ -228,13 +213,11 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-```
+````
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
-
-### 3.3 Enable and Test
+Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. यदि आप बढ़ाते हैं
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, `proxy_read_timeout` / `proxy_send_timeout` बढ़ाएं
+एक ही सीमा से ऊपर.### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -253,25 +236,21 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-In the Cloudflare dashboard → DNS:
+क्लाउडफ़ेयर डैशबोर्ड में → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| प्रकार | नाम      | सामग्री                    | प्रॉक्सी    |
+| ------ | -------- | -------------------------- | ----------- | --------------------- |
+| ए      | `एलएमएस` | `203.0.113.10` (वीएम आईपी) | ✅ प्रॉक्सी | ### 4.2 Configure SSL |
 
-### 4.2 Configure SSL
+**एसएसएल/टीएलएस → अवलोकन**के अंतर्गत:
 
-Under **SSL/TLS → Overview**:
+- मोड:**पूर्ण (सख्त)**
 
-- Mode: **Full (Strict)**
+**एसएसएल/टीएलएस → एज सर्टिफिकेट**के अंतर्गत:
 
-Under **SSL/TLS → Edge Certificates**:
-
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
-
-### 4.3 Testing
+- हमेशा HTTPS का उपयोग करें: ✅ चालू
+- न्यूनतम टीएलएस संस्करण: टीएलएस 1.2
+- स्वचालित HTTPS पुनर्लेखन: ✅ चालू### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -350,11 +329,10 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
-
-```nginx
+`http {}` ब्लॉक के अंदर `nginx.conf` में निम्नलिखित जोड़ें:```nginx
 include /etc/nginx/cloudflare-ips.conf;
-```
+
+````
 
 ### Install fail2ban
 
@@ -365,7 +343,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-```
+````
 
 ### Block direct access to the Docker port
 
@@ -383,25 +361,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+क्लाउडफ्लेयर वर्कर्स के माध्यम से रिमोट एक्सेस के लिए (वीएम को सीधे उजागर किए बिना):```bash
 
-```bash
 # In the local repository
+
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
+
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
-
----
+पूरा दस्तावेज़ [omnirouteCloud/README.md](../omnirouteCloud/README.md) पर देखें।---
 
 ## Port Summary
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| बंदरगाह | सेवा | पहुंच |
+| ----- | ----------- | -------------------------------- |
+| 22    | एसएसएच | सार्वजनिक (fail2ban के साथ) |
+| 80 | nginx HTTP | रीडायरेक्ट → HTTPS |
+| 443 | nginx HTTPS | क्लाउडफ्लेयर प्रॉक्सी के माध्यम से |
+| 20128 | ओमनीरूट | केवल लोकलहोस्ट (nginx के माध्यम से) |
+```

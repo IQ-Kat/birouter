@@ -10,6 +10,8 @@ import {
   getDefaultThinkingBudget,
 } from "../../../src/shared/constants/modelSpecs.ts";
 
+import * as crypto from "crypto";
+
 function generateUUID() {
   return crypto.randomUUID();
 }
@@ -90,7 +92,7 @@ function openaiToGeminiBase(model, body, stream) {
     model: model,
     contents: [],
     generationConfig: {},
-    safetySettings: DEFAULT_SAFETY_SETTINGS,
+    safetySettings: body.safetySettings || DEFAULT_SAFETY_SETTINGS,
   };
 
   // Preserve cachedContent if provided by client (for explicit Gemini caching)
@@ -108,8 +110,12 @@ function openaiToGeminiBase(model, body, stream) {
   if (body.top_k !== undefined) {
     result.generationConfig.topK = body.top_k;
   }
-  if (body.max_tokens !== undefined) {
-    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model, body.max_tokens);
+  if (body.stop !== undefined) {
+    result.generationConfig.stopSequences = Array.isArray(body.stop) ? body.stop : [body.stop];
+  }
+  const requestedMaxOutputTokens = body.max_tokens ?? body.max_completion_tokens;
+  if (requestedMaxOutputTokens !== undefined) {
+    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model, requestedMaxOutputTokens);
   } else {
     result.generationConfig.maxOutputTokens = capMaxOutputTokens(model);
   }
@@ -146,10 +152,17 @@ function openaiToGeminiBase(model, body, stream) {
       const content = msg.content;
 
       if (role === "system" && body.messages.length > 1) {
-        result.systemInstruction = {
-          role: "user",
-          parts: [{ text: typeof content === "string" ? content : extractTextContent(content) }],
-        };
+        const systemText = typeof content === "string" ? content : extractTextContent(content);
+        if (systemText) {
+          if (!result.systemInstruction) {
+            result.systemInstruction = {
+              role: "user",
+              parts: [{ text: systemText }],
+            };
+          } else {
+            result.systemInstruction.parts.push({ text: systemText });
+          }
+        }
       } else if (role === "user" || (role === "system" && body.messages.length === 1)) {
         const parts = convertOpenAIContentToParts(content);
         if (parts.length > 0) {

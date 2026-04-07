@@ -63,9 +63,16 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min thresholds — statements, lines, functions; 60% branches)
+# Coverage (60% minimum for statements, lines, functions, and branches)
 npm run test:coverage
 ```
+
+### PR Coverage Policy
+
+- `npm run test:coverage` is the PR coverage gate in CI.
+- The repository minimum is **60%** for statements, lines, functions, and branches.
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must include or update automated tests in the same PR.
+- For agent-driven review or coding flows: if coverage is below the gate or source changes ship without tests, do not stop at reporting. Add or update tests first, rerun the gate, and only then ask for confirmation.
 
 ---
 

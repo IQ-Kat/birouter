@@ -64,7 +64,9 @@ import {
   parseCodexQuotaHeaders,
   getCodexResetTime,
   getCodexModelScope,
+  getCodexDualWindowCooldownMs,
 } from "../executors/codex.ts";
+import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import {
@@ -107,6 +109,7 @@ import {
 import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
+import { extractFacts } from "@/lib/memory/extraction";
 import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
 import { retrieveMemories } from "@/lib/memory/retrieval";
 import {
@@ -114,11 +117,41 @@ import {
   getMemorySettings,
   toMemoryRetrievalConfig,
 } from "@/lib/memory/settings";
+import { injectSkills } from "@/lib/skills/injection";
+import { handleToolCallExecution } from "@/lib/skills/interception";
 import {
   buildClaudeCodeCompatibleRequest,
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
+
+function extractMemoryTextFromResponse(
+  response: Record<string, unknown> | null | undefined
+): string {
+  if (!response || typeof response !== "object") return "";
+
+  const openAIText = response?.choices?.[0]?.message?.content;
+  if (typeof openAIText === "string") {
+    return openAIText.trim();
+  }
+
+  if (Array.isArray(response?.content)) {
+    const contentText = response.content
+      .filter(
+        (part: Record<string, unknown>) => part?.type === "text" && typeof part?.text === "string"
+      )
+      .map((part: Record<string, unknown>) => String(part.text).trim())
+      .filter(Boolean)
+      .join("\n");
+    if (contentText) return contentText;
+  }
+
+  if (typeof response?.output_text === "string") {
+    return response.output_text.trim();
+  }
+
+  return "";
+}
 
 export function shouldUseNativeCodexPassthrough({
   provider,
@@ -180,6 +213,53 @@ function restoreClaudePassthroughToolNames(
     ...responseBody,
     content,
   };
+}
+
+function materializeDeduplicatedExecutionResult<T extends Record<string, unknown>>(result: T): T {
+  const snapshot =
+    result && typeof result === "object"
+      ? ((result as Record<string, unknown>)._dedupSnapshot as
+          | {
+              status: number;
+              statusText: string;
+              headers: [string, string][];
+              payload: string;
+            }
+          | undefined)
+      : undefined;
+
+  if (!snapshot) return result;
+
+  return {
+    ...result,
+    response: new Response(snapshot.payload, {
+      status: snapshot.status,
+      statusText: snapshot.statusText,
+      headers: snapshot.headers,
+    }),
+  } as T;
+}
+
+function getSkillsProviderForFormat(format: string): "openai" | "anthropic" | "google" | "other" {
+  switch (format) {
+    case FORMATS.CLAUDE:
+      return "anthropic";
+    case FORMATS.GEMINI:
+      return "google";
+    default:
+      return "openai";
+  }
+}
+
+function getSkillsModelIdForFormat(format: string): string {
+  switch (format) {
+    case FORMATS.CLAUDE:
+      return "claude";
+    case FORMATS.GEMINI:
+      return "gemini";
+    default:
+      return "openai";
+  }
 }
 
 function getHeaderValueCaseInsensitive(
@@ -360,6 +440,14 @@ function attachLogMeta(
 const _proxyConfigCache = new Map<string, { mode: string; enabled: boolean; ts: number }>();
 const PROXY_CONFIG_CACHE_TTL = 10_000;
 
+export function clearUpstreamProxyConfigCache(providerId?: string) {
+  if (providerId) {
+    _proxyConfigCache.delete(providerId);
+    return;
+  }
+  _proxyConfigCache.clear();
+}
+
 async function getUpstreamProxyConfigCached(providerId: string) {
   const cached = _proxyConfigCache.get(providerId);
   if (cached && Date.now() - cached.ts < PROXY_CONFIG_CACHE_TTL) return cached;
@@ -386,6 +474,7 @@ export async function handleChatCore({
   comboName,
   comboStrategy = null,
   isCombo = false,
+  disableEmergencyFallback = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   const requestedModel =
@@ -440,10 +529,11 @@ export async function handleChatCore({
       };
 
       // T03/T09: on 429, persist exact reset time per scope to avoid global over-blocking.
+      // Item 3: Use dual-window cooldown to distinguish 5h vs 7d exhaustion.
       if (status === 429) {
-        const resetTimeMs = getCodexResetTime(quota);
-        if (resetTimeMs && resetTimeMs > Date.now()) {
-          const scopeUntil = new Date(resetTimeMs).toISOString();
+        const { cooldownMs, window: exhaustedWindow } = getCodexDualWindowCooldownMs(quota);
+        if (cooldownMs > 0) {
+          const scopeUntil = new Date(Date.now() + cooldownMs).toISOString();
           const scopeMapRaw =
             existingProviderData &&
             typeof existingProviderData === "object" &&
@@ -456,6 +546,17 @@ export async function handleChatCore({
             ...(scopeMapRaw as Record<string, unknown>),
             [scope]: scopeUntil,
           };
+          nextProviderData.codexExhaustedWindow = exhaustedWindow;
+          log?.debug?.(
+            "CODEX",
+            `Quota exhaustion on ${exhaustedWindow} window, cooldown until ${scopeUntil}`
+          );
+        }
+
+        // Invalidate the preflight cache for this connection so the next
+        // isModelAvailable check fetches fresh quota data.
+        if (connectionId) {
+          invalidateCodexQuotaCache(connectionId);
         }
       }
 
@@ -563,6 +664,7 @@ export async function handleChatCore({
   const targetFormat = modelTargetFormat || getTargetFormat(provider);
   const noLogEnabled = apiKeyInfo?.noLog === true;
   const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
+  const skillRequestId = generateRequestId();
   const persistAttemptLogs = ({
     status,
     tokens,
@@ -716,6 +818,14 @@ export async function handleChatCore({
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
 
   // ── Common input sanitization (runs for ALL paths including passthrough) ──
+  // #994: Normalize max_output_tokens to max_tokens for universal compatibility
+  if (body.max_output_tokens !== undefined) {
+    if (body.max_tokens === undefined) {
+      body.max_tokens = body.max_output_tokens;
+    }
+    delete body.max_output_tokens;
+  }
+
   // #291: Strip empty name fields from messages/input items
   // Upstream providers (OpenAI, Codex) reject name:"" with 400 errors.
   if (Array.isArray(body.messages)) {
@@ -777,6 +887,23 @@ export async function handleChatCore({
         "MEMORY",
         `Memory injection skipped: ${memErr instanceof Error ? memErr.message : String(memErr)}`
       );
+    }
+  }
+
+  if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+    const existingTools = Array.isArray(body.tools) ? body.tools : [];
+    const mergedTools = injectSkills({
+      provider: getSkillsProviderForFormat(sourceFormat),
+      existingTools,
+      apiKeyId: apiKeyInfo.id,
+    });
+
+    if (mergedTools.length > existingTools.length) {
+      body = {
+        ...body,
+        tools: mergedTools,
+      };
+      log?.debug?.("SKILLS", `Injected ${mergedTools.length - existingTools.length} skills`);
     }
   }
 
@@ -933,22 +1060,35 @@ export async function handleChatCore({
           if (msg.role === "user" && Array.isArray(msg.content)) {
             msg.content = (msg.content as Record<string, unknown>[]).flatMap(
               (block: Record<string, unknown>) => {
-                if (block.type === "text" || block.type === "image_url" || block.type === "image") {
-                  return [block];
-                }
-                // file / document → extract text content
-                if (block.type === "file" || block.type === "document") {
-                  const fileContent =
-                    (block.file as Record<string, unknown>)?.content ??
-                    (block.file as Record<string, unknown>)?.text ??
-                    block.content ??
-                    block.text;
-                  const fileName =
-                    (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
-                  if (typeof fileContent === "string" && fileContent.length > 0) {
-                    return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
+                if (
+                  block.type === "text" ||
+                  block.type === "image_url" ||
+                  block.type === "image" ||
+                  block.type === "file_url" ||
+                  block.type === "file" ||
+                  block.type === "document"
+                ) {
+                  // Only extract text if it's explicitly a text-only representation without data
+                  const fileData = (block.file_url ?? block.file ?? block.document) as
+                    | Record<string, unknown>
+                    | undefined;
+                  if (
+                    (block.type === "file" || block.type === "document") &&
+                    !fileData?.url &&
+                    !fileData?.data
+                  ) {
+                    const fileContent =
+                      (block.file as Record<string, unknown>)?.content ??
+                      (block.file as Record<string, unknown>)?.text ??
+                      block.content ??
+                      block.text;
+                    const fileName =
+                      (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
+                    if (typeof fileContent === "string" && fileContent.length > 0) {
+                      return [{ type: "text", text: `[${fileName}]\n${fileContent}` }];
+                    }
                   }
-                  return [];
+                  return [block];
                 }
                 // (#527) tool_result → convert to text instead of dropping.
                 // When Claude Code + superpowers routes through Codex, it sends tool_result
@@ -1115,22 +1255,9 @@ export async function handleChatCore({
       log?: unknown;
       upstreamExtraHeaders?: Record<string, string> | null;
     }) => {
+      let result;
       try {
-        const result = await nativeExec.execute(input);
-        if (isRetryableStatus(result.response.status)) {
-          log?.info?.(
-            "UPSTREAM_PROXY",
-            `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
-          );
-          try {
-            return await proxyExec.execute(input);
-          } catch (proxyErr) {
-            const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
-            log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
-            throw proxyErr;
-          }
-        }
-        return result;
+        result = await nativeExec.execute(input);
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
         log?.info?.("UPSTREAM_PROXY", `${prov} native error (${errMsg}), retrying via CLIProxyAPI`);
@@ -1141,6 +1268,21 @@ export async function handleChatCore({
           log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
           throw proxyErr;
         }
+      }
+
+      if (!isRetryableStatus(result.response.status)) {
+        return result;
+      }
+      log?.info?.(
+        "UPSTREAM_PROXY",
+        `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
+      );
+      try {
+        return await proxyExec.execute(input);
+      } catch (proxyErr) {
+        const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
+        log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
+        throw proxyErr;
       }
     };
     return wrapper;
@@ -1238,6 +1380,12 @@ export async function handleChatCore({
       return {
         ...rawResult,
         response: new Response(payload, { status, statusText, headers }),
+        _dedupSnapshot: {
+          status,
+          statusText,
+          headers,
+          payload,
+        },
       };
     };
 
@@ -1246,7 +1394,7 @@ export async function handleChatCore({
       if (dedupResult.wasDeduplicated) {
         log?.debug?.("DEDUP", `Joined in-flight request hash=${dedupHash}`);
       }
-      return dedupResult.result;
+      return materializeDeduplicatedExecutionResult(dedupResult.result);
     }
 
     return execute();
@@ -1302,11 +1450,16 @@ export async function handleChatCore({
     );
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
-    const failureStatus = error.name === "AbortError" ? 499 : HTTP_STATUS.BAD_GATEWAY;
+    const failureStatus =
+      error.name === "AbortError"
+        ? 499
+        : error.name === "TimeoutError"
+          ? HTTP_STATUS.GATEWAY_TIMEOUT
+          : HTTP_STATUS.BAD_GATEWAY;
     const failureMessage =
       error.name === "AbortError"
         ? "Request aborted"
-        : formatProviderError(error, provider, model, HTTP_STATUS.BAD_GATEWAY);
+        : formatProviderError(error, provider, model, failureStatus);
     appendRequestLog({
       model,
       provider,
@@ -1325,11 +1478,11 @@ export async function handleChatCore({
       return createErrorResult(499, "Request aborted");
     }
     persistFailureUsage(
-      HTTP_STATUS.BAD_GATEWAY,
+      failureStatus,
       error instanceof Error && error.name ? error.name : "upstream_error"
     );
     console.log(`${COLORS.red}[ERROR] ${failureMessage}${COLORS.reset}`);
-    return createErrorResult(HTTP_STATUS.BAD_GATEWAY, failureMessage);
+    return createErrorResult(failureStatus, failureMessage);
   }
   // We need to peek at the error text if it's 400 for Qwen
   let upstreamErrorParsed = false;
@@ -1711,71 +1864,81 @@ export async function handleChatCore({
         clientResponse: buildErrorBody(statusCode, errMsg),
       });
       persistFailureUsage(statusCode, `upstream_${statusCode}`);
-      return createErrorResult(statusCode, errMsg, retryAfterMs);
-    }
-    // ── End T5 ───────────────────────────────────────────────────────────────
 
-    // ── Emergency Fallback (ClawRouter Feature #09/017) ────────────────────
-    // When a non-streaming request fails with a budget-related error (402 or
-    // budget keywords), redirect to nvidia/gpt-oss-120b ($0.00/M) before
-    // returning the error to the combo router. This gives one last free-tier
-    // attempt so the user's session stays alive.
-    const requestHasTools = Array.isArray(translatedBody.tools) && translatedBody.tools.length > 0;
-    if (!stream) {
-      const fbDecision = shouldUseFallback(
-        statusCode,
-        message,
-        requestHasTools,
-        EMERGENCY_FALLBACK_CONFIG
-      );
-      if (isFallbackDecision(fbDecision)) {
-        log?.info?.("EMERGENCY_FALLBACK", fbDecision.reason);
-        try {
-          // Build a minimal fallback request using the original body but with
-          // the NVIDIA free-tier model and max_tokens capped to avoid overuse.
-          const fbExecutor = getExecutor(fbDecision.provider);
-          const fbResult = await fbExecutor.execute({
-            model: fbDecision.model,
-            body: {
-              ...translatedBody,
+      const requestHasTools =
+        Array.isArray(translatedBody.tools) && translatedBody.tools.length > 0;
+      let emergencyFallbackServed = false;
+
+      if (!disableEmergencyFallback && !stream) {
+        const fbDecision = shouldUseFallback(
+          statusCode,
+          message,
+          requestHasTools,
+          EMERGENCY_FALLBACK_CONFIG
+        );
+        if (isFallbackDecision(fbDecision)) {
+          log?.info?.("EMERGENCY_FALLBACK", fbDecision.reason);
+          try {
+            const originalProvider = provider;
+            const fbExecutor = getExecutor(fbDecision.provider);
+            const fbResult = await fbExecutor.execute({
               model: fbDecision.model,
-              max_tokens: Math.min(
-                typeof translatedBody.max_tokens === "number"
-                  ? translatedBody.max_tokens
-                  : fbDecision.maxOutputTokens,
-                fbDecision.maxOutputTokens
-              ),
-            },
-            stream: false,
-            credentials: credentials,
-            signal: streamController.signal,
-            log,
-            extendedContext,
-          });
-          if (fbResult.response.ok) {
-            providerResponse = fbResult.response;
-            providerUrl = fbResult.url;
-            providerHeaders = fbResult.headers;
-            finalBody = fbResult.transformedBody;
-            reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-            log?.info?.(
-              "EMERGENCY_FALLBACK",
-              `Serving ${fbDecision.provider}/${fbDecision.model} as budget fallback for ${provider}/${model}`
-            );
-            // Fall through to non-streaming handler — providerResponse is now OK
-          } else {
-            log?.warn?.(
-              "EMERGENCY_FALLBACK",
-              `Emergency fallback also failed (${fbResult.response.status})`
-            );
+              body: {
+                ...translatedBody,
+                model: fbDecision.model,
+                max_tokens: Math.min(
+                  typeof translatedBody.max_tokens === "number"
+                    ? translatedBody.max_tokens
+                    : fbDecision.maxOutputTokens,
+                  fbDecision.maxOutputTokens
+                ),
+                max_completion_tokens: Math.min(
+                  typeof translatedBody.max_completion_tokens === "number"
+                    ? translatedBody.max_completion_tokens
+                    : typeof translatedBody.max_tokens === "number"
+                      ? translatedBody.max_tokens
+                      : fbDecision.maxOutputTokens,
+                  fbDecision.maxOutputTokens
+                ),
+              },
+              stream: false,
+              credentials: credentials,
+              signal: streamController.signal,
+              log,
+              extendedContext,
+            });
+            if (fbResult.response.ok) {
+              provider = fbDecision.provider;
+              model = fbDecision.model;
+              translatedBody.model = fbDecision.model;
+              providerResponse = fbResult.response;
+              providerUrl = fbResult.url;
+              providerHeaders = fbResult.headers;
+              finalBody = fbResult.transformedBody;
+              reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+              log?.info?.(
+                "EMERGENCY_FALLBACK",
+                `Serving ${fbDecision.provider}/${fbDecision.model} as budget fallback for ${originalProvider}/${requestedModel}`
+              );
+              emergencyFallbackServed = true;
+            } else {
+              log?.warn?.(
+                "EMERGENCY_FALLBACK",
+                `Emergency fallback also failed (${fbResult.response.status})`
+              );
+            }
+          } catch (fbErr) {
+            const errMessage = fbErr instanceof Error ? fbErr.message : String(fbErr);
+            log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${errMessage}`);
           }
-        } catch (fbErr) {
-          const errMessage = fbErr instanceof Error ? fbErr.message : String(fbErr);
-          log?.warn?.("EMERGENCY_FALLBACK", `Emergency fallback error: ${errMessage}`);
         }
       }
+
+      if (!emergencyFallbackServed) {
+        return createErrorResult(statusCode, errMsg, retryAfterMs);
+      }
     }
-    // ── End Emergency Fallback ────────────────────────────────────────────
+    // ── End T5 ───────────────────────────────────────────────────────────────
   }
 
   // Non-streaming response
@@ -1983,6 +2146,7 @@ export async function handleChatCore({
           toolNameMap as Map<string, string> | null
         )
       : responseBody;
+    const memoryExtractionResponse = translatedResponse;
 
     // T26: Strip markdown code blocks if provider format is Claude
     if (sourceFormat === "claude" && !stream) {
@@ -2027,6 +2191,35 @@ export async function handleChatCore({
         const estimated = estimateUsage(body, contentLength, sourceFormat);
         translatedResponse.usage = filterUsageForFormat(estimated, sourceFormat);
       }
+    }
+
+    const pipelineSessionId =
+      (clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
+        ? clientRawRequest.headers.get("x-omniroute-session-id")
+        : getHeaderValueCaseInsensitive(
+            clientRawRequest?.headers ?? null,
+            "x-omniroute-session-id"
+          )) || skillRequestId;
+
+    if (apiKeyInfo?.id && memorySettings?.enabled && memorySettings.maxTokens > 0) {
+      const memoryText = extractMemoryTextFromResponse(memoryExtractionResponse);
+      if (memoryText) {
+        extractFacts(memoryText, apiKeyInfo.id, pipelineSessionId);
+      }
+    }
+
+    if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+      const skillSessionId = pipelineSessionId;
+
+      translatedResponse = await handleToolCallExecution(
+        translatedResponse,
+        getSkillsModelIdForFormat(sourceFormat),
+        {
+          apiKeyId: apiKeyInfo.id,
+          sessionId: skillSessionId,
+          requestId: skillRequestId,
+        }
+      );
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──

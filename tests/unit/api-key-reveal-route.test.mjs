@@ -17,6 +17,7 @@ const MACHINE_ID = "1234567890abcdef";
 
 async function resetStorage() {
   delete process.env.ALLOW_API_KEY_REVEAL;
+  delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -42,13 +43,68 @@ test("GET /api/keys stays masked even when reveal is enabled", async () => {
   process.env.ALLOW_API_KEY_REVEAL = "true";
   const created = await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
 
-  const response = await listRoute.GET();
+  const response = await listRoute.GET(new Request("http://localhost/api/keys"));
   const body = await response.json();
 
   assert.equal(response.status, 200);
   assert.equal(body.allowKeyReveal, true);
   assert.equal(Array.isArray(body.keys), true);
   assert.equal(body.keys[0].key, maskKey(created.key));
+});
+
+test("GET /api/keys falls back to default pagination for invalid query params", async () => {
+  await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
+  await apiKeysDb.createApiKey("Beta", MACHINE_ID);
+
+  const response = await listRoute.GET(
+    new Request("http://localhost/api/keys?limit=abc&offset=xyz")
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.allowKeyReveal, false);
+  assert.equal(body.total, 2);
+  assert.equal(body.keys.length, 2);
+  assert.equal(
+    body.keys.every((entry) => entry.key.includes("****")),
+    true
+  );
+});
+
+test("GET /api/keys returns 500 when key loading fails unexpectedly", async () => {
+  await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
+
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+  const originalConsoleLog = console.log;
+  const capturedLogs = [];
+
+  db.prepare = (sql, ...args) => {
+    if (typeof sql === "string" && sql.includes("SELECT * FROM api_keys")) {
+      throw new Error("db exploded");
+    }
+    return originalPrepare(sql, ...args);
+  };
+  console.log = (...args) => {
+    capturedLogs.push(args.map((arg) => String(arg)).join(" "));
+  };
+  apiKeysDb.resetApiKeyState();
+
+  try {
+    const response = await listRoute.GET(new Request("http://localhost/api/keys"));
+    const body = await response.json();
+
+    assert.equal(response.status, 500);
+    assert.equal(body.error, "Failed to fetch keys");
+    assert.equal(
+      capturedLogs.some((line) => line.includes("Error fetching keys:")),
+      true
+    );
+  } finally {
+    db.prepare = originalPrepare;
+    console.log = originalConsoleLog;
+    apiKeysDb.resetApiKeyState();
+  }
 });
 
 test("GET /api/keys/[id]/reveal rejects requests when reveal is disabled", async () => {
@@ -76,4 +132,30 @@ test("GET /api/keys/[id]/reveal returns the full key when reveal is enabled", as
 
   assert.equal(response.status, 200);
   assert.equal(body.key, created.key);
+});
+
+test("GET /api/keys/[id]/reveal returns 404 for unknown keys even when reveal is enabled", async () => {
+  process.env.ALLOW_API_KEY_REVEAL = "true";
+  const request = new Request("http://localhost/api/keys/missing/reveal");
+
+  const response = await revealRoute.GET(request, {
+    params: Promise.resolve({ id: "missing" }),
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 404);
+  assert.equal(body.error, "Key not found");
+});
+
+test("GET /api/keys/[id]/reveal returns 500 when params resolution fails", async () => {
+  process.env.ALLOW_API_KEY_REVEAL = "true";
+  const request = new Request("http://localhost/api/keys/broken/reveal");
+
+  const response = await revealRoute.GET(request, {
+    params: Promise.reject(new Error("params exploded")),
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 500);
+  assert.equal(body.error, "Failed to reveal key");
 });

@@ -4,37 +4,31 @@
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
-
----
+Ghid complet pentru instalarea și configurarea OmniRoute pe o VM (VPS) cu domeniu gestionat prin Cloudflare.---
 
 ## Prerequisites
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+| Articol     | Minimum                   | Recomandat       |
+| ----------- | ------------------------- | ---------------- |
+| **CPU**     | 1 vCPU                    | 2 vCPU           |
+| **RAM**     | 1 GB                      | 2 GB             |
+| **Disc**    | SSD de 10 GB              | SSD de 25 GB     |
+| **OS**      | Ubuntu 22.04 LTS          | Ubuntu 24.04 LTS |
+| **Domeniu** | Înregistrat pe Cloudflare | —                |
+| **Docker**  | Docker Engine 24+         | Docker 27+       |
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
-
----
+**Furnizori testați**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-On your preferred VPS provider:
+Pe furnizorul dvs. VPS preferat:
 
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
-
-### 1.2 Connect via SSH
+- Alegeți Ubuntu 24.04 LTS
+- Selectați planul minim (1 vCPU / 1 GB RAM)
+- Setați o parolă de root puternică sau configurați cheia SSH
+- Rețineți**IP-ul public**(de exemplu, `203.0.113.10`)### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -78,9 +72,7 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
-
----
+> **Sfat**: pentru securitate maximă, restricționați porturile 80 și 443 doar la IP-uri Cloudflare. Consultați secțiunea [Securitate avansată](#advanced-security).---
 
 ## 2. Install OmniRoute
 
@@ -122,9 +114,7 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
-
-### 2.3 Start the container
+> ⚠️**IMPORTANT**: Generați chei secrete unice! Folosiți `openssl rand -hex 32` pentru fiecare cheie.### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -145,32 +135,31 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
-
----
+Ar trebui să afișeze: `[DB] SQLite database ready` și `listening on port 20128`.---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+În tabloul de bord Cloudflare:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
-
-```bash
-mkdir -p /etc/nginx/ssl
+1. Accesați**SSL/TLS → Origin Server**
+2. Faceți clic pe**Creați certificat**
+3. Păstrează valorile implicite (15 ani, \*.domeniul tău.com)
+4. Copiați**Certificatul de origine**și**Cheia privată**```bash
+   mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
+
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
+
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-```
+
+````
 
 ### 3.2 Nginx Configuration
 
@@ -228,13 +217,11 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-```
+````
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
-
-### 3.3 Enable and Test
+Păstrați intervalele de timp expirate ale fluxului proxy invers aliniate cu varsurile de mediu de expirare OmniRoute. Dacă ridici
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, ridicați `proxy_read_timeout` / `proxy_send_timeout`
+peste același prag.### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -253,25 +240,21 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-In the Cloudflare dashboard → DNS:
+În tabloul de bord Cloudflare → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| Tip | Nume   | Conținut               | Proxy    |
+| --- | ------ | ---------------------- | -------- | --------------------- |
+| A   | `llms` | `203.0.113.10` (VM IP) | ✅ Proxy | ### 4.2 Configure SSL |
 
-### 4.2 Configure SSL
+Sub**SSL/TLS → Prezentare generală**:
 
-Under **SSL/TLS → Overview**:
+- Mod:**Complet (strict)**
 
-- Mode: **Full (Strict)**
+Sub**SSL/TLS → Certificate Edge**:
 
-Under **SSL/TLS → Edge Certificates**:
-
-- Always Use HTTPS: ✅ On
-- Minimum TLS Version: TLS 1.2
-- Automatic HTTPS Rewrites: ✅ On
-
-### 4.3 Testing
+- Utilizați întotdeauna HTTPS: ✅ Activat
+- Versiune TLS minimă: TLS 1.2
+- Rescrieri automate HTTPS: ✅ Activat### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -350,11 +333,10 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
-
-```nginx
+Adăugați următoarele la `nginx.conf` în blocul `http {}`:```nginx
 include /etc/nginx/cloudflare-ips.conf;
-```
+
+````
 
 ### Install fail2ban
 
@@ -365,7 +347,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-```
+````
 
 ### Block direct access to the Docker port
 
@@ -383,25 +365,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Pentru acces de la distanță prin Cloudflare Workers (fără a expune VM-ul direct):```bash
 
-```bash
 # In the local repository
+
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
+
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
-
----
+Consultați documentația completă la [omnirouteCloud/README.md](../omnirouteCloud/README.md).---
 
 ## Port Summary
 
-| Port  | Service     | Access                     |
+| Port | Serviciu | Acces |
 | ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| 22 | SSH | Public (cu fail2ban) |
+| 80 | nginx HTTP | Redirecționare → HTTPS |
+| 443 | nginx HTTPS | Prin proxy Cloudflare |
+| 20128 | OmniRoute | Numai Localhost (prin nginx) |
+```

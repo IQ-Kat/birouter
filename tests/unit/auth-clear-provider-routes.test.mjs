@@ -12,6 +12,25 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const moderationRoute = await import("../../src/app/api/v1/moderations/route.ts");
 const embeddingsRoute = await import("../../src/app/api/v1/embeddings/route.ts");
 
+async function withEnv(name, value, fn) {
+  const previous = process.env[name];
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+
+  try {
+    return await fn();
+  } finally {
+    if (previous === undefined) {
+      delete process.env[name];
+    } else {
+      process.env[name] = previous;
+    }
+  }
+}
+
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -74,6 +93,74 @@ test("moderations route clears stale provider error metadata on success", async 
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("moderations route covers CORS, API key auth, validation, and missing credential branches", async () => {
+  await resetStorage();
+
+  const optionsResponse = await moderationRoute.OPTIONS();
+  assert.equal(optionsResponse.status, 200);
+  assert.equal(optionsResponse.headers.get("Access-Control-Allow-Methods"), "POST, OPTIONS");
+
+  await withEnv("REQUIRE_API_KEY", "true", async () => {
+    const missingKeyResponse = await moderationRoute.POST(
+      new Request("http://localhost/v1/moderations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: "hello" }),
+      })
+    );
+
+    assert.equal(missingKeyResponse.status, 401);
+    assert.match(await missingKeyResponse.text(), /Missing API key/i);
+
+    const invalidKeyResponse = await moderationRoute.POST(
+      new Request("http://localhost/v1/moderations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer invalid-test-key",
+        },
+        body: JSON.stringify({ input: "hello" }),
+      })
+    );
+
+    assert.equal(invalidKeyResponse.status, 401);
+    assert.match(await invalidKeyResponse.text(), /Invalid API key/i);
+  });
+
+  const invalidJsonResponse = await moderationRoute.POST(
+    new Request("http://localhost/v1/moderations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{",
+    })
+  );
+  assert.equal(invalidJsonResponse.status, 400);
+  assert.match(await invalidJsonResponse.text(), /Invalid JSON body/i);
+
+  const invalidBodyResponse = await moderationRoute.POST(
+    new Request("http://localhost/v1/moderations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+  );
+  assert.equal(invalidBodyResponse.status, 400);
+  assert.match(await invalidBodyResponse.text(), /Invalid request/i);
+
+  const noCredentialsResponse = await moderationRoute.POST(
+    new Request("http://localhost/v1/moderations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        input: "hello",
+        model: "anthropic/omni-moderation-latest",
+      }),
+    })
+  );
+  assert.equal(noCredentialsResponse.status, 400);
+  assert.match(await noCredentialsResponse.text(), /No credentials for provider: openai/i);
 });
 
 test("embeddings route clears stale provider error metadata on success", async () => {

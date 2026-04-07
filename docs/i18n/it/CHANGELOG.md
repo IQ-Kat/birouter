@@ -4,346 +4,173 @@
 
 ---
 
-
 ## [Unreleased]
 
 ---
+
+## [3.5.3] - 2026-04-05
+
+### Fixed
+
+-**Middleware:**Risolto loop di reindirizzamento infinito sul dashboard per nuove istanze quando requireLogin è disabilitato.---
 
 ## [3.5.2] — 2026-04-05
 
 ### ✨ New Features
 
-- **Qoder API Native Integration:** Completely refactored the Qoder Executor to bypass the legacy COSY AES/RSA encryption algorithm, routing directly into the native DashScope OpenAi-compatible URL. Eliminates complex dependencies on Node `crypto` modules while improving stream fidelity.
-- **Resilience Engine Overhaul:** Integrated context overflow graceful fallbacks, proactive OAuth token detection, and empty-content emission prevention (#990).
-- **Context-Optimized Routing Strategy:** Added new intelligent routing capability to natively maximize context windows in automated combo deployments (#990).
+-**Integrazione nativa dell'API Qoder:**Refactoring completo dell'Executor Qoder per bypassare l'algoritmo di crittografia COZY AES/RSA legacy, instradando direttamente nell'URL nativo compatibile con DashScope OpenAi. Elimina le dipendenze complesse dai moduli "crypto" del nodo migliorando al contempo la fedeltà del flusso. -**Revisione del motore di resilienza:**fallback integrati per l'overflow del contesto, rilevamento proattivo dei token OAuth e prevenzione delle emissioni di contenuti vuoti (#990). -**Strategia di routing ottimizzata per il contesto:**Aggiunta una nuova funzionalità di routing intelligente per massimizzare in modo nativo le finestre di contesto nelle distribuzioni combinate automatizzate (#990).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Responses API Stream Corruption:** Fixed deep-cloning corruption where Anthropic/OpenAI translation boundaries stripped `response.` specific SSE prefixes from streaming boundaries (#992).
-- **Claude Cache Passthrough Alignment:** Aligned CC-Compatible cache markers consistently with upstream Client Pass-Through mode preserving prompt caching.
-- **Turbopack Memory Leak:** Pinned Next.js to strict `16.0.10` preventing memory leaks and build staleness from recent upstream Turbopack hashed module regressions (#987).
-
----
+-**Corruzione del flusso dell'API di risposta:**Risolto il problema della clonazione profonda in cui i confini della traduzione Anthropic/OpenAI rimuovevano i prefissi SSE specifici di `response.` dai confini dello streaming (#992). -**Allineamento Passthrough di Claude Cache:**Allineati gli indicatori di cache compatibili con CC in modo coerente con la modalità Passthrough del client upstream preservando la memorizzazione nella cache dei prompt. -**Perdita di memoria Turbopack:**Bloccato Next.js nel rigido `16.0.10` per prevenire perdite di memoria e creare obsolescenza a causa delle recenti regressioni del modulo hash Turbopack upstream (#987).---
 
 ## [3.5.1] — 2026-04-04
 
 ### ✨ New Features
 
-- **Models.dev Integration:** Integrated models.dev as the authoritative runtime source for model pricing, capabilities, and specifications, overriding hardcoded prices. Includes a settings UI to manage sync intervals, translation strings for all 30 languages, and robust test coverage.
-- **Provider Native Capabilities:** Added support for declaring and checking native API features (e.g. `systemInstructions_supported`) preventing failures by sanitizing invalid roles. Currently configured for Gemini Base and Antigravity OAuth providers.
-- **API Provider Advanced Settings:** Added per-connection custom `User-Agent` overrides for API-key provider connections. The override is stored in `providerSpecificData.customUserAgent` and now applies to validation probes and upstream execution requests.
+-**Integrazione Models.dev:**Models.dev integrato come fonte runtime autorevole per prezzi, funzionalità e specifiche dei modelli, sovrascrivendo i prezzi codificati. Include un'interfaccia utente delle impostazioni per gestire gli intervalli di sincronizzazione, stringhe di traduzione per tutte le 30 lingue e una solida copertura dei test. -**Funzionalità native del provider:**Aggiunto supporto per dichiarare e controllare le funzionalità API native (ad esempio `systemInstructions_supported`) prevenendo errori disinfettando i ruoli non validi. Attualmente configurato per i provider Gemini Base e Antigravity OAuth. -**Impostazioni avanzate del provider API:**Aggiunte sostituzioni personalizzate di "User-Agent" per connessione per le connessioni del provider di chiavi API. L'override è archiviato in "providerSpecificData.customUserAgent" e ora si applica ai sondaggi di convalida e alle richieste di esecuzione upstream.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Qwen OAuth Reliability:** Resolved a series of OAuth integration issues including a 400 Bad Request blocker on expired tokens, fallback generation for parsing OIDC `access_token` properties when `id_token` is omitted, model catalog discovery errors, and strict filtering of `X-Dashscope-*` headers to avoid 400 rejection from OpenAI-compatible endpoints.
-
-## [3.5.0] — 2026-04-03
+-**Affidabilità OAuth di Qwen:**Risolti una serie di problemi di integrazione OAuth tra cui un blocco 400 Bad Request su token scaduti, generazione di fallback per l'analisi delle proprietà OIDC "access_token" quando "id_token" viene omesso, errori di rilevamento del catalogo modelli e filtraggio rigoroso delle intestazioni "X-Dashscope-\*" per evitare il rifiuto 400 da endpoint compatibili con OpenAI.## [3.5.0] — 2026-04-03
 
 ### ✨ New Features
 
-- **Auto-Combo & Routing:** Completed native CRUD lifecycle integration for the advanced Auto-Combo engine (#955).
-- **Core Operations:** Fixed missing translations for new native Auto-Combos options (#955).
-- **Security Validation:** Disabled SQLite auto-backup tasks natively during unit test CI execution to explicitly resolve Node 22 Event Loop hanging memory leaks (#956).
-- **Ecosystem Proxies:** Completed explicit integration mapping model synchronization schedulers, OAuth cycles, and Token Check refreshes safely through OmniRoute's native system upstream proxies (#953).
-- **MCP Extensibility:** Added and successfully registered the new `omniroute_web_search` MCP framework tool out of beta into production schemas (#951).
-- **Tokens Buffer Logic:** Added runtime configuration limits extending configurable input/output token buffers for precise Usage Tracking metrics (#959).
+-**Auto-Combo e Routing:**Completata l'integrazione nativa del ciclo di vita CRUD per il motore avanzato Auto-Combo (#955). -**Operazioni principali:**Risolte le traduzioni mancanti per le nuove opzioni native di Auto-Combo (#955). -**Convalida della sicurezza:**Disabilitate le attività di backup automatico di SQLite in modo nativo durante l'esecuzione del CI di test unitario per risolvere in modo esplicito le perdite di memoria sospese del loop di eventi del nodo 22 (#956). -**Proxy dell'ecosistema:**completati gli scheduler di sincronizzazione del modello di mappatura dell'integrazione esplicita, i cicli OAuth e gli aggiornamenti di controllo token in modo sicuro tramite i proxy upstream del sistema nativo di OmniRoute (#953). -**Estensibilità MCP:**Aggiunto e registrato con successo il nuovo strumento framework MCP `omniroute_web_search` fuori versione beta negli schemi di produzione (#951). -**Logica del buffer dei token:**Aggiunti limiti di configurazione di runtime che estendono i buffer dei token di input/output configurabili per metriche precise di monitoraggio dell'utilizzo (#959).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Rimedio CodeQL:**Operazioni di indicizzazione di stringhe critiche completamente risolte e protette che prevengono l'euristica di indicizzazione degli array SSRF (Server-Side Request Forgery) insieme al backtracking algoritmico polinomiale (ReDoS) all'interno dei moduli dispatcher proxy profondi. -**Hash crittografici:**sostituiti gli hash OAuth 1.0 legacy deboli e non verificati con robuste primitive di convalida standard HMAC-SHA-256 che garantiscono controlli di accesso rigorosi. -**Protezione dei confini dell'API:**Protezioni del percorso strutturale correttamente verificate e mappate che applicano la rigorosa logica del middleware `isAuthenticated()` che copre i nuovi endpoint dinamici mirati alla manipolazione delle impostazioni e al caricamento delle competenze native. -**Compatibilità ecosistema CLI:**Risolti i collegamenti non funzionanti del parser runtime nativo che bloccavano i rilevatori dell'ambiente `where` rigorosamente sui casi limite `.cmd/.exe` per i plugin esterni (#969). -**Architettura della cache:**Refactoring dell'esatta memorizzazione nella cache della struttura del layout dei parametri del dashboard di analisi e impostazioni di sistema per mantenere stabili i cicli di persistenza della reidratazione risolvendo i flash visivi dello stato non allineato (#952). -**Standard di memorizzazione nella cache di Claude:**Indicatori di blocchi critici effimeri rigorosamente normalizzati e accuratamente conservati Ordini TTL di memorizzazione nella cache "effimeri" per i nodi downstream che impongono la mappatura delle richieste CC compatibili con gli standard in modo pulito senza metriche eliminate (#948). -**Autenticazione alias interni:**Mappature runtime interne semplificate che normalizzano le ricerche del payload delle credenziali Codex all'interno dei parametri di traduzione globali risolvendo 401 drop non autenticati (#958).### 🛠️ Maintenance
 
-- **CodeQL Remediation:** Fully resolved and secured critical string indexing operations preventing Server-Side Request Forgery (SSRF) arrays indexing heuristics alongside polynomial algorithmic backtracking (ReDoS) inside deep proxy dispatcher modules.
-- **Crypto Hashes:** Replaced weak unverified legacy OAuth 1.0 hashes with robust HMAC-SHA-256 standard validation primitives ensuring tight access controls.
-- **API Boundary Protection:** Correctly verified and mapped structural route protections enforcing strict `isAuthenticated()` middleware logic covering newer dynamic endpoints targeting settings manipulation and native skills loading.
-- **CLI Ecosystem Compat:** Resolved broken native runtime parser bindings crashing `where` environment detectors strictly over `.cmd/.exe` edge cases gracefully for external plugins (#969).
-- **Cache Architecture:** Refactored exact Analytics and System Settings dashboard parameters layout structure caching to maintain stable re-hydration persistence cycles resolving visual unaligned state flashes (#952).
-- **Claude Caching Standards:** Normalized and accurately strictly preserved critical ephemeral block markers `ephemeral` caching TTL orders for downstream nodes enforcing standard compatible CC requests mapping cleanly without dropped metrics (#948).
-- **Internal Aliases Auth:** Simplified internal runtime mappings normalizing Codex credential payload lookups inside global translation parameters resolving 401 unauthenticated drops (#958).
-
-### 🛠️ Maintenance
-
-- **UI Discoverability:** Correctly adjusted layout categorizations explicitly separating free tier providers logic improving UX sorting flows inside the general API registry pages (#950).
-- **Deployment Topology:** Unified Docker deployment artifacts ensuring the root `fly.toml` matches expected cloud instance parameters out-of-the-box natively handling automated deployments scaling properly.
-- **Development Tooling:** Decoupled `LKGP` runtime parameters into explicit DB layer abstraction caching utilities ensuring strict test isolation coverage for core caching layers safely.
-
----
+-**Individuabilità dell'interfaccia utente:**categorizzazioni del layout corrette che separano esplicitamente la logica dei fornitori del livello gratuito migliorando i flussi di ordinamento UX all'interno delle pagine generali del registro API (#950). -**Topologia di distribuzione:**artefatti di distribuzione Docker unificati che garantiscono che la radice "fly.toml" corrisponda immediatamente ai parametri previsti dell'istanza cloud, gestendo in modo nativo le distribuzioni automatizzate con il corretto dimensionamento. -**Strumenti di sviluppo:**parametri di runtime `LKGP` disaccoppiati in utilità di caching esplicite di astrazione del livello DB che garantiscono una rigorosa copertura di isolamento dei test per i livelli di caching principali in modo sicuro.---
 
 ## [3.4.9] — 2026-04-03
 
 ### Features & Refactoring
 
-- **Dashboard Auto-Combo Panel:** Completely refactored the `/dashboard/auto-combo` UI to seamlessly integrate with native Dashboard Cards and standardized visual padding/headers. Added dynamic visual progress bars mapping model selection weight mechanisms.
-- **Settings Routing Sync:** Fully exposed advanced routing `priority` and `weighted` schema targets internally inside global settings fallback lists.
+-**Pannello Dashboard Auto-Combo:**completamente rifattorizzata l'interfaccia utente `/dashboard/auto-combo` per integrarsi perfettamente con le Dashboard Card native e con imbottiture/intestazioni visive standardizzate. Aggiunte barre di avanzamento visive dinamiche che mappano i meccanismi di peso della selezione del modello. -**Sincronizzazione del routing delle impostazioni:**bersagli dello schema "prioritario" e "ponderato" di routing avanzato completamente esposti internamente all'interno degli elenchi di fallback delle impostazioni globali.### Bug Fixes
 
-### Bug Fixes
+-**Nodi locali di memoria e competenze:**Risolti i tag di rendering vuoti per le opzioni di memoria e competenze direttamente all'interno delle visualizzazioni delle impostazioni globali collegando tutti i valori di mappatura `settings.*` internamente in `en.json` (mappati anche implicitamente per gli strumenti di traduzione incrociata).### Internal Integrations
 
-- **Memory & Skills Locale Nodes:** Resolved empty rendering tags for Memory and Skills options directly inside global settings views by wiring all `settings.*` mapping values internally into `en.json` (also mapped implicitly for cross-translation tools).
-
-### Internal Integrations
-
-- Integrated PR #946 — fix: preserve Claude Code compatibility in responses conversion
-- Integrated PR #944 — fix(gemini): preserve thought signatures across antigravity tool calls
-- Integrated PR #943 — fix: restore GitHub Copilot body
-- Integrated PR #942 — Fix cc-compatible cache markers
-- Integrated PR #941 — refactor(auth): improve NVIDIA alias lookup + add LKGP error logging
-- Integrated PR #939 — Restore Claude OAuth localhost callback handling
-- _(Note: PR #934 was omitted from 3.4.9 cycle to prevent core conflict regressions)_
-
----
+- PR n. 946 integrato: correzione: preserva la compatibilità del codice Claude nella conversione delle risposte
+- PR integrato n. 944 - correzione (gemini): preserva le firme dei pensieri durante le chiamate degli strumenti antigravità
+- PR n. 943 integrato: correzione: ripristino del corpo di GitHub Copilot
+- PR n. 942 integrato: corretti i marcatori di cache compatibili con cc
+- PR n. 941 integrato: refactor (autenticazione): migliora la ricerca dell'alias NVIDIA + aggiunge la registrazione degli errori LKGP
+- PR n. 939 integrato: ripristina la gestione del callback dell'host locale Claude OAuth
+- _(Nota: il PR n. 934 è stato omesso dal ciclo 3.4.9 per prevenire regressioni dei conflitti fondamentali)_---
 
 ## [3.4.8] — 2026-04-03
 
 ### Sicurezza
 
-- Fully remediated all outstanding Github Advanced Security (CodeQL) findings and Dependabot alerts.
+- Risolti completamente tutti i risultati in sospeso di Github Advanced Security (CodeQL) e gli avvisi di Dependabot.
 - Fixed insecure randomness vulnerabilities by migrating from `Math.random` to `crypto.randomUUID()`.
-- Secured shell commands in automated scripts from string injection.
-- Migrated vulnerable catastrophic backtracking RegEx parsing patterns in chat/translation pipelines.
-- Enhanced output sanitization controls inside React UI components and Server Sent Events (SSE) tag injection.
-
----
+- Comandi shell protetti in script automatizzati dall'iniezione di stringhe.
+- Migrazione dei modelli di analisi RegEx di backtracking catastrofico vulnerabile nelle pipeline di chat/traduzione.
+- Controlli migliorati sulla sanificazione dell'output all'interno dei componenti dell'interfaccia utente di React e sull'iniezione di tag SSE (Server Sent Events).---
 
 ## [3.4.7] — 2026-04-03
 
 ### Funzionalità
 
-- Added `Cryptography` node to Monitoring and MCP health checks (#798)
-- Hardened model-catalog route permissions mapping (`/models`) (#781)
+- Aggiunto il nodo "Crittografia" al monitoraggio e ai controlli di salute MCP (#798)
+- Mappatura rafforzata dei permessi del percorso del catalogo modelli (`/models`) (#781)### Bug Fixes
 
-### Bug Fixes
+- Risolto il problema con l'aggiornamento del token Claude OAuth che non riusciva a preservare i contesti della cache (#937)
+- Risolti gli errori del provider compatibile con CC che rendevano irraggiungibili i modelli memorizzati nella cache (#937)
+- Risolti errori di GitHub Executor relativi a array di contesto non validi (#937)
+- Risolti gli errori di controllo dello stato degli strumenti CLI installati da NPM su Windows (#935)
+- Risolto il problema con la traduzione del payload che eliminava contenuti validi a causa di campi API non validi (#927)
+- Risolto crash di runtime nel Nodo 25 relativo all'esecuzione della chiave API (#867)
+- Risolta la risoluzione del modulo autonomo MCP (`ERR_MODULE_NOT_FOUND`) tramite `esbuild` (#936).
+- Risolta la mancata corrispondenza dell'alias di risoluzione delle credenziali di routing NVIDIA NIM (#931)### Sicurezza
 
-- Fixed Claude OAuth token refreshes failing to preserve cache contexts (#937)
-- Fixed CC-Compatible provider errors rendering cached models unreachable (#937)
-- Fixed GitHub Executor errors related to invalid context arrays (#937)
-- Fixed NPM-installed CLI tools healthcheck failures on Windows (#935)
-- Fixed payload translation dropping valid content due to invalid API fields (#927)
-- Fixed runtime crash in Node 25 regarding API key execution (#867)
-- Fixed MCP standalone module-resolution (`ERR_MODULE_NOT_FOUND`) via `esbuild` (#936)
-- Fixed NVIDIA NIM routing credential resolution alias mismatch (#931)
-
-### Sicurezza
-
-- Added safe strict input boundary protection against raw `shell: true` remote-code execution injections.
-
----
+- Aggiunta una protezione rigorosa e sicura dei limiti di input contro le iniezioni di esecuzione di codice remoto "shell: true" non elaborate.---
 
 ## [3.4.6] - 2026-04-02
 
 ### ✨ New Features
 
-- **Providers:** Registered new image, video, and audio generation providers from the community-requested list (#926).
-- **Dashboard UI:** Added standalone sidebar navigation for the new Memory and Skills modules (#926).
-- **i18n:** Added translation strings and layout mappings across 30 languages for the Memory and Skills namespaces.
+-**Fornitori:**registrati nuovi fornitori di immagini, video e generazione di audio dall'elenco richiesto dalla comunità (#926). -**Interfaccia utente dashboard:**aggiunta la navigazione autonoma nella barra laterale per i nuovi moduli Memoria e Abilità (#926). -**i18n:**Added translation strings and layout mappings across 30 languages for the Memory and Skills namespaces.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Resilience:** Prevented the proxy Circuit Breaker from becoming stuck in an OPEN state indefinitely by handling direct transitions to CLOSED state inside fallback combo paths (#930).
-- **Protocol Translation:** Patched the streaming transformer to sanitize response blocks based on the expected _source_ protocol rather than the provider _target_ protocol, fixing Anthropics models wrapped in OpenAI payloads crashing Claude Code (#929).
-- **API Specs & Gemini:** Fixed `thought_signature` parsing in `openai-to-gemini` and `claude-to-gemini` translators, preventing HTTP 400 errors across all Gemini 3 API tool-calls.
-- **Providers:** Cleaned up non-OpenAI-compatible endpoints preventing valid upstream connections (#926).
-- **Cache Trends:** Fixed an invalid property mapping data mismatch causing Cache Trends UI charts to crash, and extracted redundant cache metric widgets (#926).
-
----
+-**Resilienza:**ha impedito che l'interruttore proxy del circuito rimanesse bloccato in uno stato APERTO per un tempo indefinito gestendo le transizioni dirette allo stato CHIUSO all'interno dei percorsi combinati di fallback (#930). -**Traduzione del protocollo:**patchato il trasformatore di streaming per disinfettare i blocchi di risposta in base al protocollo _source_ previsto anziché al protocollo _target_ del provider, risolvendo i modelli Anthropics racchiusi nei payload OpenAI che causavano l'arresto anomalo del codice Claude (#929). -**Specifiche API e Gemini:**Risolto il problema con l'analisi di `thinked_signature` nei traduttori `openai-to-gemini` e `claude-to-gemini`, prevenendo errori HTTP 400 in tutte le chiamate agli strumenti API Gemini 3. -**Provider:**ripuliti gli endpoint non compatibili con OpenAI che impedivano connessioni upstream valide (#926). -**Cache Trends:**Fixed an invalid property mapping data mismatch causing Cache Trends UI charts to crash, and extracted redundant cache metric widgets (#926).---
 
 ## [3.4.5] - 2026-04-02
 
 ### ✨ New Features
 
-- **CLIProxyAPI Ecosystem Integration:** Added the `cliproxyapi` executor with built-in module-level caching and proxy routing. Introduced a comprehensive Version Manager service to automatically test health, download binaries from GitHub, spawn isolated background processes, and cleanly manage the lifecycle of external CLI tools directly through the UI. Includes DB tables for proxy configuration to enable automatic SSRF-gated cross-routing of external OpenAI requests via the local CLI tool layer (#914, #915, #916).
-- **Qoder PAT Support:** Integrated Personal Access Tokens (PAT) support directly via the local `qodercli` transport instead of legacy remote `.cn` browser configurations (#913).
-- **Gemini 3.1 Pro Preview (GitHub):** Added `gemini-3.1-pro-preview` canonical explicit model support natively into the GitHub Copilot provider while preserving older routing aliases (#924).
+-**Integrazione dell'ecosistema CLIProxyAPI:**aggiunto l'esecutore `cliproxyapi` con caching a livello di modulo integrato e routing proxy. Introdotto un servizio completo di gestione delle versioni per testare automaticamente l'integrità, scaricare file binari da GitHub, generare processi in background isolati e gestire in modo pulito il ciclo di vita degli strumenti CLI esterni direttamente tramite l'interfaccia utente. Include tabelle DB per la configurazione proxy per abilitare il routing incrociato automatico con controllo SSRF di richieste OpenAI esterne tramite il livello dello strumento CLI locale (#914, #915, #916). -**Supporto Qoder PAT:**Supporto PAT (Personal Access Tokens) integrato direttamente tramite il trasporto locale `qodercli` invece delle configurazioni del browser remoto `.cn` legacy (#913). -**Gemini 3.1 Pro Preview (GitHub):**Aggiunto il supporto del modello esplicito canonico `gemini-3.1-pro-preview` in modo nativo nel provider GitHub Copilot preservando gli alias di routing precedenti (#924).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **GitHub Copilot Token Stability:** Repaired the Copilot token refresh loop where stale tokens weren't deep-merged into DB, and removed `reasoning_text` fields that were fatally breaking downstream Anthropic block conversions for multi-turn chats (#923).
-- **Global Timeout Matrix:** Centralized and parameterized request timeouts explicitly from `REQUEST_TIMEOUT_MS` to prevent hidden (~300s) default fetch buffers prematurely cutting off long-lived SSE streaming responses from heavy reasoning models (#918).
-- **Cloudflare Quick Tunnels State:** Fixed a severe state inconsistency where restarted OmniRoute instances erroneously showed destroyed tunnels as active, and defaulted cloudflared tunneling to `HTTP/2` to eliminate UDP receive buffer log spam (#925).
-- **i18n Translation Overhaul (Czech & Hindi):** Fixed Hindi code from DEPRECATED `in.json` to canonical `hi.json`, overhauled Czech text mappings, extracted `untranslatable-keys.json` to fix CI/CD false-positive validations, and generated comprehensive `I18N.md` docs to guide translators (#912).
-- **Tokens Provider Recovery:** Fixed Qwen losing specific `resourceUrl` endpoints after automatic health-check token refreshes because of missing DB deep merges (#917).
-- **CC Compatible UX & Streaming:** Unified the Add CC/OpenAI/Anthropic compatible actions around the Anthropic UI treatment, forced CC-compatible upstream requests to use SSE while still returning streaming or non-streaming responses based on the client request, removed CC model-list configuration/import support in favor of an explicit unsupported-model-listing error, and made CC-compatible Available Models mirror the OAuth Claude Code registry list (#921).
-
----
+-**Stabilità token Copilot GitHub:**Riparato il ciclo di aggiornamento dei token Copilot in cui i token obsoleti non venivano integrati nel DB e rimossi i campi `reasoning_text` che interrompevano fatalmente le conversioni dei blocchi antropici downstream per le chat multi-turno (#923). -**Matrice di timeout globale:**Timeout delle richieste centralizzate e parametrizzate esplicitamente da `REQUEST_TIMEOUT_MS` per evitare che i buffer di recupero predefiniti nascosti (~300 s) interrompano prematuramente le risposte di streaming SSE di lunga durata da modelli di ragionamento pesanti (#918). -**Stato dei tunnel rapidi di Cloudflare:**Risolta una grave incoerenza di stato in cui le istanze OmniRoute riavviate mostravano erroneamente i tunnel distrutti come attivi e il tunneling cloudflared predefinito era "HTTP/2" per eliminare lo spam del log del buffer di ricezione UDP (#925). -**Revisione della traduzione i18n (ceco e hindi):**Risolto il problema con il codice hindi da "in.json" DEPRECATO a "hi.json" canonico, revisionate le mappature del testo ceco, estratto "untranslatable-keys.json" per correggere le convalide di falsi positivi CI/CD e generati documenti "I18N.md" completi per guidare i traduttori (#912). -**Ripristino del provider di token:**risolto il problema per cui Qwen perdeva endpoint `resourceUrl` specifici dopo l'aggiornamento automatico del token di controllo dello stato a causa della mancanza di unioni profonde di DB (#917). -**UX e streaming compatibili con CC:**unificate le azioni Aggiungi CC/OpenAI/compatibili con Anthropic attorno al trattamento dell'interfaccia utente di Anthropic, forzato le richieste upstream compatibili con CC a utilizzare SSE continuando a restituire risposte in streaming o non streaming in base alla richiesta del client, rimosso il supporto di configurazione/importazione dell'elenco di modelli CC in favore di un errore esplicito di elenco di modelli non supportato e reso i modelli disponibili compatibili con CC rispecchiano l'elenco di registro del codice OAuth Claude (#921).---
 
 ## [3.4.4] - 2026-04-02
 
 ### 🐛 Bug Fixes
 
-- **Responses API Token Reporting:** Emit `response.completed` with correct `input_tokens`/`output_tokens` fields for Codex CLI clients, fixing token usage display (#909 — thanks @christopher-s).
-- **SQLite WAL Checkpoint on Shutdown:** Flush WAL changes into the primary database file during graceful shutdown/restart, preventing data loss on Docker container stops (#905 — thanks @rdself).
-- **Graceful Shutdown Signal:** Changed `/api/restart` and `/api/shutdown` routes from `process.exit(0)` to `process.kill(SIGTERM)`, ensuring the shutdown handler runs before exit.
-- **Docker Stop Grace Period:** Added `stop_grace_period: 40s` to Docker Compose files and `--stop-timeout 40` to Docker run examples.
+-**Report sui token API di risposta:**emette `response.completed` con i campi `input_tokens`/`output_tokens` corretti per i client CLI Codex, correggendo la visualizzazione dell'utilizzo dei token (#909 — grazie @christopher-s). -**Checkpoint WAL SQLite allo spegnimento:**scarica le modifiche WAL nel file del database primario durante l'arresto/riavvio regolare, prevenendo la perdita di dati agli arresti del contenitore Docker (#905 — grazie @rdself). -**Segnale di spegnimento ordinato:**Modificati i percorsi `/api/restart` e `/api/shutdown` da `process.exit(0)` a `process.kill(SIGTERM)`, assicurando che il gestore di spegnimento venga eseguito prima dell'uscita. -**Docker Stop Grace Period:**Aggiunto `stop_grace_period: 40s` ai file Docker Compose e `--stop-timeout 40` agli esempi di esecuzione Docker.### 🛠️ Maintenance
 
-### 🛠️ Maintenance
-
-- Closed 5 resolved/not-a-bug issues (#872, #814, #816, #890, #877).
-- Triaged 6 issues with needs-info requests (#892, #887, #886, #865, #895, #870).
-- Responded to CLI detection tracking issue (#863) with contributor guidance.
-
----
+- Chiusi 5 problemi risolti/non-bug (#872, #814, #816, #890, #877).
+- Valutato 6 problemi con richieste di informazioni sui bisogni (#892, #887, #886, #865, #895, #870).
+- Risposta al problema di tracciamento del rilevamento della CLI (n. 863) con le indicazioni del collaboratore.---
 
 ## [3.4.3] - 2026-04-02
 
 ### ✨ New Features
 
-- **Antigravity Memory & Skills:** Completed remote memory and skills injection for the Antigravity provider at the proxy network level.
-- **Claude Code Compatibility:** Built a natively hidden compatibility bridge for Claude Code, passing tools and formatting through cleanly.
-- **Web Search MCP:** Added the `omniroute_web_search` tool with the `execute:search` scope.
-- **Cache Components:** Implemented dynamic cache components utilizing TDD.
-- **UI & Customization:** Added custom favicon support, appearance tabs, wired whitelabeling to the sidebar, and added Windsurf guide steps across all 33 languages.
-- **Log Retention:** Unified request log retention and artifacts natively.
-- **Model Enhancements:** Added explicit `contextLength` for all opencode-zen models.
-- **i18n & translations:** Integrated 33 language translations natively, including placeholder CI validations and Chinese documentation updates (#873, #869).
+-**Memoria e competenze antigravità:**completata l'iniezione di memoria remota e competenze per il provider Antigravità a livello di rete proxy. -**Compatibilità con il codice Claude:**creato un bridge di compatibilità nascosto in modo nativo per Claude Code, passando strumenti e formattazione in modo pulito. -**Web Search MCP:**Aggiunto lo strumento `omniroute_web_search` con l'ambito `execute:search`. -**Componenti della cache:**Implementati componenti della cache dinamica che utilizzano TDD. -**UI e personalizzazione:**aggiunto supporto favicon personalizzato, schede di aspetto, whitelabeling cablato sulla barra laterale e aggiunti passaggi della guida Windsurf in tutte le 33 lingue. -**Conservazione dei registri:**Conservazione unificata dei registri delle richieste e degli artefatti in modo nativo. -**Miglioramenti del modello:**Aggiunto `contextLength` esplicito per tutti i modelli opencode-zen. -**i18n e traduzioni:**Traduzioni in 33 lingue integrate in modo nativo, comprese convalide CI segnaposto e aggiornamenti della documentazione cinese (#873, #869).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Mappatura OAuth Qwen:**Ripristinata la dipendenza da `id_token` a `access_token` e abilitata l'iniezione dinamica dell'endpoint API `resource_url` per il corretto routing regionale (#900). -**Motore di sincronizzazione del modello:**memorizzato il rigoroso ID provider interno nelle routine di sincronizzazione `getCustomModels()` invece del formato dell'alias del canale dell'interfaccia utente, prevenendo errori di inserimento del catalogo SQLite (#903). -**Codice e Codex Claude:**Risposte vuote standardizzate non in streaming a "(risposta vuota)" in formato Anthropic per evitare arresti anomali del proxy CLI (#866). -**Instradamento compatibile CC:**Risolta la collisione duplicata dell'endpoint `/v1` durante la concatenazione del percorso per i gateway Claude Code generici (#904). -**Dashboard antigravità:**è stato impedito ai modelli con quota illimitata di registrarsi erroneamente come stati limite di "Utilizzo al 100%" esauriti nell'interfaccia utente di utilizzo del provider (#857). -**Passthrough immagine Claude:**Risolto il problema per cui nei modelli Claude mancavano i passthrough del blocco immagine (#898). -**Instradamento CLI Gemini:**Risolti 403 blocchi di autorizzazione e problemi di accumulo di contenuti aggiornando l'ID progetto tramite "loadCodeAssist" (#868). -**Stabilità antigravità:**elenchi di accesso ai modelli corretti, blocchi 404 applicati, cascate 429 bloccate che bloccano le connessioni standard e token di output `gemini-3.1-pro` limitati (#885). -**Cadenza di sincronizzazione del provider:**Risolto il problema relativo ai limiti della cadenza di sincronizzazione del provider tramite lo scheduler interno (#888). -**Ottimizzazione del dashboard:**Risolto il blocco dell'interfaccia utente di `/dashboard/limits` durante l'elaborazione di oltre 70 account tramite parallelizzazione di blocchi (#784). -**Potenziamento SSRF:**applicato un rigoroso filtraggio dell'intervallo IP SSRF e bloccato l'interfaccia di loopback `::1`. -**Tipi MIME:**`mime_type` standardizzato in snake_case per corrispondere alle specifiche dell'API Gemini. -**Stabilizzazione CI:**Risolti problemi di analisi/impostazioni dei selettori del drammaturgo e delle asserzioni delle richieste in modo che le esecuzioni di GitHub Actions E2E passino in modo affidabile attraverso le interfacce utente localizzate e i controlli basati su switch. -**Test deterministici:**rimossi gli elementi di quota sensibili alla data dai test di utilizzo di Copilot e allineati i test di idempotenza/catalogo dei modelli con il comportamento di runtime unito. -**Indurimento del tipo MCP:**rimosse le regressioni esplicite "qualsiasi" a budget zero dal percorso di registrazione dello strumento server MCP. -**Motore di sincronizzazione modelli:**Ignorati gli override distruttivi di "sostituzione" quando la sincronizzazione automatica del provider produce un elenco di modelli vuoto, mantenendo la stabilità per i cataloghi dinamici (#899).### 🛠️ Maintenance
 
-- **Qwen OAuth Mapping:** Reverted `id_token` reliance to `access_token` and enabled dynamic `resource_url` API endpoint injection for proper regional routing (#900).
-- **Model Sync Engine:** Stored the strict internal Provider ID in `getCustomModels()` sync routines instead of the UI Channel Alias format, preventing SQLite catalog insertion failures (#903).
-- **Claude Code & Codex:** Standardized non-streaming blank responses to Anthropic-formatted `(empty response)` to prevent CLI proxy crashes (#866).
-- **CC Compatible Routing:** Resolved duplicate `/v1` endpoint collision during path concatenation for generic Claude Code gateways (#904).
-- **Antigravity Dashboards:** Blocked unlimited quota models from falsely registering as exhausted `100% Usage` limit states in the Provider Usage UI (#857).
-- **Claude Image Passthrough:** Fixed Claude models missing image block passthroughs (#898).
-- **Gemini CLI Routing:** Resolved 403 authorization lockouts and content accumulation issues by refreshing the project ID via `loadCodeAssist` (#868).
-- **Antigravity Stability:** Corrected model access lists, enforced 404 lockouts, fixed 429 cascades locking out standard connections, and capped `gemini-3.1-pro` output tokens (#885).
-- **Provider Sync Cadence:** Repaired the provider limits synchronization cadence via the internal scheduler (#888).
-- **Dashboard Optimization:** Resolved `/dashboard/limits` UI freezing when processing 70+ accounts via chunk parallelization (#784).
-- **SSRF Hardening:** Enforced strict SSRF IP range filtering and blocked the `::1` loopback interface.
-- **MIME Types:** Standardized `mime_type` to snake_case to match Gemini API specifications.
-- **CI Stabilization:** Fixed failing analytics/settings Playwright selectors and request assertions so GitHub Actions E2E runs pass reliably across localized UIs and switch-based controls.
-- **Deterministic Tests:** Removed date-sensitive quota fixtures from Copilot usage tests and aligned idempotency/model catalog tests with the merged runtime behavior.
-- **MCP Type Hardening:** Removed zero-budget explicit `any` regressions from the MCP server tool registration path.
-- **Model Sync Engine:** Bypassed destructive `replace` overrides when the provider's auto-sync yields an empty model list, maintaining stability for dynamic catalogs (#899).
+-**Registrazione della pipeline:**perfezionamento degli artefatti di registrazione della pipeline e applicazione dei limiti di conservazione (#880). -**AGENTS.md Revisione:**condensato da 297→153 righe. Aggiunte linee guida per build/test/stile, flussi di lavoro del codice (Prettier, TypeScript, ESLint) e tabelle dettagliate ritagliate (#882). -**Integrazione dei rami di rilascio:**consolidati i rami delle funzionalità attive in "release/v3.4.2" sopra l'attuale "main" e convalidato il ramo con lint, unità, copertura, build ed esecuzioni E2E in modalità CI. -**Test:**aggiunta la configurazione Vitest per il test dei componenti e le specifiche di Playwright per attivare/disattivare le impostazioni. -**Aggiornamenti documenti:**Leggimi root espansi, traduzione nativa di documenti cinesi e ripulitura di file obsoleti.## [3.4.1] - 2026-03-31
 
-### 🛠️ Maintenance
+> [!ATTENZIONE]
+> **MODIFICA IMPORTANTE: le variabili di ambiente di registrazione, conservazione e registrazione delle richieste sono state riprogettate.**
+> Al primo avvio dopo l'aggiornamento, OmniRoute archivia i registri delle richieste legacy da `DATA_DIR/logs/`, `DATA_DIR/call_logs/` legacy e `DATA_DIR/log.txt` in `DATA_DIR/log_archives/*.zip`, quindi rimuove il layout obsoleto e passa al nuovo formato artefatto unificato in `DATA_DIR/call_logs/`.### ✨ New Features
 
-- **Pipeline Logging:** Refined pipeline logging artifacts and enforce retention caps (#880).
-- **AGENTS.md Overhaul:** Condensed from 297→153 lines. Added build/test/style guidelines, code workflows (Prettier, TypeScript, ESLint), and trimmed verbose tables (#882).
-- **Release Branch Integration:** Consolidated the active feature branches into `release/v3.4.2` on top of current `main` and validated the branch with lint, unit, coverage, build, and CI-mode E2E runs.
-- **Testing:** Added vitest configuration for component testing and Playwright specs for settings toggles.
-- **Doc Updates:** Expanded root readmes, translated chinese documents natively, and cleaned up obsolete files.
+-**Utilità di migrazione .ENV:**Incluso `scripts/migrate-env.mjs` per migrare senza problemi le configurazioni `<v3.3` ai rigidi vincoli di convalida di sicurezza `v3.4.x` (FASE-01), riparando i crash di avvio causati da brevi istanze `JWT_SECRET`. -**Ottimizzazione della cache AI ​​Kiro:**Implementata la generazione deterministica di `conversationId` (uuidv5) per abilitare correttamente la memorizzazione nella cache dei prompt dell'ID di AWS Builder tra le invocazioni (#814). -**Ripristino e consolidamento dell'interfaccia utente del dashboard:**Risolta la logica della barra laterale che ometteva la sezione Debug e cancellati gli avvisi di routing di Nextjs spostando esplicitamente le pagine `/dashboard/mcp` e `/dashboard/a2a` autonome nei componenti dell'interfaccia utente Endpoint Proxy incorporati. -**Artefatti del registro delle richieste unificate:**la registrazione delle richieste ora memorizza una riga dell'indice SQLite più un artefatto JSON per richiesta in "DATA_DIR/call_logs/", con l'acquisizione opzionale della pipeline incorporata nello stesso file. -**Lingua:**Migliorata la traduzione cinese (#855) -**Modelli Opencode-Zen:**Aggiunti 4 modelli gratuiti al registro opencode-zen (#854) -**Test:**Aggiunti test unità ed E2E per la commutazione delle impostazioni e le correzioni di bug (#850)### 🐛 Bug Fixes
 
-## [3.4.1] - 2026-03-31
+-**Analisi quota 429:**Analizzati tempi lunghi di reimpostazione della quota dai corpi di errore per onorare i backoff corretti e prevenire ban di account con velocità limitata (#859) -**Richiesta memorizzazione nella cache:**Intestazioni `cache_control` del client preservate per tutti i provider del protocollo Claude (come Minimax, GLM e Bailian), riconoscendo correttamente il supporto della memorizzazione nella cache (#856) -**Log di sincronizzazione dei modelli:**Ridotto lo spam nei log registrando i "modelli di sincronizzazione" solo quando il canale modifica effettivamente l'elenco (#853) -**Quota provider e analisi token:**Limiti antigravità modificati per utilizzare `retrieveUserQuota` in modo nativo e mappare correttamente i payload di aggiornamento del token Claude in moduli con codifica URL (#862) -**Stabilità di limitazione della velocità:**universalizzata l'architettura di analisi 429 Retry-After per limitare i tempi di recupero indotti dal provider a un massimo di 24 ore (#862) -**Rendering dei limiti del dashboard:**Mappatura delle quote `/dashboard/limits` riprogettata per eseguire il rendering immediato all'interno dei blocchi, risolvendo un grave ritardo di blocco dell'interfaccia utente sugli account che superano le 70 connessioni attive (#784) -**Autorizzazione OAuth QWEN:**Mappato "id_token" OIDC come token API Bearer principale per le richieste Dashscope, correggendo gli errori 401 non autorizzati immediati dopo la connessione degli account o l'aggiornamento dei token (#864) -**Stabilità API ZAI:**Compilatore rafforzato degli eventi inviati dal server per eseguire il fallback su stringhe vuote quando i provider DeepSeek trasmettono contenuti matematicamente nulli durante le fasi di ragionamento (#871) -**Traduzioni codice Claude/Codex:**Conversioni di payload non streaming protette contro risposte vuote dagli strumenti Codex upstream, evitando catastrofici TypeErrors (#866) -**Rendering NVIDIA NIM:**Prefissi identici dei provider rimossi in modo condizionale e spinti dinamicamente dai modelli audio, eliminando le strutture di tag `nim/nim` duplicate che lanciano 404 su Media Playground (#872)### ⚠️ Breaking Changes
 
-> [!WARNING]
-> **BREAKING CHANGE: request logging, retention, and logging environment variables have been redesigned.**
-> On the first startup after upgrading, OmniRoute archives legacy request logs from `DATA_DIR/logs/`, legacy `DATA_DIR/call_logs/`, and `DATA_DIR/log.txt` into `DATA_DIR/log_archives/*.zip`, then removes the deprecated layout and switches to the new unified artifact format under `DATA_DIR/call_logs/`.
+-**Layout del registro delle richieste:**sono state rimosse le vecchie sessioni di registro delle richieste multi-file `DATA_DIR/logs/` e il file di riepilogo `DATA_DIR/log.txt`. Le nuove richieste vengono scritte come singoli artefatti JSON in `DATA_DIR/call_logs/YYYY-MM-DD/`. -**Variabili di ambiente di registrazione:**Sostituiti `LOG_*`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE` e `PROXY_LOG_MAX_ENTRIES` con il nuovo modello di configurazione `APP_LOG_*` e `CALL_LOG_RETENTION_DAYS`. -**Impostazione di attivazione/disattivazione pipeline:**Sostituita l'impostazione legacy `detailed_logs_enabled` con `call_log_pipeline_enabled`. I nuovi dettagli della pipeline sono incorporati nell'artefatto della richiesta invece di essere archiviati come record `request_detail_logs` separati.### 🛠️ Maintenance
 
-### ✨ New Features
-
-- **.ENV Migration Utility:** Included `scripts/migrate-env.mjs` to seamlessly migrate `<v3.3` configurations to `v3.4.x` strict security validation constraints (FASE-01), repairing startup crashes caused by short `JWT_SECRET` instances.
-- **Kiro AI Cache Optimization:** Implemented deterministic `conversationId` generation (uuidv5) to enable AWS Builder ID Prompt Caching properly across invocations (#814).
-- **Dashboard UI Restoration & Consolidation:** Resolved sidebar logic omitting the Debug section, and cleared Nextjs routing warnings by moving standalone `/dashboard/mcp` and `/dashboard/a2a` pages explicitly into embedded Endpoint Proxy UI components.
-- **Unified Request Log Artifacts:** Request logging now stores one SQLite index row plus one JSON artifact per request under `DATA_DIR/call_logs/`, with optional pipeline capture embedded in the same file.
-- **Language:** Improved the Chinese translation (#855)
-- **Opencode-Zen Models:** Added 4 free models to opencode-zen registry (#854)
-- **Tests:** Added unit and E2E tests for settings toggles and bug fixes (#850)
-
-### 🐛 Bug Fixes
-
-- **429 Quota Parsing:** Parsed long quota reset times from error bodies to honor correct backoffs and prevent rate-limited account bans (#859)
-- **Prompt Caching:** Preserved client `cache_control` headers for all Claude-protocol providers (like Minimax, GLM, and Bailian), correctly recognizing caching support (#856)
-- **Model Sync Logs:** Reduced log spam by recording `sync-models` only when the channel actually modifies the list (#853)
-- **Provider Quota & Token Parsing:** Switched Antigravity limits to use `retrieveUserQuota` natively and correctly mapped Claude token refresh payloads to URL-encoded forms (#862)
-- **Rate-Limiting Stability:** Universalized the 429 Retry-After parsing architecture to cap provider-induced cooldowns at 24 hours max (#862)
-- **Dashboard Limit Rendering:** Re-architected `/dashboard/limits` quota mapping to render immediately inside chunks, fixing a major UI freezing delay on accounts exceeding 70 active connections (#784)
-- **QWEN OAuth Authorization:** Mapped the OIDC `id_token` as the primary API Bearer token for Dashscope requests, fixing immediate 401 Unauthorized errors after connecting accounts or refreshing tokens (#864)
-- **ZAI API Stability:** Hardened Server-Sent Events compiler to gracefully fallback to empty strings when DeepSeek providers stream mathematically null content during reasoning phases (#871)
-- **Claude Code/Codex Translations:** Protected non-streaming payload conversions against empty responses from upstream Codex tools, avoiding catastrophic TypeErrors (#866)
-- **NVIDIA NIM Rendering:** Conditionally stripped identical provider prefixes dynamically pushed by audio models, eliminating duplicate `nim/nim` tag structures throwing 404 on the Media Playground (#872)
-
-### ⚠️ Breaking Changes
-
-- **Request Log Layout:** Removed the old multi-file `DATA_DIR/logs/` request log sessions and the `DATA_DIR/log.txt` summary file. New requests are written as single JSON artifacts in `DATA_DIR/call_logs/YYYY-MM-DD/`.
-- **Logging Environment Variables:** Replaced `LOG_*`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE`, and `PROXY_LOG_MAX_ENTRIES` with the new `APP_LOG_*` and `CALL_LOG_RETENTION_DAYS` configuration model.
-- **Pipeline Toggle Setting:** Replaced the legacy `detailed_logs_enabled` setting with `call_log_pipeline_enabled`. New pipeline details are embedded inside the request artifact instead of being stored as separate `request_detail_logs` records.
-
-### 🛠️ Maintenance
-
-- **Legacy Request Log Upgrade Backup:** Upgrades now archive old `data/logs/`, legacy `data/call_logs/`, and `data/log.txt` layouts into `DATA_DIR/log_archives/*.zip` before removing the deprecated structure.
-- **Streaming Usage Persistence:** Streaming requests now write a single `usage_history` row on completion instead of emitting a duplicate in-progress usage row with empty status metadata.
-- **Logging Follow-up Cleanup:** Pipeline logs no longer capture `SOURCE REQUEST`, request artifact entries now honor `CALL_LOG_MAX_ENTRIES`, and application log archives now honor `APP_LOG_MAX_FILES`.
-
----
+-**Backup di aggiornamento del registro delle richieste legacy:**Gli aggiornamenti ora archiviano i vecchi layout `data/logs/`, `data/call_logs/` legacy e `data/log.txt` in `DATA_DIR/log_archives/*.zip` prima di rimuovere la struttura deprecata. -**Persistenza dell'utilizzo dello streaming:**le richieste di streaming ora scrivono una singola riga `usage_history` al completamento invece di emettere una riga di utilizzo in corso duplicata con metadati di stato vuoti. -**Pulizia di follow-up della registrazione:**i registri della pipeline non acquisiscono più "SOURCE REQUEST", le voci degli artefatti delle richieste ora rispettano "CALL_LOG_MAX_ENTRIES" e gli archivi dei registri delle applicazioni ora rispettano "APP_LOG_MAX_FILES".---
 
 ## [3.4.0] - 2026-03-31
 
 ### Funzionalità
 
-- **Subscription Utilization Analytics:** Added quota snapshot time-series tracking, Provider Utilization and Combo Health tabs with recharts visualizations, and corresponding API endpoints (#847)
-- **SQLite Backup Control:** New `OMNIROUTE_DISABLE_AUTO_BACKUP` env flag to disable automatic SQLite backups (#846)
-- **Model Registry Update:** Injected `gpt-5.4-mini` into the Codex provider's array of models (#756)
-- **Provider Limit Tracking:** Track and display when provider rate limits were last refreshed per account (#843)
+-**Analisi sull'utilizzo dell'abbonamento:**Aggiunto il monitoraggio delle serie temporali dell'istantanea della quota, le schede Utilizzo del provider e Integrità combinata con visualizzazioni di grafici ed endpoint API corrispondenti (#847) -**Controllo backup SQLite:**Nuovo flag env `OMNIROUTE_DISABLE_AUTO_BACKUP` per disabilitare i backup automatici SQLite (#846) -**Aggiornamento del registro dei modelli:**Inserito `gpt-5.4-mini` nell'array di modelli del provider Codex (#756) -**Monitoraggio dei limiti del fornitore:**Tieni traccia e visualizza quando i limiti di tariffa del fornitore sono stati aggiornati l'ultima volta per account (#843)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Qwen Auth Routing:** Re-routed Qwen OAuth completions from the DashScope API to the Web Inference API (`chat.qwen.ai`), resolving authorization failures (#844, #807, #832)
-- **Qwen Auto-Retry Loop:** Added targeted 429 Quota Exceeded backoff handling inside `chatCore` protecting burst requests
-- **Codex OAuth Fallback:** Modern browser popup blocking no longer traps the user; it automatically falls back to manual URL entry (#808)
-- **Claude Token Refresh:** Anthropic's strict `application/json` boundaries are now respected during token generation instead of encoded URLs (#836)
-- **Codex Messages Schema:** Stripped purist `messages` injects from native passthrough requests to avoid structural rejections from the ChatGPT upstream (#806)
-- **CLI Detection Size Limit:** Safely bumped the Node binary scanning upper bound from 100MB to 350MB, allowing heavy standalone tools like Claude Code (229MB) and OpenCode (153MB) to be correctly detected by the VPS runtime (#809)
-- **CLI Runtime Environment:** Restored ability for CLI configurations to respect user override paths (`CLI_{PROVIDER}_BIN`) bypassing strict path-bound discovery rules
-- **Nvidia Header Conflicts:** Removed `prompt_cache_key` properties from upstream headers when calling non-Anthropic providers (#848)
-- **Codex Fast Tier Toggle:** Restored Codex service tier toggle contrast in light mode (#842)
-- **Test Infrastructure:** Updated `t28-model-catalog-updates` test that incorrectly expected the outdated DashScope endpoint for the Qwen native registry
-
----
+-**Instradamento autenticazione Qwen:**Reindirizzamento dei completamenti Qwen OAuth dall'API DashScope all'API Web Inference (`chat.qwen.ai`), risolvendo gli errori di autorizzazione (#844, #807, #832) -**Ciclo di tentativi automatici di Qwen:**Aggiunta la gestione mirata del backoff della quota 429 superata all'interno di `chatCore` che protegge le richieste di burst -**Codex OAuth Fallback:**il moderno blocco dei popup del browser non intrappola più l'utente; torna automaticamente all'immissione manuale dell'URL (#808) -**Aggiornamento token Claude:**i rigidi confini `application/json` di Anthropic vengono ora rispettati durante la generazione dei token invece degli URL codificati (#836) -**Schema dei messaggi del codice:**Eliminati i "messaggi" puristi inseriti dalle richieste passthrough native per evitare rifiuti strutturali dall'upstream ChatGPT (#806). -**Limite dimensione rilevamento CLI:**Aumentato in modo sicuro il limite superiore della scansione binaria del nodo da 100 MB a 350 MB, consentendo a strumenti autonomi pesanti come Claude Code (229 MB) e OpenCode (153 MB) di essere rilevati correttamente dal runtime VPS (#809) -**Ambiente runtime CLI:**capacità ripristinata per le configurazioni CLI di rispettare i percorsi di override dell'utente (`CLI_{PROVIDER}_BIN`) ignorando le rigide regole di rilevamento legate al percorso -**Conflitti di intestazioni Nvidia:**rimosse le proprietà `prompt_cache_key` dalle intestazioni upstream quando si chiamano provider non antropici (#848). -**Attivazione/disattivazione livello veloce del Codex:**è stato ripristinato il contrasto dell'attivazione/disattivazione del livello di servizio del Codex in modalità luce (#842) -**Infrastruttura di test:**Aggiornato il test `t28-model-catalog-updates` che prevedeva erroneamente l'endpoint DashScope obsoleto per il registro nativo Qwen---
 
 ## [3.3.9] - 2026-03-31
 
 ### 🐛 Bug Fixes
 
-- **Custom Provider Rotation:** Integrated `getRotatingApiKey` internally inside DefaultExecutor, ensuring `extraApiKeys` rotation triggers correctly for custom and compatible upstream providers (#815)
-
----
+-**Rotazione personalizzata dei provider:**Integrazione di `getRotatingApiKey` internamente all'interno di DefaultExecutor, garantendo che la rotazione di `extraApiKeys` venga attivata correttamente per i provider upstream personalizzati e compatibili (#815)---
 
 ## [3.3.8] - 2026-03-30
 
 ### Funzionalità
 
-- **Models API Filtering:** Endpoint `/v1/models` now dynamically filters its list based on the permissions tied to the `Authorization: Bearer <token>` when restricted access is on (#781)
-- **Qoder Integration:** Native integration for Qoder AI natively replacing the legacy iFlow platform mappings (#660)
-- **Prompt Cache Tracking:** Added tracking capabilities and frontend visualization (Stats card) for semantic and prompt caching in the Dashboard UI
+-**Filtro API modelli:**L'endpoint `/v1/models` ora filtra dinamicamente il proprio elenco in base alle autorizzazioni legate a `Autorizzazione: Bearer <token>` quando è attivo l'accesso limitato (#781) -**Integrazione Qoder:**Integrazione nativa per Qoder AI che sostituisce nativamente le mappature della piattaforma iFlow legacy (#660) -**Tracciamento della cache dei prompt:**Aggiunte funzionalità di tracciamento e visualizzazione frontend (scheda Statistiche) per la memorizzazione nella cache semantica e dei prompt nell'interfaccia utente della dashboard### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Cache Dashboard Sizing:** Improved the UI layout sizes and context headers for the advanced cache pages (#835)
-- **Debug Sidebar Visibility:** Fixed an issue where the debug toggle wouldn't correctly show/hide sidebar debug details (#834)
-- **Gemini Model Prefixing:** Modified the namespace fallback to properly route via `gemini-cli/` instead of `gc/` to respect upstream specs (#831)
-- **OpenRouter Sync:** Improved compatibility synchronization to automatically ingest the available models catalog correctly from OpenRouter (#830)
-- **Streaming Payloads Mapping:** Reserialization of reasoning fields natively resolves conflict alias paths when output is streaming to edge devices
-
----
+-**Ridimensionamento della dashboard della cache:**migliorate le dimensioni del layout dell'interfaccia utente e le intestazioni di contesto per le pagine della cache avanzate (#835) -**Visibilità della barra laterale di debug:**Risolto un problema per cui l'interruttore di debug non mostrava/nascondeva correttamente i dettagli di debug della barra laterale (#834) -**Prefisso del modello Gemini:**Modificato il fallback dello spazio dei nomi per instradare correttamente tramite `gemini-cli/` anziché `gc/` per rispettare le specifiche upstream (#831) -**OpenRouter Sync:**Migliorata la sincronizzazione della compatibilità per acquisire automaticamente e correttamente il catalogo dei modelli disponibili da OpenRouter (#830) -**Mappatura dei payload in streaming:**La riserializzazione dei campi di ragionamento risolve in modo nativo i percorsi degli alias in conflitto quando l'output viene trasmesso in streaming ai dispositivi edge---
 
 ## [3.3.7] - 2026-03-30
 
 ### 🐛 Bug Fixes
 
-- **OpenCode Config:** Restructured generated `opencode.json` to use the `@ai-sdk/openai-compatible` record-based schema with `options` and `models` as object maps instead of flat arrays, fixing config validation failures (#816)
-- **i18n Missing Keys:** Added missing `cloudflaredUrlNotice` translation key across all 30 language files to prevent `MISSING_MESSAGE` console errors in the Endpoint page (#823)
-
----
+-**Configurazione OpenCode:**Ristrutturato il file "opencode.json" generato per utilizzare lo schema basato su record "@ai-sdk/openai-compatibili" con "opzioni" e "modelli" come mappe di oggetti anziché array piatti, risolvendo gli errori di convalida della configurazione (#816) -**Chiavi mancanti i18n:**Aggiunta la chiave di traduzione `cloudflaredUrlNotice` mancante in tutti i 30 file di lingua per prevenire errori della console `MISSING_MESSAGE` nella pagina Endpoint (#823)---
 
 ## [3.3.6] - 2026-03-30
 
 ### 🐛 Bug Fixes
 
-- **Token Accounting:** Included prompt cache tokens safely in historical usage inputs calculations for correct quota deductions (PR #822)
-- **Combo Test Probes:** Fixed combo testing logic false negatives by resolving parsing for reasoning-only responses and enabled massive parallelization via Promise.all (PR #828)
-- **Docker Quick Tunnels:** Embedded required ca-certificates inside the base runtime container to resolve Cloudflared TLS startup failures, and surfaced stdout network errors replacing generic exit codes (PR #829)
-
----
+-**Contabilità token:**Inclusi i token della cache dei prompt in modo sicuro nei calcoli degli input di utilizzo storico per le corrette detrazioni delle quote (PR n. 822) -**Sonde di test combinati:**Risolti i falsi negativi della logica dei test combinati risolvendo l'analisi per le risposte di solo ragionamento e abilitando la parallelizzazione massiccia tramite Promise.all (PR #828) -**Docker Quick Tunnels:**certificati ca richiesti incorporati all'interno del contenitore di runtime di base per risolvere gli errori di avvio di Cloudflared TLS e gli errori di rete stdout emersi che sostituiscono i codici di uscita generici (PR #829)---
 
 ## [3.3.5] - 2026-03-30
 
 ### ✨ New Features
 
-- **Gemini Quota Tracking:** Added real-time Gemini CLI quota tracking via the `retrieveUserQuota` API (PR #825)
-- **Cache Dashboard:** Enhanced the Cache Dashboard to display prompt cache metrics, 24h trends, and estimated cost savings (PR #824)
+-**Monitoraggio delle quote Gemini:**Aggiunto il monitoraggio delle quote della CLI Gemini in tempo reale tramite l'API `retrieveUserQuota` (PR #825) -**Dashboard della cache:**migliorato il Dashboard della cache per visualizzare i parametri della cache dei prompt, le tendenze 24 ore e il risparmio sui costi stimato (PR n. 824)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **User Experience:** Removed invasive auto-opening OAuth modal loops on barren provider detailed pages (PR #820)
-- **Dependency Updates:** Bumped and locked down dependencies for development and production trees including Next.js 16.2.1, Recharts, and TailwindCSS 4.2.2 (PR #826, #827)
-
----
+-**Esperienza utente:**Rimossi i loop modali OAuth invasivi con apertura automatica sulle pagine dettagliate dei provider sterili (PR n. 820) -**Aggiornamenti alle dipendenze:**Dipendenze migliorate e bloccate per alberi di sviluppo e produzione tra cui Next.js 16.2.1, Recharts e TailwindCSS 4.2.2 (PR #826, #827)---
 
 ## [3.3.4] - 2026-03-30
 
@@ -359,801 +186,474 @@
 
 ### 🐛 Bug Fixes
 
-- **Codex & Claude Compatibility:** Fixed UI fallbacks, patched Codex non-streaming integration issues, and resolved CLI runtime detection on Windows.
-- **Release Automation:** Expanded permissions required for the Electron App build in GitHub Actions.
-- **Cloudflare Runtime:** Addressed correct runtime isolation exit codes for Cloudflared tunnel components.
+-**Compatibilità Codex e Claude:**Risolti i fallback dell'interfaccia utente, corretti i problemi di integrazione non streaming del Codex e risolto il rilevamento del runtime della CLI su Windows. -**Automazione del rilascio:**Autorizzazioni estese richieste per la build dell'app Electron in GitHub Actions. -**Cloudflare Runtime:**Risolti i codici di uscita corretti di isolamento del runtime per i componenti del tunnel Cloudflared.### 🧪 Tests
 
-### 🧪 Tests
-
-- **Test Suite Updates:** Expanded test coverage for volume detectors, provider diversity, configuration audit, and FSM.
-
----
+-**Aggiornamenti della suite di test:**copertura dei test estesa per rilevatori di volume, diversità dei provider, verifica della configurazione e FSM.---
 
 ## [3.3.3] - 2026-03-29
 
 ### 🐛 Bug Fixes
 
-- **CI/CD Reliability:** Patched GitHub Actions to stable dependency versions (`actions/checkout@v4`, `actions/upload-artifact@v4`) to mitigate unannounced builder environment deprecations.
-- **Image Fallbacks:** Replaced arbitrary fallback chains in `ProviderIcon.tsx` with explicit asset validation to prevent UI loading `<Image>` components for files that don't exist, eliminating `404` errors in dashboard console logs (#745).
-- **Admin Updater:** Dynamic source-installation detection for the dashboard Updater. Safely disables the `Update Now` button when OmniRoute is built locally rather than through npm, prompting for `git pull` (#743).
-- **Update ERESOLVE Error:** Injected `package.json` overrides for `react`/`react-dom` and enabled `--legacy-peer-deps` within the internal automatic updater scripts to resolve breaking dependency tree conflicts with `@lobehub/ui`.
-
----
+-**Affidabilità CI/CD:**Azioni GitHub patchate per versioni di dipendenza stabili (`actions/checkout@v4`, `actions/upload-artifact@v4`) per mitigare le deprecazioni non annunciate dell'ambiente builder. -**Fallback di immagini:**sostituite le catene di fallback arbitrarie in "ProviderIcon.tsx" con una convalida esplicita delle risorse per impedire il caricamento dell'interfaccia utente dei componenti "<Image>" per file che non esistono, eliminando gli errori "404" nei log della console del dashboard (#745). -**Admin Updater:**Dynamic source-installation detection for the dashboard Updater. Safely disables the `Update Now` button when OmniRoute is built locally rather than through npm, prompting for `git pull` (#743). -**Errore ERESOLVE di aggiornamento:**Inserito `package.json` sostituisce `react`/`react-dom` e abilitato `--legacy-peer-deps` negli script interni di aggiornamento automatico per risolvere i conflitti dell'albero delle dipendenze con `@lobehub/ui`.---
 
 ## [3.3.2] - 2026-03-29
 
 ### ✨ New Features
 
-- **Cloudflare Tunnels:** Cloudflare Quick Tunnel integration with dashboard controls (PR #772).
-- **Diagnostics:** Semantic cache bypass for combo live tests (PR #773).
+-**Tunnel Cloudflare:**Integrazione di Cloudflare Quick Tunnel con controlli dashboard (PR n. 772). -**Diagnostica:**Bypass della cache semantica per test live combinati (PR n. 773).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Streaming Stability:** Apply `FETCH_TIMEOUT_MS` to streaming requests' initial `fetch()` call to prevent 300s Node.js TCP timeout causing silent task failures (#769).
-- **i18n:** Add missing `windsurf` and `copilot` entries to `toolDescriptions` across all 33 locale files (#748).
-- **GLM Coding Audit:** Complete provider audit fixing ReDoS vulnerabilities, context window sizing (128k/16k), and model registry syncing (PR #778).
-
----
+-**Stabilità dello streaming:**applica `FETCH_TIMEOUT_MS` alla chiamata iniziale `fetch()` delle richieste di streaming per evitare che il timeout TCP di Node.js 300 s causi errori delle attività silenziose (#769). -**i18n:**Aggiunte le voci mancanti `windsurf` e `copilot` a `toolDescriptions` in tutti i 33 file locali (#748). -**Verifica della codifica GLM:**Verifica completa del fornitore che risolve le vulnerabilità ReDoS, il dimensionamento della finestra di contesto (128k/16k) e la sincronizzazione del registro dei modelli (PR n. 778).---
 
 ## [3.3.1] - 2026-03-29
 
 ### 🐛 Bug Fixes
 
-- **OpenAI Codex:** Fallback processing fix for `type: "text"` elements carrying null or empty datasets that caused 400 rejection (#742).
-- **Opencode:** Update schema alignment to singular `provider` to match official spec (#774).
-- **Gemini CLI:** Inject missing end-user quota headers preventing 403 authorization lockouts (#775).
-- **DB Recovery:** Refactor multipart payload imports into raw binary buffered arrays to bypass reverse proxy max body limits (#770).
-
----
+-**Codice OpenAI:**Correzione dell'elaborazione di fallback per elementi `type: "text"` che trasportavano set di dati nulli o vuoti che causavano il rifiuto 400 (#742). -**Opencode:**Aggiorna l'allineamento dello schema al "provider" singolare per corrispondere alle specifiche ufficiali (#774). -**Gemini CLI:**inserisce intestazioni di quota dell'utente finale mancanti che impediscono i blocchi di autorizzazione 403 (#775). -**Recupero DB:**Refactoring delle importazioni di payload multiparte in array binari non elaborati con buffer per bypassare i limiti massimi del corpo del proxy inverso (#770).---
 
 ## [3.3.0] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Release Stabilization** — Finalized v3.2.9 release (combo diagnostics, quality gates, Gemini tool fix) and created missing git tag. Consolidated all staged changes into a single atomic release commit.
+-**Stabilizzazione del rilascio**: rilascio v3.2.9 finalizzato (diagnostica combinata, controlli di qualità, correzione dello strumento Gemini) e creazione del tag git mancante. Consolidate tutte le modifiche graduali in un unico commit di rilascio atomico.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Auto-Update Test** — Fixed `buildDockerComposeUpdateScript` test assertion to match unexpanded shell variable references (`$TARGET_TAG`, `${TARGET_TAG#v}`) in the generated deploy script, aligning with the refactored template from v3.2.8.
-- **Circuit Breaker Test** — Hardened `combo-circuit-breaker.test.mjs` by injecting `maxRetries: 0` to prevent retry inflation from skewing failure count assertions during breaker state transitions.
-
----
+-**Test di aggiornamento automatico**— Risolto il problema con l'asserzione di test `buildDockerComposeUpdateScript` per far corrispondere i riferimenti alle variabili della shell non espanse (`$TARGET_TAG`, `${TARGET_TAG#v}`) nello script di distribuzione generato, allineandosi con il modello rifattorizzato dalla v3.2.8. -**Circuit Breaker Test**— Rafforzato `combo-circuit-breaker.test.mjs` inserendo `maxRetries: 0` per evitare che l'inflazione dei tentativi distorca le asserzioni del conteggio degli errori durante le transizioni dello stato dell'interruttore.---
 
 ## [3.2.9] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Combo Diagnostics** — Introduced a live test bypass flag (`forceLiveComboTest`) allowing administrators to execute real upstream health checks that bypass all local circuit-breaker and cooldown state mechanisms, enabling precise diagnostics during rolling outages (PR #759)
-- **Quality Gates** — Added automated response quality validation for combos and officially integrated `claude-4.6` model support into the core routing schemas (PR #762)
+-**Combo Diagnostics**: introdotto un flag di bypass del test in tempo reale (`forceLiveComboTest`) che consente agli amministratori di eseguire controlli di integrità reali a monte che ignorano tutti gli interruttori automatici locali e i meccanismi di stato di raffreddamento, consentendo una diagnostica precisa durante le interruzioni di corrente (PR n. 759) -**Quality Gate**: aggiunta la convalida automatizzata della qualità della risposta per le combo e il supporto del modello `claude-4.6` ufficialmente integrato negli schemi di routing principali (PR #762)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Tool Definition Validation** — Repaired Gemini API integration by normalizing enum types inside tool definitions, preventing upstream HTTP 400 parameter errors (PR #760)
-
----
+-**Convalida della definizione dello strumento**: corretta l'integrazione dell'API Gemini normalizzando i tipi di enumerazione all'interno delle definizioni dello strumento, prevenendo errori dei parametri HTTP 400 upstream (PR n. 760)---
 
 ## [3.2.8] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Docker Auto-Update UI** — Integrated a detached background update process for Docker Compose deployments. The Dashboard UI now seamlessly tracks update lifecycle events combining JSON REST responses with SSE streaming progress overlays for robust cross-environment reliability.
-- **Cache Analytics** — Repaired zero-metrics visualization mapping by migrating Semantic Cache telemetry logs directly into the centralized tracking SQLite module.
+-**Interfaccia utente di aggiornamento automatico Docker**: integrato un processo di aggiornamento in background separato per le distribuzioni Docker Compose. The Dashboard UI now seamlessly tracks update lifecycle events combining JSON REST responses with SSE streaming progress overlays for robust cross-environment reliability. -**Cache Analytics**— Repaired zero-metrics visualization mapping by migrating Semantic Cache telemetry logs directly into the centralized tracking SQLite module.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Authentication Logic** — Fixed a bug where saving dashboard settings or adding models failed with a 401 Unauthorized error when `requireLogin` was disabled. API endpoints now correctly evaluate the global authentication toggle. Resolved global redirection by reactivating `src/middleware.ts`.
-- **CLI Tool Detection (Windows)** — Prevented fatal initialization exceptions during CLI environment detection by catching `cross-spawn` ENOENT errors correctly. Adds explicit detection paths for `\AppData\Local\droid\droid.exe`.
-- **Codex Native Passthrough** — Normalized model translation parameters preventing context poisoning in proxy pass-through mode, enforcing generic `store: false` constraints explicitly for all Codex-originated requests.
-- **SSE Token Reporting** — Normalized provider tool-call chunk `finish_reason` detection, fixing 0% Usage analytics for stream-only responses missing strict `<DONE>` indicators.
-- **DeepSeek <think> Tags** — Implemented an explicit `<think>` extraction mapping inside `responsesHandler.ts`, ensuring DeepSeek reasoning streams map equivalently to native Anthropic `<thinking>` structures.
-
----
+-**Logica di autenticazione**: risolto un bug per cui il salvataggio delle impostazioni del dashboard o l'aggiunta di modelli non riusciva con un errore 401 Non autorizzato quando `requireLogin` era disabilitato. Gli endpoint API ora valutano correttamente l'attivazione/disattivazione dell'autenticazione globale. Risolto il reindirizzamento globale riattivando `src/middleware.ts`. -**Rilevamento strumento CLI (Windows)**— Impedisce eccezioni irreversibili di inizializzazione durante il rilevamento dell'ambiente CLI rilevando correttamente gli errori ENOENT `cross-spawn`. Aggiunge percorsi di rilevamento espliciti per `\AppData\Local\droid\droid.exe`. -**Passthrough nativo del Codex**: parametri di traduzione del modello normalizzati che impediscono l'avvelenamento del contesto in modalità passthrough proxy, applicando esplicitamente i vincoli generici "store: false" per tutte le richieste originate dal Codex. -**Report sui token SSE**: rilevamento normalizzato del blocco `finish_reason` della chiamata allo strumento del provider, correzione dell'analisi dell'utilizzo dello 0% per le risposte solo streaming prive di indicatori "<DONE>" rigorosi. -**Tag <think> di DeepSeek**— Implementata una mappatura esplicita di estrazione di `<think>` all'interno di `responsesHandler.ts`, garantendo che i flussi di ragionamento di DeepSeek siano mappati in modo equivalente alle strutture `<thinking>` antropiche native.---
 
 ## [3.2.7] - 2026-03-29
 
 ### Fixed
 
-- **Seamless UI Updates**: The "Update Now" feature on the Dashboard now provides live, transparent feedback using Server-Sent Events (SSE). It performs package installation, native module rebuilds (better-sqlite3), and PM2 restarts reliably while showing real-time loaders instead of silently hanging.
-
----
+-**Aggiornamenti semplici dell'interfaccia utente**: la funzione "Aggiorna ora" sulla dashboard ora fornisce feedback in tempo reale e trasparenti utilizzando gli eventi inviati dal server (SSE). Esegue l'installazione dei pacchetti, la ricostruzione dei moduli nativi (better-sqlite3) e PM2 si riavvia in modo affidabile mostrando caricatori in tempo reale invece di bloccarsi silenziosamente.---
 
 ## [3.2.6] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **API Key Reveal (#740)** — Added a scoped API key copy flow in the Api Manager, protected by the `ALLOW_API_KEY_REVEAL` environment variable.
-- **Sidebar Visibility Controls (#739)** — Admins can now hide any sidebar navigation link via the Appearance settings to reduce visual clutter.
-- **Strict Combo Testing (#735)** — Hardened the combo health check endpoint to require live text responses from models instead of just soft reachability signals.
-- **Streamed Detailed Logs (#734)** — Switched detailed request logging for SSE streams to reconstruct the final payload, saving immense amounts of SQLite database size and significantly cleaning up the UI.
+-**Rivelazione chiave API (#740)**— Aggiunto un flusso di copia della chiave API con ambito nel Gestore API, protetto dalla variabile di ambiente `ALLOW_API_KEY_REVEAL`. -**Controlli di visibilità della barra laterale (#739)**: gli amministratori ora possono nascondere qualsiasi collegamento di navigazione della barra laterale tramite le impostazioni di Aspetto per ridurre l'ingombro visivo. -**Test combinato rigoroso (#735)**: rafforzato l'endpoint del controllo dello stato della combo per richiedere risposte di testo in tempo reale dai modelli invece di semplici segnali di raggiungibilità. -**Registri dettagliati in streaming (#734)**: modificato il registro dettagliato delle richieste per i flussi SSE per ricostruire il payload finale, risparmiando enormi quantità di dimensioni del database SQLite e ripulendo in modo significativo l'interfaccia utente.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **OpenCode Go MiniMax Auth (#733)** — Corrected the authentication header logic for `minimax` models on OpenCode Go to use `x-api-key` instead of standard bearer tokens across the `/messages` protocol.
-
----
+-**OpenCode Go MiniMax Auth (#733)**— Corretta la logica dell'intestazione di autenticazione per i modelli "minimax" su OpenCode Go per utilizzare "x-api-key" invece dei token di connessione standard nel protocollo "/messages".---
 
 ## [3.2.5] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Void Linux Deployment Support (#732)** — Integrated `xbps-src` packaging template and instructions to natively compile and install OmniRoute with `better-sqlite3` bindings via cross-compilation target.
-
-## [3.2.4] — 2026-03-29
+-**Void Linux Deployment Support (#732)**— Modello di packaging `xbps-src` integrato e istruzioni per compilare e installare in modo nativo OmniRoute con collegamenti `better-sqlite3` tramite target di compilazione incrociata.## [3.2.4] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Qoder AI Migration (#660)** — Completely migrated the legacy `iFlow` core provider onto `Qoder AI` maintaining stable API routing capabilities.
+-**Migrazione Qoder AI (#660)**: migrazione completa del provider principale legacy `iFlow` su `Qoder AI` mantenendo funzionalità di routing API stabili.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Gemini Tools HTTP 400 Payload Invalid Argument (#731)** — Prevented `thoughtSignature` array injections inside standard Gemini `functionCall` sequences blocking agentic routing flows.
-
----
+-**Argomento non valido del payload HTTP 400 di Gemini Tools (#731)**: impedito l'inserimento di array `thinkSignature` all'interno delle sequenze Gemini `functionCall` standard che bloccavano i flussi di routing degli agenti.---
 
 ## [3.2.3] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Provider Limits Quota UI (#728)** — Normalized quota limit logic and data labeling inside the Limits interface.
+-**Interfaccia utente quota limiti provider (#728)**: logica del limite quota normalizzata ed etichettatura dei dati all'interno dell'interfaccia Limiti.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Core Routing Schemas & Leaks** — Expanded `comboStrategySchema` to natively support `fill-first` and `p2c` strategies to unblock complex combo editing natively.
-- **Thinking Tags Extraction (CLI)** — Restructured CLI token responses sanitizer RegEx capturing model reasoning structures inside streams avoiding broken `<thinking>` extractions breaking response text output format.
-- **Strict Format Enforcements** — Hardened pipeline sanitization execution making it universally apply to translation mode targets.
-
----
+-**Schemi e perdite di routing principali**: `comboStrategySchema` espanso per supportare in modo nativo le strategie `fill-first` e `p2c` per sbloccare la modifica combinata complessa in modo nativo. -**Thinking Tags Extraction (CLI)**— Risposte token CLI ristrutturate disinfettano RegEx catturando le strutture di ragionamento del modello all'interno dei flussi evitando estrazioni "<thinking>" interrotte che interrompono il formato di output del testo della risposta. -**Applicazioni rigorose dei formati**: esecuzione rafforzata della sanificazione della pipeline che la rende applicabile universalmente agli obiettivi della modalità di traduzione.---
 
 ## [3.2.2] — 2026-03-29
 
 ### ✨ New Features
 
-- **Four-Stage Request Log Pipeline (#705)** — Refactored log persistence to save comprehensive payloads at four distinct pipeline stages: Client Request, Translated Provider Request, Provider Response, and Translated Client Response. Introduced `streamPayloadCollector` for robust SSE stream truncation and payload serialization.
+-**Pipeline del registro delle richieste in quattro fasi (#705)**: refactoring della persistenza del registro per salvare payload completi in quattro fasi distinte della pipeline: richiesta del cliente, richiesta del fornitore tradotto, risposta del fornitore e risposta del cliente tradotto. Introdotto "streamPayloadCollector" per un robusto troncamento del flusso SSE e la serializzazione del payload.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Mobile UI Fixes (#659)** — Prevented table components on the dashboard from breaking the layout on narrow viewports by adding proper horizontal scrolling and overflow containment to `DashboardLayout`.
-- **Claude Prompt Cache Fixes (#708)** — Ensured `cache_control` blocks in Claude-to-Claude fallback loops are faithfully preserved and passed safely back to Anthropic models.
-- **Gemini Tool Definitions (#725)** — Fixed schema translation errors when declaring simple `object` parameter types for Gemini function calling.
-
-## [3.2.1] — 2026-03-29
+-**Correzioni dell'interfaccia utente mobile (#659)**— Impedisce ai componenti della tabella sul dashboard di interrompere il layout su finestre strette aggiungendo lo scorrimento orizzontale corretto e il contenimento dell'overflow a `DashboardLayout`. -**Correzioni di Claude Prompt Cache (#708)**— Garantito che i blocchi `cache_control` nei loop di fallback da Claude a Claude siano conservati fedelmente e passati in modo sicuro ai modelli antropici. -**Definizioni strumento Gemini (#725)**— Risolti errori di traduzione dello schema durante la dichiarazione di tipi di parametri semplici "oggetto" per la chiamata della funzione Gemini.## [3.2.1] — 2026-03-29
 
 ### ✨ New Features
 
-- **Global Fallback Provider (#689)** — When all combo models are exhausted (502/503), OmniRoute now attempts a configurable global fallback model before returning the error. Set `globalFallbackModel` in settings to enable.
+-**Provider di fallback globale (#689)**: quando tutti i modelli combinati sono esauriti (502/503), OmniRoute ora tenta un modello di fallback globale configurabile prima di restituire l'errore. Imposta "globalFallbackModel" nelle impostazioni per abilitare.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Correzione #721**— Risolto il problema relativo al bypass del blocco del contesto durante le risposte alle chiamate allo strumento. Il tagging non streaming utilizzava un percorso JSON errato (`json.messages` → `json.choices[0].message`). L'inserimento dello streaming ora si attiva sui blocchi "finish_reason" per i flussi di sole chiamate allo strumento. `injectModelTag()` ora aggiunge messaggi pin sintetici per contenuti non di tipo stringa. -**Correzione #709**— Confermato già corretto (v3.1.9) — `system-info.mjs` crea directory in modo ricorsivo. Chiuso. -**Correzione #707**— Confermata già corretta (v3.1.9) — Sanificazione del nome dello strumento vuoto in `chatCore.ts`. Chiuso.### 🧪 Tests
 
-- **Fix #721** — Fixed context pinning bypass during tool-call responses. Non-streaming tagging used wrong JSON path (`json.messages` → `json.choices[0].message`). Streaming injection now triggers on `finish_reason` chunks for tool-call-only streams. `injectModelTag()` now appends synthetic pin messages for non-string content.
-- **Fix #709** — Confirmed already fixed (v3.1.9) — `system-info.mjs` creates directories recursively. Closed.
-- **Fix #707** — Confirmed already fixed (v3.1.9) — empty tool name sanitization in `chatCore.ts`. Closed.
-
-### 🧪 Tests
-
-- Added 6 unit tests for context pinning with tool-call responses (null content, array content, roundtrip, re-injection)
-
-## [3.2.0] — 2026-03-28
+- Aggiunti 6 unit test per il blocco del contesto con risposte alle chiamate agli strumenti (contenuto nullo, contenuto dell'array, andata e ritorno, re-iniezione)## [3.2.0] — 2026-03-28
 
 ### ✨ New Features
 
-- **Cache Management UI** — Added a dedicated semantic caching dashboard at \`/dashboard/cache\` with targeted API invalidation and 31-language i18n support (PR #701 by @oyi77)
-- **GLM Quota Tracking** — Added real-time usage and session quota tracking for the GLM Coding (Z.AI) provider (PR #698 by @christopher-s)
-- **Detailed Log Payloads** — Wired full four-stage pipeline payload capturing (original, translated, provider-response, streamed-deltas) directly into the UI (PR #705 by @rdself)
+-**Interfaccia utente di gestione della cache**: aggiunta una dashboard dedicata alla memorizzazione nella cache semantica in \`/dashboard/cache\` con invalidazione API mirata e supporto i18n in 31 lingue (PR n. 701 di @oyi77) -**Tracciamento quota GLM**: aggiunto il monitoraggio dell'utilizzo in tempo reale e della quota della sessione per il provider GLM Coding (Z.AI) (PR n. 698 di @christopher-s) -**Payload di registro dettagliati**: acquisizione cablata del payload completo della pipeline in quattro fasi (originale, tradotto, risposta del fornitore, delta in streaming) direttamente nell'interfaccia utente (PR n. 705 di @rdself)### 🐛 Bug Fixes
+
+-**Correzione #708**: impedimento del tokenbleed per gli utenti di Claude Code che instradano tramite OmniRoute preservando correttamente le intestazioni \`cache_control\` native durante il passthrough Claude-to-Claude (PR #708 di @tombii) -**Correzione #719**— Imposta i limiti di autenticazione interni per \`ModelSyncScheduler\` per prevenire errori del demone non autenticato all'avvio (PR #719 di @rdself) -**Correzione n. 718**: rendering del badge ricostruito nell'interfaccia utente dei limiti del fornitore per evitare sovrapposizioni errate dei limiti delle quote (PR n. 718 di @rdself) -**Correzione #704**— Risolti i fallback combinati che interrompevano gli errori di policy dei contenuti HTTP 400 che impedivano il dead-routing della rotazione del modello (PR #704 di @rdself)### 🔒 Security & Dependencies
+
+- \`path-to-regexp\` aggiornato a \`8.4.0\` per risolvere le vulnerabilità di dependabot (PR #715)## [3.1.10] — 2026-03-28
 
 ### 🐛 Bug Fixes
 
-- **Fix #708** — Prevented token bleeding for Claude Code users routing through OmniRoute by correctly preserving native \`cache_control\` headers during Claude-to-Claude passthrough (PR #708 by @tombii)
-- **Fix #719** — Setup internal auth boundaries for \`ModelSyncScheduler\` to prevent unauthenticated daemon failures on startup (PR #719 by @rdself)
-- **Fix #718** — Rebuilt badge rendering in Provider Limits UI preventing bad quota boundaries overlap (PR #718 by @rdself)
-- **Fix #704** — Fixed Combo Fallbacks breaking on HTTP 400 content-policy errors preventing model-rotation dead-routing (PR #704 by @rdself)
-
-### 🔒 Security & Dependencies
-
-- Bumped \`path-to-regexp\` to \`8.4.0\` resolving dependabot vulnerabilities (PR #715)
-
-## [3.1.10] — 2026-03-28
-
-### 🐛 Bug Fixes
-
-- **Fix #706** — Fixed icon fallback rendering caused by Tailwind V4 `font-sans` override by applying `!important` to `.material-symbols-outlined`.
-- **Fix #703** — Fixed GitHub Copilot broken streams by enabling `responses` to `openai` format translation for any custom models leveraging `apiFormat: "responses"`.
-- **Fix #702** — Replaced flat-rate usage tracking with accurate DB pricing calculations for both streaming and non-streaming responses.
-- **Fix #716** — Cleaned up Claude tool-call translation state, correctly parsing streaming arguments and preventing OpenAI `tool_calls` chunks from repeating the `id` field.
-
-## [3.1.9] — 2026-03-28
+-**Correzione #706**— Risolto il problema con il rendering di fallback delle icone causato dall'override di `font-sans` di Tailwind V4 applicando `!important` a `.material-symbols-outlined`. -**Correzione #703**— Risolti i problemi relativi ai flussi di GitHub Copilot interrotti abilitando "risposte" alla traduzione del formato "openai" per qualsiasi modello personalizzato che sfruttava "apiFormat: "risposte"". -**Correzione #702**— Sostituito il monitoraggio dell'utilizzo a tariffa fissa con calcoli accurati dei prezzi DB sia per le risposte in streaming che per quelle non in streaming. -**Correzione #716**— Ripulito lo stato di traduzione delle chiamate agli strumenti di Claude, analizzando correttamente gli argomenti di streaming e impedendo ai blocchi `tool_calls` di OpenAI di ripetere il campo `id`.## [3.1.9] — 2026-03-28
 
 ### ✨ New Features
 
-- **Schema Coercion** — Auto-coerce string-encoded numeric JSON Schema constraints (e.g. `"minimum": "1"`) to proper types, preventing 400 errors from Cursor, Cline, and other clients sending malformed tool schemas.
-- **Tool Description Sanitization** — Ensure tool descriptions are always strings; converts `null`, `undefined`, or numeric descriptions to empty strings before sending to providers.
-- **Clear All Models Button** — Added i18n translations for the "Clear All Models" provider action across all 30 languages.
-- **Codex Auth Export** — Added Codex `auth.json` export and apply-local buttons for seamless CLI integration.
-- **Windsurf BYOK Notes** — Added official limitation warnings to the Windsurf CLI tool card documenting BYOK constraints.
+-**Coercizione schema**: forza automaticamente i vincoli dello schema JSON numerico con codifica stringa (ad esempio `"minimo": "1"`) ai tipi corretti, impedendo errori 400 da Cursor, Cline e altri client che inviano schemi di strumenti non validi. -**Sanificazione della descrizione dello strumento**: garantisce che le descrizioni degli strumenti siano sempre stringhe; converte descrizioni `null`, `unfine` o numeriche in stringhe vuote prima dell'invio ai provider. -**Pulsante Cancella tutti i modelli**: aggiunte le traduzioni i18n per l'azione del provider "Cancella tutti i modelli" in tutte le 30 lingue. -**Esportazione autenticazione Codex**: aggiunti i pulsanti di esportazione e applicazione locale del Codex `auth.json` per una perfetta integrazione della CLI. -**Note su Windsurf BYOK**: aggiunti avvisi di limitazione ufficiali alla scheda dello strumento CLI di Windsurf che documentano i vincoli BYOK.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Correzione #709**— `system-info.mjs` non si blocca più quando la directory di output non esiste (aggiunto `mkdirSync` con flag ricorsivo). -**Correzione #710**— Il singleton A2A `TaskManager` ora utilizza `globalThis` per prevenire perdite di stato attraverso le ricompilazioni del percorso API Next.js in modalità dev. Suite di test E2E aggiornata per gestire correttamente 401. -**Correzione #711**— Aggiunta l'applicazione del limite massimo `max_tokens` specifico del provider per le richieste upstream. -**Correzione #605 / #592**— Elimina il prefisso `proxy_` dai nomi degli strumenti nelle risposte di Claude non in streaming; corretto l'URL di convalida LongCat. -**Call Logs Max Cap**— Aggiornato `getMaxCallLogs()` con livello di caching, supporto env var (`CALL_LOGS_MAX`) e integrazione delle impostazioni DB.### 🧪 Tests
 
-- **Fix #709** — `system-info.mjs` no longer crashes when the output directory doesn't exist (added `mkdirSync` with recursive flag).
-- **Fix #710** — A2A `TaskManager` singleton now uses `globalThis` to prevent state leakage across Next.js API route recompilations in dev mode. E2E test suite updated to handle 401 gracefully.
-- **Fix #711** — Added provider-specific `max_tokens` cap enforcement for upstream requests.
-- **Fix #605 / #592** — Strip `proxy_` prefix from tool names in non-streaming Claude responses; fixed LongCat validation URL.
-- **Call Logs Max Cap** — Upgraded `getMaxCallLogs()` with caching layer, env var support (`CALL_LOGS_MAX`), and DB settings integration.
+- Suite di test ampliata da 964 → 1027 test (63 nuovi test)
+- Aggiunto `schema-coercion.test.mjs` - 9 test per la coercizione del campo numerico e la sanificazione della descrizione dello strumento
+- Aggiunto `t40-opencode-cli-tools-integration.test.mjs` — Test di integrazione CLI OpenCode/Windsurf
+- Ramo di test delle funzionalità migliorato con strumenti di copertura completi### 📁 New Files
 
-### 🧪 Tests
+| File                                                    | Scopo                                                                           |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------- |
+| `open-sse/translator/helpers/schemaCoercion.ts`         | Schema di coercizione e descrizione degli strumenti di utilità di sanificazione |
+| `test/unità/schema-coercion.test.mjs`                   | Unit test per la coercizione dello schema                                       |
+| `test/unit/t40-opencode-cli-tools-integration.test.mjs` | Test di integrazione dello strumento CLI                                        |
+| `COVERAGE_PLAN.md`                                      | Documento di pianificazione della copertura del test                            | ### 🐛 Bug Fixes |
 
-- Test suite expanded from 964 → 1027 tests (63 new tests)
-- Added `schema-coercion.test.mjs` — 9 tests for numeric field coercion and tool description sanitization
-- Added `t40-opencode-cli-tools-integration.test.mjs` — OpenCode/Windsurf CLI integration tests
-- Enhanced feature-tests branch with comprehensive coverage tooling
-
-### 📁 New Files
-
-| File                                                     | Purpose                                                     |
-| -------------------------------------------------------- | ----------------------------------------------------------- |
-| `open-sse/translator/helpers/schemaCoercion.ts`          | Schema coercion and tool description sanitization utilities |
-| `tests/unit/schema-coercion.test.mjs`                    | Unit tests for schema coercion                              |
-| `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | CLI tool integration tests                                  |
-| `COVERAGE_PLAN.md`                                       | Test coverage planning document                             |
-
-### 🐛 Bug Fixes
-
-- **Claude Prompt Caching Passthrough** — Fixed cache_control markers being stripped in Claude passthrough mode (Claude → OmniRoute → Claude), which caused Claude Code users to deplete their Anthropic API quota 5-10x faster than direct connections. OmniRoute now preserves client's cache_control markers when sourceFormat and targetFormat are both Claude, ensuring prompt caching works correctly and dramatically reducing token consumption.
-
-## [3.1.8] - 2026-03-27
+-**Claude Prompt Caching Passthrough**— Risolto il problema con i marcatori cache_control che venivano eliminati nella modalità passthrough di Claude (Claude → OmniRoute → Claude), che causava agli utenti di Claude Code l'esaurimento della quota API Anthropic 5-10 volte più velocemente delle connessioni dirette. OmniRoute ora preserva gli indicatori cache_control del client quando sourceFormat e targetFormat sono entrambi Claude, garantendo che la memorizzazione nella cache dei prompt funzioni correttamente e riducendo drasticamente il consumo di token.## [3.1.8] - 2026-03-27
 
 ### 🐛 Bug Fixes & Features
 
-- **Platform Core:** Implemented global state handling for Hidden Models & Combos preventing them from cluttering the catalog or leaking into connected MCP agents (#681).
-- **Stability:** Patched streaming crashes related to the native Antigravity provider integration failing due to unhandled undefined state arrays (#684).
-- **Localization Sync:** Deployed a fully overhauled `i18n` synchronizer detecting missing nested JSON properties and retro-fitting 30 locales sequentially (#685).## [3.1.7] - 2026-03-27
+-**Platform Core:**Implementata la gestione dello stato globale per modelli e combo nascosti impedendo loro di ingombrare il catalogo o di fuoriuscire negli agenti MCP connessi (#681). -**Stabilità:**sono stati corretti arresti anomali dello streaming relativi al fallimento dell'integrazione del provider Antigravity nativo a causa di array di stati non definiti non gestiti (#684). -**Sincronizzazione della localizzazione:**Distribuito un sincronizzatore `i18n` completamente revisionato che rileva le proprietà JSON nidificate mancanti e adatta 30 localizzazioni in sequenza (#685).## [3.1.7] - 27-03-2026### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Streaming Stability:** Fixed `hasValuableContent` returning `undefined` for empty chunks in SSE streams (#676).
-- **Tool Calling:** Fixed an issue in `sseParser.ts` where non-streaming Claude responses with multiple tool calls dropped the `id` of subsequent tool calls due to incorrect index-based deduplication (#671).
-
----
+-**Stabilità dello streaming:**Risolto il problema con `hasValuableContent` che restituiva `undefinito` per blocchi vuoti nei flussi SSE (#676). -**Chiamate degli strumenti:**È stato risolto un problema in "sseParser.ts" per cui le risposte di Claude non in streaming con più chiamate agli strumenti perdevano l'"id" delle successive chiamate agli strumenti a causa di una deduplicazione errata basata sull'indice (#671).---
 
 ## [3.1.6] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Claude Native Tool Name Restoration** — Tool names like `TodoWrite` are no longer prefixed with `proxy_` in Claude passthrough responses (both streaming and non-streaming). Includes unit test coverage (PR #663 by @coobabm)
-- **Clear All Models Alias Cleanup** — "Clear All Models" button now also removes associated model aliases, preventing ghost models in the UI (PR #664 by @rdself)
-
----
+-**Ripristino del nome dello strumento nativo di Claude**: i nomi degli strumenti come "TodoWrite" non hanno più il prefisso "proxy\_" nelle risposte passthrough di Claude (sia in streaming che non in streaming). Include la copertura del test unitario (PR n. 663 di @coobabm) -**Cancella tutti gli alias dei modelli**: il pulsante "Cancella tutti i modelli" ora rimuove anche gli alias dei modelli associati, impedendo i modelli fantasma nell'interfaccia utente (PR #664 di @rdself)---
 
 ## [3.1.5] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Backoff Auto-Decay** — Rate-limited accounts now auto-recover when their cooldown window expires, fixing a deadlock where high `backoffLevel` permanently deprioritized accounts (PR #657 by @brendandebeasi)
+-**Decadimento automatico backoff**: gli account con velocità limitata ora si ripristinano automaticamente alla scadenza della finestra di recupero, risolvendo un deadlock in cui un `backoffLevel` elevato depriorizzava permanentemente gli account (PR n. 657 di @brendandebeasi)### 🌍 i18n
 
-### 🌍 i18n
-
-- **Chinese translation overhaul** — Comprehensive rewrite of `zh-CN.json` with improved accuracy (PR #658 by @only4copilot)
-
----
+-**Revisione della traduzione cinese**: riscrittura completa di `zh-CN.json` con maggiore precisione (PR n. 658 di @only4copilot)---
 
 ## [3.1.4] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Streaming Override Fix** — Explicit `stream: true` in request body now takes priority over `Accept: application/json` header. Clients sending both will correctly receive SSE streaming responses (#656)
+-**Correzione dell'override dello streaming**— L'esplicito `stream: true` nel corpo della richiesta ora ha la priorità sull'intestazione `Accept: application/json`. I client che inviano entrambi riceveranno correttamente le risposte in streaming SSE (#656)### 🌍 i18n
 
-### 🌍 i18n
-
-- **Czech string improvements** — Refined terminology across `cs.json` (PR #655 by @zen0bit)
-
----
+-**Miglioramenti alle stringhe in ceco**— Terminologia raffinata in `cs.json` (PR #655 di @zen0bit)---
 
 ## [3.1.3] — 2026-03-26
 
 ### 🌍 i18n & Community
 
-- **~70 missing translation keys** added to `en.json` and 12 languages (PR #652 by @zen0bit)
-- **Czech documentation updated** — CLI-TOOLS, API_REFERENCE, VM_DEPLOYMENT guides (PR #652)
-- **Translation validation scripts** — `check_translations.py` and `validate_translation.py` for CI/QA (PR #651 by @zen0bit)
-
----
+-**~70 chiavi di traduzione mancanti**aggiunte a `en.json` e 12 lingue (PR #652 di @zen0bit) -**Documentazione ceca aggiornata**: guide CLI-TOOLS, API_REFERENCE, VM_DEPLOYMENT (PR n. 652) -**Script di convalida della traduzione**— `check_translations.py` e `validate_translation.py` per CI/QA (PR n. 651 di @zen0bit)---
 
 ## [3.1.2] — 2026-03-26
 
 ### 🐛 Bug Fixes
 
-- **Critical: Tool Calling Regression** — Fixed `proxy_Bash` errors by disabling the `proxy_` tool name prefix in the Claude passthrough path. Tools like `Bash`, `Read`, `Write` were being renamed to `proxy_Bash`, `proxy_Read`, etc., causing Claude to reject them (#618)
-- **Kiro Account Ban Documentation** — Documented as upstream AWS anti-fraud false positive, not an OmniRoute issue (#649)
+-**Critico: regressione delle chiamate agli strumenti**— Risolti gli errori `proxy_Bash` disabilitando il prefisso del nome dello strumento `proxy_` nel percorso passthrough di Claude. Strumenti come `Bash`, `Read`, `Write` venivano rinominati in `proxy_Bash`, `proxy_Read`, ecc., costringendo Claude a rifiutarli (#618) -**Documentazione sull'esclusione dell'account Kiro**: documentata come falso positivo antifrode AWS upstream, non un problema di OmniRoute (#649)### 🧪 Tests
 
-### 🧪 Tests
-
-- **936 tests, 0 failures**
-
----
+-**936 test, 0 fallimenti**---
 
 ## [3.1.1] — 2026-03-26
 
 ### ✨ New Features
 
-- **Vision Capability Metadata**: Added `capabilities.vision`, `input_modalities`, and `output_modalities` to `/v1/models` entries for vision-capable models (PR #646)
-- **Gemini 3.1 Models**: Added `gemini-3.1-pro-preview` and `gemini-3.1-flash-lite-preview` to the Antigravity provider (#645)
+-**Metadati sulla capacità di visione**: aggiunti `capabilities.vision`, `input_modalities` e `output_modalities` alle voci "/v1/models" per i modelli con capacità di visione (PR #646) -**Modelli Gemini 3.1**: aggiunti `gemini-3.1-pro-preview` e `gemini-3.1-flash-lite-preview` al provider Antigravity (#645)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Errore Ollama Cloud 401**: corretto l'URL di base API errato: modificato da "api.ollama.com" a "ollama.com/v1/chat/completions" ufficiale (#643) -**Riprova token scaduto**: aggiunto nuovo tentativo limitato con backoff esponenziale (5→10→20 min) per le connessioni OAuth scadute invece di saltarle permanentemente (PR n. 647)### 🧪 Tests
 
-- **Ollama Cloud 401 Error**: Fixed incorrect API base URL — changed from `api.ollama.com` to official `ollama.com/v1/chat/completions` (#643)
-- **Expired Token Retry**: Added bounded retry with exponential backoff (5→10→20 min) for expired OAuth connections instead of permanently skipping them (PR #647)
-
-### 🧪 Tests
-
-- **936 tests, 0 failures**
-
----
+-**936 test, 0 fallimenti**---
 
 ## [3.1.0] — 2026-03-26
 
 ### ✨ New Features
 
-- **GitHub Issue Templates**: Added standardized bug report, feature request, and config/proxy issue templates (#641)
-- **Clear All Models**: Added a "Clear All Models" button to the provider detail page with i18n support in 29 languages (#634)
+-**Modelli di problemi GitHub**: aggiunti report di bug standardizzati, richieste di funzionalità e modelli di problemi di configurazione/proxy (#641) -**Cancella tutti i modelli**: aggiunto un pulsante "Cancella tutti i modelli" alla pagina dei dettagli del fornitore con supporto i18n in 29 lingue (#634)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Conflitto locale (`in.json`)**: rinominato il file locale hindi da `in.json` (codice ISO indonesiano) a `hi.json` per correggere i conflitti di traduzione in Weblate (#642) -**Nomi strumenti vuoti del Codex**: spostata la sanificazione del nome dello strumento prima del passthrough del Codex nativo, corretti 400 errori dai fornitori upstream quando gli strumenti avevano nomi vuoti (#637) -**Streaming di artefatti di fine riga**: aggiunto `collapseExcessiveNewlines` al sanitizzatore di risposta, comprimendo esecuzioni di 3+ caratteri di fine riga consecutivi dai modelli pensanti in un doppio fine riga standard (#638) -**Sforzo di ragionamento di Claude**: convertito il parametro "reasoning_effort" di OpenAI nel blocco di budget "thinking" nativo di Claude su tutti i percorsi di richiesta, incluso l'aggiustamento automatico di "max_tokens" (#627). -**Aggiornamento del token Qwen**: implementato l'aggiornamento proattivo del token OAuth pre-scadenza (buffer di 5 minuti) per evitare che le richieste falliscano quando si utilizzano token di breve durata (#631)### 🧪 Tests
 
-- **Locale Conflict (`in.json`)**: Renamed the Hindi locale file from `in.json` (Indonesian ISO code) to `hi.json` to fix translation conflicts in Weblate (#642)
-- **Codex Empty Tool Names**: Moved tool name sanitization before the native Codex passthrough, fixing 400 errors from upstream providers when tools had empty names (#637)
-- **Streaming Newline Artifacts**: Added `collapseExcessiveNewlines` to the response sanitizer, collapsing runs of 3+ consecutive newlines from thinking models into a standard double newline (#638)
-- **Claude Reasoning Effort**: Converted OpenAI `reasoning_effort` param to Claude's native `thinking` budget block across all request paths, including automatic `max_tokens` adjustment (#627)
-- **Qwen Token Refresh**: Implemented proactive pre-expiry OAuth token refreshes (5-minute buffer) to prevent requests from failing when using short-lived tokens (#631)
-
-### 🧪 Tests
-
-- **936 tests, 0 failures** (+10 tests since 3.0.9)
-
----
+-**936 test, 0 fallimenti**(+10 test dalla versione 3.0.9)---
 
 ## [3.0.9] — 2026-03-26
 
 ### 🐛 Bug Fixes
 
-- **NaN tokens in Claude Code / client responses (#617):**
-  - `sanitizeUsage()` now cross-maps `input_tokens`→`prompt_tokens` and `output_tokens`→`completion_tokens` before the whitelist filter, fixing responses showing NaN/0 token counts when providers return Claude-style usage field names
+-**Token NaN nel codice Claude/risposte del cliente (#617):**
 
-### Sicurezza
+- `sanitizeUsage()` ora esegue il cross-map di `input_tokens`→`prompt_tokens` e `output_tokens`→`completion_tokens` prima del filtro whitelist, correggendo le risposte che mostrano i conteggi dei token NaN/0 quando i provider restituiscono nomi di campi di utilizzo in stile Claude### Sicurezza
 
-- Updated `yaml` package to fix stack overflow vulnerability (GHSA-48c2-rrv3-qjmp)
+- Pacchetto `yaml` aggiornato per correggere la vulnerabilità di overflow dello stack (GHSA-48c2-rrv3-qjmp)### 📋 Issue Triage
 
-### 📋 Issue Triage
-
-- Closed #613 (Codestral — resolved with Custom Provider workaround)
-- Commented on #615 (OpenCode dual-endpoint — workaround provided, tracked as feature request)
-- Commented on #618 (tool call visibility — requesting v3.0.9 test)
-- Commented on #627 (effort level — already supported)
-
----
+- Chiuso n. 613 (Codestral: risolto con la soluzione alternativa del fornitore personalizzato)
+- Commento su #615 (OpenCode dual-endpoint: soluzione alternativa fornita, tracciata come richiesta di funzionalità)
+- Commento su #618 (visibilità chiamata strumento - richiesta test v3.0.9)
+- Commentato su #627 (livello di sforzo - già supportato)---
 
 ## [3.0.8] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Translation Failures for OpenAI-format Providers in Claude CLI (#632):**
-  - Handle `reasoning_details[]` array format from StepFun/OpenRouter — converts to `reasoning_content`
-  - Handle `reasoning` field alias from some providers → normalized to `reasoning_content`
-  - Cross-map usage field names: `input_tokens`↔`prompt_tokens`, `output_tokens`↔`completion_tokens` in `filterUsageForFormat`
-  - Fix `extractUsage` to accept both `input_tokens`/`output_tokens` and `prompt_tokens`/`completion_tokens` as valid usage fields
-  - Applied to both streaming (`sanitizeStreamingChunk`, `openai-to-claude.ts` translator) and non-streaming (`sanitizeMessage`) paths
+-**Errori di traduzione per i provider di formato OpenAI nella CLI Claude (#632):**
 
----
+- Gestisci il formato array `reasoning_details[]` da StepFun/OpenRouter: converte in `reasoning_content`
+- Gestisci l'alias del campo "reasoning" di alcuni provider → normalizzato in "reasoning_content".
+- Nomi dei campi di utilizzo su più mappe: `input_tokens`↔`prompt_tokens`, `output_tokens`↔`completion_tokens` in `filterUsageForFormat`
+- Risolto il problema con `extractUsage` per accettare sia `input_tokens`/`output_tokens` che `prompt_tokens`/`completion_tokens` come campi di utilizzo validi
+- Applicato sia ai percorsi di streaming (`sanitizeStreamingChunk`, traduttore `openai-to-claude.ts`) che a quelli non streaming (`sanitizeMessage`)---
 
 ## [3.0.7] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Antigravity Token Refresh:** Fixed `client_secret is missing` error for npm-installed users — the `clientSecretDefault` was empty in providerRegistry, causing Google to reject token refresh requests (#588)
-- **OpenCode Zen Models:** Added `modelsUrl` to the OpenCode Zen registry entry so "Import from /models" works correctly (#612)
-- **Streaming Artifacts:** Fixed excessive newlines left in responses after thinking-tag signature stripping (#626)
-- **Proxy Fallback:** Added automatic retry without proxy when SOCKS5 relay fails
-- **Proxy Test:** Test endpoint now resolves real credentials from DB via proxyId
+-**Aggiornamento token antigravità:**Risolto errore `client_secret mancante` per gli utenti con installazione npm: `clientSecretDefault` era vuoto in providerRegistry, causando il rifiuto da parte di Google delle richieste di aggiornamento dei token (#588) -**Modelli OpenCode Zen:**Aggiunto `modelsUrl` alla voce del registro OpenCode Zen in modo che "Importa da /models" funzioni correttamente (#612) -**Artefatti in streaming:**Risolti i caratteri eccessivi di fine riga lasciati nelle risposte dopo la rimozione della firma del think-tag (#626). -**Proxy Fallback:**Aggiunto nuovo tentativo automatico senza proxy quando il relè SOCKS5 fallisce -**Test proxy:**L'endpoint di test ora risolve le credenziali reali dal DB tramite proxyId### ✨ New Features
 
-### ✨ New Features
+-**Selettore account/chiave Playground:**menu a discesa persistente e sempre visibile per selezionare account/chiavi provider specifici per il test: recupera tutte le connessioni all'avvio e filtra in base al provider selezionato -**Modelli dinamici degli strumenti CLI:**la selezione del modello ora viene recuperata dinamicamente dall'API `/v1/models`: fornitori come Kiro ora mostrano il loro catalogo di modelli completo -**Elenco modelli antigravità:**Aggiornato con Claude Sonnet 4.5, Claude Sonnet 4, GPT 5, GPT 5 Mini; abilitato `passthroughModels` per l'accesso al modello dinamico (#628)### 🔧 Maintenance
 
-- **Playground Account/Key Selector:** Persistent, always-visible dropdown to select specific provider accounts/keys for testing — fetches all connections at startup and filters by selected provider
-- **CLI Tools Dynamic Models:** Model selection now dynamically fetches from `/v1/models` API — providers like Kiro now show their full model catalog
-- **Antigravity Model List:** Updated with Claude Sonnet 4.5, Claude Sonnet 4, GPT 5, GPT 5 Mini; enabled `passthroughModels` for dynamic model access (#628)
-
-### 🔧 Maintenance
-
-- Merged PR #625 — Provider Limits light mode background fix
-
----
+- PR n. 625 unito: correzione dello sfondo della modalità luce dei limiti del provider---
 
 ## [3.0.6] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Limits/Proxy:** Fixed Codex limit fetching for accounts behind SOCKS5 proxies — token refresh now runs inside proxy context
-- **CI:** Fixed integration test `v1/models` assertion failure in CI environments without provider connections
-- **Settings:** Proxy test button now shows success/failure results immediately (previously hidden behind health data)
+-**Limiti/Proxy:**Risolto il problema con il recupero del limite del Codex per gli account dietro proxy SOCKS5: l'aggiornamento del token ora viene eseguito all'interno del contesto proxy -**CI:**Risolto problema relativo all'asserzione del test di integrazione `v1/models` in ambienti CI senza connessioni al provider -**Impostazioni:**Il pulsante del test proxy ora mostra immediatamente i risultati di successo/fallimento (precedentemente nascosto dietro i dati sanitari)### ✨ New Features
 
-### ✨ New Features
+-**Parco giochi:**aggiunto menu a discesa del selettore dell'account: testa connessioni specifiche individualmente quando un provider ha più account### 🔧 Maintenance
 
-- **Playground:** Added Account selector dropdown — test specific connections individually when a provider has multiple accounts
-
-### 🔧 Maintenance
-
-- Merged PR #623 — LongCat API base URL path correction
-
----
+- PR n. 623 unito: correzione del percorso URL di base dell'API LongCat---
 
 ## [3.0.5] — 2026-03-25
 
 ### ✨ New Features
 
-- **Limits UI:** Added tag grouping feature to the connections dashboard to improve visual organization for accounts with custom tags.
-
----
+-**Limiti dell'interfaccia utente:**Aggiunta la funzionalità di raggruppamento dei tag alla dashboard delle connessioni per migliorare l'organizzazione visiva per gli account con tag personalizzati.---
 
 ## [3.0.4] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Streaming:** Fixed `TextDecoder` state corruption inside combo `sanitize` TransformStream which caused SSE garbled output matching multibyte characters (PR #614)
-- **Providers UI:** Safely render HTML tags inside provider connection error tooltips using `dangerouslySetInnerHTML`
-- **Proxy Settings:** Added missing `username` and `password` payload body properties allowing authenticated proxies to be successfully verified from the Dashboard.
-- **Provider API:** Bound soft exception returns to `getCodexUsage` preventing API HTTP 500 failures when token fetch fails
-
----
+-**Streaming:**Risolto il problema del danneggiamento dello stato di `TextDecoder` all'interno della combo `sanitize` TransformStream che causava l'output confuso di SSE corrispondente ai caratteri multibyte (PR #614). -**Interfaccia utente dei provider:**visualizza in modo sicuro i tag HTML all'interno dei suggerimenti sugli errori di connessione del provider utilizzando "dangerouslySetInnerHTML" -**Impostazioni proxy:**Aggiunte le proprietà mancanti del corpo del payload "nome utente" e "password" che consentono la verifica corretta dei proxy autenticati dalla dashboard. -**API del provider:**l'eccezione soft associata ritorna a `getCodexUsage` impedendo errori dell'API HTTP 500 quando il recupero del token non riesce---
 
 ## [3.0.3] — 2026-03-25
 
 ### ✨ New Features
 
-- **Auto-Sync Models:** Added a UI toggle and `sync-models` endpoint to automatically synchronise model lists per provider using a scheduled interval scheduler (PR #597)
+-**Modelli con sincronizzazione automatica:**Aggiunto un interruttore dell'interfaccia utente e un endpoint "sync-models" per sincronizzare automaticamente gli elenchi di modelli per provider utilizzando uno scheduler a intervalli pianificati (PR n. 597)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Timeouts:**Elevated default proxies `FETCH_TIMEOUT_MS` and `STREAM_IDLE_TIMEOUT_MS` to 10 minutes to properly support deep reasoning models (like o1) without aborting requests (Fixes #609) -**Rilevamento strumento CLI:**Rilevamento multipiattaforma migliorato per la gestione dei percorsi NVM, `PATHEXT` di Windows (prevenzione del problema dei wrapper `.cmd`) e prefissi NPM personalizzati (PR #598) -**Log di streaming:**Implementato l'accumulo delta `tool_calls` nei log di risposta di streaming in modo che le chiamate alle funzioni vengano tracciate e mantenute accuratamente nel DB (PR n. 603) -**Catalogo modelli:**Rimossa l'esenzione dall'autenticazione, nascondendo correttamente i modelli `comfyui` e `sdwebui` quando nessun provider è esplicitamente configurato (PR #599)### 🌐 Translations
 
-- **Timeouts:** Elevated default proxies `FETCH_TIMEOUT_MS` and `STREAM_IDLE_TIMEOUT_MS` to 10 minutes to properly support deep reasoning models (like o1) without aborting requests (Fixes #609)
-- **CLI Tool Detection:** Improved cross-platform detection handling NVM paths, Windows `PATHEXT` (preventing `.cmd` wrappers issue), and custom NPM prefixes (PR #598)
-- **Streaming Logs:** Implemented `tool_calls` delta accumulation in streaming response logs so function calls are tracked and persisted accurately in DB (PR #603)
-- **Model Catalog:** Removed auth exemption, properly hiding `comfyui` and `sdwebui` models when no provider is explicitly configured (PR #599)
-
-### 🌐 Translations
-
-- **cs:** Improved Czech translation strings across the app (PR #601)
-
-## [3.0.2] — 2026-03-25
+-**cs:**Stringhe di traduzione in ceco migliorate nell'app (PR n. 601)## [3.0.2] — 2026-03-25
 
 ### 🚀 Enhancements & Features
 
 #### feat(ui): Connection Tag Grouping
 
-- Added a Tag/Group field to `EditConnectionModal` (stored in `providerSpecificData.tag`) without requiring DB schema migrations.
-- Connections in the provider view now dynamically group by tag with visual dividers.
-- Untagged connections appear first without a header, followed by tagged groups in alphabetical order.
-- The tag grouping automatically applies to the Codex/Copilot/Antigravity Limits section since toggles exist inside connection rows.
-
-### 🐛 Bug Fixes
+- Aggiunto un campo Tag/Gruppo a "EditConnectionModal" (memorizzato in "providerSpecificData.tag") senza richiedere migrazioni dello schema DB.
+- Le connessioni nella vista del provider ora vengono raggruppate dinamicamente per tag con divisori visivi.
+- Le connessioni senza tag vengono visualizzate per prime senza intestazione, seguite dai gruppi contrassegnati in ordine alfabetico.
+- Il raggruppamento dei tag si applica automaticamente alla sezione Codex/Copilot/Limiti di antigravità poiché esistono dei commutatori all'interno delle righe di connessione.### 🐛 Bug Fixes
 
 #### fix(ui): Proxy Management UI Stabilization
 
-- **Missing badges on connection cards:** Fixed by using `resolveProxyForConnection()` rather than static mapping.
-- **Test Connection disabled in saved mode:** Enabled the Test button by resolving proxy config from the saved list.
-- **Config Modal freezing:** Added `onClose()` calls after save/clear to prevent the UI from freezing.
-- **Double usage counting:** `ProxyRegistryManager` now loads usage eagerly on mount with deduplication by `scope` + `scopeId`. Usage counts were replaced with a Test button displaying IP/latency inline.
+-**Badge mancanti sulle schede di connessione:**Risolto utilizzando `resolveProxyForConnection()` anziché la mappatura statica. -**Test connessione disabilitato in modalità salvata:**abilitato il pulsante Test risolvendo la configurazione proxy dall'elenco salvato. -**Blocco modale configurazione:**Aggiunte chiamate `onClose()` dopo il salvataggio/cancella per impedire il blocco dell'interfaccia utente. -**Conteggio doppio dell'utilizzo:**`ProxyRegistryManager` ora carica con entusiasmo l'utilizzo sul supporto con deduplicazione tramite `scope` + `scopeId`. I conteggi di utilizzo sono stati sostituiti con un pulsante Test che mostra IP/latenza in linea.#### fix(translator): `function_call` prefix stripping
 
-#### fix(translator): `function_call` prefix stripping
-
-- Repaired an incomplete fix from PR #607 where only `tool_use` blocks stripped Claude's `proxy_` tool prefix. Now, clients using the OpenAI Responses API format will also correctly receive tool tools without the `proxy_` prefix.
-
----
+- Risolto un problema incompleto dal PR #607 in cui solo i blocchi `tool_use` rimuovevano il prefisso dello strumento `proxy_` di Claude. Ora, i client che utilizzano il formato API OpenAI Responses riceveranno correttamente anche gli strumenti senza il prefisso "proxy\_".---
 
 ## [3.0.1] — 2026-03-25
 
 ### 🔧 Hotfix Patch — Critical Bug Fixes
 
-Three critical regressions reported by users after the v3.0.0 launch have been resolved.
+Sono state risolte tre regressioni critiche segnalate dagli utenti dopo il lancio della versione 3.0.0.#### fix(translator): strip `proxy_` prefix in non-streaming Claude responses (#605)
 
-#### fix(translator): strip `proxy_` prefix in non-streaming Claude responses (#605)
+Il prefisso `proxy_` aggiunto da Claude OAuth è stato rimosso solo dalle risposte**streaming**. In modalità**non streaming**, "translateNonStreamingResponse" non aveva accesso a "toolNameMap", facendo sì che i client ricevessero nomi di strumenti alterati come "proxy_read_file" invece di "read_file".
 
-The `proxy_` prefix added by Claude OAuth was only stripped from **streaming** responses. In **non-streaming** mode, `translateNonStreamingResponse` had no access to the `toolNameMap`, causing clients to receive mangled tool names like `proxy_read_file` instead of `read_file`.
+**Correzione:**Aggiunto il parametro facoltativo `toolNameMap` a `translateNonStreamingResponse` e ​​applicata la rimozione del prefisso nel gestore del blocco Claude `tool_use`. `chatCore.ts` ora passa attraverso la mappa.#### fix(validation): add LongCat specialty validator to skip /models probe (#592)
 
-**Fix:** Added optional `toolNameMap` parameter to `translateNonStreamingResponse` and applied prefix stripping in the Claude `tool_use` block handler. `chatCore.ts` now passes the map through.
+LongCat AI non espone `GET /v1/models`. Il validatore generico `validateOpenAICompatibleProvider` è passato a un fallback di completamento chat solo se era impostato `validationModelId`, cosa che LongCat non configura. Ciò ha causato il fallimento della convalida del provider con un errore fuorviante durante l'aggiunta/salvataggio.
 
-#### fix(validation): add LongCat specialty validator to skip /models probe (#592)
+**Correzione:**Aggiunto `longcat` alla mappa dei validatori specializzati, esaminando direttamente `/chat/completions` e trattando qualsiasi risposta non di autenticazione come un passaggio.#### fix(translator): normalize object tool schemas for Anthropic (#595)
 
-LongCat AI does not expose `GET /v1/models`. The generic `validateOpenAICompatibleProvider` validator fell through to a chat-completions fallback only if `validationModelId` was set, which LongCat doesn't configure. This caused provider validation to fail with a misleading error on add/save.
+Gli strumenti MCP (ad esempio `pencil`, `computer_use`) inoltrano le definizioni degli strumenti con `{type:"object"}` ma senza un campo `properties`. L'API di Anthropic li rifiuta con: "proprietà mancanti dello schema dell'oggetto".
 
-**Fix:** Added `longcat` to the specialty validators map, probing `/chat/completions` directly and treating any non-auth response as a pass.
-
-#### fix(translator): normalize object tool schemas for Anthropic (#595)
-
-MCP tools (e.g. `pencil`, `computer_use`) forward tool definitions with `{type:"object"}` but without a `properties` field. Anthropic's API rejects these with: `object schema missing properties`.
-
-**Fix:** In `openai-to-claude.ts`, inject `properties: {}` as a safe default when `type` is `"object"` and `properties` is absent.
-
----
+**Correzione:**In `openai-to-claude.ts`, inserire `properties: {}` come impostazione predefinita sicura quando `type` è `"object"` e `properties` è assente.---
 
 ### 🔀 Community PRs Merged (2)
 
-| PR       | Author  | Summary                                                                    |
-| -------- | ------- | -------------------------------------------------------------------------- |
-| **#589** | @flobo3 | docs(i18n): fix Russian translation for Playground and Testbed             |
-| **#591** | @rdself | fix(ui): improve Provider Limits light mode contrast and plan tier display |
-
----
+| PR       | Autore  | Sommario                                                                                                                                |
+| -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| **#589** | @flobo3 | docs(i18n): corretta la traduzione russa per Playground e Testbed                                                                       |
+| **#591** | @rdself | correzione (ui): miglioramento del contrasto della modalità luce dei limiti del fornitore e della visualizzazione del livello del piano | --- |
 
 ### ✅ Issues Resolved
 
-`#592` `#595` `#605`
-
----
+`#592` `#595` `#605`---
 
 ### 🧪 Tests
 
-- **926 tests, 0 failures** (unchanged from v3.0.0)
-
----
+-**926 test, 0 fallimenti**(invariato rispetto alla v3.0.0)---
 
 ## [3.0.0] — 2026-03-24
 
 ### 🎉 OmniRoute v3.0.0 — The Free AI Gateway, Now with 67+ Providers
 
-> **The biggest release ever.** From 36 providers in v2.9.5 to **67+ providers** in v3.0.0 — with MCP Server, A2A Protocol, auto-combo engine, Provider Icons, Registered Keys API, 926 tests, and contributions from **12 community members** across **10 merged PRs**.
+> **La più grande release di sempre.**Da 36 provider nella versione 2.9.5 a**67+ provider**nella versione 3.0.0 — con server MCP, protocollo A2A, motore di combinazione automatica, icone dei provider, API per chiavi registrate, 926 test e contributi di**12 membri della comunità**in**10 PR uniti**.
 >
-> Consolidated from v3.0.0-rc.1 through rc.17 (17 release candidates over 3 days of intense development).
-
----
+> Consolidato da v3.0.0-rc.1 a rc.17 (17 release candidate in 3 giorni di intenso sviluppo).---
 
 ### 🆕 New Providers (+31 since v2.9.5)
 
-| Provider                      | Alias           | Tier        | Notes                                                                       |
-| ----------------------------- | --------------- | ----------- | --------------------------------------------------------------------------- |
-| **OpenCode Zen**              | `opencode-zen`  | Free        | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon)                 |
-| **OpenCode Go**               | `opencode-go`   | Paid        | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon)              |
-| **LongCat AI**                | `lc`            | Free        | 50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) during public beta   |
-| **Pollinations AI**           | `pol`           | Free        | No API key needed — GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 req/15s) |
-| **Cloudflare Workers AI**     | `cf`            | Free        | 10K Neurons/day — ~150 LLM responses or 500s Whisper audio, edge inference  |
-| **Scaleway AI**               | `scw`           | Free        | 1M free tokens for new accounts — EU/GDPR compliant (Paris)                 |
-| **AI/ML API**                 | `aiml`          | Free        | $0.025/day free credits — 200+ models via single endpoint                   |
-| **Puter AI**                  | `pu`            | Free        | 500+ models (GPT-5, Claude Opus 4, Gemini 3 Pro, Grok 4, DeepSeek V3)       |
-| **Alibaba Cloud (DashScope)** | `ali`           | Paid        | International + China endpoints via `alicode`/`alicode-intl`                |
-| **Alibaba Coding Plan**       | `bcp`           | Paid        | Alibaba Model Studio with Anthropic-compatible API                          |
-| **Kimi Coding (API Key)**     | `kmca`          | Paid        | Dedicated API-key-based Kimi access (separate from OAuth)                   |
-| **MiniMax Coding**            | `minimax`       | Paid        | International endpoint                                                      |
-| **MiniMax (China)**           | `minimax-cn`    | Paid        | China-specific endpoint                                                     |
-| **Z.AI (GLM-5)**              | `zai`           | Paid        | Zhipu AI next-gen GLM models                                                |
-| **Vertex AI**                 | `vertex`        | Paid        | Google Cloud — Service Account JSON or OAuth access_token                   |
-| **Ollama Cloud**              | `ollamacloud`   | Paid        | Ollama's hosted API service                                                 |
-| **Synthetic**                 | `synthetic`     | Paid        | Passthrough models gateway                                                  |
-| **Kilo Gateway**              | `kg`            | Paid        | Passthrough models gateway                                                  |
-| **Perplexity Search**         | `pplx-search`   | Paid        | Dedicated search-grounded endpoint                                          |
-| **Serper Search**             | `serper-search` | Paid        | Web search API integration                                                  |
-| **Brave Search**              | `brave-search`  | Paid        | Brave Search API integration                                                |
-| **Exa Search**                | `exa-search`    | Paid        | Neural search API integration                                               |
-| **Tavily Search**             | `tavily-search` | Paid        | AI search API integration                                                   |
-| **NanoBanana**                | `nb`            | Paid        | Image generation API                                                        |
-| **ElevenLabs**                | `el`            | Paid        | Text-to-speech voice synthesis                                              |
-| **Cartesia**                  | `cartesia`      | Paid        | Ultra-fast TTS voice synthesis                                              |
-| **PlayHT**                    | `playht`        | Paid        | Voice cloning and TTS                                                       |
-| **Inworld**                   | `inworld`       | Paid        | AI character voice chat                                                     |
-| **SD WebUI**                  | `sdwebui`       | Self-hosted | Stable Diffusion local image generation                                     |
-| **ComfyUI**                   | `comfyui`       | Self-hosted | ComfyUI local workflow node-based generation                                |
-| **GLM Coding**                | `glm`           | Paid        | BigModel/Zhipu coding-specific endpoint                                     |
-
-**Total: 67+ providers** (4 Free, 8 OAuth, 55 API Key) + unlimited OpenAI/Anthropic-Compatible custom providers.
-
----
+| Fornitore                      | Alias ​​             | Livello                | Note                                                                                                     |
+| ------------------------------ | -------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **OpenCode Zen**               | `opencode-zen`       | Gratuito               | 3 modelli tramite `opencode.ai/zen/v1` (PR #530 di @kang-heewon)                                         |
+| **OpenCode Vai**               | `opencode-go`        | Pagato                 | 4 modelli tramite `opencode.ai/zen/go/v1` (PR #530 di @kang-heewon)                                      |
+| **AI LongCat**                 | `lc`                 | Gratuito               | 50 milioni di token/giorno (Flash-Lite) + 500.000/giorno (Chat/Thinking) durante la beta pubblica        |
+| **Impollinazioni AI**          | `pol`                | Gratuito               | Non è necessaria alcuna chiave API: GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 richiesta/15 secondi) |
+| **AI di Cloudflare Workers**   | `cf`                 | Gratuito               | 10.000 neuroni al giorno: ~150 risposte LLM o 500 Audio sussurrato, inferenza sui bordi                  |
+| **AI di Scaleway**             | `scw`                | Gratuito               | 1 milione di token gratuiti per i nuovi account: conforme a UE/GDPR (Parigi)                             |
+| **API AI/ML**                  | `scopo`              | Gratuito               | Crediti gratuiti di $ 0,025 al giorno: oltre 200 modelli tramite singolo endpoint                        |
+| **IA del computer**            | `pu`                 | Gratuito               | Oltre 500 modelli (GPT-5, Claude Opus 4, Gemini 3 Pro, Grok 4, DeepSeek V3)                              |
+| **Alibaba Cloud (DashScope)**  | `ali`                | Pagato                 | Endpoint internazionali + cinesi tramite `alicode`/`alicode-intl`                                        |
+| **Piano di codifica Alibaba**  | `bcp`                | Pagato                 | Alibaba Model Studio con API compatibile con l'ambiente antropico                                        |
+| **Codifica Kimi (chiave API)** | `kmca`               | Pagato                 | Accesso Kimi dedicato basato su chiave API (separato da OAuth)                                           |
+| **Codifica MiniMax**           | `minimax`            | Pagato                 | Endpoint internazionale                                                                                  |
+| **MiniMax (Cina)**             | `minimax-cn`         | Pagato                 | Endpoint specifico per la Cina                                                                           |
+| **Z.AI (GLM-5)**               | `zai`                | Pagato                 | Modelli GLM di nuova generazione Zhipu AI                                                                |
+| **AI vertice**                 | `vertice`            | Pagato                 | Google Cloud: account di servizio JSON o OAuth access_token                                              |
+| **Ollama Nuvola**              | `ollamacloud`        | Pagato                 | Servizio API ospitato da Ollama                                                                          |
+| **Sintetico**                  | `sintetico`          | Pagato                 | Gateway modelli passthrough                                                                              |
+| **Chilo Gateway**              | `kg`                 | Pagato                 | Gateway modelli passthrough                                                                              |
+| **Ricerca perplessità**        | `pplx-ricerca`       | Pagato                 | Endpoint dedicato basato sulla ricerca                                                                   |
+| **Ricerca Serper**             | `serper-search`      | Pagato                 | Integrazione API di ricerca Web                                                                          |
+| **Ricerca coraggiosa**         | `ricerca coraggiosa` | Pagato                 | Integrazione API Brave Search                                                                            |
+| **Ricerca Exa**                | `exa-ricerca`        | Pagato                 | Integrazione API di ricerca neurale                                                                      |
+| **Ricerca Tavily**             | `tavily-search`      | Pagato                 | Integrazione API di ricerca AI                                                                           |
+| **NanoBanana**                 | `nb`                 | Pagato                 | API per la generazione di immagini                                                                       |
+| **UndiciLabs**                 | `el`                 | Pagato                 | Sintesi vocale da testo a voce                                                                           |
+| **Cartesia**                   | `cartesia`           | Pagato                 | Sintesi vocale TTS ultraveloce                                                                           |
+| **RiproduciHT**                | `gioca`              | Pagato                 | Clonazione vocale e TTS                                                                                  |
+| **Nel mondo**                  | `nel mondo`          | Pagato                 | Chat vocale del personaggio AI                                                                           |
+| **UI WebSD**                   | `sdwebui`            | Ospitato autonomamente | Generazione di immagini locali a diffusione stabile                                                      |
+| **ComodaUI**                   | `comfyui`            | Ospitato autonomamente | Generazione basata su nodo del flusso di lavoro locale ComfyUI                                           |
+| **Codifica GLM**               | `glm`                | Pagato                 | Endpoint specifico della codifica BigModel/Zhipu                                                         | **Totale: oltre 67 provider**(4 gratuiti, 8 OAuth, 55 chiavi API) + provider personalizzati illimitati OpenAI/compatibili con l'ambiente antropico.--- |
 
 ### ✨ Major Features
 
 #### 🔑 Registered Keys Provisioning API (#464)
 
-Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+Genera automaticamente ed emetti chiavi API OmniRoute a livello di codice con l'applicazione delle quote per provider e per account.
 
-| Endpoint                        | Method       | Description                                      |
-| ------------------------------- | ------------ | ------------------------------------------------ |
-| `/api/v1/registered-keys`       | `POST`       | Issue a new key — raw key returned **once only** |
-| `/api/v1/registered-keys`       | `GET`        | List registered keys (masked)                    |
-| `/api/v1/registered-keys/{id}`  | `GET/DELETE` | Get metadata / Revoke                            |
-| `/api/v1/quotas/check`          | `GET`        | Pre-validate quota before issuing                |
-| `/api/v1/providers/{id}/limits` | `GET/PUT`    | Configure per-provider issuance limits           |
-| `/api/v1/accounts/{id}/limits`  | `GET/PUT`    | Configure per-account issuance limits            |
-| `/api/v1/issues/report`         | `POST`       | Report quota events to GitHub Issues             |
+| Punto finale                     | Metodo            | Descrizione                                                                  |
+| -------------------------------- | ----------------- | ---------------------------------------------------------------------------- |
+| `/api/v1/chiavi-registrate`      | "POST"            | Emetti una nuova chiave: la chiave grezza viene restituita**solo una volta** |
+| `/api/v1/chiavi-registrate`      | `OTTIENI`         | Elenco chiavi registrate (mascherate)                                        |
+| `/api/v1/chiave-registrata/{id}` | `OTTIENI/ELIMINA` | Ottieni metadati / Revoca                                                    |
+| `/api/v1/quote/check`            | `OTTIENI`         | Pre-convalidare la quota prima di emettere                                   |
+| `/api/v1/providers/{id}/limits`  | `OTTIENI/METTI`   | Configurare i limiti di emissione per provider                               |
+| `/api/v1/accounts/{id}/limits`   | `OTTIENI/METTI`   | Configura i limiti di emissione per account                                  |
+| `/api/v1/problemi/rapporto`      | "POST"            | Segnala eventi di quota a GitHub Problemi                                    |
 
-**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
+**Sicurezza:**chiavi archiviate come hash SHA-256. Chiave grezza mostrata una volta al momento della creazione, mai più recuperabile.#### 🎨 Provider Icons via @lobehub/icons (#529)
 
-#### 🎨 Provider Icons via @lobehub/icons (#529)
+Oltre 130 loghi di fornitori che utilizzano i componenti React "@lobehub/icons" (SVG). Catena di fallback:**Lobehub SVG → PNG esistente → icona generica**. Applicato alle pagine Dashboard, Provider e Agenti con il componente "ProviderIcon" standardizzato.#### 🔄 Model Auto-Sync Scheduler (#488)
 
-130+ provider logos using `@lobehub/icons` React components (SVG). Fallback chain: **Lobehub SVG → existing PNG → generic icon**. Applied across Dashboard, Providers, and Agents pages with standardized `ProviderIcon` component.
+Aggiorna automaticamente gli elenchi dei modelli per i fornitori connessi ogni**24 ore**. Viene eseguito all'avvio del server. Configurabile tramite `MODEL_SYNC_INTERVAL_HOURS`.#### 🔀 Per-Model Combo Routing (#563)
 
-#### 🔄 Model Auto-Sync Scheduler (#488)
-
-Auto-refreshes model lists for connected providers every **24 hours**. Runs on server startup. Configurable via `MODEL_SYNC_INTERVAL_HOURS`.
-
-#### 🔀 Per-Model Combo Routing (#563)
-
-Map model name patterns (glob) to specific combos for automatic routing:
+Mappare i modelli di nome del modello (glob) su combinazioni specifiche per il routing automatico:
 
 - `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
-- New `model_combo_mappings` table with glob-to-regex matching
-- Dashboard UI section: "Model Routing Rules" with inline add/edit/toggle/delete
+- Nuova tabella `model_combo_mappings` con corrispondenza glob-to-regex
+- Sezione dell'interfaccia utente del dashboard: "Regole di routing del modello" con aggiunta/modifica/attivazione/disattivazione/eliminazione in linea#### 🧭 API Endpoints Dashboard
 
-#### 🧭 API Endpoints Dashboard
+Catalogo interattivo, gestione webhook, visualizzatore OpenAPI: tutto in un'unica pagina a schede in `/dashboard/endpoint`.#### 🔍 Web Search Providers
 
-Interactive catalog, webhooks management, OpenAPI viewer — all in one tabbed page at `/dashboard/endpoint`.
+5 nuove integrazioni dei provider di ricerca:**Perplexity Search**,**Serper**,**Brave Search**,**Exa**,**Tavily**— consentendo risposte basate sull'intelligenza artificiale con dati web in tempo reale.#### 📊 Search Analytics
 
-#### 🔍 Web Search Providers
+Nuova scheda in `/dashboard/analytics`: suddivisione dei fornitori, percentuale di riscontri nella cache, monitoraggio dei costi. API: "GET /api/v1/search/analytics".#### 🛡️ Per-API-Key Rate Limits (#452)
 
-5 new search provider integrations: **Perplexity Search**, **Serper**, **Brave Search**, **Exa**, **Tavily** — enabling grounded AI responses with real-time web data.
+Colonne "max_requests_per_day" e "max_requests_per_minute" con applicazione della finestra scorrevole in memoria che restituisce HTTP 429.#### 🎵 Media Playground
 
-#### 📊 Search Analytics
-
-New tab in `/dashboard/analytics` — provider breakdown, cache hit rate, cost tracking. API: `GET /api/v1/search/analytics`.
-
-#### 🛡️ Per-API-Key Rate Limits (#452)
-
-`max_requests_per_day` and `max_requests_per_minute` columns with in-memory sliding-window enforcement returning HTTP 429.
-
-#### 🎵 Media Playground
-
-Full media generation playground at `/dashboard/media`: Image Generation, Video, Music, Audio Transcription (2GB upload limit), and Text-to-Speech.
-
----
+Parco giochi completo per la generazione di media su `/dashboard/media`: generazione di immagini, video, musica, trascrizione audio (limite di caricamento di 2 GB) e sintesi vocale.---
 
 ### 🔒 Security & CI/CD
 
-- **CodeQL remediation** — Fixed 10+ alerts: 6 polynomial-redos, 1 insecure-randomness (`Math.random()` → `crypto.randomUUID()`), 1 shell-command-injection
-- **Route validation** — Zod schemas + `validateBody()` on **176/176 API routes** — CI enforced
-- **CVE fix** — dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) resolved via npm overrides
-- **Flatted** — Bumped 3.3.3 → 3.4.2 (CWE-1321 prototype pollution)
-- **Docker** — Upgraded `docker/setup-buildx-action` v3 → v4
-
----
+-**Rimedio CodeQL**— Risolti più di 10 avvisi: 6 ripetizioni polinomiali, 1 casualità non sicura (`Math.random()` → `crypto.randomUUID()`), 1 iniezione di comandi shell -**Convalida del percorso**— Schemi Zod + `validateBody()` su**percorsi API 176/176**— CI applicata -**Correzione CVE**: vulnerabilità dompurify XSS (GHSA-v2wj-7wpq-c8vv) risolta tramite override npm -**Appiattito**— Rimbalzato 3.3.3 → 3.4.2 (inquinamento del prototipo CWE-1321) -**Docker**— Aggiornato `docker/setup-buildx-action` v3 → v4---
 
 ### 🐛 Bug Fixes (40+)
 
 #### OAuth & Auth
 
-- **#537** — Gemini CLI OAuth: clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` missing in Docker
-- **#549** — CLI settings routes now resolve real API key from `keyId` (not masked strings)
-- **#574** — Login no longer freezes after skipping wizard password setup
-- **#506** — Cross-platform `machineId` rewritten (Windows REG.exe → macOS ioreg → Linux → hostname fallback)
+-**#537**— Gemini CLI OAuth: cancella l'errore risolvibile quando `GEMINI_OAUTH_CLIENT_SECRET` manca in Docker -**#549**— I percorsi delle impostazioni CLI ora risolvono la chiave API reale da `keyId` (stringhe non mascherate) -**#574**: l'accesso non si blocca più dopo aver saltato l'impostazione della password della procedura guidata -**#506**— `machineId` multipiattaforma riscritto (Windows REG.exe → macOS ioreg → Linux → nome host fallback)#### Providers & Routing
 
-#### Providers & Routing
+-**#536**— LongCat AI: corretti `baseUrl` e `authHeader` -**#535**— Sostituzione del modello bloccato: `body.model` impostato correttamente su `pinnedModel` -**#570**— I modelli Claude senza prefisso ora si risolvono in provider antropico -**#585**— I tag interni `<omniModel>` non vengono più trasmessi ai client nello streaming SSE -**#493**: la denominazione del modello di provider personalizzato non è più alterata dalla rimozione del prefisso -**#490**— Streaming + protezione della cache di contesto tramite injection `TransformStream` -**#511**— Tag `<omniModel>` inserito nel primo blocco di contenuto (non dopo `[DONE]`)#### CLI & Tools
 
-- **#536** — LongCat AI: fixed `baseUrl` and `authHeader`
-- **#535** — Pinned model override: `body.model` correctly set to `pinnedModel`
-- **#570** — Unprefixed Claude models now resolve to Anthropic provider
-- **#585** — `<omniModel>` internal tags no longer leak to clients in SSE streaming
-- **#493** — Custom provider model naming no longer mangled by prefix stripping
-- **#490** — Streaming + context cache protection via `TransformStream` injection
-- **#511** — `<omniModel>` tag injected into first content chunk (not after `[DONE]`)
+-**#527**— Codice Claude + ciclo Codex: i blocchi `tool_result` ora sono convertiti in testo -**#524**: configurazione OpenCode salvata correttamente (formato XDG_CONFIG_HOME, TOML) -**#522**— Gestore API: rimosso il pulsante fuorviante "Copia chiave mascherata". -**#546**— `--version` restituisce `unknown` su Windows (PR di @k0valik) -**#544**: rilevamento sicuro dello strumento CLI tramite percorsi di installazione noti (PR di @k0valik) -**#510**: percorsi Windows MSYS2/Git-Bash normalizzati automaticamente -**#492**— La CLI rileva il nodo gestito da `mise`/`nvm` quando manca `app/server.js`#### Streaming & SSE
 
-#### CLI & Tools
+-**PR #587**— Ripristina l'importazione di `resolveDataDir` nelle risposteCompatibile con Transformers per Cloudflare Workers (@k0valik) -**PR #495**— Collo di bottiglia 429 attesa infinita: elimina i lavori in attesa sul limite di velocità (@xandr0s) -**#483**— Interrompe il trascinamento di `data: null` dopo il segnale `[DONE]` -**#473**— Stream SSE Zombie: timeout ridotto a 300 → 120 secondi per un fallback più rapido#### Media & Transcription
 
-- **#527** — Claude Code + Codex loop: `tool_result` blocks now converted to text
-- **#524** — OpenCode config saved correctly (XDG_CONFIG_HOME, TOML format)
-- **#522** — API Manager: removed misleading "Copy masked key" button
-- **#546** — `--version` returning `unknown` on Windows (PR by @k0valik)
-- **#544** — Secure CLI tool detection via known installation paths (PR by @k0valik)
-- **#510** — Windows MSYS2/Git-Bash paths normalized automatically
-- **#492** — CLI detects `mise`/`nvm`-managed Node when `app/server.js` missing
-
-#### Streaming & SSE
-
-- **PR #587** — Revert `resolveDataDir` import in responsesTransformer for Cloudflare Workers compat (@k0valik)
-- **PR #495** — Bottleneck 429 infinite wait: drop waiting jobs on rate limit (@xandr0s)
-- **#483** — Stop trailing `data: null` after `[DONE]` signal
-- **#473** — Zombie SSE streams: timeout reduced 300s → 120s for faster fallback
-
-#### Media & Transcription
-
-- **Transcription** — Deepgram `video/mp4` → `audio/mp4` MIME mapping, auto language detection, punctuation
-- **TTS** — `[object Object]` error display fixed for ElevenLabs-style nested errors
-- **Upload limits** — Media transcription increased to 2GB (nginx `client_max_body_size 2g` + `maxDuration=300`)
-
----
+-**Trascrizione**— Deepgram `video/mp4` → `audio/mp4` Mappatura MIME, rilevamento automatico della lingua, punteggiatura -**TTS**— Visualizzazione dell'errore `[oggetto oggetto]` corretta per errori nidificati in stile ElevenLabs -**Upload limits**— Media transcription increased to 2GB (nginx `client_max_body_size 2g` + `maxDuration=300`)---
 
 ### 🔧 Infrastructure & Improvements
 
 #### Sub2api Gap Analysis (T01–T15 + T23–T42)
 
-- **T01** — `requested_model` column in call logs (migration 009)
-- **T02** — Strip empty text blocks from nested `tool_result.content`
-- **T03** — Parse `x-codex-5h-*` / `x-codex-7d-*` quota headers
-- **T04** — `X-Session-Id` header for external sticky routing
-- **T05** — Rate-limit DB persistence with dedicated API
-- **T06** — Account deactivated → permanent block (1-year cooldown)
-- **T07** — X-Forwarded-For IP validation (`extractClientIp()`)
-- **T08** — Per-API-key session limits with sliding-window enforcement
-- **T09** — Codex vs Spark rate-limit scopes (separate pools)
-- **T10** — Credits exhausted → distinct 1h cooldown fallback
-- **T11** — `max` reasoning effort → 131072 budget tokens
-- **T12** — MiniMax M2.7 pricing entries
-- **T13** — Stale quota display fix (reset window awareness)
-- **T14** — Proxy fast-fail TCP check (≤2s, cached 30s)
-- **T15** — Array content normalization for Anthropic
-- **T23** — Intelligent quota reset fallback (header extraction)
-- **T24** — `503` cooldown + `406` mapping
-- **T25** — Provider validation fallback
-- **T29** — Vertex AI Service Account JWT auth
-- **T33** — Thinking level to budget conversion
-- **T36** — `403` vs `429` error classification
-- **T38** — Centralized model specifications (`modelSpecs.ts`)
-- **T39** — Endpoint fallback for `fetchAvailableModels`
-- **T41** — Background task auto-redirect to flash models
-- **T42** — Image generation aspect ratio mapping
+-**T01**: colonna "requested_model" nei registri delle chiamate (migrazione 009) -**T02**— Elimina i blocchi di testo vuoti dal `tool_result.content' nidificato
+-**T03**— Analizza le intestazioni di quota `x-codex-5h-_`/`x-codex-7d-_`-**T04**— Intestazione`X-Session-Id` per sticky routing esterno
+-**T05**: persistenza del DB con limite di velocità con API dedicata
+-**T06**— Account disattivato → blocco permanente (tempo di recupero di 1 anno)
+-**T07**— X-Forwarded-Per convalida IP (`extractClientIp()`) -**T08**— Per-API-key session limits with sliding-window enforcement -**T09**— Ambiti Codex vs Spark rate-limit (pool separati) -**T10**— Crediti esauriti → fallback distinto con tempo di recupero di 1 ora -**T11**— sforzo di ragionamento "max" → 131072 gettoni di budget -**T12**: voci di prezzo MiniMax M2.7 -**T13**— Correzione della visualizzazione delle quote obsolete (ripristino del riconoscimento della finestra) -**T14**: controllo TCP proxy fast-fail (≤2s, cache 30s) -**T15**: normalizzazione del contenuto dell'array per Anthropic -**T23**: fallback intelligente per la reimpostazione della quota (estrazione dell'intestazione) -**T24**— Tempo di recupero "503" + mappatura "406". -**T25**: fallback di convalida del provider -**T29**: autenticazione JWT dell'account del servizio Vertex AI -**T33**: livello di riflessione per conversione del budget -**T36**— Classificazione degli errori "403" e "429". -**T38**: specifiche del modello centralizzato ("modelSpecs.ts") -**T39**— Fallback dell'endpoint per "fetchAvailableModels". -**T41**: reindirizzamento automatico delle attività in background ai modelli Flash -**T42**: mappatura delle proporzioni di generazione dell'immagine#### Other Improvements
 
-#### Other Improvements
-
-- **Per-model upstream custom headers** — via configuration UI (PR #575 by @zhangqiang8vip)
-- **Model context length** — configurable in model metadata (PR #578 by @hijak)
-- **Model prefix stripping** — option to remove provider prefix from model names (PR #582 by @jay77721)
-- **Gemini CLI deprecation** — marked deprecated with Google OAuth restriction warning
-- **YAML parser** — replaced custom parser with `js-yaml` for correct OpenAPI spec parsing
-- **ZWS v5** — HMR leak fix (485 DB connections → 1, memory 2.4GB → 195MB)
-- **Log export** — New JSON export button on dashboard with time range dropdown
-- **Update notification banner** — dashboard homepage shows when new versions are available
-
----
+-**Intestazioni personalizzate upstream per modello**— tramite interfaccia utente di configurazione (PR n. 575 di @zhangqiang8vip) -**Lunghezza del contesto del modello**: configurabile nei metadati del modello (PR #578 di @hijak) -**Rimozione del prefisso del modello**: opzione per rimuovere il prefisso del fornitore dai nomi dei modelli (PR n. 582 di @jay77721) -**Deprecazione della CLI Gemini**: contrassegnata come deprecata con avviso di restrizione OAuth di Google -**Paser YAML**: sostituito il parser personalizzato con `js-yaml` per la corretta analisi delle specifiche OpenAPI -**ZWS v5**— Correzione di perdite HMR (connessioni 485 DB → 1, memoria 2,4 GB → 195 MB) -**Esportazione log**: nuovo pulsante di esportazione JSON sulla dashboard con menu a discesa dell'intervallo di tempo -**Banner di notifica aggiornamento**: la home page del dashboard mostra quando sono disponibili nuove versioni---
 
 ### 🌐 i18n & Documentation
 
-- **30 languages** at 100% parity — 2,788 missing keys synced
-- **Czech** — Full translation: 22 docs, 2,606 UI strings (PR by @zen0bit)
-- **Chinese (zh-CN)** — Complete retranslation (PR by @only4copilot)
-- **VM Deployment Guide** — Translated to English as source document
-- **API Reference** — Added `/v1/embeddings` and `/v1/audio/speech` endpoints
-- **Provider count** — Updated from 36+/40+/44+ to **67+** across README and all 30 i18n READMEs
-
----
+-**30 lingue**con parità al 100%: 2.788 chiavi mancanti sincronizzate -**Ceco**— Traduzione completa: 22 documenti, 2.606 stringhe UI (PR di @zen0bit) -**Cinese (zh-CN)**— Ritraduzione completa (PR di @only4copilot) -**Guida alla distribuzione delle VM**: tradotta in inglese come documento di origine -**API Reference**— Added `/v1/embeddings` and `/v1/audio/speech` endpoints -**Conteggio provider**: aggiornato da 36+/40+/44+ a**67+**nel README e in tutti i 30 README i18n---
 
 ### 🔀 Community PRs Merged (10)
 
-| PR       | Author          | Summary                                                              |
-| -------- | --------------- | -------------------------------------------------------------------- |
-| **#587** | @k0valik        | fix(sse): revert resolveDataDir import for Cloudflare Workers compat |
-| **#582** | @jay77721       | feat(proxy): model name prefix stripping option                      |
-| **#581** | @jay77721       | fix(npm): link electron-release to npm-publish workflow              |
-| **#578** | @hijak          | feat: configurable context length in model metadata                  |
-| **#575** | @zhangqiang8vip | feat: per-model upstream headers, compat PATCH, chat alignment       |
-| **#562** | @coobabm        | fix: MCP session management, Claude passthrough, detectFormat        |
-| **#561** | @zen0bit        | fix(i18n): Czech translation corrections                             |
-| **#555** | @k0valik        | fix(sse): centralized `resolveDataDir()` for path resolution         |
-| **#546** | @k0valik        | fix(cli): `--version` returning `unknown` on Windows                 |
-| **#544** | @k0valik        | fix(cli): secure CLI tool detection via installation paths           |
-| **#542** | @rdself         | fix(ui): light mode contrast CSS theme variables                     |
-| **#530** | @kang-heewon    | feat: OpenCode Zen + Go providers with `OpencodeExecutor`            |
-| **#512** | @zhangqiang8vip | feat: per-protocol model compatibility (`compatByProtocol`)          |
-| **#497** | @zhangqiang8vip | fix: dev-mode HMR resource leaks (ZWS v5)                            |
-| **#495** | @xandr0s        | fix: Bottleneck 429 infinite wait (drop waiting jobs)                |
-| **#494** | @zhangqiang8vip | feat: MiniMax developer→system role fix                              |
-| **#480** | @prakersh       | fix: stream flush usage extraction                                   |
-| **#479** | @prakersh       | feat: Codex 5.3/5.4 and Anthropic pricing entries                    |
-| **#475** | @only4copilot   | feat(i18n): improved Chinese translation                             |
+| PR       | Autore          | Sommario                                                                                     |
+| -------- | --------------- | -------------------------------------------------------------------------------------------- |
+| **#587** | @k0valik        | fix(sse): ripristina l'importazione diresolveDataDir per la compatibilità Cloudflare Workers |
+| **#582** | @jay77721       | feat(proxy): opzione di eliminazione del prefisso del nome del modello                       |
+| **#581** | @jay77721       | fix(npm): collega il rilascio di elettroni al flusso di lavoro npm-publish                   |
+| **#578** | @hijak          | feat: lunghezza del contesto configurabile nei metadati del modello                          |
+| **#575** | @zhangqiang8vip | caratteristica: intestazioni upstream per modello, PATCH compatibile, allineamento chat      |
+| **#562** | @coobabm        | correzione: gestione della sessione MCP, passthrough Claude, discoverFormat                  |
+| **#561** | @zen0bit        | fix(i18n): correzioni di traduzione ceca                                                     |
+| **#555** | @k0valik        | fix(sse): `resolveDataDir()` centralizzato per la risoluzione del percorso                   |
+| **#546** | @k0valik        | fix(cli): `--version` restituisce `unknown` su Windows                                       |
+| **#544** | @k0valik        | fix(cli): rilevamento sicuro dello strumento CLI tramite percorsi di installazione           |
+| **#542** | @rdself         | fix(ui): variabili del tema CSS con contrasto in modalità luce                               |
+| **#530** | @kang-heewon    | feat: provider OpenCode Zen + Go con `OpencodeExecutor`                                      |
+| **#512** | @zhangqiang8vip | feat: compatibilità del modello per protocollo (`compatByProtocol`)                          |
+| **#497** | @zhangqiang8vip | correzione: perdite di risorse HMR in modalità sviluppo (ZWS v5)                             |
+| **#495** | @xandr0s        | correzione: collo di bottiglia 429 attesa infinita (eliminazione dei lavori in attesa)       |
+| **#494** | @zhangqiang8vip | feat: sviluppatore MiniMax→correzione ruolo di sistema                                       |
+| **#480** | @prakersh       | correzione: estrazione dell'utilizzo dello svuotamento del flusso                            |
+| **#479** | @prakersh       | feat: Codice 5.3/5.4 e voci sui prezzi antropici                                             |
+| **#475** | @only4copilot   | feat(i18n): migliorata la traduzione cinese                                                  |
 
-**Thank you to all contributors!** 🙏
-
----
+**Grazie a tutti i contributori!**🙏---
 
 ### 📋 Issues Resolved (50+)
 
-`#452` `#458` `#462` `#464` `#466` `#473` `#474` `#481` `#483` `#487` `#488` `#489` `#490` `#491` `#492` `#493` `#506` `#508` `#509` `#510` `#511` `#513` `#520` `#521` `#522` `#524` `#525` `#527` `#529` `#531` `#532` `#535` `#536` `#537` `#541` `#546` `#549` `#563` `#570` `#574` `#585`
-
----
+`#452` `#458` `#462` `#464` `#466` `#473` `#474` `#481` `#483` `#487` `#488` `#489` `#490` `#491` `#492` `#493` `#506` `#508` `#509` `#510` `#511` `#513` `#520` `#521` `#522` `#524` `#525` `#527` `#529` `#531` `#532` `#535` `#536` `#537` `#541` `#546` `#549` `#563` `#570` `#574` `#585`---
 
 ### 🧪 Tests
 
-- **926 tests, 0 failures** (up from 821 in v2.9.5)
-- +105 new tests covering: model-combo mappings, registered keys, OpencodeExecutor, Bailian provider, route validation, error classification, aspect ratio mapping, and more
+-**926 test, 0 errori**(rispetto agli 821 della versione 2.9.5)
 
----
+- Oltre 105 nuovi test che coprono: mappature di combinazioni di modelli, chiavi registrate, OpencodeExecutor, provider Bailian, convalida del percorso, classificazione degli errori, mappatura delle proporzioni e altro ancora---
 
 ### 📦 Database Migrations
 
-| Migration | Description                                                           |
-| --------- | --------------------------------------------------------------------- |
-| **008**   | `registered_keys`, `provider_key_limits`, `account_key_limits` tables |
-| **009**   | `requested_model` column in `call_logs`                               |
-| **010**   | `model_combo_mappings` table for per-model combo routing              |
-
----
+| Migrazione | Descrizione                                                            |
+| ---------- | ---------------------------------------------------------------------- | --- |
+| **008**    | Tabelle `registered_keys`, `provider_key_limits`, `account_key_limits` |
+| **009**    | Colonna "requested_model" in "call_logs"                               |
+| **010**    | Tabella `model_combo_mappings` per il routing combinato per modello    | --- |
 
 ### ⬆️ Upgrading from v2.9.5
 
@@ -1167,1482 +667,798 @@ docker pull diegosouzapw/omniroute:3.0.0
 # Migrations run automatically on first startup
 ```
 
-> **Breaking changes:** None. All existing configurations, combos, and API keys are preserved.
-> Database migrations 008-010 run automatically on startup.
-
----
+> **Modifiche importanti:**Nessuna. Tutte le configurazioni, le combinazioni e le chiavi API esistenti vengono conservate.
+> Le migrazioni del database 008-010 vengono eseguite automaticamente all'avvio.---
 
 ## [3.0.0-rc.17] — 2026-03-24
 
 ### 🔒 Security & CI/CD
 
-- **CodeQL remediation** — Fixed 10+ alerts:
-  - 6 polynomial-redos in `provider.ts` / `chatCore.ts` (replaced `(?:^|/)` alternation patterns with segment-based matching)
-  - 1 insecure-randomness in `acp/manager.ts` (`Math.random()` → `crypto.randomUUID()`)
-  - 1 shell-command-injection in `prepublish.mjs` (`JSON.stringify()` path escaping)
-- **Route validation** — Added Zod schemas + `validateBody()` to 5 routes missing validation:
-  - `model-combo-mappings` (POST, PUT), `webhooks` (POST, PUT), `openapi/try` (POST)
-  - CI `check:route-validation:t06` now passes: **176/176 routes validated**
+-**Rimedio CodeQL**: risolti più di 10 avvisi:
 
-### 🐛 Bug Fixes
+- 6 ripetizioni polinomiali in `provider.ts` / `chatCore.ts` (sostituiti i modelli di alternanza `(?:^|/)` con la corrispondenza basata sui segmenti)
+- 1 casualità insicura in `acp/manager.ts` (`Math.random()` → `crypto.randomUUID()`)
+- 1 iniezione di comandi shell in `prepublish.mjs` (escape del percorso `JSON.stringify()`) -**Convalida del percorso**— Aggiunti schemi Zod + `validateBody()` a 5 percorsi privi di convalida:
+- `model-combo-mappings` (POST, PUT), `webhooks` (POST, PUT), `openapi/try` (POST)
+- CI `check:route-validation:t06` ora passa:**176/176 rotte convalidate**### 🐛 Bug Fixes
 
-- **#585** — `<omniModel>` internal tags no longer leak to clients in SSE responses. Added outbound sanitization `TransformStream` in `combo.ts`
+-**#585**— `<omniModel>` internal tags no longer leak to clients in SSE responses. Aggiunta la sanificazione in uscita "TransformStream" in "combo.ts".### ⚙️ Infrastructure
 
-### ⚙️ Infrastructure
+-**Docker**: `docker/setup-buildx-action` aggiornato da v3 → v4 (correzione per la deprecazione di Node.js 20) -**Pulizia CI**: eliminate oltre 150 esecuzioni del flusso di lavoro non riuscite/annullate### 🧪 Tests
 
-- **Docker** — Upgraded `docker/setup-buildx-action` from v3 → v4 (Node.js 20 deprecation fix)
-- **CI cleanup** — Deleted 150+ failed/cancelled workflow runs
-
-### 🧪 Tests
-
-- Test suite: **926 tests, 0 failures** (+3 new)
-
----
+- Suite di test:**926 test, 0 fallimenti**(+3 nuovi)---
 
 ## [3.0.0-rc.16] — 2026-03-24
 
 ### ✨ New Features
 
-- Increased media transcription limits
-- Added Model Context Length to registry metadata
-- Added per-model upstream custom headers via configuration UI
-- Fixed multiple bugs, Zod valiadation for patches, and resolved various community issues.
-
-## [3.0.0-rc.15] — 2026-03-24
+- Aumento dei limiti di trascrizione dei media
+- Aggiunta la lunghezza del contesto del modello ai metadati del registro
+- Aggiunte intestazioni personalizzate upstream per modello tramite l'interfaccia utente di configurazione
+- Risolti diversi bug, convalida Zod per le patch e risolti vari problemi della community.## [3.0.0-rc.15] — 2026-03-24
 
 ### ✨ New Features
 
-- **#563** — Per-model Combo Routing: map model name patterns (glob) to specific combos for automatic routing
-  - New `model_combo_mappings` table (migration 010) with pattern, combo_id, priority, enabled
-  - `resolveComboForModel()` DB function with glob-to-regex matching (case-insensitive, `*` and `?` wildcards)
-  - `getComboForModel()` in `model.ts`: augments `getCombo()` with model-pattern fallback
-  - `chat.ts`: routing decision now checks model-combo mappings before single-model handling
-  - API: `GET/POST /api/model-combo-mappings`, `GET/PUT/DELETE /api/model-combo-mappings/:id`
-  - Dashboard: "Model Routing Rules" section added to Combos page with inline add/edit/toggle/delete
-  - Examples: `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
+-**#563**— Routing combinato per modello: mappa i modelli di nomi del modello (glob) su combo specifiche per il routing automatico
 
-### 🌐 i18n
+- Nuova tabella `model_combo_mappings` (migrazione 010) con pattern, combo_id, priorità, abilitato
+- Funzione DB `resolveComboForModel()` con corrispondenza da glob a regex (senza distinzione tra maiuscole e minuscole, caratteri jolly `*` e `?`)
+- `getComboForModel()` in `model.ts`: aumenta `getCombo()` con il fallback del modello-modello
+- `chat.ts`: la decisione di routing ora controlla le mappature modello-combo prima della gestione del modello singolo
+- API: `GET/POST /api/model-combo-mappings`, `GET/PUT/DELETE /api/model-combo-mappings/:id`
+- Dashboard: sezione "Regole di routing del modello" aggiunta alla pagina Combo con aggiunta/modifica/attivazione/disattivazione/eliminazione in linea
+- Esempi: `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo### 🌐 i18n
 
-- **Full i18n Sync**: 2,788 missing keys added across 30 language files — all languages now at 100% parity with `en.json`
-- **Agents page i18n**: OpenCode Integration section fully internationalized (title, description, scanning, download labels)
-- **6 new keys** added to `agents` namespace for OpenCode section
+-**Sincronizzazione i18n completa**: 2.788 chiavi mancanti aggiunte su 30 file di lingua: tutte le lingue ora hanno una parità del 100% con `en.json` -**Pagina agenti i18n**: sezione Integrazione OpenCode completamente internazionalizzata (titolo, descrizione, scansione, etichette di download) -**6 nuove chiavi**aggiunte allo spazio dei nomi `agents` per la sezione OpenCode### 🎨 UI/UX
 
-### 🎨 UI/UX
+-**Icone del provider**: aggiunte 16 icone del provider mancanti (3 copiate, 2 scaricate, 11 SVG create) -**SVG fallback**: componente `ProviderIcon` aggiornato con strategia a 4 livelli: Lobehub → PNG → SVG → Icona generica -**Fingerprinting degli agenti**: sincronizzato con gli strumenti CLI: aggiunti droid, openclaw, copilot, opencode all'elenco delle impronte digitali (14 in totale)### Sicurezza
 
-- **Provider Icons**: 16 missing provider icons added (3 copied, 2 downloaded, 11 SVG created)
-- **SVG fallback**: `ProviderIcon` component updated with 4-tier strategy: Lobehub → PNG → SVG → Generic icon
-- **Agents fingerprinting**: Synced with CLI tools — added droid, openclaw, copilot, opencode to fingerprint list (14 total)
+-**Correzione CVE**: risolta la vulnerabilità dompurify XSS (GHSA-v2wj-7wpq-c8vv) tramite npm esegue l'override forzando `dompurify@^3.3.2`
 
-### Sicurezza
+- "npm audit" ora segnala**0 vulnerabilità**### 🧪 Tests
 
-- **CVE fix**: Resolved dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) via npm overrides forcing `dompurify@^3.3.2`
-- `npm audit` now reports **0 vulnerabilities**
-
-### 🧪 Tests
-
-- Test suite: **923 tests, 0 failures** (+15 new model-combo mapping tests)
-
----
+- Suite di test:**923 test, 0 fallimenti**(+15 nuovi test di mappatura modello-combo)---
 
 ## [3.0.0-rc.14] — 2026-03-23
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author   | Summary                                                                                      |
-| -------- | -------- | -------------------------------------------------------------------------------------------- |
-| **#562** | @coobabm | fix(ux): MCP session management, Claude passthrough normalization, OAuth modal, detectFormat |
-| **#561** | @zen0bit | fix(i18n): Czech translation corrections — HTTP method names and documentation updates       |
+| PR       | Autore   | Sommario                                                                                               |
+| -------- | -------- | ------------------------------------------------------------------------------------------------------ | ------------ |
+| **#562** | @coobabm | fix(ux): gestione delle sessioni MCP, normalizzazione passthrough Claude, modale OAuth, discoverFormat |
+| **#561** | @zen0bit | fix(i18n): correzioni della traduzione ceca: nomi dei metodi HTTP e aggiornamenti della documentazione | ### 🧪 Tests |
 
-### 🧪 Tests
-
-- Test suite: **908 tests, 0 failures**
-
----
+- Suite di test:**908 test, 0 errori**---
 
 ## [3.0.0-rc.13] — 2026-03-23
 
 ### 🔧 Bug Fixes
 
-- **config:** resolve real API key from `keyId` in CLI settings routes (`codex-settings`, `droid-settings`, `kilo-settings`) to prevent writing masked strings (#549)
-
----
+-**config:**risolve la chiave API reale da `keyId` nei percorsi delle impostazioni CLI (`codex-settings`, `droid-settings`, `kilo-settings`) per impedire la scrittura di stringhe mascherate (#549)---
 
 ## [3.0.0-rc.12] — 2026-03-23
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author   | Summary                                                                                                                                                       |
-| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **#546** | @k0valik | fix(cli): `--version` returning `unknown` on Windows — use `JSON.parse(readFileSync)` instead of ESM import                                                   |
-| **#555** | @k0valik | fix(sse): centralized `resolveDataDir()` for path resolution in credentials, autoCombo, responses logger, and request logger                                  |
-| **#544** | @k0valik | fix(cli): secure CLI tool detection via known installation paths (8 tools) with symlink validation, file-type checks, size bounds, minimal env in healthcheck |
-| **#542** | @rdself  | fix(ui): improve light mode contrast — add missing CSS theme variables (`bg-primary`, `bg-subtle`, `text-primary`) and fix dark-only colors in log detail     |
+| PR       | Autore   | Sommario                                                                                                                                                                                                                                    |
+| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **#546** | @k0valik | fix(cli): `--version` restituisce `unknown` su Windows — usa `JSON.parse(readFileSync)` invece dell'importazione ESM                                                                                                                        |
+| **#555** | @k0valik | fix(sse): `resolveDataDir()` centralizzato per la risoluzione del percorso in credenziali, autoCombo, registratore di risposte e registratore di richieste                                                                                  |
+| **#544** | @k0valik | fix(cli): rilevamento sicuro dello strumento CLI tramite percorsi di installazione noti (8 strumenti) con convalida del collegamento simbolico, controlli del tipo di file, limiti di dimensione, ambiente minimo nel controllo dello stato |
+| **#542** | @rdself  | fix(ui): migliora il contrasto della modalità chiara — aggiungi variabili mancanti del tema CSS (`bg-primary`, `bg-subtle`, `text-primary`) e correggi i colori solo scuri nei dettagli del registro                                        | ### 🔧 Bug Fixes |
 
-### 🔧 Bug Fixes
+-**Correzione TDZ in `cliRuntime.ts`**— `validateEnvPath` veniva utilizzato prima dell'inizializzazione all'avvio del modulo da `getExpectedParentPaths()`. Dichiarazioni riordinate per correggere "ReferenceError". -**Correzioni alla build**— Aggiunti `pino` e `pino-pretty` a `serverExternalPackages` per impedire a Turbopack di interrompere il caricamento del lavoratore interno di Pino.### 🧪 Tests
 
-- **TDZ fix in `cliRuntime.ts`** — `validateEnvPath` was used before initialization at module startup by `getExpectedParentPaths()`. Reordered declarations to fix `ReferenceError`.
-- **Build fixes** — Added `pino` and `pino-pretty` to `serverExternalPackages` to prevent Turbopack from breaking Pino's internal worker loading.
-
-### 🧪 Tests
-
-- Test suite: **905 tests, 0 failures**
-
----
+- Suite di test:**905 test, 0 fallimenti**---
 
 ## [3.0.0-rc.10] — 2026-03-23
 
 ### 🔧 Bug Fixes
 
-- **#509 / #508** — Electron build regression: downgraded Next.js from `16.1.x` to `16.0.10` to eliminate Turbopack module-hashing instability that caused blank screens in the Electron desktop bundle.
-- **Unit test fixes** — Corrected two stale test assertions (`nanobanana-image-handler` aspect ratio/resolution, `thinking-budget` Gemini `thinkingConfig` field mapping) that had drifted after recent implementation changes.
-- **#541** — Responded to user feedback about installation complexity; no code changes required.
-
----
+-**#509 / #508**— Regressione alla creazione di Electron: declassato Next.js da `16.1.x` a `16.0.10` per eliminare l'instabilità dell'hashing del modulo Turbopack che causava schermate vuote nel bundle desktop Electron. -**Correzioni per i test unitari**— Corrette due asserzioni di test obsolete (proporzioni/risoluzione di `nanobanana-image-handler`, mappatura dei campi `thinking-budget` Gemini `thinkingConfig`) che erano andate alla deriva dopo le recenti modifiche all'implementazione. -**#541**: risposta al feedback degli utenti sulla complessità dell'installazione; non sono necessarie modifiche al codice.---
 
 ## [3.0.0-rc.9] — 2026-03-23
 
 ### ✨ New Features
 
-- **T29** — Vertex AI SA JSON Executor: implemented using the `jose` library to handle JWT/Service Account auth, along with configurable regions in the UI and automatic partner model URL building.
-- **T42** — Image generation aspect ratio mapping: created `sizeMapper` logic for generic OpenAI formats (`size`), added native `imagen3` handling, and updated NanoBanana endpoints to utilize mapped aspect ratios automatically.
-- **T38** — Centralized model specifications: `modelSpecs.ts` created for limits and parameters per model.
+-**T29**— Esecutore Vertex AI SA JSON: implementato utilizzando la libreria `jose` per gestire l'autenticazione JWT/account di servizio, insieme ad aree configurabili nell'interfaccia utente e alla creazione automatica dell'URL del modello partner. -**T42**— Mappatura delle proporzioni di generazione delle immagini: creata la logica "sizeMapper" per formati OpenAI generici ("size"), aggiunta la gestione nativa di "imagen3" e aggiornati gli endpoint NanoBanana per utilizzare automaticamente le proporzioni mappate. -**T38**— Specifiche del modello centralizzato: "modelSpecs.ts" creato per limiti e parametri per modello.### 🔧 Improvements
 
-### 🔧 Improvements
-
-- **T40** — OpenCode CLI tools integration: native `opencode-zen` and `opencode-go` integration completed in earlier PR.
-
----
+-**T40**: integrazione degli strumenti CLI di OpenCode: integrazione nativa di "opencode-zen" e "opencode-go" completata nel precedente PR.---
 
 ## [3.0.0-rc.8] — 2026-03-23
 
 ### 🔧 Bug Fixes & Improvements (Fallback, Quota & Budget)
 
-- **T24** — `503` cooldown await fix + `406` mapping: mapped `406 Not Acceptable` to `503 Service Unavailable` with proper cooldown intervals.
-- **T25** — Provider validation fallback: graceful fallback to standard validation models when a specific `validationModelId` is not present.
-- **T36** — `403` vs `429` provider handling refinement: extracted into `errorClassifier.ts` to properly segregate hard permissions failures (`403`) from rate limits (`429`).
-- **T39** — Endpoint Fallback for `fetchAvailableModels`: implemented a tri-tier mechanism (`/models` -> `/v1/models` -> local generic catalog) + `list_models_catalog` MCP tool updates to reflect `source` and `warning`.
-- **T33** — Thinking level to budget conversion: translates qualitative thinking levels into precise budget allocations.
-- **T41** — Background task auto redirect: routes heavy background evaluation tasks to flash/efficient models automatically.
-- **T23** — Intelligent quota reset fallback: accurately extracts `x-ratelimit-reset` / `retry-after` header values or maps static cooldowns.
-
----
+-**T24**— Correzione attesa ricarica "503" + mappatura "406": mappata "406 Non accettabile" su "503 Servizio non disponibile" con intervalli di ricarica adeguati. -**T25**— Fallback di convalida del provider: fallback corretto ai modelli di convalida standard quando uno specifico `validationModelId` non è presente. -**T36**— Perfezionamento della gestione del provider "403" vs "429": estratto in "errorClassifier.ts" per separare correttamente gli errori relativi alle autorizzazioni hardware (`403`) dai limiti di velocità (`429`). -**T39**— Fallback endpoint per `fetchAvailableModels`: implementato un meccanismo a tre livelli (`/models` -> `/v1/models` -> catalogo generico locale) + aggiornamenti dello strumento MCP `list_models_catalog` per riflettere `source` e `warning`. -**T33**— Conversione dal livello di riflessione al budget: traduce i livelli di riflessione qualitativa in allocazioni di budget precise. -**T41**: reindirizzamento automatico delle attività in background: indirizza automaticamente attività di valutazione in background pesanti a modelli flash/efficienti. -**T23**— Fallback intelligente per il ripristino della quota: estrae con precisione i valori dell'intestazione "x-ratelimit-reset" / "retry-after" o mappa i tempi di recupero statici.---
 
 ## [3.0.0-rc.7] — 2026-03-23 _(What's New vs v2.9.5 — will be released as v3.0.0)_
 
-> **Upgrade from v2.9.5:** 16 issues resolved · 2 community PRs merged · 2 new providers · 7 new API endpoints · 3 new features · DB migration 008+009 · 832 tests passing · 15 sub2api gap improvements (T01–T15 complete).
+> **Aggiornamento dalla versione 2.9.5:**16 problemi risolti · 2 PR della community uniti · 2 nuovi fornitori · 7 nuovi endpoint API · 3 nuove funzionalità · Migrazione DB 008+009 · 832 test superati · 15 miglioramenti del gap sub2api (T01–T15 completo).### 🆕 New Providers
 
-### 🆕 New Providers
+| Fornitore        | Alias ​​       | Livello  | Note                                                                |
+| ---------------- | -------------- | -------- | ------------------------------------------------------------------- |
+| **OpenCode Zen** | `opencode-zen` | Gratuito | 3 modelli tramite `opencode.ai/zen/v1` (PR #530 di @kang-heewon)    |
+| **OpenCode Vai** | `opencode-go`  | Pagato   | 4 modelli tramite `opencode.ai/zen/go/v1` (PR #530 di @kang-heewon) |
 
-| Provider         | Alias          | Tier | Notes                                                          |
-| ---------------- | -------------- | ---- | -------------------------------------------------------------- |
-| **OpenCode Zen** | `opencode-zen` | Free | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon)    |
-| **OpenCode Go**  | `opencode-go`  | Paid | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon) |
-
-Both providers use the new `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`, `/models/{model}:generateContent`).
-
----
+Entrambi i provider utilizzano il nuovo `OpencodeExecutor` con routing multiformato (`/chat/completions`, `/messages`, `/responses`, `/models/{model}:generateContent`).---
 
 ### ✨ New Features
 
 #### 🔑 Registered Keys Provisioning API (#464)
 
-Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+Genera automaticamente ed emetti chiavi API OmniRoute a livello di codice con l'applicazione delle quote per provider e per account.
 
-| Endpoint                              | Method    | Description                                      |
-| ------------------------------------- | --------- | ------------------------------------------------ |
-| `/api/v1/registered-keys`             | `POST`    | Issue a new key — raw key returned **once only** |
-| `/api/v1/registered-keys`             | `GET`     | List registered keys (masked)                    |
-| `/api/v1/registered-keys/{id}`        | `GET`     | Get key metadata                                 |
-| `/api/v1/registered-keys/{id}`        | `DELETE`  | Revoke a key                                     |
-| `/api/v1/registered-keys/{id}/revoke` | `POST`    | Revoke (for clients without DELETE support)      |
-| `/api/v1/quotas/check`                | `GET`     | Pre-validate quota before issuing                |
-| `/api/v1/providers/{id}/limits`       | `GET/PUT` | Configure per-provider issuance limits           |
-| `/api/v1/accounts/{id}/limits`        | `GET/PUT` | Configure per-account issuance limits            |
-| `/api/v1/issues/report`               | `POST`    | Report quota events to GitHub Issues             |
+| Punto finale                          | Metodo          | Descrizione                                                                  |
+| ------------------------------------- | --------------- | ---------------------------------------------------------------------------- |
+| `/api/v1/chiavi-registrate`           | "POST"          | Emetti una nuova chiave: la chiave grezza viene restituita**solo una volta** |
+| `/api/v1/chiavi-registrate`           | `OTTIENI`       | Elenco chiavi registrate (mascherate)                                        |
+| `/api/v1/chiave-registrata/{id}`      | `OTTIENI`       | Ottieni metadati chiave                                                      |
+| `/api/v1/chiave-registrata/{id}`      | "ELIMINA"       | Revoca una chiave                                                            |
+| `/api/v1/registered-keys/{id}/revoke` | "POST"          | Revoca (per client senza supporto DELETE)                                    |
+| `/api/v1/quote/check`                 | `OTTIENI`       | Pre-convalidare la quota prima di emettere                                   |
+| `/api/v1/providers/{id}/limits`       | `OTTIENI/METTI` | Configurare i limiti di emissione per provider                               |
+| `/api/v1/accounts/{id}/limits`        | `OTTIENI/METTI` | Configura i limiti di emissione per account                                  |
+| `/api/v1/problemi/rapporto`           | "POST"          | Segnala eventi di quota a GitHub Problemi                                    |
 
-**DB — Migration 008:** Three new tables: `registered_keys`, `provider_key_limits`, `account_key_limits`.
-**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
-**Quota types:** `maxActiveKeys`, `dailyIssueLimit`, `hourlyIssueLimit` per provider and per account.
-**Idempotency:** `idempotency_key` field prevents duplicate issuance. Returns `409 IDEMPOTENCY_CONFLICT` if key was already used.
-**Budget per key:** `dailyBudget` / `hourlyBudget` — limits how many requests a key can route per window.
-**GitHub reporting:** Optional. Set `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` to auto-create GitHub issues on quota exceeded or issuance failures.
+**DB — Migrazione 008:**Tre nuove tabelle: `registered_keys`, `provider_key_limits`, `account_key_limits`.
+**Sicurezza:**chiavi archiviate come hash SHA-256. Chiave grezza mostrata una volta al momento della creazione, mai più recuperabile.
+**Tipi di quota:**`maxActiveKeys`, `dailyIssueLimit`, `hourlyIssueLimit` per provider e per account.
+**Idempotency:**il campo `idempotency_key` impedisce l'emissione duplicata. Restituisce "409 IDEMPOTENCY_CONFLICT" se la chiave era già utilizzata.
+**Budget per chiave:**`dailyBudget` / `hourlyBudget`: limita il numero di richieste che una chiave può instradare per finestra.
+**Report GitHub:**facoltativo. Imposta `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` per creare automaticamente problemi GitHub in caso di superamento della quota o di errori di emissione.#### 🎨 Provider Icons — @lobehub/icons (#529)
 
-#### 🎨 Provider Icons — @lobehub/icons (#529)
+Tutte le icone dei provider nella dashboard ora utilizzano i componenti React `@lobehub/icons` (oltre 130 provider con SVG).
+Catena di fallback:**Lobehub SVG → esistente `/providers/{id}.png` → icona generica**. Utilizza un pattern React `ErrorBoundary` corretto.#### 🔄 Model Auto-Sync Scheduler (#488)
 
-All provider icons in the dashboard now use `@lobehub/icons` React components (130+ providers with SVG).
-Fallback chain: **Lobehub SVG → existing `/providers/{id}.png` → generic icon**. Uses a proper React `ErrorBoundary` pattern.
+OmniRoute ora aggiorna automaticamente gli elenchi di modelli per i fornitori connessi ogni**24 ore**.
 
-#### 🔄 Model Auto-Sync Scheduler (#488)
-
-OmniRoute now automatically refreshes model lists for connected providers every **24 hours**.
-
-- Runs on server startup via the existing `/api/sync/initialize` hook
-- Configurable via `MODEL_SYNC_INTERVAL_HOURS` environment variable
-- Covers 16 major providers
-- Records last sync time in the settings database
-
----
+- Viene eseguito all'avvio del server tramite l'hook `/api/sync/initialize` esistente
+- Configurabile tramite la variabile di ambiente `MODEL_SYNC_INTERVAL_HOURS`
+- Copre 16 principali fornitori
+- Registra l'ora dell'ultima sincronizzazione nel database delle impostazioni---
 
 ### 🔧 Bug Fixes
 
 #### OAuth & Auth
 
-- **#537 — Gemini CLI OAuth:** Clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments. Previously showed cryptic `client_secret is missing` from Google. Now provides specific `docker-compose.yml` and `~/.omniroute/.env` instructions.
+-**#537 — Gemini CLI OAuth:**Cancella l'errore che richiede azione quando `GEMINI_OAUTH_CLIENT_SECRET` manca nelle distribuzioni Docker/self-hosted. In precedenza è stato mostrato il criptico "client_secret mancante" da Google. Ora fornisce istruzioni specifiche per `docker-compose.yml` e `~/.omniroute/.env`.#### Providers & Routing
 
-#### Providers & Routing
+-**#536 — LongCat AI:**Corretti `baseUrl` (`api.longcat.chat/openai`) e `authHeader` ("Autorizzazione: Bearer`).
+-**#535 — Sostituzione del modello bloccato:**`body.model`ora è impostato correttamente su`pinnedModel`quando la protezione della cache di contesto è attiva.
+-**#532 — Convalida della chiave OpenCode Go:**ora utilizza l'endpoint di test`zen/v1` (`testKeyBaseUrl`) — la stessa chiave funziona per entrambi i livelli.#### CLI & Tools
 
-- **#536 — LongCat AI:** Fixed `baseUrl` (`api.longcat.chat/openai`) and `authHeader` (`Authorization: Bearer`).
-- **#535 — Pinned model override:** `body.model` is now correctly set to `pinnedModel` when context-cache protection is active.
-- **#532 — OpenCode Go key validation:** Now uses the `zen/v1` test endpoint (`testKeyBaseUrl`) — same key works for both tiers.
+-**#527 — Codice Claude + Ciclo Codex:**i blocchi `tool_result` ora vengono convertiti in testo invece che eliminati, interrompendo infiniti cicli di risultati strumento. -**#524 — Salvataggio della configurazione OpenCode:**Aggiunto il gestore `saveOpenCodeConfig()` (consapevole di XDG_CONFIG_HOME, scrive TOML). -**#521 — Accesso bloccato:**L'accesso non si blocca più dopo aver saltato l'impostazione della password: reindirizza correttamente all'onboarding. -**#522 — Gestore API:**Rimosso il pulsante fuorviante "Copia chiave mascherata" (sostituito con la descrizione comando dell'icona di un lucchetto). -**#532 — Configurazione OpenCode Go:**Il gestore delle impostazioni della guida ora gestisce il toolId `opencode`.#### Developer Experience
 
-#### CLI & Tools
-
-- **#527 — Claude Code + Codex loop:** `tool_result` blocks are now converted to text instead of dropped, stopping infinite tool-result loops.
-- **#524 — OpenCode config save:** Added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML).
-- **#521 — Login stuck:** Login no longer freezes after skipping password setup — redirects correctly to onboarding.
-- **#522 — API Manager:** Removed misleading "Copy masked key" button (replaced with a lock icon tooltip).
-- **#532 — OpenCode Go config:** Guide settings handler now handles `opencode` toolId.
-
-#### Developer Experience
-
-- **#489 — Antigravity:** Missing `googleProjectId` returns a structured 422 error with reconnect guidance instead of a cryptic crash.
-- **#510 — Windows paths:** MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...` automatically.
-- **#492 — CLI startup:** `omniroute` CLI now detects `mise`/`nvm`-managed Node when `app/server.js` is missing and shows targeted fix instructions.
-
----
+-**#489 — Antigravità:**`googleProjectId` mancante restituisce un errore strutturato 422 con guida alla riconnessione invece di un arresto anomalo criptico. -**#510 — Percorsi Windows:**I percorsi MSYS2/Git-Bash (`/c/Program Files/...`) vengono ora normalizzati automaticamente in `C:\Program Files\...`. -**#492 — Avvio della CLI:**La CLI di `omniroute` ora rileva il nodo gestito da `mise`/`nvm` quando manca `app/server.js` e mostra istruzioni di correzione mirate.---
 
 ### 📖 Documentation Updates
 
-- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
-- **#520** — pnpm: `pnpm approve-builds better-sqlite3` step documented
-
----
+-**#513**— Reimpostazione della password Docker: `INITIAL_PASSWORD` env var soluzione alternativa documentata -**#520**— pnpm: passaggio `pnpm approve-builds better-sqlite3` documentato---
 
 ### ✅ Issues Resolved in v3.0.0
 
-`#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#536` `#537`
-
----
+`#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#536` `#537`---
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author       | Summary                                                                |
-| -------- | ------------ | ---------------------------------------------------------------------- |
-| **#530** | @kang-heewon | OpenCode Zen + Go providers with `OpencodeExecutor` and improved tests |
-
----
+| PR       | Autore       | Sommario                                                            |
+| -------- | ------------ | ------------------------------------------------------------------- | --- |
+| **#530** | @kang-heewon | Provider OpenCode Zen + Go con `OpencodeExecutor` e test migliorati | --- |
 
 ## [3.0.0-rc.7] - 2026-03-23
 
 ### 🔧 Improvements (sub2api Gap Analysis — T05, T08, T09, T13, T14)
 
-- **T05** — Rate-limit DB persistence: `setConnectionRateLimitUntil()`, `isConnectionRateLimited()`, `getRateLimitedConnections()` in `providers.ts`. The existing `rate_limited_until` column is now exposed as a dedicated API — OAuth token refresh must NOT touch this field to prevent rate-limit loops.
-- **T08** — Per-API-key session limit: `max_sessions INTEGER DEFAULT 0` added to `api_keys` via auto-migration. `sessionManager.ts` gains `registerKeySession()`, `unregisterKeySession()`, `checkSessionLimit()`, and `getActiveSessionCountForKey()`. Callers in `chatCore.js` can enforce the limit and decrement on `req.close`.
-- **T09** — Codex vs Spark rate-limit scopes: `getCodexModelScope()` and `getCodexRateLimitKey()` in `codex.ts`. Standard models (`gpt-5.x-codex`, `codex-mini`) get scope `"codex"`; spark models (`codex-spark*`) get scope `"spark"`. Rate-limit keys should be `${accountId}:${scope}` so exhausting one pool doesn't block the other.
-- **T13** — Stale quota display fix: `getEffectiveQuotaUsage(used, resetAt)` returns `0` when the reset window has passed; `formatResetCountdown(resetAt)` returns a human-readable countdown string (e.g. `"2h 35m"`). Both exported from `providers.ts` + `localDb.ts` for dashboard consumption.
-- **T14** — Proxy fast-fail: new `src/lib/proxyHealth.ts` with `isProxyReachable(proxyUrl, timeoutMs=2000)` (TCP check, ≤2s instead of 30s timeout), `getCachedProxyHealth()`, `invalidateProxyHealth()`, and `getAllProxyHealthStatuses()`. Results cached 30s by default; configurable via `PROXY_FAST_FAIL_TIMEOUT_MS` / `PROXY_HEALTH_CACHE_TTL_MS`.
+-**T05**— Persistenza del DB con limite di velocità: `setConnectionRateLimitUntil()`, `isConnectionRateLimited()`, `getRateLimitedConnections()` in `provviders.ts`. La colonna esistente "rate_limited_until" è ora esposta come API dedicata: l'aggiornamento del token OAuth NON deve toccare questo campo per evitare loop di limiti di velocità. -**T08**— Limite sessione per chiave API: "max_sessions INTEGER DEFAULT 0" aggiunto ad "api_keys" tramite migrazione automatica. `sessionManager.ts` ottiene `registerKeySession()`, `unregisterKeySession()`, `checkSessionLimit()` e `getActiveSessionCountForKey()`. I chiamanti in "chatCore.js" possono applicare il limite e diminuirlo su "req.close". -**T09**— Ambiti del limite di velocità Codex vs Spark: `getCodexModelScope()` e `getCodexRateLimitKey()` in `codex.ts`. I modelli standard (`gpt-5.x-codex`, `codex-mini`) ottengono l'ambito `"codex"`; i modelli spark (`codex-spark*`) ottengono l'ambito "spark"`. Le chiavi del limite di velocità dovrebbero essere `${accountId}:${scope}`in modo che l'esaurimento di un pool non blocchi l'altro.
+-**T13**— Correzione della visualizzazione delle quote obsolete:`getEffectiveQuotaUsage(used, resetAt)`restituisce`0`una volta superata la finestra di ripristino;`formatResetCountdown(resetAt)`restituisce una stringa di conto alla rovescia leggibile dall'uomo (ad esempio`"2h 35m"`). Entrambi esportati da `provviders.ts`+`localDb.ts`per l'utilizzo del dashboard.
+-**T14**— Proxy fast-fail: nuovo`src/lib/proxyHealth.ts`con`isProxyReachable(proxyUrl, timeoutMs=2000)`(controllo TCP, timeout ≤2s invece di 30s),`getCachedProxyHealth()`, `invalidateProxyHealth()`e`getAllProxyHealthStatuses()`. I risultati vengono memorizzati nella cache per 30 secondi per impostazione predefinita; configurabile tramite `PROXY_FAST_FAIL_TIMEOUT_MS`/`PROXY_HEALTH_CACHE_TTL_MS`.### 🧪 Tests
 
-### 🧪 Tests
-
-- Test suite: **832 tests, 0 failures**
-
----
+- Suite di test:**832 test, 0 errori**---
 
 ## [3.0.0-rc.6] - 2026-03-23
 
 ### 🔧 Bug Fixes & Improvements (sub2api Gap Analysis — T01–T15)
 
-- **T01** — `requested_model` column in `call_logs` (migration 009): track which model the client originally requested vs the actual routed model. Enables fallback rate analytics.
-- **T02** — Strip empty text blocks from nested `tool_result.content`: prevents Anthropic 400 errors (`text content blocks must be non-empty`) when Claude Code chains tool results.
-- **T03** — Parse `x-codex-5h-*` / `x-codex-7d-*` headers: `parseCodexQuotaHeaders()` + `getCodexResetTime()` extract Codex quota windows for precise cooldown scheduling instead of generic 5-min fallback.
-- **T04** — `X-Session-Id` header for external sticky routing: `extractExternalSessionId()` in `sessionManager.ts` reads `x-session-id` / `x-omniroute-session` headers with `ext:` prefix to avoid collision with internal SHA-256 session IDs. Nginx-compatible (hyphenated header).
-- **T06** — Account deactivated → permanent block: `isAccountDeactivated()` in `accountFallback.ts` detects 401 deactivation signals and applies a 1-year cooldown to prevent retrying permanently dead accounts.
-- **T07** — X-Forwarded-For IP validation: new `src/lib/ipUtils.ts` with `extractClientIp()` and `getClientIpFromRequest()` — skips `unknown`/non-IP entries in `X-Forwarded-For` chains (Nginx/proxy-forwarded requests).
-- **T10** — Credits exhausted → distinct fallback: `isCreditsExhausted()` in `accountFallback.ts` returns 1h cooldown with `creditsExhausted` flag, distinct from generic 429 rate limiting.
-- **T11** — `max` reasoning effort → 131072 budget tokens: `EFFORT_BUDGETS` and `THINKING_LEVEL_MAP` updated; reverse mapping now returns `"max"` for full-budget responses. Unit test updated.
-- **T12** — MiniMax M2.7 pricing entries added: `minimax-m2.7`, `MiniMax-M2.7`, `minimax-m2.7-highspeed` added to pricing table (sub2api PR #1120). M2.5/GLM-4.7/GLM-5/Kimi pricing already existed.
-- **T15** — Array content normalization: `normalizeContentToString()` helper in `openai-to-claude.ts` correctly collapses array-formatted system/tool messages to string before sending to Anthropic.
+-**T01**— Colonna "requested_model" in "call_logs" (migrazione 009): traccia il modello originariamente richiesto dal client rispetto al modello effettivamente instradato. Abilita l'analisi del tasso di fallback. -**T02**— Elimina i blocchi di testo vuoti dal `tool_result.content` nidificato: previene gli errori Anthropic 400 ("i blocchi di contenuto testuale devono essere non vuoti") quando Claude Code concatena i risultati dello strumento. -**T03**— Analizza le intestazioni `x-codex-5h-*` / `x-codex-7d-*`: `parseCodexQuotaHeaders()` + `getCodexResetTime()` estrae le finestre delle quote Codex per una pianificazione precisa del cooldown invece del generico fallback di 5 minuti. -**T04**— Intestazione `X-Session-Id` per sticky routing esterno: `extractExternalSessionId()` in `sessionManager.ts` legge le intestazioni `x-session-id` / `x-omniroute-session` con il prefisso `ext:` per evitare collisioni con gli ID di sessione SHA-256 interni. Compatibile con Nginx (intestazione con trattino). -**T06**— Account disattivato → blocco permanente: `isAccountDeactivated()` in `accountFallback.ts` rileva 401 segnali di disattivazione e applica un tempo di recupero di 1 anno per impedire di riprovare con account definitivamente morti. -**T07**— Convalida IP X-Forwarded-For: nuovo `src/lib/ipUtils.ts` con `extractClientIp()` e `getClientIpFromRequest()` — salta le voci `sconosciute`/non IP nelle catene `X-Forwarded-For` (richieste inoltrate da Nginx/proxy). -**T10**— Crediti esauriti → fallback distinto: `isCreditsExhausted()` in `accountFallback.ts` restituisce 1 ora di recupero con il flag `creditsExhausted`, distinto dal limite di velocità generico 429. -**T11**— sforzo di ragionamento `max` → 131072 token di budget: `EFFORT_BUDGETS` e `THINKING_LEVEL_MAP` aggiornati; la mappatura inversa ora restituisce "max" per le risposte a budget completo. Test unitario aggiornato. -**T12**— Aggiunte voci di prezzo MiniMax M2.7: `minimax-m2.7`, `MiniMax-M2.7`, `minimax-m2.7-highspeed` aggiunte alla tabella dei prezzi (sub2api PR #1120). I prezzi M2.5/GLM-4.7/GLM-5/Kimi esistevano già. -**T15**— Normalizzazione del contenuto dell'array: l'helper `normalizeContentToString()` in `openai-to-claude.ts` comprime correttamente i messaggi di sistema/strumento formattati come array in una stringa prima di inviarli ad Anthropic.### 🧪 Tests
 
-### 🧪 Tests
-
-- Test suite: **832 tests, 0 failures** (unchanged from rc.5)
-
----
+- Suite di test:**832 test, 0 fallimenti**(invariato rispetto a rc.5)---
 
 ## [3.0.0-rc.5] - 2026-03-22
 
 ### ✨ New Features
 
-- **#464** — Registered Keys Provisioning API: auto-issue API keys with per-provider & per-account quota enforcement
-  - `POST /api/v1/registered-keys` — issue keys with idempotency support
-  - `GET /api/v1/registered-keys` — list (masked) registered keys
-  - `GET /api/v1/registered-keys/{id}` — get key metadata
-  - `DELETE /api/v1/registered-keys/{id}` / `POST ../{id}/revoke` — revoke keys
-  - `GET /api/v1/quotas/check` — pre-validate before issuing
-  - `PUT /api/v1/providers/{id}/limits` — set provider issuance limits
-  - `PUT /api/v1/accounts/{id}/limits` — set account issuance limits
-  - `POST /api/v1/issues/report` — optional GitHub issue reporting
-  - DB migration 008: `registered_keys`, `provider_key_limits`, `account_key_limits` tables
+-**#464**: API di provisioning delle chiavi registrate: chiavi API emesse automaticamente con applicazione della quota per provider e per account
 
----
+- `POST /api/v1/registered-keys`: rilascia chiavi con supporto per idempotenza
+- `GET /api/v1/registered-keys` — elenca le chiavi registrate (mascherate).
+- `GET /api/v1/registered-keys/{id}`: ottieni i metadati della chiave
+- `DELETE /api/v1/registered-keys/{id}` / `POST ../{id}/revoke` — revoca le chiavi
+- `GET /api/v1/quotas/check`: preconvalida prima dell'emissione
+- `PUT /api/v1/providers/{id}/limits`: imposta i limiti di emissione del provider
+- `PUT /api/v1/accounts/{id}/limits`: imposta i limiti di emissione dell'account
+- `POST /api/v1/issues/report`: segnalazione facoltativa dei problemi di GitHub
+- Migrazione DB 008: tabelle `registered_keys`, `provider_key_limits`, `account_key_limits`---
 
 ## [3.0.0-rc.4] - 2026-03-22
 
 ### ✨ New Features
 
-- **#530 (PR)** — OpenCode Zen and OpenCode Go providers added (by @kang-heewon)
-  - New `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`)
-  - 7 models across both tiers
+-**#530 (PR)**: aggiunti i provider OpenCode Zen e OpenCode Go (di @kang-heewon)
 
----
+- Nuovo `OpencodeExecutor` con routing multiformato (`/chat/completions`, `/messages`, `/responses`)
+- 7 modelli su entrambi i livelli---
 
 ## [3.0.0-rc.3] - 2026-03-22
 
 ### ✨ New Features
 
-- **#529** — Provider icons now use [@lobehub/icons](https://github.com/lobehub/lobe-icons) with graceful PNG fallback and a `ProviderIcon` component (130+ providers supported)
-- **#488** — Auto-update model lists every 24h via `modelSyncScheduler` (configurable via `MODEL_SYNC_INTERVAL_HOURS`)
+-**#529**— Le icone dei provider ora utilizzano [@lobehub/icons](https://github.com/lobehub/lobe-icons) con un grazioso fallback PNG e un componente `ProviderIcon` (oltre 130 provider supportati) -**#488**— Aggiorna automaticamente gli elenchi dei modelli ogni 24 ore tramite `modelSyncScheduler` (configurabile tramite `MODEL_SYNC_INTERVAL_HOURS`)### 🔧 Bug Fixes
 
-### 🔧 Bug Fixes
-
-- **#537** — Gemini CLI OAuth: now shows clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments
-
----
+-**#537**— Gemini CLI OAuth: ora mostra un chiaro errore eseguibile quando `GEMINI_OAUTH_CLIENT_SECRET` manca nelle distribuzioni Docker/self-hosted---
 
 ## [3.0.0-rc.2] - 2026-03-22
 
 ### 🔧 Bug Fixes
 
-- **#536** — LongCat AI key validation: fixed baseUrl (`api.longcat.chat/openai`) and authHeader (`Authorization: Bearer`)
-- **#535** — Pinned model override: `body.model` is now set to `pinnedModel` when context-cache protection detects a pinned model
-- **#524** — OpenCode config now saved correctly: added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML)
-
----
+-**#536**— Convalida della chiave AI LongCat: baseUrl fissa (`api.longcat.chat/openai`) e authHeader (`Autorizzazione: Bearer`) -**#535**— Override del modello bloccato: `body.model` è ora impostato su `pinnedModel` quando la protezione della cache di contesto rileva un modello bloccato -**#524**— La configurazione OpenCode ora viene salvata correttamente: aggiunto il gestore `saveOpenCodeConfig()` (XDG_CONFIG_HOME consapevole, scrive TOML)---
 
 ## [3.0.0-rc.1] - 2026-03-22
 
 ### 🔧 Bug Fixes
 
-- **#521** — Login no longer gets stuck after skipping password setup (redirects to onboarding)
-- **#522** — API Manager: Removed misleading "Copy masked key" button (replaced with lock icon tooltip)
-- **#527** — Claude Code + Codex superpowers loop: `tool_result` blocks now converted to text instead of dropped
-- **#532** — OpenCode GO API key validation now uses the correct `zen/v1` endpoint (`testKeyBaseUrl`)
-- **#489** — Antigravity: missing `googleProjectId` returns structured 422 error with reconnect guidance
-- **#510** — Windows: MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...`
-- **#492** — `omniroute` CLI now detects `mise`/`nvm` when `app/server.js` is missing and shows targeted fix
+-**#521**: l'accesso non si blocca più dopo aver saltato l'impostazione della password (reindirizza all'onboarding) -**#522**— Gestore API: rimosso il pulsante fuorviante "Copia chiave mascherata" (sostituito con la descrizione comando dell'icona del lucchetto) -**#527**— Ciclo dei superpoteri Claude Code + Codex: i blocchi `tool_result` ora sono convertiti in testo invece che eliminati -**#532**— La convalida della chiave API OpenCode GO ora utilizza l'endpoint `zen/v1` corretto (`testKeyBaseUrl`) -**#489**— Antigravità: `googleProjectId` mancante restituisce un errore strutturato 422 con guida alla riconnessione -**#510**— Windows: i percorsi MSYS2/Git-Bash (`/c/Program Files/...`) sono ora normalizzati in `C:\Program Files\...` -**#492**— La CLI di `omniroute` ora rileva `mise`/`nvm` quando manca `app/server.js` e mostra la correzione mirata### Documentazione
 
-### Documentazione
+-**#513**— Reimpostazione della password Docker: `INITIAL_PASSWORD` env var soluzione alternativa documentata -**#520**— pnpm: `pnpm approve-builds better-sqlite3` documented### ✅ Closed Issues
 
-- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
-- **#520** — pnpm: `pnpm approve-builds better-sqlite3` documented
-
-### ✅ Closed Issues
-
-#489, #492, #510, #513, #520, #521, #522, #525, #527, #532
-
----
+#489, #492, #510, #513, #520, #521, #522, #525, #527, #532---
 
 ## [2.9.5] — 2026-03-22
 
-> Sprint: New OpenCode providers, embedding credentials fix, CLI masked key bug, CACHE_TAG_PATTERN fix.
+> Sprint: nuovi provider OpenCode, correzione delle credenziali di incorporamento, bug della chiave mascherata CLI, correzione CACHE_TAG_PATTERN.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Gli strumenti CLI salvano la chiave API mascherata nei file di configurazione**— I percorsi POST di `claude-settings`, `cline-settings` e `openclaw-settings` ora accettano un parametro `keyId` e risolvono la chiave API reale dal DB prima di scrivere sul disco. `ClaudeToolCard` aggiornato per inviare `keyId` invece della stringa di visualizzazione mascherata. Correzioni #523, #526. -**Provider di incorporamento personalizzati: errore `Nessuna credenziale`**— `/v1/embeddings` ora tiene traccia di `credentialsProviderId` separatamente dal prefisso di routing, quindi le credenziali vengono recuperate dall'ID del nodo del provider corrispondente anziché dalla stringa del prefisso pubblico. Risolve una regressione in cui `google/gemini-embedding-001` e modelli simili di provider personalizzati fallivano sempre con un errore di credenziali. Correzioni relative al #532. (PR n. 528 di @jacob2826) -**L'espressione regolare di protezione della cache del contesto non riesce a `
+` prefisso**— `CACHE_TAG_PATTERN` in `comboAgentMiddleware.ts` aggiornato per corrispondere a entrambi i valori letterali `
+` (barra rovesciata-n) e il ritorno a capo effettivo U+000A che lo streaming `combo.ts` inserisce attorno al tag `<omniModel>` dopo la correzione #515. Correzioni #531.### ✨ New Providers
 
-- **CLI tools save masked API key to config files** — `claude-settings`, `cline-settings`, and `openclaw-settings` POST routes now accept a `keyId` param and resolve the real API key from DB before writing to disk. `ClaudeToolCard` updated to send `keyId` instead of the masked display string. Fixes #523, #526.
-- **Custom embedding providers: `No credentials` error** — `/v1/embeddings` now tracks `credentialsProviderId` separately from the routing prefix, so credentials are fetched from the matching provider node ID rather than the public prefix string. Fixes a regression where `google/gemini-embedding-001` and similar custom-provider models would always fail with a credentials error. Fixes #532-related. (PR #528 by @jacob2826)
-- **Context cache protection regex misses `\n` prefix** — `CACHE_TAG_PATTERN` in `comboAgentMiddleware.ts` updated to match both literal `\n` (backslash-n) and actual newline U+000A that `combo.ts` streaming injects around the `<omniModel>` tag after fix #515. Fixes #531.
+-**OpenCode Zen**— Gateway di livello gratuito su `opencode.ai/zen/v1` con 3 modelli: `minimax-m2.5-free`, `big-pickle`, `gpt-5-nano` -**OpenCode Go**— Servizio in abbonamento su `opencode.ai/zen/go/v1` con 4 modelli: `glm-5`, `kimi-k2.5`, `minimax-m2.7` (formato Claude), `minimax-m2.5` (formato Claude)
 
-### ✨ New Providers
-
-- **OpenCode Zen** — Free tier gateway at `opencode.ai/zen/v1` with 3 models: `minimax-m2.5-free`, `big-pickle`, `gpt-5-nano`
-- **OpenCode Go** — Subscription service at `opencode.ai/zen/go/v1` with 4 models: `glm-5`, `kimi-k2.5`, `minimax-m2.7` (Claude format), `minimax-m2.5` (Claude format)
-- Both providers use the new `OpencodeExecutor` which routes dynamically to `/chat/completions`, `/messages`, `/responses`, or `/models/{model}:generateContent` based on the requested model. (PR #530 by @kang-heewon)
-
----
+- Entrambi i provider utilizzano il nuovo `OpencodeExecutor` che instrada dinamicamente a `/chat/completions`, `/messages`, `/responses` o `/models/{model}:generateContent` in base al modello richiesto. (PR n. 530 di @kang-heewon)---
 
 ## [2.9.4] — 2026-03-21
 
-> Sprint: Bug fixes — preserve Codex prompt cache key, fix tagContent JSON escaping, sync expired token status to DB.
+> Sprint: correzioni di bug: preserva la chiave della cache del prompt del Codex, correggi l'escape JSON del tagContent, sincronizza lo stato del token scaduto nel DB.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(translator)**: preserva `prompt_cache_key` nell'API di risposta → traduzione dei completamenti chat (#517)
+— Il campo è un segnale di affinità cache utilizzato dal Codex; eliminandolo si impedivano i riscontri rapidi della cache.
+Risolto il problema con "openai-responses.ts" e "responsesApiHelper.ts".
 
-- **fix(translator)**: Preserve `prompt_cache_key` in Responses API → Chat Completions translation (#517)
-  — The field is a cache-affinity signal used by Codex; stripping it was preventing prompt cache hits.
-  Fixed in `openai-responses.ts` and `responsesApiHelper.ts`.
+-**correzione(combo)**: Escape `
+` in `tagContent` quindi la stringa JSON inserita è valida (#515)
+— Template literal newlines (U+000A) are not allowed unescaped inside JSON string values.
+Sostituito con `\n` sequenze letterali in `open-sse/services/combo.ts`.
 
-- **fix(combo)**: Escape `\n` in `tagContent` so injected JSON string is valid (#515)
-  — Template literal newlines (U+000A) are not allowed unescaped inside JSON string values.
-  Replaced with `\\n` literal sequences in `open-sse/services/combo.ts`.
-
-- **fix(usage)**: Sync expired token status back to DB on live auth failure (#491)
-  — When the Limits & Quotas live check returns 401/403, the connection `testStatus` is now updated
-  to `"expired"` in the database so the Providers page reflects the same degraded state.
-  Fixed in `src/app/api/usage/[connectionId]/route.ts`.
-
----
+-**correzione (utilizzo)**: sincronizza lo stato del token scaduto nel DB in caso di errore di autenticazione in tempo reale (#491)
+— Quando il controllo in tempo reale di Limiti e quote restituisce 401/403, la connessione "testStatus" viene ora aggiornata
+su "scaduto" nel database in modo che la pagina Provider rifletta lo stesso stato degradato.
+Risolto il problema in "src/app/api/usage/[connectionId]/route.ts".---
 
 ## [2.9.3] — 2026-03-21
 
-> Sprint: Add 5 new free AI providers — LongCat, Pollinations, Cloudflare AI, Scaleway, AI/ML API.
+> Sprint: aggiungi 5 nuovi provider AI gratuiti: LongCat, Pollinations, Cloudflare AI, Scaleway, API AI/ML.### ✨ New Providers
 
-### ✨ New Providers
+-**feat(providers/longcat)**: aggiunta LongCat AI (`lc/`) — 50 milioni di token al giorno gratuiti (Flash-Lite) + 500.000 al giorno (Chat/Thinking) durante la beta pubblica. Compatibile con OpenAI, autenticazione al portatore standard. -**feat(providers/pollinations)**: aggiunta di Pollinations AI (`pol/`) — non è richiesta alcuna chiave API. Proxy GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 richiesta/15 secondi gratis). L'esecutore personalizzato gestisce l'autenticazione opzionale. -**feat(providers/cloudflare-ai)**: aggiungi Cloudflare Workers AI (`cf/`) — 10.000 neuroni al giorno gratuiti (~150 risposte LLM o 500 audio Whisper). Oltre 50 modelli all'avanguardia a livello globale. L'esecutore personalizzato crea un URL dinamico con "accountId" dalle credenziali. -**feat(providers/scaleway)**: aggiungi le API generative Scaleway (`scw/`) — 1 milione di token gratuiti per i nuovi account. Conforme all'UE/GDPR (Parigi). Qwen3 235B, Lama 3.1 70B, Maestrale Piccolo 3.2. -**feat(providers/aimlapi)**: aggiunta API AI/ML (`aiml/`): credito gratuito di $ 0,025 al giorno, oltre 200 modelli (GPT-4o, Claude, Gemini, Llama) tramite un singolo endpoint aggregatore.### 🔄 Provider Updates
 
-- **feat(providers/longcat)**: Add LongCat AI (`lc/`) — 50M tokens/day free (Flash-Lite) + 500K/day (Chat/Thinking) during public beta. OpenAI-compatible, standard Bearer auth.
-- **feat(providers/pollinations)**: Add Pollinations AI (`pol/`) — no API key required. Proxies GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 req/15s free). Custom executor handles optional auth.
-- **feat(providers/cloudflare-ai)**: Add Cloudflare Workers AI (`cf/`) — 10K Neurons/day free (~150 LLM responses or 500s Whisper audio). 50+ models on global edge. Custom executor builds dynamic URL with `accountId` from credentials.
-- **feat(providers/scaleway)**: Add Scaleway Generative APIs (`scw/`) — 1M free tokens for new accounts. EU/GDPR compliant (Paris). Qwen3 235B, Llama 3.1 70B, Mistral Small 3.2.
-- **feat(providers/aimlapi)**: Add AI/ML API (`aiml/`) — $0.025/day free credit, 200+ models (GPT-4o, Claude, Gemini, Llama) via single aggregator endpoint.
+-**feat(providers/together)**: aggiunto `hasFree: true` + 3 ID modello permanentemente gratuiti: `Llama-3.3-70B-Instruct-Turbo-Free`, `Llama-Vision-Free`, `DeepSeek-R1-Distill-Llama-70B-Free` -**feat(providers/gemini)**: aggiunto `hasFree: true` + `freeNote` (1.500 req/giorno, non è necessaria la carta di credito, aistudio.google.com) -**chore(providers/gemini)**: rinomina il nome visualizzato in "Gemini (Google AI Studio)" per maggiore chiarezza### ⚙️ Infrastructure
 
-### 🔄 Provider Updates
+-**feat(executors/pollinations)**: Nuovo `PollinationsExecutor` — omette l'intestazione `Authorization` quando non viene fornita alcuna chiave API -**feat(executors/cloudflare-ai)**: nuovo `CloudflareAIExecutor`: la costruzione di URL dinamici richiede `accountId` nelle credenziali del provider -**feat(esecutori)**: registra le mappature degli esecutori `pollinations`, `pol`, `cloudflare-ai`, `cf`### Documentazione
 
-- **feat(providers/together)**: Add `hasFree: true` + 3 permanently free model IDs: `Llama-3.3-70B-Instruct-Turbo-Free`, `Llama-Vision-Free`, `DeepSeek-R1-Distill-Llama-70B-Free`
-- **feat(providers/gemini)**: Add `hasFree: true` + `freeNote` (1,500 req/day, no credit card needed, aistudio.google.com)
-- **chore(providers/gemini)**: Rename display name to `Gemini (Google AI Studio)` for clarity
+-**docs(readme)**: stack combinato gratuito espanso a 11 provider ($ 0 per sempre) -**docs(readme)**: aggiunte 4 nuove sezioni gratuite del provider (LongCat, Pollinations, Cloudflare AI, Scaleway) con tabelle modello -**docs(readme)**: tabella dei prezzi aggiornata con 4 nuove righe del livello gratuito -**docs(i18n/pt-BR)**: tabella dei prezzi aggiornata + aggiunte sezioni LongCat/Pollinations/Cloudflare AI/Scaleway in portoghese -**docs(new-features/ai)**: 10 file di specifiche delle attività + piano di implementazione principale in `docs/new-features/ai/`### 🧪 Tests
 
-### ⚙️ Infrastructure
-
-- **feat(executors/pollinations)**: New `PollinationsExecutor` — omits `Authorization` header when no API key provided
-- **feat(executors/cloudflare-ai)**: New `CloudflareAIExecutor` — dynamic URL construction requires `accountId` in provider credentials
-- **feat(executors)**: Register `pollinations`, `pol`, `cloudflare-ai`, `cf` executor mappings
-
-### Documentazione
-
-- **docs(readme)**: Expanded free combo stack to 11 providers ($0 forever)
-- **docs(readme)**: Added 4 new free provider sections (LongCat, Pollinations, Cloudflare AI, Scaleway) with model tables
-- **docs(readme)**: Updated pricing table with 4 new free tier rows
-- **docs(i18n/pt-BR)**: Updated pricing table + added LongCat/Pollinations/Cloudflare AI/Scaleway sections in Portuguese
-- **docs(new-features/ai)**: 10 task spec files + master implementation plan in `docs/new-features/ai/`
-
-### 🧪 Tests
-
-- Test suite: **821 tests, 0 failures** (unchanged)
-
----
+- Suite di test:**821 test, 0 fallimenti**(invariato)---
 
 ## [2.9.2] — 2026-03-21
 
-> Sprint: Fix media transcription (Deepgram/HuggingFace Content-Type, language detection) and TTS error display.
+> Sprint: corretta la trascrizione multimediale (Deepgram/HuggingFace Content-Type, rilevamento della lingua) e la visualizzazione degli errori TTS.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**correzione (trascrizione)**: la trascrizione audio di Deepgram e HuggingFace ora mappa correttamente `video/mp4` → `audio/mp4` e altri tipi MIME multimediali tramite il nuovo helper `resolveAudioContentType()`. In precedenza, il caricamento di file ".mp4" restituiva costantemente "Nessun parlato rilevato" perché Deepgram riceveva "Tipo di contenuto: video/mp4". -**fix(trascrizione)**: aggiunto `detect_lingual=true` alle richieste Deepgram: rileva automaticamente la lingua audio (portoghese, spagnolo, ecc.) anziché l'inglese per impostazione predefinita. Corregge le trascrizioni non inglesi che restituiscono risultati vuoti o spazzatura. -**fix(trascrizione)**: aggiunto `punctuate=true` alle richieste di Deepgram per output di trascrizione di qualità superiore con punteggiatura corretta. -**fix(tts)**: visualizzazione dell'errore `[object Object]` nelle risposte di sintesi vocale corretta sia in `audioSpeech.ts` che in `audioTranscription.ts`. La funzione `upstreamErrorResponse()` ora estrae correttamente i messaggi di stringa nidificati da provider come ElevenLabs che restituiscono `{ error: { message: "...", status_code: 401 } }` invece di una stringa di errore semplice.### 🧪 Tests
 
-- **fix(transcription)**: Deepgram and HuggingFace audio transcription now correctly map `video/mp4` → `audio/mp4` and other media MIME types via new `resolveAudioContentType()` helper. Previously, uploading `.mp4` files consistently returned "No speech detected" because Deepgram was receiving `Content-Type: video/mp4`.
-- **fix(transcription)**: Added `detect_language=true` to Deepgram requests — auto-detects audio language (Portuguese, Spanish, etc.) instead of defaulting to English. Fixes non-English transcriptions returning empty or garbage results.
-- **fix(transcription)**: Added `punctuate=true` to Deepgram requests for higher-quality transcription output with correct punctuation.
-- **fix(tts)**: `[object Object]` error display in Text-to-Speech responses fixed in both `audioSpeech.ts` and `audioTranscription.ts`. The `upstreamErrorResponse()` function now correctly extracts nested string messages from providers like ElevenLabs that return `{ error: { message: "...", status_code: 401 } }` instead of a flat error string.
+- Suite di test:**821 test, 0 fallimenti**(invariato)### Triaged Issues
 
-### 🧪 Tests
-
-- Test suite: **821 tests, 0 failures** (unchanged)
-
-### Triaged Issues
-
-- **#508** — Tool call format regression: requested proxy logs and provider chain info (`needs-info`)
-- **#510** — Windows CLI healthcheck path: requested shell/Node version info (`needs-info`)
-- **#485** — Kiro MCP tool calls: closed as external Kiro issue (not OmniRoute)
-- **#442** — Baseten /models endpoint: closed (documented manual workaround)
-- **#464** — Key provisioning API: acknowledged as roadmap item
-
----
+-**#508**— Regressione del formato della chiamata dello strumento: log proxy richiesti e informazioni sulla catena del provider ("info sui bisogni") -**#510**— Percorso del controllo di integrità della CLI di Windows: informazioni sulla versione della shell/nodo richieste (`needs-info`) -**#485**: chiamate dello strumento Kiro MCP: chiuse come problema Kiro esterno (non OmniRoute) -**#442**— Endpoint Baseten /models: chiuso (soluzione manuale documentata) -**#464**— API di provisioning delle chiavi: riconosciuta come elemento della roadmap---
 
 ## [2.9.1] — 2026-03-21
 
-> Sprint: Fix SSE omniModel data loss, merge per-protocol model compatibility.
+> Sprint: correzione della perdita di dati SSE omniModel, unione della compatibilità del modello per protocollo.### Bug Fixes
 
-### Bug Fixes
+-**#511**— Critico: il tag `<omniModel>` è stato inviato dopo `finish_reason:stop` nei flussi SSE, causando la perdita di dati. Il tag viene ora inserito nel primo blocco di contenuto non vuoto, garantendo la consegna prima che gli SDK chiudano la connessione.### Merged PRs
 
-- **#511** — Critical: `<omniModel>` tag was sent after `finish_reason:stop` in SSE streams, causing data loss. Tag is now injected into the first non-empty content chunk, guaranteeing delivery before SDKs close the connection.
+-**PR #512**(@zhangqiang8vip): compatibilità del modello per protocollo: `normalizeToolCallId` e `preserveOpenAIDeveloperRole` possono ora essere configurati per protocollo client (OpenAI, Claude, Responses API). Nuovo campo `compatByProtocol` nella configurazione del modello con convalida Zod.### Triaged Issues
 
-### Merged PRs
-
-- **PR #512** (@zhangqiang8vip): Per-protocol model compatibility — `normalizeToolCallId` and `preserveOpenAIDeveloperRole` can now be configured per client protocol (OpenAI, Claude, Responses API). New `compatByProtocol` field in model config with Zod validation.
-
-### Triaged Issues
-
-- **#510** — Windows CLI healthcheck_failed: requested PATH/version info
-- **#509** — Turbopack Electron regression: upstream Next.js bug, documented workarounds
-- **#508** — macOS black screen: suggested `--disable-gpu` workaround
-
----
+-**#510**— Controllo integrità CLI di Windows_failed: informazioni su PATH/versione richieste -**#509**— Regressione Turbopack Electron: bug Next.js upstream, soluzioni alternative documentate -**#508**— Schermata nera di macOS: soluzione alternativa suggerita `--disable-gpu`---
 
 ## [2.9.0] — 2026-03-20
 
-> Sprint: Cross-platform machineId fix, per-API-key rate limits, streaming context cache, Alibaba DashScope, search analytics, ZWS v5, and 8 issues closed.
+> Sprint: correzione machineId multipiattaforma, limiti di velocità per chiave API, cache del contesto di streaming, Alibaba DashScope, analisi di ricerca, ZWS v5 e 8 problemi chiusi.### ✨ New Features
 
-### ✨ New Features
+-**feat(search)**: scheda Analisi delle ricerche in `/dashboard/analytics`: suddivisione dei fornitori, percentuale di riscontri nella cache, monitoraggio dei costi. Nuova API: `GET /api/v1/search/analytics` (#feat/search-provider-routing) -**feat(provider)**: Alibaba Cloud DashScope aggiunto con convalida del percorso endpoint personalizzato: `chatPath` e `modelsPath` configurabili per nodo (#feat/custom-endpoint-paths) -**feat(api)**: limiti di conteggio delle richieste per chiave API: colonne "max_requests_per_day" e "max_requests_per_minute" con applicazione della finestra scorrevole in memoria che restituisce HTTP 429 (#452) -**feat(dev)**: ZWS v5 — Correzione di perdite HMR (connessioni 485 DB → 1), memoria 2,4 GB → 195 MB, singleton `globalThis`, correzione avviso Edge Runtime (@zhangqiang8vip)### 🐛 Bug Fixes
 
-- **feat(search)**: Search Analytics tab in `/dashboard/analytics` — provider breakdown, cache hit rate, cost tracking. New API: `GET /api/v1/search/analytics` (#feat/search-provider-routing)
-- **feat(provider)**: Alibaba Cloud DashScope added with custom endpoint path validation — configurable `chatPath` and `modelsPath` per node (#feat/custom-endpoint-paths)
-- **feat(api)**: Per-API-key request-count limits — `max_requests_per_day` and `max_requests_per_minute` columns with in-memory sliding-window enforcement returning HTTP 429 (#452)
-- **feat(dev)**: ZWS v5 — HMR leak fix (485 DB connections → 1), memory 2.4GB → 195MB, `globalThis` singletons, Edge Runtime warning fix (@zhangqiang8vip)
+-**correzione(#506)**: `machineId` multipiattaforma — `getMachineIdRaw()` riscritto con try/catch Waterfall (Windows REG.exe → macOS ioreg → Lettura file Linux → nome host → `os.hostname()`). Elimina la ramificazione di `process.platform` eliminata dal codice morto del bundler Next.js, correggendo il problema con `'head' non riconosciuto` su Windows. Corregge anche il problema #466. -**correzione(#493)**: denominazione personalizzata del modello del provider: rimossa l'eliminazione errata del prefisso in `DefaultExecutor.transformRequest()` che alterava gli ID dei modelli con ambito org come `zai-org/GLM-5-FP8`. -**correzione(#490)**: Streaming + protezione della cache di contesto — `TransformStream` intercetta SSE per inserire il tag `<omniModel>` prima del marcatore `[DONE]`, abilitando la protezione della cache di contesto per le risposte in streaming. -**correzione(#458)**: convalida dello schema combinato: i campi `system_message`, `tool_filter_regex`, `context_cache_protection` ora superano la convalida Zod al salvataggio. -**correzione(#487)**: pulizia della scheda KIRO MITM: rimosso ZWS_README, generato `AntigravityToolCard` per utilizzare i metadati dello strumento dinamico.### 🧪 Tests
 
-### 🐛 Bug Fixes
+- Aggiunti test unitari di filtraggio degli strumenti in formato antropico (PR #397) — 8 test di regressione per `tool.name` senza wrapper `.function`
+- Suite di test:**821 test, 0 errori**(rispetto a 813)### 📋 Issues Closed (8)
 
-- **fix(#506)**: Cross-platform `machineId` — `getMachineIdRaw()` rewritten with try/catch waterfall (Windows REG.exe → macOS ioreg → Linux file read → hostname → `os.hostname()`). Eliminates `process.platform` branching that Next.js bundler dead-code-eliminated, fixing `'head' is not recognized` on Windows. Also fixes #466.
-- **fix(#493)**: Custom provider model naming — removed incorrect prefix stripping in `DefaultExecutor.transformRequest()` that mangled org-scoped model IDs like `zai-org/GLM-5-FP8`.
-- **fix(#490)**: Streaming + context cache protection — `TransformStream` intercepts SSE to inject `<omniModel>` tag before `[DONE]` marker, enabling context cache protection for streaming responses.
-- **fix(#458)**: Combo schema validation — `system_message`, `tool_filter_regex`, `context_cache_protection` fields now pass Zod validation on save.
-- **fix(#487)**: KIRO MITM card cleanup — removed ZWS_README, generified `AntigravityToolCard` to use dynamic tool metadata.
+-**#506**— ID macchina Windows `head` non riconosciuto (risolto) -**#493**: denominazione personalizzata del modello del provider (risolto) -**#490**— Cache del contesto di streaming (risolto) -**#452**: limiti di richiesta per chiave API (implementati) -**#466**: errore di accesso a Windows (stessa causa principale di #506) -**#504**— MITM inattivo (comportamento previsto) -**#462**— Gemini CLI PSA (risolto) -**#434**— Arresto anomalo dell'app Electron (duplicato di #402)## [2.8.9] — 2026-03-20
 
-### 🧪 Tests
+> Sprint: unisci i PR della comunità, correggi la scheda KIRO MITM, aggiornamenti delle dipendenze.### Merged PRs
 
-- Added Anthropic-format tools filter unit tests (PR #397) — 8 regression tests for `tool.name` without `.function` wrapper
-- Test suite: **821 tests, 0 failures** (up from 813)
+-**PR #498**(@Sajid11194): risolto il crash dell'ID macchina Windows (`unfine\REG.exe`). Sostituisce `node-machine-id` con le query del registro del sistema operativo nativo.**Chiude #486.** -**PR #497**(@zhangqiang8vip): corrette le perdite di risorse HMR in modalità sviluppatore: 485 connessioni DB trapelate → 1, memoria 2,4 GB → 195 MB. Singleton "globalThis", correzione degli avvisi di Edge Runtime, stabilità del test di Windows. (+1168/-338 su 22 file) -**PR n. 499-503**(Dependabot): aggiornamenti di GitHub Actions: `docker/build-push-action@7`, `actions/checkout@6`, `peter-evans/dockerhub-description@5`, `docker/setup-qemu-action@4`, `docker/login-action@4`.### Bug Fixes
 
-### 📋 Issues Closed (8)
-
-- **#506** — Windows machineId `head` not recognized (fixed)
-- **#493** — Custom provider model naming (fixed)
-- **#490** — Streaming context cache (fixed)
-- **#452** — Per-API-key request limits (implemented)
-- **#466** — Windows login failure (same root cause as #506)
-- **#504** — MITM inactive (expected behavior)
-- **#462** — Gemini CLI PSA (resolved)
-- **#434** — Electron app crash (duplicate of #402)
-
-## [2.8.9] — 2026-03-20
-
-> Sprint: Merge community PRs, fix KIRO MITM card, dependency updates.
-
-### Merged PRs
-
-- **PR #498** (@Sajid11194): Fix Windows machine ID crash (`undefined\REG.exe`). Replaces `node-machine-id` with native OS registry queries. **Closes #486.**
-- **PR #497** (@zhangqiang8vip): Fix dev-mode HMR resource leaks — 485 leaked DB connections → 1, memory 2.4GB → 195MB. `globalThis` singletons, Edge Runtime warning fix, Windows test stability. (+1168/-338 across 22 files)
-- **PRs #499-503** (Dependabot): GitHub Actions updates — `docker/build-push-action@7`, `actions/checkout@6`, `peter-evans/dockerhub-description@5`, `docker/setup-qemu-action@4`, `docker/login-action@4`.
-
-### Bug Fixes
-
-- **#505** — KIRO MITM card now displays tool-specific instructions (`api.anthropic.com`) instead of Antigravity-specific text.
-- **#504** — Responded with UX clarification (MITM "Inactive" is expected behavior when proxy is not running).
-
----
+-**#505**— La scheda KIRO MITM ora mostra istruzioni specifiche per lo strumento (`api.anthropic.com`) invece del testo specifico per Antigravity. -**#504**: risposta con chiarimenti sull'UX (MITM "Inattivo" è il comportamento previsto quando il proxy non è in esecuzione).---
 
 ## [2.8.8] — 2026-03-20
 
-> Sprint: Fix OAuth batch test crash, add "Test All" button to individual provider pages.
+> Sprint: risolto il crash del test batch OAuth, aggiunto il pulsante "Test All" alle pagine dei singoli provider.### Bug Fixes
 
-### Bug Fixes
+-**Arresto anomalo del test batch OAuth**(ERR_CONNECTION_REFUSED): sostituito il ciclo for sequenziale con un limite di concorrenza di 5 connessioni + timeout di 30 secondi per connessione tramite `Promise.race()` + `Promise.allSettled()`. Previene l'arresto anomalo del server durante il test di gruppi di provider OAuth di grandi dimensioni (~30+ connessioni).### Funzionalità
 
-- **OAuth batch test crash** (ERR_CONNECTION_REFUSED): Replaced sequential for-loop with 5-connection concurrency limit + 30s per-connection timeout via `Promise.race()` + `Promise.allSettled()`. Prevents server crash when testing large OAuth provider groups (~30+ connections).
-
-### Funzionalità
-
-- **"Test All" button on provider pages**: Individual provider pages (e.g., `/providers/codex`) now show a "Test All" button in the Connections header when there are 2+ connections. Uses `POST /api/providers/test-batch` with `{mode: "provider", providerId}`. Results displayed in a modal with pass/fail summary and per-connection diagnosis.
-
----
+-**Pulsante "Prova tutto" sulle pagine dei provider**: le pagine dei singoli fornitori (ad esempio, `/providers/codex`) ora mostrano un pulsante "Prova tutto" nell'intestazione Connessioni quando sono presenti più di 2 connessioni. Utilizza `POST /api/providers/test-batch` con `{mode: "provider", providerId}`. Risultati visualizzati in modalità modale con riepilogo pass/fail e diagnosi per connessione.---
 
 ## [2.8.7] — 2026-03-20
 
-> Sprint: Merge PR #495 (Bottleneck 429 drop), fix #496 (custom embedding providers), triage features.
+> Sprint: unione PR #495 (drop collo di bottiglia 429), correzione #496 (fornitori di incorporamento personalizzato), funzionalità di triage.### Bug Fixes
 
-### Bug Fixes
+-**Collo di bottiglia 429 attesa infinita**(PR #495 di @xandr0s): su 429, `limiter.stop({ dropWaitingJobs: true })` fallisce immediatamente tutte le richieste in coda in modo che i chiamanti upstream possano attivare il fallback. Il limitatore viene eliminato dalla mappa, quindi la richiesta successiva crea una nuova istanza. -**Modelli di incorporamento personalizzati irrisolvibili**(#496): `POST /v1/embeddings` ora risolve i modelli di incorporamento personalizzati da TUTTI i provider_nodes (non solo localhost). Abilita modelli come "google/gemini-embedding-001" aggiunti tramite dashboard.### Issues Responded
 
-- **Bottleneck 429 infinite wait** (PR #495 by @xandr0s): On 429, `limiter.stop({ dropWaitingJobs: true })` immediately fails all queued requests so upstream callers can trigger fallback. Limiter is deleted from Map so next request creates a fresh instance.
-- **Custom embedding models unresolvable** (#496): `POST /v1/embeddings` now resolves custom embedding models from ALL provider_nodes (not just localhost). Enables models like `google/gemini-embedding-001` added via dashboard.
-
-### Issues Responded
-
-- **#452** — Per-API-key request-count limits (acknowledged, on roadmap)
-- **#464** — Auto-issue API keys with provider/account limits (needs more detail)
-- **#488** — Auto-update model lists (acknowledged, on roadmap)
-- **#496** — Custom embedding provider resolution (fixed)
-
----
+-**#452**: limiti di conteggio delle richieste per chiave API (riconosciuti, sulla roadmap) -**#464**: chiavi API emesse automaticamente con limiti di provider/account (sono necessari maggiori dettagli) -**#488**: aggiornamento automatico degli elenchi dei modelli (riconosciuto, sulla roadmap) -**#496**: risoluzione del provider di incorporamento personalizzato (risolto)---
 
 ## [2.8.6] — 2026-03-20
 
-> Sprint: Merge PR #494 (MiniMax role fix), fix KIRO MITM dashboard, triage 8 issues.
+> Sprint: unione PR #494 (correzione ruolo MiniMax), correzione dashboard KIRO MITM, problemi di triage 8.### Funzionalità
 
-### Funzionalità
+-**Sviluppatore MiniMax→correzione ruolo di sistema**(PR n. 494 di @zhangqiang8vip): attiva/disattiva `preserveDeveloperRole` per modello. Aggiunge l'interfaccia utente "Compatibilità" nella pagina dei fornitori. Risolto il problema relativo all'errore 422 "parametro ruolo" per MiniMax e gateway simili. -**roleNormalizer**: `normalizeDeveloperRole()` ora accetta il parametro `preserveDeveloperRole` con comportamento a tre stati (unDefinito=mantieni, true=mantieni, false=converti). -**DB**: nuovi `getModelPreserveOpenAIDeveloperRole()` e `mergeModelCompatOverride()` in `models.ts`.### Bug Fixes
 
-- **MiniMax developer→system role fix** (PR #494 by @zhangqiang8vip): Per-model `preserveDeveloperRole` toggle. Adds "Compatibility" UI in providers page. Fixes 422 "role param error" for MiniMax and similar gateways.
-- **roleNormalizer**: `normalizeDeveloperRole()` now accepts `preserveDeveloperRole` parameter with tri-state behavior (undefined=keep, true=keep, false=convert).
-- **DB**: New `getModelPreserveOpenAIDeveloperRole()` and `mergeModelCompatOverride()` in `models.ts`.
+-**Dashboard KIRO MITM**(#481/#487): `CLIToolsPageClient` ora instrada qualsiasi strumento `configType: "mitm"` a `AntigravityToolCard` (controlli Start/Stop MITM). In precedenza solo Antigravity era codificato. -**AntigravityToolCard generico**: utilizza `tool.image`, `tool.description`, `tool.id` invece dei valori Antigravity codificati. Protegge dai `defaultModels` mancanti.### Cleanup
 
-### Bug Fixes
+- Rimosso `ZWS_README_V2.md` (documenti di solo sviluppo dal PR n. 494).### Issues Triaged (8)
 
-- **KIRO MITM dashboard** (#481/#487): `CLIToolsPageClient` now routes any `configType: "mitm"` tool to `AntigravityToolCard` (MITM Start/Stop controls). Previously only Antigravity was hardcoded.
-- **AntigravityToolCard generic**: Uses `tool.image`, `tool.description`, `tool.id` instead of hardcoded Antigravity values. Guards against missing `defaultModels`.
-
-### Cleanup
-
-- Removed `ZWS_README_V2.md` (development-only docs from PR #494).
-
-### Issues Triaged (8)
-
-- **#487** — Closed (KIRO MITM fixed in this release)
-- **#486** — needs-info (Windows REG.exe PATH issue)
-- **#489** — needs-info (Antigravity projectId missing, OAuth reconnect needed)
-- **#492** — needs-info (missing app/server.js on mise-managed Node)
-- **#490** — Acknowledged (streaming + context cache blocking, fix planned)
-- **#491** — Acknowledged (Codex auth state inconsistency)
-- **#493** — Acknowledged (Modal provider model name prefix, workaround provided)
-- **#488** — Feature request backlog (auto-update model lists)
-
----
+-**#487**— Chiuso (KIRO MITM corretto in questa versione) -**#486**— ha bisogno di informazioni (problema relativo al PATH di Windows REG.exe) -**#489**: ha bisogno di informazioni (ID progetto Antigravity mancante, è necessaria la riconnessione OAuth) -**#492**— need-info (app/server.js mancante sul nodo mal gestito) -**#490**— Riconosciuto (streaming + blocco della cache di contesto, correzione pianificata) -**#491**— Riconosciuto (incoerenza dello stato di autenticazione del Codex) -**#493**: riconosciuto (prefisso del nome del modello del provider modale, soluzione alternativa fornita) -**#488**: arretrato di richieste di funzionalità (elenchi di modelli con aggiornamento automatico)---
 
 ## [2.8.5] — 2026-03-19
 
-> Sprint: Fix zombie SSE streams, context cache first-turn, KIRO MITM, and triage 5 external issues.
+> Sprint: risolti i flussi SSE zombie, la cache di contesto al primo turno, KIRO MITM e i problemi esterni di triage 5.### Bug Fixes
 
-### Bug Fixes
+-**Streaming SSE Zombie**(#473): ridotto `STREAM_IDLE_TIMEOUT_MS` da 300 → 120 secondi per un fallback combinato più rapido quando i provider si bloccano a metà streaming. Configurabile tramite env var. -**Tag cache di contesto**(#474): risolto il problema con `injectModelTag()` per gestire le richieste del primo turno (nessun messaggio di assistente): la protezione della cache di contesto ora funziona fin dalla prima risposta. -**KIRO MITM**(#481): modifica KIRO `configType` da `guide` → `mitm` in modo che la dashboard visualizzi i controlli Start/Stop MITM. -**Test E2E**(CI): correggere `providers-bailian-coding-plan.spec.ts`: ignora l'overlay modale preesistente prima di fare clic sul pulsante Aggiungi chiave API.### Closed Issues
 
-- **Zombie SSE Streams** (#473): Reduce `STREAM_IDLE_TIMEOUT_MS` from 300s → 120s for faster combo fallback when providers hang mid-stream. Configurable via env var.
-- **Context Cache Tag** (#474): Fix `injectModelTag()` to handle first-turn requests (no assistant messages) — context cache protection now works from the very first response.
-- **KIRO MITM** (#481): Change KIRO `configType` from `guide` → `mitm` so the dashboard renders MITM Start/Stop controls.
-- **E2E Test** (CI): Fix `providers-bailian-coding-plan.spec.ts` — dismiss pre-existing modal overlay before clicking Add API Key button.
-
-### Closed Issues
-
-- #473 — Zombie SSE streams bypass combo fallback
-- #474 — Context cache `<omniModel>` tag missing on first turn
-- #481 — MITM for KIRO not activatable from dashboard
-- #468 — Gemini CLI remote server (superseded by #462 deprecation)
-- #438 — Claude unable to write files (external CLI issue)
-- #439 — AppImage doesn't work (documented libfuse2 workaround)
-- #402 — ARM64 DMG "damaged" (documented xattr -cr workaround)
-- #460 — CLI not runnable on Windows (documented PATH fix)
-
----
+- #473 — I flussi Zombie SSE bypassano il fallback combinato
+- #474 — Tag della cache contestuale `<omniModel>` mancante al primo turno
+- #481 — MITM per KIRO non attivabile dal dashboard
+- #468: server remoto Gemini CLI (sostituito dalla deprecazione #462)
+- #438 — Claude non è in grado di scrivere file (problema CLI esterno)
+- #439 — AppImage non funziona (soluzione alternativa documentata con libfuse2)
+- #402 - ARM64 DMG "danneggiato" (soluzione alternativa documentata xattr -cr)
+- #460: CLI non eseguibile su Windows (correzione PATH documentata)---
 
 ## [2.8.4] — 2026-03-19
 
-> Sprint: Gemini CLI deprecation, VM guide i18n fix, dependabot security fix, provider schema expansion.
+> Sprint: deprecazione della CLI Gemini, correzione i18n della guida VM, correzione della sicurezza dependabot, espansione dello schema del provider.### Funzionalità
 
-### Funzionalità
+-**Deprecazione della Gemini CLI**(#462): contrassegna il provider `gemini-cli` come deprecato con un avviso: Google limita l'utilizzo di OAuth di terze parti da marzo 2026 -**Schema provider**(#462): espande la convalida Zod con i campi opzionali `deprecated`, `deprecationReason`, `hasFree`, `freeNote`, `authHint`, `apiHint`### Bug Fixes
 
-- **Gemini CLI Deprecation** (#462): Mark `gemini-cli` provider as deprecated with warning — Google restricts third-party OAuth usage from March 2026
-- **Provider Schema** (#462): Expand Zod validation with `deprecated`, `deprecationReason`, `hasFree`, `freeNote`, `authHint`, `apiHint` optional fields
+-**VM Guide i18n**(#471): aggiunto `VM_DEPLOYMENT_GUIDE.md` alla pipeline di traduzione i18n, rigenera tutte le 30 traduzioni locali dall'origine inglese (erano bloccate in portoghese).### Sicurezza
 
-### Bug Fixes
+-**deps**: Bump `flatted` 3.3.3 → 3.4.2 — risolve l'inquinamento del prototipo CWE-1321 (#484, @dependabot)### Closed Issues
 
-- **VM Guide i18n** (#471): Add `VM_DEPLOYMENT_GUIDE.md` to i18n translation pipeline, regenerate all 30 locale translations from English source (were stuck in Portuguese)
+- #472 — Regressione degli alias del modello (risolto nella v2.8.2)
+- #471 — Traduzioni della guida VM interrotte
+- #483 — Finale `data: null` dopo `[DONE]` (risolto nella v2.8.3)### Merged PRs
 
-### Sicurezza
-
-- **deps**: Bump `flatted` 3.3.3 → 3.4.2 — fixes CWE-1321 prototype pollution (#484, @dependabot)
-
-### Closed Issues
-
-- #472 — Model Aliases regression (fixed in v2.8.2)
-- #471 — VM guide translations broken
-- #483 — Trailing `data: null` after `[DONE]` (fixed in v2.8.3)
-
-### Merged PRs
-
-- #484 — deps: bump flatted from 3.3.3 to 3.4.2 (@dependabot)
-
----
+- #484 — deps: bump flattato da 3.3.3 a 3.4.2 (@dependabot)---
 
 ## [2.8.3] — 2026-03-19
 
-> Sprint: Czech i18n, SSE protocol fix, VM guide translation.
+> Sprint: i18n ceco, correzione del protocollo SSE, traduzione della guida VM.### Funzionalità
 
-### Funzionalità
+-**Lingua ceca**(#482): ceco completo (cs) i18n: 22 documenti, 2606 stringhe UI, aggiornamenti per il cambio di lingua (@zen0bit) -**Guida alla distribuzione delle VM**: tradotto dal portoghese all'inglese come documento sorgente (@zen0bit)### Bug Fixes
 
-- **Czech Language** (#482): Full Czech (cs) i18n — 22 docs, 2606 UI strings, language switcher updates (@zen0bit)
-- **VM Deployment Guide**: Translated from Portuguese to English as the source document (@zen0bit)
+-**Protocollo SSE**(#483): interrompe l'invio di `data: null` finale dopo il segnale `[DONE]`: corregge `AI_TypeValidationError` nei client AI SDK rigorosi (validatori basati su Zod).### Merged PRs
 
-### Bug Fixes
-
-- **SSE Protocol** (#483): Stop sending trailing `data: null` after `[DONE]` signal — fixes `AI_TypeValidationError` in strict AI SDK clients (Zod-based validators)
-
-### Merged PRs
-
-- #482 — Add Czech language + Fix VM_DEPLOYMENT_GUIDE.md English source (@zen0bit)
-
----
+- #482 - Aggiungi la lingua ceca + Correggi la fonte inglese VM_DEPLOYMENT_GUIDE.md (@zen0bit)---
 
 ## [2.8.2] — 2026-03-19
 
-> Sprint: 2 merged PRs, model aliases routing fix, log export, and issue triage.
+> Sprint: 2 PR uniti, correzione del routing degli alias del modello, esportazione dei log e valutazione dei problemi.### Funzionalità
 
-### Funzionalità
+-**Esportazione registri**: nuovo pulsante di esportazione su `/dashboard/logs` con menu a discesa dell'intervallo di tempo (1 ora, 6 ore, 12 ore, 24 ore). Scarica JSON di log di richieste/proxy/chiamate tramite l'API `/api/logs/export` (#user-request)### Bug Fixes
 
-- **Log Export**: New Export button on `/dashboard/logs` with time range dropdown (1h, 6h, 12h, 24h). Downloads JSON of request/proxy/call logs via `/api/logs/export` API (#user-request)
+-**Instradamento degli alias del modello**(#472): Impostazioni → Gli alias del modello ora influenzano correttamente il routing del provider, non solo il rilevamento del formato. In precedenza l'output di `resolveModelAlias()` veniva utilizzato solo per `getModelTargetFormat()` ma l'ID del modello originale veniva inviato al provider -**Utilizzo dello svuotamento del flusso**(#480): i dati sull'utilizzo dell'ultimo evento SSE nel buffer vengono ora estratti correttamente durante lo scaricamento del flusso (uniti da @prakersh)### Merged PRs
 
-### Bug Fixes
-
-- **Model Aliases Routing** (#472): Settings → Model Aliases now correctly affect provider routing, not just format detection. Previously `resolveModelAlias()` output was only used for `getModelTargetFormat()` but the original model ID was sent to the provider
-- **Stream Flush Usage** (#480): Usage data from the last SSE event in the buffer is now correctly extracted during stream flush (merged from @prakersh)
-
-### Merged PRs
-
-- #480 — Extract usage from remaining buffer in flush handler (@prakersh)
-- #479 — Add missing Codex 5.3/5.4 and Anthropic model ID pricing entries (@prakersh)
-
----
+- #480: estrae l'utilizzo dal buffer rimanente nel gestore di flush (@prakersh)
+- #479 - Aggiunte voci di prezzo mancanti per il Codex 5.3/5.4 e l'ID del modello antropico (@prakersh)---
 
 ## [2.8.1] — 2026-03-19
 
-> Sprint: Five community PRs — streaming call log fixes, Kiro compatibility, cache token analytics, Chinese translation, and configurable tool call IDs.
+> Sprint: cinque PR della community: correzioni del registro delle chiamate in streaming, compatibilità con Kiro, analisi dei token della cache, traduzione in cinese e ID di chiamata degli strumenti configurabili.### Funzionalità
 
-### Funzionalità
+-**feat(logs)**: il contenuto della risposta del registro delle chiamate ora viene accumulato correttamente dai blocchi grezzi del provider (OpenAI/Claude/Gemini) prima della traduzione, risolvendo i payload di risposta vuoti in modalità streaming (#470, @zhangqiang8vip). -**feat(providers)**: normalizzazione dell'ID chiamata dello strumento a 9 caratteri configurabile per modello (stile Mistral): solo i modelli con l'opzione abilitata ottengono ID troncati (#470) -**feat(api)**: API Key PATCH estesa per supportare i campi `allowedConnections`, `name`, `autoResolve`, `isActive` e `accessSchedule` (#470) -**feat(dashboard)**: layout della prima risposta nell'interfaccia utente dei dettagli del registro delle richieste (#470) -**feat(i18n)**: traduzione cinese (zh-CN) migliorata — ritraduzione completa (#475, @only4copilot)### 🐛 Bug Fixes
 
-- **feat(logs)**: Call log response content now correctly accumulated from raw provider chunks (OpenAI/Claude/Gemini) before translation, fixing empty response payloads in streaming mode (#470, @zhangqiang8vip)
-- **feat(providers)**: Per-model configurable 9-char tool call ID normalization (Mistral-style) — only models with the option enabled get truncated IDs (#470)
-- **feat(api)**: Key PATCH API expanded to support `allowedConnections`, `name`, `autoResolve`, `isActive`, and `accessSchedule` fields (#470)
-- **feat(dashboard)**: Response-first layout in request log detail UI (#470)
-- **feat(i18n)**: Improved Chinese (zh-CN) translation — complete retranslation (#475, @only4copilot)
-
-### 🐛 Bug Fixes
-
-- **fix(kiro)**: Strip injected `model` field from request body — Kiro API rejects unknown top-level fields (#478, @prakersh)
-- **fix(usage)**: Include cache read + cache creation tokens in usage history input totals for accurate analytics (#477, @prakersh)
-- **fix(callLogs)**: Support Claude format usage fields (`input_tokens`/`output_tokens`) alongside OpenAI format, include all cache token variants (#476, @prakersh)
-
----
+-**fix(kiro)**: rimuove il campo `model` inserito dal corpo della richiesta: l'API Kiro rifiuta i campi di livello superiore sconosciuti (#478, @prakersh) -**correzione (utilizzo)**: include la lettura della cache + i token di creazione della cache nei totali di input della cronologia di utilizzo per analisi accurate (#477, @prakersh) -**fix(callLogs)**: supporta i campi di utilizzo del formato Claude (`input_tokens`/`output_tokens`) insieme al formato OpenAI, include tutte le varianti dei token cache (#476, @prakersh)---
 
 ## [2.8.0] — 2026-03-19
 
-> Sprint: Bailian Coding Plan provider with editable base URLs, plus community contributions for Alibaba Cloud and Kimi Coding.
+> Sprint: fornitore del piano di codifica Bailian con URL di base modificabili, oltre a contributi della community per Alibaba Cloud e Kimi Coding.### Funzionalità
 
-### Funzionalità
+-**feat(providers)**: aggiunto il piano di codifica Bailian ("bailian-coding-plan") — Alibaba Model Studio con API compatibile con Anthropic. Catalogo statico di 8 modelli tra cui Qwen3.5 Plus, Qwen3 Coder, MiniMax M2.5, GLM 5 e Kimi K2.5. Include la convalida dell'autenticazione personalizzata (400=valido, 401/403=non valido) (#467, @Mind-Dragon) -**feat(admin)**: URL predefinito modificabile nei flussi di creazione/modifica di Amministrazione del provider: gli utenti possono configurare URL di base personalizzati per connessione. Persistito in `providerSpecificData.baseUrl` con la convalida dello schema Zod che rifiutava gli schemi non http(s) (#467)### 🧪 Tests
 
-- **feat(providers)**: Added Bailian Coding Plan (`bailian-coding-plan`) — Alibaba Model Studio with Anthropic-compatible API. Static catalog of 8 models including Qwen3.5 Plus, Qwen3 Coder, MiniMax M2.5, GLM 5, and Kimi K2.5. Includes custom auth validation (400=valid, 401/403=invalid) (#467, @Mind-Dragon)
-- **feat(admin)**: Editable default URL in Provider Admin create/edit flows — users can configure custom base URLs per connection. Persisted in `providerSpecificData.baseUrl` with Zod schema validation rejecting non-http(s) schemes (#467)
-
-### 🧪 Tests
-
-- Added 30+ unit tests and 2 e2e scenarios for Bailian Coding Plan provider covering auth validation, schema hardening, route-level behavior, and cross-layer integration
-
----
+- Aggiunti oltre 30 unit test e 2 scenari e2e per il provider del piano di codifica Bailian che coprono la convalida dell'autenticazione, il rafforzamento dello schema, il comportamento a livello di percorso e l'integrazione tra livelli---
 
 ## [2.7.10] — 2026-03-19
 
-> Sprint: Two new community-contributed providers (Alibaba Cloud Coding, Kimi Coding API-key) and Docker pino fix.
+> Sprint: due nuovi fornitori forniti dalla comunità (Alibaba Cloud Coding, chiave API Kimi Coding) e correzione pino Docker.### Funzionalità
 
-### Funzionalità
+-**feat(providers)**: aggiunto il supporto del piano Alibaba Cloud Coding con due endpoint compatibili con OpenAI: `alicode` (Cina) e `alicode-intl` (internazionale), ciascuno con 8 modelli (#465, @dtk1985) -**feat(providers)**: aggiunto il percorso dedicato del provider `kimi-coding-apikey`: l'accesso a Kimi Coding basato su chiave API non è più forzato tramite il percorso `kimi-coding` solo OAuth. Include registro, costanti, API dei modelli, configurazione e test di convalida (#463, @Mind-Dragon)### 🐛 Bug Fixes
 
-- **feat(providers)**: Added Alibaba Cloud Coding Plan support with two OpenAI-compatible endpoints — `alicode` (China) and `alicode-intl` (International), each with 8 models (#465, @dtk1985)
-- **feat(providers)**: Added dedicated `kimi-coding-apikey` provider path — API-key-based Kimi Coding access is no longer forced through OAuth-only `kimi-coding` route. Includes registry, constants, models API, config, and validation test (#463, @Mind-Dragon)
-
-### 🐛 Bug Fixes
-
-- **fix(docker)**: Added missing `split2` dependency to Docker image — `pino-abstract-transport` requires it at runtime but it was not being copied into the standalone container, causing `Cannot find module 'split2'` crashes (#459)
-
----
+-**fix(docker)**: aggiunta la dipendenza `split2` mancante all'immagine Docker: `pino-abstract-transport` la richiede in fase di runtime ma non veniva copiata nel contenitore autonomo, causando arresti anomali di `Impossibile trovare il modulo 'split2'` (#459)---
 
 ## [2.7.9] — 2026-03-18
 
-> Sprint: Codex responses subpath passthrough natively supported, Windows MITM crash fixed, and Combos agent schemas adjusted.
+> Sprint: passthrough del sottopercorso delle risposte del Codex supportato in modo nativo, arresto anomalo di Windows MITM risolto e schemi agente Combo modificati.### Funzionalità
 
-### Funzionalità
+-**feat(codex)**: passthrough del sottopercorso delle risposte native per il Codex: instrada nativamente `POST /v1/responses/compact` al Codex a monte, mantenendo la compatibilità del codice Claude senza rimuovere il suffisso `/compact` (#457)### 🐛 Bug Fixes
 
-- **feat(codex)**: Native responses subpath passthrough for Codex — natively routes `POST /v1/responses/compact` to Codex upstream, maintaining Claude Code compatibility without stripping the `/compact` suffix (#457)
-
-### 🐛 Bug Fixes
-
-- **fix(combos)**: Zod schemas (`updateComboSchema` and `createComboSchema`) now include `system_message`, `tool_filter_regex`, and `context_cache_protection`. Fixes bug where agent-specific settings created via the dashboard were silently discarded by the backend validation layer (#458)
-- **fix(mitm)**: Kiro MITM profile crash on Windows fixed — `node-machine-id` failed due to missing `REG.exe` env, and the fallback threw a fatal `crypto is not defined` error. Fallback now safely and correctly imports crypto (#456)
-
----
+-**fix(combos)**: gli schemi Zod (`updateComboSchema` e `createComboSchema`) ora includono `system_message`, `tool_filter_regex` e `context_cache_protection`. Risolto un bug per cui le impostazioni specifiche dell'agente create tramite la dashboard venivano ignorate silenziosamente dal livello di convalida del backend (#458) -**fix(mitm)**: risolto il crash del profilo Kiro MITM su Windows: `node-machine-id` non è riuscito a causa della mancanza di `REG.exe` env e il fallback ha generato un errore fatale "crypto is not define". Il fallback ora importa in modo sicuro e corretto la crittografia (#456)---
 
 ## [2.7.8] — 2026-03-18
 
-> Sprint: Budget save bug + combo agent features UI + omniModel tag security fix.
+> Sprint: bug di salvataggio del budget + funzionalità combinate dell'agente UI + correzione della sicurezza del tag omniModel.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(budget)**: "Salva limiti" non restituisce più 422 — `warningThreshold` ora viene inviato correttamente come frazione (0–1) anziché come percentuale (0–100) (#451) -**fix(combos)**: il tag della cache interna `<omniModel>` viene ora rimosso prima di inoltrare le richieste ai provider, impedendo interruzioni della sessione di cache (#454)### Funzionalità
 
-- **fix(budget)**: "Save Limits" no longer returns 422 — `warningThreshold` is now correctly sent as fraction (0–1) instead of percentage (0–100) (#451)
-- **fix(combos)**: `<omniModel>` internal cache tag is now stripped before forwarding requests to providers, preventing cache session breaks (#454)
-
-### Funzionalità
-
-- **feat(combos)**: Agent Features section added to combo create/edit modal — expose `system_message` override, `tool_filter_regex`, and `context_cache_protection` directly from the dashboard (#454)
-
----
+-**feat(combos)**: sezione Funzionalità agente aggiunta alla modalità di creazione/modifica combo: espone l'override di `system_message`, `tool_filter_regex` e `context_cache_protection` direttamente dal dashboard (#454)---
 
 ## [2.7.7] — 2026-03-18
 
-> Sprint: Docker pino crash, Codex CLI responses worker fix, package-lock sync.
+> Sprint: arresto anomalo di Docker pino, correzione del lavoratore delle risposte della CLI del Codex, sincronizzazione del blocco dei pacchetti.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(docker)**: `pino-abstract-transport` e `pino-pretty` ora copiati esplicitamente nella fase runner Docker — La traccia standalone Next.js non rileva queste dipendenze peer, causando il crash di `Impossibile trovare il modulo pino-abstract-transport` all'avvio (#449) -**risolto (risposte)**: rimosso `initTranslators()` dal percorso `/v1/responses`: si verificava l'arresto anomalo del lavoratore Next.js con `il lavoratore è uscito` uncaughtException sulle richieste CLI del Codex (#450)### 🔧 Maintenance
 
-- **fix(docker)**: `pino-abstract-transport` and `pino-pretty` now explicitly copied in Docker runner stage — Next.js standalone trace misses these peer deps, causing `Cannot find module pino-abstract-transport` crash on startup (#449)
-- **fix(responses)**: Remove `initTranslators()` from `/v1/responses` route — was crashing Next.js worker with `the worker has exited` uncaughtException on Codex CLI requests (#450)
-
-### 🔧 Maintenance
-
-- **chore(deps)**: `package-lock.json` now committed on every version bump to ensure Docker `npm ci` uses exact dependency versions
-
----
+-**chore(deps)**: `package-lock.json` ora è stato eseguito su ogni bump di versione per garantire che Docker `npm ci` utilizzi le versioni esatte delle dipendenze---
 
 ## [2.7.5] — 2026-03-18
 
-> Sprint: UX improvements and Windows CLI healthcheck fix.
+> Sprint: miglioramenti UX e correzione del controllo dello stato della CLI di Windows.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(ux)**: Show default password hint on login page — new users now see `"Default password: 123456"` below the password input (#437)
-- **fix(cli)**: Claude CLI and other npm-installed tools now correctly detected as runnable on Windows — spawn uses `shell:true` to resolve `.cmd` wrappers via PATHEXT (#447)
-
----
+-**correzione(ux)**: mostra il suggerimento password predefinito nella pagina di accesso: i nuovi utenti ora vedono `"Password predefinita: 123456"` sotto l'immissione della password (#437) -**fix(cli)**: Claude CLI e altri strumenti installati da npm ora vengono rilevati correttamente come eseguibili su Windows: spawn utilizza `shell:true` per risolvere i wrapper `.cmd` tramite PATHEXT (#447)---
 
 ## [2.7.4] — 2026-03-18
 
-> Sprint: Search Tools dashboard, i18n fixes, Copilot limits, Serper validation fix.
+> Sprint: dashboard degli strumenti di ricerca, correzioni i18n, limiti Copilot, correzione convalida Serper.### Funzionalità
 
-### Funzionalità
+-**feat(search)**: aggiunta area di gioco di ricerca (10° endpoint), pagina Strumenti di ricerca con confronto di provider/pipeline di riclassificazione/cronologia di ricerca, routing di riclassificazione locale, protezioni di autenticazione sull'API di ricerca (#443 di @Regis-RCR)
 
-- **feat(search)**: Add Search Playground (10th endpoint), Search Tools page with Compare Providers/Rerank Pipeline/Search History, local rerank routing, auth guards on search API (#443 by @Regis-RCR)
-  - New route: `/dashboard/search-tools`
-  - Sidebar entry under Debug section
-  - `GET /api/search/providers` and `GET /api/search/stats` with auth guards
-  - Local provider_nodes routing for `/v1/rerank`
-  - 30+ i18n keys in search namespace
+- Nuovo percorso: `/dashboard/search-tools`
+- Voce della barra laterale nella sezione Debug
+- `GET /api/search/providers` e `GET /api/search/stats` con protezioni di autenticazione
+- Routing provider_nodes locale per `/v1/rerank`
+- Oltre 30 chiavi i18n nello spazio dei nomi di ricerca### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(search)**: Fix Brave news normalizer (was returning 0 results), enforce max_results truncation post-normalization, fix Endpoints page fetch URL (#443 by @Regis-RCR)
-- **fix(analytics)**: Localize analytics day/date labels — replace hardcoded Portuguese strings with `Intl.DateTimeFormat(locale)` (#444 by @hijak)
-- **fix(copilot)**: Correct GitHub Copilot account type display, filter misleading unlimited quota rows from limits dashboard (#445 by @hijak)
-- **fix(providers)**: Stop rejecting valid Serper API keys — treat non-4xx responses as valid authentication (#446 by @hijak)
-
----
+-**correzione (ricerca)**: corretto il normalizzatore di notizie Brave (restituiva 0 risultati), applicazione del troncamento max_results post-normalizzazione, corretto l'URL di recupero della pagina Endpoint (#443 di @Regis-RCR) -**fix(analytics)**: localizza le etichette giorno/data di analisi: sostituisci le stringhe portoghesi hardcoded con `Intl.DateTimeFormat(locale)` (#444 di @hijak) -**fix(copilot)**: corretta visualizzazione del tipo di account GitHub Copilot, filtraggio di righe di quota illimitata fuorvianti dal dashboard dei limiti (#445 di @hijak) -**correzione(provider)**: smetti di rifiutare chiavi API Serper valide: tratta le risposte non 4xx come autenticazione valida (#446 di @hijak)---
 
 ## [2.7.3] — 2026-03-18
 
-> Sprint: Codex direct API quota fallback fix.
+> Sprint: correzione del fallback della quota API diretta del Codex.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(codex)**: blocca gli account esauriti settimanalmente nel fallback API diretto (#440)
 
-- **fix(codex)**: Block weekly-exhausted accounts in direct API fallback (#440)
-  - `resolveQuotaWindow()` prefix matching: `"weekly"` now matches `"weekly (7d)"` cache keys
-  - `applyCodexWindowPolicy()` enforces `useWeekly`/`use5h` toggles correctly
-  - 4 new regression tests (766 total)
-
----
+- Corrispondenza del prefisso `resolveQuotaWindow()`: `"weekly"` ora corrisponde alle chiavi della cache `"weekly (7d)"`
+- `applyCodexWindowPolicy()` impone l'attivazione/disattivazione corretta di `useWeekly`/`use5h`
+- 4 nuovi test di regressione (766 in totale)---
 
 ## [2.7.2] — 2026-03-18
 
-> Sprint: Light mode UI contrast fixes.
+> Sprint: correzioni del contrasto dell'interfaccia utente in modalità Luce.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(logs)**: risolto il contrasto della modalità luce nei pulsanti del filtro dei log delle richieste e nel badge combinato (#378).
 
-- **fix(logs)**: Fix light mode contrast in request logs filter buttons and combo badge (#378)
-  - Error/Success/Combo filter buttons now readable in light mode
-  - Combo row badge uses stronger violet in light mode
-
----
+- I pulsanti del filtro Errore/Riuscito/Combo ora sono leggibili in modalità luce
+- Il badge della riga combinata utilizza un viola più forte in modalità luce---
 
 ## [2.7.1] — 2026-03-17
 
-> Sprint: Unified web search routing (POST /v1/search) with 5 providers + Next.js 16.1.7 security fixes (6 CVEs).
+> Sprint: routing di ricerca web unificato (POST /v1/search) con 5 provider + correzioni di sicurezza Next.js 16.1.7 (6 CVE).### ✨ New Features
 
-### ✨ New Features
+-**feat(search)**: routing di ricerca web unificato — `POST /v1/search` con 5 provider (Serper, Brave, Perplexity, Exa, Tavily)
 
-- **feat(search)**: Unified web search routing — `POST /v1/search` with 5 providers (Serper, Brave, Perplexity, Exa, Tavily)
-  - Auto-failover across providers, 6,500+ free searches/month
-  - In-memory cache with request coalescing (configurable TTL)
-  - Dashboard: Search Analytics tab in `/dashboard/analytics` with provider breakdown, cache hit rate, cost tracking
-  - New API: `GET /api/v1/search/analytics` for search request statistics
-  - DB migration: `request_type` column on `call_logs` for non-chat request tracking
-  - Zod validation (`v1SearchSchema`), auth-gated, cost recorded via `recordCost()`
+- Failover automatico tra provider, oltre 6.500 ricerche gratuite al mese
+- Cache in memoria con coalescenza delle richieste (TTL configurabile)
+- Dashboard: scheda Analisi delle ricerche in "/dashboard/analytics" con suddivisione dei fornitori, percentuale di riscontri nella cache, monitoraggio dei costi
+- Nuova API: `GET /api/v1/search/analytics` per le statistiche delle richieste di ricerca
+- Migrazione del DB: colonna "request_type" su "call_logs" per il monitoraggio delle richieste non chat
+- Convalida Zod (`v1SearchSchema`), autenticata, costo registrato tramite `recordCost()`### Sicurezza
 
-### Sicurezza
+-**deps**: Next.js 16.1.6 → 16.1.7 — corregge 6 CVE: -**Critico**: CVE-2026-29057 (contrabbando di richieste HTTP tramite proxy http) -**Alto**: CVE-2026-27977, CVE-2026-27978 (WebSocket + Azioni server) -**Medio**: CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7### 📁 New Files
 
-- **deps**: Next.js 16.1.6 → 16.1.7 — fixes 6 CVEs:
-  - **Critical**: CVE-2026-29057 (HTTP request smuggling via http-proxy)
-  - **High**: CVE-2026-27977, CVE-2026-27978 (WebSocket + Server Actions)
-  - **Medium**: CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7
-
-### 📁 New Files
-
-| File                                                             | Purpose                                    |
-| ---------------------------------------------------------------- | ------------------------------------------ |
-| `open-sse/handlers/search.ts`                                    | Search handler with 5-provider routing     |
-| `open-sse/config/searchRegistry.ts`                              | Provider registry (auth, cost, quota, TTL) |
-| `open-sse/services/searchCache.ts`                               | In-memory cache with request coalescing    |
-| `src/app/api/v1/search/route.ts`                                 | Next.js route (POST + GET)                 |
-| `src/app/api/v1/search/analytics/route.ts`                       | Search stats API                           |
-| `src/app/(dashboard)/dashboard/analytics/SearchAnalyticsTab.tsx` | Analytics dashboard tab                    |
-| `src/lib/db/migrations/007_search_request_type.sql`              | DB migration                               |
-| `tests/unit/search-registry.test.mjs`                            | 277 lines of unit tests                    |
-
----
+| File                                                             | Scopo                                                      |
+| ---------------------------------------------------------------- | ---------------------------------------------------------- | --- |
+| `open-sse/handlers/search.ts`                                    | Gestore di ricerca con routing a 5 provider                |
+| `open-sse/config/searchRegistry.ts`                              | Registro dei fornitori (autenticazione, costo, quota, TTL) |
+| `open-sse/services/searchCache.ts`                               | Cache in memoria con coalescenza delle richieste           |
+| `src/app/api/v1/search/route.ts`                                 | Percorso Next.js (POST + GET)                              |
+| `src/app/api/v1/search/analytics/route.ts`                       | API delle statistiche di ricerca                           |
+| `src/app/(dashboard)/dashboard/analytics/SearchAnalyticsTab.tsx` | Scheda dashboard Analisi                                   |
+| `src/lib/db/migrations/007_search_request_type.sql`              | Migrazione DB                                              |
+| `test/unità/search-registry.test.mjs`                            | 277 righe di test unitari                                  | --- |
 
 ## [2.7.0] — 2026-03-17
 
-> Sprint: ClawRouter-inspired features — toolCalling flag, multilingual intent detection, benchmark-driven fallback, request deduplication, pluggable RouterStrategy, Grok-4 Fast + GLM-5 + MiniMax M2.5 + Kimi K2.5 pricing.
+> Sprint: funzionalità ispirate a ClawRouter: flag toolCalling, rilevamento intent multilingue, fallback basato su benchmark, deduplicazione delle richieste, RouterStrategy collegabile, prezzi Grok-4 Fast + GLM-5 + MiniMax M2.5 + Kimi K2.5.### ✨ New Models & Pricing
 
-### ✨ New Models & Pricing
+-**feat(prezzo)**: xAI Grok-4 Fast — `$0,20/$0,50 per 1 milione di token`, latenza p50 di 1143 ms, chiamata strumento supportata -**feat(pricing)**: xAI Grok-4 (standard) — `$0,20/$1,50 per 1 milione di token`, ragionamento di punta -**feat(prezzo)**: GLM-5 tramite Z.AI — `$0,5/1 milione`, contesto di output da 128.000 -**feat(pricing)**: MiniMax M2.5 — `$0,30/1 milione di input`, ragionamento + compiti di agente -**feat(prezzi)**: DeepSeek V3.2 — prezzo aggiornato "$0,27/$1,10 per 1 milione" -**feat(prezzo)**: Kimi K2.5 tramite Moonshot API: accesso diretto all'API Moonshot -**feat(providers)**: aggiunto il provider Z.AI (alias `zai`) — Famiglia GLM-5 con output 128K### 🧠 Routing Intelligence
 
-- **feat(pricing)**: xAI Grok-4 Fast — `$0.20/$0.50 per 1M tokens`, 1143ms p50 latency, tool calling supported
-- **feat(pricing)**: xAI Grok-4 (standard) — `$0.20/$1.50 per 1M tokens`, reasoning flagship
-- **feat(pricing)**: GLM-5 via Z.AI — `$0.5/1M`, 128K output context
-- **feat(pricing)**: MiniMax M2.5 — `$0.30/1M input`, reasoning + agentic tasks
-- **feat(pricing)**: DeepSeek V3.2 — updated pricing `$0.27/$1.10 per 1M`
-- **feat(pricing)**: Kimi K2.5 via Moonshot API — direct Moonshot API access
-- **feat(providers)**: Z.AI provider added (`zai` alias) — GLM-5 family with 128K output
+-**feat(registry)**: flag `toolCalling` per modello nel registro del provider: le combo ora possono preferire/richiedere modelli in grado di richiamare strumenti -**feat(punteggio)**: rilevamento dell'intento multilingue per il punteggio AutoCombo: i modelli di script/linguaggio PT/ZH/ES/AR influenzano la selezione del modello in base al contesto della richiesta -**feat(fallback)**: catene di fallback basate sul benchmark: dati di latenza reale (p50 da "comboMetrics") utilizzati per riordinare dinamicamente la priorità di fallback -**feat(dedup)**: Richiedi la deduplicazione tramite content-hash: la finestra di idempotenza di 5 secondi impedisce alle chiamate duplicate del provider di ritentare i client -**feat(router)**: interfaccia `RouterStrategy` collegabile in `autoCombo/routerStrategy.ts`: la logica di routing personalizzata può essere inserita senza modificare il core### 🔧 MCP Server Improvements
 
-### 🧠 Routing Intelligence
+-**feat(mcp)**: 2 nuovi schemi di strumenti avanzati: `omniroute_get_provider_metrics` (p50/p95/p99 per provider) e `omniroute_explain_route` (spiegazione della decisione di routing) -**feat(mcp)**: ambiti di autenticazione dello strumento MCP aggiornati — ambito `metrics:read` aggiunto per gli strumenti di metrica del provider -**feat(mcp)**: `omniroute_best_combo_for_task` ora accetta il parametro `lingualHint` per il routing multilingue### 📊 Observability
 
-- **feat(registry)**: `toolCalling` flag per model in provider registry — combos can now prefer/require tool-calling capable models
-- **feat(scoring)**: Multilingual intent detection for AutoCombo scoring — PT/ZH/ES/AR script/language patterns influence model selection per request context
-- **feat(fallback)**: Benchmark-driven fallback chains — real latency data (p50 from `comboMetrics`) used to re-order fallback priority dynamically
-- **feat(dedup)**: Request deduplication via content-hash — 5-second idempotency window prevents duplicate provider calls from retrying clients
-- **feat(router)**: Pluggable `RouterStrategy` interface in `autoCombo/routerStrategy.ts` — custom routing logic can be injected without modifying core
+-**feat(metrics)**: `comboMetrics.ts` esteso con monitoraggio del percentile di latenza in tempo reale per provider/account -**feat(health)**: l'API Health (`/api/monitoring/health`) ora restituisce i campi "p50Latency" e "errorRate" per provider -**feat(usage)**: migrazione della cronologia di utilizzo per il monitoraggio della latenza per modello### 🗄️ DB Migrations
 
-### 🔧 MCP Server Improvements
+-**feat(migrations)**: nuova colonna `latency_p50` nella tabella `combo_metrics`: zero-breaking, sicura per gli utenti esistenti### 🐛 Bug Fixes / Closures
 
-- **feat(mcp)**: 2 new advanced tool schemas: `omniroute_get_provider_metrics` (p50/p95/p99 per provider) and `omniroute_explain_route` (routing decision explanation)
-- **feat(mcp)**: MCP tool auth scopes updated — `metrics:read` scope added for provider metrics tools
-- **feat(mcp)**: `omniroute_best_combo_for_task` now accepts `languageHint` parameter for multilingual routing
+-**close(#411)**: risoluzione del modulo con hash better-sqlite3 su Windows: risolto nella v2.6.10 (f02c5b5) -**close(#409)**: i completamenti della chat di GitHub Copilot non riescono con i modelli Claude quando vengono allegati i file: risolto nella v2.6.9 (838f1d6) -**close(#405)**: duplicato di #411 — risolto## [2.6.10] — 2026-03-17
 
-### 📊 Observability
+> Correzione per Windows: download precompilato better-sqlite3 senza node-gyp/Python/MSVC (#426).### 🐛 Bug Fixes
 
-- **feat(metrics)**: `comboMetrics.ts` extended with real-time latency percentile tracking per provider/account
-- **feat(health)**: Health API (`/api/monitoring/health`) now returns per-provider `p50Latency` and `errorRate` fields
-- **feat(usage)**: Usage history migration for per-model latency tracking
-
-### 🗄️ DB Migrations
-
-- **feat(migrations)**: New column `latency_p50` in `combo_metrics` table — zero-breaking, safe for existing users
-
-### 🐛 Bug Fixes / Closures
-
-- **close(#411)**: better-sqlite3 hashed module resolution on Windows — fixed in v2.6.10 (f02c5b5)
-- **close(#409)**: GitHub Copilot chat completions fail with Claude models when files attached — fixed in v2.6.9 (838f1d6)
-- **close(#405)**: Duplicate of #411 — resolved
-
-## [2.6.10] — 2026-03-17
-
-> Windows fix: better-sqlite3 prebuilt download without node-gyp/Python/MSVC (#426).
-
-### 🐛 Bug Fixes
-
-- **fix(install/#426)**: On Windows, `npm install -g omniroute` used to fail with `better_sqlite3.node is not a valid Win32 application` because the bundled native binary was compiled for Linux. Adds **Strategy 1.5** to `scripts/postinstall.mjs`: uses `@mapbox/node-pre-gyp install --fallback-to-build=false` (bundled within `better-sqlite3`) to download the correct prebuilt binary for the current OS/arch without requiring any build tools (no node-gyp, no Python, no MSVC). Falls back to `npm rebuild` only if the download fails. Adds platform-specific error messages with clear manual fix instructions.
-
----
+-**correzione(install/#426)**: Su Windows, `npm install -g omniroute` falliva con `better_sqlite3.node non è un'applicazione Win32 valida` perché il binario nativo in bundle era stato compilato per Linux. Aggiunge**Strategy 1.5**a `scripts/postinstall.mjs`: utilizza `@mapbox/node-pre-gyp install --fallback-to-build=false` (in bundle con `better-sqlite3`) per scaricare il file binario precompilato corretto per il sistema operativo/arch attuale senza richiedere alcuno strumento di compilazione (no node-gyp, no Python, no MSVC). Torna a "npm ricostruire" solo se il download fallisce. Aggiunge messaggi di errore specifici della piattaforma con chiare istruzioni per la correzione manuale.---
 
 ## [2.6.9] — 2026-03-17
 
-> CI fixes (t11 any-budget), bug fix #409 (file attachments via Copilot+Claude), release workflow correction.
+> Correzioni CI (t11 con qualsiasi budget), correzione del bug n. 409 (file allegati tramite Copilot+Claude), correzione del flusso di lavoro del rilascio.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(ci)**: rimossa la parola "any" dai commenti in `openai-responses.ts` e `chatCore.ts` che non superavano il controllo del budget t11 `any` (falso positivo dai commenti sul conteggio delle regex) -**fix(chatCore)**: normalizza i tipi di parti di contenuto non supportati prima dell'inoltro ai provider (#409 — Il cursore invia `{type:"file"}` quando i file `.md` sono allegati; Copilot e altri provider compatibili con OpenAI rifiutano con "il tipo deve essere 'image_url' o 'text'"; la correzione converte i blocchi `file`/`document` in `text` ed elimina i tipi sconosciuti)### 🔧 Workflow
 
-- **fix(ci)**: Remove word "any" from comments in `openai-responses.ts` and `chatCore.ts` that were failing the t11 `\bany\b` budget check (false positive from regex counting comments)
-- **fix(chatCore)**: Normalize unsupported content part types before forwarding to providers (#409 — Cursor sends `{type:"file"}` when `.md` files are attached; Copilot and other OpenAI-compat providers reject with "type has to be either 'image_url' or 'text'"; fix converts `file`/`document` blocks to `text` and drops unknown types)
-
-### 🔧 Workflow
-
-- **chore(generate-release)**: Add ATOMIC COMMIT RULE — version bump (`npm version patch`) MUST happen before committing feature files to ensure tag always points to a commit containing all version changes together
-
----
+-**chore(generate-release)**: aggiunta ATOMIC COMMIT RULE — il bump della versione (`npm version patch`) DEVE avvenire prima del commit dei file di funzionalità per garantire che il tag punti sempre a un commit contenente tutte le modifiche alla versione insieme---
 
 ## [2.6.8] — 2026-03-17
 
-> Sprint: Combo as Agent (system prompt + tool filter), Context Caching Protection, Auto-Update, Detailed Logs, MITM Kiro IDE.
+> Sprint: Combo come agente (prompt di sistema + filtro strumento), protezione della cache del contesto, aggiornamento automatico, registri dettagliati, MITM Kiro IDE.### 🗄️ DB Migrations (zero-breaking — safe for existing users)
 
-### 🗄️ DB Migrations (zero-breaking — safe for existing users)
+-**005_combo_agent_fields.sql**: `ALTER TABLE combos ADD COLUMN system_message TEXT DEFAULT NULL`, `tool_filter_regex TEXT DEFAULT NULL`, `context_cache_protection INTEGER DEFAULT 0` -**006_detailed_request_logs.sql**: nuova tabella `request_detail_logs` con trigger ring-buffer da 500 voci, attivazione tramite attivazione/disattivazione delle impostazioni### Funzionalità
 
-- **005_combo_agent_fields.sql**: `ALTER TABLE combos ADD COLUMN system_message TEXT DEFAULT NULL`, `tool_filter_regex TEXT DEFAULT NULL`, `context_cache_protection INTEGER DEFAULT 0`
-- **006_detailed_request_logs.sql**: New `request_detail_logs` table with 500-entry ring-buffer trigger, opt-in via settings toggle
-
-### Funzionalità
-
-- **feat(combo)**: System Message Override per Combo (#399 — `system_message` field replaces or injects system prompt before forwarding to provider)
-- **feat(combo)**: Tool Filter Regex per Combo (#399 — `tool_filter_regex` keeps only tools matching pattern; supports OpenAI + Anthropic formats)
-- **feat(combo)**: Context Caching Protection (#401 — `context_cache_protection` tags responses with `<omniModel>provider/model</omniModel>` and pins model for session continuity)
-- **feat(settings)**: Auto-Update via Settings (#320 — `GET /api/system/version` + `POST /api/system/update` — checks npm registry and updates in background with pm2 restart)
-- **feat(logs)**: Detailed Request Logs (#378 — captures full pipeline bodies at 4 stages: client request, translated request, provider response, client response — opt-in toggle, 64KB trim, 500-entry ring-buffer)
-- **feat(mitm)**: MITM Kiro IDE profile (#336 — `src/mitm/targets/kiro.ts` targets api.anthropic.com, reuses existing MITM infrastructure)
-
----
+-**feat(combo)**: Override del messaggio di sistema per Combo (#399 — il campo `system_message` sostituisce o inserisce il prompt di sistema prima dell'inoltro al provider) -**feat(combo)**: Tool Filter Regex per Combo (#399 — `tool_filter_regex` mantiene solo gli strumenti che corrispondono al pattern; supporta i formati OpenAI + Anthropic) -**feat(combo)**: Protezione della cache del contesto (#401 — `context_cache_protection` tag risposte con `<omniModel>provider/model</omniModel>` e modello pin per la continuità della sessione) -**feat(settings)**: aggiornamento automatico tramite Impostazioni (#320 — `GET /api/system/version` + `POST /api/system/update` — controlla il registro npm e gli aggiornamenti in background con il riavvio di pm2) -**feat(logs)**: registri dettagliati delle richieste (#378 — acquisisce i corpi completi della pipeline in 4 fasi: richiesta del cliente, richiesta tradotta, risposta del fornitore, risposta del cliente — attivazione/disattivazione, assetto da 64 KB, ring buffer da 500 voci) -**feat(mitm)**: profilo IDE MITM Kiro (#336 — `src/mitm/targets/kiro.ts` prende di mira api.anthropic.com, riutilizza l'infrastruttura MITM esistente)---
 
 ## [2.6.7] — 2026-03-17
 
-> Sprint: SSE improvements, local provider_nodes extensions, proxy registry, Claude passthrough fixes.
+> Sprint: miglioramenti SSE, estensioni provider_nodes locali, registro proxy, correzioni passthrough Claude.### Funzionalità
 
-### Funzionalità
+-**feat(health)**: controllo dello stato in background per `provider_nodes` locali con backoff esponenziale (30s→300s) e `Promise.allSettled` per evitare blocchi (#423, @Regis-RCR) -**feat(embeddings)**: instrada `/v1/embeddings` a `provider_nodes` locale — `buildDynamicEmbeddingProvider()` con convalida del nome host (#422, @Regis-RCR) -**feat(audio)**: instrada TTS/STT a `provider_nodes` locale — `buildDynamicAudioProvider()` con protezione SSRF (#416, @Regis-RCR) -**feat(proxy)**: registro proxy, API di gestione e generalizzazione dei limiti di quota (#429, @Regis-RCR)### 🐛 Bug Fixes
 
-- **feat(health)**: Background health check for local `provider_nodes` with exponential backoff (30s→300s) and `Promise.allSettled` to avoid blocking (#423, @Regis-RCR)
-- **feat(embeddings)**: Route `/v1/embeddings` to local `provider_nodes` — `buildDynamicEmbeddingProvider()` with hostname validation (#422, @Regis-RCR)
-- **feat(audio)**: Route TTS/STT to local `provider_nodes` — `buildDynamicAudioProvider()` with SSRF protection (#416, @Regis-RCR)
-- **feat(proxy)**: Proxy registry, management APIs, and quota-limit generalization (#429, @Regis-RCR)
+-**fix(sse)**: Elimina i campi specifici di Claude (`metadata`, `anthropic_version`) quando il target è OpenAI-compat (#421, @prakersh) -**fix(sse)**: estratto l'utilizzo di Claude SSE (`input_tokens`, `output_tokens`, token cache) in modalità flusso passthrough (#420, @prakersh) -**fix(sse)**: genera fallback `call_id` per chiamate a strumenti con ID mancanti/vuoti (#419, @prakersh) -**fix(sse)**: passaggio da Claude a Claude: corpo anteriore completamente intatto, nessuna ritraduzione (#418, @prakersh) -**fix(sse)**: filtra gli elementi `tool_result` orfani dopo la compattazione del contesto del codice Claude per evitare errori 400 (#417, @prakersh). -**fix(sse)**: ignora le chiamate allo strumento con nome vuoto nel traduttore dell'API Responses per impedire cicli infiniti di `placeholder_tool` (#415, @prakersh) -**fix(sse)**: rimuove i blocchi di contenuto di testo vuoti prima della traduzione (#427, @prakersh) -**fix(api)**: aggiunto `refreshable: true` alla configurazione del test Claude OAuth (#428, @prakersh)### 📦 Dependencies
 
-### 🐛 Bug Fixes
-
-- **fix(sse)**: Strip Claude-specific fields (`metadata`, `anthropic_version`) when target is OpenAI-compat (#421, @prakersh)
-- **fix(sse)**: Extract Claude SSE usage (`input_tokens`, `output_tokens`, cache tokens) in passthrough stream mode (#420, @prakersh)
-- **fix(sse)**: Generate fallback `call_id` for tool calls with missing/empty IDs (#419, @prakersh)
-- **fix(sse)**: Claude-to-Claude passthrough — forward body completely untouched, no re-translation (#418, @prakersh)
-- **fix(sse)**: Filter orphaned `tool_result` items after Claude Code context compaction to avoid 400 errors (#417, @prakersh)
-- **fix(sse)**: Skip empty-name tool calls in Responses API translator to prevent `placeholder_tool` infinite loops (#415, @prakersh)
-- **fix(sse)**: Strip empty text content blocks before translation (#427, @prakersh)
-- **fix(api)**: Add `refreshable: true` to Claude OAuth test config (#428, @prakersh)
-
-### 📦 Dependencies
-
-- Bump `vitest`, `@vitest/*` and related devDependencies (#414, @dependabot)
-
----
+- Bump di `vitest`, `@vitest/*` e relative devDependencies (#414, @dependabot)---
 
 ## [2.6.6] — 2026-03-17
 
-> Hotfix: Turbopack/Docker compatibility — remove `node:` protocol from all `src/` imports.
+> Hotfix: compatibilità Turbopack/Docker: rimozione del protocollo `node:` da tutte le importazioni `src/`.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(build)**: Removed `node:` protocol prefix from `import` statements in 17 files under `src/`. The `node:fs`, `node:path`, `node:url`, `node:os` etc. imports caused `Ecmascript file had an error` on Turbopack builds (Next.js 15 Docker) and on upgrades from older npm global installs. Affected files: `migrationRunner.ts`, `core.ts`, `backup.ts`, `prompts.ts`, `dataPaths.ts`, and 12 others in `src/app/api/` and `src/lib/`.
-- **chore(workflow)**: Updated `generate-release.md` to make Docker Hub sync and dual-VPS deploy **mandatory** steps in every release.
-
----
+-**fix(build)**: rimosso il prefisso del protocollo `node:` dalle istruzioni `import` in 17 file sotto `src/`. Le importazioni di `node:fs`, `node:path`, `node:url`, `node:os` ecc. causavano "Il file Ecmascript presentava un errore" sulle build Turbopack (Next.js 15 Docker) e sugli aggiornamenti da installazioni globali npm precedenti. File interessati: `migrationRunner.ts`, `core.ts`, `backup.ts`, `prompts.ts`, `dataPaths.ts` e altri 12 in `src/app/api/` e `src/lib/`. -**lavoretto (flusso di lavoro)**: aggiornato `generate-release.md` per fare in modo che la sincronizzazione dell'hub Docker e la distribuzione dual-VPS siano**passaggi obbligatori**in ogni versione.---
 
 ## [2.6.5] — 2026-03-17
 
-> Sprint: reasoning model param filtering, local provider 404 fix, Kilo Gateway provider, dependency bumps.
+> Sprint: filtraggio dei parametri del modello di ragionamento, correzione 404 del provider locale, provider Kilo Gateway, aumenti delle dipendenze.### ✨ New Features
 
-### ✨ New Features
+-**feat(api)**: aggiunto**Kilo Gateway**(`api.kilo.ai`) come nuovo fornitore di chiavi API (alias `kg`) — oltre 335 modelli, 6 modelli gratuiti, 3 modelli di routing automatico (`kilo-auto/frontier`, `kilo-auto/balanced`, `kilo-auto/free`). Modelli passthrough supportati tramite endpoint "/api/gateway/models". (PR n. 408 di @Regis-RCR)### 🐛 Bug Fixes
 
-- **feat(api)**: Added **Kilo Gateway** (`api.kilo.ai`) as a new API Key provider (alias `kg`) — 335+ models, 6 free models, 3 auto-routing models (`kilo-auto/frontier`, `kilo-auto/balanced`, `kilo-auto/free`). Passthrough models supported via `/api/gateway/models` endpoint. (PR #408 by @Regis-RCR)
+-**fix(sse)**: rimuove i parametri non supportati per i modelli di ragionamento (o1, o1-mini, o1-pro, o3, o3-mini). I modelli della famiglia `o1`/`o3` rifiutano `temperature`, `top_p`, `frequency_penalty`, `presence_penalty`, `logprobs`, `top_logprobs` e `n` con HTTP 400. I parametri vengono ora rimossi al livello `chatCore` prima dell'inoltro. Utilizza un campo dichiarativo `unsupportedParams` per modello e una mappa O(1) precalcolata per la ricerca. (PR n. 412 di @Regis-RCR) -**fix(sse)**: il provider locale 404 ora comporta un**blocco solo del modello (5 secondi)**invece di un blocco a livello di connessione (2 minuti). Quando un backend di inferenza locale (Ollama, LM Studio, oMLX) restituisce 404 per un modello sconosciuto, la connessione rimane attiva e gli altri modelli continuano a funzionare immediatamente. Risolve anche un bug preesistente in cui `model` non veniva passato a `markAccountUnavailable()`. Provider locali rilevati tramite nome host (`localhost`, `127.0.0.1`, `::1`, estensibile tramite `LOCAL_HOSTNAMES` env var). (PR n. 410 di @Regis-RCR)### 📦 Dependencies
 
-### 🐛 Bug Fixes
-
-- **fix(sse)**: Strip unsupported parameters for reasoning models (o1, o1-mini, o1-pro, o3, o3-mini). Models in the `o1`/`o3` family reject `temperature`, `top_p`, `frequency_penalty`, `presence_penalty`, `logprobs`, `top_logprobs`, and `n` with HTTP 400. Parameters are now stripped at the `chatCore` layer before forwarding. Uses a declarative `unsupportedParams` field per model and a precomputed O(1) Map for lookup. (PR #412 by @Regis-RCR)
-- **fix(sse)**: Local provider 404 now results in a **model-only lockout (5 seconds)** instead of a connection-level lockout (2 minutes). When a local inference backend (Ollama, LM Studio, oMLX) returns 404 for an unknown model, the connection remains active and other models continue working immediately. Also fixes a pre-existing bug where `model` was not passed to `markAccountUnavailable()`. Local providers detected via hostname (`localhost`, `127.0.0.1`, `::1`, extensible via `LOCAL_HOSTNAMES` env var). (PR #410 by @Regis-RCR)
-
-### 📦 Dependencies
-
-- `better-sqlite3` 12.6.2 → 12.8.0
+- `meglio-sqlite3` 12.6.2 → 12.8.0
 - `undici` 7.24.2 → 7.24.4
 - `https-proxy-agent` 7 → 8
-- `agent-base` 7 → 8
-
----
+- "base-agente" 7 → 8---
 
 ## [2.6.4] — 2026-03-17
 
 ### 🐛 Bug Fixes
 
-- **fix(providers)**: Removed non-existent model names across 5 providers:
-  - **gemini / gemini-cli**: removed `gemini-3.1-pro/flash` and `gemini-3-*-preview` (don't exist in Google API v1beta); replaced with `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro/flash`
-  - **antigravity**: removed `gemini-3.1-pro-high/low` and `gemini-3-flash` (invalid internal aliases); replaced with real 2.x models
-  - **github (Copilot)**: removed `gemini-3-flash-preview` and `gemini-3-pro-preview`; replaced with `gemini-2.5-flash`
-  - **nvidia**: corrected `nvidia/llama-3.3-70b-instruct` → `meta/llama-3.3-70b-instruct` (NVIDIA NIM uses `meta/` namespace for Meta models); added `nvidia/llama-3.1-70b-instruct` and `nvidia/llama-3.1-405b-instruct`
-- **fix(db/combo)**: Updated `free-stack` combo on remote DB: removed `qw/qwen3-coder-plus` (expired refresh token), corrected `nvidia/llama-3.3-70b-instruct` → `nvidia/meta/llama-3.3-70b-instruct`, corrected `gemini/gemini-3.1-flash` → `gemini/gemini-2.5-flash`, added `if/deepseek-v3.2`
-
----
+-**fix(provider)**: rimossi nomi di modelli inesistenti su 5 provider: -**gemini / gemini-cli**: rimossi `gemini-3.1-pro/flash` e `gemini-3-*-preview` (non esistono nell'API di Google v1beta); sostituito con `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro/flash` -**antigravity**: rimossi `gemini-3.1-pro-high/low` e `gemini-3-flash` (alias interni non validi); sostituito con modelli 2.x reali -**github (Copilot)**: rimossi `gemini-3-flash-preview` e `gemini-3-pro-preview`; sostituito con "gemini-2.5-flash". -**nvidia**: corretto `nvidia/llama-3.3-70b-instruct` → `meta/llama-3.3-70b-instruct` (NVIDIA NIM utilizza lo spazio dei nomi `meta/` per i modelli Meta); aggiunti `nvidia/llama-3.1-70b-instruct` e `nvidia/llama-3.1-405b-instruct` -**fix(db/combo)**: Aggiornata la combo `free-stack` sul DB remoto: rimosso `qw/qwen3-coder-plus` (token di aggiornamento scaduto), corretto `nvidia/llama-3.3-70b-instruct` → `nvidia/meta/llama-3.3-70b-instruct`, corretto `gemini/gemini-3.1-flash` → "gemini/gemini-2.5-flash", aggiunto "if/deepseek-v3.2"---
 
 ## [2.6.3] — 2026-03-16
 
-> Sprint: zod/pino hash-strip baked into build pipeline, Synthetic provider added, VPS PM2 path corrected.
+> Sprint: striscia hash zod/pino inserita nella pipeline di compilazione, provider sintetico aggiunto, percorso VPS PM2 corretto.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: Turbopack hash-strip ora viene eseguito in**tempo di compilazione**per TUTTI i pacchetti — non solo per `better-sqlite3`. Il passaggio 5.6 in "prepublish.mjs" percorre ogni ".js" in "app/.next/server/" ed elimina il suffisso esadecimale di 16 caratteri da qualsiasi "require()" con hash. Correzioni `zod-dcb22c...`, `pino-...`, ecc. MODULE_NOT_FOUND sulle installazioni npm globali. Chiude il numero 398 -**fix(deploy)**: PM2 su entrambi i VPS puntava a directory git-clone obsolete. Riconfigurato in "app/server.js" nel pacchetto globale npm. Aggiornato il flusso di lavoro `/deploy-vps` per utilizzare `npm pack + scp` (il registro npm rifiuta i pacchetti da 299 MB).### Funzionalità
 
-- **fix(build)**: Turbopack hash-strip now runs at **compile time** for ALL packages — not just `better-sqlite3`. Step 5.6 in `prepublish.mjs` walks every `.js` in `app/.next/server/` and strips the 16-char hex suffix from any hashed `require()`. Fixes `zod-dcb22c...`, `pino-...`, etc. MODULE_NOT_FOUND on global npm installs. Closes #398
-- **fix(deploy)**: PM2 on both VPS was pointing to stale git-clone directories. Reconfigured to `app/server.js` in the npm global package. Updated `/deploy-vps` workflow to use `npm pack + scp` (npm registry rejects 299MB packages).
+-**feat(provider)**: Synthetic ([synthetic.new](https://synthetic.new)) — inferenza compatibile con OpenAI incentrata sulla privacy. "passthroughModels: true" per il catalogo dinamico dei modelli HuggingFace. Modelli iniziali: Kimi K2.5, MiniMax M2.5, GLM 4.7, DeepSeek V3.2. (PR n. 404 di @Regis-RCR)### 📋 Issues Closed
 
-### Funzionalità
-
-- **feat(provider)**: Synthetic ([synthetic.new](https://synthetic.new)) — privacy-focused OpenAI-compatible inference. `passthroughModels: true` for dynamic HuggingFace model catalog. Initial models: Kimi K2.5, MiniMax M2.5, GLM 4.7, DeepSeek V3.2. (PR #404 by @Regis-RCR)
-
-### 📋 Issues Closed
-
-- **close #398**: npm hash regression — fixed by compile-time hash-strip in prepublish
-- **triage #324**: Bug screenshot without steps — requested reproduction details
-
----
+-**chiudi #398**: regressione dell'hash npm: risolto dall'hash-strip in fase di compilazione in fase di prepubblicazione -**triage #324**: screenshot del bug senza passaggi: dettagli di riproduzione richiesti---
 
 ## [2.6.2] — 2026-03-16
 
-> Sprint: module hashing fully fixed, 2 PRs merged (Anthropic tools filter + custom endpoint paths), Alibaba Cloud DashScope provider added, 3 stale issues closed.
+> Sprint: hashing del modulo completamente corretto, 2 PR accorpati (filtro strumenti antropici + percorsi endpoint personalizzati), aggiunto il provider Alibaba Cloud DashScope, 3 problemi obsoleti chiusi.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: hash strip estesa del pacchetto web "externals" per coprire TUTTI i "serverExternalPackages", non solo "better-sqlite3". Next.js 16 Turbopack esegue l'hashing di `zod`, `pino` e di ogni altro pacchetto esterno al server in nomi come `zod-dcb22c6336e0bc69` che non esistono in `node_modules` in fase di runtime. Una regex catch-all HASH_PATTERN ora rimuove il suffisso di 16 caratteri e ritorna al nome del pacchetto base. Aggiunto anche `NEXT_PRIVATE_BUILD_WORKER=0` in "prepublish.mjs" per rafforzare la modalità webpack, oltre a una scansione post-build che segnala eventuali riferimenti con hash rimanenti. (#396, #398, PR #403) -**fix(chat)**: i nomi degli strumenti in formato antropico (`tool.name` senza wrapper `.function`) venivano eliminati silenziosamente dal filtro dei nomi vuoti introdotto in #346. LiteLLM inoltra le richieste con il prefisso `antropic/` nel formato API Messaggi Anthropic, causando il filtraggio di tutti gli strumenti e la restituzione di Anthropic `400: tool_choice.any può essere specificato solo durante la fornitura degli strumenti`. Risolto il problema con il ritorno a "tool.name" quando "tool.function.name" è assente. Aggiunti 8 test unitari di regressione. (PR n. 397)### Funzionalità
 
-- **fix(build)**: Extended webpack `externals` hash-strip to cover ALL `serverExternalPackages`, not just `better-sqlite3`. Next.js 16 Turbopack hashes `zod`, `pino`, and every other server-external package into names like `zod-dcb22c6336e0bc69` that don't exist in `node_modules` at runtime. A HASH_PATTERN regex catch-all now strips the 16-char suffix and falls back to the base package name. Also added `NEXT_PRIVATE_BUILD_WORKER=0` in `prepublish.mjs` to reinforce webpack mode, plus a post-build scan that reports any remaining hashed refs. (#396, #398, PR #403)
-- **fix(chat)**: Anthropic-format tool names (`tool.name` without `.function` wrapper) were silently dropped by the empty-name filter introduced in #346. LiteLLM proxies requests with `anthropic/` prefix in Anthropic Messages API format, causing all tools to be filtered and Anthropic to return `400: tool_choice.any may only be specified while providing tools`. Fixed by falling back to `tool.name` when `tool.function.name` is absent. Added 8 regression unit tests. (PR #397)
+-**feat(api)**: percorsi endpoint personalizzati per nodi provider compatibili con OpenAI: configura `chatPath` e `modelsPath` per nodo (ad esempio `/v4/chat/completions`) nell'interfaccia utente di connessione del provider. Include una migrazione del DB (`003_provider_node_custom_paths.sql`) e la sanificazione del percorso URL (nessun attraversamento `..`, deve iniziare con `/`). (PR n. 400) -**feat(provider)**: Alibaba Cloud DashScope aggiunto come provider compatibile con OpenAI. Endpoint internazionale: `dashscope-intl.aliyuncs.com/compatibili-mode/v1`. 12 modelli: `qwen-max`, `qwen-plus`, `qwen-turbo`, `qwen3-coder-plus/flash`, `qwq-plus`, `qwq-32b`, `qwen3-32b`, `qwen3-235b-a22b`. Autenticazione: chiave API bearer.### 📋 Issues Closed
 
-### Funzionalità
-
-- **feat(api)**: Custom endpoint paths for OpenAI-compatible provider nodes — configure `chatPath` and `modelsPath` per node (e.g. `/v4/chat/completions`) in the provider connection UI. Includes a DB migration (`003_provider_node_custom_paths.sql`) and URL path sanitization (no `..` traversal, must start with `/`). (PR #400)
-- **feat(provider)**: Alibaba Cloud DashScope added as OpenAI-compatible provider. International endpoint: `dashscope-intl.aliyuncs.com/compatible-mode/v1`. 12 models: `qwen-max`, `qwen-plus`, `qwen-turbo`, `qwen3-coder-plus/flash`, `qwq-plus`, `qwq-32b`, `qwen3-32b`, `qwen3-235b-a22b`. Auth: Bearer API key.
-
-### 📋 Issues Closed
-
-- **close #323**: Cline connection error `[object Object]` — fixed in v2.3.7; instructed user to upgrade from v2.2.9
-- **close #337**: Kiro credit tracking — implemented in v2.5.5 (#381); pointed user to Dashboard → Usage
-- **triage #402**: ARM64 macOS DMG damaged — requested macOS version, exact error, and advised `xattr -d com.apple.quarantine` workaround
-
----
+-**chiudi #323**: errore di connessione Cline `[oggetto Oggetto]` — risolto nella v2.3.7; ha richiesto all'utente di aggiornare dalla versione 2.2.9 -**chiudi #337**: monitoraggio del credito Kiro — implementato nella v2.5.5 (#381); indirizzato l'utente a Dashboard → Utilizzo -**triage #402**: ARM64 macOS DMG danneggiato: richiesta versione macOS, errore esatto e soluzione alternativa consigliata `xattr -d com.apple.quarantine`---
 
 ## [2.6.1] — 2026-03-15
 
-> Critical startup fix: v2.6.0 global npm installs crashed with a 500 error due to a Turbopack/webpack module-name hashing bug in the Next.js 16 instrumentation hook.
+> Correzione critica all'avvio: le installazioni npm globali v2.6.0 si sono arrestate in modo anomalo con un errore 500 a causa di un bug di hashing del nome modulo Turbopack/webpack nell'hook della strumentazione Next.js 16.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: forza che `better-sqlite3` sia sempre richiesto con il nome esatto del pacchetto nel bundle del server webpack. Next.js 16 ha compilato l'hook della strumentazione in un blocco separato ed ha emesso `require('better-sqlite3-<hash>')` — un nome di modulo con hash che non esiste in `node_modules` — anche se il pacchetto era elencato in `serverExternalPackages`. Aggiunta una funzione esplicita `externals` alla configurazione del webpack del server in modo che il bundler emetta sempre `require('better-sqlite3')`, risolvendo l'avvio `500 Internal Server Error` su installazioni globali pulite. (#394, PR #395)### 🔧 CI
 
-- **fix(build)**: Force `better-sqlite3` to always be required by its exact package name in the webpack server bundle. Next.js 16 compiled the instrumentation hook into a separate chunk and emitted `require('better-sqlite3-<hash>')` — a hashed module name that doesn't exist in `node_modules` — even though the package was listed in `serverExternalPackages`. Added an explicit `externals` function to the server webpack config so the bundler always emits `require('better-sqlite3')`, resolving the startup `500 Internal Server Error` on clean global installs. (#394, PR #395)
-
-### 🔧 CI
-
-- **ci**: Added `workflow_dispatch` to `npm-publish.yml` with version sync safeguard for manual triggers (#392)
-- **ci**: Added `workflow_dispatch` to `docker-publish.yml`, updated GitHub Actions to latest versions (#392)
-
----
+-**ci**: aggiunto `workflow_dispatch` a `npm-publish.yml` con protezione della sincronizzazione della versione per i trigger manuali (#392). -**ci**: aggiunto `workflow_dispatch` a `docker-publish.yml`, aggiornate le azioni GitHub alle ultime versioni (#392).---
 
 ## [2.6.0] - 2026-03-15
 
-> Issue resolution sprint: 4 bugs fixed, logs UX improved, Kiro credit tracking added.
+> Sprint per la risoluzione dei problemi: 4 bug risolti, log UX migliorati, aggiunto il monitoraggio del credito Kiro.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**correzione(media)**: ComfyUI e SD WebUI non vengono più visualizzati nell'elenco dei provider della pagina multimediale quando non sono configurati: recupera `/api/providers` al montaggio e nasconde i provider locali senza connessioni (#390). -**correzione(auth)**: il round robin non riseleziona più gli account con velocità limitata immediatamente dopo il raffreddamento: `backoffLevel` è ora utilizzato come chiave di ordinamento primaria nella rotazione LRU (#340) -**risolto (oauth)**: Qoder (e altri provider che reindirizzano alla propria interfaccia utente) non lasciano più la modalità OAuth bloccata su "In attesa di autorizzazione" - transizioni automatiche del rilevatore popup chiuso alla modalità di immissione URL manuale (#344) -**fix(logs)**: la tabella dei log delle richieste è ora leggibile in modalità light: i badge di stato, i conteggi dei token e i tag combinati utilizzano classi di colore adattive `dark:` (#378)### Funzionalità
 
-- **fix(media)**: ComfyUI and SD WebUI no longer appear in the Media page provider list when unconfigured — fetches `/api/providers` on mount and hides local providers with no connections (#390)
-- **fix(auth)**: Round-robin no longer re-selects rate-limited accounts immediately after cooldown — `backoffLevel` is now used as primary sort key in the LRU rotation (#340)
-- **fix(oauth)**: Qoder (and other providers that redirect to their own UI) no longer leave the OAuth modal stuck at "Waiting for Authorization" — popup-closed detector auto-transitions to manual URL input mode (#344)
-- **fix(logs)**: Request log table is now readable in light mode — status badges, token counts, and combo tags use adaptive `dark:` color classes (#378)
+-**feat(kiro)**: monitoraggio del credito Kiro aggiunto al fetcher di utilizzo: query `getUserCredits` dall'endpoint AWS CodeWhisperer (#337)### 🛠 Chores
 
-### Funzionalità
-
-- **feat(kiro)**: Kiro credit tracking added to usage fetcher — queries `getUserCredits` from AWS CodeWhisperer endpoint (#337)
-
-### 🛠 Chores
-
-- **chore(tests)**: Aligned `test:plan3`, `test:fixes`, `test:security` to use same `tsx/esm` loader as `npm test` — eliminates module resolution false negatives in targeted runs (PR #386)
-
----
+-**chore(tests)**: Allineati `test:plan3`, `test:fixes`, `test:security` per utilizzare lo stesso caricatore `tsx/esm` di `npm test` — elimina i falsi negativi della risoluzione del modulo nelle esecuzioni mirate (PR #386)---
 
 ## [2.5.9] - 2026-03-15
 
-> Codex native passthrough fix + route body validation hardening.
+> Correzione del passthrough nativo del Codex + rafforzamento della convalida del corpo del percorso.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(codex)**: Preserve native Responses API passthrough for Codex clients — avoids unnecessary translation mutations (PR #387)
-- **fix(api)**: Validate request bodies on pricing/sync and task-routing routes — prevents crashes from malformed inputs (PR #388)
-- **fix(auth)**: JWT secrets persist across restarts via `src/lib/db/secrets.ts` — eliminates 401 errors after pm2 restart (PR #388)
-
----
+-**fix(codex)**: preserva il passthrough dell'API Responses nativa per i client Codex: evita mutazioni di traduzione non necessarie (PR n. 387) -**fix(api)**: convalida i corpi delle richieste su prezzi/sincronizzazione e percorsi di routing delle attività: previene arresti anomali dovuti a input non validi (PR n. 388) -**fix(auth)**: i segreti JWT persistono dopo i riavvii tramite `src/lib/db/secrets.ts` — elimina gli errori 401 dopo il riavvio di pm2 (PR #388)---
 
 ## [2.5.8] - 2026-03-15
 
-> Build fix: restore VPS connectivity broken by v2.5.7 incomplete publish.
+> Correzione della build: ripristino della connettività VPS interrotta dalla pubblicazione incompleta della v2.5.7.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(build)**: `scripts/prepublish.mjs` still used deprecated `--webpack` flag causing Next.js standalone build to fail silently — npm publish completed without `app/server.js`, breaking VPS deployment
-
----
+-**fix(build)**: `scripts/prepublish.mjs` utilizzava ancora il flag deprecato `--webpack` causando il fallimento silenzioso della build standalone di Next.js: pubblicazione npm completata senza `app/server.js`, interrompendo la distribuzione VPS---
 
 ## [2.5.7] - 2026-03-15
 
-> Media playground error handling fixes.
+> Correzioni nella gestione degli errori del parco giochi multimediale.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(media)**: Transcription "API Key Required" false positive when audio contains no speech (music, silence) — now shows "No speech detected" instead
-- **fix(media)**: `upstreamErrorResponse` in `audioTranscription.ts` and `audioSpeech.ts` now returns proper JSON (`{error:{message}}`), enabling correct 401/403 credential error detection in the MediaPageClient
-- **fix(media)**: `parseApiError` now handles Deepgram's `err_msg` field and detects `"api key"` in error messages for accurate credential error classification
-
----
+-**fix(media)**: trascrizione "API Key Required" falso positivo quando l'audio non contiene parlato (musica, silenzio) - ora mostra invece "Nessun parlato rilevato" -**fix(media)**: `upstreamErrorResponse` in `audioTranscription.ts` e `audioSpeech.ts` ora restituisce il JSON corretto (`{error:{message}}`), abilitando il corretto rilevamento degli errori di credenziale 401/403 in MediaPageClient -**fix(media)**: `parseApiError` ora gestisce il campo `err_msg` di Deepgram e rileva la `"chiave API"` nei messaggi di errore per una classificazione accurata degli errori delle credenziali---
 
 ## [2.5.6] - 2026-03-15
 
-> Critical security/auth fixes: Antigravity OAuth broken + JWT sessions lost after restart.
+> Correzioni critiche di sicurezza/autenticazione: Antigravity OAuth interrotto + sessioni JWT perse dopo il riavvio.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(oauth) #384**: Antigravity Google OAuth now correctly sends `client_secret` to the token endpoint. The fallback for `ANTIGRAVITY_OAUTH_CLIENT_SECRET` was an empty string, which is falsy — so `client_secret` was never included in the request, causing `"client_secret is missing"` errors for all users without a custom env var. Closes #383.
-- **fix(auth) #385**: `JWT_SECRET` is now persisted to SQLite (`namespace='secrets'`) on first generation and reloaded on subsequent starts. Previously, a new random secret was generated each process startup, invalidating all existing cookies/sessions after any restart or upgrade. Affects both `JWT_SECRET` and `API_KEY_SECRET`. Closes #382.
-
----
+-**fix(oauth) #384**: Antigravity Google OAuth ora invia correttamente `client_secret` all'endpoint del token. Il fallback per "ANTIGRAVITY_OAUTH_CLIENT_SECRET" era una stringa vuota, il che è falso, quindi "client_secret" non è mai stato incluso nella richiesta, causando errori "client_secret mancante" per tutti gli utenti senza una variabile env personalizzata. Chiude #383. -**fix(auth) #385**: `JWT_SECRET` è ora persistente su SQLite (`namespace='secrets'`) alla prima generazione e ricaricato agli avvii successivi. In precedenza, veniva generato un nuovo segreto casuale a ogni avvio del processo, invalidando tutti i cookie/sessioni esistenti dopo ogni riavvio o aggiornamento. Interessa sia "JWT_SECRET" che "API_KEY_SECRET". Chiude #382.---
 
 ## [2.5.5] - 2026-03-15
 
-> Model list dedup fix, Electron standalone build hardening, and Kiro credit tracking.
+> Correzione della rimozione dell'elenco dei modelli, rafforzamento della build autonoma di Electron e monitoraggio del credito Kiro.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(models) #380**: `GET /api/models` ora include gli alias del provider durante la creazione del filtro del provider attivo: i modelli per `claude` (alias `cc`) e `github` (alias `gh`) venivano sempre mostrati indipendentemente dal fatto che fosse configurata una connessione, perché le chiavi `PROVIDER_MODELS` sono alias ma le connessioni DB vengono archiviate sotto gli ID del provider. Risolto il problema espandendo ogni ID provider attivo per includere anche il relativo alias tramite "PROVIDER_ID_TO_ALIAS". Chiude #353. -**fix(electron) #379**: Il nuovo `scripts/prepare-electron-standalone.mjs` mette in scena un bundle dedicato `/.next/electron-standalone` prima del packaging di Electron. Interrompe con un errore chiaro se `node_modules` è un collegamento simbolico (il costruttore di elettroni fornirebbe una dipendenza di runtime sulla macchina di compilazione). Sanificazione del percorso multipiattaforma tramite `path.basename`. Di @kfiramar.### ✨ New Features
 
-- **fix(models) #380**: `GET /api/models` now includes provider aliases when building the active-provider filter — models for `claude` (alias `cc`) and `github` (alias `gh`) were always shown regardless of whether a connection was configured, because `PROVIDER_MODELS` keys are aliases but DB connections are stored under provider IDs. Fixed by expanding each active provider ID to also include its alias via `PROVIDER_ID_TO_ALIAS`. Closes #353.
-- **fix(electron) #379**: New `scripts/prepare-electron-standalone.mjs` stages a dedicated `/.next/electron-standalone` bundle before Electron packaging. Aborts with a clear error if `node_modules` is a symlink (electron-builder would ship a runtime dependency on the build machine). Cross-platform path sanitization via `path.basename`. By @kfiramar.
+-**feat(kiro) #381**: monitoraggio del saldo del credito Kiro: l'endpoint di utilizzo ora restituisce i dati del credito per gli account Kiro chiamando `codewhisperer.us-east-1.amazonaws.com/getUserCredits` (lo stesso endpoint Kiro IDE utilizzato internamente). Restituisce i crediti rimanenti, la franchigia totale, la data di rinnovo e il livello di abbonamento. Chiude #337.## [2.5.4] - 2026-03-15
 
-### ✨ New Features
+> Correzione dell'avvio del logger, correzione della sicurezza del bootstrap dell'accesso e miglioramento dell'affidabilità dell'HMR dello sviluppatore. L'infrastruttura CI è stata rafforzata.### 🐛 Bug Fixes (PRs #374, #375, #376 by @kfiramar)
 
-- **feat(kiro) #381**: Kiro credit balance tracking — usage endpoint now returns credit data for Kiro accounts by calling `codewhisperer.us-east-1.amazonaws.com/getUserCredits` (same endpoint Kiro IDE uses internally). Returns remaining credits, total allowance, renewal date, and subscription tier. Closes #337.
+-**fix(logger) #376**: ripristina il percorso del logger di trasporto pino — `formatters.level` combinato con `transport.targets` viene rifiutato da pino. Le configurazioni supportate dal trasporto ora eliminano il formattatore di livello tramite `getTransportCompatibleConfig()`. Corregge anche la mappatura del livello numerico in `/api/logs/console`: `30→info, 40→warn, 50→error` (era spostato di uno). -**fix(login) #375**: la pagina di accesso ora si avvia dall'endpoint pubblico `/api/settings/require-login` invece che da quello protetto `/api/settings`. Nelle configurazioni protette da password, la pagina di pre-autenticazione riceveva un 401 e tornava inutilmente alle impostazioni predefinite sicure. La route pubblica ora restituisce tutti i metadati di bootstrap (`requireLogin`, `hasPassword`, `setupComplete`) con un fallback conservativo di 200 in caso di errore. -**fix(dev) #374**: aggiunti `localhost` e `127.0.0.1` a `allowedDevOrigins` in `next.config.mjs` — Il websocket HMR veniva bloccato quando si accedeva all'app tramite indirizzo di loopback, producendo ripetuti avvisi multiorigine.### 🔧 CI & Infrastructure
 
-## [2.5.4] - 2026-03-15
+-**Correzione OOM ESLint**: `eslint.config.mjs` ora ignora `vscode-extension/**`, `electron/**`, `docs/**`, `app/.next/**` e `clipr/**` — ESLint si bloccava con un OOM heap JS durante la scansione di BLOB binari VS Code e blocchi compilati. -**Correzione test unitario**: rimosso `ALTER TABLE provider_connections ADD COLUMN "group"` obsoleto da 2 file di test: la colonna ora fa parte dello schema di base (aggiunto in #373), causando `SQLITE_ERROR: nome colonna duplicato` su ogni esecuzione del CI. -**Hook pre-commit**: aggiunto `npm run test:unit` a `.husky/pre-commit`: i test unitari ora bloccano i commit interrotti prima che raggiungano il CI.## [2.5.3] - 2026-03-14
 
-> Logger startup fix, login bootstrap security fix, and dev HMR reliability improvement. CI infrastructure hardened.
+> Correzioni di bug critici: migrazione dello schema DB, caricamento dell'ambiente di avvio, cancellazione dello stato degli errori del provider e correzione del tooltip i18n. Miglioramenti della qualità del codice su ogni PR.### 🐛 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
 
-### 🐛 Bug Fixes (PRs #374, #375, #376 by @kfiramar)
+-**fix(db) #373**: aggiunta la colonna `provider_connections.group` allo schema di base + migrazione del backfill per i database esistenti: la colonna veniva utilizzata in tutte le query ma mancava nella definizione dello schema -**correzione(i18n) #371**: sostituzione della chiave inesistente `t("deleteConnection")` con la chiave `provviders.delete` esistente — correzioni dell'errore di runtime `MISSING_MESSAGE: provider.deleteConnection` nella pagina dei dettagli del provider -**fix(auth) #372**: Cancella i metadati di errore obsoleti (`errorCode`, `lastErrorType`, `lastErrorSource`) dagli account del fornitore dopo un ripristino autentico: in precedenza, gli account recuperati continuavano a apparire come non riusciti -**correzione (avvio) #369**: Unifica il caricamento di env su `npm run start`, `run-standalone.mjs` ed Electron per rispettare la priorità di `DATA_DIR/.env → ~/.omniroute/.env → ./.env`: impedisce la generazione di un nuovo `STORAGE_ENCRYPTION_KEY` su un database crittografato esistente### 🔧 Code Quality
 
-- **fix(logger) #376**: Restore pino transport logger path — `formatters.level` combined with `transport.targets` is rejected by pino. Transport-backed configs now strip the level formatter via `getTransportCompatibleConfig()`. Also corrects numeric level mapping in `/api/logs/console`: `30→info, 40→warn, 50→error` (was shifted by one).
-- **fix(login) #375**: Login page now bootstraps from the public `/api/settings/require-login` endpoint instead of the protected `/api/settings`. In password-protected setups, the pre-auth page was receiving a 401 and falling back to safe defaults unnecessarily. The public route now returns all bootstrap metadata (`requireLogin`, `hasPassword`, `setupComplete`) with a conservative 200 fallback on error.
-- **fix(dev) #374**: Add `localhost` and `127.0.0.1` to `allowedDevOrigins` in `next.config.mjs` — HMR websocket was blocked when accessing the app via loopback address, producing repeated cross-origin warnings.
+- Modelli documentati di `result.success` e `response?.ok` in "auth.ts" (entrambi intenzionali, ora spiegati)
+- Normalizzato `overridePath?.trim()` in `electron/main.js` per corrispondere a `bootstrap-env.mjs`
+- Aggiunto il commento sull'ordine di unione `preferredEnv` all'avvio di Electron
 
-### 🔧 CI & Infrastructure
+> Politica di quota dell'account Codex con rotazione automatica, attivazione/disattivazione rapida del livello, modello gpt-5.4 e correzione dell'etichetta di analisi.### ✨ New Features (PRs #366, #367, #368)
 
-- **ESLint OOM fix**: `eslint.config.mjs` now ignores `vscode-extension/**`, `electron/**`, `docs/**`, `app/.next/**`, and `clipr/**` — ESLint was crashing with a JS heap OOM by scanning VS Code binary blobs and compiled chunks.
-- **Unit test fix**: Removed stale `ALTER TABLE provider_connections ADD COLUMN "group"` from 2 test files — column is now part of the base schema (added in #373), causing `SQLITE_ERROR: duplicate column name` on every CI run.
-- **Pre-commit hook**: Added `npm run test:unit` to `.husky/pre-commit` — unit tests now block broken commits before they reach CI.
+-**Politica sulle quote del Codex (PR n. 366)**: la finestra delle quote settimanali/di 5 ore per account viene attivata/disattivata nella dashboard del fornitore. Gli account vengono automaticamente saltati quando le finestre abilitate raggiungono la soglia del 90% e riammessi dopo "resetAt". Include "quotaCache.ts" con getter di stato senza effetti collaterali. -**Attivazione/disattivazione livello rapido Codex (PR n. 367)**: Dashboard → Impostazioni → Livello di servizio Codex. L'attivazione/disattivazione predefinita inserisce `service_tier: "flex"` solo per le richieste Codex, riducendo i costi di circa l'80%. Stack completo: scheda UI + endpoint API + esecutore + traduttore + ripristino all'avvio. -**Modello gpt-5.4 (PR #368)**: aggiunge `cx/gpt-5.4` e `codex/gpt-5.4` al registro del modello Codex. Test di regressione incluso.### 🐛 Bug Fixes
 
-## [2.5.3] - 2026-03-14
+-**correzione n. 356**: i grafici di analisi (fornitore principale, per account, suddivisione dei fornitori) ora mostrano nomi/etichette dei fornitori leggibili dall'uomo anziché ID interni non elaborati per i fornitori compatibili con OpenAI.
 
-> Critical bugfixes: DB schema migration, startup env loading, provider error state clearing, and i18n tooltip fix. Code quality improvements on top of each PR.
+> Versione principale: strategia di routing rigorosamente casuale, controlli di accesso tramite chiave API, gruppi di connessione, sincronizzazione dei prezzi esterni e correzioni di bug critici per modelli di pensiero, test combinati e convalida dei nomi degli strumenti.### ✨ New Features (PRs #363 & #365)
 
-### 🐛 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
+-**Strategia di routing rigorosamente casuale**: mazzo shuffle Fisher-Yates con garanzia anti-ripetizione e serializzazione mutex per richieste simultanee. Mazzi indipendenti per combo e per provider. -**Controlli di accesso chiave API**: `allowedConnections` (limita le connessioni che una chiave può utilizzare), `is_active` (abilita/disabilita la chiave con 403), `accessSchedule` (controllo degli accessi basato sul tempo), attiva/disattiva `autoResolve`, rinomina le chiavi tramite PATCH. -**Gruppi di connessione**: connessioni del provider di gruppo per ambiente. Visualizzazione a fisarmonica nella pagina Limiti con persistenza localStorage e commutazione automatica intelligente. -**Sincronizzazione prezzi esterna (LiteLLM)**: risoluzione dei prezzi a 3 livelli (sostituzioni utente → sincronizzato → valori predefiniti). Attivazione tramite `PRICING_SYNC_ENABLED=true`. Strumento MCP `omniroute_sync_pricing`. 23 nuovi test. -**i18n**: 30 lingue aggiornate con strategia strict-random, stringhe di gestione delle chiavi API. pt-BR completamente tradotto.### 🐛 Bug Fixes
 
-- **fix(db) #373**: Add `provider_connections.group` column to base schema + backfill migration for existing databases — column was used in all queries but missing from schema definition
-- **fix(i18n) #371**: Replace non-existent `t("deleteConnection")` key with existing `providers.delete` key — fixes `MISSING_MESSAGE: providers.deleteConnection` runtime error on provider detail page
-- **fix(auth) #372**: Clear stale error metadata (`errorCode`, `lastErrorType`, `lastErrorSource`) from provider accounts after genuine recovery — previously, recovered accounts kept appearing as failed
-- **fix(startup) #369**: Unify env loading across `npm run start`, `run-standalone.mjs`, and Electron to respect `DATA_DIR/.env → ~/.omniroute/.env → ./.env` priority — prevents generating a new `STORAGE_ENCRYPTION_KEY` over an existing encrypted database
+-**correzione #355**: timeout di inattività del flusso aumentato da 60 a 300 secondi: impedisce l'interruzione dei modelli di pensiero esteso (claude-opus-4-6, o3, ecc.) durante le lunghe fasi di ragionamento. Configurabile tramite `STREAM_IDLE_TIMEOUT_MS`. -**correzione n. 350**: il test combinato ora ignora `REQUIRE_API_KEY=true` utilizzando l'intestazione interna e utilizza il formato compatibile con OpenAI universalmente. Timeout esteso da 15 a 20 secondi. -**correzione #346**: gli strumenti con `function.name` vuoto (inoltrato da Claude Code) vengono ora filtrati prima che i provider upstream li ricevano, prevenendo errori "Input[N].name non valido: stringa vuota".### 🗑️ Closed Issues
 
-### 🔧 Code Quality
+-**#341**: sezione Debug rimossa: la sostituzione è `/dashboard/logs` e `/dashboard/health`.
 
-- Documented `result.success` vs `response?.ok` patterns in `auth.ts` (both intentional, now explained)
-- Normalized `overridePath?.trim()` in `electron/main.js` to match `bootstrap-env.mjs`
-- Added `preferredEnv` merge order comment in Electron startup
+> Supporto API Key Round-Robin per configurazioni di provider multi-chiave e conferma del routing con caratteri jolly e della finestra di quota già in atto.### ✨ New Features
 
-> Codex account quota policy with auto-rotation, fast tier toggle, gpt-5.4 model, and analytics label fix.
+-**Chiave API Round-Robin (T07)**: le connessioni del provider ora possono contenere più chiavi API (Modifica connessione → Chiavi API aggiuntive). Le richieste ruotano in round robin tra chiavi primarie + extra tramite `providerSpecificData.extraApiKeys[]`. Le chiavi vengono mantenute in memoria indicizzate per connessione: non sono necessarie modifiche allo schema del database.### 📝 Already Implemented (confirmed in audit)
 
-### ✨ New Features (PRs #366, #367, #368)
+-**Wildcard Model Routing (T13)**: `wildcardRouter.ts` con corrispondenza con caratteri jolly in stile glob (`gpt*`, `claude-?-sonnet`, ecc.) è già integrato in `model.ts` con classificazione di specificità. -**Quota Window Rolling (T08)**: `accountFallback.ts:isModelLocked()` fa già avanzare automaticamente la finestra — se `Date.now() > entry.until`, il blocco viene eliminato immediatamente (nessun blocco obsoleto).
 
-- **Codex Quota Policy (PR #366)**: Per-account 5h/weekly quota window toggles in Provider dashboard. Accounts are automatically skipped when enabled windows reach 90% threshold and re-admitted after `resetAt`. Includes `quotaCache.ts` with side-effect free status getter.
-- **Codex Fast Tier Toggle (PR #367)**: Dashboard → Settings → Codex Service Tier. Default-off toggle injects `service_tier: "flex"` only for Codex requests, reducing cost ~80%. Full stack: UI tab + API endpoint + executor + translator + startup restore.
-- **gpt-5.4 Model (PR #368)**: Adds `cx/gpt-5.4` and `codex/gpt-5.4` to the Codex model registry. Regression test included.
+> Miglioramento dell'interfaccia utente, aggiunte alla strategia di routing e gestione corretta degli errori per i limiti di utilizzo.### ✨ New Features
 
-### 🐛 Bug Fixes
+-**Strategie di routing Fill-First e P2C**: aggiunti `fill-first` (drenare la quota prima di proseguire) e `p2c` (selezione a bassa latenza Power-of-Two-Choices) al selettore di strategie combinate, con pannelli di guida completi e badge codificati a colori. -**Modelli preimpostati con stack gratuito**: la creazione di una combinazione con il modello Stack gratuito ora riempie automaticamente 7 modelli di provider gratuiti migliori della categoria (Gemini CLI, Kiro, Qoder×2, Qwen, NVIDIA NIM, Groq). Gli utenti devono semplicemente attivare i fornitori e ottenere una combinazione di $ 0 al mese pronta all'uso. -**Modale combo più ampia**: la modalità Crea/Modifica combo ora utilizza `max-w-4xl` per modificare comodamente combo di grandi dimensioni.### 🐛 Bug Fixes
 
-- **fix #356**: Analytics charts (Top Provider, By Account, Provider Breakdown) now display human-readable provider names/labels instead of raw internal IDs for OpenAI-compatible providers.
+-**Pagina Limiti HTTP 500 per Codex e GitHub**: `getCodexUsage()` e `getGitHubUsage()` ora restituiscono un messaggio intuitivo quando il provider restituisce 401/403 (token scaduto), invece di generare e causare un errore 500 nella pagina Limiti. -**Falsi positivi del banner di manutenzione**: il banner non mostra più "Il server non è raggiungibile" in modo spurio al caricamento della pagina. Risolto il problema chiamando `checkHealth()` immediatamente al montaggio e rimuovendo la chiusura obsoleta di `show`-state. -**Descrizioni comando icona provider**: i pulsanti delle icone Modifica (matita) ed Elimina nella riga di connessione del provider ora dispongono di descrizioni comandi HTML native: tutte e 6 le icone di azione sono ora auto-documentate.
 
-> Major release: strict-random routing strategy, API key access controls, connection groups, external pricing sync, and critical bug fixes for thinking models, combo testing, and tool name validation.
+> Numerosi miglioramenti derivanti dall'analisi dei problemi della community, supporto di nuovi provider, correzioni di bug per il tracciamento dei token, routing dei modelli e affidabilità dello streaming.### ✨ New Features
 
-### ✨ New Features (PRs #363 & #365)
+-**Task-Aware Smart Routing (T05)**: selezione automatica del modello in base al tipo di contenuto della richiesta: codifica → deepseek-chat, analisi → gemini-2.5-pro, visione → gpt-4o, riepilogo → gemini-2.5-flash. Configurabile tramite Impostazioni. Nuova API "GET/PUT/POST /api/settings/task-routing". -**HuggingFace Provider**: aggiunto HuggingFace Router come provider compatibile con OpenAI con Llama 3.1 70B/8B, Qwen 2.5 72B, Mistral 7B, Phi-3.5 Mini. -**Vertex AI Provider**: aggiunto il provider Vertex AI (Google Cloud) con Gemini 2.5 Pro/Flash, Gemma 2 27B, Claude tramite Vertex. -**Caricamenti di file Playground**: caricamento di audio per la trascrizione, caricamento di immagini per modelli di visione (rilevamento automatico in base al nome del modello), rendering di immagini in linea per risultati di generazione di immagini. -**Feedback visivo sulla selezione del modello**: i modelli già aggiunti nel selettore combinato ora mostrano ✓ badge verde: impedisce la confusione duplicata. -**Compatibilità Qwen (PR n. 352)**: impostazioni aggiornate dell'agente utente e dell'impronta digitale CLI per la compatibilità del provider Qwen. -**Gestione dello stato Round-Robin (PR n. 349)**: logica round-robin migliorata per gestire gli account esclusi e mantenere correttamente lo stato di rotazione. -**Clipboard UX (PR #360)**: operazioni degli appunti rafforzate con fallback per contesti non sicuri; Miglioramenti alla normalizzazione dello strumento Claude.### 🐛 Bug Fixes
 
-- **Strict-Random Routing Strategy**: Fisher-Yates shuffle deck with anti-repeat guarantee and mutex serialization for concurrent requests. Independent decks per combo and per provider.
-- **API Key Access Controls**: `allowedConnections` (restrict which connections a key can use), `is_active` (enable/disable key with 403), `accessSchedule` (time-based access control), `autoResolve` toggle, rename keys via PATCH.
-- **Connection Groups**: Group provider connections by environment. Accordion view in Limits page with localStorage persistence and smart auto-switch.
-- **External Pricing Sync (LiteLLM)**: 3-tier pricing resolution (user overrides → synced → defaults). Opt-in via `PRICING_SYNC_ENABLED=true`. MCP tool `omniroute_sync_pricing`. 23 new tests.
-- **i18n**: 30 languages updated with strict-random strategy, API key management strings. pt-BR fully translated.
+-**Correzione n. 302 — OpenAI SDK stream=False elimina tool_calls**: T01 Accetta la negoziazione dell'intestazione non forza più lo streaming quando `body.stream` è esplicitamente "false". Causava l'eliminazione silenziosa delle tool_calls durante l'utilizzo di OpenAI Python SDK in modalità non streaming. -**Correzione n.73 — Claude Haiku instradato a OpenAI senza prefisso del provider**: i modelli `claude-*` inviati senza prefisso del provider ora vengono instradati correttamente al provider `antigravity` (antropico). Aggiunta anche l'euristica `gemini-*`/`gemma-*` → `gemini`. -**Correzione #74 — I token contano sempre 0 per lo streaming Antigravity/Claude**: l'evento SSE `message_start` che trasporta `input_tokens` non veniva analizzato da `extractUsage()`, causando la caduta di tutti i conteggi dei token di input. Il monitoraggio dei token di input/output ora funziona correttamente per le risposte in streaming. -**Correzione #180 — Duplicati di importazione di modelli senza feedback**: `ModelSelectModal` ora mostra ✓ un'evidenziazione verde per i modelli già nella combo, rendendo evidente che sono già aggiunti. -**Errori nella generazione di pagine multimediali**: i risultati delle immagini ora vengono visualizzati come tag "<img>" invece che come JSON non elaborato. Risultati della trascrizione mostrati come testo leggibile. Gli errori di credenziale mostrano un banner color ambra invece di un errore silenzioso. -**Pulsante di aggiornamento del token sulla pagina del provider**: interfaccia utente di aggiornamento manuale del token aggiunta per i provider OAuth.### 🔧 Improvements
 
-### 🐛 Bug Fixes
+-**Registro del provider**: HuggingFace e Vertex AI aggiunti a `providerRegistry.ts` e `provviders.ts` (frontend). -**Read Cache**: nuovo `src/lib/db/readCache.ts` per un efficiente caching di lettura DB. -**Quota Cache**: cache delle quote migliorata con eliminazione basata su TTL.### 📦 Dependencies
 
-- **fix #355**: Stream idle timeout increased from 60s to 300s — prevents aborting extended-thinking models (claude-opus-4-6, o3, etc.) during long reasoning phases. Configurable via `STREAM_IDLE_TIMEOUT_MS`.
-- **fix #350**: Combo test now bypasses `REQUIRE_API_KEY=true` using internal header, and uses OpenAI-compatible format universally. Timeout extended from 15s to 20s.
-- **fix #346**: Tools with empty `function.name` (forwarded by Claude Code) are now filtered before upstream providers receive them, preventing "Invalid input[N].name: empty string" errors.
-
-### 🗑️ Closed Issues
-
-- **#341**: Debug section removed — replacement is `/dashboard/logs` and `/dashboard/health`.
-
-> API Key Round-Robin support for multi-key provider setups, and confirmation of wildcard routing and quota window rolling already in place.
-
-### ✨ New Features
-
-- **API Key Round-Robin (T07)**: Provider connections can now hold multiple API keys (Edit Connection → Extra API Keys). Requests rotate round-robin between primary + extra keys via `providerSpecificData.extraApiKeys[]`. Keys are held in-memory indexed per connection — no DB schema changes required.
-
-### 📝 Already Implemented (confirmed in audit)
-
-- **Wildcard Model Routing (T13)**: `wildcardRouter.ts` with glob-style wildcard matching (`gpt*`, `claude-?-sonnet`, etc.) is already integrated into `model.ts` with specificity ranking.
-- **Quota Window Rolling (T08)**: `accountFallback.ts:isModelLocked()` already auto-advances the window — if `Date.now() > entry.until`, lock is deleted immediately (no stale blocking).
-
-> UI polish, routing strategy additions, and graceful error handling for usage limits.
-
-### ✨ New Features
-
-- **Fill-First & P2C Routing Strategies**: Added `fill-first` (drain quota before moving on) and `p2c` (Power-of-Two-Choices low-latency selection) to combo strategy picker, with full guidance panels and color-coded badges.
-- **Free Stack Preset Models**: Creating a combo with the Free Stack template now auto-fills 7 best-in-class free provider models (Gemini CLI, Kiro, Qoder×2, Qwen, NVIDIA NIM, Groq). Users just activate the providers and get a $0/month combo out-of-the-box.
-- **Wider Combo Modal**: Create/Edit combo modal now uses `max-w-4xl` for comfortable editing of large combos.
-
-### 🐛 Bug Fixes
-
-- **Limits page HTTP 500 for Codex & GitHub**: `getCodexUsage()` and `getGitHubUsage()` now return a user-friendly message when the provider returns 401/403 (expired token), instead of throwing and causing a 500 error on the Limits page.
-- **MaintenanceBanner false-positive**: Banner no longer shows "Server is unreachable" spuriously on page load. Fixed by calling `checkHealth()` immediately on mount and removing stale `show`-state closure.
-- **Provider icon tooltips**: Edit (pencil) and delete icon buttons in the provider connection row now have native HTML tooltips — all 6 action icons are now self-documented.
-
-> Multiple improvements from community issue analysis, new provider support, bug fixes for token tracking, model routing, and streaming reliability.
-
-### ✨ New Features
-
-- **Task-Aware Smart Routing (T05)**: Automatic model selection based on request content type — coding → deepseek-chat, analysis → gemini-2.5-pro, vision → gpt-4o, summarization → gemini-2.5-flash. Configurable via Settings. New `GET/PUT/POST /api/settings/task-routing` API.
-- **HuggingFace Provider**: Added HuggingFace Router as an OpenAI-compatible provider with Llama 3.1 70B/8B, Qwen 2.5 72B, Mistral 7B, Phi-3.5 Mini.
-- **Vertex AI Provider**: Added Vertex AI (Google Cloud) provider with Gemini 2.5 Pro/Flash, Gemma 2 27B, Claude via Vertex.
-- **Playground File Uploads**: Audio upload for transcription, image upload for vision models (auto-detect by model name), inline image rendering for image generation results.
-- **Model Select Visual Feedback**: Already-added models in combo picker now show ✓ green badge — prevents duplicate confusion.
-- **Qwen Compatibility (PR #352)**: Updated User-Agent and CLI fingerprint settings for Qwen provider compatibility.
-- **Round-Robin State Management (PR #349)**: Enhanced round-robin logic to handle excluded accounts and maintain rotation state correctly.
-- **Clipboard UX (PR #360)**: Hardened clipboard operations with fallback for non-secure contexts; Claude tool normalization improvements.
-
-### 🐛 Bug Fixes
-
-- **Fix #302 — OpenAI SDK stream=False drops tool_calls**: T01 Accept header negotiation no longer forces streaming when `body.stream` is explicitly `false`. Was causing tool_calls to be silently dropped when using the OpenAI Python SDK in non-streaming mode.
-- **Fix #73 — Claude Haiku routed to OpenAI without provider prefix**: `claude-*` models sent without a provider prefix now correctly route to the `antigravity` (Anthropic) provider. Added `gemini-*`/`gemma-*` → `gemini` heuristic as well.
-- **Fix #74 — Token counts always 0 for Antigravity/Claude streaming**: The `message_start` SSE event which carries `input_tokens` was not being parsed by `extractUsage()`, causing all input token counts to drop. Input/output token tracking now works correctly for streaming responses.
-- **Fix #180 — Model import duplicates with no feedback**: `ModelSelectModal` now shows ✓ green highlight for models already in the combo, making it obvious they're already added.
-- **Media page generation errors**: Image results now render as `<img>` tags instead of raw JSON. Transcription results shown as readable text. Credential errors show an amber banner instead of silent failure.
-- **Token refresh button on provider page**: Manual token refresh UI added for OAuth providers.
-
-### 🔧 Improvements
-
-- **Provider Registry**: HuggingFace and Vertex AI added to `providerRegistry.ts` and `providers.ts` (frontend).
-- **Read Cache**: New `src/lib/db/readCache.ts` for efficient DB read caching.
-- **Quota Cache**: Improved quota cache with TTL-based eviction.
-
-### 📦 Dependencies
-
-- `dompurify` → 3.3.3 (PR #347)
+- `dompurificare` → 3.3.3 (PR #347)
 - `undici` → 7.24.2 (PR #348, #361)
 - `docker/setup-qemu-action` → v4 (PR #342)
-- `docker/setup-buildx-action` → v4 (PR #343)
+- `docker/setup-buildx-action` → v4 (PR #343)### 📁 New Files
 
-### 📁 New Files
-
-| File                                          | Purpose                                 |
-| --------------------------------------------- | --------------------------------------- |
-| `open-sse/services/taskAwareRouter.ts`        | Task-aware routing logic (7 task types) |
-| `src/app/api/settings/task-routing/route.ts`  | Task routing config API                 |
-| `src/app/api/providers/[id]/refresh/route.ts` | Manual OAuth token refresh              |
-| `src/lib/db/readCache.ts`                     | Efficient DB read cache                 |
-| `src/shared/utils/clipboard.ts`               | Hardened clipboard with fallback        |
-
-## [2.4.1] - 2026-03-13
+| File                                          | Scopo                                                          |
+| --------------------------------------------- | -------------------------------------------------------------- | ----------------------- |
+| `open-sse/services/taskAwareRouter.ts`        | Logica di routing sensibile alle attività (7 tipi di attività) |
+| `src/app/api/settings/task-routing/route.ts`  | API di configurazione dell'instradamento delle attività        |
+| `src/app/api/providers/[id]/refresh/route.ts` | Aggiornamento manuale del token OAuth                          |
+| `src/lib/db/readCache.ts`                     | Cache di lettura DB efficiente                                 |
+| `src/shared/utils/clipboard.ts`               | Appunti rinforzati con fallback                                | ## [2.4.1] - 2026-03-13 |
 
 ### 🐛 Fix
 
-- **Combos modal: Free Stack visible and prominent** — Free Stack template was hidden (4th in 3-column grid). Fixed: moved to position 1, switched to 2x2 grid so all 4 templates are visible, green border + FREE badge highlight.
+-**Modale combo: Stack gratuito visibile e prominente**: il modello Stack gratuito era nascosto (4° nella griglia a 3 colonne). Risolto: spostato nella posizione 1, passato alla griglia 2x2 in modo che tutti e 4 i modelli siano visibili, bordo verde + evidenziazione badge GRATUITO.## [2.4.0] - 2026-03-13
 
-## [2.4.0] - 2026-03-13
+> **Versione principale**: ecosistema Free Stack, revisione del parco giochi di trascrizione, oltre 44 provider, documentazione completa del livello gratuito e miglioramenti dell'interfaccia utente su tutta la linea.### Funzionalità
 
-> **Major release** — Free Stack ecosystem, transcription playground overhaul, 44+ providers, comprehensive free tier documentation, and UI improvements across the board.
-
-### Funzionalità
-
-- **Combos: Free Stack template** — New 4th template "Free Stack ($0)" using round-robin across Kiro + Qoder + Qwen + Gemini CLI. Suggests the pre-built zero-cost combo on first use.
-- **Media/Transcription: Deepgram as default** — Deepgram (Nova 3, $200 free) is now the default transcription provider. AssemblyAI ($50 free) and Groq Whisper (free forever) shown with free credit badges.
-- **README: "Start Free" section** — New early-README 5-step table showing how to set up zero-cost AI in minutes.
-- **README: Free Transcription Combo** — New section with Deepgram/AssemblyAI/Groq combo suggestion and per-provider free credit details.
-- **providers.ts: hasFree flag** — NVIDIA NIM, Cerebras, and Groq marked with hasFree badge and freeNote for the providers UI.
-- **i18n: templateFreeStack keys** — Free Stack combo template translated and synced to all 30 languages.
-
-## [2.3.16] - 2026-03-13
+-**Combo: modello Stack gratuito**— Nuovo quarto modello "Stack gratuito ($0)" che utilizza il round robin su Kiro + Qoder + Qwen + Gemini CLI. Suggerisce la combo precostruita a costo zero al primo utilizzo.
+-**Media/Trascrizione: Deepgram come predefinito**— Deepgram (Nova 3, $ 200 gratis) è ora il fornitore di trascrizione predefinito. AssemblyAI ($ 50 gratis) e Groq Whisper (gratuito per sempre) mostrati con badge di credito gratuiti. -**README: sezione "Inizia gratuitamente"**: nuova tabella in 5 passaggi README iniziale che mostra come configurare l'IA a costo zero in pochi minuti. -**README: combinazione di trascrizione gratuita**: nuova sezione con suggerimenti per la combinazione Deepgram/AssemblyAI/Groq e dettagli sul credito gratuito per fornitore. -**provviders.ts: flag hasFree**: NVIDIA NIM, Cerebras e Groq contrassegnati con il badge hasFree e freeNote per l'interfaccia utente dei provider. -**i18n: chiavi templateFreeStack**: modello combinato Stack gratuito tradotto e sincronizzato in tutte le 30 lingue.## [2.3.16] - 2026-03-13
 
 ### Documentazione
 
-- **README: 44+ Providers** — Updated all 3 occurrences of "36+ providers" to "44+" reflecting the actual codebase count (44 providers in providers.ts)
-- **README: New Section "🆓 Free Models — What You Actually Get"** — Added 7-provider table with per-model rate limits for: Kiro (Claude unlimited via AWS Builder ID), Qoder (5 models unlimited), Qwen (4 models unlimited), Gemini CLI (180K/mo), NVIDIA NIM (~40 RPM dev-forever), Cerebras (1M tok/day / 60K TPM), Groq (30 RPM / 14.4K RPD). Includes the \/usr/bin/bash Ultimate Free Stack combo recommendation.
-- **README: Pricing Table Updated** — Added Cerebras to API KEY tier, fixed NVIDIA from "1000 credits" to "dev-forever free", updated Qoder/Qwen model counts and names
-- **README: Qoder 8→5 models** (named: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2)
-- **README: Qwen 3→4 models** (named: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model)
-
-## [2.3.15] - 2026-03-13
+-**README: 44+ Provider**— Aggiornate tutte e 3 le occorrenze di "36+ provider" a "44+" riflettendo il conteggio effettivo della base di codice (44 provider in provider.ts) -**LEGGIMI: Nuova sezione "🆓 Modelli gratuiti: cosa ottieni effettivamente"**- Aggiunta tabella di 7 fornitori con limiti di velocità per modello per: Kiro (Claude illimitato tramite AWS Builder ID), Qoder (5 modelli illimitati), Qwen (4 modelli illimitati), Gemini CLI (180.000/mese), NVIDIA NIM (~40 RPM dev-per sempre), Cerebras (1 milione di tok/giorno / 60.000 TPM), Groq (30 giri/min/14,4K giri/min). Include la raccomandazione combinata \/usr/bin/bash Ultimate Free Stack. -**README: tabella dei prezzi aggiornata**— Aggiunto Cerebras al livello API KEY, corretto NVIDIA da "1000 crediti" a "dev-forever free", conteggi e nomi dei modelli Qoder/Qwen aggiornati -**README: modelli Qoder 8→5**(denominati: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2) -**LEGGIMI: modelli Qwen 3→4**(denominati: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model)## [2.3.15] - 2026-03-13
 
 ### Funzionalità
 
-- **Auto-Combo Dashboard (Tier Priority)**: Added `🏷️ Tier` as the 7th scoring factor label in the `/dashboard/auto-combo` factor breakdown display — all 7 Auto-Combo scoring factors are now visible.
-- **i18n — autoCombo section**: Added 20 new translation keys for the Auto-Combo dashboard (`title`, `status`, `modePack`, `providerScores`, `factorTierPriority`, etc.) to all 30 language files.
-
-## [2.3.14] - 2026-03-13
+-**Dashboard Auto-Combo (priorità livello)**: aggiunto "🏷️ Livello" come settima etichetta del fattore di punteggio nella visualizzazione della suddivisione dei fattori "/dashboard/auto-combo": tutti e 7 i fattori di punteggio dell'Auto-Combo sono ora visibili. -**i18n — sezione autoCombo**: aggiunte 20 nuove chiavi di traduzione per la dashboard Auto-Combo (`title`, `status`, `modePack`, `providerScores`, `factorTierPriority`, ecc.) a tutti i 30 file di lingua.## [2.3.14] - 2026-03-13
 
 ### 🐛 Bug Fixes
 
-- **Qoder OAuth (#339)**: Restored the valid default `clientSecret` — was previously an empty string, causing "Bad client credentials" on every connect attempt. The public credential is now the default fallback (overridable via `QODER_OAUTH_CLIENT_SECRET` env var).
-- **MITM server not found (#335)**: `prepublish.mjs` now compiles `src/mitm/*.ts` to JavaScript using `tsc` before copying to the npm bundle. Previously only raw `.ts` files were copied — meaning `server.js` never existed in npm/Volta global installs.
-- **GeminiCLI missing projectId (#338)**: Instead of throwing a hard 500 error when `projectId` is missing from stored credentials (e.g. after Docker restart), OmniRoute now logs a warning and attempts the request — returning a meaningful provider-side error instead of an OmniRoute crash.
-- **Electron version mismatch (#323)**: Synced `electron/package.json` version to `2.3.13` (was `2.0.13`) so the desktop binary version matches the npm package.
+-**Qoder OAuth (#339)**: ripristinato il valore predefinito valido `clientSecret`: in precedenza era una stringa vuota, che causava "Credenziali client errate" a ogni tentativo di connessione. La credenziale pubblica è ora il fallback predefinito (sostituibile tramite `QODER_OAUTH_CLIENT_SECRET` env var). -**Server MITM non trovato (#335)**: `prepublish.mjs` ora compila `src/mitm/*.ts` in JavaScript utilizzando `tsc` prima di copiarlo nel bundle npm. In precedenza venivano copiati solo i file `.ts` grezzi, il che significa che `server.js` non esisteva mai nelle installazioni globali npm/Volta. -**GeminiCLI mancante projectId (#338)**: invece di generare un errore grave 500 quando `projectId` manca dalle credenziali archiviate (ad esempio dopo il riavvio di Docker), OmniRoute ora registra un avviso e tenta la richiesta, restituendo un errore significativo lato provider invece di un arresto anomalo di OmniRoute. -**Mancata corrispondenza della versione di Electron (#323)**: versione `electron/package.json` sincronizzata con `2.3.13` (era `2.0.13`) in modo che la versione binaria del desktop corrisponda al pacchetto npm.### ✨ New Models (#334)
 
-### ✨ New Models (#334)
+-**Kiro**: `claude-sonnet-4`, `claude-opus-4.6`, `deepseek-v3.2`, `minimax-m2.1`, `qwen3-coder-next`, `auto` -**Codice**: `gpt5.4`### 🔧 Improvements
 
-- **Kiro**: `claude-sonnet-4`, `claude-opus-4.6`, `deepseek-v3.2`, `minimax-m2.1`, `qwen3-coder-next`, `auto`
-- **Codex**: `gpt5.4`
+-**Tier Scoring (API + validazione)**: aggiunto `tierPriority` (peso `0.05`) allo schema Zod `ScoringWeights` e al percorso API `combos/auto`: il settimo fattore di punteggio è ora completamente accettato dall'API REST e convalidato in input. Il peso della "stabilità" è stato modificato da "0,10" a "0,05" per mantenere la somma totale = "1,0".### ✨ New Features
 
-### 🔧 Improvements
+-**Punteggio quota a livelli (combo automatico)**: aggiunto "tierPriority" come settimo fattore di punteggio: gli account con livelli Ultra/Pro sono ora preferiti rispetto ai livelli gratuiti quando altri fattori sono uguali. Nuovi campi opzionali "accountTier" e "quotaResetIntervalSecs" su "ProviderCandidate". Aggiornati tutti e 4 i pacchetti modalità ("spedisci velocemente", "risparmia costi", "prima la qualità", "offline-friendly"). -**Fallback modello intrafamiliare (T5)**: quando un modello non è disponibile (404/400/403), OmniRoute ora ricorre automaticamente ai modelli fratelli della stessa famiglia prima di restituire un errore (`modelFamilyFallback.ts`). -**Timeout bridge API configurabile**: `API_BRIDGE_PROXY_TIMEOUT_MS` env var consente agli operatori di ottimizzare il timeout del proxy (predefinito 30 secondi). Risolve gli errori 504 sulle risposte upstream lente. (#332) -**Star History**: sostituito il widget star-history.com con starchart.cc (`?variant=adaptive`) in tutti i 30 README: si adatta al tema chiaro/scuro, aggiornamenti in tempo reale.### 🐛 Bug Fixes
 
-- **Tier Scoring (API + Validation)**: Added `tierPriority` (weight `0.05`) to the `ScoringWeights` Zod schema and the `combos/auto` API route — the 7th scoring factor is now fully accepted by the REST API and validated on input. `stability` weight adjusted from `0.10` to `0.05` to keep total sum = `1.0`.
+-**Auth: prima password**: `INITIAL_PASSWORD` env var viene ora accettato quando si imposta la prima password del dashboard. Utilizza "timingSafeEqual" per il confronto in tempo costante, prevenendo attacchi temporali. (#333) -**Troncamento README**: corretto un tag di chiusura `</details>` mancante nella sezione Risoluzione dei problemi che causava a GitHub l'interruzione del rendering di tutto ciò che si trovava sotto (stack tecnico, documenti, roadmap, contributori). -**Installazione pnpm**: rimosso l'override ridondante di `@swc/helpers` da `package.json` che era in conflitto con la dipendenza diretta, causando errori `EOVERRIDE` su pnpm. Aggiunta la configurazione `pnpm.onlyBuiltDependencies`. -**CLI Path Injection (T12)**: aggiunto il validatore `isSafePath()` in `cliRuntime.ts` per bloccare l'attraversamento del percorso e i metacaratteri della shell in `CLI_*_BIN` env vars. -**CI**: rigenerato `package-lock.json` dopo la rimozione dell'override per correggere gli errori `npm ci` sulle azioni GitHub.### 🔧 Improvements
 
-### ✨ New Features
+-**Formato di risposta (T1)**: `response_format` (json_schema/json_object) ora inserito come prompt di sistema per Claude, consentendo la compatibilità dell'output strutturato. -**429 tentativi (T2)**: tentativi intra-URL per 429 risposte (2× tentativi con ritardo di 2 secondi) prima di tornare all'URL successivo. -**Intestazioni CLI Gemini (T3)**: aggiunte le intestazioni delle impronte digitali `User-Agent` e `X-Goog-Api-Client` per la compatibilità della CLI Gemini. -**Catalogo prezzi (T9)**: aggiunte le voci di prezzo `deepseek-3.1`, `deepseek-3.2` e `qwen3-coder-next`.### 📁 New Files
 
-- **Tiered Quota Scoring (Auto-Combo)**: Added `tierPriority` as a 7th scoring factor — accounts with Ultra/Pro tiers are now preferred over Free tiers when other factors are equal. New optional fields `accountTier` and `quotaResetIntervalSecs` on `ProviderCandidate`. All 4 mode packs updated (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`).
-- **Intra-Family Model Fallback (T5)**: When a model is unavailable (404/400/403), OmniRoute now automatically falls back to sibling models from the same family before returning an error (`modelFamilyFallback.ts`).
-- **Configurable API Bridge Timeout**: `API_BRIDGE_PROXY_TIMEOUT_MS` env var lets operators tune the proxy timeout (default 30s). Fixes 504 errors on slow upstream responses. (#332)
-- **Star History**: Replaced star-history.com widget with starchart.cc (`?variant=adaptive`) in all 30 READMEs — adapts to light/dark theme, real-time updates.
+| File                                       | Scopo                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------- | --------- |
+| `open-sse/services/modelFamilyFallback.ts` | Definizioni di famiglia modello e logica di fallback intrafamiliare | ### Fixed |
 
-### 🐛 Bug Fixes
-
-- **Auth — First-time password**: `INITIAL_PASSWORD` env var is now accepted when setting the first dashboard password. Uses `timingSafeEqual` for constant-time comparison, preventing timing attacks. (#333)
-- **README Truncation**: Fixed a missing `</details>` closing tag in the Troubleshooting section that caused GitHub to stop rendering everything below it (Tech Stack, Docs, Roadmap, Contributors).
-- **pnpm install**: Removed redundant `@swc/helpers` override from `package.json` that conflicted with the direct dependency, causing `EOVERRIDE` errors on pnpm. Added `pnpm.onlyBuiltDependencies` config.
-- **CLI Path Injection (T12)**: Added `isSafePath()` validator in `cliRuntime.ts` to block path traversal and shell metacharacters in `CLI_*_BIN` env vars.
-- **CI**: Regenerated `package-lock.json` after override removal to fix `npm ci` failures on GitHub Actions.
-
-### 🔧 Improvements
-
-- **Response Format (T1)**: `response_format` (json_schema/json_object) now injected as a system prompt for Claude, enabling structured output compatibility.
-- **429 Retry (T2)**: Intra-URL retry for 429 responses (2× attempts with 2s delay) before falling back to next URL.
-- **Gemini CLI Headers (T3)**: Added `User-Agent` and `X-Goog-Api-Client` fingerprint headers for Gemini CLI compatibility.
-- **Pricing Catalog (T9)**: Added `deepseek-3.1`, `deepseek-3.2`, and `qwen3-coder-next` pricing entries.
-
-### 📁 New Files
-
-| File                                       | Purpose                                                  |
-| ------------------------------------------ | -------------------------------------------------------- |
-| `open-sse/services/modelFamilyFallback.ts` | Model family definitions and intra-family fallback logic |
+-**KiloCode**: timeout del controllo dello stato del kilocode già corretto nella v2.3.11 -**OpenCode**: aggiungi opencode al registro cliRuntime con timeout del controllo dello stato di 15 secondi -**OpenClaw / Cursore**: aumenta il timeout del controllo sanitario a 15 secondi per le varianti ad avvio lento -**VPS**: installa i pacchetti npm droid e openclaw; attiva CLI_EXTRA_PATHS per kiro-cli -**cliRuntime**: aggiunta la registrazione dello strumento opencode e aumento del timeout per continuare## [2.3.11] - 2026-03-12
 
 ### Fixed
 
-- **KiloCode**: kilocode healthcheck timeout already fixed in v2.3.11
-- **OpenCode**: Add opencode to cliRuntime registry with 15s healthcheck timeout
-- **OpenClaw / Cursor**: Increase healthcheck timeout to 15s for slow-start variants
-- **VPS**: Install droid and openclaw npm packages; activate CLI_EXTRA_PATHS for kiro-cli
-- **cliRuntime**: Add opencode tool registration and increase timeout for continue
-
-## [2.3.11] - 2026-03-12
+-**KiloCode Healthcheck**: Aumenta `healthcheckTimeoutMs` da 4000ms a 15000ms — kilocode esegue il rendering di un banner con logo ASCII all'avvio causando un falso `healthcheck_failed` in ambienti lenti/con avvio a freddo## [2.3.10] - 2026-03-12
 
 ### Fixed
 
-- **KiloCode healthcheck**: Increase `healthcheckTimeoutMs` from 4000ms to 15000ms — kilocode renders an ASCII logo banner on startup causing false `healthcheck_failed` on slow/cold-start environments
+-**Lint**: risolto l'errore `check:any-budget:t11`: sostituire `as any` con `as Record<string, Unknown>` in OAuthModal.tsx (3 occorrenze)### Docs
 
-## [2.3.10] - 2026-03-12
-
-### Fixed
-
-- **Lint**: Fix `check:any-budget:t11` failure — replace `as any` with `as Record<string, unknown>` in OAuthModal.tsx (3 occurrences)
-
-### Docs
-
-- **CLI-TOOLS.md**: Complete guide for all 11 CLI tools (claude, codex, gemini, opencode, cline, kilocode, continue, kiro-cli, cursor, droid, openclaw)
-- **i18n**: CLI-TOOLS.md synced to 30 languages with translated title + intro
-
-## [2.3.8] - 2026-03-12
+-**CLI-TOOLS.md**: guida completa per tutti gli 11 strumenti CLI (claude, codex, gemini, opencode, cline, kilocode, continue, kiro-cli, cursor, droid, openclaw) -**i18n**: CLI-TOOLS.md sincronizzato in 30 lingue con titolo tradotto + introduzione## [2.3.8] - 2026-03-12
 
 ## [2.3.9] - 2026-03-12
 
 ### Added
 
-- **/v1/completions**: New legacy OpenAI completions endpoint — accepts both `prompt` string and `messages` array, normalizes to chat format automatically
-- **EndpointPage**: Now shows all 3 OpenAI-compatible endpoint types: Chat Completions, Responses API, and Legacy Completions
-- **i18n**: Added `completionsLegacy/completionsLegacyDesc` to 30 language files
+-**/v1/completions**: nuovo endpoint legacy di completamenti OpenAI: accetta sia la stringa `prompt` che l'array `messages`, si normalizza automaticamente nel formato chat -**EndpointPage**: ora mostra tutti e 3 i tipi di endpoint compatibili con OpenAI: Completamenti chat, API di risposta e Completamenti legacy -**i18n**: aggiunto `completionsLegacy/completionsLegacyDesc` a 30 file di lingua### Fixed
+
+-**OAuthModal**: corretto `[object Object]` visualizzato su tutti gli errori di connessione OAuth: estrai correttamente `.message` dagli oggetti di risposta all'errore in tutte e 3 le chiamate `throw new Error(data.error)` (scambio, codice dispositivo, autorizzazione)
+
+- Interessa Cline, Codex, GitHub, Qwen, Kiro e tutti gli altri provider OAuth## [2.3.7] - 2026-03-12
 
 ### Fixed
 
-- **OAuthModal**: Fix `[object Object]` displayed on all OAuth connection errors — properly extract `.message` from error response objects in all 3 `throw new Error(data.error)` calls (exchange, device-code, authorize)
-- Affects Cline, Codex, GitHub, Qwen, Kiro, and all other OAuth providers
-
-## [2.3.7] - 2026-03-12
+-**Cline OAuth**: aggiungi `decodeURIComponent` prima della decodifica base64 in modo che i codici di autenticazione codificati URL dall'URL di callback vengano analizzati correttamente, correggendo gli errori "codice di autorizzazione non valido o scaduto" sulle configurazioni remote (IP LAN) -**Cline OAuth**: `mapTokens` ora popola `name = firstName + lastName || email` in modo che gli account Cline mostrino nomi utente reali anziché "ID account" -**Nomi di account OAuth**: tutti i flussi di scambio OAuth (scambio, poll, poll-callback) ora normalizzano `name = email` quando manca il nome, quindi ogni account OAuth mostra la propria email come etichetta visualizzata nel dashboard dei provider -**Nomi account OAuth**: rimosso il fallback sequenziale "Account N" in `db/providers.ts`: gli account senza email/nome ora utilizzano un'etichetta stabile basata su ID tramite `getAccountDisplayName()` invece di un numero sequenziale che cambia quando gli account vengono eliminati## [2.3.6] - 2026-03-12
 
 ### Fixed
 
-- **Cline OAuth**: Add `decodeURIComponent` before base64 decode so URL-encoded auth codes from the callback URL are parsed correctly, fixing "invalid or expired authorization code" errors on remote (LAN IP) setups
-- **Cline OAuth**: `mapTokens` now populates `name = firstName + lastName || email` so Cline accounts show real user names instead of "Account #ID"
-- **OAuth account names**: All OAuth exchange flows (exchange, poll, poll-callback) now normalize `name = email` when name is missing, so every OAuth account shows its email as the display label in the Providers dashboard
-- **OAuth account names**: Removed sequential "Account N" fallback in `db/providers.ts` — accounts with no email/name now use a stable ID-based label via `getAccountDisplayName()` instead of a sequential number that changes when accounts are deleted
-
-## [2.3.6] - 2026-03-12
+-**Batch di test del provider**: corretto lo schema Zod per accettare `providerId: null` (il frontend invia null per le modalità non provider); restituiva erroneamente "Richiesta non valida" per tutti i test batch -**Modale test del provider**: corretta la visualizzazione di "[object Object]" normalizzando gli oggetti di errore API in stringhe prima del rendering in "setTestResults" e "ProviderTestResultsView" -**i18n**: Aggiunte le chiavi mancanti `cliTools.toolDescriptions.opencode`, `cliTools.toolDescriptions.kiro`, `cliTools.guides.opencode`, `cliTools.guides.kiro` a `en.json` -**i18n**: sincronizzate 1111 chiavi mancanti in tutti i 29 file di lingua non inglese utilizzando valori inglesi come fallback## [2.3.5] - 2026-03-11
 
 ### Fixed
 
-- **Provider test batch**: Fixed Zod schema to accept `providerId: null` (frontend sends null for non-provider modes); was incorrectly returning "Invalid request" for all batch tests
-- **Provider test modal**: Fixed `[object Object]` display by normalizing API error objects to strings before rendering in `setTestResults` and `ProviderTestResultsView`
-- **i18n**: Added missing keys `cliTools.toolDescriptions.opencode`, `cliTools.toolDescriptions.kiro`, `cliTools.guides.opencode`, `cliTools.guides.kiro` to `en.json`
-- **i18n**: Synchronized 1111 missing keys across all 29 non-English language files using English values as fallbacks
-
-## [2.3.5] - 2026-03-11
-
-### Fixed
-
-- **@swc/helpers**: Added permanent `postinstall` fix to copy `@swc/helpers` into the standalone app's `node_modules` — prevents MODULE_NOT_FOUND crash on global npm installs
-
-## [2.3.4] - 2026-03-10
+-**@swc/helpers**: aggiunta la correzione permanente di `postinstall` per copiare `@swc/helpers` nei `node_modules` dell'app standalone: ​​impedisce l'arresto anomalo di MODULE_NOT_FOUND sulle installazioni npm globali## [2.3.4] - 2026-03-10
 
 ### Added
 
-- Multiple provider integrations and dashboard improvements
+- Integrazioni multiple di fornitori e miglioramenti del dashboard

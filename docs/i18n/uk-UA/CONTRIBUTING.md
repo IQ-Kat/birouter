@@ -4,19 +4,13 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
-
----
+Дякуємо за ваш інтерес до участі! Цей посібник охоплює все, що вам потрібно для початку.---
 
 ## Development Setup
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
-- **npm** 10+
-- **Git**
-
-### Clone & Install
+-**Node.js**>= 18 < 24 (рекомендовано: 22 LTS) -**npm**10+ -**Git**### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -35,28 +29,24 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+Ключові змінні для розвитку:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| Змінна                     | Розробка за замовчуванням | Опис                             |
+| -------------------------- | ------------------------- | -------------------------------- | ---------------------- |
+| `ПОРТ`                     | `20128`                   | Порт сервера                     |
+| `НАСТУПНА_PUBLIC_BASE_URL` | `http://localhost:20128`  | Базова URL-адреса для інтерфейсу |
+| `JWT_SECRET`               | (згенерувати вище)        | Секрет підпису JWT               |
+| `ПОЧАТКОВИЙ_ПАРОЛЬ`        | `CHANGEME`                | Перший пароль для входу          |
+| `APP_LOG_LEVEL`            | `інформація`              | Рівень докладності журналу       | ### Dashboard Settings |
 
-### Dashboard Settings
+Інформаційна панель містить перемикачі інтерфейсу користувача для функцій, які також можна налаштувати за допомогою змінних середовища:
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+| Налаштування місцезнаходження | Перемкнути              | Опис                                           |
+| ----------------------------- | ----------------------- | ---------------------------------------------- |
+| Параметри → Додатково         | Режим налагодження      | Увімкнути журнали запитів на налагодження (UI) |
+| Параметри → Загальні          | Видимість бічної панелі | Показати/сховати розділи бічної панелі         |
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
-
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
-
-### Running Locally
+Ці параметри зберігаються в базі даних і зберігаються під час перезапусків, замінюючи значення за замовчуванням env var, якщо встановлено.### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -70,51 +60,44 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+URL-адреси за умовчанням:
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
-
----
+-**Інформаційна панель**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
 
 ## Git Workflow
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️**НІКОЛИ не приєднуйтеся безпосередньо до `main`.**Завжди використовуйте гілки функцій.```bash
+> git checkout -b feat/your-feature-name
 
-```bash
-git checkout -b feat/your-feature-name
 # ... make changes ...
+
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
+
 # Open a Pull Request on GitHub
-```
+
+````
 
 ### Branch Naming
 
-| Prefix      | Purpose                   |
-| ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| Префікс | Призначення |
+| ----------- | ------------------------ |
+| `подвиг/` | Нові функції |
+| `виправити/` | Виправлення помилок |
+| `refactor/` | Код реструктуризації |
+| `docs/` | Зміни документації |
+| `test/` | Тестові доповнення/виправлення |
+| `домашня робота/` | Оснащення, КІ, залежності |### Commit Messages
 
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+Дотримуйтесь [Conventional Commits](https://www.conventionalcommits.org/):```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-```
+````
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
+Області: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---
 
 ## Running Tests
 
@@ -137,7 +120,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min statements/lines/functions; 60% branches)
+# Coverage (60% min statements/lines/functions/branches)
 npm run test:coverage
 npm run coverage:report
 
@@ -146,36 +129,37 @@ npm run lint
 npm run check
 ```
 
-Coverage notes:
+Примітки щодо покриття:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` вимірює покриття вихідного коду для основного блоку тестів, виключаючи `tests/**` і включає `open-sse/**`
+- Запити на витягування мають підтримувати загальний рівень покриття на рівні**60% або вище**для операторів, рядків, функцій і гілок
+- Якщо PR змінює робочий код у `src/`, `open-sse/`, `electron/` або `bin/`, він повинен додати або оновити автоматичні тести в тій самій PR
+- `npm run coverage:report` друкує докладний звіт файл за файлом з останнього циклу покриття
+- `npm run test:coverage:legacy` зберігає стару метрику для історичного порівняння
+- Див. `docs/COVERAGE_PLAN.md` для поетапного плану покращення покриття### Pull Request Requirements
 
-Current test status: **122 unit test files** covering:
+Перед відкриттям або об'єднанням PR:
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- Запустіть `npm run test:unit`
+- Запустіть `npm run test:coverage`
+- Переконайтеся, що межа покриття залишається на рівні**60%+**для всіх показників
+- Включіть змінені або додані тестові файли в опис PR під час зміни коду виробництва
+- Перевірте результат SonarQube на PR, коли секрети проекту налаштовано в CI
 
----
+Поточний статус тестування:**122 файли модульних тестів**, що охоплюють:
+
+- Перекладачі постачальників і перетворення форматів
+- Обмеження швидкості, автоматичний вимикач і стійкість
+- Семантичний кеш, ідемпотентність, відстеження прогресу
+- Операції з базою даних і схема (21 модуль БД)
+- Потоки OAuth і автентифікація
+- Перевірка кінцевої точки API (Zod v4)
+- Серверні інструменти MCP та забезпечення виконання
+- Системи пам'яті та навичок---
 
 ## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
-
----
+-**ESLint**— запустіть `npm run lint` перед фіксацією -**Prettier**— автоматично відформатовано за допомогою `lint-staged` під час фіксації (2 пробіли, крапка з комою, подвійні лапки, ширина 100 символів, кінцеві коми es5) -**TypeScript**— увесь код `src/` використовує `.ts`/`.tsx`; `open-sse/` використовує `.ts`/`.js`; документ із TSDoc (`@param`, `@returns`, `@throws`) -**No `eval()`**— ESLint примусово виконує `no-eval`, `no-implied-eval`, `no-new-func` -**Перевірка Zod**— використовуйте схеми Zod v4 для перевірки всіх вхідних даних API -**Назування**: файли = camelCase/kebab-case, компоненти = PascalCase, константи = UPPER_SNAKE---
 
 ## Project Structure
 
@@ -244,56 +228,37 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+Додайте до `src/shared/constants/providers.ts` — перевірено Zod під час завантаження модуля.### Step 2: Add Executor (if custom logic needed)
 
-### Step 2: Add Executor (if custom logic needed)
+Створіть виконавець у `open-sse/executors/your-provider.ts`, розширюючи базовий виконавець.### Step 3: Add Translator (if non-OpenAI format)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+Створіть перекладачі запитів/відповідей у ​​`open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
 
-### Step 3: Add Translator (if non-OpenAI format)
+Додайте облікові дані OAuth у `src/lib/oauth/constants/oauth.ts`, а службу — у `src/lib/oauth/services/`.### Step 5: Register Models
 
-Create request/response translators in `open-sse/translator/`.
+Додайте визначення моделі в `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
 
-### Step 4: Add OAuth Config (if OAuth-based)
+Пишіть модульні тести в `tests/unit/`, охоплюючи принаймні:
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
-
-### Step 5: Register Models
-
-Add model definitions in `open-sse/config/providerRegistry.ts`.
-
-### Step 6: Add Tests
-
-Write unit tests in `tests/unit/` covering at minimum:
-
-- Provider registration
-- Request/response translation
-- Error handling
-
----
+- Реєстрація провайдера
+- Переклад запиту/відповіді
+- Обробка помилок---
 
 ## Pull Request Checklist
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
-
----
+- [ ] Тести пройдені (`npm test`)
+- [ ] Linting проходить (`npm run lint`)
+- [ ] Збірка успішна (`npm run build`)
+- [ ] Типи TypeScript додано для нових публічних функцій та інтерфейсів
+- [ ] Жодних жорстко закодованих секретів або резервних значень
+- [ ] Усі вхідні дані підтверджені схемами Zod
+- [ ] ЖУРНАЛ ЗМІН оновлено (якщо зміни стосуються користувача)
+- [ ] Оновлена документація (якщо застосовно)---
 
 ## Releasing
 
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
-
----
+Випуски керуються через робочий процес `/generate-release`. Коли створюється новий випуск GitHub, пакет**автоматично публікується в npm**за допомогою дій GitHub.---
 
 ## Getting Help
 
-- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+-**Архітектура**: див. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**Довідка по API**: див. [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Проблеми**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADRs**: див. `docs/adr/` для записів архітектурних рішень

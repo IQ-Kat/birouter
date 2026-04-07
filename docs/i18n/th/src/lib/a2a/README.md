@@ -4,11 +4,9 @@
 
 ---
 
-> **Agent-to-Agent Protocol v0.3** — Enables any AI agent to use OmniRoute as an intelligent routing agent via JSON-RPC 2.0.
+> **Agent-to-Agent Protocol v0.3**— ช่วยให้เอเจนต์ AI ใดๆ สามารถใช้ OmniRoute เป็นตัวแทนการกำหนดเส้นทางอัจฉริยะผ่าน JSON-RPC 2.0
 
-The A2A Server exposes OmniRoute as a **first-class agent** that other agents can discover, delegate tasks to, and collaborate with using the [A2A Protocol](https://google.github.io/A2A/).
-
----
+เซิร์ฟเวอร์ A2A เปิดเผย OmniRoute ในฐานะ**ตัวแทนชั้นหนึ่ง**ที่ตัวแทนอื่นสามารถค้นพบ มอบหมายงานให้ และทำงานร่วมกันโดยใช้ [โปรโตคอล A2A](https://google.github.io/A2A/)---
 
 ## สถาปัตยกรรม
 
@@ -43,15 +41,12 @@ The A2A Server exposes OmniRoute as a **first-class agent** that other agents ca
 
 ### Agent Discovery
 
-Every A2A-compatible agent exposes an **Agent Card** at `/.well-known/agent.json`:
-
-```bash
+ตัวแทนที่เข้ากันได้กับ A2A ทุกตัวจะแสดง**การ์ดตัวแทน**ที่ `/.well-known/agent.json`:```bash
 curl http://localhost:20128/.well-known/agent.json
-```
 
-**Response:**
+````
 
-```json
+**การตอบสนอง:**```json
 {
   "name": "OmniRoute",
   "description": "Intelligent AI gateway with auto-routing across 50+ providers",
@@ -88,7 +83,7 @@ curl http://localhost:20128/.well-known/agent.json
     "apiKeyHeader": "Authorization"
   }
 }
-```
+````
 
 ---
 
@@ -96,27 +91,24 @@ curl http://localhost:20128/.well-known/agent.json
 
 ### `message/send` — Synchronous Execution
 
-Send a message to a skill and receive the complete response.
-
-```bash
+ส่งข้อความถึงทักษะและรับการตอบกลับที่สมบูรณ์```bash
 curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/send",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Write a Python hello world"}],
-      "metadata": {"model": "auto", "combo": "fast-coding"}
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/send",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Write a Python hello world"}],
+"metadata": {"model": "auto", "combo": "fast-coding"}
+}
+}'
 
-**Response:**
+````
 
-```json
+**การตอบสนอง:**```json
 {
   "jsonrpc": "2.0",
   "id": "1",
@@ -133,36 +125,33 @@ curl -X POST http://localhost:20128/a2a \
     }
   }
 }
-```
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+เหมือนกับ `ข้อความ/ส่ง` แต่ส่งคืนเหตุการณ์ที่เซิร์ฟเวอร์ส่งสำหรับการสตรีมแบบเรียลไทม์```bash
 curl -N -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/stream",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Explain quantum computing"}]
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/stream",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Explain quantum computing"}]
+}
+}'
 
-**SSE Events:**
+````
 
-```
+**เหตุการณ์ SSE:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"Quantum computing..."}}}
 
 : heartbeat 2026-03-04T21:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -188,40 +177,36 @@ curl -X POST http://localhost:20128/a2a \
 
 ### `smart-routing`
 
-Routes prompts through OmniRoute's intelligent pipeline with full observability.
+แจ้งเส้นทางผ่านไปป์ไลน์อัจฉริยะของ OmniRoute พร้อมความสามารถในการสังเกตได้เต็มรูปแบบ
 
-**Parameters (in `metadata`):**
+**พารามิเตอร์ (ใน `ข้อมูลเมตา`):**
 
-| Parameter | Type     | Default      | Description                                                                              |
-| --------- | -------- | ------------ | ---------------------------------------------------------------------------------------- |
-| `model`   | `string` | `"auto"`     | Target model (e.g., `claude-sonnet-4`, `gpt-4o`, `auto`)                                 |
-| `combo`   | `string` | active combo | Specific combo to route through                                                          |
-| `budget`  | `number` | none         | Maximum cost in USD for this request                                                     |
-| `role`    | `string` | none         | Task role hint: `coding`, `review`, `planning`, `analysis`, `debugging`, `documentation` |
+| พารามิเตอร์ | พิมพ์     | ค่าเริ่มต้น        | คำอธิบาย                                                                                          |
+| ----------- | --------- | ------------------ | ------------------------------------------------------------------------------------------------- |
+| `รุ่น`      | `สตริง`   | `"อัตโนมัติ"`      | โมเดลเป้าหมาย (เช่น `claude-sonnet-4`, `gpt-4o`, `auto`)                                          |
+| `คอมโบ`     | `สตริง`   | คอมโบที่ใช้งานอยู่ | คำสั่งผสมเฉพาะเพื่อกำหนดเส้นทางผ่าน                                                               |
+| `งบประมาณ`  | `หมายเลข` | ไม่มี              | ต้นทุนสูงสุดเป็น USD สำหรับคำขอนี้                                                                |
+| `บทบาท`     | `สตริง`   | ไม่มี              | คำใบ้บทบาทของงาน: `การเขียนโค้ด`, `การตรวจสอบ`, `การวางแผน`, `การวิเคราะห์`, `การดีบัก`, `เอกสาร` |
 
-**Returns:**
+**การคืนสินค้า:**
 
-| Field                          | Description                                               |
-| ------------------------------ | --------------------------------------------------------- |
-| `artifacts[].content`          | The LLM response text                                     |
-| `metadata.routing_explanation` | Human-readable explanation of routing decision            |
-| `metadata.cost_envelope`       | Estimated vs actual cost with currency                    |
-| `metadata.resilience_trace`    | Array of events (primary_selected, fallback_needed, etc.) |
-| `metadata.policy_verdict`      | Whether the request was allowed and why                   |
+| สนาม                           | คำอธิบาย                                                       |
+| ------------------------------ | -------------------------------------------------------------- | ---------------------- |
+| `สิ่งประดิษฐ์[].เนื้อหา`       | ข้อความตอบกลับ LLM                                             |
+| `metadata.routing_explanation` | คำอธิบายที่มนุษย์สามารถอ่านได้เกี่ยวกับการตัดสินใจกำหนดเส้นทาง |
+| `metadata.cost_envelope`       | ต้นทุนโดยประมาณเทียบกับต้นทุนจริงด้วยสกุลเงิน                  |
+| `metadata.resilience_trace`    | อาร์เรย์ของเหตุการณ์ (primary_selected, fallback_needed ฯลฯ)   |
+| `metadata.policy_verdict`      | คำขอได้รับอนุญาตหรือไม่ และเพราะเหตุใด                         | ### `quota-management` |
 
-### `quota-management`
+ตอบคำถามที่เป็นภาษาธรรมชาติเกี่ยวกับโควต้าของผู้ให้บริการ
 
-Answers natural-language queries about provider quotas.
+**ประเภทข้อความค้นหา (อนุมานจากเนื้อหาข้อความ):**
 
-**Query types (inferred from message content):**
-
-| Query Pattern                                  | Response Type                                            |
-| ---------------------------------------------- | -------------------------------------------------------- |
-| Contains `"ranking"`, `"most quota"`, `"best"` | Providers ranked by remaining quota                      |
-| Contains `"free"`, `"suggest"`                 | Lists free combos or suggests free-tier providers        |
-| Default                                        | Full quota summary with warnings for low-quota providers |
-
----
+| รูปแบบแบบสอบถาม                                          | ประเภทการตอบกลับ                                      |
+| -------------------------------------------------------- | ----------------------------------------------------- | --- |
+| ประกอบด้วย `"อันดับ"`, `"โควต้ามากที่สุด"`, `"ดีที่สุด"` | ผู้ให้บริการจัดอันดับตามโควต้าที่เหลืออยู่            |
+| ประกอบด้วย `"ฟรี"`, `"แนะนำ"`                            | แสดงรายการคอมโบฟรีหรือแนะนำผู้ให้บริการระดับฟรี       |
+| ค่าเริ่มต้น                                              | สรุปโควต้าเต็มพร้อมคำเตือนสำหรับผู้ให้บริการโควต้าต่ำ | --- |
 
 ## Task Lifecycle
 
@@ -231,19 +216,17 @@ submitted ──→ working ──→ completed
               ──────────→ cancelled
 ```
 
-| State       | Description                                           |
-| ----------- | ----------------------------------------------------- |
-| `submitted` | Task created, queued for execution                    |
-| `working`   | Skill handler is executing                            |
-| `completed` | Execution succeeded, artifacts available              |
-| `failed`    | Execution failed or task expired (TTL: 5 min default) |
-| `cancelled` | Cancelled by client via `tasks/cancel`                |
+| รัฐ             | คำอธิบาย                                                    |
+| --------------- | ----------------------------------------------------------- |
+| `ส่งแล้ว`       | สร้างงานแล้ว เข้าคิวเพื่อดำเนินการ                          |
+| `ทำงาน`         | ตัวจัดการทักษะกำลังดำเนินการ                                |
+| `เสร็จสิ้นแล้ว` | ดำเนินการสำเร็จ มีอาร์ติแฟกต์                               |
+| `ล้มเหลว`       | การดำเนินการล้มเหลวหรืองานหมดอายุ (TTL: ค่าเริ่มต้น 5 นาที) |
+| `ยกเลิกแล้ว'    | ยกเลิกโดยไคลเอนต์ผ่าน `งาน/ยกเลิก`                          |
 
-- Terminal states: `completed`, `failed`, `cancelled` (no further transitions)
-- Expired tasks in `submitted` or `working` are auto-marked as `failed`
-- Tasks are garbage-collected after 2× TTL
-
----
+- สถานะเทอร์มินัล: `เสร็จสมบูรณ์`, `ล้มเหลว`, `ยกเลิก` (ไม่มีการเปลี่ยนเพิ่มเติม)
+- งานที่หมดอายุใน "ส่ง" หรือ "ทำงาน" จะถูกทำเครื่องหมายอัตโนมัติว่า "ล้มเหลว"
+- งานจะถูกรวบรวมขยะหลังจาก 2 × TTL---
 
 ## Client Examples
 
@@ -541,15 +524,12 @@ func main() {
 
 ### 🤖 Use Case 1: Multi-Agent Coding Pipeline
 
-An orchestrator agent delegates code generation to OmniRoute, then passes the output to a review agent.
-
-```python
-def coding_pipeline(task: str):
-    # Step 1: Generate code via OmniRoute A2A
-    code_result = a2a_send("smart-routing", [
-        {"role": "user", "content": f"Write production-quality code: {task}"}
-    ], metadata={"model": "auto", "role": "coding"})
-    code = code_result["artifacts"][0]["content"]
+ตัวแทนออเคสตรามอบหมายการสร้างโค้ดให้กับ OmniRoute จากนั้นส่งเอาต์พุตไปยังตัวแทนตรวจสอบ```python
+def coding_pipeline(task: str): # Step 1: Generate code via OmniRoute A2A
+code_result = a2a_send("smart-routing", [
+{"role": "user", "content": f"Write production-quality code: {task}"}
+], metadata={"model": "auto", "role": "coding"})
+code = code_result["artifacts"][0]["content"]
 
     # Step 2: Review the code via OmniRoute A2A (different model)
     review_result = a2a_send("smart-routing", [
@@ -562,13 +542,12 @@ def coding_pipeline(task: str):
     print(f"Review cost: ${review_result['metadata']['cost_envelope']['actual']}")
 
     return {"code": code, "review": review}
-```
+
+````
 
 ### 💡 Use Case 2: Quota-Aware Agent Swarm
 
-Multiple agents share quota through OmniRoute, using the quota skill to coordinate.
-
-```python
+เจ้าหน้าที่หลายรายแบ่งปันโควต้าผ่าน OmniRoute โดยใช้ทักษะโควต้าในการประสานงาน```python
 async def quota_aware_agent(agent_name: str, task: str):
     # Check quota before starting
     quota = a2a_send("quota-management", [
@@ -591,32 +570,30 @@ async def quota_aware_agent(agent_name: str, task: str):
         print(f"[{agent_name}] Free alternatives: {quota['artifacts'][0]['content']}")
 
     return result
-```
+````
 
 ### 📊 Use Case 3: Real-Time Streaming Dashboard
 
-A monitoring agent streams responses and displays progress in real-time.
-
-```typescript
+เอเจนต์การตรวจสอบจะสตรีมการตอบสนองและแสดงความคืบหน้าแบบเรียลไทม์```typescript
 async function streamingDashboard(prompt: string) {
   const response = await fetch(`${BASE_URL}/a2a`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: "dash-1",
-      method: "message/stream",
-      params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
-    }),
-  });
+body: JSON.stringify({
+jsonrpc: "2.0",
+id: "dash-1",
+method: "message/stream",
+params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
+}),
+});
 
-  let totalChunks = 0;
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
+let totalChunks = 0;
+const reader = response.body!.getReader();
+const decoder = new TextDecoder();
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+while (true) {
+const { done, value } = await reader.read();
+if (done) break;
 
     for (const line of decoder.decode(value).split("\n")) {
       if (line.startsWith("data: ")) {
@@ -640,15 +617,15 @@ async function streamingDashboard(prompt: string) {
         }
       }
     }
-  }
+
 }
-```
+}
+
+````
 
 ### 🔁 Use Case 4: Task Polling Pattern
 
-For long-running tasks, poll the task status instead of waiting synchronously.
-
-```python
+สำหรับงานที่ใช้เวลานาน ให้สำรวจสถานะงานแทนการรอแบบซิงโครนัส```python
 import time
 
 def poll_task(task_id: str, timeout: int = 60):
@@ -678,75 +655,71 @@ def poll_task(task_id: str, timeout: int = 60):
         "params": {"taskId": task_id},
     })
     raise TimeoutError(f"Task {task_id} timed out after {timeout}s")
-```
+````
 
 ---
 
 ## Error Codes
 
-| Code   | Constant                 | Meaning                                  |
-| ------ | ------------------------ | ---------------------------------------- |
-| -32700 | —                        | Parse error (invalid JSON)               |
-| -32600 | `INVALID_REQUEST`        | Invalid JSON-RPC request or unauthorized |
-| -32601 | `METHOD_NOT_FOUND`       | Unknown method or skill                  |
-| -32602 | `INVALID_PARAMS`         | Missing or invalid parameters            |
-| -32603 | `INTERNAL_ERROR`         | Skill execution failed                   |
-| -32001 | `TASK_NOT_FOUND`         | Task ID not found                        |
-| -32002 | `TASK_ALREADY_COMPLETED` | Cannot modify a completed task           |
-| -32003 | `UNAUTHORIZED`           | Invalid or missing API key               |
-| -32004 | `BUDGET_EXCEEDED`        | Request exceeds configured budget        |
-| -32005 | `PROVIDER_UNAVAILABLE`   | No available providers                   |
-
----
+| รหัส   | ค่าคงที่                 | ความหมาย                                      |
+| ------ | ------------------------ | --------------------------------------------- | --------------- |
+| -32700 | —                        | ข้อผิดพลาดในการแยกวิเคราะห์ (JSON ไม่ถูกต้อง) |
+| -32600 | `คำขอไม่ถูกต้อง_`        | คำขอ JSON-RPC ไม่ถูกต้องหรือ                  | ไม่ได้รับอนุญาต |
+| -32601 | `วิธีการ_NOT_FOUND`      | วิธีการหรือทักษะที่ไม่รู้จัก                  |
+| -32602 | `INVALID_PARAMS`         | พารามิเตอร์ขาดหายไปหรือไม่ถูกต้อง             |
+| -32603 | `INTERNAL_ERROR`         | การดำเนินการทักษะล้มเหลว                      |
+| -32001 | `TASK_NOT_FOUND`         | ไม่พบรหัสงาน                                  |
+| -32002 | `TASK_ALREADY_COMPLETED` | ไม่สามารถแก้ไขงานที่เสร็จสมบูรณ์              |
+| -32003 | `ไม่ได้รับอนุญาต`        | คีย์ API ไม่ถูกต้องหรือหายไป                  |
+| -32004 | `BUDGET_EXCEEDED`        | คำขอเกินงบประมาณที่กำหนดไว้                   |
+| -32005 | `PROVIDER_UNAVAILABLE`   | ไม่มีผู้ให้บริการ                             | ---             |
 
 ## Authentication
 
-All `/a2a` requests require a Bearer token via the `Authorization` header:
-
-```
+คำขอ `/a2a` ทั้งหมดจำเป็นต้องมีโทเค็น Bearer ผ่านส่วนหัว `การอนุญาต`:```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+
 ```
 
-If no API key is configured on the server (`OMNIROUTE_API_KEY` is empty), authentication is bypassed.
-
----
+หากไม่มีการกำหนดค่าคีย์ API บนเซิร์ฟเวอร์ (`OMNIROUTE_API_KEY` ว่างเปล่า) การรับรองความถูกต้องจะถูกข้าม---
 
 ## File Structure
 
 ```
+
 src/lib/a2a/
-├── taskManager.ts         # Task lifecycle (create/update/cancel/list), TTL, cleanup
-├── taskExecution.ts       # Generic task executor with state management
-├── streaming.ts           # SSE stream formatting, heartbeat, chunk/completion events
-├── routingLogger.ts       # Routing decision logger (stats, history, retention)
+├── taskManager.ts # Task lifecycle (create/update/cancel/list), TTL, cleanup
+├── taskExecution.ts # Generic task executor with state management
+├── streaming.ts # SSE stream formatting, heartbeat, chunk/completion events
+├── routingLogger.ts # Routing decision logger (stats, history, retention)
 └── skills/
-    ├── smartRouting.ts    # Smart routing skill (routes via /v1/chat/completions)
-    └── quotaManagement.ts # Quota management skill (natural-language quota queries)
+├── smartRouting.ts # Smart routing skill (routes via /v1/chat/completions)
+└── quotaManagement.ts # Quota management skill (natural-language quota queries)
 
 src/app/a2a/
-└── route.ts               # Next.js API route handler (JSON-RPC 2.0 dispatch)
+└── route.ts # Next.js API route handler (JSON-RPC 2.0 dispatch)
 
 open-sse/mcp-server/
-└── schemas/a2a.ts         # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+└── schemas/a2a.ts # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+
 ```
 
 ---
 
 ## Comparison: MCP vs A2A
 
-| Feature           | MCP Server                   | A2A Server                                        |
+| คุณสมบัติ | เซิร์ฟเวอร์ MCP | เซิร์ฟเวอร์ A2A |
 | ----------------- | ---------------------------- | ------------------------------------------------- |
-| **Protocol**      | Model Context Protocol       | Agent-to-Agent Protocol v0.3                      |
-| **Transport**     | stdio / HTTP                 | HTTP (JSON-RPC 2.0)                               |
-| **Discovery**     | Tool listing via MCP         | `/.well-known/agent.json`                         |
-| **Granularity**   | 16 individual tools          | 2 high-level skills                               |
-| **Best for**      | IDE agents (Cursor, VS Code) | Multi-agent systems (LangChain, CrewAI)           |
-| **Streaming**     | Not supported                | SSE via `message/stream`                          |
-| **Task tracking** | No                           | Full lifecycle (submitted → completed)            |
-| **Observability** | Audit log per tool call      | Cost envelope + resilience trace + policy verdict |
-
----
+|**โปรโตคอล**| โปรโตคอลบริบทของโมเดล | โปรโตคอลตัวแทนต่อตัวแทน v0.3 |
+|**การขนส่ง**| stdio / HTTP | HTTP (JSON-RPC 2.0) |
+|**การค้นพบ**| รายการเครื่องมือผ่าน MCP | `/.well-known/agent.json` |
+|**รายละเอียด**| 16 เครื่องมือส่วนบุคคล | 2 ทักษะระดับสูง |
+|**ดีที่สุดสำหรับ**| เอเจนต์ IDE (เคอร์เซอร์, รหัส VS) | ระบบหลายตัวแทน (LangChain, CrewAI) |
+|**สตรีมมิ่ง**| ไม่รองรับ | SSE ผ่าน `ข้อความ/สตรีม` |
+|**ติดตามงาน**| ไม่ | วงจรชีวิตเต็ม (ส่งแล้ว → เสร็จสมบูรณ์) |
+|**การสังเกต**| บันทึกการตรวจสอบต่อการเรียกเครื่องมือ | ซองต้นทุน + การติดตามความยืดหยุ่น + คำตัดสินของนโยบาย |---
 
 ## สิทธิ์การใช้งาน
 
-Part of [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — MIT License.
+ส่วนหนึ่งของ [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — ใบอนุญาต MIT
+```

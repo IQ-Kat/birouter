@@ -4,1156 +4,649 @@
 
 ---
 
-
 ## [Unreleased]
 
 ---
+
+## [3.5.3] - 2026-04-05
+
+### Fixed
+
+-**البرامج الوسيطة:**تم حل حلقة إعادة التوجيه اللانهائية على لوحة المعلومات للحالات الجديدة عندما يتم تعطيل requireLogin.---
 
 ## [3.5.2] — 2026-04-05
 
 ### ✨ New Features
 
-- **Qoder API Native Integration:** Completely refactored the Qoder Executor to bypass the legacy COSY AES/RSA encryption algorithm, routing directly into the native DashScope OpenAi-compatible URL. Eliminates complex dependencies on Node `crypto` modules while improving stream fidelity.
-- **Resilience Engine Overhaul:** Integrated context overflow graceful fallbacks, proactive OAuth token detection, and empty-content emission prevention (#990).
-- **Context-Optimized Routing Strategy:** Added new intelligent routing capability to natively maximize context windows in automated combo deployments (#990).
+-**التكامل الأصلي لواجهة برمجة تطبيقات Qoder:**تمت إعادة هيكلة Qoder Executor بالكامل لتجاوز خوارزمية تشفير COZY AES/RSA القديمة، والتوجيه مباشرة إلى عنوان URL الأصلي المتوافق مع DashScope OpenAi. يزيل التبعيات المعقدة على وحدات Node `crypto` مع تحسين دقة الدفق. -**إصلاح محرك المرونة:**عمليات احتياطية مدمجة لتجاوز السياق، والكشف الاستباقي عن رمز OAuth، ومنع انبعاث المحتوى الفارغ (#990). -**إستراتيجية التوجيه المُحسَّنة للسياق:**تمت إضافة إمكانية توجيه ذكية جديدة لتعظيم نوافذ السياق في عمليات نشر التحرير والسرد الآلية (#990).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Responses API Stream Corruption:** Fixed deep-cloning corruption where Anthropic/OpenAI translation boundaries stripped `response.` specific SSE prefixes from streaming boundaries (#992).
-- **Claude Cache Passthrough Alignment:** Aligned CC-Compatible cache markers consistently with upstream Client Pass-Through mode preserving prompt caching.
-- **Turbopack Memory Leak:** Pinned Next.js to strict `16.0.10` preventing memory leaks and build staleness from recent upstream Turbopack hashed module regressions (#987).
-
----
+-**Responses API Stream Corruption:**تم إصلاح تلف الاستنساخ العميق حيث قامت حدود الترجمة Anthropic/OpenAI بتجريد بادئات SSE المحددة من حدود التدفق (#992). -**Claude Cache Passthrough Alignment:**تمت محاذاة علامات ذاكرة التخزين المؤقت المتوافقة مع CC بشكل متسق مع وضع تمرير العميل الرئيسي للحفاظ على التخزين المؤقت السريع. -**Turbopack Memory Leak:**تم تثبيت Next.js على `16.0.10` الصارم لمنع تسرب الذاكرة وبناء التباطؤ من انحدارات وحدة Turbopack المجزأة الأخيرة (#987).---
 
 ## [3.5.1] — 2026-04-04
 
 ### ✨ New Features
 
-- **Models.dev Integration:** Integrated models.dev as the authoritative runtime source for model pricing, capabilities, and specifications, overriding hardcoded prices. Includes a settings UI to manage sync intervals, translation strings for all 30 languages, and robust test coverage.
-- **Provider Native Capabilities:** Added support for declaring and checking native API features (e.g. `systemInstructions_supported`) preventing failures by sanitizing invalid roles. Currently configured for Gemini Base and Antigravity OAuth providers.
-- **API Provider Advanced Settings:** Added per-connection custom `User-Agent` overrides for API-key provider connections. The override is stored in `providerSpecificData.customUserAgent` and now applies to validation probes and upstream execution requests.
+-**تكامل Models.dev:**تم دمجmodels.dev كمصدر موثوق لوقت التشغيل لتسعير النماذج وإمكاناتها ومواصفاتها، مما يتجاوز الأسعار الثابتة. يتضمن واجهة مستخدم الإعدادات لإدارة فترات المزامنة، وسلاسل الترجمة لجميع اللغات الثلاثين، وتغطية اختبار قوية. -**القدرات الأصلية للموفر:**تمت إضافة دعم للإعلان عن ميزات واجهة برمجة التطبيقات الأصلية والتحقق منها (على سبيل المثال، `systemInstructions_supported`) لمنع حالات الفشل عن طريق تطهير الأدوار غير الصالحة. تم تكوينه حاليًا لموفري Gemini Base وAntigravity OAuth. -**الإعدادات المتقدمة لموفر واجهة برمجة التطبيقات:**تمت إضافة تجاوزات "وكيل المستخدم" المخصصة لكل اتصال لاتصالات موفر مفتاح واجهة برمجة التطبيقات. يتم تخزين التجاوز في "providerSpecificData.customUserAgent" وينطبق الآن على تحقيقات التحقق من الصحة وطلبات التنفيذ الأولية.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Qwen OAuth Reliability:** Resolved a series of OAuth integration issues including a 400 Bad Request blocker on expired tokens, fallback generation for parsing OIDC `access_token` properties when `id_token` is omitted, model catalog discovery errors, and strict filtering of `X-Dashscope-*` headers to avoid 400 rejection from OpenAI-compatible endpoints.
-
-## [3.5.0] — 2026-04-03
+-**موثوقية Qwen OAuth:**تم حل سلسلة من مشكلات تكامل OAuth بما في ذلك أداة حظر الطلبات السيئة 400 على الرموز المميزة منتهية الصلاحية، وإنشاء احتياطي لتحليل خصائص OIDC `access_token` عند حذف `id_token`، وأخطاء اكتشاف كتالوج النموذج، والتصفية الصارمة لرؤوس `X-Dashscope-*` لتجنب رفض 400 من نقاط النهاية المتوافقة مع OpenAI.## [3.5.0] — 2026-04-03
 
 ### ✨ New Features
 
-- **Auto-Combo & Routing:** Completed native CRUD lifecycle integration for the advanced Auto-Combo engine (#955).
-- **Core Operations:** Fixed missing translations for new native Auto-Combos options (#955).
-- **Security Validation:** Disabled SQLite auto-backup tasks natively during unit test CI execution to explicitly resolve Node 22 Event Loop hanging memory leaks (#956).
-- **Ecosystem Proxies:** Completed explicit integration mapping model synchronization schedulers, OAuth cycles, and Token Check refreshes safely through OmniRoute's native system upstream proxies (#953).
-- **MCP Extensibility:** Added and successfully registered the new `omniroute_web_search` MCP framework tool out of beta into production schemas (#951).
-- **Tokens Buffer Logic:** Added runtime configuration limits extending configurable input/output token buffers for precise Usage Tracking metrics (#959).
+-**التحرير والسرد التلقائي والتوجيه:**إكمال تكامل دورة حياة CRUD الأصلي لمحرك التحرير والسرد التلقائي المتقدم (#955). -**العمليات الأساسية:**تم إصلاح الترجمات المفقودة لخيارات المجموعات التلقائية الأصلية الجديدة (#955). -**التحقق من الأمان:**تم تعطيل مهام النسخ الاحتياطي التلقائي لـ SQLite أثناء تنفيذ CI لاختبار الوحدة لحل مشكلة تسرب الذاكرة المعلقة في Node 22 Event Loop بشكل صريح (#956). -**وكلاء النظام البيئي:**يتم تحديث نماذج مزامنة نموذج تعيين التكامل الواضح المكتمل، ودورات OAuth، والتحقق من الرمز المميز بأمان من خلال الوكلاء الأصليين للنظام OmniRoute (#953). -**قابلية توسيع MCP:**تمت إضافة أداة إطار عمل MCP الجديدة `omniroute_web_search` الجديدة وتسجيلها بنجاح خارج النسخة التجريبية في مخططات الإنتاج (#951). -**منطق المخزن المؤقت للرموز:**تمت إضافة حدود تكوين وقت التشغيل لتوسيع المخازن المؤقتة لرموز الإدخال/الإخراج القابلة للتكوين للحصول على مقاييس دقيقة لتتبع الاستخدام (#959).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**معالجة CodeQL:**عمليات فهرسة السلاسل الحرجة التي تم حلها وتأمينها بالكامل، مما يمنع صفيفات تزوير الطلب من جانب الخادم (SSRF) التي تقوم بفهرسة الاستدلالات جنبًا إلى جنب مع التراجع الخوارزمي متعدد الحدود (ReDoS) داخل وحدات إرسال الوكيل العميق. -**تشفيرات التشفير:**تم استبدال تجزئات OAuth 1.0 القديمة الضعيفة التي لم يتم التحقق منها بأساسيات التحقق القياسية القوية HMAC-SHA-256 مما يضمن ضوابط وصول مشددة. -**حماية حدود واجهة برمجة التطبيقات:**تم التحقق بشكل صحيح وتعيين حماية للمسار الهيكلي من خلال فرض منطق البرمجيات الوسيطة `isAuthenticated()` الصارم الذي يغطي نقاط النهاية الديناميكية الأحدث التي تستهدف معالجة الإعدادات وتحميل المهارات الأصلية. -**توافق نظام CLI البيئي:**تم حل الارتباطات المعطلة لمحلل وقت التشغيل الأصلي الذي يؤدي إلى تعطل أجهزة كشف البيئة بشكل صارم فوق حالات حافة .cmd/.exe بأمان للمكونات الإضافية الخارجية (#969). -**بنية ذاكرة التخزين المؤقت:**إعادة هيكلة بنية تخطيط معلمات لوحة معلومات التحليلات وإعدادات النظام الدقيقة للحفاظ على دورات استمرار إعادة الترطيب المستقرة، وحل ومضات الحالة غير المحاذية المرئية (#952). -**معايير التخزين المؤقت لـ Claude:**علامات الكتلة سريعة الزوال المهمة والمحفوظة بدقة بدقة لأوامر TTL للتخزين المؤقت "الزائل" للعقد النهائية التي تفرض تعيين طلبات CC المتوافقة بشكل نظيف دون إسقاط المقاييس (#948). -**مصادقة الأسماء المستعارة الداخلية:**تعيينات مبسطة لوقت التشغيل الداخلي تعمل على تطبيع عمليات البحث عن حمولة بيانات اعتماد الدستور الغذائي داخل معلمات الترجمة العالمية، مما يؤدي إلى حل 401 عملية إسقاط غير مصادق عليها (#958).### 🛠️ Maintenance
 
-- **CodeQL Remediation:** Fully resolved and secured critical string indexing operations preventing Server-Side Request Forgery (SSRF) arrays indexing heuristics alongside polynomial algorithmic backtracking (ReDoS) inside deep proxy dispatcher modules.
-- **Crypto Hashes:** Replaced weak unverified legacy OAuth 1.0 hashes with robust HMAC-SHA-256 standard validation primitives ensuring tight access controls.
-- **API Boundary Protection:** Correctly verified and mapped structural route protections enforcing strict `isAuthenticated()` middleware logic covering newer dynamic endpoints targeting settings manipulation and native skills loading.
-- **CLI Ecosystem Compat:** Resolved broken native runtime parser bindings crashing `where` environment detectors strictly over `.cmd/.exe` edge cases gracefully for external plugins (#969).
-- **Cache Architecture:** Refactored exact Analytics and System Settings dashboard parameters layout structure caching to maintain stable re-hydration persistence cycles resolving visual unaligned state flashes (#952).
-- **Claude Caching Standards:** Normalized and accurately strictly preserved critical ephemeral block markers `ephemeral` caching TTL orders for downstream nodes enforcing standard compatible CC requests mapping cleanly without dropped metrics (#948).
-- **Internal Aliases Auth:** Simplified internal runtime mappings normalizing Codex credential payload lookups inside global translation parameters resolving 401 unauthenticated drops (#958).
-
-### 🛠️ Maintenance
-
-- **UI Discoverability:** Correctly adjusted layout categorizations explicitly separating free tier providers logic improving UX sorting flows inside the general API registry pages (#950).
-- **Deployment Topology:** Unified Docker deployment artifacts ensuring the root `fly.toml` matches expected cloud instance parameters out-of-the-box natively handling automated deployments scaling properly.
-- **Development Tooling:** Decoupled `LKGP` runtime parameters into explicit DB layer abstraction caching utilities ensuring strict test isolation coverage for core caching layers safely.
-
----
+-**قابلية اكتشاف واجهة المستخدم:**تم تعديل تصنيفات التخطيط بشكل صحيح للفصل الواضح بين منطق موفري الطبقة المجانية وتحسين تدفقات فرز تجربة المستخدم داخل صفحات تسجيل واجهة برمجة التطبيقات العامة (#950). -**طوبولوجيا النشر:**عناصر نشر Docker الموحدة التي تضمن تطابق الجذر `fly.toml` مع معلمات المثيلات السحابية المتوقعة والجاهزة للتعامل بشكل أصلي مع عمليات النشر الآلية والتوسع بشكل صحيح. -**أدوات التطوير:**تم فصل معلمات وقت التشغيل `LKGP` إلى أدوات مساعدة واضحة للتخزين المؤقت لتجريد طبقة قاعدة البيانات، مما يضمن تغطية صارمة لعزل الاختبار لطبقات التخزين المؤقت الأساسية بأمان.---
 
 ## [3.4.9] — 2026-04-03
 
 ### Features & Refactoring
 
-- **Dashboard Auto-Combo Panel:** Completely refactored the `/dashboard/auto-combo` UI to seamlessly integrate with native Dashboard Cards and standardized visual padding/headers. Added dynamic visual progress bars mapping model selection weight mechanisms.
-- **Settings Routing Sync:** Fully exposed advanced routing `priority` and `weighted` schema targets internally inside global settings fallback lists.
+-**لوحة التحرير والسرد التلقائي للوحة المعلومات:**تمت إعادة هيكلة واجهة المستخدم `/dashboard/auto-combo` بالكامل لتتكامل بسلاسة مع بطاقات لوحة المعلومات الأصلية والحشوة/العناوين المرئية الموحدة. تمت إضافة أشرطة التقدم المرئية الديناميكية التي تحدد آليات وزن اختيار النموذج. -**إعدادات مزامنة التوجيه:**توجيه متقدم مكشوف بالكامل `الأولوية` وأهداف مخطط `المرجح` داخليًا داخل قوائم احتياطية للإعدادات العامة.### Bug Fixes
 
-### Bug Fixes
+-**عقد الذاكرة والمهارات المحلية:**تم حل علامات العرض الفارغة لخيارات الذاكرة والمهارات مباشرة داخل طرق عرض الإعدادات العامة عن طريق توصيل جميع "الإعدادات".\*` قيم التعيين داخليًا في "en.json" (تم تعيينها أيضًا ضمنيًا لأدوات الترجمة المشتركة).### Internal Integrations
 
-- **Memory & Skills Locale Nodes:** Resolved empty rendering tags for Memory and Skills options directly inside global settings views by wiring all `settings.*` mapping values internally into `en.json` (also mapped implicitly for cross-translation tools).
-
-### Internal Integrations
-
-- Integrated PR #946 — fix: preserve Claude Code compatibility in responses conversion
-- Integrated PR #944 — fix(gemini): preserve thought signatures across antigravity tool calls
-- Integrated PR #943 — fix: restore GitHub Copilot body
-- Integrated PR #942 — Fix cc-compatible cache markers
-- Integrated PR #941 — refactor(auth): improve NVIDIA alias lookup + add LKGP error logging
-- Integrated PR #939 — Restore Claude OAuth localhost callback handling
-- _(Note: PR #934 was omitted from 3.4.9 cycle to prevent core conflict regressions)_
-
----
+- PR #946 المتكامل - الإصلاح: الحفاظ على التوافق مع Claude Code في تحويل الاستجابات
+- PR #944 المتكامل - الإصلاح (الجوزاء): الحفاظ على توقيعات الفكر عبر استدعاءات أداة مكافحة الجاذبية
+- PR #943 المتكامل - الإصلاح: استعادة هيكل GitHub Copilot
+- متكامل PR #942 - إصلاح علامات ذاكرة التخزين المؤقت المتوافقة مع cc
+- PR #941 المتكامل - إعادة البناء (المصادقة): تحسين البحث عن الاسم المستعار لـ NVIDIA + إضافة تسجيل أخطاء LKGP
+- PR #939 المتكامل - استعادة معالجة رد الاتصال للمضيف المحلي Claude OAuth
+- _(ملاحظة: تم حذف PR #934 من الدورة 3.4.9 لمنع تراجعات الصراع الأساسية)_---
 
 ## [3.4.8] — 2026-04-03
 
 ### الأمان
 
-- Fully remediated all outstanding Github Advanced Security (CodeQL) findings and Dependabot alerts.
-- Fixed insecure randomness vulnerabilities by migrating from `Math.random` to `crypto.randomUUID()`.
-- Secured shell commands in automated scripts from string injection.
-- Migrated vulnerable catastrophic backtracking RegEx parsing patterns in chat/translation pipelines.
-- Enhanced output sanitization controls inside React UI components and Server Sent Events (SSE) tag injection.
-
----
+- معالجة كاملة لجميع نتائج Github Advanced Security (CodeQL) وتنبيهات Dependabot.
+- تم إصلاح ثغرات العشوائية غير الآمنة عن طريق الترحيل من `Math.random` إلى `crypto.randomUUID()`.
+- أوامر الصدفة الآمنة في البرامج النصية الآلية من حقن السلسلة.
+- ترحيل أنماط تحليل RegEx للتراجع الكارثي الضعيف في مسارات الدردشة/الترجمة.
+- ضوابط محسنة لتطهير المخرجات داخل مكونات React UI وحقن علامة الأحداث المرسلة من الخادم (SSE).---
 
 ## [3.4.7] — 2026-04-03
 
 ### الميزات
 
-- Added `Cryptography` node to Monitoring and MCP health checks (#798)
-- Hardened model-catalog route permissions mapping (`/models`) (#781)
+- تمت إضافة عقدة "التشفير" إلى فحوصات صحة المراقبة وMCP (#798)
+- تعيين أذونات مسار كتالوج النماذج المعززة (`/models`) (#781)### Bug Fixes
 
-### Bug Fixes
+- تم إصلاح فشل تحديث رمز Claude OAuth المميز في الحفاظ على سياقات ذاكرة التخزين المؤقت (#937)
+- تم إصلاح أخطاء موفر الخدمة المتوافقة مع CC مما يجعل النماذج المخزنة مؤقتًا غير قابلة للوصول (#937)
+- تم إصلاح أخطاء GitHub Executor المتعلقة بمصفوفات السياق غير الصالحة (#937)
+- إصلاح فشل التحقق من صحة أدوات CLI المثبتة بواسطة NPM على نظام التشغيل Windows (#935)
+- تم إصلاح ترجمة الحمولة النافعة التي أدت إلى إسقاط محتوى صالح بسبب حقول API غير صالحة (#927)
+- تم إصلاح عطل وقت التشغيل في العقدة 25 فيما يتعلق بتنفيذ مفتاح واجهة برمجة التطبيقات (#867)
+- دقة وحدة MCP المستقلة الثابتة (`ERR_MODULE_NOT_FOUND`) عبر `esbuild` (#936)
+- تم إصلاح عدم تطابق الاسم المستعار لدقة بيانات اعتماد توجيه NVIDIA NIM (#931)### الأمان
 
-- Fixed Claude OAuth token refreshes failing to preserve cache contexts (#937)
-- Fixed CC-Compatible provider errors rendering cached models unreachable (#937)
-- Fixed GitHub Executor errors related to invalid context arrays (#937)
-- Fixed NPM-installed CLI tools healthcheck failures on Windows (#935)
-- Fixed payload translation dropping valid content due to invalid API fields (#927)
-- Fixed runtime crash in Node 25 regarding API key execution (#867)
-- Fixed MCP standalone module-resolution (`ERR_MODULE_NOT_FOUND`) via `esbuild` (#936)
-- Fixed NVIDIA NIM routing credential resolution alias mismatch (#931)
-
-### الأمان
-
-- Added safe strict input boundary protection against raw `shell: true` remote-code execution injections.
-
----
+- تمت إضافة حماية صارمة لحدود الإدخال ضد عمليات حقن تنفيذ التعليمات البرمجية عن بُعد "الصدفة: الحقيقية".---
 
 ## [3.4.6] - 2026-04-02
 
 ### ✨ New Features
 
-- **Providers:** Registered new image, video, and audio generation providers from the community-requested list (#926).
-- **Dashboard UI:** Added standalone sidebar navigation for the new Memory and Skills modules (#926).
-- **i18n:** Added translation strings and layout mappings across 30 languages for the Memory and Skills namespaces.
+-**المزودون:**تم تسجيل موفري إنشاء الصور والفيديو والصوت الجدد من القائمة التي طلبها المجتمع (#926). -**واجهة مستخدم لوحة المعلومات:**تمت إضافة شريط التنقل المستقل لوحدات الذاكرة والمهارات الجديدة (#926). -**i18n:**تمت إضافة سلاسل الترجمة وتعيينات التخطيط عبر 30 لغة لمساحات أسماء الذاكرة والمهارات.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Resilience:** Prevented the proxy Circuit Breaker from becoming stuck in an OPEN state indefinitely by handling direct transitions to CLOSED state inside fallback combo paths (#930).
-- **Protocol Translation:** Patched the streaming transformer to sanitize response blocks based on the expected _source_ protocol rather than the provider _target_ protocol, fixing Anthropics models wrapped in OpenAI payloads crashing Claude Code (#929).
-- **API Specs & Gemini:** Fixed `thought_signature` parsing in `openai-to-gemini` and `claude-to-gemini` translators, preventing HTTP 400 errors across all Gemini 3 API tool-calls.
-- **Providers:** Cleaned up non-OpenAI-compatible endpoints preventing valid upstream connections (#926).
-- **Cache Trends:** Fixed an invalid property mapping data mismatch causing Cache Trends UI charts to crash, and extracted redundant cache metric widgets (#926).
-
----
+-**المرونة:**منع بقاء قاطع دائرة الوكيل في حالة مفتوحة إلى أجل غير مسمى من خلال التعامل مع التحولات المباشرة إلى الحالة المغلقة داخل مسارات التحرير والسرد الاحتياطية (#930). -**ترجمة البروتوكول:**تم تصحيح محول البث لتطهير كتل الاستجابة استنادًا إلى بروتوكول _source_ المتوقع بدلاً من بروتوكول _target_ الخاص بالموفر، مما أدى إلى إصلاح نماذج Anthropics المغلفة في حمولات OpenAI التي تعطل Claude Code (#929). -**مواصفات واجهة برمجة التطبيقات وGemini:**تم إصلاح تحليل `think_signature` في مترجمي `openai-to-gemini` و`claude-to-gemini`، مما يمنع أخطاء HTTP 400 عبر جميع استدعاءات أدوات Gemini 3 API. -**المزودون:**تنظيف نقاط النهاية غير المتوافقة مع OpenAI مما يمنع الاتصالات الأولية الصالحة (#926). -**اتجاهات ذاكرة التخزين المؤقت:**تم إصلاح عدم تطابق بيانات تعيين خاصية غير صالحة مما تسبب في تعطل مخططات واجهة مستخدم اتجاهات ذاكرة التخزين المؤقت، واستخراج أدوات قياس ذاكرة التخزين المؤقت المتكررة (#926).---
 
 ## [3.4.5] - 2026-04-02
 
 ### ✨ New Features
 
-- **CLIProxyAPI Ecosystem Integration:** Added the `cliproxyapi` executor with built-in module-level caching and proxy routing. Introduced a comprehensive Version Manager service to automatically test health, download binaries from GitHub, spawn isolated background processes, and cleanly manage the lifecycle of external CLI tools directly through the UI. Includes DB tables for proxy configuration to enable automatic SSRF-gated cross-routing of external OpenAI requests via the local CLI tool layer (#914, #915, #916).
-- **Qoder PAT Support:** Integrated Personal Access Tokens (PAT) support directly via the local `qodercli` transport instead of legacy remote `.cn` browser configurations (#913).
-- **Gemini 3.1 Pro Preview (GitHub):** Added `gemini-3.1-pro-preview` canonical explicit model support natively into the GitHub Copilot provider while preserving older routing aliases (#924).
+-**تكامل النظام البيئي CLIProxyAPI:**تمت إضافة منفذ `cliproxyapi` مع التخزين المؤقت المدمج على مستوى الوحدة وتوجيه الوكيل. تم تقديم خدمة إدارة الإصدارات الشاملة لاختبار السلامة تلقائيًا، وتنزيل الثنائيات من GitHub، وإنشاء عمليات خلفية معزولة، وإدارة دورة حياة أدوات واجهة سطر الأوامر الخارجية بشكل نظيف مباشرةً من خلال واجهة المستخدم. يتضمن جداول قاعدة بيانات لتكوين الوكيل لتمكين التوجيه المتبادل التلقائي عبر SSRF لطلبات OpenAI الخارجية عبر طبقة أداة CLI المحلية (#914، #915، #916). -**دعم Qoder PAT:**دعم رموز الوصول الشخصية المتكاملة (PAT) مباشرة عبر النقل المحلي `qodercli` بدلاً من تكوينات المتصفح القديمة `.cn` البعيدة (#913). -**Gemini 3.1 Pro Preview (GitHub):**تمت إضافة دعم النموذج الصريح `gemini-3.1-pro-preview` بشكل أصلي إلى موفر GitHub Copilot مع الحفاظ على الأسماء المستعارة للتوجيه الأقدم (#924).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **GitHub Copilot Token Stability:** Repaired the Copilot token refresh loop where stale tokens weren't deep-merged into DB, and removed `reasoning_text` fields that were fatally breaking downstream Anthropic block conversions for multi-turn chats (#923).
-- **Global Timeout Matrix:** Centralized and parameterized request timeouts explicitly from `REQUEST_TIMEOUT_MS` to prevent hidden (~300s) default fetch buffers prematurely cutting off long-lived SSE streaming responses from heavy reasoning models (#918).
-- **Cloudflare Quick Tunnels State:** Fixed a severe state inconsistency where restarted OmniRoute instances erroneously showed destroyed tunnels as active, and defaulted cloudflared tunneling to `HTTP/2` to eliminate UDP receive buffer log spam (#925).
-- **i18n Translation Overhaul (Czech & Hindi):** Fixed Hindi code from DEPRECATED `in.json` to canonical `hi.json`, overhauled Czech text mappings, extracted `untranslatable-keys.json` to fix CI/CD false-positive validations, and generated comprehensive `I18N.md` docs to guide translators (#912).
-- **Tokens Provider Recovery:** Fixed Qwen losing specific `resourceUrl` endpoints after automatic health-check token refreshes because of missing DB deep merges (#917).
-- **CC Compatible UX & Streaming:** Unified the Add CC/OpenAI/Anthropic compatible actions around the Anthropic UI treatment, forced CC-compatible upstream requests to use SSE while still returning streaming or non-streaming responses based on the client request, removed CC model-list configuration/import support in favor of an explicit unsupported-model-listing error, and made CC-compatible Available Models mirror the OAuth Claude Code registry list (#921).
-
----
+-**GitHub Copilot Token Stability:**تم إصلاح حلقة تحديث رمز Copilot المميز حيث لم يتم دمج الرموز المميزة التي لا معنى لها في قاعدة البيانات، وإزالة حقول `reasoning_text` التي كانت تؤدي إلى تعطيل تحويلات الكتل البشرية في اتجاه مجرى النهر للمحادثات متعددة المنعطفات (#923). -**مصفوفة المهلة العالمية:**مهلات الطلب المركزية والمعلمات بشكل صريح من `REQUEST_TIMEOUT_MS` لمنع مخازن الجلب الافتراضية المخفية (~300 ثانية) التي تقطع قبل الأوان استجابات تدفق SSE طويلة الأمد من نماذج الاستدلال الثقيلة (#918). -**حالة الأنفاق السريعة في Cloudflare:**تم إصلاح عدم تناسق شديد في الحالة حيث أظهرت مثيلات OmniRoute المعاد تشغيلها بشكل خاطئ أن الأنفاق المدمرة نشطة، وتم تعيين نفق Cloudflare افتراضيًا على `HTTP/2` لإزالة البريد العشوائي لسجل المخزن المؤقت لـ UDP (#925). -**i18n Translation Overhaul (التشيكية والهندية):**تم إصلاح الكود الهندي من "in.json" المهمل إلى "hi.json" الأساسي، وإصلاح تعيينات النصوص التشيكية، واستخراج "untranslatable-keys.json" لإصلاح عمليات التحقق من الصحة الإيجابية الخاطئة لـ CI/CD، وإنشاء مستندات "I18N.md" شاملة لتوجيه المترجمين (#912). -**استرداد موفر الرموز المميزة:**تم إصلاح مشكلة Qwen التي تفقد نقاط نهاية محددة لـ `resourceUrl` بعد التحديث التلقائي لرمز التحقق من الصحة بسبب فقدان عمليات الدمج العميقة لقاعدة البيانات (#917). -**تجربة المستخدم المتوافقة مع CC والبث:**توحيد الإجراءات المتوافقة مع إضافة CC/OpenAI/Anthropic حول معالجة واجهة المستخدم البشرية، وإجبار الطلبات الأولية المتوافقة مع CC لاستخدام SSE مع الاستمرار في إرجاع استجابات البث أو عدم البث بناءً على طلب العميل، وإزالة دعم تكوين/استيراد قائمة نماذج CC لصالح خطأ صريح في قائمة النماذج غير المدعومة، وجعل النماذج المتاحة المتوافقة مع CC تعكس قائمة تسجيل OAuth Claude Code (#921).---
 
 ## [3.4.4] - 2026-04-02
 
 ### 🐛 Bug Fixes
 
-- **Responses API Token Reporting:** Emit `response.completed` with correct `input_tokens`/`output_tokens` fields for Codex CLI clients, fixing token usage display (#909 — thanks @christopher-s).
-- **SQLite WAL Checkpoint on Shutdown:** Flush WAL changes into the primary database file during graceful shutdown/restart, preventing data loss on Docker container stops (#905 — thanks @rdself).
-- **Graceful Shutdown Signal:** Changed `/api/restart` and `/api/shutdown` routes from `process.exit(0)` to `process.kill(SIGTERM)`, ensuring the shutdown handler runs before exit.
-- **Docker Stop Grace Period:** Added `stop_grace_period: 40s` to Docker Compose files and `--stop-timeout 40` to Docker run examples.
+-**Responses API Token Reporting:**قم بإصدار `response.Completed` مع حقول `input_tokens`/`output_tokens` الصحيحة لعملاء Codex CLI، وإصلاح عرض استخدام الرمز المميز (#909 - شكرًا @christopher-s). -**SQLite WAL Checkpoint on Shutdown:**يتغير Flush WAL إلى ملف قاعدة البيانات الأساسية أثناء إيقاف التشغيل/إعادة التشغيل، مما يمنع فقدان البيانات عند توقف حاوية Docker (#905 - شكرًا @rdself). -**إشارة إيقاف التشغيل الرائعة:**تم تغيير المسارات `/api/restart` و`/api/shutdown` من `process.exit(0)` إلى `process.kill(SIGTERM)`، مما يضمن تشغيل معالج إيقاف التشغيل قبل الخروج. -**فترة السماح لإيقاف Docker:**تمت إضافة `stop_grace_period: 40s` إلى ملفات Docker Compose و`--stop-timeout 40` إلى أمثلة تشغيل Docker.### 🛠️ Maintenance
 
-### 🛠️ Maintenance
-
-- Closed 5 resolved/not-a-bug issues (#872, #814, #816, #890, #877).
-- Triaged 6 issues with needs-info requests (#892, #887, #886, #865, #895, #870).
-- Responded to CLI detection tracking issue (#863) with contributor guidance.
-
----
+- تم إغلاق 5 مشكلات تم حلها/ليست بها أخطاء (#872، #814، #816، #890، #877).
+- فرز 6 مشكلات تتعلق بطلبات معلومات الاحتياجات (#892، #887، #886، #865، #895، #870).
+- تم الرد على مشكلة تتبع اكتشاف CLI (#863) بتوجيهات المساهم.---
 
 ## [3.4.3] - 2026-04-02
 
 ### ✨ New Features
 
-- **Antigravity Memory & Skills:** Completed remote memory and skills injection for the Antigravity provider at the proxy network level.
-- **Claude Code Compatibility:** Built a natively hidden compatibility bridge for Claude Code, passing tools and formatting through cleanly.
-- **Web Search MCP:** Added the `omniroute_web_search` tool with the `execute:search` scope.
-- **Cache Components:** Implemented dynamic cache components utilizing TDD.
-- **UI & Customization:** Added custom favicon support, appearance tabs, wired whitelabeling to the sidebar, and added Windsurf guide steps across all 33 languages.
-- **Log Retention:** Unified request log retention and artifacts natively.
-- **Model Enhancements:** Added explicit `contextLength` for all opencode-zen models.
-- **i18n & translations:** Integrated 33 language translations natively, including placeholder CI validations and Chinese documentation updates (#873, #869).
+-**الذاكرة والمهارات المضادة للجاذبية:**أكمل حقن الذاكرة والمهارات عن بعد لموفر مكافحة الجاذبية على مستوى شبكة الوكيل. -**توافق كود Claude:**أنشئ جسر توافق مخفيًا أصليًا لـ Claude Code، وتمرير الأدوات والتنسيق بشكل نظيف. -**Web Search MCP:**تمت إضافة أداة `omniroute_web_search` مع نطاق`execute:search`. -**مكونات ذاكرة التخزين المؤقت:**تم تنفيذ مكونات ذاكرة التخزين المؤقت الديناميكية باستخدام TDD. -**واجهة المستخدم والتخصيص:**تمت إضافة دعم مخصص للأيقونات المفضلة، وعلامات تبويب المظهر، ووضع العلامات البيضاء السلكية على الشريط الجانبي، وإضافة خطوات دليل ركوب الأمواج عبر جميع اللغات الـ 33. -**الاحتفاظ بالسجل:**الاحتفاظ بسجل الطلب الموحد والعناصر الأصلية. -**تحسينات النموذج:**تمت إضافة طول سياق واضح لجميع نماذج opencode-zen. -**i18n والترجمات:**ترجمة مدمجة لـ 33 لغة محليًا، بما في ذلك عمليات التحقق من صحة العنصر النائب وتحديثات الوثائق الصينية (#873، #869).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Qwen OAuth Mapping:**تم إرجاع اعتماد `id_token` إلى `access_token` وتمكين حقن نقطة نهاية واجهة برمجة التطبيقات `resource_url` الديناميكية للتوجيه الإقليمي المناسب (#900). -**محرك مزامنة النموذج:**تم تخزين معرف الموفر الداخلي الصارم في إجراءات المزامنة `getCustomModels()` بدلاً من تنسيق الاسم المستعار لقناة واجهة المستخدم، مما يمنع فشل إدراج كتالوج SQLite (#903). -**Claude Code & Codex:**استجابات موحدة غير متدفقة فارغة للتنسيق الإنساني `(استجابة فارغة)` لمنع تعطل وكيل واجهة سطر الأوامر (#866). -**التوجيه المتوافق مع CC:**تم حل تصادم نقطة النهاية المكررة `/v1` أثناء تسلسل المسار لبوابات Claude Code العامة (#904). -**لوحات معلومات مكافحة الجاذبية:**تم حظر نماذج الحصص غير المحدودة من التسجيل بشكل خاطئ على أنها حالات حد "الاستخدام بنسبة 100%" المستنفدة في واجهة مستخدم استخدام الموفر (#857). -**Claude Image Passthrough:**تم إصلاح نماذج Claude التي تفتقد عمليات عبور كتلة الصورة (#898). -**Gemini CLI Routing:**تم حل 403 عمليات تأمين التفويض ومشكلات تراكم المحتوى عن طريق تحديث معرف المشروع عبر `loadCodeAssist` (#868). -**استقرار مقاومة الجاذبية:**تصحيح قوائم الوصول إلى النماذج، وفرض 404 عمليات إغلاق، وإصلاح 429 سلسلة متتالية تغلق الاتصالات القياسية، ورموز الإخراج المميزة `gemini-3.1-pro` (#885). -**إيقاع مزامنة الموفر:**تم إصلاح حدود إيقاع المزامنة للموفر عبر المجدول الداخلي (#888). -**تحسين لوحة المعلومات:**تم حل مشكلة تجميد واجهة المستخدم `/dashboard/limits` عند معالجة أكثر من 70 حسابًا عبر موازنة المجموعة (#784). -**تصلب SSRF:**فرض تصفية نطاق SSRF IP الصارمة وحظر واجهة الاسترجاع `::1`. -**أنواع MIME:**`mime_type` موحد لحالة الثعبان ليتوافق مع مواصفات Gemini API. -**تثبيت CI:**تم إصلاح التحليلات/الإعدادات الفاشلة، حيث تمر محددات الكاتب المسرحي وتأكيدات الطلب بحيث يتم تشغيل GitHub Actions E2E بشكل موثوق عبر واجهات المستخدم المحلية وعناصر التحكم القائمة على التبديل. -**الاختبارات الحتمية:**تمت إزالة تركيبات الحصص الحساسة للتاريخ من اختبارات استخدام Copilot واختبارات كتالوج القصور/النموذج المتوافقة مع سلوك وقت التشغيل المدمج. -**تقوية نوع MCP:**تمت إزالة الانحدارات الصريحة ذات الميزانية الصفرية من مسار تسجيل أداة خادم MCP. -**محرك مزامنة النماذج:**تم تجاوز تجاوزات "الاستبدال" المدمرة عندما تؤدي المزامنة التلقائية للموفر إلى قائمة نماذج فارغة، مما يحافظ على استقرار الكتالوجات الديناميكية (#899).### 🛠️ Maintenance
 
-- **Qwen OAuth Mapping:** Reverted `id_token` reliance to `access_token` and enabled dynamic `resource_url` API endpoint injection for proper regional routing (#900).
-- **Model Sync Engine:** Stored the strict internal Provider ID in `getCustomModels()` sync routines instead of the UI Channel Alias format, preventing SQLite catalog insertion failures (#903).
-- **Claude Code & Codex:** Standardized non-streaming blank responses to Anthropic-formatted `(empty response)` to prevent CLI proxy crashes (#866).
-- **CC Compatible Routing:** Resolved duplicate `/v1` endpoint collision during path concatenation for generic Claude Code gateways (#904).
-- **Antigravity Dashboards:** Blocked unlimited quota models from falsely registering as exhausted `100% Usage` limit states in the Provider Usage UI (#857).
-- **Claude Image Passthrough:** Fixed Claude models missing image block passthroughs (#898).
-- **Gemini CLI Routing:** Resolved 403 authorization lockouts and content accumulation issues by refreshing the project ID via `loadCodeAssist` (#868).
-- **Antigravity Stability:** Corrected model access lists, enforced 404 lockouts, fixed 429 cascades locking out standard connections, and capped `gemini-3.1-pro` output tokens (#885).
-- **Provider Sync Cadence:** Repaired the provider limits synchronization cadence via the internal scheduler (#888).
-- **Dashboard Optimization:** Resolved `/dashboard/limits` UI freezing when processing 70+ accounts via chunk parallelization (#784).
-- **SSRF Hardening:** Enforced strict SSRF IP range filtering and blocked the `::1` loopback interface.
-- **MIME Types:** Standardized `mime_type` to snake_case to match Gemini API specifications.
-- **CI Stabilization:** Fixed failing analytics/settings Playwright selectors and request assertions so GitHub Actions E2E runs pass reliably across localized UIs and switch-based controls.
-- **Deterministic Tests:** Removed date-sensitive quota fixtures from Copilot usage tests and aligned idempotency/model catalog tests with the merged runtime behavior.
-- **MCP Type Hardening:** Removed zero-budget explicit `any` regressions from the MCP server tool registration path.
-- **Model Sync Engine:** Bypassed destructive `replace` overrides when the provider's auto-sync yields an empty model list, maintaining stability for dynamic catalogs (#899).
+-**تسجيل خطوط الأنابيب:**أدوات تسجيل خطوط الأنابيب المحسّنة وفرض حدود للاحتفاظ (#880). -**إصلاح AGENTS.md:**مكثف من 297 إلى 153 سطرًا. تمت إضافة إرشادات البناء/الاختبار/النمط، وسير عمل التعليمات البرمجية (Prettier، وTypeScript، وESLint)، وجداول مطولة مشذبة (#882). -**تكامل فرع الإصدار:**تم دمج فروع الميزات النشطة في "الإصدار/الإصدار 3.4.2" أعلى "الرئيسي" الحالي والتحقق من صحة الفرع باستخدام الوبر، والوحدة، والتغطية، والبناء، وتشغيل E2E في وضع CI. -**الاختبار:**تمت إضافة التكوين الأكثر قوة لاختبار المكونات ومواصفات الكاتب المسرحي لتبديل الإعدادات. -**تحديثات المستند:**توسيع التمهيديات الجذرية، وترجمة المستندات الصينية محليًا، وتنظيف الملفات القديمة.## [3.4.1] - 2026-03-31
 
-### 🛠️ Maintenance
+> [!تحذير]
+> **تغيير جذري: تمت إعادة تصميم متغيرات بيئة تسجيل الطلبات والاحتفاظ بها والتسجيل.**
+> عند بدء التشغيل لأول مرة بعد الترقية، يقوم OmniRoute بأرشفة سجلات الطلبات القديمة من `DATA_DIR/logs/`، و`DATA_DIR/call_logs/` القديمة، و`DATA_DIR/log.txt` إلى `DATA_DIR/log_archives/*.zip`، ثم إزالة التخطيط المهمل والتبديل إلى تنسيق العناصر الموحد الجديد ضمن `DATA_DIR/call_logs/`.### ✨ New Features
 
-- **Pipeline Logging:** Refined pipeline logging artifacts and enforce retention caps (#880).
-- **AGENTS.md Overhaul:** Condensed from 297→153 lines. Added build/test/style guidelines, code workflows (Prettier, TypeScript, ESLint), and trimmed verbose tables (#882).
-- **Release Branch Integration:** Consolidated the active feature branches into `release/v3.4.2` on top of current `main` and validated the branch with lint, unit, coverage, build, and CI-mode E2E runs.
-- **Testing:** Added vitest configuration for component testing and Playwright specs for settings toggles.
-- **Doc Updates:** Expanded root readmes, translated chinese documents natively, and cleaned up obsolete files.
+-**.ENV Migration Utility:**تم تضمين `scripts/migrate-env.mjs` لترحيل تكوينات `<v3.3` إلى `v3.4.x` لقيود التحقق من الأمان الصارمة (FASE-01)، وإصلاح أعطال بدء التشغيل الناتجة عن مثيلات `JWT_SECRET` القصيرة. -**Kiro AI Cache Optimization:**تم تنفيذ إنشاء "معرف المحادثة" الحتمي (uuidv5) لتمكين AWS Builder ID Prompt Caching بشكل صحيح عبر الدعوات (#814). -**استعادة واجهة مستخدم لوحة المعلومات وتوحيدها:**تم حل منطق الشريط الجانبي الذي يحذف قسم التصحيح، ومسح تحذيرات توجيه Nextjs عن طريق نقل الصفحات المستقلة `/dashboard/mcp` و`/dashboard/a2a` بشكل صريح إلى مكونات واجهة مستخدم Endpoint Proxy المضمنة. -**عناصر سجل الطلبات الموحدة:**يقوم تسجيل الطلبات الآن بتخزين صف فهرس SQLite واحد بالإضافة إلى عنصر JSON واحد لكل طلب ضمن `DATA_DIR/call_logs/`، مع التقاط مسار اختياري مضمن في نفس الملف. -**اللغة:**تحسين الترجمة الصينية (#855) -**نماذج Opencode-Zen:**تمت إضافة 4 نماذج مجانية إلى سجل opencode-zen (#854) -**الاختبارات:**تمت إضافة الوحدة واختبارات E2E لتبديل الإعدادات وإصلاح الأخطاء (#850)### 🐛 Bug Fixes
 
-## [3.4.1] - 2026-03-31
+-**429 تحليل الحصص:**تحليل أوقات إعادة ضبط الحصص الطويلة من أجسام الأخطاء لاحترام عمليات التراجع الصحيحة ومنع حظر الحسابات ذات المعدل المحدود (#859) -**التخزين المؤقت الفوري:**الاحتفاظ برؤوس العميل `cache_control` لجميع موفري بروتوكول Claude (مثل Minimax، وGLM، وBailian)، والتعرف بشكل صحيح على دعم التخزين المؤقت (#856) -**سجلات مزامنة النماذج:**تقليل البريد العشوائي عن طريق تسجيل `نماذج المزامنة` فقط عندما تقوم القناة بتعديل القائمة (#853) -**حصة الموفر وتحليل الرمز المميز:**تم تبديل حدود مكافحة الجاذبية لاستخدام `retrieveUserQuota` بشكل أصلي ومعين بشكل صحيح لحمولات تحديث رمز Claude المميز للنماذج المشفرة بعنوان URL (#862) -**استقرار يحد من المعدل:**تعميم بنية 429 إعادة المحاولة بعد التحليل للحد من فترات التباطؤ التي يسببها الموفر عند 24 ساعة كحد أقصى (#862) -**عرض حدود لوحة المعلومات:**إعادة تصميم تعيين الحصص `/dashboard/limits` لعرضه مباشرة داخل الأجزاء، وإصلاح تأخير كبير في تجميد واجهة المستخدم للحسابات التي تتجاوز 70 اتصالاً نشطًا (#784) -**تفويض QWEN OAuth:**تم تعيين OIDC `id_token` كرمز API Bearer الأساسي لطلبات Dashscope، وإصلاح أخطاء 401 غير المصرح بها فورًا بعد ربط الحسابات أو تحديث الرموز المميزة (#864) -**استقرار ZAI API:**برنامج التحويل البرمجي المعزز للأحداث المرسلة من الخادم للرجوع بأمان إلى السلاسل الفارغة عندما يقوم موفري خدمة DeepSeek ببث محتوى فارغ رياضيًا أثناء مراحل التفكير (#871) -**Claude Code/Codex Translations:**حماية تحويلات الحمولة غير المتدفقة ضد الاستجابات الفارغة من أدوات Codex الأولية، وتجنب أخطاء TypeErrors الكارثية (#866) -**عرض NVIDIA NIM:**بادئات الموفر المتطابقة التي تم تجريدها بشكل مشروط، والتي يتم دفعها ديناميكيًا بواسطة النماذج الصوتية، مما يؤدي إلى التخلص من هياكل علامات `nim/nim` المكررة التي تطرح 404 في ساحة الوسائط (#872)### ⚠️ Breaking Changes
 
-> [!WARNING]
-> **BREAKING CHANGE: request logging, retention, and logging environment variables have been redesigned.**
-> On the first startup after upgrading, OmniRoute archives legacy request logs from `DATA_DIR/logs/`, legacy `DATA_DIR/call_logs/`, and `DATA_DIR/log.txt` into `DATA_DIR/log_archives/*.zip`, then removes the deprecated layout and switches to the new unified artifact format under `DATA_DIR/call_logs/`.
+-**تخطيط سجل الطلب:**تمت إزالة جلسات سجل الطلبات القديمة متعددة الملفات `DATA_DIR/logs/` وملف التلخيص `DATA_DIR/log.txt`. تتم كتابة الطلبات الجديدة كعناصر JSON فردية في `DATA_DIR/call_logs/YYYY-MM-DD/`. -**متغيرات بيئة التسجيل:**تم استبدال `LOG_*`، و`ENABLE_REQUEST_LOGS`، و`CALL_LOGS_MAX`، و`CALL_LOG_PAYLOAD_MODE`، و`PROXY_LOG_MAX_ENTRIES` بنموذج التكوين الجديد `APP_LOG_*` و`CALL_LOG_RETENTION_DAYS`. -**إعداد تبديل خط الأنابيب:**تم استبدال الإعداد القديم `detailed_logs_enabled` بـ `call_log_pipeline_enabled`. يتم تضمين تفاصيل المسار الجديد داخل عنصر الطلب بدلاً من تخزينها كسجلات منفصلة `request_detail_logs`.### 🛠️ Maintenance
 
-### ✨ New Features
-
-- **.ENV Migration Utility:** Included `scripts/migrate-env.mjs` to seamlessly migrate `<v3.3` configurations to `v3.4.x` strict security validation constraints (FASE-01), repairing startup crashes caused by short `JWT_SECRET` instances.
-- **Kiro AI Cache Optimization:** Implemented deterministic `conversationId` generation (uuidv5) to enable AWS Builder ID Prompt Caching properly across invocations (#814).
-- **Dashboard UI Restoration & Consolidation:** Resolved sidebar logic omitting the Debug section, and cleared Nextjs routing warnings by moving standalone `/dashboard/mcp` and `/dashboard/a2a` pages explicitly into embedded Endpoint Proxy UI components.
-- **Unified Request Log Artifacts:** Request logging now stores one SQLite index row plus one JSON artifact per request under `DATA_DIR/call_logs/`, with optional pipeline capture embedded in the same file.
-- **Language:** Improved the Chinese translation (#855)
-- **Opencode-Zen Models:** Added 4 free models to opencode-zen registry (#854)
-- **Tests:** Added unit and E2E tests for settings toggles and bug fixes (#850)
-
-### 🐛 Bug Fixes
-
-- **429 Quota Parsing:** Parsed long quota reset times from error bodies to honor correct backoffs and prevent rate-limited account bans (#859)
-- **Prompt Caching:** Preserved client `cache_control` headers for all Claude-protocol providers (like Minimax, GLM, and Bailian), correctly recognizing caching support (#856)
-- **Model Sync Logs:** Reduced log spam by recording `sync-models` only when the channel actually modifies the list (#853)
-- **Provider Quota & Token Parsing:** Switched Antigravity limits to use `retrieveUserQuota` natively and correctly mapped Claude token refresh payloads to URL-encoded forms (#862)
-- **Rate-Limiting Stability:** Universalized the 429 Retry-After parsing architecture to cap provider-induced cooldowns at 24 hours max (#862)
-- **Dashboard Limit Rendering:** Re-architected `/dashboard/limits` quota mapping to render immediately inside chunks, fixing a major UI freezing delay on accounts exceeding 70 active connections (#784)
-- **QWEN OAuth Authorization:** Mapped the OIDC `id_token` as the primary API Bearer token for Dashscope requests, fixing immediate 401 Unauthorized errors after connecting accounts or refreshing tokens (#864)
-- **ZAI API Stability:** Hardened Server-Sent Events compiler to gracefully fallback to empty strings when DeepSeek providers stream mathematically null content during reasoning phases (#871)
-- **Claude Code/Codex Translations:** Protected non-streaming payload conversions against empty responses from upstream Codex tools, avoiding catastrophic TypeErrors (#866)
-- **NVIDIA NIM Rendering:** Conditionally stripped identical provider prefixes dynamically pushed by audio models, eliminating duplicate `nim/nim` tag structures throwing 404 on the Media Playground (#872)
-
-### ⚠️ Breaking Changes
-
-- **Request Log Layout:** Removed the old multi-file `DATA_DIR/logs/` request log sessions and the `DATA_DIR/log.txt` summary file. New requests are written as single JSON artifacts in `DATA_DIR/call_logs/YYYY-MM-DD/`.
-- **Logging Environment Variables:** Replaced `LOG_*`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE`, and `PROXY_LOG_MAX_ENTRIES` with the new `APP_LOG_*` and `CALL_LOG_RETENTION_DAYS` configuration model.
-- **Pipeline Toggle Setting:** Replaced the legacy `detailed_logs_enabled` setting with `call_log_pipeline_enabled`. New pipeline details are embedded inside the request artifact instead of being stored as separate `request_detail_logs` records.
-
-### 🛠️ Maintenance
-
-- **Legacy Request Log Upgrade Backup:** Upgrades now archive old `data/logs/`, legacy `data/call_logs/`, and `data/log.txt` layouts into `DATA_DIR/log_archives/*.zip` before removing the deprecated structure.
-- **Streaming Usage Persistence:** Streaming requests now write a single `usage_history` row on completion instead of emitting a duplicate in-progress usage row with empty status metadata.
-- **Logging Follow-up Cleanup:** Pipeline logs no longer capture `SOURCE REQUEST`, request artifact entries now honor `CALL_LOG_MAX_ENTRIES`, and application log archives now honor `APP_LOG_MAX_FILES`.
-
----
+-**نسخة احتياطية لترقية سجل الطلبات القديمة:**تعمل الترقيات الآن على أرشفة تخطيطات `data/logs/` القديمة و`data/call_logs/` و`data/log.txt` القديمة في `DATA_DIR/log_archives/*.zip` قبل إزالة البنية المهملة. -**استمرارية استخدام البث:**تكتب طلبات البث الآن صفًا واحدًا من `usage_history` عند الانتهاء بدلاً من إصدار صف استخدام مكرر قيد التقدم مع بيانات تعريف الحالة الفارغة. -**تنظيف متابعة التسجيل:**لم تعد سجلات التدفق تلتقط `SOURCE REQUEST`، وأصبحت إدخالات الطلب الاصطناعية تحترم الآن `CALL_LOG_MAX_ENTRIES`، كما تحترم أرشيفات سجل التطبيق الآن `APP_LOG_MAX_FILES`.---
 
 ## [3.4.0] - 2026-03-31
 
 ### الميزات
 
-- **Subscription Utilization Analytics:** Added quota snapshot time-series tracking, Provider Utilization and Combo Health tabs with recharts visualizations, and corresponding API endpoints (#847)
-- **SQLite Backup Control:** New `OMNIROUTE_DISABLE_AUTO_BACKUP` env flag to disable automatic SQLite backups (#846)
-- **Model Registry Update:** Injected `gpt-5.4-mini` into the Codex provider's array of models (#756)
-- **Provider Limit Tracking:** Track and display when provider rate limits were last refreshed per account (#843)
+-**تحليلات استخدام الاشتراك:**تمت إضافة تتبع السلاسل الزمنية للقطة الحصة، وعلامات التبويب استخدام الموفر وصحة التحرير والسرد مع تصورات إعادة التخطيط، ونقاط نهاية واجهة برمجة التطبيقات المقابلة (#847) -**التحكم في النسخ الاحتياطي لـ SQLite:**علامة البيئة الجديدة `OMNIROUTE_DISABLE_AUTO_BACKUP` لتعطيل النسخ الاحتياطية التلقائية لـ SQLite (#846) -**تحديث سجل النموذج:**تم إدخال `gpt-5.4-mini` في مجموعة نماذج موفر Codex (#756) -**تتبع حدود المزود:**تتبع وعرض آخر مرة تم فيها تحديث حدود أسعار المزود لكل حساب (#843)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Qwen Auth Routing:** Re-routed Qwen OAuth completions from the DashScope API to the Web Inference API (`chat.qwen.ai`), resolving authorization failures (#844, #807, #832)
-- **Qwen Auto-Retry Loop:** Added targeted 429 Quota Exceeded backoff handling inside `chatCore` protecting burst requests
-- **Codex OAuth Fallback:** Modern browser popup blocking no longer traps the user; it automatically falls back to manual URL entry (#808)
-- **Claude Token Refresh:** Anthropic's strict `application/json` boundaries are now respected during token generation instead of encoded URLs (#836)
-- **Codex Messages Schema:** Stripped purist `messages` injects from native passthrough requests to avoid structural rejections from the ChatGPT upstream (#806)
-- **CLI Detection Size Limit:** Safely bumped the Node binary scanning upper bound from 100MB to 350MB, allowing heavy standalone tools like Claude Code (229MB) and OpenCode (153MB) to be correctly detected by the VPS runtime (#809)
-- **CLI Runtime Environment:** Restored ability for CLI configurations to respect user override paths (`CLI_{PROVIDER}_BIN`) bypassing strict path-bound discovery rules
-- **Nvidia Header Conflicts:** Removed `prompt_cache_key` properties from upstream headers when calling non-Anthropic providers (#848)
-- **Codex Fast Tier Toggle:** Restored Codex service tier toggle contrast in light mode (#842)
-- **Test Infrastructure:** Updated `t28-model-catalog-updates` test that incorrectly expected the outdated DashScope endpoint for the Qwen native registry
-
----
+-**Qwen Auth Routing:**إعادة توجيه عمليات إكمال Qwen OAuth من DashScope API إلى Web Inference API (`chat.qwen.ai`)، وحل حالات فشل التفويض (#844، #807، #832) -**Qwen Auto-Retry Loop:**تمت إضافة حصة مستهدفة تبلغ 429 حصة تجاوزت معالجة التراجع داخل "chatCore" لحماية طلبات الاندفاع -**Codex OAuth Fallback:**لم يعد حظر النوافذ المنبثقة للمتصفح الحديث يحاصر المستخدم؛ يعود تلقائيًا إلى الإدخال اليدوي لعنوان URL (#808) -**تحديث رمز كلود:**يتم الآن احترام حدود "التطبيق/json" الصارمة الخاصة بـ Anthropic أثناء إنشاء الرمز المميز بدلاً من عناوين URL المشفرة (#836) -**مخطط رسائل الدستور الغذائي:**يتم إدخال الرسائل النقية من طلبات العبور الأصلية لتجنب الرفض الهيكلي من مصدر ChatGPT (#806) -**الحد الأقصى لحجم اكتشاف واجهة سطر الأوامر:**تم تجاوز الحد الأعلى للمسح الثنائي للعقدة بأمان من 100 ميجابايت إلى 350 ميجابايت، مما يسمح باكتشاف الأدوات المستقلة الثقيلة مثل Claude Code (229 ميجابايت) وOpenCode (153 ميجابايت) بشكل صحيح من خلال وقت تشغيل VPS (#809) -**بيئة تشغيل واجهة سطر الأوامر (CLI Runtime Environment):**تمت استعادة القدرة على تكوينات سطر الأوامر (CLI) لاحترام مسارات تجاوز المستخدم (`CLI_{PROVIDER}_BIN`) وتجاوز قواعد الاكتشاف الصارمة المرتبطة بالمسار -**تعارضات رأس Nvidia:**تمت إزالة خصائص `prompt_cache_key` من الرؤوس الأولية عند الاتصال بموفري خدمات غير إنسانيين (#848) -**تبديل طبقة الدستور الغذائي السريع:**استعادة مستوى خدمة الدستور الغذائي لتبديل التباين في الوضع الفاتح (#842) -**البنية الأساسية للاختبار:**تم تحديث اختبار `t28-model-catalog-updates` الذي توقع بشكل غير صحيح نقطة نهاية DashScope القديمة لسجل Qwen الأصلي---
 
 ## [3.3.9] - 2026-03-31
 
 ### 🐛 Bug Fixes
 
-- **Custom Provider Rotation:** Integrated `getRotatingApiKey` internally inside DefaultExecutor, ensuring `extraApiKeys` rotation triggers correctly for custom and compatible upstream providers (#815)
-
----
+-**تدوير الموفر المخصص:**تم دمج `getRotatingApiKey` داخليًا داخل DefaultExecutor، مما يضمن تشغيل دوران `extraApiKeys` بشكل صحيح لموفري المنبع المخصصين والمتوافقين (#815)---
 
 ## [3.3.8] - 2026-03-30
 
 ### الميزات
 
-- **Models API Filtering:** Endpoint `/v1/models` now dynamically filters its list based on the permissions tied to the `Authorization: Bearer <token>` when restricted access is on (#781)
-- **Qoder Integration:** Native integration for Qoder AI natively replacing the legacy iFlow platform mappings (#660)
-- **Prompt Cache Tracking:** Added tracking capabilities and frontend visualization (Stats card) for semantic and prompt caching in the Dashboard UI
+-**تصفية API للنماذج:**تقوم نقطة النهاية `/v1/models` الآن بتصفية قائمتها ديناميكيًا بناءً على الأذونات المرتبطة بـ `Authorization: Bearer <token>` عندما يكون الوصول المقيد قيد التشغيل (#781) -**تكامل Qoder:**التكامل الأصلي لـ Qoder AI ليحل محل تعيينات منصة iFlow القديمة (#660) -**تتبع ذاكرة التخزين المؤقت الفوري:**تمت إضافة إمكانات التتبع وتصور الواجهة الأمامية (بطاقة الإحصائيات) للتخزين المؤقت الدلالي الفوري في واجهة مستخدم لوحة المعلومات### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Cache Dashboard Sizing:** Improved the UI layout sizes and context headers for the advanced cache pages (#835)
-- **Debug Sidebar Visibility:** Fixed an issue where the debug toggle wouldn't correctly show/hide sidebar debug details (#834)
-- **Gemini Model Prefixing:** Modified the namespace fallback to properly route via `gemini-cli/` instead of `gc/` to respect upstream specs (#831)
-- **OpenRouter Sync:** Improved compatibility synchronization to automatically ingest the available models catalog correctly from OpenRouter (#830)
-- **Streaming Payloads Mapping:** Reserialization of reasoning fields natively resolves conflict alias paths when output is streaming to edge devices
-
----
+-**تحجيم لوحة معلومات ذاكرة التخزين المؤقت:**تحسين أحجام تخطيط واجهة المستخدم ورؤوس السياق لصفحات ذاكرة التخزين المؤقت المتقدمة (#835) -**تصحيح رؤية الشريط الجانبي:**تم إصلاح مشكلة عدم إظهار/إخفاء تفاصيل تصحيح الشريط الجانبي بشكل صحيح (#834) -**بادئة نموذج Gemini:**تم تعديل مساحة الاسم الاحتياطية للتوجيه بشكل صحيح عبر `gemini-cli/` بدلاً من `gc/` لاحترام المواصفات الأولية (#831) -**OpenRouter Sync:**تحسين مزامنة التوافق لاستيعاب كتالوج النماذج المتوفرة تلقائيًا بشكل صحيح من OpenRouter (#830) -**تعيين الحمولات الصافية المتدفقة:**تؤدي إعادة تسلسل حقول الاستدلال إلى حل مسارات الأسماء المستعارة المتضاربة عند تدفق الإخراج إلى أجهزة الحافة---
 
 ## [3.3.7] - 2026-03-30
 
 ### 🐛 Bug Fixes
 
-- **OpenCode Config:** Restructured generated `opencode.json` to use the `@ai-sdk/openai-compatible` record-based schema with `options` and `models` as object maps instead of flat arrays, fixing config validation failures (#816)
-- **i18n Missing Keys:** Added missing `cloudflaredUrlNotice` translation key across all 30 language files to prevent `MISSING_MESSAGE` console errors in the Endpoint page (#823)
-
----
+-**تكوين OpenCode:**تم إنشاء `opencode.json' المعاد هيكلته لاستخدام المخطط القائم على السجل `@ai-sdk/openai-compatible`مع`الخيارات` و`النماذج`كمخططات كائنات بدلاً من المصفوفات المسطحة، وإصلاح فشل التحقق من صحة التكوين (#816)
+-**مفاتيح i18n المفقودة:**تمت إضافة مفتاح الترجمة المفقود`cloudflaredUrlNotice`عبر جميع ملفات اللغة الثلاثين لمنع أخطاء وحدة التحكم`MISSING_MESSAGE` في صفحة نقطة النهاية (#823)---
 
 ## [3.3.6] - 2026-03-30
 
 ### 🐛 Bug Fixes
 
-- **Token Accounting:** Included prompt cache tokens safely in historical usage inputs calculations for correct quota deductions (PR #822)
-- **Combo Test Probes:** Fixed combo testing logic false negatives by resolving parsing for reasoning-only responses and enabled massive parallelization via Promise.all (PR #828)
-- **Docker Quick Tunnels:** Embedded required ca-certificates inside the base runtime container to resolve Cloudflared TLS startup failures, and surfaced stdout network errors replacing generic exit codes (PR #829)
-
----
+-**محاسبة الرموز المميزة:**تضمين الرموز المميزة لذاكرة التخزين المؤقت بشكل آمن في حسابات مدخلات الاستخدام التاريخية لاقتطاعات الحصص الصحيحة (PR #822) -**مجسات اختبار التحرير والسرد:**تم إصلاح السلبيات الكاذبة لمنطق اختبار التحرير والسرد من خلال تحليل الاستجابات المنطقية فقط وتمكين الموازاة الضخمة عبر Promise.all (PR #828) -**Docker Quick Tunnels:**تم تضمين شهادات CA المطلوبة داخل حاوية وقت التشغيل الأساسية لحل حالات فشل بدء تشغيل Cloudflared TLS، وأخطاء الشبكة القياسية التي ظهرت لتحل محل رموز الخروج العامة (PR #829)---
 
 ## [3.3.5] - 2026-03-30
 
 ### ✨ New Features
 
-- **Gemini Quota Tracking:** Added real-time Gemini CLI quota tracking via the `retrieveUserQuota` API (PR #825)
-- **Cache Dashboard:** Enhanced the Cache Dashboard to display prompt cache metrics, 24h trends, and estimated cost savings (PR #824)
+-**تتبع حصص Gemini:**تمت إضافة تتبع حصص Gemini CLI في الوقت الفعلي عبر واجهة برمجة التطبيقات `retrieveUserQuota` (PR #825) -**لوحة معلومات ذاكرة التخزين المؤقت:**تم تحسين لوحة معلومات ذاكرة التخزين المؤقت لعرض مقاييس ذاكرة التخزين المؤقت السريعة، واتجاهات 24 ساعة، وتوفير التكاليف المقدرة (PR #824)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **User Experience:** Removed invasive auto-opening OAuth modal loops on barren provider detailed pages (PR #820)
-- **Dependency Updates:** Bumped and locked down dependencies for development and production trees including Next.js 16.2.1, Recharts, and TailwindCSS 4.2.2 (PR #826, #827)
-
----
+-**تجربة المستخدم:**تمت إزالة حلقات OAuth المشروطة التي تفتح تلقائيًا على الصفحات التفصيلية للموفر القاحلة (PR #820) -**تحديثات التبعية:**التبعيات المزعجة والمغلقة لأشجار التطوير والإنتاج بما في ذلك Next.js 16.2.1 وRecharts وTailwindCSS 4.2.2 (PR #826, #827)---
 
 ## [3.3.4] - 2026-03-30
 
 ### ✨ New Features
 
-- **A2A Workflows:** Added deterministic FSM orchestrator for multi-step agent workflows.
-- **Graceful Degradation:** Added a new multi-layer fallback framework to preserve core functionality during partial system outages.
-- **Config Audit:** Added an audit trail with diff detection to track changes and enable configuration rollbacks.
-- **Provider Health:** Added provider expiration tracking with proactive UI alerts for expiring API keys.
-- **Adaptive Routing:** Added an adaptive volume and complexity detector to override routing strategies dynamically based on load.
-- **Provider Diversity:** Implemented provider diversity scoring via Shannon entropy to improve load distribution.
-- **Auto-Disable Bounds:** Added an Auto-Disable Banned Accounts setting toggle to the Resilience dashboard.
+-**سير عمل A2A:**تمت إضافة منسق FSM الحتمي لسير عمل الوكيل متعدد الخطوات. -**التدهور الجميل:**تمت إضافة إطار عمل احتياطي جديد متعدد الطبقات للحفاظ على الوظائف الأساسية أثناء انقطاع النظام الجزئي. -**تدقيق التكوين:**تمت إضافة مسار تدقيق مع اكتشاف الاختلافات لتتبع التغييرات وتمكين التراجع عن التكوين. -**صحة الموفر:**تمت إضافة تتبع انتهاء صلاحية الموفر مع تنبيهات واجهة المستخدم الاستباقية لانتهاء صلاحية مفاتيح واجهة برمجة التطبيقات. -**التوجيه التكيفي:**تمت إضافة كاشف الحجم والتعقيد التكيفي لتجاوز إستراتيجيات التوجيه بناءً على الحمل ديناميكيًا. -**تنوع الموفر:**تم تنفيذ تسجيل تنوع الموفر عبر إنتروبيا شانون لتحسين توزيع الأحمال. -**حدود التعطيل التلقائي:**تمت إضافة إعداد التعطيل التلقائي للحسابات المحظورة للتبديل إلى لوحة معلومات المرونة.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**توافق Codex وClaude:**إصلاحات احتياطية لواجهة المستخدم الثابتة، ومشكلات تكامل Codex غير المتدفقة، وحل اكتشاف وقت تشغيل CLI على Windows. -**أتمتة الإصدار:**الأذونات الموسعة المطلوبة لإنشاء تطبيق Electron في إجراءات GitHub. -**Cloudflare Runtime:**تمت معالجة رموز الخروج الصحيحة لعزل وقت التشغيل لمكونات نفق Cloudflare.### 🧪 Tests
 
-- **Codex & Claude Compatibility:** Fixed UI fallbacks, patched Codex non-streaming integration issues, and resolved CLI runtime detection on Windows.
-- **Release Automation:** Expanded permissions required for the Electron App build in GitHub Actions.
-- **Cloudflare Runtime:** Addressed correct runtime isolation exit codes for Cloudflared tunnel components.
-
-### 🧪 Tests
-
-- **Test Suite Updates:** Expanded test coverage for volume detectors, provider diversity, configuration audit, and FSM.
-
----
+-**تحديثات مجموعة الاختبار:**تغطية اختبار موسعة لأجهزة كشف الحجم، وتنوع الموفر، وتدقيق التكوين، وFSM.---
 
 ## [3.3.3] - 2026-03-29
 
 ### 🐛 Bug Fixes
 
-- **CI/CD Reliability:** Patched GitHub Actions to stable dependency versions (`actions/checkout@v4`, `actions/upload-artifact@v4`) to mitigate unannounced builder environment deprecations.
-- **Image Fallbacks:** Replaced arbitrary fallback chains in `ProviderIcon.tsx` with explicit asset validation to prevent UI loading `<Image>` components for files that don't exist, eliminating `404` errors in dashboard console logs (#745).
-- **Admin Updater:** Dynamic source-installation detection for the dashboard Updater. Safely disables the `Update Now` button when OmniRoute is built locally rather than through npm, prompting for `git pull` (#743).
-- **Update ERESOLVE Error:** Injected `package.json` overrides for `react`/`react-dom` and enabled `--legacy-peer-deps` within the internal automatic updater scripts to resolve breaking dependency tree conflicts with `@lobehub/ui`.
-
----
+-**موثوقية CI/CD:**تم تصحيح إجراءات GitHub لإصدارات التبعية المستقرة (`actions/checkout@v4`، `actions/upload-artifact@v4`) للتخفيف من عمليات الإيقاف غير المعلنة لبيئة المنشئ. -**النسخ الاحتياطية للصورة:**تم استبدال السلاسل الاحتياطية العشوائية في `ProviderIcon.tsx` بالتحقق الصريح من الأصول لمنع واجهة المستخدم من تحميل مكونات `<Image>` للملفات غير الموجودة، مما يؤدي إلى إزالة أخطاء `404` في سجلات وحدة تحكم لوحة المعلومات (#745). -**مُحدِّث المسؤول:**الكشف الديناميكي عن تثبيت المصدر لمُحدِّث لوحة المعلومات. يقوم بأمان بتعطيل زر "التحديث الآن" عندما يتم إنشاء OmniRoute محليًا بدلاً من npm، مع المطالبة بـ "git pull" (#743). -**خطأ ERESOLVE في التحديث:**تم إدخال تجاوزات `package.json` لـ `react`/`react-dom` وتمكين `--legacy-peer-deps` داخل البرامج النصية للمحدث التلقائي الداخلي لحل تعارضات شجرة التبعية المقطوعة مع `@lobehub/ui`.---
 
 ## [3.3.2] - 2026-03-29
 
 ### ✨ New Features
 
-- **Cloudflare Tunnels:** Cloudflare Quick Tunnel integration with dashboard controls (PR #772).
-- **Diagnostics:** Semantic cache bypass for combo live tests (PR #773).
+-**أنفاق Cloudflare:**تكامل Cloudflare Quick Tunnel مع عناصر التحكم في لوحة المعلومات (PR #772). -**التشخيصات:**تجاوز ذاكرة التخزين المؤقت الدلالية للاختبارات المباشرة المجمعة (PR #773).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Streaming Stability:** Apply `FETCH_TIMEOUT_MS` to streaming requests' initial `fetch()` call to prevent 300s Node.js TCP timeout causing silent task failures (#769).
-- **i18n:** Add missing `windsurf` and `copilot` entries to `toolDescriptions` across all 33 locale files (#748).
-- **GLM Coding Audit:** Complete provider audit fixing ReDoS vulnerabilities, context window sizing (128k/16k), and model registry syncing (PR #778).
-
----
+-**استقرار البث:**قم بتطبيق `FETCH_TIMEOUT_MS` على استدعاء `fetch()` الأولي لطلبات البث لمنع انتهاء مهلة Node.js TCP لمدة 300 ثانية مما يتسبب في فشل المهام الصامتة (#769). -**i18n:**أضف الإدخالات المفقودة `windsurf` و`copilot` إلى `toolDescriptions` عبر جميع الملفات المحلية البالغ عددها 33 (#748). -**تدقيق ترميز GLM:**استكمال تدقيق الموفر لإصلاح ثغرات ReDoS، وحجم نافذة السياق (128 كيلو بايت/16 كيلو بايت)، ومزامنة سجل النموذج (PR #778).---
 
 ## [3.3.1] - 2026-03-29
 
 ### 🐛 Bug Fixes
 
-- **OpenAI Codex:** Fallback processing fix for `type: "text"` elements carrying null or empty datasets that caused 400 rejection (#742).
-- **Opencode:** Update schema alignment to singular `provider` to match official spec (#774).
-- **Gemini CLI:** Inject missing end-user quota headers preventing 403 authorization lockouts (#775).
-- **DB Recovery:** Refactor multipart payload imports into raw binary buffered arrays to bypass reverse proxy max body limits (#770).
-
----
+-**OpenAI Codex:**إصلاح المعالجة الاحتياطية لعناصر `type: "text"` التي تحمل مجموعات بيانات فارغة أو فارغة والتي تسببت في رفض 400 (#742). -**Opencode:**قم بتحديث محاذاة المخطط إلى "provider" المفرد لمطابقة المواصفات الرسمية (#774). -**Gemini CLI:**قم بإدخال رؤوس الحصص النسبية للمستخدم النهائي المفقودة مما يمنع عمليات تأمين الترخيص 403 (#775). -**استرداد قاعدة البيانات:**إعادة بناء عمليات استيراد الحمولة النافعة متعددة الأجزاء إلى المصفوفات الثنائية المخزنة مؤقتًا لتجاوز الحدود القصوى لنص الوكيل العكسي (#770).---
 
 ## [3.3.0] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Release Stabilization** — Finalized v3.2.9 release (combo diagnostics, quality gates, Gemini tool fix) and created missing git tag. Consolidated all staged changes into a single atomic release commit.
+-**تثبيت الإصدار**— الإصدار النهائي v3.2.9 (تشخيصات مجمعة، وبوابات الجودة، وإصلاح أداة Gemini) وإنشاء علامة git المفقودة. تم دمج جميع التغييرات المرحلية في التزام إطلاق ذري واحد.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Auto-Update Test** — Fixed `buildDockerComposeUpdateScript` test assertion to match unexpanded shell variable references (`$TARGET_TAG`, `${TARGET_TAG#v}`) in the generated deploy script, aligning with the refactored template from v3.2.8.
-- **Circuit Breaker Test** — Hardened `combo-circuit-breaker.test.mjs` by injecting `maxRetries: 0` to prevent retry inflation from skewing failure count assertions during breaker state transitions.
-
----
+-**اختبار التحديث التلقائي**— تم إصلاح تأكيد اختبار `buildDockerComposeUpdateScript` لمطابقة مراجع متغيرات Shell غير الموسعة (`$TARGET_TAG`، `${TARGET_TAG#v}`) في البرنامج النصي للنشر الذي تم إنشاؤه، بما يتماشى مع القالب المُعاد هيكلته من الإصدار 3.2.8. -**اختبار قاطع الدائرة الكهربائية**— تمت تقوية combo-circuit-breaker.test.mjs عن طريق إدخال maxRetries: 0 لمنع نفخ إعادة المحاولة من تحريف تأكيدات عدد الفشل أثناء انتقالات حالة القاطع.---
 
 ## [3.2.9] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Combo Diagnostics** — Introduced a live test bypass flag (`forceLiveComboTest`) allowing administrators to execute real upstream health checks that bypass all local circuit-breaker and cooldown state mechanisms, enabling precise diagnostics during rolling outages (PR #759)
-- **Quality Gates** — Added automated response quality validation for combos and officially integrated `claude-4.6` model support into the core routing schemas (PR #762)
+-**Combo Diagnostics**— تم تقديم علامة تجاوز الاختبار المباشر (`forceLiveComboTest`) مما يسمح للمسؤولين بتنفيذ فحوصات سلامة حقيقية للمنبع تتجاوز جميع آليات حالة قاطع الدائرة الكهربائية وحالة التبريد، مما يتيح إجراء تشخيصات دقيقة أثناء الانقطاعات المستمرة (PR #759) -**بوابات الجودة**— تمت إضافة التحقق من جودة الاستجابة التلقائية للمجموعات ودعم نموذج `claude-4.6` المدمج رسميًا في مخططات التوجيه الأساسية (PR #762)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Tool Definition Validation** — Repaired Gemini API integration by normalizing enum types inside tool definitions, preventing upstream HTTP 400 parameter errors (PR #760)
-
----
+-**التحقق من صحة تعريف الأداة**— تم إصلاح تكامل Gemini API عن طريق تطبيع أنواع التعداد داخل تعريفات الأداة، ومنع أخطاء معلمات HTTP 400 الأولية (PR #760)---
 
 ## [3.2.8] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Docker Auto-Update UI** — Integrated a detached background update process for Docker Compose deployments. The Dashboard UI now seamlessly tracks update lifecycle events combining JSON REST responses with SSE streaming progress overlays for robust cross-environment reliability.
-- **Cache Analytics** — Repaired zero-metrics visualization mapping by migrating Semantic Cache telemetry logs directly into the centralized tracking SQLite module.
+-**واجهة مستخدم التحديث التلقائي لـ Docker**— دمج عملية تحديث خلفية منفصلة لعمليات نشر Docker Compose. تتتبع واجهة مستخدم Dashboard الآن بسلاسة أحداث دورة حياة التحديث التي تجمع بين استجابات JSON REST وتراكبات تقدم تدفق SSE للحصول على موثوقية قوية عبر البيئات. -**تحليلات ذاكرة التخزين المؤقت**— تم إصلاح رسم الخرائط المرئية ذات المقاييس الصفرية عن طريق ترحيل سجلات القياس عن بعد لذاكرة التخزين المؤقت الدلالية مباشرة إلى وحدة التتبع المركزية SQLite.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Authentication Logic** — Fixed a bug where saving dashboard settings or adding models failed with a 401 Unauthorized error when `requireLogin` was disabled. API endpoints now correctly evaluate the global authentication toggle. Resolved global redirection by reactivating `src/middleware.ts`.
-- **CLI Tool Detection (Windows)** — Prevented fatal initialization exceptions during CLI environment detection by catching `cross-spawn` ENOENT errors correctly. Adds explicit detection paths for `\AppData\Local\droid\droid.exe`.
-- **Codex Native Passthrough** — Normalized model translation parameters preventing context poisoning in proxy pass-through mode, enforcing generic `store: false` constraints explicitly for all Codex-originated requests.
-- **SSE Token Reporting** — Normalized provider tool-call chunk `finish_reason` detection, fixing 0% Usage analytics for stream-only responses missing strict `<DONE>` indicators.
-- **DeepSeek <think> Tags** — Implemented an explicit `<think>` extraction mapping inside `responsesHandler.ts`, ensuring DeepSeek reasoning streams map equivalently to native Anthropic `<thinking>` structures.
-
----
+-**منطق المصادقة**— تم إصلاح الخلل المتمثل في فشل حفظ إعدادات لوحة المعلومات أو إضافة النماذج مع وجود خطأ 401 غير مصرح به عندما تم تعطيل `requireLogin`. تقوم نقاط نهاية API الآن بتقييم تبديل المصادقة العامة بشكل صحيح. تم حل مشكلة إعادة التوجيه العالمية عن طريق إعادة تنشيط `src/middleware.ts`. -**اكتشاف أداة CLI (Windows)**— منع استثناءات التهيئة القاتلة أثناء اكتشاف بيئة CLI عن طريق اكتشاف أخطاء ENOENT `المتقاطعة' بشكل صحيح. يضيف مسارات اكتشاف واضحة لـ `\AppData\Local\droid\droid.exe`.
+-**Codex Native Passthrough**— تمنع معلمات ترجمة النموذج المقيسة تسمم السياق في وضع تمرير الوكيل، وتفرض قيود `store: false`العامة بشكل صريح على جميع الطلبات التي تم إنشاؤها بواسطة Codex.
+-**SSE Token Reporting**— الكشف عن مجموعة استدعاء أدوات الموفر العادية`finish_reason`، وإصلاح تحليلات الاستخدام بنسبة 0% لاستجابات التدفق فقط التي تفتقد مؤشرات `<DONE>`الصارمة.
+-**علامات DeepSeek <think>**— تم تنفيذ رسم خرائط استخراج`<think>`صريح داخل`responsesHandler.ts`، مما يضمن تعيين تدفقات استدلال DeepSeek بشكل مكافئ لهياكل `<thinking>` البشرية الأصلية.---
 
 ## [3.2.7] - 2026-03-29
 
 ### Fixed
 
-- **Seamless UI Updates**: The "Update Now" feature on the Dashboard now provides live, transparent feedback using Server-Sent Events (SSE). It performs package installation, native module rebuilds (better-sqlite3), and PM2 restarts reliably while showing real-time loaders instead of silently hanging.
-
----
+-**تحديثات سلسة لواجهة المستخدم**: توفر ميزة "التحديث الآن" الموجودة على لوحة المعلومات الآن تعليقات مباشرة وشفافة باستخدام الأحداث المرسلة من الخادم (SSE). فهو ينفذ عملية تثبيت الحزمة، وإعادة بناء الوحدة الأصلية (better-sqlite3)، وإعادة تشغيل PM2 بشكل موثوق أثناء إظهار أدوات التحميل في الوقت الفعلي بدلاً من التعليق بصمت.---
 
 ## [3.2.6] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **API Key Reveal (#740)** — Added a scoped API key copy flow in the Api Manager, protected by the `ALLOW_API_KEY_REVEAL` environment variable.
-- **Sidebar Visibility Controls (#739)** — Admins can now hide any sidebar navigation link via the Appearance settings to reduce visual clutter.
-- **Strict Combo Testing (#735)** — Hardened the combo health check endpoint to require live text responses from models instead of just soft reachability signals.
-- **Streamed Detailed Logs (#734)** — Switched detailed request logging for SSE streams to reconstruct the final payload, saving immense amounts of SQLite database size and significantly cleaning up the UI.
+-**API Key Reveal (#740)**— تمت إضافة تدفق نسخة مفتاح API محدد النطاق في Api Manager، محميًا بواسطة متغير البيئة `ALLOW_API_KEY_REVEAL`. -**عناصر التحكم في رؤية الشريط الجانبي (#739)**— يمكن للمسؤولين الآن إخفاء أي رابط تنقل في الشريط الجانبي عبر إعدادات المظهر لتقليل الفوضى المرئية. -**اختبار التحرير والسرد الصارم (#735)**— تم تعزيز نقطة نهاية التحقق من صحة التحرير والسرد بحيث تتطلب استجابات نصية مباشرة من النماذج بدلاً من مجرد إشارات إمكانية الوصول البسيطة. -**السجلات التفصيلية المتدفقة (#734)**— تم تبديل تسجيل الطلبات التفصيلية لتدفقات SSE لإعادة بناء الحمولة النهائية، مما يوفر كميات هائلة من حجم قاعدة بيانات SQLite وتنظيف واجهة المستخدم بشكل ملحوظ.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **OpenCode Go MiniMax Auth (#733)** — Corrected the authentication header logic for `minimax` models on OpenCode Go to use `x-api-key` instead of standard bearer tokens across the `/messages` protocol.
-
----
+-**OpenCode Go MiniMax Auth (#733)**— تم تصحيح منطق رأس المصادقة لنماذج `minimax` في OpenCode Go لاستخدام `x-api-key` بدلاً من الرموز المميزة للحامل القياسية عبر بروتوكول `/messages`.---
 
 ## [3.2.5] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Void Linux Deployment Support (#732)** — Integrated `xbps-src` packaging template and instructions to natively compile and install OmniRoute with `better-sqlite3` bindings via cross-compilation target.
-
-## [3.2.4] — 2026-03-29
+-**Void Linux Deployment Support (#732)**— قالب تعبئة `xbps-src` متكامل وتعليمات لتجميع OmniRoute وتثبيته محليًا باستخدام روابط `better-sqlite3` عبر هدف التجميع المتقاطع.## [3.2.4] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Qoder AI Migration (#660)** — Completely migrated the legacy `iFlow` core provider onto `Qoder AI` maintaining stable API routing capabilities.
+-**Qoder AI Migration (#660)**— تم ترحيل الموفر الأساسي القديم `iFlow` بالكامل إلى `Qoder AI` مع الحفاظ على قدرات توجيه API مستقرة.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Gemini Tools HTTP 400 Payload Invalid Argument (#731)** — Prevented `thoughtSignature` array injections inside standard Gemini `functionCall` sequences blocking agentic routing flows.
-
----
+-**Gemini Tools HTTP 400 Payload Argument Invalid Argument (#731)**— تم منع حقن مصفوفة `oughtSignature` داخل تسلسلات Gemini `functionCall` القياسية التي تحظر تدفقات التوجيه الوكيل.---
 
 ## [3.2.3] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Provider Limits Quota UI (#728)** — Normalized quota limit logic and data labeling inside the Limits interface.
+-**واجهة مستخدم حدود الحصة النسبية (#728)**— منطق حدود الحصص الطبيعية وتسمية البيانات داخل واجهة الحدود.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Core Routing Schemas & Leaks** — Expanded `comboStrategySchema` to natively support `fill-first` and `p2c` strategies to unblock complex combo editing natively.
-- **Thinking Tags Extraction (CLI)** — Restructured CLI token responses sanitizer RegEx capturing model reasoning structures inside streams avoiding broken `<thinking>` extractions breaking response text output format.
-- **Strict Format Enforcements** — Hardened pipeline sanitization execution making it universally apply to translation mode targets.
-
----
+-**مخططات التوجيه الأساسية والتسريبات**— تم توسيع `comboStrategySchema' ليدعم بشكل أصلي إستراتيجيات `fill-first` و`p2c`لإلغاء حظر تحرير التحرير والسرد المعقد محليًا.
+-**استخراج علامات التفكير (CLI)**- معقم استجابات رمز CLI المعاد هيكلته، معقم RegEx الذي يلتقط هياكل الاستدلال النموذجية داخل التدفقات، مع تجنب الاستخراجات المعطلة`<thinking>` التي تكسر تنسيق إخراج نص الاستجابة. -**تطبيقات صارمة على التنسيق**— تنفيذ معزز لتطهير خطوط الأنابيب مما يجعلها تنطبق عالميًا على أهداف وضع الترجمة.---
 
 ## [3.2.2] — 2026-03-29
 
 ### ✨ New Features
 
-- **Four-Stage Request Log Pipeline (#705)** — Refactored log persistence to save comprehensive payloads at four distinct pipeline stages: Client Request, Translated Provider Request, Provider Response, and Translated Client Response. Introduced `streamPayloadCollector` for robust SSE stream truncation and payload serialization.
+-**خط أنابيب سجل الطلبات المكون من أربع مراحل (#705)**— استمرارية السجل المُعاد تشكيلها لحفظ الحمولات الشاملة في أربع مراحل مختلفة من التدفق: طلب العميل، وطلب الموفر المترجم، واستجابة الموفر، واستجابة العميل المترجمة. تم تقديم "streamPayloadCollector" لاقتطاع تيار SSE القوي وتسلسل الحمولة.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Mobile UI Fixes (#659)** — Prevented table components on the dashboard from breaking the layout on narrow viewports by adding proper horizontal scrolling and overflow containment to `DashboardLayout`.
-- **Claude Prompt Cache Fixes (#708)** — Ensured `cache_control` blocks in Claude-to-Claude fallback loops are faithfully preserved and passed safely back to Anthropic models.
-- **Gemini Tool Definitions (#725)** — Fixed schema translation errors when declaring simple `object` parameter types for Gemini function calling.
-
-## [3.2.1] — 2026-03-29
+-**إصلاحات واجهة المستخدم المتنقلة (#659)**— منع مكونات الجدول في لوحة المعلومات من كسر التخطيط في إطارات العرض الضيقة عن طريق إضافة التمرير الأفقي المناسب واحتواء الفائض إلى `DashboardLayout`. -**Claude Prompt Cache Fixes (#708)**— ضمان الحفاظ على كتل `cache_control` في حلقات Claude-to-Claude الاحتياطية بأمانة وإعادتها بأمان إلى النماذج البشرية. -**تعريفات أداة Gemini (#725)**— تم إصلاح أخطاء ترجمة المخطط عند الإعلان عن أنواع معلمات "الكائن" البسيطة لاستدعاء دالة Gemini.## [3.2.1] — 2026-03-29
 
 ### ✨ New Features
 
-- **Global Fallback Provider (#689)** — When all combo models are exhausted (502/503), OmniRoute now attempts a configurable global fallback model before returning the error. Set `globalFallbackModel` in settings to enable.
+-**موفر الاحتياطي العام (#689)**— عند استنفاد جميع نماذج التحرير والسرد (502/503)، يحاول OmniRoute الآن إنشاء نموذج احتياطي عالمي قابل للتكوين قبل إرجاع الخطأ. قم بتعيين "globalFallbackModel" في الإعدادات للتمكين.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**إصلاح #721**— تم إصلاح تجاوز تثبيت السياق أثناء استجابات استدعاء الأداة. استخدمت العلامات غير المتدفقة مسار JSON خاطئًا (`json.messages` → `json.choices[0].message`). يتم الآن تشغيل حقن البث على أجزاء `finish_reason` لتدفقات استدعاء الأدوات فقط. يقوم `injectModelTag()` الآن بإلحاق رسائل الدبوس الاصطناعية للمحتوى غير المتسلسلة. -**الإصلاح رقم #709**— تم التأكد من أنه تم إصلاحه بالفعل (الإصدار 3.1.9) — يقوم `system-info.mjs` بإنشاء الأدلة بشكل متكرر. مغلق. -**إصلاح #707**— تم التأكد من أنه تم إصلاحه بالفعل (الإصدار 3.1.9) — تعقيم اسم الأداة الفارغ في `chatCore.ts`. مغلق.### 🧪 Tests
 
-- **Fix #721** — Fixed context pinning bypass during tool-call responses. Non-streaming tagging used wrong JSON path (`json.messages` → `json.choices[0].message`). Streaming injection now triggers on `finish_reason` chunks for tool-call-only streams. `injectModelTag()` now appends synthetic pin messages for non-string content.
-- **Fix #709** — Confirmed already fixed (v3.1.9) — `system-info.mjs` creates directories recursively. Closed.
-- **Fix #707** — Confirmed already fixed (v3.1.9) — empty tool name sanitization in `chatCore.ts`. Closed.
-
-### 🧪 Tests
-
-- Added 6 unit tests for context pinning with tool-call responses (null content, array content, roundtrip, re-injection)
-
-## [3.2.0] — 2026-03-28
+- تمت إضافة 6 اختبارات وحدة لتثبيت السياق من خلال استجابات استدعاء الأداة (محتوى فارغ، محتوى مصفوفة، رحلة ذهابًا وإيابًا، إعادة الحقن)## [3.2.0] — 2026-03-28
 
 ### ✨ New Features
 
-- **Cache Management UI** — Added a dedicated semantic caching dashboard at \`/dashboard/cache\` with targeted API invalidation and 31-language i18n support (PR #701 by @oyi77)
-- **GLM Quota Tracking** — Added real-time usage and session quota tracking for the GLM Coding (Z.AI) provider (PR #698 by @christopher-s)
-- **Detailed Log Payloads** — Wired full four-stage pipeline payload capturing (original, translated, provider-response, streamed-deltas) directly into the UI (PR #705 by @rdself)
+-**واجهة مستخدم إدارة ذاكرة التخزين المؤقت**— تمت إضافة لوحة معلومات مخصصة للتخزين المؤقت الدلالي في \`/dashboard/cache\` مع إبطال واجهة برمجة التطبيقات المستهدفة ودعم i18n بـ 31 لغة (PR #701 بواسطة @oyi77) -**تتبع حصة GLM**— تمت إضافة الاستخدام في الوقت الفعلي وتتبع حصة الجلسة لموفر GLM Coding (Z.AI) (PR #698 بواسطة @christopher-s) -**حمولات السجل التفصيلية**— التقاط حمولة خط أنابيب سلكية كاملة ذات أربع مراحل (أصلية، مترجمة، استجابة الموفر، دلتا المتدفقة) مباشرة في واجهة المستخدم (PR #705 بواسطة @rdself)### 🐛 Bug Fixes
+
+-**إصلاح #708**— تم منع نزيف الرمز المميز لمستخدمي Claude Code الذين يقومون بالتوجيه عبر OmniRoute عن طريق الحفاظ بشكل صحيح على رؤوس \`cache_control\` الأصلية أثناء عبور Claude-to-Claude (PR #708 بواسطة @tombii) -**إصلاح #719**— إعداد حدود المصادقة الداخلية لـ \`ModelSyncScheduler\` لمنع فشل البرنامج الخفي غير المصادق عليه عند بدء التشغيل (PR #719 بواسطة @rdself) -**إصلاح #718**— إعادة بناء عرض الشارة في واجهة مستخدم حدود الموفر لمنع تداخل حدود الحصص السيئة (PR #718 بواسطة @rdself) -**الإصلاح رقم 704**— تم إصلاح أخطاء السرد الاحتياطية التي تنقطع عن أخطاء سياسة محتوى HTTP 400 التي تمنع التوجيه الخامد لتدوير النموذج (PR #704 بواسطة @rdself)### 🔒 Security & Dependencies
+
+- تم نقل \`path-to-regexp\` إلى \`8.4.0\` لحل نقاط الضعف التابعة لبرامج الروبوت التابعة (PR #715)## [3.1.10] — 2026-03-28
 
 ### 🐛 Bug Fixes
 
-- **Fix #708** — Prevented token bleeding for Claude Code users routing through OmniRoute by correctly preserving native \`cache_control\` headers during Claude-to-Claude passthrough (PR #708 by @tombii)
-- **Fix #719** — Setup internal auth boundaries for \`ModelSyncScheduler\` to prevent unauthenticated daemon failures on startup (PR #719 by @rdself)
-- **Fix #718** — Rebuilt badge rendering in Provider Limits UI preventing bad quota boundaries overlap (PR #718 by @rdself)
-- **Fix #704** — Fixed Combo Fallbacks breaking on HTTP 400 content-policy errors preventing model-rotation dead-routing (PR #704 by @rdself)
-
-### 🔒 Security & Dependencies
-
-- Bumped \`path-to-regexp\` to \`8.4.0\` resolving dependabot vulnerabilities (PR #715)
-
-## [3.1.10] — 2026-03-28
-
-### 🐛 Bug Fixes
-
-- **Fix #706** — Fixed icon fallback rendering caused by Tailwind V4 `font-sans` override by applying `!important` to `.material-symbols-outlined`.
-- **Fix #703** — Fixed GitHub Copilot broken streams by enabling `responses` to `openai` format translation for any custom models leveraging `apiFormat: "responses"`.
-- **Fix #702** — Replaced flat-rate usage tracking with accurate DB pricing calculations for both streaming and non-streaming responses.
-- **Fix #716** — Cleaned up Claude tool-call translation state, correctly parsing streaming arguments and preventing OpenAI `tool_calls` chunks from repeating the `id` field.
-
-## [3.1.9] — 2026-03-28
+-**إصلاح #706**— تم إصلاح العرض الاحتياطي للأيقونات الناتج عن تجاوز Tailwind V4 `font-sans` عن طريق تطبيق `!هام` على `.material-symbols-outlined`. -**إصلاح #703**— تم إصلاح التدفقات المعطلة لـ GitHub Copilot من خلال تمكين "الردود" لترجمة تنسيق "openai" لأي نماذج مخصصة تستفيد من "apiFormat: "responses"". -**الإصلاح رقم 702**— تم استبدال تتبع الاستخدام ذو المعدل الثابت بحسابات دقيقة لتسعير قاعدة البيانات لكل من الاستجابات المتدفقة وغير المتدفقة. -**إصلاح #716**— تنظيف حالة ترجمة استدعاء أداة Claude، وتحليل وسائط الدفق بشكل صحيح ومنع أجزاء OpenAI `tool_calls` من تكرار حقل `id`.## [3.1.9] — 2026-03-28
 
 ### ✨ New Features
 
-- **Schema Coercion** — Auto-coerce string-encoded numeric JSON Schema constraints (e.g. `"minimum": "1"`) to proper types, preventing 400 errors from Cursor, Cline, and other clients sending malformed tool schemas.
-- **Tool Description Sanitization** — Ensure tool descriptions are always strings; converts `null`, `undefined`, or numeric descriptions to empty strings before sending to providers.
-- **Clear All Models Button** — Added i18n translations for the "Clear All Models" provider action across all 30 languages.
-- **Codex Auth Export** — Added Codex `auth.json` export and apply-local buttons for seamless CLI integration.
-- **Windsurf BYOK Notes** — Added official limitation warnings to the Windsurf CLI tool card documenting BYOK constraints.
+-**Schema Coercion**— الإكراه التلقائي لقيود مخطط JSON الرقمية المشفرة بسلسلة (على سبيل المثال `"الحد الأدنى": "1"`) على الأنواع المناسبة، مما يمنع 400 خطأ من Cursor وCline والعملاء الآخرين الذين يرسلون مخططات أدوات مشوهة. -**تطهير وصف الأداة**— التأكد من أن أوصاف الأداة دائمًا عبارة عن سلاسل؛ يحول الأوصاف "فارغة" أو "غير محددة" أو رقمية إلى سلاسل فارغة قبل إرسالها إلى الموفرين. -**زر مسح جميع النماذج**- تمت إضافة ترجمات i18n لإجراء الموفر "مسح جميع النماذج" عبر جميع اللغات الثلاثين. -**تصدير مصادقة الدستور**— تمت إضافة أزرار التصدير والتطبيق المحلية لـ Codex `auth.json` لتكامل سلس لواجهة سطر الأوامر (CLI). -**ملاحظات Windsurf BYOK**— تمت إضافة تحذيرات القيود الرسمية إلى بطاقة أداة Windsurf CLI التي توثق قيود BYOK.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**إصلاح #709**— لم يعد `system-info.mjs` يتعطل عندما لا يكون دليل الإخراج موجودًا (تمت إضافة `mkdirSync` بعلامة متكررة). -**إصلاح #710**— يستخدم الآن مفرد `TaskManager` لـ A2A `globalThis` لمنع تسرب الحالة عبر عمليات إعادة تجميع مسار Next.js API في وضع التطوير. تم تحديث مجموعة اختبار E2E للتعامل مع 401 بأمان. -**الإصلاح #711**— تمت إضافة تطبيق الحد الأقصى لـ `max_tokens` الخاص بالموفر للطلبات الأولية. -**إصلاح #605 / #592**— إزالة بادئة `proxy_` من أسماء الأدوات في استجابات Claude غير المتدفقة؛ تم إصلاح عنوان URL للتحقق من صحة LongCat. -**Call Logs Max Cap**— تمت ترقية `getMaxCallLogs()` مع طبقة التخزين المؤقت، ودعم env var (`CALL_LOGS_MAX`)، وتكامل إعدادات قاعدة البيانات.### 🧪 Tests
 
-- **Fix #709** — `system-info.mjs` no longer crashes when the output directory doesn't exist (added `mkdirSync` with recursive flag).
-- **Fix #710** — A2A `TaskManager` singleton now uses `globalThis` to prevent state leakage across Next.js API route recompilations in dev mode. E2E test suite updated to handle 401 gracefully.
-- **Fix #711** — Added provider-specific `max_tokens` cap enforcement for upstream requests.
-- **Fix #605 / #592** — Strip `proxy_` prefix from tool names in non-streaming Claude responses; fixed LongCat validation URL.
-- **Call Logs Max Cap** — Upgraded `getMaxCallLogs()` with caching layer, env var support (`CALL_LOGS_MAX`), and DB settings integration.
+- تم توسيع مجموعة الاختبارات من 964 إلى 1027 اختبارًا (63 اختبارًا جديدًا)
+- تمت إضافة `schema-coercion.test.mjs` - 9 اختبارات للإكراه الميداني الرقمي وتعقيم وصف الأداة
+- تمت إضافة `t40-opencode-cli-tools-integration.test.mjs` - اختبارات تكامل OpenCode/Windsurf CLI
+- فرع اختبارات الميزات المحسن مع أدوات التغطية الشاملة### 📁 New Files
 
-### 🧪 Tests
+| ملف                                                             | الغرض                                      |
+| --------------------------------------------------------------- | ------------------------------------------ | ---------------- |
+| `open-sse/translator/helpers/schemaCoercion.ts`                 | إكراه المخطط ووصف الأدوات المساعدة للتعقيم |
+| `اختبارات/وحدة/مخطط-coercion.test.mjs`                          | اختبارات الوحدة لإكراه المخطط              |
+| `الاختبارات/الوحدة/t40-opencode-cli-tools-integration.test.mjs` | اختبارات تكامل أداة CLI                    |
+| `COVERAGE_PLAN.md`                                              | وثيقة تخطيط تغطية الاختبار                 | ### 🐛 Bug Fixes |
 
-- Test suite expanded from 964 → 1027 tests (63 new tests)
-- Added `schema-coercion.test.mjs` — 9 tests for numeric field coercion and tool description sanitization
-- Added `t40-opencode-cli-tools-integration.test.mjs` — OpenCode/Windsurf CLI integration tests
-- Enhanced feature-tests branch with comprehensive coverage tooling
-
-### 📁 New Files
-
-| File                                                     | Purpose                                                     |
-| -------------------------------------------------------- | ----------------------------------------------------------- |
-| `open-sse/translator/helpers/schemaCoercion.ts`          | Schema coercion and tool description sanitization utilities |
-| `tests/unit/schema-coercion.test.mjs`                    | Unit tests for schema coercion                              |
-| `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | CLI tool integration tests                                  |
-| `COVERAGE_PLAN.md`                                       | Test coverage planning document                             |
-
-### 🐛 Bug Fixes
-
-- **Claude Prompt Caching Passthrough** — Fixed cache_control markers being stripped in Claude passthrough mode (Claude → OmniRoute → Claude), which caused Claude Code users to deplete their Anthropic API quota 5-10x faster than direct connections. OmniRoute now preserves client's cache_control markers when sourceFormat and targetFormat are both Claude, ensuring prompt caching works correctly and dramatically reducing token consumption.
-
-## [3.1.8] - 2026-03-27
+-**Claude Prompt Caching Passthrough**— تم إصلاح علامات التحكم في ذاكرة التخزين المؤقت في وضع عبور Claude (Claude → OmniRoute → Claude)، مما تسبب في استنفاد مستخدمي Claude Code لحصة Anthropic API الخاصة بهم بمعدل 5 إلى 10x أسرع من الاتصالات المباشرة. يحتفظ OmniRoute الآن بعلامات التحكم في ذاكرة التخزين المؤقت الخاصة بالعميل عندما يكون كل من sourceFormat وtargetFormat كلود، مما يضمن أن التخزين المؤقت الفوري يعمل بشكل صحيح ويقلل بشكل كبير من استهلاك الرمز المميز.## [3.1.8] - 2026-03-27
 
 ### 🐛 Bug Fixes & Features
 
-- **Platform Core:** Implemented global state handling for Hidden Models & Combos preventing them from cluttering the catalog or leaking into connected MCP agents (#681).
-- **Stability:** Patched streaming crashes related to the native Antigravity provider integration failing due to unhandled undefined state arrays (#684).
-- **Localization Sync:** Deployed a fully overhauled `i18n` synchronizer detecting missing nested JSON properties and retro-fitting 30 locales sequentially (#685).## [3.1.7] - 2026-03-27
+-**النظام الأساسي:**تم تنفيذ معالجة الحالة العالمية للنماذج المخفية والمجموعات مما يمنعها من ازدحام الكتالوج أو التسرب إلى وكلاء MCP المتصلين (#681). -**الاستقرار:**أعطال البث المصححة المتعلقة بفشل تكامل موفر Antigravity الأصلي بسبب مصفوفات الحالة غير المحددة غير المعالجة (#684). -**مزامنة الترجمة:**تم نشر مزامن `i18n` تم إصلاحه بالكامل لاكتشاف خصائص JSON المتداخلة المفقودة وتركيب 30 لغة بشكل تسلسلي (#685).## [3.1.7] - 2026-03-27### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Streaming Stability:** Fixed `hasValuableContent` returning `undefined` for empty chunks in SSE streams (#676).
-- **Tool Calling:** Fixed an issue in `sseParser.ts` where non-streaming Claude responses with multiple tool calls dropped the `id` of subsequent tool calls due to incorrect index-based deduplication (#671).
-
----
+-**استقرار البث:**تم إصلاح `hasValuableContent` الذي يُرجع `غير محدد` للأجزاء الفارغة في تدفقات SSE (#676). -**استدعاء الأداة:**تم إصلاح مشكلة في `sseParser.ts` حيث أدت استجابات Claude غير المتدفقة مع استدعاءات أدوات متعددة إلى إسقاط `id` لاستدعاءات الأداة اللاحقة بسبب إلغاء البيانات المكررة غير الصحيحة المستندة إلى الفهرس (#671).---
 
 ## [3.1.6] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Claude Native Tool Name Restoration** — Tool names like `TodoWrite` are no longer prefixed with `proxy_` in Claude passthrough responses (both streaming and non-streaming). Includes unit test coverage (PR #663 by @coobabm)
-- **Clear All Models Alias Cleanup** — "Clear All Models" button now also removes associated model aliases, preventing ghost models in the UI (PR #664 by @rdself)
-
----
+-**Claude Native Tool Name Restoration**— لم تعد أسماء الأدوات مثل `TodoWrite` مسبوقة بـ `proxy_` في استجابات عبور Claude (سواء المتدفقة أو غير المتدفقة). يتضمن تغطية اختبار الوحدة (PR #663 بواسطة @coobabm) -**مسح تنظيف الاسم المستعار لجميع النماذج**— يعمل زر "مسح جميع النماذج" الآن أيضًا على إزالة الأسماء المستعارة للنماذج المرتبطة، مما يمنع النماذج غير المرئية في واجهة المستخدم (PR #664 بواسطة @rdself)---
 
 ## [3.1.5] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Backoff Auto-Decay** — Rate-limited accounts now auto-recover when their cooldown window expires, fixing a deadlock where high `backoffLevel` permanently deprioritized accounts (PR #657 by @brendandebeasi)
+-**التراجع التلقائي للتراجع**— يتم الآن استرداد الحسابات ذات الأسعار المحدودة تلقائيًا عند انتهاء فترة التهدئة الخاصة بها، مما يؤدي إلى إصلاح حالة الجمود حيث يؤدي ارتفاع مستوى "التراجع" إلى إلغاء أولوية الحسابات بشكل دائم (PR #657 بواسطة @brendandebeasi)### 🌍 i18n
 
-### 🌍 i18n
-
-- **Chinese translation overhaul** — Comprehensive rewrite of `zh-CN.json` with improved accuracy (PR #658 by @only4copilot)
-
----
+-**إصلاح شامل للترجمة الصينية**— إعادة كتابة شاملة لـ `zh-CN.json` بدقة محسنة (PR #658 بواسطة @only4copilot)---
 
 ## [3.1.4] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Streaming Override Fix** — Explicit `stream: true` in request body now takes priority over `Accept: application/json` header. Clients sending both will correctly receive SSE streaming responses (#656)
+-**إصلاح تجاوز الدفق**— يحظى `الدفق: true` الصريح في نص الطلب الآن بالأولوية على رأس `Accept: application/json`. العملاء الذين يرسلون كلاهما سوف يتلقون بشكل صحيح استجابات تدفق SSE (#656)### 🌍 i18n
 
-### 🌍 i18n
-
-- **Czech string improvements** — Refined terminology across `cs.json` (PR #655 by @zen0bit)
-
----
+-**تحسينات السلسلة التشيكية**— مصطلحات منقحة عبر `cs.json` (PR #655 بواسطة @zen0bit)---
 
 ## [3.1.3] — 2026-03-26
 
 ### 🌍 i18n & Community
 
-- **~70 missing translation keys** added to `en.json` and 12 languages (PR #652 by @zen0bit)
-- **Czech documentation updated** — CLI-TOOLS, API_REFERENCE, VM_DEPLOYMENT guides (PR #652)
-- **Translation validation scripts** — `check_translations.py` and `validate_translation.py` for CI/QA (PR #651 by @zen0bit)
-
----
+-**~70 مفتاح ترجمة مفقودًا**تمت إضافته إلى `en.json` و12 لغة (PR #652 بواسطة @zen0bit) -**تم تحديث الوثائق التشيكية**— CLI-TOOLS، API_REFERENCE، أدلة VM_DEPLOYMENT (PR #652) -**البرامج النصية للتحقق من صحة الترجمة**— `check_translations.py` و`validate_translation.py` لـ CI/QA (PR #651 بواسطة @zen0bit)---
 
 ## [3.1.2] — 2026-03-26
 
 ### 🐛 Bug Fixes
 
-- **Critical: Tool Calling Regression** — Fixed `proxy_Bash` errors by disabling the `proxy_` tool name prefix in the Claude passthrough path. Tools like `Bash`, `Read`, `Write` were being renamed to `proxy_Bash`, `proxy_Read`, etc., causing Claude to reject them (#618)
-- **Kiro Account Ban Documentation** — Documented as upstream AWS anti-fraud false positive, not an OmniRoute issue (#649)
+-**حرج: انحدار استدعاء الأداة**— تم إصلاح أخطاء `proxy_Bash` عن طريق تعطيل بادئة اسم الأداة `proxy_` في مسار عبور Claude. تمت إعادة تسمية الأدوات مثل `Bash` و`Read` و`Write` إلى `proxy_Bash` و`proxy_Read` وما إلى ذلك، مما دفع كلود إلى رفضها (#618) -**وثائق حظر حساب Kiro**— موثقة كنتيجة إيجابية كاذبة لمكافحة الاحتيال في AWS، وليست مشكلة OmniRoute (#649)### 🧪 Tests
 
-### 🧪 Tests
-
-- **936 tests, 0 failures**
-
----
+-**936 اختبارًا، 0 فشل**---
 
 ## [3.1.1] — 2026-03-26
 
 ### ✨ New Features
 
-- **Vision Capability Metadata**: Added `capabilities.vision`, `input_modalities`, and `output_modalities` to `/v1/models` entries for vision-capable models (PR #646)
-- **Gemini 3.1 Models**: Added `gemini-3.1-pro-preview` and `gemini-3.1-flash-lite-preview` to the Antigravity provider (#645)
+-**البيانات الوصفية لقدرة الرؤية**: تمت إضافة `capabilities.vision` و`input_modalities` و`output_modalities` إلى إدخالات `/v1/models` للنماذج ذات القدرة على الرؤية (PR #646) -**نماذج Gemini 3.1**: تمت إضافة `gemini-3.1-pro-preview` و`gemini-3.1-flash-lite-preview` إلى موفر Antigravity (#645)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**خطأ Ollama Cloud 401**: تم إصلاح عنوان URL الأساسي غير الصحيح لواجهة برمجة التطبيقات — تم التغيير من `api.ollama.com` إلى `ollama.com/v1/chat/completions' الرسمي (#643) -**إعادة محاولة الرمز المميز منتهية الصلاحية**: تمت إضافة إعادة المحاولة المحدودة مع التراجع الأسي (5←10←20 دقيقة) لاتصالات OAuth منتهية الصلاحية بدلاً من تخطيها نهائيًا (PR #647)### 🧪 Tests
 
-- **Ollama Cloud 401 Error**: Fixed incorrect API base URL — changed from `api.ollama.com` to official `ollama.com/v1/chat/completions` (#643)
-- **Expired Token Retry**: Added bounded retry with exponential backoff (5→10→20 min) for expired OAuth connections instead of permanently skipping them (PR #647)
-
-### 🧪 Tests
-
-- **936 tests, 0 failures**
-
----
+-**936 اختبارًا، 0 فشل**---
 
 ## [3.1.0] — 2026-03-26
 
 ### ✨ New Features
 
-- **GitHub Issue Templates**: Added standardized bug report, feature request, and config/proxy issue templates (#641)
-- **Clear All Models**: Added a "Clear All Models" button to the provider detail page with i18n support in 29 languages (#634)
+-**نماذج مشكلات GitHub**: تمت إضافة تقرير الأخطاء القياسي وطلب الميزة وقوالب مشكلات التكوين/الوكيل (#641) -**مسح جميع النماذج**: تمت إضافة زر "مسح جميع النماذج" إلى صفحة تفاصيل الموفر مع دعم i18n بـ 29 لغة (#634)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**تعارض اللغة (`in.json`)**: تمت إعادة تسمية ملف اللغة الهندية من `in.json` (رمز ISO الإندونيسي) إلى `hi.json` لإصلاح تعارضات الترجمة في Weblate (#642) -**أسماء أدوات الدستور الغذائي الفارغة**: تم نقل عملية تنقية اسم الأداة قبل مرور الدستور الغذائي الأصلي، وإصلاح 400 خطأ من موفري الخدمات الأولية عندما كانت الأدوات تحتوي على أسماء فارغة (#637) -**بث عناصر الخط الجديد**: تمت إضافة `collapseExcessiveNewlines` إلى أداة تعقيم الاستجابة، مما يؤدي إلى طي أكثر من 3 أسطر جديدة متتالية من نماذج التفكير إلى سطر جديد قياسي مزدوج (#638) -**Claude Reasoning Effort**: تم تحويل معلمة `reasoning_effort` الخاصة بـ OpenAI إلى كتلة ميزانية `التفكير` الأصلية الخاصة بـ Claude عبر جميع مسارات الطلب، بما في ذلك الضبط التلقائي لـ `max_tokens` (#627) -**Qwen Token Refresh**: تم تنفيذ تحديث استباقي لرمز OAuth المميز قبل انتهاء الصلاحية (مخزن مؤقت مدته 5 دقائق) لمنع الطلبات من الفشل عند استخدام الرموز المميزة قصيرة العمر (#631)### 🧪 Tests
 
-- **Locale Conflict (`in.json`)**: Renamed the Hindi locale file from `in.json` (Indonesian ISO code) to `hi.json` to fix translation conflicts in Weblate (#642)
-- **Codex Empty Tool Names**: Moved tool name sanitization before the native Codex passthrough, fixing 400 errors from upstream providers when tools had empty names (#637)
-- **Streaming Newline Artifacts**: Added `collapseExcessiveNewlines` to the response sanitizer, collapsing runs of 3+ consecutive newlines from thinking models into a standard double newline (#638)
-- **Claude Reasoning Effort**: Converted OpenAI `reasoning_effort` param to Claude's native `thinking` budget block across all request paths, including automatic `max_tokens` adjustment (#627)
-- **Qwen Token Refresh**: Implemented proactive pre-expiry OAuth token refreshes (5-minute buffer) to prevent requests from failing when using short-lived tokens (#631)
-
-### 🧪 Tests
-
-- **936 tests, 0 failures** (+10 tests since 3.0.9)
-
----
+-**936 اختبارًا، 0 فشل**(+10 اختبارات منذ 3.0.9)---
 
 ## [3.0.9] — 2026-03-26
 
 ### 🐛 Bug Fixes
 
-- **NaN tokens in Claude Code / client responses (#617):**
-  - `sanitizeUsage()` now cross-maps `input_tokens`→`prompt_tokens` and `output_tokens`→`completion_tokens` before the whitelist filter, fixing responses showing NaN/0 token counts when providers return Claude-style usage field names
+-**رموز NaN المميزة في Claude Code / استجابات العميل (#617):**
 
-### الأمان
+- `sanitizeUsage()` الآن يقارن بين الخرائط `input_tokens` →`prompt_tokens` و`output_tokens`→`completion_tokens` قبل مرشح القائمة البيضاء، مع إصلاح الاستجابات التي تعرض عدد الرموز المميزة NaN/0 عندما يعرض الموفرون أسماء حقول الاستخدام بنمط Claude### الأمان
 
-- Updated `yaml` package to fix stack overflow vulnerability (GHSA-48c2-rrv3-qjmp)
+- تم تحديث حزمة yaml لإصلاح ثغرة تجاوز سعة المكدس (GHSA-48c2-rrv3-qjmp)### 📋 Issue Triage
 
-### 📋 Issue Triage
-
-- Closed #613 (Codestral — resolved with Custom Provider workaround)
-- Commented on #615 (OpenCode dual-endpoint — workaround provided, tracked as feature request)
-- Commented on #618 (tool call visibility — requesting v3.0.9 test)
-- Commented on #627 (effort level — already supported)
-
----
+- مغلق رقم 613 (Codestral - تم حله باستخدام الحل البديل للموفر المخصص)
+- تم التعليق على رقم 615 (نقطة نهاية OpenCode المزدوجة - تم توفير الحل البديل، وتتبعه كطلب ميزة)
+- تم التعليق على رقم 618 (رؤية استدعاء الأداة — طلب اختبار الإصدار 3.0.9)
+- تم التعليق على رقم 627 (مستوى الجهد – مدعوم بالفعل)---
 
 ## [3.0.8] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Translation Failures for OpenAI-format Providers in Claude CLI (#632):**
-  - Handle `reasoning_details[]` array format from StepFun/OpenRouter — converts to `reasoning_content`
-  - Handle `reasoning` field alias from some providers → normalized to `reasoning_content`
-  - Cross-map usage field names: `input_tokens`↔`prompt_tokens`, `output_tokens`↔`completion_tokens` in `filterUsageForFormat`
-  - Fix `extractUsage` to accept both `input_tokens`/`output_tokens` and `prompt_tokens`/`completion_tokens` as valid usage fields
-  - Applied to both streaming (`sanitizeStreamingChunk`, `openai-to-claude.ts` translator) and non-streaming (`sanitizeMessage`) paths
+-**فشل الترجمة لموفري تنسيق OpenAI في Claude CLI (#632):**
 
----
+- التعامل مع تنسيق المصفوفة `reasoning_details[]` من StepFun/OpenRouter - يتحول إلى `reasoning_content`
+- التعامل مع الاسم المستعار لحقل "الاستدلال" من بعض الموفرين → تم تطبيعه إلى "محتوى_الاستدلال"
+- أسماء حقول الاستخدام عبر الخرائط: `input_tokens` ↔`prompt_tokens`، `output_tokens`↔`completion_tokens` في `filterUsageForFormat`
+- إصلاح `extractUsage` لقبول كل من `input_tokens`/`output_tokens` و`prompt_tokens`/`completion_tokens` كحقول استخدام صالحة
+- يتم تطبيقه على كل من المسارات المتدفقة (`sanitizeStreamingChunk' و`openai-to-claude.ts`) والمسارات غير المتدفقة (`sanitizeMessage`)---
 
 ## [3.0.7] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Antigravity Token Refresh:** Fixed `client_secret is missing` error for npm-installed users — the `clientSecretDefault` was empty in providerRegistry, causing Google to reject token refresh requests (#588)
-- **OpenCode Zen Models:** Added `modelsUrl` to the OpenCode Zen registry entry so "Import from /models" works correctly (#612)
-- **Streaming Artifacts:** Fixed excessive newlines left in responses after thinking-tag signature stripping (#626)
-- **Proxy Fallback:** Added automatic retry without proxy when SOCKS5 relay fails
-- **Proxy Test:** Test endpoint now resolves real credentials from DB via proxyId
+-**تحديث رمز Antigravity:**تم إصلاح خطأ `client_secret مفقود` للمستخدمين المثبتين على npm - كان `clientSecretDefault` فارغًا في ProviderRegistry، مما تسبب في رفض Google لطلبات تحديث الرمز المميز (#588) -**نماذج OpenCode Zen:**تمت إضافة `modelsUrl` إلى إدخال التسجيل OpenCode Zen حتى يعمل "الاستيراد من /models" بشكل صحيح (#612) -**عناصر البث:**تم إصلاح الأسطر الجديدة المفرطة المتبقية في الردود بعد تجريد توقيع علامة التفكير (#626) -**البديل الاحتياطي:**تمت إضافة إعادة المحاولة التلقائية بدون وكيل عند فشل ترحيل SOCKS5 -**اختبار الوكيل:**تعمل نقطة نهاية الاختبار الآن على حل بيانات الاعتماد الحقيقية من قاعدة البيانات عبر proxyId### ✨ New Features
 
-### ✨ New Features
+-**حساب Playground/مفتاح التحديد:**قائمة منسدلة مستمرة ومرئية دائمًا لتحديد حسابات/مفاتيح موفر محددة للاختبار - تجلب جميع الاتصالات عند بدء التشغيل والمرشحات حسب الموفر المحدد -**النماذج الديناميكية لأدوات CLI:**يتم الآن جلب اختيار النموذج ديناميكيًا من واجهة برمجة التطبيقات `/v1/models` - يعرض مقدمو الخدمة مثل Kiro الآن كتالوج النماذج الكامل الخاص بهم -**قائمة نماذج مكافحة الجاذبية:**تم التحديث باستخدام Claude Sonnet 4.5، وClaude Sonnet 4، وGPT 5، وGPT 5 Mini؛ تمكين `passthroughModels` للوصول الديناميكي للنموذج (#628)### 🔧 Maintenance
 
-- **Playground Account/Key Selector:** Persistent, always-visible dropdown to select specific provider accounts/keys for testing — fetches all connections at startup and filters by selected provider
-- **CLI Tools Dynamic Models:** Model selection now dynamically fetches from `/v1/models` API — providers like Kiro now show their full model catalog
-- **Antigravity Model List:** Updated with Claude Sonnet 4.5, Claude Sonnet 4, GPT 5, GPT 5 Mini; enabled `passthroughModels` for dynamic model access (#628)
-
-### 🔧 Maintenance
-
-- Merged PR #625 — Provider Limits light mode background fix
-
----
+- تم دمج PR #625 - إصلاح الخلفية في وضع الإضاءة بواسطة الموفر---
 
 ## [3.0.6] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Limits/Proxy:** Fixed Codex limit fetching for accounts behind SOCKS5 proxies — token refresh now runs inside proxy context
-- **CI:** Fixed integration test `v1/models` assertion failure in CI environments without provider connections
-- **Settings:** Proxy test button now shows success/failure results immediately (previously hidden behind health data)
+-**الحدود/الوكيل:**تم إصلاح حد Codex الذي تم جلبه للحسابات الموجودة خلف وكلاء SOCKS5 - يتم الآن تحديث الرمز المميز داخل سياق الوكيل -**CI:**فشل تأكيد اختبار التكامل الثابت `v1/models` في بيئات CI دون اتصالات الموفر -**الإعدادات:**يُظهر زر اختبار الوكيل الآن نتائج النجاح/الفشل على الفور (كان مخفيًا سابقًا خلف البيانات الصحية)### ✨ New Features
 
-### ✨ New Features
+-**ساحة اللعب:**تمت إضافة القائمة المنسدلة لمحدد الحساب — لاختبار اتصالات محددة بشكل فردي عندما يكون لدى مقدم الخدمة حسابات متعددة### 🔧 Maintenance
 
-- **Playground:** Added Account selector dropdown — test specific connections individually when a provider has multiple accounts
-
-### 🔧 Maintenance
-
-- Merged PR #623 — LongCat API base URL path correction
-
----
+- دمج PR #623 — تصحيح مسار عنوان URL الأساسي لـ LongCat API---
 
 ## [3.0.5] — 2026-03-25
 
 ### ✨ New Features
 
-- **Limits UI:** Added tag grouping feature to the connections dashboard to improve visual organization for accounts with custom tags.
-
----
+-**واجهة المستخدم الخاصة بالحدود:**تمت إضافة ميزة تجميع العلامات إلى لوحة معلومات الاتصالات لتحسين التنظيم المرئي للحسابات ذات العلامات المخصصة.---
 
 ## [3.0.4] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Streaming:** Fixed `TextDecoder` state corruption inside combo `sanitize` TransformStream which caused SSE garbled output matching multibyte characters (PR #614)
-- **Providers UI:** Safely render HTML tags inside provider connection error tooltips using `dangerouslySetInnerHTML`
-- **Proxy Settings:** Added missing `username` and `password` payload body properties allowing authenticated proxies to be successfully verified from the Dashboard.
-- **Provider API:** Bound soft exception returns to `getCodexUsage` preventing API HTTP 500 failures when token fetch fails
-
----
+-**البث:**تم إصلاح تلف حالة `TextDecoder` داخل التحرير والسرد `sanitize` TransformStream الذي تسبب في إخراج مشوه SSE يطابق الأحرف متعددة البايت (PR #614) -**واجهة مستخدم الموفرين:**عرض علامات HTML بأمان داخل تلميحات أدوات خطأ اتصال الموفر باستخدام `dangerouslySetInnerHTML` -**إعدادات الوكيل:**تمت إضافة خصائص حمولة `اسم المستخدم` و`كلمة المرور` المفقودة مما يسمح بالتحقق من الوكلاء الذين تمت مصادقتهم بنجاح من لوحة المعلومات. -**واجهة برمجة تطبيقات الموفر:**يعود الاستثناء الناعم المنضم إلى `getCodexUsage` لمنع فشل API HTTP 500 عند فشل جلب الرمز المميز---
 
 ## [3.0.3] — 2026-03-25
 
 ### ✨ New Features
 
-- **Auto-Sync Models:** Added a UI toggle and `sync-models` endpoint to automatically synchronise model lists per provider using a scheduled interval scheduler (PR #597)
+-**نماذج المزامنة التلقائية:**تمت إضافة تبديل واجهة المستخدم ونقطة نهاية `نماذج المزامنة` لمزامنة قوائم النماذج تلقائيًا لكل مزود باستخدام جدولة الفاصل الزمني المجدول (PR #597)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**المهلات:**زيادة الوكلاء الافتراضيين `FETCH_TIMEOUT_MS` و`STREAM_IDLE_TIMEOUT_MS` إلى 10 دقائق لدعم نماذج الاستدلال العميق بشكل صحيح (مثل o1) دون إلغاء الطلبات (الإصلاحات رقم 609) -**الكشف عن أداة CLI:**تحسين الكشف عبر الأنظمة الأساسية للتعامل مع مسارات NVM ونظام التشغيل Windows `PATHEXT` (منع مشكلة أغلفة `.cmd`)، وبادئات NPM المخصصة (PR #598) -**سجلات البث:**تم تنفيذ تراكم دلتا `tool_calls` في سجلات الاستجابة المتدفقة بحيث يتم تعقب استدعاءات الوظائف واستمرارها بدقة في قاعدة البيانات (PR #603) -**كتالوج النماذج:**تمت إزالة استثناء المصادقة، وإخفاء نماذج `comfyui` و`sdwebui` بشكل صحيح عندما لا يتم تكوين أي مزود بشكل صريح (PR #599)### 🌐 Translations
 
-- **Timeouts:** Elevated default proxies `FETCH_TIMEOUT_MS` and `STREAM_IDLE_TIMEOUT_MS` to 10 minutes to properly support deep reasoning models (like o1) without aborting requests (Fixes #609)
-- **CLI Tool Detection:** Improved cross-platform detection handling NVM paths, Windows `PATHEXT` (preventing `.cmd` wrappers issue), and custom NPM prefixes (PR #598)
-- **Streaming Logs:** Implemented `tool_calls` delta accumulation in streaming response logs so function calls are tracked and persisted accurately in DB (PR #603)
-- **Model Catalog:** Removed auth exemption, properly hiding `comfyui` and `sdwebui` models when no provider is explicitly configured (PR #599)
-
-### 🌐 Translations
-
-- **cs:** Improved Czech translation strings across the app (PR #601)
-
-## [3.0.2] — 2026-03-25
+-**cs:**تحسين سلاسل الترجمة التشيكية عبر التطبيق (PR #601)## [3.0.2] — 2026-03-25
 
 ### 🚀 Enhancements & Features
 
 #### feat(ui): Connection Tag Grouping
 
-- Added a Tag/Group field to `EditConnectionModal` (stored in `providerSpecificData.tag`) without requiring DB schema migrations.
-- Connections in the provider view now dynamically group by tag with visual dividers.
-- Untagged connections appear first without a header, followed by tagged groups in alphabetical order.
-- The tag grouping automatically applies to the Codex/Copilot/Antigravity Limits section since toggles exist inside connection rows.
-
-### 🐛 Bug Fixes
+- تمت إضافة حقل علامة/مجموعة إلى "EditConnectionModal" (المخزن في "providerSpecificData.tag") دون الحاجة إلى عمليات ترحيل مخطط قاعدة البيانات.
+- يتم الآن تجميع الاتصالات في عرض الموفر ديناميكيًا حسب العلامة باستخدام المقسمات المرئية.
+- تظهر الاتصالات غير المميزة أولاً بدون رأس، تليها المجموعات ذات العلامات حسب الترتيب الأبجدي.
+- يتم تطبيق تجميع العلامات تلقائيًا على قسم Codex/Copilot/Antigravity Limits نظرًا لوجود مفاتيح التبديل داخل صفوف الاتصال.### 🐛 Bug Fixes
 
 #### fix(ui): Proxy Management UI Stabilization
 
-- **Missing badges on connection cards:** Fixed by using `resolveProxyForConnection()` rather than static mapping.
-- **Test Connection disabled in saved mode:** Enabled the Test button by resolving proxy config from the saved list.
-- **Config Modal freezing:** Added `onClose()` calls after save/clear to prevent the UI from freezing.
-- **Double usage counting:** `ProxyRegistryManager` now loads usage eagerly on mount with deduplication by `scope` + `scopeId`. Usage counts were replaced with a Test button displaying IP/latency inline.
+-**الشارات المفقودة على بطاقات الاتصال:**تم إصلاحها باستخدام `resolveProxyForConnection()` بدلاً من التعيين الثابت. -**تم تعطيل اتصال الاختبار في الوضع المحفوظ:**تمكين زر الاختبار عن طريق حل تكوين الوكيل من القائمة المحفوظة. -**تجميد مشروط التكوين:**تمت إضافة استدعاءات `onClose()` بعد الحفظ/المسح لمنع تجميد واجهة المستخدم. -**حساب الاستخدام المزدوج:**يقوم `ProxyRegistryManager` الآن بتحميل الاستخدام بفارغ الصبر على التحميل مع إلغاء البيانات المكررة بواسطة `النطاق` + `معرف النطاق`. تم استبدال أعداد الاستخدام بزر اختبار يعرض عنوان IP/زمن الوصول المضمّن.#### fix(translator): `function_call` prefix stripping
 
-#### fix(translator): `function_call` prefix stripping
-
-- Repaired an incomplete fix from PR #607 where only `tool_use` blocks stripped Claude's `proxy_` tool prefix. Now, clients using the OpenAI Responses API format will also correctly receive tool tools without the `proxy_` prefix.
-
----
+- تم إصلاح إصلاح غير كامل من PR #607 حيث قامت كتل `tool_use` فقط بتجريد بادئة أداة `proxy_` الخاصة بكلود. الآن، سيحصل العملاء الذين يستخدمون تنسيق OpenAI Responses API أيضًا على أدوات الأداة بشكل صحيح بدون البادئة `proxy_`.---
 
 ## [3.0.1] — 2026-03-25
 
 ### 🔧 Hotfix Patch — Critical Bug Fixes
 
-Three critical regressions reported by users after the v3.0.0 launch have been resolved.
+تم حل ثلاثة حالات تراجع حرجة أبلغ عنها المستخدمون بعد إطلاق الإصدار 3.0.0.#### fix(translator): strip `proxy_` prefix in non-streaming Claude responses (#605)
 
-#### fix(translator): strip `proxy_` prefix in non-streaming Claude responses (#605)
+تمت إزالة البادئة `proxy_` التي أضافها Claude OAuth من استجابات**الدفق**فقط. في وضع**عدم البث**، لم يكن لدى `translateNonStreamingResponse` إمكانية الوصول إلى `toolNameMap`، مما يتسبب في تلقي العملاء لأسماء أدوات مشوهة مثل `proxy_read_file` بدلاً من `read_file`.
 
-The `proxy_` prefix added by Claude OAuth was only stripped from **streaming** responses. In **non-streaming** mode, `translateNonStreamingResponse` had no access to the `toolNameMap`, causing clients to receive mangled tool names like `proxy_read_file` instead of `read_file`.
+**الإصلاح:**تمت إضافة معلمة `toolNameMap` الاختيارية إلى `translateNonStreamingResponse` وتم تطبيق تجريد البادئة في معالج كتلة Claude `tool_use`. يقوم `chatCore.ts` الآن بتمرير الخريطة من خلاله.#### fix(validation): add LongCat specialty validator to skip /models probe (#592)
 
-**Fix:** Added optional `toolNameMap` parameter to `translateNonStreamingResponse` and applied prefix stripping in the Claude `tool_use` block handler. `chatCore.ts` now passes the map through.
+لا يعرض LongCat AI `GET /v1/models`. لم يتمكن المدقق العام `validateOpenAICompatibleProvider` من الوصول إلى الإجراء الاحتياطي لاستكمال الدردشة إلا إذا تم تعيين `validationModelId`، وهو ما لم يقوم LongCat بتكوينه. تسبب هذا في فشل التحقق من صحة الموفر بسبب خطأ مضلل عند الإضافة/الحفظ.
 
-#### fix(validation): add LongCat specialty validator to skip /models probe (#592)
+**الإصلاح:**تمت إضافة `longcat` إلى خريطة أدوات التحقق من التخصص، والتحقق من `/chat/الإكمالات` مباشرة والتعامل مع أي استجابة غير مصادقة كتمرير.#### fix(translator): normalize object tool schemas for Anthropic (#595)
 
-LongCat AI does not expose `GET /v1/models`. The generic `validateOpenAICompatibleProvider` validator fell through to a chat-completions fallback only if `validationModelId` was set, which LongCat doesn't configure. This caused provider validation to fail with a misleading error on add/save.
+تقوم أدوات MCP (مثل `قلم رصاص` و`استخدام_الكمبيوتر`) بإعادة توجيه تعريفات الأداة باستخدام `{type:"object"}` ولكن بدون حقل `خصائص`. ترفض واجهة برمجة تطبيقات Anthropic هذه العناصر مع: "خصائص مفقودة في مخطط الكائن".
 
-**Fix:** Added `longcat` to the specialty validators map, probing `/chat/completions` directly and treating any non-auth response as a pass.
-
-#### fix(translator): normalize object tool schemas for Anthropic (#595)
-
-MCP tools (e.g. `pencil`, `computer_use`) forward tool definitions with `{type:"object"}` but without a `properties` field. Anthropic's API rejects these with: `object schema missing properties`.
-
-**Fix:** In `openai-to-claude.ts`, inject `properties: {}` as a safe default when `type` is `"object"` and `properties` is absent.
-
----
+**الإصلاح:**في `openai-to-claude.ts`، أدخل `properties: {}` كإعداد افتراضي آمن عندما يكون `type` هو `"object"` وتكون `properties` غائبة.---
 
 ### 🔀 Community PRs Merged (2)
 
-| PR       | Author  | Summary                                                                    |
-| -------- | ------- | -------------------------------------------------------------------------- |
-| **#589** | @flobo3 | docs(i18n): fix Russian translation for Playground and Testbed             |
-| **#591** | @rdself | fix(ui): improve Provider Limits light mode contrast and plan tier display |
-
----
+| العلاقات العامة | المؤلف  | ملخص                                                                |
+| --------------- | ------- | ------------------------------------------------------------------- | --- |
+| **#589**        | @فلوبو3 | docs(i18n): إصلاح الترجمة الروسية للملعب وTestbed                   |
+| **#591**        | @rdself | الإصلاح (ui): تحسين تباين وضع الإضاءة لحدود الموفر وعرض مستوى الخطة | --- |
 
 ### ✅ Issues Resolved
 
-`#592` `#595` `#605`
-
----
+`#592` `#595` `#605`---
 
 ### 🧪 Tests
 
-- **926 tests, 0 failures** (unchanged from v3.0.0)
-
----
+-**926 اختبارًا، 0 فشل**(لم يتغير عن الإصدار 3.0.0)---
 
 ## [3.0.0] — 2026-03-24
 
 ### 🎉 OmniRoute v3.0.0 — The Free AI Gateway, Now with 67+ Providers
 
-> **The biggest release ever.** From 36 providers in v2.9.5 to **67+ providers** in v3.0.0 — with MCP Server, A2A Protocol, auto-combo engine, Provider Icons, Registered Keys API, 926 tests, and contributions from **12 community members** across **10 merged PRs**.
+> **الإصدار الأكبر على الإطلاق.**من 36 موفرًا في الإصدار 2.9.5 إلى**67+ موفرًا**في الإصدار 3.0.0 — مع خادم MCP وبروتوكول A2A ومحرك التحرير والسرد التلقائي وأيقونات الموفر وواجهة برمجة التطبيقات للمفاتيح المسجلة و926 اختبارًا ومساهمات من**12 عضوًا في المجتمع**عبر**10 ممثلين رئيسيين مدمجين**.
 >
-> Consolidated from v3.0.0-rc.1 through rc.17 (17 release candidates over 3 days of intense development).
-
----
+> تم الدمج من الإصدار 3.0.0-rc.1 إلى الإصدار rc.17 (17 إصدارًا مرشحًا على مدار 3 أيام من التطوير المكثف).---
 
 ### 🆕 New Providers (+31 since v2.9.5)
 
-| Provider                      | Alias           | Tier        | Notes                                                                       |
-| ----------------------------- | --------------- | ----------- | --------------------------------------------------------------------------- |
-| **OpenCode Zen**              | `opencode-zen`  | Free        | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon)                 |
-| **OpenCode Go**               | `opencode-go`   | Paid        | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon)              |
-| **LongCat AI**                | `lc`            | Free        | 50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) during public beta   |
-| **Pollinations AI**           | `pol`           | Free        | No API key needed — GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 req/15s) |
-| **Cloudflare Workers AI**     | `cf`            | Free        | 10K Neurons/day — ~150 LLM responses or 500s Whisper audio, edge inference  |
-| **Scaleway AI**               | `scw`           | Free        | 1M free tokens for new accounts — EU/GDPR compliant (Paris)                 |
-| **AI/ML API**                 | `aiml`          | Free        | $0.025/day free credits — 200+ models via single endpoint                   |
-| **Puter AI**                  | `pu`            | Free        | 500+ models (GPT-5, Claude Opus 4, Gemini 3 Pro, Grok 4, DeepSeek V3)       |
-| **Alibaba Cloud (DashScope)** | `ali`           | Paid        | International + China endpoints via `alicode`/`alicode-intl`                |
-| **Alibaba Coding Plan**       | `bcp`           | Paid        | Alibaba Model Studio with Anthropic-compatible API                          |
-| **Kimi Coding (API Key)**     | `kmca`          | Paid        | Dedicated API-key-based Kimi access (separate from OAuth)                   |
-| **MiniMax Coding**            | `minimax`       | Paid        | International endpoint                                                      |
-| **MiniMax (China)**           | `minimax-cn`    | Paid        | China-specific endpoint                                                     |
-| **Z.AI (GLM-5)**              | `zai`           | Paid        | Zhipu AI next-gen GLM models                                                |
-| **Vertex AI**                 | `vertex`        | Paid        | Google Cloud — Service Account JSON or OAuth access_token                   |
-| **Ollama Cloud**              | `ollamacloud`   | Paid        | Ollama's hosted API service                                                 |
-| **Synthetic**                 | `synthetic`     | Paid        | Passthrough models gateway                                                  |
-| **Kilo Gateway**              | `kg`            | Paid        | Passthrough models gateway                                                  |
-| **Perplexity Search**         | `pplx-search`   | Paid        | Dedicated search-grounded endpoint                                          |
-| **Serper Search**             | `serper-search` | Paid        | Web search API integration                                                  |
-| **Brave Search**              | `brave-search`  | Paid        | Brave Search API integration                                                |
-| **Exa Search**                | `exa-search`    | Paid        | Neural search API integration                                               |
-| **Tavily Search**             | `tavily-search` | Paid        | AI search API integration                                                   |
-| **NanoBanana**                | `nb`            | Paid        | Image generation API                                                        |
-| **ElevenLabs**                | `el`            | Paid        | Text-to-speech voice synthesis                                              |
-| **Cartesia**                  | `cartesia`      | Paid        | Ultra-fast TTS voice synthesis                                              |
-| **PlayHT**                    | `playht`        | Paid        | Voice cloning and TTS                                                       |
-| **Inworld**                   | `inworld`       | Paid        | AI character voice chat                                                     |
-| **SD WebUI**                  | `sdwebui`       | Self-hosted | Stable Diffusion local image generation                                     |
-| **ComfyUI**                   | `comfyui`       | Self-hosted | ComfyUI local workflow node-based generation                                |
-| **GLM Coding**                | `glm`           | Paid        | BigModel/Zhipu coding-specific endpoint                                     |
-
-**Total: 67+ providers** (4 Free, 8 OAuth, 55 API Key) + unlimited OpenAI/Anthropic-Compatible custom providers.
-
----
+| مقدم                                  | الاسم المستعار    | الطبقة        | ملاحظات                                                                                              |
+| ------------------------------------- | ----------------- | ------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **أوبن كود زين**                      | `opencode-zen`    | مجاني         | 3 نماذج عبر `opencode.ai/zen/v1` (PR #530 بواسطة @kang-heewon)                                       |
+| **OpenCode Go**                       | `opencode-go`     | مدفوعة        | 4 نماذج عبر `opencode.ai/zen/go/v1` (PR #530 بواسطة @kang-heewon)                                    |
+| **LongCat AI**                        | `لك`              | مجاني         | 50 مليون رمز/يوم (Flash-Lite) + 500 ألف/يوم (دردشة/تفكير) خلال النسخة التجريبية العامة               |
+| **التلقيح AI**                        | `بول`             | مجاني         | لا حاجة إلى مفتاح API — GPT-5، Claude، Gemini، DeepSeek V3، Llama 4 (متطلب واحد/15 ثانية)            |
+| **الذكاء الاصطناعي لعمال Cloudflare** | `راجع`            | مجاني         | 10 آلاف خلية عصبية/اليوم — ~150 استجابة LLM أو 500 ثانية من صوت الهمس واستدلال الحافة                |
+| **Scaleway AI**                       | ``scw`            | مجاني         | مليون رمز مجاني للحسابات الجديدة - متوافق مع الاتحاد الأوروبي/اللائحة العامة لحماية البيانات (باريس) |
+| **واجهة برمجة تطبيقات AI/ML**         | `الهدف`           | مجاني         | أرصدة مجانية بقيمة 0.025 دولارًا أمريكيًا في اليوم — أكثر من 200 نموذج عبر نقطة نهاية واحدة          |
+| **Puter AI**                          | `بو`              | مجاني         | أكثر من 500 طراز (GPT-5، Claude Opus 4، Gemini 3 Pro، Grok 4، DeepSeek V3)                           |
+| **علي بابا كلاود (داش سكوب)**         | `علي              | مدفوعة        | نقاط النهاية الدولية + الصينية عبر `alicode`/`alicode-intl`                                          |
+| **خطة الترميز على بابا**              | `بكب`             | مدفوعة        | استوديو علي بابا النموذجي مع واجهة برمجة التطبيقات المتوافقة مع البشر                                |
+| **ترميز كيمي (مفتاح API)**            | `كمكا`            | مدفوعة        | وصول Kimi مخصص قائم على مفتاح واجهة برمجة التطبيقات (منفصل عن OAuth)                                 |
+| **ترميز MiniMax**                     | `ميني ماكس`       | مدفوعة        | نقطة النهاية الدولية                                                                                 |
+| **ميني ماكس (الصين)**                 | `minimax-cn`      | مدفوعة        | نقطة النهاية الخاصة بالصين                                                                           |
+| **Z.AI (GLM-5)**                      | `زاي`             | مدفوعة        | نماذج Zhipu AI من الجيل التالي GLM                                                                   |
+| **فيرتكس الذكاء الاصطناعي**           | `القمة`           | مدفوعة        | Google Cloud - حساب الخدمة JSON أو OAuth access_token                                                |
+| **سحابة العلماء**                     | `أولاماكلود`      | مدفوعة        | خدمة API المستضافة من Olma                                                                           |
+| **صناعية**                            | `صناعية`          | مدفوعة        | بوابة نماذج العبور                                                                                   |
+| **بوابة الكيلو**                      | `كجم`             | مدفوعة        | بوابة نماذج العبور                                                                                   |
+| **بحث الحيرة**                        | `بحث pplx`        | مدفوعة        | نقطة نهاية مخصصة للبحث                                                                               |
+| **بحث السيرفر**                       | `البحث عن الخادم` | مدفوعة        | تكامل واجهة برمجة تطبيقات بحث الويب                                                                  |
+| **بحث شجاع**                          | `البحث الشجاع`    | مدفوعة        | تكامل واجهة برمجة تطبيقات البحث الشجاع                                                               |
+| **بحث اكسا**                          | `بحث اكسا`        | مدفوعة        | تكامل واجهة برمجة تطبيقات البحث العصبي                                                               |
+| **بحث تافيلي**                        | `بحث تافيلي`      | مدفوعة        | تكامل واجهة برمجة تطبيقات البحث بالذكاء الاصطناعي                                                    |
+| **نانوبانانا**                        | `نب`              | مدفوعة        | API لتوليد الصور                                                                                     |
+| **أحد عشر مختبرًا**                   | `إل`              | مدفوعة        | تركيب صوت تحويل النص إلى كلام                                                                        |
+| **ديكارتيا**                          | `الديكارتية`      | مدفوعة        | تركيب صوتي TTS فائق السرعة                                                                           |
+| **PlayHT**                            | `مسرحية`          | مدفوعة        | استنساخ الصوت وتحويل النص إلى كلام                                                                   |
+| **في العالم**                         | `في العالم`       | مدفوعة        | دردشة صوتية لشخصيات الذكاء الاصطناعي                                                                 |
+| **SD WebUI**                          | "سدويبوي"         | استضافة ذاتية | توليد الصور المحلية ذات الانتشار المستقر                                                             |
+| **ComfyUI**                           | "مريح"            | استضافة ذاتية | إنشاء مستند إلى عقدة سير العمل المحلي ComfyUI                                                        |
+| **ترميز GLM**                         | `جلم`             | مدفوعة        | نقطة النهاية الخاصة بالترميز BigModel/Zhipu                                                          | **الإجمالي: أكثر من 67 مزودًا**(4 مجانيين، 8 OAuth، 55 مفتاح واجهة برمجة التطبيقات) + عدد غير محدود من موفري الخدمات المخصصين المتوافقين مع OpenAI/Anthropic.--- |
 
 ### ✨ Major Features
 
 #### 🔑 Registered Keys Provisioning API (#464)
 
-Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+إنشاء مفاتيح OmniRoute API وإصدارها تلقائيًا برمجيًا من خلال فرض الحصص لكل موفر ولكل حساب.
 
-| Endpoint                        | Method       | Description                                      |
-| ------------------------------- | ------------ | ------------------------------------------------ |
-| `/api/v1/registered-keys`       | `POST`       | Issue a new key — raw key returned **once only** |
-| `/api/v1/registered-keys`       | `GET`        | List registered keys (masked)                    |
-| `/api/v1/registered-keys/{id}`  | `GET/DELETE` | Get metadata / Revoke                            |
-| `/api/v1/quotas/check`          | `GET`        | Pre-validate quota before issuing                |
-| `/api/v1/providers/{id}/limits` | `GET/PUT`    | Configure per-provider issuance limits           |
-| `/api/v1/accounts/{id}/limits`  | `GET/PUT`    | Configure per-account issuance limits            |
-| `/api/v1/issues/report`         | `POST`       | Report quota events to GitHub Issues             |
+| نقطة النهاية                    | الطريقة            | الوصف                                                          |
+| ------------------------------- | ------------------ | -------------------------------------------------------------- |
+| `/api/v1/registered-keys`       | `نشر`              | قم بإصدار مفتاح جديد - تم إرجاع المفتاح الخام**مرة واحدة فقط** |
+| `/api/v1/registered-keys`       | `احصل على`         | قائمة المفاتيح المسجلة (المقنعة)                               |
+| `/api/v1/registered-keys/{id}`  | `الحصول على/الحذف` | الحصول على البيانات الوصفية / إبطال                            |
+| `/api/v1/quotas/check`          | `احصل على`         | قم بالتحقق المسبق من الحصة قبل إصدار                           |
+| `/api/v1/providers/{id}/limits` | `الحصول على/وضع`   | تكوين حدود الإصدار لكل موفر                                    |
+| `/api/v1/accounts/{id}/limits`  | `الحصول على/وضع`   | تكوين حدود الإصدار لكل حساب                                    |
+| `/api/v1/issues/report`         | `نشر`              | الإبلاغ عن أحداث الحصص إلى مشكلات GitHub                       |
 
-**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
+**الأمان:**المفاتيح المخزنة على هيئة تجزئات SHA-256. يظهر المفتاح الخام مرة واحدة عند الإنشاء، ولا يمكن استرجاعه مرة أخرى.#### 🎨 Provider Icons via @lobehub/icons (#529)
 
-#### 🎨 Provider Icons via @lobehub/icons (#529)
+أكثر من 130 شعارًا للموفرين باستخدام مكونات React (SVG) `@lobehub/icons`. السلسلة الاحتياطية:**Lobehub SVG → PNG الموجودة → رمز عام**. يتم تطبيقه عبر صفحات لوحة المعلومات والموفرين والوكلاء باستخدام مكون `ProviderIcon` القياسي.#### 🔄 Model Auto-Sync Scheduler (#488)
 
-130+ provider logos using `@lobehub/icons` React components (SVG). Fallback chain: **Lobehub SVG → existing PNG → generic icon**. Applied across Dashboard, Providers, and Agents pages with standardized `ProviderIcon` component.
+يتم تحديث قوائم النماذج تلقائيًا لموفري الخدمة المتصلين كل**24 ساعة**. يعمل عند بدء تشغيل الخادم. قابل للتكوين عبر `MODEL_SYNC_INTERVAL_HOURS`.#### 🔀 Per-Model Combo Routing (#563)
 
-#### 🔄 Model Auto-Sync Scheduler (#488)
+قم بتعيين أنماط اسم الطراز (الكرة الأرضية) إلى مجموعات محددة للتوجيه التلقائي:
 
-Auto-refreshes model lists for connected providers every **24 hours**. Runs on server startup. Configurable via `MODEL_SYNC_INTERVAL_HOURS`.
+- `كلود-سونيت*` → مجموعة الكود، `gpt-4o*` → openai-combo، `gemini-*` → google-combo
+- جدول "model_combo_mappings" الجديد مع مطابقة النطاق العالمي إلى التعبير العادي
+- قسم واجهة مستخدم لوحة المعلومات: "قواعد توجيه النموذج" مع إضافة/تحرير/تبديل/حذف مضمّن#### 🧭 API Endpoints Dashboard
 
-#### 🔀 Per-Model Combo Routing (#563)
+كتالوج تفاعلي، وإدارة خطافات الويب، وعارض OpenAPI - كل ذلك في صفحة واحدة مبوبة في `/dashboard/endpoint`.#### 🔍 Web Search Providers
 
-Map model name patterns (glob) to specific combos for automatic routing:
+5 عمليات تكامل جديدة لموفر البحث:**Perplexity Search**،**Serper**،**Brave Search**،**Exa**،**Tavily**— تمكين استجابات الذكاء الاصطناعي المرتكزة مع بيانات الويب في الوقت الفعلي.#### 📊 Search Analytics
 
-- `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
-- New `model_combo_mappings` table with glob-to-regex matching
-- Dashboard UI section: "Model Routing Rules" with inline add/edit/toggle/delete
+علامة تبويب جديدة في `/dashboard/analytics` - تفاصيل الموفر، ومعدل دخول ذاكرة التخزين المؤقت، وتتبع التكلفة. واجهة برمجة التطبيقات: "احصل على /api/v1/search/analytics".#### 🛡️ Per-API-Key Rate Limits (#452)
 
-#### 🧭 API Endpoints Dashboard
+أعمدة `max_requests_per_day` و`max_requests_per_دقيقة` مع فرض النافذة المنزلقة في الذاكرة والتي تعرض HTTP 429.#### 🎵 Media Playground
 
-Interactive catalog, webhooks management, OpenAPI viewer — all in one tabbed page at `/dashboard/endpoint`.
-
-#### 🔍 Web Search Providers
-
-5 new search provider integrations: **Perplexity Search**, **Serper**, **Brave Search**, **Exa**, **Tavily** — enabling grounded AI responses with real-time web data.
-
-#### 📊 Search Analytics
-
-New tab in `/dashboard/analytics` — provider breakdown, cache hit rate, cost tracking. API: `GET /api/v1/search/analytics`.
-
-#### 🛡️ Per-API-Key Rate Limits (#452)
-
-`max_requests_per_day` and `max_requests_per_minute` columns with in-memory sliding-window enforcement returning HTTP 429.
-
-#### 🎵 Media Playground
-
-Full media generation playground at `/dashboard/media`: Image Generation, Video, Music, Audio Transcription (2GB upload limit), and Text-to-Speech.
-
----
+ملعب كامل لتوليد الوسائط على `/dashboard/media`: إنشاء الصور والفيديو والموسيقى ونسخ الصوت (حد تحميل يبلغ 2 جيجابايت) وتحويل النص إلى كلام.---
 
 ### 🔒 Security & CI/CD
 
-- **CodeQL remediation** — Fixed 10+ alerts: 6 polynomial-redos, 1 insecure-randomness (`Math.random()` → `crypto.randomUUID()`), 1 shell-command-injection
-- **Route validation** — Zod schemas + `validateBody()` on **176/176 API routes** — CI enforced
-- **CVE fix** — dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) resolved via npm overrides
-- **Flatted** — Bumped 3.3.3 → 3.4.2 (CWE-1321 prototype pollution)
-- **Docker** — Upgraded `docker/setup-buildx-action` v3 → v4
-
----
+-**معالجة CodeQL**— تم إصلاح أكثر من 10 تنبيهات: 6 تنبيهات متعددة الحدود، 1 عشوائية غير آمنة (`Math.random()` → `crypto.randomUUID()`)، 1 حقن أوامر الصدفة -**التحقق من صحة المسار**— مخططات Zod + `validateBody()` على**176/176 مسارات API**— فرض CI -**إصلاح CVE**— تم حل ثغرة dompurify XSS (GHSA-v2wj-7wpq-c8vv) عبر تجاوزات npm -**مسطحة**— صدم 3.3.3 → 3.4.2 (تلوث النموذج الأولي CWE-1321) -**Docker**— ترقية `docker/setup-buildx-action` v3 → v4---
 
 ### 🐛 Bug Fixes (40+)
 
 #### OAuth & Auth
 
-- **#537** — Gemini CLI OAuth: clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` missing in Docker
-- **#549** — CLI settings routes now resolve real API key from `keyId` (not masked strings)
-- **#574** — Login no longer freezes after skipping wizard password setup
-- **#506** — Cross-platform `machineId` rewritten (Windows REG.exe → macOS ioreg → Linux → hostname fallback)
+-**#537**— Gemini CLI OAuth: خطأ واضح قابل للتنفيذ عند فقدان `GEMINI_OAUTH_CLIENT_SECRET` في Docker -**#549**— تعمل مسارات إعدادات واجهة سطر الأوامر الآن على حل مفتاح واجهة برمجة التطبيقات الحقيقي من `keyId` (وليس السلاسل المقنعة) -**#574**— لم يعد تسجيل الدخول يتجمد بعد تخطي إعداد كلمة مرور المعالج -**#506**— إعادة كتابة "machineId" عبر الأنظمة الأساسية (Windows REG.exe → macOS ioreg → Linux → اسم المضيف الاحتياطي)#### Providers & Routing
 
-#### Providers & Routing
+-**#536**— LongCat AI: تم إصلاح `baseUrl` و`authHeader` -**#535**— تجاوز النموذج المثبت: تم ضبط `body.model` بشكل صحيح على `pinnedModel` -**#570**— يتم الآن تحويل نماذج Claude غير المُثبتة إلى الموفر الأنثروبي -**#585**— لم تعد العلامات الداخلية `<omniModel>` تتسرب إلى العملاء في تدفق SSE -**#493**— لم تعد تسمية نموذج الموفر المخصص مشوهة بسبب تجريد البادئة -**#490**— البث + حماية ذاكرة التخزين المؤقت للسياق عبر حقن `TransformStream` -**#511**— تم إدخال العلامة `<omniModel>` في مجموعة المحتوى الأولى (ليس بعد `[DONE]`)#### CLI & Tools
 
-- **#536** — LongCat AI: fixed `baseUrl` and `authHeader`
-- **#535** — Pinned model override: `body.model` correctly set to `pinnedModel`
-- **#570** — Unprefixed Claude models now resolve to Anthropic provider
-- **#585** — `<omniModel>` internal tags no longer leak to clients in SSE streaming
-- **#493** — Custom provider model naming no longer mangled by prefix stripping
-- **#490** — Streaming + context cache protection via `TransformStream` injection
-- **#511** — `<omniModel>` tag injected into first content chunk (not after `[DONE]`)
+-**#527**— Claude Code + حلقة Codex: تم الآن تحويل الكتل `tool_result` إلى نص -**#524**— تم حفظ تكوين OpenCode بشكل صحيح (تنسيق XDG_CONFIG_HOME، TOML) -**#522**— مدير API: تمت إزالة زر "نسخ المفتاح المقنع" المضلل -**#546**— `--version` يُرجع `غير معروف` على نظام التشغيل Windows (العلاقات العامة بواسطة @k0valik) -**#544**— الكشف الآمن عن أداة CLI عبر مسارات التثبيت المعروفة (PR by @k0valik) -**#510**— تمت تسوية مسارات Windows MSYS2/Git-Bash تلقائيًا -**#492**— يكتشف سطر الأوامر (CLI) العقدة المدارة/mise`/`nvm`عندما يكون`app/server.js` مفقودًا#### Streaming & SSE
 
-#### CLI & Tools
+-**PR #587**— التراجع عن استيراد `resolveDataDir` في الردودTransformer for Cloudflare Workers compat (@k0valik) -**PR #495**— عنق الزجاجة 429 الانتظار اللانهائي: إسقاط مهام الانتظار عند الحد الأقصى للمعدل (@xandr0s) -**#483**— إيقاف تتبع `data: null` بعد إشارة `[DONE]` -**#473**— تدفقات Zombie SSE: تم تقليل المهلة من 300 ثانية إلى 120 ثانية لتراجع أسرع#### Media & Transcription
 
-- **#527** — Claude Code + Codex loop: `tool_result` blocks now converted to text
-- **#524** — OpenCode config saved correctly (XDG_CONFIG_HOME, TOML format)
-- **#522** — API Manager: removed misleading "Copy masked key" button
-- **#546** — `--version` returning `unknown` on Windows (PR by @k0valik)
-- **#544** — Secure CLI tool detection via known installation paths (PR by @k0valik)
-- **#510** — Windows MSYS2/Git-Bash paths normalized automatically
-- **#492** — CLI detects `mise`/`nvm`-managed Node when `app/server.js` missing
-
-#### Streaming & SSE
-
-- **PR #587** — Revert `resolveDataDir` import in responsesTransformer for Cloudflare Workers compat (@k0valik)
-- **PR #495** — Bottleneck 429 infinite wait: drop waiting jobs on rate limit (@xandr0s)
-- **#483** — Stop trailing `data: null` after `[DONE]` signal
-- **#473** — Zombie SSE streams: timeout reduced 300s → 120s for faster fallback
-
-#### Media & Transcription
-
-- **Transcription** — Deepgram `video/mp4` → `audio/mp4` MIME mapping, auto language detection, punctuation
-- **TTS** — `[object Object]` error display fixed for ElevenLabs-style nested errors
-- **Upload limits** — Media transcription increased to 2GB (nginx `client_max_body_size 2g` + `maxDuration=300`)
-
----
+-**النسخ**— Deepgram `video/mp4` → `audio/mp4` تعيين MIME، والكشف التلقائي عن اللغة، وعلامات الترقيم -**TTS**— تم إصلاح عرض الخطأ `[object Object]` للأخطاء المتداخلة بنمط ElevenLabs -**حدود التحميل**— تمت زيادة سعة نسخ الوسائط إلى 2 جيجابايت (nginx `client_max_body_size 2g` + `maxDuration=300`)---
 
 ### 🔧 Infrastructure & Improvements
 
 #### Sub2api Gap Analysis (T01–T15 + T23–T42)
 
-- **T01** — `requested_model` column in call logs (migration 009)
-- **T02** — Strip empty text blocks from nested `tool_result.content`
-- **T03** — Parse `x-codex-5h-*` / `x-codex-7d-*` quota headers
-- **T04** — `X-Session-Id` header for external sticky routing
-- **T05** — Rate-limit DB persistence with dedicated API
-- **T06** — Account deactivated → permanent block (1-year cooldown)
-- **T07** — X-Forwarded-For IP validation (`extractClientIp()`)
-- **T08** — Per-API-key session limits with sliding-window enforcement
-- **T09** — Codex vs Spark rate-limit scopes (separate pools)
-- **T10** — Credits exhausted → distinct 1h cooldown fallback
-- **T11** — `max` reasoning effort → 131072 budget tokens
-- **T12** — MiniMax M2.7 pricing entries
-- **T13** — Stale quota display fix (reset window awareness)
-- **T14** — Proxy fast-fail TCP check (≤2s, cached 30s)
-- **T15** — Array content normalization for Anthropic
-- **T23** — Intelligent quota reset fallback (header extraction)
-- **T24** — `503` cooldown + `406` mapping
-- **T25** — Provider validation fallback
-- **T29** — Vertex AI Service Account JWT auth
-- **T33** — Thinking level to budget conversion
-- **T36** — `403` vs `429` error classification
-- **T38** — Centralized model specifications (`modelSpecs.ts`)
-- **T39** — Endpoint fallback for `fetchAvailableModels`
-- **T41** — Background task auto-redirect to flash models
-- **T42** — Image generation aspect ratio mapping
+-**T01**— عمود `requested_model` في سجلات المكالمات (الترحيل 009) -**T02**— إزالة الكتل النصية الفارغة من "tool_result.content" المتداخلة -**T03**— تحليل رؤوس الحصص `x-codex-5h-*` / `x-codex-7d-*` -**T04**— رأس `X-Session-Id` للتوجيه الخارجي الثابت -**T05**— ثبات قاعدة البيانات بحدود المعدل مع واجهة برمجة تطبيقات مخصصة -**T06**— تم تعطيل الحساب ← الحظر الدائم (فترة التهدئة لمدة عام واحد) -**T07**— التحقق من صحة X-Forwarded-For IP (`extractClientIp()`) -**T08**— حدود الجلسة لكل مفتاح API مع فرض النافذة المنزلقة -**T09**— نطاقات حد معدل Codex وSpark (مجموعات منفصلة) -**T10**— تم استنفاد الاعتمادات → فترة تهدئة مميزة لمدة ساعة واحدة -**T11**— `الحد الأقصى` لجهد التفكير → 131072 رمزًا مميزًا للميزانية -**T12**— إدخالات تسعير MiniMax M2.7 -**T13**— إصلاح عرض الحصص التي لا معنى لها (إعادة ضبط الوعي بالنافذة) -**T14**— فحص TCP للوكيل سريع الفشل (≥2 ثانية، تخزين مؤقت 30 ثانية) -**T15**— تطبيع محتوى المصفوفة للأنثروبي -**T23**— الإجراء الاحتياطي الذكي لإعادة ضبط الحصة (استخراج الرأس) -**T24**— `503` فترة التهدئة + رسم الخرائط `406` -**T25**— الإجراء الاحتياطي للتحقق من صحة الموفر -**T29**— مصادقة JWT لحساب خدمة Vertex AI -**T33**— مستوى التفكير لتحويل الميزانية -**T36**— تصنيف الخطأ `403` مقابل `429` -**T38**— مواصفات النموذج المركزي (`modelSpecs.ts`) -**T39**— نقطة النهاية الاحتياطية لـ `fetchAvailableModels` -**T41**— إعادة التوجيه التلقائي لمهمة الخلفية إلى نماذج الفلاش -**T42**— تعيين نسبة العرض إلى الارتفاع عند إنشاء الصورة#### Other Improvements
 
-#### Other Improvements
-
-- **Per-model upstream custom headers** — via configuration UI (PR #575 by @zhangqiang8vip)
-- **Model context length** — configurable in model metadata (PR #578 by @hijak)
-- **Model prefix stripping** — option to remove provider prefix from model names (PR #582 by @jay77721)
-- **Gemini CLI deprecation** — marked deprecated with Google OAuth restriction warning
-- **YAML parser** — replaced custom parser with `js-yaml` for correct OpenAPI spec parsing
-- **ZWS v5** — HMR leak fix (485 DB connections → 1, memory 2.4GB → 195MB)
-- **Log export** — New JSON export button on dashboard with time range dropdown
-- **Update notification banner** — dashboard homepage shows when new versions are available
-
----
+-**الرؤوس المخصصة لكل نموذج**— عبر واجهة مستخدم التكوين (PR #575 بواسطة @zhangqiang8vip) -**طول سياق النموذج**— قابل للتكوين في بيانات تعريف النموذج (PR #578 بواسطة @hijak) -**تجريد بادئة النموذج**— خيار لإزالة بادئة الموفر من أسماء النماذج (PR #582 بواسطة @jay77721) -**إهمال Gemini CLI**— تم وضع علامة "مهمل" مع تحذير تقييد Google OAuth -**محلل YAML**— تم استبدال المحلل اللغوي المخصص بـ `js-yaml` لتحليل مواصفات OpenAPI بشكل صحيح -**ZWS v5**— إصلاح تسرب HMR (485 اتصالات DB → 1، الذاكرة 2.4 جيجابايت → 195 ميجابايت) -**تصدير السجل**— زر تصدير JSON جديد على لوحة المعلومات مع القائمة المنسدلة للنطاق الزمني -**تحديث شعار الإشعارات**— تظهر الصفحة الرئيسية للوحة المعلومات عند توفر إصدارات جديدة---
 
 ### 🌐 i18n & Documentation
 
-- **30 languages** at 100% parity — 2,788 missing keys synced
-- **Czech** — Full translation: 22 docs, 2,606 UI strings (PR by @zen0bit)
-- **Chinese (zh-CN)** — Complete retranslation (PR by @only4copilot)
-- **VM Deployment Guide** — Translated to English as source document
-- **API Reference** — Added `/v1/embeddings` and `/v1/audio/speech` endpoints
-- **Provider count** — Updated from 36+/40+/44+ to **67+** across README and all 30 i18n READMEs
-
----
+-**30 لغة**بتكافؤ 100% — تمت مزامنة 2,788 مفتاحًا مفقودًا -**التشيكية**— ترجمة كاملة: 22 مستندًا، 2606 سلسلة لواجهة المستخدم (PR بواسطة @zen0bit) -**الصينية (zh-CN)**— إعادة الترجمة الكاملة (PR بواسطة @only4copilot) -**دليل نشر VM**— مترجم إلى الإنجليزية كمستند مصدر -**مرجع واجهة برمجة التطبيقات**— تمت إضافة نقطتي النهاية `/v1/embeddings` و`/v1/audio/speech` -**عدد الموفرين**— تم التحديث من 36+/40+/44+ إلى**67+**عبر الملف التمهيدي وجميع ملفات التمهيد i18n الثلاثين---
 
 ### 🔀 Community PRs Merged (10)
 
-| PR       | Author          | Summary                                                              |
-| -------- | --------------- | -------------------------------------------------------------------- |
-| **#587** | @k0valik        | fix(sse): revert resolveDataDir import for Cloudflare Workers compat |
-| **#582** | @jay77721       | feat(proxy): model name prefix stripping option                      |
-| **#581** | @jay77721       | fix(npm): link electron-release to npm-publish workflow              |
-| **#578** | @hijak          | feat: configurable context length in model metadata                  |
-| **#575** | @zhangqiang8vip | feat: per-model upstream headers, compat PATCH, chat alignment       |
-| **#562** | @coobabm        | fix: MCP session management, Claude passthrough, detectFormat        |
-| **#561** | @zen0bit        | fix(i18n): Czech translation corrections                             |
-| **#555** | @k0valik        | fix(sse): centralized `resolveDataDir()` for path resolution         |
-| **#546** | @k0valik        | fix(cli): `--version` returning `unknown` on Windows                 |
-| **#544** | @k0valik        | fix(cli): secure CLI tool detection via installation paths           |
-| **#542** | @rdself         | fix(ui): light mode contrast CSS theme variables                     |
-| **#530** | @kang-heewon    | feat: OpenCode Zen + Go providers with `OpencodeExecutor`            |
-| **#512** | @zhangqiang8vip | feat: per-protocol model compatibility (`compatByProtocol`)          |
-| **#497** | @zhangqiang8vip | fix: dev-mode HMR resource leaks (ZWS v5)                            |
-| **#495** | @xandr0s        | fix: Bottleneck 429 infinite wait (drop waiting jobs)                |
-| **#494** | @zhangqiang8vip | feat: MiniMax developer→system role fix                              |
-| **#480** | @prakersh       | fix: stream flush usage extraction                                   |
-| **#479** | @prakersh       | feat: Codex 5.3/5.4 and Anthropic pricing entries                    |
-| **#475** | @only4copilot   | feat(i18n): improved Chinese translation                             |
+| العلاقات العامة | المؤلف          | ملخص                                                                       |
+| --------------- | --------------- | -------------------------------------------------------------------------- |
+| **#587**        | @k0valik        | الإصلاح (sse): التراجع عن استيراد ResolveDataDir لتوافق Cloudflare Workers |
+| **#582**        | @jay77721       | الفذ (الوكيل): خيار تجريد بادئة اسم النموذج                                |
+| **#581**        | @jay77721       | الإصلاح (npm): ربط الإصدار الإلكتروني بسير عمل نشر npm                     |
+| **#578**        | @hijak          | الفذ: طول السياق القابل للتكوين في بيانات تعريف النموذج                    |
+| **#575**        | @zhangqiang8vip | العمل الفذ: رؤوس المنبع لكل نموذج، التصحيح المتوافق، محاذاة الدردشة        |
+| **#562**        | @coobabm        | الإصلاح: إدارة جلسة MCP، عبور كلود، كشف التنسيق                            |
+| **#561**        | @zen0bit        | الإصلاح(i18n): تصحيحات الترجمة التشيكية                                    |
+| **#555**        | @k0valik        | الإصلاح (sse): `resolveDataDir ()` المركزي لتحليل المسار                   |
+| **#546**        | @k0valik        | الإصلاح (cli): `--version` يُرجع `غير معروف` على نظام التشغيل Windows      |
+| **#544**        | @k0valik        | الإصلاح (cli): الكشف الآمن عن أداة CLI عبر مسارات التثبيت                  |
+| **#542**        | @rdself         | الإصلاح (واجهة المستخدم): وضع الضوء على النقيض من متغيرات سمة CSS          |
+| **#530**        | @كانغ هيوون     | العمل الفذ: موفري OpenCode Zen + Go مع `OpencodeExecutor`                  |
+| **#512**        | @zhangqiang8vip | الفذ: توافق النموذج لكل بروتوكول (`compatByProtocol`)                      |
+| **#497**        | @zhangqiang8vip | الإصلاح: تسرب موارد HMR في وضع التطوير (ZWS v5)                            |
+| **#495**        | @xandr0s        | الإصلاح: عنق الزجاجة 429 الانتظار اللانهائي (إسقاط وظائف الانتظار)         |
+| **#494**        | @zhangqiang8vip | الفذ: مطور MiniMax → إصلاح دور النظام                                      |
+| **#480**        | @براكيرش        | الإصلاح: استخراج استخدام التدفق الدفق                                      |
+| **#479**        | @براكيرش        | الفذ: Codex 5.3/5.4 وإدخالات التسعير الأنثروبي                             |
+| **#475**        | @only4copilot   | الفذ (i18n): تحسين الترجمة الصينية                                         |
 
-**Thank you to all contributors!** 🙏
-
----
+**شكرًا لجميع المساهمين!**🙏---
 
 ### 📋 Issues Resolved (50+)
 
-`#452` `#458` `#462` `#464` `#466` `#473` `#474` `#481` `#483` `#487` `#488` `#489` `#490` `#491` `#492` `#493` `#506` `#508` `#509` `#510` `#511` `#513` `#520` `#521` `#522` `#524` `#525` `#527` `#529` `#531` `#532` `#535` `#536` `#537` `#541` `#546` `#549` `#563` `#570` `#574` `#585`
-
----
+`#452` `#458` `#462` `#464` `#466` `#473` `#474` `#481` `#483` `#487` `#488` `#489` `#490` `#491` `#492` `#493` `#506` `#508` `#509` `#510` `#511` `#513` `#520` `#521` `#522` `#524` `#525` `#527` `#529` `#531` `#532` `#535` `#536` `#537` `#541` `#546` `#549` `#563` `#570` `#574` `#585`---
 
 ### 🧪 Tests
 
-- **926 tests, 0 failures** (up from 821 in v2.9.5)
-- +105 new tests covering: model-combo mappings, registered keys, OpencodeExecutor, Bailian provider, route validation, error classification, aspect ratio mapping, and more
+-**926 اختبارًا، 0 حالات فشل**(ارتفاعًا من 821 في الإصدار 2.9.5)
 
----
+- +105 اختبارات جديدة تغطي: تعيينات مجموعة النماذج، والمفاتيح المسجلة، وOpencodeExecutor، وموفر Bailian، والتحقق من صحة المسار، وتصنيف الأخطاء، ورسم خرائط نسبة العرض إلى الارتفاع، والمزيد---
 
 ### 📦 Database Migrations
 
-| Migration | Description                                                           |
-| --------- | --------------------------------------------------------------------- |
-| **008**   | `registered_keys`, `provider_key_limits`, `account_key_limits` tables |
-| **009**   | `requested_model` column in `call_logs`                               |
-| **010**   | `model_combo_mappings` table for per-model combo routing              |
-
----
+| الهجرة  | الوصف                                                                |
+| ------- | -------------------------------------------------------------------- | --- |
+| **008** | جداول "المفاتيح*المسجلة"، و"حدود*مفتاح*الموفر"، و"حدود*مفتاح_الحساب" |
+| **009** | عمود "النموذج*المطلوب" في "سجلات*المكالمات"                          |
+| **010** | جدول `model_combo_mappings` لتوجيه التحرير والسرد لكل نموذج          | --- |
 
 ### ⬆️ Upgrading from v2.9.5
 
@@ -1167,1482 +660,804 @@ docker pull diegosouzapw/omniroute:3.0.0
 # Migrations run automatically on first startup
 ```
 
-> **Breaking changes:** None. All existing configurations, combos, and API keys are preserved.
-> Database migrations 008-010 run automatically on startup.
-
----
+> **التغييرات العاجلة:**لا شيء. يتم الاحتفاظ بجميع التكوينات والمجموعات ومفاتيح API الموجودة.
+> يتم تشغيل عمليات ترحيل قاعدة البيانات 008-010 تلقائيًا عند بدء التشغيل.---
 
 ## [3.0.0-rc.17] — 2026-03-24
 
 ### 🔒 Security & CI/CD
 
-- **CodeQL remediation** — Fixed 10+ alerts:
-  - 6 polynomial-redos in `provider.ts` / `chatCore.ts` (replaced `(?:^|/)` alternation patterns with segment-based matching)
-  - 1 insecure-randomness in `acp/manager.ts` (`Math.random()` → `crypto.randomUUID()`)
-  - 1 shell-command-injection in `prepublish.mjs` (`JSON.stringify()` path escaping)
-- **Route validation** — Added Zod schemas + `validateBody()` to 5 routes missing validation:
-  - `model-combo-mappings` (POST, PUT), `webhooks` (POST, PUT), `openapi/try` (POST)
-  - CI `check:route-validation:t06` now passes: **176/176 routes validated**
+-**معالجة CodeQL**— تم إصلاح أكثر من 10 تنبيهات:
 
-### 🐛 Bug Fixes
+- 6 وحدات إعادة متعددة الحدود في `provider.ts` / `chatCore.ts` (تم استبدال أنماط التناوب `(?:^|/)` بالمطابقة المستندة إلى المقطع)
+- 1 عشوائية غير آمنة في `acp/manager.ts` (`Math.random()` → `crypto.randomUUID()`)
+- حقنة أوامر Shell واحدة في `prepublish.mjs` (`JSON.stringify()` الهروب من المسار) -**التحقق من صحة المسار**— تمت إضافة مخططات Zod + `validateBody()` إلى 5 مسارات تفتقد التحقق من الصحة:
+- "تعيينات التحرير والسرد النموذجية" (POST، PUT)، "خطافات الويب" (POST، PUT)، "openapi/try" (POST)
+- يمر CI `check:route-validation:t06` الآن:**تم التحقق من صحة المسارات 176/176**### 🐛 Bug Fixes
 
-- **#585** — `<omniModel>` internal tags no longer leak to clients in SSE responses. Added outbound sanitization `TransformStream` in `combo.ts`
+-**#585**— لم تعد العلامات الداخلية `<omniModel>` تتسرب إلى العملاء في استجابات SSE. تمت إضافة التعقيم الصادر "TransformStream" في "combo.ts".### ⚙️ Infrastructure
 
-### ⚙️ Infrastructure
+-**Docker**— ترقية `docker/setup-buildx-action` من الإصدار 3 → الإصدار 4 (إصلاح إهمال Node.js 20) -**تنظيف CI**— تم حذف أكثر من 150 عملية تشغيل فاشلة/ملغاة لسير العمل### 🧪 Tests
 
-- **Docker** — Upgraded `docker/setup-buildx-action` from v3 → v4 (Node.js 20 deprecation fix)
-- **CI cleanup** — Deleted 150+ failed/cancelled workflow runs
-
-### 🧪 Tests
-
-- Test suite: **926 tests, 0 failures** (+3 new)
-
----
+- مجموعة الاختبارات:**926 اختبارًا، 0 حالات فشل**(+3 جديد)---
 
 ## [3.0.0-rc.16] — 2026-03-24
 
 ### ✨ New Features
 
-- Increased media transcription limits
-- Added Model Context Length to registry metadata
-- Added per-model upstream custom headers via configuration UI
-- Fixed multiple bugs, Zod valiadation for patches, and resolved various community issues.
-
-## [3.0.0-rc.15] — 2026-03-24
+- زيادة حدود نسخ الوسائط
+- تمت إضافة طول سياق النموذج إلى بيانات تعريف التسجيل
+- تمت إضافة الرؤوس المخصصة لكل نموذج عبر واجهة مستخدم التكوين
+- تم إصلاح العديد من الأخطاء، والتحقق من Zod للتصحيحات، وحل مشكلات المجتمع المختلفة.## [3.0.0-rc.15] — 2026-03-24
 
 ### ✨ New Features
 
-- **#563** — Per-model Combo Routing: map model name patterns (glob) to specific combos for automatic routing
-  - New `model_combo_mappings` table (migration 010) with pattern, combo_id, priority, enabled
-  - `resolveComboForModel()` DB function with glob-to-regex matching (case-insensitive, `*` and `?` wildcards)
-  - `getComboForModel()` in `model.ts`: augments `getCombo()` with model-pattern fallback
-  - `chat.ts`: routing decision now checks model-combo mappings before single-model handling
-  - API: `GET/POST /api/model-combo-mappings`, `GET/PUT/DELETE /api/model-combo-mappings/:id`
-  - Dashboard: "Model Routing Rules" section added to Combos page with inline add/edit/toggle/delete
-  - Examples: `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
+-**#563**— توجيه التحرير والسرد لكل نموذج: قم بتعيين أنماط اسم النموذج (الكرة الأرضية) إلى مجموعات محددة للتوجيه التلقائي
 
-### 🌐 i18n
+- جدول "model_combo_mappings" الجديد (الترحيل 010) مع تمكين النمط وcombo_id والأولوية
+- `resolveComboForModel()` دالة قاعدة بيانات مع مطابقة شاملة إلى regex (غير حساسة لحالة الأحرف، `*` و`?` أحرف البدل)
+- `getComboForModel()` في `model.ts`: يُعزز `getCombo()` بنمط احتياطي للنموذج
+- `chat.ts`: يتحقق قرار التوجيه الآن من تعيينات مجموعة النماذج قبل معالجة النموذج الفردي
+- واجهة برمجة التطبيقات: `GET/POST /api/model-combo-mappings`، `GET/PUT/DELETE /api/model-combo-mappings/:id`
+- لوحة المعلومات: تمت إضافة قسم "قواعد توجيه النموذج" إلى صفحة المجموعات مع إضافة/تحرير/تبديل/حذف مضمّن
+- أمثلة: `claude-sonnet*` → code-combo، `gpt-4o*` → openai-combo، `gemini-*` → google-combo### 🌐 i18n
 
-- **Full i18n Sync**: 2,788 missing keys added across 30 language files — all languages now at 100% parity with `en.json`
-- **Agents page i18n**: OpenCode Integration section fully internationalized (title, description, scanning, download labels)
-- **6 new keys** added to `agents` namespace for OpenCode section
+-**مزامنة i18n الكاملة**: تمت إضافة 2788 مفتاحًا مفقودًا عبر 30 ملف لغة - أصبحت جميع اللغات الآن متعادلة بنسبة 100% مع `en.json` -**صفحة الوكلاء i18n**: قسم تكامل OpenCode مُدوَّل بالكامل (العنوان والوصف والمسح الضوئي وتنزيل الملصقات) -**6 مفاتيح جديدة**تمت إضافتها إلى مساحة اسم الوكلاء لقسم OpenCode### 🎨 UI/UX
 
-### 🎨 UI/UX
+-**أيقونات الموفر**: تمت إضافة 16 رمزًا مفقودًا للموفر (3 منسوخة، 2 تم تنزيلها، 11 تم إنشاء SVG) -**احتياطي SVG**: تم تحديث مكون `ProviderIcon` باستخدام إستراتيجية من 4 مستويات: Lobehub → PNG → SVG → رمز عام -**أخذ بصمات العملاء**: تمت المزامنة مع أدوات CLI - تمت إضافة droid وopenclaw وcopilot وopencode إلى قائمة بصمات الأصابع (إجمالي 14)### الأمان
 
-- **Provider Icons**: 16 missing provider icons added (3 copied, 2 downloaded, 11 SVG created)
-- **SVG fallback**: `ProviderIcon` component updated with 4-tier strategy: Lobehub → PNG → SVG → Generic icon
-- **Agents fingerprinting**: Synced with CLI tools — added droid, openclaw, copilot, opencode to fingerprint list (14 total)
+-**إصلاح CVE**: تم حل ثغرة dompurify XSS (GHSA-v2wj-7wpq-c8vv) عبر تجاوزات npm التي تجبر `dompurify@^3.3.2`
 
-### الأمان
+- يُبلغ `npm Audit` الآن عن**0 نقاط ضعف**### 🧪 Tests
 
-- **CVE fix**: Resolved dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) via npm overrides forcing `dompurify@^3.3.2`
-- `npm audit` now reports **0 vulnerabilities**
-
-### 🧪 Tests
-
-- Test suite: **923 tests, 0 failures** (+15 new model-combo mapping tests)
-
----
+- مجموعة الاختبارات:**923 اختبارًا، 0 حالات فشل**(+15 اختبارًا جديدًا لرسم خرائط مجموعة النماذج)---
 
 ## [3.0.0-rc.14] — 2026-03-23
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author   | Summary                                                                                      |
-| -------- | -------- | -------------------------------------------------------------------------------------------- |
-| **#562** | @coobabm | fix(ux): MCP session management, Claude passthrough normalization, OAuth modal, detectFormat |
-| **#561** | @zen0bit | fix(i18n): Czech translation corrections — HTTP method names and documentation updates       |
+| العلاقات العامة | المؤلف   | ملخص                                                                          |
+| --------------- | -------- | ----------------------------------------------------------------------------- | ------------ |
+| **#562**        | @coobabm | الإصلاح (ux): إدارة جلسة MCP، تطبيع العبور لكلود، مشروط OAuth، كشف التنسيق    |
+| **#561**        | @zen0bit | الإصلاح (i18n): تصحيحات الترجمة التشيكية - أسماء أساليب HTTP وتحديثات الوثائق | ### 🧪 Tests |
 
-### 🧪 Tests
-
-- Test suite: **908 tests, 0 failures**
-
----
+- مجموعة الاختبار:**908 اختبارات، 0 حالات فشل**---
 
 ## [3.0.0-rc.13] — 2026-03-23
 
 ### 🔧 Bug Fixes
 
-- **config:** resolve real API key from `keyId` in CLI settings routes (`codex-settings`, `droid-settings`, `kilo-settings`) to prevent writing masked strings (#549)
-
----
+-**config:**حل مفتاح API الحقيقي من `keyId` في مسارات إعدادات CLI (`codex-settings`، `droid-settings`، `kilo-settings`) لمنع كتابة سلاسل مقنعة (#549)---
 
 ## [3.0.0-rc.12] — 2026-03-23
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author   | Summary                                                                                                                                                       |
-| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **#546** | @k0valik | fix(cli): `--version` returning `unknown` on Windows — use `JSON.parse(readFileSync)` instead of ESM import                                                   |
-| **#555** | @k0valik | fix(sse): centralized `resolveDataDir()` for path resolution in credentials, autoCombo, responses logger, and request logger                                  |
-| **#544** | @k0valik | fix(cli): secure CLI tool detection via known installation paths (8 tools) with symlink validation, file-type checks, size bounds, minimal env in healthcheck |
-| **#542** | @rdself  | fix(ui): improve light mode contrast — add missing CSS theme variables (`bg-primary`, `bg-subtle`, `text-primary`) and fix dark-only colors in log detail     |
+| العلاقات العامة | المؤلف   | ملخص                                                                                                                                                                                    |
+| --------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **#546**        | @k0valik | الإصلاح (cli): `--version` يُرجع `غير معروف` على نظام التشغيل Windows - استخدم `JSON.parse(readFileSync)` بدلاً من استيراد ESM                                                          |
+| **#555**        | @k0valik | الإصلاح (sse): `resolveDataDir()` المركزي لتحليل المسار في بيانات الاعتماد، والسرد التلقائي، ومسجل الاستجابات، ومسجل الطلبات                                                            |
+| **#544**        | @k0valik | الإصلاح (cli): الكشف الآمن عن أداة CLI عبر مسارات التثبيت المعروفة (8 أدوات) مع التحقق من صحة الارتباط الرمزي، والتحقق من نوع الملف، وحدود الحجم، والحد الأدنى من البيئة في الفحص الصحي |
+| **#542**        | @rdself  | الإصلاح (ui): تحسين تباين الوضع الفاتح - إضافة متغيرات سمة CSS المفقودة (`bg-primary`، `bg-subtle`، `text-primary`) وإصلاح الألوان الداكنة فقط في تفاصيل السجل                          | ### 🔧 Bug Fixes |
 
-### 🔧 Bug Fixes
+-**إصلاح TDZ في `cliRuntime.ts`**— تم استخدام `validateEnvPath` قبل التهيئة عند بدء تشغيل الوحدة بواسطة `getExpectedParentPaths()`. إعادة ترتيب الإعلانات لإصلاح `ReferenceError`. -**إصلاحات البناء**— تمت إضافة `pino` و`pino-pretty` إلى `serverExternalPackages` لمنع Turbopack من تعطيل تحميل العامل الداخلي لـ Pino.### 🧪 Tests
 
-- **TDZ fix in `cliRuntime.ts`** — `validateEnvPath` was used before initialization at module startup by `getExpectedParentPaths()`. Reordered declarations to fix `ReferenceError`.
-- **Build fixes** — Added `pino` and `pino-pretty` to `serverExternalPackages` to prevent Turbopack from breaking Pino's internal worker loading.
-
-### 🧪 Tests
-
-- Test suite: **905 tests, 0 failures**
-
----
+- مجموعة الاختبارات:**905 اختبارات، 0 حالات فشل**---
 
 ## [3.0.0-rc.10] — 2026-03-23
 
 ### 🔧 Bug Fixes
 
-- **#509 / #508** — Electron build regression: downgraded Next.js from `16.1.x` to `16.0.10` to eliminate Turbopack module-hashing instability that caused blank screens in the Electron desktop bundle.
-- **Unit test fixes** — Corrected two stale test assertions (`nanobanana-image-handler` aspect ratio/resolution, `thinking-budget` Gemini `thinkingConfig` field mapping) that had drifted after recent implementation changes.
-- **#541** — Responded to user feedback about installation complexity; no code changes required.
-
----
+-**#509 / #508**— انحدار بناء الإلكترون: تم خفض مستوى Next.js من `16.1.x` إلى `16.0.10` للقضاء على عدم استقرار تجزئة وحدة Turbopack الذي تسبب في ظهور شاشات فارغة في حزمة Electron لسطح المكتب. -**إصلاحات اختبار الوحدة**- تم تصحيح تأكيدين للاختبار القديم (نسبة العرض إلى الارتفاع/الدقة `nanobanana-image-handler`، وتخطيط حقل Gemini `thinkingConfig` Gemini) اللذين انحرفا بعد تغييرات التنفيذ الأخيرة. -**#541**— تم الرد على تعليقات المستخدمين حول مدى تعقيد عملية التثبيت؛ لا توجد تغييرات مطلوبة في التعليمات البرمجية.---
 
 ## [3.0.0-rc.9] — 2026-03-23
 
 ### ✨ New Features
 
-- **T29** — Vertex AI SA JSON Executor: implemented using the `jose` library to handle JWT/Service Account auth, along with configurable regions in the UI and automatic partner model URL building.
-- **T42** — Image generation aspect ratio mapping: created `sizeMapper` logic for generic OpenAI formats (`size`), added native `imagen3` handling, and updated NanoBanana endpoints to utilize mapped aspect ratios automatically.
-- **T38** — Centralized model specifications: `modelSpecs.ts` created for limits and parameters per model.
+-**T29**— Vertex AI SA JSON Executor: يتم تنفيذه باستخدام مكتبة `jose` للتعامل مع مصادقة حساب JWT/حساب الخدمة، إلى جانب المناطق القابلة للتكوين في واجهة المستخدم وبناء عنوان URL لنموذج الشريك التلقائي. -**T42**— تعيين نسبة العرض إلى الارتفاع لإنشاء الصورة: تم إنشاء منطق `sizeMapper` لتنسيقات OpenAI العامة (`size`)، وإضافة معالجة `imagen3` الأصلية، ونقاط نهاية NanoBanana المحدثة لاستخدام نسب العرض إلى الارتفاع المعينة تلقائيًا. -**T38**— مواصفات النموذج المركزية: تم إنشاء `modelSpecs.ts` للحدود والمعلمات لكل نموذج.### 🔧 Improvements
 
-### 🔧 Improvements
-
-- **T40** — OpenCode CLI tools integration: native `opencode-zen` and `opencode-go` integration completed in earlier PR.
-
----
+-**T40**— تكامل أدوات OpenCode CLI: تم إكمال التكامل الأصلي لـ `opencode-zen` و`opencode-go` في العلاقات العامة السابقة.---
 
 ## [3.0.0-rc.8] — 2026-03-23
 
 ### 🔧 Bug Fixes & Improvements (Fallback, Quota & Budget)
 
-- **T24** — `503` cooldown await fix + `406` mapping: mapped `406 Not Acceptable` to `503 Service Unavailable` with proper cooldown intervals.
-- **T25** — Provider validation fallback: graceful fallback to standard validation models when a specific `validationModelId` is not present.
-- **T36** — `403` vs `429` provider handling refinement: extracted into `errorClassifier.ts` to properly segregate hard permissions failures (`403`) from rate limits (`429`).
-- **T39** — Endpoint Fallback for `fetchAvailableModels`: implemented a tri-tier mechanism (`/models` -> `/v1/models` -> local generic catalog) + `list_models_catalog` MCP tool updates to reflect `source` and `warning`.
-- **T33** — Thinking level to budget conversion: translates qualitative thinking levels into precise budget allocations.
-- **T41** — Background task auto redirect: routes heavy background evaluation tasks to flash/efficient models automatically.
-- **T23** — Intelligent quota reset fallback: accurately extracts `x-ratelimit-reset` / `retry-after` header values or maps static cooldowns.
-
----
+-**T24**— فترة التهدئة `503` في انتظار الإصلاح + تعيين `406`: تم تعيين `406 غير مقبول` إلى `503 الخدمة غير متاحة` مع فترات تهدئة مناسبة. -**T25**— الإجراء الاحتياطي للتحقق من صحة الموفر: إجراء احتياطي سليم لنماذج التحقق القياسية في حالة عدم وجود "validationModelId" محدد. -**T36**— تحسين التعامل مع الموفر `403` مقابل `429`: تم استخراجه في `errorClassifier.ts` لفصل حالات فشل الأذونات الصلبة (`403`) عن حدود المعدل (`429`) بشكل صحيح. -**T39**— نقطة النهاية الاحتياطية لـ `fetchAvailableModels`: تم تطبيق آلية ثلاثية المستويات (`/models` -> `/v1/models` -> الكتالوج العام المحلي) + `list_models_catalog` تحديثات أداة MCP لتعكس `المصدر` و`التحذير`. -**T33**— مستوى التفكير لتحويل الميزانية: يترجم مستويات التفكير النوعي إلى مخصصات دقيقة للميزانية. -**T41**— إعادة التوجيه التلقائي لمهمة الخلفية: يقوم بتوجيه مهام تقييم الخلفية الثقيلة إلى نماذج الفلاش/الفعالة تلقائيًا. -**T23**— الإجراء الاحتياطي الذكي لإعادة تعيين الحصص: يستخرج بدقة قيم الرأس `x-ratelimit-reset` / ``إعادة المحاولة بعد` أو يحدد فترات التباطؤ الثابتة.---
 
 ## [3.0.0-rc.7] — 2026-03-23 _(What's New vs v2.9.5 — will be released as v3.0.0)_
 
-> **Upgrade from v2.9.5:** 16 issues resolved · 2 community PRs merged · 2 new providers · 7 new API endpoints · 3 new features · DB migration 008+009 · 832 tests passing · 15 sub2api gap improvements (T01–T15 complete).
+> **الترقية من الإصدار 2.9.5:**تم حل 16 مشكلة · تم دمج 2 من العلاقات العامة للمجتمع · 2 مقدمي خدمة جدد · 7 نقاط نهاية جديدة لواجهة برمجة التطبيقات · 3 ميزات جديدة · ترحيل قاعدة البيانات 008+009 · اجتياز 832 اختبارًا · 15 تحسينًا لفجوة sub2api (اكتمل T01-T15).### 🆕 New Providers
 
-### 🆕 New Providers
+| مقدم             | الاسم المستعار | الطبقة | ملاحظات                                                           |
+| ---------------- | -------------- | ------ | ----------------------------------------------------------------- |
+| **أوبن كود زين** | `opencode-zen` | مجاني  | 3 نماذج عبر `opencode.ai/zen/v1` (PR #530 بواسطة @kang-heewon)    |
+| **OpenCode Go**  | `opencode-go`  | مدفوعة | 4 نماذج عبر `opencode.ai/zen/go/v1` (PR #530 بواسطة @kang-heewon) |
 
-| Provider         | Alias          | Tier | Notes                                                          |
-| ---------------- | -------------- | ---- | -------------------------------------------------------------- |
-| **OpenCode Zen** | `opencode-zen` | Free | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon)    |
-| **OpenCode Go**  | `opencode-go`  | Paid | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon) |
-
-Both providers use the new `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`, `/models/{model}:generateContent`).
-
----
+يستخدم كلا الموفرين `OpencodeExecutor` الجديد مع توجيه متعدد التنسيقات (`/chat/completions`، `/messages`، `/responses`، `/models/{model}:generateContent`).---
 
 ### ✨ New Features
 
 #### 🔑 Registered Keys Provisioning API (#464)
 
-Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+إنشاء مفاتيح OmniRoute API وإصدارها تلقائيًا برمجيًا من خلال فرض الحصص لكل موفر ولكل حساب.
 
-| Endpoint                              | Method    | Description                                      |
-| ------------------------------------- | --------- | ------------------------------------------------ |
-| `/api/v1/registered-keys`             | `POST`    | Issue a new key — raw key returned **once only** |
-| `/api/v1/registered-keys`             | `GET`     | List registered keys (masked)                    |
-| `/api/v1/registered-keys/{id}`        | `GET`     | Get key metadata                                 |
-| `/api/v1/registered-keys/{id}`        | `DELETE`  | Revoke a key                                     |
-| `/api/v1/registered-keys/{id}/revoke` | `POST`    | Revoke (for clients without DELETE support)      |
-| `/api/v1/quotas/check`                | `GET`     | Pre-validate quota before issuing                |
-| `/api/v1/providers/{id}/limits`       | `GET/PUT` | Configure per-provider issuance limits           |
-| `/api/v1/accounts/{id}/limits`        | `GET/PUT` | Configure per-account issuance limits            |
-| `/api/v1/issues/report`               | `POST`    | Report quota events to GitHub Issues             |
+| نقطة النهاية                         | الطريقة          | الوصف                                                          |
+| ------------------------------------ | ---------------- | -------------------------------------------------------------- |
+| `/api/v1/registered-keys`            | `نشر`            | قم بإصدار مفتاح جديد - تم إرجاع المفتاح الخام**مرة واحدة فقط** |
+| `/api/v1/registered-keys`            | `احصل على`       | قائمة المفاتيح المسجلة (المقنعة)                               |
+| `/api/v1/registered-keys/{id}`       | `احصل على`       | احصل على البيانات الوصفية الرئيسية                             |
+| `/api/v1/registered-keys/{id}`       | `حذف`            | إبطال مفتاح                                                    |
+| `/api/v1/registered-keys/{id}/revoc` | `نشر`            | إبطال (للعملاء الذين ليس لديهم دعم DELETE)                     |
+| `/api/v1/quotas/check`               | `احصل على`       | قم بالتحقق المسبق من الحصة قبل إصدار                           |
+| `/api/v1/providers/{id}/limits`      | `الحصول على/وضع` | تكوين حدود الإصدار لكل موفر                                    |
+| `/api/v1/accounts/{id}/limits`       | `الحصول على/وضع` | تكوين حدود الإصدار لكل حساب                                    |
+| `/api/v1/issues/report`              | `نشر`            | الإبلاغ عن أحداث الحصص إلى مشكلات GitHub                       |
 
-**DB — Migration 008:** Three new tables: `registered_keys`, `provider_key_limits`, `account_key_limits`.
-**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
-**Quota types:** `maxActiveKeys`, `dailyIssueLimit`, `hourlyIssueLimit` per provider and per account.
-**Idempotency:** `idempotency_key` field prevents duplicate issuance. Returns `409 IDEMPOTENCY_CONFLICT` if key was already used.
-**Budget per key:** `dailyBudget` / `hourlyBudget` — limits how many requests a key can route per window.
-**GitHub reporting:** Optional. Set `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` to auto-create GitHub issues on quota exceeded or issuance failures.
+**قاعدة البيانات — الترحيل 008:**ثلاثة جداول جديدة: `المفاتيح_المسجلة`، و`provider_key_limits`، و`account_key_limits`.
+**الأمان:**المفاتيح المخزنة على هيئة تجزئات SHA-256. يظهر المفتاح الخام مرة واحدة عند الإنشاء، ولا يمكن استرجاعه مرة أخرى.
+**أنواع الحصص:**`maxActiveKeys`، و`dailyIssueLimit`، و`hourlyIssueLimit` لكل مزود ولكل حساب.
+**العجز:**يمنع الحقل `Idempotency_key` الإصدار المكرر. تُرجع `409 IDEMPOTENCY_CONFLICT` إذا كان المفتاح مستخدمًا بالفعل.
+**الميزانية لكل مفتاح:**`dailyBudget` / `hourlyBudget` - تحدد عدد الطلبات التي يمكن للمفتاح توجيهها لكل نافذة.
+**تقارير GitHub:**اختيارية. قم بتعيين `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` لإنشاء مشكلات GitHub تلقائيًا عند تجاوز الحصة النسبية أو فشل الإصدار.#### 🎨 Provider Icons — @lobehub/icons (#529)
 
-#### 🎨 Provider Icons — @lobehub/icons (#529)
+تستخدم جميع أيقونات الموفر في لوحة المعلومات الآن مكونات React `@lobehub/icons` (أكثر من 130 موفرًا مع SVG).
+السلسلة الاحتياطية:**Lobehub SVG → موجود `/providers/{id}.png` → رمز عام**. يستخدم نمط React المناسب `ErrorBoundary`.#### 🔄 Model Auto-Sync Scheduler (#488)
 
-All provider icons in the dashboard now use `@lobehub/icons` React components (130+ providers with SVG).
-Fallback chain: **Lobehub SVG → existing `/providers/{id}.png` → generic icon**. Uses a proper React `ErrorBoundary` pattern.
+يقوم OmniRoute الآن تلقائيًا بتحديث قوائم النماذج لموفري الخدمة المتصلين كل**24 ساعة**.
 
-#### 🔄 Model Auto-Sync Scheduler (#488)
-
-OmniRoute now automatically refreshes model lists for connected providers every **24 hours**.
-
-- Runs on server startup via the existing `/api/sync/initialize` hook
-- Configurable via `MODEL_SYNC_INTERVAL_HOURS` environment variable
-- Covers 16 major providers
-- Records last sync time in the settings database
-
----
+- يعمل عند بدء تشغيل الخادم عبر الخطاف الموجود `/api/sync/initialize`
+- قابل للتكوين عبر متغير البيئة `MODEL_SYNC_INTERVAL_HOURS`
+- يغطي 16 من مقدمي الخدمات الرئيسيين
+- يسجل آخر وقت مزامنة في قاعدة بيانات الإعدادات---
 
 ### 🔧 Bug Fixes
 
 #### OAuth & Auth
 
-- **#537 — Gemini CLI OAuth:** Clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments. Previously showed cryptic `client_secret is missing` from Google. Now provides specific `docker-compose.yml` and `~/.omniroute/.env` instructions.
+-**#537 — Gemini CLI OAuth:**امسح الخطأ القابل للتنفيذ عندما يكون `GEMINI_OAUTH_CLIENT_SECRET` مفقودًا في عمليات النشر Docker/المستضافة ذاتيًا. تم عرض "سر_العميل المفقود" المبهم سابقًا من Google. يوفر الآن تعليمات محددة `docker-compose.yml` و`~/.omniroute/.env`.#### Providers & Routing
 
-#### Providers & Routing
+-**#536 — LongCat AI:**تم إصلاح `baseUrl` (`api.longcat.chat/openai`) و`authHeader` (`التفويض: الحامل`). -**#535 — تجاوز النموذج المثبت:**تم الآن تعيين `body.model` بشكل صحيح على `pinnedModel` عندما تكون حماية ذاكرة التخزين المؤقت للسياق نشطة. -**#532 — التحقق من صحة مفتاح OpenCode Go:**يستخدم الآن نقطة نهاية الاختبار `zen/v1` (`testKeyBaseUrl`) - يعمل نفس المفتاح لكلا المستويين.#### CLI & Tools
 
-- **#536 — LongCat AI:** Fixed `baseUrl` (`api.longcat.chat/openai`) and `authHeader` (`Authorization: Bearer`).
-- **#535 — Pinned model override:** `body.model` is now correctly set to `pinnedModel` when context-cache protection is active.
-- **#532 — OpenCode Go key validation:** Now uses the `zen/v1` test endpoint (`testKeyBaseUrl`) — same key works for both tiers.
+-**#527 — Claude Code + Codex Loop:**يتم الآن تحويل كتل `tool_result` إلى نص بدلاً من إسقاطها، مما يؤدي إلى إيقاف حلقات نتائج الأداة اللانهائية. -**#524 — حفظ تكوين OpenCode:**تمت إضافة معالج `saveOpenCodeConfig()` (يدرك XDG_CONFIG_HOME، ويكتب TOML). -**#521 — تسجيل الدخول عالق:**لم يعد تسجيل الدخول يتجمد بعد تخطي إعداد كلمة المرور — تتم إعادة التوجيه بشكل صحيح إلى الإعداد. -**#522 — API Manager:**تمت إزالة زر "نسخ المفتاح المقنع" المضلل (تم استبداله بتلميح أداة رمز القفل). -**#532 — تكوين OpenCode Go:**يتعامل معالج إعدادات الدليل الآن مع معرف أداة `opencode`.#### Developer Experience
 
-#### CLI & Tools
-
-- **#527 — Claude Code + Codex loop:** `tool_result` blocks are now converted to text instead of dropped, stopping infinite tool-result loops.
-- **#524 — OpenCode config save:** Added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML).
-- **#521 — Login stuck:** Login no longer freezes after skipping password setup — redirects correctly to onboarding.
-- **#522 — API Manager:** Removed misleading "Copy masked key" button (replaced with a lock icon tooltip).
-- **#532 — OpenCode Go config:** Guide settings handler now handles `opencode` toolId.
-
-#### Developer Experience
-
-- **#489 — Antigravity:** Missing `googleProjectId` returns a structured 422 error with reconnect guidance instead of a cryptic crash.
-- **#510 — Windows paths:** MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...` automatically.
-- **#492 — CLI startup:** `omniroute` CLI now detects `mise`/`nvm`-managed Node when `app/server.js` is missing and shows targeted fix instructions.
-
----
+-**#489 — Antigravity:**يؤدي فقدان `googleProjectId` إلى إرجاع خطأ منظم 422 مع إرشادات إعادة الاتصال بدلاً من حدوث عطل غامض. -**#510 — مسارات Windows:**تمت الآن تسوية مسارات MSYS2/Git-Bash (`/c/Program Files/...`) إلى `C:\Program Files\...` تلقائيًا. -**#492 — بدء تشغيل سطر الأوامر:**يكتشف `omniroute` CLI الآن العقدة المُدارة `mise`/`nvm` عندما يكون `app/server.js` مفقودًا ويعرض تعليمات الإصلاح المستهدفة.---
 
 ### 📖 Documentation Updates
 
-- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
-- **#520** — pnpm: `pnpm approve-builds better-sqlite3` step documented
-
----
+-**#513**— إعادة تعيين كلمة مرور Docker: تم توثيق الحل البديل `INITIAL_PASSWORD` env var -**#520**— pnpm: خطوة `pnpm موافقة-بناء أفضل-sqlite3` موثقة---
 
 ### ✅ Issues Resolved in v3.0.0
 
-`#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#536` `#537`
-
----
+`#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#536` `#537`---
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author       | Summary                                                                |
-| -------- | ------------ | ---------------------------------------------------------------------- |
-| **#530** | @kang-heewon | OpenCode Zen + Go providers with `OpencodeExecutor` and improved tests |
-
----
+| العلاقات العامة | المؤلف      | ملخص                                                              |
+| --------------- | ----------- | ----------------------------------------------------------------- | --- |
+| **#530**        | @كانغ هيوون | موفري OpenCode Zen + Go مع `OpencodeExecutor' والاختبارات المحسنة | --- |
 
 ## [3.0.0-rc.7] - 2026-03-23
 
 ### 🔧 Improvements (sub2api Gap Analysis — T05, T08, T09, T13, T14)
 
-- **T05** — Rate-limit DB persistence: `setConnectionRateLimitUntil()`, `isConnectionRateLimited()`, `getRateLimitedConnections()` in `providers.ts`. The existing `rate_limited_until` column is now exposed as a dedicated API — OAuth token refresh must NOT touch this field to prevent rate-limit loops.
-- **T08** — Per-API-key session limit: `max_sessions INTEGER DEFAULT 0` added to `api_keys` via auto-migration. `sessionManager.ts` gains `registerKeySession()`, `unregisterKeySession()`, `checkSessionLimit()`, and `getActiveSessionCountForKey()`. Callers in `chatCore.js` can enforce the limit and decrement on `req.close`.
-- **T09** — Codex vs Spark rate-limit scopes: `getCodexModelScope()` and `getCodexRateLimitKey()` in `codex.ts`. Standard models (`gpt-5.x-codex`, `codex-mini`) get scope `"codex"`; spark models (`codex-spark*`) get scope `"spark"`. Rate-limit keys should be `${accountId}:${scope}` so exhausting one pool doesn't block the other.
-- **T13** — Stale quota display fix: `getEffectiveQuotaUsage(used, resetAt)` returns `0` when the reset window has passed; `formatResetCountdown(resetAt)` returns a human-readable countdown string (e.g. `"2h 35m"`). Both exported from `providers.ts` + `localDb.ts` for dashboard consumption.
-- **T14** — Proxy fast-fail: new `src/lib/proxyHealth.ts` with `isProxyReachable(proxyUrl, timeoutMs=2000)` (TCP check, ≤2s instead of 30s timeout), `getCachedProxyHealth()`, `invalidateProxyHealth()`, and `getAllProxyHealthStatuses()`. Results cached 30s by default; configurable via `PROXY_FAST_FAIL_TIMEOUT_MS` / `PROXY_HEALTH_CACHE_TTL_MS`.
+-**T05**— ثبات قاعدة البيانات بحدود المعدل: `setConnectionRateLimitUntil()`، `isConnectionRateLimited()`، `getRateLimitedConnections()` في `providers.ts`. يتم الآن عرض عمود "rate_limited_until" الموجود كواجهة برمجة تطبيقات مخصصة - يجب ألا يلمس تحديث رمز OAuth المميز هذا الحقل لمنع تكرار تكرار الحد الأقصى للمعدل. -**T08**— حد الجلسة لكل مفتاح واجهة برمجة التطبيقات: تمت إضافة `max_sessions INTEGER DEFAULT 0` إلى `api_keys` عبر الترحيل التلقائي. مكاسب `sessionManager.ts` `registerKeySession()` و`unregisterKeySession()` و`checkSessionLimit()` و`getActiveSessionCountForKey()`. يمكن للمتصلين في `chatCore.js` فرض الحد والتناقص على `req. Close`. -**T09**— نطاقات الحد الأقصى لمعدل Codex مقابل Spark: `getCodexModelScope()` و`getCodexRateLimitKey()` في `codex.ts`. النماذج القياسية (`gpt-5.x-codex`، `codex-mini`) تحصل على النطاق `"codex"`؛ نماذج الشرارة (`codex-spark*`) تحصل على النطاق `"spark"`. يجب أن تكون مفاتيح حد السعر `${accountId}:${scope}` لذا فإن استنفاد أحد التجمعات لا يمنع الآخر. -**T13**— إصلاح عرض الحصص التي لا معنى لها: `getEffectiveQuotaUsage(used,setAt)` يُرجع `0` عند مرور نافذة إعادة التعيين؛ `formatResetCountdown(resetAt)` يعرض سلسلة عد تنازلي يمكن قراءتها بواسطة الإنسان (على سبيل المثال `"ساعتان و35 دقيقة"`). تم تصدير كلاهما من "providers.ts" + "localDb.ts" لاستهلاك لوحة المعلومات. -**T14**— فشل الوكيل السريع: `src/lib/proxyHealth.ts` الجديد مع `isProxyReachable(proxyUrl, timeoutMs=2000)` (فحص TCP، ≥2s بدلاً من 30s المهلة)، `getCachedProxyHealth()`، `invalidateProxyHealth()`، و `getAllProxyHealthStatuses()`. يتم تخزين النتائج مؤقتًا لمدة 30 ثانية بشكل افتراضي؛ قابل للتكوين عبر `PROXY_FAST_FAIL_TIMEOUT_MS` / `PROXY_HEALTH_CACHE_TTL_MS`.### 🧪 Tests
 
-### 🧪 Tests
-
-- Test suite: **832 tests, 0 failures**
-
----
+- مجموعة الاختبار:**832 اختبارًا، 0 فشل**---
 
 ## [3.0.0-rc.6] - 2026-03-23
 
 ### 🔧 Bug Fixes & Improvements (sub2api Gap Analysis — T01–T15)
 
-- **T01** — `requested_model` column in `call_logs` (migration 009): track which model the client originally requested vs the actual routed model. Enables fallback rate analytics.
-- **T02** — Strip empty text blocks from nested `tool_result.content`: prevents Anthropic 400 errors (`text content blocks must be non-empty`) when Claude Code chains tool results.
-- **T03** — Parse `x-codex-5h-*` / `x-codex-7d-*` headers: `parseCodexQuotaHeaders()` + `getCodexResetTime()` extract Codex quota windows for precise cooldown scheduling instead of generic 5-min fallback.
-- **T04** — `X-Session-Id` header for external sticky routing: `extractExternalSessionId()` in `sessionManager.ts` reads `x-session-id` / `x-omniroute-session` headers with `ext:` prefix to avoid collision with internal SHA-256 session IDs. Nginx-compatible (hyphenated header).
-- **T06** — Account deactivated → permanent block: `isAccountDeactivated()` in `accountFallback.ts` detects 401 deactivation signals and applies a 1-year cooldown to prevent retrying permanently dead accounts.
-- **T07** — X-Forwarded-For IP validation: new `src/lib/ipUtils.ts` with `extractClientIp()` and `getClientIpFromRequest()` — skips `unknown`/non-IP entries in `X-Forwarded-For` chains (Nginx/proxy-forwarded requests).
-- **T10** — Credits exhausted → distinct fallback: `isCreditsExhausted()` in `accountFallback.ts` returns 1h cooldown with `creditsExhausted` flag, distinct from generic 429 rate limiting.
-- **T11** — `max` reasoning effort → 131072 budget tokens: `EFFORT_BUDGETS` and `THINKING_LEVEL_MAP` updated; reverse mapping now returns `"max"` for full-budget responses. Unit test updated.
-- **T12** — MiniMax M2.7 pricing entries added: `minimax-m2.7`, `MiniMax-M2.7`, `minimax-m2.7-highspeed` added to pricing table (sub2api PR #1120). M2.5/GLM-4.7/GLM-5/Kimi pricing already existed.
-- **T15** — Array content normalization: `normalizeContentToString()` helper in `openai-to-claude.ts` correctly collapses array-formatted system/tool messages to string before sending to Anthropic.
+-**T01**— عمود `requested_model` في `call_logs` (الترحيل 009): تتبع النموذج الذي طلبه العميل في الأصل مقابل النموذج الموجه الفعلي. تمكين تحليلات معدل التراجع. -**T02**— قم بإزالة الكتل النصية الفارغة من `tool_result.content` المتداخلة: يمنع حدوث أخطاء Anthropic 400 (`يجب أن تكون كتل المحتوى النصي غير فارغة`) عندما تظهر أداة سلاسل Claude Code. -**T03**— تحليل الرؤوس `x-codex-5h-*` / `x-codex-7d-*`: `parseCodexQuotaHeaders()` + `getCodexResetTime()` استخراج نوافذ حصص Codex لجدولة فترة التهدئة الدقيقة بدلاً من التراجع العام لمدة 5 دقائق. -**T04**— رأس `X-Session-Id` للتوجيه الثابت الخارجي: `extractExternalSessionId()` في `sessionManager.ts` يقرأ رؤوس `x-session-id` / `x-omniroute-session` مع البادئة `ext:` لتجنب التعارض مع معرفات جلسة SHA-256 الداخلية. متوافق مع Nginx (الرأس الموصول). -**T06**— تم إلغاء تنشيط الحساب ← الحظر الدائم: يكتشف `isAccountDeactivated()` في `accountFallback.ts` 401 إشارة إلغاء تنشيط ويطبق فترة انتظار لمدة عام واحد لمنع إعادة محاولة الحسابات الميتة نهائيًا. -**T07**— التحقق من صحة X-Forwarded-For IP: `src/lib/ipUtils.ts` الجديد مع `extractClientIp()` و`getClientIpFromRequest()` - يتخطى الإدخالات `غير المعروفة`/غير IP في سلاسل `X-Forwarded-For` (طلبات Nginx/proxy-forwarded). -**T10**— تم استنفاد الاعتمادات ← احتياطي مميز: `isCreditsExhausted()` في `accountFallback.ts` يُرجع فترة تباطؤ مدتها ساعة واحدة مع علامة `creditsExhausted`، متميزة عن تحديد المعدل العام 429. -**T11**— `الحد الأقصى` لجهد التفكير → 131072 رمزًا مميزًا للميزانية: تم تحديث `EFFORT_BUDGETS` و`THINKING_LEVEL_MAP`؛ يُرجع التعيين العكسي الآن `"max"` لاستجابات الميزانية الكاملة. تم تحديث اختبار الوحدة. -**T12**— تمت إضافة إدخالات تسعير MiniMax M2.7: تمت إضافة `minimax-m2.7`، `MiniMax-M2.7`، `minimax-m2.7-highspeed` إلى جدول التسعير (sub2api PR #1120). أسعار M2.5/GLM-4.7/GLM-5/Kimi موجودة بالفعل. -**T15**— تسوية محتوى المصفوفة: يقوم المساعد `normalizeContentToString()` في `openai-to-claude.ts` بطي رسائل النظام/الأداة بتنسيق المصفوفة بشكل صحيح إلى السلسلة قبل إرسالها إلى Anthropic.### 🧪 Tests
 
-### 🧪 Tests
-
-- Test suite: **832 tests, 0 failures** (unchanged from rc.5)
-
----
+- مجموعة الاختبار:**832 اختبارًا، 0 حالات فشل**(بدون تغيير عن rc.5)---
 
 ## [3.0.0-rc.5] - 2026-03-22
 
 ### ✨ New Features
 
-- **#464** — Registered Keys Provisioning API: auto-issue API keys with per-provider & per-account quota enforcement
-  - `POST /api/v1/registered-keys` — issue keys with idempotency support
-  - `GET /api/v1/registered-keys` — list (masked) registered keys
-  - `GET /api/v1/registered-keys/{id}` — get key metadata
-  - `DELETE /api/v1/registered-keys/{id}` / `POST ../{id}/revoke` — revoke keys
-  - `GET /api/v1/quotas/check` — pre-validate before issuing
-  - `PUT /api/v1/providers/{id}/limits` — set provider issuance limits
-  - `PUT /api/v1/accounts/{id}/limits` — set account issuance limits
-  - `POST /api/v1/issues/report` — optional GitHub issue reporting
-  - DB migration 008: `registered_keys`, `provider_key_limits`, `account_key_limits` tables
+-**#464**— واجهة برمجة التطبيقات (API) لتوفير المفاتيح المسجلة: مفاتيح واجهة برمجة التطبيقات (API) للإصدار التلقائي مع فرض الحصص لكل مزود ولكل حساب
 
----
+- `POST /api/v1/registered-keys` - إصدار المفاتيح مع دعم عدم القدرة
+- `الحصول على /api/v1/registered-keys` - قائمة المفاتيح المسجلة (المقنعة).
+- `الحصول على /api/v1/registered-keys/{id}` - الحصول على البيانات التعريفية الرئيسية
+- `DELETE /api/v1/registered-keys/{id}` / `POST ../{id}/revoc` - إبطال المفاتيح
+- `GET /api/v1/quotas/check` - التحقق المسبق قبل الإصدار
+- `PUT /api/v1/providers/{id}/limits` - تعيين حدود إصدار الموفر
+- `PUT /api/v1/accounts/{id}/limits` - تعيين حدود إصدار الحساب
+- `POST /api/v1/issues/report` - إعداد تقارير اختيارية عن مشكلات GitHub
+- ترحيل قاعدة البيانات 008: جداول "المفاتيح*المسجلة"، و"حدود*مفتاح*الموفر"، و"حدود*مفتاح_الحساب".---
 
 ## [3.0.0-rc.4] - 2026-03-22
 
 ### ✨ New Features
 
-- **#530 (PR)** — OpenCode Zen and OpenCode Go providers added (by @kang-heewon)
-  - New `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`)
-  - 7 models across both tiers
+-**#530 (PR)**— تمت إضافة موفري OpenCode Zen وOpenCode Go (بواسطة @kang-heewon)
 
----
+- `OpencodeExecutor` جديد مع توجيه متعدد التنسيقات (`/chat/completions`، `/messages`، `/responses`)
+- 7 نماذج في كلا المستويين---
 
 ## [3.0.0-rc.3] - 2026-03-22
 
 ### ✨ New Features
 
-- **#529** — Provider icons now use [@lobehub/icons](https://github.com/lobehub/lobe-icons) with graceful PNG fallback and a `ProviderIcon` component (130+ providers supported)
-- **#488** — Auto-update model lists every 24h via `modelSyncScheduler` (configurable via `MODEL_SYNC_INTERVAL_HOURS`)
+-**#529**— تستخدم أيقونات الموفر الآن [@lobehub/icons](https://github.com/lobehub/lobe-icons) مع تنسيق PNG الاحتياطي الأنيق ومكون `ProviderIcon` (يدعم أكثر من 130 موفرًا) -**#488**— يتم تحديث قوائم النماذج تلقائيًا كل 24 ساعة عبر `modelSyncScheduler` (يمكن تكوينها عبر `MODEL_SYNC_INTERVAL_HOURS`)### 🔧 Bug Fixes
 
-### 🔧 Bug Fixes
-
-- **#537** — Gemini CLI OAuth: now shows clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments
-
----
+-**#537**— Gemini CLI OAuth: يظهر الآن خطأ واضح قابل للتنفيذ عندما يكون `GEMINI_OAUTH_CLIENT_SECRET` مفقودًا في عمليات النشر Docker/المستضافة ذاتيًا---
 
 ## [3.0.0-rc.2] - 2026-03-22
 
 ### 🔧 Bug Fixes
 
-- **#536** — LongCat AI key validation: fixed baseUrl (`api.longcat.chat/openai`) and authHeader (`Authorization: Bearer`)
-- **#535** — Pinned model override: `body.model` is now set to `pinnedModel` when context-cache protection detects a pinned model
-- **#524** — OpenCode config now saved correctly: added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML)
-
----
+-**#536**— التحقق من صحة مفتاح LongCat AI: baseUrl الثابت (`api.longcat.chat/openai`) وauthHeader (`Authorization: Bearer`) -**#535**— تجاوز النموذج المثبت: تم الآن تعيين `body.model` على `pinnedModel` عندما تكتشف حماية ذاكرة التخزين المؤقت للسياق نموذجًا مثبتًا -**#524**— تم الآن حفظ تكوين OpenCode بشكل صحيح: تمت إضافة معالج `saveOpenCodeConfig()` (يدرك XDG_CONFIG_HOME، ويكتب TOML)---
 
 ## [3.0.0-rc.1] - 2026-03-22
 
 ### 🔧 Bug Fixes
 
-- **#521** — Login no longer gets stuck after skipping password setup (redirects to onboarding)
-- **#522** — API Manager: Removed misleading "Copy masked key" button (replaced with lock icon tooltip)
-- **#527** — Claude Code + Codex superpowers loop: `tool_result` blocks now converted to text instead of dropped
-- **#532** — OpenCode GO API key validation now uses the correct `zen/v1` endpoint (`testKeyBaseUrl`)
-- **#489** — Antigravity: missing `googleProjectId` returns structured 422 error with reconnect guidance
-- **#510** — Windows: MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...`
-- **#492** — `omniroute` CLI now detects `mise`/`nvm` when `app/server.js` is missing and shows targeted fix
+-**#521**— لم يعد تسجيل الدخول متوقفًا بعد تخطي إعداد كلمة المرور (عمليات إعادة التوجيه إلى الإعداد) -**#522**— مدير واجهة برمجة التطبيقات: تمت إزالة زر "نسخ المفتاح المقنع" المضلل (تم استبداله بتلميح أداة رمز القفل) -**#527**— Claude Code + حلقة Codex للقوى العظمى: يتم الآن تحويل كتل `tool_result` إلى نص بدلاً من إسقاطها -**#532**— يستخدم الآن التحقق من صحة مفتاح OpenCode GO API نقطة النهاية الصحيحة `zen/v1` (`testKeyBaseUrl`) -**#489**— مكافحة الجاذبية: يؤدي فقدان `googleProjectId` إلى إرجاع خطأ منظم 422 مع إرشادات إعادة الاتصال -**#510**— Windows: تمت الآن تسوية مسارات MSYS2/Git-Bash (`/c/Program Files/...`) إلى `C:\Program Files\...` -**#492**— يكتشف سطر أوامر `omniroute` الآن `mise`/`nvm` عندما يكون `app/server.js` مفقودًا ويعرض الإصلاح المستهدف### التوثيق
 
-### التوثيق
+-**#513**— إعادة تعيين كلمة مرور Docker: تم توثيق الحل البديل `INITIAL_PASSWORD` env var -**#520**— pnpm: `pnpm Approved-builds Better-sqlite3` موثق### ✅ Closed Issues
 
-- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
-- **#520** — pnpm: `pnpm approve-builds better-sqlite3` documented
-
-### ✅ Closed Issues
-
-#489, #492, #510, #513, #520, #521, #522, #525, #527, #532
-
----
+#489، #492، #510، #513، #520، #521، #522، #525، #527، #532---
 
 ## [2.9.5] — 2026-03-22
 
-> Sprint: New OpenCode providers, embedding credentials fix, CLI masked key bug, CACHE_TAG_PATTERN fix.
+> Sprint: موفري OpenCode الجدد، وإصلاح بيانات الاعتماد المضمنة، وخلل مفتاح CLI المقنع، وإصلاح CACHE_TAG_PATTERN.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**أدوات CLI تحفظ مفتاح API المقنع في ملفات التكوين**— تقبل الآن مسارات POST `clude-settings` و`cline-settings` و`openclaw-settings` معلمة `keyId` وتحل مفتاح API الحقيقي من قاعدة البيانات قبل الكتابة إلى القرص. تم تحديث `ClaudeToolCard` لإرسال `keyId` بدلاً من سلسلة العرض المقنعة. إصلاحات رقم 523، رقم 526. -**موفرو التضمين المخصصون: `خطأ لا توجد بيانات اعتماد**— يتتبع `/v1/embeddings` الآن `credentialsProviderId` بشكل منفصل عن بادئة التوجيه، لذلك يتم جلب بيانات الاعتماد من معرف عقدة الموفر المطابق بدلاً من سلسلة البادئة العامة. يعمل على إصلاح الانحدار حيث تفشل دائمًا نماذج `google/gemini-embedding-001` ونماذج الموفر المخصص المماثلة مع وجود خطأ في بيانات الاعتماد. إصلاحات #532 ذات الصلة. (العلاقات العامة رقم 528 بواسطة @jacob2826) -**يفتقد التعبير العادي لحماية ذاكرة التخزين المؤقت للسياق `
+` البادئة**— تم تحديث `CACHE_TAG_PATTERN` في `comboAgentMiddleware.ts` لمطابقة كلا الحرفين `
+`(شرطة مائلة عكسية-n) والسطر الجديد الفعلي U+000A الذي يُدخل تدفق `combo.ts` حول العلامة `<omniModel>` بعد الإصلاح رقم 515. إصلاحات رقم 531.### ✨ New Providers
 
-- **CLI tools save masked API key to config files** — `claude-settings`, `cline-settings`, and `openclaw-settings` POST routes now accept a `keyId` param and resolve the real API key from DB before writing to disk. `ClaudeToolCard` updated to send `keyId` instead of the masked display string. Fixes #523, #526.
-- **Custom embedding providers: `No credentials` error** — `/v1/embeddings` now tracks `credentialsProviderId` separately from the routing prefix, so credentials are fetched from the matching provider node ID rather than the public prefix string. Fixes a regression where `google/gemini-embedding-001` and similar custom-provider models would always fail with a credentials error. Fixes #532-related. (PR #528 by @jacob2826)
-- **Context cache protection regex misses `\n` prefix** — `CACHE_TAG_PATTERN` in `comboAgentMiddleware.ts` updated to match both literal `\n` (backslash-n) and actual newline U+000A that `combo.ts` streaming injects around the `<omniModel>` tag after fix #515. Fixes #531.
+-**OpenCode Zen**— بوابة الطبقة المجانية على `opencode.ai/zen/v1` مع 3 نماذج: `minimax-m2.5-free`، `big-pickle`، `gpt-5-nano` -**OpenCode Go**— خدمة الاشتراك في `opencode.ai/zen/go/v1` مع 4 نماذج: `glm-5`، `kimi-k2.5`، `minimax-m2.7` (تنسيق كلود)، `minimax-m2.5` (تنسيق كلود)
 
-### ✨ New Providers
-
-- **OpenCode Zen** — Free tier gateway at `opencode.ai/zen/v1` with 3 models: `minimax-m2.5-free`, `big-pickle`, `gpt-5-nano`
-- **OpenCode Go** — Subscription service at `opencode.ai/zen/go/v1` with 4 models: `glm-5`, `kimi-k2.5`, `minimax-m2.7` (Claude format), `minimax-m2.5` (Claude format)
-- Both providers use the new `OpencodeExecutor` which routes dynamically to `/chat/completions`, `/messages`, `/responses`, or `/models/{model}:generateContent` based on the requested model. (PR #530 by @kang-heewon)
-
----
+- يستخدم كلا الموفرين `OpencodeExecutor` الجديد الذي يوجه ديناميكيًا إلى `/chat/completions` أو `/messages` أو `/responses` أو `/models/{model}:generateContent` بناءً على النموذج المطلوب. (العلاقات العامة رقم 530 بواسطة @kang-heewon)---
 
 ## [2.9.4] — 2026-03-21
 
-> Sprint: Bug fixes — preserve Codex prompt cache key, fix tagContent JSON escaping, sync expired token status to DB.
+> Sprint: إصلاحات الأخطاء - احتفظ بمفتاح ذاكرة التخزين المؤقت لموجه Codex، وأصلح هروب tagContent JSON، ومزامنة حالة الرمز المميز منتهية الصلاحية مع قاعدة البيانات.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**إصلاح (مترجم)**: احتفظ بـ "prompt_cache_key" في واجهة API للردود → ترجمة إكمالات الدردشة (#517)
+— الحقل عبارة عن إشارة تقارب ذاكرة التخزين المؤقت التي يستخدمها الدستور الغذائي؛ كان تجريدها يمنع الوصول الفوري إلى ذاكرة التخزين المؤقت.
+تم إصلاحه في `openai-responses.ts` و`responsesApiHelper.ts`.
 
-- **fix(translator)**: Preserve `prompt_cache_key` in Responses API → Chat Completions translation (#517)
-  — The field is a cache-affinity signal used by Codex; stripping it was preventing prompt cache hits.
-  Fixed in `openai-responses.ts` and `responsesApiHelper.ts`.
+-**إصلاح(السرد)**: الهروب `
+`في `tagContent` لذا فإن سلسلة JSON المحقونة صالحة (#515)
 
-- **fix(combo)**: Escape `\n` in `tagContent` so injected JSON string is valid (#515)
-  — Template literal newlines (U+000A) are not allowed unescaped inside JSON string values.
-  Replaced with `\\n` literal sequences in `open-sse/services/combo.ts`.
+- لا يُسمح بالأسطر الجديدة الحرفية للقالب (U+000A) بدون إلغائها داخل قيم سلسلة JSON.
+  تم استبداله بـ `\n` تسلسلات حرفية في `open-sse/services/combo.ts`.
 
-- **fix(usage)**: Sync expired token status back to DB on live auth failure (#491)
-  — When the Limits & Quotas live check returns 401/403, the connection `testStatus` is now updated
-  to `"expired"` in the database so the Providers page reflects the same degraded state.
-  Fixed in `src/app/api/usage/[connectionId]/route.ts`.
+-**إصلاح (الاستخدام)**: مزامنة حالة الرمز المميز منتهية الصلاحية مرة أخرى إلى قاعدة البيانات عند فشل المصادقة المباشرة (#491)
 
----
+- عندما يعود الفحص المباشر للحدود والحصص إلى 401/403، يتم الآن تحديث الاتصال "testStatus"
+  إلى ""منتهية الصلاحية"" في قاعدة البيانات بحيث تعكس صفحة "الموفرون" نفس الحالة المتدهورة.
+  تم إصلاحه في `src/app/api/usage/[connectionId]/route.ts`.---
 
 ## [2.9.3] — 2026-03-21
 
-> Sprint: Add 5 new free AI providers — LongCat, Pollinations, Cloudflare AI, Scaleway, AI/ML API.
+> Sprint: أضف 5 موفري ذكاء اصطناعي مجانيين جدد - LongCat، Pollinations، Cloudflare AI، Scaleway، AI/ML API.### ✨ New Providers
 
-### ✨ New Providers
+-**feat(providers/longcat)**: أضف LongCat AI (`lc/`) - 50 مليون رمز/يوم مجانًا (Flash-Lite) + 500 ألف/يوم (دردشة/تفكير) أثناء الإصدار التجريبي العام. متوافق مع OpenAI، ومصادقة الحامل القياسية. -**feat(providers/pollinations)**: إضافة Pollinations AI (`pol/`) - لا يلزم وجود مفتاح API. الوكلاء GPT-5، وClaude، وGemini، وDeepSeek V3، وLlama 4 (طلب واحد/15 ثانية مجانًا). يعالج المنفذ المخصص المصادقة الاختيارية. -**feat(providers/cloudflare-ai)**: إضافة Cloudflare Workers AI (`cf/`) - 10 آلاف خلية عصبية/اليوم مجانًا (حوالي 150 استجابة LLM أو 500 ثانية من صوت Whisper). أكثر من 50 نموذجًا على الحافة العالمية. ينشئ المنفذ المخصص عنوان URL ديناميكيًا باستخدام "معرف الحساب" من بيانات الاعتماد. -**feat(providers/scaleway)**: إضافة واجهات برمجة تطبيقات Scaleway Geneative (`scw/`) - مليون رمز مجاني للحسابات الجديدة. متوافقة مع الاتحاد الأوروبي/اللائحة العامة لحماية البيانات (باريس). Qwen3 235B، اللاما 3.1 70B، ميسترال الصغيرة 3.2. -**feat(providers/aimlapi)**: إضافة AI/ML API (`aiml/`) — رصيد مجاني بقيمة 0.025 دولار/اليوم، وأكثر من 200 نموذج (GPT-4o، Claude، Gemini، Llama) عبر نقطة نهاية مجمعة واحدة.### 🔄 Provider Updates
 
-- **feat(providers/longcat)**: Add LongCat AI (`lc/`) — 50M tokens/day free (Flash-Lite) + 500K/day (Chat/Thinking) during public beta. OpenAI-compatible, standard Bearer auth.
-- **feat(providers/pollinations)**: Add Pollinations AI (`pol/`) — no API key required. Proxies GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 req/15s free). Custom executor handles optional auth.
-- **feat(providers/cloudflare-ai)**: Add Cloudflare Workers AI (`cf/`) — 10K Neurons/day free (~150 LLM responses or 500s Whisper audio). 50+ models on global edge. Custom executor builds dynamic URL with `accountId` from credentials.
-- **feat(providers/scaleway)**: Add Scaleway Generative APIs (`scw/`) — 1M free tokens for new accounts. EU/GDPR compliant (Paris). Qwen3 235B, Llama 3.1 70B, Mistral Small 3.2.
-- **feat(providers/aimlapi)**: Add AI/ML API (`aiml/`) — $0.025/day free credit, 200+ models (GPT-4o, Claude, Gemini, Llama) via single aggregator endpoint.
+-**feat(providers/together)**: أضف `hasFree: true` + 3 معرفات نماذج مجانية بشكل دائم: `Llama-3.3-70B-Instruct-Turbo-Free`، `Llama-Vision-Free`، `DeepSeek-R1-Distill-Llama-70B-Free` -**feat(providers/gemini)**: أضف `hasFree: true` + `freeNote` (1500 طلب/يوم، لا حاجة لبطاقة ائتمان، aistudio.google.com) -**العمل الروتيني(providers/gemini)**: إعادة تسمية اسم العرض إلى `Gemini (Google AI Studio)` للتوضيح### ⚙️ Infrastructure
 
-### 🔄 Provider Updates
+-**feat(executors/pollinations)**: `PollinationsExecutor` الجديد - يحذف رأس `Authorization` عند عدم توفير مفتاح API -**feat(executors/cloudflare-ai)**: `CloudflareAIExecutor` الجديد - يتطلب إنشاء عنوان URL الديناميكي وجود `accountId` في بيانات اعتماد الموفر -**feat(executors)**: تسجيل تعيينات المنفذ `التلقيح`، `pol`، `cloudflare-ai`، `cf`### التوثيق
 
-- **feat(providers/together)**: Add `hasFree: true` + 3 permanently free model IDs: `Llama-3.3-70B-Instruct-Turbo-Free`, `Llama-Vision-Free`, `DeepSeek-R1-Distill-Llama-70B-Free`
-- **feat(providers/gemini)**: Add `hasFree: true` + `freeNote` (1,500 req/day, no credit card needed, aistudio.google.com)
-- **chore(providers/gemini)**: Rename display name to `Gemini (Google AI Studio)` for clarity
+-**docs(readme)**: حزمة تحرير وسرد مجانية موسعة تضم 11 موفرًا (0 دولار للأبد) -**docs(readme)**: تمت إضافة 4 أقسام مجانية جديدة للموفر (LongCat، Pollinations، Cloudflare AI، Scaleway) مع جداول النماذج -**docs(readme)**: جدول تسعير محدث يتضمن 4 صفوف جديدة مجانية -**docs(i18n/pt-BR)**: جدول أسعار محدث + إضافة أقسام LongCat/Pollinations/Cloudflare AI/Scaleway باللغة البرتغالية -**docs(new-features/ai)**: 10 ملفات لمواصفات المهام + خطة التنفيذ الرئيسية في `docs/new-features/ai/`### 🧪 Tests
 
-### ⚙️ Infrastructure
-
-- **feat(executors/pollinations)**: New `PollinationsExecutor` — omits `Authorization` header when no API key provided
-- **feat(executors/cloudflare-ai)**: New `CloudflareAIExecutor` — dynamic URL construction requires `accountId` in provider credentials
-- **feat(executors)**: Register `pollinations`, `pol`, `cloudflare-ai`, `cf` executor mappings
-
-### التوثيق
-
-- **docs(readme)**: Expanded free combo stack to 11 providers ($0 forever)
-- **docs(readme)**: Added 4 new free provider sections (LongCat, Pollinations, Cloudflare AI, Scaleway) with model tables
-- **docs(readme)**: Updated pricing table with 4 new free tier rows
-- **docs(i18n/pt-BR)**: Updated pricing table + added LongCat/Pollinations/Cloudflare AI/Scaleway sections in Portuguese
-- **docs(new-features/ai)**: 10 task spec files + master implementation plan in `docs/new-features/ai/`
-
-### 🧪 Tests
-
-- Test suite: **821 tests, 0 failures** (unchanged)
-
----
+- مجموعة الاختبار:**821 اختبارًا، 0 حالات فشل**(بدون تغيير)---
 
 ## [2.9.2] — 2026-03-21
 
-> Sprint: Fix media transcription (Deepgram/HuggingFace Content-Type, language detection) and TTS error display.
+> Sprint: إصلاح نسخ الوسائط (نوع محتوى Deepgram/HuggingFace، اكتشاف اللغة) وعرض خطأ TTS.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**إصلاح (النسخ)**: أصبح النسخ الصوتي لـ Deepgram وHuggingFace يربط الآن بشكل صحيح `video/mp4` → `audio/mp4` وأنواع MIME للوسائط الأخرى عبر مساعد `resolveAudioContentType()` الجديد. في السابق، كان تحميل ملفات `.mp4` يعرض باستمرار رسالة "لم يتم اكتشاف أي كلام" لأن Deepgram كان يتلقى "نوع المحتوى: فيديو/mp4". -**إصلاح (النسخ)**: تمت إضافة `detect_language=true` إلى طلبات Deepgram - يكتشف تلقائيًا لغة الصوت (البرتغالية والإسبانية وما إلى ذلك) بدلاً من تعيين اللغة الإنجليزية بشكل افتراضي. يعمل على إصلاح النسخ غير الإنجليزية التي تعرض نتائج فارغة أو غير مرغوب فيها. -**إصلاح (النسخ)**: تمت إضافة علامة الترقيم = صحيح إلى طلبات Deepgram للحصول على إخراج نسخ عالي الجودة مع علامات الترقيم الصحيحة. -**fix(tts)**: عرض الخطأ `[object Object]` في استجابات تحويل النص إلى كلام التي تم إصلاحها في كل من `audioSpeech.ts` و`audioTranscription.ts`. تعمل الدالة `upstreamErrorResponse()` الآن بشكل صحيح على استخراج رسائل السلسلة المتداخلة من موفري الخدمة مثل ElevenLabs التي تُرجع `{ error: { message: "..."،status_code: 401 } }` بدلاً من سلسلة خطأ ثابتة.### 🧪 Tests
 
-- **fix(transcription)**: Deepgram and HuggingFace audio transcription now correctly map `video/mp4` → `audio/mp4` and other media MIME types via new `resolveAudioContentType()` helper. Previously, uploading `.mp4` files consistently returned "No speech detected" because Deepgram was receiving `Content-Type: video/mp4`.
-- **fix(transcription)**: Added `detect_language=true` to Deepgram requests — auto-detects audio language (Portuguese, Spanish, etc.) instead of defaulting to English. Fixes non-English transcriptions returning empty or garbage results.
-- **fix(transcription)**: Added `punctuate=true` to Deepgram requests for higher-quality transcription output with correct punctuation.
-- **fix(tts)**: `[object Object]` error display in Text-to-Speech responses fixed in both `audioSpeech.ts` and `audioTranscription.ts`. The `upstreamErrorResponse()` function now correctly extracts nested string messages from providers like ElevenLabs that return `{ error: { message: "...", status_code: 401 } }` instead of a flat error string.
+- مجموعة الاختبار:**821 اختبارًا، 0 حالات فشل**(بدون تغيير)### Triaged Issues
 
-### 🧪 Tests
-
-- Test suite: **821 tests, 0 failures** (unchanged)
-
-### Triaged Issues
-
-- **#508** — Tool call format regression: requested proxy logs and provider chain info (`needs-info`)
-- **#510** — Windows CLI healthcheck path: requested shell/Node version info (`needs-info`)
-- **#485** — Kiro MCP tool calls: closed as external Kiro issue (not OmniRoute)
-- **#442** — Baseten /models endpoint: closed (documented manual workaround)
-- **#464** — Key provisioning API: acknowledged as roadmap item
-
----
+-**#508**— انحدار تنسيق استدعاء الأداة: سجلات الوكيل المطلوبة ومعلومات سلسلة الموفر (`معلومات الاحتياجات`) -**#510**— مسار التحقق من صحة واجهة سطر الأوامر (CLI) لنظام التشغيل Windows: معلومات إصدار Shell/Node المطلوبة ('needs-info`) -**#485**— استدعاءات أداة Kiro MCP: مغلقة كمشكلة Kiro خارجية (وليست OmniRoute) -**#442**— نقطة نهاية Baseten /models: مغلقة (حل يدوي موثق) -**#464**— واجهة برمجة التطبيقات لتوفير المفاتيح: تم الاعتراف بها كعنصر في خريطة الطريق---
 
 ## [2.9.1] — 2026-03-21
 
-> Sprint: Fix SSE omniModel data loss, merge per-protocol model compatibility.
+> Sprint: إصلاح فقدان بيانات SSE omniModel، ودمج توافق النموذج لكل بروتوكول.### Bug Fixes
 
-### Bug Fixes
+-**#511**— بالغ الأهمية: تم إرسال علامة `<omniModel>` بعد `finish_reason:stop` في تدفقات SSE، مما تسبب في فقدان البيانات. يتم الآن إدخال العلامة في أول مجموعة محتوى غير فارغة، مما يضمن التسليم قبل إغلاق SDKs الاتصال.### Merged PRs
 
-- **#511** — Critical: `<omniModel>` tag was sent after `finish_reason:stop` in SSE streams, causing data loss. Tag is now injected into the first non-empty content chunk, guaranteeing delivery before SDKs close the connection.
+-**PR #512**(@zhangqiang8vip): التوافق مع النموذج لكل بروتوكول - يمكن الآن تكوين `normalizeToolCallId` و`preserveOpenAIDeveloperRole` لكل بروتوكول عميل (OpenAI، Claude، Responses API). حقل "compatByProtocol" الجديد في تكوين النموذج مع التحقق من صحة Zod.### Triaged Issues
 
-### Merged PRs
-
-- **PR #512** (@zhangqiang8vip): Per-protocol model compatibility — `normalizeToolCallId` and `preserveOpenAIDeveloperRole` can now be configured per client protocol (OpenAI, Claude, Responses API). New `compatByProtocol` field in model config with Zod validation.
-
-### Triaged Issues
-
-- **#510** — Windows CLI healthcheck_failed: requested PATH/version info
-- **#509** — Turbopack Electron regression: upstream Next.js bug, documented workarounds
-- **#508** — macOS black screen: suggested `--disable-gpu` workaround
-
----
+-**#510**— فشل فحص صحة واجهة سطر الأوامر (CLI) لنظام التشغيل Windows: معلومات المسار/الإصدار المطلوبة -**#509**— انحدار Turbopack Electron: خطأ في منبع Next.js، حلول موثقة -**#508**— شاشة سوداء لنظام التشغيل Mac: الحل البديل المقترح `-disable-gpu`---
 
 ## [2.9.0] — 2026-03-20
 
-> Sprint: Cross-platform machineId fix, per-API-key rate limits, streaming context cache, Alibaba DashScope, search analytics, ZWS v5, and 8 issues closed.
+> Sprint: إصلاح معرف الآلة عبر الأنظمة الأساسية، وحدود معدل مفتاح واجهة برمجة التطبيقات، وذاكرة التخزين المؤقت لسياق التدفق، وAlibaba DashScope، وتحليلات البحث، وZWS v5، و8 مشكلات تم إغلاقها.### ✨ New Features
 
-### ✨ New Features
+-**feat(search)**: علامة التبويب "تحليلات البحث" في `/dashboard/analytics` - تصنيف الموفر، ومعدل دخول ذاكرة التخزين المؤقت، وتتبع التكلفة. واجهة برمجة التطبيقات الجديدة: `GET /api/v1/search/analytics` (#feat/search-provider-routing) -**feat(provider)**: تمت إضافة Alibaba Cloud DashScope مع التحقق من صحة مسار نقطة النهاية المخصصة - `chatPath` و`modelsPath` قابلان للتكوين لكل عقدة (#feat/custom-endpoint-paths) -**feat(api)**: حدود عدد الطلبات لكل مفتاح واجهة برمجة التطبيقات — أعمدة `max_requests_per_day` و`max_requests_per_دقيقة` مع فرض نافذة انزلاقية في الذاكرة تعيد HTTP 429 (#452) -**feat(dev)**: ZWS v5 - إصلاح تسرب HMR (485 اتصال DB → 1)، ذاكرة 2.4 جيجابايت → 195 ميجابايت، مفردات `globalThis`، إصلاح تحذير وقت تشغيل Edge (@zhangqiang8vip)### 🐛 Bug Fixes
 
-- **feat(search)**: Search Analytics tab in `/dashboard/analytics` — provider breakdown, cache hit rate, cost tracking. New API: `GET /api/v1/search/analytics` (#feat/search-provider-routing)
-- **feat(provider)**: Alibaba Cloud DashScope added with custom endpoint path validation — configurable `chatPath` and `modelsPath` per node (#feat/custom-endpoint-paths)
-- **feat(api)**: Per-API-key request-count limits — `max_requests_per_day` and `max_requests_per_minute` columns with in-memory sliding-window enforcement returning HTTP 429 (#452)
-- **feat(dev)**: ZWS v5 — HMR leak fix (485 DB connections → 1), memory 2.4GB → 195MB, `globalThis` singletons, Edge Runtime warning fix (@zhangqiang8vip)
+-**fix(#506)**: `machineId` عبر الأنظمة الأساسية — `getMachineIdRaw()` تمت إعادة كتابته باستخدام الشلال محاولة/التقاط (Windows REG.exe → macOS ioreg → قراءة ملف Linux → اسم المضيف → `os.hostname()`). يزيل تفرع `process.platform` الذي تم حذفه من التعليمات البرمجية الميتة لمجمع Next.js، وإصلاح ``الرأس'' غير معروف على نظام التشغيل Windows. وكذا إصلاح رقم 466.
+-**fix(#493)**: تسمية نموذج الموفر المخصص - تمت إزالة تجريد البادئة غير الصحيحة في `DefaultExecutor.transformRequest()`التي أدت إلى تشويه معرفات النماذج ذات النطاق المؤسسي مثل`zai-org/GLM-5-FP8`.
+-**fix(#490)**: البث + حماية ذاكرة التخزين المؤقت للسياق — يعترض `TransformStream`SSE لإدخال علامة`<omniModel>`قبل علامة`[DONE]`، مما يتيح حماية ذاكرة التخزين المؤقت للسياق لاستجابات الدفق.
+-**fix(#458)**: التحقق من صحة مخطط التحرير والسرد - تمر حقول `system_message` و`tool_filter_regex` و`context_cache_protection`الآن بالتحقق من Zod عند الحفظ.
+-**إصلاح(#487)**: تنظيف بطاقة KIRO MITM - تمت إزالة ZWS_README، وتم إنشاء`AntigravityToolCard` لاستخدام البيانات التعريفية للأداة الديناميكية.### 🧪 Tests
 
-### 🐛 Bug Fixes
+- تمت إضافة اختبارات وحدة تصفية أدوات التنسيق الإنساني (PR #397) - 8 اختبارات انحدار لـ "tool.name" بدون غلاف ".function"
+- مجموعة الاختبارات:**821 اختبارًا، 0 حالات فشل**(ارتفاعًا من 813)### 📋 Issues Closed (8)
 
-- **fix(#506)**: Cross-platform `machineId` — `getMachineIdRaw()` rewritten with try/catch waterfall (Windows REG.exe → macOS ioreg → Linux file read → hostname → `os.hostname()`). Eliminates `process.platform` branching that Next.js bundler dead-code-eliminated, fixing `'head' is not recognized` on Windows. Also fixes #466.
-- **fix(#493)**: Custom provider model naming — removed incorrect prefix stripping in `DefaultExecutor.transformRequest()` that mangled org-scoped model IDs like `zai-org/GLM-5-FP8`.
-- **fix(#490)**: Streaming + context cache protection — `TransformStream` intercepts SSE to inject `<omniModel>` tag before `[DONE]` marker, enabling context cache protection for streaming responses.
-- **fix(#458)**: Combo schema validation — `system_message`, `tool_filter_regex`, `context_cache_protection` fields now pass Zod validation on save.
-- **fix(#487)**: KIRO MITM card cleanup — removed ZWS_README, generified `AntigravityToolCard` to use dynamic tool metadata.
+-**#506**— لم يتم التعرف على "رأس" جهاز Windows (تم الإصلاح) -**#493**— تسمية نموذج الموفر المخصص (ثابت) -**#490**— ذاكرة التخزين المؤقت لسياق البث (ثابتة) -**#452**— حدود الطلب لكل مفتاح API (تم التنفيذ) -**#466**— فشل تسجيل الدخول إلى Windows (نفس السبب الجذري لـ #506) -**#504**— MITM غير نشط (السلوك المتوقع) -**#462**— Gemini CLI PSA (تم الحل) -**#434**— تعطل تطبيق Electron (نسخة مكررة من #402)## [2.8.9] — 2026-03-20
 
-### 🧪 Tests
+> Sprint: دمج العلاقات العامة في المجتمع، وإصلاح بطاقة KIRO MITM، وتحديثات التبعية.### Merged PRs
 
-- Added Anthropic-format tools filter unit tests (PR #397) — 8 regression tests for `tool.name` without `.function` wrapper
-- Test suite: **821 tests, 0 failures** (up from 813)
+-**PR #498**(@Sajid11194): إصلاح تعطل معرف جهاز Windows (`undef\REG.exe`). يستبدل `node-machine-id` باستعلامات تسجيل نظام التشغيل الأصلي.**الإغلاق رقم 486.** -**PR #497**(@zhangqiang8vip): إصلاح تسرب موارد HMR في وضع التطوير — 485 اتصال قاعدة بيانات مسربة → 1، ذاكرة 2.4 جيجابايت → 195 ميجابايت. المفردات "globalThis"، وإصلاح تحذير Edge Runtime، واستقرار اختبار Windows. (+1168/-338 عبر 22 ملفًا) -**PRs #499-503**(Dependabot): تحديثات إجراءات GitHub — `docker/build-push-action@7`، `actions/checkout@6`، `peter-evans/dockerhub-description@5`، `docker/setup-qemu-action@4`، `docker/login-action@4`.### Bug Fixes
 
-### 📋 Issues Closed (8)
-
-- **#506** — Windows machineId `head` not recognized (fixed)
-- **#493** — Custom provider model naming (fixed)
-- **#490** — Streaming context cache (fixed)
-- **#452** — Per-API-key request limits (implemented)
-- **#466** — Windows login failure (same root cause as #506)
-- **#504** — MITM inactive (expected behavior)
-- **#462** — Gemini CLI PSA (resolved)
-- **#434** — Electron app crash (duplicate of #402)
-
-## [2.8.9] — 2026-03-20
-
-> Sprint: Merge community PRs, fix KIRO MITM card, dependency updates.
-
-### Merged PRs
-
-- **PR #498** (@Sajid11194): Fix Windows machine ID crash (`undefined\REG.exe`). Replaces `node-machine-id` with native OS registry queries. **Closes #486.**
-- **PR #497** (@zhangqiang8vip): Fix dev-mode HMR resource leaks — 485 leaked DB connections → 1, memory 2.4GB → 195MB. `globalThis` singletons, Edge Runtime warning fix, Windows test stability. (+1168/-338 across 22 files)
-- **PRs #499-503** (Dependabot): GitHub Actions updates — `docker/build-push-action@7`, `actions/checkout@6`, `peter-evans/dockerhub-description@5`, `docker/setup-qemu-action@4`, `docker/login-action@4`.
-
-### Bug Fixes
-
-- **#505** — KIRO MITM card now displays tool-specific instructions (`api.anthropic.com`) instead of Antigravity-specific text.
-- **#504** — Responded with UX clarification (MITM "Inactive" is expected behavior when proxy is not running).
-
----
+-**#505**— تعرض بطاقة KIRO MITM الآن تعليمات خاصة بالأداة (`api.anthropic.com`) بدلاً من النص الخاص بـ Antigravity. -**#504**— تم الرد بتوضيح تجربة المستخدم (من المتوقع أن يكون سلوك MITM "غير نشط" عندما لا يكون الوكيل قيد التشغيل).---
 
 ## [2.8.8] — 2026-03-20
 
-> Sprint: Fix OAuth batch test crash, add "Test All" button to individual provider pages.
+> Sprint: إصلاح عطل اختبار دفعة OAuth، وإضافة زر "اختبار الكل" إلى صفحات الموفر الفردي.### Bug Fixes
 
-### Bug Fixes
+-**تعطل اختبار دفعة OAuth**(ERR_CONNECTION_REFUSED): تم استبدال الحلقة التسلسلية بحد التزامن المكون من 5 اتصالات + مهلة 30 ثانية لكل اتصال عبر `Promise.race()` + `Promise.allSettled()`. يمنع تعطل الخادم عند اختبار مجموعات موفري OAuth الكبيرة (حوالي 30+ اتصال).### الميزات
 
-- **OAuth batch test crash** (ERR_CONNECTION_REFUSED): Replaced sequential for-loop with 5-connection concurrency limit + 30s per-connection timeout via `Promise.race()` + `Promise.allSettled()`. Prevents server crash when testing large OAuth provider groups (~30+ connections).
-
-### الميزات
-
-- **"Test All" button on provider pages**: Individual provider pages (e.g., `/providers/codex`) now show a "Test All" button in the Connections header when there are 2+ connections. Uses `POST /api/providers/test-batch` with `{mode: "provider", providerId}`. Results displayed in a modal with pass/fail summary and per-connection diagnosis.
-
----
+-**زر "اختبار الكل" في صفحات الموفر**: تعرض صفحات الموفر الفردية (على سبيل المثال، `/providers/codex`) الآن زر "اختبار الكل" في رأس الاتصالات عندما يكون هناك أكثر من اتصالين. يستخدم `POST /api/providers/test-batch` مع `{mode: "provider"، ProviderId}`. يتم عرض النتائج بشكل مشروط مع ملخص النجاح/الفشل والتشخيص لكل اتصال.---
 
 ## [2.8.7] — 2026-03-20
 
-> Sprint: Merge PR #495 (Bottleneck 429 drop), fix #496 (custom embedding providers), triage features.
+> Sprint: دمج PR #495 (إسقاط عنق الزجاجة 429)، الإصلاح #496 (موفري التضمين المخصصين)، ميزات الفرز.### Bug Fixes
 
-### Bug Fixes
+-**عنق الزجاجة 429 الانتظار اللانهائي**(PR #495 بواسطة @xandr0s): في 429، يفشل `limiter.stop({ dropWaitingJobs: true })` على الفور جميع الطلبات الموضوعة في قائمة الانتظار حتى يتمكن المتصلون من المنبع من تشغيل الإجراء الاحتياطي. يتم حذف المحدد من الخريطة، لذا يقوم الطلب التالي بإنشاء مثيل جديد. -**نماذج التضمين المخصصة غير قابلة للحل**(#496): `POST /v1/embeddings` يعمل الآن على حل نماذج التضمين المخصصة من جميع عقد الموفر (وليس المضيف المحلي فقط). لتمكين نماذج مثل `google/gemini-embedding-001` المضافة عبر لوحة التحكم.### Issues Responded
 
-- **Bottleneck 429 infinite wait** (PR #495 by @xandr0s): On 429, `limiter.stop({ dropWaitingJobs: true })` immediately fails all queued requests so upstream callers can trigger fallback. Limiter is deleted from Map so next request creates a fresh instance.
-- **Custom embedding models unresolvable** (#496): `POST /v1/embeddings` now resolves custom embedding models from ALL provider_nodes (not just localhost). Enables models like `google/gemini-embedding-001` added via dashboard.
-
-### Issues Responded
-
-- **#452** — Per-API-key request-count limits (acknowledged, on roadmap)
-- **#464** — Auto-issue API keys with provider/account limits (needs more detail)
-- **#488** — Auto-update model lists (acknowledged, on roadmap)
-- **#496** — Custom embedding provider resolution (fixed)
-
----
+-**#452**— حدود عدد الطلبات لكل مفتاح في واجهة برمجة التطبيقات (تم الإقرار بها، في خريطة الطريق) -**#464**— إصدار مفاتيح API تلقائيًا مع حدود الموفر/الحساب (يحتاج إلى مزيد من التفاصيل) -**#488**— قوائم نماذج التحديث التلقائي (معترف بها، في خريطة الطريق) -**#496**— دقة موفر التضمين المخصصة (ثابتة)---
 
 ## [2.8.6] — 2026-03-20
 
-> Sprint: Merge PR #494 (MiniMax role fix), fix KIRO MITM dashboard, triage 8 issues.
+> Sprint: دمج PR #494 (إصلاح دور MiniMax)، وإصلاح لوحة معلومات KIRO MITM، وفرز 8 مشكلات.### الميزات
 
-### الميزات
+-**مطور MiniMax → إصلاح دور النظام**(PR #494 بواسطة @zhangqiang8vip): تبديل "preserveDeveloperRole" لكل نموذج. يضيف واجهة مستخدم "التوافق" في صفحة مقدمي الخدمة. يعمل على إصلاح 422 "خطأ في دور المعلمة" لـ MiniMax والبوابات المشابهة. -**roleNormalizer**: `normalizeDeveloperRole()` يقبل الآن معلمة `preserveDeveloperRole` بسلوك الحالة الثلاثية (undef=keep، true=keep، false=convert). -**DB**: جديد `getModelPreserveOpenAIDeveloperRole()` و`mergeModelCompatOverride()` في `models.ts`.### Bug Fixes
 
-- **MiniMax developer→system role fix** (PR #494 by @zhangqiang8vip): Per-model `preserveDeveloperRole` toggle. Adds "Compatibility" UI in providers page. Fixes 422 "role param error" for MiniMax and similar gateways.
-- **roleNormalizer**: `normalizeDeveloperRole()` now accepts `preserveDeveloperRole` parameter with tri-state behavior (undefined=keep, true=keep, false=convert).
-- **DB**: New `getModelPreserveOpenAIDeveloperRole()` and `mergeModelCompatOverride()` in `models.ts`.
+-**لوحة معلومات KIRO MITM**(#481/#487): يقوم `CLIToolsPageClient` الآن بتوجيه أي أداة `configType: "mitm"` إلى `AntigravityToolCard` (عناصر التحكم في تشغيل/إيقاف MITM). في السابق، تم تشفير Antigravity فقط. -**AntigravityToolCard عام**: يستخدم `tool.image` و`tool.description` و`tool.id` بدلاً من قيم Antigravity المضمنة. حراس ضد "النماذج الافتراضية" المفقودة.### Cleanup
 
-### Bug Fixes
+- تمت إزالة `ZWS_README_V2.md` (مستندات التطوير فقط من PR #494).### Issues Triaged (8)
 
-- **KIRO MITM dashboard** (#481/#487): `CLIToolsPageClient` now routes any `configType: "mitm"` tool to `AntigravityToolCard` (MITM Start/Stop controls). Previously only Antigravity was hardcoded.
-- **AntigravityToolCard generic**: Uses `tool.image`, `tool.description`, `tool.id` instead of hardcoded Antigravity values. Guards against missing `defaultModels`.
-
-### Cleanup
-
-- Removed `ZWS_README_V2.md` (development-only docs from PR #494).
-
-### Issues Triaged (8)
-
-- **#487** — Closed (KIRO MITM fixed in this release)
-- **#486** — needs-info (Windows REG.exe PATH issue)
-- **#489** — needs-info (Antigravity projectId missing, OAuth reconnect needed)
-- **#492** — needs-info (missing app/server.js on mise-managed Node)
-- **#490** — Acknowledged (streaming + context cache blocking, fix planned)
-- **#491** — Acknowledged (Codex auth state inconsistency)
-- **#493** — Acknowledged (Modal provider model name prefix, workaround provided)
-- **#488** — Feature request backlog (auto-update model lists)
-
----
+-**#487**— مغلق (تم إصلاح KIRO MITM في هذا الإصدار) -**#486**— معلومات الاحتياجات (مشكلة Windows REG.exe PATH) -**#489**— معلومات الاحتياجات (معرف مشروع مكافحة الجاذبية مفقود، يلزم إعادة الاتصال بـ OAuth) -**#492**— معلومات الاحتياجات (التطبيق/server.js مفقود في العقدة المُدارة بواسطة Mise) -**#490**— تم الإقرار (البث + حظر ذاكرة التخزين المؤقت للسياق، تم التخطيط للإصلاح) -**#491**— تم الإقرار (عدم تناسق حالة مصادقة الدستور الغذائي) -**#493**— تم الإقرار (بادئة اسم طراز موفر الوسائط، تم توفير الحل البديل) -**#488**— تراكم طلبات الميزات (قوائم نماذج التحديث التلقائي)---
 
 ## [2.8.5] — 2026-03-19
 
-> Sprint: Fix zombie SSE streams, context cache first-turn, KIRO MITM, and triage 5 external issues.
+> Sprint: إصلاح تدفقات zombie SSE، والدور الأول لذاكرة التخزين المؤقت للسياق، وKIRO MITM، والفرز 5 للمشكلات الخارجية.### Bug Fixes
 
-### Bug Fixes
+-**Zombie SSE Streams**(#473): تقليل `STREAM_IDLE_TIMEOUT_MS` من 300 ثانية إلى 120 ثانية لتراجع أسرع في التحرير والسرد عندما يتوقف مقدمو الخدمة في منتصف البث. قابل للتكوين عبر env var. -**علامة ذاكرة التخزين المؤقت للسياق**(#474): إصلاح `injectModelTag()` للتعامل مع طلبات التشغيل الأولى (لا توجد رسائل مساعدة) — تعمل الآن حماية ذاكرة التخزين المؤقت للسياق من الاستجابة الأولى. -**KIRO MITM**(#481): قم بتغيير KIRO `configType` من `guide` → `mitm` بحيث تعرض لوحة المعلومات عناصر التحكم في تشغيل/إيقاف MITM. -**اختبار E2E**(CI): إصلاح `providers-bailian-coding-plan.spec.ts` - استبعاد التراكب المشروط الموجود مسبقًا قبل النقر فوق الزر Add API Key.### Closed Issues
 
-- **Zombie SSE Streams** (#473): Reduce `STREAM_IDLE_TIMEOUT_MS` from 300s → 120s for faster combo fallback when providers hang mid-stream. Configurable via env var.
-- **Context Cache Tag** (#474): Fix `injectModelTag()` to handle first-turn requests (no assistant messages) — context cache protection now works from the very first response.
-- **KIRO MITM** (#481): Change KIRO `configType` from `guide` → `mitm` so the dashboard renders MITM Start/Stop controls.
-- **E2E Test** (CI): Fix `providers-bailian-coding-plan.spec.ts` — dismiss pre-existing modal overlay before clicking Add API Key button.
-
-### Closed Issues
-
-- #473 — Zombie SSE streams bypass combo fallback
-- #474 — Context cache `<omniModel>` tag missing on first turn
-- #481 — MITM for KIRO not activatable from dashboard
-- #468 — Gemini CLI remote server (superseded by #462 deprecation)
-- #438 — Claude unable to write files (external CLI issue)
-- #439 — AppImage doesn't work (documented libfuse2 workaround)
-- #402 — ARM64 DMG "damaged" (documented xattr -cr workaround)
-- #460 — CLI not runnable on Windows (documented PATH fix)
-
----
+- #473 — تدفقات Zombie SSE لتجاوز التحرير والسرد الاحتياطي
+- #474 — علامة ذاكرة التخزين المؤقت للسياق `<omniModel>` مفقودة عند المنعطف الأول
+- #481 — MITM لـ KIRO غير قابل للتفعيل من لوحة التحكم
+- #468 — خادم Gemini CLI البعيد (تم استبداله بالإهمال #462)
+- #438 — كلود غير قادر على كتابة الملفات (مشكلة واجهة سطر الأوامر الخارجية)
+- #439 — AppImage لا يعمل (الحل البديل الموثق لـ libfuse2)
+- #402 — ARM64 DMG "تالف" (الحل البديل الموثق xattr -cr)
+- #460 — سطر الأوامر غير قابل للتشغيل على نظام التشغيل Windows (إصلاح PATH موثق)---
 
 ## [2.8.4] — 2026-03-19
 
-> Sprint: Gemini CLI deprecation, VM guide i18n fix, dependabot security fix, provider schema expansion.
+> Sprint: إهمال Gemini CLI، وإصلاح دليل VM i18n، وإصلاح أمان التابع، وتوسيع مخطط الموفر.### الميزات
 
-### الميزات
+-**Gemini-CLI Deprecation**(#462): قم بوضع علامة على موفر `gemini-cli` كمهمل مع تحذير - تقوم Google بتقييد استخدام OAuth من جهة خارجية اعتبارًا من مارس 2026 -**مخطط الموفر**(#462): قم بتوسيع التحقق من Zod باستخدام الحقول الاختيارية `مهمل`، `deprecationReason`، `hasFree`، `freeNote`، `authHint`، `apiHint`.### Bug Fixes
 
-- **Gemini CLI Deprecation** (#462): Mark `gemini-cli` provider as deprecated with warning — Google restricts third-party OAuth usage from March 2026
-- **Provider Schema** (#462): Expand Zod validation with `deprecated`, `deprecationReason`, `hasFree`, `freeNote`, `authHint`, `apiHint` optional fields
+-**VM Guide i18n**(#471): أضف `VM_DEPLOYMENT_GUIDE.md` إلى مسار الترجمة i18n، وأعد إنشاء جميع الترجمات المحلية الثلاثين من المصدر الإنجليزي (كانت عالقة باللغة البرتغالية)### الأمان
 
-### Bug Fixes
+-**deps**: Bump `flated` 3.3.3 → 3.4.2 - يعمل على إصلاح تلوث النموذج الأولي CWE-1321 (#484، @dependabot)### Closed Issues
 
-- **VM Guide i18n** (#471): Add `VM_DEPLOYMENT_GUIDE.md` to i18n translation pipeline, regenerate all 30 locale translations from English source (were stuck in Portuguese)
+- #472 — تراجع الأسماء المستعارة النموذجية (تم إصلاحه في الإصدار 2.8.2)
+- #471 — تعطلت ترجمات دليل VM
+- #483 — `البيانات اللاحقة: خالية` بعد `[تم]` (تم الإصلاح في الإصدار 2.8.3)### Merged PRs
 
-### الأمان
-
-- **deps**: Bump `flatted` 3.3.3 → 3.4.2 — fixes CWE-1321 prototype pollution (#484, @dependabot)
-
-### Closed Issues
-
-- #472 — Model Aliases regression (fixed in v2.8.2)
-- #471 — VM guide translations broken
-- #483 — Trailing `data: null` after `[DONE]` (fixed in v2.8.3)
-
-### Merged PRs
-
-- #484 — deps: bump flatted from 3.3.3 to 3.4.2 (@dependabot)
-
----
+- #484 — الانخفاض: تم تسوية النتوء من 3.3.3 إلى 3.4.2 (@dependabot)---
 
 ## [2.8.3] — 2026-03-19
 
-> Sprint: Czech i18n, SSE protocol fix, VM guide translation.
+> Sprint: التشيكية i18n، إصلاح بروتوكول SSE، ترجمة دليل VM.### الميزات
 
-### الميزات
+-**اللغة التشيكية**(#482): اللغة التشيكية الكاملة (cs) i18n — 22 مستندًا، 2606 سلسلة لواجهة المستخدم، تحديثات لمحول اللغة (@zen0bit) -**دليل نشر VM**: مترجم من البرتغالية إلى الإنجليزية كمستند مصدر (@zen0bit)### Bug Fixes
 
-- **Czech Language** (#482): Full Czech (cs) i18n — 22 docs, 2606 UI strings, language switcher updates (@zen0bit)
-- **VM Deployment Guide**: Translated from Portuguese to English as the source document (@zen0bit)
+-**بروتوكول SSE**(#483): إيقاف إرسال البيانات اللاحقة: null بعد إشارة `[DONE]` - يعمل على إصلاح `AI_TypeValidationError` في عملاء AI SDK الصارمين (أدوات التحقق المستندة إلى Zod)### Merged PRs
 
-### Bug Fixes
-
-- **SSE Protocol** (#483): Stop sending trailing `data: null` after `[DONE]` signal — fixes `AI_TypeValidationError` in strict AI SDK clients (Zod-based validators)
-
-### Merged PRs
-
-- #482 — Add Czech language + Fix VM_DEPLOYMENT_GUIDE.md English source (@zen0bit)
-
----
+- #482 — إضافة اللغة التشيكية + إصلاح المصدر الإنجليزي VM_DEPLOYMENT_GUIDE.md (@zen0bit)---
 
 ## [2.8.2] — 2026-03-19
 
-> Sprint: 2 merged PRs, model aliases routing fix, log export, and issue triage.
+> Sprint: 2 ممثلين رئيسيين مدمجين، وإصلاح توجيه الأسماء المستعارة للنموذج، وتصدير السجل، وفرز المشكلات.### الميزات
 
-### الميزات
+-**تصدير السجل**: زر تصدير جديد في `/dashboard/logs` مع القائمة المنسدلة للنطاق الزمني (1h، 6h، 12h، 24h). تنزيل JSON لسجلات الطلب/الوكيل/المكالمات عبر واجهة برمجة التطبيقات `/api/logs/export` (#user-request)### Bug Fixes
 
-- **Log Export**: New Export button on `/dashboard/logs` with time range dropdown (1h, 6h, 12h, 24h). Downloads JSON of request/proxy/call logs via `/api/logs/export` API (#user-request)
+-**توجيه الأسماء المستعارة للنموذج**(#472): الإعدادات ← الأسماء المستعارة للنموذج تؤثر الآن بشكل صحيح على توجيه الموفر، وليس فقط اكتشاف التنسيق. في السابق، تم استخدام مخرجات `resolveModelAlias()` فقط لـ `getModelTargetFormat()` ولكن تم إرسال معرف النموذج الأصلي إلى الموفر -**استخدام تدفق التدفق**(#480): يتم الآن استخراج بيانات الاستخدام من آخر حدث SSE في المخزن المؤقت بشكل صحيح أثناء تدفق التدفق (تم دمجها من @prakersh)### Merged PRs
 
-### Bug Fixes
-
-- **Model Aliases Routing** (#472): Settings → Model Aliases now correctly affect provider routing, not just format detection. Previously `resolveModelAlias()` output was only used for `getModelTargetFormat()` but the original model ID was sent to the provider
-- **Stream Flush Usage** (#480): Usage data from the last SSE event in the buffer is now correctly extracted during stream flush (merged from @prakersh)
-
-### Merged PRs
-
-- #480 — Extract usage from remaining buffer in flush handler (@prakersh)
-- #479 — Add missing Codex 5.3/5.4 and Anthropic model ID pricing entries (@prakersh)
-
----
+- #480 — استخراج الاستخدام من المخزن المؤقت المتبقي في معالج التدفق (@prakersh)
+- #479 — إضافة إدخالات التسعير المفقودة لـ Codex 5.3/5.4 وAnthropic model ID (@prakersh)---
 
 ## [2.8.1] — 2026-03-19
 
-> Sprint: Five community PRs — streaming call log fixes, Kiro compatibility, cache token analytics, Chinese translation, and configurable tool call IDs.
+> Sprint: خمسة علاقات عامة للمجتمع - إصلاحات سجل المكالمات المتدفقة، وتوافق Kiro، وتحليلات الرمز المميز لذاكرة التخزين المؤقت، والترجمة الصينية، ومعرفات مكالمات الأدوات القابلة للتكوين.### الميزات
 
-### الميزات
+-**feat(logs)**: يتم الآن تجميع محتوى استجابة سجل المكالمات بشكل صحيح من أجزاء الموفر الأولية (OpenAI/Claude/Gemini) قبل الترجمة، وإصلاح حمولات الاستجابة الفارغة في وضع البث (#470، @zhangqiang8vip) -**feat(providers)**: تطبيع معرف استدعاء أداة مكونة من 9 أحرف قابلة للتكوين لكل نموذج (نمط ميسترال) - فقط النماذج التي تم تمكين الخيار تحصل على معرفات مقطوعة (#470) -**feat(api)**: تم توسيع واجهة برمجة التطبيقات Key PATCH لدعم حقول `allowedConnections` و`name` و`autoResolve` و`isActive` و`accessSchedule` (#470) -**feat(dashboard)**: تخطيط الاستجابة الأولى في واجهة المستخدم الخاصة بتفاصيل سجل الطلب (#470) -**feat(i18n)**: ترجمة محسنة للصينية (zh-CN) — إعادة ترجمة كاملة (#475, @only4copilot)### 🐛 Bug Fixes
 
-- **feat(logs)**: Call log response content now correctly accumulated from raw provider chunks (OpenAI/Claude/Gemini) before translation, fixing empty response payloads in streaming mode (#470, @zhangqiang8vip)
-- **feat(providers)**: Per-model configurable 9-char tool call ID normalization (Mistral-style) — only models with the option enabled get truncated IDs (#470)
-- **feat(api)**: Key PATCH API expanded to support `allowedConnections`, `name`, `autoResolve`, `isActive`, and `accessSchedule` fields (#470)
-- **feat(dashboard)**: Response-first layout in request log detail UI (#470)
-- **feat(i18n)**: Improved Chinese (zh-CN) translation — complete retranslation (#475, @only4copilot)
-
-### 🐛 Bug Fixes
-
-- **fix(kiro)**: Strip injected `model` field from request body — Kiro API rejects unknown top-level fields (#478, @prakersh)
-- **fix(usage)**: Include cache read + cache creation tokens in usage history input totals for accurate analytics (#477, @prakersh)
-- **fix(callLogs)**: Support Claude format usage fields (`input_tokens`/`output_tokens`) alongside OpenAI format, include all cache token variants (#476, @prakersh)
-
----
+-**fix(kiro)**: قم بإزالة حقل "النموذج" الذي تم إدخاله من نص الطلب - ترفض واجهة برمجة تطبيقات Kiro حقول المستوى الأعلى غير المعروفة (#478، @prakersh) -**الإصلاح (الاستخدام)**: تضمين الرموز المميزة لقراءة ذاكرة التخزين المؤقت + إنشاء ذاكرة التخزين المؤقت في إجماليات إدخال سجل الاستخدام للحصول على تحليلات دقيقة (#477، @prakersh) -**إصلاح (callLogs)**: دعم حقول استخدام تنسيق Claude (`input_tokens`/`output_tokens`) جنبًا إلى جنب مع تنسيق OpenAI، بما في ذلك جميع متغيرات رمز ذاكرة التخزين المؤقت (#476، @prakersh)---
 
 ## [2.8.0] — 2026-03-19
 
-> Sprint: Bailian Coding Plan provider with editable base URLs, plus community contributions for Alibaba Cloud and Kimi Coding.
+> Sprint: مزود خطة Bailian Coding Plan مع عناوين URL أساسية قابلة للتحرير، بالإضافة إلى مساهمات المجتمع لـ Alibaba Cloud وKimi Coding.### الميزات
 
-### الميزات
+-**الفذ (المقدمون)**: تمت إضافة خطة Bailian Coding Plan (`bailian-coding-plan`) - Alibaba Model Studio مع واجهة برمجة التطبيقات المتوافقة مع Anthropic. كتالوج ثابت لـ 8 موديلات بما في ذلك Qwen3.5 Plus وQwen3 Coder وMiniMax M2.5 وGLM 5 وKimi K2.5. يتضمن التحقق من صحة المصادقة المخصصة (400=صالح، 401/403=غير صالح) (#467، @Mind-Dragon) -**feat(admin)**: عنوان URL الافتراضي القابل للتحرير في تدفقات إنشاء/تحرير مسؤول الموفر - يمكن للمستخدمين تكوين عناوين URL الأساسية المخصصة لكل اتصال. استمرار في `providerSpecificData.baseUrl` مع رفض التحقق من صحة مخطط Zod للمخططات التي لا تنتمي إلى http(s) (#467)### 🧪 Tests
 
-- **feat(providers)**: Added Bailian Coding Plan (`bailian-coding-plan`) — Alibaba Model Studio with Anthropic-compatible API. Static catalog of 8 models including Qwen3.5 Plus, Qwen3 Coder, MiniMax M2.5, GLM 5, and Kimi K2.5. Includes custom auth validation (400=valid, 401/403=invalid) (#467, @Mind-Dragon)
-- **feat(admin)**: Editable default URL in Provider Admin create/edit flows — users can configure custom base URLs per connection. Persisted in `providerSpecificData.baseUrl` with Zod schema validation rejecting non-http(s) schemes (#467)
-
-### 🧪 Tests
-
-- Added 30+ unit tests and 2 e2e scenarios for Bailian Coding Plan provider covering auth validation, schema hardening, route-level behavior, and cross-layer integration
-
----
+- تمت إضافة أكثر من 30 اختبارًا للوحدة وسيناريوهين e2e لموفر خطة Bailian Coding Plan التي تغطي التحقق من المصادقة وتقوية المخطط والسلوك على مستوى المسار والتكامل عبر الطبقات---
 
 ## [2.7.10] — 2026-03-19
 
-> Sprint: Two new community-contributed providers (Alibaba Cloud Coding, Kimi Coding API-key) and Docker pino fix.
+> Sprint: موفران جديدان يساهم فيهما المجتمع (Alibaba Cloud Coding وKimi Coding API-key) وDocker pino Fix.### الميزات
 
-### الميزات
+-**feat(providers)**: تمت إضافة دعم خطة Alibaba Cloud Coding Plan مع نقطتي نهاية متوافقتين مع OpenAI - `alicode` (الصين) و`alicode-intl` (دولي)، كل منهما يحتوي على 8 نماذج (#465، @dtk1985) -**feat(providers)**: تمت إضافة مسار موفر `kimi-coding-apikey` المخصص - لم يعد الوصول إلى Kimi Coding المستند إلى مفتاح واجهة برمجة التطبيقات مفروضًا من خلال مسار `kimi-coding` الخاص بـ OAuth فقط. يتضمن التسجيل والثوابت ونماذج API والتكوين واختبار التحقق من الصحة (#463، @Mind-Dragon)### 🐛 Bug Fixes
 
-- **feat(providers)**: Added Alibaba Cloud Coding Plan support with two OpenAI-compatible endpoints — `alicode` (China) and `alicode-intl` (International), each with 8 models (#465, @dtk1985)
-- **feat(providers)**: Added dedicated `kimi-coding-apikey` provider path — API-key-based Kimi Coding access is no longer forced through OAuth-only `kimi-coding` route. Includes registry, constants, models API, config, and validation test (#463, @Mind-Dragon)
-
-### 🐛 Bug Fixes
-
-- **fix(docker)**: Added missing `split2` dependency to Docker image — `pino-abstract-transport` requires it at runtime but it was not being copied into the standalone container, causing `Cannot find module 'split2'` crashes (#459)
-
----
+-**fix(docker)**: تمت إضافة تبعية `split2` المفقودة إلى صورة Docker - يتطلب `pino-abstract-transport` ذلك في وقت التشغيل ولكن لم يتم نسخه إلى الحاوية المستقلة، مما تسبب في تعطل ``لا يمكن العثور على الوحدة 'split2'' (#459)---
 
 ## [2.7.9] — 2026-03-18
 
-> Sprint: Codex responses subpath passthrough natively supported, Windows MITM crash fixed, and Combos agent schemas adjusted.
+> Sprint: يتم دعم عبور المسار الفرعي لاستجابات Codex بشكل أصلي، وتم إصلاح تعطل Windows MITM، وتعديل مخططات وكيل Combos.### الميزات
 
-### الميزات
+-**feat(codex)**: ممر فرعي للاستجابات الأصلية لـ Codex - يقوم أصلاً بتوجيه `POST /v1/responses/compact` إلى Codex المنبع، مع الحفاظ على توافق Claude Code دون تجريد اللاحقة `/compact` (#457)### 🐛 Bug Fixes
 
-- **feat(codex)**: Native responses subpath passthrough for Codex — natively routes `POST /v1/responses/compact` to Codex upstream, maintaining Claude Code compatibility without stripping the `/compact` suffix (#457)
-
-### 🐛 Bug Fixes
-
-- **fix(combos)**: Zod schemas (`updateComboSchema` and `createComboSchema`) now include `system_message`, `tool_filter_regex`, and `context_cache_protection`. Fixes bug where agent-specific settings created via the dashboard were silently discarded by the backend validation layer (#458)
-- **fix(mitm)**: Kiro MITM profile crash on Windows fixed — `node-machine-id` failed due to missing `REG.exe` env, and the fallback threw a fatal `crypto is not defined` error. Fallback now safely and correctly imports crypto (#456)
-
----
+-**إصلاح (المجموعات)**: تتضمن مخططات Zod (`updateComboSchema` و`createComboSchema`) الآن `system_message` و`tool_filter_regex` و`context_cache_protection`. إصلاح الخلل حيث تم تجاهل الإعدادات الخاصة بالوكيل والتي تم إنشاؤها عبر لوحة المعلومات بصمت بواسطة طبقة التحقق من الواجهة الخلفية (#458) -**fix(mitm)**: تم إصلاح تعطل ملف تعريف Kiro MITM على نظام التشغيل Windows - فشل `node-machine-id` بسبب فقدان `REG.exe` env، وأدى الإجراء الاحتياطي إلى ظهور خطأ فادح `crypto not المعرفة`. الإجراء الاحتياطي الآن يستورد العملات المشفرة بأمان وبشكل صحيح (#456)---
 
 ## [2.7.8] — 2026-03-18
 
-> Sprint: Budget save bug + combo agent features UI + omniModel tag security fix.
+> Sprint: خطأ حفظ الميزانية + ميزات وكيل التحرير والسرد واجهة المستخدم + إصلاح أمان علامة omniModel.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**إصلاح (الميزانية)**: لم تعد "حدود الحفظ" تُرجع 422 — يتم الآن إرسال `warningThreshold` بشكل صحيح ككسر (0–1) بدلاً من النسبة المئوية (0–100) (#451) -**fix(combos)**: تم الآن تجريد علامة ذاكرة التخزين المؤقت الداخلية `<omniModel>` قبل إعادة توجيه الطلبات إلى مقدمي الخدمة، مما يمنع فترات انقطاع ذاكرة التخزين المؤقت (#454)### الميزات
 
-- **fix(budget)**: "Save Limits" no longer returns 422 — `warningThreshold` is now correctly sent as fraction (0–1) instead of percentage (0–100) (#451)
-- **fix(combos)**: `<omniModel>` internal cache tag is now stripped before forwarding requests to providers, preventing cache session breaks (#454)
-
-### الميزات
-
-- **feat(combos)**: Agent Features section added to combo create/edit modal — expose `system_message` override, `tool_filter_regex`, and `context_cache_protection` directly from the dashboard (#454)
-
----
+-**feat(combos)**: تمت إضافة قسم ميزات الوكيل إلى التحرير والسرد المشروط - كشف تجاوز `system_message` و`tool_filter_regex` و`context_cache_protection` مباشرة من لوحة المعلومات (#454)---
 
 ## [2.7.7] — 2026-03-18
 
-> Sprint: Docker pino crash, Codex CLI responses worker fix, package-lock sync.
+> Sprint: تعطل Docker pino، وإصلاح عامل استجابات Codex CLI، ومزامنة قفل الحزمة.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(docker)**: تم الآن نسخ `pino-abstract-transport` و`pino-pretty` بشكل صريح في مرحلة تشغيل Docker - يفتقد تتبع Next.js المستقل عمليات النظير هذه، مما يتسبب في تعطل `لا يمكن العثور على الوحدة النمطية pino-abstract-transport` عند بدء التشغيل (#449) -**fix(responses)**: إزالة `initTranslators()` من مسار `/v1/responses` - كانت تتسبب في تعطل عامل Next.js مع `العامل قد خرج' uncaughtException على طلبات Codex CLI (#450)### 🔧 Maintenance
 
-- **fix(docker)**: `pino-abstract-transport` and `pino-pretty` now explicitly copied in Docker runner stage — Next.js standalone trace misses these peer deps, causing `Cannot find module pino-abstract-transport` crash on startup (#449)
-- **fix(responses)**: Remove `initTranslators()` from `/v1/responses` route — was crashing Next.js worker with `the worker has exited` uncaughtException on Codex CLI requests (#450)
-
-### 🔧 Maintenance
-
-- **chore(deps)**: `package-lock.json` now committed on every version bump to ensure Docker `npm ci` uses exact dependency versions
-
----
+-**العمل الروتيني(deps)**: يتم الالتزام الآن بـpackage-lock.json في كل زيادة في الإصدار للتأكد من أن Docker `npm ci` يستخدم إصدارات التبعية الدقيقة---
 
 ## [2.7.5] — 2026-03-18
 
-> Sprint: UX improvements and Windows CLI healthcheck fix.
+> Sprint: تحسينات UX وإصلاح فحص صحة Windows CLI.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(ux)**: Show default password hint on login page — new users now see `"Default password: 123456"` below the password input (#437)
-- **fix(cli)**: Claude CLI and other npm-installed tools now correctly detected as runnable on Windows — spawn uses `shell:true` to resolve `.cmd` wrappers via PATHEXT (#447)
-
----
+-**fix(ux)**: إظهار تلميح كلمة المرور الافتراضية في صفحة تسجيل الدخول - يرى المستخدمون الجدد الآن `"كلمة المرور الافتراضية: 123456"` أسفل إدخال كلمة المرور (#437) -**fix(cli)**: تم الآن اكتشاف كلود CLI والأدوات الأخرى المثبتة بواسطة npm بشكل صحيح على أنها قابلة للتشغيل على Windows — يستخدم Spawn `shell:true` لحل أغلفة `.cmd` عبر PATHEXT (#447)---
 
 ## [2.7.4] — 2026-03-18
 
-> Sprint: Search Tools dashboard, i18n fixes, Copilot limits, Serper validation fix.
+> Sprint: لوحة معلومات أدوات البحث، وإصلاحات i18n، وحدود مساعد الطيار، وإصلاح التحقق من صحة الخادم.### الميزات
 
-### الميزات
+-**عمل (بحث)**: إضافة ساحة بحث (نقطة النهاية العاشرة)، وصفحة أدوات البحث مع مقارنة الموفرين/إعادة ترتيب خط الأنابيب/سجل البحث، وتوجيه إعادة الترتيب المحلي، وحرس المصادقة على واجهة برمجة تطبيقات البحث (#443 بواسطة @Regis-RCR)
 
-- **feat(search)**: Add Search Playground (10th endpoint), Search Tools page with Compare Providers/Rerank Pipeline/Search History, local rerank routing, auth guards on search API (#443 by @Regis-RCR)
-  - New route: `/dashboard/search-tools`
-  - Sidebar entry under Debug section
-  - `GET /api/search/providers` and `GET /api/search/stats` with auth guards
-  - Local provider_nodes routing for `/v1/rerank`
-  - 30+ i18n keys in search namespace
+- مسار جديد: `/dashboard/search-tools`
+- إدخال الشريط الجانبي ضمن قسم التصحيح
+- `الحصول على /api/search/providers` و`الحصول على /api/search/stats` مع حراس المصادقة
+- توجيه عقد الموفر المحلي لـ `/v1/rerank`
+- 30+ مفاتيح i18n في مساحة اسم البحث### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(search)**: Fix Brave news normalizer (was returning 0 results), enforce max_results truncation post-normalization, fix Endpoints page fetch URL (#443 by @Regis-RCR)
-- **fix(analytics)**: Localize analytics day/date labels — replace hardcoded Portuguese strings with `Intl.DateTimeFormat(locale)` (#444 by @hijak)
-- **fix(copilot)**: Correct GitHub Copilot account type display, filter misleading unlimited quota rows from limits dashboard (#445 by @hijak)
-- **fix(providers)**: Stop rejecting valid Serper API keys — treat non-4xx responses as valid authentication (#446 by @hijak)
-
----
+-**إصلاح (بحث)**: إصلاح أداة تسوية الأخبار Brave (كانت تُرجع 0 نتيجة)، وفرض اقتطاع الحد الأقصى للنتائج بعد التسوية، وإصلاح عنوان URL لجلب صفحة نقاط النهاية (#443 بواسطة @Regis-RCR) -**fix(analytics)**: ترجمة تسميات اليوم/التاريخ للتحليلات - استبدل السلاسل البرتغالية المشفرة بـ `Intl.DateTimeFormat(locale)` (#444 بواسطة @hijak) -**إصلاح (مساعد الطيار)**: عرض نوع حساب GitHub Copilot الصحيح، وتصفية صفوف الحصص غير المحدودة المضللة من لوحة معلومات الحدود (#445 بواسطة @hijak) -**fix(providers)**: توقف عن رفض مفاتيح Serper API الصالحة - تعامل مع الاستجابات غير 4xx على أنها مصادقة صالحة (#446 بواسطةhijak)---
 
 ## [2.7.3] — 2026-03-18
 
-> Sprint: Codex direct API quota fallback fix.
+> Sprint: الإصلاح الاحتياطي لحصة Codex Direct API.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(codex)**: حظر الحسابات المنهكة أسبوعيًا في الإجراء الاحتياطي المباشر لواجهة برمجة التطبيقات (#440)
 
-- **fix(codex)**: Block weekly-exhausted accounts in direct API fallback (#440)
-  - `resolveQuotaWindow()` prefix matching: `"weekly"` now matches `"weekly (7d)"` cache keys
-  - `applyCodexWindowPolicy()` enforces `useWeekly`/`use5h` toggles correctly
-  - 4 new regression tests (766 total)
-
----
+- مطابقة البادئة `resolveQuotaWindow()`: `"weekly"` تتطابق الآن مع مفاتيح ذاكرة التخزين المؤقت `"weekly (7d)"`
+- يفرض `applyCodexWindowPolicy()` تبديل `useWeekly`/`use5h` بشكل صحيح
+- 4 اختبارات انحدار جديدة (إجمالي 766)---
 
 ## [2.7.2] — 2026-03-18
 
-> Sprint: Light mode UI contrast fixes.
+> Sprint: إصلاحات تباين واجهة المستخدم في الوضع الخفيف.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**إصلاح (السجلات)**: إصلاح تباين الوضع الخفيف في أزرار تصفية سجلات الطلب وشارة التحرير والسرد (#378)
 
-- **fix(logs)**: Fix light mode contrast in request logs filter buttons and combo badge (#378)
-  - Error/Success/Combo filter buttons now readable in light mode
-  - Combo row badge uses stronger violet in light mode
-
----
+- أصبحت أزرار مرشح الخطأ/النجاح/السرد قابلة للقراءة في الوضع الفاتح
+- تستخدم شارة الصف المجمع اللون البنفسجي الأقوى في وضع الإضاءة---
 
 ## [2.7.1] — 2026-03-17
 
-> Sprint: Unified web search routing (POST /v1/search) with 5 providers + Next.js 16.1.7 security fixes (6 CVEs).
+> Sprint: توجيه بحث الويب الموحد (POST /v1/search) مع 5 موفري + Next.js 16.1.7 إصلاحات أمنية (6 CVEs).### ✨ New Features
 
-### ✨ New Features
+-**feat(search)**: توجيه بحث الويب الموحد — `POST /v1/search` مع 5 مقدمي خدمات (Serper، Brave، Perplexity، Exa، Tavily)
 
-- **feat(search)**: Unified web search routing — `POST /v1/search` with 5 providers (Serper, Brave, Perplexity, Exa, Tavily)
-  - Auto-failover across providers, 6,500+ free searches/month
-  - In-memory cache with request coalescing (configurable TTL)
-  - Dashboard: Search Analytics tab in `/dashboard/analytics` with provider breakdown, cache hit rate, cost tracking
-  - New API: `GET /api/v1/search/analytics` for search request statistics
-  - DB migration: `request_type` column on `call_logs` for non-chat request tracking
-  - Zod validation (`v1SearchSchema`), auth-gated, cost recorded via `recordCost()`
+- تجاوز الفشل تلقائيًا عبر مقدمي الخدمة، أكثر من 6500 عملية بحث مجانية شهريًا
+- ذاكرة تخزين مؤقت في الذاكرة مع دمج الطلب (TTL قابل للتكوين)
+- لوحة المعلومات: علامة التبويب "تحليلات البحث" في `/dashboard/analytics` مع تفاصيل الموفر، ومعدل ضربات ذاكرة التخزين المؤقت، وتتبع التكلفة
+- واجهة برمجة التطبيقات الجديدة: `الحصول على /api/v1/search/analytics` لإحصائيات طلبات البحث
+- ترحيل قاعدة البيانات: عمود `request_type` في `call_logs` لتتبع الطلبات غير المتعلقة بالدردشة
+- التحقق من صحة Zod (`v1SearchSchema`)، والمصادقة، وتسجيل التكلفة عبر `recordCost()`### الأمان
 
-### الأمان
+-**deps**: Next.js 16.1.6 → 16.1.7 — يعمل على إصلاح 6 مشكلات خطيرة خطيرة: -**حرج**: CVE-2026-29057 (تهريب طلب HTTP عبر http-proxy) -**مرتفع**: CVE-2026-27977، CVE-2026-27978 (WebSocket + إجراءات الخادم) -**متوسط**: CVE-2026-27979، CVE-2026-27980، CVE-2026-jcc7### 📁 New Files
 
-- **deps**: Next.js 16.1.6 → 16.1.7 — fixes 6 CVEs:
-  - **Critical**: CVE-2026-29057 (HTTP request smuggling via http-proxy)
-  - **High**: CVE-2026-27977, CVE-2026-27978 (WebSocket + Server Actions)
-  - **Medium**: CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7
-
-### 📁 New Files
-
-| File                                                             | Purpose                                    |
-| ---------------------------------------------------------------- | ------------------------------------------ |
-| `open-sse/handlers/search.ts`                                    | Search handler with 5-provider routing     |
-| `open-sse/config/searchRegistry.ts`                              | Provider registry (auth, cost, quota, TTL) |
-| `open-sse/services/searchCache.ts`                               | In-memory cache with request coalescing    |
-| `src/app/api/v1/search/route.ts`                                 | Next.js route (POST + GET)                 |
-| `src/app/api/v1/search/analytics/route.ts`                       | Search stats API                           |
-| `src/app/(dashboard)/dashboard/analytics/SearchAnalyticsTab.tsx` | Analytics dashboard tab                    |
-| `src/lib/db/migrations/007_search_request_type.sql`              | DB migration                               |
-| `tests/unit/search-registry.test.mjs`                            | 277 lines of unit tests                    |
-
----
+| ملف                                                              | الغرض                                        |
+| ---------------------------------------------------------------- | -------------------------------------------- | --- |
+| `open-sse/handlers/search.ts`                                    | معالج البحث مع توجيه 5 موفر                  |
+| `open-sse/config/searchRegistry.ts`                              | تسجيل الموفر (المصادقة، التكلفة، الحصة، TTL) |
+| `open-sse/services/searchCache.ts`                               | ذاكرة التخزين المؤقت في الذاكرة مع طلب الدمج |
+| `src/app/api/v1/search/route.ts`                                 | مسار Next.js (POST + GET)                    |
+| `src/app/api/v1/search/analytics/route.ts`                       | واجهة برمجة تطبيقات إحصائيات البحث           |
+| `src/app/(dashboard)/dashboard/analytics/SearchAnalyticsTab.tsx` | علامة تبويب لوحة التحكم التحليلية            |
+| `src/lib/db/migrations/007_search_request_type.sql`              | ترحيل قاعدة البيانات                         |
+| `الاختبارات/الوحدة/البحث-registry.test.mjs`                      | 277 سطرًا من اختبارات الوحدة                 | --- |
 
 ## [2.7.0] — 2026-03-17
 
-> Sprint: ClawRouter-inspired features — toolCalling flag, multilingual intent detection, benchmark-driven fallback, request deduplication, pluggable RouterStrategy, Grok-4 Fast + GLM-5 + MiniMax M2.5 + Kimi K2.5 pricing.
+> Sprint: ميزات مستوحاة من ClawRouter - علامة استدعاء الأدوات، والكشف عن النوايا المتعددة اللغات، والرجوع المستند إلى المعايير القياسية، وإلغاء البيانات المكررة للطلبات، وRouterStrategy القابلة للتوصيل، وتسعير Grok-4 Fast + GLM-5 + MiniMax M2.5 + Kimi K2.5.### ✨ New Models & Pricing
 
-### ✨ New Models & Pricing
+-**feat(pricing)**: xAI Grok-4 Fast — `0.20 دولار/0.50 دولار لكل مليون رمز، زمن استجابة 1143 مللي ثانية p50، دعم استدعاء الأدوات
+-**feat(pricing)**: xAI Grok-4 (قياسي) — `0.20 دولار/1.50 دولار لكل مليون رمز مميز`، السبب الرئيسي
+-**feat(pricing)**: GLM-5 عبر Z.AI — `0.5 دولار/1 مليون`، سياق إخراج 128 ألفًا
+-**الإنجاز (التسعير)**: MiniMax M2.5 — `0.30 دولار أمريكي/1 مليون إدخال`، والاستدلال + المهام الوكيلة
+-**السعر الفذ (التسعير)**: DeepSeek V3.2 — السعر المحدث `0.27 دولار/1.10 دولار لكل مليون`-**السعر الفذ (التسعير)**: Kimi K2.5 عبر Moonshot API — الوصول المباشر إلى Moonshot API
+-**الفذ(المقدمون)**: تمت إضافة موفر Z.AI (الاسم المستعار`zai`) — عائلة GLM-5 بإنتاجية 128 ألفًا### 🧠 Routing Intelligence
 
-- **feat(pricing)**: xAI Grok-4 Fast — `$0.20/$0.50 per 1M tokens`, 1143ms p50 latency, tool calling supported
-- **feat(pricing)**: xAI Grok-4 (standard) — `$0.20/$1.50 per 1M tokens`, reasoning flagship
-- **feat(pricing)**: GLM-5 via Z.AI — `$0.5/1M`, 128K output context
-- **feat(pricing)**: MiniMax M2.5 — `$0.30/1M input`, reasoning + agentic tasks
-- **feat(pricing)**: DeepSeek V3.2 — updated pricing `$0.27/$1.10 per 1M`
-- **feat(pricing)**: Kimi K2.5 via Moonshot API — direct Moonshot API access
-- **feat(providers)**: Z.AI provider added (`zai` alias) — GLM-5 family with 128K output
+-**feat(registry)**: علامة `toolCalling` لكل نموذج في سجل الموفر - يمكن للمجموعات الآن أن تفضل/تتطلب نماذج قادرة على استدعاء الأدوات -**feat(scoring)**: اكتشاف النوايا متعدد اللغات لتسجيل نقاط AutoCombo - تؤثر أنماط النصوص/اللغة PT/ZH/ES/AR على اختيار النموذج لكل سياق طلب -**feat(fallback)**: سلاسل احتياطية تعتمد على المعيار - بيانات زمن الاستجابة الحقيقية (p50 من `comboMetrics`) تُستخدم لإعادة ترتيب الأولوية الاحتياطية ديناميكيًا -**feat(dedup)**: طلب إلغاء البيانات المكررة عبر تجزئة المحتوى — نافذة عدم القدرة لمدة 5 ثوانٍ تمنع مكالمات الموفر المكررة من إعادة محاولة العملاء -**feat(router)**: واجهة `RouterStrategy` قابلة للتوصيل في `autoCombo/routerStrategy.ts` - يمكن إدخال منطق التوجيه المخصص دون تعديل النواة### 🔧 MCP Server Improvements
 
-### 🧠 Routing Intelligence
+-**feat(mcp)**: مخططان جديدان للأدوات المتقدمة: `omniroute_get_provider_metrics` (p50/p95/p99 لكل موفر) و`omniroute_explain_route` (شرح قرار التوجيه) -**feat(mcp)**: تم تحديث نطاقات مصادقة أداة MCP - تمت إضافة نطاق `المقاييس: القراءة` لأدوات مقاييس الموفر -**feat(mcp)**: `omniroute_best_combo_for_task` يقبل الآن معلمة `languageHint` للتوجيه متعدد اللغات### 📊 Observability
 
-- **feat(registry)**: `toolCalling` flag per model in provider registry — combos can now prefer/require tool-calling capable models
-- **feat(scoring)**: Multilingual intent detection for AutoCombo scoring — PT/ZH/ES/AR script/language patterns influence model selection per request context
-- **feat(fallback)**: Benchmark-driven fallback chains — real latency data (p50 from `comboMetrics`) used to re-order fallback priority dynamically
-- **feat(dedup)**: Request deduplication via content-hash — 5-second idempotency window prevents duplicate provider calls from retrying clients
-- **feat(router)**: Pluggable `RouterStrategy` interface in `autoCombo/routerStrategy.ts` — custom routing logic can be injected without modifying core
+-**feat(metrics)**: `comboMetrics.ts` ممتد من خلال التتبع المئوي لزمن الاستجابة في الوقت الفعلي لكل موفر/حساب -**feat(health)**: واجهة برمجة تطبيقات الصحة (`/api/monitoring/health`) تعرض الآن حقلي `p50Latency` و`errorRate` لكل موفر -**الإنجاز (الاستخدام)**: ترحيل سجل الاستخدام لتتبع زمن الاستجابة لكل نموذج### 🗄️ DB Migrations
 
-### 🔧 MCP Server Improvements
+-**feat(migrations)**: عمود جديد `latency_p50` في جدول `combo_metrics` - بدون انقطاع، وآمن للمستخدمين الحاليين### 🐛 Bug Fixes / Closures
 
-- **feat(mcp)**: 2 new advanced tool schemas: `omniroute_get_provider_metrics` (p50/p95/p99 per provider) and `omniroute_explain_route` (routing decision explanation)
-- **feat(mcp)**: MCP tool auth scopes updated — `metrics:read` scope added for provider metrics tools
-- **feat(mcp)**: `omniroute_best_combo_for_task` now accepts `languageHint` parameter for multilingual routing
+-**إغلاق(#411)**: دقة أفضل للوحدة المجزأة sqlite3 على نظام التشغيل Windows - تم إصلاحها في الإصدار 2.6.10 (f02c5b5) -**إغلاق(#409)**: فشل إكمال دردشة GitHub Copilot مع نماذج Claude عند إرفاق الملفات - تم إصلاحه في الإصدار 2.6.9 (838f1d6) -**إغلاق(#405)**: نسخة مكررة من رقم 411 — تم حلها## [2.6.10] — 2026-03-17
 
-### 📊 Observability
+> إصلاح نظام التشغيل Windows: تنزيل Better-sqlite3 المُعد مسبقًا بدون العقدة-gyp/Python/MSVC (#426).### 🐛 Bug Fixes
 
-- **feat(metrics)**: `comboMetrics.ts` extended with real-time latency percentile tracking per provider/account
-- **feat(health)**: Health API (`/api/monitoring/health`) now returns per-provider `p50Latency` and `errorRate` fields
-- **feat(usage)**: Usage history migration for per-model latency tracking
-
-### 🗄️ DB Migrations
-
-- **feat(migrations)**: New column `latency_p50` in `combo_metrics` table — zero-breaking, safe for existing users
-
-### 🐛 Bug Fixes / Closures
-
-- **close(#411)**: better-sqlite3 hashed module resolution on Windows — fixed in v2.6.10 (f02c5b5)
-- **close(#409)**: GitHub Copilot chat completions fail with Claude models when files attached — fixed in v2.6.9 (838f1d6)
-- **close(#405)**: Duplicate of #411 — resolved
-
-## [2.6.10] — 2026-03-17
-
-> Windows fix: better-sqlite3 prebuilt download without node-gyp/Python/MSVC (#426).
-
-### 🐛 Bug Fixes
-
-- **fix(install/#426)**: On Windows, `npm install -g omniroute` used to fail with `better_sqlite3.node is not a valid Win32 application` because the bundled native binary was compiled for Linux. Adds **Strategy 1.5** to `scripts/postinstall.mjs`: uses `@mapbox/node-pre-gyp install --fallback-to-build=false` (bundled within `better-sqlite3`) to download the correct prebuilt binary for the current OS/arch without requiring any build tools (no node-gyp, no Python, no MSVC). Falls back to `npm rebuild` only if the download fails. Adds platform-specific error messages with clear manual fix instructions.
-
----
+-**fix(install/#426)**: في نظام التشغيل Windows، يُستخدم `npm install -g omniroute` للفشل مع `better_sqlite3.node ليس تطبيق Win32 صالحًا` لأنه تم تجميع البرنامج الثنائي الأصلي المجمع لنظام التشغيل Linux. إضافة**الاستراتيجية 1.5**إلى `scripts/postinstall.mjs`: تستخدم `@mapbox/node-pre-gyp install --fallback-to-build=false` (مجمعة ضمن `better-sqlite3`) لتنزيل الملف الثنائي الصحيح الذي تم إنشاؤه مسبقًا لنظام التشغيل/القوس الحالي دون الحاجة إلى أي أدوات إنشاء (بدون عقدة gyp، ولا Python، ولا MSVC). يعود إلى "إعادة بناء npm" فقط في حالة فشل التنزيل. يضيف رسائل خطأ خاصة بالنظام الأساسي مع تعليمات واضحة للإصلاح اليدوي.---
 
 ## [2.6.9] — 2026-03-17
 
-> CI fixes (t11 any-budget), bug fix #409 (file attachments via Copilot+Claude), release workflow correction.
+> إصلاحات CI (t11 لأي ​​ميزانية)، وإصلاح الأخطاء رقم 409 (مرفقات الملفات عبر Copilot+Claude)، وتصحيح سير العمل.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(ci)**: إزالة الكلمة "any" من التعليقات الموجودة في `openai-responses.ts` و`chatCore.ts` التي فشلت في التحقق من الميزانية t11 `any` (إيجابية خاطئة من التعليقات التي تحسب التعبير العادي) -**fix(chatCore)**: تطبيع أنواع أجزاء المحتوى غير المدعومة قبل إعادة توجيهها إلى مقدمي الخدمة (#409 — يرسل المؤشر `{type:"file"}` عند إرفاق ملفات `.md`؛ ويرفض برنامج Copilot وغيره من موفري خدمات OpenAI المتوافقة "يجب أن يكون النوع إما 'image_url' أو 'text'"؛ ويحول الإصلاح كتل "file`/`document`إلى`text`` ويسقط الأنواع غير المعروفة)### 🔧 Workflow
 
-- **fix(ci)**: Remove word "any" from comments in `openai-responses.ts` and `chatCore.ts` that were failing the t11 `\bany\b` budget check (false positive from regex counting comments)
-- **fix(chatCore)**: Normalize unsupported content part types before forwarding to providers (#409 — Cursor sends `{type:"file"}` when `.md` files are attached; Copilot and other OpenAI-compat providers reject with "type has to be either 'image_url' or 'text'"; fix converts `file`/`document` blocks to `text` and drops unknown types)
-
-### 🔧 Workflow
-
-- **chore(generate-release)**: Add ATOMIC COMMIT RULE — version bump (`npm version patch`) MUST happen before committing feature files to ensure tag always points to a commit containing all version changes together
-
----
+-**العمل الروتيني (إنشاء الإصدار)**: إضافة قاعدة الالتزام الذري - يجب أن يحدث نتوء الإصدار (`تصحيح إصدار npm`) قبل الالتزام بملفات الميزات للتأكد من أن العلامة تشير دائمًا إلى التزام يحتوي على جميع تغييرات الإصدار معًا---
 
 ## [2.6.8] — 2026-03-17
 
-> Sprint: Combo as Agent (system prompt + tool filter), Context Caching Protection, Auto-Update, Detailed Logs, MITM Kiro IDE.
+> Sprint: التحرير والسرد كعامل (موجه النظام + عامل تصفية الأداة)، وحماية التخزين المؤقت للسياق، والتحديث التلقائي، والسجلات التفصيلية، وMITM Kiro IDE.### 🗄️ DB Migrations (zero-breaking — safe for existing users)
 
-### 🗄️ DB Migrations (zero-breaking — safe for existing users)
+-**005_combo_agent_fields.sql**: `مجموعات ALTER TABLE ADD COLUMN system_message TEXT DEFAULT NULL`، `tool_filter_regex TEXT DEFAULT NULL`، `context_cache_protection INTEGER DEFAULT 0` -**006_detailed_request_logs.sql**: جدول `request_detail_logs` جديد مع مشغل المخزن المؤقت للحلقة المكون من 500 إدخال، يمكنك الاشتراك عبر تبديل الإعدادات### الميزات
 
-- **005_combo_agent_fields.sql**: `ALTER TABLE combos ADD COLUMN system_message TEXT DEFAULT NULL`, `tool_filter_regex TEXT DEFAULT NULL`, `context_cache_protection INTEGER DEFAULT 0`
-- **006_detailed_request_logs.sql**: New `request_detail_logs` table with 500-entry ring-buffer trigger, opt-in via settings toggle
-
-### الميزات
-
-- **feat(combo)**: System Message Override per Combo (#399 — `system_message` field replaces or injects system prompt before forwarding to provider)
-- **feat(combo)**: Tool Filter Regex per Combo (#399 — `tool_filter_regex` keeps only tools matching pattern; supports OpenAI + Anthropic formats)
-- **feat(combo)**: Context Caching Protection (#401 — `context_cache_protection` tags responses with `<omniModel>provider/model</omniModel>` and pins model for session continuity)
-- **feat(settings)**: Auto-Update via Settings (#320 — `GET /api/system/version` + `POST /api/system/update` — checks npm registry and updates in background with pm2 restart)
-- **feat(logs)**: Detailed Request Logs (#378 — captures full pipeline bodies at 4 stages: client request, translated request, provider response, client response — opt-in toggle, 64KB trim, 500-entry ring-buffer)
-- **feat(mitm)**: MITM Kiro IDE profile (#336 — `src/mitm/targets/kiro.ts` targets api.anthropic.com, reuses existing MITM infrastructure)
-
----
+-**feat(combo)**: تجاوز رسالة النظام لكل مجموعة (#399 — حقل `system_message` يستبدل أو يُدخل موجه النظام قبل إعادة التوجيه إلى الموفر) -**feat(combo)**: Tool Filter Regex لكل Combo (#399 — `tool_filter_regex` يحتفظ فقط بالأدوات المطابقة للنمط؛ ويدعم تنسيقات OpenAI + Anthropic) -**feat(combo)**: حماية التخزين المؤقت للسياق (#401 — علامات `context_cache_protection` الاستجابات مع `<omniModel>provider/model</omniModel>` ونموذج الدبابيس لاستمرارية الجلسة) -**feat(settings)**: التحديث التلقائي عبر الإعدادات (#320 — `GET /api/system/version` + `POST /api/system/update` — التحقق من سجل npm والتحديثات في الخلفية مع إعادة تشغيل PM2) -**عمل (سجلات)**: سجلات الطلبات التفصيلية (#378 — تلتقط أجسام التدفقات الكاملة في 4 مراحل: طلب العميل، الطلب المترجم، استجابة الموفر، استجابة العميل — تبديل الاشتراك، قطع 64 كيلو بايت، مخزن مؤقت حلقي مكون من 500 إدخال) -**feat(mitm)**: ملف تعريف MITM Kiro IDE (#336 — `src/mitm/targets/kiro.ts` يستهدف api.anthropic.com، ويعيد استخدام البنية التحتية MITM الحالية)---
 
 ## [2.6.7] — 2026-03-17
 
-> Sprint: SSE improvements, local provider_nodes extensions, proxy registry, Claude passthrough fixes.
+> Sprint: تحسينات SSE، وملحقات عقد الموفر المحلية، وتسجيل الوكيل، وإصلاحات عبور Claude.### الميزات
 
-### الميزات
+-**feat(health)**: فحص صحة الخلفية لـ "provider_nodes" المحلية مع التراجع الأسي (30s → 300s) و"Promise.allSettled" لتجنب الحظر (#423، @Regis-RCR) -**feat(embeddings)**: توجيه `/v1/embeddings` إلى `provider_nodes` المحلية — `buildDynamicEmbeddingProvider()` مع التحقق من صحة اسم المضيف (#422، @Regis-RCR) -**feat(audio)**: توجيه TTS/STT إلى "provider_nodes" المحلية - `buildDynamicAudioProvider()` مع حماية SSRF (#416, @Regis-RCR) -**feat(proxy)**: تسجيل الوكيل وواجهات برمجة تطبيقات الإدارة وتعميم حدود الحصص (#429, @Regis-RCR)### 🐛 Bug Fixes
 
-- **feat(health)**: Background health check for local `provider_nodes` with exponential backoff (30s→300s) and `Promise.allSettled` to avoid blocking (#423, @Regis-RCR)
-- **feat(embeddings)**: Route `/v1/embeddings` to local `provider_nodes` — `buildDynamicEmbeddingProvider()` with hostname validation (#422, @Regis-RCR)
-- **feat(audio)**: Route TTS/STT to local `provider_nodes` — `buildDynamicAudioProvider()` with SSRF protection (#416, @Regis-RCR)
-- **feat(proxy)**: Proxy registry, management APIs, and quota-limit generalization (#429, @Regis-RCR)
+-**fix(sse)**: إزالة الحقول الخاصة بكلود (`البيانات الوصفية`، `الإصدار_الإنساني`) عندما يكون الهدف متوافقًا مع OpenAI (#421، @prakersh) -**fix(sse)**: استخراج استخدام Claude SSE (`input_tokens`، `output_tokens`، رموز التخزين المؤقت) في وضع تدفق العبور (#420، @prakersh) -**fix(sse)**: إنشاء احتياطي `call_id` لاستدعاءات الأداة ذات المعرفات المفقودة/الفارغة (#419، @prakersh) -**الإصلاح (sse)**: عبور كلود إلى كلود — الجسم الأمامي لم يمسه أحد تمامًا، لا توجد إعادة ترجمة (#418، @prakersh) -**fix(sse)**: قم بتصفية العناصر المعزولة `tool_result` بعد ضغط سياق Claude Code لتجنب 400 خطأ (#417, @prakersh) -**fix(sse)**: تخطي استدعاءات أداة الأسماء الفارغة في مترجم Responses API لمنع الحلقات اللانهائية من `placeholder_tool` (#415, @prakersh) -**fix(sse)**: إزالة كتل محتوى النص الفارغة قبل الترجمة (#427, @prakersh) -**fix(api)**: أضف `refreshable: true` إلى تكوين اختبار Claude OAuth (#428، @prakersh)### 📦 Dependencies
 
-### 🐛 Bug Fixes
-
-- **fix(sse)**: Strip Claude-specific fields (`metadata`, `anthropic_version`) when target is OpenAI-compat (#421, @prakersh)
-- **fix(sse)**: Extract Claude SSE usage (`input_tokens`, `output_tokens`, cache tokens) in passthrough stream mode (#420, @prakersh)
-- **fix(sse)**: Generate fallback `call_id` for tool calls with missing/empty IDs (#419, @prakersh)
-- **fix(sse)**: Claude-to-Claude passthrough — forward body completely untouched, no re-translation (#418, @prakersh)
-- **fix(sse)**: Filter orphaned `tool_result` items after Claude Code context compaction to avoid 400 errors (#417, @prakersh)
-- **fix(sse)**: Skip empty-name tool calls in Responses API translator to prevent `placeholder_tool` infinite loops (#415, @prakersh)
-- **fix(sse)**: Strip empty text content blocks before translation (#427, @prakersh)
-- **fix(api)**: Add `refreshable: true` to Claude OAuth test config (#428, @prakersh)
-
-### 📦 Dependencies
-
-- Bump `vitest`, `@vitest/*` and related devDependencies (#414, @dependabot)
-
----
+- نتوء `vitest` و`@vitest/*` وتبعيات التطوير ذات الصلة (#414، @dependabot)---
 
 ## [2.6.6] — 2026-03-17
 
-> Hotfix: Turbopack/Docker compatibility — remove `node:` protocol from all `src/` imports.
+> الإصلاح العاجل: توافق Turbopack/Docker - قم بإزالة بروتوكول `node:` من جميع عمليات استيراد `src/`.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(build)**: Removed `node:` protocol prefix from `import` statements in 17 files under `src/`. The `node:fs`, `node:path`, `node:url`, `node:os` etc. imports caused `Ecmascript file had an error` on Turbopack builds (Next.js 15 Docker) and on upgrades from older npm global installs. Affected files: `migrationRunner.ts`, `core.ts`, `backup.ts`, `prompts.ts`, `dataPaths.ts`, and 12 others in `src/app/api/` and `src/lib/`.
-- **chore(workflow)**: Updated `generate-release.md` to make Docker Hub sync and dual-VPS deploy **mandatory** steps in every release.
-
----
+-**fix(build)**: تمت إزالة بادئة البروتوكول `node:` من عبارات `import` في 17 ملفًا ضمن `src/`. تسببت عمليات الاستيراد `node:fs` و`node:path` و`node:url` و`node:os` وما إلى ذلك في حدوث خطأ في ملف Ecmascript في إصدارات Turbopack (Next.js 15 Docker) وفي الترقيات من عمليات التثبيت العامة npm الأقدم. الملفات المتأثرة: `migrationRunner.ts` و`core.ts` و`backup.ts` و`prompts.ts` و`dataPaths.ts` و12 ملفًا آخر في `src/app/api/` و`src/lib/`. -**العمل الروتيني (سير العمل)**: تم تحديث `generate-release.md` لإجراء مزامنة Docker Hub ونشر VPS المزدوج**خطوات إلزامية**في كل إصدار.---
 
 ## [2.6.5] — 2026-03-17
 
-> Sprint: reasoning model param filtering, local provider 404 fix, Kilo Gateway provider, dependency bumps.
+> Sprint: تصفية معلمات نموذج الاستدلال، وإصلاح الموفر المحلي 404، وموفر Kilo Gateway، ومطبات التبعية.### ✨ New Features
 
-### ✨ New Features
+-**feat(api)**: تمت إضافة**Kilo Gateway**(`api.kilo.ai`) كموفر جديد لمفتاح واجهة برمجة التطبيقات (الاسم المستعار `kg`) - أكثر من 335 نموذجًا، و6 نماذج مجانية، و3 نماذج توجيه تلقائي (`kilo-auto/frontier`، و`kilo-auto/balanced`، و`kilo-auto/free`). نماذج العبور مدعومة عبر نقطة النهاية `/api/gateway/models`. (العلاقات العامة رقم 408 بواسطة @Regis-RCR)### 🐛 Bug Fixes
 
-- **feat(api)**: Added **Kilo Gateway** (`api.kilo.ai`) as a new API Key provider (alias `kg`) — 335+ models, 6 free models, 3 auto-routing models (`kilo-auto/frontier`, `kilo-auto/balanced`, `kilo-auto/free`). Passthrough models supported via `/api/gateway/models` endpoint. (PR #408 by @Regis-RCR)
-
-### 🐛 Bug Fixes
-
-- **fix(sse)**: Strip unsupported parameters for reasoning models (o1, o1-mini, o1-pro, o3, o3-mini). Models in the `o1`/`o3` family reject `temperature`, `top_p`, `frequency_penalty`, `presence_penalty`, `logprobs`, `top_logprobs`, and `n` with HTTP 400. Parameters are now stripped at the `chatCore` layer before forwarding. Uses a declarative `unsupportedParams` field per model and a precomputed O(1) Map for lookup. (PR #412 by @Regis-RCR)
-- **fix(sse)**: Local provider 404 now results in a **model-only lockout (5 seconds)** instead of a connection-level lockout (2 minutes). When a local inference backend (Ollama, LM Studio, oMLX) returns 404 for an unknown model, the connection remains active and other models continue working immediately. Also fixes a pre-existing bug where `model` was not passed to `markAccountUnavailable()`. Local providers detected via hostname (`localhost`, `127.0.0.1`, `::1`, extensible via `LOCAL_HOSTNAMES` env var). (PR #410 by @Regis-RCR)
-
-### 📦 Dependencies
+-**fix(sse)**: إزالة المعلمات غير المدعومة لنماذج الاستدلال (o1، o1-mini، o1-pro، o3، o3-mini). ترفض النماذج الموجودة في عائلة `o1`/`o3` `درجة الحرارة` و`top_p` و`frequency_penalty` و`presence_penalty` و`logprobs` و`top_logprobs` و`n` مع HTTP 400. يتم الآن تجريد المعلمات من طبقة `chatCore` قبل إعادة التوجيه. يستخدم حقلاً تعريفيًا "unsupportedParams" لكل نموذج وخريطة O(1) محسوبة مسبقًا للبحث. (العلاقات العامة رقم 412 بواسطة @Regis-RCR) -**fix(sse)**: ينتج عن الموفر المحلي 404 الآن**تأمين للطراز فقط (5 ثوانٍ)**بدلاً من تأمين على مستوى الاتصال (دقيقتان). عندما تقوم الواجهة الخلفية للاستدلال المحلي (Ollama، LM Studio، oMLX) بإرجاع 404 لنموذج غير معروف، يظل الاتصال نشطًا وتستمر النماذج الأخرى في العمل على الفور. يعمل أيضًا على إصلاح خطأ موجود مسبقًا حيث لم يتم تمرير "النموذج" إلى "markAccountUnavailable()". تم اكتشاف موفري الخدمة المحليين عبر اسم المضيف (`localhost`، `127.0.0.1`، `::1`، قابل للتوسيع عبر `LOCAL_HOSTNAMES` env var). (العلاقات العامة رقم 410 بواسطة @Regis-RCR)### 📦 Dependencies
 
 - `better-sqlite3` 12.6.2 → 12.8.0
 - `undici` 7.24.2 → 7.24.4
 - `https-proxy-agent` 7 → 8
-- `agent-base` 7 → 8
-
----
+- `قاعدة الوكيل` 7 → 8---
 
 ## [2.6.4] — 2026-03-17
 
 ### 🐛 Bug Fixes
 
-- **fix(providers)**: Removed non-existent model names across 5 providers:
-  - **gemini / gemini-cli**: removed `gemini-3.1-pro/flash` and `gemini-3-*-preview` (don't exist in Google API v1beta); replaced with `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro/flash`
-  - **antigravity**: removed `gemini-3.1-pro-high/low` and `gemini-3-flash` (invalid internal aliases); replaced with real 2.x models
-  - **github (Copilot)**: removed `gemini-3-flash-preview` and `gemini-3-pro-preview`; replaced with `gemini-2.5-flash`
-  - **nvidia**: corrected `nvidia/llama-3.3-70b-instruct` → `meta/llama-3.3-70b-instruct` (NVIDIA NIM uses `meta/` namespace for Meta models); added `nvidia/llama-3.1-70b-instruct` and `nvidia/llama-3.1-405b-instruct`
-- **fix(db/combo)**: Updated `free-stack` combo on remote DB: removed `qw/qwen3-coder-plus` (expired refresh token), corrected `nvidia/llama-3.3-70b-instruct` → `nvidia/meta/llama-3.3-70b-instruct`, corrected `gemini/gemini-3.1-flash` → `gemini/gemini-2.5-flash`, added `if/deepseek-v3.2`
-
----
+-**الإصلاح(المقدمون)**: تمت إزالة أسماء النماذج غير الموجودة عبر 5 موفرين: -**gemini /gemini-cli**: تمت إزالة `gemini-3.1-pro/flash` و`gemini-3-*-preview` (غير موجودين في Google API v1beta)؛ تم استبداله بـ `gemini-2.5-pro`، `gemini-2.5-flash`، `gemini-2.0-flash`، `gemini-1.5-pro/flash` -**مضاد الجاذبية**: تمت إزالة `gemini-3.1-pro-high/low` و`gemini-3-flash` (أسماء مستعارة داخلية غير صالحة)؛ تم استبدالها بنماذج 2.x الحقيقية -**github (Copilot)**: تمت إزالة `gemini-3-flash-preview` و`gemini-3-pro-preview`؛ تم استبداله بـ "gemini-2.5-flash". -**nvidia**: تم تصحيح `nvidia/llama-3.3-70b-instruct` → `meta/llama-3.3-70b-instruct` (يستخدم NVIDIA NIM مساحة الاسم `meta/` لنماذج Meta)؛ تمت إضافة "nvidia/llama-3.1-70b-instruct" و"nvidia/llama-3.1-405b-instruct" -**الإصلاح (db/combo)**: تم تحديث مجموعة `free-stack` على قاعدة البيانات البعيدة: تمت إزالة `qw/qwen3-coder-plus` (رمز التحديث منتهي الصلاحية)، تم تصحيح `nvidia/llama-3.3-70b-instruct` → `nvidia/meta/llama-3.3-70b-instruct`، تم تصحيح `gemini/gemini-3.1-flash` → "gemini/gemini-2.5-flash"، تمت الإضافة "if/deepseek-v3.2"---
 
 ## [2.6.3] — 2026-03-16
 
-> Sprint: zod/pino hash-strip baked into build pipeline, Synthetic provider added, VPS PM2 path corrected.
+> Sprint: تم دمج شريط التجزئة zod/pino في خط أنابيب البناء، وإضافة الموفر الاصطناعي، وتصحيح مسار VPS PM2.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: يعمل شريط تجزئة Turbopack الآن في**وقت الترجمة**لجميع الحزم - وليس فقط `better-sqlite3`. الخطوة 5.6 في `prepublish.mjs` تمر بكل `.js` في `app/.next/server/` وتزيل اللاحقة السداسية المكونة من 16 حرفًا من أي تجزئة `require()`. يعمل على إصلاح `zod-dcb22c...`، `pino-...`، وما إلى ذلك. MODULE_NOT_FOUND على عمليات تثبيت npm العالمية. يغلق رقم 398 -**fix(deploy)**: كان PM2 على كل من VPS يشير إلى أدلة git-clone التي لا معنى لها. تمت إعادة تكوينه إلى "app/server.js" في الحزمة العامة npm. تم تحديث سير العمل `/deploy-vps` لاستخدام `npm pack + scp` (يرفض سجل npm الحزم التي يبلغ حجمها 299 ميجابايت).### الميزات
 
-- **fix(build)**: Turbopack hash-strip now runs at **compile time** for ALL packages — not just `better-sqlite3`. Step 5.6 in `prepublish.mjs` walks every `.js` in `app/.next/server/` and strips the 16-char hex suffix from any hashed `require()`. Fixes `zod-dcb22c...`, `pino-...`, etc. MODULE_NOT_FOUND on global npm installs. Closes #398
-- **fix(deploy)**: PM2 on both VPS was pointing to stale git-clone directories. Reconfigured to `app/server.js` in the npm global package. Updated `/deploy-vps` workflow to use `npm pack + scp` (npm registry rejects 299MB packages).
+-**feat(provider)**: اصطناعي ([synthetic.new](https://synthetic.new)) - استدلال متوافق مع OpenAI يركز على الخصوصية. `passthroughModels: true` لكتالوج نماذج HuggingFace الديناميكي. النماذج الأولية: Kimi K2.5، MiniMax M2.5، GLM 4.7، DeepSeek V3.2. (العلاقات العامة رقم 404 بواسطة @Regis-RCR)### 📋 Issues Closed
 
-### الميزات
-
-- **feat(provider)**: Synthetic ([synthetic.new](https://synthetic.new)) — privacy-focused OpenAI-compatible inference. `passthroughModels: true` for dynamic HuggingFace model catalog. Initial models: Kimi K2.5, MiniMax M2.5, GLM 4.7, DeepSeek V3.2. (PR #404 by @Regis-RCR)
-
-### 📋 Issues Closed
-
-- **close #398**: npm hash regression — fixed by compile-time hash-strip in prepublish
-- **triage #324**: Bug screenshot without steps — requested reproduction details
-
----
+-**إغلاق #398**: انحدار تجزئة npm - تم إصلاحه بواسطة شريط تجزئة وقت الترجمة في النشر المسبق -**الفرز #324**: لقطة شاشة للأخطاء بدون خطوات - تفاصيل النسخ المطلوبة---
 
 ## [2.6.2] — 2026-03-16
 
-> Sprint: module hashing fully fixed, 2 PRs merged (Anthropic tools filter + custom endpoint paths), Alibaba Cloud DashScope provider added, 3 stale issues closed.
+> Sprint: تم إصلاح تجزئة الوحدة بالكامل، ودمج 2 من العلاقات العامة (مرشح الأدوات البشرية + مسارات نقطة النهاية المخصصة)، وإضافة مزود Alibaba Cloud DashScope، وإغلاق 3 مشكلات قديمة.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: شريط تجزئة حزمة الويب الموسعة "العناصر الخارجية" لتغطية جميع "الحزم الخارجية للخادم"، وليس فقط "better-sqlite3". Next.js 16 يقوم Turbopack بتجزئة `zod` و`pino` وكل حزمة خادم خارجية أخرى إلى أسماء مثل `zod-dcb22c6336e0bc69` التي لا توجد في `node_modules` في وقت التشغيل. يقوم الآن نظام HASH_PATTERN regex الجذاب بإزالة اللاحقة المكونة من 16 حرفًا ويعود إلى اسم الحزمة الأساسية. تمت أيضًا إضافة `NEXT_PRIVATE_BUILD_WORKER=0` في `prepublish.mjs` لتعزيز وضع حزمة الويب، بالإضافة إلى فحص ما بعد الإنشاء الذي يُبلغ عن أي مراجع مجزأة متبقية. (#396، #398، العلاقات العامة #403) -**fix(chat)**: أسماء الأدوات ذات التنسيق البشري (`tool.name` بدون غلاف `.function`) تم إسقاطها بصمت بواسطة مرشح الاسم الفارغ المقدم في رقم 346. طلبات بروكسي LiteLLM ذات البادئة `anthropic/` بتنسيق Anthropic messages API، مما يتسبب في تصفية جميع الأدوات وإرجاع Anthropic `400: لا يجوز تحديد tool_choice.any إلا أثناء توفير الأدوات`. تم إصلاحه من خلال الرجوع إلى `tool.name` عند غياب `tool.function.name`. تمت إضافة 8 اختبارات وحدة الانحدار. (العلاقات العامة #397)### الميزات
 
-- **fix(build)**: Extended webpack `externals` hash-strip to cover ALL `serverExternalPackages`, not just `better-sqlite3`. Next.js 16 Turbopack hashes `zod`, `pino`, and every other server-external package into names like `zod-dcb22c6336e0bc69` that don't exist in `node_modules` at runtime. A HASH_PATTERN regex catch-all now strips the 16-char suffix and falls back to the base package name. Also added `NEXT_PRIVATE_BUILD_WORKER=0` in `prepublish.mjs` to reinforce webpack mode, plus a post-build scan that reports any remaining hashed refs. (#396, #398, PR #403)
-- **fix(chat)**: Anthropic-format tool names (`tool.name` without `.function` wrapper) were silently dropped by the empty-name filter introduced in #346. LiteLLM proxies requests with `anthropic/` prefix in Anthropic Messages API format, causing all tools to be filtered and Anthropic to return `400: tool_choice.any may only be specified while providing tools`. Fixed by falling back to `tool.name` when `tool.function.name` is absent. Added 8 regression unit tests. (PR #397)
+-**feat(api)**: مسارات نقطة النهاية المخصصة لعقد الموفر المتوافقة مع OpenAI - قم بتكوين `chatPath` و`modelsPath` لكل عقدة (على سبيل المثال، `/v4/chat/completions`) في واجهة مستخدم اتصال الموفر. يتضمن ترحيل قاعدة البيانات (`003_provider_node_custom_paths.sql`) وتنظيف مسار عنوان URL (بدون اجتياز `..`، يجب أن يبدأ بـ `/`). (العلاقات العامة #400) -**الفذ (المزود)**: تمت إضافة Alibaba Cloud DashScope كموفر متوافق مع OpenAI. نقطة النهاية الدولية: `dashscope-intl.aliyuncs.com/compatible-mode/v1`. 12 نموذجًا: qwen-max، qwen-plus، qwen-turbo، qwen3-coder-plus/flash، qwq-plus، qwq-32b، qwen3-32b، qwen3-235b-a22b. المصادقة: مفتاح Bearer API.### 📋 Issues Closed
 
-### الميزات
-
-- **feat(api)**: Custom endpoint paths for OpenAI-compatible provider nodes — configure `chatPath` and `modelsPath` per node (e.g. `/v4/chat/completions`) in the provider connection UI. Includes a DB migration (`003_provider_node_custom_paths.sql`) and URL path sanitization (no `..` traversal, must start with `/`). (PR #400)
-- **feat(provider)**: Alibaba Cloud DashScope added as OpenAI-compatible provider. International endpoint: `dashscope-intl.aliyuncs.com/compatible-mode/v1`. 12 models: `qwen-max`, `qwen-plus`, `qwen-turbo`, `qwen3-coder-plus/flash`, `qwq-plus`, `qwq-32b`, `qwen3-32b`, `qwen3-235b-a22b`. Auth: Bearer API key.
-
-### 📋 Issues Closed
-
-- **close #323**: Cline connection error `[object Object]` — fixed in v2.3.7; instructed user to upgrade from v2.2.9
-- **close #337**: Kiro credit tracking — implemented in v2.5.5 (#381); pointed user to Dashboard → Usage
-- **triage #402**: ARM64 macOS DMG damaged — requested macOS version, exact error, and advised `xattr -d com.apple.quarantine` workaround
-
----
+-**إغلاق #323**: خطأ في اتصال Cline `[object Object]` - تم إصلاحه في الإصدار 2.3.7؛ إرشاد المستخدم للترقية من v2.2.9 -**الإغلاق رقم 337**: تتبع رصيد Kiro — تم تنفيذه في الإصدار 2.5.5 (#381)؛ أشار المستخدم إلى لوحة المعلومات → الاستخدام -**الفرز #402**: تلف ARM64 macOS DMG - طلب إصدار macOS، والخطأ الدقيق، وإرشاد `xattr -d com.apple.quarantine` للحل البديل---
 
 ## [2.6.1] — 2026-03-15
 
-> Critical startup fix: v2.6.0 global npm installs crashed with a 500 error due to a Turbopack/webpack module-name hashing bug in the Next.js 16 instrumentation hook.
+> إصلاح مهم عند بدء التشغيل: تعطلت عمليات تثبيت npm العالمية للإصدار 2.6.0 بسبب خطأ 500 بسبب خطأ تجزئة اسم وحدة Turbopack/webpack في خطاف أجهزة Next.js 16.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: فرض أن يكون `better-sqlite3` مطلوبًا دائمًا من خلال اسم الحزمة الدقيق الخاص به في حزمة خادم webpack. قام Next.js 16 بتجميع خطاف الأجهزة في قطعة منفصلة وأصدر `require('better-sqlite3-<hash>')` - اسم وحدة مجزأة غير موجود في `node_modules` - على الرغم من أن الحزمة كانت مدرجة في `serverExternalPackages`. تمت إضافة وظيفة `خارجية` صريحة إلى تكوين حزمة الويب للخادم بحيث يُصدر المجمّع دائمًا `require('better-sqlite3')`، مما يؤدي إلى حل مشكلة بدء التشغيل `500 خطأ داخلي في الخادم` عند عمليات التثبيت العامة النظيفة. (#394، العلاقات العامة #395)### 🔧 CI
 
-- **fix(build)**: Force `better-sqlite3` to always be required by its exact package name in the webpack server bundle. Next.js 16 compiled the instrumentation hook into a separate chunk and emitted `require('better-sqlite3-<hash>')` — a hashed module name that doesn't exist in `node_modules` — even though the package was listed in `serverExternalPackages`. Added an explicit `externals` function to the server webpack config so the bundler always emits `require('better-sqlite3')`, resolving the startup `500 Internal Server Error` on clean global installs. (#394, PR #395)
-
-### 🔧 CI
-
-- **ci**: Added `workflow_dispatch` to `npm-publish.yml` with version sync safeguard for manual triggers (#392)
-- **ci**: Added `workflow_dispatch` to `docker-publish.yml`, updated GitHub Actions to latest versions (#392)
-
----
+-**ci**: تمت إضافة `workflow_dispatch` إلى `npm-publish.yml` مع حماية مزامنة الإصدار للمشغلات اليدوية (#392) -**ci**: تمت إضافة `workflow_dispatch` إلى `docker-publish.yml`، وتحديث إجراءات GitHub إلى أحدث الإصدارات (#392)---
 
 ## [2.6.0] - 2026-03-15
 
-> Issue resolution sprint: 4 bugs fixed, logs UX improved, Kiro credit tracking added.
+> سباق حل المشكلة: تم إصلاح 4 أخطاء، وتحسين سجلات تجربة المستخدم، وإضافة تتبع رصيد Kiro.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**إصلاح (الوسائط)**: لم يعد ComfyUI وSD WebUI يظهران في قائمة موفري صفحات الوسائط عندما لا تكون مهيأة — جلب `/api/providers` على التحميل وإخفاء موفري الخدمة المحليين بدون اتصالات (#390) -**fix(auth)**: لم تعد Round-robin تعيد تحديد الحسابات ذات المعدل المحدود مباشرة بعد فترة التهدئة - يُستخدم الآن `backoffLevel` كمفتاح فرز أساسي في تدوير LRU (#340) -**الإصلاح(oauth)**: لم يعد Qoder (والموفرون الآخرون الذين يعيدون التوجيه إلى واجهة المستخدم الخاصة بهم) يتركون نموذج OAuth عالقًا عند "انتظار التفويض" - ينتقل الكاشف المغلق تلقائيًا إلى وضع إدخال عنوان URL اليدوي (#344) -**الإصلاح(السجلات)**: أصبح جدول سجل الطلب قابلاً للقراءة الآن في الوضع الفاتح - تستخدم شارات الحالة وعدد الرموز المميزة وعلامات التحرير والسرد فئات ألوان `غامقة:` قابلة للتكيف (#378)### الميزات
 
-- **fix(media)**: ComfyUI and SD WebUI no longer appear in the Media page provider list when unconfigured — fetches `/api/providers` on mount and hides local providers with no connections (#390)
-- **fix(auth)**: Round-robin no longer re-selects rate-limited accounts immediately after cooldown — `backoffLevel` is now used as primary sort key in the LRU rotation (#340)
-- **fix(oauth)**: Qoder (and other providers that redirect to their own UI) no longer leave the OAuth modal stuck at "Waiting for Authorization" — popup-closed detector auto-transitions to manual URL input mode (#344)
-- **fix(logs)**: Request log table is now readable in light mode — status badges, token counts, and combo tags use adaptive `dark:` color classes (#378)
+-**feat(kiro)**: تمت إضافة تتبع رصيد Kiro إلى أداة جلب الاستخدام — استعلامات `getUserCredits` من نقطة نهاية AWS CodeWhisperer (#337)### 🛠 Chores
 
-### الميزات
-
-- **feat(kiro)**: Kiro credit tracking added to usage fetcher — queries `getUserCredits` from AWS CodeWhisperer endpoint (#337)
-
-### 🛠 Chores
-
-- **chore(tests)**: Aligned `test:plan3`, `test:fixes`, `test:security` to use same `tsx/esm` loader as `npm test` — eliminates module resolution false negatives in targeted runs (PR #386)
-
----
+-**العمل الروتيني(الاختبارات)**: تمت محاذاة `test:plan3`، `test:fixes`، `test:security` لاستخدام نفس محمل `tsx/esm` مثل `npm test` - يزيل النتائج السلبية الخاطئة لدقة الوحدة في عمليات التشغيل المستهدفة (PR #386)---
 
 ## [2.5.9] - 2026-03-15
 
-> Codex native passthrough fix + route body validation hardening.
+> إصلاح العبور الأصلي للدستور + تقوية التحقق من صحة نص المسار.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(codex)**: Preserve native Responses API passthrough for Codex clients — avoids unnecessary translation mutations (PR #387)
-- **fix(api)**: Validate request bodies on pricing/sync and task-routing routes — prevents crashes from malformed inputs (PR #388)
-- **fix(auth)**: JWT secrets persist across restarts via `src/lib/db/secrets.ts` — eliminates 401 errors after pm2 restart (PR #388)
-
----
+-**fix(codex)**: الحفاظ على عبور واجهة برمجة التطبيقات للاستجابات الأصلية لعملاء Codex — لتجنب تغييرات الترجمة غير الضرورية (PR #387) -**fix(api)**: التحقق من صحة نصوص الطلب بشأن التسعير/المزامنة ومسارات توجيه المهام - يمنع الأعطال الناجمة عن المدخلات المشوهة (PR #388) -**الإصلاح (auth)**: تستمر أسرار JWT عبر عمليات إعادة التشغيل عبر `src/lib/db/secrets.ts` - يزيل 401 خطأ بعد إعادة تشغيل PM2 (PR #388)---
 
 ## [2.5.8] - 2026-03-15
 
-> Build fix: restore VPS connectivity broken by v2.5.7 incomplete publish.
+> إصلاح البنية: استعادة اتصال VPS المقطوع بسبب النشر غير الكامل للإصدار 2.5.7.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(build)**: `scripts/prepublish.mjs` still used deprecated `--webpack` flag causing Next.js standalone build to fail silently — npm publish completed without `app/server.js`, breaking VPS deployment
-
----
+-**fix(build)**: لا يزال `scripts/prepublish.mjs` يستخدم علامة `--webpack` المهملة مما يتسبب في فشل إنشاء Next.js المستقل بصمت — اكتمل نشر npm بدون `app/server.js`، مما يؤدي إلى تعطيل نشر VPS---
 
 ## [2.5.7] - 2026-03-15
 
-> Media playground error handling fixes.
+> إصلاحات أخطاء معالجة ساحة الوسائط.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(media)**: Transcription "API Key Required" false positive when audio contains no speech (music, silence) — now shows "No speech detected" instead
-- **fix(media)**: `upstreamErrorResponse` in `audioTranscription.ts` and `audioSpeech.ts` now returns proper JSON (`{error:{message}}`), enabling correct 401/403 credential error detection in the MediaPageClient
-- **fix(media)**: `parseApiError` now handles Deepgram's `err_msg` field and detects `"api key"` in error messages for accurate credential error classification
-
----
+-**إصلاح (الوسائط)**: النسخ "مطلوب مفتاح واجهة برمجة التطبيقات" إيجابي كاذب عندما لا يحتوي الصوت على كلام (موسيقى، صمت) - يظهر الآن "لم يتم اكتشاف أي كلام" بدلاً من ذلك -**fix(media)**: `upstreamErrorResponse` في `audioTranscription.ts` و`audioSpeech.ts` يُرجع الآن JSON الصحيح (`{خطأ:{message}}`)، مما يتيح الكشف الصحيح عن خطأ بيانات الاعتماد 401/403 في MediaPageClient -**fix(media)**: `parseApiError` يتعامل الآن مع حقل `err_msg` الخاص بـ Deepgram ويكتشف ``مفتاح API'' في رسائل الخطأ لتصنيف دقيق لأخطاء بيانات الاعتماد---
 
 ## [2.5.6] - 2026-03-15
 
-> Critical security/auth fixes: Antigravity OAuth broken + JWT sessions lost after restart.
+> إصلاحات هامة تتعلق بالأمان/المصادقة: تم تعطيل Antigravity OAuth + فقدان جلسات JWT بعد إعادة التشغيل.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(oauth) #384**: Antigravity Google OAuth now correctly sends `client_secret` to the token endpoint. The fallback for `ANTIGRAVITY_OAUTH_CLIENT_SECRET` was an empty string, which is falsy — so `client_secret` was never included in the request, causing `"client_secret is missing"` errors for all users without a custom env var. Closes #383.
-- **fix(auth) #385**: `JWT_SECRET` is now persisted to SQLite (`namespace='secrets'`) on first generation and reloaded on subsequent starts. Previously, a new random secret was generated each process startup, invalidating all existing cookies/sessions after any restart or upgrade. Affects both `JWT_SECRET` and `API_KEY_SECRET`. Closes #382.
-
----
+-**fix(oauth) #384**: يقوم برنامج Antigravity Google OAuth الآن بإرسال `client_secret` بشكل صحيح إلى نقطة نهاية الرمز المميز. كان الإجراء الاحتياطي لـ `ANTIGRAVITY_OAUTH_CLIENT_SECRET` عبارة عن سلسلة فارغة، وهو أمر خاطئ - لذلك لم يتم تضمين `client_secret` مطلقًا في الطلب، مما تسبب في حدوث أخطاء `client_secret مفقودة` لجميع المستخدمين بدون env var مخصص. يغلق رقم 383. -**fix(auth) #385**: يتم الآن تثبيت `JWT_SECRET` على SQLite (`namespace='secrets'`) في الجيل الأول وإعادة تحميله عند عمليات البدء اللاحقة. في السابق، كان يتم إنشاء سر عشوائي جديد عند كل بدء تشغيل للعملية، مما يؤدي إلى إبطال جميع ملفات تعريف الارتباط/الجلسات الموجودة بعد أي إعادة تشغيل أو ترقية. يؤثر على كل من `JWT_SECRET` و`API_KEY_SECRET`. يغلق رقم 382.---
 
 ## [2.5.5] - 2026-03-15
 
-> Model list dedup fix, Electron standalone build hardening, and Kiro credit tracking.
+> إصلاح قائمة النماذج، وتقوية بناء Electron المستقل، وتتبع رصيد Kiro.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(models) #380**: يتضمن `GET /api/models` الآن أسماء مستعارة للموفر عند إنشاء مرشح الموفر النشط - كانت نماذج `claude` (الاسم المستعار `cc`) و`github` (الاسم المستعار `gh`) تظهر دائمًا بغض النظر عما إذا تم تكوين الاتصال أم لا، لأن مفاتيح `PROVIDER_MODELS` هي أسماء مستعارة ولكن يتم تخزين اتصالات قاعدة البيانات تحت معرفات الموفر. تم الإصلاح عن طريق توسيع كل معرف موفر نشط ليشمل أيضًا الاسم المستعار الخاص به عبر `PROVIDER_ID_TO_ALIAS`. يغلق رقم 353. -**fix(electron) #379**: تقوم `scripts/prepare-electron-standalone.mjs' الجديدة بإنشاء حزمة مخصصة `/.next/electron-standalone`قبل التغليف الإلكتروني. يتم الإجهاض مع وجود خطأ واضح إذا كانت`node_modules` عبارة عن رابط رمزي (سيقوم منشئ الإلكترون بشحن تبعية وقت التشغيل إلى جهاز الإنشاء). تعقيم المسار عبر الأنظمة الأساسية عبر "path.basename". بواسطة @kfiramar.### ✨ New Features
 
-- **fix(models) #380**: `GET /api/models` now includes provider aliases when building the active-provider filter — models for `claude` (alias `cc`) and `github` (alias `gh`) were always shown regardless of whether a connection was configured, because `PROVIDER_MODELS` keys are aliases but DB connections are stored under provider IDs. Fixed by expanding each active provider ID to also include its alias via `PROVIDER_ID_TO_ALIAS`. Closes #353.
-- **fix(electron) #379**: New `scripts/prepare-electron-standalone.mjs` stages a dedicated `/.next/electron-standalone` bundle before Electron packaging. Aborts with a clear error if `node_modules` is a symlink (electron-builder would ship a runtime dependency on the build machine). Cross-platform path sanitization via `path.basename`. By @kfiramar.
+-**feat(kiro) #381**: تتبع رصيد ائتمان Kiro - تقوم نقطة نهاية الاستخدام الآن بإرجاع بيانات الائتمان لحسابات Kiro عن طريق الاتصال بـ "codewhisperer.us-east-1.amazonaws.com/getUserCredits" (نفس نقطة النهاية التي يستخدمها Kiro IDE داخليًا). إرجاع الاعتمادات المتبقية وإجمالي المخصصات وتاريخ التجديد ومستوى الاشتراك. يغلق رقم 337.## [2.5.4] - 2026-03-15
 
-### ✨ New Features
+> إصلاح بدء تشغيل المسجل، وإصلاح أمان تمهيد تسجيل الدخول، وتحسين موثوقية dev HMR. تقوية البنية التحتية لـ CI.### 🐛 Bug Fixes (PRs #374, #375, #376 by @kfiramar)
 
-- **feat(kiro) #381**: Kiro credit balance tracking — usage endpoint now returns credit data for Kiro accounts by calling `codewhisperer.us-east-1.amazonaws.com/getUserCredits` (same endpoint Kiro IDE uses internally). Returns remaining credits, total allowance, renewal date, and subscription tier. Closes #337.
+-**إصلاح(مسجل) #376**: استعادة مسار مسجل النقل بينو - تم رفض `formatters.level` المدمج مع `transport.targets` بواسطة pino. تقوم الآن التكوينات المدعومة بالنقل بإزالة مُنسق المستوى عبر `getTransportCompatibleConfig()`. يصحح أيضًا تعيين المستوى الرقمي في `/api/logs/console`: `30→info، 40→warn، 50→error` (تم إزاحته بمقدار واحد). -**fix(login) #375**: يتم الآن تشغيل صفحة تسجيل الدخول من نقطة النهاية العامة `/api/settings/require-login` بدلاً من `/api/settings` المحمية. في الإعدادات المحمية بكلمة مرور، كانت صفحة المصادقة المسبقة تتلقى 401 وتعود إلى الإعدادات الافتراضية الآمنة دون داع. يُرجع المسار العام الآن جميع البيانات التعريفية للتمهيد (`requireLogin`، و`hasPassword`، و`setupComplete`) مع احتياطي متحفظ قدره 200 عند حدوث خطأ. -**fix(dev) #374**: إضافة `localhost` و`127.0.0.1` إلى `allowedDevOrigins` في `next.config.mjs` - تم حظر websocket HMR عند الوصول إلى التطبيق عبر عنوان الاسترجاع، مما أدى إلى ظهور تحذيرات متكررة عبر الأصل.### 🔧 CI & Infrastructure
 
-## [2.5.4] - 2026-03-15
+-**إصلاح ESLint OOM**: `eslint.config.mjs` يتجاهل الآن `vscode-extension/**`، `electron/**`، `docs/**`، `app/.next/**`، و`clipr/**` - كان ESLint يتعطل مع كومة OOM من JS عن طريق مسح النقط الثنائية لـ VS Code والقطع المجمعة. -**إصلاح اختبار الوحدة**: تمت إزالة `ALTER TABLE Provider_connections ADD COLUMN "group"` من ملفي اختبار - أصبح العمود الآن جزءًا من المخطط الأساسي (أضيف في #373)، مما تسبب في `SQLITE_ERROR: اسم عمود مكرر` في كل تشغيل لـ CI. -**خطاف الالتزام المسبق**: تمت إضافة `npm run test:unit` إلى `.husky/pre-commit` - تعمل اختبارات الوحدة الآن على حظر عمليات الالتزام المعطلة قبل أن تصل إلى CI.## [2.5.3] - 2026-03-14
 
-> Logger startup fix, login bootstrap security fix, and dev HMR reliability improvement. CI infrastructure hardened.
+> إصلاحات الأخطاء الهامة: ترحيل مخطط قاعدة البيانات، وتحميل بيئة بدء التشغيل، ومسح حالة خطأ الموفر، وإصلاح تلميح أداة i18n. تحسينات جودة التعليمات البرمجية أعلى كل العلاقات العامة.### 🐛 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
 
-### 🐛 Bug Fixes (PRs #374, #375, #376 by @kfiramar)
+-**fix(db) #373**: إضافة عمود `provider_connections.group` إلى المخطط الأساسي + ترحيل إعادة التعبئة لقواعد البيانات الموجودة - تم استخدام العمود في جميع الاستعلامات ولكنه مفقود من تعريف المخطط -**fix(i18n) #371**: استبدل المفتاح `t("deleteConnection")` غير الموجود بمفتاح `providers.delete` الموجود - يعمل على إصلاح خطأ وقت التشغيل `MISSING_MESSAGE: Providers.deleteConnection` في صفحة تفاصيل الموفر -**fix(auth) #372**: مسح البيانات الوصفية للأخطاء القديمة (`errorCode`، `lastErrorType`، `lastErrorSource`) من حسابات الموفرين بعد الاسترداد الحقيقي — في السابق، ظلت الحسابات المستردة تظهر على أنها فاشلة -**fix(startup) #369**: توحيد تحميل env عبر `npm run start` و`run-standalone.mjs` وElectron لاحترام أولوية `DATA_DIR/.env → ~/.omniroute/.env → ./.env` - يمنع إنشاء `STORAGE_ENCRYPTION_KEY` جديد عبر قاعدة بيانات مشفرة موجودة### 🔧 Code Quality
 
-- **fix(logger) #376**: Restore pino transport logger path — `formatters.level` combined with `transport.targets` is rejected by pino. Transport-backed configs now strip the level formatter via `getTransportCompatibleConfig()`. Also corrects numeric level mapping in `/api/logs/console`: `30→info, 40→warn, 50→error` (was shifted by one).
-- **fix(login) #375**: Login page now bootstraps from the public `/api/settings/require-login` endpoint instead of the protected `/api/settings`. In password-protected setups, the pre-auth page was receiving a 401 and falling back to safe defaults unnecessarily. The public route now returns all bootstrap metadata (`requireLogin`, `hasPassword`, `setupComplete`) with a conservative 200 fallback on error.
-- **fix(dev) #374**: Add `localhost` and `127.0.0.1` to `allowedDevOrigins` in `next.config.mjs` — HMR websocket was blocked when accessing the app via loopback address, producing repeated cross-origin warnings.
+- أنماط "result.success" مقابل "response?.ok" الموثقة في "auth.ts" (كلاهما مقصود، تم شرحه الآن)
+- تمت تسوية `overridePath?.trim()` في `electron/main.js` لمطابقة `bootstrap-env.mjs`
+- تمت إضافة تعليق أمر الدمج `preferredEnv` في بدء تشغيل Electron
 
-### 🔧 CI & Infrastructure
+> سياسة حصص حساب Codex مع التدوير التلقائي، والتبديل السريع للطبقة، ونموذج gpt-5.4، وإصلاح تسمية التحليلات.### ✨ New Features (PRs #366, #367, #368)
 
-- **ESLint OOM fix**: `eslint.config.mjs` now ignores `vscode-extension/**`, `electron/**`, `docs/**`, `app/.next/**`, and `clipr/**` — ESLint was crashing with a JS heap OOM by scanning VS Code binary blobs and compiled chunks.
-- **Unit test fix**: Removed stale `ALTER TABLE provider_connections ADD COLUMN "group"` from 2 test files — column is now part of the base schema (added in #373), causing `SQLITE_ERROR: duplicate column name` on every CI run.
-- **Pre-commit hook**: Added `npm run test:unit` to `.husky/pre-commit` — unit tests now block broken commits before they reach CI.
+-**سياسة حصص الدستور الغذائي (PR #366)**: يتم تبديل نافذة الحصص لكل حساب لمدة 5 ساعات/أسبوعيًا في لوحة تحكم الموفر. يتم تخطي الحسابات تلقائيًا عندما تصل النوافذ الممكّنة إلى حد 90% ويتم إعادة قبولها بعد "resetAt". يتضمن "quotaCache.ts" مع أداة الحصول على الحالة الخالية من الآثار الجانبية. -**تبديل طبقة الدستور الغذائي السريع (PR #367)**: لوحة المعلومات ← الإعدادات ← طبقة خدمة الدستور الغذائي. يؤدي تبديل الإيقاف الافتراضي إلى إدخال `service_tier: "flex"` فقط لطلبات Codex، مما يقلل التكلفة بنسبة 80% تقريبًا. المكدس الكامل: علامة تبويب واجهة المستخدم + نقطة نهاية واجهة برمجة التطبيقات + المنفذ + المترجم + استعادة بدء التشغيل. -**gpt-5.4 Model (PR #368)**: يضيف `cx/gpt-5.4` و`codex/gpt-5.4` إلى سجل نموذج Codex. وشملت اختبار الانحدار.### 🐛 Bug Fixes
 
-## [2.5.3] - 2026-03-14
+-**إصلاح #356**: تعرض مخططات التحليلات (أفضل موفر، حسب الحساب، تفصيل الموفر) الآن أسماء/تصنيفات الموفر التي يمكن قراءتها بواسطة الإنسان بدلاً من المعرفات الداخلية الأولية لمقدمي الخدمات المتوافقين مع OpenAI.
 
-> Critical bugfixes: DB schema migration, startup env loading, provider error state clearing, and i18n tooltip fix. Code quality improvements on top of each PR.
+> الإصدار الرئيسي: إستراتيجية التوجيه العشوائي الصارمة، وعناصر التحكم في الوصول إلى مفتاح API، ومجموعات الاتصال، ومزامنة التسعير الخارجي، وإصلاحات الأخطاء الهامة لنماذج التفكير، واختبار التحرير والسرد، والتحقق من صحة اسم الأداة.### ✨ New Features (PRs #363 & #365)
 
-### 🐛 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
+-**إستراتيجية التوجيه العشوائية الصارمة**: مجموعة Fisher-Yates للتبديل مع ضمان منع التكرار وتسلسل كائن المزامنة (mutex) للطلبات المتزامنة. تشكيلات مستقلة لكل مجموعة ولكل مزود. -**عناصر التحكم في الوصول إلى مفتاح واجهة برمجة التطبيقات**: `الاتصالات المسموح بها` (تقييد الاتصالات التي يمكن للمفتاح استخدامها)، `is_active` (تمكين/تعطيل المفتاح مع 403)، `جدول الوصول` (التحكم في الوصول على أساس الوقت)، تبديل `الحل التلقائي`، إعادة تسمية المفاتيح عبر التصحيح. -**مجموعات الاتصال**: اتصالات موفر المجموعة حسب البيئة. عرض الأكورديون في صفحة الحدود مع استمرارية التخزين المحلي والتبديل التلقائي الذكي. -**مزامنة التسعير الخارجية (LiteLLM)**: دقة تسعير ثلاثية المستويات (تجاوزات المستخدم ← المزامنة ← الإعدادات الافتراضية). قم بالاشتراك عبر `PRICING_SYNC_ENABLED=true`. أداة MCP "omniroute_sync_pricing". 23 اختبارًا جديدًا. -**i18n**: تم تحديث 30 لغة باستخدام إستراتيجية عشوائية صارمة وسلاسل إدارة مفاتيح API. pt-BR مترجم بالكامل.### 🐛 Bug Fixes
 
-- **fix(db) #373**: Add `provider_connections.group` column to base schema + backfill migration for existing databases — column was used in all queries but missing from schema definition
-- **fix(i18n) #371**: Replace non-existent `t("deleteConnection")` key with existing `providers.delete` key — fixes `MISSING_MESSAGE: providers.deleteConnection` runtime error on provider detail page
-- **fix(auth) #372**: Clear stale error metadata (`errorCode`, `lastErrorType`, `lastErrorSource`) from provider accounts after genuine recovery — previously, recovered accounts kept appearing as failed
-- **fix(startup) #369**: Unify env loading across `npm run start`, `run-standalone.mjs`, and Electron to respect `DATA_DIR/.env → ~/.omniroute/.env → ./.env` priority — prevents generating a new `STORAGE_ENCRYPTION_KEY` over an existing encrypted database
+-**الإصلاح رقم 355**: زيادة مهلة الخمول للبث من 60 ثانية إلى 300 ثانية — يمنع إجهاض نماذج التفكير الممتد (claude-opus-4-6، o3، وما إلى ذلك) أثناء مراحل الاستدلال الطويلة. قابل للتكوين عبر `STREAM_IDLE_TIMEOUT_MS`. -**إصلاح #350**: يتجاوز اختبار التحرير والسرد الآن `REQUIRE_API_KEY=true` باستخدام الرأس الداخلي، ويستخدم تنسيقًا متوافقًا مع OpenAI عالميًا. تم تمديد المهلة من 15 ثانية إلى 20 ثانية. -**إصلاح #346**: تتم الآن تصفية الأدوات ذات `function.name` الفارغة (المعاد توجيهها بواسطة Claude Code) قبل أن يستلمها مقدمو الخدمات الأولية، مما يمنع حدوث أخطاء "إدخال غير صالح [N].name: سلسلة فارغة".### 🗑️ Closed Issues
 
-### 🔧 Code Quality
+-**#341**: تمت إزالة قسم التصحيح - الاستبدال هو `/dashboard/logs` و`/dashboard/health`.
 
-- Documented `result.success` vs `response?.ok` patterns in `auth.ts` (both intentional, now explained)
-- Normalized `overridePath?.trim()` in `electron/main.js` to match `bootstrap-env.mjs`
-- Added `preferredEnv` merge order comment in Electron startup
+> دعم API Key Round-Robin لإعدادات موفر المفاتيح المتعددة، والتأكيد على توجيه أحرف البدل ونافذة الحصص المتداولة بالفعل.### ✨ New Features
 
-> Codex account quota policy with auto-rotation, fast tier toggle, gpt-5.4 model, and analytics label fix.
+-**API Key Round-Robin (T07)**: يمكن لاتصالات الموفر الآن الاحتفاظ بمفاتيح API متعددة (تحرير الاتصال → مفاتيح API الإضافية). يتم تدوير الطلبات بشكل دائري بين المفاتيح الأساسية + الإضافية عبر `providerSpecificData.extraApiKeys[]`. يتم الاحتفاظ بالمفاتيح في الذاكرة مفهرسة لكل اتصال - لا يلزم إجراء تغييرات على مخطط قاعدة البيانات.### 📝 Already Implemented (confirmed in audit)
 
-### ✨ New Features (PRs #366, #367, #368)
+-**Wildcard Model Routing (T13)**: تم دمج `wildcardRouter.ts` مع مطابقة أحرف البدل على النمط الشامل (`gpt*`، `clude-?-sonnet`، وما إلى ذلك) بالفعل في `model.ts` مع تصنيف الخصوصية. -**تحريك نافذة الحصة (T08)**: `accountFallback.ts:isModelLocked()` يقوم بالفعل بتقديم النافذة تلقائيًا - إذا كان `Date.now() > input.until`، فسيتم حذف القفل على الفور (بدون حظر قديم).
 
-- **Codex Quota Policy (PR #366)**: Per-account 5h/weekly quota window toggles in Provider dashboard. Accounts are automatically skipped when enabled windows reach 90% threshold and re-admitted after `resetAt`. Includes `quotaCache.ts` with side-effect free status getter.
-- **Codex Fast Tier Toggle (PR #367)**: Dashboard → Settings → Codex Service Tier. Default-off toggle injects `service_tier: "flex"` only for Codex requests, reducing cost ~80%. Full stack: UI tab + API endpoint + executor + translator + startup restore.
-- **gpt-5.4 Model (PR #368)**: Adds `cx/gpt-5.4` and `codex/gpt-5.4` to the Codex model registry. Regression test included.
+> تحسين واجهة المستخدم، وإضافات إستراتيجية التوجيه، ومعالجة الأخطاء بشكل أنيق لحدود الاستخدام.### ✨ New Features
 
-### 🐛 Bug Fixes
+-**استراتيجيات التوجيه للملء أولاً وP2C**: تمت إضافة `الملء أولاً` (حصة التصريف قبل المضي قدمًا) و`p2c` (اختيار قوة بين خيارين بزمن وصول منخفض) لمجموعة منتقي الإستراتيجية، مع لوحات توجيه كاملة وشارات مرمزة بالألوان. -**نماذج Free Stack المعدة مسبقًا**: يؤدي الآن إنشاء مجموعة مجمعة باستخدام قالب Free Stack إلى ملء 7 ​​نماذج مجانية من الأفضل في فئتها (Gemini CLI، وKiro، وQoder×2، وQwen، وNVIDIA NIM، وGroq). يقوم المستخدمون فقط بتنشيط مقدمي الخدمات والحصول على مجموعة تحرير وسرد بقيمة 0 دولار شهريًا خارج الصندوق. -**Wider Combo Modal**: إنشاء/تحرير التحرير والسرد المشروط يستخدم الآن max-w-4xl للتحرير المريح للمجموعات الكبيرة.### 🐛 Bug Fixes
 
-- **fix #356**: Analytics charts (Top Provider, By Account, Provider Breakdown) now display human-readable provider names/labels instead of raw internal IDs for OpenAI-compatible providers.
+-**صفحة الحدود HTTP 500 لـ Codex وGitHub**: يعرض الآن `getCodexUsage()` و`getGitHubUsage()` رسالة سهلة الاستخدام عندما يعرض الموفر 401/403 (رمز منتهي الصلاحية)، بدلاً من رمي خطأ 500 والتسبب فيه في صفحة الحدود. -**MaintenanceBanner false-positive**: لم يعد الشعار يعرض الرسالة "الخادم غير قابل للوصول" بشكل زائف عند تحميل الصفحة. تم الإصلاح عن طريق استدعاء `checkHealth()` على الفور عند التثبيت وإزالة إغلاق حالة `show` التي لا معنى لها. -**تلميحات أدوات أيقونة الموفر**: أصبحت أزرار التحرير (القلم الرصاص) والحذف الموجودة في صف اتصال الموفر تحتوي الآن على تلميحات أدوات HTML أصلية - أصبحت جميع أيقونات الإجراءات الستة موثقة ذاتيًا الآن.
 
-> Major release: strict-random routing strategy, API key access controls, connection groups, external pricing sync, and critical bug fixes for thinking models, combo testing, and tool name validation.
+> تحسينات متعددة من تحليل مشكلات المجتمع ودعم الموفر الجديد وإصلاحات الأخطاء لتتبع الرمز المميز وتوجيه النموذج وموثوقية البث.### ✨ New Features
 
-### ✨ New Features (PRs #363 & #365)
+-**التوجيه الذكي المدرك للمهام (T05)**: اختيار النموذج التلقائي بناءً على نوع محتوى الطلب - الترميز ← Deepseek-chat، التحليل ← Gemini-2.5-pro، Vision ← gpt-4o، التلخيص ← Gemini-2.5-flash. قابل للتكوين عبر الإعدادات. واجهة برمجة التطبيقات الجديدة `GET/PUT/POST /api/settings/task-routing`. -**موفر HuggingFace**: تمت إضافة HuggingFace Router باعتباره مزودًا متوافقًا مع OpenAI مع Llama 3.1 70B/8B وQwen 2.5 72B وMistral 7B وPhi-3.5 Mini. -**موفر Vertex AI**: تمت إضافة موفر Vertex AI (Google Cloud) مع Gemini 2.5 Pro/Flash، وGemma 2 27B، وClaude عبر Vertex. -**تحميلات ملفات ساحة اللعب**: تحميل الصوت للنسخ، وتحميل الصور لنماذج الرؤية (الاكتشاف التلقائي حسب اسم النموذج)، وعرض الصور المضمنة لنتائج إنشاء الصور. -**التعليقات المرئية لتحديد النموذج**: تظهر الآن النماذج المضافة بالفعل في منتقي التحرير والسرد ✓ شارة خضراء - تمنع الارتباك المكرر. -**توافق Qwen (PR #352)**: إعدادات بصمة وكيل المستخدم وCLI المحدثة للتوافق مع موفر Qwen. -**إدارة حالة Round-Robin (PR #349)**: منطق Round-Robin محسّن للتعامل مع الحسابات المستبعدة والحفاظ على حالة التدوير بشكل صحيح. -**Clipboard UX (PR #360)**: عمليات الحافظة المعززة مع الرجوع للسياقات غير الآمنة؛ تحسينات تطبيع أداة كلود.### 🐛 Bug Fixes
 
-- **Strict-Random Routing Strategy**: Fisher-Yates shuffle deck with anti-repeat guarantee and mutex serialization for concurrent requests. Independent decks per combo and per provider.
-- **API Key Access Controls**: `allowedConnections` (restrict which connections a key can use), `is_active` (enable/disable key with 403), `accessSchedule` (time-based access control), `autoResolve` toggle, rename keys via PATCH.
-- **Connection Groups**: Group provider connections by environment. Accordion view in Limits page with localStorage persistence and smart auto-switch.
-- **External Pricing Sync (LiteLLM)**: 3-tier pricing resolution (user overrides → synced → defaults). Opt-in via `PRICING_SYNC_ENABLED=true`. MCP tool `omniroute_sync_pricing`. 23 new tests.
-- **i18n**: 30 languages updated with strict-random strategy, API key management strings. pt-BR fully translated.
+-**الإصلاح رقم 302 — تيار OpenAI SDK=خطأ يسقط أداة_المكالمات**: T01 لم يعد قبول تفاوض الرأس يفرض البث عندما يكون `body.stream` `خطأ` بشكل صريح. كان يتسبب في إسقاط مكالمات الأداة بصمت عند استخدام OpenAI Python SDK في وضع عدم البث. -**الإصلاح رقم 73 — تم توجيه كلود هايكو إلى OpenAI بدون بادئة الموفر**: نماذج `claude-*` المرسلة بدون بادئة موفر تقوم الآن بالتوجيه بشكل صحيح إلى موفر `مضاد الجاذبية` (الإنساني). تمت إضافة `gemini-*`/`gemma-*` → `gemini` الإرشادي أيضًا. -**الإصلاح رقم 74 — يكون عدد الرموز المميزة دائمًا 0 لتدفق Antigravity/Claude**: لم يتم تحليل حدث `message_start` SSE الذي يحمل `input_tokens` بواسطة `extractUsage()`، مما تسبب في انخفاض جميع أعداد الرموز المميزة للإدخال. يعمل الآن تتبع رمز الإدخال/الإخراج بشكل صحيح لتدفق الاستجابات. -**الإصلاح رقم 180 — تكرار استيراد النموذج بدون أي تعليقات**: يُظهر `ModelSelectModal` الآن ✓ تمييزًا أخضر للنماذج الموجودة بالفعل في المجموعة، مما يوضح أنه تمت إضافتها بالفعل. -**أخطاء إنشاء صفحات الوسائط**: يتم الآن عرض نتائج الصور كعلامات `<img>` بدلاً من JSON الخام. تظهر نتائج النسخ كنص قابل للقراءة. تُظهر أخطاء بيانات الاعتماد شعارًا كهرماني اللون بدلاً من الفشل الصامت. -**زر تحديث الرمز المميز في صفحة الموفر**: تمت إضافة واجهة مستخدم تحديث الرمز المميز يدويًا لموفري OAuth.### 🔧 Improvements
 
-### 🐛 Bug Fixes
+-**سجل الموفر**: تمت إضافة HuggingFace وVertex AI إلى `providerRegistry.ts` و`providers.ts` (الواجهة الأمامية). -**قراءة ذاكرة التخزين المؤقت**: src/lib/db/readCache.ts الجديد للتخزين المؤقت الفعال لقراءة قاعدة البيانات. -**ذاكرة التخزين المؤقت للحصة**: ذاكرة تخزين مؤقت محسنة للحصة مع الإخلاء المستند إلى TTL.### 📦 Dependencies
 
-- **fix #355**: Stream idle timeout increased from 60s to 300s — prevents aborting extended-thinking models (claude-opus-4-6, o3, etc.) during long reasoning phases. Configurable via `STREAM_IDLE_TIMEOUT_MS`.
-- **fix #350**: Combo test now bypasses `REQUIRE_API_KEY=true` using internal header, and uses OpenAI-compatible format universally. Timeout extended from 15s to 20s.
-- **fix #346**: Tools with empty `function.name` (forwarded by Claude Code) are now filtered before upstream providers receive them, preventing "Invalid input[N].name: empty string" errors.
-
-### 🗑️ Closed Issues
-
-- **#341**: Debug section removed — replacement is `/dashboard/logs` and `/dashboard/health`.
-
-> API Key Round-Robin support for multi-key provider setups, and confirmation of wildcard routing and quota window rolling already in place.
-
-### ✨ New Features
-
-- **API Key Round-Robin (T07)**: Provider connections can now hold multiple API keys (Edit Connection → Extra API Keys). Requests rotate round-robin between primary + extra keys via `providerSpecificData.extraApiKeys[]`. Keys are held in-memory indexed per connection — no DB schema changes required.
-
-### 📝 Already Implemented (confirmed in audit)
-
-- **Wildcard Model Routing (T13)**: `wildcardRouter.ts` with glob-style wildcard matching (`gpt*`, `claude-?-sonnet`, etc.) is already integrated into `model.ts` with specificity ranking.
-- **Quota Window Rolling (T08)**: `accountFallback.ts:isModelLocked()` already auto-advances the window — if `Date.now() > entry.until`, lock is deleted immediately (no stale blocking).
-
-> UI polish, routing strategy additions, and graceful error handling for usage limits.
-
-### ✨ New Features
-
-- **Fill-First & P2C Routing Strategies**: Added `fill-first` (drain quota before moving on) and `p2c` (Power-of-Two-Choices low-latency selection) to combo strategy picker, with full guidance panels and color-coded badges.
-- **Free Stack Preset Models**: Creating a combo with the Free Stack template now auto-fills 7 best-in-class free provider models (Gemini CLI, Kiro, Qoder×2, Qwen, NVIDIA NIM, Groq). Users just activate the providers and get a $0/month combo out-of-the-box.
-- **Wider Combo Modal**: Create/Edit combo modal now uses `max-w-4xl` for comfortable editing of large combos.
-
-### 🐛 Bug Fixes
-
-- **Limits page HTTP 500 for Codex & GitHub**: `getCodexUsage()` and `getGitHubUsage()` now return a user-friendly message when the provider returns 401/403 (expired token), instead of throwing and causing a 500 error on the Limits page.
-- **MaintenanceBanner false-positive**: Banner no longer shows "Server is unreachable" spuriously on page load. Fixed by calling `checkHealth()` immediately on mount and removing stale `show`-state closure.
-- **Provider icon tooltips**: Edit (pencil) and delete icon buttons in the provider connection row now have native HTML tooltips — all 6 action icons are now self-documented.
-
-> Multiple improvements from community issue analysis, new provider support, bug fixes for token tracking, model routing, and streaming reliability.
-
-### ✨ New Features
-
-- **Task-Aware Smart Routing (T05)**: Automatic model selection based on request content type — coding → deepseek-chat, analysis → gemini-2.5-pro, vision → gpt-4o, summarization → gemini-2.5-flash. Configurable via Settings. New `GET/PUT/POST /api/settings/task-routing` API.
-- **HuggingFace Provider**: Added HuggingFace Router as an OpenAI-compatible provider with Llama 3.1 70B/8B, Qwen 2.5 72B, Mistral 7B, Phi-3.5 Mini.
-- **Vertex AI Provider**: Added Vertex AI (Google Cloud) provider with Gemini 2.5 Pro/Flash, Gemma 2 27B, Claude via Vertex.
-- **Playground File Uploads**: Audio upload for transcription, image upload for vision models (auto-detect by model name), inline image rendering for image generation results.
-- **Model Select Visual Feedback**: Already-added models in combo picker now show ✓ green badge — prevents duplicate confusion.
-- **Qwen Compatibility (PR #352)**: Updated User-Agent and CLI fingerprint settings for Qwen provider compatibility.
-- **Round-Robin State Management (PR #349)**: Enhanced round-robin logic to handle excluded accounts and maintain rotation state correctly.
-- **Clipboard UX (PR #360)**: Hardened clipboard operations with fallback for non-secure contexts; Claude tool normalization improvements.
-
-### 🐛 Bug Fixes
-
-- **Fix #302 — OpenAI SDK stream=False drops tool_calls**: T01 Accept header negotiation no longer forces streaming when `body.stream` is explicitly `false`. Was causing tool_calls to be silently dropped when using the OpenAI Python SDK in non-streaming mode.
-- **Fix #73 — Claude Haiku routed to OpenAI without provider prefix**: `claude-*` models sent without a provider prefix now correctly route to the `antigravity` (Anthropic) provider. Added `gemini-*`/`gemma-*` → `gemini` heuristic as well.
-- **Fix #74 — Token counts always 0 for Antigravity/Claude streaming**: The `message_start` SSE event which carries `input_tokens` was not being parsed by `extractUsage()`, causing all input token counts to drop. Input/output token tracking now works correctly for streaming responses.
-- **Fix #180 — Model import duplicates with no feedback**: `ModelSelectModal` now shows ✓ green highlight for models already in the combo, making it obvious they're already added.
-- **Media page generation errors**: Image results now render as `<img>` tags instead of raw JSON. Transcription results shown as readable text. Credential errors show an amber banner instead of silent failure.
-- **Token refresh button on provider page**: Manual token refresh UI added for OAuth providers.
-
-### 🔧 Improvements
-
-- **Provider Registry**: HuggingFace and Vertex AI added to `providerRegistry.ts` and `providers.ts` (frontend).
-- **Read Cache**: New `src/lib/db/readCache.ts` for efficient DB read caching.
-- **Quota Cache**: Improved quota cache with TTL-based eviction.
-
-### 📦 Dependencies
-
-- `dompurify` → 3.3.3 (PR #347)
-- `undici` → 7.24.2 (PR #348, #361)
+- `دومبوريفاي` → 3.3.3 (PR #347)
+- `undici` → 7.24.2 (PR #348، #361)
 - `docker/setup-qemu-action` → v4 (PR #342)
-- `docker/setup-buildx-action` → v4 (PR #343)
+- `docker/setup-buildx-action` → v4 (PR #343)### 📁 New Files
 
-### 📁 New Files
-
-| File                                          | Purpose                                 |
-| --------------------------------------------- | --------------------------------------- |
-| `open-sse/services/taskAwareRouter.ts`        | Task-aware routing logic (7 task types) |
-| `src/app/api/settings/task-routing/route.ts`  | Task routing config API                 |
-| `src/app/api/providers/[id]/refresh/route.ts` | Manual OAuth token refresh              |
-| `src/lib/db/readCache.ts`                     | Efficient DB read cache                 |
-| `src/shared/utils/clipboard.ts`               | Hardened clipboard with fallback        |
-
-## [2.4.1] - 2026-03-13
+| ملف                                           | الغرض                                        |
+| --------------------------------------------- | -------------------------------------------- | ----------------------- |
+| `open-sse/services/taskAwareRouter.ts`        | منطق التوجيه المدرك للمهمة (7 أنواع مهام)    |
+| `src/app/api/settings/task-routing/route.ts`  | توجيه المهام API التكوين                     |
+| `src/app/api/providers/[id]/refresh/route.ts` | التحديث اليدوي لرمز OAuth                    |
+| `src/lib/db/readCache.ts`                     | ذاكرة تخزين مؤقت فعالة لقراءة قاعدة البيانات |
+| `src/shared/utils/clipboard.ts`               | الحافظة المقواة مع احتياطي                   | ## [2.4.1] - 2026-03-13 |
 
 ### 🐛 Fix
 
-- **Combos modal: Free Stack visible and prominent** — Free Stack template was hidden (4th in 3-column grid). Fixed: moved to position 1, switched to 2x2 grid so all 4 templates are visible, green border + FREE badge highlight.
+-**المجموعات المشروطة: المكدس المجاني مرئي وبارز**— تم إخفاء قالب المكدس المجاني (الرابع في شبكة مكونة من 3 أعمدة). تم الإصلاح: تم النقل إلى الموضع 1، والتحويل إلى شبكة 2×2 بحيث تكون جميع القوالب الأربعة مرئية، مع حدود خضراء + تمييز شارة مجانية.## [2.4.0] - 2026-03-13
 
-## [2.4.0] - 2026-03-13
+> **الإصدار الرئيسي**— نظام Free Stack البيئي، وإصلاح ساحة النسخ، وأكثر من 44 موفرًا، ووثائق الطبقة المجانية الشاملة، وتحسينات واجهة المستخدم في جميع المجالات.### الميزات
 
-> **Major release** — Free Stack ecosystem, transcription playground overhaul, 44+ providers, comprehensive free tier documentation, and UI improvements across the board.
-
-### الميزات
-
-- **Combos: Free Stack template** — New 4th template "Free Stack ($0)" using round-robin across Kiro + Qoder + Qwen + Gemini CLI. Suggests the pre-built zero-cost combo on first use.
-- **Media/Transcription: Deepgram as default** — Deepgram (Nova 3, $200 free) is now the default transcription provider. AssemblyAI ($50 free) and Groq Whisper (free forever) shown with free credit badges.
-- **README: "Start Free" section** — New early-README 5-step table showing how to set up zero-cost AI in minutes.
-- **README: Free Transcription Combo** — New section with Deepgram/AssemblyAI/Groq combo suggestion and per-provider free credit details.
-- **providers.ts: hasFree flag** — NVIDIA NIM, Cerebras, and Groq marked with hasFree badge and freeNote for the providers UI.
-- **i18n: templateFreeStack keys** — Free Stack combo template translated and synced to all 30 languages.
-
-## [2.3.16] - 2026-03-13
+-**المجموعات: قالب Stack مجاني**— القالب الرابع الجديد "Free Stack ($0)" باستخدام نظام round-robin عبر Kiro + Qoder + Qwen + Gemini CLI. يقترح التحرير والسرد بدون تكلفة الذي تم إنشاؤه مسبقًا عند الاستخدام الأول. -**الوسائط/النسخ: Deepgram كإعداد افتراضي**— Deepgram (Nova 3، 200 دولار مجانًا) هو الآن موفر النسخ الافتراضي. AssemblyAI (50 دولارًا مجانًا) وGroq Whisper (مجانًا للأبد) تظهر مع شارات الائتمان المجانية. -**README: قسم "البدء مجانًا"**- جدول جديد مبكر لـ README مكون من 5 خطوات يوضح كيفية إعداد الذكاء الاصطناعي بدون تكلفة في دقائق. -**README: Free Transcription Combo**— قسم جديد مع اقتراح التحرير والسرد Deepgram/AssemblyAI/Groq وتفاصيل الائتمان المجانية لكل مزود. -**providers.ts: hasFree flag**— تم وضع علامة على NVIDIA NIM وCerebras وGroq بشارة hasFree وfreeNote لواجهة مستخدم مقدمي الخدمة. -**i18n: مفاتيح templateFreeStack**— قالب التحرير والسرد Stack المجاني مترجم ومتزامن مع جميع اللغات الثلاثين.## [2.3.16] - 2026-03-13
 
 ### التوثيق
 
-- **README: 44+ Providers** — Updated all 3 occurrences of "36+ providers" to "44+" reflecting the actual codebase count (44 providers in providers.ts)
-- **README: New Section "🆓 Free Models — What You Actually Get"** — Added 7-provider table with per-model rate limits for: Kiro (Claude unlimited via AWS Builder ID), Qoder (5 models unlimited), Qwen (4 models unlimited), Gemini CLI (180K/mo), NVIDIA NIM (~40 RPM dev-forever), Cerebras (1M tok/day / 60K TPM), Groq (30 RPM / 14.4K RPD). Includes the \/usr/bin/bash Ultimate Free Stack combo recommendation.
-- **README: Pricing Table Updated** — Added Cerebras to API KEY tier, fixed NVIDIA from "1000 credits" to "dev-forever free", updated Qoder/Qwen model counts and names
-- **README: Qoder 8→5 models** (named: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2)
-- **README: Qwen 3→4 models** (named: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model)
-
-## [2.3.15] - 2026-03-13
+-**README: أكثر من 44 موفرًا**— تم تحديث جميع التكرارات الثلاثة لـ "36+ موفرًا" إلى "44+" مما يعكس عدد قاعدة التعليمات البرمجية الفعلي (44 موفرًا في Providers.ts) -**اقرأني: قسم جديد "🆓 النماذج المجانية - ما تحصل عليه فعليًا"**- تمت إضافة جدول مكون من 7 موفرين مع حدود أسعار لكل نموذج لـ: Kiro (Claude غير محدود عبر AWS Builder ID)، Qoder (5 نماذج غير محدودة)، Qwen (4 نماذج غير محدودة)، Gemini CLI (180 ألف/شهر)، NVIDIA NIM (~ 40 دورة في الدقيقة للتطوير إلى الأبد)، Cerebras (1 مليون توك/يوم / 60 ألف TPM)، Groq (30 دورة في الدقيقة / 14.4 كيلو دورة في الدقيقة). يتضمن توصية مجموعة \/usr/bin/bash Ultimate Free Stack. -**اقرأني: تم تحديث جدول التسعير**- تمت إضافة Cerebras إلى طبقة API KEY، وإصلاح NVIDIA من "1000 نقطة" إلى "مجاني إلى الأبد"، وتحديث أعداد وأسماء نماذج Qoder/Qwen -**القراءة التمهيدية: نماذج Qoder 8→5**(المسماة: kimi-k2-thinking، qwen3-coder-plus، Deepseek-r1، minimax-m2، kimi-k2) -**القراءة التمهيدية: نماذج Qwen 3→4**(المسماة: qwen3-coder-plus، qwen3-coder-flash، qwen3-coder-next، Vision-model)## [2.3.15] - 2026-03-13
 
 ### الميزات
 
-- **Auto-Combo Dashboard (Tier Priority)**: Added `🏷️ Tier` as the 7th scoring factor label in the `/dashboard/auto-combo` factor breakdown display — all 7 Auto-Combo scoring factors are now visible.
-- **i18n — autoCombo section**: Added 20 new translation keys for the Auto-Combo dashboard (`title`, `status`, `modePack`, `providerScores`, `factorTierPriority`, etc.) to all 30 language files.
-
-## [2.3.14] - 2026-03-13
+-**لوحة معلومات التحرير والسرد التلقائي (أولوية الطبقة)**: تمت إضافة `🏷️ الطبقة` كتسمية عامل التسجيل السابع في عرض تفصيل عامل `/dashboard/auto-combo` - أصبحت جميع عوامل تسجيل التحرير والسرد التلقائي السبعة مرئية الآن. -**i18n — قسم autoCombo**: تمت إضافة 20 مفتاح ترجمة جديدًا للوحة معلومات التحرير والسرد التلقائي (`title`، `status`، `modePack`، `providerScores`، `factorTierPriority`، وما إلى ذلك) إلى جميع ملفات اللغة الثلاثين.## [2.3.14] - 2026-03-13
 
 ### 🐛 Bug Fixes
 
-- **Qoder OAuth (#339)**: Restored the valid default `clientSecret` — was previously an empty string, causing "Bad client credentials" on every connect attempt. The public credential is now the default fallback (overridable via `QODER_OAUTH_CLIENT_SECRET` env var).
-- **MITM server not found (#335)**: `prepublish.mjs` now compiles `src/mitm/*.ts` to JavaScript using `tsc` before copying to the npm bundle. Previously only raw `.ts` files were copied — meaning `server.js` never existed in npm/Volta global installs.
-- **GeminiCLI missing projectId (#338)**: Instead of throwing a hard 500 error when `projectId` is missing from stored credentials (e.g. after Docker restart), OmniRoute now logs a warning and attempts the request — returning a meaningful provider-side error instead of an OmniRoute crash.
-- **Electron version mismatch (#323)**: Synced `electron/package.json` version to `2.3.13` (was `2.0.13`) so the desktop binary version matches the npm package.
+-**Qoder OAuth (#339)**: تمت استعادة الإعداد الافتراضي الصالح `clientSecret` — الذي كان في السابق عبارة عن سلسلة فارغة، مما يتسبب في "بيانات اعتماد العميل غير الصحيحة" في كل محاولة اتصال. أصبحت بيانات الاعتماد العامة الآن هي الإجراء الاحتياطي الافتراضي (يمكن تجاوزه عبر `QODER_OAUTH_CLIENT_SECRET` env var). -**لم يتم العثور على خادم MITM (#335)**: يقوم `prepublish.mjs` الآن بتجميع `src/mitm/*.ts` إلى JavaScript باستخدام `tsc` قبل النسخ إلى حزمة npm. في السابق، تم نسخ ملفات `.ts` الأولية فقط - مما يعني أن `server.js` لم يكن موجودًا مطلقًا في عمليات التثبيت العامة لـ npm/Volta. -**GeminiCLI مفقود projectId (#338)**: بدلاً من إلقاء خطأ 500 عندما يكون `projectId` مفقودًا من بيانات الاعتماد المخزنة (على سبيل المثال، بعد إعادة تشغيل Docker)، يسجل OmniRoute الآن تحذيرًا ويحاول الطلب - ويعيد خطأ ذا معنى من جانب الموفر بدلاً من تعطل OmniRoute. -**عدم تطابق الإصدار الإلكتروني (#323)**: تمت مزامنة إصدار `electron/package.json` مع `2.3.13` (كان `2.0.13`) بحيث يتطابق الإصدار الثنائي لسطح المكتب مع حزمة npm.### ✨ New Models (#334)
 
-### ✨ New Models (#334)
+-**كيرو**: `كلود-سونيت-4`، `كلود-أوبوس-4.6`، `ديبسيك-v3.2`، `مينيماكس-m2.1`، `qwen3-coder-next`، `تلقائي` -**الدستور**: `gpt5.4`### 🔧 Improvements
 
-- **Kiro**: `claude-sonnet-4`, `claude-opus-4.6`, `deepseek-v3.2`, `minimax-m2.1`, `qwen3-coder-next`, `auto`
-- **Codex**: `gpt5.4`
+-**تسجيل المستوى (API + التحقق من الصحة)**: تمت إضافة `tierPriority` (الوزن `0.05`) إلى مخطط Zod `ScoringWeights` ومسار واجهة برمجة التطبيقات `combos/auto` - أصبح عامل التسجيل السابع الآن مقبولًا بالكامل بواسطة REST API ويتم التحقق من صحته عند الإدخال. تم تعديل وزن "الثبات" من `0.10` إلى `0.05` ليظل المجموع الإجمالي = `1.0`.### ✨ New Features
 
-### 🔧 Improvements
+-**تسجيل نقاط الحصص المتدرجة (مجموعة تلقائية)**: تمت إضافة "أولوية الطبقة" كعامل تسجيل سابع - تُفضل الآن الحسابات ذات طبقات Ultra/Pro على الطبقات المجانية عندما تكون العوامل الأخرى متساوية. الحقول الاختيارية الجديدة "accountTier" و"quotaResetIntervalSecs" في "ProviderCandidate". تم تحديث جميع حزم الأوضاع الأربعة (`الشحن السريع`، و`توفير التكلفة`، و`الجودة أولاً`، و`السهلة دون الاتصال بالإنترنت`). -**النموذج الاحتياطي داخل العائلة (T5)**: عندما لا يكون النموذج متاحًا (404/400/403)، يعود OmniRoute الآن تلقائيًا إلى النماذج الشقيقة من نفس العائلة قبل إرجاع خطأ (`modelFamilyFallback.ts`). -**مهلة جسر واجهة برمجة التطبيقات القابلة للتكوين**: يتيح `API_BRIDGE_PROXY_TIMEOUT_MS` env var للمشغلين ضبط مهلة الوكيل (30 ثانية افتراضية). يعمل على إصلاح أخطاء 504 في الاستجابات البطيئة للمنبع. (#332) -**Star History**: تم استبدال عنصر واجهة المستخدم star-history.com بـ starchart.cc (`?variant=adaptive`) في جميع ملفات README الثلاثين - تتكيف مع السمة الفاتحة/الغامقة، والتحديثات في الوقت الفعلي.### 🐛 Bug Fixes
 
-- **Tier Scoring (API + Validation)**: Added `tierPriority` (weight `0.05`) to the `ScoringWeights` Zod schema and the `combos/auto` API route — the 7th scoring factor is now fully accepted by the REST API and validated on input. `stability` weight adjusted from `0.10` to `0.05` to keep total sum = `1.0`.
+-**Auth — كلمة المرور لأول مرة**: تم الآن قبول `INITIAL_PASSWORD` env var عند تعيين كلمة مرور لوحة المعلومات الأولى. يستخدم `timingSafeEqual` لمقارنة الوقت الثابت، مما يمنع هجمات التوقيت. (#333) -**اقتطاع README**: تم إصلاح علامة الإغلاق `</details>` المفقودة في قسم استكشاف الأخطاء وإصلاحها والتي تسببت في توقف GitHub عن عرض كل شيء تحته (Tech Stack، وDocs، وRoadmap، وContributors). -**pnpm install**: تمت إزالة التجاوز المتكرر `@swc/helpers` من `package.json` الذي يتعارض مع التبعية المباشرة، مما يتسبب في حدوث أخطاء `EOVERRIDE` في pnpm. تمت إضافة التكوين "pnpm.onlyBuiltDependeency". -**حقن مسار سطر الأوامر (T12)**: تمت إضافة أداة التحقق `isSafePath()` في `cliRuntime.ts` لمنع اجتياز المسار والأحرف الأولية للصدفة في `CLI_*_BIN` env vars. -**CI**: تمت إعادة إنشاء `package-lock.json` بعد تجاوز الإزالة لإصلاح حالات فشل `npm ci` في إجراءات GitHub.### 🔧 Improvements
 
-### ✨ New Features
+-**تنسيق الاستجابة (T1)**: تم الآن إدخال `response_format` (json_schema/json_object) كموجه نظام لـ Claude، مما يتيح التوافق المنظم للمخرجات. -**429 إعادة المحاولة (T2)**: إعادة المحاولة داخل عنوان URL لـ 429 استجابة (محاولتان × مع تأخير لمدة ثانيتين) قبل الرجوع إلى عنوان URL التالي. -**Gemini CLI Headers (T3)**: تمت إضافة رؤوس بصمات الأصابع `User-Agent` و`X-Goog-Api-Client` للتوافق مع Gemini CLI. -**كتالوج الأسعار (T9)**: تمت إضافة إدخالات التسعير `deepseek-3.1` و`deepseek-3.2` و`qwen3-coder-next`.### 📁 New Files
 
-- **Tiered Quota Scoring (Auto-Combo)**: Added `tierPriority` as a 7th scoring factor — accounts with Ultra/Pro tiers are now preferred over Free tiers when other factors are equal. New optional fields `accountTier` and `quotaResetIntervalSecs` on `ProviderCandidate`. All 4 mode packs updated (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`).
-- **Intra-Family Model Fallback (T5)**: When a model is unavailable (404/400/403), OmniRoute now automatically falls back to sibling models from the same family before returning an error (`modelFamilyFallback.ts`).
-- **Configurable API Bridge Timeout**: `API_BRIDGE_PROXY_TIMEOUT_MS` env var lets operators tune the proxy timeout (default 30s). Fixes 504 errors on slow upstream responses. (#332)
-- **Star History**: Replaced star-history.com widget with starchart.cc (`?variant=adaptive`) in all 30 READMEs — adapts to light/dark theme, real-time updates.
+| ملف                                        | الغرض                                                  |
+| ------------------------------------------ | ------------------------------------------------------ | --------- |
+| `open-sse/services/modelFamilyFallback.ts` | تعريفات الأسرة النموذجية والمنطق الاحتياطي داخل الأسرة | ### Fixed |
 
-### 🐛 Bug Fixes
-
-- **Auth — First-time password**: `INITIAL_PASSWORD` env var is now accepted when setting the first dashboard password. Uses `timingSafeEqual` for constant-time comparison, preventing timing attacks. (#333)
-- **README Truncation**: Fixed a missing `</details>` closing tag in the Troubleshooting section that caused GitHub to stop rendering everything below it (Tech Stack, Docs, Roadmap, Contributors).
-- **pnpm install**: Removed redundant `@swc/helpers` override from `package.json` that conflicted with the direct dependency, causing `EOVERRIDE` errors on pnpm. Added `pnpm.onlyBuiltDependencies` config.
-- **CLI Path Injection (T12)**: Added `isSafePath()` validator in `cliRuntime.ts` to block path traversal and shell metacharacters in `CLI_*_BIN` env vars.
-- **CI**: Regenerated `package-lock.json` after override removal to fix `npm ci` failures on GitHub Actions.
-
-### 🔧 Improvements
-
-- **Response Format (T1)**: `response_format` (json_schema/json_object) now injected as a system prompt for Claude, enabling structured output compatibility.
-- **429 Retry (T2)**: Intra-URL retry for 429 responses (2× attempts with 2s delay) before falling back to next URL.
-- **Gemini CLI Headers (T3)**: Added `User-Agent` and `X-Goog-Api-Client` fingerprint headers for Gemini CLI compatibility.
-- **Pricing Catalog (T9)**: Added `deepseek-3.1`, `deepseek-3.2`, and `qwen3-coder-next` pricing entries.
-
-### 📁 New Files
-
-| File                                       | Purpose                                                  |
-| ------------------------------------------ | -------------------------------------------------------- |
-| `open-sse/services/modelFamilyFallback.ts` | Model family definitions and intra-family fallback logic |
+-**KiloCode**: تم إصلاح مهلة التحقق من صحة كيلوكود بالفعل في الإصدار 2.3.11 -**OpenCode**: أضف الكود المفتوح إلى سجل cliRuntime مع انتهاء مهلة التحقق من الصحة لمدة 15 ثانية -**OpenClaw / Cursor**: زيادة مهلة التحقق من الصحة إلى 15 ثانية للمتغيرات ذات التشغيل البطيء -**VPS**: تثبيت حزم npm droid وopenclaw؛ قم بتنشيط CLI_EXTRA_PATHS لـ kiro-cli -**cliRuntime**: إضافة تسجيل أداة الكود المفتوح وزيادة المهلة للمتابعة## [2.3.11] - 2026-03-12
 
 ### Fixed
 
-- **KiloCode**: kilocode healthcheck timeout already fixed in v2.3.11
-- **OpenCode**: Add opencode to cliRuntime registry with 15s healthcheck timeout
-- **OpenClaw / Cursor**: Increase healthcheck timeout to 15s for slow-start variants
-- **VPS**: Install droid and openclaw npm packages; activate CLI_EXTRA_PATHS for kiro-cli
-- **cliRuntime**: Add opencode tool registration and increase timeout for continue
-
-## [2.3.11] - 2026-03-12
+-**KiloCode healthcheck**: زيادة `healthcheckTimeoutMs` من 4000 مللي ثانية إلى 15000 مللي ثانية - يعرض Kilocode شعار ASCII عند بدء التشغيل مما يتسبب في `healthcheck_failed` الخاطئ في بيئات التشغيل البطيئة/الباردة## [2.3.10] - 2026-03-12
 
 ### Fixed
 
-- **KiloCode healthcheck**: Increase `healthcheckTimeoutMs` from 4000ms to 15000ms — kilocode renders an ASCII logo banner on startup causing false `healthcheck_failed` on slow/cold-start environments
+-**Lint**: إصلاح فشل `check:any-budget:t11` - استبدال `as Any` بـ `as Record<string,known>` في OAuthModal.tsx (3 مرات)### Docs
 
-## [2.3.10] - 2026-03-12
-
-### Fixed
-
-- **Lint**: Fix `check:any-budget:t11` failure — replace `as any` with `as Record<string, unknown>` in OAuthModal.tsx (3 occurrences)
-
-### Docs
-
-- **CLI-TOOLS.md**: Complete guide for all 11 CLI tools (claude, codex, gemini, opencode, cline, kilocode, continue, kiro-cli, cursor, droid, openclaw)
-- **i18n**: CLI-TOOLS.md synced to 30 languages with translated title + intro
-
-## [2.3.8] - 2026-03-12
+-**CLI-TOOLS.md**: دليل كامل لجميع أدوات CLI الـ 11 (كلود، كوديكس، جيميني، أوبن كود، كلاين، كيلوكود، متابعة، كيرو-كلي، المؤشر، الروبوت، أوبنكلاو) -**i18n**: تمت مزامنة CLI-TOOLS.md مع 30 لغة مع عنوان مترجم + مقدمة## [2.3.8] - 2026-03-12
 
 ## [2.3.9] - 2026-03-12
 
 ### Added
 
-- **/v1/completions**: New legacy OpenAI completions endpoint — accepts both `prompt` string and `messages` array, normalizes to chat format automatically
-- **EndpointPage**: Now shows all 3 OpenAI-compatible endpoint types: Chat Completions, Responses API, and Legacy Completions
-- **i18n**: Added `completionsLegacy/completionsLegacyDesc` to 30 language files
+-**/v1/completions**: نقطة نهاية عمليات إكمال OpenAI القديمة الجديدة — تقبل كلاً من سلسلة `المطالبة` ومصفوفة `الرسائل`، وتطبيعها لتنسيق الدردشة تلقائيًا -**EndpointPage**: يعرض الآن جميع أنواع نقاط النهاية الثلاثة المتوافقة مع OpenAI: عمليات إكمال الدردشة، وواجهة برمجة تطبيقات الاستجابات، والإكمالات القديمة -**i18n**: تمت إضافة `completionsLegacy/completionsLegacyDesc` إلى 30 ملف لغة### Fixed
+
+-**OAuthModal**: إصلاح `[object Object]` الذي يتم عرضه على جميع أخطاء اتصال OAuth - قم باستخراج `.message` بشكل صحيح من كائنات الاستجابة للأخطاء في جميع مكالمات `throw new Error(data.error)` الثلاثة (التبادل، رمز الجهاز، التفويض)
+
+- يؤثر على Cline وCodex وGitHub وQwen وKiro وجميع موفري OAuth الآخرين## [2.3.7] - 2026-03-12
 
 ### Fixed
 
-- **OAuthModal**: Fix `[object Object]` displayed on all OAuth connection errors — properly extract `.message` from error response objects in all 3 `throw new Error(data.error)` calls (exchange, device-code, authorize)
-- Affects Cline, Codex, GitHub, Qwen, Kiro, and all other OAuth providers
-
-## [2.3.7] - 2026-03-12
+-**Cline OAuth**: أضف `decodeURIComponent` قبل فك تشفير base64 بحيث يتم تحليل رموز المصادقة المشفرة بعنوان URL من عنوان URL لرد الاتصال بشكل صحيح، وإصلاح أخطاء "رمز التفويض غير الصالح أو منتهي الصلاحية" في إعدادات (LAN IP) البعيدة -**Cline OAuth**: يتم الآن ملء `mapTokens` بـ `name = firstName + lastName || email` لذا تعرض حسابات Cline أسماء مستخدمين حقيقية بدلاً من "Account #ID" -**أسماء حسابات OAuth**: تعمل جميع تدفقات تبادل OAuth (التبادل والاستقصاء واستدعاء الاستقصاء) الآن على تسوية `الاسم = البريد الإلكتروني` عندما يكون الاسم مفقودًا، لذلك يعرض كل حساب OAuth بريده الإلكتروني كتسمية عرض في لوحة معلومات الموفرين -**أسماء حسابات OAuth**: تمت إزالة الإجراء الاحتياطي المتسلسل "Account N" في `db/providers.ts` - تستخدم الحسابات التي لا تحتوي على بريد إلكتروني/اسم الآن تصنيفًا ثابتًا يستند إلى معرف عبر `getAccountDisplayName()` بدلاً من رقم تسلسلي يتغير عند حذف الحسابات## [2.3.6] - 2026-03-12
 
 ### Fixed
 
-- **Cline OAuth**: Add `decodeURIComponent` before base64 decode so URL-encoded auth codes from the callback URL are parsed correctly, fixing "invalid or expired authorization code" errors on remote (LAN IP) setups
-- **Cline OAuth**: `mapTokens` now populates `name = firstName + lastName || email` so Cline accounts show real user names instead of "Account #ID"
-- **OAuth account names**: All OAuth exchange flows (exchange, poll, poll-callback) now normalize `name = email` when name is missing, so every OAuth account shows its email as the display label in the Providers dashboard
-- **OAuth account names**: Removed sequential "Account N" fallback in `db/providers.ts` — accounts with no email/name now use a stable ID-based label via `getAccountDisplayName()` instead of a sequential number that changes when accounts are deleted
-
-## [2.3.6] - 2026-03-12
+-**دفعة اختبار الموفر**: تم إصلاح مخطط Zod لقبول "معرف المزود: فارغ" (ترسل الواجهة الأمامية قيمة فارغة للأوضاع غير المزودة)؛ تم إرجاع "طلب غير صالح" بشكل غير صحيح لجميع اختبارات الدُفعات -**نموذج اختبار الموفر**: تم إصلاح عرض `[object Object]` عن طريق تسوية كائنات خطأ API إلى سلاسل قبل العرض في `setTestResults` و`ProviderTestResultsView`. -**i18n**: تمت إضافة المفاتيح المفقودة `cliTools.toolDescriptions.opencode`، `cliTools.toolDescriptions.kiro`، `cliTools.guides.opencode`، `cliTools.guides.kiro` إلى `en.json`. -**i18n**: 1111 مفتاحًا مفقودًا متزامنًا في جميع ملفات اللغة غير الإنجليزية البالغ عددها 29 ملفًا باستخدام القيم الإنجليزية كخيارات احتياطية## [2.3.5] - 2026-03-11
 
 ### Fixed
 
-- **Provider test batch**: Fixed Zod schema to accept `providerId: null` (frontend sends null for non-provider modes); was incorrectly returning "Invalid request" for all batch tests
-- **Provider test modal**: Fixed `[object Object]` display by normalizing API error objects to strings before rendering in `setTestResults` and `ProviderTestResultsView`
-- **i18n**: Added missing keys `cliTools.toolDescriptions.opencode`, `cliTools.toolDescriptions.kiro`, `cliTools.guides.opencode`, `cliTools.guides.kiro` to `en.json`
-- **i18n**: Synchronized 1111 missing keys across all 29 non-English language files using English values as fallbacks
-
-## [2.3.5] - 2026-03-11
-
-### Fixed
-
-- **@swc/helpers**: Added permanent `postinstall` fix to copy `@swc/helpers` into the standalone app's `node_modules` — prevents MODULE_NOT_FOUND crash on global npm installs
-
-## [2.3.4] - 2026-03-10
+-**@swc/helpers**: تمت إضافة إصلاح `ما بعد التثبيت` الدائم لنسخ `@swc/helpers` في `node_modules` الخاصة بالتطبيق المستقل - يمنع تعطل MODULE_NOT_FOUND عند عمليات تثبيت npm العالمية## [2.3.4] - 2026-03-10
 
 ### Added
 
-- Multiple provider integrations and dashboard improvements
+- عمليات تكامل متعددة مع الموفرين وتحسينات على لوحة المعلومات

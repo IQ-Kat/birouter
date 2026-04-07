@@ -352,6 +352,10 @@ export function startPeriodicSync(intervalMs?: number): void {
         );
       });
   }, interval);
+
+  if (syncTimer && typeof syncTimer === "object" && "unref" in syncTimer) {
+    (syncTimer as { unref?: () => void }).unref?.();
+  }
 }
 
 /**

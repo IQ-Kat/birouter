@@ -14,6 +14,24 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
+function raceDelays(firstMs, secondMs) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const first = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(second);
+      resolve(firstMs);
+    }, firstMs);
+    const second = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(first);
+      resolve(secondMs);
+    }, secondMs);
+  });
+}
+
 // ─── URL Validation Tests ────────────────────────────────────
 
 describe("Electron URL Validation", () => {
@@ -207,20 +225,14 @@ describe("Restart Timeout Logic", () => {
   it("should resolve even if process doesn't exit", async () => {
     // Simulate the timeout race
     const start = Date.now();
-    await Promise.race([
-      new Promise((r) => setTimeout(r, 100000)), // simulates hung process
-      new Promise((r) => setTimeout(r, 50)), // timeout
-    ]);
+    await raceDelays(100000, 50);
     const elapsed = Date.now() - start;
     assert.ok(elapsed < 200, "Should resolve in ~50ms via timeout");
   });
 
   it("should resolve immediately if process exits first", async () => {
     const start = Date.now();
-    await Promise.race([
-      new Promise((r) => setTimeout(r, 10)), // simulates fast exit
-      new Promise((r) => setTimeout(r, 5000)), // timeout
-    ]);
+    await raceDelays(10, 5000);
     const elapsed = Date.now() - start;
     assert.ok(elapsed < 200, "Should resolve in ~10ms via exit");
   });

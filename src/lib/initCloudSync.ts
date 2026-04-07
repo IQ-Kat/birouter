@@ -5,7 +5,16 @@ import "@/lib/tokenHealthCheck"; // Proactive token health-check scheduler
 // Initialize background sync services when this module is imported
 let initialized = false;
 
+function isBackgroundServicesDisabled(): boolean {
+  const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+  if (!raw) return false;
+  return new Set(["1", "true", "yes", "on"]).has(raw.trim().toLowerCase());
+}
+
 export async function ensureCloudSyncInitialized() {
+  if (isBackgroundServicesDisabled()) {
+    return false;
+  }
   if (!initialized) {
     try {
       await initializeCloudSync();

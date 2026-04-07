@@ -4,19 +4,13 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
-
----
+Katkıda bulunmaya gösterdiğiniz ilgi için teşekkür ederiz! Bu kılavuz, başlamak için ihtiyacınız olan her şeyi kapsar.---
 
 ## Development Setup
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
-- **npm** 10+
-- **Git**
-
-### Clone & Install
+-**Node.js**>= 18 < 24 (önerilen: 22 LTS) -**npm**10+ -**Git**### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -35,28 +29,24 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+Gelişim için temel değişkenler:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| Değişken               | Geliştirme Varsayılanı   | Açıklama                |
+| ---------------------- | ------------------------ | ----------------------- | ---------------------- |
+| 'LİMAN'                | '20128'                  | Sunucu bağlantı noktası |
+| 'NEXT_PUBLIC_BASE_URL' | 'http://localhost:20128' | Ön uç için temel URL    |
+| 'JWT_SECRET'           | (yukarıda oluşturun)     | JWT imzalama sırrı      |
+| `INITIAL_PASSWORD`     | 'DEĞİŞTİR'               | İlk giriş şifresi       |
+| 'APP_LOG_LEVEL'        | 'bilgi'                  | Günlük ayrıntı düzeyi   | ### Dashboard Settings |
 
-### Dashboard Settings
+Kontrol paneli, ortam değişkenleri yoluyla da yapılandırılabilen özellikler için kullanıcı arayüzü geçişleri sağlar:
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+| Konum Ayarlama     | Değiştir                 | Açıklama                                             |
+| ------------------ | ------------------------ | ---------------------------------------------------- |
+| Ayarlar → Gelişmiş | Hata Ayıklama Modu       | Hata ayıklama isteği günlüklerini etkinleştirin (UI) |
+| Ayarlar → Genel    | Kenar Çubuğu Görünürlüğü | Kenar çubuğu bölümlerini göster/gizle                |
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
-
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
-
-### Running Locally
+Bu ayarlar veritabanında saklanır ve ayarlandığında env var varsayılanlarını geçersiz kılarak yeniden başlatmalarda kalıcı olur.### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -70,51 +60,44 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+Varsayılan URL'ler:
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
-
----
+-**Kontrol Paneli**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
 
 ## Git Workflow
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️**ASLA doğrudan "ana"ya bağlanma.**Her zaman özellik dallarını kullanın.```bash
+> git checkout -b feat/your-feature-name
 
-```bash
-git checkout -b feat/your-feature-name
 # ... make changes ...
+
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
+
 # Open a Pull Request on GitHub
-```
+
+````
 
 ### Branch Naming
 
-| Prefix      | Purpose                   |
+| Önek | Amaç |
 | ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| `feat/` | Yeni özellikler |
+| 'düzelt/' | Hata düzeltmeleri |
+| 'yeniden düzenleyen/' | Kodun yeniden yapılandırılması |
+| 'dokümanlar/' | Dokümantasyon değişiklikleri |
+| 'deneme/' | Eklemeleri/düzeltmeleri test edin |
+| `angarya/' | Araçlar, CI, bağımlılıklar |### Commit Messages
 
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+[Geleneksel Taahhütleri](https://www.conventionalcommits.org/) takip edin:```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-```
+````
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
+Kapsamlar: 'db', 'sse', 'oauth', 'dashboard', 'api', 'cli', 'docker', 'ci', 'mcp', 'a2a', 'bellek', 'beceriler'.---
 
 ## Running Tests
 
@@ -137,7 +120,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min statements/lines/functions; 60% branches)
+# Coverage (60% min statements/lines/functions/branches)
 npm run test:coverage
 npm run coverage:report
 
@@ -146,36 +129,39 @@ npm run lint
 npm run check
 ```
 
-Coverage notes:
+Kapsam notları:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- "npm çalıştırma testi:kapsam", ana ünite test takımı için kaynak kapsamını ölçer, "testler/**"i hariç tutar ve "açık-sse/**"yi içerir
+- Çekme istekleri, ekstreler, satırlar, işlevler ve dallar için genel kapsam kapısını**%60 veya daha yüksek**olarak tutmalıdır
+- Bir PR, "src/", "open-sse/", "electron/" veya "bin/" üretim kodunu değiştirirse, aynı PR'ye otomatik testler eklemeli veya güncellemelidir
+- `npm çalıştırma kapsamı:rapor`, en son kapsama çalıştırmasından dosya bazında ayrıntılı raporu yazdırır
+- `npm çalıştırma testi:kapsam:eski`, geçmiş karşılaştırma için eski ölçümü korur
+- Aşamalı kapsamı iyileştirme yol haritası için `docs/COVERAGE_PLAN.md`ye bakın### Pull Request Requirements
 
-Current test status: **122 unit test files** covering:
+Bir PR'yi açmadan veya birleştirmeden önce:
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- 'npm run test:unit'i çalıştırın
+- 'npm çalıştırma testi:kapsam'ı çalıştırın
+- Tüm metrikler için kapsama kapısının**%60+**'da kalmasını sağlayın
+- Üretim kodu değiştiğinde değiştirilen veya eklenen test dosyalarını PR açıklamasına ekleyin
+- Proje gizli dizileri CI'da yapılandırıldığında PR'deki SonarQube sonucunu kontrol edin
 
----
+Mevcut test durumu:**122 birim test dosyası**şunları kapsar:
+
+- Sağlayıcı çevirmenleri ve format dönüştürme
+- Hız sınırlama, devre kesici ve esneklik
+- Anlamsal önbellek, yetersizlik, ilerleme takibi
+- Veritabanı işlemleri ve şeması (21 DB modülü)
+- OAuth akışları ve kimlik doğrulama
+- API uç nokta doğrulaması (Zod v4)
+- MCP sunucu araçları ve kapsam uygulaması
+- Hafıza ve Beceri sistemleri---
 
 ## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
-
----
+-**ESLint**— İşlemden önce `npm run lint'i çalıştırın
+-**Daha güzel**— İşleme sırasında "lint-staged" aracılığıyla otomatik biçimlendirilmiş (2 boşluk, noktalı virgül, çift tırnak, 100 karakter genişliği, es5 sondaki virgüller)
+-**TypeScript**— Tüm `src/`kodları`.ts`/`.tsx`kullanır;`open-sse/`, `.ts`/`.js`yi kullanır; TSDoc içeren belge ("@param`, `@returns`, `@throws`) -**'eval()' yok**— ESLint, "değerlendirme yok", "ima edilen değerlendirme yok", "yeni-işlev yok" özelliklerini uygular -**Zod doğrulama**— Tüm API giriş doğrulaması için Zod v4 şemalarını kullanın -**Adlandırma**: Dosyalar = camelCase/kebab-case, bileşenler = PascalCase, sabitler = UPPER_SNAKE---
 
 ## Project Structure
 
@@ -244,56 +230,37 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+'src/shared/constants/providers.ts' dosyasına ekleyin — Modül yükünde Zod tarafından doğrulandı.### Step 2: Add Executor (if custom logic needed)
 
-### Step 2: Add Executor (if custom logic needed)
+'open-sse/executors/your-provider.ts' dosyasında temel yürütücüyü genişleterek yürütücü oluşturun.### Step 3: Add Translator (if non-OpenAI format)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+'Open-sse/translator/'da istek/yanıt çevirmenleri oluşturun.### Step 4: Add OAuth Config (if OAuth-based)
 
-### Step 3: Add Translator (if non-OpenAI format)
+OAuth kimlik bilgilerini "src/lib/oauth/constants/oauth.ts" içine ve hizmeti "src/lib/oauth/services/" içine ekleyin.### Step 5: Register Models
 
-Create request/response translators in `open-sse/translator/`.
+'open-sse/config/providerRegistry.ts' dosyasına model tanımlarını ekleyin.### Step 6: Add Tests
 
-### Step 4: Add OAuth Config (if OAuth-based)
+Birim testlerini en azından aşağıdakileri kapsayacak şekilde "testler/birim/" olarak yazın:
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
-
-### Step 5: Register Models
-
-Add model definitions in `open-sse/config/providerRegistry.ts`.
-
-### Step 6: Add Tests
-
-Write unit tests in `tests/unit/` covering at minimum:
-
-- Provider registration
-- Request/response translation
-- Error handling
-
----
+- Sağlayıcı kaydı
+- İstek/yanıt çevirisi
+- Hata işleme---
 
 ## Pull Request Checklist
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
-
----
+- [ ] Testler başarılı (`npm testi`)
+- [ ] Linting geçişleri (`npm run lint`)
+- [ ] Derleme başarılı ('npm run build')
+- [ ] Yeni genel işlevler ve arayüzler için TypeScript türleri eklendi
+- [ ] Sabit kodlanmış sırlar veya geri dönüş değerleri yok
+- [ ] Tüm girişler Zod şemalarıyla doğrulandı
+- [ ] CHANGELOG güncellendi (kullanıcının karşılaştığı bir değişiklik varsa)
+- [ ] Belgeler güncellendi (varsa)---
 
 ## Releasing
 
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
-
----
+Sürümler, '/generate-release' iş akışı aracılığıyla yönetilir. Yeni bir GitHub Sürümü oluşturulduğunda, paket GitHub Eylemleri aracılığıyla**otomatik olarak npm'ye yayınlanır**.---
 
 ## Getting Help
 
-- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+-**Mimarlık**: Bkz. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**API Referansı**: Bkz. [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Sorunlar**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR'ler**: Mimari karar kayıtları için bkz. "belgeler/adr/"

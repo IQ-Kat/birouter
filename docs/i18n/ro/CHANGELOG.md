@@ -4,1156 +4,645 @@
 
 ---
 
-
 ## [Unreleased]
 
 ---
+
+## [3.5.3] - 2026-04-05
+
+### Fixed
+
+-**Middleware:**Bucla de redirecționare infinită rezolvată pe tabloul de bord pentru cazuri noi când requireLogin este dezactivat.---
 
 ## [3.5.2] — 2026-04-05
 
 ### ✨ New Features
 
-- **Qoder API Native Integration:** Completely refactored the Qoder Executor to bypass the legacy COSY AES/RSA encryption algorithm, routing directly into the native DashScope OpenAi-compatible URL. Eliminates complex dependencies on Node `crypto` modules while improving stream fidelity.
-- **Resilience Engine Overhaul:** Integrated context overflow graceful fallbacks, proactive OAuth token detection, and empty-content emission prevention (#990).
-- **Context-Optimized Routing Strategy:** Added new intelligent routing capability to natively maximize context windows in automated combo deployments (#990).
+-**Integrare nativă API Qoder:**Refactorizarea completă a Qoder Executor pentru a ocoli algoritmul de criptare COSY AES/RSA, rutare direct în adresa URL nativă compatibilă cu DashScope OpenAi. Elimină dependențele complexe de modulele `crypto` Node, îmbunătățind în același timp fidelitatea fluxului. -**Reziliența motorului de reziliență:**Depășirea contextului integrată, depășirea grațioasă, detectarea proactivă a simbolurilor OAuth și prevenirea emisiilor de conținut gol (#990). -**Strategie de rutare optimizată în funcție de context:**A fost adăugată o nouă capacitate de rutare inteligentă pentru a maximiza în mod nativ ferestrele de context în implementările combo automate (#990).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Responses API Stream Corruption:** Fixed deep-cloning corruption where Anthropic/OpenAI translation boundaries stripped `response.` specific SSE prefixes from streaming boundaries (#992).
-- **Claude Cache Passthrough Alignment:** Aligned CC-Compatible cache markers consistently with upstream Client Pass-Through mode preserving prompt caching.
-- **Turbopack Memory Leak:** Pinned Next.js to strict `16.0.10` preventing memory leaks and build staleness from recent upstream Turbopack hashed module regressions (#987).
-
----
+-**Responses API Stream Corruption:**S-a remediat corupția de clonare profundă în cazul în care limitele de traducere Anthropic/OpenAI eliminau prefixele SSE specifice „răspuns.” din limitele de streaming (#992). -**Claude Cache Passthrough Alignment:**Marcatori de cache compatibile CC aliniați în concordanță cu modul Client Pass-Through din amonte, păstrând memorarea promptă în cache. -**Turbopack Memory Leak:**Fixat Next.js la strict `16.0.10`, prevenind scurgerile de memorie și construind oboseala din regresiile recente ale modulelor Turbopack din amonte (#987).---
 
 ## [3.5.1] — 2026-04-04
 
 ### ✨ New Features
 
-- **Models.dev Integration:** Integrated models.dev as the authoritative runtime source for model pricing, capabilities, and specifications, overriding hardcoded prices. Includes a settings UI to manage sync intervals, translation strings for all 30 languages, and robust test coverage.
-- **Provider Native Capabilities:** Added support for declaring and checking native API features (e.g. `systemInstructions_supported`) preventing failures by sanitizing invalid roles. Currently configured for Gemini Base and Antigravity OAuth providers.
-- **API Provider Advanced Settings:** Added per-connection custom `User-Agent` overrides for API-key provider connections. The override is stored in `providerSpecificData.customUserAgent` and now applies to validation probes and upstream execution requests.
+-**Integrare Models.dev:**Models.dev integrat ca sursă de execuție autorizată pentru prețurile modelelor, capabilități și specificații, suprascriind prețurile hardcoded. Include o interfață de utilizare pentru setări pentru a gestiona intervalele de sincronizare, șiruri de traducere pentru toate cele 30 de limbi și acoperire robustă a testelor. -**Capacitățile native ale furnizorului:**S-a adăugat suport pentru declararea și verificarea caracteristicilor API native (de exemplu, `systemInstructions_supported`) prevenind eșecurile prin dezinfectarea rolurilor nevalide. Configurat în prezent pentru furnizorii Gemini Base și Antigravity OAuth. -**Setări avansate ale furnizorului API:**Au fost adăugate suprascrieri personalizate „User-Agent” pentru fiecare conexiune pentru conexiunile furnizorului de cheie API. Suprascrierea este stocată în `providerSpecificData.customUserAgent` și acum se aplică probelor de validare și solicitărilor de execuție din amonte.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Qwen OAuth Reliability:** Resolved a series of OAuth integration issues including a 400 Bad Request blocker on expired tokens, fallback generation for parsing OIDC `access_token` properties when `id_token` is omitted, model catalog discovery errors, and strict filtering of `X-Dashscope-*` headers to avoid 400 rejection from OpenAI-compatible endpoints.
-
-## [3.5.0] — 2026-04-03
+-**Qwen OAuth Reliability:**Rezolvate o serie de probleme de integrare OAuth, inclusiv un blocator de 400 de solicitări incorecte pe token-urile expirate, generarea alternativă pentru analizarea proprietăților OIDC `access_token` atunci când `id_token` este omis, erori de descoperire a catalogului de modele și filtrarea strictă a `X-Dash-com pentru a evita respingerea `X-Dash-com-patible-\*400 puncte finale.## [3.5.0] — 2026-04-03
 
 ### ✨ New Features
 
-- **Auto-Combo & Routing:** Completed native CRUD lifecycle integration for the advanced Auto-Combo engine (#955).
-- **Core Operations:** Fixed missing translations for new native Auto-Combos options (#955).
-- **Security Validation:** Disabled SQLite auto-backup tasks natively during unit test CI execution to explicitly resolve Node 22 Event Loop hanging memory leaks (#956).
-- **Ecosystem Proxies:** Completed explicit integration mapping model synchronization schedulers, OAuth cycles, and Token Check refreshes safely through OmniRoute's native system upstream proxies (#953).
-- **MCP Extensibility:** Added and successfully registered the new `omniroute_web_search` MCP framework tool out of beta into production schemas (#951).
-- **Tokens Buffer Logic:** Added runtime configuration limits extending configurable input/output token buffers for precise Usage Tracking metrics (#959).
+-**Auto-Combo & Routing:**Integrarea ciclului de viață CRUD nativ finalizată pentru motorul avansat Auto-Combo (#955). -**Operațiuni de bază:**S-au remediat traducerile lipsă pentru noile opțiuni native Auto-Combos (#955). -**Validare de securitate:**Sarcinile de backup automat SQLite au fost dezactivate nativ în timpul execuției CI testului unitar pentru a rezolva în mod explicit pierderile de memorie suspendate din bucla de evenimente Nod 22 (#956). -**Proxy-uri pentru ecosistem:**Programele de sincronizare a modelului de cartografiere de integrare explicită finalizate, ciclurile OAuth și Token Check se reîmprospătează în siguranță prin proxy-urile din amonte ale sistemului nativ OmniRoute (#953). -**Extensibilitate MCP:**A fost adăugat și înregistrat cu succes noul instrument de cadru MCP `omniroute_web_search` din beta în schemele de producție (#951). -**Tokens Buffer Logic:**S-au adăugat limite de configurare a timpului de execuție care extind tampoanele configurabile de token de intrare/ieșire pentru valori precise de urmărire a utilizării (#959).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Remediere CodeQL:**Operațiuni critice de indexare a șirurilor complet rezolvate și securizate care împiedică matricele SSRF (Server-Side Request Forgery) să indexeze euristicile împreună cu backtracking algoritmic polinomial (ReDoS) în interiorul modulelor de dispecer proxy profund. -**Crypto Hashes:**S-au înlocuit hashe-urile vechi neverificate OAuth 1.0 cu primitive robuste de validare standard HMAC-SHA-256, asigurând controale stricte ale accesului. -**Protecția limitelor API:**Protecții structurale ale rutelor verificate și mapate corect care impun o logică middleware strictă `isAuthenticated()` care acoperă puncte finale dinamice mai noi care vizează manipularea setărilor și încărcarea competențelor native. -**CLI Ecosystem Compat:**S-au rezolvat legăturile parserului nativ de execuție care se blocau detectorii de mediu `where` strict peste `.cmd/.exe` cu grație pentru plugin-uri externe (#969). -**Arhitectura cache:**Refactorizare exactă a parametrilor de analiză și setări de sistem din tabloul de bord pentru a menține ciclurile stabile de persistență a rehidratării, rezolvând clipurile vizuale nealiniate (#952). -**Standarde de memorare în cache Claude:**Marcatori de blocuri efemere critici, normalizați și păstrați cu exactitate, comenzile TTL de memorare în cache `efemere` pentru nodurile din aval care impun maparea corectă a cererilor CC compatibile standard, fără metrici eliminate (#948). -**Internal Aliases Auth:**Mapări interne simplificate ale timpului de execuție, care normalizează căutările de date utile a acreditărilor Codex în parametrii globali de traducere, rezolvând 401 de pierderi neautentificate (#958).### 🛠️ Maintenance
 
-- **CodeQL Remediation:** Fully resolved and secured critical string indexing operations preventing Server-Side Request Forgery (SSRF) arrays indexing heuristics alongside polynomial algorithmic backtracking (ReDoS) inside deep proxy dispatcher modules.
-- **Crypto Hashes:** Replaced weak unverified legacy OAuth 1.0 hashes with robust HMAC-SHA-256 standard validation primitives ensuring tight access controls.
-- **API Boundary Protection:** Correctly verified and mapped structural route protections enforcing strict `isAuthenticated()` middleware logic covering newer dynamic endpoints targeting settings manipulation and native skills loading.
-- **CLI Ecosystem Compat:** Resolved broken native runtime parser bindings crashing `where` environment detectors strictly over `.cmd/.exe` edge cases gracefully for external plugins (#969).
-- **Cache Architecture:** Refactored exact Analytics and System Settings dashboard parameters layout structure caching to maintain stable re-hydration persistence cycles resolving visual unaligned state flashes (#952).
-- **Claude Caching Standards:** Normalized and accurately strictly preserved critical ephemeral block markers `ephemeral` caching TTL orders for downstream nodes enforcing standard compatible CC requests mapping cleanly without dropped metrics (#948).
-- **Internal Aliases Auth:** Simplified internal runtime mappings normalizing Codex credential payload lookups inside global translation parameters resolving 401 unauthenticated drops (#958).
-
-### 🛠️ Maintenance
-
-- **UI Discoverability:** Correctly adjusted layout categorizations explicitly separating free tier providers logic improving UX sorting flows inside the general API registry pages (#950).
-- **Deployment Topology:** Unified Docker deployment artifacts ensuring the root `fly.toml` matches expected cloud instance parameters out-of-the-box natively handling automated deployments scaling properly.
-- **Development Tooling:** Decoupled `LKGP` runtime parameters into explicit DB layer abstraction caching utilities ensuring strict test isolation coverage for core caching layers safely.
-
----
+-**Descoperirea UI:**Categorizări de aspect ajustate corect, care separă în mod explicit logica furnizorilor de nivel gratuit, îmbunătățind fluxurile de sortare UX în paginile generale de registru API (#950). -**Topologie de implementare:**Artefacte de implementare Unified Docker care asigură că rădăcina `fly.toml` se potrivește cu parametrii așteptați ai instanței de cloud din momentul în care se gestionează în mod nativ implementările automate, scalarea corectă. -**Unelte de dezvoltare:**Parametrii de execuție `LKGP` decuplați în utilitare explicite de stocare în cache a abstracției stratului DB, asigurând o acoperire strictă de izolare a testelor pentru straturile de cache de bază în siguranță.---
 
 ## [3.4.9] — 2026-04-03
 
 ### Features & Refactoring
 
-- **Dashboard Auto-Combo Panel:** Completely refactored the `/dashboard/auto-combo` UI to seamlessly integrate with native Dashboard Cards and standardized visual padding/headers. Added dynamic visual progress bars mapping model selection weight mechanisms.
-- **Settings Routing Sync:** Fully exposed advanced routing `priority` and `weighted` schema targets internally inside global settings fallback lists.
+-**Panoul de combină automată a tabloului de bord:**s-a refactorizat complet interfața de utilizare `/dashboard/auto-combo` pentru a se integra perfect cu cardurile native de tablou de bord și padding/anteturi vizuale standardizate. S-au adăugat bare de progres vizuale dinamice care mapează mecanismele de greutate de selecție a modelului. -**Setări Sincronizare rutare:**Țintele de schemă „prioritate” și „ponderată” de rutare avansată complet expuse în interiorul listelor de rezervă ale setărilor globale.### Bug Fixes
 
-### Bug Fixes
+-**Memory & Skills Locale Nodes:**S-au rezolvat etichetele de randare goale pentru opțiunile de Memorie și Skills direct în vizualizările setărilor globale prin conectarea tuturor valorilor de mapare „settings.\*” intern în „en.json” (de asemenea mapate implicit pentru instrumentele de traducere încrucișată).### Internal Integrations
 
-- **Memory & Skills Locale Nodes:** Resolved empty rendering tags for Memory and Skills options directly inside global settings views by wiring all `settings.*` mapping values internally into `en.json` (also mapped implicitly for cross-translation tools).
-
-### Internal Integrations
-
-- Integrated PR #946 — fix: preserve Claude Code compatibility in responses conversion
-- Integrated PR #944 — fix(gemini): preserve thought signatures across antigravity tool calls
-- Integrated PR #943 — fix: restore GitHub Copilot body
-- Integrated PR #942 — Fix cc-compatible cache markers
-- Integrated PR #941 — refactor(auth): improve NVIDIA alias lookup + add LKGP error logging
-- Integrated PR #939 — Restore Claude OAuth localhost callback handling
-- _(Note: PR #934 was omitted from 3.4.9 cycle to prevent core conflict regressions)_
-
----
+- PR integrat #946 — remediere: păstrați compatibilitatea codului Claude în conversia răspunsurilor
+- PR integrat #944 — fix(gemini): păstrează semnăturile gândurilor în apelurile instrumentelor antigravitaționale
+- PR integrat #943 — remediere: restaurați corpul GitHub Copilot
+- PR integrat #942 — Remediați marcatorii cache compatibili cu cc
+- PR integrat #941 — refactor (auth): îmbunătățiți căutarea aliasului NVIDIA + adăugați înregistrarea erorilor LKGP
+- PR integrat #939 — Restabiliți gestionarea apelului localhost Claude OAuth
+- _(Notă: PR #934 a fost omis din ciclul 3.4.9 pentru a preveni regresiile conflictului de bază)_---
 
 ## [3.4.8] — 2026-04-03
 
 ### Securitate
 
-- Fully remediated all outstanding Github Advanced Security (CodeQL) findings and Dependabot alerts.
-- Fixed insecure randomness vulnerabilities by migrating from `Math.random` to `crypto.randomUUID()`.
-- Secured shell commands in automated scripts from string injection.
-- Migrated vulnerable catastrophic backtracking RegEx parsing patterns in chat/translation pipelines.
-- Enhanced output sanitization controls inside React UI components and Server Sent Events (SSE) tag injection.
-
----
+- S-au remediat complet toate constatările restante Github Advanced Security (CodeQL) și alertele Dependabot.
+- S-au remediat vulnerabilitățile nesigure ale aleatoriei prin migrarea de la `Math.random` la `crypto.randomUUID()`.
+- Comenzi shell securizate în scripturi automate de la injectarea șirurilor.
+- S-au migrat modele de analizare RegEx vulnerabile catastrofale în conductele de chat/traducere.
+- Controale îmbunătățite de igienizare a ieșirii în interiorul componentelor React UI și injecția de etichete Server Sent Events (SSE).---
 
 ## [3.4.7] — 2026-04-03
 
 ### Funcționalități
 
-- Added `Cryptography` node to Monitoring and MCP health checks (#798)
-- Hardened model-catalog route permissions mapping (`/models`) (#781)
+- S-a adăugat nodul „Criptografie” la monitorizarea și verificările de sănătate MCP (#798)
+- Hartizarea permisiunilor de traseu din catalog model-catalog (`/models`) (#781)### Bug Fixes
 
-### Bug Fixes
+- S-a remediat reîmprospătarea jetonului Claude OAuth care nu reușește să păstreze contextele cache (#937)
+- S-au remediat erorile furnizorului compatibil CC care făceau ca modelele stocate în cache să nu fie accesibile (#937)
+- S-au remediat erorile GitHub Executor legate de matrice de context nevalide (#937)
+- S-au remediat erorile de verificare a stării de sănătate a instrumentelor CLI instalate de NPM pe Windows (#935)
+- S-a remediat traducerea încărcăturii utile care a renunțat la conținut valid din cauza câmpurilor API nevalide (#927)
+- S-a remediat blocarea timpului de rulare în Nodul 25 în ceea ce privește execuția cheii API (#867)
+- S-a remediat rezoluția modulului autonom MCP (`ERR_MODULE_NOT_FOUND`) prin `esbuild` (#936)
+- S-a rezolvat nepotrivirea alias-ului de rezoluție a acreditărilor de rutare NVIDIA NIM (#931)### Securitate
 
-- Fixed Claude OAuth token refreshes failing to preserve cache contexts (#937)
-- Fixed CC-Compatible provider errors rendering cached models unreachable (#937)
-- Fixed GitHub Executor errors related to invalid context arrays (#937)
-- Fixed NPM-installed CLI tools healthcheck failures on Windows (#935)
-- Fixed payload translation dropping valid content due to invalid API fields (#927)
-- Fixed runtime crash in Node 25 regarding API key execution (#867)
-- Fixed MCP standalone module-resolution (`ERR_MODULE_NOT_FOUND`) via `esbuild` (#936)
-- Fixed NVIDIA NIM routing credential resolution alias mismatch (#931)
-
-### Securitate
-
-- Added safe strict input boundary protection against raw `shell: true` remote-code execution injections.
-
----
+- S-a adăugat protecție strictă a limitelor de intrare împotriva injecțiilor de execuție de cod de la distanță „shell: true” brut.---
 
 ## [3.4.6] - 2026-04-02
 
 ### ✨ New Features
 
-- **Providers:** Registered new image, video, and audio generation providers from the community-requested list (#926).
-- **Dashboard UI:** Added standalone sidebar navigation for the new Memory and Skills modules (#926).
-- **i18n:** Added translation strings and layout mappings across 30 languages for the Memory and Skills namespaces.
+-**Furnizori:**Furnizori noi de generare de imagini, video și audio înregistrați din lista solicitată de comunitate (#926). -**Interfața de utilizare a tabloului de bord:**S-a adăugat navigare autonomă în bara laterală pentru noile module de memorie și abilități (#926). -**i18n:**S-au adăugat șiruri de traducere și mapări de aspect în 30 de limbi pentru spațiile de nume Memory și Skills.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Resilience:** Prevented the proxy Circuit Breaker from becoming stuck in an OPEN state indefinitely by handling direct transitions to CLOSED state inside fallback combo paths (#930).
-- **Protocol Translation:** Patched the streaming transformer to sanitize response blocks based on the expected _source_ protocol rather than the provider _target_ protocol, fixing Anthropics models wrapped in OpenAI payloads crashing Claude Code (#929).
-- **API Specs & Gemini:** Fixed `thought_signature` parsing in `openai-to-gemini` and `claude-to-gemini` translators, preventing HTTP 400 errors across all Gemini 3 API tool-calls.
-- **Providers:** Cleaned up non-OpenAI-compatible endpoints preventing valid upstream connections (#926).
-- **Cache Trends:** Fixed an invalid property mapping data mismatch causing Cache Trends UI charts to crash, and extracted redundant cache metric widgets (#926).
-
----
+-**Reziliență:**a prevenit ca întrerupătorul de circuit proxy să rămână blocat într-o stare DESCHIS pentru o perioadă nedeterminată prin gestionarea tranzițiilor directe la starea ÎNCHIS în căile combinate de rezervă (#930). -**Traducerea protocolului:**Am corelat transformatorul de streaming pentru a dezinfecta blocurile de răspuns pe baza protocolului _sursă_ așteptat, mai degrabă decât a protocolului _țintă_ al furnizorului, reparând modelele Anthropics împachetate în încărcături utile OpenAI care blocau codul Claude (#929). -**Specificații API și Gemini:**S-a remediat analiza `thought_signature` în traducătorii `openai-to-gemini` și `claude-to-gemini`, prevenind erorile HTTP 400 la toate apelurile de instrumente API Gemini 3. -**Furnizori:**S-au curățat punctele finale necompatibile cu OpenAI, împiedicând conexiunile în amonte valide (#926). -**Tendințe cache:**S-a remediat o nepotrivire nevalidă a datelor de mapare a proprietăților care provoacă blocarea graficelor UI Cache Trends și au extras widget-uri redundante pentru valorile cache (#926).---
 
 ## [3.4.5] - 2026-04-02
 
 ### ✨ New Features
 
-- **CLIProxyAPI Ecosystem Integration:** Added the `cliproxyapi` executor with built-in module-level caching and proxy routing. Introduced a comprehensive Version Manager service to automatically test health, download binaries from GitHub, spawn isolated background processes, and cleanly manage the lifecycle of external CLI tools directly through the UI. Includes DB tables for proxy configuration to enable automatic SSRF-gated cross-routing of external OpenAI requests via the local CLI tool layer (#914, #915, #916).
-- **Qoder PAT Support:** Integrated Personal Access Tokens (PAT) support directly via the local `qodercli` transport instead of legacy remote `.cn` browser configurations (#913).
-- **Gemini 3.1 Pro Preview (GitHub):** Added `gemini-3.1-pro-preview` canonical explicit model support natively into the GitHub Copilot provider while preserving older routing aliases (#924).
+-**Integrarea ecosistemului CLIProxyAPI:**S-a adăugat executorul `cliproxyapi` cu caching încorporat la nivel de modul și rutare proxy. Am introdus un serviciu cuprinzător de Manager de versiuni pentru a testa automat starea de sănătate, a descărca fișiere binare din GitHub, a genera procese izolate în fundal și pentru a gestiona în mod curat ciclul de viață al instrumentelor CLI externe direct prin interfața de utilizare. Include tabele DB pentru configurarea proxy pentru a permite rutarea automată încrucișată SSRF a cererilor externe OpenAI prin stratul de instrumente CLI local (#914, #915, #916). -**Suport Qoder PAT:**Suport pentru jetoane de acces personal integrate (PAT) direct prin transportul local `qodercli` în loc de configurațiile vechi ale browserului `.cn` (#913). -**Gemini 3.1 Pro Preview (GitHub):**Adăugat suport pentru modelul explicit canonic `gemini-3.1-pro-preview` în mod nativ în furnizorul GitHub Copilot, păstrând în același timp aliasurile de rutare mai vechi (#924).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **GitHub Copilot Token Stability:** Repaired the Copilot token refresh loop where stale tokens weren't deep-merged into DB, and removed `reasoning_text` fields that were fatally breaking downstream Anthropic block conversions for multi-turn chats (#923).
-- **Global Timeout Matrix:** Centralized and parameterized request timeouts explicitly from `REQUEST_TIMEOUT_MS` to prevent hidden (~300s) default fetch buffers prematurely cutting off long-lived SSE streaming responses from heavy reasoning models (#918).
-- **Cloudflare Quick Tunnels State:** Fixed a severe state inconsistency where restarted OmniRoute instances erroneously showed destroyed tunnels as active, and defaulted cloudflared tunneling to `HTTP/2` to eliminate UDP receive buffer log spam (#925).
-- **i18n Translation Overhaul (Czech & Hindi):** Fixed Hindi code from DEPRECATED `in.json` to canonical `hi.json`, overhauled Czech text mappings, extracted `untranslatable-keys.json` to fix CI/CD false-positive validations, and generated comprehensive `I18N.md` docs to guide translators (#912).
-- **Tokens Provider Recovery:** Fixed Qwen losing specific `resourceUrl` endpoints after automatic health-check token refreshes because of missing DB deep merges (#917).
-- **CC Compatible UX & Streaming:** Unified the Add CC/OpenAI/Anthropic compatible actions around the Anthropic UI treatment, forced CC-compatible upstream requests to use SSE while still returning streaming or non-streaming responses based on the client request, removed CC model-list configuration/import support in favor of an explicit unsupported-model-listing error, and made CC-compatible Available Models mirror the OAuth Claude Code registry list (#921).
-
----
+-**GitHub Copilot Token Stability:**S-a reparat bucla de reîmprospătare a token-ului Copilot în care tokenurile învechite nu erau îmbinate în profunzime în DB și s-au eliminat câmpurile `resoning_text` care distrugeau fatal conversiile blocului antropic în aval pentru chat-urile cu mai multe rânduri (#923). -**Global Timeout Matrix:**Timeout-uri centralizate și parametrizate ale solicitărilor în mod explicit de la `REQUEST_TIMEOUT_MS` pentru a preveni tampoanele implicite de preluare ascunse (~300 de secunde) care să întrerupă prematur răspunsurile de streaming SSE de lungă durată de la modelele de raționament greu (#918). -**Cloudflare Quick Tunnels State:**S-a remediat o inconsecvență severă a stării în care instanțe OmniRoute repornite în mod eronat arătau tunelurile distruse ca active și tunelurile cloudflare implicite la `HTTP/2` pentru a elimina spam-ul de jurnal de primire buffer UDP (#925). -**i18n Translation Overhaul (cehă și hindi):**S-a remediat codul hindi de la DEPRECATED `in.json` la canonic `hi.json`, mapări de text cehe revizuite, extras `untranslatable-keys.json` pentru a remedia validările fals pozitive CI/CD și generat `I18N. -**Recuperare furnizor de jetoane:**S-a remediat Qwen pierderea punctelor finale specifice „resourceUrl” după reîmprospătările automate ale jetonului de verificare a stării de sănătate din cauza lipsei îmbinărilor profunde DB (#917). -**CC compatibil UX și Streaming:**Unificarea acțiunilor compatibile Add CC/OpenAI/Anthropic în jurul tratamentului UI Anthropic, solicitările upstream compatibile CC forțate să folosească SSE în timp ce returnau răspunsuri în flux sau non-streaming pe baza cererii clientului, s-a eliminat suportul pentru configurarea/importul listei de modele CC în favoarea unei erori explicite de listare a modelelor neacceptate și a codului de înregistrare CC compatibil Claude OAuth. lista (#921).---
 
 ## [3.4.4] - 2026-04-02
 
 ### 🐛 Bug Fixes
 
-- **Responses API Token Reporting:** Emit `response.completed` with correct `input_tokens`/`output_tokens` fields for Codex CLI clients, fixing token usage display (#909 — thanks @christopher-s).
-- **SQLite WAL Checkpoint on Shutdown:** Flush WAL changes into the primary database file during graceful shutdown/restart, preventing data loss on Docker container stops (#905 — thanks @rdself).
-- **Graceful Shutdown Signal:** Changed `/api/restart` and `/api/shutdown` routes from `process.exit(0)` to `process.kill(SIGTERM)`, ensuring the shutdown handler runs before exit.
-- **Docker Stop Grace Period:** Added `stop_grace_period: 40s` to Docker Compose files and `--stop-timeout 40` to Docker run examples.
+-**Responses API Token Reporting:**Emiteți `response.completed` cu câmpurile corecte `input_tokens`/`output_tokens` pentru clienții Codex CLI, reparând afișarea utilizării token-ului (#909 — mulțumesc @christopher-s). -**SQLite WAL Checkpoint on Shutdown:**Flush WAL se modifică în fișierul bazei de date primară în timpul închiderii/repornirii grațioase, prevenind pierderea de date la oprirea containerului Docker (#905 — mulțumesc @rdself). -**Semnal de închidere grațios:**Rutele `/api/restart` și `/api/shutdown` au fost schimbate de la `process.exit(0)` la `process.kill(SIGTERM)`, asigurându-se ca handlerul de oprire rulează înainte de ieșire. -**Docker Stop Grace Period:**Adăugat `stop_grace_period: 40s` la fișierele Docker Compose și `--stop-timeout 40` la exemplele de rulare Docker.### 🛠️ Maintenance
 
-### 🛠️ Maintenance
-
-- Closed 5 resolved/not-a-bug issues (#872, #814, #816, #890, #877).
-- Triaged 6 issues with needs-info requests (#892, #887, #886, #865, #895, #870).
-- Responded to CLI detection tracking issue (#863) with contributor guidance.
-
----
+- S-au închis 5 probleme rezolvate/nu sunt erori (#872, #814, #816, #890, #877).
+- S-au triat 6 probleme cu solicitări de informații despre nevoi (#892, #887, #886, #865, #895, #870).
+- A răspuns la problema de urmărire a detectării CLI (#863) cu îndrumări pentru colaboratori.---
 
 ## [3.4.3] - 2026-04-02
 
 ### ✨ New Features
 
-- **Antigravity Memory & Skills:** Completed remote memory and skills injection for the Antigravity provider at the proxy network level.
-- **Claude Code Compatibility:** Built a natively hidden compatibility bridge for Claude Code, passing tools and formatting through cleanly.
-- **Web Search MCP:** Added the `omniroute_web_search` tool with the `execute:search` scope.
-- **Cache Components:** Implemented dynamic cache components utilizing TDD.
-- **UI & Customization:** Added custom favicon support, appearance tabs, wired whitelabeling to the sidebar, and added Windsurf guide steps across all 33 languages.
-- **Log Retention:** Unified request log retention and artifacts natively.
-- **Model Enhancements:** Added explicit `contextLength` for all opencode-zen models.
-- **i18n & translations:** Integrated 33 language translations natively, including placeholder CI validations and Chinese documentation updates (#873, #869).
+-**Memorie și abilități antigravitație:**Injecția de memorie și abilități de la distanță finalizată pentru furnizorul Antigravity la nivel de rețea proxy. -**Claude Code Compatibility:**A construit o punte de compatibilitate ascunsă nativ pentru Claude Code, trimițând instrumente și formatând curat. -**Web Search MCP:**A fost adăugat instrumentul `omniroute_web_search` cu domeniul `execute:search`. -**Componente cache:**Componente cache dinamice implementate folosind TDD. -**UI și personalizare:**S-au adăugat suport personalizat pentru favicon, file de aspect, etichetare albă prin cablu în bara laterală și pași de ghidare Windsurf adăugat în toate cele 33 de limbi. -**Reținerea jurnalelor:**Reținerea jurnalelor de solicitare unificată și artefacte în mod nativ. -**Îmbunătățiri ale modelului:**S-a adăugat explicit `contextLength` pentru toate modelele opencode-zen. -**i18n și traduceri:**Traduceri integrate în 33 de limbi nativ, inclusiv validări CI substituent și actualizări ale documentației chineze (#873, #869).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Mapping Qwen OAuth:**s-a inversat dependența `id_token` la `access_token` și s-a activat injecția dinamică a punctului final API `resource_url` pentru rutarea regională adecvată (#900). -**Model Sync Engine:**A stocat ID-ul strict intern al furnizorului în rutinele de sincronizare `getCustomModels()` în locul formatului UI Channel Alias, prevenind eșecurile de inserare a catalogului SQLite (#903). -**Claude Code & Codex:**Răspunsuri necompletate standardizate care nu sunt transmise în flux la „(răspuns gol)” formatat în Anthropic pentru a preveni blocările proxy-ului CLI (#866). -**Rutare compatibilă CC:**S-a rezolvat coliziunea punctului final `/v1` duplicat în timpul concatenării căilor pentru gateway-urile generice Claude Code (#904). -**Tablouri de bord antigravitație:**au blocat modelele de cotă nelimitate de la înregistrarea falsă ca stări limită epuizate „Utilizare 100%” în interfața de utilizare a furnizorului (#857). -**Claude Image Passthrough:**S-au remediat modelele Claude care lipseau treceri de bloc de imagine (#898). -**Gemini CLI Routing:**S-au rezolvat blocările de autorizare 403 și problemele de acumulare de conținut prin reîmprospătarea ID-ului proiectului prin `loadCodeAssist` (#868). -**Stabilitatea antigravitațională:**Listele de acces la modele corectate, 404 blocări impuse, 429 cascade remediate care blocau conexiunile standard și jetoane de ieșire `gemini-3.1-pro` limitate (#885). -**Cadenta de sincronizare a furnizorului:**S-a reparat cadența de sincronizare a limitelor furnizorului prin programatorul intern (#888). -**Optimizarea tabloului de bord:**S-a rezolvat înghețarea UI `/dashboard/limits` la procesarea a peste 70 de conturi prin paralelizare în bucăți (#784). -**Întărirea SSRF:**A impus filtrarea strictă a intervalului IP SSRF și a blocat interfața loopback `::1`. -**Tipuri MIME:**`mime_type` standardizat la snake_case pentru a se potrivi cu specificațiile Gemini API. -**Stabilizare CI:**S-au remediat analitice/setări eșuate ale selectoarelor Playwright și solicită afirmații, astfel încât rulările GitHub Actions E2E să treacă în mod fiabil prin interfețele de utilizator localizate și controalele bazate pe comutatoare. -**Teste deterministe:**S-au eliminat fixările de cotă sensibile la dată din testele de utilizare Copilot și s-au aliniat testele de catalog de idempotitate/model cu comportamentul de rulare îmbinat. -**Intărirea tipului MCP:**S-au eliminat „orice” regresii explicite cu buget zero din calea de înregistrare a instrumentului serverului MCP. -**Motor de sincronizare a modelelor:**Ocolite `înlocuirea` distructiv atunci când sincronizarea automată a furnizorului generează o listă de modele goală, menținând stabilitatea pentru cataloagele dinamice (#899).### 🛠️ Maintenance
 
-- **Qwen OAuth Mapping:** Reverted `id_token` reliance to `access_token` and enabled dynamic `resource_url` API endpoint injection for proper regional routing (#900).
-- **Model Sync Engine:** Stored the strict internal Provider ID in `getCustomModels()` sync routines instead of the UI Channel Alias format, preventing SQLite catalog insertion failures (#903).
-- **Claude Code & Codex:** Standardized non-streaming blank responses to Anthropic-formatted `(empty response)` to prevent CLI proxy crashes (#866).
-- **CC Compatible Routing:** Resolved duplicate `/v1` endpoint collision during path concatenation for generic Claude Code gateways (#904).
-- **Antigravity Dashboards:** Blocked unlimited quota models from falsely registering as exhausted `100% Usage` limit states in the Provider Usage UI (#857).
-- **Claude Image Passthrough:** Fixed Claude models missing image block passthroughs (#898).
-- **Gemini CLI Routing:** Resolved 403 authorization lockouts and content accumulation issues by refreshing the project ID via `loadCodeAssist` (#868).
-- **Antigravity Stability:** Corrected model access lists, enforced 404 lockouts, fixed 429 cascades locking out standard connections, and capped `gemini-3.1-pro` output tokens (#885).
-- **Provider Sync Cadence:** Repaired the provider limits synchronization cadence via the internal scheduler (#888).
-- **Dashboard Optimization:** Resolved `/dashboard/limits` UI freezing when processing 70+ accounts via chunk parallelization (#784).
-- **SSRF Hardening:** Enforced strict SSRF IP range filtering and blocked the `::1` loopback interface.
-- **MIME Types:** Standardized `mime_type` to snake_case to match Gemini API specifications.
-- **CI Stabilization:** Fixed failing analytics/settings Playwright selectors and request assertions so GitHub Actions E2E runs pass reliably across localized UIs and switch-based controls.
-- **Deterministic Tests:** Removed date-sensitive quota fixtures from Copilot usage tests and aligned idempotency/model catalog tests with the merged runtime behavior.
-- **MCP Type Hardening:** Removed zero-budget explicit `any` regressions from the MCP server tool registration path.
-- **Model Sync Engine:** Bypassed destructive `replace` overrides when the provider's auto-sync yields an empty model list, maintaining stability for dynamic catalogs (#899).
+-**Logging pipeline:**artefacte rafinate de înregistrare a conductelor și aplicarea limitelor de retenție (#880). -**AGENTS.md Revizie:**Condensat din 297→153 linii. S-au adăugat linii directoare de construire/test/stil, fluxuri de lucru de cod (Prettier, TypeScript, ESLint) și tabele detaliate (#882). -**Release Branch Integration:**A consolidat ramurile caracteristice active în `release/v3.4.2` peste `principal` actual și a validat ramura cu scame, unitate, acoperire, build și rulări E2E în modul CI. -**Testare:**S-a adăugat configurația Vitest pentru testarea componentelor și specificațiile Playwright pentru comutarea setărilor. -**Actualizări de documente:**Readmes-uri rădăcină extinsă, documente chineze traduse în mod nativ și curățarea fișierelor învechite.## [3.4.1] - 2026-03-31
 
-### 🛠️ Maintenance
+> [!AVERTISMENT]
+> **SCHIMBARE URBANĂ: variabilele de mediu de înregistrare a cererilor, reținere și înregistrare în jurnal au fost reproiectate.**
+> La prima pornire după actualizare, OmniRoute arhivează jurnalele de solicitări vechi din `DATA_DIR/logs/`, moștenirea `DATA_DIR/call_logs/` și `DATA_DIR/log.txt` în `DATA_DIR/log_archives/*.zip`, apoi elimină artefactul neprevăzut și comuta în formatul neprelucrat. `DATA_DIR/call_logs/`.### ✨ New Features
 
-- **Pipeline Logging:** Refined pipeline logging artifacts and enforce retention caps (#880).
-- **AGENTS.md Overhaul:** Condensed from 297→153 lines. Added build/test/style guidelines, code workflows (Prettier, TypeScript, ESLint), and trimmed verbose tables (#882).
-- **Release Branch Integration:** Consolidated the active feature branches into `release/v3.4.2` on top of current `main` and validated the branch with lint, unit, coverage, build, and CI-mode E2E runs.
-- **Testing:** Added vitest configuration for component testing and Playwright specs for settings toggles.
-- **Doc Updates:** Expanded root readmes, translated chinese documents natively, and cleaned up obsolete files.
+-**.ENV Migration Utility:**Inclus `scripts/migrate-env.mjs` pentru a migra fără probleme configurațiile `<v3.3` la constrângeri stricte de validare de securitate `v3.4.x` (FASE-01), reparând blocările de pornire cauzate de instanțe scurte `JWT_SECRET`. -**Kiro AI Cache Optimization:**S-a implementat generarea deterministă „conversationId” (uuidv5) pentru a activa AWS Builder ID Prompt Cache în mod corespunzător în cadrul invocărilor (#814). -**Restaurare și consolidare a interfeței de bord a tabloului de bord:**S-a rezolvat logica barei laterale omițând secțiunea Debug și a șters avertismentele de rutare Nextjs prin mutarea paginilor autonome `/dashboard/mcp` și `/dashboard/a2a` în mod explicit în componentele Endpoint Proxy UI încorporate. -**Artefacte unificate ale jurnalului de cereri:**Înregistrarea solicitărilor stochează acum un rând de index SQLite plus un artefact JSON per solicitare sub `DATA_DIR/call_logs/`, cu captură opțională în conductă încorporată în același fișier. -**Limba:**S-a îmbunătățit traducerea în chineză (#855) -**Modele Opencode-Zen:**S-au adăugat 4 modele gratuite la registrul opencode-zen (#854) -**Teste:**Au fost adăugate teste unitare și E2E pentru comutări de setări și remedieri de erori (#850)### 🐛 Bug Fixes
 
-## [3.4.1] - 2026-03-31
+-**429 Parsarea cotei:**S-au analizat timpii lungi de resetare a cotei de la corpurile de eroare pentru a onora retragerile corecte și pentru a preveni interzicerea conturilor cu rate limitate (#859) -**Prompt Caching:**Anteturile clientului `cache_control` păstrate pentru toți furnizorii de protocol Claude (cum ar fi Minimax, GLM și Bailian), recunoscând corect suportul pentru cache (#856) -**Model Sync Logs:**Reducerea mesajelor spam prin înregistrarea „sync-models” numai atunci când canalul modifică de fapt lista (#853) -**Parsarea cotelor și a simbolurilor furnizorului:**Limitele antigravitaționale au fost schimbate pentru a utiliza `retrieveUserQuota` în mod nativ și a mapat corect încărcăturile utile de reîmprospătare a simbolurilor Claude la forme codificate URL (#862) -**Stabilitatea de limitare a ratei:**a universalizat arhitectura 429 Retry-After parsing pentru a limita perioadele de răcire induse de furnizor la maximum 24 de ore (#862) -**Randarea limită a tabloului de bord:**Maparea cotelor `/dashboard/limits` re-arhitectată pentru a reda imediat în bucăți, reparând o întârziere majoră de înghețare a interfeței de utilizare pentru conturile care depășesc 70 de conexiuni active (#784) -**Autorizare QWEN OAuth:**A mapat OIDC `id_token` ca simbol principal API Bearer pentru solicitările Dashscope, reparând imediat erorile 401 neautorizate după conectarea conturilor sau reîmprospătarea token-urilor (#864) -**ZAI API Stability:**Compilatorul Hardened Server-Sent Events pentru a reveni cu grație la șiruri goale atunci când furnizorii DeepSeek transmit conținut nul din punct de vedere matematic în timpul fazelor de raționament (#871) -**Claude Code/Codex Translations:**Conversii protejate de încărcare utilă fără flux împotriva răspunsurilor goale din instrumentele Codex din amonte, evitând TypeErrors catastrofale (#866) -**NVIDIA NIM Rendering:**Prefixele identice ale furnizorului sunt eliminate în mod condiționat, împinse dinamic de modelele audio, eliminând structurile duplicate de etichete `nim/nim` care aruncă 404 pe Media Playground (#872)### ⚠️ Breaking Changes
 
-> [!WARNING]
-> **BREAKING CHANGE: request logging, retention, and logging environment variables have been redesigned.**
-> On the first startup after upgrading, OmniRoute archives legacy request logs from `DATA_DIR/logs/`, legacy `DATA_DIR/call_logs/`, and `DATA_DIR/log.txt` into `DATA_DIR/log_archives/*.zip`, then removes the deprecated layout and switches to the new unified artifact format under `DATA_DIR/call_logs/`.
+-**Request Log Layout:**S-au eliminat vechile sesiuni de jurnal de solicitare cu mai multe fișiere `DATA_DIR/logs/` și fișierul rezumat `DATA_DIR/log.txt`. Noile solicitări sunt scrise ca artefacte JSON unice în `DATA_DIR/call_logs/YYYY-LL-DD/`. -**Variabile de mediu de înregistrare:**S-au înlocuit `LOG_*`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE` și `PROXY_LOG_MAX_ENTRIES` cu noul model de configurare `APP_LOG_*` și `CALL_DAYS_RETENTION_.
+-**Setarea de comutare a conductei:**a înlocuit setarea `detailed_logs_enabled`cu`call_log_pipeline_enabled`. Noile detalii ale conductei sunt încorporate în artefactul cererii în loc să fie stocate ca înregistrări separate `request_detail_logs`.### 🛠️ Maintenance
 
-### ✨ New Features
-
-- **.ENV Migration Utility:** Included `scripts/migrate-env.mjs` to seamlessly migrate `<v3.3` configurations to `v3.4.x` strict security validation constraints (FASE-01), repairing startup crashes caused by short `JWT_SECRET` instances.
-- **Kiro AI Cache Optimization:** Implemented deterministic `conversationId` generation (uuidv5) to enable AWS Builder ID Prompt Caching properly across invocations (#814).
-- **Dashboard UI Restoration & Consolidation:** Resolved sidebar logic omitting the Debug section, and cleared Nextjs routing warnings by moving standalone `/dashboard/mcp` and `/dashboard/a2a` pages explicitly into embedded Endpoint Proxy UI components.
-- **Unified Request Log Artifacts:** Request logging now stores one SQLite index row plus one JSON artifact per request under `DATA_DIR/call_logs/`, with optional pipeline capture embedded in the same file.
-- **Language:** Improved the Chinese translation (#855)
-- **Opencode-Zen Models:** Added 4 free models to opencode-zen registry (#854)
-- **Tests:** Added unit and E2E tests for settings toggles and bug fixes (#850)
-
-### 🐛 Bug Fixes
-
-- **429 Quota Parsing:** Parsed long quota reset times from error bodies to honor correct backoffs and prevent rate-limited account bans (#859)
-- **Prompt Caching:** Preserved client `cache_control` headers for all Claude-protocol providers (like Minimax, GLM, and Bailian), correctly recognizing caching support (#856)
-- **Model Sync Logs:** Reduced log spam by recording `sync-models` only when the channel actually modifies the list (#853)
-- **Provider Quota & Token Parsing:** Switched Antigravity limits to use `retrieveUserQuota` natively and correctly mapped Claude token refresh payloads to URL-encoded forms (#862)
-- **Rate-Limiting Stability:** Universalized the 429 Retry-After parsing architecture to cap provider-induced cooldowns at 24 hours max (#862)
-- **Dashboard Limit Rendering:** Re-architected `/dashboard/limits` quota mapping to render immediately inside chunks, fixing a major UI freezing delay on accounts exceeding 70 active connections (#784)
-- **QWEN OAuth Authorization:** Mapped the OIDC `id_token` as the primary API Bearer token for Dashscope requests, fixing immediate 401 Unauthorized errors after connecting accounts or refreshing tokens (#864)
-- **ZAI API Stability:** Hardened Server-Sent Events compiler to gracefully fallback to empty strings when DeepSeek providers stream mathematically null content during reasoning phases (#871)
-- **Claude Code/Codex Translations:** Protected non-streaming payload conversions against empty responses from upstream Codex tools, avoiding catastrophic TypeErrors (#866)
-- **NVIDIA NIM Rendering:** Conditionally stripped identical provider prefixes dynamically pushed by audio models, eliminating duplicate `nim/nim` tag structures throwing 404 on the Media Playground (#872)
-
-### ⚠️ Breaking Changes
-
-- **Request Log Layout:** Removed the old multi-file `DATA_DIR/logs/` request log sessions and the `DATA_DIR/log.txt` summary file. New requests are written as single JSON artifacts in `DATA_DIR/call_logs/YYYY-MM-DD/`.
-- **Logging Environment Variables:** Replaced `LOG_*`, `ENABLE_REQUEST_LOGS`, `CALL_LOGS_MAX`, `CALL_LOG_PAYLOAD_MODE`, and `PROXY_LOG_MAX_ENTRIES` with the new `APP_LOG_*` and `CALL_LOG_RETENTION_DAYS` configuration model.
-- **Pipeline Toggle Setting:** Replaced the legacy `detailed_logs_enabled` setting with `call_log_pipeline_enabled`. New pipeline details are embedded inside the request artifact instead of being stored as separate `request_detail_logs` records.
-
-### 🛠️ Maintenance
-
-- **Legacy Request Log Upgrade Backup:** Upgrades now archive old `data/logs/`, legacy `data/call_logs/`, and `data/log.txt` layouts into `DATA_DIR/log_archives/*.zip` before removing the deprecated structure.
-- **Streaming Usage Persistence:** Streaming requests now write a single `usage_history` row on completion instead of emitting a duplicate in-progress usage row with empty status metadata.
-- **Logging Follow-up Cleanup:** Pipeline logs no longer capture `SOURCE REQUEST`, request artifact entries now honor `CALL_LOG_MAX_ENTRIES`, and application log archives now honor `APP_LOG_MAX_FILES`.
-
----
+-**Copia de rezervă pentru actualizarea jurnalului de solicitare vechi:**Actualizările arhivează acum vechile aspecte `data/logs/`, vechi `data/call_logs/` și `data/log.txt` în `DATA_DIR/log_archives/*.zip` înainte de a elimina structura depreciată. -**Persistența utilizării în flux:**Solicitările de transmitere în flux scriu acum un singur rând `usage_history` la finalizare, în loc să emită un rând duplicat de utilizare în curs cu metadate de stare goale. -**Curățirea ulterioară a înregistrării:**jurnalele pipeline nu mai captează `SOLICARE SURSA`, intrările de artefacte de solicitare onorează acum `CALL_LOG_MAX_ENTRIES`, iar arhivele de jurnal de aplicații onorează acum `APP_LOG_MAX_FILES`.---
 
 ## [3.4.0] - 2026-03-31
 
 ### Funcționalități
 
-- **Subscription Utilization Analytics:** Added quota snapshot time-series tracking, Provider Utilization and Combo Health tabs with recharts visualizations, and corresponding API endpoints (#847)
-- **SQLite Backup Control:** New `OMNIROUTE_DISABLE_AUTO_BACKUP` env flag to disable automatic SQLite backups (#846)
-- **Model Registry Update:** Injected `gpt-5.4-mini` into the Codex provider's array of models (#756)
-- **Provider Limit Tracking:** Track and display when provider rate limits were last refreshed per account (#843)
+-**Analitice de utilizare a abonamentului:**s-au adăugat urmărirea serii temporale a instantanee a cotei, filele Utilizarea furnizorului și Sănătatea combinată cu vizualizări de rediagrame și punctele finale API corespunzătoare (#847) -**SQLite Backup Control:**Noua semnalizare `OMNIROUTE_DISABLE_AUTO_BACKUP` pentru a dezactiva backup-urile automate SQLite (#846) -**Actualizare registru de model:**injectat `gpt-5.4-mini` în gama de modele a furnizorului Codex (#756) -**Urmărirea limitelor furnizorului:**Urmăriți și afișați când limitele ratelor furnizorului au fost actualizate ultima dată pe cont (#843)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Qwen Auth Routing:** Re-routed Qwen OAuth completions from the DashScope API to the Web Inference API (`chat.qwen.ai`), resolving authorization failures (#844, #807, #832)
-- **Qwen Auto-Retry Loop:** Added targeted 429 Quota Exceeded backoff handling inside `chatCore` protecting burst requests
-- **Codex OAuth Fallback:** Modern browser popup blocking no longer traps the user; it automatically falls back to manual URL entry (#808)
-- **Claude Token Refresh:** Anthropic's strict `application/json` boundaries are now respected during token generation instead of encoded URLs (#836)
-- **Codex Messages Schema:** Stripped purist `messages` injects from native passthrough requests to avoid structural rejections from the ChatGPT upstream (#806)
-- **CLI Detection Size Limit:** Safely bumped the Node binary scanning upper bound from 100MB to 350MB, allowing heavy standalone tools like Claude Code (229MB) and OpenCode (153MB) to be correctly detected by the VPS runtime (#809)
-- **CLI Runtime Environment:** Restored ability for CLI configurations to respect user override paths (`CLI_{PROVIDER}_BIN`) bypassing strict path-bound discovery rules
-- **Nvidia Header Conflicts:** Removed `prompt_cache_key` properties from upstream headers when calling non-Anthropic providers (#848)
-- **Codex Fast Tier Toggle:** Restored Codex service tier toggle contrast in light mode (#842)
-- **Test Infrastructure:** Updated `t28-model-catalog-updates` test that incorrectly expected the outdated DashScope endpoint for the Qwen native registry
-
----
+-**Rutarea Qwen Auth:**Redirecționarea completărilor Qwen OAuth de la API-ul DashScope la API-ul Web Inference (`chat.qwen.ai`), rezolvând eșecurile de autorizare (#844, #807, #832) -**Bucla de reîncercare automată Qwen:**A fost adăugată o cotă țintită 429 depășită gestionarea backoff-ului în `chatCore` care protejează cererile de explozie -**Codex OAuth Fallback:**Blocarea pop-up-ului modern al browserului nu mai prinde utilizatorul; se întoarce automat la introducerea manuală a adresei URL (#808) -**Claude Token Refresh:**limitele stricte `application/json` ale Anthropic sunt acum respectate în timpul generării token-ului în loc de adresele URL codificate (#836) -**Schema de mesaje Codex:**Injectări de „mesaje” puriste din cererile native de trecere pentru a evita respingerile structurale din partea din amonte a ChatGPT (#806) -**Limita de dimensiune de detectare a CLI:**A crescut în siguranță limita superioară a scanării binare a nodului de la 100MB la 350MB, permițând instrumentelor independente grele precum Claude Code (229MB) și OpenCode (153MB) să fie detectate corect de rularea VPS (#809) -**CLI Runtime Environment:**Capacitatea restaurată pentru configurațiile CLI de a respecta căile de înlocuire a utilizatorului (`CLI_{PROVIDER}_BIN`) ocolind regulile stricte de descoperire legate de cale -**Conflicte de antet Nvidia:**S-au eliminat proprietățile `prompt_cache_key` din anteturile din amonte atunci când apelați furnizori non-antropici (#848) -**Codex Fast Tier Toggle:**Contrastul de comutare a nivelului de serviciu Codex restaurat în modul de lumină (#842) -**Infrastructura de testare:**Testul `t28-model-catalog-updates` actualizat care se aștepta incorect la punctul final DashScope învechit pentru registrul nativ Qwen---
 
 ## [3.3.9] - 2026-03-31
 
 ### 🐛 Bug Fixes
 
-- **Custom Provider Rotation:** Integrated `getRotatingApiKey` internally inside DefaultExecutor, ensuring `extraApiKeys` rotation triggers correctly for custom and compatible upstream providers (#815)
-
----
+-**Rotație personalizată a furnizorului:**`getRotatingApiKey` integrată în interiorul DefaultExecutor, asigurând declanșarea corectă a rotației `extraApiKeys` pentru furnizorii personalizați și compatibili din amonte (#815)---
 
 ## [3.3.8] - 2026-03-30
 
 ### Funcționalități
 
-- **Models API Filtering:** Endpoint `/v1/models` now dynamically filters its list based on the permissions tied to the `Authorization: Bearer <token>` when restricted access is on (#781)
-- **Qoder Integration:** Native integration for Qoder AI natively replacing the legacy iFlow platform mappings (#660)
-- **Prompt Cache Tracking:** Added tracking capabilities and frontend visualization (Stats card) for semantic and prompt caching in the Dashboard UI
+-**Models API Filtering:**Endpoint `/v1/models` își filtrează acum lista în mod dinamic pe baza permisiunilor legate de `Authorization: Bearer <token>` când accesul restricționat este activat (#781) -**Integrare Qoder:**Integrare nativă pentru Qoder AI care înlocuiește în mod nativ mapările vechi ale platformei iFlow (#660) -**Prompt Cache Tracking:**Capacități de urmărire și vizualizare frontală adăugate (cardul statistici) pentru memorarea semantică și promptă în interfața de utilizare a tabloului de bord### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Cache Dashboard Sizing:** Improved the UI layout sizes and context headers for the advanced cache pages (#835)
-- **Debug Sidebar Visibility:** Fixed an issue where the debug toggle wouldn't correctly show/hide sidebar debug details (#834)
-- **Gemini Model Prefixing:** Modified the namespace fallback to properly route via `gemini-cli/` instead of `gc/` to respect upstream specs (#831)
-- **OpenRouter Sync:** Improved compatibility synchronization to automatically ingest the available models catalog correctly from OpenRouter (#830)
-- **Streaming Payloads Mapping:** Reserialization of reasoning fields natively resolves conflict alias paths when output is streaming to edge devices
-
----
+-**Dimensiunea tabloului de bord cache:**S-au îmbunătățit dimensiunile aspectului UI și antetele contextului pentru paginile avansate de cache (#835) -**Vizibilitatea barei laterale de depanare:**S-a rezolvat o problemă în care comutatorul de depanare nu arăta/ascundea corect detaliile de depanare a barei laterale (#834) -**Prefixarea modelului Gemini:**S-a modificat spațiul de nume de rezervă pentru a ruta corect prin `gemini-cli/` în loc de `gc/` pentru a respecta specificațiile din amonte (#831) -**OpenRouter Sync:**Sincronizare îmbunătățită a compatibilității pentru a ingera automat catalogul de modele disponibile corect din OpenRouter (#830) -**Mapping Payloads de streaming:**Reserializarea câmpurilor de raționament rezolvă în mod nativ căile de alias de conflict atunci când ieșirea este transmisă în flux către dispozitivele de vârf---
 
 ## [3.3.7] - 2026-03-30
 
 ### 🐛 Bug Fixes
 
-- **OpenCode Config:** Restructured generated `opencode.json` to use the `@ai-sdk/openai-compatible` record-based schema with `options` and `models` as object maps instead of flat arrays, fixing config validation failures (#816)
-- **i18n Missing Keys:** Added missing `cloudflaredUrlNotice` translation key across all 30 language files to prevent `MISSING_MESSAGE` console errors in the Endpoint page (#823)
-
----
+-**OpenCode Config:**`opencode.json` generat restructurat pentru a utiliza schema bazată pe înregistrări `@ai-sdk/openai-compatible` cu `opțiuni` și `modele` ca hărți obiect în loc de matrice plate, reparând erorile de validare a configurației (#816) -**Chei lipsă i18n:**S-a adăugat cheia de traducere lipsă `cloudflaredUrlNotice` în toate cele 30 de fișiere de limbă pentru a preveni erorile consolei `MISSING_MESSAGE` în pagina Endpoint (#823)---
 
 ## [3.3.6] - 2026-03-30
 
 ### 🐛 Bug Fixes
 
-- **Token Accounting:** Included prompt cache tokens safely in historical usage inputs calculations for correct quota deductions (PR #822)
-- **Combo Test Probes:** Fixed combo testing logic false negatives by resolving parsing for reasoning-only responses and enabled massive parallelization via Promise.all (PR #828)
-- **Docker Quick Tunnels:** Embedded required ca-certificates inside the base runtime container to resolve Cloudflared TLS startup failures, and surfaced stdout network errors replacing generic exit codes (PR #829)
-
----
+-**Contabilitatea jetoanelor:**au inclus jetoane prompte cache în siguranță în calculele de intrare ale utilizării istorice pentru deduceri corecte de cotă (PR #822) -**Probe de testare combinată:**S-au remediat logica de testare combinată false negative prin rezolvarea parsării pentru răspunsuri numai de raționament și a activat paralelizarea masivă prin Promise.all (PR #828) -**Docker Quick Tunnels:**Certificate ca necesare încorporate în interiorul containerului de rulare de bază pentru a rezolva eșecurile de pornire Cloudflared TLS și erori de rețea stdout care înlocuiesc codurile de ieșire generice (PR #829)---
 
 ## [3.3.5] - 2026-03-30
 
 ### ✨ New Features
 
-- **Gemini Quota Tracking:** Added real-time Gemini CLI quota tracking via the `retrieveUserQuota` API (PR #825)
-- **Cache Dashboard:** Enhanced the Cache Dashboard to display prompt cache metrics, 24h trends, and estimated cost savings (PR #824)
+-**Urmărirea cotei Gemini:**S-a adăugat urmărirea cotei Gemini CLI în timp real prin intermediul API-ului „retrieveUserQuota” (PR #825) -**Tabloul de bord Cache:**Am îmbunătățit Tabloul de bord Cache pentru a afișa valorile prompte pentru cache, tendințele 24 de ore și economiile estimate de costuri (PR #824)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **User Experience:** Removed invasive auto-opening OAuth modal loops on barren provider detailed pages (PR #820)
-- **Dependency Updates:** Bumped and locked down dependencies for development and production trees including Next.js 16.2.1, Recharts, and TailwindCSS 4.2.2 (PR #826, #827)
-
----
+-**Experiența utilizatorului:**S-au eliminat buclele modale OAuth invazive cu deschidere automată pe paginile sterile detaliate ale furnizorului (PR #820) -**Actualizări de dependență:**Dependențe eliminate și blocate pentru arbori de dezvoltare și producție, inclusiv Next.js 16.2.1, Recharts și TailwindCSS 4.2.2 (PR #826, #827)---
 
 ## [3.3.4] - 2026-03-30
 
 ### ✨ New Features
 
-- **A2A Workflows:** Added deterministic FSM orchestrator for multi-step agent workflows.
-- **Graceful Degradation:** Added a new multi-layer fallback framework to preserve core functionality during partial system outages.
-- **Config Audit:** Added an audit trail with diff detection to track changes and enable configuration rollbacks.
-- **Provider Health:** Added provider expiration tracking with proactive UI alerts for expiring API keys.
-- **Adaptive Routing:** Added an adaptive volume and complexity detector to override routing strategies dynamically based on load.
-- **Provider Diversity:** Implemented provider diversity scoring via Shannon entropy to improve load distribution.
-- **Auto-Disable Bounds:** Added an Auto-Disable Banned Accounts setting toggle to the Resilience dashboard.
+-**Fluxuri de lucru A2A:**S-a adăugat un orchestrator determinist FSM pentru fluxurile de lucru cu agenți în mai mulți pași. -**Degradare grațioasă:**S-a adăugat un nou cadru de rezervă cu mai multe straturi pentru a păstra funcționalitatea de bază în timpul întreruperilor parțiale ale sistemului. -**Config Audit:**S-a adăugat o pistă de audit cu detectare a diferenței pentru a urmări modificările și a activa derularea configurației. -**Sănătatea furnizorului:**A fost adăugată urmărirea expirării furnizorului cu alerte proactive de interfață de utilizare pentru cheile API care expiră. -**Adaptive Routing:**S-a adăugat un detector adaptiv de volum și complexitate pentru a anula strategiile de rutare în mod dinamic, bazate pe încărcare. -**Diversitatea furnizorilor:**Implementarea punctajului diversității furnizorilor prin entropia Shannon pentru a îmbunătăți distribuția sarcinii. -**Dezactivare automată a limitelor:**A fost adăugată o comutare de setare a Dezactivare automată a conturilor interzise la tabloul de bord Reziliență.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Compatibilitate Codex și Claude:**S-au remediat erorile interfeței de utilizare, s-au corectat problemele de integrare Codex care nu erau transmise în flux și s-a rezolvat detectarea CLI a timpului de execuție pe Windows. -**Automatizare de lansare:**Permisiuni extinse necesare pentru construirea aplicației Electron în GitHub Actions. -**Cloudflare Runtime:**S-au adresat coduri corecte de ieșire pentru izolarea timpului de execuție pentru componentele tunelului Cloudflare.### 🧪 Tests
 
-- **Codex & Claude Compatibility:** Fixed UI fallbacks, patched Codex non-streaming integration issues, and resolved CLI runtime detection on Windows.
-- **Release Automation:** Expanded permissions required for the Electron App build in GitHub Actions.
-- **Cloudflare Runtime:** Addressed correct runtime isolation exit codes for Cloudflared tunnel components.
-
-### 🧪 Tests
-
-- **Test Suite Updates:** Expanded test coverage for volume detectors, provider diversity, configuration audit, and FSM.
-
----
+-**Actualizări ale suitei de teste:**Acoperire extinsă a testelor pentru detectoare de volum, diversitatea furnizorilor, auditul configurației și FSM.---
 
 ## [3.3.3] - 2026-03-29
 
 ### 🐛 Bug Fixes
 
-- **CI/CD Reliability:** Patched GitHub Actions to stable dependency versions (`actions/checkout@v4`, `actions/upload-artifact@v4`) to mitigate unannounced builder environment deprecations.
-- **Image Fallbacks:** Replaced arbitrary fallback chains in `ProviderIcon.tsx` with explicit asset validation to prevent UI loading `<Image>` components for files that don't exist, eliminating `404` errors in dashboard console logs (#745).
-- **Admin Updater:** Dynamic source-installation detection for the dashboard Updater. Safely disables the `Update Now` button when OmniRoute is built locally rather than through npm, prompting for `git pull` (#743).
-- **Update ERESOLVE Error:** Injected `package.json` overrides for `react`/`react-dom` and enabled `--legacy-peer-deps` within the internal automatic updater scripts to resolve breaking dependency tree conflicts with `@lobehub/ui`.
-
----
+-**Fiabilitate CI/CD:**Acțiunile GitHub corectate la versiuni de dependență stabile (`actions/checkout@v4`, `actions/upload-artifact@v4`) pentru a atenua deprecierea neanunțată a mediului constructor. -**Imagine de rezervă:**S-au înlocuit lanțurile de rezervă arbitrare în `ProviderIcon.tsx` cu validarea explicită a activelor pentru a preveni încărcarea componentelor `<Imagine>` UI pentru fișiere care nu există, eliminând erorile `404` din jurnalele consolei tabloului de bord (#745). -**Admin Updater:**Detectare dinamică a instalării sursei pentru instrumentul de actualizare a tabloului de bord. Dezactivează în siguranță butonul `Actualizează acum` când OmniRoute este construit local și nu prin npm, solicitând `git pull` (#743). -**Eroare de actualizare RESOLVE:**`package.json` injectat înlocuiește pentru `react`/`react-dom` și s-a activat `--legacy-peer-deps` în scripturile interne de actualizare automată pentru a rezolva conflictele de întrerupere a arborelui de dependență cu `@lobehub/ui`.---
 
 ## [3.3.2] - 2026-03-29
 
 ### ✨ New Features
 
-- **Cloudflare Tunnels:** Cloudflare Quick Tunnel integration with dashboard controls (PR #772).
-- **Diagnostics:** Semantic cache bypass for combo live tests (PR #773).
+-**Tunele Cloudflare:**Integrare Cloudflare Quick Tunnel cu comenzile tabloului de bord (PR #772). -**Diagnosticare:**Ocolire semantică a memoriei cache pentru teste combinate live (PR #773).### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Streaming Stability:** Apply `FETCH_TIMEOUT_MS` to streaming requests' initial `fetch()` call to prevent 300s Node.js TCP timeout causing silent task failures (#769).
-- **i18n:** Add missing `windsurf` and `copilot` entries to `toolDescriptions` across all 33 locale files (#748).
-- **GLM Coding Audit:** Complete provider audit fixing ReDoS vulnerabilities, context window sizing (128k/16k), and model registry syncing (PR #778).
-
----
+-**Stabilitatea fluxului:**Aplicați `FETCH_TIMEOUT_MS` la apelul inițial `fetch()` al cererilor de streaming pentru a preveni 300s de timp de expirare a TCP Node.js care cauzează eșecuri silențioase ale sarcinii (#769). -**i18n:**Adăugați intrările `windsurf` și `copilot` lipsă la `toolDescriptions` în toate cele 33 de fișiere locale (#748). -**Audit de codare GLM:**Audit complet al furnizorului care remediază vulnerabilitățile ReDoS, dimensiunea ferestrei de context (128k/16k) și sincronizarea registrului modelului (PR #778).---
 
 ## [3.3.1] - 2026-03-29
 
 ### 🐛 Bug Fixes
 
-- **OpenAI Codex:** Fallback processing fix for `type: "text"` elements carrying null or empty datasets that caused 400 rejection (#742).
-- **Opencode:** Update schema alignment to singular `provider` to match official spec (#774).
-- **Gemini CLI:** Inject missing end-user quota headers preventing 403 authorization lockouts (#775).
-- **DB Recovery:** Refactor multipart payload imports into raw binary buffered arrays to bypass reverse proxy max body limits (#770).
-
----
+-**OpenAI Codex:**Remediere de procesare de rezervă pentru elementele `type: "text"` care transportă seturi de date nule sau goale care au cauzat 400 de respingere (#742). -**Opencode:**Actualizați alinierea schemei la `furnizor` singular pentru a se potrivi cu specificațiile oficiale (#774). -**Gemini CLI:**Injectați anteturile de cotă de utilizator final lipsă, prevenind blocarea autorizației 403 (#775). -**Recuperare DB:**Refactorează importurile de încărcătură utilă în mai multe părți în rețele binare brute cu tampon pentru a ocoli limitele maxime ale corpului proxy invers (#770).---
 
 ## [3.3.0] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Release Stabilization** — Finalized v3.2.9 release (combo diagnostics, quality gates, Gemini tool fix) and created missing git tag. Consolidated all staged changes into a single atomic release commit.
+-**Stabilizarea lansării**— S-a finalizat lansarea v3.2.9 (diagnosticare combinată, porți de calitate, remediere instrument Gemini) și a creat eticheta git lipsă. A consolidat toate modificările în etape într-o singură comitere de eliberare atomică.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Auto-Update Test** — Fixed `buildDockerComposeUpdateScript` test assertion to match unexpanded shell variable references (`$TARGET_TAG`, `${TARGET_TAG#v}`) in the generated deploy script, aligning with the refactored template from v3.2.8.
-- **Circuit Breaker Test** — Hardened `combo-circuit-breaker.test.mjs` by injecting `maxRetries: 0` to prevent retry inflation from skewing failure count assertions during breaker state transitions.
-
----
+-**Test de actualizare automată**— S-a remediat afirmația de testare `buildDockerComposeUpdateScript` pentru a se potrivi cu referințele variabilelor shell neexpandite (`$TARGET_TAG`, `${TARGET_TAG#v}`) în scriptul de implementare generat, aliniindu-se cu șablonul refactorizat din v3.2.8. -**Circuit Breaker Test**— `combo-circuit-breaker.test.mjs` întărit prin injectarea `maxRetries: 0` pentru a preveni umflarea reîncercării de a deforma afirmațiile numărului de eșecuri în timpul tranzițiilor stării întreruptorului.---
 
 ## [3.2.9] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Combo Diagnostics** — Introduced a live test bypass flag (`forceLiveComboTest`) allowing administrators to execute real upstream health checks that bypass all local circuit-breaker and cooldown state mechanisms, enabling precise diagnostics during rolling outages (PR #759)
-- **Quality Gates** — Added automated response quality validation for combos and officially integrated `claude-4.6` model support into the core routing schemas (PR #762)
+-**Combo Diagnostics**— A introdus un semnal de ocolire a testului live (`forceLiveComboTest`) care permite administratorilor să execute verificări reale de sănătate în amonte, care ocolesc toate mecanismele locale de întrerupător și stare de răcire, permițând diagnosticare precisă în timpul întreruperilor de rulare (PR #759) -**Quality Gates**— S-a adăugat validarea automată a calității răspunsului pentru combo-uri și suportul pentru modelul „claude-4.6” integrat oficial în schemele de rutare de bază (PR #762)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Tool Definition Validation** — Repaired Gemini API integration by normalizing enum types inside tool definitions, preventing upstream HTTP 400 parameter errors (PR #760)
-
----
+-**Tool Definition Validation**— Integrarea Gemini API a fost reparată prin normalizarea tipurilor de enumerare în definițiile instrumentului, prevenind erorile parametrilor HTTP 400 din amonte (PR #760)---
 
 ## [3.2.8] - 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Docker Auto-Update UI** — Integrated a detached background update process for Docker Compose deployments. The Dashboard UI now seamlessly tracks update lifecycle events combining JSON REST responses with SSE streaming progress overlays for robust cross-environment reliability.
-- **Cache Analytics** — Repaired zero-metrics visualization mapping by migrating Semantic Cache telemetry logs directly into the centralized tracking SQLite module.
+-**Docker Auto-Update UI**— Integrat un proces de actualizare detașat în fundal pentru implementările Docker Compose. Interfața de utilizare a tabloului de bord urmărește acum fără probleme evenimentele ciclului de viață al actualizării, combinând răspunsurile JSON REST cu suprapuneri de progres în fluxul SSE pentru o fiabilitate robustă între medii. -**Cache Analytics**— S-a reparat maparea vizualizării zero-metrics prin migrarea jurnalelor de telemetrie Semantic Cache direct în modulul SQLite de urmărire centralizată.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Authentication Logic** — Fixed a bug where saving dashboard settings or adding models failed with a 401 Unauthorized error when `requireLogin` was disabled. API endpoints now correctly evaluate the global authentication toggle. Resolved global redirection by reactivating `src/middleware.ts`.
-- **CLI Tool Detection (Windows)** — Prevented fatal initialization exceptions during CLI environment detection by catching `cross-spawn` ENOENT errors correctly. Adds explicit detection paths for `\AppData\Local\droid\droid.exe`.
-- **Codex Native Passthrough** — Normalized model translation parameters preventing context poisoning in proxy pass-through mode, enforcing generic `store: false` constraints explicitly for all Codex-originated requests.
-- **SSE Token Reporting** — Normalized provider tool-call chunk `finish_reason` detection, fixing 0% Usage analytics for stream-only responses missing strict `<DONE>` indicators.
-- **DeepSeek <think> Tags** — Implemented an explicit `<think>` extraction mapping inside `responsesHandler.ts`, ensuring DeepSeek reasoning streams map equivalently to native Anthropic `<thinking>` structures.
-
----
+-**Logica de autentificare**— S-a remediat o eroare în care salvarea setărilor tabloului de bord sau adăugarea modelelor a eșuat cu o eroare 401 neautorizată când `requireLogin` a fost dezactivat. Punctele finale API evaluează acum corect comutatorul de autentificare globală. Redirecționarea globală a fost rezolvată prin reactivarea `src/middleware.ts`. -**CLI Tool Detection (Windows)**— A prevenit excepțiile fatale de inițializare în timpul detectării mediului CLI prin prinderea corectă a erorilor ENOENT „cross-spawn”. Adaugă căi de detectare explicite pentru „\AppData\Local\droid\droid.exe”. -**Codex Native Passthrough**— Parametrii de traducere a modelului normalizat care împiedică otrăvirea contextului în modul de trecere proxy, impunând în mod explicit constrângerile generice „store: false” pentru toate cererile originate de Codex. -**SSE Token Reporting**— Detectarea `finish_reason` a segmentului de apel de instrument al furnizorului normalizat, remedierea analizei de utilizare a 0% pentru răspunsurile numai în flux lipsesc indicatorii stricti `<DONE>`. -**Etichete DeepSeek <think>**— A implementat o mapare explicită de extracție `<think>` în interiorul `responsesHandler.ts`, asigurând că fluxurile de raționament DeepSeek sunt echivalente cu structurile native `<thinking>` antropice.---
 
 ## [3.2.7] - 2026-03-29
 
 ### Fixed
 
-- **Seamless UI Updates**: The "Update Now" feature on the Dashboard now provides live, transparent feedback using Server-Sent Events (SSE). It performs package installation, native module rebuilds (better-sqlite3), and PM2 restarts reliably while showing real-time loaders instead of silently hanging.
-
----
+-**Actualizări fără întreruperi ale interfeței de utilizare**: funcția „Actualizați acum” de pe tabloul de bord oferă acum feedback live, transparent, folosind evenimentele trimise de server (SSE). Efectuează instalarea pachetelor, reconstruirile de module native (better-sqlite3) și PM2 repornește în mod fiabil, afișând încărcătoare în timp real în loc să fie suspendate în tăcere.---
 
 ## [3.2.6] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **API Key Reveal (#740)** — Added a scoped API key copy flow in the Api Manager, protected by the `ALLOW_API_KEY_REVEAL` environment variable.
-- **Sidebar Visibility Controls (#739)** — Admins can now hide any sidebar navigation link via the Appearance settings to reduce visual clutter.
-- **Strict Combo Testing (#735)** — Hardened the combo health check endpoint to require live text responses from models instead of just soft reachability signals.
-- **Streamed Detailed Logs (#734)** — Switched detailed request logging for SSE streams to reconstruct the final payload, saving immense amounts of SQLite database size and significantly cleaning up the UI.
+-**Afișarea cheii API (#740)**— S-a adăugat un flux de copiere a cheii API în domeniul de aplicare în Managerul Api, protejat de variabila de mediu `ALLOW_API_KEY_REVEAL`. -**Controalele vizibilității barei laterale (#739)**— Administratorii pot acum ascunde orice link de navigare din bara laterală prin setările Aspect pentru a reduce dezordinea vizuală. -**Testare combinată strictă (#735)**— S-a întărit punctul final de verificare a stării combo pentru a solicita răspunsuri text live de la modele în loc de doar semnale de accesibilitate. -**Jurnalele detaliate transmise (#734)**— S-a schimbat înregistrarea detaliată a cererilor pentru fluxurile SSE pentru a reconstrui sarcina utilă finală, economisind cantități imense de dimensiunea bazei de date SQLite și curățând semnificativ interfața de utilizare.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **OpenCode Go MiniMax Auth (#733)** — Corrected the authentication header logic for `minimax` models on OpenCode Go to use `x-api-key` instead of standard bearer tokens across the `/messages` protocol.
-
----
+-**OpenCode Go MiniMax Auth (#733)**— S-a corectat logica antetului de autentificare pentru modelele `minimax` pe OpenCode Go pentru a utiliza `x-api-key` în loc de jetoane purtător standard în protocolul `/messages`.---
 
 ## [3.2.5] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Void Linux Deployment Support (#732)** — Integrated `xbps-src` packaging template and instructions to natively compile and install OmniRoute with `better-sqlite3` bindings via cross-compilation target.
-
-## [3.2.4] — 2026-03-29
+-**Void Linux Deployment Support (#732)**— Șablon integrat de ambalare `xbps-src` și instrucțiuni pentru a compila și instala în mod nativ OmniRoute cu legături `better-sqlite3` prin ținta de compilare încrucișată.## [3.2.4] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Qoder AI Migration (#660)** — Completely migrated the legacy `iFlow` core provider onto `Qoder AI` maintaining stable API routing capabilities.
+-**Qoder AI Migration (#660)**— A migrat complet furnizorul de bază `iFlow` moștenit pe `Qoder AI`, menținând capabilități stabile de rutare API.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Gemini Tools HTTP 400 Payload Invalid Argument (#731)** — Prevented `thoughtSignature` array injections inside standard Gemini `functionCall` sequences blocking agentic routing flows.
-
----
+-**Gemini Tools HTTP 400 Payload Invalid Argument (#731)**— Injecțiile de matrice „thoughtSignature” prevenite în secvențele standard Gemini „functionCall” blocând fluxurile de rutare agentică.---
 
 ## [3.2.3] — 2026-03-29
 
 ### ✨ Enhancements & Refactoring
 
-- **Provider Limits Quota UI (#728)** — Normalized quota limit logic and data labeling inside the Limits interface.
+-**Interfața de utilizare a cotei pentru limitele furnizorului (#728)**— Logica normalizată a limitei cotei și etichetarea datelor în interiorul interfeței Limite.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Core Routing Schemas & Leaks** — Expanded `comboStrategySchema` to natively support `fill-first` and `p2c` strategies to unblock complex combo editing natively.
-- **Thinking Tags Extraction (CLI)** — Restructured CLI token responses sanitizer RegEx capturing model reasoning structures inside streams avoiding broken `<thinking>` extractions breaking response text output format.
-- **Strict Format Enforcements** — Hardened pipeline sanitization execution making it universally apply to translation mode targets.
-
----
+-**Core Routing Schemes & Leaks**— `comboStrategySchema` extins pentru a suporta nativ strategiile `fill-first` și `p2c` pentru a debloca editarea combo complexă în mod nativ. -**Thinking Tags Extraction (CLI)**— Restructurat CLI token răspunsuri dezinfectant RegEx captarea structurilor de raționament model în interiorul fluxurilor evitând extracțiile întrerupte `<thinking>` rupând formatul de ieșire a textului de răspuns. -**Implementări stricte în format**— Execuție întărită de dezinfectare a conductelor, ceea ce o face să se aplice universal țintelor modului de traducere.---
 
 ## [3.2.2] — 2026-03-29
 
 ### ✨ New Features
 
-- **Four-Stage Request Log Pipeline (#705)** — Refactored log persistence to save comprehensive payloads at four distinct pipeline stages: Client Request, Translated Provider Request, Provider Response, and Translated Client Response. Introduced `streamPayloadCollector` for robust SSE stream truncation and payload serialization.
+-**Four-Stage Request Log Pipeline (#705)**— Persistența jurnalului refactorizat pentru a salva încărcături utile complete în patru etape distincte ale conductei: Solicitare client, Cerere furnizor tradus, Răspuns furnizor și Răspuns client tradus. S-a introdus `streamPayloadCollector` pentru trunchierea fluxului SSE robust și serializarea încărcăturii utile.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Mobile UI Fixes (#659)** — Prevented table components on the dashboard from breaking the layout on narrow viewports by adding proper horizontal scrolling and overflow containment to `DashboardLayout`.
-- **Claude Prompt Cache Fixes (#708)** — Ensured `cache_control` blocks in Claude-to-Claude fallback loops are faithfully preserved and passed safely back to Anthropic models.
-- **Gemini Tool Definitions (#725)** — Fixed schema translation errors when declaring simple `object` parameter types for Gemini function calling.
-
-## [3.2.1] — 2026-03-29
+-**Remedieri ale interfeței de utilizare mobilă (#659)**— Au împiedicat componentele tabelului de pe tabloul de bord să rupă aspectul pe ferestrele de vizualizare înguste, adăugând derulare orizontală adecvată și limitare a depășirii la `DashboardLayout`. -**Claude Prompt Cache Fixs (#708)**— S-a asigurat că blocurile `cache_control` din buclele de rezervă Claude-la-Claude sunt păstrate fidel și transmise în siguranță înapoi la modelele Anthropic. -**Gemini Tool Definitions (#725)**— S-au remediat erorile de traducere a schemei la declararea unor tipuri simple de parametri „obiect” pentru apelarea funcției Gemini.## [3.2.1] — 2026-03-29
 
 ### ✨ New Features
 
-- **Global Fallback Provider (#689)** — When all combo models are exhausted (502/503), OmniRoute now attempts a configurable global fallback model before returning the error. Set `globalFallbackModel` in settings to enable.
+-**Global Fallback Provider (#689)**— Când toate modelele combo sunt epuizate (502/503), OmniRoute încearcă acum un model global de rezervă configurabil înainte de a returna eroarea. Setați `globalFallbackModel` în setări pentru a activa.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Remediere #721**— S-a remediat ocolirea fixarii contextului în timpul răspunsurilor la apelul instrumentului. Etichetarea non-streaming a folosit calea JSON greșită (`json.messages` → `json.choices[0].message`). Injecția de streaming se declanșează acum pe bucățile „finish_reason” pentru fluxurile numai pentru apeluri de instrumente. `injectModelTag()` adaugă acum mesaje PIN sintetice pentru conținut fără șir. -**Remediere #709**— Confirmat deja remediat (v3.1.9) — `system-info.mjs` creează directoare recursiv. Închis. -**Remediere #707**— Confirmat deja remediat (v3.1.9) — igienizarea numelui instrumentului gol în `chatCore.ts`. Închis.### 🧪 Tests
 
-- **Fix #721** — Fixed context pinning bypass during tool-call responses. Non-streaming tagging used wrong JSON path (`json.messages` → `json.choices[0].message`). Streaming injection now triggers on `finish_reason` chunks for tool-call-only streams. `injectModelTag()` now appends synthetic pin messages for non-string content.
-- **Fix #709** — Confirmed already fixed (v3.1.9) — `system-info.mjs` creates directories recursively. Closed.
-- **Fix #707** — Confirmed already fixed (v3.1.9) — empty tool name sanitization in `chatCore.ts`. Closed.
-
-### 🧪 Tests
-
-- Added 6 unit tests for context pinning with tool-call responses (null content, array content, roundtrip, re-injection)
-
-## [3.2.0] — 2026-03-28
+- S-au adăugat 6 teste unitare pentru fixarea contextului cu răspunsuri la apeluri de instrumente (conținut nul, conținut matrice, dus-întors, re-injectare)## [3.2.0] — 2026-03-28
 
 ### ✨ New Features
 
-- **Cache Management UI** — Added a dedicated semantic caching dashboard at \`/dashboard/cache\` with targeted API invalidation and 31-language i18n support (PR #701 by @oyi77)
-- **GLM Quota Tracking** — Added real-time usage and session quota tracking for the GLM Coding (Z.AI) provider (PR #698 by @christopher-s)
-- **Detailed Log Payloads** — Wired full four-stage pipeline payload capturing (original, translated, provider-response, streamed-deltas) directly into the UI (PR #705 by @rdself)
+-**Interfața de utilizare pentru gestionarea cachei**— S-a adăugat un tablou de bord dedicat pentru memorarea în cache semantică la \`/dashboard/cache\` cu invalidare API vizată și suport i18n în 31 de limbi (PR #701 de @oyi77) -**GLM Quota Tracking**— S-a adăugat utilizarea în timp real și urmărirea cotei de sesiune pentru furnizorul GLM Coding (Z.AI) (PR #698 de la @christopher-s) -**Încărcături utile jurnalului detaliate**— Capturarea încărcăturii utile a conductei în patru etape prin cablu (original, tradus, răspunsul furnizorului, deltas transmise în flux) direct în interfața de utilizare (PR #705 de către @rdself)### 🐛 Bug Fixes
+
+-**Remediere #708**— S-a prevenit sângerarea jetonului pentru utilizatorii de cod Claude care trimit prin OmniRoute prin păstrarea corectă a antetelor native \`cache_control\` în timpul trecerii Claude-la-Claude (PR #708 de @tombii) -**Remediere #719**— Configurați limitele de autentificare interne pentru \`ModelSyncScheduler\` pentru a preveni eșecurile demonului neautentificat la pornire (PR #719 de către @rdself) -**Remediere nr. 718**— Redarea insigna reconstruită în interfața de utilizare Limitele furnizorului, prevenind suprapunerea limitelor cotelor greșite (PR #718 de către @rdself) -**Remediere #704**— S-au remediat erorile combinate care s-au întrerupt în cazul erorilor de politică de conținut HTTP 400 care împiedică rutarea nefuncțională a rotației modelului (PR #704 de la @rdself)### 🔒 Security & Dependencies
+
+- S-a lovit \`path-to-regexp\` la \`8.4.0\`, rezolvând vulnerabilitățile dependentabot (PR #715)## [3.1.10] — 2026-03-28
 
 ### 🐛 Bug Fixes
 
-- **Fix #708** — Prevented token bleeding for Claude Code users routing through OmniRoute by correctly preserving native \`cache_control\` headers during Claude-to-Claude passthrough (PR #708 by @tombii)
-- **Fix #719** — Setup internal auth boundaries for \`ModelSyncScheduler\` to prevent unauthenticated daemon failures on startup (PR #719 by @rdself)
-- **Fix #718** — Rebuilt badge rendering in Provider Limits UI preventing bad quota boundaries overlap (PR #718 by @rdself)
-- **Fix #704** — Fixed Combo Fallbacks breaking on HTTP 400 content-policy errors preventing model-rotation dead-routing (PR #704 by @rdself)
-
-### 🔒 Security & Dependencies
-
-- Bumped \`path-to-regexp\` to \`8.4.0\` resolving dependabot vulnerabilities (PR #715)
-
-## [3.1.10] — 2026-03-28
-
-### 🐛 Bug Fixes
-
-- **Fix #706** — Fixed icon fallback rendering caused by Tailwind V4 `font-sans` override by applying `!important` to `.material-symbols-outlined`.
-- **Fix #703** — Fixed GitHub Copilot broken streams by enabling `responses` to `openai` format translation for any custom models leveraging `apiFormat: "responses"`.
-- **Fix #702** — Replaced flat-rate usage tracking with accurate DB pricing calculations for both streaming and non-streaming responses.
-- **Fix #716** — Cleaned up Claude tool-call translation state, correctly parsing streaming arguments and preventing OpenAI `tool_calls` chunks from repeating the `id` field.
-
-## [3.1.9] — 2026-03-28
+-**Remediere #706**— S-a remediat redarea de rezervă a pictogramei cauzată de anularea „font-sans” de Tailwind V4 prin aplicarea „!important” la „.material-symbols-outlined”. -**Remediere #703**— S-au remediat fluxurile întrerupte din GitHub Copilot prin activarea „răspunsurilor” la traducerea în format „openai” pentru orice model personalizat care folosește „apiFormat: „răspunsuri””. -**Remediere #702**— S-a înlocuit urmărirea utilizării forfetare cu calcule precise ale prețurilor DB atât pentru răspunsurile în flux, cât și pentru cele non-streaming. -**Remediere #716**— S-a curățat starea de traducere a apelurilor instrumentului Claude, analizând corect argumentele de streaming și împiedicând bucățile OpenAI `tool_calls` să repete câmpul `id`.## [3.1.9] — 2026-03-28
 
 ### ✨ New Features
 
-- **Schema Coercion** — Auto-coerce string-encoded numeric JSON Schema constraints (e.g. `"minimum": "1"`) to proper types, preventing 400 errors from Cursor, Cline, and other clients sending malformed tool schemas.
-- **Tool Description Sanitization** — Ensure tool descriptions are always strings; converts `null`, `undefined`, or numeric descriptions to empty strings before sending to providers.
-- **Clear All Models Button** — Added i18n translations for the "Clear All Models" provider action across all 30 languages.
-- **Codex Auth Export** — Added Codex `auth.json` export and apply-local buttons for seamless CLI integration.
-- **Windsurf BYOK Notes** — Added official limitation warnings to the Windsurf CLI tool card documenting BYOK constraints.
+-**Schema Coercion**— Constrângerea automată a constrângerilor de schemă JSON numerică codificată în șir (de exemplu, `"minimum": "1"`) la tipurile adecvate, prevenind 400 de erori de la Cursor, Cline și alți clienți care trimit scheme de instrumente incorecte. -**Igienizarea descrierii instrumentului**— Asigurați-vă că descrierile instrumentelor sunt întotdeauna șiruri; convertește descrierile `null`, `undefined` sau numerice în șiruri goale înainte de a fi trimise către furnizori. -**Butonul Șterge toate modelele**— S-au adăugat traduceri i18n pentru acțiunea furnizorului „Șterge toate modelele” în toate cele 30 de limbi. -**Codex Auth Export**— S-au adăugat butoanele Codex `auth.json` de export și aplicație locală pentru o integrare perfectă a CLI. -**Note BYOK Windsurf**— S-au adăugat avertismente oficiale de limitare la cardul de instrumente Windsurf CLI care documentează constrângerile BYOK.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Remediere #709**— `system-info.mjs` nu se mai blochează când directorul de ieșire nu există (a adăugat `mkdirSync` cu steag recursiv). -**Remediere #710**— Singletonul A2A `TaskManager` folosește acum `globalThis` pentru a preveni scurgerea stării prin recompilările rutelor API Next.js în modul dev. Suita de testare E2E a fost actualizată pentru a gestiona 401 cu grație. -**Remediere #711**— S-a adăugat aplicarea plafonului `max_tokens` specific furnizorului pentru cererile din amonte. -**Remediere #605 / #592**— Eliminați prefixul `proxy_` din numele instrumentelor în răspunsurile Claude non-streaming; URL-ul de validare LongCat fixat. -**Call Logs Max Cap**— `getMaxCallLogs()` actualizat cu strat de cache, suport pentru env var (`CALL_LOGS_MAX`) și integrarea setărilor DB.### 🧪 Tests
 
-- **Fix #709** — `system-info.mjs` no longer crashes when the output directory doesn't exist (added `mkdirSync` with recursive flag).
-- **Fix #710** — A2A `TaskManager` singleton now uses `globalThis` to prevent state leakage across Next.js API route recompilations in dev mode. E2E test suite updated to handle 401 gracefully.
-- **Fix #711** — Added provider-specific `max_tokens` cap enforcement for upstream requests.
-- **Fix #605 / #592** — Strip `proxy_` prefix from tool names in non-streaming Claude responses; fixed LongCat validation URL.
-- **Call Logs Max Cap** — Upgraded `getMaxCallLogs()` with caching layer, env var support (`CALL_LOGS_MAX`), and DB settings integration.
+- Suita de teste s-a extins de la 964 → 1027 de teste (63 de teste noi)
+- S-a adăugat `schema-coercion.test.mjs` — 9 teste pentru constrângerea numerică a câmpului și igienizarea descrierii instrumentului
+- Adăugat `t40-opencode-cli-tools-integration.test.mjs` — teste de integrare OpenCode/Windsurf CLI
+- Ramă îmbunătățită de teste de caracteristici cu instrumente de acoperire cuprinzătoare### 📁 New Files
 
-### 🧪 Tests
+| Fișier                                                   | Scop                                                                       |
+| -------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------- |
+| `open-sse/translator/helpers/schemaCoercion.ts`          | Constrângerea schemei și descrierea instrumentelor utilități de igienizare |
+| `teste/unitate/schema-coercion.test.mjs`                 | Teste unitare pentru constrângerea schemei                                 |
+| `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | Teste de integrare a instrumentelor CLI                                    |
+| `COVERAGE_PLAN.md`                                       | Document de planificare a acoperirii testului                              | ### 🐛 Bug Fixes |
 
-- Test suite expanded from 964 → 1027 tests (63 new tests)
-- Added `schema-coercion.test.mjs` — 9 tests for numeric field coercion and tool description sanitization
-- Added `t40-opencode-cli-tools-integration.test.mjs` — OpenCode/Windsurf CLI integration tests
-- Enhanced feature-tests branch with comprehensive coverage tooling
-
-### 📁 New Files
-
-| File                                                     | Purpose                                                     |
-| -------------------------------------------------------- | ----------------------------------------------------------- |
-| `open-sse/translator/helpers/schemaCoercion.ts`          | Schema coercion and tool description sanitization utilities |
-| `tests/unit/schema-coercion.test.mjs`                    | Unit tests for schema coercion                              |
-| `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | CLI tool integration tests                                  |
-| `COVERAGE_PLAN.md`                                       | Test coverage planning document                             |
-
-### 🐛 Bug Fixes
-
-- **Claude Prompt Caching Passthrough** — Fixed cache_control markers being stripped in Claude passthrough mode (Claude → OmniRoute → Claude), which caused Claude Code users to deplete their Anthropic API quota 5-10x faster than direct connections. OmniRoute now preserves client's cache_control markers when sourceFormat and targetFormat are both Claude, ensuring prompt caching works correctly and dramatically reducing token consumption.
-
-## [3.1.8] - 2026-03-27
+-**Claude Prompt Caching Passthrough**— S-au remediat marcatorii cache_control care erau eliminati în modul Claude passthrough (Claude → OmniRoute → Claude), ceea ce i-a determinat pe utilizatorii Claude Code să-și epuizeze cota API-ului Anthropic de 5-10 ori mai rapid decât conexiunile directe. OmniRoute păstrează acum markerii cache_control ai clientului atunci când sourceFormat și targetFormat sunt ambele Claude, asigurând ca stocarea promptă să funcționeze corect și reducând dramatic consumul de token.## [3.1.8] - 2026-03-27
 
 ### 🐛 Bug Fixes & Features
 
-- **Platform Core:** Implemented global state handling for Hidden Models & Combos preventing them from cluttering the catalog or leaking into connected MCP agents (#681).
-- **Stability:** Patched streaming crashes related to the native Antigravity provider integration failing due to unhandled undefined state arrays (#684).
-- **Localization Sync:** Deployed a fully overhauled `i18n` synchronizer detecting missing nested JSON properties and retro-fitting 30 locales sequentially (#685).## [3.1.7] - 2026-03-27
+-**Nucleul platformei:**Gestionarea globală a stării a fost implementată pentru modelele și combo-urile ascunse, împiedicându-le să aglomereze catalogul sau să se scurgă în agenții MCP conectați (#681). -**Stabilitate:**Blocări de streaming corectate legate de integrarea furnizorului nativ Antigravity eșuat din cauza matricelor de stare nedefinite netratate (#684). -**Localization Sync:**A fost implementat un sincronizator `i18n` complet revizuit, care detectează proprietăți JSON imbricate lipsă și adaptează 30 de localități secvenţial (#685).## [3.1.7] - 2026-03-27### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **Streaming Stability:** Fixed `hasValuableContent` returning `undefined` for empty chunks in SSE streams (#676).
-- **Tool Calling:** Fixed an issue in `sseParser.ts` where non-streaming Claude responses with multiple tool calls dropped the `id` of subsequent tool calls due to incorrect index-based deduplication (#671).
-
----
+-**Stabilitatea fluxului:**S-a remediat `hasValuableContent` care returnează `undefined` pentru bucăți goale din fluxurile SSE (#676). -**Tool Calling:**S-a remediat o problemă în `sseParser.ts` în care răspunsurile Claude care nu erau transmise în flux cu mai multe apeluri de instrument au renunțat la `id` apelurilor ulterioare de instrumente din cauza deduplicarii incorecte bazate pe index (#671).---
 
 ## [3.1.6] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Claude Native Tool Name Restoration** — Tool names like `TodoWrite` are no longer prefixed with `proxy_` in Claude passthrough responses (both streaming and non-streaming). Includes unit test coverage (PR #663 by @coobabm)
-- **Clear All Models Alias Cleanup** — "Clear All Models" button now also removes associated model aliases, preventing ghost models in the UI (PR #664 by @rdself)
-
----
+-**Claude Native Tool Name Restoration**— Numele de instrumente precum `TodoWrite` nu mai sunt prefixate cu `proxy_` în răspunsurile Claude passthrough (atât în ​​flux, cât și non-stream). Include acoperirea testului unitar (PR #663 de la @coobabm) -**Clear All Models Alias Cleanup**— Butonul „Șterge toate modelele” acum elimină și aliasurile de model asociate, prevenind modelele fantomă în UI (PR #664 de @rdself)---
 
 ## [3.1.5] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Backoff Auto-Decay** — Rate-limited accounts now auto-recover when their cooldown window expires, fixing a deadlock where high `backoffLevel` permanently deprioritized accounts (PR #657 by @brendandebeasi)
+-**Backoff Auto-Decay**— Conturile cu rate limitate se recuperează acum automat când expiră fereastra de răcire, reparând un impas în care conturile „backoffLevel” ridicate au deprioritizat permanent conturile (PR #657 de la @brendandebeasi)### 🌍 i18n
 
-### 🌍 i18n
-
-- **Chinese translation overhaul** — Comprehensive rewrite of `zh-CN.json` with improved accuracy (PR #658 by @only4copilot)
-
----
+-**Revizuire traducere în chineză**— Rescrie completă a `zh-CN.json` cu o precizie îmbunătățită (PR #658 de la @only4copilot)---
 
 ## [3.1.4] — 2026-03-27
 
 ### 🐛 Bug Fixes
 
-- **Streaming Override Fix** — Explicit `stream: true` in request body now takes priority over `Accept: application/json` header. Clients sending both will correctly receive SSE streaming responses (#656)
+-**Streaming Override Fix**— `stream: true` explicit din corpul cererii are acum prioritate față de antetul `Accept: application/json`. Clienții care trimit ambele vor primi corect răspunsuri în flux SSE (#656)### 🌍 i18n
 
-### 🌍 i18n
-
-- **Czech string improvements** — Refined terminology across `cs.json` (PR #655 by @zen0bit)
-
----
+-**Îmbunătățiri ale șirurilor de caractere cehe**— Terminologie rafinată în `cs.json` (PR #655 de la @zen0bit)---
 
 ## [3.1.3] — 2026-03-26
 
 ### 🌍 i18n & Community
 
-- **~70 missing translation keys** added to `en.json` and 12 languages (PR #652 by @zen0bit)
-- **Czech documentation updated** — CLI-TOOLS, API_REFERENCE, VM_DEPLOYMENT guides (PR #652)
-- **Translation validation scripts** — `check_translations.py` and `validate_translation.py` for CI/QA (PR #651 by @zen0bit)
-
----
+-**~70 de chei de traducere lipsă**adăugate la `en.json` și 12 limbi (PR #652 de la @zen0bit) -**Documentația cehă actualizată**— ghiduri CLI-TOOLS, API_REFERENCE, VM_DEPLOYMENT (PR #652) -**Scripturi de validare a traducerii**— `check_translations.py` și `validate_translation.py` pentru CI/QA (PR #651 de la @zen0bit)---
 
 ## [3.1.2] — 2026-03-26
 
 ### 🐛 Bug Fixes
 
-- **Critical: Tool Calling Regression** — Fixed `proxy_Bash` errors by disabling the `proxy_` tool name prefix in the Claude passthrough path. Tools like `Bash`, `Read`, `Write` were being renamed to `proxy_Bash`, `proxy_Read`, etc., causing Claude to reject them (#618)
-- **Kiro Account Ban Documentation** — Documented as upstream AWS anti-fraud false positive, not an OmniRoute issue (#649)
+-**Critic: Tool Calling Regression**— S-au remediat erorile `proxy_Bash` prin dezactivarea prefixului numelui instrumentului `proxy_` în calea de trecere Claude. Instrumente precum `Bash`, `Read`, `Write` au fost redenumite în `proxy_Bash`, `proxy_Read` etc., determinând Claude să le respingă (#618) -**Documentația privind interzicerea contului Kiro**— Documentată ca fals pozitiv antifraudă AWS în amonte, nu o problemă OmniRoute (#649)### 🧪 Tests
 
-### 🧪 Tests
-
-- **936 tests, 0 failures**
-
----
+-**936 teste, 0 eșecuri**---
 
 ## [3.1.1] — 2026-03-26
 
 ### ✨ New Features
 
-- **Vision Capability Metadata**: Added `capabilities.vision`, `input_modalities`, and `output_modalities` to `/v1/models` entries for vision-capable models (PR #646)
-- **Gemini 3.1 Models**: Added `gemini-3.1-pro-preview` and `gemini-3.1-flash-lite-preview` to the Antigravity provider (#645)
+-**Metadatele capacității vizuale**: s-au adăugat `capabilities.vision`, `input_modalities` și `output_modalities` la intrările `/v1/models` pentru modelele cu capacitate de vedere (PR #646) -**Modele Gemini 3.1**: s-au adăugat `gemini-3.1-pro-preview` și `gemini-3.1-flash-lite-preview` la furnizorul Antigravity (#645)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Eroare Ollama Cloud 401**: Adresa URL de bază a API incorectă a fost remediată — schimbată din „api.ollama.com” în „ollama.com/v1/chat/completions” oficial (#643) -**Reîncercare token expirată**: s-a adăugat reîncercarea delimitată cu backoff exponențial (5→10→20 min) pentru conexiunile OAuth expirate, în loc să le ignore permanent (PR #647)### 🧪 Tests
 
-- **Ollama Cloud 401 Error**: Fixed incorrect API base URL — changed from `api.ollama.com` to official `ollama.com/v1/chat/completions` (#643)
-- **Expired Token Retry**: Added bounded retry with exponential backoff (5→10→20 min) for expired OAuth connections instead of permanently skipping them (PR #647)
-
-### 🧪 Tests
-
-- **936 tests, 0 failures**
-
----
+-**936 teste, 0 eșecuri**---
 
 ## [3.1.0] — 2026-03-26
 
 ### ✨ New Features
 
-- **GitHub Issue Templates**: Added standardized bug report, feature request, and config/proxy issue templates (#641)
-- **Clear All Models**: Added a "Clear All Models" button to the provider detail page with i18n support in 29 languages (#634)
+-**Șabloane de probleme GitHub**: s-au adăugat un raport de eroare standardizat, cerere de caracteristici și șabloane de problemă de configurare/proxy (#641) -**Șterge toate modelele**: s-a adăugat un buton „Șterge toate modelele” la pagina de detalii a furnizorului cu suport i18n în 29 de limbi (#634)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Locale Conflict (`in.json`)**: a redenumit fișierul local hindi din `in.json` (cod ISO indonezian) în `hi.json` pentru a remedia conflictele de traducere în Weblate (#642) -**Nume de instrumente goale Codex**: igienizarea numelui de instrument a fost mutată înainte de trecerea nativă a Codex, reparând 400 de erori de la furnizorii din amonte când instrumentele aveau nume goale (#637) -**Artefacte Newline în flux**: s-a adăugat `collapseExcessiveNewlines` la dezinfectantul de răspuns, restrângând rulări de peste 3 linii noi consecutive de la modele de gândire într-o linie nouă standard dublă (#638) -**Claude Reasoning Effort**: parametrul OpenAI `reasoning_effort` a fost convertit în blocul bugetar nativ `thinking` al lui Claude pe toate căile de solicitare, inclusiv ajustarea automată `max_tokens` (#627) -**Qwen Token Refresh**: Actualizări proactive ale jetonului OAuth înainte de expirare (buffer de 5 minute) pentru a preveni eșecul solicitărilor atunci când se utilizează token-uri de scurtă durată (#631)### 🧪 Tests
 
-- **Locale Conflict (`in.json`)**: Renamed the Hindi locale file from `in.json` (Indonesian ISO code) to `hi.json` to fix translation conflicts in Weblate (#642)
-- **Codex Empty Tool Names**: Moved tool name sanitization before the native Codex passthrough, fixing 400 errors from upstream providers when tools had empty names (#637)
-- **Streaming Newline Artifacts**: Added `collapseExcessiveNewlines` to the response sanitizer, collapsing runs of 3+ consecutive newlines from thinking models into a standard double newline (#638)
-- **Claude Reasoning Effort**: Converted OpenAI `reasoning_effort` param to Claude's native `thinking` budget block across all request paths, including automatic `max_tokens` adjustment (#627)
-- **Qwen Token Refresh**: Implemented proactive pre-expiry OAuth token refreshes (5-minute buffer) to prevent requests from failing when using short-lived tokens (#631)
-
-### 🧪 Tests
-
-- **936 tests, 0 failures** (+10 tests since 3.0.9)
-
----
+-**936 teste, 0 eșecuri**(+10 teste începând cu 3.0.9)---
 
 ## [3.0.9] — 2026-03-26
 
 ### 🐛 Bug Fixes
 
-- **NaN tokens in Claude Code / client responses (#617):**
-  - `sanitizeUsage()` now cross-maps `input_tokens`→`prompt_tokens` and `output_tokens`→`completion_tokens` before the whitelist filter, fixing responses showing NaN/0 token counts when providers return Claude-style usage field names
+-**Jetoane NaN în codul Claude/răspunsurile clientului (#617):**
 
-### Securitate
+- `sanitizeUsage()` acum încrucișează `input_tokens`→`prompt_tokens` și `output_tokens`→`completion_tokens` înainte de filtrul listei albe, reparând răspunsurile care afișează numărul de jetoane NaN/0 când furnizorii returnează numele câmpurilor de utilizare în stil Claude### Securitate
 
-- Updated `yaml` package to fix stack overflow vulnerability (GHSA-48c2-rrv3-qjmp)
+- Pachetul `yaml` actualizat pentru a remedia vulnerabilitatea de depășire a stivei (GHSA-48c2-rrv3-qjmp)### 📋 Issue Triage
 
-### 📋 Issue Triage
-
-- Closed #613 (Codestral — resolved with Custom Provider workaround)
-- Commented on #615 (OpenCode dual-endpoint — workaround provided, tracked as feature request)
-- Commented on #618 (tool call visibility — requesting v3.0.9 test)
-- Commented on #627 (effort level — already supported)
-
----
+- Închis # 613 (Codestral - rezolvat cu o soluție de soluționare a furnizorului personalizat)
+- Comentat la #615 (OpenCode dual-endpoint - soluție de soluție furnizată, urmărită ca solicitare de caracteristică)
+- Comentat la #618 (vizibilitatea apelului instrumentului - se solicită testul v3.0.9)
+- Comentat la #627 (nivel de efort — deja acceptat)---
 
 ## [3.0.8] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Translation Failures for OpenAI-format Providers in Claude CLI (#632):**
-  - Handle `reasoning_details[]` array format from StepFun/OpenRouter — converts to `reasoning_content`
-  - Handle `reasoning` field alias from some providers → normalized to `reasoning_content`
-  - Cross-map usage field names: `input_tokens`↔`prompt_tokens`, `output_tokens`↔`completion_tokens` in `filterUsageForFormat`
-  - Fix `extractUsage` to accept both `input_tokens`/`output_tokens` and `prompt_tokens`/`completion_tokens` as valid usage fields
-  - Applied to both streaming (`sanitizeStreamingChunk`, `openai-to-claude.ts` translator) and non-streaming (`sanitizeMessage`) paths
+-**Eșecuri de traducere pentru furnizorii de format OpenAI în Claude CLI (#632):**
 
----
+- Gestionează formatul de matrice `reasoning_details[]` din StepFun/OpenRouter — se convertește în `reasoning_content`
+- Gestionează alias-ul câmpului `raționament` de la unii furnizori → normalizat la `conținut_raționament``
+- Nume de câmpuri de utilizare a hărților încrucișate: `input_tokens`↔`prompt_tokens`, `output_tokens`↔`completion_tokens` în `filterUsageFormat`
+- Remediați `extractUsage` pentru a accepta atât `input_tokens`/`output_tokens`, cât și `prompt_tokens`/`completion_tokens` ca câmpuri de utilizare valide
+- Se aplică atât căilor de streaming (`sanitizeStreamingChunk`, traducător `openai-to-claude.ts`) cât și căilor de non-streaming (`sanitizeMessage`)---
 
 ## [3.0.7] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Antigravity Token Refresh:** Fixed `client_secret is missing` error for npm-installed users — the `clientSecretDefault` was empty in providerRegistry, causing Google to reject token refresh requests (#588)
-- **OpenCode Zen Models:** Added `modelsUrl` to the OpenCode Zen registry entry so "Import from /models" works correctly (#612)
-- **Streaming Artifacts:** Fixed excessive newlines left in responses after thinking-tag signature stripping (#626)
-- **Proxy Fallback:** Added automatic retry without proxy when SOCKS5 relay fails
-- **Proxy Test:** Test endpoint now resolves real credentials from DB via proxyId
+-**Antigravity Token Refresh:**S-a remediat eroarea `client_secret is missing` pentru utilizatorii instalați prin npm — `clientSecretDefault` era gol în providerRegistry, determinând Google să respingă solicitările de reîmprospătare a jetonului (#588) -**Modele OpenCode Zen:**S-a adăugat `modelsUrl` la intrarea de registru OpenCode Zen, astfel încât „Importați din /modele” să funcționeze corect (#612) -**Artefacte în flux:**S-au remediat liniile noi excesive rămase în răspunsuri după eliminarea semnăturii etichetelor de gândire (#626) -**Proxy Fallback:**S-a adăugat reîncercare automată fără proxy atunci când releul SOCKS5 eșuează -**Test proxy:**Punctul final de testare rezolvă acum acreditările reale din DB prin proxyId### ✨ New Features
 
-### ✨ New Features
+-**Selector de conturi/chei pentru teren de joacă:**meniu vertical permanent, mereu vizibil pentru a selecta anumite conturi/chei ale furnizorului pentru testare - preia toate conexiunile la pornire și filtrează după furnizorul selectat -**CLI Tools Dynamic Models:**Selecția modelului este acum preluată dinamic din API-ul `/v1/models` — furnizori precum Kiro își arată acum catalogul complet de modele -**Lista de modele antigravitație:**Actualizată cu Claude Sonnet 4.5, Claude Sonnet 4, GPT 5, GPT 5 Mini; activat `passthroughModels` pentru accesul dinamic la model (#628)### 🔧 Maintenance
 
-- **Playground Account/Key Selector:** Persistent, always-visible dropdown to select specific provider accounts/keys for testing — fetches all connections at startup and filters by selected provider
-- **CLI Tools Dynamic Models:** Model selection now dynamically fetches from `/v1/models` API — providers like Kiro now show their full model catalog
-- **Antigravity Model List:** Updated with Claude Sonnet 4.5, Claude Sonnet 4, GPT 5, GPT 5 Mini; enabled `passthroughModels` for dynamic model access (#628)
-
-### 🔧 Maintenance
-
-- Merged PR #625 — Provider Limits light mode background fix
-
----
+- PR fuzionat #625 — Furnizorul limitează remedierea fundalului modului de lumină---
 
 ## [3.0.6] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Limits/Proxy:** Fixed Codex limit fetching for accounts behind SOCKS5 proxies — token refresh now runs inside proxy context
-- **CI:** Fixed integration test `v1/models` assertion failure in CI environments without provider connections
-- **Settings:** Proxy test button now shows success/failure results immediately (previously hidden behind health data)
+-**Limite/Proxy:**Preluarea limitelor Codex fixe pentru conturile din spatele proxy-urilor SOCKS5 - reîmprospătarea simbolului rulează acum în contextul proxy-ului -**CI:**S-a remediat eșecul de afirmare a testului de integrare „v1/models” în mediile CI fără conexiuni la furnizor -**Setări:**Butonul de testare proxy arată acum rezultatele de succes/eșec imediat (ascuns anterior în spatele datelor de sănătate)### ✨ New Features
 
-### ✨ New Features
+-**Teren de joacă:**Meniu derulant al selectorului de cont adăugat - testați anumite conexiuni individual atunci când un furnizor are mai multe conturi### 🔧 Maintenance
 
-- **Playground:** Added Account selector dropdown — test specific connections individually when a provider has multiple accounts
-
-### 🔧 Maintenance
-
-- Merged PR #623 — LongCat API base URL path correction
-
----
+- PR fuzionat #623 — Corecția căii URL de bază a API-ului LongCat---
 
 ## [3.0.5] — 2026-03-25
 
 ### ✨ New Features
 
-- **Limits UI:** Added tag grouping feature to the connections dashboard to improve visual organization for accounts with custom tags.
-
----
+-**Limite UI:**A fost adăugată funcția de grupare a etichetelor la tabloul de bord pentru conexiuni pentru a îmbunătăți organizarea vizuală a conturilor cu etichete personalizate.---
 
 ## [3.0.4] — 2026-03-25
 
 ### 🐛 Bug Fixes
 
-- **Streaming:** Fixed `TextDecoder` state corruption inside combo `sanitize` TransformStream which caused SSE garbled output matching multibyte characters (PR #614)
-- **Providers UI:** Safely render HTML tags inside provider connection error tooltips using `dangerouslySetInnerHTML`
-- **Proxy Settings:** Added missing `username` and `password` payload body properties allowing authenticated proxies to be successfully verified from the Dashboard.
-- **Provider API:** Bound soft exception returns to `getCodexUsage` preventing API HTTP 500 failures when token fetch fails
-
----
+-**Streaming:**S-a remediat corupția stării `TextDecoder` în combo `sanitize` TransformStream, care a cauzat ieșirea SSE distorsionată care corespundea caracterelor multibyte (PR #614) -**Interfața de utilizare pentru furnizori:**Redați în siguranță etichetele HTML în sfaturile instrumente de eroare a conexiunii furnizorului folosind `dangerouslySetInnerHTML` -**Setări proxy:**s-au adăugat proprietățile lipsă ale corpului încărcăturii utile „nume de utilizator” și „parolă”, permițând verificarea cu succes a proxy-urilor autentificate din tabloul de bord. -**Provider API:**Excepția soft legată revine la `getCodexUsage` prevenind eșecurile API HTTP 500 atunci când preluarea jetonului eșuează---
 
 ## [3.0.3] — 2026-03-25
 
 ### ✨ New Features
 
-- **Auto-Sync Models:** Added a UI toggle and `sync-models` endpoint to automatically synchronise model lists per provider using a scheduled interval scheduler (PR #597)
+-**Modele de sincronizare automată:**S-a adăugat o comutare a interfeței de utilizare și un punct final „modele de sincronizare” pentru a sincroniza automat listele de modele pentru fiecare furnizor folosind un programator de intervale programate (PR #597)### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Timeouts:**proxy implicite ridicate `FETCH_TIMEOUT_MS` și `STREAM_IDLE_TIMEOUT_MS` la 10 minute pentru a sprijini corect modelele de raționament profund (cum ar fi o1) fără a anula solicitările (remedieri #609) -**Detecție instrument CLI:**Detectare îmbunătățită pe mai multe platforme care gestionează căile NVM, `PATHEXT` Windows (prevenirea problemei wrapper-urilor `.cmd`) și prefixe NPM personalizate (PR #598) -**Jurnalele de streaming:**S-a implementat acumularea delta „tool_calls” în jurnalele de răspuns în flux, astfel încât apelurile de funcții să fie urmărite și păstrate cu precizie în DB (PR #603) -**Catalogul de modele:**scutirea de autorizare a fost eliminată, ascund în mod corespunzător modelele `comfyui` și `sdwebui` atunci când niciun furnizor nu este configurat în mod explicit (PR #599)### 🌐 Translations
 
-- **Timeouts:** Elevated default proxies `FETCH_TIMEOUT_MS` and `STREAM_IDLE_TIMEOUT_MS` to 10 minutes to properly support deep reasoning models (like o1) without aborting requests (Fixes #609)
-- **CLI Tool Detection:** Improved cross-platform detection handling NVM paths, Windows `PATHEXT` (preventing `.cmd` wrappers issue), and custom NPM prefixes (PR #598)
-- **Streaming Logs:** Implemented `tool_calls` delta accumulation in streaming response logs so function calls are tracked and persisted accurately in DB (PR #603)
-- **Model Catalog:** Removed auth exemption, properly hiding `comfyui` and `sdwebui` models when no provider is explicitly configured (PR #599)
-
-### 🌐 Translations
-
-- **cs:** Improved Czech translation strings across the app (PR #601)
-
-## [3.0.2] — 2026-03-25
+-**cs:**șiruri de traducere în limba cehă îmbunătățite în aplicație (PR #601)## [3.0.2] — 2026-03-25
 
 ### 🚀 Enhancements & Features
 
 #### feat(ui): Connection Tag Grouping
 
-- Added a Tag/Group field to `EditConnectionModal` (stored in `providerSpecificData.tag`) without requiring DB schema migrations.
-- Connections in the provider view now dynamically group by tag with visual dividers.
-- Untagged connections appear first without a header, followed by tagged groups in alphabetical order.
-- The tag grouping automatically applies to the Codex/Copilot/Antigravity Limits section since toggles exist inside connection rows.
-
-### 🐛 Bug Fixes
+- S-a adăugat un câmp Tag/Group la `EditConnectionModal` (stocat în `providerSpecificData.tag`) fără a necesita migrarea schemei DB.
+- Acum, conexiunile din vizualizarea furnizorului sunt grupate dinamic după etichetă, cu separatoare vizuale.
+- Conexiunile neetichetate apar mai întâi fără antet, urmate de grupurile etichetate în ordine alfabetică.
+- Gruparea etichetelor se aplică automat secțiunii Codex/Copilot/Antigravity Limits, deoarece există comutatoare în rândurile de conexiune.### 🐛 Bug Fixes
 
 #### fix(ui): Proxy Management UI Stabilization
 
-- **Missing badges on connection cards:** Fixed by using `resolveProxyForConnection()` rather than static mapping.
-- **Test Connection disabled in saved mode:** Enabled the Test button by resolving proxy config from the saved list.
-- **Config Modal freezing:** Added `onClose()` calls after save/clear to prevent the UI from freezing.
-- **Double usage counting:** `ProxyRegistryManager` now loads usage eagerly on mount with deduplication by `scope` + `scopeId`. Usage counts were replaced with a Test button displaying IP/latency inline.
+-**Insigne lipsă de pe cardurile de conexiune:**Remediat folosind `resolveProxyForConnection()`, mai degrabă decât maparea statică. -**Testează conexiunea dezactivată în modul salvat:**S-a activat butonul Test prin rezolvarea configurației proxy din lista salvată. -**Config Modal freezing:**Adăugat apeluri `onClose()` după salvare/ștergere pentru a preveni blocarea interfeței de utilizare. -**Numărarea dublă a utilizării:**`ProxyRegistryManager` încarcă acum utilizarea cu nerăbdare pe montare cu deduplicare prin `scope` + `scopeId`. Numărările de utilizare au fost înlocuite cu un buton Test care afișează IP/latența în linie.#### fix(translator): `function_call` prefix stripping
 
-#### fix(translator): `function_call` prefix stripping
-
-- Repaired an incomplete fix from PR #607 where only `tool_use` blocks stripped Claude's `proxy_` tool prefix. Now, clients using the OpenAI Responses API format will also correctly receive tool tools without the `proxy_` prefix.
-
----
+- S-a reparat o remediere incompletă de la PR #607 în care numai blocurile `tool_use` au eliminat prefixul instrumentului `proxy_` al lui Claude. Acum, clienții care utilizează formatul OpenAI Responses API vor primi corect instrumente fără prefixul „proxy\_”.---
 
 ## [3.0.1] — 2026-03-25
 
 ### 🔧 Hotfix Patch — Critical Bug Fixes
 
-Three critical regressions reported by users after the v3.0.0 launch have been resolved.
+Trei regresii critice raportate de utilizatori după lansarea v3.0.0 au fost rezolvate.#### fix(translator): strip `proxy_` prefix in non-streaming Claude responses (#605)
 
-#### fix(translator): strip `proxy_` prefix in non-streaming Claude responses (#605)
+Prefixul `proxy_` adăugat de Claude OAuth a fost eliminat doar din răspunsurile de**streaming**. În modul**non-streaming**, `translateNonStreamingResponse` nu avea acces la `toolNameMap`, determinând clienții să primească nume de instrumente alterate precum `proxy_read_file` în loc de `read_file`.
 
-The `proxy_` prefix added by Claude OAuth was only stripped from **streaming** responses. In **non-streaming** mode, `translateNonStreamingResponse` had no access to the `toolNameMap`, causing clients to receive mangled tool names like `proxy_read_file` instead of `read_file`.
+**Remediere:**S-a adăugat parametrul opțional `toolNameMap` la `translateNonStreamingResponse` și s-a aplicat eliminarea prefixului în gestionarea blocurilor Claude `tool_use`. `chatCore.ts` trece acum harta prin.#### fix(validation): add LongCat specialty validator to skip /models probe (#592)
 
-**Fix:** Added optional `toolNameMap` parameter to `translateNonStreamingResponse` and applied prefix stripping in the Claude `tool_use` block handler. `chatCore.ts` now passes the map through.
+LongCat AI nu expune `GET /v1/models`. Validatorul generic `validateOpenAICompatibleProvider` a căzut la o soluție de rezervă pentru finalizarea chat-ului numai dacă a fost setat `validationModelId`, pe care LongCat nu îl configurează. Acest lucru a făcut ca validarea furnizorului să eșueze cu o eroare înșelătoare la adăugare/salvare.
 
-#### fix(validation): add LongCat specialty validator to skip /models probe (#592)
+**Remediere:**S-a adăugat `longcat` pe harta validatorilor de specialitate, verificând direct `/chat/completions` și tratând orice răspuns fără autorizare ca o trecere.#### fix(translator): normalize object tool schemas for Anthropic (#595)
 
-LongCat AI does not expose `GET /v1/models`. The generic `validateOpenAICompatibleProvider` validator fell through to a chat-completions fallback only if `validationModelId` was set, which LongCat doesn't configure. This caused provider validation to fail with a misleading error on add/save.
+Instrumentele MCP (de exemplu, `creion`, `computer_use`) trimit definiții de instrumente cu `{type:"object"}`, dar fără un câmp `properties`. API-ul Anthropic le respinge cu: „proprietăți lipsă din schema obiectului”.
 
-**Fix:** Added `longcat` to the specialty validators map, probing `/chat/completions` directly and treating any non-auth response as a pass.
-
-#### fix(translator): normalize object tool schemas for Anthropic (#595)
-
-MCP tools (e.g. `pencil`, `computer_use`) forward tool definitions with `{type:"object"}` but without a `properties` field. Anthropic's API rejects these with: `object schema missing properties`.
-
-**Fix:** In `openai-to-claude.ts`, inject `properties: {}` as a safe default when `type` is `"object"` and `properties` is absent.
-
----
+**Remediere:**În `openai-to-claude.ts`, injectați `properties: {}` ca implicit sigur când `type` este `"object"` și `properties` este absent.---
 
 ### 🔀 Community PRs Merged (2)
 
-| PR       | Author  | Summary                                                                    |
-| -------- | ------- | -------------------------------------------------------------------------- |
-| **#589** | @flobo3 | docs(i18n): fix Russian translation for Playground and Testbed             |
-| **#591** | @rdself | fix(ui): improve Provider Limits light mode contrast and plan tier display |
-
----
+| PR       | Autor   | Rezumat                                                                                                |
+| -------- | ------- | ------------------------------------------------------------------------------------------------------ | --- |
+| **#589** | @flobo3 | docs(i18n): reparați traducerea în limba rusă pentru Playground și Testbed                             |
+| **#591** | @rdself | fix(ui): îmbunătățiți contrastul modului de lumină Limitele furnizorului și afișarea nivelului de plan | --- |
 
 ### ✅ Issues Resolved
 
-`#592` `#595` `#605`
-
----
+`#592` `#595` `#605`---
 
 ### 🧪 Tests
 
-- **926 tests, 0 failures** (unchanged from v3.0.0)
-
----
+-**926 teste, 0 eșecuri**(neschimbat față de v3.0.0)---
 
 ## [3.0.0] — 2026-03-24
 
 ### 🎉 OmniRoute v3.0.0 — The Free AI Gateway, Now with 67+ Providers
 
-> **The biggest release ever.** From 36 providers in v2.9.5 to **67+ providers** in v3.0.0 — with MCP Server, A2A Protocol, auto-combo engine, Provider Icons, Registered Keys API, 926 tests, and contributions from **12 community members** across **10 merged PRs**.
+> **Cea mai mare lansare vreodată.**De la 36 de furnizori în v2.9.5 la**67+ furnizori**în v3.0.0 — cu server MCP, protocol A2A, motor combo automat, pictograme furnizor, API chei înregistrate, 926 de teste și contribuții de la**12 membri ai comunității**îmbinate în**10 PRs**.
 >
-> Consolidated from v3.0.0-rc.1 through rc.17 (17 release candidates over 3 days of intense development).
-
----
+> Consolidat de la v3.0.0-rc.1 până la rc.17 (17 candidați de lansare pe parcursul a 3 zile de dezvoltare intensă).---
 
 ### 🆕 New Providers (+31 since v2.9.5)
 
-| Provider                      | Alias           | Tier        | Notes                                                                       |
-| ----------------------------- | --------------- | ----------- | --------------------------------------------------------------------------- |
-| **OpenCode Zen**              | `opencode-zen`  | Free        | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon)                 |
-| **OpenCode Go**               | `opencode-go`   | Paid        | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon)              |
-| **LongCat AI**                | `lc`            | Free        | 50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) during public beta   |
-| **Pollinations AI**           | `pol`           | Free        | No API key needed — GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 req/15s) |
-| **Cloudflare Workers AI**     | `cf`            | Free        | 10K Neurons/day — ~150 LLM responses or 500s Whisper audio, edge inference  |
-| **Scaleway AI**               | `scw`           | Free        | 1M free tokens for new accounts — EU/GDPR compliant (Paris)                 |
-| **AI/ML API**                 | `aiml`          | Free        | $0.025/day free credits — 200+ models via single endpoint                   |
-| **Puter AI**                  | `pu`            | Free        | 500+ models (GPT-5, Claude Opus 4, Gemini 3 Pro, Grok 4, DeepSeek V3)       |
-| **Alibaba Cloud (DashScope)** | `ali`           | Paid        | International + China endpoints via `alicode`/`alicode-intl`                |
-| **Alibaba Coding Plan**       | `bcp`           | Paid        | Alibaba Model Studio with Anthropic-compatible API                          |
-| **Kimi Coding (API Key)**     | `kmca`          | Paid        | Dedicated API-key-based Kimi access (separate from OAuth)                   |
-| **MiniMax Coding**            | `minimax`       | Paid        | International endpoint                                                      |
-| **MiniMax (China)**           | `minimax-cn`    | Paid        | China-specific endpoint                                                     |
-| **Z.AI (GLM-5)**              | `zai`           | Paid        | Zhipu AI next-gen GLM models                                                |
-| **Vertex AI**                 | `vertex`        | Paid        | Google Cloud — Service Account JSON or OAuth access_token                   |
-| **Ollama Cloud**              | `ollamacloud`   | Paid        | Ollama's hosted API service                                                 |
-| **Synthetic**                 | `synthetic`     | Paid        | Passthrough models gateway                                                  |
-| **Kilo Gateway**              | `kg`            | Paid        | Passthrough models gateway                                                  |
-| **Perplexity Search**         | `pplx-search`   | Paid        | Dedicated search-grounded endpoint                                          |
-| **Serper Search**             | `serper-search` | Paid        | Web search API integration                                                  |
-| **Brave Search**              | `brave-search`  | Paid        | Brave Search API integration                                                |
-| **Exa Search**                | `exa-search`    | Paid        | Neural search API integration                                               |
-| **Tavily Search**             | `tavily-search` | Paid        | AI search API integration                                                   |
-| **NanoBanana**                | `nb`            | Paid        | Image generation API                                                        |
-| **ElevenLabs**                | `el`            | Paid        | Text-to-speech voice synthesis                                              |
-| **Cartesia**                  | `cartesia`      | Paid        | Ultra-fast TTS voice synthesis                                              |
-| **PlayHT**                    | `playht`        | Paid        | Voice cloning and TTS                                                       |
-| **Inworld**                   | `inworld`       | Paid        | AI character voice chat                                                     |
-| **SD WebUI**                  | `sdwebui`       | Self-hosted | Stable Diffusion local image generation                                     |
-| **ComfyUI**                   | `comfyui`       | Self-hosted | ComfyUI local workflow node-based generation                                |
-| **GLM Coding**                | `glm`           | Paid        | BigModel/Zhipu coding-specific endpoint                                     |
-
-**Total: 67+ providers** (4 Free, 8 OAuth, 55 API Key) + unlimited OpenAI/Anthropic-Compatible custom providers.
-
----
+| Furnizor                       | Alias ​​            | Nivelul      | Note                                                                                             |
+| ------------------------------ | ------------------- | ------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **OpenCode Zen**               | `opencode-zen`      | Gratuit      | 3 modele prin `opencode.ai/zen/v1` (PR #530 de @kang-heewon)                                     |
+| **OpenCode Go**                | `opencode-go`       | Plătit       | 4 modele prin `opencode.ai/zen/go/v1` (PR #530 de @kang-heewon)                                  |
+| **LongCat AI**                 | `lc`                | Gratuit      | 50M de jetoane/zi (Flash-Lite) + 500K/zi (Chat/Gândire) în timpul beta publică                   |
+| **Polenizări AI**              | `pol`               | Gratuit      | Nu este necesară nicio cheie API — GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 solicitat/15s) |
+| **Cloudflare Workers AI**      | `cf`                | Gratuit      | 10K neuroni/zi — ~150 de răspunsuri LLM sau 500 de secunde Sunet în șoaptă, inferență de margine |
+| **Scaleway AI**                | `scw`               | Gratuit      | 1 milion de jetoane gratuite pentru conturi noi — conform UE/GDPR (Paris)                        |
+| **AI/ML API**                  | `aiml`              | Gratuit      | 0,025 USD/zi credite gratuite — peste 200 de modele prin un singur punct final                   |
+| **Puter AI**                   | `pu`                | Gratuit      | Peste 500 de modele (GPT-5, Claude Opus 4, Gemini 3 Pro, Grok 4, DeepSeek V3)                    |
+| **Alibaba Cloud (DashScope)**  | `ali`               | Plătit       | Puncte finale internaționale + China prin `alicode`/`alicode-intl`                               |
+| **Plan de codificare alibaba** | `bcp`               | Plătit       | Alibaba Model Studio cu API compatibil cu Antropic                                               |
+| **Codare Kimi (cheie API)**    | `kmca`              | Plătit       | Acces Kimi dedicat bazat pe chei API (separat de OAuth)                                          |
+| **Codare MiniMax**             | `minimax`           | Plătit       | Punct final internațional                                                                        |
+| **MiniMax (China)**            | `minimax-cn`        | Plătit       | Punct final specific Chinei                                                                      |
+| **Z.AI (GLM-5)**               | `zai`               | Plătit       | Zhipu AI modele GLM de nouă generație                                                            |
+| **Vertex AI**                  | `vârf`              | Plătit       | Google Cloud — Service Account JSON or OAuth access_token                                        |
+| **Ollama Cloud**               | `ollamacloud`       | Plătit       | Serviciul API găzduit de Ollama                                                                  |
+| **Sintetic**                   | `sintetic`          | Plătit       | Passthrough modele gateway                                                                       |
+| **Kilo Gateway**               | `kg`                | Plătit       | Passthrough modele gateway                                                                       |
+| **Căutare nedumerită**         | `pplx-search`       | Plătit       | Punct final de căutare dedicat                                                                   |
+| **Căutare Serper**             | `serper-search`     | Plătit       | Integrare API de căutare web                                                                     |
+| **Căutare curajoasă**          | `căutare-curajoasă` | Plătit       | Integrarea Brave Search API                                                                      |
+| **Exa Search**                 | `exa-search`        | Plătit       | Integrare API de căutare neuronală                                                               |
+| **Tavily Search**              | `tavily-search`     | Plătit       | Integrare API de căutare AI                                                                      |
+| **NanoBanana**                 | `nb`                | Plătit       | API de generare a imaginii                                                                       |
+| **ElevenLabs**                 | `el`                | Plătit       | Sinteza vocală text-to-voce                                                                      |
+| **Cartesia**                   | `cartesia`          | Plătit       | Sinteza vocală TTS ultra-rapidă                                                                  |
+| **PlayHT**                     | `playht`            | Plătit       | Clonarea vocii și TTS                                                                            |
+| **Inworld**                    | `inworld`           | Plătit       | Chat vocal cu caracter AI                                                                        |
+| **SD WebUI**                   | `sdwebui`           | Auto-găzduit | Generare locală de imagini de difuzie stabilă                                                    |
+| **ComfyUI**                    | `comfyui`           | Auto-găzduit | ComfyUI generare locală bazată pe noduri de flux de lucru                                        |
+| **Codare GLM**                 | `glm`               | Plătit       | Punct final specific pentru codificare BigModel/Zhipu                                            | **Total: peste 67 de furnizori**(4 gratuit, 8 OAuth, 55 cheie API) + furnizori personalizați nelimitați compatibili cu OpenAI/Antropic.--- |
 
 ### ✨ Major Features
 
 #### 🔑 Registered Keys Provisioning API (#464)
 
-Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+Generați automat și emiteți cheile API OmniRoute în mod programatic, cu aplicarea cotelor pentru fiecare furnizor și per cont.
 
-| Endpoint                        | Method       | Description                                      |
-| ------------------------------- | ------------ | ------------------------------------------------ |
-| `/api/v1/registered-keys`       | `POST`       | Issue a new key — raw key returned **once only** |
-| `/api/v1/registered-keys`       | `GET`        | List registered keys (masked)                    |
-| `/api/v1/registered-keys/{id}`  | `GET/DELETE` | Get metadata / Revoke                            |
-| `/api/v1/quotas/check`          | `GET`        | Pre-validate quota before issuing                |
-| `/api/v1/providers/{id}/limits` | `GET/PUT`    | Configure per-provider issuance limits           |
-| `/api/v1/accounts/{id}/limits`  | `GET/PUT`    | Configure per-account issuance limits            |
-| `/api/v1/issues/report`         | `POST`       | Report quota events to GitHub Issues             |
+| Punct final                     | Metoda       | Descriere                                                    |
+| ------------------------------- | ------------ | ------------------------------------------------------------ |
+| `/api/v1/registered-keys`       | `POST`       | Emite o nouă cheie — cheia brută returnată**o singură dată** |
+| `/api/v1/registered-keys`       | `GET`        | Listează cheile înregistrate (mascate)                       |
+| `/api/v1/registered-keys/{id}`  | `GET/DELETE` | Obține metadate/Revocare                                     |
+| `/api/v1/quotas/check`          | `GET`        | Prevalidați cota înainte de emitere                          |
+| `/api/v1/providers/{id}/limits` | `GET/PUT`    | Configurați limitele de emitere pentru fiecare furnizor      |
+| `/api/v1/accounts/{id}/limits`  | `GET/PUT`    | Configurați limitele de emitere per cont                     |
+| `/api/v1/issues/report`         | `POST`       | Raportați evenimentele de cotă către GitHub Issues           |
 
-**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
+**Securitate:**Cheile stocate ca hash-uri SHA-256. Cheia brută afișată o dată la creare, nu mai poate fi recuperată.#### 🎨 Provider Icons via @lobehub/icons (#529)
 
-#### 🎨 Provider Icons via @lobehub/icons (#529)
+Peste 130 de sigle ale furnizorilor folosind componentele React (SVG) „@lobehub/icons”. Lanț de rezervă:**Lobehub SVG → PNG existent → pictogramă generică**. Aplicat în paginile de tablou de bord, furnizori și agenți cu componenta standardizată „ProviderIcon”.#### 🔄 Model Auto-Sync Scheduler (#488)
 
-130+ provider logos using `@lobehub/icons` React components (SVG). Fallback chain: **Lobehub SVG → existing PNG → generic icon**. Applied across Dashboard, Providers, and Agents pages with standardized `ProviderIcon` component.
+Actualizează automat listele de modele pentru furnizorii conectați la fiecare**24 de ore**. Se rulează la pornirea serverului. Configurabil prin `MODEL_SYNC_INTERVAL_HOURS`.#### 🔀 Per-Model Combo Routing (#563)
 
-#### 🔄 Model Auto-Sync Scheduler (#488)
-
-Auto-refreshes model lists for connected providers every **24 hours**. Runs on server startup. Configurable via `MODEL_SYNC_INTERVAL_HOURS`.
-
-#### 🔀 Per-Model Combo Routing (#563)
-
-Map model name patterns (glob) to specific combos for automatic routing:
+Hartați modelele de nume de model (glob) la anumite combinații pentru rutarea automată:
 
 - `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
-- New `model_combo_mappings` table with glob-to-regex matching
-- Dashboard UI section: "Model Routing Rules" with inline add/edit/toggle/delete
+- Nou tabel `model_combo_mappings` cu potrivire glob-to-regex
+- Secțiunea UI din tabloul de bord: „Reguli de rutare a modelului” cu adăugare/editare/permutare/ștergere în linie#### 🧭 API Endpoints Dashboard
 
-#### 🧭 API Endpoints Dashboard
+Catalog interactiv, gestionare webhooks, vizualizator OpenAPI — toate într-o singură pagină cu file la `/dashboard/endpoint`.#### 🔍 Web Search Providers
 
-Interactive catalog, webhooks management, OpenAPI viewer — all in one tabbed page at `/dashboard/endpoint`.
+5 noi integrări de furnizori de căutare:**Perplexity Search**,**Serper**,**Brave Search**,**Exa**,**Tavily**— permițând răspunsuri bazate pe AI cu date web în timp real.#### 📊 Search Analytics
 
-#### 🔍 Web Search Providers
+Filă nouă în „/dashboard/analytics” — defalcarea furnizorului, rata de accesare a memoriei cache, urmărirea costurilor. API: `GET /api/v1/search/analytics`.#### 🛡️ Per-API-Key Rate Limits (#452)
 
-5 new search provider integrations: **Perplexity Search**, **Serper**, **Brave Search**, **Exa**, **Tavily** — enabling grounded AI responses with real-time web data.
+Coloanele `max_requests_per_day` și `max_requests_per_minute` cu aplicarea ferestrei glisante în memorie care returnează HTTP 429.#### 🎵 Media Playground
 
-#### 📊 Search Analytics
-
-New tab in `/dashboard/analytics` — provider breakdown, cache hit rate, cost tracking. API: `GET /api/v1/search/analytics`.
-
-#### 🛡️ Per-API-Key Rate Limits (#452)
-
-`max_requests_per_day` and `max_requests_per_minute` columns with in-memory sliding-window enforcement returning HTTP 429.
-
-#### 🎵 Media Playground
-
-Full media generation playground at `/dashboard/media`: Image Generation, Video, Music, Audio Transcription (2GB upload limit), and Text-to-Speech.
-
----
+Loc de joacă complet de generare media la `/dashboard/media`: generare de imagini, video, muzică, transcriere audio (limită de încărcare de 2 GB) și text-to-speech.---
 
 ### 🔒 Security & CI/CD
 
-- **CodeQL remediation** — Fixed 10+ alerts: 6 polynomial-redos, 1 insecure-randomness (`Math.random()` → `crypto.randomUUID()`), 1 shell-command-injection
-- **Route validation** — Zod schemas + `validateBody()` on **176/176 API routes** — CI enforced
-- **CVE fix** — dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) resolved via npm overrides
-- **Flatted** — Bumped 3.3.3 → 3.4.2 (CWE-1321 prototype pollution)
-- **Docker** — Upgraded `docker/setup-buildx-action` v3 → v4
-
----
+-**Remediere CodeQL**— S-au remediat peste 10 alerte: 6 redouri polinomiale, 1 aleator nesigur (`Math.random()` → `crypto.randomUUID()`), 1 shell-comandă-injectare -**Validare rută**— Scheme Zod + `validateBody()` pe**176/176 rute API**— CI impus -**CVE fix**— dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) resolved via npm overrides -**Aplatizat**— Bumped 3.3.3 → 3.4.2 (poluare prototip CWE-1321) -**Docker**— Actualizat `docker/setup-buildx-action` v3 → v4---
 
 ### 🐛 Bug Fixes (40+)
 
 #### OAuth & Auth
 
-- **#537** — Gemini CLI OAuth: clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` missing in Docker
-- **#549** — CLI settings routes now resolve real API key from `keyId` (not masked strings)
-- **#574** — Login no longer freezes after skipping wizard password setup
-- **#506** — Cross-platform `machineId` rewritten (Windows REG.exe → macOS ioreg → Linux → hostname fallback)
+-**#537**— Gemini CLI OAuth: ștergeți eroarea acționabilă atunci când `GEMINI_OAUTH_CLIENT_SECRET` lipsește în Docker -**#549**— Rutele de setări CLI rezolvă acum cheia API reală din `keyId` (nu șirurile mascate) -**#574**— Conectarea nu se mai blochează după ce ați sărit peste configurarea parolei expertului -**#506**— `machineId` rescris pe mai multe platforme (Windows REG.exe → macOS ioreg → Linux → numele de gazdă alternativă)#### Providers & Routing
 
-#### Providers & Routing
+-**#536**— LongCat AI: `baseUrl` și `authHeader` -**#535**— Anularea modelului fixat: `body.model` setat corect la `pinnedModel` -**#570**— Modelele Claude fără prefix se rezolvă acum la furnizorul Anthropic -**#585**— Etichetele interne `<omniModel>` nu mai curg către clienți în fluxul SSE -**#493**— Numirea modelului personalizat de furnizor nu mai este alterată de eliminarea prefixului -**#490**— Streaming + protecție context cache prin injectarea `TransformStream` -**#511**— Eticheta `<omniModel>` injectată în prima bucată de conținut (nu după `[DONE]`)#### CLI & Tools
 
-- **#536** — LongCat AI: fixed `baseUrl` and `authHeader`
-- **#535** — Pinned model override: `body.model` correctly set to `pinnedModel`
-- **#570** — Unprefixed Claude models now resolve to Anthropic provider
-- **#585** — `<omniModel>` internal tags no longer leak to clients in SSE streaming
-- **#493** — Custom provider model naming no longer mangled by prefix stripping
-- **#490** — Streaming + context cache protection via `TransformStream` injection
-- **#511** — `<omniModel>` tag injected into first content chunk (not after `[DONE]`)
+-**#527**— Cod Claude + buclă Codex: blocurile `tool_result` sunt acum convertite în text -**#524**— Configurația OpenCode a fost salvată corect (XDG_CONFIG_HOME, format TOML) -**#522**— Manager API: a eliminat butonul înșelător „Copiați cheia mascată”. -**#546**— `--version` returnează `necunoscut` pe Windows (PR de @k0valik) -**#544**— Detectare securizată a instrumentului CLI prin căi de instalare cunoscute (PR de @k0valik) -**#510**— Căile Windows MSYS2/Git-Bash normalizate automat -**#492**— CLI detectează nodul gestionat `mise`/`nvm` când lipsește `app/server.js`#### Streaming & SSE
 
-#### CLI & Tools
+-**PR #587**— Reveniți importul `resolveDataDir` în responsesTransformer for Cloudflare Workers compat (@k0valik) -**PR #495**— Gâtul de strângere 429 așteptare infinită: renunțați joburile în așteptare la limita de rată (@xandr0s) -**#483**— Opriți `data: nul` după semnalul `[DONE]` -**#473**— Fluxuri Zombie SSE: timeout redus cu 300s → 120s pentru un back-up mai rapid#### Media & Transcription
 
-- **#527** — Claude Code + Codex loop: `tool_result` blocks now converted to text
-- **#524** — OpenCode config saved correctly (XDG_CONFIG_HOME, TOML format)
-- **#522** — API Manager: removed misleading "Copy masked key" button
-- **#546** — `--version` returning `unknown` on Windows (PR by @k0valik)
-- **#544** — Secure CLI tool detection via known installation paths (PR by @k0valik)
-- **#510** — Windows MSYS2/Git-Bash paths normalized automatically
-- **#492** — CLI detects `mise`/`nvm`-managed Node when `app/server.js` missing
-
-#### Streaming & SSE
-
-- **PR #587** — Revert `resolveDataDir` import in responsesTransformer for Cloudflare Workers compat (@k0valik)
-- **PR #495** — Bottleneck 429 infinite wait: drop waiting jobs on rate limit (@xandr0s)
-- **#483** — Stop trailing `data: null` after `[DONE]` signal
-- **#473** — Zombie SSE streams: timeout reduced 300s → 120s for faster fallback
-
-#### Media & Transcription
-
-- **Transcription** — Deepgram `video/mp4` → `audio/mp4` MIME mapping, auto language detection, punctuation
-- **TTS** — `[object Object]` error display fixed for ElevenLabs-style nested errors
-- **Upload limits** — Media transcription increased to 2GB (nginx `client_max_body_size 2g` + `maxDuration=300`)
-
----
+-**Transcriere**— Deepgram `video/mp4` → `audio/mp4` Mapare MIME, detectare automată a limbii, punctuație -**TTS**— Afișarea erorii `[object Object]` a fost remediată pentru erorile imbricate în stilul ElevenLabs -**Limite de încărcare**— Transcrierea media a crescut la 2 GB (nginx `client_max_body_size 2g` + `maxDuration=300`)---
 
 ### 🔧 Infrastructure & Improvements
 
 #### Sub2api Gap Analysis (T01–T15 + T23–T42)
 
-- **T01** — `requested_model` column in call logs (migration 009)
-- **T02** — Strip empty text blocks from nested `tool_result.content`
-- **T03** — Parse `x-codex-5h-*` / `x-codex-7d-*` quota headers
-- **T04** — `X-Session-Id` header for external sticky routing
-- **T05** — Rate-limit DB persistence with dedicated API
-- **T06** — Account deactivated → permanent block (1-year cooldown)
-- **T07** — X-Forwarded-For IP validation (`extractClientIp()`)
-- **T08** — Per-API-key session limits with sliding-window enforcement
-- **T09** — Codex vs Spark rate-limit scopes (separate pools)
-- **T10** — Credits exhausted → distinct 1h cooldown fallback
-- **T11** — `max` reasoning effort → 131072 budget tokens
-- **T12** — MiniMax M2.7 pricing entries
-- **T13** — Stale quota display fix (reset window awareness)
-- **T14** — Proxy fast-fail TCP check (≤2s, cached 30s)
-- **T15** — Array content normalization for Anthropic
-- **T23** — Intelligent quota reset fallback (header extraction)
-- **T24** — `503` cooldown + `406` mapping
-- **T25** — Provider validation fallback
-- **T29** — Vertex AI Service Account JWT auth
-- **T33** — Thinking level to budget conversion
-- **T36** — `403` vs `429` error classification
-- **T38** — Centralized model specifications (`modelSpecs.ts`)
-- **T39** — Endpoint fallback for `fetchAvailableModels`
-- **T41** — Background task auto-redirect to flash models
-- **T42** — Image generation aspect ratio mapping
+-**T01**— coloana „requested_model” din jurnalele de apeluri (migrarea 009) -**T02**— Eliminați blocurile de text goale din `tool_result.content` imbricat -**T03**— Analizați anteturile cotei `x-codex-5h-*` / `x-codex-7d-*` -**T04**— antet `X-Session-Id` pentru rutare sticky externă -**T05**— Rate-limitează persistența DB cu API dedicat -**T06**— Cont dezactivat → blocare permanentă (reducere de 1 an) -**T07**— X-Forwarded-For validare IP (`extractClientIp()`) -**T08**— Limite de sesiune per-cheie API cu aplicarea ferestrei glisante -**T09**- limite de rată Codex vs Spark (grupuri separate) -**T10**— Credite epuizate → retragere distinctă de 1 oră -**T11**— efort de raționament `max` → 131072 jetoane bugetare -**T12**- intrări de prețuri MiniMax M2.7 -**T13**— Remediere de afișare a cotei învechite (resetarea conștientizării ferestrei) -**T14**— Verificare TCP cu eșuare rapidă proxy (≤2 s, 30 s în cache) -**T15**— Normalizarea conținutului matricei pentru Anthropic -**T23**— Resetare inteligentă a cotei de rezervă (extragere antet) -**T24**— `503` cooldown + mapare `406` -**T25**— Validarea furnizorului de rezervă -**T29**— Vertex AI Service Account JWT auth -**T33**— Conversie de la nivel de gândire la buget -**T36**— clasificarea erorii `403` vs `429` -**T38**— Specificații centralizate ale modelului (`modelSpecs.ts`) -**T39**— Backpoint final pentru `fetchAvailableModels` -**T41**— Sarcina de fundal redirecționează automat către modele flash -**T42**— Maparea raportului de aspect pentru generarea imaginii#### Other Improvements
 
-#### Other Improvements
-
-- **Per-model upstream custom headers** — via configuration UI (PR #575 by @zhangqiang8vip)
-- **Model context length** — configurable in model metadata (PR #578 by @hijak)
-- **Model prefix stripping** — option to remove provider prefix from model names (PR #582 by @jay77721)
-- **Gemini CLI deprecation** — marked deprecated with Google OAuth restriction warning
-- **YAML parser** — replaced custom parser with `js-yaml` for correct OpenAPI spec parsing
-- **ZWS v5** — HMR leak fix (485 DB connections → 1, memory 2.4GB → 195MB)
-- **Log export** — New JSON export button on dashboard with time range dropdown
-- **Update notification banner** — dashboard homepage shows when new versions are available
-
----
+-**Anteturi personalizate în amonte pentru fiecare model**— prin interfața de utilizare de configurare (PR #575 de la @zhangqiang8vip) -**Lungimea contextului modelului**— configurabilă în metadatele modelului (PR #578 de @hijak) -**Decapare prefixul modelului**- opțiunea de a elimina prefixul furnizorului din numele modelelor (PR #582 de la @jay77721) -**Gemini CLI depreciere**- marcat ca depreciat cu avertismentul de restricție OAuth Google -**YAML parser**- a înlocuit analizatorul personalizat cu `js-yaml` pentru analizarea corectă a specificațiilor OpenAPI -**ZWS v5**— Remediere scurgeri HMR (485 conexiuni DB → 1, memorie 2,4 GB → 195 MB) -**Export jurnal**— Buton nou de export JSON pe tabloul de bord cu meniu vertical pentru intervalul de timp -**Actualizați bannerul de notificare**— pagina de pornire a tabloului de bord arată când sunt disponibile versiuni noi---
 
 ### 🌐 i18n & Documentation
 
-- **30 languages** at 100% parity — 2,788 missing keys synced
-- **Czech** — Full translation: 22 docs, 2,606 UI strings (PR by @zen0bit)
-- **Chinese (zh-CN)** — Complete retranslation (PR by @only4copilot)
-- **VM Deployment Guide** — Translated to English as source document
-- **API Reference** — Added `/v1/embeddings` and `/v1/audio/speech` endpoints
-- **Provider count** — Updated from 36+/40+/44+ to **67+** across README and all 30 i18n READMEs
-
----
+-**30 de limbi**la 100% paritate — 2.788 de chei lipsă sincronizate -**Cehă**— Traducere completă: 22 de documente, 2.606 șiruri UI (PR de la @zen0bit) -**Chineză (zh-CN)**— Retraducere completă (PR de @only4copilot) -**Ghid de implementare VM**— Tradus în engleză ca document sursă -**Referință API**— S-au adăugat punctele finale `/v1/embeddings` și `/v1/audio/speech` -**Număr de furnizori**— Actualizat de la 36+/40+/44+ la**67+**în README și în toate cele 30 de README i18n---
 
 ### 🔀 Community PRs Merged (10)
 
-| PR       | Author          | Summary                                                              |
-| -------- | --------------- | -------------------------------------------------------------------- |
-| **#587** | @k0valik        | fix(sse): revert resolveDataDir import for Cloudflare Workers compat |
-| **#582** | @jay77721       | feat(proxy): model name prefix stripping option                      |
-| **#581** | @jay77721       | fix(npm): link electron-release to npm-publish workflow              |
-| **#578** | @hijak          | feat: configurable context length in model metadata                  |
-| **#575** | @zhangqiang8vip | feat: per-model upstream headers, compat PATCH, chat alignment       |
-| **#562** | @coobabm        | fix: MCP session management, Claude passthrough, detectFormat        |
-| **#561** | @zen0bit        | fix(i18n): Czech translation corrections                             |
-| **#555** | @k0valik        | fix(sse): centralized `resolveDataDir()` for path resolution         |
-| **#546** | @k0valik        | fix(cli): `--version` returning `unknown` on Windows                 |
-| **#544** | @k0valik        | fix(cli): secure CLI tool detection via installation paths           |
-| **#542** | @rdself         | fix(ui): light mode contrast CSS theme variables                     |
-| **#530** | @kang-heewon    | feat: OpenCode Zen + Go providers with `OpencodeExecutor`            |
-| **#512** | @zhangqiang8vip | feat: per-protocol model compatibility (`compatByProtocol`)          |
-| **#497** | @zhangqiang8vip | fix: dev-mode HMR resource leaks (ZWS v5)                            |
-| **#495** | @xandr0s        | fix: Bottleneck 429 infinite wait (drop waiting jobs)                |
-| **#494** | @zhangqiang8vip | feat: MiniMax developer→system role fix                              |
-| **#480** | @prakersh       | fix: stream flush usage extraction                                   |
-| **#479** | @prakersh       | feat: Codex 5.3/5.4 and Anthropic pricing entries                    |
-| **#475** | @only4copilot   | feat(i18n): improved Chinese translation                             |
+| PR       | Autor           | Rezumat                                                                            |
+| -------- | --------------- | ---------------------------------------------------------------------------------- |
+| **#587** | @k0valik        | fix(sse): inversează importul resolveDataDir pentru Cloudflare Workers compat      |
+| **#582** | @jay77721       | feat(proxy): opțiunea de eliminare a prefixului numelui modelului                  |
+| **#581** | @jay77721       | fix(npm): conectați eliberarea de electroni la fluxul de lucru npm-public          |
+| **#578** | @hijak          | feat: lungimea contextului configurabil în metadatele modelului                    |
+| **#575** | @zhangqiang8vip | feat: anteturi în amonte per model, PATCH compat, aliniere chat                    |
+| **#562** | @coobabm        | remediere: managementul sesiunii MCP, trecerea Claude, detectFormat                |
+| **#561** | @zen0bit        | fix(i18n): corecții de traducere în cehă                                           |
+| **#555** | @k0valik        | fix(sse): `resolveDataDir()` centralizat pentru rezoluția căii                     |
+| **#546** | @k0valik        | fix(cli): `--version` returnând `necunoscut` pe Windows                            |
+| **#544** | @k0valik        | fix(cli): detectarea securizată a instrumentului CLI prin căile de instalare       |
+| **#542** | @rdself         | fix(ui): contrastul modului de lumină variabile ale temei CSS                      |
+| **#530** | @kang-heewon    | feat: furnizori OpenCode Zen + Go cu `OpencodeExecutor`                            |
+| **#512** | @zhangqiang8vip | feat: compatibilitate model per-protocol (`compatByProtocol`)                      |
+| **#497** | @zhangqiang8vip | remediere: scurgeri de resurse HMR în modul de dezvoltare (ZWS v5)                 |
+| **#495** | @xandr0s        | remediere: gâtul de strângere 429 așteptare infinită (scăpare joburi de așteptare) |
+| **#494** | @zhangqiang8vip | feat: MiniMax developer→system role fix                                            |
+| **#480** | @prakersh       | remediere: extragerea utilizării fluxului de flux                                  |
+| **#479** | @prakersh       | feat: Codex 5.3/5.4 și intrări de prețuri antropice                                |
+| **#475** | @only4copilot   | feat(i18n): traducere chineză îmbunătățită                                         |
 
-**Thank you to all contributors!** 🙏
-
----
+**Mulțumim tuturor colaboratorilor!**🙏---
 
 ### 📋 Issues Resolved (50+)
 
-`#452` `#458` `#462` `#464` `#466` `#473` `#474` `#481` `#483` `#487` `#488` `#489` `#490` `#491` `#492` `#493` `#506` `#508` `#509` `#510` `#511` `#513` `#520` `#521` `#522` `#524` `#525` `#527` `#529` `#531` `#532` `#535` `#536` `#537` `#541` `#546` `#549` `#563` `#570` `#574` `#585`
-
----
+`#452` `#458` `#462` `#464` `#466` `#473` `#474` `#481` `#483` `#487` `#488` `#489` `#490`` `#491` `#491` `#506` `#508` `#509` `#510` `#511` `#513` `#520` `#521` `#522` `#524` `#525` `#527` `#529` `#531` `#531` `#532` `#536` `#537` `#541` `#546` `#549` `#563` `#570` `#574` `#585`---
 
 ### 🧪 Tests
 
-- **926 tests, 0 failures** (up from 821 in v2.9.5)
-- +105 new tests covering: model-combo mappings, registered keys, OpencodeExecutor, Bailian provider, route validation, error classification, aspect ratio mapping, and more
+-**926 teste, 0 eșecuri**(față de 821 în v2.9.5)
 
----
+- +105 de noi teste care acoperă: mapări model-combo, chei înregistrate, OpencodeExecutor, furnizor Bailian, validarea rutei, clasificarea erorilor, maparea raportului de aspect și multe altele---
 
 ### 📦 Database Migrations
 
-| Migration | Description                                                           |
-| --------- | --------------------------------------------------------------------- |
-| **008**   | `registered_keys`, `provider_key_limits`, `account_key_limits` tables |
-| **009**   | `requested_model` column in `call_logs`                               |
-| **010**   | `model_combo_mappings` table for per-model combo routing              |
-
----
+| Migrație | Descriere                                                               |
+| -------- | ----------------------------------------------------------------------- | --- |
+| **008**  | Tabelele `chei_registered`, `provider_key_limits`, `account_key_limits` |
+| **009**  | Coloana `requested_model` din `call_logs`                               |
+| **010**  | Tabelul `model_combo_mappings` pentru rutarea combo per-model           | --- |
 
 ### ⬆️ Upgrading from v2.9.5
 
@@ -1167,1482 +656,797 @@ docker pull diegosouzapw/omniroute:3.0.0
 # Migrations run automatically on first startup
 ```
 
-> **Breaking changes:** None. All existing configurations, combos, and API keys are preserved.
-> Database migrations 008-010 run automatically on startup.
-
----
+> **Modificări de ultimă oră:**Niciuna. Toate configurațiile, combinațiile și cheile API existente sunt păstrate.
+> Migrările bazei de date 008-010 rulează automat la pornire.---
 
 ## [3.0.0-rc.17] — 2026-03-24
 
 ### 🔒 Security & CI/CD
 
-- **CodeQL remediation** — Fixed 10+ alerts:
-  - 6 polynomial-redos in `provider.ts` / `chatCore.ts` (replaced `(?:^|/)` alternation patterns with segment-based matching)
-  - 1 insecure-randomness in `acp/manager.ts` (`Math.random()` → `crypto.randomUUID()`)
-  - 1 shell-command-injection in `prepublish.mjs` (`JSON.stringify()` path escaping)
-- **Route validation** — Added Zod schemas + `validateBody()` to 5 routes missing validation:
-  - `model-combo-mappings` (POST, PUT), `webhooks` (POST, PUT), `openapi/try` (POST)
-  - CI `check:route-validation:t06` now passes: **176/176 routes validated**
+-**Remediere CodeQL**— S-au remediat peste 10 alerte:
 
-### 🐛 Bug Fixes
+- 6 redouri polinomiale în `provider.ts` / `chatCore.ts` (înlocuit modele de alternanță `(?:^|/)` cu potrivire bazată pe segment)
+- 1 aleatorie nesigură în `acp/manager.ts` (`Math.random()` → `crypto.randomUUID()`)
+- 1 shell-comandă-injectare în `prepublish.mjs` (caile `JSON.stringify()` scapă) -**Validare rută**— S-au adăugat scheme Zod + `validateBody()` la 5 rute fără validare:
+- `model-combo-mappings` (POST, PUT), `webhooks` (POST, PUT), `openapi/try` (POST)
+- CI `check:route-validation:t06` trece acum:**176/176 rute validate**### 🐛 Bug Fixes
 
-- **#585** — `<omniModel>` internal tags no longer leak to clients in SSE responses. Added outbound sanitization `TransformStream` in `combo.ts`
+-**#585**— Etichetele interne `<omniModel>` nu mai curg către clienți în răspunsurile SSE. S-a adăugat igienizarea de ieșire `TransformStream` în `combo.ts`### ⚙️ Infrastructure
 
-### ⚙️ Infrastructure
+-**Docker**— `docker/setup-buildx-action` a fost actualizat de la v3 → v4 (remediere de depreciere a Node.js 20) -**Curățare CI**— S-au șters peste 150 de rulări de flux de lucru eșuate/anulate### 🧪 Tests
 
-- **Docker** — Upgraded `docker/setup-buildx-action` from v3 → v4 (Node.js 20 deprecation fix)
-- **CI cleanup** — Deleted 150+ failed/cancelled workflow runs
-
-### 🧪 Tests
-
-- Test suite: **926 tests, 0 failures** (+3 new)
-
----
+- Suită de teste:**926 de teste, 0 eșecuri**(+3 noi)---
 
 ## [3.0.0-rc.16] — 2026-03-24
 
 ### ✨ New Features
 
-- Increased media transcription limits
-- Added Model Context Length to registry metadata
-- Added per-model upstream custom headers via configuration UI
-- Fixed multiple bugs, Zod valiadation for patches, and resolved various community issues.
-
-## [3.0.0-rc.15] — 2026-03-24
+- Limite de transcriere media crescute
+- S-a adăugat lungimea contextului modelului la metadatele de registru
+- S-au adăugat anteturi personalizate pentru fiecare model în amonte prin interfața de utilizare de configurare
+- S-au remediat mai multe erori, validarea Zod pentru patch-uri și s-au rezolvat diverse probleme ale comunității.## [3.0.0-rc.15] — 2026-03-24
 
 ### ✨ New Features
 
-- **#563** — Per-model Combo Routing: map model name patterns (glob) to specific combos for automatic routing
-  - New `model_combo_mappings` table (migration 010) with pattern, combo_id, priority, enabled
-  - `resolveComboForModel()` DB function with glob-to-regex matching (case-insensitive, `*` and `?` wildcards)
-  - `getComboForModel()` in `model.ts`: augments `getCombo()` with model-pattern fallback
-  - `chat.ts`: routing decision now checks model-combo mappings before single-model handling
-  - API: `GET/POST /api/model-combo-mappings`, `GET/PUT/DELETE /api/model-combo-mappings/:id`
-  - Dashboard: "Model Routing Rules" section added to Combos page with inline add/edit/toggle/delete
-  - Examples: `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
+-**#563**— Rutare combinată per model: hartă modele de nume de model (glob) la anumite combinații pentru rutare automată
 
-### 🌐 i18n
+- Tabel nou `model_combo_mappings` (migrarea 010) cu model, combo_id, prioritate, activat
+- Funcția DB `resolveComboForModel()` cu potrivire glob-to-regex (care nu ține seama de majuscule și minuscule, metacaracterele `*` și `?`)
+- `getComboForModel()` în `model.ts`: crește `getCombo()` cu alternativa model-pattern
+- `chat.ts`: decizia de rutare verifică acum mapările model-combo înainte de gestionarea unui singur model
+- API: `GET/POST /api/model-combo-mappings`, `GET/PUT/DELETE /api/model-combo-mappings/:id`
+- Tabloul de bord: secțiunea „Reguli de rutare a modelului” a fost adăugată la pagina Combo cu adăugare/editare/permutare/ștergere în linie
+- Exemple: `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo### 🌐 i18n
 
-- **Full i18n Sync**: 2,788 missing keys added across 30 language files — all languages now at 100% parity with `en.json`
-- **Agents page i18n**: OpenCode Integration section fully internationalized (title, description, scanning, download labels)
-- **6 new keys** added to `agents` namespace for OpenCode section
+-**Sincronizare i18n completă**: 2.788 de chei lipsă adăugate în 30 de fișiere de limbă - toate limbile acum la paritate 100% cu `en.json` -**Pagina agenți i18n**: secțiunea de integrare OpenCode complet internaționalizată (titlu, descriere, scanare, descărcare etichete) -**6 chei noi**adăugate la spațiul de nume „agenți” pentru secțiunea OpenCode### 🎨 UI/UX
 
-### 🎨 UI/UX
+-**Pictograme furnizor**: 16 pictograme furnizor lipsă adăugate (3 copiate, 2 descărcate, 11 SVG create) -**SVG alternativă**: componenta `ProviderIcon` actualizată cu o strategie pe 4 niveluri: Lobehub → PNG → SVG → Pictogramă generică -**Amprentarea agenților**: Sincronizat cu instrumentele CLI - a adăugat droid, openclaw, copilot, opencode la lista de amprente (14 în total)### Securitate
 
-- **Provider Icons**: 16 missing provider icons added (3 copied, 2 downloaded, 11 SVG created)
-- **SVG fallback**: `ProviderIcon` component updated with 4-tier strategy: Lobehub → PNG → SVG → Generic icon
-- **Agents fingerprinting**: Synced with CLI tools — added droid, openclaw, copilot, opencode to fingerprint list (14 total)
+-**Remediere CVE**: S-a rezolvat vulnerabilitatea dompurify XSS (GHSA-v2wj-7wpq-c8vv) prin suprascrie npm, forțarea `dompurify@^3.3.2`
 
-### Securitate
+- `npm audit` raportează acum**0 vulnerabilități**### 🧪 Tests
 
-- **CVE fix**: Resolved dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) via npm overrides forcing `dompurify@^3.3.2`
-- `npm audit` now reports **0 vulnerabilities**
-
-### 🧪 Tests
-
-- Test suite: **923 tests, 0 failures** (+15 new model-combo mapping tests)
-
----
+- Suită de teste:**923 de teste, 0 eșecuri**(+15 teste noi de mapare combo-model)---
 
 ## [3.0.0-rc.14] — 2026-03-23
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author   | Summary                                                                                      |
-| -------- | -------- | -------------------------------------------------------------------------------------------- |
-| **#562** | @coobabm | fix(ux): MCP session management, Claude passthrough normalization, OAuth modal, detectFormat |
-| **#561** | @zen0bit | fix(i18n): Czech translation corrections — HTTP method names and documentation updates       |
+| PR       | Autor    | Rezumat                                                                                         |
+| -------- | -------- | ----------------------------------------------------------------------------------------------- | ------------ |
+| **#562** | @coobabm | fix(ux): managementul sesiunii MCP, normalizarea trecerii Claude, modal OAuth, detectFormat     |
+| **#561** | @zen0bit | fix(i18n): corecții de traducere în cehă — nume de metode HTTP și actualizări ale documentației | ### 🧪 Tests |
 
-### 🧪 Tests
-
-- Test suite: **908 tests, 0 failures**
-
----
+- Suită de teste:**908 teste, 0 eșecuri**---
 
 ## [3.0.0-rc.13] — 2026-03-23
 
 ### 🔧 Bug Fixes
 
-- **config:** resolve real API key from `keyId` in CLI settings routes (`codex-settings`, `droid-settings`, `kilo-settings`) to prevent writing masked strings (#549)
-
----
+-**config:**rezolvă cheia API reală din `keyId` în rutele de setări CLI (`codex-settings`, `droid-settings`, `kilo-settings`) pentru a preveni scrierea șirurilor mascate (#549)---
 
 ## [3.0.0-rc.12] — 2026-03-23
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author   | Summary                                                                                                                                                       |
-| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **#546** | @k0valik | fix(cli): `--version` returning `unknown` on Windows — use `JSON.parse(readFileSync)` instead of ESM import                                                   |
-| **#555** | @k0valik | fix(sse): centralized `resolveDataDir()` for path resolution in credentials, autoCombo, responses logger, and request logger                                  |
-| **#544** | @k0valik | fix(cli): secure CLI tool detection via known installation paths (8 tools) with symlink validation, file-type checks, size bounds, minimal env in healthcheck |
-| **#542** | @rdself  | fix(ui): improve light mode contrast — add missing CSS theme variables (`bg-primary`, `bg-subtle`, `text-primary`) and fix dark-only colors in log detail     |
+| PR       | Autor    | Rezumat                                                                                                                                                                                                                               |
+| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **#546** | @k0valik | fix(cli): `--version` returnează `necunoscut` pe Windows — utilizați `JSON.parse(readFileSync)` în loc de importul ESM                                                                                                                |
+| **#555** | @k0valik | fix(sse): `resolveDataDir()` centralizat pentru rezoluția căilor în acreditări, autoCombo, înregistrare răspunsuri și înregistrare cereri                                                                                             |
+| **#544** | @k0valik | fix(cli): detectarea securizată a instrumentului CLI prin căi de instalare cunoscute (8 instrumente) cu validare a linkurilor simbolice, verificări ale tipului de fișier, limite de dimensiune, mediu minim în verificarea sănătății |
+| **#542** | @rdself  | fix(ui): îmbunătățiți contrastul modului de lumină — adăugați variabilele de temă CSS lipsă (`bg-primary`, `bg-subtle`, `text-primary`) și remediați culorile închise doar în detaliile jurnalului                                    | ### 🔧 Bug Fixes |
 
-### 🔧 Bug Fixes
+-**Remedierea TDZ în `cliRuntime.ts`**— `validateEnvPath` a fost folosit înainte de inițializare la pornirea modulului de către `getExpectedParentPaths()`. Declarații reordonate pentru a remedia „ReferenceError”. -**Remedieri de compilare**— S-au adăugat `pino` și `pino-pretty` la `serverExternalPackages` pentru a preveni Turbopack să întrerupă încărcarea lucrătorului intern a lui Pino.### 🧪 Tests
 
-- **TDZ fix in `cliRuntime.ts`** — `validateEnvPath` was used before initialization at module startup by `getExpectedParentPaths()`. Reordered declarations to fix `ReferenceError`.
-- **Build fixes** — Added `pino` and `pino-pretty` to `serverExternalPackages` to prevent Turbopack from breaking Pino's internal worker loading.
-
-### 🧪 Tests
-
-- Test suite: **905 tests, 0 failures**
-
----
+- Suită de teste:**905 teste, 0 eșecuri**---
 
 ## [3.0.0-rc.10] — 2026-03-23
 
 ### 🔧 Bug Fixes
 
-- **#509 / #508** — Electron build regression: downgraded Next.js from `16.1.x` to `16.0.10` to eliminate Turbopack module-hashing instability that caused blank screens in the Electron desktop bundle.
-- **Unit test fixes** — Corrected two stale test assertions (`nanobanana-image-handler` aspect ratio/resolution, `thinking-budget` Gemini `thinkingConfig` field mapping) that had drifted after recent implementation changes.
-- **#541** — Responded to user feedback about installation complexity; no code changes required.
-
----
+-**#509 / #508**— Regresia construcției Electron: a retrogradat Next.js de la `16.1.x` la `16.0.10` pentru a elimina instabilitatea hashing-ului modulului Turbopack care a cauzat ecrane goale în pachetul de desktop Electron. -**Remedieri ale testelor unitare**— S-au corectat două afirmații de testare învechite (raport/rezoluție `nanobanana-image-handler`, maparea câmpului `thinking-budget` Gemini `thinkingConfig`) care s-au deplasat după modificările recente de implementare. -**#541**— A răspuns la feedback-ul utilizatorilor despre complexitatea instalării; nu sunt necesare modificări de cod.---
 
 ## [3.0.0-rc.9] — 2026-03-23
 
 ### ✨ New Features
 
-- **T29** — Vertex AI SA JSON Executor: implemented using the `jose` library to handle JWT/Service Account auth, along with configurable regions in the UI and automatic partner model URL building.
-- **T42** — Image generation aspect ratio mapping: created `sizeMapper` logic for generic OpenAI formats (`size`), added native `imagen3` handling, and updated NanoBanana endpoints to utilize mapped aspect ratios automatically.
-- **T38** — Centralized model specifications: `modelSpecs.ts` created for limits and parameters per model.
+-**T29**— Vertex AI SA JSON Executor: implementat folosind biblioteca `jose` pentru a gestiona autentificarea JWT/Cont de serviciu, împreună cu regiuni configurabile în interfața de utilizare și crearea automată a adresei URL a modelului partenerului. -**T42**— Maparea raportului de aspect pentru generarea imaginii: a creat logica `sizeMapper` pentru formatele generice OpenAI (`dimensiune`), a adăugat gestionarea nativă `imagen3` și a actualizat punctele finale NanoBanana pentru a utiliza automat raporturile de aspect mapate. -**T38**— Specificații centralizate ale modelului: `modelSpecs.ts` creat pentru limite și parametri per model.### 🔧 Improvements
 
-### 🔧 Improvements
-
-- **T40** — OpenCode CLI tools integration: native `opencode-zen` and `opencode-go` integration completed in earlier PR.
-
----
+-**T40**— Integrarea instrumentelor OpenCode CLI: integrarea nativă `opencode-zen` și `opencode-go` finalizată în PR anterior.---
 
 ## [3.0.0-rc.8] — 2026-03-23
 
 ### 🔧 Bug Fixes & Improvements (Fallback, Quota & Budget)
 
-- **T24** — `503` cooldown await fix + `406` mapping: mapped `406 Not Acceptable` to `503 Service Unavailable` with proper cooldown intervals.
-- **T25** — Provider validation fallback: graceful fallback to standard validation models when a specific `validationModelId` is not present.
-- **T36** — `403` vs `429` provider handling refinement: extracted into `errorClassifier.ts` to properly segregate hard permissions failures (`403`) from rate limits (`429`).
-- **T39** — Endpoint Fallback for `fetchAvailableModels`: implemented a tri-tier mechanism (`/models` -> `/v1/models` -> local generic catalog) + `list_models_catalog` MCP tool updates to reflect `source` and `warning`.
-- **T33** — Thinking level to budget conversion: translates qualitative thinking levels into precise budget allocations.
-- **T41** — Background task auto redirect: routes heavy background evaluation tasks to flash/efficient models automatically.
-- **T23** — Intelligent quota reset fallback: accurately extracts `x-ratelimit-reset` / `retry-after` header values or maps static cooldowns.
-
----
+-**T24**— `503` cooldown await fix + `406` mapare: mapat `406 Not Acceptable` la `503 Service Unavailable` cu intervale de răcire adecvate. -**T25**— Validarea furnizorului de rezervă: alternativă grațioasă la modelele standard de validare atunci când nu este prezent un anumit „validationModelId”. -**T36**— `403` vs `429` rafinament de gestionare a furnizorului: extras în `errorClassifier.ts` pentru a segrega corect eșecurile de permisiuni hard (`403`) de limitele ratei (`429`). -**T39**— Endpoint Fallback pentru `fetchAvailableModels`: implementat un mecanism tri-tier (`/models` -> `/v1/models` -> catalog generic local) + `list_models_catalog` actualizările instrumentului MCP pentru a reflecta `sursa` și `avertisment`. -**T33**— Conversia nivel de gândire la buget: traduce nivelurile de gândire calitative în alocări bugetare precise. -**T41**— Redirecționare automată a activității de fundal: direcționează automat sarcinile grele de evaluare de fundal către modele flash/eficiente. -**T23**— Resetare inteligentă a cotei de rezervă: extrage cu precizie valorile antetului `x-ratelimit-reset` / `retry-after` sau mapează perioadele de răcire statice.---
 
 ## [3.0.0-rc.7] — 2026-03-23 _(What's New vs v2.9.5 — will be released as v3.0.0)_
 
-> **Upgrade from v2.9.5:** 16 issues resolved · 2 community PRs merged · 2 new providers · 7 new API endpoints · 3 new features · DB migration 008+009 · 832 tests passing · 15 sub2api gap improvements (T01–T15 complete).
+> **Upgrade de la v2.9.5:**16 probleme rezolvate · 2 PR-uri comunitare fuzionate · 2 furnizori noi · 7 noi puncte finale API · 3 funcții noi · Migrare DB 008+009 · 832 de teste trecute · 15 îmbunătățiri sub2api gap (T01–T15 complet).### 🆕 New Providers
 
-### 🆕 New Providers
+| Furnizor         | Alias ​​       | Nivelul | Note                                                            |
+| ---------------- | -------------- | ------- | --------------------------------------------------------------- |
+| **OpenCode Zen** | `opencode-zen` | Gratuit | 3 modele prin `opencode.ai/zen/v1` (PR #530 de @kang-heewon)    |
+| **OpenCode Go**  | `opencode-go`  | Plătit  | 4 modele prin `opencode.ai/zen/go/v1` (PR #530 de @kang-heewon) |
 
-| Provider         | Alias          | Tier | Notes                                                          |
-| ---------------- | -------------- | ---- | -------------------------------------------------------------- |
-| **OpenCode Zen** | `opencode-zen` | Free | 3 models via `opencode.ai/zen/v1` (PR #530 by @kang-heewon)    |
-| **OpenCode Go**  | `opencode-go`  | Paid | 4 models via `opencode.ai/zen/go/v1` (PR #530 by @kang-heewon) |
-
-Both providers use the new `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`, `/models/{model}:generateContent`).
-
----
+Ambii furnizori folosesc noul `OpencodeExecutor` cu rutare multi-format (`/chat/completions`, `/messages`, `/responses`, `/models/{model}:generateContent`).---
 
 ### ✨ New Features
 
 #### 🔑 Registered Keys Provisioning API (#464)
 
-Auto-generate and issue OmniRoute API keys programmatically with per-provider and per-account quota enforcement.
+Generați automat și emiteți cheile API OmniRoute în mod programatic, cu aplicarea cotelor pentru fiecare furnizor și per cont.
 
-| Endpoint                              | Method    | Description                                      |
-| ------------------------------------- | --------- | ------------------------------------------------ |
-| `/api/v1/registered-keys`             | `POST`    | Issue a new key — raw key returned **once only** |
-| `/api/v1/registered-keys`             | `GET`     | List registered keys (masked)                    |
-| `/api/v1/registered-keys/{id}`        | `GET`     | Get key metadata                                 |
-| `/api/v1/registered-keys/{id}`        | `DELETE`  | Revoke a key                                     |
-| `/api/v1/registered-keys/{id}/revoke` | `POST`    | Revoke (for clients without DELETE support)      |
-| `/api/v1/quotas/check`                | `GET`     | Pre-validate quota before issuing                |
-| `/api/v1/providers/{id}/limits`       | `GET/PUT` | Configure per-provider issuance limits           |
-| `/api/v1/accounts/{id}/limits`        | `GET/PUT` | Configure per-account issuance limits            |
-| `/api/v1/issues/report`               | `POST`    | Report quota events to GitHub Issues             |
+| Punct final                           | Metoda     | Descriere                                                    |
+| ------------------------------------- | ---------- | ------------------------------------------------------------ |
+| `/api/v1/registered-keys`             | `POST`     | Emite o nouă cheie — cheia brută returnată**o singură dată** |
+| `/api/v1/registered-keys`             | `GET`      | Listează cheile înregistrate (mascate)                       |
+| `/api/v1/registered-keys/{id}`        | `GET`      | Obține metadatele cheie                                      |
+| `/api/v1/registered-keys/{id}`        | `ȘTERGERE` | Revocați o cheie                                             |
+| `/api/v1/registered-keys/{id}/revoke` | `POST`     | Revocare (pentru clienții fără suport DELETE)                |
+| `/api/v1/quotas/check`                | `GET`      | Prevalidați cota înainte de emitere                          |
+| `/api/v1/providers/{id}/limits`       | `GET/PUT`  | Configurați limitele de emitere pentru fiecare furnizor      |
+| `/api/v1/accounts/{id}/limits`        | `GET/PUT`  | Configurați limitele de emitere per cont                     |
+| `/api/v1/issues/report`               | `POST`     | Raportați evenimentele de cotă către GitHub Issues           |
 
-**DB — Migration 008:** Three new tables: `registered_keys`, `provider_key_limits`, `account_key_limits`.
-**Security:** Keys stored as SHA-256 hashes. Raw key shown once on creation, never retrievable again.
-**Quota types:** `maxActiveKeys`, `dailyIssueLimit`, `hourlyIssueLimit` per provider and per account.
-**Idempotency:** `idempotency_key` field prevents duplicate issuance. Returns `409 IDEMPOTENCY_CONFLICT` if key was already used.
-**Budget per key:** `dailyBudget` / `hourlyBudget` — limits how many requests a key can route per window.
-**GitHub reporting:** Optional. Set `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` to auto-create GitHub issues on quota exceeded or issuance failures.
+**DB — Migrare 008:**Trei tabele noi: `chei_registered`, `provider_key_limits`, `account_key_limits`.
+**Securitate:**Cheile stocate ca hash-uri SHA-256. Cheia brută afișată o dată la creare, nu mai poate fi recuperată.
+**Tipuri de cote:**`maxActiveKeys`, `dailyIssueLimit`, `hourlyIssueLimit` per furnizor și per cont.
+**Idempotency:**câmpul `idempotency_key` previne emiterea duplicat. Returnează `409 IDEMPOTENCY_CONFLICT` dacă cheia a fost deja folosită.
+**Buget per cheie:**`dailyBudget` / `hourlyBudget` — limitează numărul de solicitări pe care o cheie poate direcționa pe fereastră.
+**Raportare GitHub:**Opțional. Setați `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` pentru a crea automat probleme GitHub în cazul depășirii cotei sau a eșecurilor de emitere.#### 🎨 Provider Icons — @lobehub/icons (#529)
 
-#### 🎨 Provider Icons — @lobehub/icons (#529)
+Toate pictogramele furnizorului din tabloul de bord folosesc acum componentele React „@lobehub/icons” (130+ furnizori cu SVG).
+Lanț de rezervă:**Lobehub SVG → existent `/providers/{id}.png` → pictogramă generică**. Utilizează un model React `ErrorBoundary` adecvat.#### 🔄 Model Auto-Sync Scheduler (#488)
 
-All provider icons in the dashboard now use `@lobehub/icons` React components (130+ providers with SVG).
-Fallback chain: **Lobehub SVG → existing `/providers/{id}.png` → generic icon**. Uses a proper React `ErrorBoundary` pattern.
+OmniRoute reîmprospătează acum automat listele de modele pentru furnizorii conectați la fiecare**24 de ore**.
 
-#### 🔄 Model Auto-Sync Scheduler (#488)
-
-OmniRoute now automatically refreshes model lists for connected providers every **24 hours**.
-
-- Runs on server startup via the existing `/api/sync/initialize` hook
-- Configurable via `MODEL_SYNC_INTERVAL_HOURS` environment variable
-- Covers 16 major providers
-- Records last sync time in the settings database
-
----
+- Se rulează la pornirea serverului prin intermediul cârligului existent `/api/sync/initialize`
+- Configurabil prin variabila de mediu `MODEL_SYNC_INTERVAL_HOURS`
+- Acoperă 16 furnizori majori
+- Înregistrează ultima sincronizare în baza de date de setări---
 
 ### 🔧 Bug Fixes
 
 #### OAuth & Auth
 
-- **#537 — Gemini CLI OAuth:** Clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments. Previously showed cryptic `client_secret is missing` from Google. Now provides specific `docker-compose.yml` and `~/.omniroute/.env` instructions.
+-**#537 — Gemini CLI OAuth:**Ștergeți eroarea acționabilă atunci când `GEMINI_OAUTH_CLIENT_SECRET` lipsește în implementările Docker/auto-găzduite. A arătat anterior „client_secret lipsește” de la Google. Acum oferă instrucțiuni specifice `docker-compose.yml` și `~/.omniroute/.env`.#### Providers & Routing
 
-#### Providers & Routing
+-**#536 — LongCat AI:**S-au remediat `baseUrl` (`api.longcat.chat/openai`) și `authHeader` (`Authorization: Bearer`). -**#535 — Suprascrierea modelului fixat:**`body.model` este acum setat corect la `pinnedModel` când protecția context-cache este activă. -**#532 — Validarea cheii OpenCode Go:**Acum utilizează punctul final de testare `zen/v1` (`testKeyBaseUrl`) — aceeași cheie funcționează pentru ambele niveluri.#### CLI & Tools
 
-- **#536 — LongCat AI:** Fixed `baseUrl` (`api.longcat.chat/openai`) and `authHeader` (`Authorization: Bearer`).
-- **#535 — Pinned model override:** `body.model` is now correctly set to `pinnedModel` when context-cache protection is active.
-- **#532 — OpenCode Go key validation:** Now uses the `zen/v1` test endpoint (`testKeyBaseUrl`) — same key works for both tiers.
+-**#527 — Claude Code + Codex loop:**Blocurile `tool_result` sunt acum convertite în text în loc să fie aruncate, oprind bucle infinite de rezultat instrument. -**#524 — Salvare config OpenCode:**Adăugat handler `saveOpenCodeConfig()` (conștient XDG_CONFIG_HOME, scrie TOML). -**#521 — Conectarea blocată:**Autentificarea nu se mai blochează după omiterea configurării parolei — redirecționează corect la integrare. -**#522 — Manager API:**a fost eliminat butonul înșelător „Copiați cheia mascată” (înlocuit cu o pictogramă de lacăt. -**#532 — OpenCode Go config:**Managerul de setări ale ghidului gestionează acum ID-ul instrumentului `opencode`.#### Developer Experience
 
-#### CLI & Tools
-
-- **#527 — Claude Code + Codex loop:** `tool_result` blocks are now converted to text instead of dropped, stopping infinite tool-result loops.
-- **#524 — OpenCode config save:** Added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML).
-- **#521 — Login stuck:** Login no longer freezes after skipping password setup — redirects correctly to onboarding.
-- **#522 — API Manager:** Removed misleading "Copy masked key" button (replaced with a lock icon tooltip).
-- **#532 — OpenCode Go config:** Guide settings handler now handles `opencode` toolId.
-
-#### Developer Experience
-
-- **#489 — Antigravity:** Missing `googleProjectId` returns a structured 422 error with reconnect guidance instead of a cryptic crash.
-- **#510 — Windows paths:** MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...` automatically.
-- **#492 — CLI startup:** `omniroute` CLI now detects `mise`/`nvm`-managed Node when `app/server.js` is missing and shows targeted fix instructions.
-
----
+-**#489 — Antigravity:**lipsa `googleProjectId` returnează o eroare 422 structurată cu îndrumări de reconectare în loc de o blocare criptică. -**#510 — Căi Windows:**Căile MSYS2/Git-Bash (`/c/Program Files/...`) sunt acum normalizate automat la `C:\Program Files\...`. -**#492 — Pornire CLI:**`omniroute` CLI detectează acum nodul gestionat `mise`/`nvm` atunci când `app/server.js` lipsește și arată instrucțiuni de remediere vizate.---
 
 ### 📖 Documentation Updates
 
-- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
-- **#520** — pnpm: `pnpm approve-builds better-sqlite3` step documented
-
----
+-**#513**— Resetarea parolei Docker: `INITIAL_PASSWORD` env var soluție documentată -**#520**— pnpm: pasul `pnpm approve-builds better-sqlite3` documentat---
 
 ### ✅ Issues Resolved in v3.0.0
 
-`#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#536` `#537`
-
----
+`#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#535` `#535`---
 
 ### 🔀 Community PRs Merged
 
-| PR       | Author       | Summary                                                                |
-| -------- | ------------ | ---------------------------------------------------------------------- |
-| **#530** | @kang-heewon | OpenCode Zen + Go providers with `OpencodeExecutor` and improved tests |
-
----
+| PR       | Autor        | Rezumat                                                                  |
+| -------- | ------------ | ------------------------------------------------------------------------ | --- |
+| **#530** | @kang-heewon | Furnizorii OpenCode Zen + Go cu `OpencodeExecutor` și teste îmbunătățite | --- |
 
 ## [3.0.0-rc.7] - 2026-03-23
 
 ### 🔧 Improvements (sub2api Gap Analysis — T05, T08, T09, T13, T14)
 
-- **T05** — Rate-limit DB persistence: `setConnectionRateLimitUntil()`, `isConnectionRateLimited()`, `getRateLimitedConnections()` in `providers.ts`. The existing `rate_limited_until` column is now exposed as a dedicated API — OAuth token refresh must NOT touch this field to prevent rate-limit loops.
-- **T08** — Per-API-key session limit: `max_sessions INTEGER DEFAULT 0` added to `api_keys` via auto-migration. `sessionManager.ts` gains `registerKeySession()`, `unregisterKeySession()`, `checkSessionLimit()`, and `getActiveSessionCountForKey()`. Callers in `chatCore.js` can enforce the limit and decrement on `req.close`.
-- **T09** — Codex vs Spark rate-limit scopes: `getCodexModelScope()` and `getCodexRateLimitKey()` in `codex.ts`. Standard models (`gpt-5.x-codex`, `codex-mini`) get scope `"codex"`; spark models (`codex-spark*`) get scope `"spark"`. Rate-limit keys should be `${accountId}:${scope}` so exhausting one pool doesn't block the other.
-- **T13** — Stale quota display fix: `getEffectiveQuotaUsage(used, resetAt)` returns `0` when the reset window has passed; `formatResetCountdown(resetAt)` returns a human-readable countdown string (e.g. `"2h 35m"`). Both exported from `providers.ts` + `localDb.ts` for dashboard consumption.
-- **T14** — Proxy fast-fail: new `src/lib/proxyHealth.ts` with `isProxyReachable(proxyUrl, timeoutMs=2000)` (TCP check, ≤2s instead of 30s timeout), `getCachedProxyHealth()`, `invalidateProxyHealth()`, and `getAllProxyHealthStatuses()`. Results cached 30s by default; configurable via `PROXY_FAST_FAIL_TIMEOUT_MS` / `PROXY_HEALTH_CACHE_TTL_MS`.
+-**T05**— Persistența DB cu limită de rată: `setConnectionRateLimitUntil()`, `isConnectionRateLimited()`, `getRateLimitedConnections()` în `providers.ts`. Coloana existentă „rate_limited_until” este acum expusă ca un API dedicat — reîmprospătarea jetonului OAuth NU trebuie să atingă acest câmp pentru a preveni buclele de limitare a ratei. -**T08**— Limită de sesiune pentru fiecare cheie API: `max_sessions INTEGER DEFAULT 0` adăugat la `api_keys` prin migrare automată. `sessionManager.ts` câștigă `registerKeySession()`, `unregisterKeySession()`, `checkSessionLimit()` și `getActiveSessionCountForKey()`. Apelanții din `chatCore.js` pot aplica limita și scăderea pe `req.close`. -**T09**— limite de rată Codex vs Spark: `getCodexModelScope()` și `getCodexRateLimitKey()` în `codex.ts`. Modelele standard (`gpt-5.x-codex`, `codex-mini`) primesc domeniul de aplicare `"codex"`; modele spark (`codex-spark*`) obține domeniul de aplicare `"spark"`. Cheile pentru limita de rată ar trebui să fie `${accountId}:${scope}`, astfel încât epuizarea unui pool nu îl blochează pe celălalt. -**T13**— Remediere de afișare a cotei învechite: `getEffectiveQuotaUsage(used, resetAt)` returnează `0` când fereastra de resetare a trecut; `formatResetCountdown(resetAt)` returnează un șir de numărătoare inversă care poate fi citită de om (de exemplu, `"2h 35m"`). Ambele exportate din `providers.ts` + `localDb.ts` pentru consumul tabloului de bord. -**T14**— Proxy fast-fail: nou `src/lib/proxyHealth.ts` cu `isProxyReachable(proxyUrl, timeoutMs=2000)` (verificare TCP, ≤2s în loc de 30s timeout), `getCachedProxyHealth()`, `invalidate()`, și `invalidate `getAllProxyHealthStatuses()`. Rezultatele stocate în cache la 30 de secunde în mod implicit; configurabil prin `PROXY_FAST_FAIL_TIMEOUT_MS`/`PROXY_HEALTH_CACHE_TTL_MS`.### 🧪 Tests
 
-### 🧪 Tests
-
-- Test suite: **832 tests, 0 failures**
-
----
+- Suită de teste:**832 teste, 0 eșecuri**---
 
 ## [3.0.0-rc.6] - 2026-03-23
 
 ### 🔧 Bug Fixes & Improvements (sub2api Gap Analysis — T01–T15)
 
-- **T01** — `requested_model` column in `call_logs` (migration 009): track which model the client originally requested vs the actual routed model. Enables fallback rate analytics.
-- **T02** — Strip empty text blocks from nested `tool_result.content`: prevents Anthropic 400 errors (`text content blocks must be non-empty`) when Claude Code chains tool results.
-- **T03** — Parse `x-codex-5h-*` / `x-codex-7d-*` headers: `parseCodexQuotaHeaders()` + `getCodexResetTime()` extract Codex quota windows for precise cooldown scheduling instead of generic 5-min fallback.
-- **T04** — `X-Session-Id` header for external sticky routing: `extractExternalSessionId()` in `sessionManager.ts` reads `x-session-id` / `x-omniroute-session` headers with `ext:` prefix to avoid collision with internal SHA-256 session IDs. Nginx-compatible (hyphenated header).
-- **T06** — Account deactivated → permanent block: `isAccountDeactivated()` in `accountFallback.ts` detects 401 deactivation signals and applies a 1-year cooldown to prevent retrying permanently dead accounts.
-- **T07** — X-Forwarded-For IP validation: new `src/lib/ipUtils.ts` with `extractClientIp()` and `getClientIpFromRequest()` — skips `unknown`/non-IP entries in `X-Forwarded-For` chains (Nginx/proxy-forwarded requests).
-- **T10** — Credits exhausted → distinct fallback: `isCreditsExhausted()` in `accountFallback.ts` returns 1h cooldown with `creditsExhausted` flag, distinct from generic 429 rate limiting.
-- **T11** — `max` reasoning effort → 131072 budget tokens: `EFFORT_BUDGETS` and `THINKING_LEVEL_MAP` updated; reverse mapping now returns `"max"` for full-budget responses. Unit test updated.
-- **T12** — MiniMax M2.7 pricing entries added: `minimax-m2.7`, `MiniMax-M2.7`, `minimax-m2.7-highspeed` added to pricing table (sub2api PR #1120). M2.5/GLM-4.7/GLM-5/Kimi pricing already existed.
-- **T15** — Array content normalization: `normalizeContentToString()` helper in `openai-to-claude.ts` correctly collapses array-formatted system/tool messages to string before sending to Anthropic.
+-**T01**— coloana `requested_model` din `call_logs` (migrarea 009): urmăriți modelul solicitat inițial de client față de modelul real rutat. Permite analiza ratei de rezervă. -**T02**— Eliminați blocurile de text goale din `tool_result.content` imbricat: previne erorile Anthropic 400 (`blocurile de conținut text trebuie să nu fie goale`) când rezultă instrumentul Claude Code. -**T03**— Analizați anteturile `x-codex-5h-*` / `x-codex-7d-*`: `parseCodexQuotaHeaders()` + `getCodexResetTime()` extrage ferestrele de cotă Codex pentru o programare precisă a timpului de răcire în loc de alternativă generică de 5 minute. -**T04**— Antet `X-Session-Id` pentru rutare sticky externă: `extractExternalSessionId()` în `sessionManager.ts` citește anteturile `x-session-id` / `x-omniroute-session` cu prefixul `ext:` sesiune ID-ul intern pentru a evita coliziunea SHA-256. Compatibil cu Nginx (antet cu cratime). -**T06**— Cont dezactivat → blocare permanentă: `isAccountDeactivated()` în `accountFallback.ts` detectează 401 semnale de dezactivare și aplică o perioadă de răcire de 1 an pentru a preveni reîncercarea conturilor nefuncționale definitive. -**T07**— Validare IP X-Forwarded-For: nou `src/lib/ipUtils.ts` cu `extractClientIp()` și `getClientIpFromRequest()` — omite intrările `necunoscute`/non-IP în lanțurile `X-Forwarded-For` (Nginx/proxy-forwarded). -**T10**— Credite epuizate → alternativă distinctă: `isCreditsExhausted()` în `accountFallback.ts` returnează 1 oră de răcire cu indicatorul `creditsExhausted`, diferit de limitarea ratei generice 429. -**T11**— efort de raționament `max` → 131072 jetoane buget: `EFFORT_BUDGETS` și `THINKING_LEVEL_MAP` actualizate; maparea inversă returnează acum `"max"` pentru răspunsurile cu bugetul complet. Testul unitar a fost actualizat. -**T12**— S-au adăugat intrări de prețuri MiniMax M2.7: `minimax-m2.7`, `MiniMax-M2.7`, `minimax-m2.7-highspeed` adăugate la tabelul de prețuri (sub2api PR #1120). Prețurile M2.5/GLM-4.7/GLM-5/Kimi existau deja. -**T15**— Normalizarea conținutului matricei: asistentul `normalizeContentToString()` în `openai-to-claude.ts` restrânge corect mesajele de sistem/instrument formate în matrice în șir înainte de a le trimite către Anthropic.### 🧪 Tests
 
-### 🧪 Tests
-
-- Test suite: **832 tests, 0 failures** (unchanged from rc.5)
-
----
+- Suită de teste:**832 de teste, 0 eșecuri**(neschimbat față de rc.5)---
 
 ## [3.0.0-rc.5] - 2026-03-22
 
 ### ✨ New Features
 
-- **#464** — Registered Keys Provisioning API: auto-issue API keys with per-provider & per-account quota enforcement
-  - `POST /api/v1/registered-keys` — issue keys with idempotency support
-  - `GET /api/v1/registered-keys` — list (masked) registered keys
-  - `GET /api/v1/registered-keys/{id}` — get key metadata
-  - `DELETE /api/v1/registered-keys/{id}` / `POST ../{id}/revoke` — revoke keys
-  - `GET /api/v1/quotas/check` — pre-validate before issuing
-  - `PUT /api/v1/providers/{id}/limits` — set provider issuance limits
-  - `PUT /api/v1/accounts/{id}/limits` — set account issuance limits
-  - `POST /api/v1/issues/report` — optional GitHub issue reporting
-  - DB migration 008: `registered_keys`, `provider_key_limits`, `account_key_limits` tables
+-**#464**— Registered Keys Provisioning API: emite automat chei API cu aplicarea cotelor pentru fiecare furnizor și per cont
 
----
+- `POST /api/v1/registered-keys` — emite chei cu suport pentru idempotenta
+- `GET /api/v1/registered-keys` — listează cheile înregistrate (mascate)
+- `GET /api/v1/registered-keys/{id}` — obține metadatele cheii
+- `DELETE /api/v1/registered-keys/{id}` / `POST ../{id}/revoke` — revocă cheile
+- `GET /api/v1/quotas/check` — prevalidați înainte de emitere
+- `PUT /api/v1/providers/{id}/limits` — setați limitele de emitere a furnizorului
+- `PUT /api/v1/accounts/{id}/limits` — setați limitele de emitere a contului
+- `POST /api/v1/issues/report` — raportare opțională a problemelor GitHub
+- Migrare DB 008: tabele `chei_registered`, `provider_key_limits`, `account_key_limits`---
 
 ## [3.0.0-rc.4] - 2026-03-22
 
 ### ✨ New Features
 
-- **#530 (PR)** — OpenCode Zen and OpenCode Go providers added (by @kang-heewon)
-  - New `OpencodeExecutor` with multi-format routing (`/chat/completions`, `/messages`, `/responses`)
-  - 7 models across both tiers
+-**#530 (PR)**— Furnizorii OpenCode Zen și OpenCode Go au fost adăugați (de @kang-heewon)
 
----
+- Noul `OpencodeExecutor` cu rutare multi-format (`/chat/completions`, `/messages`, `/responses`)
+- 7 modele pe ambele niveluri---
 
 ## [3.0.0-rc.3] - 2026-03-22
 
 ### ✨ New Features
 
-- **#529** — Provider icons now use [@lobehub/icons](https://github.com/lobehub/lobe-icons) with graceful PNG fallback and a `ProviderIcon` component (130+ providers supported)
-- **#488** — Auto-update model lists every 24h via `modelSyncScheduler` (configurable via `MODEL_SYNC_INTERVAL_HOURS`)
+-**#529**— Pictogramele furnizorului folosesc acum [@lobehub/icons](https://github.com/lobehub/lobe-icons) cu un backup elegant PNG și o componentă `ProviderIcon` (suportați peste 130 de furnizori) -**#488**— Actualizează automat listele de modele la fiecare 24 de ore prin `modelSyncScheduler` (configurabil prin `MODEL_SYNC_INTERVAL_HOURS`)### 🔧 Bug Fixes
 
-### 🔧 Bug Fixes
-
-- **#537** — Gemini CLI OAuth: now shows clear actionable error when `GEMINI_OAUTH_CLIENT_SECRET` is missing in Docker/self-hosted deployments
-
----
+-**#537**— Gemini CLI OAuth: acum afișează o eroare clară acționabilă atunci când `GEMINI_OAUTH_CLIENT_SECRET` lipsește în implementările Docker/auto-găzduite---
 
 ## [3.0.0-rc.2] - 2026-03-22
 
 ### 🔧 Bug Fixes
 
-- **#536** — LongCat AI key validation: fixed baseUrl (`api.longcat.chat/openai`) and authHeader (`Authorization: Bearer`)
-- **#535** — Pinned model override: `body.model` is now set to `pinnedModel` when context-cache protection detects a pinned model
-- **#524** — OpenCode config now saved correctly: added `saveOpenCodeConfig()` handler (XDG_CONFIG_HOME aware, writes TOML)
-
----
+-**#536**— Validarea cheii LongCat AI: baseUrl fix (`api.longcat.chat/openai`) și authHeader (`Authorization: Bearer`) -**#535**— Suprascrierea modelului fixat: `body.model` este acum setat la `pinnedModel` atunci când protecția context-cache detectează un model fixat -**#524**— Configurația OpenCode acum salvată corect: a adăugat handler `saveOpenCodeConfig()` (conștient XDG_CONFIG_HOME, scrie TOML)---
 
 ## [3.0.0-rc.1] - 2026-03-22
 
 ### 🔧 Bug Fixes
 
-- **#521** — Login no longer gets stuck after skipping password setup (redirects to onboarding)
-- **#522** — API Manager: Removed misleading "Copy masked key" button (replaced with lock icon tooltip)
-- **#527** — Claude Code + Codex superpowers loop: `tool_result` blocks now converted to text instead of dropped
-- **#532** — OpenCode GO API key validation now uses the correct `zen/v1` endpoint (`testKeyBaseUrl`)
-- **#489** — Antigravity: missing `googleProjectId` returns structured 422 error with reconnect guidance
-- **#510** — Windows: MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\\Program Files\\...`
-- **#492** — `omniroute` CLI now detects `mise`/`nvm` when `app/server.js` is missing and shows targeted fix
+-**#521**— Autentificarea nu se mai blochează după ce ați sărit peste configurarea parolei (redirecționează la onboarding) -**#522**— Manager API: a fost eliminat butonul care induce în eroare „Copiați cheia mascată” (înlocuit cu indicativul pentru pictograma de lacăt) -**#527**— buclă Claude Code + Codex superputeri: blocurile `tool_result` sunt acum convertite în text în loc să fie eliminate -**#532**— Validarea cheii API OpenCode GO utilizează acum punctul final corect `zen/v1` (`testKeyBaseUrl`) -**#489**— Antigravitație: lipsa `googleProjectId` returnează o eroare 422 structurată cu instrucțiuni de reconectare -**#510**— Windows: căile MSYS2/Git-Bash (`/c/Program Files/...`) sunt acum normalizate la `C:\Program Files\...` -**#492**— CLI `omniroute` detectează acum `mise`/`nvm` atunci când `app/server.js` lipsește și arată remedierea vizată### Documentație
 
-### Documentație
+-**#513**— Resetarea parolei Docker: `INITIAL_PASSWORD` env var soluție documentată -**#520**— pnpm: `pnpm approve-builds better-sqlite3` documentat### ✅ Closed Issues
 
-- **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
-- **#520** — pnpm: `pnpm approve-builds better-sqlite3` documented
-
-### ✅ Closed Issues
-
-#489, #492, #510, #513, #520, #521, #522, #525, #527, #532
-
----
+#489, #492, #510, #513, #520, #521, #522, #525, #527, #532---
 
 ## [2.9.5] — 2026-03-22
 
-> Sprint: New OpenCode providers, embedding credentials fix, CLI masked key bug, CACHE_TAG_PATTERN fix.
+> Sprint: noi furnizori OpenCode, remediere pentru încorporarea acreditărilor, eroare cheie mascata CLI, remediere CACHE_TAG_PATTERN.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**Instrumentele CLI salvează cheia API mascată în fișierele de configurare**— `claude-settings`, `cline-settings` și `openclaw-settings` Rutele POST acceptă acum un parametru `keyId` și rezolvă cheia API reală din DB înainte de a scrie pe disc. `ClaudeToolCard` a fost actualizat pentru a trimite `keyId` în loc de șirul de afișare mascat. Remedieri #523, #526. -**Furnizori de încorporare personalizați: eroare `Fără acreditări`**— `/v1/embeddings` urmărește acum `credentialsProviderId` separat de prefixul de rutare, astfel încât acreditările sunt preluate din ID-ul nodului furnizorului care se potrivește, mai degrabă decât din șirul de prefix public. Remediază o regresie în care `google/gemini-embedding-001` și modele similare de furnizor personalizat ar eșua întotdeauna cu o eroare de acreditări. Remedieri legate de #532. (PR #528 de la @jacob2826) -**Protecția cache de context regex ratează `
+` prefix**— `CACHE_TAG_PATTERN` din `comboAgentMiddleware.ts` a fost actualizat pentru a se potrivi cu ambele literale `
+` (backslash-n) și noua linie U+000A pe care fluxul `combo.ts` o injectează în jurul etichetei `<omniModel>` după remedierea #515. Remedieri #531.### ✨ New Providers
 
-- **CLI tools save masked API key to config files** — `claude-settings`, `cline-settings`, and `openclaw-settings` POST routes now accept a `keyId` param and resolve the real API key from DB before writing to disk. `ClaudeToolCard` updated to send `keyId` instead of the masked display string. Fixes #523, #526.
-- **Custom embedding providers: `No credentials` error** — `/v1/embeddings` now tracks `credentialsProviderId` separately from the routing prefix, so credentials are fetched from the matching provider node ID rather than the public prefix string. Fixes a regression where `google/gemini-embedding-001` and similar custom-provider models would always fail with a credentials error. Fixes #532-related. (PR #528 by @jacob2826)
-- **Context cache protection regex misses `\n` prefix** — `CACHE_TAG_PATTERN` in `comboAgentMiddleware.ts` updated to match both literal `\n` (backslash-n) and actual newline U+000A that `combo.ts` streaming injects around the `<omniModel>` tag after fix #515. Fixes #531.
+-**OpenCode Zen**— Gateway gratuit la `opencode.ai/zen/v1` cu 3 modele: `minimax-m2.5-free`, `big-pickle`, `gpt-5-nano` -**OpenCode Go**— Serviciu de abonament la `opencode.ai/zen/go/v1` cu 4 modele: `glm-5`, `kimi-k2.5`, `minimax-m2.7` (format Claude), `minimax-m2.5` (formatul Claude)
 
-### ✨ New Providers
-
-- **OpenCode Zen** — Free tier gateway at `opencode.ai/zen/v1` with 3 models: `minimax-m2.5-free`, `big-pickle`, `gpt-5-nano`
-- **OpenCode Go** — Subscription service at `opencode.ai/zen/go/v1` with 4 models: `glm-5`, `kimi-k2.5`, `minimax-m2.7` (Claude format), `minimax-m2.5` (Claude format)
-- Both providers use the new `OpencodeExecutor` which routes dynamically to `/chat/completions`, `/messages`, `/responses`, or `/models/{model}:generateContent` based on the requested model. (PR #530 by @kang-heewon)
-
----
+- Ambii furnizori folosesc noul `OpencodeExecutor` care se direcționează dinamic către `/chat/completions`, `/messages`, `/responses` sau `/models/{model}:generateContent` pe baza modelului solicitat. (PR #530 de @kang-heewon)---
 
 ## [2.9.4] — 2026-03-21
 
-> Sprint: Bug fixes — preserve Codex prompt cache key, fix tagContent JSON escaping, sync expired token status to DB.
+> Sprint: Remedieri de erori — păstrați cheia cache a promptului Codex, remediați evadarea tagContent JSON, sincronizați starea token-ului expirat cu DB.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(translator)**: Păstrați `prompt_cache_key` în API-ul răspunsuri → traducerea finalizărilor chat (#517)
+— Câmpul este un semnal de afinitate cache utilizat de Codex; eliminarea acestuia a prevenit accesările prompte în cache.
+Remediat în `openai-responses.ts` și `responsesApiHelper.ts`.
 
-- **fix(translator)**: Preserve `prompt_cache_key` in Responses API → Chat Completions translation (#517)
-  — The field is a cache-affinity signal used by Codex; stripping it was preventing prompt cache hits.
-  Fixed in `openai-responses.ts` and `responsesApiHelper.ts`.
+-**fix(combo)**: Escape `
+` în `tagContent`, deci șirul JSON injectat este valid (#515)
+— Liniile noi literale ale șablonului (U+000A) nu sunt permise fără escape în interiorul valorilor șirurilor JSON.
+Înlocuit cu secvențe literale `\n` în `open-sse/services/combo.ts`.
 
-- **fix(combo)**: Escape `\n` in `tagContent` so injected JSON string is valid (#515)
-  — Template literal newlines (U+000A) are not allowed unescaped inside JSON string values.
-  Replaced with `\\n` literal sequences in `open-sse/services/combo.ts`.
-
-- **fix(usage)**: Sync expired token status back to DB on live auth failure (#491)
-  — When the Limits & Quotas live check returns 401/403, the connection `testStatus` is now updated
-  to `"expired"` in the database so the Providers page reflects the same degraded state.
-  Fixed in `src/app/api/usage/[connectionId]/route.ts`.
-
----
+-**remediere (utilizare)**: Sincronizați starea jetonului expirat înapoi la DB în cazul eșecului de autentificare live (#491)
+— Când verificarea live Limits & Quotes returnează 401/403, conexiunea `testStatus` este acum actualizată
+la `"expired"` în baza de date, astfel încât pagina Furnizorilor să reflecte aceeași stare degradată.
+Remediat în `src/app/api/usage/[connectionId]/route.ts`.---
 
 ## [2.9.3] — 2026-03-21
 
-> Sprint: Add 5 new free AI providers — LongCat, Pollinations, Cloudflare AI, Scaleway, AI/ML API.
+> Sprint: Adăugați 5 noi furnizori gratuiti de AI - LongCat, Pollinations, Cloudflare AI, Scaleway, AI/ML API.### ✨ New Providers
 
-### ✨ New Providers
+-**feat(providers/longcat)**: Adăugați LongCat AI (`lc/`) — 50M de jetoane/zi gratuit (Flash-Lite) + 500K/zi (Chat/Thinking) în timpul beta publică. Compatibil cu OpenAI, autorizare standard Bearer. -**feat(providers/pollinations)**: Adaugă Pollinations AI (`pol/`) — nu este necesară cheia API. Proxy GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 solicitat/15 secunde gratuit). Executorul personalizat gestionează autentificarea opțională. -**feat(providers/cloudflare-ai)**: Adăugați Cloudflare Workers AI (`cf/`) — 10.000 de neuroni/zi gratuit (~150 de răspunsuri LLM sau 500 de secunde audio Whisper). Peste 50 de modele la nivel global. Executorul personalizat creează o adresă URL dinamică cu „accountId” din acreditări. -**feat(providers/scaleway)**: Adăugați API-uri Scaleway Generative (`scw/`) — 1 milion de jetoane gratuite pentru conturi noi. Conform UE/GDPR (Paris). Qwen3 235B, Llama 3.1 70B, Mistral Small 3.2. -**feat(providers/aimlapi)**: Adăugați AI/ML API (`aiml/`) — 0,025 USD/zi credit gratuit, peste 200 de modele (GPT-4o, Claude, Gemini, Llama) printr-un singur punct final de agregare.### 🔄 Provider Updates
 
-- **feat(providers/longcat)**: Add LongCat AI (`lc/`) — 50M tokens/day free (Flash-Lite) + 500K/day (Chat/Thinking) during public beta. OpenAI-compatible, standard Bearer auth.
-- **feat(providers/pollinations)**: Add Pollinations AI (`pol/`) — no API key required. Proxies GPT-5, Claude, Gemini, DeepSeek V3, Llama 4 (1 req/15s free). Custom executor handles optional auth.
-- **feat(providers/cloudflare-ai)**: Add Cloudflare Workers AI (`cf/`) — 10K Neurons/day free (~150 LLM responses or 500s Whisper audio). 50+ models on global edge. Custom executor builds dynamic URL with `accountId` from credentials.
-- **feat(providers/scaleway)**: Add Scaleway Generative APIs (`scw/`) — 1M free tokens for new accounts. EU/GDPR compliant (Paris). Qwen3 235B, Llama 3.1 70B, Mistral Small 3.2.
-- **feat(providers/aimlapi)**: Add AI/ML API (`aiml/`) — $0.025/day free credit, 200+ models (GPT-4o, Claude, Gemini, Llama) via single aggregator endpoint.
+-**feat(furnizori/împreună)**: Adăugați `hasFree: true` + 3 ID-uri de model gratuite permanent: `Llama-3.3-70B-Instruct-Turbo-Free`, `Llama-Vision-Free`, `DeepSeek-R1-Distill-Free`-70B- -**feat(providers/gemini)**: Adăugați `hasFree: true` + `freeNote` (1.500 de solicitări/zi, nu este nevoie de card de credit, aistudio.google.com) -**chore(furnizori/gemeni)**: Redenumiți numele afișat în „Gemeni (Google AI Studio)” pentru claritate### ⚙️ Infrastructure
 
-### 🔄 Provider Updates
+-**feat(executors/pollinations)**: nou `PollinationsExecutor` — omite antetul `Authorization` atunci când nu este furnizată nicio cheie API -**feat(executors/cloudflare-ai)**: nou `CloudflareAIExecutor` — construcția dinamică a URL-ului necesită `accountId` în acreditările furnizorului -**feat(executors)**: Înregistrați `pollinations`, `pol`, `cloudflare-ai`, `cf` executor mappings### Documentație
 
-- **feat(providers/together)**: Add `hasFree: true` + 3 permanently free model IDs: `Llama-3.3-70B-Instruct-Turbo-Free`, `Llama-Vision-Free`, `DeepSeek-R1-Distill-Llama-70B-Free`
-- **feat(providers/gemini)**: Add `hasFree: true` + `freeNote` (1,500 req/day, no credit card needed, aistudio.google.com)
-- **chore(providers/gemini)**: Rename display name to `Gemini (Google AI Studio)` for clarity
+-**docs(readme)**: stiva combo gratuită extinsă la 11 furnizori (0 USD pentru totdeauna) -**docs(readme)**: S-au adăugat 4 noi secțiuni gratuite pentru furnizori (LongCat, Pollinations, Cloudflare AI, Scaleway) cu tabele model -**docs(readme)**: tabel de prețuri actualizat cu 4 rânduri noi gratuite -**docs(i18n/pt-BR)**: Tabel de prețuri actualizat + secțiuni LongCat/Pollinations/Cloudflare AI/Scaleway adăugate în portugheză -**docs(new-features/ai)**: 10 fișiere cu specificațiile sarcinii + plan principal de implementare în `docs/new-features/ai/`### 🧪 Tests
 
-### ⚙️ Infrastructure
-
-- **feat(executors/pollinations)**: New `PollinationsExecutor` — omits `Authorization` header when no API key provided
-- **feat(executors/cloudflare-ai)**: New `CloudflareAIExecutor` — dynamic URL construction requires `accountId` in provider credentials
-- **feat(executors)**: Register `pollinations`, `pol`, `cloudflare-ai`, `cf` executor mappings
-
-### Documentație
-
-- **docs(readme)**: Expanded free combo stack to 11 providers ($0 forever)
-- **docs(readme)**: Added 4 new free provider sections (LongCat, Pollinations, Cloudflare AI, Scaleway) with model tables
-- **docs(readme)**: Updated pricing table with 4 new free tier rows
-- **docs(i18n/pt-BR)**: Updated pricing table + added LongCat/Pollinations/Cloudflare AI/Scaleway sections in Portuguese
-- **docs(new-features/ai)**: 10 task spec files + master implementation plan in `docs/new-features/ai/`
-
-### 🧪 Tests
-
-- Test suite: **821 tests, 0 failures** (unchanged)
-
----
+- Suită de teste:**821 de teste, 0 eșecuri**(neschimbat)---
 
 ## [2.9.2] — 2026-03-21
 
-> Sprint: Fix media transcription (Deepgram/HuggingFace Content-Type, language detection) and TTS error display.
+> Sprint: Remediați transcrierea media (Deepgram/HuggingFace Content-Type, detectarea limbii) și afișarea erorilor TTS.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(transcriere)**: transcrierea audio Deepgram și HuggingFace mapează acum corect `video/mp4` → `audio/mp4` și alte tipuri MIME media prin intermediul noului ajutor `resolveAudioContentType()`. Anterior, încărcarea fișierelor „.mp4” a returnat în mod constant „Nu a fost detectată vorbire”, deoarece Deepgram primea „Tip de conținut: video/mp4”. -**fix(transcriere)**: s-a adăugat `detect_language=true` la solicitările Deepgram — detectează automat limba audio (portugheză, spaniolă etc.) în loc să fie implicită în engleză. Remediază transcrierile care nu sunt în limba engleză care returnează rezultate goale sau deșeuri. -**fix(transcriere)**: s-a adăugat `punctuate=true` la solicitările Deepgram pentru rezultate de transcriere de calitate superioară cu punctuația corectă. -**fix(tts)**: `[object Object]` error display in Text-to-Speech responses fixed in both `audioSpeech.ts` and `audioTranscription.ts`. Funcția `upstreamErrorResponse()` extrage acum corect mesajele șir imbricate de la furnizori precum ElevenLabs care returnează `{ error: { message: "...", status_code: 401 } }` în loc de un șir de eroare plat.### 🧪 Tests
 
-- **fix(transcription)**: Deepgram and HuggingFace audio transcription now correctly map `video/mp4` → `audio/mp4` and other media MIME types via new `resolveAudioContentType()` helper. Previously, uploading `.mp4` files consistently returned "No speech detected" because Deepgram was receiving `Content-Type: video/mp4`.
-- **fix(transcription)**: Added `detect_language=true` to Deepgram requests — auto-detects audio language (Portuguese, Spanish, etc.) instead of defaulting to English. Fixes non-English transcriptions returning empty or garbage results.
-- **fix(transcription)**: Added `punctuate=true` to Deepgram requests for higher-quality transcription output with correct punctuation.
-- **fix(tts)**: `[object Object]` error display in Text-to-Speech responses fixed in both `audioSpeech.ts` and `audioTranscription.ts`. The `upstreamErrorResponse()` function now correctly extracts nested string messages from providers like ElevenLabs that return `{ error: { message: "...", status_code: 401 } }` instead of a flat error string.
+- Suită de teste:**821 de teste, 0 eșecuri**(neschimbat)### Triaged Issues
 
-### 🧪 Tests
-
-- Test suite: **821 tests, 0 failures** (unchanged)
-
-### Triaged Issues
-
-- **#508** — Tool call format regression: requested proxy logs and provider chain info (`needs-info`)
-- **#510** — Windows CLI healthcheck path: requested shell/Node version info (`needs-info`)
-- **#485** — Kiro MCP tool calls: closed as external Kiro issue (not OmniRoute)
-- **#442** — Baseten /models endpoint: closed (documented manual workaround)
-- **#464** — Key provisioning API: acknowledged as roadmap item
-
----
+-**#508**— Regresia formatului apelului instrumentului: jurnalele proxy solicitate și informații despre lanțul furnizorului (`needs-info`) -**#510**— Calea de verificare a stării CLI Windows: informații despre versiunea shell/nod solicitate (`needs-info`) -**#485**— Apeluri instrument Kiro MCP: închis ca problemă externă Kiro (nu OmniRoute) -**#442**— Punct final Baseten /models: închis (soluție manuală documentată) -**#464**— API de furnizare a cheilor: recunoscut ca element de foaie de parcurs---
 
 ## [2.9.1] — 2026-03-21
 
-> Sprint: Fix SSE omniModel data loss, merge per-protocol model compatibility.
+> Sprint: Remediați pierderea de date SSE omniModel, îmbinați compatibilitatea modelului pe protocol.### Bug Fixes
 
-### Bug Fixes
+-**#511**— Critic: eticheta `<omniModel>` a fost trimisă după `finish_reason:stop` în fluxurile SSE, provocând pierderi de date. Eticheta este acum injectată în prima bucată de conținut negoală, garantând livrarea înainte ca SDK-urile să închidă conexiunea.### Merged PRs
 
-- **#511** — Critical: `<omniModel>` tag was sent after `finish_reason:stop` in SSE streams, causing data loss. Tag is now injected into the first non-empty content chunk, guaranteeing delivery before SDKs close the connection.
+-**PR #512**(@zhangqiang8vip): Compatibilitatea modelului per-protocol — `normalizeToolCallId` și `preserveOpenAIDeveloperRole` pot fi acum configurate pe protocolul client (OpenAI, Claude, API de răspunsuri). Câmp nou `compatByProtocol` în configurația modelului cu validare Zod.### Triaged Issues
 
-### Merged PRs
-
-- **PR #512** (@zhangqiang8vip): Per-protocol model compatibility — `normalizeToolCallId` and `preserveOpenAIDeveloperRole` can now be configured per client protocol (OpenAI, Claude, Responses API). New `compatByProtocol` field in model config with Zod validation.
-
-### Triaged Issues
-
-- **#510** — Windows CLI healthcheck_failed: requested PATH/version info
-- **#509** — Turbopack Electron regression: upstream Next.js bug, documented workarounds
-- **#508** — macOS black screen: suggested `--disable-gpu` workaround
-
----
+-**#510**— Windows CLI healthcheck_failed: informații PATH/versiune solicitate -**#509**— Regresia Turbopack Electron: eroare Next.js în amonte, soluții documentate -**#508**— ecran negru macOS: soluție sugerată pentru `--disable-gpu`---
 
 ## [2.9.0] — 2026-03-20
 
-> Sprint: Cross-platform machineId fix, per-API-key rate limits, streaming context cache, Alibaba DashScope, search analytics, ZWS v5, and 8 issues closed.
+> Sprint: remedierea ID-ului mașinii pe mai multe platforme, limite de rată pentru fiecare cheie API, cache context de streaming, Alibaba DashScope, analiză de căutare, ZWS v5 și 8 probleme închise.### ✨ New Features
 
-### ✨ New Features
+-**feat(search)**: fila Search Analytics în `/dashboard/analytics` — defalcarea furnizorului, rata de accesare a memoriei cache, urmărirea costurilor. API nou: `GET /api/v1/search/analytics` (#feat/search-provider-routing) -**feat(furnizor)**: Alibaba Cloud DashScope adăugat cu validare personalizată a căii la punctul final - `chatPath` și `modelsPath` configurabile pentru fiecare nod (#feat/custom-endpoint-paths) -**feat(api)**: limite de număr de solicitări pe cheie API - coloane `max_requests_per_day` și `max_requests_per_minute` cu aplicarea ferestrei glisante în memorie care returnează HTTP 429 (#452) -**feat(dev)**: ZWS v5 — Remediere scurgeri HMR (485 conexiuni DB → 1), memorie 2,4 GB → 195 MB, singletonuri `globalThis`, remediere de avertizare Edge Runtime (@zhangqiang8vip)### 🐛 Bug Fixes
 
-- **feat(search)**: Search Analytics tab in `/dashboard/analytics` — provider breakdown, cache hit rate, cost tracking. New API: `GET /api/v1/search/analytics` (#feat/search-provider-routing)
-- **feat(provider)**: Alibaba Cloud DashScope added with custom endpoint path validation — configurable `chatPath` and `modelsPath` per node (#feat/custom-endpoint-paths)
-- **feat(api)**: Per-API-key request-count limits — `max_requests_per_day` and `max_requests_per_minute` columns with in-memory sliding-window enforcement returning HTTP 429 (#452)
-- **feat(dev)**: ZWS v5 — HMR leak fix (485 DB connections → 1), memory 2.4GB → 195MB, `globalThis` singletons, Edge Runtime warning fix (@zhangqiang8vip)
+-**fix(#506)**: `machineId` pe mai multe platforme — `getMachineIdRaw()` rescris cu try/catch waterfall (Windows REG.exe → macOS ioreg → citire fișier Linux → nume gazdă → `os.hostname()`). Elimină ramificarea „process.platform” în care Next.js bundler a eliminat codul mort, remedierea „head” nu este recunoscut” pe Windows. Se remediază și #466. -**fix(#493)**: Denumirea personalizată a modelului furnizorului — a eliminat eliminarea incorectă a prefixelor în `DefaultExecutor.transformRequest()`, care a alterat ID-urile modelului din domeniul organizației, cum ar fi `zai-org/GLM-5-FP8`. -**fix(#490)**: Streaming + protecție context cache — `TransformStream` interceptează SSE pentru a injecta eticheta `<omniModel>` înainte de marcatorul `[DONE]`, permițând protecția contextului cache pentru răspunsurile în flux. -**fix(#458)**: Validarea schemei combinate — `system_message`, `tool_filter_regex`, `context_cache_protection` trec acum validarea Zod la salvare. -**fix(#487)**: curățarea cardului KIRO MITM — a fost eliminat ZWS_README, `AntigravityToolCard` generat pentru a utiliza metadatele dinamice ale instrumentului.### 🧪 Tests
 
-### 🐛 Bug Fixes
+- Adăugate teste unitare de filtrare a instrumentelor în format antropic (PR #397) — 8 teste de regresie pentru „tool.name” fără învelișul „.function”
+- Suită de teste:**821 de teste, 0 eșecuri**(de la 813)### 📋 Issues Closed (8)
 
-- **fix(#506)**: Cross-platform `machineId` — `getMachineIdRaw()` rewritten with try/catch waterfall (Windows REG.exe → macOS ioreg → Linux file read → hostname → `os.hostname()`). Eliminates `process.platform` branching that Next.js bundler dead-code-eliminated, fixing `'head' is not recognized` on Windows. Also fixes #466.
-- **fix(#493)**: Custom provider model naming — removed incorrect prefix stripping in `DefaultExecutor.transformRequest()` that mangled org-scoped model IDs like `zai-org/GLM-5-FP8`.
-- **fix(#490)**: Streaming + context cache protection — `TransformStream` intercepts SSE to inject `<omniModel>` tag before `[DONE]` marker, enabling context cache protection for streaming responses.
-- **fix(#458)**: Combo schema validation — `system_message`, `tool_filter_regex`, `context_cache_protection` fields now pass Zod validation on save.
-- **fix(#487)**: KIRO MITM card cleanup — removed ZWS_README, generified `AntigravityToolCard` to use dynamic tool metadata.
+-**#506**— ID-ul mașinii Windows `head` nu este recunoscut (remediat) -**#493**— Denumirea modelului de furnizor personalizat (remediată) -**#490**— Cache de context pentru redare în flux (remediat) -**#452**— Limite de solicitare per-cheie API (implementate) -**#466**— Eroare de conectare la Windows (aceeași cauză rădăcină ca #506) -**#504**— MITM inactiv (comportament așteptat) -**#462**— Gemini CLI PSA (rezolvat) -**#434**— Prăbușire aplicației Electron (duplicat de #402)## [2.8.9] — 2026-03-20
 
-### 🧪 Tests
+> Sprint: Îmbinați PR-urile comunității, reparați cardul KIRO MITM, actualizările de dependențe.### Merged PRs
 
-- Added Anthropic-format tools filter unit tests (PR #397) — 8 regression tests for `tool.name` without `.function` wrapper
-- Test suite: **821 tests, 0 failures** (up from 813)
+-**PR #498**(@Sajid11194): Remediați blocarea ID-ului mașinii Windows (`undefined\REG.exe`). Înlocuiește `node-machine-id` cu interogări native din registrul sistemului de operare.**Se închide #486.** -**PR #497**(@zhangqiang8vip): Remediați scurgerile de resurse HMR în modul de dezvoltare — 485 de conexiuni DB scurse → 1, memorie 2,4 GB → 195 MB. `globalThis` singletons, remediere de avertizare Edge Runtime, stabilitate de testare Windows. (+1168/-338 în 22 de fișiere) -**PRs #499-503**(Dependabot): Actualizări GitHub Actions — `docker/build-push-action@7`, `actions/checkout@6`, `peter-evans/dockerhub-description@5`, `docker/setup-qemu-action@4`, `docker@4`logine-action@4/.### Bug Fixes
 
-### 📋 Issues Closed (8)
-
-- **#506** — Windows machineId `head` not recognized (fixed)
-- **#493** — Custom provider model naming (fixed)
-- **#490** — Streaming context cache (fixed)
-- **#452** — Per-API-key request limits (implemented)
-- **#466** — Windows login failure (same root cause as #506)
-- **#504** — MITM inactive (expected behavior)
-- **#462** — Gemini CLI PSA (resolved)
-- **#434** — Electron app crash (duplicate of #402)
-
-## [2.8.9] — 2026-03-20
-
-> Sprint: Merge community PRs, fix KIRO MITM card, dependency updates.
-
-### Merged PRs
-
-- **PR #498** (@Sajid11194): Fix Windows machine ID crash (`undefined\REG.exe`). Replaces `node-machine-id` with native OS registry queries. **Closes #486.**
-- **PR #497** (@zhangqiang8vip): Fix dev-mode HMR resource leaks — 485 leaked DB connections → 1, memory 2.4GB → 195MB. `globalThis` singletons, Edge Runtime warning fix, Windows test stability. (+1168/-338 across 22 files)
-- **PRs #499-503** (Dependabot): GitHub Actions updates — `docker/build-push-action@7`, `actions/checkout@6`, `peter-evans/dockerhub-description@5`, `docker/setup-qemu-action@4`, `docker/login-action@4`.
-
-### Bug Fixes
-
-- **#505** — KIRO MITM card now displays tool-specific instructions (`api.anthropic.com`) instead of Antigravity-specific text.
-- **#504** — Responded with UX clarification (MITM "Inactive" is expected behavior when proxy is not running).
-
----
+-**#505**— Cardul KIRO MITM afișează acum instrucțiuni specifice instrumentului (`api.anthropic.com`) în loc de text specific pentru antigravitație. -**#504**— A răspuns cu clarificare UX (MITM „Inactiv” este un comportament așteptat atunci când proxy-ul nu rulează).---
 
 ## [2.8.8] — 2026-03-20
 
-> Sprint: Fix OAuth batch test crash, add "Test All" button to individual provider pages.
+> Sprint: remediați blocarea testului în lot OAuth, adăugați butonul „Testați toate” la paginile individuale ale furnizorului.### Bug Fixes
 
-### Bug Fixes
+-**Cercare test OAuth batch**(ERR_CONNECTION_REFUSED): bucla for secvențială înlocuită cu limită de concurență de 5 conexiuni + 30s de timp expirat per conexiune prin `Promise.race()` + `Promise.allSettled()`. Previne blocarea serverului la testarea unor grupuri mari de furnizori OAuth (~30+ conexiuni).### Funcționalități
 
-- **OAuth batch test crash** (ERR_CONNECTION_REFUSED): Replaced sequential for-loop with 5-connection concurrency limit + 30s per-connection timeout via `Promise.race()` + `Promise.allSettled()`. Prevents server crash when testing large OAuth provider groups (~30+ connections).
-
-### Funcționalități
-
-- **"Test All" button on provider pages**: Individual provider pages (e.g., `/providers/codex`) now show a "Test All" button in the Connections header when there are 2+ connections. Uses `POST /api/providers/test-batch` with `{mode: "provider", providerId}`. Results displayed in a modal with pass/fail summary and per-connection diagnosis.
-
----
+-**Butonul „Testează toate” pe paginile furnizorului**: paginile individuale ale furnizorului (de exemplu, `/providers/codex`) afișează acum un buton „Testează toate” în antetul Conexiuni când există peste 2 conexiuni. Utilizează `POST /api/providers/test-batch` cu `{mode: "provider", providerId}`. Rezultatele afișate într-un mod modal cu rezumat de promovare/eșec și diagnosticare per conexiune.---
 
 ## [2.8.7] — 2026-03-20
 
-> Sprint: Merge PR #495 (Bottleneck 429 drop), fix #496 (custom embedding providers), triage features.
+> Sprint: Merge PR #495 (scădere în gâtul 429), corectare #496 (furnizori de încorporare personalizați), funcții de triaj.### Bug Fixes
 
-### Bug Fixes
+-**Bottleneck 429 infinite wait**(PR #495 de @xandr0s): Pe 429, `limiter.stop({ dropWaitingJobs: true })` nu reușește imediat toate cererile din coadă, astfel încât apelanții din amonte pot declanșa fallback. Limitatorul este șters din Map, astfel încât următoarea solicitare creează o instanță nouă. -**Modele de încorporare personalizate nerezolvabile**(#496): `POST /v1/embeddings` rezolvă acum modelele de încorporare personalizate de la TOATE nodurile_furnizorului (nu doar localhost). Activează modele precum `google/gemini-embedding-001` adăugate prin tabloul de bord.### Issues Responded
 
-- **Bottleneck 429 infinite wait** (PR #495 by @xandr0s): On 429, `limiter.stop({ dropWaitingJobs: true })` immediately fails all queued requests so upstream callers can trigger fallback. Limiter is deleted from Map so next request creates a fresh instance.
-- **Custom embedding models unresolvable** (#496): `POST /v1/embeddings` now resolves custom embedding models from ALL provider_nodes (not just localhost). Enables models like `google/gemini-embedding-001` added via dashboard.
-
-### Issues Responded
-
-- **#452** — Per-API-key request-count limits (acknowledged, on roadmap)
-- **#464** — Auto-issue API keys with provider/account limits (needs more detail)
-- **#488** — Auto-update model lists (acknowledged, on roadmap)
-- **#496** — Custom embedding provider resolution (fixed)
-
----
+-**#452**— Limite de număr de solicitări pe cheie API (recunoscută, pe foaia de parcurs) -**#464**— Emite automat chei API cu limite de furnizor/cont (necesită mai multe detalii) -**#488**— Actualizare automată a listelor de modele (recunoscută, pe foaia de parcurs) -**#496**— Rezoluție personalizată a furnizorului de încorporare (fixată)---
 
 ## [2.8.6] — 2026-03-20
 
-> Sprint: Merge PR #494 (MiniMax role fix), fix KIRO MITM dashboard, triage 8 issues.
+> Sprint: Merge PR #494 (remediere rol MiniMax), remediați tabloul de bord KIRO MITM, triaj 8 probleme.### Funcționalități
 
-### Funcționalități
+-**MiniMax developer→system role fix**(PR #494 de la @zhangqiang8vip): comuta `preserveDeveloperRole` per model. Adaugă interfața de utilizare „Compatibilitate” în pagina furnizorilor. Remediază 422 „eroare de parametri de rol” pentru MiniMax și gateway-uri similare. -**roleNormalizer**: `normalizeDeveloperRole()` acceptă acum parametrul `preserveDeveloperRole` cu comportament în trei stări (undefined=keep, true=keep, false=convert). -**DB**: `getModelPreserveOpenAIDeveloperRole()` și `mergeModelCompatOverride()` noi în `models.ts`.### Bug Fixes
 
-- **MiniMax developer→system role fix** (PR #494 by @zhangqiang8vip): Per-model `preserveDeveloperRole` toggle. Adds "Compatibility" UI in providers page. Fixes 422 "role param error" for MiniMax and similar gateways.
-- **roleNormalizer**: `normalizeDeveloperRole()` now accepts `preserveDeveloperRole` parameter with tri-state behavior (undefined=keep, true=keep, false=convert).
-- **DB**: New `getModelPreserveOpenAIDeveloperRole()` and `mergeModelCompatOverride()` in `models.ts`.
+-**Tabloul de bord KIRO MITM**(#481/#487): `CLIToolsPageClient` direcționează acum orice instrument `configType: "mitm"` către `AntigravityToolCard` (comenzi MITM Start/Stop). Anterior, doar Antigravity a fost codificat. -**AntigravityToolCard generic**: folosește `tool.image`, `tool.description`, `tool.id` în loc de valorile Antigravity codificate. Protejează împotriva lipsei „defaultModels”.### Cleanup
 
-### Bug Fixes
+- Eliminat `ZWS_README_V2.md` (documente doar pentru dezvoltare din PR #494).### Issues Triaged (8)
 
-- **KIRO MITM dashboard** (#481/#487): `CLIToolsPageClient` now routes any `configType: "mitm"` tool to `AntigravityToolCard` (MITM Start/Stop controls). Previously only Antigravity was hardcoded.
-- **AntigravityToolCard generic**: Uses `tool.image`, `tool.description`, `tool.id` instead of hardcoded Antigravity values. Guards against missing `defaultModels`.
-
-### Cleanup
-
-- Removed `ZWS_README_V2.md` (development-only docs from PR #494).
-
-### Issues Triaged (8)
-
-- **#487** — Closed (KIRO MITM fixed in this release)
-- **#486** — needs-info (Windows REG.exe PATH issue)
-- **#489** — needs-info (Antigravity projectId missing, OAuth reconnect needed)
-- **#492** — needs-info (missing app/server.js on mise-managed Node)
-- **#490** — Acknowledged (streaming + context cache blocking, fix planned)
-- **#491** — Acknowledged (Codex auth state inconsistency)
-- **#493** — Acknowledged (Modal provider model name prefix, workaround provided)
-- **#488** — Feature request backlog (auto-update model lists)
-
----
+-**#487**— Închis (KIRO MITM remediat în această versiune) -**#486**— necesită informații (problema Windows REG.exe PATH) -**#489**— informații despre nevoi (antigravity projectId lipsește, este necesară reconectarea OAuth) -**#492**— informații despre nevoi (lipsește aplicația/server.js pe nodul gestionat greșit) -**#490**— Confirmat (streaming + blocare context cache, remediere planificată) -**#491**— Confirmat (incoerența stării de autorizare Codex) -**#493**— Confirmat (prefixul numelui modelului furnizorului de modal, soluția de soluție furnizată) -**#488**— Întârziere de solicitare de funcții (actualizare automată a listelor de modele)---
 
 ## [2.8.5] — 2026-03-19
 
-> Sprint: Fix zombie SSE streams, context cache first-turn, KIRO MITM, and triage 5 external issues.
+> Sprint: Remediați fluxurile SSE zombie, cacheul contextului la prima tură, KIRO MITM și problemele externe de triaj 5.### Bug Fixes
 
-### Bug Fixes
+-**Zombie SSE Streams**(nr. 473): reduceți `STREAM_IDLE_TIMEOUT_MS` de la 300s → 120s pentru o alternativă combinată mai rapidă atunci când furnizorii se blochează la mijlocul fluxului. Configurabil prin env var. -**Context Cache Tag**(#474): Remediați `injectModelTag()` pentru a gestiona cererile de la primul rând (fără mesaje de asistent) - protecția contextului cache funcționează acum de la primul răspuns. -**KIRO MITM**(#481): Schimbați KIRO `configType` din `guide` → `mitm` astfel încât tabloul de bord redă controalele MITM Start/Stop. -**Test E2E**(CI): Remediați `providers-bailian-coding-plan.spec.ts` — respingeți suprapunerea modală preexistentă înainte de a face clic pe butonul Adăugați cheia API.### Closed Issues
 
-- **Zombie SSE Streams** (#473): Reduce `STREAM_IDLE_TIMEOUT_MS` from 300s → 120s for faster combo fallback when providers hang mid-stream. Configurable via env var.
-- **Context Cache Tag** (#474): Fix `injectModelTag()` to handle first-turn requests (no assistant messages) — context cache protection now works from the very first response.
-- **KIRO MITM** (#481): Change KIRO `configType` from `guide` → `mitm` so the dashboard renders MITM Start/Stop controls.
-- **E2E Test** (CI): Fix `providers-bailian-coding-plan.spec.ts` — dismiss pre-existing modal overlay before clicking Add API Key button.
-
-### Closed Issues
-
-- #473 — Zombie SSE streams bypass combo fallback
-- #474 — Context cache `<omniModel>` tag missing on first turn
-- #481 — MITM for KIRO not activatable from dashboard
-- #468 — Gemini CLI remote server (superseded by #462 deprecation)
-- #438 — Claude unable to write files (external CLI issue)
-- #439 — AppImage doesn't work (documented libfuse2 workaround)
-- #402 — ARM64 DMG "damaged" (documented xattr -cr workaround)
-- #460 — CLI not runnable on Windows (documented PATH fix)
-
----
+- #473 — Fluxurile Zombie SSE ocolesc alternativa combo
+- #474 — Eticheta `<omniModel>` din cache contextuală lipsește la prima tură
+- #481 — MITM pentru KIRO nu poate fi activat din tabloul de bord
+- #468 — Server la distanță Gemini CLI (înlocuit de deprecierea #462)
+- #438 — Claude nu poate scrie fișiere (problema CLI externă)
+- #439 — AppImage nu funcționează (soluție documentată pentru libfuse2)
+- #402 — ARM64 DMG „deteriorat” (soluție documentată xattr -cr)
+- #460 — CLI nu poate fi rulat pe Windows (remediere PATH documentată)---
 
 ## [2.8.4] — 2026-03-19
 
-> Sprint: Gemini CLI deprecation, VM guide i18n fix, dependabot security fix, provider schema expansion.
+> Sprint: Gemini CLI depreciere, ghidul VM i18n fix, dependentabot security fix, extinderea schemei furnizorului.### Funcționalități
 
-### Funcționalități
+-**Gemini CLI Depreciation**(#462): Marcați furnizorul `gemini-cli` ca depreciat cu avertisment — Google restricționează utilizarea OAuth de la terți din martie 2026 -**Schema furnizorului**(#462): Extindeți validarea Zod cu câmpurile opționale `deprecated`, `deprecationReason`, `hasFree`, `freeNote`, `authHint`, `apiHint`### Bug Fixes
 
-- **Gemini CLI Deprecation** (#462): Mark `gemini-cli` provider as deprecated with warning — Google restricts third-party OAuth usage from March 2026
-- **Provider Schema** (#462): Expand Zod validation with `deprecated`, `deprecationReason`, `hasFree`, `freeNote`, `authHint`, `apiHint` optional fields
+-**Ghid VM i18n**(#471): Adăugați `VM_DEPLOYMENT_GUIDE.md` la conducta de traducere i18n, regenerați toate cele 30 de traduceri locale din sursa engleză (au fost blocate în portugheză)### Securitate
 
-### Bug Fixes
+-**deps**: Bump `flatted` 3.3.3 → 3.4.2 — remediază poluarea prototipului CWE-1321 (#484, @dependabot)### Closed Issues
 
-- **VM Guide i18n** (#471): Add `VM_DEPLOYMENT_GUIDE.md` to i18n translation pipeline, regenerate all 30 locale translations from English source (were stuck in Portuguese)
+- #472 — Regresia Aliasurilor de model (remediată în v2.8.2)
+- #471 — Traducerile ghidului VM întrerupte
+- #483 — `data: nul` după `[DONE]` (remediat în v2.8.3)### Merged PRs
 
-### Securitate
-
-- **deps**: Bump `flatted` 3.3.3 → 3.4.2 — fixes CWE-1321 prototype pollution (#484, @dependabot)
-
-### Closed Issues
-
-- #472 — Model Aliases regression (fixed in v2.8.2)
-- #471 — VM guide translations broken
-- #483 — Trailing `data: null` after `[DONE]` (fixed in v2.8.3)
-
-### Merged PRs
-
-- #484 — deps: bump flatted from 3.3.3 to 3.4.2 (@dependabot)
-
----
+- #484 — deps: denivelare aplatizată de la 3.3.3 la 3.4.2 (@dependabot)---
 
 ## [2.8.3] — 2026-03-19
 
-> Sprint: Czech i18n, SSE protocol fix, VM guide translation.
+> Sprint: Cehă i18n, remediere protocol SSE, traducere ghid VM.### Funcționalități
 
-### Funcționalități
+-**Limba cehă**(#482): Cehă completă (cs) i18n — 22 de documente, 2606 șiruri de interfață, actualizări de comutare de limbă (@zen0bit) -**Ghid de implementare VM**: Tradus din portugheză în engleză ca document sursă (@zen0bit)### Bug Fixes
 
-- **Czech Language** (#482): Full Czech (cs) i18n — 22 docs, 2606 UI strings, language switcher updates (@zen0bit)
-- **VM Deployment Guide**: Translated from Portuguese to English as the source document (@zen0bit)
+-**Protocol SSE**(#483): Opriți trimiterea de `date: nul` după semnalul `[DONE]` — remediază `AI_TypeValidationError` în clienții SDK AI stricti (validatori bazați pe Zod)### Merged PRs
 
-### Bug Fixes
-
-- **SSE Protocol** (#483): Stop sending trailing `data: null` after `[DONE]` signal — fixes `AI_TypeValidationError` in strict AI SDK clients (Zod-based validators)
-
-### Merged PRs
-
-- #482 — Add Czech language + Fix VM_DEPLOYMENT_GUIDE.md English source (@zen0bit)
-
----
+- #482 — Adăugați limba cehă + Remediați sursa engleză VM_DEPLOYMENT_GUIDE.md (@zen0bit)---
 
 ## [2.8.2] — 2026-03-19
 
-> Sprint: 2 merged PRs, model aliases routing fix, log export, and issue triage.
+> Sprint: 2 PR-uri fuzionate, remediere de rutare a aliaselor de model, export de jurnal și triaj probleme.### Funcționalități
 
-### Funcționalități
+-**Export jurnal**: Buton nou Export pe `/dashboard/logs` cu meniu vertical pentru intervalul de timp (1h, 6h, 12h, 24h). Descărcă JSON de jurnalele de solicitări/proxy/apeluri prin intermediul API-ului `/api/logs/export` (#user-request)### Bug Fixes
 
-- **Log Export**: New Export button on `/dashboard/logs` with time range dropdown (1h, 6h, 12h, 24h). Downloads JSON of request/proxy/call logs via `/api/logs/export` API (#user-request)
+-**Rutarea Aliaselor de model**(#472): Setări → Aliasurile de model afectează acum corect rutarea furnizorului, nu doar detectarea formatului. Anterior, ieșirea `resolveModelAlias()` a fost folosită numai pentru `getModelTargetFormat()`, dar ID-ul modelului original a fost trimis furnizorului -**Utilizarea fluxului de flux**(#480): Datele de utilizare de la ultimul eveniment SSE din buffer sunt acum extrase corect în timpul fluxului de flux (combinate din @prakersh)### Merged PRs
 
-### Bug Fixes
-
-- **Model Aliases Routing** (#472): Settings → Model Aliases now correctly affect provider routing, not just format detection. Previously `resolveModelAlias()` output was only used for `getModelTargetFormat()` but the original model ID was sent to the provider
-- **Stream Flush Usage** (#480): Usage data from the last SSE event in the buffer is now correctly extracted during stream flush (merged from @prakersh)
-
-### Merged PRs
-
-- #480 — Extract usage from remaining buffer in flush handler (@prakersh)
-- #479 — Add missing Codex 5.3/5.4 and Anthropic model ID pricing entries (@prakersh)
-
----
+- #480 — Extrageți utilizarea din buffer-ul rămas în gestionarea fluxului (@prakersh)
+- #479 — Adăugați intrările de preț pentru Codex 5.3/5.4 și ID model antropic care lipsesc (@prakersh)---
 
 ## [2.8.1] — 2026-03-19
 
-> Sprint: Five community PRs — streaming call log fixes, Kiro compatibility, cache token analytics, Chinese translation, and configurable tool call IDs.
+> Sprint: Cinci PR-uri ale comunității — remedieri de jurnal de apeluri în flux, compatibilitate Kiro, analiză de token cache, traducere în limba chineză și ID-uri de apel configurabile pentru instrumente.### Funcționalități
 
-### Funcționalități
+-**feat(logs)**: conținutul de răspuns al jurnalului de apeluri acum acumulat corect din fragmentele brute ale furnizorului (OpenAI/Claude/Gemini) înainte de traducere, reparând sarcinile utile de răspuns goale în modul de streaming (#470, @zhangqiang8vip) -**feat(furnizori)**: Normalizarea ID-ului de apel pentru instrumentul de 9 caractere configurabilă pe model (în stil Mistral) - numai modelele cu opțiunea activată primesc ID-uri trunchiate (#470) -**feat(api)**: Key PATCH API extins pentru a accepta câmpurile `allowedConnections`, `name`, `autoResolve`, `isActive` și `accessSchedule` (#470) -**feat(tabloul de bord)**: aspectul primul răspuns în interfața de utilizare pentru detaliile jurnalului de solicitare (#470) -**feat(i18n)**: traducere îmbunătățită în limba chineză (zh-CN) — retraducere completă (#475, @only4copilot)### 🐛 Bug Fixes
 
-- **feat(logs)**: Call log response content now correctly accumulated from raw provider chunks (OpenAI/Claude/Gemini) before translation, fixing empty response payloads in streaming mode (#470, @zhangqiang8vip)
-- **feat(providers)**: Per-model configurable 9-char tool call ID normalization (Mistral-style) — only models with the option enabled get truncated IDs (#470)
-- **feat(api)**: Key PATCH API expanded to support `allowedConnections`, `name`, `autoResolve`, `isActive`, and `accessSchedule` fields (#470)
-- **feat(dashboard)**: Response-first layout in request log detail UI (#470)
-- **feat(i18n)**: Improved Chinese (zh-CN) translation — complete retranslation (#475, @only4copilot)
-
-### 🐛 Bug Fixes
-
-- **fix(kiro)**: Strip injected `model` field from request body — Kiro API rejects unknown top-level fields (#478, @prakersh)
-- **fix(usage)**: Include cache read + cache creation tokens in usage history input totals for accurate analytics (#477, @prakersh)
-- **fix(callLogs)**: Support Claude format usage fields (`input_tokens`/`output_tokens`) alongside OpenAI format, include all cache token variants (#476, @prakersh)
-
----
+-**fix(kiro)**: Eliminați câmpul „model” injectat din corpul solicitării — API-ul Kiro respinge câmpurile de nivel superior necunoscute (#478, @prakersh) -**remediere (utilizare)**: includeți citirea memoriei cache + simbolurile de creare a memoriei cache în totalurile de intrare ale istoricului de utilizare pentru analize precise (#477, @prakersh) -**fix(callLogs)**: acceptă câmpurile de utilizare în format Claude (`input_tokens`/`output_tokens`) alături de formatul OpenAI, include toate variantele de token cache (#476, @prakersh)---
 
 ## [2.8.0] — 2026-03-19
 
-> Sprint: Bailian Coding Plan provider with editable base URLs, plus community contributions for Alibaba Cloud and Kimi Coding.
+> Sprint: furnizor Bailian Coding Plan cu adrese URL de bază editabile, plus contribuții ale comunității pentru Alibaba Cloud și Kimi Coding.### Funcționalități
 
-### Funcționalități
+-**feat(providers)**: Planul de codificare Bailian adăugat (`plan-de-codare bailian`) — Alibaba Model Studio cu API compatibil cu Antropic. Catalog static de 8 modele, inclusiv Qwen3.5 Plus, Qwen3 Coder, MiniMax M2.5, GLM 5 și Kimi K2.5. Include validarea autentificare personalizată (400=valid, 401/403=invalid) (#467, @Mind-Dragon) -**feat(admin)**: Adresa URL implicită editabilă în fluxurile de creare/editare a administratorului furnizorului - utilizatorii pot configura adrese URL de bază personalizate pentru fiecare conexiune. A persistat în `providerSpecificData.baseUrl` cu validarea schemei Zod respingând schemele care nu sunt http(e) (#467)### 🧪 Tests
 
-- **feat(providers)**: Added Bailian Coding Plan (`bailian-coding-plan`) — Alibaba Model Studio with Anthropic-compatible API. Static catalog of 8 models including Qwen3.5 Plus, Qwen3 Coder, MiniMax M2.5, GLM 5, and Kimi K2.5. Includes custom auth validation (400=valid, 401/403=invalid) (#467, @Mind-Dragon)
-- **feat(admin)**: Editable default URL in Provider Admin create/edit flows — users can configure custom base URLs per connection. Persisted in `providerSpecificData.baseUrl` with Zod schema validation rejecting non-http(s) schemes (#467)
-
-### 🧪 Tests
-
-- Added 30+ unit tests and 2 e2e scenarios for Bailian Coding Plan provider covering auth validation, schema hardening, route-level behavior, and cross-layer integration
-
----
+- S-au adăugat peste 30 de teste unitare și 2 scenarii e2e pentru furnizorul de plan de codare Bailian, care acoperă validarea autenticării, consolidarea schemei, comportamentul la nivel de rută și integrarea pe mai multe straturi---
 
 ## [2.7.10] — 2026-03-19
 
-> Sprint: Two new community-contributed providers (Alibaba Cloud Coding, Kimi Coding API-key) and Docker pino fix.
+> Sprint: doi furnizori noi contribuiți de comunitate (Alibaba Cloud Coding, Kimi Coding API-key) și Docker pino fix.### Funcționalități
 
-### Funcționalități
+-**feat(furnizori)**: S-a adăugat suport Alibaba Cloud Coding Plan cu două puncte finale compatibile cu OpenAI — `alicode` (China) și `alicode-intl` (internațional), fiecare cu 8 modele (#465, @dtk1985) -**feat(providers)**: S-a adăugat o cale dedicată furnizorului `kimi-coding-apikey` — accesul Kimi Coding bazat pe chei API nu mai este forțat prin ruta `kimi-coding` numai OAuth. Include registru, constante, modele API, configurare și test de validare (#463, @Mind-Dragon)### 🐛 Bug Fixes
 
-- **feat(providers)**: Added Alibaba Cloud Coding Plan support with two OpenAI-compatible endpoints — `alicode` (China) and `alicode-intl` (International), each with 8 models (#465, @dtk1985)
-- **feat(providers)**: Added dedicated `kimi-coding-apikey` provider path — API-key-based Kimi Coding access is no longer forced through OAuth-only `kimi-coding` route. Includes registry, constants, models API, config, and validation test (#463, @Mind-Dragon)
-
-### 🐛 Bug Fixes
-
-- **fix(docker)**: Added missing `split2` dependency to Docker image — `pino-abstract-transport` requires it at runtime but it was not being copied into the standalone container, causing `Cannot find module 'split2'` crashes (#459)
-
----
+-**fix(docker)**: S-a adăugat dependența lipsă `split2` la imaginea Docker — `pino-abstract-transport` o necesită în timpul execuției, dar nu a fost copiat în containerul autonom, provocând blocări `Cannot find module 'split2'` (#459)---
 
 ## [2.7.9] — 2026-03-18
 
-> Sprint: Codex responses subpath passthrough natively supported, Windows MITM crash fixed, and Combos agent schemas adjusted.
+> Sprint: răspunsurile Codex sub-caile de trecere suportate nativ, blocarea Windows MITM remediată și schemele agent Combos ajustate.### Funcționalități
 
-### Funcționalități
+-**feat(codex)**: Subpath-ul răspunsurilor native pentru Codex — direcționează nativ `POST /v1/responses/compact` către Codex în amonte, menținând compatibilitatea cu Claude Code fără a elimina sufixul `/compact` (#457)### 🐛 Bug Fixes
 
-- **feat(codex)**: Native responses subpath passthrough for Codex — natively routes `POST /v1/responses/compact` to Codex upstream, maintaining Claude Code compatibility without stripping the `/compact` suffix (#457)
-
-### 🐛 Bug Fixes
-
-- **fix(combos)**: Zod schemas (`updateComboSchema` and `createComboSchema`) now include `system_message`, `tool_filter_regex`, and `context_cache_protection`. Fixes bug where agent-specific settings created via the dashboard were silently discarded by the backend validation layer (#458)
-- **fix(mitm)**: Kiro MITM profile crash on Windows fixed — `node-machine-id` failed due to missing `REG.exe` env, and the fallback threw a fatal `crypto is not defined` error. Fallback now safely and correctly imports crypto (#456)
-
----
+-**fix(combo)**: Schemele Zod (`updateComboSchema` și `createComboSchema`) includ acum `system_message`, `tool_filter_regex` și `context_cache_protection`. Remediază eroarea în care setările specifice agentului create prin tabloul de bord au fost eliminate în tăcere de stratul de validare backend (#458) -**fix(mitm)**: Prăbușirea profilului Kiro MITM pe Windows a fost remediată — `node-machine-id` a eșuat din cauza lipsei env `REG.exe`, iar fallback-ul a generat o eroare fatală `crypto is not defined`. Fallback acum importă cripto în siguranță și corect (#456)---
 
 ## [2.7.8] — 2026-03-18
 
-> Sprint: Budget save bug + combo agent features UI + omniModel tag security fix.
+> Sprint: eroare de economisire a bugetului + agent combinat caracteristici UI + remediere de securitate a etichetei omniModel.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(buget)**: „Salvare limite” nu mai returnează 422 — `warningThreshold` este acum trimis corect ca fracție (0–1) în loc de procent (0–100) (#451) -**fix(combo)**: eticheta cache internă `<omniModel>` este acum eliminată înainte de a redirecționa cererile către furnizori, prevenind întreruperile sesiunii cache (#454)### Funcționalități
 
-- **fix(budget)**: "Save Limits" no longer returns 422 — `warningThreshold` is now correctly sent as fraction (0–1) instead of percentage (0–100) (#451)
-- **fix(combos)**: `<omniModel>` internal cache tag is now stripped before forwarding requests to providers, preventing cache session breaks (#454)
-
-### Funcționalități
-
-- **feat(combos)**: Agent Features section added to combo create/edit modal — expose `system_message` override, `tool_filter_regex`, and `context_cache_protection` directly from the dashboard (#454)
-
----
+-**feat(combo)**: secțiunea Caracteristici de agent adăugată la combo create/edit modal — expune `system_message` override, `tool_filter_regex` și `context_cache_protection` direct din tabloul de bord (#454)---
 
 ## [2.7.7] — 2026-03-18
 
-> Sprint: Docker pino crash, Codex CLI responses worker fix, package-lock sync.
+> Sprint: blocarea Docker pino, remedierea lucrătorului pentru răspunsurile CLI Codex, sincronizarea blocării pachetului.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(docker)**: `pino-abstract-transport` și `pino-pretty` sunt acum copiate în mod explicit în etapa de rulare Docker — Urmărirea autonomă Next.js ratează aceste dep-uri egale, provocând blocarea `Cannot find module pino-abstract-transport` la pornire (#449) -**fix(responses)**: Eliminați `initTranslators()` de pe ruta `/v1/responses` - se bloca lucrătorul Next.js cu `lucrătorul a ieșit` uncaughtException la cererile CLI Codex (#450)### 🔧 Maintenance
 
-- **fix(docker)**: `pino-abstract-transport` and `pino-pretty` now explicitly copied in Docker runner stage — Next.js standalone trace misses these peer deps, causing `Cannot find module pino-abstract-transport` crash on startup (#449)
-- **fix(responses)**: Remove `initTranslators()` from `/v1/responses` route — was crashing Next.js worker with `the worker has exited` uncaughtException on Codex CLI requests (#450)
-
-### 🔧 Maintenance
-
-- **chore(deps)**: `package-lock.json` now committed on every version bump to ensure Docker `npm ci` uses exact dependency versions
-
----
+-**chore(deps)**: `package-lock.json` este acum comis la fiecare versiune de actualizare pentru a se asigura că Docker `npm ci` folosește versiuni exacte de dependență---
 
 ## [2.7.5] — 2026-03-18
 
-> Sprint: UX improvements and Windows CLI healthcheck fix.
+> Sprint: îmbunătățiri UX și remediere de verificare a stării CLI Windows.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(ux)**: Show default password hint on login page — new users now see `"Default password: 123456"` below the password input (#437)
-- **fix(cli)**: Claude CLI and other npm-installed tools now correctly detected as runnable on Windows — spawn uses `shell:true` to resolve `.cmd` wrappers via PATHEXT (#447)
-
----
+-**fix(ux)**: Afișează indicația de parolă implicită pe pagina de conectare — utilizatorii noi văd acum „„Parola implicită: 123456”” sub introducerea parolei (#437) -**fix(cli)**: Claude CLI și alte instrumente instalate de npm sunt acum detectate corect ca rulabile pe Windows - spawn folosește `shell:true` pentru a rezolva wrapper-urile `.cmd` prin PATHEXT (#447)---
 
 ## [2.7.4] — 2026-03-18
 
-> Sprint: Search Tools dashboard, i18n fixes, Copilot limits, Serper validation fix.
+> Sprint: tabloul de bord Instrumente de căutare, remedieri i18n, limite Copilot, remediere de validare Serper.### Funcționalități
 
-### Funcționalități
+-**feat(search)**: Adăugați teren de căutare (al 10-lea punct final), pagină Instrumente de căutare cu compararea furnizorilor/Reclasificarea conductei/Istoricul căutărilor, rutarea locală a reclasării, autentificarea API-ului de căutare (#443 de la @Regis-RCR)
 
-- **feat(search)**: Add Search Playground (10th endpoint), Search Tools page with Compare Providers/Rerank Pipeline/Search History, local rerank routing, auth guards on search API (#443 by @Regis-RCR)
-  - New route: `/dashboard/search-tools`
-  - Sidebar entry under Debug section
-  - `GET /api/search/providers` and `GET /api/search/stats` with auth guards
-  - Local provider_nodes routing for `/v1/rerank`
-  - 30+ i18n keys in search namespace
+- Rută nouă: `/dashboard/search-tools`
+- Intrare din bara laterală în secțiunea Depanare
+- `GET /api/search/providers` și `GET /api/search/stats` cu gardieni de autentificare
+- Rutare local provider_nodes pentru `/v1/rerank`
+- 30+ chei i18n în spațiul de nume de căutare### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(search)**: Fix Brave news normalizer (was returning 0 results), enforce max_results truncation post-normalization, fix Endpoints page fetch URL (#443 by @Regis-RCR)
-- **fix(analytics)**: Localize analytics day/date labels — replace hardcoded Portuguese strings with `Intl.DateTimeFormat(locale)` (#444 by @hijak)
-- **fix(copilot)**: Correct GitHub Copilot account type display, filter misleading unlimited quota rows from limits dashboard (#445 by @hijak)
-- **fix(providers)**: Stop rejecting valid Serper API keys — treat non-4xx responses as valid authentication (#446 by @hijak)
-
----
+-**fix(căutare)**: remediați normalizatorul de știri curajoase (a returnat 0 rezultate), aplicați trunchierea max_results după normalizare, remediați adresa URL de preluare a paginii Endpoints (#443 de către @Regis-RCR) -**fix(analytics)**: Localizați etichetele de zi/dată de analiză — înlocuiți șirurile de caractere portugheze codificate cu `Intl.DateTimeFormat(locale)` (#444 de la @hijak) -**fix(copilot)**: corectează afișarea tipului de cont GitHub Copilot, filtrează rândurile de cotă nelimitate înșelătoare din tabloul de bord cu limite (nr. 445 de la @hijak) -**fix(furnizori)**: nu mai respingeți cheile Serper API valide - tratați răspunsurile non-4xx ca autentificare validă (#446 de la @hijak)---
 
 ## [2.7.3] — 2026-03-18
 
-> Sprint: Codex direct API quota fallback fix.
+> Sprint: remediere de rezervă a cotei Codex direct API.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(codex)**: blocați conturile epuizate săptămânal în API-ul de rezervă direct (#440)
 
-- **fix(codex)**: Block weekly-exhausted accounts in direct API fallback (#440)
-  - `resolveQuotaWindow()` prefix matching: `"weekly"` now matches `"weekly (7d)"` cache keys
-  - `applyCodexWindowPolicy()` enforces `useWeekly`/`use5h` toggles correctly
-  - 4 new regression tests (766 total)
-
----
+- Potrivirea prefixului `resolveQuotaWindow()`: `"săptămânal"` se potrivește acum cheilor cache `"săptămânal (7d)"`
+- `applyCodexWindowPolicy()` impune `useWeekly`/`use5h` comută corect
+- 4 noi teste de regresie (766 în total)---
 
 ## [2.7.2] — 2026-03-18
 
-> Sprint: Light mode UI contrast fixes.
+> Sprint: remedieri de contrast ale interfeței de utilizare în modul Light.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**remediere (registre)**: remediați contrastul modului de lumină în butoanele de filtrare a jurnalelor de solicitare și insigna combinată (#378)
 
-- **fix(logs)**: Fix light mode contrast in request logs filter buttons and combo badge (#378)
-  - Error/Success/Combo filter buttons now readable in light mode
-  - Combo row badge uses stronger violet in light mode
-
----
+- Butoanele de filtru Eroare/Succes/Combo pot fi citite acum în modul de lumină
+- Insigna de rând combinată folosește violet mai puternic în modul de lumină---
 
 ## [2.7.1] — 2026-03-17
 
-> Sprint: Unified web search routing (POST /v1/search) with 5 providers + Next.js 16.1.7 security fixes (6 CVEs).
+> Sprint: rutare unificată de căutare web (POST /v1/search) cu 5 furnizori + remedieri de securitate Next.js 16.1.7 (6 CVE).### ✨ New Features
 
-### ✨ New Features
+-**feat(search)**: rutare unificată de căutare pe web — `POST /v1/search` cu 5 furnizori (Serper, Brave, Perplexity, Exa, Tavily)
 
-- **feat(search)**: Unified web search routing — `POST /v1/search` with 5 providers (Serper, Brave, Perplexity, Exa, Tavily)
-  - Auto-failover across providers, 6,500+ free searches/month
-  - In-memory cache with request coalescing (configurable TTL)
-  - Dashboard: Search Analytics tab in `/dashboard/analytics` with provider breakdown, cache hit rate, cost tracking
-  - New API: `GET /api/v1/search/analytics` for search request statistics
-  - DB migration: `request_type` column on `call_logs` for non-chat request tracking
-  - Zod validation (`v1SearchSchema`), auth-gated, cost recorded via `recordCost()`
+- Failover automat între furnizori, peste 6.500 de căutări gratuite/lună
+- Cache în memorie cu unificarea solicitărilor (TTL configurabil)
+- Dashboard: Search Analytics tab in `/dashboard/analytics` with provider breakdown, cache hit rate, cost tracking
+- API nou: `GET /api/v1/search/analytics` pentru statistici privind cererile de căutare
+- Migrare DB: coloana `request_type` pe `call_logs` pentru urmărirea solicitărilor non-chat
+- Validare Zod (`v1SearchSchema`), autorizată, cost înregistrat prin `recordCost()`### Securitate
 
-### Securitate
+-**deps**: Next.js 16.1.6 → 16.1.7 — remediază 6 CVE: -**Critic**: CVE-2026-29057 (contrabandă de solicitări HTTP prin http-proxy) -**Ridicat**: CVE-2026-27977, CVE-2026-27978 (WebSocket + Server Actions) -**Mediu**: CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7### 📁 New Files
 
-- **deps**: Next.js 16.1.6 → 16.1.7 — fixes 6 CVEs:
-  - **Critical**: CVE-2026-29057 (HTTP request smuggling via http-proxy)
-  - **High**: CVE-2026-27977, CVE-2026-27978 (WebSocket + Server Actions)
-  - **Medium**: CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7
-
-### 📁 New Files
-
-| File                                                             | Purpose                                    |
-| ---------------------------------------------------------------- | ------------------------------------------ |
-| `open-sse/handlers/search.ts`                                    | Search handler with 5-provider routing     |
-| `open-sse/config/searchRegistry.ts`                              | Provider registry (auth, cost, quota, TTL) |
-| `open-sse/services/searchCache.ts`                               | In-memory cache with request coalescing    |
-| `src/app/api/v1/search/route.ts`                                 | Next.js route (POST + GET)                 |
-| `src/app/api/v1/search/analytics/route.ts`                       | Search stats API                           |
-| `src/app/(dashboard)/dashboard/analytics/SearchAnalyticsTab.tsx` | Analytics dashboard tab                    |
-| `src/lib/db/migrations/007_search_request_type.sql`              | DB migration                               |
-| `tests/unit/search-registry.test.mjs`                            | 277 lines of unit tests                    |
-
----
+| Fișier                                                                 | Scop                                            |
+| ---------------------------------------------------------------------- | ----------------------------------------------- | --- |
+| `open-sse/handlers/search.ts`                                          | Manager de căutare cu rutare cu 5 furnizori     |
+| `open-sse/config/searchRegistry.ts`                                    | Registrul furnizorului (auth, cost, quota, TTL) |
+| `open-sse/services/searchCache.ts`                                     | Cache în memorie cu unificarea solicitărilor    |
+| `src/app/api/v1/search/route.ts`                                       | Ruta Next.js (POST + GET)                       |
+| `src/app/api/v1/search/analytics/route.ts`                             | Statistici de căutare API                       |
+| `src/app/(tabloul de bord)/dashboard/analytics/SearchAnalyticsTab.tsx` | Fila tablou de bord Analytics                   |
+| `src/lib/db/migrations/007_search_request_type.sql`                    | Migrare DB                                      |
+| `tests/unit/search-registry.test.mjs`                                  | 277 de linii de teste unitare                   | --- |
 
 ## [2.7.0] — 2026-03-17
 
-> Sprint: ClawRouter-inspired features — toolCalling flag, multilingual intent detection, benchmark-driven fallback, request deduplication, pluggable RouterStrategy, Grok-4 Fast + GLM-5 + MiniMax M2.5 + Kimi K2.5 pricing.
+> Sprint: Funcții inspirate de ClawRouter — flag toolCalling, detectarea intenției multilingve, fallback bazat pe benchmark, deduplicare cereri, RouterStrategy conectabil, Grok-4 Fast + GLM-5 + MiniMax M2.5 + Kimi K2.5 prețuri.### ✨ New Models & Pricing
 
-### ✨ New Models & Pricing
+-**feat(preț)**: xAI Grok-4 Fast — `0,20 USD/0,50 USD per 1 milion de jetoane’, latență p50 de 1143 ms, apelare instrument acceptată
+-**feat(preț)**: xAI Grok-4 (standard) — `0,20 USD/1,50 USD per 1 milion de jetoane’, raționament emblematic -**feat(preț)**: GLM-5 prin Z.AI — `0,5 USD/1M`, context de ieșire 128K -**feat(pricing)**: MiniMax M2.5 — `$0.30/1M input`, reasoning + agentic tasks -**feat(preț)**: DeepSeek V3.2 — preț actualizat `0,27 USD/1,10 USD pe 1 milion` -**feat(preț)**: Kimi K2.5 prin Moonshot API - acces direct Moonshot API -**feat(providers)**: a fost adăugat furnizorul Z.AI (alias `zai`) — familia GLM-5 cu ieșire de 128K### 🧠 Routing Intelligence
 
-- **feat(pricing)**: xAI Grok-4 Fast — `$0.20/$0.50 per 1M tokens`, 1143ms p50 latency, tool calling supported
-- **feat(pricing)**: xAI Grok-4 (standard) — `$0.20/$1.50 per 1M tokens`, reasoning flagship
-- **feat(pricing)**: GLM-5 via Z.AI — `$0.5/1M`, 128K output context
-- **feat(pricing)**: MiniMax M2.5 — `$0.30/1M input`, reasoning + agentic tasks
-- **feat(pricing)**: DeepSeek V3.2 — updated pricing `$0.27/$1.10 per 1M`
-- **feat(pricing)**: Kimi K2.5 via Moonshot API — direct Moonshot API access
-- **feat(providers)**: Z.AI provider added (`zai` alias) — GLM-5 family with 128K output
+-**feat(registry)**: indicatorul `toolCalling` per model în registrul furnizorului - combo-urile pot prefera/solicita acum modele capabile de apelare instrumente -**feat(scoring)**: detectarea intenției multilingve pentru scorul AutoCombo — scriptul PT/ZH/ES/AR/modelurile de limbă influențează selecția modelului în funcție de context de solicitare -**feat(fallback)**: lanțuri de rezervă bazate pe benchmark - date de latență reală (p50 din `comboMetrics`) utilizate pentru a reordona prioritatea de rezervă în mod dinamic -**feat(dedup)**: Solicitați deduplicarea prin content-hash — Fereastra de idempotnță de 5 secunde împiedică apelurile duplicate ale furnizorului să reîncerce clienții -**feat(router)**: interfață `RouterStrategy` conectabilă în `autoCombo/routerStrategy.ts` — logica de rutare personalizată poate fi injectată fără modificarea nucleului### 🔧 MCP Server Improvements
 
-### 🧠 Routing Intelligence
+-**feat(mcp)**: 2 noi scheme de instrumente avansate: `omniroute_get_provider_metrics` (p50/p95/p99 per furnizor) și `omniroute_explain_route` (explicația deciziei de rutare) -**feat(mcp)**: sfera de autentificare a instrumentului MCP a fost actualizată — sfera `metrics:read` adăugată pentru instrumentele de valori ale furnizorului -**feat(mcp)**: `omniroute_best_combo_for_task` acceptă acum parametrul `languageHint` pentru rutarea multilingvă### 📊 Observability
 
-- **feat(registry)**: `toolCalling` flag per model in provider registry — combos can now prefer/require tool-calling capable models
-- **feat(scoring)**: Multilingual intent detection for AutoCombo scoring — PT/ZH/ES/AR script/language patterns influence model selection per request context
-- **feat(fallback)**: Benchmark-driven fallback chains — real latency data (p50 from `comboMetrics`) used to re-order fallback priority dynamically
-- **feat(dedup)**: Request deduplication via content-hash — 5-second idempotency window prevents duplicate provider calls from retrying clients
-- **feat(router)**: Pluggable `RouterStrategy` interface in `autoCombo/routerStrategy.ts` — custom routing logic can be injected without modifying core
+-**feat(metrics)**: `comboMetrics.ts` extins cu urmărire în timp real a percentilei de latență per furnizor/cont -**feat(health)**: API-ul de sănătate (`/api/monitoring/health`) returnează acum câmpurile `p50Latency` și `errorRate` pentru fiecare furnizor -**feat(usage)**: migrarea istoricului utilizării pentru urmărirea latenței per model### 🗄️ DB Migrations
 
-### 🔧 MCP Server Improvements
+-**feat(migrations)**: noua coloană `latency_p50` în tabelul `combo_metrics` — zero-breaking, sigur pentru utilizatorii existenți### 🐛 Bug Fixes / Closures
 
-- **feat(mcp)**: 2 new advanced tool schemas: `omniroute_get_provider_metrics` (p50/p95/p99 per provider) and `omniroute_explain_route` (routing decision explanation)
-- **feat(mcp)**: MCP tool auth scopes updated — `metrics:read` scope added for provider metrics tools
-- **feat(mcp)**: `omniroute_best_combo_for_task` now accepts `languageHint` parameter for multilingual routing
+-**închidere(#411)**: rezoluție mai bună a modulului hashed-sqlite3 pe Windows - remediat în v2.6.10 (f02c5b5) -**închidere(#409)**: finalizarea chat-ului GitHub Copilot eșuează cu modelele Claude atunci când fișierele sunt atașate - rezolvat în v2.6.9 (838f1d6) -**close(#405)**: duplicat al #411 — rezolvat## [2.6.10] — 2026-03-17
 
-### 📊 Observability
+> Remediere Windows: descărcare predefinită better-sqlite3 fără node-gyp/Python/MSVC (#426).### 🐛 Bug Fixes
 
-- **feat(metrics)**: `comboMetrics.ts` extended with real-time latency percentile tracking per provider/account
-- **feat(health)**: Health API (`/api/monitoring/health`) now returns per-provider `p50Latency` and `errorRate` fields
-- **feat(usage)**: Usage history migration for per-model latency tracking
-
-### 🗄️ DB Migrations
-
-- **feat(migrations)**: New column `latency_p50` in `combo_metrics` table — zero-breaking, safe for existing users
-
-### 🐛 Bug Fixes / Closures
-
-- **close(#411)**: better-sqlite3 hashed module resolution on Windows — fixed in v2.6.10 (f02c5b5)
-- **close(#409)**: GitHub Copilot chat completions fail with Claude models when files attached — fixed in v2.6.9 (838f1d6)
-- **close(#405)**: Duplicate of #411 — resolved
-
-## [2.6.10] — 2026-03-17
-
-> Windows fix: better-sqlite3 prebuilt download without node-gyp/Python/MSVC (#426).
-
-### 🐛 Bug Fixes
-
-- **fix(install/#426)**: On Windows, `npm install -g omniroute` used to fail with `better_sqlite3.node is not a valid Win32 application` because the bundled native binary was compiled for Linux. Adds **Strategy 1.5** to `scripts/postinstall.mjs`: uses `@mapbox/node-pre-gyp install --fallback-to-build=false` (bundled within `better-sqlite3`) to download the correct prebuilt binary for the current OS/arch without requiring any build tools (no node-gyp, no Python, no MSVC). Falls back to `npm rebuild` only if the download fails. Adds platform-specific error messages with clear manual fix instructions.
-
----
+-**fix(install/#426)**: Pe Windows, `npm install -g omniroute` a eșuat cu `better_sqlite3.node nu este o aplicație Win32 validă`, deoarece binarul nativ a fost compilat pentru Linux. Adaugă**Strategia 1.5**la `scripts/postinstall.mjs`: folosește `@mapbox/node-pre-gyp install --fallback-to-build=false` (inclus în `better-sqlite3`) pentru a descărca binarul corect pre-construit pentru sistemul de operare/arch actual fără a necesita nici un instrument de compilare (fără nici un instrument PVC, fără PVC). Se întoarce la `npm rebuild` numai dacă descărcarea eșuează. Adaugă mesaje de eroare specifice platformei cu instrucțiuni clare de remediere manuală.---
 
 ## [2.6.9] — 2026-03-17
 
-> CI fixes (t11 any-budget), bug fix #409 (file attachments via Copilot+Claude), release workflow correction.
+> Remedieri CI (t11 orice buget), remediere de erori #409 (fișiere atașate prin Copilot+Claude), corecție a fluxului de lucru.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(ci)**: Eliminați cuvântul „orice” din comentariile din `openai-responses.ts` și `chatCore.ts` care nu au eșuat verificarea bugetului t11 `any ` (fals pozitiv din comentariile de numărare regex) -**fix(chatCore)**: Normalizați tipurile de părți de conținut neacceptate înainte de a redirecționa către furnizori (#409 — Cursorul trimite `{type:"file"}` atunci când fișierele `.md` sunt atașate; Copilot și alți furnizori OpenAI-compat resping cu "type trebuie să fie fie 'image_url', fie 'text``"; remediază blocarea/transformarea fișierelor `text` necunoscute"; tipuri)### 🔧 Workflow
 
-- **fix(ci)**: Remove word "any" from comments in `openai-responses.ts` and `chatCore.ts` that were failing the t11 `\bany\b` budget check (false positive from regex counting comments)
-- **fix(chatCore)**: Normalize unsupported content part types before forwarding to providers (#409 — Cursor sends `{type:"file"}` when `.md` files are attached; Copilot and other OpenAI-compat providers reject with "type has to be either 'image_url' or 'text'"; fix converts `file`/`document` blocks to `text` and drops unknown types)
-
-### 🔧 Workflow
-
-- **chore(generate-release)**: Add ATOMIC COMMIT RULE — version bump (`npm version patch`) MUST happen before committing feature files to ensure tag always points to a commit containing all version changes together
-
----
+-**chore(generate-release)**: Adăugați ATOMIC COMMIT RULE — versiunea actualizată (`npm version patch`) TREBUIE să se întâmple înainte de comiterea fișierelor de caracteristici pentru a vă asigura că eticheta indică întotdeauna un commit care conține toate modificările versiunii împreună---
 
 ## [2.6.8] — 2026-03-17
 
-> Sprint: Combo as Agent (system prompt + tool filter), Context Caching Protection, Auto-Update, Detailed Logs, MITM Kiro IDE.
+> Sprint: Combo ca agent (prompt de sistem + filtru de instrumente), Protecție caching context, Actualizare automată, Jurnale detaliate, MITM Kiro IDE.### 🗄️ DB Migrations (zero-breaking — safe for existing users)
 
-### 🗄️ DB Migrations (zero-breaking — safe for existing users)
+-**005_combo_agent_fields.sql**: `ALTER TABLE combos ADD COLUMN system_message TEXT DEFAULT NULL`, `tool_filter_regex TEXT DEFAULT NULL`, `context_cache_protection INTEGER DEFAULT 0` -**006_detailed_request_logs.sql**: tabel nou `request_detail_logs` cu declanșare a tamponului inel cu 500 de intrări, înscriere prin comutare de setări### Funcționalități
 
-- **005_combo_agent_fields.sql**: `ALTER TABLE combos ADD COLUMN system_message TEXT DEFAULT NULL`, `tool_filter_regex TEXT DEFAULT NULL`, `context_cache_protection INTEGER DEFAULT 0`
-- **006_detailed_request_logs.sql**: New `request_detail_logs` table with 500-entry ring-buffer trigger, opt-in via settings toggle
-
-### Funcționalități
-
-- **feat(combo)**: System Message Override per Combo (#399 — `system_message` field replaces or injects system prompt before forwarding to provider)
-- **feat(combo)**: Tool Filter Regex per Combo (#399 — `tool_filter_regex` keeps only tools matching pattern; supports OpenAI + Anthropic formats)
-- **feat(combo)**: Context Caching Protection (#401 — `context_cache_protection` tags responses with `<omniModel>provider/model</omniModel>` and pins model for session continuity)
-- **feat(settings)**: Auto-Update via Settings (#320 — `GET /api/system/version` + `POST /api/system/update` — checks npm registry and updates in background with pm2 restart)
-- **feat(logs)**: Detailed Request Logs (#378 — captures full pipeline bodies at 4 stages: client request, translated request, provider response, client response — opt-in toggle, 64KB trim, 500-entry ring-buffer)
-- **feat(mitm)**: MITM Kiro IDE profile (#336 — `src/mitm/targets/kiro.ts` targets api.anthropic.com, reuses existing MITM infrastructure)
-
----
+-**feat(combo)**: System Message Override per Combo (#399 — câmpul `system_message` înlocuiește sau injectează promptul de sistem înainte de redirecționarea către furnizor) -**feat(combo)**: Tool Filter Regex per Combo (#399 — `tool_filter_regex` păstrează numai modelul de potrivire a instrumentelor; acceptă formatele OpenAI + Anthropic) -**feat(combo)**: Context Caching Protection (#401 — `context_cache_protection` etichetează răspunsurile cu `<omniModel>furnizor/model</omniModel>` și fixează modelul pentru continuitatea sesiunii) -**feat(settings)**: Actualizare automată prin Setări (#320 — `GET /api/system/version` + `POST /api/system/update` — verifică registrul npm și actualizările în fundal cu repornirea pm2) -**feat(jurnal)**: jurnalele de solicitare detaliate (nr. 378 — captează corpuri complete ale conductei în 4 etape: cererea clientului, cererea tradusă, răspunsul furnizorului, răspunsul clientului — comutare de înscriere, 64 KB delimitare, 500 de intrări tampon de apel) -**feat(mitm)**: profilul MITM Kiro IDE (#336 — `src/mitm/targets/kiro.ts` vizează api.anthropic.com, reutiliza infrastructura MITM existentă)---
 
 ## [2.6.7] — 2026-03-17
 
-> Sprint: SSE improvements, local provider_nodes extensions, proxy registry, Claude passthrough fixes.
+> Sprint: îmbunătățiri SSE, extensii locale provider_nodes, registru proxy, remedieri Claude passthrough.### Funcționalități
 
-### Funcționalități
+-**feat(health)**: verificarea stării de fundal pentru `provider_nodes` locale cu backoff exponențial (30s→300s) și `Promise.allSettled` pentru a evita blocarea (#423, @Regis-RCR) -**feat(embeddings)**: direcționează `/v1/embeddings` către `provider_nodes` locale — `buildDynamicEmbeddingProvider()` cu validarea numelui de gazdă (#422, @Regis-RCR) -**feat(audio)**: direcționați TTS/STT către `provider_nodes` locale — `buildDynamicAudioProvider()` cu protecție SSRF (#416, @Regis-RCR) -**feat(proxy)**: registru proxy, API-uri de gestionare și generalizare limită de cotă (#429, @Regis-RCR)### 🐛 Bug Fixes
 
-- **feat(health)**: Background health check for local `provider_nodes` with exponential backoff (30s→300s) and `Promise.allSettled` to avoid blocking (#423, @Regis-RCR)
-- **feat(embeddings)**: Route `/v1/embeddings` to local `provider_nodes` — `buildDynamicEmbeddingProvider()` with hostname validation (#422, @Regis-RCR)
-- **feat(audio)**: Route TTS/STT to local `provider_nodes` — `buildDynamicAudioProvider()` with SSRF protection (#416, @Regis-RCR)
-- **feat(proxy)**: Proxy registry, management APIs, and quota-limit generalization (#429, @Regis-RCR)
+-**fix(sse)**: Eliminați câmpurile specifice lui Claude (`metadate`, `versiunea_antropică`) când ținta este OpenAI-compat (#421, @prakersh) -**fix(sse)**: Extrageți utilizarea Claude SSE (`input_tokens`, `output_tokens`, jetoane cache) în modul flux de trecere (#420, @prakersh) -**fix(sse)**: generați „call_id” alternativ pentru apelurile de instrumente cu ID-uri lipsă/vide (#419, @prakersh) -**fix(sse)**: trecere Claude-la-Claude — corp înainte complet neatins, fără retraducere (#418, @prakersh) -**fix(sse)**: Filtrați elementele „tool_result” orfane după compactarea contextului Claude Code pentru a evita erorile 400 (#417, @prakersh) -**fix(sse)**: ignorați apelurile instrumentului cu nume goale în traducătorul API Responses pentru a preveni bucle infinite `placeholder_tool` (#415, @prakersh) -**fix(sse)**: Eliminați blocurile de conținut de text goale înainte de traducere (#427, @prakersh) -**fix(api)**: Adăugați `refreshable: true` la configurația de testare Claude OAuth (#428, @prakersh)### 📦 Dependencies
 
-### 🐛 Bug Fixes
-
-- **fix(sse)**: Strip Claude-specific fields (`metadata`, `anthropic_version`) when target is OpenAI-compat (#421, @prakersh)
-- **fix(sse)**: Extract Claude SSE usage (`input_tokens`, `output_tokens`, cache tokens) in passthrough stream mode (#420, @prakersh)
-- **fix(sse)**: Generate fallback `call_id` for tool calls with missing/empty IDs (#419, @prakersh)
-- **fix(sse)**: Claude-to-Claude passthrough — forward body completely untouched, no re-translation (#418, @prakersh)
-- **fix(sse)**: Filter orphaned `tool_result` items after Claude Code context compaction to avoid 400 errors (#417, @prakersh)
-- **fix(sse)**: Skip empty-name tool calls in Responses API translator to prevent `placeholder_tool` infinite loops (#415, @prakersh)
-- **fix(sse)**: Strip empty text content blocks before translation (#427, @prakersh)
-- **fix(api)**: Add `refreshable: true` to Claude OAuth test config (#428, @prakersh)
-
-### 📦 Dependencies
-
-- Bump `vitest`, `@vitest/*` and related devDependencies (#414, @dependabot)
-
----
+- Bump `vitest`, `@vitest/*` și devDependencies aferente (#414, @dependabot)---
 
 ## [2.6.6] — 2026-03-17
 
-> Hotfix: Turbopack/Docker compatibility — remove `node:` protocol from all `src/` imports.
+> Remediere rapidă: compatibilitate Turbopack/Docker — eliminați protocolul `node:` din toate importurile `src/`.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(build)**: Removed `node:` protocol prefix from `import` statements in 17 files under `src/`. The `node:fs`, `node:path`, `node:url`, `node:os` etc. imports caused `Ecmascript file had an error` on Turbopack builds (Next.js 15 Docker) and on upgrades from older npm global installs. Affected files: `migrationRunner.ts`, `core.ts`, `backup.ts`, `prompts.ts`, `dataPaths.ts`, and 12 others in `src/app/api/` and `src/lib/`.
-- **chore(workflow)**: Updated `generate-release.md` to make Docker Hub sync and dual-VPS deploy **mandatory** steps in every release.
-
----
+-**fix(build)**: Prefixul de protocol `node:` a fost eliminat din instrucțiunile `import` din 17 fișiere sub `src/`. Importurile `node:fs`, `node:path`, `node:url`, `node:os` etc. au cauzat `Fișierul Ecmascript a avut o eroare` pe versiunile Turbopack (Next.js 15 Docker) și pe upgrade-uri de la instalările globale npm mai vechi. Fișiere afectate: `migrationRunner.ts`, `core.ts`, `backup.ts`, `prompts.ts`, `dataPaths.ts` și alte 12 în `src/app/api/` și `src/lib/`. -**chore(workflow)**: `generate-release.md` a fost actualizat pentru a face sincronizarea Docker Hub și a implementa pașii**obligatori**în fiecare lansare dual-VPS.---
 
 ## [2.6.5] — 2026-03-17
 
-> Sprint: reasoning model param filtering, local provider 404 fix, Kilo Gateway provider, dependency bumps.
+> Sprint: filtrarea parametrilor modelului de raționament, remedierea 404 a furnizorului local, furnizorul Kilo Gateway, denivelări de dependență.### ✨ New Features
 
-### ✨ New Features
+-**feat(api)**: S-a adăugat**Kilo Gateway**(`api.kilo.ai`) ca nou furnizor de chei API (alias `kg`) — 335+ modele, 6 modele gratuite, 3 modele de rutare automată (`kilo-auto/frontier`, `kilo-auto/balanced`, `kilo-auto/free). Modele de trecere acceptate prin punctul final `/api/gateway/models`. (PR #408 de la @Regis-RCR)### 🐛 Bug Fixes
 
-- **feat(api)**: Added **Kilo Gateway** (`api.kilo.ai`) as a new API Key provider (alias `kg`) — 335+ models, 6 free models, 3 auto-routing models (`kilo-auto/frontier`, `kilo-auto/balanced`, `kilo-auto/free`). Passthrough models supported via `/api/gateway/models` endpoint. (PR #408 by @Regis-RCR)
-
-### 🐛 Bug Fixes
-
-- **fix(sse)**: Strip unsupported parameters for reasoning models (o1, o1-mini, o1-pro, o3, o3-mini). Models in the `o1`/`o3` family reject `temperature`, `top_p`, `frequency_penalty`, `presence_penalty`, `logprobs`, `top_logprobs`, and `n` with HTTP 400. Parameters are now stripped at the `chatCore` layer before forwarding. Uses a declarative `unsupportedParams` field per model and a precomputed O(1) Map for lookup. (PR #412 by @Regis-RCR)
-- **fix(sse)**: Local provider 404 now results in a **model-only lockout (5 seconds)** instead of a connection-level lockout (2 minutes). When a local inference backend (Ollama, LM Studio, oMLX) returns 404 for an unknown model, the connection remains active and other models continue working immediately. Also fixes a pre-existing bug where `model` was not passed to `markAccountUnavailable()`. Local providers detected via hostname (`localhost`, `127.0.0.1`, `::1`, extensible via `LOCAL_HOSTNAMES` env var). (PR #410 by @Regis-RCR)
-
-### 📦 Dependencies
+-**fix(sse)**: Eliminați parametrii neacceptați pentru modelele de raționament (o1, o1-mini, o1-pro, o3, o3-mini). Modelele din familia `o1`/`o3` resping `temperature`, `top_p`, `frequency_penalty`, `presence_penalty`, `logprobs`, `top_logprobs` și `n` cu HTTP 400. Parametrii sunt acum eliminați de layerul `chatCore` înainte de redirecționare. Utilizează un câmp declarativ „unsupportedParams” pentru fiecare model și o hartă O(1) precalculată pentru căutare. (PR #412 de la @Regis-RCR) -**fix(sse)**: furnizorul local 404 are acum ca rezultat o**blocare numai pentru model (5 secunde)**în loc de o blocare la nivel de conexiune (2 minute). Când un backend de inferență local (Ollama, LM Studio, oMLX) returnează 404 pentru un model necunoscut, conexiunea rămâne activă și alte modele continuă să funcționeze imediat. De asemenea, remediază o eroare preexistentă în care `model` nu a fost transmis către `markAccountUnavailable()`. Furnizorii locali detectați prin numele de gazdă (`localhost`, `127.0.0.1`, `::1`, extensibil prin `LOCAL_HOSTNAMES` env var). (PR #410 de la @Regis-RCR)### 📦 Dependencies
 
 - `better-sqlite3` 12.6.2 → 12.8.0
 - `undici` 7.24.2 → 7.24.4
 - `https-proxy-agent` 7 → 8
-- `agent-base` 7 → 8
-
----
+- `agent-base` 7 → 8---
 
 ## [2.6.4] — 2026-03-17
 
 ### 🐛 Bug Fixes
 
-- **fix(providers)**: Removed non-existent model names across 5 providers:
-  - **gemini / gemini-cli**: removed `gemini-3.1-pro/flash` and `gemini-3-*-preview` (don't exist in Google API v1beta); replaced with `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro/flash`
-  - **antigravity**: removed `gemini-3.1-pro-high/low` and `gemini-3-flash` (invalid internal aliases); replaced with real 2.x models
-  - **github (Copilot)**: removed `gemini-3-flash-preview` and `gemini-3-pro-preview`; replaced with `gemini-2.5-flash`
-  - **nvidia**: corrected `nvidia/llama-3.3-70b-instruct` → `meta/llama-3.3-70b-instruct` (NVIDIA NIM uses `meta/` namespace for Meta models); added `nvidia/llama-3.1-70b-instruct` and `nvidia/llama-3.1-405b-instruct`
-- **fix(db/combo)**: Updated `free-stack` combo on remote DB: removed `qw/qwen3-coder-plus` (expired refresh token), corrected `nvidia/llama-3.3-70b-instruct` → `nvidia/meta/llama-3.3-70b-instruct`, corrected `gemini/gemini-3.1-flash` → `gemini/gemini-2.5-flash`, added `if/deepseek-v3.2`
-
----
+-**fix(furnizori)**: au fost eliminate nume de model inexistente de la 5 furnizori: -**gemini / gemini-cli**: s-au eliminat `gemini-3.1-pro/flash` și `gemini-3-*-preview` (nu există în Google API v1beta); înlocuit cu `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro/flash` -**antigravitație**: eliminat `gemini-3.1-pro-high/low` și `gemini-3-flash` (alias-uri interne nevalide); înlocuit cu modele reale 2.x -**github (Copilot)**: s-au eliminat `gemini-3-flash-preview` și `gemini-3-pro-preview`; înlocuit cu `gemini-2.5-flash` -**nvidia**: corectat `nvidia/llama-3.3-70b-instruct` → `meta/llama-3.3-70b-instruct` (NVIDIA NIM folosește spațiul de nume `meta/` pentru modelele Meta); a adăugat `nvidia/llama-3.1-70b-instruct` și `nvidia/llama-3.1-405b-instruct` -**fix(db/combo)**: Combo `free-stack` actualizat pe DB la distanță: eliminat `qw/qwen3-coder-plus` (jeton de reîmprospătare expirat), corectat `nvidia/llama-3.3-70b-instruct` → `nvidia/meta/llama-3.3-70b-instruct`, corectat `gemini/gemini-3.1-flash` → `gemeni/gemini-2.5-flash`, adăugat `if/deepseek-v3.2`---
 
 ## [2.6.3] — 2026-03-16
 
-> Sprint: zod/pino hash-strip baked into build pipeline, Synthetic provider added, VPS PM2 path corrected.
+> Sprint: zod/pino hash-strip coapte în conducta de construcție, furnizor de sintetic adăugat, calea VPS PM2 corectată.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: Turbopack hash-strip rulează acum la**timp de compilare**pentru TOATE pachetele - nu doar `better-sqlite3`. Pasul 5.6 din `prepublish.mjs` parcurge fiecare `.js` din `app/.next/server/` și elimină sufixul hexadecimal de 16 caractere din orice `require()` cu hash. Remediază `zod-dcb22c...`, `pino-...`, etc. MODULE_NOT_FOUND la instalările globale npm. Închide #398 -**fix(deploy)**: PM2 pe ambele VPS indică către directoare git-clone învechite. Reconfigurat la `app/server.js` în pachetul global npm. Flux de lucru `/deploy-vps` actualizat pentru a utiliza `npm pack + scp` (registrul npm respinge pachetele de 299 MB).### Funcționalități
 
-- **fix(build)**: Turbopack hash-strip now runs at **compile time** for ALL packages — not just `better-sqlite3`. Step 5.6 in `prepublish.mjs` walks every `.js` in `app/.next/server/` and strips the 16-char hex suffix from any hashed `require()`. Fixes `zod-dcb22c...`, `pino-...`, etc. MODULE_NOT_FOUND on global npm installs. Closes #398
-- **fix(deploy)**: PM2 on both VPS was pointing to stale git-clone directories. Reconfigured to `app/server.js` in the npm global package. Updated `/deploy-vps` workflow to use `npm pack + scp` (npm registry rejects 299MB packages).
+-**feat(furnizor)**: Sintetic ([synthetic.new](https://synthetic.new)) — inferență compatibilă OpenAI centrată pe confidențialitate. `passthroughModels: true` pentru catalogul dinamic de modele HuggingFace. Modele inițiale: Kimi K2.5, MiniMax M2.5, GLM 4.7, DeepSeek V3.2. (PR #404 de la @Regis-RCR)### 📋 Issues Closed
 
-### Funcționalități
-
-- **feat(provider)**: Synthetic ([synthetic.new](https://synthetic.new)) — privacy-focused OpenAI-compatible inference. `passthroughModels: true` for dynamic HuggingFace model catalog. Initial models: Kimi K2.5, MiniMax M2.5, GLM 4.7, DeepSeek V3.2. (PR #404 by @Regis-RCR)
-
-### 📋 Issues Closed
-
-- **close #398**: npm hash regression — fixed by compile-time hash-strip in prepublish
-- **triage #324**: Bug screenshot without steps — requested reproduction details
-
----
+-**închidere #398**: regresie hash npm - remediată prin hash-strip la compilare în prepublicare -**triajul #324**: Captură de ecran de eroare fără pași — detalii de reproducere solicitate---
 
 ## [2.6.2] — 2026-03-16
 
-> Sprint: module hashing fully fixed, 2 PRs merged (Anthropic tools filter + custom endpoint paths), Alibaba Cloud DashScope provider added, 3 stale issues closed.
+> Sprint: hashingul modulului complet remediat, 2 PR-uri fuzionate (filtru de instrumente antropice + căi personalizate pentru punctele finale), furnizorul Alibaba Cloud DashScope adăugat, 3 probleme învechite închise.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: Pachetul web extins `externals` hash-strip pentru a acoperi TOATE `serverExternalPackages`, nu doar `better-sqlite3`. Next.js 16 Turbopack hashează `zod`, `pino` și orice alt pachet extern de server în nume precum `zod-dcb22c6336e0bc69` care nu există în `node_modules` în timpul execuției. O expresie generală HASH_PATTERN catch-all acumulează sufixul de 16 caractere și revine la numele pachetului de bază. De asemenea, a adăugat `NEXT_PRIVATE_BUILD_WORKER=0` în `prepublish.mjs` pentru a consolida modul webpack, plus o scanare post-build care raportează orice referințe hashed rămase. (#396, #398, PR #403) -**fix(chat)**: Numele instrumentelor în format antropic (`tool.name` fără învelișul `.function`) au fost eliminate în tăcere de filtrul de nume gol introdus în #346. LiteLLM solicită proxy cu prefixul „antropic/” în formatul API Anthropic Messages, ceea ce face ca toate instrumentele să fie filtrate și Anthropic să returneze „400: tool_choice.any poate fi specificat doar în timp ce furnizează instrumente”. Remediat prin revenirea la `tool.name` când `tool.function.name` este absent. S-au adăugat 8 teste unitare de regresie. (PR #397)### Funcționalități
 
-- **fix(build)**: Extended webpack `externals` hash-strip to cover ALL `serverExternalPackages`, not just `better-sqlite3`. Next.js 16 Turbopack hashes `zod`, `pino`, and every other server-external package into names like `zod-dcb22c6336e0bc69` that don't exist in `node_modules` at runtime. A HASH_PATTERN regex catch-all now strips the 16-char suffix and falls back to the base package name. Also added `NEXT_PRIVATE_BUILD_WORKER=0` in `prepublish.mjs` to reinforce webpack mode, plus a post-build scan that reports any remaining hashed refs. (#396, #398, PR #403)
-- **fix(chat)**: Anthropic-format tool names (`tool.name` without `.function` wrapper) were silently dropped by the empty-name filter introduced in #346. LiteLLM proxies requests with `anthropic/` prefix in Anthropic Messages API format, causing all tools to be filtered and Anthropic to return `400: tool_choice.any may only be specified while providing tools`. Fixed by falling back to `tool.name` when `tool.function.name` is absent. Added 8 regression unit tests. (PR #397)
+-**feat(api)**: căi personalizate pentru punctele finale pentru nodurile furnizorilor compatibile cu OpenAI - configurați `chatPath` și `modelsPath` per nod (de exemplu, `/v4/chat/completions`) în interfața de utilizare a conexiunii furnizorului. Include o migrare DB (`003_provider_node_custom_paths.sql`) și dezinfectare a căii URL (fără traversare `..`, trebuie să înceapă cu `/`). (PR #400) -**feat(furnizor)**: Alibaba Cloud DashScope a fost adăugat ca furnizor compatibil cu OpenAI. Punct final internațional: `dashscope-intl.aliyuncs.com/compatible-mode/v1`. 12 modele: `qwen-max`, `qwen-plus`, `qwen-turbo`, `qwen3-coder-plus/flash`, `qwq-plus`, `qwq-32b`, `qwen3-32b`, `qwen3-235b-a22b`. Auth: Bearer API key.### 📋 Issues Closed
 
-### Funcționalități
-
-- **feat(api)**: Custom endpoint paths for OpenAI-compatible provider nodes — configure `chatPath` and `modelsPath` per node (e.g. `/v4/chat/completions`) in the provider connection UI. Includes a DB migration (`003_provider_node_custom_paths.sql`) and URL path sanitization (no `..` traversal, must start with `/`). (PR #400)
-- **feat(provider)**: Alibaba Cloud DashScope added as OpenAI-compatible provider. International endpoint: `dashscope-intl.aliyuncs.com/compatible-mode/v1`. 12 models: `qwen-max`, `qwen-plus`, `qwen-turbo`, `qwen3-coder-plus/flash`, `qwq-plus`, `qwq-32b`, `qwen3-32b`, `qwen3-235b-a22b`. Auth: Bearer API key.
-
-### 📋 Issues Closed
-
-- **close #323**: Cline connection error `[object Object]` — fixed in v2.3.7; instructed user to upgrade from v2.2.9
-- **close #337**: Kiro credit tracking — implemented in v2.5.5 (#381); pointed user to Dashboard → Usage
-- **triage #402**: ARM64 macOS DMG damaged — requested macOS version, exact error, and advised `xattr -d com.apple.quarantine` workaround
-
----
+-**închidere #323**: eroare de conectare a liniei `[object Object]` — remediată în v2.3.7; a instruit utilizatorul să facă upgrade de la v2.2.9 -**închidere #337**: urmărirea creditelor Kiro — implementată în v2.5.5 (#381); utilizatorul a indicat Tabloul de bord → Utilizare -**triajul #402**: ARM64 macOS DMG deteriorat - a solicitat versiunea macOS, eroare exactă și a recomandat soluția de soluționare `xattr -d com.apple.quarantine`---
 
 ## [2.6.1] — 2026-03-15
 
-> Critical startup fix: v2.6.0 global npm installs crashed with a 500 error due to a Turbopack/webpack module-name hashing bug in the Next.js 16 instrumentation hook.
+> Remediere critică de pornire: instalările globale npm v2.6.0 s-au prăbușit cu o eroare 500 din cauza unei erori de hashing al numelui modulului Turbopack/webpack în cârligul de instrumentare Next.js 16.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(build)**: Forța ca `better-sqlite3` să fie întotdeauna cerut de numele exact al pachetului din pachetul de server webpack. Next.js 16 a compilat cârligul de instrumentare într-o bucată separată și a emis `require('better-sqlite3-<hash>')` — un nume de modul hashing care nu există în `node_modules` — chiar dacă pachetul era listat în `serverExternalPackages`. S-a adăugat o funcție explicită „externe” la configurația pachetului web al serverului, astfel încât bundler-ul să emită întotdeauna „require(“better-sqlite3”)”, rezolvând pornirea „500 Internal Server Error” la instalările globale curate. (#394, PR #395)### 🔧 CI
 
-- **fix(build)**: Force `better-sqlite3` to always be required by its exact package name in the webpack server bundle. Next.js 16 compiled the instrumentation hook into a separate chunk and emitted `require('better-sqlite3-<hash>')` — a hashed module name that doesn't exist in `node_modules` — even though the package was listed in `serverExternalPackages`. Added an explicit `externals` function to the server webpack config so the bundler always emits `require('better-sqlite3')`, resolving the startup `500 Internal Server Error` on clean global installs. (#394, PR #395)
-
-### 🔧 CI
-
-- **ci**: Added `workflow_dispatch` to `npm-publish.yml` with version sync safeguard for manual triggers (#392)
-- **ci**: Added `workflow_dispatch` to `docker-publish.yml`, updated GitHub Actions to latest versions (#392)
-
----
+-**ci**: s-a adăugat `workflow_dispatch` la `npm-publish.yml` cu protecția pentru sincronizarea versiunii pentru declanșatoarele manuale (#392) -**ci**: S-a adăugat `workflow_dispatch` la `docker-publish.yml`, s-a actualizat GitHub Actions la cele mai recente versiuni (#392)---
 
 ## [2.6.0] - 2026-03-15
 
-> Issue resolution sprint: 4 bugs fixed, logs UX improved, Kiro credit tracking added.
+> Sprint de rezolvare a problemelor: 4 erori remediate, jurnalele UX îmbunătățite, urmărirea creditului Kiro adăugată.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(media)**: ComfyUI și SD WebUI nu mai apar în lista de furnizori ai paginii Media când sunt neconfigurate - preia `/api/providers` la montare și ascunde furnizorii locali fără conexiuni (#390) -**fix(auth)**: Round-robin nu mai selectează conturile cu rate limitate imediat după rece - `backoffLevel` este acum folosit ca cheie de sortare principală în rotația LRU (#340) -**fix(oauth)**: Qoder (și alți furnizori care redirecționează către propria interfață de utilizare) nu mai lasă modalul OAuth blocat la „Așteaptă autorizare” – tranziția automată a detectorului cu pop-up închis la modul de introducere manuală a adreselor URL (#344) -**fix(jurnal)**: tabelul de jurnal de solicitare este acum lizibil în modul light — insignele de stare, numărul de jetoane și etichetele combinate folosesc clase de culoare adaptive „dark:” (#378)### Funcționalități
 
-- **fix(media)**: ComfyUI and SD WebUI no longer appear in the Media page provider list when unconfigured — fetches `/api/providers` on mount and hides local providers with no connections (#390)
-- **fix(auth)**: Round-robin no longer re-selects rate-limited accounts immediately after cooldown — `backoffLevel` is now used as primary sort key in the LRU rotation (#340)
-- **fix(oauth)**: Qoder (and other providers that redirect to their own UI) no longer leave the OAuth modal stuck at "Waiting for Authorization" — popup-closed detector auto-transitions to manual URL input mode (#344)
-- **fix(logs)**: Request log table is now readable in light mode — status badges, token counts, and combo tags use adaptive `dark:` color classes (#378)
+-**feat(kiro)**: urmărirea creditului Kiro a fost adăugată la folosirea de preluare - interogări `getUserCredits` de la punctul final AWS CodeWhisperer (#337)### 🛠 Chores
 
-### Funcționalități
-
-- **feat(kiro)**: Kiro credit tracking added to usage fetcher — queries `getUserCredits` from AWS CodeWhisperer endpoint (#337)
-
-### 🛠 Chores
-
-- **chore(tests)**: Aligned `test:plan3`, `test:fixes`, `test:security` to use same `tsx/esm` loader as `npm test` — eliminates module resolution false negatives in targeted runs (PR #386)
-
----
+-**chore(teste)**: Aliniat `test:plan3`, `test:fixes`, `test:security` pentru a utiliza același încărcător `tsx/esm` ca `npm test` — elimină fals negative la rezoluția modulului în rulările vizate (PR #386)---
 
 ## [2.5.9] - 2026-03-15
 
-> Codex native passthrough fix + route body validation hardening.
+> Remediere de trecere nativă Codex + întărirea validării corpului rutei.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(codex)**: Preserve native Responses API passthrough for Codex clients — avoids unnecessary translation mutations (PR #387)
-- **fix(api)**: Validate request bodies on pricing/sync and task-routing routes — prevents crashes from malformed inputs (PR #388)
-- **fix(auth)**: JWT secrets persist across restarts via `src/lib/db/secrets.ts` — eliminates 401 errors after pm2 restart (PR #388)
-
----
+-**fix(codex)**: Păstrați trecerea API-ului răspunsuri native pentru clienții Codex - evită mutațiile de traducere inutile (PR #387) -**fix(api)**: validați corpurile de solicitare pe rutele de preț/sincronizare și de rutare a sarcinilor - previne blocările de la intrări incorecte (PR #388) -**fix(auth)**: secretele JWT persistă la reporniri prin `src/lib/db/secrets.ts` — elimină erorile 401 după repornirea pm2 (PR #388)---
 
 ## [2.5.8] - 2026-03-15
 
-> Build fix: restore VPS connectivity broken by v2.5.7 incomplete publish.
+> Remediere build: restaurați conectivitatea VPS întreruptă de publicarea incompletă a v2.5.7.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(build)**: `scripts/prepublish.mjs` still used deprecated `--webpack` flag causing Next.js standalone build to fail silently — npm publish completed without `app/server.js`, breaking VPS deployment
-
----
+-**fix(build)**: `scripts/prepublish.mjs` a folosit în continuare semnalizatorul `--webpack` depreciat, ceea ce provoacă eșuarea liniștită a construirii autonome Next.js — npm publish s-a finalizat fără `app/server.js`, întrerupând implementarea VPS---
 
 ## [2.5.7] - 2026-03-15
 
-> Media playground error handling fixes.
+> Remedieri de gestionare a erorilor din terenul de joacă media.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(media)**: Transcription "API Key Required" false positive when audio contains no speech (music, silence) — now shows "No speech detected" instead
-- **fix(media)**: `upstreamErrorResponse` in `audioTranscription.ts` and `audioSpeech.ts` now returns proper JSON (`{error:{message}}`), enabling correct 401/403 credential error detection in the MediaPageClient
-- **fix(media)**: `parseApiError` now handles Deepgram's `err_msg` field and detects `"api key"` in error messages for accurate credential error classification
-
----
+-**remediere(media)**: Transcrierea „Este necesară cheia API” fals pozitivă atunci când sunetul nu conține vorbire (muzică, tăcere) – acum afișează „Nu a fost detectată vorbire” -**fix(media)**: `upstreamErrorResponse` în `audioTranscription.ts` și `audioSpeech.ts` returnează acum JSON corect (`{error:{message}}`), permițând detectarea corectă a erorilor de acreditări 401/403 în MediaPageClient -**fix(media)**: `parseApiError` se ocupă acum de câmpul `err_msg` al Deepgram și detectează `"cheie api"` în mesajele de eroare pentru o clasificare precisă a erorilor de acreditări---
 
 ## [2.5.6] - 2026-03-15
 
-> Critical security/auth fixes: Antigravity OAuth broken + JWT sessions lost after restart.
+> Remedieri critice de securitate/autentificare: OAuth antigravitație întrerupt + sesiuni JWT pierdute după repornire.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
-
-- **fix(oauth) #384**: Antigravity Google OAuth now correctly sends `client_secret` to the token endpoint. The fallback for `ANTIGRAVITY_OAUTH_CLIENT_SECRET` was an empty string, which is falsy — so `client_secret` was never included in the request, causing `"client_secret is missing"` errors for all users without a custom env var. Closes #383.
-- **fix(auth) #385**: `JWT_SECRET` is now persisted to SQLite (`namespace='secrets'`) on first generation and reloaded on subsequent starts. Previously, a new random secret was generated each process startup, invalidating all existing cookies/sessions after any restart or upgrade. Affects both `JWT_SECRET` and `API_KEY_SECRET`. Closes #382.
-
----
+-**fix(oauth) #384**: Antigravity Google OAuth trimite acum corect `client_secret` la punctul final al simbolului. Soluția de rezervă pentru `ANTIGRAVITY_OAUTH_CLIENT_SECRET` a fost un șir gol, care este fals, deci `client_secret` nu a fost niciodată inclus în cerere, provocând erori `"client_secret is missing"` pentru toți utilizatorii fără o var. Închide #383. -**fix(auth) #385**: `JWT_SECRET` este acum persistat în SQLite (`namespace='secrets'`) la prima generație și reîncărcat la pornirile ulterioare. Anterior, un nou secret aleatoriu era generat la fiecare pornire a procesului, invalidând toate cookie-urile/sesiunile existente după orice repornire sau upgrade. Afectează atât `JWT_SECRET`, cât și `API_KEY_SECRET`. Închide #382.---
 
 ## [2.5.5] - 2026-03-15
 
-> Model list dedup fix, Electron standalone build hardening, and Kiro credit tracking.
+> Remedierea dedupării listei de modele, întărirea construcției autonome Electron și urmărirea creditului Kiro.### 🐛 Bug Fixes
 
-### 🐛 Bug Fixes
+-**fix(modele) #380**: `GET /api/models` include acum alias-uri de furnizor la construirea filtrului de furnizor activ — modelele pentru `claude` (alias `cc`) și `github` (alias `gh`) au fost întotdeauna afișate, indiferent dacă o conexiune a fost configurată, deoarece `PROVIDER_MODELS sunt stocate de alias-uri, dar `PROVIDER_MODELS`sunt stocate de chei de alias. S-a rezolvat prin extinderea fiecărui ID de furnizor activ pentru a include și alias-ul său prin „PROVIDER_ID_TO_ALIAS”. Închide #353.
+-**fix(electron) #379**: Noul`scripts/prepare-electron-standalone.mjs`organizează un pachet dedicat`/.next/electron-standalone`înainte de ambalarea Electron. Se anulează cu o eroare clară dacă`node_modules`este o legătură simbolică (electron-builder ar livra o dependență de rulare pe mașina de construire). Dezinfectarea căilor pe mai multe platforme prin`path.basename`. De @kfiramar.### ✨ New Features
 
-- **fix(models) #380**: `GET /api/models` now includes provider aliases when building the active-provider filter — models for `claude` (alias `cc`) and `github` (alias `gh`) were always shown regardless of whether a connection was configured, because `PROVIDER_MODELS` keys are aliases but DB connections are stored under provider IDs. Fixed by expanding each active provider ID to also include its alias via `PROVIDER_ID_TO_ALIAS`. Closes #353.
-- **fix(electron) #379**: New `scripts/prepare-electron-standalone.mjs` stages a dedicated `/.next/electron-standalone` bundle before Electron packaging. Aborts with a clear error if `node_modules` is a symlink (electron-builder would ship a runtime dependency on the build machine). Cross-platform path sanitization via `path.basename`. By @kfiramar.
+-**feat(kiro) #381**: Urmărirea soldului creditului Kiro — punctul final de utilizare returnează acum date de credit pentru conturile Kiro apelând `codewhisperer.us-east-1.amazonaws.com/getUserCredits` (același punct final pe care Kiro IDE îl folosește intern). Returnează creditele rămase, alocația totală, data de reînnoire și nivelul de abonament. Închide #337.## [2.5.4] - 2026-03-15
 
-### ✨ New Features
+> Remediere de pornire a loggerului, remediere de securitate pentru bootstrap de conectare și îmbunătățire a fiabilității dev HMR. Infrastructura CI consolidată.### 🐛 Bug Fixes (PRs #374, #375, #376 by @kfiramar)
 
-- **feat(kiro) #381**: Kiro credit balance tracking — usage endpoint now returns credit data for Kiro accounts by calling `codewhisperer.us-east-1.amazonaws.com/getUserCredits` (same endpoint Kiro IDE uses internally). Returns remaining credits, total allowance, renewal date, and subscription tier. Closes #337.
+-**fix(logger) #376**: Restaurați calea pino transport logger — `formatters.level` combinat cu `transport.targets` este respins de pino. Configurațiile susținute de transport elimina acum formatatorul de nivel prin `getTransportCompatibleConfig()`. De asemenea, corectează maparea la nivel numeric în `/api/logs/console`: `30→info, 40→warn, 50→error` (a fost deplasat cu unul). -**fix(login) #375**: Pagina de conectare acum bootstrap de la punctul final public `/api/settings/require-login` în loc de protejat `/api/settings`. În setările protejate cu parolă, pagina de pre-autorizare a primit un 401 și a revenit la valorile implicite sigure în mod inutil. Ruta publică returnează acum toate metadatele bootstrap (`requireLogin`, `hasPassword`, `setupComplete`) cu o alternativă conservatoare 200 la eroare. -**fix(dev) #374**: Adăugați `localhost` și `127.0.0.1` la `allowedDevOrigins` în `next.config.mjs` — HMR websocket a fost blocat la accesarea aplicației prin adresa de loopback, producând avertismente repetate de origine încrucișată.### 🔧 CI & Infrastructure
 
-## [2.5.4] - 2026-03-15
+-**ESLint OOM fix**: `eslint.config.mjs` ignoră acum `vscode-extension/**`, `electron/**`, `docs/**`, `app/.next/**` și `clipr/**` — ESLint se bloca cu un OOM heap JS prin scanarea blnobs și codul binar compilat VS. -**Remedierea testului unității**: a fost eliminată `ALTER TABLE provider_connections ADD COLUMN „grup”` din 2 fișiere de testare — coloana face parte acum din schema de bază (adăugat în #373), provocând `SQLITE_ERROR: duplicate column name` la fiecare rulare CI. -**Pre-commit hook**: S-a adăugat `npm run test:unit` la `.husky/pre-commit` — testele unitare blochează acum comitările întrerupte înainte de a ajunge la CI.## [2.5.3] - 2026-03-14
 
-> Logger startup fix, login bootstrap security fix, and dev HMR reliability improvement. CI infrastructure hardened.
+> Remedieri critice de erori: migrarea schemei bazei de date, încărcarea mediului de pornire, ștergerea stării erorii furnizorului și remedierea descrierii i18n. Îmbunătățiri ale calității codului pe lângă fiecare PR.### 🐛 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
 
-### 🐛 Bug Fixes (PRs #374, #375, #376 by @kfiramar)
+-**fix(db) #373**: Adăugați coloana `provider_connections.group` la schema de bază + migrarea de completare pentru bazele de date existente - coloana a fost folosită în toate interogările, dar lipsea din definiția schemei -**fix(i18n) #371**: Înlocuiți cheia inexistentă `t("deleteConnection")` cu cheia `providers.delete` existentă — remediază eroarea de rulare `MISSING_MESSAGE: providers.deleteConnection` pe pagina de detalii a furnizorului -**fix(auth) #372**: Ștergeți metadatele erorilor învechite (`errorCode`, `lastErrorType`, `lastErrorSource`) din conturile furnizorului după recuperarea autentică - anterior, conturile recuperate continuau să apară ca eșuate -**fix(startup) #369**: Unificați încărcarea mediului în `npm run start`, `run-standalone.mjs` și Electron pentru a respecta prioritatea `DATA_DIR/.env → ~/.omniroute/.env → ./.env` — previne generarea unei noi baze de date `STORAGE_KEY`P criptate peste o bază de date criptată STORAGE_KEYCRY`### 🔧 Code Quality
 
-- **fix(logger) #376**: Restore pino transport logger path — `formatters.level` combined with `transport.targets` is rejected by pino. Transport-backed configs now strip the level formatter via `getTransportCompatibleConfig()`. Also corrects numeric level mapping in `/api/logs/console`: `30→info, 40→warn, 50→error` (was shifted by one).
-- **fix(login) #375**: Login page now bootstraps from the public `/api/settings/require-login` endpoint instead of the protected `/api/settings`. In password-protected setups, the pre-auth page was receiving a 401 and falling back to safe defaults unnecessarily. The public route now returns all bootstrap metadata (`requireLogin`, `hasPassword`, `setupComplete`) with a conservative 200 fallback on error.
-- **fix(dev) #374**: Add `localhost` and `127.0.0.1` to `allowedDevOrigins` in `next.config.mjs` — HMR websocket was blocked when accessing the app via loopback address, producing repeated cross-origin warnings.
+- Modele documentate `result.success` vs `response?.ok` în `auth.ts` (ambele intenționate, acum explicate)
+- `overridePath?.trim()` normalizat în `electron/main.js` pentru a se potrivi cu `bootstrap-env.mjs`
+- S-a adăugat un comentariu pentru comanda de îmbinare `preferredEnv` la pornirea Electron
 
-### 🔧 CI & Infrastructure
+> Politica de cotă a contului Codex cu rotație automată, comutare rapidă a nivelului, model gpt-5.4 și remediere a etichetei de analiză.### ✨ New Features (PRs #366, #367, #368)
 
-- **ESLint OOM fix**: `eslint.config.mjs` now ignores `vscode-extension/**`, `electron/**`, `docs/**`, `app/.next/**`, and `clipr/**` — ESLint was crashing with a JS heap OOM by scanning VS Code binary blobs and compiled chunks.
-- **Unit test fix**: Removed stale `ALTER TABLE provider_connections ADD COLUMN "group"` from 2 test files — column is now part of the base schema (added in #373), causing `SQLITE_ERROR: duplicate column name` on every CI run.
-- **Pre-commit hook**: Added `npm run test:unit` to `.husky/pre-commit` — unit tests now block broken commits before they reach CI.
+-**Politica de cotă Codex (PR #366)**: fereastra de cotă de 5 ore/săptămânal pe cont se comută în tabloul de bord al furnizorului. Conturile sunt omise automat când ferestrele activate ating pragul de 90% și sunt re-admise după `resetAt`. Include `quotaCache.ts` cu generator de stare fără efecte secundare. -**Codex Fast Tier Toggle (PR #367)**: Tabloul de bord → Setări → Codex Service Tier. Comutatorul de dezactivare implicită injectează `service_tier: "flex"` numai pentru solicitările Codex, reducând costul cu ~80%. Stiva completă: filă UI + punct final API + executor + translator + restaurare la pornire. -**gpt-5.4 Model (PR #368)**: adaugă `cx/gpt-5.4` și `codex/gpt-5.4` la registrul modelului Codex. Test de regresie inclus.### 🐛 Bug Fixes
 
-## [2.5.3] - 2026-03-14
+-**Remedierea nr. 356**: Diagramele Analytics (Furnizor de top, După cont, Defalcare furnizor) afișează acum nume/etichete de furnizori care pot fi citite de om în loc de ID-uri interne brute pentru furnizorii compatibili cu OpenAI.
 
-> Critical bugfixes: DB schema migration, startup env loading, provider error state clearing, and i18n tooltip fix. Code quality improvements on top of each PR.
+> Lansare majoră: strategie de rutare aleatorie strictă, controale de acces la chei API, grupuri de conexiuni, sincronizare externă a prețurilor și remedieri de erori critice pentru modelele de gândire, testare combinată și validare a numelui instrumentului.### ✨ New Features (PRs #363 & #365)
 
-### 🐛 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
+-**Strict-Random Routing Strategy**: pachetul de amestecare Fisher-Yates cu garanție anti-repetare și serializare mutex pentru solicitări concurente. Puncte independente per combo și per furnizor. -**Controale de acces cheie API**: `allowedConnections` (restricționează ce conexiuni poate folosi o cheie), `is_active` (activare/dezactivare cheie cu 403), `accessSchedule` (controlul accesului bazat pe timp), comutare `autoResolve`, redenumiți cheile prin PATCH. -**Grupuri de conexiune**: Grupați conexiunile furnizorilor în funcție de mediu. Vizualizare acordeon în pagina Limite cu persistență locală de stocare și comutare automată inteligentă. -**Sincronizare externă a prețurilor (LiteLLM)**: rezoluție a prețurilor pe 3 niveluri (înlocuirea utilizatorului → sincronizat → valori implicite). Înscrieți-vă prin `PRICING_SYNC_ENABLED=true`. Instrumentul MCP `omniroute_sync_pricing`. 23 de teste noi. -**i18n**: 30 de limbi actualizate cu strategie strict-aleatorie, șiruri de gestionare a cheilor API. pt-BR tradus integral.### 🐛 Bug Fixes
 
-- **fix(db) #373**: Add `provider_connections.group` column to base schema + backfill migration for existing databases — column was used in all queries but missing from schema definition
-- **fix(i18n) #371**: Replace non-existent `t("deleteConnection")` key with existing `providers.delete` key — fixes `MISSING_MESSAGE: providers.deleteConnection` runtime error on provider detail page
-- **fix(auth) #372**: Clear stale error metadata (`errorCode`, `lastErrorType`, `lastErrorSource`) from provider accounts after genuine recovery — previously, recovered accounts kept appearing as failed
-- **fix(startup) #369**: Unify env loading across `npm run start`, `run-standalone.mjs`, and Electron to respect `DATA_DIR/.env → ~/.omniroute/.env → ./.env` priority — prevents generating a new `STORAGE_ENCRYPTION_KEY` over an existing encrypted database
+-**remediere #355**: Timeout-ul de inactivitate a fluxului a crescut de la 60 de secunde la 300 de secunde — previne întreruperea modelelor cu gândire extinsă (claude-opus-4-6, o3 etc.) în timpul fazelor lungi de raționament. Configurabil prin `STREAM_IDLE_TIMEOUT_MS`. -**remedierea #350**: testul Combo ocolește acum `REQUIRE_API_KEY=true` folosind antetul intern și utilizează universal formatul compatibil OpenAI. Timeout a fost extins de la 15 la 20 de secunde. -**remedierea #346**: instrumentele cu `function.name` (redirecționat de Claude Code) sunt acum filtrate înainte ca furnizorii din amonte să le primească, prevenind erorile „Intrare nevalidă[N].nume: șir gol”.### 🗑️ Closed Issues
 
-### 🔧 Code Quality
+-**#341**: Secțiunea de depanare a fost eliminată - înlocuirea este `/dashboard/logs` și `/dashboard/health`.
 
-- Documented `result.success` vs `response?.ok` patterns in `auth.ts` (both intentional, now explained)
-- Normalized `overridePath?.trim()` in `electron/main.js` to match `bootstrap-env.mjs`
-- Added `preferredEnv` merge order comment in Electron startup
+> Compatibilitate API Key Round-Robin pentru configurarea furnizorilor cu mai multe chei și confirmarea rutării cu wildcard și a ferestrei de cotă deja existente.### ✨ New Features
 
-> Codex account quota policy with auto-rotation, fast tier toggle, gpt-5.4 model, and analytics label fix.
+-**API Key Round-Robin (T07)**: conexiunile furnizorului pot deține acum mai multe chei API (Edit Connection → Extra API Keys). Solicitările se rotesc între cheile primare și suplimentare prin `providerSpecificData.extraApiKeys[]`. Cheile sunt păstrate în memorie indexate pe conexiune - nu sunt necesare modificări ale schemei DB.### 📝 Already Implemented (confirmed in audit)
 
-### ✨ New Features (PRs #366, #367, #368)
+-**Wildcard Model Routing (T13)**: `wildcardRouter.ts` cu potrivire wildcard în stil glob (`gpt*`, `claude-?-sonnet`, etc.) este deja integrat în `model.ts` cu clasare specifică. -**Cota Window Rolling (T08)**: `accountFallback.ts:isModelLocked()` avansează deja automat fereastra — dacă `Date.now() > entry.until`, blocarea este ștearsă imediat (fără blocare învechită).
 
-- **Codex Quota Policy (PR #366)**: Per-account 5h/weekly quota window toggles in Provider dashboard. Accounts are automatically skipped when enabled windows reach 90% threshold and re-admitted after `resetAt`. Includes `quotaCache.ts` with side-effect free status getter.
-- **Codex Fast Tier Toggle (PR #367)**: Dashboard → Settings → Codex Service Tier. Default-off toggle injects `service_tier: "flex"` only for Codex requests, reducing cost ~80%. Full stack: UI tab + API endpoint + executor + translator + startup restore.
-- **gpt-5.4 Model (PR #368)**: Adds `cx/gpt-5.4` and `codex/gpt-5.4` to the Codex model registry. Regression test included.
+> Lustruirea interfeței de utilizare, adăugări de strategii de rutare și gestionarea grațioasă a erorilor pentru limitele de utilizare.### ✨ New Features
 
-### 🐛 Bug Fixes
+-**Fill-First și Strategii de rutare P2C**: s-au adăugat `fill-first` (cota de scurgere înainte de a trece mai departe) și `p2c` (selecție cu latență redusă Power-of-Two-Choices) la selectorul de strategii combinate, cu panouri de ghidare complete și insigne codate cu culori. -**Free Stack Preset Models**: Crearea unei combinații cu șablonul Free Stack acum completează automat 7 modele de furnizor gratuit de cea mai bună calitate (Gemini CLI, Kiro, Qoder×2, Qwen, NVIDIA NIM, Groq). Utilizatorii doar activează furnizorii și primesc un combo de 0 USD/lună imediat. -**Modal Combo mai larg**: Crearea/Editarea modalului combo utilizează acum `max-w-4xl` pentru editarea confortabilă a combo-urilor mari.### 🐛 Bug Fixes
 
-- **fix #356**: Analytics charts (Top Provider, By Account, Provider Breakdown) now display human-readable provider names/labels instead of raw internal IDs for OpenAI-compatible providers.
+-**Pagina Limite HTTP 500 pentru Codex și GitHub**: `getCodexUsage()` și `getGitHubUsage()` returnează acum un mesaj ușor de utilizat când furnizorul returnează 401/403 (token expirat), în loc să arunce și să provoace o eroare 500 pe pagina Limite. -**MaintenanceBanner fals pozitiv**: bannerul nu mai afișează în mod fals „Serverul este inaccesibil” la încărcarea paginii. Remediat apelând `checkHealth()` imediat la montare și eliminând închiderea stării `show` învechite. -**Sfaturi instrumente pentru pictogramele furnizorului**: butoanele de editare (creion) și de ștergere a pictogramelor din rândul de conexiune la furnizor au acum sfaturi instrumente HTML native - toate cele 6 pictograme de acțiune sunt acum auto-documentate.
 
-> Major release: strict-random routing strategy, API key access controls, connection groups, external pricing sync, and critical bug fixes for thinking models, combo testing, and tool name validation.
+> Îmbunătățiri multiple din analiza problemelor comunității, asistență pentru noi furnizori, remedieri de erori pentru urmărirea simbolurilor, rutarea modelului și fiabilitatea streamingului.### ✨ New Features
 
-### ✨ New Features (PRs #363 & #365)
+-**Task-Aware Smart Routing (T05)**: Selectarea automată a modelului pe baza tipului de conținut al solicitării — codificare → deepseek-chat, analiză → gemini-2.5-pro, vision → gpt-4o, rezumat → gemini-2.5-flash. Configurabil prin Setări. Noua API `GET/PUT/POST /api/settings/task-routing`. -**Furnizor HuggingFace**: Router HuggingFace adăugat ca furnizor compatibil OpenAI cu Llama 3.1 70B/8B, Qwen 2.5 72B, Mistral 7B, Phi-3.5 Mini. -**Vertex AI Provider**: S-a adăugat furnizorul Vertex AI (Google Cloud) cu Gemini 2.5 Pro/Flash, Gemma 2 27B, Claude prin Vertex. -**Încărcări de fișiere pentru teren de joacă**: încărcare audio pentru transcriere, încărcare de imagini pentru modele de viziune (detectare automată după numele modelului), randare a imaginii în linie pentru rezultatele generării de imagini. -**Feedback vizual pentru selectarea modelului**: Modelele deja adăugate în selectorul combinat arată acum ✓ insignă verde — previne confuzia dublată. -**Compatibilitate Qwen (PR #352)**: Setări de amprentă actualizate pentru User-Agent și CLI pentru compatibilitatea furnizorilor Qwen. -**Round-Robin State Management (PR #349)**: logica round-robin îmbunătățită pentru a gestiona conturile excluse și a menține corect starea de rotație. -**Clipboard UX (PR #360)**: operațiuni de clipboard întărite cu rezervă pentru contexte nesecurizate; Îmbunătățiri de normalizare a instrumentului Claude.### 🐛 Bug Fixes
 
-- **Strict-Random Routing Strategy**: Fisher-Yates shuffle deck with anti-repeat guarantee and mutex serialization for concurrent requests. Independent decks per combo and per provider.
-- **API Key Access Controls**: `allowedConnections` (restrict which connections a key can use), `is_active` (enable/disable key with 403), `accessSchedule` (time-based access control), `autoResolve` toggle, rename keys via PATCH.
-- **Connection Groups**: Group provider connections by environment. Accordion view in Limits page with localStorage persistence and smart auto-switch.
-- **External Pricing Sync (LiteLLM)**: 3-tier pricing resolution (user overrides → synced → defaults). Opt-in via `PRICING_SYNC_ENABLED=true`. MCP tool `omniroute_sync_pricing`. 23 new tests.
-- **i18n**: 30 languages updated with strict-random strategy, API key management strings. pt-BR fully translated.
+-**Remediere #302 — OpenAI SDK stream=False drops tool_calls**: T01 Acceptare negociere antet nu mai forțează transmiterea când `body.stream` este în mod explicit `false`. A făcut ca tool_calls să fie renunțat la folosirea SDK-ului OpenAI Python în modul non-streaming. -**Remediere #73 — Claude Haiku direcționat către OpenAI fără prefix de furnizor**: modelele `claude-*` trimise fără prefix de furnizor acum sunt direcționate corect către furnizorul `antigravity` (antropic). S-a adăugat și `gemini-*`/`gemma-*` → `gemeni` euristic. -**Remediere #74 — Numărul de simboluri este întotdeauna 0 pentru streaming Antigravity/Claude**: Evenimentul SSE `message_start` care poartă `input_tokens` nu a fost analizat de `extractUsage()`, ceea ce a cauzat scăderea numărului de jetoane de intrare. Urmărirea simbolurilor de intrare/ieșire funcționează acum corect pentru răspunsurile în flux. -**Remediere #180 — Dubluri de import de modele fără feedback**: `ModelSelectModal` arată acum ✓ evidențiere verde pentru modelele aflate deja în combo, ceea ce face evident că sunt deja adăugate. -**Erori de generare a paginii media**: rezultatele imaginii sunt acum afișate ca etichete `<img>` în loc de JSON brut. Rezultatele transcripției sunt afișate ca text care poate fi citit. Erorile de acreditări arată un banner chihlimbar în loc de eroare silențioasă. -**Butonul de reîmprospătare a simbolului de pe pagina furnizorului**: UI de reîmprospătare manuală a simbolului a fost adăugată pentru furnizorii OAuth.### 🔧 Improvements
 
-### 🐛 Bug Fixes
-
-- **fix #355**: Stream idle timeout increased from 60s to 300s — prevents aborting extended-thinking models (claude-opus-4-6, o3, etc.) during long reasoning phases. Configurable via `STREAM_IDLE_TIMEOUT_MS`.
-- **fix #350**: Combo test now bypasses `REQUIRE_API_KEY=true` using internal header, and uses OpenAI-compatible format universally. Timeout extended from 15s to 20s.
-- **fix #346**: Tools with empty `function.name` (forwarded by Claude Code) are now filtered before upstream providers receive them, preventing "Invalid input[N].name: empty string" errors.
-
-### 🗑️ Closed Issues
-
-- **#341**: Debug section removed — replacement is `/dashboard/logs` and `/dashboard/health`.
-
-> API Key Round-Robin support for multi-key provider setups, and confirmation of wildcard routing and quota window rolling already in place.
-
-### ✨ New Features
-
-- **API Key Round-Robin (T07)**: Provider connections can now hold multiple API keys (Edit Connection → Extra API Keys). Requests rotate round-robin between primary + extra keys via `providerSpecificData.extraApiKeys[]`. Keys are held in-memory indexed per connection — no DB schema changes required.
-
-### 📝 Already Implemented (confirmed in audit)
-
-- **Wildcard Model Routing (T13)**: `wildcardRouter.ts` with glob-style wildcard matching (`gpt*`, `claude-?-sonnet`, etc.) is already integrated into `model.ts` with specificity ranking.
-- **Quota Window Rolling (T08)**: `accountFallback.ts:isModelLocked()` already auto-advances the window — if `Date.now() > entry.until`, lock is deleted immediately (no stale blocking).
-
-> UI polish, routing strategy additions, and graceful error handling for usage limits.
-
-### ✨ New Features
-
-- **Fill-First & P2C Routing Strategies**: Added `fill-first` (drain quota before moving on) and `p2c` (Power-of-Two-Choices low-latency selection) to combo strategy picker, with full guidance panels and color-coded badges.
-- **Free Stack Preset Models**: Creating a combo with the Free Stack template now auto-fills 7 best-in-class free provider models (Gemini CLI, Kiro, Qoder×2, Qwen, NVIDIA NIM, Groq). Users just activate the providers and get a $0/month combo out-of-the-box.
-- **Wider Combo Modal**: Create/Edit combo modal now uses `max-w-4xl` for comfortable editing of large combos.
-
-### 🐛 Bug Fixes
-
-- **Limits page HTTP 500 for Codex & GitHub**: `getCodexUsage()` and `getGitHubUsage()` now return a user-friendly message when the provider returns 401/403 (expired token), instead of throwing and causing a 500 error on the Limits page.
-- **MaintenanceBanner false-positive**: Banner no longer shows "Server is unreachable" spuriously on page load. Fixed by calling `checkHealth()` immediately on mount and removing stale `show`-state closure.
-- **Provider icon tooltips**: Edit (pencil) and delete icon buttons in the provider connection row now have native HTML tooltips — all 6 action icons are now self-documented.
-
-> Multiple improvements from community issue analysis, new provider support, bug fixes for token tracking, model routing, and streaming reliability.
-
-### ✨ New Features
-
-- **Task-Aware Smart Routing (T05)**: Automatic model selection based on request content type — coding → deepseek-chat, analysis → gemini-2.5-pro, vision → gpt-4o, summarization → gemini-2.5-flash. Configurable via Settings. New `GET/PUT/POST /api/settings/task-routing` API.
-- **HuggingFace Provider**: Added HuggingFace Router as an OpenAI-compatible provider with Llama 3.1 70B/8B, Qwen 2.5 72B, Mistral 7B, Phi-3.5 Mini.
-- **Vertex AI Provider**: Added Vertex AI (Google Cloud) provider with Gemini 2.5 Pro/Flash, Gemma 2 27B, Claude via Vertex.
-- **Playground File Uploads**: Audio upload for transcription, image upload for vision models (auto-detect by model name), inline image rendering for image generation results.
-- **Model Select Visual Feedback**: Already-added models in combo picker now show ✓ green badge — prevents duplicate confusion.
-- **Qwen Compatibility (PR #352)**: Updated User-Agent and CLI fingerprint settings for Qwen provider compatibility.
-- **Round-Robin State Management (PR #349)**: Enhanced round-robin logic to handle excluded accounts and maintain rotation state correctly.
-- **Clipboard UX (PR #360)**: Hardened clipboard operations with fallback for non-secure contexts; Claude tool normalization improvements.
-
-### 🐛 Bug Fixes
-
-- **Fix #302 — OpenAI SDK stream=False drops tool_calls**: T01 Accept header negotiation no longer forces streaming when `body.stream` is explicitly `false`. Was causing tool_calls to be silently dropped when using the OpenAI Python SDK in non-streaming mode.
-- **Fix #73 — Claude Haiku routed to OpenAI without provider prefix**: `claude-*` models sent without a provider prefix now correctly route to the `antigravity` (Anthropic) provider. Added `gemini-*`/`gemma-*` → `gemini` heuristic as well.
-- **Fix #74 — Token counts always 0 for Antigravity/Claude streaming**: The `message_start` SSE event which carries `input_tokens` was not being parsed by `extractUsage()`, causing all input token counts to drop. Input/output token tracking now works correctly for streaming responses.
-- **Fix #180 — Model import duplicates with no feedback**: `ModelSelectModal` now shows ✓ green highlight for models already in the combo, making it obvious they're already added.
-- **Media page generation errors**: Image results now render as `<img>` tags instead of raw JSON. Transcription results shown as readable text. Credential errors show an amber banner instead of silent failure.
-- **Token refresh button on provider page**: Manual token refresh UI added for OAuth providers.
-
-### 🔧 Improvements
-
-- **Provider Registry**: HuggingFace and Vertex AI added to `providerRegistry.ts` and `providers.ts` (frontend).
-- **Read Cache**: New `src/lib/db/readCache.ts` for efficient DB read caching.
-- **Quota Cache**: Improved quota cache with TTL-based eviction.
-
-### 📦 Dependencies
+-**Registrul furnizorului**: HuggingFace și Vertex AI au fost adăugate la `providerRegistry.ts` și `providers.ts` (frontend). -**Read Cache**: Noul `src/lib/db/readCache.ts` pentru memorarea eficientă a citirii DB. -**Quota Cache**: cache-ul cotelor îmbunătățit cu evacuarea bazată pe TTL.### 📦 Dependencies
 
 - `dompurify` → 3.3.3 (PR #347)
 - `undici` → 7.24.2 (PR #348, #361)
 - `docker/setup-qemu-action` → v4 (PR #342)
-- `docker/setup-buildx-action` → v4 (PR #343)
+- `docker/setup-buildx-action` → v4 (PR #343)### 📁 New Files
 
-### 📁 New Files
-
-| File                                          | Purpose                                 |
-| --------------------------------------------- | --------------------------------------- |
-| `open-sse/services/taskAwareRouter.ts`        | Task-aware routing logic (7 task types) |
-| `src/app/api/settings/task-routing/route.ts`  | Task routing config API                 |
-| `src/app/api/providers/[id]/refresh/route.ts` | Manual OAuth token refresh              |
-| `src/lib/db/readCache.ts`                     | Efficient DB read cache                 |
-| `src/shared/utils/clipboard.ts`               | Hardened clipboard with fallback        |
-
-## [2.4.1] - 2026-03-13
+| Fișier                                        | Scop                                                         |
+| --------------------------------------------- | ------------------------------------------------------------ | ----------------------- |
+| `open-sse/services/taskAwareRouter.ts`        | Logica de rutare conștientă de sarcini (7 tipuri de sarcini) |
+| `src/app/api/settings/task-routing/route.ts`  | API de configurare de rutare a sarcinilor                    |
+| `src/app/api/providers/[id]/refresh/route.ts` | Actualizare manuală a jetonului OAuth                        |
+| `src/lib/db/readCache.ts`                     | Cache de citire DB eficientă                                 |
+| `src/shared/utils/clipboard.ts`               | Clipboard întărit cu rezervă                                 | ## [2.4.1] - 2026-03-13 |
 
 ### 🐛 Fix
 
-- **Combos modal: Free Stack visible and prominent** — Free Stack template was hidden (4th in 3-column grid). Fixed: moved to position 1, switched to 2x2 grid so all 4 templates are visible, green border + FREE badge highlight.
+-**Combo modal: Free Stack vizibil și proeminent**— Șablonul Free Stack a fost ascuns (al patrulea în grila cu 3 coloane). Remediat: mutat în poziția 1, comutat la grila 2x2, astfel încât toate cele 4 șabloane să fie vizibile, chenar verde + evidențiere GRATUITĂ.## [2.4.0] - 2026-03-13
 
-## [2.4.0] - 2026-03-13
+> **Versiunea majoră**— Ecosistem gratuit de stivă, revizuire a terenului de joacă pentru transcriere, peste 44 de furnizori, documentație gratuită cuprinzătoare și îmbunătățiri ale interfeței de utilizare la nivel general.### Funcționalități
 
-> **Major release** — Free Stack ecosystem, transcription playground overhaul, 44+ providers, comprehensive free tier documentation, and UI improvements across the board.
-
-### Funcționalități
-
-- **Combos: Free Stack template** — New 4th template "Free Stack ($0)" using round-robin across Kiro + Qoder + Qwen + Gemini CLI. Suggests the pre-built zero-cost combo on first use.
-- **Media/Transcription: Deepgram as default** — Deepgram (Nova 3, $200 free) is now the default transcription provider. AssemblyAI ($50 free) and Groq Whisper (free forever) shown with free credit badges.
-- **README: "Start Free" section** — New early-README 5-step table showing how to set up zero-cost AI in minutes.
-- **README: Free Transcription Combo** — New section with Deepgram/AssemblyAI/Groq combo suggestion and per-provider free credit details.
-- **providers.ts: hasFree flag** — NVIDIA NIM, Cerebras, and Groq marked with hasFree badge and freeNote for the providers UI.
-- **i18n: templateFreeStack keys** — Free Stack combo template translated and synced to all 30 languages.
-
-## [2.3.16] - 2026-03-13
+-**Combo: șablon Free Stack**— Al patrulea șablon „Free Stack ($0)” folosind round-robin în Kiro + Qoder + Qwen + Gemini CLI. Sugerează combinația preconstruită cu cost zero la prima utilizare. -**Media/Transcriere: Deepgram ca implicit**— Deepgram (Nova 3, 200 USD gratuit) este acum furnizorul prestabilit de transcriere. AssemblyAI (50 USD gratuit) și Groq Whisper (gratuit pentru totdeauna) afișate cu insigne de credit gratuite. -**README: secțiunea „Începeți gratuit”**— Noul tabel timpuriu în 5 pași, care arată cum să configurați AI cu cost zero în câteva minute. -**README: Free Transcription Combo**— Secțiune nouă cu sugestie combinată Deepgram/AssemblyAI/Groq și detalii de credit gratuite pentru fiecare furnizor. -**providers.ts: steag hasFree**— NVIDIA NIM, Cerebras și Groq marcate cu insigna hasFree și freeNote pentru interfața de utilizare a furnizorilor. -**i18n: chei templateFreeStack**— Șablon gratuit combo Stack tradus și sincronizat în toate cele 30 de limbi.## [2.3.16] - 2026-03-13
 
 ### Documentație
 
-- **README: 44+ Providers** — Updated all 3 occurrences of "36+ providers" to "44+" reflecting the actual codebase count (44 providers in providers.ts)
-- **README: New Section "🆓 Free Models — What You Actually Get"** — Added 7-provider table with per-model rate limits for: Kiro (Claude unlimited via AWS Builder ID), Qoder (5 models unlimited), Qwen (4 models unlimited), Gemini CLI (180K/mo), NVIDIA NIM (~40 RPM dev-forever), Cerebras (1M tok/day / 60K TPM), Groq (30 RPM / 14.4K RPD). Includes the \/usr/bin/bash Ultimate Free Stack combo recommendation.
-- **README: Pricing Table Updated** — Added Cerebras to API KEY tier, fixed NVIDIA from "1000 credits" to "dev-forever free", updated Qoder/Qwen model counts and names
-- **README: Qoder 8→5 models** (named: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2)
-- **README: Qwen 3→4 models** (named: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model)
-
-## [2.3.15] - 2026-03-13
+-**README: 44+ Furnizori**— S-au actualizat toate cele 3 apariții ale „36+ furnizori” la „44+”, reflectând numărul real de bază de cod (44 de furnizori în providers.ts) -**CITIȚI-MĂ: Secțiune nouă „🆓 Modele gratuite — Ce obțineți de fapt”**— S-a adăugat un tabel cu 7 furnizori cu limite de tarife per model pentru: Kiro (Claude nelimitat prin AWS Builder ID), Qoder (5 modele nelimitat), Qwen (4 modele nelimitat), Gemini CLI (180K/lună), NVIDIA NIM (~40 K/lună), NVIDIA RIM (~-40) (1M tok/zi / 60K TPM), Groq (30 RPM / 14,4K RPD). Include recomandarea combinată \/usr/bin/bash Ultimate Free Stack. -**README: Tabelul de prețuri actualizat**— S-a adăugat Cerebras la nivelul API KEY, s-a remediat NVIDIA de la „1000 de credite” la „dev-forever free”, s-au actualizat numărul și numele modelelor Qoder/Qwen -**README: Qoder 8→5 models**(numit: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2) -**CITIȚI-MĂ: modele Qwen 3→4**(denumite: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model)## [2.3.15] - 2026-03-13
 
 ### Funcționalități
 
-- **Auto-Combo Dashboard (Tier Priority)**: Added `🏷️ Tier` as the 7th scoring factor label in the `/dashboard/auto-combo` factor breakdown display — all 7 Auto-Combo scoring factors are now visible.
-- **i18n — autoCombo section**: Added 20 new translation keys for the Auto-Combo dashboard (`title`, `status`, `modePack`, `providerScores`, `factorTierPriority`, etc.) to all 30 language files.
-
-## [2.3.14] - 2026-03-13
+-**Tabloul de bord Auto-Combo (prioritate nivel)**: s-a adăugat `🏷️ Tier` ca a șaptea etichetă a factorului de punctare în afișajul de defalcare a factorilor `/dashboard/auto-combo` — toți cei 7 factori de scor Auto-Combo sunt acum vizibili. -**i18n — secțiunea autoCombo**: S-au adăugat 20 de taste de traducere noi pentru tabloul de bord Auto-Combo (`title`, `status`, `modePack`, `providerScores`, `factorTierPriority`, etc.) la toate fișierele de limbă 30.## [2.3.14] - 2026-03-13
 
 ### 🐛 Bug Fixes
 
-- **Qoder OAuth (#339)**: Restored the valid default `clientSecret` — was previously an empty string, causing "Bad client credentials" on every connect attempt. The public credential is now the default fallback (overridable via `QODER_OAUTH_CLIENT_SECRET` env var).
-- **MITM server not found (#335)**: `prepublish.mjs` now compiles `src/mitm/*.ts` to JavaScript using `tsc` before copying to the npm bundle. Previously only raw `.ts` files were copied — meaning `server.js` never existed in npm/Volta global installs.
-- **GeminiCLI missing projectId (#338)**: Instead of throwing a hard 500 error when `projectId` is missing from stored credentials (e.g. after Docker restart), OmniRoute now logs a warning and attempts the request — returning a meaningful provider-side error instead of an OmniRoute crash.
-- **Electron version mismatch (#323)**: Synced `electron/package.json` version to `2.3.13` (was `2.0.13`) so the desktop binary version matches the npm package.
+-**Qoder OAuth (#339)**: a fost restaurat `clientSecret` implicit valid — anterior era un șir gol, provocând „Acreditări de client proaste” la fiecare încercare de conectare. Acreditarea publică este acum soluția implicită (se poate modifica prin `QODER_OAUTH_CLIENT_SECRET` env var). -**Serverul MITM nu a fost găsit (#335)**: `prepublish.mjs` acum compileaz` `src/mitm/\*.ts`în JavaScript folosind`tsc`înainte de a copia în pachetul npm. Anterior, au fost copiate numai fișierele brute`.ts`, ceea ce înseamnă că `server.js`nu a existat niciodată în instalările globale npm/Volta.
+-**ProjectId lipsă GeminiCLI (#338)**: în loc să arunce o eroare 500 când`projectId`lipsește din acreditările stocate (de exemplu, după repornirea Docker), OmniRoute acum înregistrează un avertisment și încearcă să solicite - returnând o eroare semnificativă la nivelul furnizorului în loc de o eroare OmniRoute.
+-**Nepotrivirea versiunii electronice (#323)**: Versiunea`electron/package.json`s-a sincronizat cu`2.3.13`(era`2.0.13`), astfel încât versiunea binară desktop se potrivește cu pachetul npm.### ✨ New Models (#334)
 
-### ✨ New Models (#334)
+-**Kiro**: `claude-sonnet-4`, `claude-opus-4.6`, `deepseek-v3.2`, `minimax-m2.1`, `qwen3-coder-next`, `auto` -**Codex**: `gpt5.4`### 🔧 Improvements
 
-- **Kiro**: `claude-sonnet-4`, `claude-opus-4.6`, `deepseek-v3.2`, `minimax-m2.1`, `qwen3-coder-next`, `auto`
-- **Codex**: `gpt5.4`
+-**Tier Scoring (API + Validare)**: S-a adăugat `tierPriority` (ponderea `0,05`) la schema Zod `ScoringWeights` și la ruta API `combos/auto` — al șaptelea factor de scor este acum acceptat pe deplin de API-ul REST și validat la intrare. Greutatea „stabilității” ajustată de la „0,10” la „0,05” pentru a menține suma totală = „1,0”.### ✨ New Features
 
-### 🔧 Improvements
+-**Tiered Quota Scoring (Auto-Combo)**: S-a adăugat `tierPriority` ca al șaptelea factor de punctare — conturile cu niveluri Ultra/Pro sunt acum preferate față de nivelurile gratuite atunci când alți factori sunt egali. Câmpuri opționale noi `accountTier` și `quotaResetIntervalSecs` pe `ProviderCandidate`. Toate cele 4 pachete de moduri au fost actualizate (`ship-rapid`, `cost-saver`, `quality-first`, `offline-friendly`). -**Intra-Family Model Fallback (T5)**: Când un model este indisponibil (404/400/403), acum OmniRoute revine automat la modelele frați din aceeași familie înainte de a returna o eroare (`modelFamilyFallback.ts`). -**Timp configurabil API Bridge Timeout**: `API_BRIDGE_PROXY_TIMEOUT_MS` env var permite operatorilor să ajusteze timpul de expirare a proxy-ului (implicit 30s). Remediază erorile 504 la răspunsurile lente din amonte. (#332) -**Star History**: widget-ul star-history.com înlocuit cu starchart.cc (`?variant=adaptive`) în toate cele 30 de README-uri — se adaptează temei deschise/întunecate, actualizări în timp real.### 🐛 Bug Fixes
 
-- **Tier Scoring (API + Validation)**: Added `tierPriority` (weight `0.05`) to the `ScoringWeights` Zod schema and the `combos/auto` API route — the 7th scoring factor is now fully accepted by the REST API and validated on input. `stability` weight adjusted from `0.10` to `0.05` to keep total sum = `1.0`.
+-**Auth — Prima parolă**: `INITIAL_PASSWORD` env var este acum acceptată la setarea primei parole pentru tabloul de bord. Utilizează `timingSafeEqual` pentru compararea în timp constant, prevenind atacurile de sincronizare. (#333) -**Truncare README**: S-a remediat o etichetă de închidere `</details>` lipsă în secțiunea Depanare, care a făcut ca GitHub să nu mai redeze totul de sub ea (Tech Stack, Docs, Roadmap, Contributors). -**pnpm install**: S-a eliminat anularea redundantă `@swc/helpers` din `package.json` care a intrat în conflict cu dependența directă, provocând erori `EOVERRIDE` pe pnpm. S-a adăugat configurația `pnpm.onlyBuiltDependencies`. -**CLI Path Injection (T12)**: S-a adăugat validatorul `isSafePath()` în `cliRuntime.ts` pentru a bloca traversarea căii și metacaracterele shell în `CLI_*_BIN` env vars. -**CI**: `package-lock.json` a fost regenerat după eliminarea suprascrierii pentru a remedia erorile `npm ci` pe GitHub Actions.### 🔧 Improvements
 
-### ✨ New Features
+-**Response Format (T1)**: `response_format` (json_schema/json_object) este acum injectat ca prompt de sistem pentru Claude, permițând compatibilitatea de ieșire structurată. -**429 Reîncercați (T2)**: Reîncercați intra-URL pentru 429 de răspunsuri (2× încercări cu întârziere de 2 secunde) înainte de a reveni la următoarea adresă URL. -**Anteturi Gemini CLI (T3)**: S-au adăugat anteturi de amprentă `User-Agent` și `X-Goog-Api-Client` pentru compatibilitatea Gemini CLI. -**Catalog de prețuri (T9)**: s-au adăugat intrări de preț `deepseek-3.1`, `deepseek-3.2` și `qwen3-coder-next`.### 📁 New Files
 
-- **Tiered Quota Scoring (Auto-Combo)**: Added `tierPriority` as a 7th scoring factor — accounts with Ultra/Pro tiers are now preferred over Free tiers when other factors are equal. New optional fields `accountTier` and `quotaResetIntervalSecs` on `ProviderCandidate`. All 4 mode packs updated (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`).
-- **Intra-Family Model Fallback (T5)**: When a model is unavailable (404/400/403), OmniRoute now automatically falls back to sibling models from the same family before returning an error (`modelFamilyFallback.ts`).
-- **Configurable API Bridge Timeout**: `API_BRIDGE_PROXY_TIMEOUT_MS` env var lets operators tune the proxy timeout (default 30s). Fixes 504 errors on slow upstream responses. (#332)
-- **Star History**: Replaced star-history.com widget with starchart.cc (`?variant=adaptive`) in all 30 READMEs — adapts to light/dark theme, real-time updates.
+| Fișier                                     | Scop                                                            |
+| ------------------------------------------ | --------------------------------------------------------------- | --------- |
+| `open-sse/services/modelFamilyFallback.ts` | Definiții model de familie și logica de rezervă intra-familială | ### Fixed |
 
-### 🐛 Bug Fixes
-
-- **Auth — First-time password**: `INITIAL_PASSWORD` env var is now accepted when setting the first dashboard password. Uses `timingSafeEqual` for constant-time comparison, preventing timing attacks. (#333)
-- **README Truncation**: Fixed a missing `</details>` closing tag in the Troubleshooting section that caused GitHub to stop rendering everything below it (Tech Stack, Docs, Roadmap, Contributors).
-- **pnpm install**: Removed redundant `@swc/helpers` override from `package.json` that conflicted with the direct dependency, causing `EOVERRIDE` errors on pnpm. Added `pnpm.onlyBuiltDependencies` config.
-- **CLI Path Injection (T12)**: Added `isSafePath()` validator in `cliRuntime.ts` to block path traversal and shell metacharacters in `CLI_*_BIN` env vars.
-- **CI**: Regenerated `package-lock.json` after override removal to fix `npm ci` failures on GitHub Actions.
-
-### 🔧 Improvements
-
-- **Response Format (T1)**: `response_format` (json_schema/json_object) now injected as a system prompt for Claude, enabling structured output compatibility.
-- **429 Retry (T2)**: Intra-URL retry for 429 responses (2× attempts with 2s delay) before falling back to next URL.
-- **Gemini CLI Headers (T3)**: Added `User-Agent` and `X-Goog-Api-Client` fingerprint headers for Gemini CLI compatibility.
-- **Pricing Catalog (T9)**: Added `deepseek-3.1`, `deepseek-3.2`, and `qwen3-coder-next` pricing entries.
-
-### 📁 New Files
-
-| File                                       | Purpose                                                  |
-| ------------------------------------------ | -------------------------------------------------------- |
-| `open-sse/services/modelFamilyFallback.ts` | Model family definitions and intra-family fallback logic |
+-**KiloCode**: expirarea timpului de verificare a sănătății kilocode a fost deja fixată în v2.3.11 -**OpenCode**: Adăugați un cod deschis la registrul cliRuntime cu expirare de 15 s pentru verificarea sănătății -**OpenClaw / Cursor**: crește timpul de expirare a verificării sănătății la 15s pentru variantele cu pornire lentă -**VPS**: Instalați pachetele droid și openclaw npm; activați CLI_EXTRA_PATHS pentru kiro-cli -**cliRuntime**: adăugați înregistrarea instrumentului opencode și creșteți timpul de expirare pentru continuare## [2.3.11] - 2026-03-12
 
 ### Fixed
 
-- **KiloCode**: kilocode healthcheck timeout already fixed in v2.3.11
-- **OpenCode**: Add opencode to cliRuntime registry with 15s healthcheck timeout
-- **OpenClaw / Cursor**: Increase healthcheck timeout to 15s for slow-start variants
-- **VPS**: Install droid and openclaw npm packages; activate CLI_EXTRA_PATHS for kiro-cli
-- **cliRuntime**: Add opencode tool registration and increase timeout for continue
-
-## [2.3.11] - 2026-03-12
+-**KiloCode healthcheck**: Creșteți `healthcheckTimeoutMs` de la 4000ms la 15000ms — kilocode redă un banner cu sigla ASCII la pornire, provocând `healthcheck_failed` fals în medii cu pornire lentă/la rece## [2.3.10] - 2026-03-12
 
 ### Fixed
 
-- **KiloCode healthcheck**: Increase `healthcheckTimeoutMs` from 4000ms to 15000ms — kilocode renders an ASCII logo banner on startup causing false `healthcheck_failed` on slow/cold-start environments
+-**Lint**: Remediați eșecul `check:any-budget:t11` — înlocuiți `as any` cu `as Record<string, unknown>` în OAuthModal.tsx (3 apariții)### Docs
 
-## [2.3.10] - 2026-03-12
-
-### Fixed
-
-- **Lint**: Fix `check:any-budget:t11` failure — replace `as any` with `as Record<string, unknown>` in OAuthModal.tsx (3 occurrences)
-
-### Docs
-
-- **CLI-TOOLS.md**: Complete guide for all 11 CLI tools (claude, codex, gemini, opencode, cline, kilocode, continue, kiro-cli, cursor, droid, openclaw)
-- **i18n**: CLI-TOOLS.md synced to 30 languages with translated title + intro
-
-## [2.3.8] - 2026-03-12
+-**CLI-TOOLS.md**: Ghid complet pentru toate cele 11 instrumente CLI (claude, codex, gemini, opencode, cline, kilocode, continue, kiro-cli, cursor, droid, openclaw) -**i18n**: CLI-TOOLS.md sincronizat cu 30 de limbi cu titlu tradus + introducere## [2.3.8] - 2026-03-12
 
 ## [2.3.9] - 2026-03-12
 
 ### Added
 
-- **/v1/completions**: New legacy OpenAI completions endpoint — accepts both `prompt` string and `messages` array, normalizes to chat format automatically
-- **EndpointPage**: Now shows all 3 OpenAI-compatible endpoint types: Chat Completions, Responses API, and Legacy Completions
-- **i18n**: Added `completionsLegacy/completionsLegacyDesc` to 30 language files
+-**/v1/completions**: Noul punct final de finalizare OpenAI vechi — acceptă atât șirul „prompt” cât și matricea „mesaje”, se normalizează automat în formatul de chat -**EndpointPage**: acum afișează toate cele 3 tipuri de puncte finale compatibile cu OpenAI: Terminări de chat, API de răspunsuri și Terminări vechi -**i18n**: S-a adăugat `completionsLegacy/completionsLegacyDesc` la fișierele în 30 de limbi### Fixed
+
+-**OAuthModal**: Remediați „[object Object]” afișat în toate erorile de conexiune OAuth — extrageți corect „.message” din obiectele de răspuns la erori în toate cele 3 apeluri „throw new Error(data.error)” (schimb, cod de dispozitiv, autorizare)
+
+- Afectează Cline, Codex, GitHub, Qwen, Kiro și toți ceilalți furnizori OAuth## [2.3.7] - 2026-03-12
 
 ### Fixed
 
-- **OAuthModal**: Fix `[object Object]` displayed on all OAuth connection errors — properly extract `.message` from error response objects in all 3 `throw new Error(data.error)` calls (exchange, device-code, authorize)
-- Affects Cline, Codex, GitHub, Qwen, Kiro, and all other OAuth providers
-
-## [2.3.7] - 2026-03-12
+-**Cline OAuth**: adăugați `decodeURIComponent` înainte de decodarea base64, astfel încât codurile de autentificare codificate în URL de la adresa URL de apel invers să fie analizate corect, reparând erorile „cod de autorizare invalid sau expirat” la setările de la distanță (IP LAN) -**Cline OAuth**: `mapTokens` populează acum `name = firstName + lastName || e-mail` astfel încât conturile Cline afișează nume de utilizator reale în loc de „Account #ID” -**Numele conturilor OAuth**: toate fluxurile de schimb OAuth (schimb, sondaj, sondaj-apel invers) normalizează acum „nume = e-mail” atunci când numele lipsește, astfel încât fiecare cont OAuth își arată e-mailul ca etichetă de afișare în tabloul de bord al furnizorilor -**Numele conturilor OAuth**: s-a eliminat secvențial „Cont N” alternativ în `db/providers.ts` — conturile fără e-mail/nume folosesc acum o etichetă stabilă bazată pe ID prin `getAccountDisplayName()` în loc de un număr secvenţial care se modifică atunci când conturile sunt șterse## [2.3.6] - 2026-03-12
 
 ### Fixed
 
-- **Cline OAuth**: Add `decodeURIComponent` before base64 decode so URL-encoded auth codes from the callback URL are parsed correctly, fixing "invalid or expired authorization code" errors on remote (LAN IP) setups
-- **Cline OAuth**: `mapTokens` now populates `name = firstName + lastName || email` so Cline accounts show real user names instead of "Account #ID"
-- **OAuth account names**: All OAuth exchange flows (exchange, poll, poll-callback) now normalize `name = email` when name is missing, so every OAuth account shows its email as the display label in the Providers dashboard
-- **OAuth account names**: Removed sequential "Account N" fallback in `db/providers.ts` — accounts with no email/name now use a stable ID-based label via `getAccountDisplayName()` instead of a sequential number that changes when accounts are deleted
-
-## [2.3.6] - 2026-03-12
+-**Lot de testare a furnizorului**: S-a rezolvat schema Zod pentru a accepta `providerId: null` (front-end trimite null pentru modurile non-furnizor); a returnat incorect „Solicitare nevalidă” pentru toate testele lot -**Modal de testare a furnizorului**: S-a remediat afișarea `[object Object]` prin normalizarea obiectelor de eroare API la șiruri de caractere înainte de randare în `setTestResults` și `ProviderTestResultsView` -**i18n**: S-au adăugat cheile lipsă `cliTools.toolDescriptions.opencode`, `cliTools.toolDescriptions.kiro`, `cliTools.guides.opencode`, `cliTools.guides.kiro` la `en.json` -**i18n**: s-au sincronizat 1111 chei lipsă în toate cele 29 de fișiere în limba non-engleză, folosind valori în engleză ca alternative## [2.3.5] - 2026-03-11
 
 ### Fixed
 
-- **Provider test batch**: Fixed Zod schema to accept `providerId: null` (frontend sends null for non-provider modes); was incorrectly returning "Invalid request" for all batch tests
-- **Provider test modal**: Fixed `[object Object]` display by normalizing API error objects to strings before rendering in `setTestResults` and `ProviderTestResultsView`
-- **i18n**: Added missing keys `cliTools.toolDescriptions.opencode`, `cliTools.toolDescriptions.kiro`, `cliTools.guides.opencode`, `cliTools.guides.kiro` to `en.json`
-- **i18n**: Synchronized 1111 missing keys across all 29 non-English language files using English values as fallbacks
-
-## [2.3.5] - 2026-03-11
-
-### Fixed
-
-- **@swc/helpers**: Added permanent `postinstall` fix to copy `@swc/helpers` into the standalone app's `node_modules` — prevents MODULE_NOT_FOUND crash on global npm installs
-
-## [2.3.4] - 2026-03-10
+-**@swc/helpers**: A fost adăugată o corecție permanentă `postinstall` pentru a copia `@swc/helpers` în `node_modules` a aplicației autonome — previne blocarea MODULE_NOT_FOUND la instalările globale npm## [2.3.4] - 2026-03-10
 
 ### Added
 
-- Multiple provider integrations and dashboard improvements
+- Integrari cu mai mulți furnizori și îmbunătățiri ale tabloului de bord

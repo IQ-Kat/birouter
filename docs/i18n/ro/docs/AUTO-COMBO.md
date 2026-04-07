@@ -4,42 +4,29 @@
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> Lanțuri de modele cu autogestionare cu punctaj adaptiv## How It Works
 
-## How It Works
+Motorul Auto-Combo selectează în mod dinamic cel mai bun furnizor/model pentru fiecare solicitare folosind o**funcție de punctare cu 6 factori**:
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+| Factorul    | Greutate | Descriere                                           |
+| :---------- | :------- | :-------------------------------------------------- | ------------- |
+| Cota        | 0,20     | Capacitate rămasă [0..1]                            |
+| Sănătate    | 0,25     | Întrerupător: ÎNCHIS=1,0, JUMĂTATE=0,5, DESCHIS=0,0 |
+| CostInv     | 0,20     | Cost invers (mai ieftin = scor mai mare)            |
+| LatencyInv  | 0,15     | Latența p95 inversă (mai rapid = mai mare)          |
+| TaskFit     | 0,10     | Model × tip de sarcină scor de fitness              |
+| Stabilitate | 0,10     | Variație scăzută a latenței/erorilor                | ## Mode Packs |
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+| Pachet                        | Focus             | Greutatea cheii  |
+| :---------------------------- | :---------------- | :--------------- | --------------- |
+| 🚀**Expediere rapid**         | Viteza            | latencyInv: 0,35 |
+| 💰**Cost Saver**              | Economie          | costInv: 0,40    |
+| 🎯**Calitatea pe primul loc** | Cel mai bun model | taskFit: 0,40    |
+| 📡**Offline Friendly**        | Disponibilitate   | cota: 0,40       | ## Self-Healing |
 
-## Mode Packs
+-**Excludere temporară**: scor < 0,2 → exclus timp de 5 minute (retragere progresivă, max 30 de minute) -**Conștientizarea întreruptorului de circuit**: DESCHIS → exclus automat; HALF_OPEN → solicitări de sondă -**Mod incident**: >50% DESCHIS → dezactivează explorarea, maximizează stabilitatea -**Recuperare în perioada de răcire**: după excludere, prima solicitare este o „sondă” cu timeout redus## Bandit Exploration
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
-
-## Self-Healing
-
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
-
-## Bandit Exploration
-
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
-
-## API
+5% dintre cereri (configurabile) sunt direcționate către furnizori aleatori pentru explorare. Dezactivat în modul incident.## API
 
 ```bash
 # Create auto-combo
@@ -53,15 +40,13 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+Peste 30 de modele obținute în 6 tipuri de sarcini (`codare`, `revizuire`, `planificare`, `analiza`, `depanare`, `documentație`). Acceptă modele de metacaractere (de exemplu, `*-coder` → scor de codare ridicat).## Files
 
-## Files
-
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+| Fișier                                       | Scop                                       |
+| :------------------------------------------- | :----------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`     | Funcția de scor și normalizarea pool-ului  |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × sarcină căutare fitness            |
+| `open-sse/services/autoCombo/engine.ts`      | Logica de selecție, bandit, plafon bugetar |
+| `open-sse/services/autoCombo/selfHealing.ts` | Excluderea, sondele, modul incident        |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 profile de greutate                      |
+| `src/app/api/combos/auto/route.ts`           | REST API                                   |

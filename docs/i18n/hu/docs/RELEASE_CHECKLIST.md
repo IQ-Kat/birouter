@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Használja ezt az ellenőrzőlistát egy új OmniRoute kiadás címkézése vagy közzététele előtt.## Version and Changelog
 
-## Version and Changelog
+1. A "package.json" verzió ("x.y.z") összeállítása a kiadási ágban.
+2. Helyezze át a kibocsátási megjegyzéseket a `CHANGELOG.md' "## [Unreleased]" részéből egy dátummal rendelkező szakaszba:
+   - "## [x.y.z] - ÉÉÉÉ-HH-NN".
+3. Tartsa meg a `## [Unreleased]`-t az első változásnapló-szakaszként a következő munkákhoz.
+4. Győződjön meg arról, hogy a `CHANGELOG.md' legfrissebb semver szakasza megegyezik a `package.json' verzióval.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Frissítse a `docs/openapi.yaml' fájlt:
+   - Az "info.version" meg kell egyeznie a "package.json" verzióval.
+6. Érvényesítse a végpont példákat, ha az API-szerződések megváltoztak.## Runtime Docs
 
-## API Docs
+7. Tekintse át a `docs/ARCHITECTURE.md' fájlt a tárolási/futási időbeli eltolódásokért.
+8. Tekintse át a `docs/TROUBLESHOOTING.md' fájlt az env var és a működési eltolódások tekintetében.
+9. Frissítse a lokalizált dokumentumokat, ha a forrásdokumentumok jelentősen megváltoztak.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
-
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Futtassa a szinkronizálási őrt helyileg a PR megnyitása előtt:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+A CI ezt az ellenőrzést a `.github/workflows/ci.yml` (lint job) fájlban is futtatja.
+```

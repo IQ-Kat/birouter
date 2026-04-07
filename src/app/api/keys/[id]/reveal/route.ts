@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { getApiKeyById } from "@/lib/localDb";
 import { isApiKeyRevealEnabled } from "@/lib/apiKeyExposure";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // GET /api/keys/[id]/reveal - Reveal full API key for explicit copy actions
-export async function GET(_request, { params }) {
+export async function GET(request, { params }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     if (!isApiKeyRevealEnabled()) {
       return NextResponse.json({ error: "API key reveal is disabled" }, { status: 403 });

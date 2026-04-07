@@ -109,6 +109,53 @@ export function getCodexResetTime(quota: CodexQuotaSnapshot): number | null {
   return Math.max(...times); // Use furthest-out reset to avoid premature unblock
 }
 
+/**
+ * T03 (Item 3): Compute the minimum-necessary cooldown based on which window
+ * is actually exhausted. Prevents over-blocking the account:
+ *
+ * - If 7d window >= threshold: cooldown until 7d reset (weekly window exhausted)
+ * - If 5h window >= threshold: cooldown until 5h reset only (short-term limit)
+ * - Otherwise: 0 (account is healthy, no cooldown needed)
+ *
+ * Called after parsing quota headers from a successful/429 response to
+ * mark the account accordingly without overly long cooldowns.
+ *
+ * @param quota - Parsed quota snapshot from response headers
+ * @param threshold - Fraction (0-1) that triggers cooldown (default: 0.95)
+ * @returns Cooldown duration in milliseconds (0 = no cooldown needed)
+ */
+export function getCodexDualWindowCooldownMs(
+  quota: CodexQuotaSnapshot,
+  threshold = 0.95
+): { cooldownMs: number; window: "7d" | "5h" | "none" } {
+  const now = Date.now();
+
+  // Compute per-window usage ratios (0..1)
+  const ratio7d =
+    quota.limit7d > 0 && Number.isFinite(quota.limit7d) ? quota.usage7d / quota.limit7d : 0;
+  const ratio5h =
+    quota.limit5h > 0 && Number.isFinite(quota.limit5h) ? quota.usage5h / quota.limit5h : 0;
+
+  // 7d window takes priority — if the weekly budget is near-exhausted,
+  // we must wait until the weekly reset (not just 5h).
+  if (ratio7d >= threshold && quota.resetAt7d) {
+    const resetTime = new Date(quota.resetAt7d).getTime();
+    if (resetTime > now) {
+      return { cooldownMs: resetTime - now, window: "7d" };
+    }
+  }
+
+  // 5h window (primary short-term rate limit)
+  if (ratio5h >= threshold && quota.resetAt5h) {
+    const resetTime = new Date(quota.resetAt5h).getTime();
+    if (resetTime > now) {
+      return { cooldownMs: resetTime - now, window: "5h" };
+    }
+  }
+
+  return { cooldownMs: 0, window: "none" };
+}
+
 // Ordered list of effort levels from lowest to highest
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];

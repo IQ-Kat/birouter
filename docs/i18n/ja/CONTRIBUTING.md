@@ -4,19 +4,13 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
-
----
+貢献にご関心をお寄せいただきありがとうございます。このガイドには、開始するために必要なすべてが記載されています。---
 
 ## Development Setup
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
-- **npm** 10+
-- **Git**
-
-### Clone & Install
+-**Node.js**>= 18 < 24 (推奨: 22 LTS) -**npm**10+ -**Git**### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -35,28 +29,24 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+開発のための主要な変数:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| 変数                   | 開発のデフォルト         | 説明                       |
+| ---------------------- | ------------------------ | -------------------------- | ---------------------- |
+| `ポート`               | `20128`                  | サーバーポート             |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | フロントエンドのベース URL |
+| `JWT_SECRET`           | (上記で生成)             | JWT signing secret         |
+| `初期パスワード`       | `チェンジメ`             | 初回ログインパスワード     |
+| `APP_LOG_LEVEL`        | `情報`                   | ログの詳細レベル           | ### Dashboard Settings |
 
-### Dashboard Settings
+ダッシュボードには、環境変数を介して構成できる機能の UI トグルが用意されています。
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+| 設置場所    | 切り替え           | 説明                              |
+| ----------- | ------------------ | --------------------------------- |
+| 設定 → 詳細 | デバッグモード     | デバッグ要求ログを有効にする (UI) |
+| 設定 → 一般 | サイドバーの可視性 | サイドバーセクションの表示/非表示 |
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
-
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
-
-### Running Locally
+これらの設定はデータベースに保存され、再起動後も保持され、設定された環境変数のデフォルトをオーバーライドします。### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -70,51 +60,44 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+デフォルトの URL:
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
-
----
+-**ダッシュボード**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
 
 ## Git Workflow
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️**`main` に直接コミットしないでください。**常に機能ブランチを使用してください。```bash
+> git checkout -b feat/your-feature-name
 
-```bash
-git checkout -b feat/your-feature-name
 # ... make changes ...
+
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
+
 # Open a Pull Request on GitHub
-```
+
+````
 
 ### Branch Naming
 
-| Prefix      | Purpose                   |
+|プレフィックス | Purpose                   |
 | ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| `feat/` | New features              |
+| `修正/` | Bug fixes                 |
+| `リファクタリング/` | Code restructuring        |
+| `docs/` | Documentation changes     |
+| `テスト/` | Test additions/fixes      |
+| `雑用/` | Tooling, CI, dependencies |### Commit Messages
 
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+[従来のコミット](https://www.conventionalcommits.org/) に従ってください。```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-```
+````
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
+スコープ: `db`、`sse`、`oauth`、`dashboard`、`api`、`cli`、`docker`、`ci`、`mcp`、`a2a`、`memory`、`skills`。---
 
 ## Running Tests
 
@@ -137,7 +120,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min statements/lines/functions; 60% branches)
+# Coverage (60% min statements/lines/functions/branches)
 npm run test:coverage
 npm run coverage:report
 
@@ -146,36 +129,37 @@ npm run lint
 npm run check
 ```
 
-Coverage notes:
+取材メモ:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` は、メインユニットのテストスイートのソースカバレッジを測定します。`tests/**` は除外され、`open-sse/**` が含まれます。
+- プル リクエストでは、ステートメント、行、関数、ブランチの全体的なカバレッジ ゲートを**60% 以上**に保つ必要があります
+- PR が `src/`、`open-sse/`、`electron/`、または `bin/` の実稼働コードを変更する場合、同じ PR 内の自動テストを追加または更新する必要があります
+- `npm run cover:report` は、最新のカバレッジ実行からファイルごとの詳細なレポートを出力します。
+- 「npm run test:coverage:legacy」は、履歴比較のために古いメトリクスを保存します。
+- 段階的なカバレッジ改善ロードマップについては、「docs/COVERAGE_PLAN.md」を参照してください。### Pull Request Requirements
 
-Current test status: **122 unit test files** covering:
+PR を開くかマージする前に、次のことを行ってください。
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
+- `npm run test:unit` を実行します。
+- 「npm run test:coverage」を実行します。
+- すべての指標についてカバレッジ ゲートが**60%+**に留まるようにする
+- 製品コードが変更された場合、変更または追加されたテスト ファイルを PR 記述に含めます。
+- プロジェクトのシークレットが CI で構成されている場合、PR で SonarQube の結果を確認します。
+
+現在のテスト ステータス:**122 個の単体テスト ファイル**対象:
+
+- プロバイダーのトランスレーターとフォーマット変換
+- レート制限、サーキットブレーカー、復元力
 - Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
-
----
+- データベース操作とスキーマ (21 DB モジュール)
+- OAuth フローと認証
+- API エンドポイントの検証 (Zod v4)
+- MCP サーバー ツールとスコープの適用
+- 記憶とスキルのシステム---
 
 ## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
-
----
+-**ESLint**— コミットする前に「npm run lint」を実行します。-**Prettier**— コミット時に `lint-staged` によって自動フォーマットされます (スペース 2 個、セミコロン、二重引用符、100 文字幅、es5 末尾のカンマ) -**TypeScript**— すべての `src/` コードは `.ts`/`.tsx` を使用します。 `open-sse/` は `.ts`/`.js` を使用します。 TSDoc を使用したドキュメント (`@param`、`@returns`、`@throws`) -**No `eval()`**— ESLint は `no-eval`、`no-implied-eval`、`no-new-func` を強制します -**Zod 検証**— すべての API 入力検証に Zod v4 スキーマを使用します -**名前**: ファイル = キャメルケース/ケバブケース、コンポーネント = PascalCase、定数 = UPPER_SNAKE---
 
 ## Project Structure
 
@@ -244,56 +228,37 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+`src/shared/constants/providers.ts` に追加 — モジュールのロード時に ZOD で検証されます。### Step 2: Add Executor (if custom logic needed)
 
-### Step 2: Add Executor (if custom logic needed)
+基本エグゼキュータを拡張して「open-sse/executors/your-provider.ts」にエグゼキュータを作成します。### Step 3: Add Translator (if non-OpenAI format)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+`open-sse/translator/` にリクエスト/レスポンス トランスレータを作成します。### Step 4: Add OAuth Config (if OAuth-based)
 
-### Step 3: Add Translator (if non-OpenAI format)
+`src/lib/oauth/constants/oauth.ts` に OAuth 資格情報を追加し、`src/lib/oauth/services/` にサービスを追加します。### Step 5: Register Models
 
-Create request/response translators in `open-sse/translator/`.
+`open-sse/config/providerRegistry.ts` にモデル定義を追加します。### Step 6: Add Tests
 
-### Step 4: Add OAuth Config (if OAuth-based)
+少なくとも以下をカバーする単体テストを `tests/unit/` に記述します。
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
-
-### Step 5: Register Models
-
-Add model definitions in `open-sse/config/providerRegistry.ts`.
-
-### Step 6: Add Tests
-
-Write unit tests in `tests/unit/` covering at minimum:
-
-- Provider registration
-- Request/response translation
-- Error handling
-
----
+- プロバイダー登録
+- リクエスト/レスポンスの翻訳
+- エラー処理---
 
 ## Pull Request Checklist
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
-
----
+- [ ] テストに合格 (`npm test`)
+- [ ] lint パス (`npm run lint`)
+- [ ] ビルドは成功します (`npm run build`)
+- [ ] 新しいパブリック関数とインターフェイス用に TypeScript タイプが追加されました
+- [ ] ハードコーディングされたシークレットやフォールバック値はありません
+- [ ] Zod スキーマで検証されたすべての入力
+- [ ] CHANGELOG が更新されました (ユーザー向けの変更の場合)
+- [ ] ドキュメントが更新されました (該当する場合)---
 
 ## Releasing
 
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
-
----
+リリースは「/generate-release」ワークフローを通じて管理されます。新しい GitHub リリースが作成されると、パッケージは GitHub Actions 経由で**自動的に npm**に公開されます。---
 
 ## Getting Help
 
-- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+-**アーキテクチャ**: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) を参照してください。-**API リファレンス**: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) を参照してください。-**問題**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR**: アーキテクチャ上の決定記録については、「docs/adr/」を参照してください。

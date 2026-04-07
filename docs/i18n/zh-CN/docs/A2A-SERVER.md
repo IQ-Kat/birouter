@@ -4,37 +4,28 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
-
-## Agent Discovery
+> 代理到代理协议 v0.3 — OmniRoute 作为智能路由代理## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
-
----
+返回描述 OmniRoute 功能、技能和身份验证要求的代理卡。---
 
 ## Authentication
 
-All `/a2a` requests require an API key via the `Authorization` header:
-
-```
+所有“/a2a”请求都需要通过“Authorization”标头提供 API 密钥：```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
-```
 
-If no API key is configured on the server, authentication is bypassed.
+````
 
----
+如果服务器上未配置 API 密钥，则会绕过身份验证。---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Sends a message to a skill and waits for the complete response.
-
-```bash
+向技能发送消息并等待完整响应。```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -48,34 +39,31 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-```
+````
 
-**Response:**
-
-```json
+**回复：**```json
 {
-  "jsonrpc": "2.0",
-  "id": "1",
-  "result": {
-    "task": { "id": "uuid", "state": "completed" },
-    "artifacts": [{ "type": "text", "content": "..." }],
-    "metadata": {
-      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-      "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-      ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
-    }
-  }
+"jsonrpc": "2.0",
+"id": "1",
+"result": {
+"task": { "id": "uuid", "state": "completed" },
+"artifacts": [{ "type": "text", "content": "..." }],
+"metadata": {
+"routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
+"cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+"resilience_trace": [
+{ "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+],
+"policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
 }
-```
+}
+}
+
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+与“消息/发送”相同，但返回服务器发送的事件以进行实时流处理。```bash
 curl -N -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -88,17 +76,16 @@ curl -N -X POST http://localhost:20128/a2a \
       "messages": [{"role": "user", "content": "Explain quantum computing"}]
     }
   }'
-```
+````
 
-**SSE Events:**
-
-```
+**上交所活动：**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
 : heartbeat 2026-03-03T17:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -107,7 +94,7 @@ curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-```
+````
 
 ### `tasks/cancel` — Cancel a Task
 
@@ -122,12 +109,10 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
-
----
+|技能|描述 |
+| ：------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| `智能路由` |通过 OmniRoute 的智能管道进行路由提示。返回带有路由解释、成本和弹性跟踪的响应。 |
+| `配额管理` |回答有关提供商配额的自然语言查询、建议免费组合并提供配额排名。 |---
 
 ## Task Lifecycle
 
@@ -137,23 +122,19 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
-
----
+- 任务在 5 分钟后过期（可配置）
+- 终端状态：“已完成”、“失败”、“已取消”
+- 事件日志跟踪每个状态转换---
 
 ## Error Codes
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
-
----
+|代码|意义|
+| :-----| ：-------------------------- |
+| -32700 | -32700解析错误（无效 JSON）|
+| -32600 | -32600无效请求/未经授权 |
+| -32601 |未找到方法或技巧|
+| -32602 | -32602无效参数 |
+| -32603 | -32603内部错误 |---
 
 ## Integration Examples
 

@@ -119,6 +119,20 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: test-impact
+    attributes:
+      label: Test Impact
+      description: "What automated test coverage should exist for this bug?"
+      options:
+        - Needs a new unit test
+        - Needs a new integration test
+        - Needs a new e2e test
+        - Existing automated test already fails
+        - Unsure
+    validations:
+      required: true
+
   - type: textarea
     id: logs
     attributes:
@@ -141,5 +155,17 @@ body:
     attributes:
       label: Additional Context
       description: "Any other context about the problem (e.g. proxy config, number of accounts, network setup)."
+    validations:
+      required: false
+
+  - type: textarea
+    id: validation-plan
+    attributes:
+      label: Validation Plan
+      description: "Which commands or tests should prove this bug is fixed?"
+      placeholder: |
+        Example:
+        - node --import tsx/esm --test tests/unit/my-file.test.mjs
+        - npm run test:coverage
     validations:
       required: false

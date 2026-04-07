@@ -4,37 +4,23 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+> Agent-to-Agent Protocol v0.3 — OmniRoute като интелигентен агент за маршрутизиране## Agent Discovery```bash
+> curl http://localhost:20128/.well-known/agent.json
 
-## Agent Discovery
+````
 
-```bash
-curl http://localhost:20128/.well-known/agent.json
-```
+Връща картата на агента, описваща възможностите, уменията и изискванията за удостоверяване в OmniRoute.---## Authentication
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+Всички заявки `/a2a` изискват API ключ чрез заглавката `Authorization`:```
+Упълномощаване: Носител YOUR_OMNIROUTE_API_KEY```
 
----
-
-## Authentication
-
-All `/a2a` requests require an API key via the `Authorization` header:
-
-```
-Authorization: Bearer YOUR_OMNIROUTE_API_KEY
-```
-
-If no API key is configured on the server, authentication is bypassed.
-
----
+Ако на сървъра не е конфигуриран API ключ, удостоверяването се заобикаля.---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Sends a message to a skill and waits for the complete response.
-
-```bash
+Изпраща съобщение до умение и изчаква пълния отговор.```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -48,153 +34,137 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-```
+````
 
-**Response:**
-
-```json
+**Отговор:**`json
 {
   "jsonrpc": "2.0",
   "id": "1",
-  "result": {
+  "резултат": {
     "task": { "id": "uuid", "state": "completed" },
-    "artifacts": [{ "type": "text", "content": "..." }],
-    "metadata": {
-      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+    "артефакти": [{ "тип": "текст", "съдържание": "..." }],
+    "метаданни": {
+      "routing_explanation": "Избран клод-сонет чрез доставчик \"anthropic\" (закъснение: 1200ms, цена: $0,003)",
+      "cost_envelope": { "estimated": 0,005, "actual": 0,003, "currency": "USD" },
       "resilience_trace": [
         { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
       ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+      "policy_verdict": { "allowed": true, "reason": "в рамките на бюджета и квотите" }
     }
   }
-}
-```
+}`
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+Същото като `message/send`, но връща изпратени от сървъра събития за поточно предаване в реално време.```bash
 curl -N -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/stream",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Explain quantum computing"}]
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/stream",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Explain quantum computing"}]
+}
+}'
 
-**SSE Events:**
+````
 
-```
-data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
+**SSE събития:**```
+данни: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
-: heartbeat 2026-03-03T17:00:00Z
+: сърдечен ритъм 2026-03-03T17:00:00Z
 
-data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+данни: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}```
 
 ### `tasks/get` — Query Task Status
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-```
+  -H "Тип съдържание: приложение/json" \
+  -H "Упълномощаване: Носител YOUR_KEY" \
+  -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'```
 
 ### `tasks/cancel` — Cancel a Task
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{"jsonrpc":"2.0","id":"3","method":"tasks/cancel","params":{"taskId":"TASK_UUID"}}'
-```
+  -H "Тип съдържание: приложение/json" \
+  -H "Упълномощаване: Носител YOUR_KEY" \
+  -d '{"jsonrpc":"2.0","id":"3","method":"tasks/cancel","params":{"taskId":"TASK_UUID"}}'```
 
 ---
 
 ## Available Skills
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
-
----
+| Умение | Описание |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| `интелигентно маршрутизиране` | Подкани за маршрути чрез интелигентния тръбопровод на OmniRoute. Връща отговор с обяснение на маршрута, цена и проследяване на устойчивостта. |
+| `управление на квоти` | Отговаря на запитвания на естествен език относно квотите на доставчика, предлага безплатни комбинации и предоставя класиране на квотите.                      |---
 
 ## Task Lifecycle
 
-```
-submitted → working → completed
-                    → failed
-                    → cancelled
-```
+````
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
+изпратен → работи → завършен
+→ неуспешно
+→ отменен```
 
----
+- Задачите изтичат след 5 минути (може да се конфигурира)
+- Състояния на терминала: `завършено`, `неуспешно`, `отменено`
+- Дневникът на събитията проследява всеки преход на състояние---
 
 ## Error Codes
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
-
----
+| Код    | Значение                            |
+| :----- | :---------------------------------- | --- |
+| -32700 | Грешка при анализа (невалиден JSON) |
+| -32600 | Невалидна заявка / Неоторизирана    |
+| -32601 | Методът или умението не са намерени |
+| -32602 | Невалидни параметри                 |
+| -32603 | Вътрешна грешка                     | --- |
 
 ## Integration Examples
 
 ### Python (requests)
 
-```python
-import requests
+````python
+заявки за импортиране
 
 resp = requests.post("http://localhost:20128/a2a", json={
     "jsonrpc": "2.0", "id": "1",
-    "method": "message/send",
-    "params": {
-        "skill": "smart-routing",
+    "метод": "съобщение/изпращане",
+    "параметри": {
+        "умение": "интелигентно маршрутизиране",
         "messages": [{"role": "user", "content": "Hello"}]
     }
-}, headers={"Authorization": "Bearer YOUR_KEY"})
+}, headers={"Упълномощаване": "Носител YOUR_KEY"})
 
-result = resp.json()["result"]
-print(result["artifacts"][0]["content"])
-print(result["metadata"]["routing_explanation"])
-```
+резултат = resp.json()["резултат"]
+печат (резултат["артефакти"][0]["съдържание"])
+print(result["metadata"]["routing_explanation"])```
 
 ### TypeScript (fetch)
 
 ```typescript
 const resp = await fetch("http://localhost:20128/a2a", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: "Bearer YOUR_KEY",
+  метод: "POST",
+  заглавки: {
+    "Content-Type": "приложение/json",
+    Упълномощаване: "Носител YOUR_KEY",
   },
-  body: JSON.stringify({
+  тяло: JSON.stringify({
     jsonrpc: "2.0",
     id: "1",
-    method: "message/send",
-    params: {
-      skill: "smart-routing",
-      messages: [{ role: "user", content: "Hello" }],
+    метод: "съобщение/изпрати",
+    параметри: {
+      умение: "интелигентно маршрутизиране",
+      съобщения: [{ роля: "потребител", съдържание: "Здравей" }],
     },
   }),
 });
-const { result } = await resp.json();
-console.log(result.metadata.routing_explanation);
-```
+const {резултат} = изчакайте resp.json();
+console.log(result.metadata.routing_explanation);```
+````

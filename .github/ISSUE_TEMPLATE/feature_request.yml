@@ -33,6 +33,19 @@ body:
     validations:
       required: false
 
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: "Describe the concrete behaviors or outcomes that should be validated before this is considered done."
+      placeholder: |
+        Example:
+        - API route returns 200 with valid payload
+        - Unit coverage added for the new branch
+        - Existing integrations remain green
+    validations:
+      required: true
+
   - type: dropdown
     id: area
     attributes:
@@ -66,5 +79,18 @@ body:
     attributes:
       label: Additional Context
       description: "Any other context, mockups, or references."
+    validations:
+      required: false
+
+  - type: textarea
+    id: test-plan
+    attributes:
+      label: Expected Test Plan
+      description: "Which automated tests or coverage changes should accompany this work?"
+      placeholder: |
+        Example:
+        - Add unit tests for open-sse/services/combo.ts
+        - Extend integration coverage for /api/v1/models
+        - Keep npm run test:coverage at 60%+
     validations:
       required: false

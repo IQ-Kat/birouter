@@ -4,34 +4,26 @@
 
 ---
 
-Use this checklist before tagging or publishing a new OmniRoute release.
+Utilice esta lista de verificación antes de etiquetar o publicar una nueva versión de OmniRoute.## Version and Changelog
 
-## Version and Changelog
+1. Actualice la versión `package.json` (`x.y.z`) en la rama de lanzamiento.
+2. Mueva las notas de la versión de `## [Inédito]` en `CHANGELOG.md` a una sección con fecha:
+   - `## [x.y.z] — AAAA-MM-DD`
+3. Mantenga `## [Inédito]` como la primera sección del registro de cambios para el próximo trabajo.
+4. Asegúrese de que la última sección semver en `CHANGELOG.md` sea igual a la versión `package.json`.## API Docs
 
-1. Bump `package.json` version (`x.y.z`) in the release branch.
-2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
-   - `## [x.y.z] — YYYY-MM-DD`
-3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
-4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
+5. Actualice `docs/openapi.yaml`:
+   - `info.version` debe ser igual a la versión `package.json`.
+6. Validar ejemplos de puntos finales si los contratos de API cambiaron.## Runtime Docs
 
-## API Docs
+7. Revise `docs/ARCHITECTURE.md` para detectar cambios en el almacenamiento/tiempo de ejecución.
+8. Revise `docs/TROUBLESHOOTING.md` para conocer la var env y la desviación operativa.
+9. Actualice los documentos localizados si los documentos de origen cambiaron significativamente.## Automated Check
 
-1. Update `docs/openapi.yaml`:
-   - `info.version` must equal `package.json` version.
-2. Validate endpoint examples if API contracts changed.
-
-## Runtime Docs
-
-1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
-2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
-3. Update localized docs if source docs changed significantly.
-
-## Automated Check
-
-Run the sync guard locally before opening PR:
-
-```bash
+Ejecute sync guard localmente antes de abrir PR:```bash
 npm run check:docs-sync
+
 ```
 
-CI also runs this check in `.github/workflows/ci.yml` (lint job).
+CI también ejecuta esta verificación en `.github/workflows/ci.yml` (trabajo de pelusa).
+```

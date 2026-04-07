@@ -4,11 +4,9 @@
 
 ---
 
-> **Agent-to-Agent Protocol v0.3** — Enables any AI agent to use OmniRoute as an intelligent routing agent via JSON-RPC 2.0.
+> **エージェント間プロトコル v0.3**- 任意の AI エージェントが JSON-RPC 2.0 経由で OmniRoute をインテリジェント ルーティング エージェントとして使用できるようにします。
 
-The A2A Server exposes OmniRoute as a **first-class agent** that other agents can discover, delegate tasks to, and collaborate with using the [A2A Protocol](https://google.github.io/A2A/).
-
----
+A2A サーバーは、他のエージェントが [A2A プロトコル](https://google.github.io/A2A/) を使用して発見、タスクの委任、共同作業を行うことができる**ファーストクラス エージェント**として OmniRoute を公開します。---
 
 ## アーキテクチャ
 
@@ -43,15 +41,12 @@ The A2A Server exposes OmniRoute as a **first-class agent** that other agents ca
 
 ### Agent Discovery
 
-Every A2A-compatible agent exposes an **Agent Card** at `/.well-known/agent.json`:
-
-```bash
+すべての A2A 互換エージェントは、**エージェント カード**を `/.well-known/agent.json` で公開します。```bash
 curl http://localhost:20128/.well-known/agent.json
-```
 
-**Response:**
+````
 
-```json
+**応答：**```json
 {
   "name": "OmniRoute",
   "description": "Intelligent AI gateway with auto-routing across 50+ providers",
@@ -88,7 +83,7 @@ curl http://localhost:20128/.well-known/agent.json
     "apiKeyHeader": "Authorization"
   }
 }
-```
+````
 
 ---
 
@@ -96,27 +91,24 @@ curl http://localhost:20128/.well-known/agent.json
 
 ### `message/send` — Synchronous Execution
 
-Send a message to a skill and receive the complete response.
-
-```bash
+スキルにメッセージを送信し、完全な応答を受け取ります。```bash
 curl -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/send",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Write a Python hello world"}],
-      "metadata": {"model": "auto", "combo": "fast-coding"}
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/send",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Write a Python hello world"}],
+"metadata": {"model": "auto", "combo": "fast-coding"}
+}
+}'
 
-**Response:**
+````
 
-```json
+**応答：**```json
 {
   "jsonrpc": "2.0",
   "id": "1",
@@ -133,36 +125,33 @@ curl -X POST http://localhost:20128/a2a \
     }
   }
 }
-```
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+「message/send」と同じですが、リアルタイム ストリーミング用にサーバー送信イベントを返します。```bash
 curl -N -X POST http://localhost:20128/a2a \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": "1",
-    "method": "message/stream",
-    "params": {
-      "skill": "smart-routing",
-      "messages": [{"role": "user", "content": "Explain quantum computing"}]
-    }
-  }'
-```
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer YOUR_KEY" \
+ -d '{
+"jsonrpc": "2.0",
+"id": "1",
+"method": "message/stream",
+"params": {
+"skill": "smart-routing",
+"messages": [{"role": "user", "content": "Explain quantum computing"}]
+}
+}'
 
-**SSE Events:**
+````
 
-```
+**SSE イベント:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"Quantum computing..."}}}
 
 : heartbeat 2026-03-04T21:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -188,40 +177,36 @@ curl -X POST http://localhost:20128/a2a \
 
 ### `smart-routing`
 
-Routes prompts through OmniRoute's intelligent pipeline with full observability.
+完全な可観測性を備えた OmniRoute のインテリジェント パイプラインを通じてプロンプトをルートします。
 
-**Parameters (in `metadata`):**
+**パラメータ (「メタデータ」内):**
 
-| Parameter | Type     | Default      | Description                                                                              |
-| --------- | -------- | ------------ | ---------------------------------------------------------------------------------------- |
-| `model`   | `string` | `"auto"`     | Target model (e.g., `claude-sonnet-4`, `gpt-4o`, `auto`)                                 |
-| `combo`   | `string` | active combo | Specific combo to route through                                                          |
-| `budget`  | `number` | none         | Maximum cost in USD for this request                                                     |
-| `role`    | `string` | none         | Task role hint: `coding`, `review`, `planning`, `analysis`, `debugging`, `documentation` |
+| パラメータ | タイプ   | デフォルト         | 説明                                                                                         |
+| ---------- | -------- | ------------------ | -------------------------------------------------------------------------------------------- |
+| `モデル`   | `文字列` | `"自動"`           | ターゲットモデル (例: `claude-sonnet-4`、`gpt-4o`、`auto`)                                   |
+| `コンボ`   | `文字列` | アクティブなコンボ | 経由する特定のコンボ                                                                         |
+| `予算`     | `番号`   | なし               | このリクエストの最大コスト (USD)                                                             |
+| `役割`     | `文字列` | なし               | タスクの役割のヒント: `コーディング`、`レビュー`、`計画`、`分析`、`デバッグ`、`ドキュメント` |
 
-**Returns:**
+**返品:**
 
-| Field                          | Description                                               |
-| ------------------------------ | --------------------------------------------------------- |
-| `artifacts[].content`          | The LLM response text                                     |
-| `metadata.routing_explanation` | Human-readable explanation of routing decision            |
-| `metadata.cost_envelope`       | Estimated vs actual cost with currency                    |
-| `metadata.resilience_trace`    | Array of events (primary_selected, fallback_needed, etc.) |
-| `metadata.policy_verdict`      | Whether the request was allowed and why                   |
+| フィールド                       | 説明                                                    |
+| -------------------------------- | ------------------------------------------------------- | ---------------------- |
+| `アーティファクト[].コンテンツ`  | LLM 応答テキスト                                        |
+| `metadata.routing_explanation`   | ルーティング決定の人間が判読できる説明                  |
+| `メタデータ.コスト_エンベロープ` | 通貨による推定コストと実際のコスト                      |
+| `metadata.resilience_trace`      | イベントの配列 (primary_selected、fallback_needed など) |
+| `metadata.policy_verdict`        | リクエストが許可されたかどうか、およびその理由          | ### `quota-management` |
 
-### `quota-management`
+プロバイダーの割り当てに関する自然言語のクエリに答えます。
 
-Answers natural-language queries about provider quotas.
+**クエリ タイプ (メッセージの内容から推測):**
 
-**Query types (inferred from message content):**
-
-| Query Pattern                                  | Response Type                                            |
-| ---------------------------------------------- | -------------------------------------------------------- |
-| Contains `"ranking"`, `"most quota"`, `"best"` | Providers ranked by remaining quota                      |
-| Contains `"free"`, `"suggest"`                 | Lists free combos or suggests free-tier providers        |
-| Default                                        | Full quota summary with warnings for low-quota providers |
-
----
+| クエリパターン                                                                                       | 応答タイプ                                                           |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | --- |
+| 「ランキング」、「最多ノルマ」、「最高」が含まれます。残りのクォータによってプロバイダーをランク付け |
+| `"無料"`、`"提案"`を含む                                                                             | 無料のコンボをリストしたり、無料枠のプロバイダーを提案したりする     |
+| デフォルト                                                                                           | 割り当て量が低いプロバイダーに対する警告を含む完全な割り当て量の概要 | --- |
 
 ## Task Lifecycle
 
@@ -231,19 +216,17 @@ submitted ──→ working ──→ completed
               ──────────→ cancelled
 ```
 
-| State       | Description                                           |
-| ----------- | ----------------------------------------------------- |
-| `submitted` | Task created, queued for execution                    |
-| `working`   | Skill handler is executing                            |
-| `completed` | Execution succeeded, artifacts available              |
-| `failed`    | Execution failed or task expired (TTL: 5 min default) |
-| `cancelled` | Cancelled by client via `tasks/cancel`                |
+| 状態                   | 説明                                                                    |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `提出済み`             | タスクが作成され、実行のためにキューに入れられました                    |
+| 「働いています」       | スキルハンドラーが実行中です                                            |
+| `完了`                 | 実行は成功しました。アーティファクトは利用可能です                      |
+| `失敗しました`         | 実行が失敗したか、タスクの有効期限が切れました (TTL: デフォルトは 5 分) |
+| `キャンセルされました` | `tasks/cancel` 経由でクライアントによってキャンセルされました           |
 
-- Terminal states: `completed`, `failed`, `cancelled` (no further transitions)
-- Expired tasks in `submitted` or `working` are auto-marked as `failed`
-- Tasks are garbage-collected after 2× TTL
-
----
+- 終了状態: 「完了」、「失敗」、「キャンセル」 (それ以上の遷移はありません)
+- 「送信済み」または「作業中」の期限切れタスクは、自動的に「失敗」としてマークされます
+- タスクは 2× TTL 後にガベージ コレクションされます。---
 
 ## Client Examples
 
@@ -541,15 +524,12 @@ func main() {
 
 ### 🤖 Use Case 1: Multi-Agent Coding Pipeline
 
-An orchestrator agent delegates code generation to OmniRoute, then passes the output to a review agent.
-
-```python
-def coding_pipeline(task: str):
-    # Step 1: Generate code via OmniRoute A2A
-    code_result = a2a_send("smart-routing", [
-        {"role": "user", "content": f"Write production-quality code: {task}"}
-    ], metadata={"model": "auto", "role": "coding"})
-    code = code_result["artifacts"][0]["content"]
+オーケストレーター エージェントはコード生成を OmniRoute に委任し、出力をレビュー エージェントに渡します。```python
+def coding_pipeline(task: str): # Step 1: Generate code via OmniRoute A2A
+code_result = a2a_send("smart-routing", [
+{"role": "user", "content": f"Write production-quality code: {task}"}
+], metadata={"model": "auto", "role": "coding"})
+code = code_result["artifacts"][0]["content"]
 
     # Step 2: Review the code via OmniRoute A2A (different model)
     review_result = a2a_send("smart-routing", [
@@ -562,13 +542,12 @@ def coding_pipeline(task: str):
     print(f"Review cost: ${review_result['metadata']['cost_envelope']['actual']}")
 
     return {"code": code, "review": review}
-```
+
+````
 
 ### 💡 Use Case 2: Quota-Aware Agent Swarm
 
-Multiple agents share quota through OmniRoute, using the quota skill to coordinate.
-
-```python
+複数のエージェントが OmniRoute を通じてクォータを共有し、クォータ スキルを使用して調整します。```python
 async def quota_aware_agent(agent_name: str, task: str):
     # Check quota before starting
     quota = a2a_send("quota-management", [
@@ -591,32 +570,30 @@ async def quota_aware_agent(agent_name: str, task: str):
         print(f"[{agent_name}] Free alternatives: {quota['artifacts'][0]['content']}")
 
     return result
-```
+````
 
 ### 📊 Use Case 3: Real-Time Streaming Dashboard
 
-A monitoring agent streams responses and displays progress in real-time.
-
-```typescript
+監視エージェントは応答をストリーミングし、リアルタイムで進行状況を表示します。```typescript
 async function streamingDashboard(prompt: string) {
   const response = await fetch(`${BASE_URL}/a2a`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: "dash-1",
-      method: "message/stream",
-      params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
-    }),
-  });
+body: JSON.stringify({
+jsonrpc: "2.0",
+id: "dash-1",
+method: "message/stream",
+params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
+}),
+});
 
-  let totalChunks = 0;
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
+let totalChunks = 0;
+const reader = response.body!.getReader();
+const decoder = new TextDecoder();
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+while (true) {
+const { done, value } = await reader.read();
+if (done) break;
 
     for (const line of decoder.decode(value).split("\n")) {
       if (line.startsWith("data: ")) {
@@ -640,15 +617,15 @@ async function streamingDashboard(prompt: string) {
         }
       }
     }
-  }
+
 }
-```
+}
+
+````
 
 ### 🔁 Use Case 4: Task Polling Pattern
 
-For long-running tasks, poll the task status instead of waiting synchronously.
-
-```python
+長時間実行されるタスクの場合は、同期的に待機するのではなく、タスクのステータスをポーリングします。```python
 import time
 
 def poll_task(task_id: str, timeout: int = 60):
@@ -678,75 +655,71 @@ def poll_task(task_id: str, timeout: int = 60):
         "params": {"taskId": task_id},
     })
     raise TimeoutError(f"Task {task_id} timed out after {timeout}s")
-```
+````
 
 ---
 
 ## Error Codes
 
-| Code   | Constant                 | Meaning                                  |
-| ------ | ------------------------ | ---------------------------------------- |
-| -32700 | —                        | Parse error (invalid JSON)               |
-| -32600 | `INVALID_REQUEST`        | Invalid JSON-RPC request or unauthorized |
-| -32601 | `METHOD_NOT_FOUND`       | Unknown method or skill                  |
-| -32602 | `INVALID_PARAMS`         | Missing or invalid parameters            |
-| -32603 | `INTERNAL_ERROR`         | Skill execution failed                   |
-| -32001 | `TASK_NOT_FOUND`         | Task ID not found                        |
-| -32002 | `TASK_ALREADY_COMPLETED` | Cannot modify a completed task           |
-| -32003 | `UNAUTHORIZED`           | Invalid or missing API key               |
-| -32004 | `BUDGET_EXCEEDED`        | Request exceeds configured budget        |
-| -32005 | `PROVIDER_UNAVAILABLE`   | No available providers                   |
-
----
+| コード | 定数                   | 意味                                     |
+| ------ | ---------------------- | ---------------------------------------- | --- |
+| -32700 | —                      | 解析エラー (無効な JSON)                 |
+| -32600 | `INVALID_REQUEST`      | 無効な JSON-RPC リクエストまたは未承認   |
+| -32601 | `METHOD_NOT_FOUND`     | 未知の方法またはスキル                   |
+| -32602 | `INVALID_PARAMS`       | パラメータが欠落しているか無効です       |
+| -32603 | `内部エラー`           | スキルの実行に失敗しました               |
+| -32001 | `TASK_NOT_FOUND`       | タスク ID が見つかりません               |
+| -32002 | `タスク_ALREADY_完了`  | 完了したタスクは変更できません           |
+| -32003 | 「未承認」             | API キーが無効または欠落しています       |
+| -32004 | `予算_超過`            | リクエストが設定された予算を超えています |
+| -32005 | `PROVIDER_UNAVAILABLE` | 利用可能なプロバイダーがありません       | --- |
 
 ## Authentication
 
-All `/a2a` requests require a Bearer token via the `Authorization` header:
-
-```
+すべての `/a2a` リクエストには、`Authorization` ヘッダーを介したベアラー トークンが必要です。```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+
 ```
 
-If no API key is configured on the server (`OMNIROUTE_API_KEY` is empty), authentication is bypassed.
-
----
+サーバー上に API キーが設定されていない場合 (「OMNIROUTE_API_KEY」 が空の場合)、認証はバイパスされます。---
 
 ## File Structure
 
 ```
+
 src/lib/a2a/
-├── taskManager.ts         # Task lifecycle (create/update/cancel/list), TTL, cleanup
-├── taskExecution.ts       # Generic task executor with state management
-├── streaming.ts           # SSE stream formatting, heartbeat, chunk/completion events
-├── routingLogger.ts       # Routing decision logger (stats, history, retention)
+├── taskManager.ts # Task lifecycle (create/update/cancel/list), TTL, cleanup
+├── taskExecution.ts # Generic task executor with state management
+├── streaming.ts # SSE stream formatting, heartbeat, chunk/completion events
+├── routingLogger.ts # Routing decision logger (stats, history, retention)
 └── skills/
-    ├── smartRouting.ts    # Smart routing skill (routes via /v1/chat/completions)
-    └── quotaManagement.ts # Quota management skill (natural-language quota queries)
+├── smartRouting.ts # Smart routing skill (routes via /v1/chat/completions)
+└── quotaManagement.ts # Quota management skill (natural-language quota queries)
 
 src/app/a2a/
-└── route.ts               # Next.js API route handler (JSON-RPC 2.0 dispatch)
+└── route.ts # Next.js API route handler (JSON-RPC 2.0 dispatch)
 
 open-sse/mcp-server/
-└── schemas/a2a.ts         # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+└── schemas/a2a.ts # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
+
 ```
 
 ---
 
 ## Comparison: MCP vs A2A
 
-| Feature           | MCP Server                   | A2A Server                                        |
-| ----------------- | ---------------------------- | ------------------------------------------------- |
-| **Protocol**      | Model Context Protocol       | Agent-to-Agent Protocol v0.3                      |
-| **Transport**     | stdio / HTTP                 | HTTP (JSON-RPC 2.0)                               |
-| **Discovery**     | Tool listing via MCP         | `/.well-known/agent.json`                         |
-| **Granularity**   | 16 individual tools          | 2 high-level skills                               |
-| **Best for**      | IDE agents (Cursor, VS Code) | Multi-agent systems (LangChain, CrewAI)           |
-| **Streaming**     | Not supported                | SSE via `message/stream`                          |
-| **Task tracking** | No                           | Full lifecycle (submitted → completed)            |
-| **Observability** | Audit log per tool call      | Cost envelope + resilience trace + policy verdict |
-
----
+|特集 | MCPサーバー | A2Aサーバー |
+| ----------------- | ---------------------------- | -------------------------------------------------- |
+|**プロトコル**|モデルコンテキストプロトコル |エージェント間プロトコル v0.3 |
+|**輸送**|標準入出力 / HTTP | HTTP (JSON-RPC 2.0) |
+|**発見**| MCP 経由のツールリスト | `/.well-known/agent.json` |
+|**粒度**| 16 個の個別ツール | 2 つの高度なスキル |
+|**こんな用途に最適**| IDE エージェント (カーソル、VS コード) |マルチエージェント システム (LangChain、CrewAI) |
+|**ストリーミング**|サポートされていません | `メッセージ/ストリーム` 経由の SSE |
+|**タスク追跡**|いいえ |全ライフサイクル (送信→完了) |
+|**可観測性**|ツール呼び出しごとの監査ログ |コスト エンベロープ + レジリエンス トレース + ポリシーの判定 |---
 
 ## ライセンス
 
-Part of [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — MIT License.
+[OmniRoute](https://github.com/diegosouzapw/OmniRoute) の一部 — MIT ライセンス。
+```

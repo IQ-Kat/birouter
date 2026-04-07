@@ -4,19 +4,13 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
-
----
+Vă mulțumim pentru interesul de a contribui! Acest ghid acoperă tot ce aveți nevoie pentru a începe.---
 
 ## Development Setup
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
-- **npm** 10+
-- **Git**
-
-### Clone & Install
+-**Node.js**>= 18 < 24 (recomandat: 22 LTS) -**npm**10+ -**Git**### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -35,28 +29,24 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+Variabile cheie pentru dezvoltare:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| Variabila              | Implicit de dezvoltare   | Descriere                           |
+| ---------------------- | ------------------------ | ----------------------------------- | ---------------------- |
+| `PORT`                 | `20128`                  | Port server                         |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | URL de bază pentru frontend         |
+| `JWT_SECRET`           | (generați mai sus)       | Secret de semnare JWT               |
+| `PAROLA_INIȚIALĂ`      | `SCHIMBARE`              | Prima parolă de conectare           |
+| `APP_LOG_LEVEL`        | `info`                   | Nivelul de verbozitate a jurnalului | ### Dashboard Settings |
 
-### Dashboard Settings
+Tabloul de bord oferă comutări de interfață pentru funcții care pot fi configurate și prin variabile de mediu:
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+| Setarea locației | Comutare                     | Descriere                                         |
+| ---------------- | ---------------------------- | ------------------------------------------------- |
+| Setări → Avansat | Modul de depanare            | Activați jurnalele de solicitări de depanare (UI) |
+| Setări → General | Vizibilitatea barei laterale | Afișați/ascundeți secțiunile barei laterale       |
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
-
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
-
-### Running Locally
+Aceste setări sunt stocate în baza de date și persistă la reporniri, suprascriind valorile implicite env var atunci când sunt setate.### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -70,51 +60,44 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+Adrese URL implicite:
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
-
----
+-**Tabloul de bord**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
 
 ## Git Workflow
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️**NU vă angajați NICIODATĂ direct la `principal`.**Folosiți întotdeauna ramuri de caracteristici.```bash
+> git checkout -b feat/your-feature-name
 
-```bash
-git checkout -b feat/your-feature-name
 # ... make changes ...
+
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
+
 # Open a Pull Request on GitHub
-```
+
+````
 
 ### Branch Naming
 
-| Prefix      | Purpose                   |
+| Prefix | Scop |
 | ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| `feat/` | Caracteristici noi |
+| `fix/` | Remedieri de erori |
+| `refactor/` | Restructurarea codului |
+| `docs/` | Modificări ale documentației |
+| `test/` | Testare completări/remedieri |
+| `chore/` | Instrumente, CI, dependențe |### Commit Messages
 
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+Urmăriți [Conventional Commits](https://www.conventionalcommits.org/):```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-```
+````
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
+Domenii: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---
 
 ## Running Tests
 
@@ -137,7 +120,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min statements/lines/functions; 60% branches)
+# Coverage (60% min statements/lines/functions/branches)
 npm run test:coverage
 npm run coverage:report
 
@@ -146,36 +129,37 @@ npm run lint
 npm run check
 ```
 
-Coverage notes:
+Note de acoperire:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` măsoară acoperirea sursei pentru suita principală de teste unitare, exclude `tests/**` și include `open-sse/**`
+- Solicitările pull trebuie să mențină poarta de acoperire generală la**60% sau mai mare**pentru extrase, linii, funcții și ramuri
+- Dacă un PR modifică codul de producție în `src/`, `open-sse/`, `electron/` sau `bin/`, trebuie să adauge sau să actualizeze teste automate în același PR
+- `npm run coverage:report` tipărește raportul detaliat fișier cu fișier de la cea mai recentă rulare de acoperire
+- `npm run test:coverage:legacy` păstrează valoarea mai veche pentru comparație istorică
+- Consultați `docs/COVERAGE_PLAN.md` pentru foaia de parcurs de îmbunătățire a acoperirii în faze### Pull Request Requirements
 
-Current test status: **122 unit test files** covering:
+Înainte de a deschide sau de a fuziona un PR:
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- Rulați `npm run test:unit`
+- Rulați `npm run test:coverage`
+- Asigurați-vă că poarta de acoperire rămâne la**60%+**pentru toate valorile
+- Includeți fișierele de testare modificate sau adăugate în descrierea PR atunci când codul de producție a fost modificat
+- Verificați rezultatul SonarQube pe PR atunci când secretele proiectului sunt configurate în CI
 
----
+Starea actuală a testului:**122 fișiere de test unitar**care acoperă:
+
+- Furnizor de traducători și conversie de format
+- Limitarea ratei, întrerupătorul de circuit și rezistența
+- Cache semantic, idempotenta, urmarirea progresului
+- Operațiuni și schemă cu baze de date (21 module DB)
+- Fluxuri OAuth și autentificare
+- Validare API endpoint (Zod v4)
+- Instrumente de server MCP și aplicarea domeniului de aplicare
+- Sisteme de memorie și abilități---
 
 ## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
-
----
+-**ESLint**— Rulați `npm run lint` înainte de a efectua comiterea -**Prettier**— Formatat automat prin `lint-staged` la comitere (2 spații, punct și virgulă, ghilimele duble, lățime de 100 de caractere, virgule de final es5) -**TypeScript**— Tot codul `src/` folosește `.ts`/`.tsx`; `open-sse/` folosește `.ts`/`.js`; document cu TSDoc (`@param`, `@returns`, `@throws`) -**Fără `eval()`**— ESLint impune `no-eval`, `no-implied-eval`, `no-new-func` -**Validare Zod**— Utilizați schemele Zod v4 pentru validarea tuturor intrărilor API -**Denumire**: Fișiere = camelCase/kebab-case, componente = PascalCase, constante = UPPER_SNAKE---
 
 ## Project Structure
 
@@ -244,56 +228,37 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+Adăugați la `src/shared/constants/providers.ts` — validat Zod la încărcarea modulului.### Step 2: Add Executor (if custom logic needed)
 
-### Step 2: Add Executor (if custom logic needed)
+Creați executor în `open-sse/executors/your-provider.ts` extinzând executorul de bază.### Step 3: Add Translator (if non-OpenAI format)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+Creați traducători de cerere/răspuns în `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
 
-### Step 3: Add Translator (if non-OpenAI format)
+Adăugați acreditările OAuth în `src/lib/oauth/constants/oauth.ts` și serviciul în `src/lib/oauth/services/`.### Step 5: Register Models
 
-Create request/response translators in `open-sse/translator/`.
+Adăugați definiții de model în `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
 
-### Step 4: Add OAuth Config (if OAuth-based)
+Scrieți testele unitare în `tests/unit/` care acoperă cel puțin:
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
-
-### Step 5: Register Models
-
-Add model definitions in `open-sse/config/providerRegistry.ts`.
-
-### Step 6: Add Tests
-
-Write unit tests in `tests/unit/` covering at minimum:
-
-- Provider registration
-- Request/response translation
-- Error handling
-
----
+- Înregistrarea furnizorului
+- traducere cerere/răspuns
+- Gestionarea erorilor---
 
 ## Pull Request Checklist
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
-
----
+- [ ] Testele trec (`npm test`)
+- [ ] Treci de scame (`npm run lint`)
+- [ ] Construirea reușește (`npm run build`)
+- [ ] Tipuri TypeScript adăugate pentru noi funcții publice și interfețe
+- [ ] Fără secrete hardcoded sau valori alternative
+- [ ] Toate intrările validate cu scheme Zod
+- [ ] CHANGELOG actualizat (dacă se modifică utilizatorul)
+- [ ] Documentație actualizată (dacă este cazul)---
 
 ## Releasing
 
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
-
----
+Lansările sunt gestionate prin fluxul de lucru `/generate-release`. Când este creată o nouă versiune GitHub, pachetul este**publicat automat în npm**prin GitHub Actions.---
 
 ## Getting Help
 
-- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+-**Arhitectură**: Vezi [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**Referință API**: Vezi [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Probleme**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADRs**: Consultați `docs/adr/` pentru înregistrările deciziilor arhitecturale

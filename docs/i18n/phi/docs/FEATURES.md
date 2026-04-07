@@ -4,142 +4,102 @@
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
-
----
+Visual na gabay sa bawat seksyon ng OmniRoute dashboard.---
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
-
-![Providers Dashboard](screenshots/01-providers.png)
+Pamahalaan ang mga koneksyon sa AI provider: OAuth provider (Claude Code, Codex, Gemini CLI), API key provider (Groq, DeepSeek, OpenRouter), at libreng provider (Qoder, Qwen, Kiro). Kasama sa mga Kiro account ang pagsubaybay sa balanse ng kredito — mga natitirang credit, kabuuang allowance, at petsa ng pag-renew na makikita sa Dashboard → Paggamit.![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Create model routing combos with 6 strategies: priority, weighted, round-robin, random, least-used, and cost-optimized. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-![Combos Dashboard](screenshots/02-combos.png)
+Gumawa ng mga combo sa pagruruta ng modelo na may 6 na diskarte: priority, weighted, round-robin, random, hindi gaanong ginagamit, at cost-optimized. Ang bawat combo ay nagkakadena ng maraming modelo na may awtomatikong fallback at may kasamang mabilis na mga template at mga pagsusuri sa kahandaan.![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
+Komprehensibong analytics ng paggamit na may pagkonsumo ng token, mga pagtatantya sa gastos, mga heatmap ng aktibidad, lingguhang chart ng pamamahagi, at mga breakdown sa bawat provider.![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
-
-![Health Dashboard](screenshots/04-health.png)
+Real-time na pagsubaybay: uptime, memorya, bersyon, latency percentiles (p50/p95/p99), mga istatistika ng cache, at mga estado ng circuit breaker ng provider.![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
-
-![Translator Playground](screenshots/05-translator.png)
+Apat na mode para sa pag-debug ng mga pagsasalin ng API:**Playground**(format converter),**Chat Tester**(live na kahilingan),**Test Bench**(batch tests), at**Live Monitor**(real-time stream).![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
-
----
+Subukan ang anumang modelo nang direkta mula sa dashboard. Pumili ng provider, modelo, at endpoint, magsulat ng mga prompt gamit ang Monaco Editor, mag-stream ng mga tugon sa real-time, i-abort ang mid-stream, at tingnan ang mga sukatan ng timing.---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
-
----
+Nako-customize na mga tema ng kulay para sa buong dashboard. Pumili mula sa 7 preset na kulay (Coral, Blue, Red, Green, Violet, Orange, Cyan) o gumawa ng custom na tema sa pamamagitan ng pagpili ng anumang hex na kulay. Sinusuportahan ang liwanag, madilim, at system mode.---
 
 ## ⚙️ Settings
 
-Comprehensive settings panel with tabs:
+Panel ng kumpletong mga setting na may mga tab:
 
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
+-**General**— System storage, backup management (export/import database) -**Hitsura**— Tagapili ng tema (madilim/liwanag/system), mga preset ng tema ng kulay at mga custom na kulay, visibility ng log ng kalusugan, mga kontrol sa visibility ng item sa sidebar -**Seguridad**— Proteksyon ng endpoint ng API, custom na pagharang ng provider, pag-filter ng IP, impormasyon ng session -**Pagruruta**— Mga alyas ng modelo, pagkasira ng gawain sa background -**Resilience**— Pagpapatuloy ng limitasyon sa rate, pag-tune ng circuit breaker, awtomatikong i-disable ang mga naka-ban na account, pagsubaybay sa expiration ng provider -**Advanced**— Mga override sa configuration, configuration audit trail, fallback degradation mode![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+Isang-click na configuration para sa AI coding tool: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, at Factory Droid. Nagtatampok ng awtomatikong paglalapat/pag-reset ng config, mga profile ng koneksyon, at pagmamapa ng modelo.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
+Dashboard para sa pagtuklas at pamamahala ng mga ahente ng CLI. Nagpapakita ng grid ng 14 na built-in na ahente (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) na may:
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
-
----
+-**Katayuan ng pag-install**— Naka-install / Hindi Natagpuan na may pagtukoy ng bersyon -**Protocol badge**— stdio, HTTP, atbp. -**Mga custom na ahente**— Magrehistro ng anumang CLI tool sa pamamagitan ng form (pangalan, binary, version command, spawn args) -**Pagtutugma ng CLI Fingerprint**— Toggle ng bawat provider upang tumugma sa mga native na lagda ng kahilingan sa CLI, na binabawasan ang panganib sa pagbabawal habang pinapanatili ang proxy IP---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
+Bumuo ng mga larawan, video, at musika mula sa dashboard. Sinusuportahan ang OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, at MusicGen.---
 
 ## 📝 Request Logs
 
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+Real-time na pag-log ng kahilingan gamit ang pag-filter ayon sa provider, modelo, account, at API key. Nagpapakita ng mga status code, paggamit ng token, latency, at mga detalye ng pagtugon.![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
-
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+Ang iyong pinag-isang API endpoint na may pagkasira ng kakayahan: Mga Pagkumpleto ng Chat, Mga Tugon na API, Mga Pag-embed, Pagbuo ng Larawan, Muling Ranggo, Transkripsyon ng Audio, Text-to-Speech, Mga Moderation, at mga nakarehistrong API key. Cloudflare Quick Tunnel integration at suporta sa cloud proxy para sa malayuang pag-access.![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
-
----
+Gumawa, saklaw, at bawiin ang mga API key. Ang bawat key ay maaaring paghigpitan sa mga partikular na modelo/provider na may ganap na access o read-only na mga pahintulot. Pamamahala ng visual key na may pagsubaybay sa paggamit.---
 
 ## 📋 Audit Log
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
-
----
+Pagsubaybay sa administratibong pagkilos na may pag-filter ayon sa uri ng pagkilos, aktor, target, IP address, at timestamp. Buong kasaysayan ng kaganapan sa seguridad.---
 
 ## 🖥️ Desktop Application
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+Native Electron desktop app para sa Windows, macOS, at Linux. Patakbuhin ang OmniRoute bilang isang standalone na application na may system tray integration, offline na suporta, auto-update, at one-click na pag-install.
 
-Key features:
+Mga pangunahing tampok:
 
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
+- Pagboto sa kahandaan ng server (walang blangkong screen sa malamig na simula)
+- System tray na may port management
+- Patakaran sa Seguridad ng Nilalaman
 - Single-instance lock
-- Auto-update on restart
+- Auto-update sa pag-restart
 - Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- Hardened Electron build packaging — ang mga naka-symlink na `node_modules` sa standalone na bundle ay nakita at tinanggihan bago ang packaging, na pumipigil sa runtime dependency sa build machine (v2.5.5+)
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+📖 Tingnan ang [`electron/README.md`](../electron/README.md) para sa buong dokumentasyon.

@@ -4,19 +4,13 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
-
----
+Merci de votre intérêt à contribuer ! Ce guide couvre tout ce dont vous avez besoin pour commencer.---
 
 ## Development Setup
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
-- **npm** 10+
-- **Git**
-
-### Clone & Install
+-**Node.js**>= 18 < 24 (recommandé : 22 LTS) -**npm**10+ -**Git**### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -35,28 +29,24 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+Variables clés pour le développement :
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| Variables              | Développement par défaut | Descriptif                         |
+| ---------------------- | ------------------------ | ---------------------------------- | ---------------------- |
+| `PORT`                 | '20128'                  | Port du serveur                    |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | URL de base pour le frontend       |
+| `JWT_SECRET`           | (générer ci-dessus)      | Secret de signature JWT            |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | Mot de passe de première connexion |
+| `APP_LOG_LEVEL`        | `informations`           | Niveau de verbosité du journal     | ### Dashboard Settings |
 
-### Dashboard Settings
+Le tableau de bord fournit des bascules d'interface utilisateur pour les fonctionnalités qui peuvent également être configurées via des variables d'environnement :
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+| Emplacement du paramètre | Basculer                        | Descriptif                                         |
+| ------------------------ | ------------------------------- | -------------------------------------------------- |
+| Paramètres → Avancé      | Mode débogage                   | Activer les journaux de demandes de débogage (UI)  |
+| Paramètres → Général     | Visibilité de la barre latérale | Afficher/masquer les sections de la barre latérale |
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
-
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
-
-### Running Locally
+Ces paramètres sont stockés dans la base de données et persistent lors des redémarrages, remplaçant les valeurs par défaut de la variable d'environnement lorsqu'elles sont définies.### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -70,51 +60,44 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+URL par défaut :
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
-
----
+-**Tableau de bord** : `http://localhost:20128/dashboard` -**API** : `http://localhost:20128/v1`---
 
 ## Git Workflow
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️**NE JAMAIS vous engager directement dans `main`.**Utilisez toujours des branches de fonctionnalités.```bash
+> git checkout -b feat/your-feature-name
 
-```bash
-git checkout -b feat/your-feature-name
 # ... make changes ...
+
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
+
 # Open a Pull Request on GitHub
-```
+
+````
 
 ### Branch Naming
 
-| Prefix      | Purpose                   |
+| Préfixe | Objectif |
 | ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| `exploit/` | Nouvelles fonctionnalités |
+| `réparer/` | Corrections de bugs |
+| `refactor/` | Restructuration du code |
+| `docs/` | Modifications de la documentation |
+| `tester/` | Tester les ajouts/correctifs |
+| `corvée/` | Outillage, CI, dépendances |### Commit Messages
 
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+Suivez [Conventional Commits](https://www.conventionalcommits.org/) :```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-```
+````
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
+Portées : `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---
 
 ## Running Tests
 
@@ -137,7 +120,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min statements/lines/functions; 60% branches)
+# Coverage (60% min statements/lines/functions/branches)
 npm run test:coverage
 npm run coverage:report
 
@@ -146,36 +129,37 @@ npm run lint
 npm run check
 ```
 
-Coverage notes:
+Notes de couverture :
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` mesure la couverture des sources pour la suite de tests unitaires principale, exclut `tests/**` et inclut `open-sse/**`
+- Les demandes d'extraction doivent maintenir la couverture globale à**60 % ou plus**pour les instructions, les lignes, les fonctions et les branches.
+- Si un PR modifie le code de production dans `src/`, `open-sse/`, `electron/` ou `bin/`, il doit ajouter ou mettre à jour des tests automatisés dans le même PR
+- `npm run cover:report` imprime le rapport détaillé fichier par fichier de la dernière exécution de couverture
+- `npm run test:coverage:legacy` préserve l'ancienne métrique pour une comparaison historique
+- Voir `docs/COVERAGE_PLAN.md` pour la feuille de route d'amélioration progressive de la couverture### Pull Request Requirements
 
-Current test status: **122 unit test files** covering:
+Avant d'ouvrir ou de fusionner un PR :
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- Exécutez `npm run test:unit`
+- Exécutez `npm run test:coverage`
+- Assurez-vous que la porte de couverture reste à**60 %+**pour toutes les mesures
+- Inclure les fichiers de test modifiés ou ajoutés dans la description du PR lorsque le code de production a changé
+- Vérifiez le résultat SonarQube sur le PR lorsque les secrets du projet sont configurés dans CI
 
----
+État actuel des tests :**122 fichiers de tests unitaires**couvrant :
+
+- Fournisseur de traducteurs et conversion de format
+- Limitation de débit, disjoncteur et résilience
+- Cache sémantique, idempotence, suivi des progrès
+- Opérations et schéma de base de données (21 modules DB)
+- Flux OAuth et authentification
+- Validation des points de terminaison API (Zod v4)
+- Outils du serveur MCP et application de la portée
+- Systèmes de mémoire et de compétences---
 
 ## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
-
----
+-**ESLint**— Exécutez `npm run lint` avant de valider -**Plus joli**— Formatage automatique via `lint-staged` lors de la validation (2 espaces, points-virgules, guillemets doubles, largeur de 100 caractères, virgules finales es5) -**TypeScript**— Tout le code `src/` utilise `.ts`/`.tsx` ; `open-sse/` utilise `.ts`/`.js` ; document avec TSDoc ($`@param`, `@returns`, `@throws`) -**Pas de `eval()`**— ESLint applique `no-eval`, `no-implicit-eval`, `no-new-func` -**Validation Zod**— Utilisez les schémas Zod v4 pour toutes les validations d'entrée d'API -**Nom** : Fichiers = camelCase/kebab-case, composants = PascalCase, constantes = UPPER_SNAKE---
 
 ## Project Structure
 
@@ -244,56 +228,35 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+Ajouter à `src/shared/constants/providers.ts` — Validé par Zod au chargement du module.### Step 2: Add Executor (if custom logic needed)
 
-### Step 2: Add Executor (if custom logic needed)
+Créez un exécuteur dans `open-sse/executors/your-provider.ts` en étendant l'exécuteur de base.### Step 3: Add Translator (if non-OpenAI format)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+Créez des traducteurs de requête/réponse dans `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
 
-### Step 3: Add Translator (if non-OpenAI format)
+Ajoutez les informations d'identification OAuth dans `src/lib/oauth/constants/oauth.ts` et le service dans `src/lib/oauth/services/`.### Step 5: Register Models
 
-Create request/response translators in `open-sse/translator/`.
+Ajoutez des définitions de modèle dans `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
 
-### Step 4: Add OAuth Config (if OAuth-based)
+Écrivez des tests unitaires dans `tests/unit/` couvrant au minimum :
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
-
-### Step 5: Register Models
-
-Add model definitions in `open-sse/config/providerRegistry.ts`.
-
-### Step 6: Add Tests
-
-Write unit tests in `tests/unit/` covering at minimum:
-
-- Provider registration
-- Request/response translation
-- Error handling
-
----
+- Inscription du fournisseur
+- Traduction requête/réponse
+- Gestion des erreurs---
 
 ## Pull Request Checklist
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
-
----
+- [ ] Les tests réussissent (`npm test`)
+- [ ] Passes de peluchage (`npm run lint`)
+- [ ] La construction réussit (`npm run build`) -[ ] Types TypeScript ajoutés pour les nouvelles fonctions et interfaces publiques
+- [ ] Pas de secrets codés en dur ni de valeurs de secours -[ ] Toutes les entrées validées avec les schémas Zod
+- [ ] CHANGELOG mis à jour (si changement destiné à l'utilisateur)
+- [ ] Documentation mise à jour (le cas échéant)---
 
 ## Releasing
 
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
-
----
+Les versions sont gérées via le workflow `/generate-release`. Lorsqu'une nouvelle version de GitHub est créée, le package est**automatiquement publié sur npm**via GitHub Actions.---
 
 ## Getting Help
 
-- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+-**Architecture** : Voir [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**Référence API** : Voir [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Problèmes** : [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR** : voir `docs/adr/` pour les enregistrements de décisions architecturales

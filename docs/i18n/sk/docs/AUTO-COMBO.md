@@ -4,42 +4,29 @@
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> Samoriadiace modelové reťazce s adaptívnym bodovaním## How It Works
 
-## How It Works
+Auto-Combo Engine dynamicky vyberá najlepšieho poskytovateľa/model pre každú požiadavku pomocou**6-faktorovej funkcie hodnotenia**:
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+| Faktor     | Hmotnosť | Popis                                            |
+| :--------- | :------- | :----------------------------------------------- | ------------- |
+| Kvóta      | 0,20     | Zostávajúca kapacita [0..1]                      |
+| Zdravie    | 0,25     | Istič: ZATVORENÉ=1,0, POLOVICE=0,5, OTVORENÉ=0,0 |
+| CostInv    | 0,20     | Inverzné náklady (lacnejšie = vyššie skóre)      |
+| LatencyInv | 0,15     | Inverzná latencia p95 (rýchlejšia = vyššia)      |
+| TaskFit    | 0,10     | Model × skóre kondície typu úlohy                |
+| Stabilita  | 0,10     | Nízky rozptyl v latencii/chybách                 | ## Mode Packs |
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+| Balenie                       | Zameranie      | Hmotnosť kľúča   |
+| :---------------------------- | :------------- | :--------------- | --------------- |
+| 🚀**Rýchle dodanie**          | Rýchlosť       | latencyInv: 0,35 |
+| 💰**Úspora nákladov**         | Ekonomika      | costInv: 0,40    |
+| 🎯**Kvalita na prvom mieste** | Najlepší model | taskFit: 0,40    |
+| 📡**Priateľský offline**      | Dostupnosť     | kvóta: 0,40      | ## Self-Healing |
 
-## Mode Packs
+-**Dočasné vylúčenie**: Skóre < 0,2 → vylúčenie na 5 minút (progresívne vylúčenie, max. 30 minút) -**Upozornenie na istič**: OTVORENÉ → automatické vylúčenie; HALF_OPEN → požiadavky na sondu -**Režim incidentu**: >50 % OTVORENÉ → zakázať prieskum, maximalizovať stabilitu -**Cooldown recovery**: Po vylúčení je prvou požiadavkou „sonda“ so skráteným časovým limitom## Bandit Exploration
 
-| Pack                    | Focus        | Key Weight       |
-| :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
-
-## Self-Healing
-
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
-
-## Bandit Exploration
-
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
-
-## API
+5 % žiadostí (konfigurovateľných) je smerovaných k náhodným poskytovateľom na preskúmanie. Vypnuté v režime incidentov.## API
 
 ```bash
 # Create auto-combo
@@ -53,15 +40,13 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+Viac ako 30 modelov zaznamenalo skóre v 6 typoch úloh (kódovanie, revízia, plánovanie, analýza, ladenie, dokumentácia). Podporuje vzory zástupných znakov (napr. `*-coder` → vysoké skóre kódovania).## Files
 
-## Files
-
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+| Súbor                                        | Účel                                     |
+| :------------------------------------------- | :--------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`     | Funkcia skórovania a normalizácia fondu  |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × hľadanie kondície úlohy          |
+| `open-sse/services/autoCombo/engine.ts`      | Logika výberu, bandita, rozpočtový strop |
+| `open-sse/services/autoCombo/selfHealing.ts` | Vylúčenie, sondy, režim incidentu        |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 hmotnostné profily                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                                 |

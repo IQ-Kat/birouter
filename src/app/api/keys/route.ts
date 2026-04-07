@@ -1,20 +1,47 @@
 import { NextResponse } from "next/server";
-import { getApiKeys, createApiKey, isCloudEnabled } from "@/lib/localDb";
+import { getApiKeys, createApiKey, isCloudEnabled, updateApiKeyPermissions } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { createKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+
+function parsePagination(request: Request) {
+  const url = new URL(request.url);
+  const limitValue = url.searchParams.get("limit");
+  const offsetValue = url.searchParams.get("offset");
+
+  const parsedLimit = limitValue ? Number.parseInt(limitValue, 10) : undefined;
+  const parsedOffset = offsetValue ? Number.parseInt(offsetValue, 10) : 0;
+
+  const limit =
+    Number.isInteger(parsedLimit) && parsedLimit && parsedLimit > 0 ? parsedLimit : null;
+  const offset = Number.isInteger(parsedOffset) && parsedOffset > 0 ? parsedOffset : 0;
+
+  return { limit, offset };
+}
 
 // GET /api/keys - List API keys
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const keys = await getApiKeys();
     const maskedKeys = keys.map((k) => ({
       ...k,
       key: maskStoredApiKey(k.key),
     }));
-    return NextResponse.json({ keys: maskedKeys, allowKeyReveal: isApiKeyRevealEnabled() });
+    const { limit, offset } = parsePagination(request);
+    const pagedKeys =
+      limit === null ? maskedKeys.slice(offset) : maskedKeys.slice(offset, offset + limit);
+
+    return NextResponse.json({
+      keys: pagedKeys,
+      total: maskedKeys.length,
+      allowKeyReveal: isApiKeyRevealEnabled(),
+    });
   } catch (error) {
     console.log("Error fetching keys:", error);
     return NextResponse.json({ error: "Failed to fetch keys" }, { status: 500 });
@@ -23,6 +50,9 @@ export async function GET() {
 
 // POST /api/keys - Create new API key
 export async function POST(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
 
@@ -31,11 +61,14 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name } = validation.data;
+    const { name, noLog } = validation.data;
 
     // Always get machineId from server
     const machineId = await getConsistentMachineId();
     const apiKey = await createApiKey(name, machineId);
+    if (noLog === true) {
+      await updateApiKeyPermissions(apiKey.id, { noLog: true });
+    }
 
     // Auto sync to Cloud if enabled
     await syncKeysToCloudIfEnabled();
@@ -46,6 +79,7 @@ export async function POST(request) {
         name: apiKey.name,
         id: apiKey.id,
         machineId: apiKey.machineId,
+        noLog: noLog === true,
       },
       { status: 201 }
     );

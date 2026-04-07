@@ -4,142 +4,102 @@
 
 ---
 
-Visual guide to every section of the OmniRoute dashboard.
-
----
+Guia visual para cada seção do painel do OmniRoute.---
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
-
-![Providers Dashboard](screenshots/01-providers.png)
+Gerencie conexões de provedores de IA: provedores OAuth (Claude Code, Codex, Gemini CLI), provedores de chaves de API (Groq, DeepSeek, OpenRouter) e provedores gratuitos (Qoder, Qwen, Kiro). As contas Kiro incluem rastreamento de saldo de crédito – créditos restantes, subsídio total e data de renovação visíveis em Painel → Uso.![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Create model routing combos with 6 strategies: priority, weighted, round-robin, random, least-used, and cost-optimized. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
-
-![Combos Dashboard](screenshots/02-combos.png)
+Crie combinações de modelos de roteamento com 6 estratégias: prioridade, ponderada, round-robin, aleatória, menos usada e com custo otimizado. Cada combinação encadeia vários modelos com fallback automático e inclui modelos rápidos e verificações de prontidão.![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
-
-![Analytics Dashboard](screenshots/03-analytics.png)
+Análise de uso abrangente com consumo de tokens, estimativas de custos, mapas de calor de atividades, gráficos de distribuição semanais e detalhamentos por provedor.![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
-
-![Health Dashboard](screenshots/04-health.png)
+Monitoramento em tempo real: tempo de atividade, memória, versão, percentis de latência (p50/p95/p99), estatísticas de cache e estados de disjuntores do provedor.![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
-
-![Translator Playground](screenshots/05-translator.png)
+Quatro modos para depurar traduções de API:**Playground**(conversor de formato),**Chat Tester**(solicitações ao vivo),**Test Bench**(testes em lote) e**Live Monitor**(transmissão em tempo real).![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
-
----
+Teste qualquer modelo diretamente do painel. Selecione provedor, modelo e endpoint, escreva prompts com o Monaco Editor, transmita respostas em tempo real, aborte o mid-stream e visualize métricas de tempo.---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
-
----
+Temas de cores personalizáveis ​​para todo o painel. Escolha entre 7 cores predefinidas (Coral, Azul, Vermelho, Verde, Violeta, Laranja, Ciano) ou crie um tema personalizado escolhendo qualquer cor hexadecimal. Suporta modo claro, escuro e sistema.---
 
 ## ⚙️ Settings
 
-Comprehensive settings panel with tabs:
+Painel de configurações abrangente com guias:
 
-- **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
-- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
-
-![Settings Dashboard](screenshots/06-settings.png)
+-**Geral**— Armazenamento do sistema, gerenciamento de backup (exportar/importar banco de dados) -**Aparência**— Seletor de tema (escuro/claro/sistema), predefinições de tema de cores e cores personalizadas, visibilidade do registro de saúde, controles de visibilidade de itens da barra lateral -**Segurança**— Proteção de endpoint de API, bloqueio de provedor personalizado, filtragem de IP, informações de sessão -**Roteamento**— Aliases de modelo, degradação de tarefas em segundo plano -**Resiliência**— Persistência de limite de taxa, ajuste de disjuntor, desativação automática de contas banidas, monitoramento de expiração de provedor -**Avançado**— Substituições de configuração, trilha de auditoria de configuração, modo de degradação de fallback![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
-
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+Configuração com um clique para ferramentas de codificação de IA: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor e Factory Droid. Apresenta aplicação/redefinição de configuração automatizada, perfis de conexão e mapeamento de modelo.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
+Painel para descobrir e gerenciar agentes CLI. Mostra uma grade de 14 agentes integrados (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) com:
 
-- **Installation status** — Installed / Not Found with version detection
-- **Protocol badges** — stdio, HTTP, etc.
-- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
-- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
-
----
+-**Status da instalação**— Instalado/Não encontrado com detecção de versão -**Selos de protocolo**— stdio, HTTP, etc. -**Agentes personalizados**— Registre qualquer ferramenta CLI via formulário (nome, binário, comando de versão, spawn args) -**CLI Fingerprint Matching**— Alternância por provedor para corresponder às assinaturas de solicitação CLI nativas, reduzindo o risco de banimento e preservando o IP do proxy---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
-
----
+Gere imagens, vídeos e músicas a partir do painel. Suporta OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open e MusicGen.---
 
 ## 📝 Request Logs
 
-Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
-
-![Usage Logs](screenshots/08-usage.png)
+Registro de solicitações em tempo real com filtragem por provedor, modelo, conta e chave de API. Mostra códigos de status, uso de token, latência e detalhes de resposta.![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
-
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+Seu endpoint de API unificado com detalhamento de recursos: conclusões de bate-papo, API de respostas, incorporações, geração de imagens, reclassificação, transcrição de áudio, conversão de texto em fala, moderações e chaves de API registradas. Integração do Cloudflare Quick Tunnel e suporte de proxy em nuvem para acesso remoto.![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
-
----
+Crie, escopo e revogue chaves de API. Cada chave pode ser restrita a modelos/provedores específicos com acesso total ou permissões somente leitura. Gerenciamento visual de chaves com rastreamento de uso.---
 
 ## 📋 Audit Log
 
-Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
-
----
+Rastreamento de ações administrativas com filtragem por tipo de ação, ator, alvo, endereço IP e carimbo de data/hora. Histórico completo de eventos de segurança.---
 
 ## 🖥️ Desktop Application
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+Aplicativo de desktop Native Electron para Windows, macOS e Linux. Execute o OmniRoute como um aplicativo independente com integração à bandeja do sistema, suporte offline, atualização automática e instalação com um clique.
 
-Key features:
+Principais recursos:
 
-- Server readiness polling (no blank screen on cold start)
-- System tray with port management
-- Content Security Policy
-- Single-instance lock
-- Auto-update on restart
-- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- Pesquisa de prontidão do servidor (sem tela em branco na inicialização a frio)
+- Bandeja do sistema com gerenciamento de portas
+- Política de Segurança de Conteúdo
+- Bloqueio de instância única
+- Atualização automática ao reiniciar
+- UI condicional à plataforma (semáforos macOS, barra de título padrão do Windows/Linux)
+- Pacote de compilação Hardened Electron — `node_modules` com link simbólico no pacote independente é detectado e rejeitado antes do empacotamento, evitando a dependência de tempo de execução na máquina de compilação (v2.5.5+)
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+📖 Consulte [`electron/README.md`](../electron/README.md) para documentação completa.

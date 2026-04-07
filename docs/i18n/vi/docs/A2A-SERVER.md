@@ -4,37 +4,28 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
-
-## Agent Discovery
+> Giao thức giữa tác nhân với tác nhân v0.3 — OmniRoute như một tác nhân định tuyến thông minh## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
-
----
+Trả về Thẻ đại lý mô tả khả năng, kỹ năng và yêu cầu xác thực của OmniRoute.---
 
 ## Authentication
 
-All `/a2a` requests require an API key via the `Authorization` header:
-
-```
+Tất cả các yêu cầu `/a2a` đều yêu cầu khóa API thông qua tiêu đề `Ủy quyền`:```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
-```
 
-If no API key is configured on the server, authentication is bypassed.
+````
 
----
+Nếu không có khóa API nào được định cấu hình trên máy chủ, quá trình xác thực sẽ bị bỏ qua.---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Sends a message to a skill and waits for the complete response.
-
-```bash
+Gửi tin nhắn đến một kỹ năng và chờ phản hồi đầy đủ.```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -48,34 +39,31 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-```
+````
 
-**Response:**
-
-```json
+**Phản ứng:**```json
 {
-  "jsonrpc": "2.0",
-  "id": "1",
-  "result": {
-    "task": { "id": "uuid", "state": "completed" },
-    "artifacts": [{ "type": "text", "content": "..." }],
-    "metadata": {
-      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-      "resilience_trace": [
-        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-      ],
-      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
-    }
-  }
+"jsonrpc": "2.0",
+"id": "1",
+"result": {
+"task": { "id": "uuid", "state": "completed" },
+"artifacts": [{ "type": "text", "content": "..." }],
+"metadata": {
+"routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
+"cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+"resilience_trace": [
+{ "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+],
+"policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
 }
-```
+}
+}
+
+````
 
 ### `message/stream` — SSE Streaming
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
-
-```bash
+Tương tự như `message/send` nhưng trả về Sự kiện do máy chủ gửi để phát trực tuyến theo thời gian thực.```bash
 curl -N -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -88,17 +76,16 @@ curl -N -X POST http://localhost:20128/a2a \
       "messages": [{"role": "user", "content": "Explain quantum computing"}]
     }
   }'
-```
+````
 
-**SSE Events:**
-
-```
+**Sự kiện SSE:**```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
 : heartbeat 2026-03-03T17:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-```
+
+````
 
 ### `tasks/get` — Query Task Status
 
@@ -107,7 +94,7 @@ curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-```
+````
 
 ### `tasks/cancel` — Cancel a Task
 
@@ -122,12 +109,10 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
-
----
+| Kỹ năng                 | Mô tả                                                                                                                                                   |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ | --- |
+| `định tuyến thông minh` | Định tuyến lời nhắc thông qua đường dẫn thông minh của OmniRoute. Trả về phản hồi kèm theo giải thích định tuyến, chi phí và dấu vết khả năng phục hồi. |
+| `quản lý hạn ngạch`     | Trả lời các truy vấn bằng ngôn ngữ tự nhiên về hạn ngạch của nhà cung cấp, đề xuất các combo miễn phí và cung cấp xếp hạng hạn ngạch.                   | --- |
 
 ## Task Lifecycle
 
@@ -137,23 +122,19 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
-
----
+- Nhiệm vụ hết hạn sau 5 phút (có thể định cấu hình)
+- Trạng thái terminal: `hoàn thành`, `không thành công`, `đã hủy`
+- Nhật ký sự kiện theo dõi mọi chuyển đổi trạng thái---
 
 ## Error Codes
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
-
----
+| Mã     | Ý nghĩa                                   |
+| :----- | :---------------------------------------- | --- |
+| -32700 | Lỗi phân tích cú pháp (JSON không hợp lệ) |
+| -32600 | Yêu cầu không hợp lệ / Không được phép    |
+| -32601 | Không tìm thấy phương pháp hoặc kỹ năng   |
+| -32602 | Thông số không hợp lệ                     |
+| -32603 | Lỗi nội bộ                                | --- |
 
 ## Integration Examples
 

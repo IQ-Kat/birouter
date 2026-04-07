@@ -4,19 +4,13 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
-
----
+Terima kasih kerana berminat untuk menyumbang! Panduan ini merangkumi semua yang anda perlukan untuk bermula.---
 
 ## Development Setup
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
-- **npm** 10+
-- **Git**
-
-### Clone & Install
+-**Node.js**>= 18 < 24 (disyorkan: 22 LTS) -**npm**10+ -**Git**### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -35,28 +29,24 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+Pembolehubah utama untuk pembangunan:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| Pembolehubah              | Lalai Pembangunan        | Penerangan                      |
+| ------------------------- | ------------------------ | ------------------------------- | ---------------------- |
+| `PORT`                    | `20128`                  | Port pelayan                    |
+| `URL_ASA_AWAM_SETERUSNYA` | `http://localhost:20128` | URL asas untuk bahagian hadapan |
+| `JWT_RAHSIA`              | (jana di atas)           | Rahsia tandatangan JWT          |
+| `KATA_laluan_AWAL`        | `TUKAR`                  | Kata laluan log masuk pertama   |
+| `APP_LOG_LEVEL`           | `maklumat`               | Tahap verbositi log             | ### Dashboard Settings |
 
-### Dashboard Settings
+Papan pemuka menyediakan togol UI untuk ciri yang juga boleh dikonfigurasikan melalui pembolehubah persekitaran:
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+| Menetapkan Lokasi  | Togol                 | Penerangan                              |
+| ------------------ | --------------------- | --------------------------------------- |
+| Tetapan → Lanjutan | Mod Nyahpepijat       | Dayakan log permintaan nyahpepijat (UI) |
+| Tetapan → Umum     | Keterlihatan Bar Sisi | Tunjukkan/sembunyikan bahagian bar sisi |
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
-
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
-
-### Running Locally
+Tetapan ini disimpan dalam pangkalan data dan berterusan sepanjang permulaan semula, mengatasi lalai env var apabila ditetapkan.### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -70,51 +60,44 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+URL lalai:
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
-
----
+-**Papan pemuka**: `http://localhost:20128/papan pemuka` -**API**: `http://localhost:20128/v1`---
 
 ## Git Workflow
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️**JANGAN PERNAH komited terus ke `utama`.**Sentiasa gunakan cawangan ciri.```bash
+> git checkout -b feat/your-feature-name
 
-```bash
-git checkout -b feat/your-feature-name
 # ... make changes ...
+
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
+
 # Open a Pull Request on GitHub
-```
+
+````
 
 ### Branch Naming
 
-| Prefix      | Purpose                   |
-| ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| Awalan | Tujuan |
+| ----------- | -------------------------- |
+| `feat/` | Ciri baharu |
+| `baiki/` | Pembetulan pepijat |
+| `refactor/` | Penstrukturan semula kod |
+| `dokumen/` | Perubahan dokumentasi |
+| `ujian/` | Ujian tambahan/pembetulan |
+| `tugas/` | Perkakas, CI, kebergantungan |### Commit Messages
 
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
+Ikuti [Komitmen Konvensional](https://www.conventionalcommits.org/):```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-```
+````
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
+Skop: `db`, `sse`, `oauth`, `papan pemuka`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memori`, `kemahiran`.---
 
 ## Running Tests
 
@@ -137,7 +120,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (55% min statements/lines/functions; 60% branches)
+# Coverage (60% min statements/lines/functions/branches)
 npm run test:coverage
 npm run coverage:report
 
@@ -146,36 +129,37 @@ npm run lint
 npm run check
 ```
 
-Coverage notes:
+Nota liputan:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` mengukur liputan sumber untuk suite ujian unit utama, tidak termasuk `tests/**` dan termasuk `open-sse/**`
+- Permintaan tarik mesti memastikan pintu liputan keseluruhan pada**60% atau lebih tinggi**untuk pernyataan, baris, fungsi dan cawangan
+- Jika PR menukar kod pengeluaran dalam `src/`, `open-sse/`, `electron/` atau `bin/`, ia mesti menambah atau mengemas kini ujian automatik dalam PR yang sama
+- `npm run coverage:report` mencetak laporan fail demi fail terperinci daripada larian liputan terkini
+- `npm run test:coverage:legacy` mengekalkan metrik lama untuk perbandingan sejarah
+- Lihat `docs/COVERAGE_PLAN.md` untuk peta jalan peningkatan liputan berperingkat### Pull Request Requirements
 
-Current test status: **122 unit test files** covering:
+Sebelum membuka atau menggabungkan PR:
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- Jalankan `npm run test:unit`
+- Jalankan `npm run test:coverage`
+- Pastikan pintu liputan kekal pada**60%+**untuk semua metrik
+- Sertakan fail ujian yang diubah atau ditambah dalam perihalan PR apabila kod pengeluaran ditukar
+- Semak keputusan SonarQube pada PR apabila rahsia projek dikonfigurasikan dalam CI
 
----
+Status ujian semasa:**122 unit fail ujian**meliputi:
+
+- Penterjemah penyedia dan penukaran format
+- Pengehadan kadar, pemutus litar dan daya tahan
+- Cache semantik, idempotensi, penjejakan kemajuan
+- Operasi pangkalan data dan skema (21 modul DB)
+- Aliran dan pengesahan OAuth
+- Pengesahan titik akhir API (Zod v4)
+- Alat pelayan MCP dan penguatkuasaan skop
+- Sistem ingatan dan Kemahiran---
 
 ## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
-
----
+-**ESLint**— Jalankan `npm run lint` sebelum melakukan -**Lebih Cantik**— Diformat secara automatik melalui `lint-staged` pada komit (2 ruang, koma bertitik, petikan berganda, lebar 100 aksara, koma di belakang es5) -**TypeScript**— Semua kod `src/` menggunakan `.ts`/`.tsx`; `open-sse/` menggunakan `.ts`/`.js`; dokumen dengan TSDoc (`@param`, `@returns`, `@throws`) -**Tiada `eval()`**— ESLint menguatkuasakan `no-eval`, `no-implied-eval`, `no-new-func` -**Pengesahan Zod**— Gunakan skema Zod v4 untuk semua pengesahan input API -**Penamaan**: Fail = sarung unta/sarung kebab, komponen = PascalCase, pemalar = UPPER_SNAKE---
 
 ## Project Structure
 
@@ -244,56 +228,37 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+Tambahkan pada `src/shared/constant/providers.ts` — Zod-disahkan pada beban modul.### Step 2: Add Executor (if custom logic needed)
 
-### Step 2: Add Executor (if custom logic needed)
+Cipta pelaksana dalam `open-sse/executors/your-provider.ts` melanjutkan pelaksana asas.### Step 3: Add Translator (if non-OpenAI format)
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+Buat penterjemah permintaan/tindak balas dalam `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
 
-### Step 3: Add Translator (if non-OpenAI format)
+Tambahkan bukti kelayakan OAuth dalam `src/lib/oauth/constants/oauth.ts` dan perkhidmatan dalam `src/lib/oauth/services/`.### Step 5: Register Models
 
-Create request/response translators in `open-sse/translator/`.
+Tambah definisi model dalam `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
 
-### Step 4: Add OAuth Config (if OAuth-based)
+Tulis ujian unit dalam `ujian/unit/` meliputi sekurang-kurangnya:
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
-
-### Step 5: Register Models
-
-Add model definitions in `open-sse/config/providerRegistry.ts`.
-
-### Step 6: Add Tests
-
-Write unit tests in `tests/unit/` covering at minimum:
-
-- Provider registration
-- Request/response translation
-- Error handling
-
----
+- Pendaftaran pembekal
+- Permintaan/tindak balas terjemahan
+- Ralat pengendalian---
 
 ## Pull Request Checklist
 
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
-
----
+- [ ] Lulus ujian (`ujian npm`)
+- [ ] Hantaran linting (`npm run lint`)
+- [ ] Binaan berjaya (`npm run build`)
+- [ ] Jenis TypeScript ditambah untuk fungsi awam dan antara muka baharu
+- [ ] Tiada rahsia berkod keras atau nilai sandaran
+- [ ] Semua input disahkan dengan skema Zod
+- [ ] CHANGELOG dikemas kini (jika perubahan yang dihadapi pengguna)
+- [ ] Dokumentasi dikemas kini (jika berkenaan)---
 
 ## Releasing
 
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
-
----
+Keluaran diuruskan melalui aliran kerja `/generate-release`. Apabila Keluaran GitHub baharu dibuat, pakej tersebut**diterbitkan secara automatik ke npm**melalui Tindakan GitHub.---
 
 ## Getting Help
 
-- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+-**Seni Bina**: Lihat [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**Rujukan API**: Lihat [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Isu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR**: Lihat `docs/adr/` untuk rekod keputusan seni bina

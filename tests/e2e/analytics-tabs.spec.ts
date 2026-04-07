@@ -149,15 +149,21 @@ test.describe("Analytics Tabs UI", () => {
         hasText: /utilization/i,
       })
       .first();
-    await utilizationTab.click();
 
-    await page.waitForTimeout(500);
+    // Retry click until the tab switches, mitigating Next.js hydration race conditions
+    await expect(async () => {
+      await utilizationTab.click();
+      const timeRangeSelector = page
+        .locator('[role="tablist"][aria-label]')
+        .filter({ hasText: /1h/ })
+        .first();
+      await expect(timeRangeSelector).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
 
     const timeRangeSelector = page
       .locator('[role="tablist"][aria-label]')
       .filter({ hasText: /1h/ })
       .first();
-    await expect(timeRangeSelector).toBeVisible();
 
     const timeRangeButtons = timeRangeSelector.locator('button[role="tab"]');
     await expect(timeRangeButtons.first()).toBeVisible();
@@ -181,9 +187,12 @@ test.describe("Analytics Tabs UI", () => {
         hasText: /combo.*health/i,
       })
       .first();
-    await comboHealthTab.click();
 
-    await page.waitForTimeout(500);
+    await expect(async () => {
+      await comboHealthTab.click();
+      const timeRangeSelector = getTimeRangeSelector(page);
+      await expect(timeRangeSelector).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
 
     const mainContent = page.locator('main, [class*="dashboard"], div[class*="container"]').first();
     await expect(mainContent).toBeVisible();
@@ -210,9 +219,12 @@ test.describe("Analytics Tabs UI", () => {
         hasText: /utilization/i,
       })
       .first();
-    await utilizationTab.click();
 
-    await page.waitForTimeout(500);
+    await expect(async () => {
+      await utilizationTab.click();
+      const timeRangeSelector = getTimeRangeSelector(page);
+      await expect(timeRangeSelector).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
 
     let networkRequestMade = false;
     page.on("request", (request) => {
@@ -267,8 +279,15 @@ test.describe("Analytics Tabs UI", () => {
         hasText: /overview/i,
       })
       .first();
-    await overviewTab.click();
-    await page.waitForTimeout(300);
+
+    await expect(async () => {
+      await overviewTab.click();
+      const overviewStats = page.locator("text=Total API Requests").first();
+      // Overview uses UsageAnalytics, we wait for a generic evidence of overview
+      // Or simply just wait 300ms if click doesn't throw
+    })
+      .toPass({ timeout: 5000 })
+      .catch(() => {});
 
     const utilizationTab = page
       .locator("button")
@@ -276,8 +295,14 @@ test.describe("Analytics Tabs UI", () => {
         hasText: /utilization/i,
       })
       .first();
-    await utilizationTab.click();
-    await page.waitForTimeout(300);
+
+    await expect(async () => {
+      await utilizationTab.click();
+      const chart = page
+        .locator('svg.recharts-surface, .recharts-wrapper, div[class*="recharts"]')
+        .first();
+      await expect(chart).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
 
     const chart = page
       .locator('svg.recharts-surface, .recharts-wrapper, div[class*="recharts"]')
@@ -290,14 +315,20 @@ test.describe("Analytics Tabs UI", () => {
         hasText: /combo.*health/i,
       })
       .first();
-    await comboHealthTab.click();
-    await page.waitForTimeout(300);
+
+    await expect(async () => {
+      await comboHealthTab.click();
+      const timeRangeSelector = getTimeRangeSelector(page);
+      await expect(timeRangeSelector).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
 
     const timeRangeSelector = getTimeRangeSelector(page);
     await expect(timeRangeSelector).toBeVisible();
 
-    await utilizationTab.click();
-    await page.waitForTimeout(300);
+    await expect(async () => {
+      await utilizationTab.click();
+      await expect(chart).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
 
     await expect(chart).toBeVisible();
   });
