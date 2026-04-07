@@ -355,7 +355,7 @@ test("handleSearch fails over to the alternate provider on retriable upstream er
   globalThis.fetch = async (url) => {
     calls.push(String(url));
 
-    if (String(url).startsWith("https://google.serper.dev")) {
+    if (String(url).startsWith("https://google.serper.dev/")) {
       return new Response("upstream broken", { status: 500 });
     }
 

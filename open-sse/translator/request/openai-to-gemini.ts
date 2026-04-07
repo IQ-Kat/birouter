@@ -10,6 +10,8 @@ import {
   getDefaultThinkingBudget,
 } from "../../../src/shared/constants/modelSpecs.ts";
 
+import * as crypto from "crypto";
+
 function generateUUID() {
   return crypto.randomUUID();
 }

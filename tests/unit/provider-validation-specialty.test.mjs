@@ -15,21 +15,21 @@ test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, Elev
     const target = String(url);
     const headers = init.headers || {};
 
-    if (target.includes("deepgram")) {
+    if (target.match(/deepgram/i)) {
       assert.equal(headers.Authorization, "Token dg-key");
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     }
-    if (target.includes("assemblyai")) {
+    if (target.match(/assemblyai/i)) {
       assert.equal(headers.Authorization, "aa-key");
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 403 });
     }
-    if (target.includes("nanobanana")) {
+    if (target.match(/nanobanana/i)) {
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
     }
-    if (target.includes("elevenlabs")) {
+    if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ voices: [] }), { status: 200 });
     }
-    if (target.includes("inworld")) {
+    if (target.match(/inworld/i)) {
       return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
     }
 
@@ -52,19 +52,19 @@ test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, Elev
 test("specialty providers surface network failures and non-auth upstream failures", async () => {
   globalThis.fetch = async (url) => {
     const target = String(url);
-    if (target.includes("deepgram")) {
+    if (target.match(/deepgram/i)) {
       throw new Error("deepgram offline");
     }
-    if (target.includes("nanobanana")) {
+    if (target.match(/nanobanana/i)) {
       throw new Error("nanobanana offline");
     }
-    if (target.includes("elevenlabs")) {
+    if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 500 });
     }
-    if (target.includes("inworld")) {
+    if (target.match(/inworld/i)) {
       return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
     }
-    if (target.includes("longcat")) {
+    if (target.match(/longcat/i)) {
       throw new Error("longcat offline");
     }
     throw new Error(`unexpected fetch: ${target}`);
@@ -88,16 +88,16 @@ test("search provider validators cover success, client errors, server errors and
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
     const target = String(url);
-    if (target.includes("search.brave.com")) {
+    if (target.match(/search.brave.com/i)) {
       return new Response(JSON.stringify({ results: [] }), { status: 200 });
     }
-    if (target.includes("api.exa.ai")) {
+    if (target.match(/api.exa.ai/i)) {
       return new Response(JSON.stringify({ error: "bad key" }), { status: 403 });
     }
-    if (target.includes("api.tavily.com")) {
+    if (target.match(/api.tavily.com/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 503 });
     }
-    if (target.includes("api.perplexity.ai")) {
+    if (target.match(/api.perplexity.ai/i)) {
       throw new Error("perplexity offline");
     }
     throw new Error(`unexpected fetch: ${target}`);
@@ -180,13 +180,13 @@ test("OpenAI-compatible validator covers /responses mode and final ping fallback
 test("Anthropic-compatible and Claude Code compatible validators cover direct success and bridge fallbacks", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
-    if (target.includes("anthropic-compatible.example.com") && init.method === "GET") {
+    if (target.match(/anthropic-compatible.example.com/i) && init.method === "GET") {
       return new Response(JSON.stringify({ data: [] }), { status: 200 });
     }
-    if (target.includes("cc-compatible.example.com") && init.method === "GET") {
+    if (target.match(/cc-compatible.example.com/i) && init.method === "GET") {
       return new Response(JSON.stringify({ error: "bridge unavailable" }), { status: 500 });
     }
-    if (target.includes("cc-compatible.example.com") && init.method === "POST") {
+    if (target.match(/cc-compatible.example.com/i) && init.method === "POST") {
       return new Response(JSON.stringify({ error: "rate limited" }), { status: 429 });
     }
     throw new Error(`unexpected fetch: ${target}`);
@@ -337,25 +337,25 @@ test("registry providers cover remaining OpenAI-like and Claude-like validation 
 test("specialty validators cover remaining status branches for Deepgram, AssemblyAI, NanoBanana, ElevenLabs, Inworld, Bailian and LongCat", async () => {
   globalThis.fetch = async (url) => {
     const target = String(url);
-    if (target.includes("deepgram")) {
+    if (target.match(/deepgram/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 500 });
     }
-    if (target.includes("assemblyai")) {
+    if (target.match(/assemblyai/i)) {
       return new Response(JSON.stringify({ transcripts: [] }), { status: 200 });
     }
-    if (target.includes("nanobanana")) {
+    if (target.match(/nanobanana/i)) {
       return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
     }
-    if (target.includes("elevenlabs")) {
+    if (target.match(/elevenlabs/i)) {
       return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
     }
-    if (target.includes("inworld")) {
+    if (target.match(/inworld/i)) {
       throw new Error("inworld offline");
     }
-    if (target.includes("dashscope.aliyuncs.com")) {
+    if (target.match(/dashscope.aliyuncs.com/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 500 });
     }
-    if (target.includes("longcat")) {
+    if (target.match(/longcat/i)) {
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
     }
     throw new Error(`unexpected fetch: ${target}`);
@@ -376,10 +376,10 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
   const longcatInvalid = await validateProviderApiKey({ provider: "longcat", apiKey: "lc-key" });
 
   globalThis.fetch = async (url) => {
-    if (String(url).includes("elevenlabs")) {
+    if (String(url).match(/elevenlabs/i)) {
       throw new Error("elevenlabs offline");
     }
-    if (String(url).includes("longcat")) {
+    if (String(url).match(/longcat/i)) {
       return new Response(JSON.stringify({ error: "unprocessable" }), { status: 422 });
     }
     throw new Error(`unexpected fetch: ${url}`);

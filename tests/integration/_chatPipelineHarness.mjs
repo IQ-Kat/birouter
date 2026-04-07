@@ -232,7 +232,7 @@ export async function createChatPipelineHarness(prefix) {
       provider,
       authType: "apikey",
       name: overrides.name || `${provider}-primary`,
-      apiKey: overrides.apiKey || `sk-${provider}-${Math.random().toString(16).slice(2, 10)}`,
+      apiKey: overrides.apiKey || `sk-${provider}-${crypto.randomUUID().slice(0, 8)}`,
       isActive: overrides.isActive ?? true,
       testStatus: overrides.testStatus || "active",
       priority: overrides.priority,

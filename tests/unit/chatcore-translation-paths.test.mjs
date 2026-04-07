@@ -820,7 +820,7 @@ test("chatCore refreshes GitHub credentials after 401 and retries with the refre
       }
 
       const providerCalls = seenCalls.filter((entry) =>
-        entry.url.includes("api.githubcopilot.com")
+        entry.url.includes("api.githubcopilot.com/")
       );
       if (providerCalls.length === 1) {
         return new Response(
@@ -839,7 +839,7 @@ test("chatCore refreshes GitHub credentials after 401 and retries with the refre
   });
 
   const payload = await result.response.json();
-  const providerCalls = calls.filter((entry) => entry.url.includes("api.githubcopilot.com"));
+  const providerCalls = calls.filter((entry) => entry.url.includes("api.githubcopilot.com/"));
 
   assert.equal(result.success, true);
   assert.equal(providerCalls.length, 2);

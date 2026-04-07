@@ -618,7 +618,7 @@ export async function handleComboChat({
               // Inject tag at the beginning of the first content value
               const injected = text.replace(
                 /"content":"([^"]+)/,
-                `"content":"${tagContent.replace(/"/g, '\\"')}$1`
+                `"content":"${tagContent.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}$1`
               );
               tagInjected = true;
               controller.enqueue(encoder.encode(injected));
