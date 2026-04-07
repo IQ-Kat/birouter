@@ -316,10 +316,14 @@ jobs:
             }
 
   test-e2e:
-    name: E2E Tests
+    name: E2E Tests (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -332,7 +336,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
-      - run: npm run test:e2e
+      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/4
 
   test-integration:
     name: Integration Tests
