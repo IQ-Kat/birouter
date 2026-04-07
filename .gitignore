@@ -161,3 +161,6 @@ typescript
 
 # Superpowers plans/specs (internal tooling, not project code)
 docs/superpowers/
+
+# GitNexus local index
+.gitnexus
