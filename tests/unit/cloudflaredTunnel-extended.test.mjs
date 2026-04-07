@@ -322,7 +322,9 @@ test("startCloudflaredTunnel records an error state when the child exits before 
         )
       );
       alive.delete(child.pid);
-      child.emit("exit", 1, null);
+      setTimeout(() => {
+        child.emit("exit", 1, null);
+      }, 5);
     }, 25);
     return child;
   };
