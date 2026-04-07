@@ -38,7 +38,7 @@ async function createCloudflaredDataDir(prefix) {
   return dir;
 }
 
-async function readJsonFileWithRetry(filePath, attempts = 20) {
+async function readJsonFileWithRetry(filePath, attempts = 100) {
   const parseJsonSnapshot = (content) => {
     const trimmed = String(content || "").trim();
     if (!trimmed) {
