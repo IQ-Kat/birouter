@@ -148,6 +148,7 @@ jobs:
   test-unit:
     name: Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: build
     strategy:
       matrix:
@@ -167,6 +168,7 @@ jobs:
   test-coverage:
     name: Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: build
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
@@ -316,6 +318,7 @@ jobs:
   test-e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: build
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
@@ -334,6 +337,7 @@ jobs:
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
