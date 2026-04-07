@@ -5,7 +5,10 @@
  * summary cards, daily trends, activity heatmap, model breakdown, etc.
  */
 
-import { calculateCost } from "@/lib/usageDb";
+import {
+  normalizeModelName as normModel,
+  computeCostFromPricing,
+} from "@/lib/usage/costCalculator";
 
 /**
  * Compute date range boundaries
@@ -128,8 +131,31 @@ export async function computeAnalytics(
     }
   }
 
+  // Pre-fetch pricing for all unique (provider, model) pairs — one DB round-trip
+  // per unique pair instead of one per entry, then compute costs synchronously.
+  const { getPricingForModel } = await import("@/lib/localDb");
+  const pricingCache = new Map<string, Record<string, unknown> | null>();
+  const uniquePairs = new Set(entries.map((e) => `${e.provider}|||${e.model}`));
+  await Promise.all(
+    [...uniquePairs].map(async (key) => {
+      const [provider, model] = key.split("|||");
+      let pricing = (await getPricingForModel(provider, model)) as Record<string, unknown> | null;
+      if (!pricing) {
+        const normalized = normModel(model);
+        if (normalized !== model) {
+          pricing = (await getPricingForModel(provider, normalized)) as Record<
+            string,
+            unknown
+          > | null;
+        }
+      }
+      pricingCache.set(key, pricing ?? null);
+    })
+  );
+
   // ---- Single pass over filtered entries for everything else ----
-  for (const entry of entries) {
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
     const pt = entry.tokens?.input ?? entry.tokens?.prompt_tokens ?? 0;
     const ct = entry.tokens?.output ?? entry.tokens?.completion_tokens ?? 0;
     const totalTkns = pt + ct;
@@ -138,13 +164,8 @@ export async function computeAnalytics(
     const dayOfWeek = entryDate.getDay();
     const modelShort = shortModelName(entry.model);
 
-    // Cost
-    let cost = 0;
-    try {
-      cost = await calculateCost(entry.provider, entry.model, entry.tokens);
-    } catch {
-      /* ignore */
-    }
+    const pricingKey = `${entry.provider}|||${entry.model}`;
+    const cost = computeCostFromPricing(pricingCache.get(pricingKey), entry.tokens);
 
     // Summary
     summary.promptTokens += pt;
