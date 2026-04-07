@@ -106,7 +106,11 @@ import {
   isFallbackDecision,
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
-import { resolveStreamFlag, stripMarkdownCodeFence } from "../utils/aiSdkCompat.ts";
+import {
+  resolveExplicitStreamAlias,
+  resolveStreamFlag,
+  stripMarkdownCodeFence,
+} from "../utils/aiSdkCompat.ts";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import { extractFacts } from "@/lib/memory/extraction";
@@ -781,6 +785,22 @@ export async function handleChatCore({
     clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
       ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
       : (clientRawRequest?.headers || {})["accept"] || (clientRawRequest?.headers || {})["Accept"];
+
+  const explicitStreamAlias = resolveExplicitStreamAlias(body);
+
+  // Remove non-standard non-stream aliases before provider translation/execution.
+  // They are accepted for compatibility at the OmniRoute API boundary only.
+  if (body && typeof body === "object") {
+    const b = body as Record<string, unknown>;
+    if (explicitStreamAlias !== undefined) {
+      b.stream = explicitStreamAlias;
+    }
+
+    delete b.non_stream;
+    delete b.disable_stream;
+    delete b.disable_streaming;
+    delete b.streaming;
+  }
 
   const stream = resolveStreamFlag(body?.stream, acceptHeader);
 
