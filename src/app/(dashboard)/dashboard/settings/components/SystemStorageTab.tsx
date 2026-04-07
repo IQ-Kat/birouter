@@ -23,6 +23,7 @@ export default function SystemStorageTab() {
   const [purgeLogsLoading, setPurgeLogsLoading] = useState(false);
   const [purgeLogsStatus, setPurgeLogsStatus] = useState({ type: "", message: "" });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const jsonInputRef = useRef<HTMLInputElement>(null);
   const locale = useLocale();
   const t = useTranslations("settings");
   const tc = useTranslations("common");
@@ -128,28 +129,108 @@ export default function SystemStorageTab() {
     loadStorageHealth();
   }, []);
 
+  /** Triggers a browser file download from an existing Blob. */
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  /** Fetches a URL, reads the response as a Blob and triggers a download. */
+  const fetchAndDownload = async (
+    apiUrl: string,
+    fallbackFilename: string,
+    errorMessage: string
+  ) => {
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error((data as { error?: string }).error || errorMessage);
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get("Content-Disposition") || "";
+    const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
+    triggerDownload(blob, filenameMatch?.[1] || fallbackFilename);
+  };
+
+  const handleExportJson = async () => {
+    setExportLoading(true);
+    try {
+      await fetchAndDownload(
+        "/api/settings/export-json",
+        `omniroute-legacy-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
+        "JSON Export failed"
+      );
+    } catch (err) {
+      console.error("Export JSON failed:", err);
+      setImportStatus({
+        type: "error",
+        message: t("exportFailedWithError", { error: (err as Error).message }),
+      });
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleImportJsonClick = () => {
+    jsonInputRef.current?.click();
+  };
+
+  const handleJsonSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".json")) {
+      setImportStatus({
+        type: "error",
+        message: "Invalid file type. Only .json allowed.",
+      });
+      return;
+    }
+    
+    // Auto import JSON
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        setImportLoading(true);
+        const res = await fetch("/api/settings/import-json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: e.target?.result as string,
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setImportStatus({
+            type: "success",
+            message: data.message || "Legacy JSON imported successfully!",
+          });
+          await loadStorageHealth();
+          if (backupsExpanded) await loadBackups();
+        } else {
+          setImportStatus({ type: "error", message: data.error || "Failed to import JSON" });
+        }
+      } catch (err) {
+        setImportStatus({ type: "error", message: "Error during JSON import" });
+      } finally {
+        setImportLoading(false);
+        if (jsonInputRef.current) jsonInputRef.current.value = "";
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleExport = async () => {
     setExportLoading(true);
     try {
-      const res = await fetch("/api/db-backups/export");
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || t("exportFailed"));
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const disposition = res.headers.get("Content-Disposition") || "";
-      const filenameMatch = disposition.match(/filename="(.+)"/);
-      const filename = filenameMatch
-        ? filenameMatch[1]
-        : `omniroute-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.sqlite`;
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await fetchAndDownload(
+        "/api/db-backups/export",
+        `omniroute-backup-${new Date().toISOString().replace(/[:.]/g, "-")}.sqlite`,
+        t("exportFailed")
+      );
     } catch (err) {
       console.error("Export failed:", err);
       setImportStatus({
@@ -320,20 +401,11 @@ export default function SystemStorageTab() {
           onClick={async () => {
             setExportLoading(true);
             try {
-              const res = await fetch("/api/db-backups/exportAll");
-              if (!res.ok) throw new Error(t("exportFailed"));
-              const blob = await res.blob();
-              const cd = res.headers.get("Content-Disposition") || "";
-              const filenameMatch = cd.match(/filename="?([^"]+)"?/);
-              const filename = filenameMatch?.[1] || `omniroute-full-backup.tar.gz`;
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = filename;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
+              await fetchAndDownload(
+                "/api/db-backups/exportAll",
+                "omniroute-full-backup.tar.gz",
+                t("exportFailed")
+              );
             } catch (err) {
               setImportStatus({
                 type: "error",
@@ -362,6 +434,25 @@ export default function SystemStorageTab() {
           accept=".sqlite"
           className="hidden"
           onChange={handleFileSelected}
+        />
+        <Button variant="outline" size="sm" onClick={handleExportJson} loading={exportLoading}>
+          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+            data_object
+          </span>
+          Export JSON
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleImportJsonClick} loading={importLoading}>
+          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+            data_object
+          </span>
+          Import JSON
+        </Button>
+        <input
+          ref={jsonInputRef}
+          type="file"
+          accept=".json"
+          className="hidden"
+          onChange={handleJsonSelected}
         />
       </div>
 
