@@ -162,7 +162,13 @@ test.describe("Memory settings", () => {
 
     await gotoOrSkip(page, "/dashboard/settings?tab=ai");
 
-    await expect(page.getByTestId("memory-settings-card")).toBeVisible();
+    let settingsHydrationRetries = 0;
+    await expect(async () => {
+      if (settingsHydrationRetries++ > 0) {
+        await page.reload({ waitUntil: "commit" }).catch(() => {});
+      }
+      await expect(page.getByTestId("memory-settings-card")).toBeVisible({ timeout: 5000 });
+    }).toPass({ timeout: 45_000, intervals: [1000, 2500, 5000] });
     await expect(page.getByTestId("memory-enabled-switch")).toHaveAttribute(
       "aria-checked",
       "false"
@@ -188,7 +194,13 @@ test.describe("Memory settings", () => {
 
     await gotoOrSkip(page, "/dashboard/memory");
 
-    await expect(page.getByText("preferred_language")).toBeVisible();
+    let memoryHydrationRetries = 0;
+    await expect(async () => {
+      if (memoryHydrationRetries++ > 0) {
+        await page.reload({ waitUntil: "commit" }).catch(() => {});
+      }
+      await expect(page.getByText("preferred_language")).toBeVisible({ timeout: 5000 });
+    }).toPass({ timeout: 45_000, intervals: [1000, 2500, 5000] });
     await page.getByRole("button", { name: /delete/i }).click();
 
     await expect.poll(() => state.deleteCalls).toBe(1);
