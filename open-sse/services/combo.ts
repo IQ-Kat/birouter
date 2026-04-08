@@ -29,6 +29,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /no such tool available/i,
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
+  /third-party apps/i,
 ];
 
 const MAX_COMBO_DEPTH = 3;
