@@ -4,68 +4,142 @@
 
 ---
 
-ปัญหาและวิธีแก้ปัญหาทั่วไปสำหรับ OmniRoute---
+
+
+Common problems and solutions for OmniRoute.
+
+---
 
 ## Quick Fixes
 
-| ปัญหา                           | โซลูชั่น                                                               |
-| ------------------------------- | ---------------------------------------------------------------------- | --- |
-| การเข้าสู่ระบบครั้งแรกไม่ทำงาน  | ตั้งค่า `INITIAL_PASSWORD` ใน `.env` (ไม่มีค่าเริ่มต้นแบบฮาร์ดโค้ด)    |
-| แดชบอร์ดเปิดบนพอร์ตผิด          | ตั้งค่า `PORT=20128` และ `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
-| ไม่มีบันทึกคำขอภายใต้ `logs/`   | ตั้งค่า `ENABLE_REQUEST_LOGS=true`                                     |
-| EACCES: การอนุญาตถูกปฏิเสธ      | ตั้งค่า `DATA_DIR=/path/to/writable/dir` เพื่อแทนที่ `~/.omniroute`    |
-| กลยุทธ์การกำหนดเส้นทางไม่บันทึก | อัปเดตเป็น v1.4.11+ (แก้ไข Zod schema สำหรับการคงอยู่ของการตั้งค่า)    | --- |
+| Problem                       | Solution                                                           |
+| ----------------------------- | ------------------------------------------------------------------ |
+| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
+| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
+| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
+| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
+| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
+| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below |
+| Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
+
+---
+
+## Node.js Compatibility
+
+<a name="nodejs-compatibility"></a>
+
+### Login page crashes or shows "Module self-registration" error
+
+**Cause:** You are running Node.js 24+. The `better-sqlite3` native binary is not compatible with Node.js 24, which causes a fatal crash when the server tries to initialize the database.
+
+**Symptoms:**
+- Login page shows a blank screen or a server error
+- Console shows `Error: Module did not self-register` or similar native binding errors
+- Starting with v3.5.5, the login page shows an **orange warning banner** with your Node version if incompatibility is detected
+
+**Fix:**
+
+1. Install Node.js 22 LTS (recommended):
+   ```bash
+   nvm install 22
+   nvm use 22
+   ```
+2. Verify your version: `node --version` should show `v22.x.x`
+3. Reinstall OmniRoute: `npm install -g omniroute`
+4. Restart: `omniroute`
+
+> **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+
+---
+
+## Proxy Issues
+
+<a name="proxy-issues"></a>
+
+### Provider validation shows "fetch failed"
+
+**Cause:** The API key validation endpoint (`POST /api/providers/validate`) was previously bypassing proxy configuration, causing failures in environments that require proxy routing.
+
+**Fix (v3.5.5+):** This is now fixed. Provider validation routes through `runWithProxyContext`, honoring provider-level and global proxy settings automatically.
+
+### Token health check fails with "fetch failed"
+
+**Cause:** Background OAuth token refresh was not resolving proxy configuration per connection.
+
+**Fix (v3.5.5+):** The token health check scheduler now resolves proxy config per connection before attempting refresh. Update to v3.5.5+.
+
+### SOCKS5 proxy returns "invalid onRequestStart method"
+
+**Cause:** On Node.js 22, the undici@8 dispatcher is incompatible with Node's built-in `fetch()` implementation.
+
+**Fix (v3.5.5+):** OmniRoute now uses undici's own `fetch()` function when a proxy dispatcher is active, ensuring consistent behavior. Update to v3.5.5+.
+
+---
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**สาเหตุ:**โควต้าของผู้ให้บริการหมดลง
+**Cause:** Provider quota exhausted.
 
-**แก้ไข:**
+**Fix:**
 
-1. ตรวจสอบตัวติดตามโควต้าแดชบอร์ด
-2. ใช้คอมโบที่มีระดับทางเลือก
-3. เปลี่ยนไปใช้ระดับที่ถูกกว่า/ฟรี### Rate Limiting
+1. Check dashboard quota tracker
+2. Use a combo with fallback tiers
+3. Switch to cheaper/free tier
 
-**สาเหตุ:**โควต้าการสมัครใช้งานหมดลง
+### Rate Limiting
 
-**แก้ไข:**
+**Cause:** Subscription quota exhausted.
 
-- เพิ่มทางเลือก: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- ใช้ GLM/MiniMax เป็นข้อมูลสำรองราคาถูก### OAuth Token Expired
+**Fix:**
 
-OmniRoute รีเฟรชโทเค็นอัตโนมัติ หากปัญหายังคงมีอยู่:
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Use GLM/MiniMax as cheap backup
 
-1. แดชบอร์ด → ผู้ให้บริการ → เชื่อมต่อใหม่
-2. ลบและเพิ่มการเชื่อมต่อผู้ให้บริการอีกครั้ง---
+### OAuth Token Expired
+
+OmniRoute auto-refreshes tokens. If issues persist:
+
+1. Dashboard → Provider → Reconnect
+2. Delete and re-add the provider connection
+
+---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. ตรวจสอบ `BASE_URL` ชี้ไปยังอินสแตนซ์ที่ทำงานอยู่ของคุณ (เช่น `http://localhost:20128`)
-2. ตรวจสอบ `CLOUD_URL` ชี้ไปยังจุดสิ้นสุดระบบคลาวด์ของคุณ (เช่น `https://omniroute.dev`)
-3. รักษาค่า `NEXT_PUBLIC_*` ให้สอดคล้องกับค่าฝั่งเซิร์ฟเวอร์### Cloud `stream=false` Returns 500
+1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
+2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
+3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
-**อาการ:**`โทเค็นที่ไม่คาดคิด 'd'...` บนจุดปลายทางคลาวด์สำหรับการโทรที่ไม่ใช่การสตรีม
+### Cloud `stream=false` Returns 500
 
-**สาเหตุ:**อัปสตรีมส่งคืนเพย์โหลด SSE ในขณะที่ไคลเอ็นต์คาดหวัง JSON
+**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
 
-**วิธีแก้ปัญหา:**ใช้ `stream=true` สำหรับการโทรโดยตรงบนคลาวด์ รันไทม์ในเครื่องรวมถึงทางเลือก SSE → JSON### Cloud Says Connected but "Invalid API key"
+**Cause:** Upstream returns SSE payload while client expects JSON.
 
-1. สร้างคีย์ใหม่จากแดชบอร์ดในเครื่อง (`/api/keys`)
-2. เรียกใช้คลาวด์ซิงค์: เปิดใช้งานคลาวด์ → ซิงค์ทันที
-3. คีย์เก่า/ที่ไม่ได้ซิงค์ยังสามารถส่งคืน `401` บนคลาวด์ได้---
+**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
+
+### Cloud Says Connected but "Invalid API key"
+
+1. Create a fresh key from local dashboard (`/api/keys`)
+2. Run cloud sync: Enable Cloud → Sync Now
+3. Old/non-synced keys can still return `401` on cloud
+
+---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. ตรวจสอบฟิลด์รันไทม์: `curl http://localhost:20128/api/cli-tools/runtime/codex | เจคิว`
-2. สำหรับโหมดพกพา: ใช้เป้าหมายรูปภาพ `runner-cli` (CLI ที่รวมมาด้วย)
-3. สำหรับโหมดเมานท์โฮสต์: ตั้งค่า `CLI_EXTRA_PATHS` และเมานต์ไดเร็กทอรี bin โฮสต์เป็นแบบอ่านอย่างเดียว
-4. หาก `installed=true` และ `runnable=false`: พบไบนารีแต่ตรวจสุขภาพไม่สำเร็จ### Quick Runtime Validation
+1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. For portable mode: use image target `runner-cli` (bundled CLIs)
+3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
+4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
+
+### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -79,16 +153,20 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. ตรวจสอบสถิติการใช้งานในแดชบอร์ด → การใช้งาน
-2. สลับโมเดลหลักเป็น GLM/MiniMax
-3. ใช้ Free Tier (Gemini CLI, Qoder) สำหรับงานที่ไม่สำคัญ
-4. กำหนดงบประมาณต้นทุนต่อคีย์ API: แดชบอร์ด → คีย์ API → งบประมาณ---
+1. Check usage stats in Dashboard → Usage
+2. Switch primary model to GLM/MiniMax
+3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
+4. Set cost budgets per API key: Dashboard → API Keys → Budget
+
+---
 
 ## Debugging
 
 ### Enable Request Logs
 
-ตั้งค่า `ENABLE_REQUEST_LOGS=true` ในไฟล์ `.env` ของคุณ บันทึกจะปรากฏใต้ไดเรกทอรี `logs/`### Check Provider Health
+Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
+
+### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -100,101 +178,135 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- สถานะหลัก: `${DATA_DIR}/storage.sqlite` (ผู้ให้บริการ คอมโบ นามแฝง คีย์ การตั้งค่า)
-- การใช้งาน: ตาราง SQLite ใน `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + ตัวเลือก `${DATA_DIR}/log.txt` และ `${DATA_DIR}/call_logs/`
-- ขอบันทึก: `<repo>/logs/...` (เมื่อ `ENABLE_REQUEST_LOGS=true`)---
+- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
+- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
+- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
+
+---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-เมื่อเซอร์กิตเบรกเกอร์ของผู้ให้บริการเปิดอยู่ คำขอจะถูกบล็อกจนกว่าคูลดาวน์จะหมดลง
+When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
 
-**แก้ไข:**
+**Fix:**
 
-1. ไปที่**แดชบอร์ด → การตั้งค่า → ความยืดหยุ่น**
-2. ตรวจสอบการ์ดเซอร์กิตเบรกเกอร์สำหรับผู้ให้บริการที่ได้รับผลกระทบ
-3. คลิก**รีเซ็ตทั้งหมด**เพื่อล้างเบรกเกอร์ทั้งหมด หรือรอให้คูลดาวน์หมดลง
-4. ตรวจสอบว่าผู้ให้บริการพร้อมใช้งานจริงก่อนที่จะรีเซ็ต### Provider keeps tripping the circuit breaker
+1. Go to **Dashboard → Settings → Resilience**
+2. Check the circuit breaker card for the affected provider
+3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
+4. Verify the provider is actually available before resetting
 
-หากผู้ให้บริการเข้าสู่สถานะเปิดซ้ำๆ:
+### Provider keeps tripping the circuit breaker
 
-1. ตรวจสอบ**แดชบอร์ด → สุขภาพ → สุขภาพของผู้ให้บริการ**เพื่อดูรูปแบบความล้มเหลว
-2. ไปที่**การตั้งค่า → ความยืดหยุ่น → โปรไฟล์ผู้ให้บริการ**และเพิ่มเกณฑ์ความล้มเหลว
-3. ตรวจสอบว่าผู้ให้บริการได้เปลี่ยนแปลงขีดจำกัด API หรือต้องมีการตรวจสอบสิทธิ์อีกครั้งหรือไม่
-4. ตรวจสอบการวัดและส่งข้อมูลทางไกลเวลาแฝง — เวลาแฝงสูงอาจทำให้เกิดความล้มเหลวตามการหมดเวลา---
+If a provider repeatedly enters OPEN state:
+
+1. Check **Dashboard → Health → Provider Health** for the failure pattern
+2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
+3. Check if the provider has changed API limits or requires re-authentication
+4. Review latency telemetry — high latency may cause timeout-based failures
+
+---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- ตรวจสอบให้แน่ใจว่าคุณใช้คำนำหน้าที่ถูกต้อง: `deepgram/nova-3` หรือ `assemblyai/best`
-- ตรวจสอบว่าผู้ให้บริการเชื่อมต่ออยู่ใน**Dashboard → Providers**### Transcription returns empty or fails
+- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
+- Verify the provider is connected in **Dashboard → Providers**
 
-- ตรวจสอบรูปแบบเสียงที่รองรับ: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- ตรวจสอบขนาดไฟล์อยู่ภายในขีดจำกัดของผู้ให้บริการ (โดยทั่วไปคือ <25MB)
-- ตรวจสอบความถูกต้องของคีย์ API ของผู้ให้บริการในการ์ดผู้ให้บริการ---
+### Transcription returns empty or fails
+
+- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Verify file size is within provider limits (typically < 25MB)
+- Check provider API key validity in the provider card
+
+---
 
 ## Translator Debugging
 
-ใช้**แดชบอร์ด → ตัวแปล**เพื่อแก้ไขปัญหาการแปลรูปแบบ:
+Use **Dashboard → Translator** to debug format translation issues:
 
-| โหมด                      | เมื่อใดควรใช้                                                                        |
-| ------------------------- | ------------------------------------------------------------------------------------ | ------------------------ |
-| **สนามเด็กเล่น**          | เปรียบเทียบรูปแบบอินพุต/เอาต์พุตแบบเคียงข้างกัน — วางคำขอที่ล้มเหลวเพื่อดูว่าคำขอแปล | อย่างไร                  |
-| **เครื่องมือทดสอบการแชท** | ส่งข้อความสดและตรวจสอบเพย์โหลดคำขอ/การตอบกลับทั้งหมด รวมถึงส่วนหัว                   |
-| **ม้านั่งทดสอบ**          | เรียกใช้การทดสอบเป็นชุดระหว่างรูปแบบต่างๆ เพื่อดูว่าคำแปลใดเสียหาย                   |
-| **ถ่ายทอดสด**             | ดูขั้นตอนคำขอแบบเรียลไทม์เพื่อตรวจจับปัญหาการแปลเป็นระยะๆ                            | ### Common format issues |
+| Mode             | When to Use                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
+| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
+| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
+| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
 
--**แท็กการคิดไม่ปรากฏ**— ตรวจสอบว่าผู้ให้บริการเป้าหมายสนับสนุนการคิดและการตั้งค่างบประมาณการคิดหรือไม่ -**การเรียกเครื่องมือลดลง**— การแปลรูปแบบบางรูปแบบอาจตัดช่องที่ไม่รองรับออก ตรวจสอบในโหมดสนามเด็กเล่น -**การแจ้งเตือนของระบบหายไป**— ระบบแจ้งของ Claude และ Gemini แตกต่างกัน ตรวจสอบผลลัพธ์การแปล -**SDK ส่งคืนสตริงดิบแทนที่จะเป็นวัตถุ**— แก้ไขใน v1.1.0: ตอนนี้ตัวล้างการตอบสนองจะตัดฟิลด์ที่ไม่ได้มาตรฐาน (`x_groq`, `usage_breakdown` ฯลฯ ) ที่ทำให้การตรวจสอบ OpenAI SDK Pydantic ล้มเหลว -**GLM/ERNIE ปฏิเสธ `บทบาทของระบบ`**- แก้ไขใน v1.1.0: บทบาท Normalizer จะรวมข้อความของระบบเข้ากับข้อความผู้ใช้โดยอัตโนมัติสำหรับรุ่นที่เข้ากันไม่ได้ -**``ไม่รู้จักบทบาทของนักพัฒนา'' - แก้ไขใน v1.1.0: แปลงเป็น `ระบบ` โดยอัตโนมัติสำหรับผู้ให้บริการที่ไม่ใช่ OpenAI -**`json_schema` ไม่ทำงานกับ Gemini\*\*- แก้ไขใน v1.1.0: ตอนนี้ `response_format` ถูกแปลงเป็น `responseMimeType` ของ Gemini + `responseSchema`---
+### Common format issues
+
+- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
+- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
+- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
+- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
+- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
+- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
+- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
+
+---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- การจำกัดอัตราอัตโนมัติใช้กับผู้ให้บริการคีย์ API เท่านั้น (ไม่ใช่ OAuth/การสมัครสมาชิก)
-- ตรวจสอบ**การตั้งค่า → ความยืดหยุ่น → โปรไฟล์ผู้ให้บริการ**ได้เปิดใช้งานการจำกัดอัตราอัตโนมัติแล้ว
-- ตรวจสอบว่าผู้ให้บริการส่งคืนรหัสสถานะ '429` หรือส่วนหัว 'Retry-After'### Tuning exponential backoff
+- Auto rate-limit only applies to API key providers (not OAuth/subscription)
+- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
+- Check if the provider returns `429` status codes or `Retry-After` headers
 
-โปรไฟล์ผู้ให้บริการรองรับการตั้งค่าเหล่านี้:
+### Tuning exponential backoff
 
--**ความล่าช้าพื้นฐาน**— เวลารอเริ่มต้นหลังจากความล้มเหลวครั้งแรก (ค่าเริ่มต้น: 1 วินาที) -**ความล่าช้าสูงสุด**— ขีดจำกัดเวลารอสูงสุด (ค่าเริ่มต้น: 30 วินาที) -**ตัวคูณ**— จะต้องเพิ่มความล่าช้าเท่าใดต่อความล้มเหลวติดต่อกัน (ค่าเริ่มต้น: 2x)### Anti-thundering herd
+Provider profiles support these settings:
 
-เมื่อคำขอหลายรายการส่งถึงผู้ให้บริการที่จำกัดอัตรา OmniRoute จะใช้ mutex + การจำกัดอัตราอัตโนมัติเพื่อซีเรียลไลซ์คำขอและป้องกันความล้มเหลวแบบเรียงซ้อน นี่เป็นการดำเนินการอัตโนมัติสำหรับผู้ให้บริการคีย์ API---
+- **Base delay** — Initial wait time after first failure (default: 1s)
+- **Max delay** — Maximum wait time cap (default: 30s)
+- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
+
+### Anti-thundering herd
+
+When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
+
+---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-ผู้ใช้ OmniRoute บางรายวางเกตเวย์ไว้ด้านหน้า RAG หรือสแต็กตัวแทน ในการตั้งค่าเหล่านั้น เป็นเรื่องปกติที่จะเห็นรูปแบบแปลกๆ: OmniRoute ดูเหมาะสมดี (ผู้ให้บริการใช้งาน โปรไฟล์การกำหนดเส้นทางใช้ได้ ไม่มีการแจ้งเตือนจำกัดอัตรา) แต่คำตอบสุดท้ายยังคงผิด
+Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
 
-ในทางปฏิบัติ เหตุการณ์เหล่านี้มักจะมาจากไปป์ไลน์ RAG ดาวน์สตรีม ไม่ใช่จากเกตเวย์เอง
+In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
 
-หากคุณต้องการใช้คำศัพท์ร่วมกันเพื่ออธิบายความล้มเหลวเหล่านั้น คุณสามารถใช้ WFGY ProblemMap ซึ่งเป็นแหล่งข้อมูลข้อความใบอนุญาต MIT ภายนอกที่กำหนดรูปแบบความล้มเหลว RAG / LLM ที่เกิดซ้ำสิบหกรูปแบบ ในระดับสูงครอบคลุมถึง:
+If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
 
-- การดึงข้อมูลดริฟท์และขอบเขตบริบทที่แตกหัก
-- ดัชนีว่างหรือเก่าและร้านค้าเวกเตอร์
-- การฝังกับความหมายที่ไม่ตรงกัน
-- ปัญหาแอสเซมบลีและหน้าต่างบริบทพร้อมท์
-- ตรรกะล่มสลายและคำตอบที่มั่นใจมากเกินไป
-- ความล้มเหลวในการประสานงานสายโซ่ยาวและตัวแทน
-- หน่วยความจำหลายตัวแทนและการเลื่อนบทบาท
-- ปัญหาการใช้งานและการสั่งซื้อบูตสแตรป
+- retrieval drift and broken context boundaries
+- empty or stale indexes and vector stores
+- embedding versus semantic mismatch
+- prompt assembly and context window issues
+- logic collapse and overconfident answers
+- long chain and agent coordination failures
+- multi agent memory and role drift
+- deployment and bootstrap ordering problems
 
-แนวคิดนั้นง่าย:
+The idea is simple:
 
-1. เมื่อคุณตรวจสอบการตอบสนองที่ไม่ดี ให้จับ:
-   - งานของผู้ใช้และการร้องขอ
-   - เส้นทางหรือคำสั่งผสมผู้ให้บริการใน OmniRoute
-   - บริบท RAG ใดๆ ที่ใช้ดาวน์สตรีม (เอกสารที่ดึงมา การเรียกเครื่องมือ ฯลฯ)
-2. แมปเหตุการณ์กับหมายเลข WFGY ProblemMap หนึ่งหรือสองหมายเลข (`No.1` … `No.16`)
-3. จัดเก็บหมายเลขไว้ในแดชบอร์ด รันบุ๊ก หรือตัวติดตามเหตุการณ์ของคุณเอง ถัดจากบันทึก OmniRoute
-4. ใช้หน้า WFGY ที่เกี่ยวข้องเพื่อตัดสินใจว่าคุณจำเป็นต้องเปลี่ยนสแต็ก RAG ตัวดึงข้อมูล หรือกลยุทธ์การกำหนดเส้นทางหรือไม่
+1. When you investigate a bad response, capture:
+   - user task and request
+   - route or provider combo in OmniRoute
+   - any RAG context used downstream (retrieved documents, tool calls, etc)
+2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
+3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
+4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
 
-ข้อความแบบเต็มและสูตรที่เป็นรูปธรรมอยู่ที่นี่ (ใบอนุญาต MIT ข้อความเท่านั้น):
+Full text and concrete recipes live here (MIT license, text only):
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-คุณสามารถเพิกเฉยต่อส่วนนี้ได้หากคุณไม่ได้เรียกใช้ RAG หรือไปป์ไลน์ของตัวแทนที่อยู่เบื้องหลัง OmniRoute---
+You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
+
+---
 
 ## Still Stuck?
 
--**ปัญหา GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**สถาปัตยกรรม**: ดู [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) สำหรับรายละเอียดภายใน -**การอ้างอิง API**: ดู [`docs/API_REFERENCE.md`](API_REFERENCE.md) สำหรับตำแหน่งข้อมูลทั้งหมด -**แดชบอร์ดสุขภาพ**: ตรวจสอบ**แดชบอร์ด → สุขภาพ**เพื่อดูสถานะของระบบแบบเรียลไทม์ -**นักแปล**: ใช้**แดชบอร์ด → นักแปล**เพื่อแก้ไขปัญหาเกี่ยวกับรูปแบบ
+- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
+- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
+- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
+- **Translator**: Use **Dashboard → Translator** to debug format issues

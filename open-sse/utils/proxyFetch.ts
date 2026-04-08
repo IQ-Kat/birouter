@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { fetch as undiciFetch } from "undici";
 import {
   createProxyDispatcher,
   getDefaultDispatcher,
@@ -164,7 +165,7 @@ export async function runWithProxyContext(proxyConfig, fn) {
 
 async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
   if (options?.dispatcher) {
-    return originalFetchWithDispatcher(input, options);
+    return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
   }
 
   const targetUrl = getTargetUrl(input);
@@ -197,7 +198,7 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
         if (store) store.used = false;
       }
     }
-    return originalFetchWithDispatcher(input, {
+    return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
       ...options,
       dispatcher: getDefaultDispatcher(),
     });
@@ -205,7 +206,10 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
 
   try {
     const dispatcher = createProxyDispatcher(proxyUrl);
-    return await originalFetchWithDispatcher(input, { ...options, dispatcher });
+    return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
+      ...options,
+      dispatcher,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[ProxyFetch] Proxy request failed (${source}, fail-closed): ${message}`);

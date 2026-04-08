@@ -2,6 +2,7 @@ export type RoutingStrategyValue =
   | "priority"
   | "weighted"
   | "round-robin"
+  | "context-relay"
   | "fill-first"
   | "p2c"
   | "random"
@@ -41,6 +42,13 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     combosDescKey: "roundRobinDesc",
     settingsDescKey: "roundRobinDesc",
     icon: "autorenew",
+  },
+  {
+    value: "context-relay",
+    labelKey: "contextRelay",
+    combosDescKey: "contextRelayDesc",
+    settingsDescKey: "contextRelayDesc",
+    icon: "sync_alt",
   },
   {
     value: "fill-first",

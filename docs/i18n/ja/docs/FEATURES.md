@@ -4,102 +4,168 @@
 
 ---
 
-OmniRoute ダッシュボードの各セクションへの視覚的なガイド。---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-AI プロバイダー接続の管理: OAuth プロバイダー (Claude Code、Codex、Gemini CLI)、API キー プロバイダー (Groq、DeepSeek、OpenRouter)、および無料プロバイダー (Qoder、Qwen、Kiro)。 Kiro アカウントには、クレジット残高の追跡機能が含まれています。残存クレジット、合計許容量、更新日は、「ダッシュボード」→「使用状況」で確認できます。![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-6 つの戦略 (優先順位、重み付け、ラウンドロビン、ランダム、最小使用、コスト最適化) を使用してモデル ルーティング コンボを作成します。各コンボは自動フォールバックを使用して複数のモデルをチェーンし、クイック テンプレートと準備状況チェックが含まれます。![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-トークン消費量、コスト見積もり、アクティビティヒートマップ、週次分布グラフ、プロバイダーごとの内訳を含む包括的な使用状況分析。![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-リアルタイム監視: 稼働時間、メモリ、バージョン、遅延パーセンタイル (p50/p95/p99)、キャッシュ統計、プロバイダーのサーキット ブレーカーの状態。![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-API 変換をデバッグするための 4 つのモード:**プレイグラウンド**(フォーマット コンバーター)、**チャット テスター**(ライブ リクエスト)、**テスト ベンチ**(バッチ テスト)、**ライブ モニター**(リアルタイム ストリーム)。![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-ダッシュボードから直接任意のモデルをテストします。プロバイダー、モデル、エンドポイントを選択し、Monaco Editor でプロンプトを作成し、リアルタイムで応答をストリーミングし、ストリームの途中で中止し、タイミング メトリクスを表示します。---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-ダッシュボード全体のカスタマイズ可能なカラーテーマ。 7 つのプリセット色 (コーラル、ブルー、レッド、グリーン、バイオレット、オレンジ、シアン) から選択するか、任意の 16 進カラーを選択してカスタム テーマを作成します。ライト、ダーク、システム モードをサポートします。---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-タブのある包括的な設定パネル:
+Comprehensive settings panel with tabs:
 
--**一般**— システム ストレージ、バックアップ管理 (データベースのエクスポート/インポート) -**外観**— テーマセレクター (ダーク/ライト/システム)、カラーテーマのプリセットとカスタムカラー、ヘルスログの表示、サイドバー項目の表示コントロール -**セキュリティ**- API エンドポイント保護、カスタム プロバイダー ブロック、IP フィルタリング、セッション情報 -**ルーティング**— モデルのエイリアス、バックグラウンド タスクの劣化 -**回復力**— レート制限の永続化、サーキット ブレーカーの調整、禁止アカウントの自動無効化、プロバイダーの有効期限の監視 -**上級**- 構成の上書き、構成監査証跡、フォールバック劣化モード![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-AI コーディング ツールのワンクリック構成: Claude Code、Codex CLI、Gemini CLI、OpenClaw、Kilo Code、Antigravity、Cline、Continue、Cursor、Factory Droid。自動構成の適用/リセット、接続プロファイル、モデル マッピングを備えています。![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-CLI エージェントを検出および管理するためのダッシュボード。 14 の組み込みエージェント (Codex、Claude、Goose、Gemini CLI、OpenClaw、Aider、OpenCode、Cline、Qwen Code、ForgeCode、Amazon Q、Open Interpreter、Cursor CLI、Warp) のグリッドを表示します。
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**インストール ステータス**- インストール済み / バージョン検出で見つからない -**プロトコル バッジ**— stdio、HTTP など。-**カスタム エージェント**- フォーム経由で CLI ツールを登録します (名前、バイナリ、バージョン コマンド、生成引数)。-**CLI フィンガープリント マッチング**— プロバイダーごとに切り替えてネイティブ CLI リクエストの署名を照合し、プロキシ IP を維持しながら禁止リスクを軽減します---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-ダッシュボードから画像、ビデオ、音楽を生成します。 OpenAI、xAI、Togetter、Hyperbolic、SD WebUI、ComfyUI、AnimateDiff、Stable Audio Open、および MusicGen をサポートします。---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-プロバイダー、モデル、アカウント、API キーによるフィルタリングを備えたリアルタイムのリクエストログ。ステータス コード、トークンの使用状況、待ち時間、応答の詳細を表示します。![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-機能の内訳を含む統合 API エンドポイント: チャット完了、応答 API、埋め込み、画像生成、再ランキング、音声文字起こし、テキスト読み上げ、モデレーション、登録された API キー。 Cloudflare Quick Tunnelの統合とリモートアクセスのためのクラウドプロキシのサポート。![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-API キーを作成、スコープ設定、取り消します。各キーは、フルアクセスまたは読み取り専用のアクセス許可を持つ特定のモデル/プロバイダーに制限できます。使用状況追跡による視覚的なキー管理。---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-アクション タイプ、アクター、ターゲット、IP アドレス、およびタイムスタンプによるフィルタリングによる管理アクションの追跡。完全なセキュリティ イベント履歴。---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Windows、macOS、Linux 用のネイティブ Electron デスクトップ アプリ。システム トレイの統合、オフライン サポート、自動更新、ワンクリック インストールを備えたスタンドアロン アプリケーションとして OmniRoute を実行します。
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-主な特徴:
+Key features:
 
-- サーバー準備状況ポーリング (コールド スタート時に空白画面なし)
-- ポート管理を備えたシステムトレイ
-- コンテンツセキュリティポリシー
-- 単一インスタンスのロック
-- 再起動時の自動更新
-- プラットフォーム条件付き UI (macOS 信号機、Windows/Linux のデフォルトのタイトルバー)
-- 強化された Electron ビルド パッケージ化 - スタンドアロン バンドル内のシンボリックリンクされた `node_modules` がパッケージ化前に検出されて拒否され、ビルド マシン (v2.5.5 以降) へのランタイムの依存関係が防止されます。
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 完全なドキュメントについては、[`electron/README.md`](../electron/README.md) を参照してください。
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

@@ -4,13 +4,14 @@ import assert from "node:assert/strict";
 // Inline buildUrl logic from DefaultExecutor for unit testing
 // (avoids importing ESM modules with complex dependency chains)
 
-function buildUrlOpenAI(provider, credentials) {
+function buildUrlOpenAI(_provider, credentials) {
   const psd = credentials?.providerSpecificData;
   const baseUrl = psd?.baseUrl || "https://api.openai.com/v1";
   const normalized = baseUrl.replace(/\/$/, "");
   const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
   if (customPath) return `${normalized}${customPath}`;
-  const path = provider.includes("responses") ? "/responses" : "/chat/completions";
+  const apiType = typeof psd?.apiType === "string" ? psd.apiType : "chat";
+  const path = apiType === "responses" ? "/responses" : "/chat/completions";
   return `${normalized}${path}`;
 }
 
@@ -51,6 +52,17 @@ describe("Custom Endpoint Paths", () => {
     it("returns /responses for responses provider without chatPath", () => {
       const url = buildUrlOpenAI("openai-compatible-responses-abc123", {
         providerSpecificData: {
+          apiType: "responses",
+          baseUrl: "https://api.openai.com/v1",
+        },
+      });
+      assert.equal(url, "https://api.openai.com/v1/responses");
+    });
+
+    it("prefers providerSpecificData.apiType for legacy provider ids", () => {
+      const url = buildUrlOpenAI("openai-compatible-sp-openai", {
+        providerSpecificData: {
+          apiType: "responses",
           baseUrl: "https://api.openai.com/v1",
         },
       });

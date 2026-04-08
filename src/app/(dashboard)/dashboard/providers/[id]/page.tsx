@@ -529,7 +529,8 @@ function ModelCompatPopover({
   const ref = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [portalPanelRect, setPortalPanelRect] = useState<{
-    top: number;
+    top?: number;
+    bottom?: number;
     left: number;
     width: number;
   } | null>(null);
@@ -621,7 +622,16 @@ function ModelCompatPopover({
     const width = Math.min(window.innerWidth - 2 * margin, 24 * 16);
     let left = rect.right - width;
     left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
-    setPortalPanelRect({ top: rect.bottom + 8, left, width });
+    // Estimated panel height: capped at min(82vh, 42rem=672px)
+    const estimatedPanelHeight = Math.min(window.innerHeight * 0.82, 672);
+    const spaceBelow = window.innerHeight - rect.bottom - margin;
+    const spaceAbove = rect.top - margin;
+    if (spaceBelow < estimatedPanelHeight && spaceAbove > spaceBelow) {
+      // Not enough space below — open upward
+      setPortalPanelRect({ bottom: window.innerHeight - rect.top + 8, left, width });
+    } else {
+      setPortalPanelRect({ top: rect.bottom + 8, left, width });
+    }
   }, [open]);
 
   useLayoutEffect(() => {
@@ -662,7 +672,9 @@ function ModelCompatPopover({
             className={panelChromeClass}
             style={{
               position: "fixed",
-              top: portalPanelRect.top,
+              ...(portalPanelRect.top !== undefined
+                ? { top: portalPanelRect.top }
+                : { bottom: portalPanelRect.bottom }),
               left: portalPanelRect.left,
               width: portalPanelRect.width,
               zIndex: 10040,

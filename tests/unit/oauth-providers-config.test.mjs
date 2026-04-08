@@ -18,6 +18,7 @@ import {
   QODER_CONFIG,
   QWEN_CONFIG,
 } from "../../src/lib/oauth/constants/oauth.ts";
+import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
 
 const originalFetch = globalThis.fetch;
 
@@ -275,6 +276,12 @@ test("provider-specific config shapes remain valid for special cases", () => {
   assert.equal(typeof QODER_CONFIG.extraParams.loginMethod, "string");
   assert.ok(Array.isArray(KIRO_CONFIG.grantTypes) && KIRO_CONFIG.grantTypes.length > 0);
   assert.equal(typeof KILOCODE_CONFIG.pollUrlBase, "string");
+});
+
+test("Gemini OAuth defaults do not hardcode a client secret fallback", () => {
+  assert.equal(GEMINI_CONFIG.clientSecret, process.env.GEMINI_OAUTH_CLIENT_SECRET || "");
+  assert.equal(REGISTRY.gemini.oauth.clientSecretDefault, "");
+  assert.equal(REGISTRY["gemini-cli"].oauth.clientSecretDefault, "");
 });
 
 test("Qoder remains a safe special case when browser OAuth is disabled", () => {

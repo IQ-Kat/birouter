@@ -29,6 +29,15 @@ const STRATEGY_OPTIONS = ROUTING_STRATEGIES.map((strategy) => ({
   icon: strategy.icon,
 }));
 
+const STRATEGY_LABEL_FALLBACK = {
+  "context-relay": "Context Relay",
+};
+
+const STRATEGY_DESC_FALLBACK = {
+  "context-relay":
+    "Priority-style routing with automatic context handoffs when account rotation happens.",
+};
+
 const STRATEGY_GUIDANCE_FALLBACK = {
   priority: {
     when: "Use when you have one preferred model and only want fallback on failure.",
@@ -44,6 +53,12 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     when: "Use when you need predictable, even request distribution.",
     avoid: "Avoid when model latency/cost differs significantly.",
     example: "Example: Same model across multiple accounts to spread throughput.",
+  },
+  "context-relay": {
+    when: "Use when long sessions must survive account rotation without losing the working context.",
+    avoid:
+      "Avoid when account switching is rare or when you do not want extra summarization requests.",
+    example: "Example: Codex sessions that rotate across multiple accounts near quota exhaustion.",
   },
   random: {
     when: "Use when you want a simple spread with low configuration effort.",
@@ -112,6 +127,16 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
       "Use at least 2 models.",
       "Set concurrency limits to avoid burst overload.",
       "Use queue timeout to fail fast under saturation.",
+    ],
+  },
+  "context-relay": {
+    title: "Session continuity first",
+    description:
+      "Best when account rotation is expected and the next account must inherit a condensed task summary.",
+    tips: [
+      "Use with providers that rotate accounts for the same model family.",
+      "Keep the handoff threshold below the hard quota cutoff to give the summary time to generate.",
+      "Set a dedicated summary model only when the primary model is too expensive or unstable.",
     ],
   },
   random: {
@@ -275,16 +300,24 @@ function getStrategyMeta(strategy) {
 }
 
 function getStrategyLabel(t, strategy) {
-  return t(getStrategyMeta(strategy).labelKey);
+  const key = getStrategyMeta(strategy).labelKey;
+  return getI18nOrFallback(t, key, STRATEGY_LABEL_FALLBACK[strategy] || strategy);
 }
 
 function getStrategyDescription(t, strategy) {
-  return t(getStrategyMeta(strategy).descKey);
+  const key = getStrategyMeta(strategy).descKey;
+  return getI18nOrFallback(
+    t,
+    key,
+    STRATEGY_DESC_FALLBACK[strategy] || STRATEGY_DESC_FALLBACK.priority || strategy
+  );
 }
 
 function getStrategyBadgeClass(strategy) {
   if (strategy === "weighted") return "bg-amber-500/15 text-amber-600 dark:text-amber-400";
   if (strategy === "round-robin") return "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400";
+  if (strategy === "context-relay")
+    return "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400";
   if (strategy === "random") return "bg-purple-500/15 text-purple-600 dark:text-purple-400";
   if (strategy === "least-used") return "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400";
   if (strategy === "cost-optimized") return "bg-teal-500/15 text-teal-600 dark:text-teal-400";
@@ -1177,9 +1210,34 @@ function TestResultsView({ results }) {
 // Combo Form Modal
 // ─────────────────────────────────────────────
 function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
+  type CreateDraftSnapshot = {
+    name: string;
+    models: unknown[];
+    strategy: string;
+    config: Record<string, unknown>;
+    showAdvanced: boolean;
+    nameError: string;
+    agentSystemMessage: string;
+    agentToolFilter: string;
+    agentContextCache: boolean;
+  };
+
+  const getEmptyCreateDraftSnapshot = (): CreateDraftSnapshot => ({
+    name: "",
+    models: [],
+    strategy: "priority",
+    config: {},
+    showAdvanced: false,
+    nameError: "",
+    agentSystemMessage: "",
+    agentToolFilter: "",
+    agentContextCache: false,
+  });
+
   const t = useTranslations("combos");
   const tc = useTranslations("common");
   const notify = useNotificationStore();
+  const createDraftStateRef = useRef<CreateDraftSnapshot>(getEmptyCreateDraftSnapshot());
   const [name, setName] = useState(combo?.name || "");
   const [models, setModels] = useState(() => {
     return (combo?.models || []).map((m) => normalizeModelEntry(m));
@@ -1201,6 +1259,55 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   const [agentContextCache, setAgentContextCache] = useState<boolean>(
     !!combo?.context_cache_protection
   );
+
+  const resetFormForCombo = useCallback(
+    (nextCombo, comboDefaults = null) => {
+      const nextDefaults =
+        nextCombo || comboDefaults
+          ? {
+              ...(comboDefaults || {}),
+            }
+          : {};
+      const nextConfig = nextCombo?.config
+        ? { ...nextCombo.config }
+        : Object.fromEntries(Object.entries(nextDefaults).filter(([key]) => key !== "strategy"));
+
+      setName(nextCombo?.name || "");
+      setModels((nextCombo?.models || []).map((m) => normalizeModelEntry(m)));
+      setStrategy(nextCombo?.strategy || comboDefaults?.strategy || "priority");
+      setConfig(nextConfig);
+      setShowAdvanced(false);
+      setNameError("");
+      setAgentSystemMessage(nextCombo?.system_message || "");
+      setAgentToolFilter(nextCombo?.tool_filter_regex || "");
+      setAgentContextCache(!!nextCombo?.context_cache_protection);
+    },
+    [setAgentContextCache]
+  );
+
+  useEffect(() => {
+    createDraftStateRef.current = {
+      name,
+      models,
+      strategy,
+      config,
+      showAdvanced,
+      nameError,
+      agentSystemMessage,
+      agentToolFilter,
+      agentContextCache,
+    };
+  }, [
+    name,
+    models,
+    strategy,
+    config,
+    showAdvanced,
+    nameError,
+    agentSystemMessage,
+    agentToolFilter,
+    agentContextCache,
+  ]);
 
   // DnD state
   const hasPricingForModel = useCallback(
@@ -1336,6 +1443,52 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+
+    if (combo) {
+      resetFormForCombo(combo);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    createDraftStateRef.current = getEmptyCreateDraftSnapshot();
+    resetFormForCombo(null, null);
+
+    const loadDefaults = async () => {
+      try {
+        const response = await fetch("/api/settings/combo-defaults");
+        const data = response.ok ? await response.json() : {};
+        const draft = createDraftStateRef.current;
+        const isPristineDraft =
+          draft.name.trim().length === 0 &&
+          draft.models.length === 0 &&
+          draft.strategy === "priority" &&
+          Object.keys(draft.config || {}).length === 0 &&
+          draft.showAdvanced === false &&
+          draft.nameError.length === 0 &&
+          draft.agentSystemMessage.length === 0 &&
+          draft.agentToolFilter.length === 0 &&
+          draft.agentContextCache === false;
+
+        if (!cancelled && isPristineDraft) {
+          resetFormForCombo(null, data.comboDefaults || null);
+        }
+      } catch {
+        // Keep the blank create form if defaults fail to load.
+      }
+    };
+
+    loadDefaults();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [combo, isOpen, resetFormForCombo]);
+
+  useEffect(() => {
     if (!strategyChangeMountedRef.current) {
       strategyChangeMountedRef.current = true;
       return;
@@ -1408,6 +1561,13 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
         healthCheckEnabled: true,
         concurrencyPerModel: 3,
         queueTimeoutMs: 30000,
+      },
+      "context-relay": {
+        maxRetries: 1,
+        retryDelayMs: 750,
+        healthCheckEnabled: true,
+        handoffThreshold: 0.85,
+        maxMessagesForSummary: 30,
       },
       random: { maxRetries: 1, retryDelayMs: 1000, healthCheckEnabled: true },
       "least-used": { maxRetries: 1, retryDelayMs: 1000, healthCheckEnabled: true },
@@ -1667,8 +1827,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   key={s.value}
                   onClick={() => setStrategy(s.value)}
                   data-testid={`strategy-option-${s.value}`}
-                  title={t(s.descKey)}
-                  aria-label={`${getStrategyLabel(t, s.value)}. ${t(s.descKey)}`}
+                  title={getStrategyDescription(t, s.value)}
+                  aria-label={`${getStrategyLabel(t, s.value)}. ${getStrategyDescription(
+                    t,
+                    s.value
+                  )}`}
                   className={`py-1.5 px-2 rounded-md text-xs font-medium transition-all ${
                     strategy === s.value
                       ? "bg-white dark:bg-bg-main shadow-sm text-primary"
@@ -2082,6 +2245,100 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       }
                       className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
                     />
+                  </div>
+                </div>
+              )}
+              {strategy === "context-relay" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                  <div>
+                    <FieldLabelWithHelp
+                      label={getI18nOrFallback(
+                        t,
+                        "contextRelayHandoffThreshold",
+                        "Handoff Threshold"
+                      )}
+                      help={getI18nOrFallback(
+                        t,
+                        "contextRelayHandoffThresholdHelp",
+                        "When quota usage reaches this threshold, OmniRoute generates a structured handoff summary before the account is exhausted."
+                      )}
+                    />
+                    <input
+                      type="number"
+                      min="0.5"
+                      max="0.94"
+                      step="0.01"
+                      value={config.handoffThreshold ?? ""}
+                      placeholder="0.85"
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          handoffThreshold: e.target.value ? Number(e.target.value) : undefined,
+                        })
+                      }
+                      className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <FieldLabelWithHelp
+                      label={getI18nOrFallback(
+                        t,
+                        "contextRelayMaxMessages",
+                        "Max Messages For Summary"
+                      )}
+                      help={getI18nOrFallback(
+                        t,
+                        "contextRelayMaxMessagesHelp",
+                        "Limits how much recent history is condensed into the relay summary."
+                      )}
+                    />
+                    <input
+                      type="number"
+                      min="5"
+                      max="100"
+                      value={config.maxMessagesForSummary ?? ""}
+                      placeholder="30"
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          maxMessagesForSummary: e.target.value
+                            ? Number(e.target.value)
+                            : undefined,
+                        })
+                      }
+                      className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <FieldLabelWithHelp
+                      label={getI18nOrFallback(t, "contextRelaySummaryModel", "Summary Model")}
+                      help={getI18nOrFallback(
+                        t,
+                        "contextRelaySummaryModelHelp",
+                        "Optional override model used only for generating the handoff summary. Leave empty to reuse the active combo model."
+                      )}
+                    />
+                    <input
+                      type="text"
+                      value={config.handoffModel ?? ""}
+                      placeholder="codex/gpt-5.4"
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          handoffModel: e.target.value || undefined,
+                        })
+                      }
+                      className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-3 rounded-md border border-fuchsia-500/20 bg-fuchsia-500/5 px-2 py-1.5">
+                    <p className="text-[10px] text-fuchsia-700 dark:text-fuchsia-300">
+                      {getI18nOrFallback(
+                        t,
+                        "contextRelayProviderNote",
+                        "Context Relay currently generates handoffs for Codex account rotation. Pair it with multiple accounts of the same provider for the best continuity."
+                      )}
+                    </p>
                   </div>
                 </div>
               )}

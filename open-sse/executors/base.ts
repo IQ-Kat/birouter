@@ -1,6 +1,7 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
+import { getOpenAICompatibleType } from "../services/provider.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -165,7 +166,10 @@ export class BaseExecutor {
       const rawPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       const customPath = rawPath && sanitizePath(rawPath) ? rawPath : null;
       if (customPath) return `${normalized}${customPath}`;
-      const path = this.provider.includes("responses") ? "/responses" : "/chat/completions";
+      const path =
+        getOpenAICompatibleType(this.provider, psd) === "responses"
+          ? "/responses"
+          : "/chat/completions";
       return `${normalized}${path}`;
     }
     const baseUrls = this.getBaseUrls();

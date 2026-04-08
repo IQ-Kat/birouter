@@ -1,12 +1,15 @@
 /**
  * Shared combo (model combo) handling with fallback support
- * Supports: priority, weighted, round-robin, random, least-used, and cost-optimized strategies
+ * Supports: priority, weighted, round-robin, random, least-used, cost-optimized,
+ * strict-random, auto, fill-first, p2c, lkgp, context-optimized, and context-relay strategies
  */
 
 import { checkFallbackError, formatRetryAfter, getProviderProfile } from "./accountFallback.ts";
 import { unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
+import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
+import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
@@ -17,6 +20,7 @@ import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { DEFAULT_WEIGHTS, scorePool } from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
+import { getSessionConnection } from "./sessionManager.ts";
 import { getModelContextLimit } from "../../src/lib/modelsDevSync";
 
 // Status codes that should mark semaphore + record circuit breaker failures
@@ -29,6 +33,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /no such tool available/i,
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
+  /third-party apps/i,
 ];
 
 const MAX_COMBO_DEPTH = 3;
@@ -522,8 +527,7 @@ async function buildAutoCandidates(modelStrings, comboName) {
 }
 
 /**
- * Handle combo chat with fallback
- * Supports all 6 strategies: priority, weighted, round-robin, random, least-used, cost-optimized
+ * Handle combo chat with fallback.
  * @param {Object} options
  * @param {Object} options.body - Request body
  * @param {Object} options.combo - Full combo object { name, models, strategy, config }
@@ -541,9 +545,12 @@ export async function handleComboChat({
   log,
   settings,
   allCombos,
+  relayOptions,
 }) {
   const strategy = combo.strategy || "priority";
   const models = combo.models || [];
+  const relayConfig =
+    strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex, and extract pinned model
@@ -936,7 +943,6 @@ export async function handleComboChat({
   let earliestRetryAfter = null;
   let lastStatus = null;
   const startTime = Date.now();
-  let resolvedByModel = null;
   let fallbackCount = 0;
 
   for (let i = 0; i < orderedModels.length; i++) {
@@ -1002,7 +1008,6 @@ export async function handleComboChat({
           if (i > 0) fallbackCount++;
           break; // move to next model
         }
-        resolvedByModel = modelStr;
         const latencyMs = Date.now() - startTime;
         log.info(
           "COMBO",
@@ -1015,6 +1020,45 @@ export async function handleComboChat({
           fallbackCount,
           strategy,
         });
+
+        // Context-relay intentionally splits responsibilities:
+        // combo.ts decides whether a successful turn should generate a handoff,
+        // while chat.ts injects the handoff after the real connectionId is resolved.
+        if (
+          strategy === "context-relay" &&
+          relayOptions?.sessionId &&
+          relayConfig &&
+          relayConfig.handoffProviders.includes(provider) &&
+          provider === "codex"
+        ) {
+          const connectionId = getSessionConnection(relayOptions.sessionId);
+          if (connectionId) {
+            const quotaInfo = await fetchCodexQuota(connectionId).catch(() => null);
+            if (quotaInfo) {
+              const resetCandidates = [quotaInfo.window5h?.resetAt, quotaInfo.window7d?.resetAt]
+                .filter((value): value is string => typeof value === "string" && value.length > 0)
+                .sort();
+              const handoffSourceMessages =
+                Array.isArray(body?.messages) && body.messages.length > 0
+                  ? body.messages
+                  : Array.isArray(body?.input)
+                    ? body.input
+                    : [];
+
+              maybeGenerateHandoff({
+                sessionId: relayOptions.sessionId,
+                comboName: combo.name,
+                connectionId,
+                percentUsed: quotaInfo.percentUsed,
+                messages: handoffSourceMessages,
+                model: modelStr,
+                expiresAt: resetCandidates[0] || null,
+                config: relayConfig,
+                handleSingleModel: handleSingleModelWrapped,
+              });
+            }
+          }
+        }
 
         // Record last known good provider (LKGP) for this combo/model (#919)
         if (provider) {

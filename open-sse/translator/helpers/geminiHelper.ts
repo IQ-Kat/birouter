@@ -76,6 +76,42 @@ export function convertOpenAIContentToParts(content) {
       if (item.type === "text") {
         parts.push({ text: item.text });
       } else {
+        // 1. Handle Gemini native inline_data injected into OpenAI arrays (e.g. Cherry Studio)
+        const geminiInline = item.inline_data || item.inlineData;
+        if (geminiInline?.data) {
+          parts.push({
+            inlineData: {
+              mimeType: geminiInline.mime_type || geminiInline.mimeType || "application/pdf",
+              data: geminiInline.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+            },
+          });
+          continue;
+        }
+
+        // 2. Handle Claude-style source blocks commonly used by AI clients
+        if (item.source?.type === "base64" && item.source?.data) {
+          parts.push({
+            inlineData: {
+              mimeType: item.source.media_type || "application/pdf",
+              data: item.source.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+            },
+          });
+          continue;
+        }
+
+        // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."})
+        if (typeof item.data === "string" && !item.data.startsWith("http")) {
+          const rawData = item.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
+          parts.push({
+            inlineData: {
+              mimeType: item.mime_type || item.media_type || "application/octet-stream",
+              data: rawData,
+            },
+          });
+          continue;
+        }
+
+        // 4. Standard OpenAI Data URIs
         const fileData =
           item.image_url?.url || item.file_url?.url || item.file?.url || item.document?.url;
         if (typeof fileData === "string" && fileData.startsWith("data:")) {
@@ -126,7 +162,10 @@ export function generateRequestId() {
 
 // Generate session ID
 export function generateSessionId() {
-  return `-${Math.floor(Math.random() * 9000000000000000000)}`;
+  const arr = new BigUint64Array(1);
+  globalThis.crypto.getRandomValues(arr);
+  const num = arr[0] % 9000000000000000000n;
+  return `-${num.toString()}`;
 }
 
 // Helper: Remove unsupported keywords recursively from object/array

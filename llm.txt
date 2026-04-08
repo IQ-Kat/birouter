@@ -8,7 +8,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 **Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
 
-**Current version:** 3.5.4
+**Current version:** 3.5.5
 
 ## Tech Stack
 
@@ -41,7 +41,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │       ├── auto-combo/   # Auto-combo engine dashboard
 │   │   │       ├── cache/        # Cache dashboard (semantic cache stats)
 │   │   │       ├── cli-tools/    # CLI tool configuration (Claude Code, Codex, Gemini CLI, etc.)
-│   │   │       ├── combos/       # Model combo management (9 strategies + 4 templates)
+│   │   │       ├── combos/       # Model combo management (13 strategies + 4 templates)
 │   │   │       ├── costs/        # Cost tracking per provider/model
 │   │   │       ├── endpoint/     # Unified: Endpoint Proxy, MCP, A2A, API Endpoints tabs
 │   │   │       ├── health/       # System health (uptime, circuit breakers, latency)
@@ -238,7 +238,9 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── ipFilter.ts           # IP-based access control
 │   │   ├── signatureCache.ts     # CLI signature caching
 │   │   ├── volumeDetector.ts     # Request volume detection
-│   │   └── ...                   # Additional services (16 more modules)
+│   │   ├── contextHandoff.ts    # Context relay handoff generation and injection
+│   │   ├── codexQuotaFetcher.ts # Codex quota fetching for context-relay
+│   │   └── ...                   # Additional services (14 more modules)
 │   ├── transformer/              # Responses API transformer
 │   │   └── responsesTransformer.ts
 │   ├── translator/               # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama ↔ DeepSeek)
@@ -277,13 +279,14 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 └── .env.example                  # Environment variable template
 ```
 
-## Key Features (v3.5.4)
+## Key Features (v3.5.5)
 
 ### Core Proxy
 - **60+ AI providers** with automatic format translation
 - **4 provider categories**: Free (4), OAuth (8), API Key (48+), Custom (OpenAI/Anthropic-compatible)
-- **9 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, strict-random
+- **13 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay
 - **4-tier fallback**: Subscription → API Key → Cheap → Free
+- **Context Relay strategy**: Session handoff summaries on account rotation for continuity
 - **Auto-combo engine**: Self-healing routing optimization with 6-factor scoring, bandit exploration, progressive cooldown
 - **Semantic caching** with cache hit/miss headers
 - **Idempotency** with configurable dedup window
@@ -299,7 +302,8 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **122 unit test files** with comprehensive coverage (55% statements/lines/functions, 60% branches)
 
 ### Security
-- **CodeQL security**: Fixed 10+ CodeQL alerts (polynomial-redos, insecure-randomness, shell-injection)
+- **CodeQL security**: Fixed 10+ CodeQL alerts (polynomial-redos, insecure-randomness, shell-injection, SSRF, incomplete URLs)
+- **Web Crypto session IDs**: `generateSessionId` uses `crypto.getRandomValues()` instead of `Math.random()`
 - **Route validation**: All API routes validated with Zod v4 schemas + `validateBody()`
 - **omniModel tag sanitization**: Internal `<omniModel>` tags never leak to clients in SSE streams
 - **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint to reduce bot detection
@@ -310,7 +314,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ### Dashboard Pages (23 sections)
 - **Providers** — OAuth, API key, and free provider management with ProviderIcon SVG icons
-- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 9 strategies
+- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 13 strategies
 - **Auto-Combo** — Auto-combo engine dashboard with scoring metrics
 - **Analytics** — Token consumption, cost, heatmaps, distributions
 - **Health** — Uptime, memory, latency percentiles, circuit breakers
@@ -376,7 +380,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 3. **Connection-based provider model:** Providers are stored as "connections" in SQLite. Each connection has an `id`, `provider`, `authType` (oauth/apikey/free), `isActive` flag, and credentials. Multiple connections per provider for multi-account rotation.
 
-4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 9 strategies including auto-combo with self-healing.
+4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 13 strategies including auto-combo with self-healing and context-relay for session continuity.
 
 5. **SSE proxy pipeline:** The proxy pipeline is middleware-based: request → auth resolution → rate limiting → circuit breaker → format translation → upstream call → response translation → SSE streaming back to client.
 
@@ -451,6 +455,12 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 14. **Skills system** in `src/lib/skills/` provides registry, executor, sandbox isolation, built-in skills, custom skill support, request interception, and context injection. Exposed via MCP skill tools and `/api/skills/` API.
 
 15. **Zod v4** is used for all validation. Import from `zod` package. Provider schemas validated at module load time.
+
+16. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated after a successful turn; `chat.ts` injects the handoff only after account resolution. Handoff data lives in `context_handoffs` SQLite table. Config: `handoffThreshold`, `handoffModel`, `handoffProviders`.
+
+17. **Proxy enforcement** is now comprehensive: token health checks resolve proxy per connection, provider validation wraps in `runWithProxyContext`, and proxy dispatchers use `undici.fetch()` instead of the Node built-in `fetch()` to avoid dispatcher incompatibilities on Node 22.
+
+18. **Node.js 24+ compatibility**: The login page (`/api/settings/require-login`) detects the Node.js version and sends `nodeVersion`/`nodeCompatible` fields. The login UI renders a warning banner when `nodeCompatible` is false.
 
 ## Links
 

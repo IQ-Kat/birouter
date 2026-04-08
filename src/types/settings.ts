@@ -21,7 +21,7 @@ export interface Settings {
 }
 
 export interface ComboDefaults {
-  strategy: "priority" | "weighted" | "round-robin";
+  strategy: "priority" | "weighted" | "round-robin" | "context-relay";
   maxRetries: number;
   retryDelayMs: number;
   timeoutMs: number;
@@ -31,6 +31,10 @@ export interface ComboDefaults {
   trackMetrics: boolean;
   concurrencyPerModel?: number;
   queueTimeoutMs?: number;
+  handoffThreshold?: number;
+  handoffModel?: string;
+  handoffProviders?: string[];
+  maxMessagesForSummary?: number;
 }
 
 export interface ProxyConfig {

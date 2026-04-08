@@ -72,20 +72,11 @@ const comboModelEntry = z.union([
   }),
 ]);
 
-// Per-combo config overrides
-const comboConfigSchema = z
-  .object({
-    maxRetries: z.number().int().min(0).max(10).optional(),
-    retryDelayMs: z.number().int().min(0).max(60000).optional(),
-    timeoutMs: z.number().int().min(1000).max(600000).optional(),
-    healthCheckEnabled: z.boolean().optional(),
-  })
-  .optional();
-
 const comboStrategySchema = z.enum([
   "priority",
   "weighted",
   "round-robin",
+  "context-relay",
   "random",
   "least-used",
   "cost-optimized",
@@ -121,6 +112,10 @@ const comboRuntimeConfigSchema = z
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
     healthCheckEnabled: z.boolean().optional(),
     healthCheckTimeoutMs: z.coerce.number().int().min(100).max(30000).optional(),
+    handoffThreshold: z.coerce.number().min(0.5).max(0.94).optional(),
+    handoffModel: z.string().trim().max(200).optional(),
+    handoffProviders: z.array(z.string().trim().min(1).max(100)).max(10).optional(),
+    maxMessagesForSummary: z.coerce.number().int().min(5).max(100).optional(),
     maxComboDepth: z.coerce.number().int().min(1).max(10).optional(),
     trackMetrics: z.boolean().optional(),
     // Auto-Combo / LKGP Extensions
@@ -141,7 +136,7 @@ export const createComboSchema = z.object({
     .regex(/^[a-zA-Z0-9_/.-]+$/, "Name can only contain letters, numbers, -, _, / and ."),
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
-  config: comboConfigSchema,
+  config: comboRuntimeConfigSchema.optional(),
   allowedProviders: z.array(z.string().max(200)).optional(),
   system_message: z.string().max(50000).optional(),
   tool_filter_regex: z.string().max(1000).optional(),
@@ -829,8 +824,8 @@ export const translatorTranslateSchema = z
 export const oauthExchangeSchema = z.object({
   code: z.string().trim().min(1),
   redirectUri: z.string().trim().min(1),
-  codeVerifier: z.string().trim().min(1),
-  state: z.string().optional(),
+  codeVerifier: z.string().trim().min(1).optional(),
+  state: z.string().nullable().optional(),
 });
 
 export const oauthPollSchema = z.object({

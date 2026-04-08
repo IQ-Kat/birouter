@@ -43,7 +43,7 @@ export async function POST(request) {
     const { provider, body } = validation.data;
 
     const sourceFormat = detectFormat(body);
-    const targetFormat = getTargetFormat(provider);
+    let targetFormat = getTargetFormat(provider);
 
     // Get provider credentials from database
     const connections = await getProviderConnections({ provider });
@@ -77,11 +77,13 @@ export async function POST(request) {
       projectId: connection.projectId,
       providerSpecificData: connection.providerSpecificData,
     };
+    targetFormat = getTargetFormat(provider, connection.providerSpecificData);
 
     // Build URL and headers using provider service
     const url = buildProviderUrl(provider, body.model || "test-model", true, {
       baseUrlIndex: 0,
       baseUrl: getProviderBaseUrl(connection.providerSpecificData),
+      providerSpecificData: connection.providerSpecificData,
     });
     const headers = buildProviderHeaders(provider, credentials, true, body);
 

@@ -4,68 +4,142 @@
 
 ---
 
-ओम्निरूट के लिए सामान्य समस्याएं और समाधान।---
+
+
+Common problems and solutions for OmniRoute.
+
+---
 
 ## Quick Fixes
 
-| समस्या                                | समाधान                                                                          |
-| ------------------------------------- | ------------------------------------------------------------------------------- | --- |
-| पहला लॉगिन काम नहीं कर रहा            | `INITIAL_PASSWORD` को `.env` में सेट करें (कोई हार्डकोडेड डिफ़ॉल्ट नहीं)        |
-| गलत पोर्ट पर डैशबोर्ड खुलता है        | `PORT=20128` और `NEXT_PUBLIC_BASE_URL=http://localhost:20128` सेट करें          |
-| `लॉग/` के अंतर्गत कोई अनुरोध लॉग नहीं | `ENABLE_REQUEST_LOGS=true` सेट करें                                             |
-| EACCES: अनुमति अस्वीकृत               | `~/.omniroute` को ओवरराइड करने के लिए `DATA_DIR=/path/to/writable/dir` सेट करें |
-| रूटिंग रणनीति सहेजी नहीं जा रही       | v1.4.11+ पर अपडेट करें (सेटिंग्स दृढ़ता के लिए ज़ोड स्कीमा फिक्स)               | --- |
+| Problem                       | Solution                                                           |
+| ----------------------------- | ------------------------------------------------------------------ |
+| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
+| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
+| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
+| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
+| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
+| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below |
+| Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
+
+---
+
+## Node.js Compatibility
+
+<a name="nodejs-compatibility"></a>
+
+### Login page crashes or shows "Module self-registration" error
+
+**Cause:** You are running Node.js 24+. The `better-sqlite3` native binary is not compatible with Node.js 24, which causes a fatal crash when the server tries to initialize the database.
+
+**Symptoms:**
+- Login page shows a blank screen or a server error
+- Console shows `Error: Module did not self-register` or similar native binding errors
+- Starting with v3.5.5, the login page shows an **orange warning banner** with your Node version if incompatibility is detected
+
+**Fix:**
+
+1. Install Node.js 22 LTS (recommended):
+   ```bash
+   nvm install 22
+   nvm use 22
+   ```
+2. Verify your version: `node --version` should show `v22.x.x`
+3. Reinstall OmniRoute: `npm install -g omniroute`
+4. Restart: `omniroute`
+
+> **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+
+---
+
+## Proxy Issues
+
+<a name="proxy-issues"></a>
+
+### Provider validation shows "fetch failed"
+
+**Cause:** The API key validation endpoint (`POST /api/providers/validate`) was previously bypassing proxy configuration, causing failures in environments that require proxy routing.
+
+**Fix (v3.5.5+):** This is now fixed. Provider validation routes through `runWithProxyContext`, honoring provider-level and global proxy settings automatically.
+
+### Token health check fails with "fetch failed"
+
+**Cause:** Background OAuth token refresh was not resolving proxy configuration per connection.
+
+**Fix (v3.5.5+):** The token health check scheduler now resolves proxy config per connection before attempting refresh. Update to v3.5.5+.
+
+### SOCKS5 proxy returns "invalid onRequestStart method"
+
+**Cause:** On Node.js 22, the undici@8 dispatcher is incompatible with Node's built-in `fetch()` implementation.
+
+**Fix (v3.5.5+):** OmniRoute now uses undici's own `fetch()` function when a proxy dispatcher is active, ensuring consistent behavior. Update to v3.5.5+.
+
+---
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**कारण:**प्रदाता कोटा समाप्त हो गया।
+**Cause:** Provider quota exhausted.
 
-**ठीक करें:**
+**Fix:**
 
-1. डैशबोर्ड कोटा ट्रैकर की जाँच करें
-2. फ़ॉलबैक टियर वाले कॉम्बो का उपयोग करें
-3. सस्ते/मुफ़्त स्तर पर स्विच करें### Rate Limiting
+1. Check dashboard quota tracker
+2. Use a combo with fallback tiers
+3. Switch to cheaper/free tier
 
-**कारण:**सदस्यता कोटा समाप्त हो गया।
+### Rate Limiting
 
-**ठीक करें:**
+**Cause:** Subscription quota exhausted.
 
-- फ़ॉलबैक जोड़ें: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- सस्ते बैकअप के रूप में GLM/MiniMax का उपयोग करें### OAuth Token Expired
+**Fix:**
 
-ओम्निरूट स्वचालित रूप से टोकन ताज़ा करता है। यदि समस्याएँ बनी रहती हैं:
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Use GLM/MiniMax as cheap backup
 
-1. डैशबोर्ड → प्रदाता → पुनः कनेक्ट करें
-2. प्रदाता कनेक्शन हटाएं और पुनः जोड़ें---
+### OAuth Token Expired
+
+OmniRoute auto-refreshes tokens. If issues persist:
+
+1. Dashboard → Provider → Reconnect
+2. Delete and re-add the provider connection
+
+---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. अपने चल रहे उदाहरण के लिए `BASE_URL` बिंदुओं को सत्यापित करें (उदाहरण के लिए, `http://localhost:20128`)
-2. अपने क्लाउड एंडपॉइंट पर `CLOUD_URL` बिंदुओं को सत्यापित करें (उदाहरण के लिए, `https://omniroute.dev`)
-3. `NEXT_PUBLIC_*` मानों को सर्वर-साइड मानों के साथ संरेखित रखें### Cloud `stream=false` Returns 500
+1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
+2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
+3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
-**लक्षण:**गैर-स्ट्रीमिंग कॉल के लिए क्लाउड एंडपॉइंट पर `अप्रत्याशित टोकन 'डी'...`।
+### Cloud `stream=false` Returns 500
 
-**कारण:**अपस्ट्रीम एसएसई पेलोड लौटाता है जबकि ग्राहक JSON की अपेक्षा करता है।
+**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
 
-**समाधान:**क्लाउड डायरेक्ट कॉल के लिए `stream=true` का उपयोग करें। स्थानीय रनटाइम में SSE→JSON फ़ॉलबैक शामिल है।### Cloud Says Connected but "Invalid API key"
+**Cause:** Upstream returns SSE payload while client expects JSON.
 
-1. स्थानीय डैशबोर्ड से एक नई कुंजी बनाएं (`/api/keys`)
-2. क्लाउड सिंक चलाएँ: क्लाउड सक्षम करें → अभी सिंक करें
-3. पुरानी/गैर-सिंक की गई कुंजियाँ अभी भी क्लाउड पर `401` लौटा सकती हैं---
+**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
+
+### Cloud Says Connected but "Invalid API key"
+
+1. Create a fresh key from local dashboard (`/api/keys`)
+2. Run cloud sync: Enable Cloud → Sync Now
+3. Old/non-synced keys can still return `401` on cloud
+
+---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. रनटाइम फ़ील्ड जांचें: `कर्ल http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. पोर्टेबल मोड के लिए: छवि लक्ष्य `रनर-सीएलआई` (बंडल सीएलआई) का उपयोग करें
-3. होस्ट माउंट मोड के लिए: `CLI_EXTRA_PATHS` सेट करें और होस्ट बिन निर्देशिका को केवल पढ़ने के लिए माउंट करें
-4. यदि `इंस्टॉल = सही` और `रनने योग्य = गलत`: बाइनरी पाया गया था लेकिन स्वास्थ्य जांच विफल रही### Quick Runtime Validation
+1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. For portable mode: use image target `runner-cli` (bundled CLIs)
+3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
+4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
+
+### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -79,16 +153,20 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. डैशबोर्ड → उपयोग में उपयोग के आँकड़े जाँचें
-2. प्राथमिक मॉडल को जीएलएम/मिनीमैक्स पर स्विच करें
-3. गैर-महत्वपूर्ण कार्यों के लिए फ्री टियर (मिथुन सीएलआई, क्यूडर) का उपयोग करें
-4. प्रति एपीआई कुंजी लागत बजट निर्धारित करें: डैशबोर्ड → एपीआई कुंजी → बजट---
+1. Check usage stats in Dashboard → Usage
+2. Switch primary model to GLM/MiniMax
+3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
+4. Set cost budgets per API key: Dashboard → API Keys → Budget
+
+---
 
 ## Debugging
 
 ### Enable Request Logs
 
-अपनी `.env` फ़ाइल में `ENABLE_REQUEST_LOGS=true` सेट करें। लॉग `लॉग/` निर्देशिका के अंतर्गत दिखाई देते हैं।### Check Provider Health
+Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
+
+### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -100,98 +178,135 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- मुख्य स्थिति: `${DATA_DIR}/storage.sqlite` (प्रदाता, कॉम्बो, उपनाम, कुंजियाँ, सेटिंग्स)
-- उपयोग: `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) में SQLite टेबल + वैकल्पिक `${DATA_DIR}/log.txt` और `${DATA_DIR}/call_logs/`
-- अनुरोध लॉग: `<repo>/logs/...` (जब `ENABLE_REQUEST_LOGS=true`)---
+- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
+- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
+- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
+
+---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-जब किसी प्रदाता का सर्किट ब्रेकर खुला होता है, तो कूलडाउन समाप्त होने तक अनुरोध अवरुद्ध हो जाते हैं।
+When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
 
-**ठीक करें:**
+**Fix:**
 
-1.**डैशबोर्ड → सेटिंग्स → लचीलापन**पर जाएं 2. प्रभावित प्रदाता के लिए सर्किट ब्रेकर कार्ड की जाँच करें 3. सभी ब्रेकर साफ़ करने के लिए**रीसेट ऑल**पर क्लिक करें, या कूलडाउन समाप्त होने तक प्रतीक्षा करें 4. रीसेट करने से पहले सत्यापित करें कि प्रदाता वास्तव में उपलब्ध है### Provider keeps tripping the circuit breaker
+1. Go to **Dashboard → Settings → Resilience**
+2. Check the circuit breaker card for the affected provider
+3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
+4. Verify the provider is actually available before resetting
 
-यदि कोई प्रदाता बार-बार खुली स्थिति में प्रवेश करता है:
+### Provider keeps tripping the circuit breaker
 
-1. विफलता पैटर्न के लिए**डैशबोर्ड → स्वास्थ्य → प्रदाता स्वास्थ्य**की जाँच करें 2.**सेटिंग्स → लचीलापन → प्रदाता प्रोफाइल**पर जाएं और विफलता सीमा बढ़ाएं
-2. जांचें कि क्या प्रदाता ने एपीआई सीमाएं बदल दी हैं या पुनः प्रमाणीकरण की आवश्यकता है
-3. विलंबता टेलीमेट्री की समीक्षा करें - उच्च विलंबता टाइमआउट-आधारित विफलताओं का कारण बन सकती है---
+If a provider repeatedly enters OPEN state:
+
+1. Check **Dashboard → Health → Provider Health** for the failure pattern
+2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
+3. Check if the provider has changed API limits or requires re-authentication
+4. Review latency telemetry — high latency may cause timeout-based failures
+
+---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- सुनिश्चित करें कि आप सही उपसर्ग का उपयोग कर रहे हैं: `डीपग्राम/नोवा-3` या `असेंबलीई/बेस्ट`
-- सत्यापित करें कि प्रदाता**डैशबोर्ड → प्रदाता**में जुड़ा हुआ है### Transcription returns empty or fails
+- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
+- Verify the provider is connected in **Dashboard → Providers**
 
-- समर्थित ऑडियो प्रारूप जांचें: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- सत्यापित करें कि फ़ाइल का आकार प्रदाता सीमा के भीतर है (आमतौर पर <25MB)
-- प्रदाता कार्ड में प्रदाता एपीआई कुंजी वैधता की जांच करें---
+### Transcription returns empty or fails
+
+- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Verify file size is within provider limits (typically < 25MB)
+- Check provider API key validity in the provider card
+
+---
 
 ## Translator Debugging
 
-प्रारूप अनुवाद समस्याओं को डीबग करने के लिए**डैशबोर्ड → अनुवादक**का उपयोग करें:
+Use **Dashboard → Translator** to debug format translation issues:
 
-| मोड              | कब उपयोग करें                                                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| **खेल का मैदान** | इनपुट/आउटपुट स्वरूपों की साथ-साथ तुलना करें - यह कैसे अनुवादित होता है यह देखने के लिए एक असफल अनुरोध चिपकाएँ |
-| **Chat Tester**  | लाइव संदेश भेजें और हेडर सहित पूर्ण अनुरोध/प्रतिक्रिया पेलोड का निरीक्षण करें                                 |
-| **टेस्ट बेंच**   | यह पता लगाने के लिए कि कौन से अनुवाद टूटे हुए हैं, सभी प्रारूप संयोजनों में बैच परीक्षण चलाएँ                 |
-| **लाइव मॉनिटर**  | रुक-रुक कर होने वाली अनुवाद समस्याओं को पकड़ने के लिए वास्तविक समय अनुरोध प्रवाह देखें                        | ### Common format issues |
+| Mode             | When to Use                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
+| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
+| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
+| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
 
--**सोच टैग दिखाई नहीं दे रहे हैं**- जांचें कि क्या लक्ष्य प्रदाता सोच और सोच बजट सेटिंग का समर्थन करता है -**टूल कॉल ड्रॉपिंग**— कुछ प्रारूप अनुवाद असमर्थित फ़ील्ड को हटा सकते हैं; खेल का मैदान मोड में सत्यापित करें -**सिस्टम प्रॉम्प्ट गायब**— क्लाउड और जेमिनी हैंडल सिस्टम प्रॉम्प्ट अलग-अलग होते हैं; अनुवाद आउटपुट की जाँच करें -**एसडीके ऑब्जेक्ट के बजाय कच्ची स्ट्रिंग लौटाता है**- v1.1.0 में फिक्स्ड: रिस्पॉन्स सैनिटाइज़र अब गैर-मानक फ़ील्ड (`x_groq`, `usage_breakdown`, आदि) को हटा देता है जो OpenAI SDK पायडेंटिक सत्यापन विफलताओं का कारण बनता है -**GLM/ERNIE `सिस्टम' भूमिका को अस्वीकार करता है**- v1.1.0 में फिक्स्ड: रोल नॉर्मलाइज़र स्वचालित रूप से असंगत मॉडल के लिए सिस्टम संदेशों को उपयोगकर्ता संदेशों में मर्ज कर देता है -**'डेवलपर' की भूमिका पहचानी नहीं गई**- v1.1.0 में फिक्स्ड: गैर-ओपनएआई प्रदाताओं के लिए स्वचालित रूप से `सिस्टम' में कनवर्ट किया गया
--**`json_schema`जेमिनी के साथ काम नहीं कर रहा है**- v1.1.0 में फिक्स्ड:`response_format`को अब जेमिनी के`responseMimeType`+`responseSchema` में बदल दिया गया है---
+### Common format issues
+
+- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
+- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
+- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
+- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
+- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
+- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
+- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
+
+---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- ऑटो दर-सीमा केवल एपीआई कुंजी प्रदाताओं पर लागू होती है (OAuth/सदस्यता पर नहीं)
-- सत्यापित करें**सेटिंग्स → लचीलापन → प्रदाता प्रोफाइल**में ऑटो-दर-सीमा सक्षम है
-- जांचें कि क्या प्रदाता `429` स्टेटस कोड या `रीट्री-आफ्टर` हेडर लौटाता है### Tuning exponential backoff
+- Auto rate-limit only applies to API key providers (not OAuth/subscription)
+- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
+- Check if the provider returns `429` status codes or `Retry-After` headers
 
-प्रदाता प्रोफ़ाइल इन सेटिंग्स का समर्थन करती हैं:
+### Tuning exponential backoff
 
--**आधार विलंब**— पहली विफलता के बाद प्रारंभिक प्रतीक्षा समय (डिफ़ॉल्ट: 1 सेकंड) -**अधिकतम विलंब**— अधिकतम प्रतीक्षा समय सीमा (डिफ़ॉल्ट: 30s) -**गुणक**- लगातार विफलता के बाद विलंब को कितना बढ़ाया जाए (डिफ़ॉल्ट: 2x)### Anti-thundering herd
+Provider profiles support these settings:
 
-जब कई समवर्ती अनुरोध एक दर-सीमित प्रदाता से टकराते हैं, तो ओमनीरूट अनुरोधों को क्रमबद्ध करने और कैस्केडिंग विफलताओं को रोकने के लिए म्यूटेक्स + ऑटो रेट-लिमिटिंग का उपयोग करता है। यह एपीआई कुंजी प्रदाताओं के लिए स्वचालित है।---
+- **Base delay** — Initial wait time after first failure (default: 1s)
+- **Max delay** — Maximum wait time cap (default: 30s)
+- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
+
+### Anti-thundering herd
+
+When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
+
+---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-कुछ ओमनीरूट उपयोगकर्ता गेटवे को RAG या एजेंट स्टैक के सामने रखते हैं। उन सेटअपों में एक अजीब पैटर्न देखना आम है: ओम्नीरूट स्वस्थ दिखता है (प्रदाता ऊपर, रूटिंग प्रोफाइल ठीक, कोई दर सीमा अलर्ट नहीं) लेकिन अंतिम उत्तर अभी भी गलत है।
+Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
 
-व्यवहार में ये घटनाएं आम तौर पर डाउनस्ट्रीम आरएजी पाइपलाइन से आती हैं, गेटवे से नहीं।
+In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
 
-यदि आप उन विफलताओं का वर्णन करने के लिए एक साझा शब्दावली चाहते हैं तो आप डब्लूएफजीवाई प्रॉब्लममैप का उपयोग कर सकते हैं, एक बाहरी एमआईटी लाइसेंस टेक्स्ट संसाधन जो सोलह आवर्ती आरएजी / एलएलएम विफलता पैटर्न को परिभाषित करता है। उच्च स्तर पर इसमें शामिल हैं:
+If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
 
-- पुनर्प्राप्ति बहाव और टूटी हुई संदर्भ सीमाएँ
-- खाली या बासी इंडेक्स और वेक्टर स्टोर
-- एम्बेडिंग बनाम सिमेंटिक बेमेल
-- शीघ्र असेंबली और संदर्भ विंडो समस्याएँ
-- तर्क पतन और अतिआत्मविश्वासपूर्ण उत्तर
-- लंबी श्रृंखला और एजेंट समन्वय विफलताएँ
-- मल्टी एजेंट मेमोरी और रोल ड्रिफ्ट
-- परिनियोजन और बूटस्ट्रैप ऑर्डरिंग समस्याएं
+- retrieval drift and broken context boundaries
+- empty or stale indexes and vector stores
+- embedding versus semantic mismatch
+- prompt assembly and context window issues
+- logic collapse and overconfident answers
+- long chain and agent coordination failures
+- multi agent memory and role drift
+- deployment and bootstrap ordering problems
 
-विचार सरल है:
+The idea is simple:
 
-1. जब आप किसी खराब प्रतिक्रिया की जांच करते हैं, तो कैप्चर करें:
-   - उपयोगकर्ता कार्य और अनुरोध
-   - ओमनीरूट में रूट या प्रदाता कॉम्बो
-   - डाउनस्ट्रीम में उपयोग किया गया कोई भी RAG संदर्भ (पुनर्प्राप्त दस्तावेज़, टूल कॉल, आदि)
-2. घटना को एक या दो WFGY समस्या मानचित्र संख्याओं ('नंबर 1' ... 'नंबर 16') पर मैप करें।
-3. नंबर को अपने डैशबोर्ड, रनबुक, या घटना ट्रैकर में ओमनीरूट लॉग के बगल में संग्रहीत करें।
-4. यह तय करने के लिए संबंधित WFGY पृष्ठ का उपयोग करें कि आपको अपने RAG स्टैक, रिट्रीवर या रूटिंग रणनीति को बदलने की आवश्यकता है या नहीं।
+1. When you investigate a bad response, capture:
+   - user task and request
+   - route or provider combo in OmniRoute
+   - any RAG context used downstream (retrieved documents, tool calls, etc)
+2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
+3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
+4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
 
-पूर्ण पाठ और ठोस व्यंजन यहां उपलब्ध हैं (एमआईटी लाइसेंस, केवल पाठ):
+Full text and concrete recipes live here (MIT license, text only):
 
-[डब्ल्यूएफजीवाई प्रॉब्लममैप रीडमी](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
+[WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-यदि आप ओमनीरूट के पीछे आरएजी या एजेंट पाइपलाइन नहीं चलाते हैं तो आप इस अनुभाग को अनदेखा कर सकते हैं।---
+You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
+
+---
 
 ## Still Stuck?
 
--**गिटहब मुद्दे**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**आर्किटेक्चर**: आंतरिक विवरण के लिए [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) देखें -**एपीआई संदर्भ**: सभी समापन बिंदुओं के लिए [`docs/API_REFERENCE.md`](API_REFERENCE.md) देखें -**स्वास्थ्य डैशबोर्ड**: वास्तविक समय प्रणाली की स्थिति के लिए**डैशबोर्ड → स्वास्थ्य**जांचें -**अनुवादक**: प्रारूप संबंधी समस्याओं को डीबग करने के लिए**डैशबोर्ड → अनुवादक**का उपयोग करें
+- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
+- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
+- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
+- **Translator**: Use **Dashboard → Translator** to debug format issues

@@ -24,10 +24,12 @@ export default function Sidebar({
   onClose,
   collapsed = false,
   onToggleCollapse,
+  isMacElectron = false,
 }: {
   onClose?: any;
   collapsed?: boolean;
   onToggleCollapse?: any;
+  isMacElectron?: boolean;
 }) {
   const pathname = usePathname();
   const t = useTranslations("sidebar");
@@ -192,9 +194,12 @@ export default function Sidebar({
     <>
       <aside
         className={cn(
-          "flex flex-col h-full border-r border-black/5 dark:border-white/5 bg-vibrancy backdrop-blur-xl transition-all duration-300 ease-in-out",
-          collapsed ? "w-16" : "w-72"
+          "flex h-full min-h-0 flex-col border-r border-black/5 bg-vibrancy backdrop-blur-xl transition-all duration-300 ease-in-out dark:border-white/5",
+          collapsed ? "w-16" : "w-80"
         )}
+        style={{
+          paddingTop: isMacElectron ? "var(--desktop-safe-top)" : undefined,
+        }}
       >
         <a
           href="#main-content"
@@ -202,34 +207,42 @@ export default function Sidebar({
         >
           Skip to content
         </a>
-        <div
-          className={cn(
-            "flex items-center gap-2 pt-5 pb-2",
-            collapsed ? "px-3 justify-center" : "px-6"
-          )}
-          aria-hidden="true"
-        >
-          <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-          <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-          <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
-          {!collapsed && <div className="flex-1" />}
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              aria-expanded={!collapsed}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className={cn(
-                "p-1 rounded-md text-text-muted/50 hover:text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors",
-                collapsed && "mt-2"
-              )}
-            >
-              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                {collapsed ? "chevron_right" : "chevron_left"}
-              </span>
-            </button>
-          )}
-        </div>
+        {(onToggleCollapse || !isMacElectron) && (
+          <div
+            className={cn(
+              "flex items-center gap-2 pb-2",
+              isMacElectron ? "pt-3" : "pt-5",
+              collapsed ? "px-3 justify-center" : "px-6"
+            )}
+            aria-hidden="true"
+          >
+            {!isMacElectron && (
+              <>
+                <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
+                <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
+                <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
+              </>
+            )}
+            {!collapsed && <div className="flex-1" />}
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                aria-expanded={!collapsed}
+                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                className={cn(
+                  "rounded-md p-1 text-text-muted/50 transition-colors hover:bg-black/5 hover:text-text-muted dark:hover:bg-white/5",
+                  collapsed && !isMacElectron && "mt-2",
+                  isMacElectron && "ml-auto"
+                )}
+              >
+                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                  {collapsed ? "chevron_right" : "chevron_left"}
+                </span>
+              </button>
+            )}
+          </div>
+        )}
 
         <div className={cn("py-4", collapsed ? "px-2" : "px-6")}>
           <Link
@@ -261,7 +274,7 @@ export default function Sidebar({
         <nav
           aria-label="Main navigation"
           className={cn(
-            "flex-1 py-2 space-y-1 overflow-y-auto custom-scrollbar",
+            "min-h-0 flex-1 space-y-1 overflow-y-auto py-2 custom-scrollbar",
             collapsed ? "px-2" : "px-4"
           )}
         >
@@ -288,9 +301,14 @@ export default function Sidebar({
 
         <div
           className={cn(
-            "border-t border-black/5 dark:border-white/5",
+            "shrink-0 border-t border-black/5 dark:border-white/5",
             collapsed ? "p-2 flex flex-col gap-1" : "p-3 flex gap-2"
           )}
+          style={{
+            paddingBottom: isMacElectron
+              ? "calc(0.75rem + var(--desktop-safe-bottom))"
+              : undefined,
+          }}
         >
           <button
             onClick={() => setShowRestartModal(true)}
@@ -298,7 +316,7 @@ export default function Sidebar({
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
               "text-amber-500 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40",
-              collapsed ? "p-2" : "flex-1 px-3 py-2 text-sm"
+              collapsed ? "p-2" : "flex-1 min-w-0 px-3 py-2 text-xs"
             )}
           >
             <span className="material-symbols-outlined text-[18px]">restart_alt</span>
@@ -310,7 +328,7 @@ export default function Sidebar({
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
               "text-red-500 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/40",
-              collapsed ? "p-2" : "flex-1 px-3 py-2 text-sm"
+              collapsed ? "p-2" : "flex-1 min-w-0 px-3 py-2 text-xs"
             )}
           >
             <span className="material-symbols-outlined text-[18px]">power_settings_new</span>
@@ -367,4 +385,5 @@ Sidebar.propTypes = {
   onClose: PropTypes.func,
   collapsed: PropTypes.bool,
   onToggleCollapse: PropTypes.func,
+  isMacElectron: PropTypes.bool,
 };

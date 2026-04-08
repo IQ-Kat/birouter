@@ -4,102 +4,168 @@
 
 ---
 
-ภาพแนะนำทุกส่วนของแดชบอร์ด OmniRoute---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-จัดการการเชื่อมต่อผู้ให้บริการ AI: ผู้ให้บริการ OAuth (Claude Code, Codex, Gemini CLI), ผู้ให้บริการคีย์ API (Groq, DeepSeek, OpenRouter) และผู้ให้บริการฟรี (Qoder, Qwen, Kiro) บัญชี Kiro มีการติดตามยอดเครดิต — เครดิตที่เหลือ เบี้ยเลี้ยงทั้งหมด และวันที่ต่ออายุสามารถดูได้ในแดชบอร์ด → การใช้งาน![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-สร้างคอมโบการกำหนดเส้นทางแบบจำลองด้วย 6 กลยุทธ์: ลำดับความสำคัญ, ถ่วงน้ำหนัก, วนรอบ, สุ่ม, ใช้น้อยที่สุด และปรับต้นทุนให้เหมาะสม แต่ละคอมโบเชื่อมโยงหลายรุ่นด้วยทางเลือกอัตโนมัติ และรวมถึงเทมเพลตที่รวดเร็วและการตรวจสอบความพร้อม![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-การวิเคราะห์การใช้งานที่ครอบคลุมด้วยการใช้โทเค็น การประมาณการต้นทุน แผนที่ความร้อนของกิจกรรม แผนภูมิการกระจายรายสัปดาห์ และรายละเอียดต่อผู้ให้บริการ![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-การตรวจสอบแบบเรียลไทม์: เวลาทำงาน หน่วยความจำ เวอร์ชัน เปอร์เซ็นต์ไทล์แฝง (p50/p95/p99) สถิติแคช และสถานะเซอร์กิตเบรกเกอร์ของผู้ให้บริการ![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-สี่โหมดสำหรับการดีบักการแปล API:**Playground**(ตัวแปลงรูปแบบ),**Chat Tester**(คำขอสด),**Test Bench**(การทดสอบเป็นกลุ่ม) และ**Live Monitor**(สตรีมแบบเรียลไทม์)![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-ทดสอบรุ่นใดก็ได้โดยตรงจากแดชบอร์ด เลือกผู้ให้บริการ โมเดล และจุดสิ้นสุด เขียนพร้อมท์ด้วย Monaco Editor สตรีมการตอบกลับแบบเรียลไทม์ ยกเลิกระหว่างสตรีม และดูตัวชี้วัดเวลา---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-ธีมสีที่ปรับแต่งได้สำหรับแดชบอร์ดทั้งหมด เลือกจากสีที่ตั้งไว้ล่วงหน้า 7 สี (คอรัล, น้ำเงิน, แดง, เขียว, ม่วง, ส้ม, ฟ้า) หรือสร้างธีมแบบกำหนดเองโดยเลือกสีฐานสิบหกใดก็ได้ รองรับโหมดแสง มืด และระบบ---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-แผงการตั้งค่าที่ครอบคลุมพร้อมแท็บ:
+Comprehensive settings panel with tabs:
 
--**ทั่วไป**— ที่เก็บข้อมูลระบบ การจัดการการสำรองข้อมูล (ฐานข้อมูลส่งออก/นำเข้า) -**รูปลักษณ์**— ตัวเลือกธีม (มืด/สว่าง/ระบบ) การตั้งค่าธีมสีและสีที่กำหนดเอง การมองเห็นบันทึกสุขภาพ การควบคุมการมองเห็นรายการในแถบด้านข้าง -**ความปลอดภัย**— การป้องกันจุดสิ้นสุด API, การบล็อกผู้ให้บริการแบบกำหนดเอง, การกรอง IP, ข้อมูลเซสชัน -**การกำหนดเส้นทาง**— นามแฝงโมเดล การลดระดับงานในเบื้องหลัง -**ความยืดหยุ่น**— การคงอยู่ของอัตราจำกัด การปรับเซอร์กิตเบรกเกอร์ บัญชีที่ถูกแบนปิดการใช้งานอัตโนมัติ การตรวจสอบการหมดอายุของผู้ให้บริการ -**ขั้นสูง**— การแทนที่การกำหนดค่า เส้นทางการตรวจสอบการกำหนดค่า โหมดการลดประสิทธิภาพทางเลือก![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-การกำหนดค่าเพียงคลิกเดียวสำหรับเครื่องมือเข้ารหัส AI: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor และ Factory Droid นำเสนอการตั้งค่า/รีเซ็ตอัตโนมัติ โปรไฟล์การเชื่อมต่อ และการแมปโมเดล![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-แดชบอร์ดสำหรับการค้นหาและจัดการตัวแทน CLI แสดงตารางของเอเจนต์ในตัว 14 รายการ (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) ด้วย:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**สถานะการติดตั้ง**— ติดตั้งแล้ว / ไม่พบด้วยการตรวจหาเวอร์ชัน -**ป้ายโปรโตคอล**— stdio, HTTP ฯลฯ -**ตัวแทนที่กำหนดเอง**— ลงทะเบียนเครื่องมือ CLI ใด ๆ ผ่านแบบฟอร์ม (ชื่อ, ไบนารี่, คำสั่งเวอร์ชัน, spawn args) -**การจับคู่ลายนิ้วมือ CLI**— สลับระหว่างผู้ให้บริการแต่ละรายเพื่อให้ตรงกับลายเซ็นคำขอ CLI ดั้งเดิม ซึ่งช่วยลดความเสี่ยงในการแบนในขณะที่รักษา IP พร็อกซีไว้---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-สร้างภาพ วิดีโอ และเพลงจากแดชบอร์ด รองรับ OpenAI, xAI, Together, ไฮเปอร์โบลิก, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open และ MusicGen---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-การบันทึกคำขอแบบเรียลไทม์พร้อมการกรองตามผู้ให้บริการ โมเดล บัญชี และคีย์ API แสดงรหัสสถานะ การใช้โทเค็น เวลาแฝง และรายละเอียดการตอบกลับ![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-ตำแหน่งข้อมูล API แบบรวมของคุณพร้อมรายละเอียดความสามารถ: การแชทให้เสร็จสิ้น, API การตอบกลับ, การฝัง, การสร้างรูปภาพ, การจัดอันดับใหม่, การถอดเสียง, การอ่านออกเสียงข้อความ, การกลั่นกรอง และคีย์ API ที่ลงทะเบียน การรวม Cloudflare Quick Tunnel และการสนับสนุนพร็อกซีคลาวด์สำหรับการเข้าถึงระยะไกล![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-สร้าง กำหนดขอบเขต และเพิกถอนคีย์ API แต่ละคีย์สามารถจำกัดเฉพาะรุ่น/ผู้ให้บริการเฉพาะที่มีสิทธิ์การเข้าถึงแบบเต็มหรือสิทธิ์อ่านอย่างเดียว การจัดการคีย์ภาพพร้อมการติดตามการใช้งาน---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-การติดตามการดำเนินการด้านการดูแลระบบพร้อมการกรองตามประเภทการดำเนินการ ผู้ดำเนินการ เป้าหมาย ที่อยู่ IP และการประทับเวลา ประวัติเหตุการณ์ความปลอดภัยแบบเต็ม---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-แอพเดสก์ท็อป Native Electron สำหรับ Windows, macOS และ Linux เรียกใช้ OmniRoute เป็นแอปพลิเคชันแบบสแตนด์อโลนที่มีการบูรณาการถาดระบบ การสนับสนุนแบบออฟไลน์ การอัปเดตอัตโนมัติ และการติดตั้งในคลิกเดียว
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-คุณสมบัติที่สำคัญ:
+Key features:
 
-- การโพลความพร้อมของเซิร์ฟเวอร์ (ไม่มีหน้าจอว่างเมื่อสตาร์ทเย็น)
-- ถาดระบบพร้อมการจัดการพอร์ต
-- นโยบายการรักษาความปลอดภัยของเนื้อหา
-- ล็อคอินสแตนซ์เดียว
-- อัปเดตอัตโนมัติเมื่อรีสตาร์ท
-- UI แบบมีเงื่อนไขของแพลตฟอร์ม (ไฟจราจร macOS, แถบหัวเรื่องเริ่มต้นของ Windows/Linux)
-- บรรจุภัณฑ์สำหรับการสร้างอิเล็กตรอนที่แข็งตัว — `node_modules` ที่เชื่อมโยงกันในชุดรวมแบบสแตนด์อโลนจะถูกตรวจจับและปฏิเสธก่อนการบรรจุ ป้องกันการพึ่งพารันไทม์กับเครื่องประกอบ (v2.5.5+)
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 ดู [`electron/README.md`](../electron/README.md) สำหรับเอกสารฉบับเต็ม
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

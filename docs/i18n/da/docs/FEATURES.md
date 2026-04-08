@@ -4,102 +4,168 @@
 
 ---
 
-Visuel guide til hver sektion af OmniRoute-dashboardet.---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-Administrer AI-udbyderforbindelser: OAuth-udbydere (Claude Code, Codex, Gemini CLI), API-nøgleudbydere (Groq, DeepSeek, OpenRouter) og gratis udbydere (Qoder, Qwen, Kiro). Kiro-konti inkluderer sporing af kreditsaldo - resterende kreditter, samlet godtgørelse og fornyelsesdato synlig i Dashboard → Brug.![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Opret modelrouting-kombinationer med 6 strategier: prioritet, vægtet, round-robin, tilfældig, mindst brugt og omkostningsoptimeret. Hver combo kæder flere modeller med automatisk fallback og inkluderer hurtige skabeloner og klarhedstjek.![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Omfattende brugsanalyse med token-forbrug, omkostningsestimater, aktivitetsvarmekort, ugentlige distributionsdiagrammer og opdelinger pr. udbyder.![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Overvågning i realtid: oppetid, hukommelse, version, latency percentiler (p50/p95/p99), cache-statistik og udbyderens afbrydertilstande.![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Fire tilstande til fejlfinding af API-oversættelser:**Playground**(formatkonverter),**Chat Tester**(live-anmodninger),**Test Bench**(batchtest) og**Live Monitor**(streaming i realtid).![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Test enhver model direkte fra instrumentbrættet. Vælg udbyder, model og slutpunkt, skriv prompts med Monaco Editor, stream svar i realtid, afbryd midt-stream, og se timing-metrics.---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Brugerdefinerbare farvetemaer til hele dashboardet. Vælg mellem 7 forudindstillede farver (koral, blå, rød, grøn, violet, orange, cyan) eller opret et brugerdefineret tema ved at vælge en hex-farve. Understøtter lys, mørk og systemtilstand.---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-Omfattende indstillingspanel med faner:
+Comprehensive settings panel with tabs:
 
--**Generelt**— Systemlagring, backupstyring (eksport/importdatabase) -**Udseende**— Temavælger (mørke/lys/system), forudindstillinger af farvetema og brugerdefinerede farver, synlighed i sundhedslog, synlighedskontrol for sidebjælkeelementer -**Sikkerhed**— API-endepunktsbeskyttelse, tilpasset udbyderblokering, IP-filtrering, sessionsoplysninger -**Routing**— Modelaliaser, forringelse af baggrundsopgaver -**Resiliens**— Frekvensgrænsevedholdenhed, tuning af strømafbryder, automatisk deaktivering af forbudte konti, overvågning af udbyderens udløb -**Avanceret**— Konfigurationstilsidesættelser, konfigurationsrevisionsspor, fallback-forringelsestilstand![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-Et-klik-konfiguration til AI-kodningsværktøjer: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor og Factory Droid. Indeholder automatiseret konfigurationsanvendelse/nulstilling, forbindelsesprofiler og modelkortlægning.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard til at opdage og administrere CLI-agenter. Viser et gitter med 14 indbyggede agenter (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) med:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**Installationsstatus**— Installeret / Ikke fundet med versionsregistrering -**Protokolmærker**— stdio, HTTP osv. -**Tilpassede agenter**- Registrer ethvert CLI-værktøj via formular (navn, binær, versionskommando, spawn args) -**CLI Fingerprint Matching**— Skift pr. udbyder for at matche native CLI-anmodningssignaturer, hvilket reducerer risikoen for forbud, mens proxy-IP bevares---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generer billeder, videoer og musik fra dashboardet. Understøtter OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open og MusicGen.---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-Anmodningslogning i realtid med filtrering efter udbyder, model, konto og API-nøgle. Viser statuskoder, tokenbrug, latenstid og svardetaljer.![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Dit forenede API-slutpunkt med kapacitetsopdeling: Chatfuldførelser, Responses API, indlejringer, billedgenerering, omrangering, lydtransskription, tekst-til-tale, modereringer og registrerede API-nøgler. Cloudflare Quick Tunnel integration og cloud proxy support til fjernadgang.![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Opret, omfang og tilbagekald API-nøgler. Hver nøgle kan begrænses til specifikke modeller/udbydere med fuld adgang eller skrivebeskyttet tilladelse. Visuel nøglestyring med brugssporing.---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-Administrativ handlingssporing med filtrering efter handlingstype, aktør, mål, IP-adresse og tidsstempel. Fuld historik for sikkerhedshændelser.---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Native Electron desktop-app til Windows, macOS og Linux. Kør OmniRoute som et selvstændigt program med systembakkeintegration, offline support, automatisk opdatering og installation med ét klik.
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-Nøglefunktioner:
+Key features:
 
-- Afstemning af serverberedskab (ingen tom skærm ved koldstart)
-- Systembakke med portstyring
-- Indholdssikkerhedspolitik
-- Engangslås
-- Automatisk opdatering ved genstart
-- Platform-betinget UI (macOS trafiklys, Windows/Linux standard titellinje)
-- Hærdet Electron build-emballage — symlinkede 'node_modules' i den selvstændige bundt detekteres og afvises før pakning, hvilket forhindrer runtime-afhængighed af build-maskinen (v2.5.5+)
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 Se [`electron/README.md`](../electron/README.md) for fuld dokumentation.
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

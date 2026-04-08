@@ -8,9 +8,17 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
+import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
+import {
+  getModelTargetFormat,
+  PROVIDER_ID_TO_ALIAS,
+} from "@omniroute/open-sse/config/providerModels.ts";
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
+import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { getSettings, getCombos } from "@/lib/localDb";
 import { sanitizeRequest } from "../../shared/utils/inputSanitizer";
 import {
@@ -299,8 +307,12 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       getSettings().catch(() => ({})),
       getCombos().catch(() => []),
     ]);
+    const relayConfig =
+      combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
     telemetry.endPhase();
 
+    // Context-relay keeps generation in combo.ts, but handoff injection lives here
+    // because only this layer knows which connectionId was actually selected.
     const response = await (handleComboChat as any)({
       body,
       combo,
@@ -324,6 +336,13 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       log,
       settings,
       allCombos,
+      relayOptions:
+        combo.strategy === "context-relay"
+          ? {
+              sessionId,
+              config: relayConfig,
+            }
+          : undefined,
     });
 
     // ── Global Fallback Provider (#689) ────────────────────────────────────
@@ -484,7 +503,30 @@ async function handleSingleModelChat(
 
     const accountId = credentials.connectionId.slice(0, 8);
     log.info("AUTH", `Using ${provider} account: ${accountId}...`);
-    if (runtimeOptions.sessionId) {
+    let requestBody = body;
+    let injectedHandoff = null;
+    if (
+      comboStrategy === "context-relay" &&
+      comboName &&
+      runtimeOptions.sessionId &&
+      body?._omnirouteSkipContextRelay !== true
+    ) {
+      const handoff = getHandoff(runtimeOptions.sessionId, comboName);
+      if (handoff && handoff.fromAccount !== credentials.connectionId) {
+        // Inject only after a real account switch. The combo loop itself cannot
+        // reliably detect this because account selection happens inside auth.
+        requestBody = injectHandoffIntoBody(body, handoff);
+        injectedHandoff = handoff;
+        log.info(
+          "CONTEXT_RELAY",
+          `Injecting handoff for session ${runtimeOptions.sessionId}: ${handoff.fromAccount.slice(
+            0,
+            8
+          )} -> ${credentials.connectionId.slice(0, 8)}`
+        );
+      }
+    }
+    if (runtimeOptions.sessionId && body?._omnirouteInternalRequest !== "context-handoff") {
       touchSession(runtimeOptions.sessionId, credentials.connectionId);
     }
 
@@ -497,7 +539,7 @@ async function handleSingleModelChat(
     const { result, tlsFingerprintUsed } = await executeChatWithBreaker({
       bypassCircuitBreaker: forceLiveComboTest,
       breaker,
-      body,
+      body: requestBody,
       provider,
       model,
       refreshedCredentials,
@@ -515,6 +557,11 @@ async function handleSingleModelChat(
     if (telemetry) telemetry.endPhase();
 
     const proxyLatency = Date.now() - proxyStartTime;
+    const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
+    const effectiveTargetFormat =
+      getModelTargetFormat(providerAlias, model) ||
+      getTargetFormat(provider, credentials.providerSpecificData) ||
+      targetFormat;
 
     // 5. Log proxy + translation events
     safeLogEvents({
@@ -524,7 +571,7 @@ async function handleSingleModelChat(
       provider,
       model,
       sourceFormat,
-      targetFormat,
+      targetFormat: effectiveTargetFormat,
       credentials,
       comboName,
       clientRawRequest,
@@ -533,6 +580,9 @@ async function handleSingleModelChat(
 
     if (result.success) {
       clearModelUnavailability(provider, model);
+      if (injectedHandoff && runtimeOptions.sessionId && comboName) {
+        deleteHandoff(runtimeOptions.sessionId, comboName);
+      }
       if (telemetry) telemetry.startPhase("finalize");
       if (telemetry) telemetry.endPhase();
       return result.response;

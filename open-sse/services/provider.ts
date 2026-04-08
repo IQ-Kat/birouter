@@ -29,8 +29,17 @@ export function isClaudeCodeCompatible(provider) {
   return typeof provider === "string" && provider.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
 
-function getOpenAICompatibleType(provider) {
+export function getOpenAICompatibleType(provider, providerSpecificData = null) {
   if (!isOpenAICompatible(provider)) return "chat";
+  const configuredType =
+    providerSpecificData &&
+    typeof providerSpecificData === "object" &&
+    typeof providerSpecificData.apiType === "string"
+      ? providerSpecificData.apiType
+      : null;
+  if (configuredType === "responses" || configuredType === "chat") {
+    return configuredType;
+  }
   return provider.includes("responses") ? "responses" : "chat";
 }
 
@@ -178,9 +187,9 @@ export function detectFormat(body) {
 }
 
 // Get provider config
-export function getProviderConfig(provider) {
+export function getProviderConfig(provider, providerSpecificData = null) {
   if (isOpenAICompatible(provider)) {
-    const apiType = getOpenAICompatibleType(provider);
+    const apiType = getOpenAICompatibleType(provider, providerSpecificData);
     return {
       ...PROVIDERS.openai,
       format: apiType === "responses" ? "openai-responses" : "openai",
@@ -208,11 +217,19 @@ export function buildProviderUrl(
   provider,
   model,
   stream = true,
-  options: { baseUrl?: string; baseUrlIndex?: number } = {}
+  options: {
+    baseUrl?: string;
+    baseUrlIndex?: number;
+    providerSpecificData?: Record<string, unknown> | null;
+  } = {}
 ) {
   if (isOpenAICompatible(provider)) {
-    const apiType = getOpenAICompatibleType(provider);
-    const baseUrl = options?.baseUrl || OPENAI_COMPATIBLE_DEFAULTS.baseUrl;
+    const providerSpecificData = options?.providerSpecificData || null;
+    const apiType = getOpenAICompatibleType(provider, providerSpecificData);
+    const baseUrl =
+      options?.baseUrl ||
+      (typeof providerSpecificData?.baseUrl === "string" ? providerSpecificData.baseUrl : null) ||
+      OPENAI_COMPATIBLE_DEFAULTS.baseUrl;
     return buildOpenAICompatibleUrl(baseUrl, apiType);
   }
   if (isAnthropicCompatible(provider)) {
@@ -323,9 +340,11 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
 }
 
 // Get target format for provider
-export function getTargetFormat(provider) {
+export function getTargetFormat(provider, providerSpecificData = null) {
   if (isOpenAICompatible(provider)) {
-    return getOpenAICompatibleType(provider) === "responses" ? "openai-responses" : "openai";
+    return getOpenAICompatibleType(provider, providerSpecificData) === "responses"
+      ? "openai-responses"
+      : "openai";
   }
   if (isAnthropicCompatible(provider)) {
     return "claude";

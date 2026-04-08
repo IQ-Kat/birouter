@@ -18,6 +18,7 @@ import {
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
+import { useIsElectron } from "@/shared/hooks/useElectron";
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 
@@ -122,8 +123,11 @@ function usePageInfo(pathname: string | null): {
 export default function Header({ onMenuClick, showMenuButton = true }) {
   const pathname = usePathname();
   const router = useRouter();
+  const isElectron = useIsElectron();
   const t = useTranslations("header");
   const { title, description, breadcrumbs } = usePageInfo(pathname);
+  const isMacElectron =
+    isElectron && typeof window !== "undefined" && window.electronAPI?.platform === "darwin";
 
   const handleLogout = async () => {
     try {
@@ -138,7 +142,14 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
   };
 
   return (
-    <header className="flex items-center justify-between px-8 py-5 border-b border-black/5 dark:border-white/5 bg-bg/80 backdrop-blur-xl z-10 sticky top-0">
+    <header
+      className="sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-bg/80 px-8 py-5 backdrop-blur-xl dark:border-white/5"
+      style={{
+        paddingTop: isMacElectron
+          ? "calc(1.25rem + var(--desktop-safe-top))"
+          : undefined,
+      }}
+    >
       {/* Mobile menu button */}
       <div className="flex items-center gap-3 lg:hidden">
         {showMenuButton && (

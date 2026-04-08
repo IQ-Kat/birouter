@@ -343,6 +343,7 @@ export async function handleSetRoutingStrategy(args: {
     | "priority"
     | "weighted"
     | "round-robin"
+    | "context-relay"
     | "strict-random"
     | "random"
     | "least-used"

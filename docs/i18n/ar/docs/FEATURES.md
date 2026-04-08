@@ -4,70 +4,168 @@
 
 ---
 
-دليل مرئي لكل قسم من معلومات لوحة OmniRoute.---## 🔌 Providers
 
-إدارة اتصالات الذكاء الصناعي: موفري OAuth (Claude Code وCodex وGemini CLI) وموفري مفاتيح API (Groq وDeepSeek وOpenRouter) ومقدمي خدمات العيد (Qoder وQwen وKiro). لحسابات كيرو على تتبع الاعتماد الائتماني - الأرصدة النهائية لإجمالي استطلاعات الرأي المتخصصة في لوحة التحكم → استخدام.![Providers Dashboard](screenshots/01-providers.png)---
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
+
+## 🔌 Providers
+
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
+
+---
 
 ## 🎨 Combos
 
-أنشئ مجموعات التوجيه باستخدام 6 إستراتيجيات: نأمل، والمتزايدة، والدورية، والعشوائية، وأقل استخدامًا، والمُحسّن من حيث التكلفة. وخاصة مجموعة نماذج متعددة مع اختلافات سريعة وفحوصات للجاهزية.![Combos Dashboard](screenshots/02-combos.png)---
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
+
+---
 
 ## 📊 Analytics
 
-تحليلات استخدام شاملة مع الرمز المميز، وتقديرات التكلفة، وخرائط، ومخططات التوزيع الأسبوعية، والتفاصيل لكل محمية.![Analytics Dashboard](screenshots/03-analytics.png)---
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
+
+---
 
 ## 🏥 System Health
 
-التسجيل في الوقت الفعلي: وقت العمل، والذاكرة، والإصدار، والنسب لزمن الوصول (p50/p95/p99)، وإحصائيات ذاكرة التخزين المؤقتة، وحالات منع دائرة الموفر.![Health Dashboard](screenshots/04-health.png)---
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
+
+---
 
 ## 🔧 Translator Playground
 
-أدوات لتصحيح أخطاء ترجمات برمجة التطبيقات:**ساحة اللعب**(محول أربعة نجاح)،**اختبار الدردشة**(الطلب المباشر)،**منصة الاختبار**(اختبارات الدفعة)، و**المراقب المباشر**(بث الوقت في العمل).![Translator Playground](screenshots/05-translator.png)---
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
+
+---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-اختبر أي نموذج مباشرة من لوحة القيادة. حدد الموفر والطراز والنقطة النهائية، وكتب المطالبات باستخدام محرر موناكو، وقم بتفعيل الاستثناءات في المنتج الفعلي، وإلغاء منتصف الدفق، والمعايرة التقليدية مرة.---## 🎨 Themes _(v2.0.5+)_
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
 
-ألوان قابلة للتخصيص لمعلومات لوحة المفاتيح بأكملها. اختر من بين 7 ألوان محددة ليمين (مرجاني، أزرق، أخضر، بنفسجي، لون أحمر، سماوي) أو قم باختيار سمة مخصصة عن طريق اختيار أي سداسي عشري. يدعم وضع الضوء والظلام النظام.---## ⚙️ Settings
+---
 
-لوحة الإعدادات شاملة مع علامات التبويب:
+## 🎨 Themes _(v2.0.5+)_
 
--**عام**— تخزين النظام، وإدارة النسخ الاحتياطي (قاعدة بيانات التصدير/الاستيراد) -**المظهر**— محدد السماعة (داكن/فاتح/نظام)، الإعدادات المسبقة لموضوع الألوان والألوان المخصصة، ورؤية السجل الصحي، وعناصر التحكم في رؤية عنصر الشريط الجانبي -**الأمان**— حماية نقطة نهاية واجهة برمجة التطبيقات، وحظر الموفر المخصص، وتصفية IP، ومعلومات الاتصال -**التوجيه**— الأسماء المستعارة للنماذج، و الابتكارات الخلفية -**المرونة**— ونتيجة لذلك الحد الأقصى للمعدل، وضبط القيود، والتعطيل التلقائي للحسابات المحظورة، وانتهاء صلاحية الموفر -**متقدم**— تجاوز، ومسار تدقيق فقط، وتطبيق التدمير الاحتياطي![Settings Dashboard](screenshots/06-settings.png)---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
+
+## ⚙️ Settings
+
+Comprehensive settings panel with tabs:
+
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
+
+---
 
 ## 🔧 CLI Tools
 
-ختمة واحدة لأدوات تميز الذكاء الصناعي: Claude Code، وCodex CLI، وGemini CLI، وOpenClaw، وKilo Code، وAntigravity، وCline، وContinue، وCursor، وFactory Droid. تم تفعيل/إعادة ضبط تلقائي، فقط تعريف الاتصال، والنتائج المباشرة.![CLI Tools Dashboard](screenshots/07-cli-tools.png)---
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+
+---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-لوحة معلومات للتحكم في وكلاء CLI. تم عرض شبكة مكونة من 14 وكيلًا مدمجًا (Codex وClaude وGoose وGemini CLI وOpenClaw وAider وOpenCode وCline وQwen Code وForgeCode وAmazon Q وOpen Interpreter وCursor CLI وWarp) مع:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**حالة التثبيت**— تم التثبيت/لم يتم العثور عليه باستخدام اكتشاف الإصدار -**توصيات المذكورة**— stdio، HTTP، وما إلى ذلك. -**الوكلاء يستهدفون**— هل هناك أي أداة لواجهة سطر الوكيل (CLI) عبر النموذج (الاسم، ثنائي، أمر الإصدار، وسيط النشر) -**مطابقة بصمة CLI**— التبديل لكل المرشحين لمطابقة توقيعات طلب CLI الأصلية، مما سيقدر من المبدع بالفعل مع ضمان عنوان IP الوكيل---## 🖼️ Media _(v2.0.3+)_
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
 
-موجود في الصور ومقاطع الفيديو والموسيقى من لوحة التحكم. يدعم OpenAI وxAI وTogether وHyperbolic وSD WebUI وComfyUI وAnimateDiff وStable Audio Open وMusicGen.---## 📝 Request Logs
+---
 
-تسجيل طلبات الإنتاج في الواقع باستخدام التصفية حسب الموفر والطراز والحساب ومفتاح واجهة برمجة التطبيقات. معلمات القيمة الناتجة عن التعويض الطبيعي ووقت التعويض وتفاصيل التعويض.![Usage Logs](screenshots/08-usage.png)---
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
+
+## 🖼️ Media _(v2.0.3+)_
+
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
+
+## 📝 Request Logs
+
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
+
+---
 
 ## 🌐 API Endpoint
 
-نقطة نهاية واجهة برمجة التطبيقات الموحدة الخاصة بك مع تفاصيل التفاصيل: عمليات التسجيل، وواجهة برمجة تطبيقات الاستجابات، والتضمينات، وأي الصور، إلى الإعداد، والنسخة الصوتية، تحويل النص إلى كلام، والإشراف، ومفاتيح واجهة برمجة التطبيقات المفقودة. تكامل Cloudflare Quick Tunnel للتواصل مع وكيل السحابي للوصول إليه بعد.![Endpoint Dashboard](screenshots/09-endpoint.png)---
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
+
+---
 
 ## 🔑 API Key Management
 
-إنشاء مفاتيح API ونطاقها لربط وإلها. يمكن أن يكون هناك كل المفاتيح الرئيسية على/موفري خدمات محددة لهم حق الوصول الكامل أو أذونات القراءة فقط. إدارة المفاتيح المرئية مع تكرار الاستخدام.---## 📋 Audit Log
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
 
-متابعة الإجراءات الإدارية بالتصفية حسب نوع الإجراء والممثل والهدف وعنوان IP والطابع الزمني. سجل الأحداث الأمنية الكاملة.---## 🖥️ Desktop Application
+---
 
-تطبيق Native Electron لسطح المكتب لأنظمة التشغيل Windows وmacOS وLinux. قم بالموافقة على OmniRoute كتطبيق مستقل مع نظام متكامل للنظام والدعم دون الاتصال والتحديث التلقائي والتثبيت بنقرة واحدة.
+## 📋 Audit Log
 
-الميزات الرئيسية:
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
 
-- استقصاء جاهزية الضيوف (لا توجد شاشة عند التشغيل البارد)
-- نظام إدارة المنافذ
-- اتخاذ القرار بشأن المحتوى
-- مثال واحد
-- التحديث التلقائي عند إعادة التشغيل
-- واجهة المستخدم مشروطة بالكامل (إشارات المرور لنظام التشغيل MacOS، وشريط العنوان الإلكتروني لنظام التشغيل Windows/Linux)
-- بناء الإلكترون المقوى - يتم إبتكار "وحدات_العقدة" وتشهد بالرمز في المقترحات ورفضها قبل قبولها، مما يمنع الاعتماد في وقت التشغيل على البناء (الإصدار 2.5.5+)
+---
 
-📖 راجع [`electron/README.md`](../electron/README.md) للحصول على التوثيق الكامل.
+## 🖥️ Desktop Application
+
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+
+Key features:
+
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

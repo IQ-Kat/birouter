@@ -4,102 +4,168 @@
 
 ---
 
-Vizuální průvodce každou částí řídicího panelu OmniRoute.---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-Správa připojení poskytovatelů AI: poskytovatelé OAuth (Claude Code, Codex, Gemini CLI), poskytovatelé klíčů API (Groq, DeepSeek, OpenRouter) a bezplatní poskytovatelé (Qoder, Qwen, Kiro). Účty Kiro zahrnují sledování zůstatku kreditu – zbývající kredity, celkový příspěvek a datum obnovení jsou viditelné v Dashboard → Použití.![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Vytvářejte komba směrování modelů se 6 strategiemi: prioritní, vážená, cyklická, náhodná, nejméně používaná a nákladově optimalizovaná. Každé kombo řetězí více modelů s automatickým nouzovým návratem a zahrnuje rychlé šablony a kontroly připravenosti.![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Komplexní analýzy využití se spotřebou tokenů, odhady nákladů, teplotní mapy aktivit, týdenní distribuční grafy a rozpisy podle poskytovatelů.![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Monitorování v reálném čase: doba provozuschopnosti, paměť, verze, percentily latence (p50/p95/p99), statistika mezipaměti a stavy jističe poskytovatele.![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Čtyři režimy pro ladění překladů API:**Playground**(konvertor formátů),**Chat Tester**(živé požadavky),**Test Bench**(dávkové testy) a**Live Monitor**(stream v reálném čase).![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Otestujte jakýkoli model přímo z palubní desky. Vyberte poskytovatele, model a koncový bod, pište výzvy pomocí editoru Monaco, streamujte odpovědi v reálném čase, rušte uprostřed streamu a zobrazujte metriky časování.---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Přizpůsobitelné barevné motivy pro celý přístrojový panel. Vyberte si ze 7 přednastavených barev (korálová, modrá, červená, zelená, fialová, oranžová, azurová) nebo si vytvořte vlastní motiv výběrem libovolné šestihranné barvy. Podporuje světlý, tmavý a systémový režim.---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-Komplexní panel nastavení s kartami:
+Comprehensive settings panel with tabs:
 
--**Obecné**— Systémové úložiště, správa zálohování (export/import databáze) -**Vzhled**— Volič motivu (tmavý/světlý/systém), přednastavení barevných motivů a vlastní barvy, viditelnost zdravotního deníku, ovládací prvky viditelnosti položek na postranním panelu -**Zabezpečení**— Ochrana koncových bodů API, blokování vlastního poskytovatele, filtrování IP, informace o relaci -**Směrování**— Modelové aliasy, degradace úloh na pozadí -**Odolnost**- Perzistence rychlostního limitu, ladění jističe, automatické deaktivace zakázaných účtů, sledování expirace poskytovatele -**Advanced**– Přepisy konfigurace, auditní záznam konfigurace, režim degradace záložního řešení![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-Konfigurace jedním kliknutím pro nástroje pro kódování AI: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor a Factory Droid. Obsahuje automatické nastavení konfigurace/resetování, profily připojení a mapování modelu.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard pro zjišťování a správu agentů CLI. Zobrazuje mřížku 14 vestavěných agentů (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) s:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**Stav instalace**— Instalováno / Nenalezeno s detekcí verze -**Odznaky protokolu**— stdio, HTTP atd. -**Vlastní agenti**— Zaregistrujte jakýkoli nástroj CLI prostřednictvím formuláře (název, binární soubor, příkaz verze, spawn args) -**CLI Fingerprint Matching**– Přepínání na jednotlivé poskytovatele, aby odpovídalo nativním podpisům požadavků CLI, čímž se snižuje riziko zákazu při zachování IP adresy proxy---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generujte obrázky, videa a hudbu z řídicího panelu. Podporuje OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open a MusicGen.---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-Protokolování požadavků v reálném čase s filtrováním podle poskytovatele, modelu, účtu a klíče API. Zobrazuje stavové kódy, využití tokenu, latenci a podrobnosti o odpovědi.![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Váš sjednocený koncový bod API s rozdělením schopností: Dokončení chatu, API odpovědí, vkládání, generování obrázků, změna pořadí, přepis zvuku, převod textu na řeč, moderování a registrované klíče rozhraní API. Integrace Cloudflare Quick Tunnel a podpora cloudového proxy pro vzdálený přístup.![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Vytvářejte, upravujte a rušte klíče API. Každý klíč může být omezen na konkrétní modely/poskytovatele s plným přístupem nebo oprávněním pouze pro čtení. Vizuální správa klíčů se sledováním využití.---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-Sledování administrativních akcí s filtrováním podle typu akce, aktéra, cíle, IP adresy a časového razítka. Úplná historie událostí zabezpečení.---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Nativní desktopová aplikace Electron pro Windows, macOS a Linux. Spusťte OmniRoute jako samostatnou aplikaci s integrací na systémové liště, offline podporou, automatickou aktualizací a instalací jedním kliknutím.
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-Klíčové vlastnosti:
+Key features:
 
-- Dotazování připravenosti serveru (žádná prázdná obrazovka při studeném startu)
-- Systémová lišta se správou portů
-- Zásady zabezpečení obsahu
-- Jednoinstanční zámek
-- Automatická aktualizace při restartu
-- Platformově podmíněné uživatelské rozhraní (semafory macOS, výchozí titulek Windows/Linux)
-- Balení sestavení Hardened Electron – symbolicky propojené `node_modules` v samostatném balíčku jsou detekovány a odmítnuty před zabalením, čímž se zabrání závislosti běhu na sestavení (v2.5.5+)
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 Úplnou dokumentaci naleznete v [`electron/README.md`](../electron/README.md).
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

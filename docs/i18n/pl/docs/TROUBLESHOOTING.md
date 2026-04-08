@@ -4,68 +4,142 @@
 
 ---
 
-Typowe problemy i rozwiązania dla OmniRoute.---
+
+
+Common problems and solutions for OmniRoute.
+
+---
 
 ## Quick Fixes
 
-| Problem                                    | Rozwiązanie                                                                            |
-| ------------------------------------------ | -------------------------------------------------------------------------------------- | --- |
-| Pierwsze logowanie nie działa              | Ustaw `INITIAL_PASSWORD` w `.env` (brak wartości domyślnej)                            |
-| Panel kontrolny otwiera się na złym porcie | Ustaw `PORT=20128` i `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                     |
-| Brak logów żądań w `logs/`                 | Ustaw `ENABLE_REQUEST_LOGS=true`                                                       |
-| EACCES: odmowa pozwolenia                  | Ustaw `DATA_DIR=/ścieżka/do/zapisu/katalog`, aby zastąpić `~/.omniroute`               |
-| Strategia routingu nie jest zapisywana     | Aktualizacja do wersji 1.4.11+ (poprawka schematu Zoda zapewniająca trwałość ustawień) | --- |
+| Problem                       | Solution                                                           |
+| ----------------------------- | ------------------------------------------------------------------ |
+| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
+| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
+| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
+| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
+| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
+| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below |
+| Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
+
+---
+
+## Node.js Compatibility
+
+<a name="nodejs-compatibility"></a>
+
+### Login page crashes or shows "Module self-registration" error
+
+**Cause:** You are running Node.js 24+. The `better-sqlite3` native binary is not compatible with Node.js 24, which causes a fatal crash when the server tries to initialize the database.
+
+**Symptoms:**
+- Login page shows a blank screen or a server error
+- Console shows `Error: Module did not self-register` or similar native binding errors
+- Starting with v3.5.5, the login page shows an **orange warning banner** with your Node version if incompatibility is detected
+
+**Fix:**
+
+1. Install Node.js 22 LTS (recommended):
+   ```bash
+   nvm install 22
+   nvm use 22
+   ```
+2. Verify your version: `node --version` should show `v22.x.x`
+3. Reinstall OmniRoute: `npm install -g omniroute`
+4. Restart: `omniroute`
+
+> **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+
+---
+
+## Proxy Issues
+
+<a name="proxy-issues"></a>
+
+### Provider validation shows "fetch failed"
+
+**Cause:** The API key validation endpoint (`POST /api/providers/validate`) was previously bypassing proxy configuration, causing failures in environments that require proxy routing.
+
+**Fix (v3.5.5+):** This is now fixed. Provider validation routes through `runWithProxyContext`, honoring provider-level and global proxy settings automatically.
+
+### Token health check fails with "fetch failed"
+
+**Cause:** Background OAuth token refresh was not resolving proxy configuration per connection.
+
+**Fix (v3.5.5+):** The token health check scheduler now resolves proxy config per connection before attempting refresh. Update to v3.5.5+.
+
+### SOCKS5 proxy returns "invalid onRequestStart method"
+
+**Cause:** On Node.js 22, the undici@8 dispatcher is incompatible with Node's built-in `fetch()` implementation.
+
+**Fix (v3.5.5+):** OmniRoute now uses undici's own `fetch()` function when a proxy dispatcher is active, ensuring consistent behavior. Update to v3.5.5+.
+
+---
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**Przyczyna:**Wyczerpany limit dostawcy.
+**Cause:** Provider quota exhausted.
 
-**Poprawka:**
+**Fix:**
 
-1. Sprawdź moduł śledzenia limitów na pulpicie nawigacyjnym
-2. Użyj kombinacji z poziomami rezerwowymi
-3. Przejdź na tańszy/bezpłatny poziom### Rate Limiting
+1. Check dashboard quota tracker
+2. Use a combo with fallback tiers
+3. Switch to cheaper/free tier
 
-**Przyczyna:**Wyczerpany limit subskrypcji.
+### Rate Limiting
 
-**Poprawka:**
+**Cause:** Subscription quota exhausted.
 
-- Dodaj rezerwę: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Użyj GLM/MiniMax jako taniej kopii zapasowej### OAuth Token Expired
+**Fix:**
 
-OmniRoute automatycznie odświeża tokeny. Jeśli problemy nadal występują:
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Use GLM/MiniMax as cheap backup
 
-1. Panel kontrolny → Dostawca → Połącz ponownie
-2. Usuń i ponownie dodaj połączenie dostawcy---
+### OAuth Token Expired
+
+OmniRoute auto-refreshes tokens. If issues persist:
+
+1. Dashboard → Provider → Reconnect
+2. Delete and re-add the provider connection
+
+---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. Sprawdź, czy `BASE_URL` wskazuje na działającą instancję (np. `http://localhost:20128`)
-2. Sprawdź, czy `CLOUD_URL` wskazuje na punkt końcowy Twojej chmury (np. `https://omniroute.dev`)
-3. Zachowaj wyrównanie wartości `NEXT_PUBLIC_*` z wartościami po stronie serwera### Cloud `stream=false` Returns 500
+1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
+2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
+3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
-**Objaw:**`Nieoczekiwany token „d”...` na punkcie końcowym chmury dla połączeń innych niż przesyłanie strumieniowe.
+### Cloud `stream=false` Returns 500
 
-**Przyczyna:**Upstream zwraca ładunek SSE, podczas gdy klient oczekuje JSON.
+**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
 
-**Rozwiązanie:**użyj parametru „stream=true” w przypadku bezpośrednich połączeń w chmurze. Lokalne środowisko wykonawcze obejmuje rezerwę SSE → JSON.### Cloud Says Connected but "Invalid API key"
+**Cause:** Upstream returns SSE payload while client expects JSON.
 
-1. Utwórz nowy klucz z lokalnego pulpitu nawigacyjnego (`/api/keys`)
-2. Uruchom synchronizację z chmurą: Włącz chmurę → Synchronizuj teraz
-3. Stare/niezsynchronizowane klucze nadal mogą zwracać „401” w chmurze---
+**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
+
+### Cloud Says Connected but "Invalid API key"
+
+1. Create a fresh key from local dashboard (`/api/keys`)
+2. Run cloud sync: Enable Cloud → Sync Now
+3. Old/non-synced keys can still return `401` on cloud
+
+---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. Sprawdź pola wykonawcze: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. W trybie przenośnym: użyj docelowego obrazu `runner-cli` (w pakiecie CLI)
-3. W trybie montowania hosta: ustaw `CLI_EXTRA_PATHS` i zamontuj katalog bin hosta jako tylko do odczytu
-4. Jeśli `installed=true` i `runnable=false`: znaleziono plik binarny, ale kontrola stanu nie powiodła się### Quick Runtime Validation
+1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. For portable mode: use image target `runner-cli` (bundled CLIs)
+3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
+4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
+
+### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -79,16 +153,20 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. Sprawdź statystyki użytkowania w Panelu → Użycie
-2. Zmień model podstawowy na GLM/MiniMax
-3. Używaj bezpłatnej warstwy (Gemini CLI, Qoder) do zadań niekrytycznych
-4. Ustaw budżety kosztów według klucza API: Panel → Klucze API → Budżet---
+1. Check usage stats in Dashboard → Usage
+2. Switch primary model to GLM/MiniMax
+3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
+4. Set cost budgets per API key: Dashboard → API Keys → Budget
+
+---
 
 ## Debugging
 
 ### Enable Request Logs
 
-Ustaw `ENABLE_REQUEST_LOGS=true` w swoim pliku `.env`. Dzienniki pojawiają się w katalogu `logs/`.### Check Provider Health
+Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
+
+### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -100,101 +178,135 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- Stan główny: `${DATA_DIR}/storage.sqlite` (dostawcy, kombinacje, aliasy, klucze, ustawienia)
-- Użycie: tabele SQLite w `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + opcjonalnie `${DATA_DIR}/log.txt` i `${DATA_DIR}/call_logs/`
-- Żądaj logów: `<repo>/logs/...` (gdy `ENABLE_REQUEST_LOGS=true`)---
+- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
+- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
+- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
+
+---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-Gdy wyłącznik automatyczny dostawcy jest OTWARTY, żądania są blokowane do czasu upłynięcia czasu odnowienia.
+When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
 
-**Poprawka:**
+**Fix:**
 
-1. Przejdź do**Panel sterowania → Ustawienia → Odporność**
-2. Sprawdź kartę wyłącznika dla odpowiedniego dostawcy
-3. Kliknij**Resetuj wszystko**, aby wyczyścić wszystkie wyłączniki, lub poczekaj, aż upłynie czas odnowienia
-4. Przed zresetowaniem sprawdź, czy dostawca jest rzeczywiście dostępny### Provider keeps tripping the circuit breaker
+1. Go to **Dashboard → Settings → Resilience**
+2. Check the circuit breaker card for the affected provider
+3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
+4. Verify the provider is actually available before resetting
 
-Jeśli dostawca wielokrotnie wchodzi w stan OPEN:
+### Provider keeps tripping the circuit breaker
 
-1. Sprawdź**Panel kontrolny → Kondycja → Kondycja dostawcy**pod kątem wzorca awarii
-2. Przejdź do**Ustawienia → Odporność → Profile dostawców**i zwiększ próg awarii
-3. Sprawdź, czy dostawca zmienił limity API lub wymaga ponownego uwierzytelnienia
-4. Sprawdź dane telemetryczne dotyczące opóźnień — duże opóźnienia mogą powodować awarie wynikające z przekroczenia limitu czasu---
+If a provider repeatedly enters OPEN state:
+
+1. Check **Dashboard → Health → Provider Health** for the failure pattern
+2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
+3. Check if the provider has changed API limits or requires re-authentication
+4. Review latency telemetry — high latency may cause timeout-based failures
+
+---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- Upewnij się, że używasz prawidłowego przedrostka: `deepgram/nova-3` lub `assemblyai/best`
-- Sprawdź, czy dostawca jest podłączony w**Panelu → Dostawcy**### Transcription returns empty or fails
+- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
+- Verify the provider is connected in **Dashboard → Providers**
 
-- Sprawdź obsługiwane formaty audio: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Sprawdź, czy rozmiar pliku mieści się w granicach dostawcy (zwykle < 25 MB)
-- Sprawdź ważność klucza API dostawcy na karcie dostawcy---
+### Transcription returns empty or fails
+
+- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Verify file size is within provider limits (typically < 25MB)
+- Check provider API key validity in the provider card
+
+---
 
 ## Translator Debugging
 
-Użyj**Panel kontrolny → Tłumacz**, aby debugować problemy z tłumaczeniem formatu:
+Use **Dashboard → Translator** to debug format translation issues:
 
-| Tryb                      | Kiedy stosować                                                                                                   |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| **Plac zabaw**            | Porównaj formaty wejścia/wyjścia obok siebie — wklej nieudane żądanie, aby zobaczyć, jak zostanie przetłumaczone |
-| **Tester czatu**          | Wysyłaj wiadomości na żywo i sprawdzaj pełny ładunek żądania/odpowiedzi, w tym nagłówki                          |
-| **Stolik testowy**        | Przeprowadź testy wsadowe dla kombinacji formatów, aby dowiedzieć się, które tłumaczenia są uszkodzone           |
-| **Monitorowanie na żywo** | Obserwuj przepływ żądań w czasie rzeczywistym, aby wykryć sporadyczne problemy z tłumaczeniem                    | ### Common format issues |
+| Mode             | When to Use                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
+| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
+| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
+| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
 
--**Tagi myślenia nie pojawiają się**— Sprawdź, czy dostawca docelowy obsługuje myślenie i ustawienie budżetu na myślenie -**Porzucanie wywołań narzędzi**— Niektóre tłumaczenia formatów mogą usuwać nieobsługiwane pola; sprawdź w trybie placu zabaw -**Brak podpowiedzi systemowej**— Claude i Gemini inaczej obsługują podpowiedzi systemowe; sprawdź wynik tłumaczenia -**SDK zwraca nieprzetworzony ciąg znaków zamiast obiektu**— Naprawiono w wersji 1.1.0: narzędzie do czyszczenia odpowiedzi usuwa teraz niestandardowe pola (`x_groq`, `usage_breakdown` itp.), które powodują błędy sprawdzania poprawności OpenAI SDK Pydantic -**GLM/ERNIE odrzuca rolę „systemową”**— Naprawiono w wersji 1.1.0: normalizator ról automatycznie łączy komunikaty systemowe z komunikatami użytkownika w przypadku niekompatybilnych modeli -**Rola „programisty” nie została rozpoznana**— Naprawiono w wersji 1.1.0: automatycznie konwertowana na „system” dla dostawców innych niż OpenAI -**`json_schema` nie działa z Gemini**— Naprawiono w wersji 1.1.0: `response_format` jest teraz konwertowany na `responseMimeType` + `responseSchema` Gemini---
+### Common format issues
+
+- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
+- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
+- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
+- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
+- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
+- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
+- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
+
+---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- Automatyczne ograniczenie szybkości dotyczy tylko dostawców kluczy API (nie OAuth/subskrypcja)
-- Sprawdź, czy**Ustawienia → Odporność → Profile dostawców**ma włączone automatyczne ograniczenie stawek
-- Sprawdź, czy dostawca zwraca kody stanu „429” lub nagłówki „Retry-After”.### Tuning exponential backoff
+- Auto rate-limit only applies to API key providers (not OAuth/subscription)
+- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
+- Check if the provider returns `429` status codes or `Retry-After` headers
 
-Profile dostawców obsługują następujące ustawienia:
+### Tuning exponential backoff
 
--**Opóźnienie bazowe**— Początkowy czas oczekiwania po pierwszej awarii (domyślnie: 1 s) -**Maks. opóźnienie**— Maksymalny limit czasu oczekiwania (domyślnie: 30 s) -**Mnożnik**— O ile zwiększyć opóźnienie przy kolejnej awarii (domyślnie: 2x)### Anti-thundering herd
+Provider profiles support these settings:
 
-Gdy wiele jednoczesnych żądań trafia do dostawcy z ograniczoną szybkością, OmniRoute używa mutexu i automatycznego ograniczania szybkości, aby serializować żądania i zapobiegać kaskadowym błędom. Jest to automatyczne w przypadku dostawców kluczy API.---
+- **Base delay** — Initial wait time after first failure (default: 1s)
+- **Max delay** — Maximum wait time cap (default: 30s)
+- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
+
+### Anti-thundering herd
+
+When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
+
+---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-Niektórzy użytkownicy OmniRoute umieszczają bramę przed stosami RAG lub agentów. W takich konfiguracjach często można zaobserwować dziwny wzór: OmniRoute wygląda na w porządku (dostawcy działają, profile routingu w porządku, brak alertów o limitach szybkości), ale ostateczna odpowiedź nadal jest błędna.
+Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
 
-W praktyce zdarzenia te zwykle mają miejsce w dalszym rurociągu RAG, a nie w samej bramie.
+In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
 
-Jeśli chcesz, aby wspólne słownictwo opisało te awarie, możesz użyć WFGY ProblemMap, zewnętrznego zasobu tekstowego licencji MIT, który definiuje szesnaście powtarzających się wzorców awarii RAG/LLM. Na wysokim poziomie obejmuje:
+If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
 
-- dryf wyszukiwania i zerwanie granic kontekstu
-- puste lub nieaktualne indeksy i magazyny wektorów
-- osadzanie a niedopasowanie semantyczne
-- szybkie problemy z montażem i oknem kontekstowym
-- załamanie logiki i zbytnia pewność siebie w odpowiedziach
-- błędy w długim łańcuchu i koordynacji agentów
-- pamięć wieloagentowa i dryf ról
-- problemy z wdrażaniem i porządkowaniem ładowania początkowego
+- retrieval drift and broken context boundaries
+- empty or stale indexes and vector stores
+- embedding versus semantic mismatch
+- prompt assembly and context window issues
+- logic collapse and overconfident answers
+- long chain and agent coordination failures
+- multi agent memory and role drift
+- deployment and bootstrap ordering problems
 
-Pomysł jest prosty:
+The idea is simple:
 
-1. Kiedy sprawdzasz złą reakcję, przechwyć:
-   - zadanie i żądanie użytkownika
-   - kombinacja tras lub dostawców w OmniRoute
-   - dowolny kontekst RAG używany w dalszej części procesu (pobrane dokumenty, wywołania narzędzi itp.)
-2. Przypisz incydent do jednego lub dwóch numerów WFGY ProblemMap („Nr 1” … „Nr 16”).
-3. Zapisz numer na swoim własnym pulpicie nawigacyjnym, elemencie Runbook lub narzędziu do śledzenia zdarzeń obok dzienników OmniRoute.
-4. Użyj odpowiedniej strony WFGY, aby zdecydować, czy musisz zmienić stos RAG, aporter lub strategię routingu.
+1. When you investigate a bad response, capture:
+   - user task and request
+   - route or provider combo in OmniRoute
+   - any RAG context used downstream (retrieved documents, tool calls, etc)
+2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
+3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
+4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
 
-Pełny tekst i konkretne przepisy znajdują się tutaj (licencja MIT, tylko tekst):
+Full text and concrete recipes live here (MIT license, text only):
 
-[Plik README ProblemMap WFGY](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
+[WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Możesz zignorować tę sekcję, jeśli nie uruchamiasz potoków RAG ani agentów za OmniRoute.---
+You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
+
+---
 
 ## Still Stuck?
 
--**Problemy z GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Architektura**: Zobacz [`docs/ARCHITECTURE.md`](ARCHITECTURE.md), aby uzyskać szczegółowe informacje wewnętrzne -**Dokumentacja API**: Zobacz [`docs/API_REFERENCE.md`](API_REFERENCE.md) dla wszystkich punktów końcowych -**Panel stanu**: Sprawdź**Panel kontrolny → Zdrowie**, aby sprawdzić stan systemu w czasie rzeczywistym -**Tłumacz**: Użyj**Panel kontrolny → Tłumacz**, aby debugować problemy z formatem
+- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
+- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
+- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
+- **Translator**: Use **Dashboard → Translator** to debug format issues
