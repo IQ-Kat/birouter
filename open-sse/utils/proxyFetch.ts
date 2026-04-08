@@ -165,7 +165,7 @@ export async function runWithProxyContext(proxyConfig, fn) {
 
 async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
   if (options?.dispatcher) {
-    return (undiciFetch as any)(input, options);
+    return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
   }
 
   const targetUrl = getTargetUrl(input);
@@ -198,7 +198,7 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
         if (store) store.used = false;
       }
     }
-    return (undiciFetch as any)(input, {
+    return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
       ...options,
       dispatcher: getDefaultDispatcher(),
     });
@@ -206,7 +206,10 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
 
   try {
     const dispatcher = createProxyDispatcher(proxyUrl);
-    return await (undiciFetch as any)(input, { ...options, dispatcher });
+    return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
+      ...options,
+      dispatcher,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[ProxyFetch] Proxy request failed (${source}, fail-closed): ${message}`);
