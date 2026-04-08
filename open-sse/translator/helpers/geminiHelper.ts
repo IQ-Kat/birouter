@@ -162,8 +162,9 @@ export function generateRequestId() {
 
 // Generate session ID
 export function generateSessionId() {
-  const bytes = crypto.randomBytes(8);
-  const num = bytes.readBigUInt64LE() % 9000000000000000000n;
+  const arr = new BigUint64Array(1);
+  globalThis.crypto.getRandomValues(arr);
+  const num = arr[0] % 9000000000000000000n;
   return `-${num.toString()}`;
 }
 
