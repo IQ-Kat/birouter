@@ -49,6 +49,8 @@ test("public login bootstrap route exposes the metadata the login page consumes"
     requireLogin: true,
     hasPassword: false,
     setupComplete: true,
+    nodeVersion: body.nodeVersion,
+    nodeCompatible: body.nodeCompatible,
   });
 });
 
@@ -68,6 +70,8 @@ test("public login bootstrap route reports env-provided bootstrap password metad
     requireLogin: true,
     hasPassword: true,
     setupComplete: true,
+    nodeVersion: body.nodeVersion,
+    nodeCompatible: body.nodeCompatible,
   });
 });
 
@@ -86,6 +90,8 @@ test("public login bootstrap route reports stored password metadata and disabled
     requireLogin: false,
     hasPassword: true,
     setupComplete: true,
+    nodeVersion: body.nodeVersion,
+    nodeCompatible: body.nodeCompatible,
   });
 });
 
