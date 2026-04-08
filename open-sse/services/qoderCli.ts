@@ -1,5 +1,8 @@
+import { spawn } from "child_process";
 import crypto from "crypto";
 
+const DEFAULT_TIMEOUT_MS = 45_000;
+const DEFAULT_MAX_TURNS = "1";
 const QODER_DEFAULT_MODEL = "qoder-rome-30ba3b";
 
 export const QODER_STATIC_MODELS = [
@@ -20,6 +23,26 @@ export const QODER_STATIC_MODELS = [
 ];
 
 type JsonRecord = Record<string, unknown>;
+
+type QoderCliRunOptions = {
+  token: string;
+  prompt: string;
+  stream: boolean;
+  model?: string | null;
+  workspace?: string | null;
+  command?: string | null;
+  signal?: AbortSignal | null;
+  timeoutMs?: number;
+};
+
+type QoderCliRunResult = {
+  ok: boolean;
+  code: number | null;
+  stdout: string;
+  stderr: string;
+  timedOut: boolean;
+  error: string | null;
+};
 
 type QoderCliFailure = {
   status: number;
@@ -295,10 +318,6 @@ export function parseQoderCliFailure(stderrText: string, stdoutText = ""): Qoder
 
   if (normalized.includes("timed out") || normalized.includes("timeout")) {
     return { status: 504, message: combined, code: "timeout" };
-  }
-
-  if (normalized.includes("command not found") || normalized.includes("no such file")) {
-    return { status: 503, message: combined, code: "runtime_error" };
   }
 
   return { status: 502, message: combined, code: "upstream_error" };
