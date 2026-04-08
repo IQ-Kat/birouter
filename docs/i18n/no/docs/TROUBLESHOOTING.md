@@ -4,68 +4,142 @@
 
 ---
 
-Vanlige problemer og løsninger for OmniRoute.---
+
+
+Common problems and solutions for OmniRoute.
+
+---
 
 ## Quick Fixes
 
-| Problem                                  | Løsning                                                              |
-| ---------------------------------------- | -------------------------------------------------------------------- | --- |
-| Første pålogging fungerer ikke           | Sett `INITIAL_PASSWORD` i `.env` (ingen hardkodet standard)          |
-| Dashboard åpnes på feil port             | Sett `PORT=20128` og `NEXT_PUBLIC_BASE_URL=http://localhost:20128`   |
-| Ingen forespørselslogger under `logger/` | Sett `ENABLE_REQUEST_LOGS=true`                                      |
-| EACCES: tillatelse nektet                | Sett `DATA_DIR=/path/to/writable/dir` for å overstyre `~/.omniroute` |
-| Rutingstrategi lagrer ikke               | Oppdater til v1.4.11+ (Zod-skjemafiks for varighet av innstillinger) | --- |
+| Problem                       | Solution                                                           |
+| ----------------------------- | ------------------------------------------------------------------ |
+| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
+| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
+| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
+| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
+| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
+| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below |
+| Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
+
+---
+
+## Node.js Compatibility
+
+<a name="nodejs-compatibility"></a>
+
+### Login page crashes or shows "Module self-registration" error
+
+**Cause:** You are running Node.js 24+. The `better-sqlite3` native binary is not compatible with Node.js 24, which causes a fatal crash when the server tries to initialize the database.
+
+**Symptoms:**
+- Login page shows a blank screen or a server error
+- Console shows `Error: Module did not self-register` or similar native binding errors
+- Starting with v3.5.5, the login page shows an **orange warning banner** with your Node version if incompatibility is detected
+
+**Fix:**
+
+1. Install Node.js 22 LTS (recommended):
+   ```bash
+   nvm install 22
+   nvm use 22
+   ```
+2. Verify your version: `node --version` should show `v22.x.x`
+3. Reinstall OmniRoute: `npm install -g omniroute`
+4. Restart: `omniroute`
+
+> **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+
+---
+
+## Proxy Issues
+
+<a name="proxy-issues"></a>
+
+### Provider validation shows "fetch failed"
+
+**Cause:** The API key validation endpoint (`POST /api/providers/validate`) was previously bypassing proxy configuration, causing failures in environments that require proxy routing.
+
+**Fix (v3.5.5+):** This is now fixed. Provider validation routes through `runWithProxyContext`, honoring provider-level and global proxy settings automatically.
+
+### Token health check fails with "fetch failed"
+
+**Cause:** Background OAuth token refresh was not resolving proxy configuration per connection.
+
+**Fix (v3.5.5+):** The token health check scheduler now resolves proxy config per connection before attempting refresh. Update to v3.5.5+.
+
+### SOCKS5 proxy returns "invalid onRequestStart method"
+
+**Cause:** On Node.js 22, the undici@8 dispatcher is incompatible with Node's built-in `fetch()` implementation.
+
+**Fix (v3.5.5+):** OmniRoute now uses undici's own `fetch()` function when a proxy dispatcher is active, ensuring consistent behavior. Update to v3.5.5+.
+
+---
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**Årsak:**Leverandørkvoten er oppbrukt.
+**Cause:** Provider quota exhausted.
 
-**Fiks:**
+**Fix:**
 
-1. Sjekk dashbordkvotesporing
-2. Bruk en kombinasjon med reservelag
-3. Bytt til billigere/gratis lag### Rate Limiting
+1. Check dashboard quota tracker
+2. Use a combo with fallback tiers
+3. Switch to cheaper/free tier
 
-**Årsak:**Abonnementskvoten er oppbrukt.
+### Rate Limiting
 
-**Fiks:**
+**Cause:** Subscription quota exhausted.
 
-- Legg til reserve: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Bruk GLM/MiniMax som billig backup### OAuth Token Expired
+**Fix:**
 
-OmniRoute oppdaterer tokens automatisk. Hvis problemene vedvarer:
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Use GLM/MiniMax as cheap backup
 
-1. Dashboard → Leverandør → Koble til på nytt
-2. Slett og legg til leverandørtilkoblingen på nytt---
+### OAuth Token Expired
+
+OmniRoute auto-refreshes tokens. If issues persist:
+
+1. Dashboard → Provider → Reconnect
+2. Delete and re-add the provider connection
+
+---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. Bekreft at «BASE_URL» peker til den kjørende forekomsten din (f.eks. «http://localhost:20128»)
-2. Bekreft "CLOUD_URL" peker til skyendepunktet ditt (f.eks. "https://omniroute.dev")
-3. Hold `NEXT_PUBLIC_*`-verdier på linje med verdiene på tjenersiden### Cloud `stream=false` Returns 500
+1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
+2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
+3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
-**Symptom:**`Uventet token 'd'...` på skyendepunkt for samtaler som ikke strømmer.
+### Cloud `stream=false` Returns 500
 
-**Årsak:**Oppstrøms returnerer SSE-nyttelast mens klienten forventer JSON.
+**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
 
-**Løsning:**Bruk 'stream=true' for direkteanrop i skyen. Lokal kjøretid inkluderer SSE→JSON reserve.### Cloud Says Connected but "Invalid API key"
+**Cause:** Upstream returns SSE payload while client expects JSON.
 
-1. Lag en ny nøkkel fra lokalt dashbord (`/api/keys`)
-2. Kjør skysynkronisering: Aktiver Cloud → Synkroniser nå
-3. Gamle/ikke-synkroniserte nøkler kan fortsatt returnere '401' på skyen---
+**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
+
+### Cloud Says Connected but "Invalid API key"
+
+1. Create a fresh key from local dashboard (`/api/keys`)
+2. Run cloud sync: Enable Cloud → Sync Now
+3. Old/non-synced keys can still return `401` on cloud
+
+---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. Sjekk kjøretidsfeltene: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. For bærbar modus: bruk bildemål "runner-cli" (medfølgende CLI-er)
-3. For vertsmonteringsmodus: sett `CLI_EXTRA_PATHS` og monter vertsbin-katalogen som skrivebeskyttet
-4. Hvis `installed=true` og `runnable=false`: binær ble funnet, men mislyktes i helsesjekken### Quick Runtime Validation
+1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. For portable mode: use image target `runner-cli` (bundled CLIs)
+3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
+4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
+
+### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -79,16 +153,20 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. Sjekk bruksstatistikk i Dashboard → Bruk
-2. Bytt primærmodell til GLM/MiniMax
-3. Bruk gratis nivå (Gemini CLI, Qoder) for ikke-kritiske oppgaver
-4. Angi kostnadsbudsjetter per API-nøkkel: Dashboard → API-nøkler → Budsjett---
+1. Check usage stats in Dashboard → Usage
+2. Switch primary model to GLM/MiniMax
+3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
+4. Set cost budgets per API key: Dashboard → API Keys → Budget
+
+---
 
 ## Debugging
 
 ### Enable Request Logs
 
-Sett `ENABLE_REQUEST_LOGS=true` i `.env`-filen. Logger vises under katalogen `logger/`.### Check Provider Health
+Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
+
+### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -100,101 +178,135 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- Hovedtilstand: `${DATA_DIR}/storage.sqlite` (leverandører, kombinasjoner, aliaser, nøkler, innstillinger)
-- Bruk: SQLite-tabeller i `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + valgfrie `${DATA_DIR}/log.txt` og `${DATA_DIR}/call_logs/`
-- Forespørselslogger: `<repo>/logs/...` (når `ENABLE_REQUEST_LOGS=true`)---
+- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
+- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
+- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
+
+---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-Når en leverandørs strømbryter er ÅPEN, blokkeres forespørsler til nedkjølingen utløper.
+When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
 
-**Fiks:**
+**Fix:**
 
-1. Gå til**Dashboard → Innstillinger → Resiliens**
-2. Sjekk kretsbryterkortet for den berørte leverandøren
-3. Klikk på**Tilbakestill alle**for å fjerne alle brytere, eller vent til nedkjølingen utløper
-4. Bekreft at leverandøren faktisk er tilgjengelig før du tilbakestiller### Provider keeps tripping the circuit breaker
+1. Go to **Dashboard → Settings → Resilience**
+2. Check the circuit breaker card for the affected provider
+3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
+4. Verify the provider is actually available before resetting
 
-Hvis en leverandør gjentatte ganger går inn i ÅPEN tilstand:
+### Provider keeps tripping the circuit breaker
 
-1. Sjekk**Dashboard → Helse → Leverandørhelse**for feilmønsteret
-2. Gå til**Innstillinger → Resiliens → Leverandørprofiler**og øk feilterskelen
-3. Sjekk om leverandøren har endret API-grenser eller krever re-autentisering
-4. Se gjennom latenstidstelemetri – høy latenstid kan forårsake timeout-baserte feil---
+If a provider repeatedly enters OPEN state:
+
+1. Check **Dashboard → Health → Provider Health** for the failure pattern
+2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
+3. Check if the provider has changed API limits or requires re-authentication
+4. Review latency telemetry — high latency may cause timeout-based failures
+
+---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- Sørg for at du bruker riktig prefiks: `deepgram/nova-3` eller `assemblyai/best`
-- Bekreft at leverandøren er tilkoblet i**Dashboard → Leverandører**### Transcription returns empty or fails
+- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
+- Verify the provider is connected in **Dashboard → Providers**
 
-- Sjekk støttede lydformater: "mp3", "wav", "m4a", "flac", "ogg", "webm"
-- Bekreft at filstørrelsen er innenfor leverandørens grenser (vanligvis < 25 MB)
-- Sjekk gyldigheten av leverandørens API-nøkkel i leverandørkortet---
+### Transcription returns empty or fails
+
+- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Verify file size is within provider limits (typically < 25MB)
+- Check provider API key validity in the provider card
+
+---
 
 ## Translator Debugging
 
-Bruk**Dashboard → Oversetter**for å feilsøke problemer med formatoversettelse:
+Use **Dashboard → Translator** to debug format translation issues:
 
-| Modus            | Når skal du bruke                                                                                                 |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| **Lekeplass**    | Sammenlign input/output formater side ved side — lim inn en mislykket forespørsel for å se hvordan den oversettes |
-| **Chattetester** | Send direktemeldinger og inspiser hele nyttelasten for forespørsel/svar inkludert overskrifter                    |
-| **Testbenk**     | Kjør batch-tester på tvers av formatkombinasjoner for å finne hvilke oversettelser som er ødelagte                |
-| **Live Monitor** | Se forespørselsflyt i sanntid for å fange opp periodiske oversettelsesproblemer                                   | ### Common format issues |
+| Mode             | When to Use                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
+| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
+| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
+| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
 
--**Tenkekoder vises ikke**— Sjekk om målleverandøren støtter tenkning og innstillingen av tenkebudsjettet -**Verktøyanrop dropper**— Noen formatoversettelser kan fjerne felt som ikke støttes; verifisere i Playground-modus -**Systemmelding mangler**— Claude og Gemini håndterer systemmeldinger annerledes; sjekk oversettelsen -**SDK returnerer rå streng i stedet for objekt**— Rettet i v1.1.0: svarrenser fjerner nå ikke-standard felt (`x_groq`, `usage_breakdown` osv.) som forårsaker OpenAI SDK Pydantic valideringsfeil -**GLM/ERNIE avviser 'system'-rollen**— Rettet i v1.1.0: rollenormalisering slår automatisk sammen systemmeldinger til brukermeldinger for inkompatible modeller -**`utviklerrollen gjenkjennes ikke**– Rettet i v1.1.0: automatisk konvertert til `system` for ikke-OpenAI-leverandører -**`json_schema` fungerer ikke med Gemini**- Rettet i v1.1.0: `response_format` er nå konvertert til Geminis `responseMimeType` + `responseSchema`---
+### Common format issues
+
+- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
+- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
+- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
+- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
+- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
+- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
+- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
+
+---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- Automatisk takstgrense gjelder bare API-nøkkelleverandører (ikke OAuth/abonnement)
-- Bekreft at**Innstillinger → Resiliens → Leverandørprofiler**har aktivert automatisk satsgrense
-- Sjekk om leverandøren returnerer '429'-statuskoder eller 'Retry-After'-overskrifter### Tuning exponential backoff
+- Auto rate-limit only applies to API key providers (not OAuth/subscription)
+- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
+- Check if the provider returns `429` status codes or `Retry-After` headers
 
-Leverandørprofiler støtter disse innstillingene:
+### Tuning exponential backoff
 
--**Basisforsinkelse**— Innledende ventetid etter første feil (standard: 1 s) -**Maksimal forsinkelse**— Maksimal ventetid (standard: 30s) -**Multiplikator**— Hvor mye skal forsinkelsen økes per påfølgende feil (standard: 2x)### Anti-thundering herd
+Provider profiles support these settings:
 
-Når mange samtidige forespørsler treffer en hastighetsbegrenset leverandør, bruker OmniRoute mutex + automatisk hastighetsbegrensning for å serialisere forespørsler og forhindre kaskadefeil. Dette er automatisk for API-nøkkelleverandører.---
+- **Base delay** — Initial wait time after first failure (default: 1s)
+- **Max delay** — Maximum wait time cap (default: 30s)
+- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
+
+### Anti-thundering herd
+
+When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
+
+---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-Noen OmniRoute-brukere plasserer gatewayen foran RAG- eller agentstabler. I disse oppsettene er det vanlig å se et merkelig mønster: OmniRoute ser sunt ut (leverandører oppe, ruteprofiler ok, ingen varsler om takstgrense), men det endelige svaret er fortsatt feil.
+Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
 
-I praksis kommer disse hendelsene vanligvis fra nedstrøms RAG-rørledningen, ikke fra selve gatewayen.
+In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
 
-Hvis du vil ha et delt vokabular for å beskrive disse feilene, kan du bruke WFGY ProblemMap, en ekstern MIT-lisenstekstressurs som definerer seksten tilbakevendende RAG / LLM-feilmønstre. På et høyt nivå dekker det:
+If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
 
-- gjenfinningsdrift og brutte kontekstgrenser
-- tomme eller foreldede indekser og vektorlagre
-- embedding versus semantisk mismatch
-- Spørsmål om montering og kontekstvindu
-- logisk kollaps og oversikre svar
-- svikt i lang kjede og agentkoordinering
-- multiagent minne og rolledrift
-- problemer med distribusjon og bootstrap-bestilling
+- retrieval drift and broken context boundaries
+- empty or stale indexes and vector stores
+- embedding versus semantic mismatch
+- prompt assembly and context window issues
+- logic collapse and overconfident answers
+- long chain and agent coordination failures
+- multi agent memory and role drift
+- deployment and bootstrap ordering problems
 
-Ideen er enkel:
+The idea is simple:
 
-1. Når du undersøker et dårlig svar, fange opp:
-   - brukeroppgave og forespørsel
-   - rute eller leverandørkombinasjon i OmniRoute
-   - enhver RAG-kontekst brukt nedstrøms (hentede dokumenter, verktøyanrop, etc)
-2. Kartlegg hendelsen til ett eller to WFGY ProblemMap-nummer (`No.1` … `No.16`).
-3. Lagre nummeret i ditt eget dashbord, runbook eller hendelsessporing ved siden av OmniRoute-loggene.
-4. Bruk den tilsvarende WFGY-siden til å bestemme om du må endre RAG-stack, retriever eller rutingstrategi.
+1. When you investigate a bad response, capture:
+   - user task and request
+   - route or provider combo in OmniRoute
+   - any RAG context used downstream (retrieved documents, tool calls, etc)
+2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
+3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
+4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
 
-Fulltekst og konkrete oppskrifter live her (MIT-lisens, kun tekst):
+Full text and concrete recipes live here (MIT license, text only):
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Du kan ignorere denne delen hvis du ikke kjører RAG eller agentpipelines bak OmniRoute.---
+You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
+
+---
 
 ## Still Stuck?
 
--**GitHub-problemer**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Architecture**: Se [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for interne detaljer -**API-referanse**: Se [`docs/API_REFERENCE.md`](API_REFERENCE.md) for alle endepunkter -**Helse Dashboard**: Sjekk**Dashboard → Health**for sanntids systemstatus -**Oversetter**: Bruk**Dashboard → Oversetter**for å feilsøke formatproblemer
+- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
+- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
+- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
+- **Translator**: Use **Dashboard → Translator** to debug format issues

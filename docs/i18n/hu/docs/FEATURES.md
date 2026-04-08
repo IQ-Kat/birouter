@@ -4,102 +4,168 @@
 
 ---
 
-Vizuális útmutató az OmniRoute irányítópult minden részéhez.---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-AI-szolgáltatói kapcsolatok kezelése: OAuth-szolgáltatók (Claude Code, Codex, Gemini CLI), API-kulcs-szolgáltatók (Groq, DeepSeek, OpenRouter) és ingyenes szolgáltatók (Qoder, Qwen, Kiro). A Kiro-számlák tartalmazzák a hitelegyenleg nyomon követését – a fennmaradó kreditek, a teljes juttatás és a megújítási dátum látható az Irányítópult → Használat menüpontban.![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Hozzon létre modell-útválasztási kombókat 6 stratégiával: prioritás, súlyozott, kör-robin, véletlenszerű, legkevésbé használt és költségoptimalizált. Mindegyik kombó több modellt láncol össze automatikus visszaállítással, valamint gyors sablonokat és készenléti ellenőrzéseket tartalmaz.![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Átfogó használati elemzés token-fogyasztással, költségbecslésekkel, tevékenységi hőtérképekkel, heti elosztási diagramokkal és szolgáltatónkénti lebontásokkal.![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Valós idejű megfigyelés: üzemidő, memória, verzió, késleltetési százalékok (p50/p95/p99), gyorsítótár-statisztika és szolgáltatói megszakító állapotok.![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Négy mód az API-fordítások hibakeresésére:**Playground**(formátum-átalakító),**Chat Tester**(élő kérések),**Test Bench**(kötegelt tesztek) és**Élő figyelő**(valós idejű adatfolyam).![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Teszteljen bármely modellt közvetlenül a műszerfalról. Válassza ki a szolgáltatót, a modellt és a végpontot, írjon promptokat a Monaco Editor segítségével, streamelje a válaszokat valós időben, szakítsa meg a streamelést, és tekintse meg az időzítési mutatókat.---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Testreszabható színtémák a teljes műszerfalhoz. Válasszon a 7 előre beállított szín közül (korall, kék, piros, zöld, ibolya, narancs, cián), vagy hozzon létre egyéni témát bármilyen hatszögletű szín kiválasztásával. Támogatja a világos, sötét és rendszermódot.---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-Átfogó beállítási panel fülekkel:
+Comprehensive settings panel with tabs:
 
--**Általános**- Rendszertárolás, biztonsági mentések kezelése (export/import adatbázis) -**Megjelenés**- Témaválasztó (sötét/világos/rendszer), színtéma előre beállított és egyéni színek, állapotnapló láthatósága, oldalsáv elemláthatósági vezérlői -**Biztonság**– API-végpont védelem, egyéni szolgáltatói blokkolás, IP-szűrés, munkamenet-információk -**Útválasztás**— Modellálnevek, háttérfeladat-romlás -**Rugalmasság**- Díjkorlátok fennmaradása, megszakító hangolása, letiltott fiókok automatikus letiltása, szolgáltató lejáratának figyelése -**Speciális**— Konfiguráció felülbírálása, konfigurációs ellenőrzési nyomvonal, tartalék rontási mód![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-Egy kattintással konfigurálható mesterséges intelligencia kódoló eszközök: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor és Factory Droid. Automatikus konfigurációs alkalmazás/visszaállítás, csatlakozási profilok és modellleképezés.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Irányítópult a CLI-ügynökök felfedezéséhez és kezeléséhez. 14 beépített ügynökből álló rácsot jelenít meg (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) a következőkkel:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**Telepítés állapota**- Telepítve / Nem található verzióérzékeléssel -**Protokoll jelvények**— stdio, HTTP stb. -**Egyéni ügynökök**— Regisztráljon bármilyen CLI-eszközt űrlapon keresztül (név, bináris, verzióparancs, spawn args) -**CLI ujjlenyomat-egyeztetés**– szolgáltatónkénti váltás a natív CLI-kérés aláírásainak egyeztetésére, csökkentve a kitiltási kockázatot, miközben megőrzi a proxy IP-címét---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Hozzon létre képeket, videókat és zenét az irányítópultról. Támogatja az OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open és MusicGen alkalmazásokat.---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-Valós idejű kérések naplózása szolgáltató, modell, fiók és API kulcs szerinti szűréssel. Megjeleníti az állapotkódokat, a tokenhasználatot, a várakozási időt és a válasz részleteit.![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Az Ön egységes API-végpontja a képességek lebontásával: csevegés befejezése, válaszok API, beágyazások, képgenerálás, átsorolás, hangátírás, szövegfelolvasó, moderálás és regisztrált API-kulcsok. Cloudflare Quick Tunnel integráció és felhőproxy támogatás a távoli eléréshez.![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-API-kulcsok létrehozása, hatóköre és visszavonása. Minden kulcs korlátozható meghatározott modellekre/szolgáltatókra teljes hozzáféréssel vagy csak olvasási engedéllyel. Vizuális kulcskezelés a használat nyomon követésével.---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-Adminisztratív műveletek követése művelettípus, szereplő, cél, IP-cím és időbélyeg szerinti szűréssel. Teljes biztonsági eseménytörténet.---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Native Electron asztali alkalmazás Windows, macOS és Linux rendszerhez. Futtassa az OmniRoute-ot önálló alkalmazásként rendszertálca-integrációval, offline támogatással, automatikus frissítéssel és egy kattintással történő telepítéssel.
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-Főbb jellemzők:
+Key features:
 
-- Szerver készenléti lekérdezés (hidegindításkor nincs üres képernyő)
-- Rendszertálca portkezeléssel
-- Tartalombiztonsági szabályzat
-- Egypéldányos zár
-- Automatikus frissítés újraindításkor
-- Platform-feltételes felhasználói felület (macOS közlekedési lámpák, Windows/Linux alapértelmezett címsor)
-- Megerősített Electron összeállítási csomagolás – az önálló csomagban lévő szimbolizált "csomópont_modulok" felismerése és elutasítása a csomagolás előtt, megakadályozva a futásidejű függőséget az összeállítási géptől (v2.5.5+)
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 Lásd: [`electron/README.md`](../electron/README.md) a teljes dokumentációért.
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

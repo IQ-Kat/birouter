@@ -4,102 +4,168 @@
 
 ---
 
-Ghid vizual pentru fiecare secțiune a tabloului de bord OmniRoute.---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-Gestionați conexiunile furnizorilor AI: furnizori OAuth (Claude Code, Codex, Gemini CLI), furnizori de chei API (Groq, DeepSeek, OpenRouter) și furnizori gratuiti (Qoder, Qwen, Kiro). Conturile Kiro includ urmărirea soldului creditului — creditele rămase, alocația totală și data de reînnoire sunt vizibile în Tabloul de bord → Utilizare.![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Creați combinații de modele de rutare cu 6 strategii: prioritar, ponderat, round-robin, aleatoriu, cel mai puțin utilizat și optimizat din punct de vedere al costurilor. Fiecare combo înlănțuiește mai multe modele cu rezervă automată și include șabloane rapide și verificări de pregătire.![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Analiză cuprinzătoare a utilizării cu consum de simboluri, estimări de costuri, hărți termice ale activității, diagrame de distribuție săptămânală și defalcări pentru fiecare furnizor.![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Monitorizare în timp real: timp de funcționare, memorie, versiune, percentile de latență (p50/p95/p99), statistici cache și stări întrerupătoarelor furnizorului.![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Patru moduri de depanare a traducerilor API:**Playground**(convertor de format),**Chat Tester**(cereri live),**Test Bench**(testare în lot) și**Live Monitor**(stream în timp real).![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Testați orice model direct de pe tabloul de bord. Selectați furnizorul, modelul și punctul final, scrieți solicitări cu Editorul Monaco, transmiteți răspunsuri în timp real, anulați fluxul la mijloc și vizualizați valorile de sincronizare.---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Teme de culoare personalizabile pentru întreg tabloul de bord. Alegeți dintre cele 7 culori prestabilite (Coral, Albastru, Roșu, Verde, Violet, Portocaliu, Cyan) sau creați o temă personalizată alegând orice culoare hexagonală. Acceptă modul de lumină, întuneric și sistem.---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-Panou cuprinzător de setări cu file:
+Comprehensive settings panel with tabs:
 
--**General**— Stocare de sistem, management de backup (bază de date de export/import) -**Aspect**— Selector de teme (întuneric/luminos/sistem), presetări pentru teme de culoare și culori personalizate, vizibilitate jurnal de sănătate, comenzi pentru vizibilitatea elementelor din bara laterală -**Securitate**— protecție API finală, blocare personalizată a furnizorului, filtrare IP, informații despre sesiune -**Routing**— Aliasuri de model, degradarea sarcinilor de fundal -**Reziliență**— Persistența limitei ratei, reglarea întrerupătorului, dezactivarea automată a conturilor interzise, monitorizarea expirării furnizorului -**Avansat**— Modificari de configurare, urmărire de auditare a configurației, modul de degradare de rezervă![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-Configurare cu un singur clic pentru instrumente de codare AI: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor și Factory Droid. Dispune de aplicare/resetare automată a configurației, profiluri de conexiune și mapare a modelului.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Tabloul de bord pentru descoperirea și gestionarea agenților CLI. Afișează o grilă de 14 agenți încorporați (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) cu:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**Stare de instalare**— Instalat/Negăsit cu detectarea versiunii -**Insigne de protocol**— stdio, HTTP etc. -**Agenți personalizați**- Înregistrați orice instrument CLI prin formular (nume, binar, comandă de versiune, spawn args) -**Potrivirea amprentei CLI**— Comută pe furnizor pentru a potrivi semnăturile de solicitare CLI native, reducând riscul de interzicere, păstrând IP-ul proxy---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Generați imagini, videoclipuri și muzică din tabloul de bord. Suportă OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open și MusicGen.---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-Înregistrare în timp real a cererilor cu filtrare în funcție de furnizor, model, cont și cheie API. Afișează codurile de stare, utilizarea simbolurilor, latența și detaliile răspunsului.![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Punctul final API unificat cu defalcarea capacităților: Finalizări de chat, API de răspunsuri, încorporare, generare de imagini, reclasificare, transcriere audio, text-to-speech, moderări și chei API înregistrate. Integrare Cloudflare Quick Tunnel și suport proxy cloud pentru acces de la distanță.![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Creați, acoperiți și revocați cheile API. Fiecare cheie poate fi restricționată la anumite modele/furnizori cu acces complet sau permisiuni numai pentru citire. Gestionarea vizuală a cheilor cu urmărirea utilizării.---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-Urmărirea acțiunilor administrative cu filtrare după tip de acțiune, actor, țintă, adresă IP și marcaj de timp. Istoricul complet al evenimentelor de securitate.---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Aplicația desktop nativă Electron pentru Windows, macOS și Linux. Rulați OmniRoute ca aplicație autonomă cu integrare în bara de sistem, asistență offline, actualizare automată și instalare cu un singur clic.
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-Caracteristici cheie:
+Key features:
 
-- Sondaj de pregătire a serverului (fără ecran gol la pornirea la rece)
-- Tava de sistem cu management port
-- Politica de securitate a conținutului
-- Blocare cu o singură instanță
-- Actualizare automată la repornire
-- Interfață de utilizare condiționată de platformă (semafor macOS, bara de titlu implicită Windows/Linux)
-- Hardened Electron build package — `node_modules` cu legături simbolice din pachetul autonom este detectat și respins înainte de împachetare, prevenind dependența de rulare de mașina de construire (v2.5.5+)
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 Consultați [`electron/README.md`](../electron/README.md) pentru documentația completă.
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

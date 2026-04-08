@@ -4,102 +4,168 @@
 
 ---
 
-Visuaalinen opas OmniRoute-hallintapaneelin jokaiseen osioon.---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-Hallinnoi AI-palveluntarjoajan yhteyksiä: OAuth-palveluntarjoajat (Claude Code, Codex, Gemini CLI), API-avaintoimittajat (Groq, DeepSeek, OpenRouter) ja ilmaiset palveluntarjoajat (Qoder, Qwen, Kiro). Kiro-tilit sisältävät luottosaldon seurannan – jäljellä olevat saldot, kokonaisrahoitus ja uusimispäivä näkyvät kohdassa Dashboard → Käyttö.![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Luo mallin reitityskomboja kuudella strategialla: prioriteetti, painotettu, kiertävä, satunnainen, vähiten käytetty ja kustannusoptimoitu. Jokainen yhdistelmä ketjuttaa useita malleja automaattisilla varauksilla ja sisältää nopeat mallit ja valmiustarkistukset.![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Kattava käyttöanalytiikka tunnuksen kulutuksella, kustannusarvioilla, aktiivisuuslämpökartoilla, viikoittaisilla jakelukaavioilla ja palveluntarjoajakohtaisilla erittelyillä.![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Reaaliaikainen seuranta: käyttöaika, muisti, versio, latenssiprosenttipisteet (p50/p95/p99), välimuistitilastot ja palveluntarjoajan katkaisijan tilat.![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Neljä tilaa API-käännösten virheenkorjaukseen:**Playground**(muodonmuunnin),**Chat Tester**(livepyynnöt),**Test Bench**(erätestit) ja**Live Monitor**(reaaliaikainen suoratoisto).![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Testaa mitä tahansa mallia suoraan kojelaudalta. Valitse palveluntarjoaja, malli ja päätepiste, kirjoita kehotteita Monaco Editorilla, suoratoista vastaukset reaaliajassa, keskeytä kesken stream ja tarkastele ajoitusmittauksia.---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Muokattavat väriteemat koko kojelautaan. Valitse 7 esiasetetusta väristä (koralli, sininen, punainen, vihreä, violetti, oranssi, syaani) tai luo mukautettu teema valitsemalla mikä tahansa kuusioväri. Tukee vaaleaa, tummaa ja järjestelmätilaa.---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-Kattava asetuspaneeli välilehdillä:
+Comprehensive settings panel with tabs:
 
--**Yleistä**- Järjestelmän tallennus, varmuuskopioiden hallinta (vienti/tuonti tietokanta) -**Ulkoasu**- Teeman valitsin (tumma/vaalea/järjestelmä), väriteeman esiasetukset ja mukautetut värit, terveyslokin näkyvyys, sivupalkin kohteiden näkyvyyden säätimet -**Turvallisuus**— API-päätepisteiden suojaus, mukautetun palveluntarjoajan esto, IP-suodatus, istuntotiedot -**Reititys**— Mallin aliakset, taustatehtävän huononeminen -**Kestävyys**— Hintarajoituksen pysyvyys, katkaisijan viritys, estettyjen tilien automaattinen poistaminen käytöstä, palveluntarjoajan vanhenemisen valvonta -**Lisäasetukset**— Kokoonpanon ohitukset, määrityksen kirjausketju, varatilan heikkenemistila![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-Yhden napsautuksen konfigurointi AI-koodaustyökaluille: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor ja Factory Droid. Sisältää automaattisen konfiguroinnin käyttöönotto/nollaus, yhteysprofiilit ja mallikartoituksen.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Kojelauta CLI-agenttien löytämiseen ja hallintaan. Näyttää 14 sisäänrakennetun agentin (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) ruudukon, jossa on:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**Asennustila**— Asennettu / Ei löydy versiontunnistuksen kanssa -**Protokollamerkit**— stdio, HTTP jne. -**Muokatut agentit**— Rekisteröi mikä tahansa CLI-työkalu lomakkeella (nimi, binaari, versiokomento, spawn args) -**CLI-sormenjälkien vastaavuus**– Palveluntarjoajakohtainen kytkin vastaamaan alkuperäisten CLI-pyyntöjen allekirjoituksia, mikä vähentää eston riskiä ja säilyttää välityspalvelimen IP-osoitteen---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Luo kuvia, videoita ja musiikkia kojelaudalta. Tukee OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open ja MusicGen.---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-Reaaliaikainen pyyntöjen kirjaaminen suodatuksella palveluntarjoajan, mallin, tilin ja API-avaimen mukaan. Näyttää tilakoodit, tunnuksen käytön, viiveen ja vastaustiedot.![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Yhdistetty API-päätepisteesi ominaisuuksien erittelyllä: Chat Completions, Responses API, upotukset, kuvan luominen, uudelleensijoitus, äänen transkriptio, tekstistä puheeksi, moderaatiot ja rekisteröidyt API-avaimet. Cloudflare Quick Tunnel -integraatio ja pilvivälityspalvelintuki etäkäyttöä varten.![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Luo, laajenna ja peruuta API-avaimia. Jokainen avain voidaan rajoittaa tiettyihin malleihin/palveluntarjoajiin, joilla on täydet käyttöoikeudet tai vain lukuoikeudet. Visuaalinen avainten hallinta käytön seurannalla.---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-Hallinnollinen toimintojen seuranta suodatuksella toimintotyypin, toimijan, kohteen, IP-osoitteen ja aikaleiman mukaan. Täydellinen tietoturvatapahtumahistoria.---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Native Electron -työpöytäsovellus Windowsille, macOS:lle ja Linuxille. Suorita OmniRoute itsenäisenä sovelluksena, jossa on järjestelmälokeron integrointi, offline-tuki, automaattinen päivitys ja asennus yhdellä napsautuksella.
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-Tärkeimmät ominaisuudet:
+Key features:
 
-- Palvelimen valmiuskysely (ei tyhjää näyttöä kylmäkäynnistyksen yhteydessä)
-- Järjestelmälokero portinhallinnan kanssa
-- Sisällön suojauskäytäntö
-- Yksiosainen lukko
-- Automaattinen päivitys uudelleenkäynnistyksen yhteydessä
-- Alustan ehdollinen käyttöliittymä (macOS-liikennevalot, Windowsin/Linuxin oletusotsikkopalkki)
-- Hardened Electron build -pakkaus – itsenäisen nipun symlinkoidut "solmumoduulit" tunnistetaan ja hylätään ennen pakkausta, mikä estää ajonaikaisen riippuvuuden rakennuskoneesta (v2.5.5+)
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 Katso täydelliset asiakirjat osoitteesta [`electron/README.md`](../electron/README.md).
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

@@ -4,68 +4,142 @@
 
 ---
 
-Các vấn đề thường gặp và giải pháp cho OmniRoute.---
+
+
+Common problems and solutions for OmniRoute.
+
+---
 
 ## Quick Fixes
 
-| Vấn đề                                     | Giải pháp                                                         |
-| ------------------------------------------ | ----------------------------------------------------------------- | --- |
-| Đăng nhập lần đầu không hoạt động          | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)           |
-| Bảng điều khiển mở sai cổng                | Đặt `PORT=20128` và `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
-| Không có nhật ký yêu cầu nào trong `logs/` | Đặt `ENABLE_REQUEST_LOGS=true`                                    |
-| EACCES: quyền bị từ chối                   | Đặt `DATA_DIR=/path/to/writable/dir` để ghi đè `~/.omniroute`     |
-| Chiến lược định tuyến không tiết kiệm      | Cập nhật lên v1.4.11+ (Sửa lược đồ Zod để duy trì cài đặt)        | --- |
+| Problem                       | Solution                                                           |
+| ----------------------------- | ------------------------------------------------------------------ |
+| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
+| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
+| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
+| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
+| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
+| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below |
+| Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
+
+---
+
+## Node.js Compatibility
+
+<a name="nodejs-compatibility"></a>
+
+### Login page crashes or shows "Module self-registration" error
+
+**Cause:** You are running Node.js 24+. The `better-sqlite3` native binary is not compatible with Node.js 24, which causes a fatal crash when the server tries to initialize the database.
+
+**Symptoms:**
+- Login page shows a blank screen or a server error
+- Console shows `Error: Module did not self-register` or similar native binding errors
+- Starting with v3.5.5, the login page shows an **orange warning banner** with your Node version if incompatibility is detected
+
+**Fix:**
+
+1. Install Node.js 22 LTS (recommended):
+   ```bash
+   nvm install 22
+   nvm use 22
+   ```
+2. Verify your version: `node --version` should show `v22.x.x`
+3. Reinstall OmniRoute: `npm install -g omniroute`
+4. Restart: `omniroute`
+
+> **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+
+---
+
+## Proxy Issues
+
+<a name="proxy-issues"></a>
+
+### Provider validation shows "fetch failed"
+
+**Cause:** The API key validation endpoint (`POST /api/providers/validate`) was previously bypassing proxy configuration, causing failures in environments that require proxy routing.
+
+**Fix (v3.5.5+):** This is now fixed. Provider validation routes through `runWithProxyContext`, honoring provider-level and global proxy settings automatically.
+
+### Token health check fails with "fetch failed"
+
+**Cause:** Background OAuth token refresh was not resolving proxy configuration per connection.
+
+**Fix (v3.5.5+):** The token health check scheduler now resolves proxy config per connection before attempting refresh. Update to v3.5.5+.
+
+### SOCKS5 proxy returns "invalid onRequestStart method"
+
+**Cause:** On Node.js 22, the undici@8 dispatcher is incompatible with Node's built-in `fetch()` implementation.
+
+**Fix (v3.5.5+):** OmniRoute now uses undici's own `fetch()` function when a proxy dispatcher is active, ensuring consistent behavior. Update to v3.5.5+.
+
+---
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**Nguyên nhân:**Đã hết hạn ngạch nhà cung cấp.
+**Cause:** Provider quota exhausted.
 
-**Sửa chữa:**
+**Fix:**
 
-1. Kiểm tra trình theo dõi hạn ngạch trên trang tổng quan
-2. Sử dụng kết hợp với các tầng dự phòng
-3. Chuyển sang cấp rẻ hơn/miễn phí### Rate Limiting
+1. Check dashboard quota tracker
+2. Use a combo with fallback tiers
+3. Switch to cheaper/free tier
 
-**Lý do:**Đã hết hạn mức đăng ký.
+### Rate Limiting
 
-**Sửa chữa:**
+**Cause:** Subscription quota exhausted.
 
-- Thêm dự phòng: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Sử dụng GLM/MiniMax làm bản sao lưu giá rẻ### OAuth Token Expired
+**Fix:**
 
-OmniRoute tự động làm mới mã thông báo. Nếu vấn đề vẫn tiếp diễn:
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Use GLM/MiniMax as cheap backup
 
-1. Bảng điều khiển → Nhà cung cấp → Kết nối lại
-2. Xóa và thêm lại kết nối nhà cung cấp---
+### OAuth Token Expired
+
+OmniRoute auto-refreshes tokens. If issues persist:
+
+1. Dashboard → Provider → Reconnect
+2. Delete and re-add the provider connection
+
+---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. Xác minh `BASE_URL` trỏ đến phiên bản đang chạy của bạn (ví dụ: `http://localhost:20128`)
-2. Xác minh `CLOUD_URL` trỏ đến điểm cuối đám mây của bạn (ví dụ: `https://omniroute.dev`)
-3. Giữ các giá trị `NEXT_PUBLIC_*` được căn chỉnh với các giá trị phía máy chủ### Cloud `stream=false` Returns 500
+1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
+2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
+3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
-**Triệu chứng:**`Mã thông báo không mong đợi 'd'...` trên điểm cuối đám mây đối với các cuộc gọi không phát trực tuyến.
+### Cloud `stream=false` Returns 500
 
-**Lý do:**Ngược dòng trả về tải trọng SSE trong khi khách hàng mong đợi JSON.
+**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
 
-**Giải pháp:**Sử dụng `stream=true` cho cuộc gọi trực tiếp qua đám mây. Thời gian chạy cục bộ bao gồm dự phòng SSE→JSON.### Cloud Says Connected but "Invalid API key"
+**Cause:** Upstream returns SSE payload while client expects JSON.
 
-1. Tạo khóa mới từ bảng điều khiển cục bộ (`/api/keys`)
-2. Chạy đồng bộ đám mây: Bật Đám mây → Đồng bộ hóa ngay
-3. Khóa cũ/không được đồng bộ hóa vẫn có thể trả về `401` trên đám mây---
+**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
+
+### Cloud Says Connected but "Invalid API key"
+
+1. Create a fresh key from local dashboard (`/api/keys`)
+2. Run cloud sync: Enable Cloud → Sync Now
+3. Old/non-synced keys can still return `401` on cloud
+
+---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. Kiểm tra các trường thời gian chạy: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. Đối với chế độ di động: sử dụng mục tiêu hình ảnh `runner-cli` (CLS đi kèm)
-3. Đối với chế độ gắn máy chủ: đặt `CLI_EXTRA_PATHS` và gắn thư mục bin máy chủ ở chế độ chỉ đọc
-4. Nếu `installed=true` và `runnable=false`: đã tìm thấy nhị phân nhưng kiểm tra tình trạng không thành công### Quick Runtime Validation
+1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. For portable mode: use image target `runner-cli` (bundled CLIs)
+3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
+4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
+
+### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -79,16 +153,20 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. Kiểm tra số liệu thống kê sử dụng trong Bảng điều khiển → Mức sử dụng
-2. Chuyển model chính sang GLM/MiniMax
-3. Sử dụng bậc miễn phí (Gemini CLI, Qoder) cho các tác vụ không quan trọng
-4. Đặt ngân sách chi phí cho mỗi khóa API: Bảng điều khiển → Khóa API → Ngân sách---
+1. Check usage stats in Dashboard → Usage
+2. Switch primary model to GLM/MiniMax
+3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
+4. Set cost budgets per API key: Dashboard → API Keys → Budget
+
+---
 
 ## Debugging
 
 ### Enable Request Logs
 
-Đặt `ENABLE_REQUEST_LOGS=true` trong tệp `.env` của bạn. Nhật ký xuất hiện trong thư mục `logs/`.### Check Provider Health
+Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
+
+### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -100,101 +178,135 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- Trạng thái chính: `${DATA_DIR}/storage.sqlite` (nhà cung cấp, tổ hợp, bí danh, khóa, cài đặt)
-- Cách sử dụng: Các bảng SQLite trong `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + tùy chọn `${DATA_DIR}/log.txt` và `${DATA_DIR}/call_logs/`
-- Nhật ký yêu cầu: `<repo>/logs/...` (khi `ENABLE_REQUEST_LOGS=true`)---
+- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
+- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
+- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
+
+---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-Khi cầu dao của nhà cung cấp MỞ, các yêu cầu sẽ bị chặn cho đến khi hết thời gian hồi chiêu.
+When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
 
-**Sửa chữa:**
+**Fix:**
 
-1. Đi tới**Bảng điều khiển → Cài đặt → Khả năng phục hồi**
-2. Kiểm tra thẻ cầu dao của nhà cung cấp bị ảnh hưởng
-3. Nhấp vào**Đặt lại tất cả**để xóa tất cả các bộ ngắt hoặc đợi hết thời gian hồi chiêu
-4. Xác minh nhà cung cấp thực sự có sẵn trước khi đặt lại### Provider keeps tripping the circuit breaker
+1. Go to **Dashboard → Settings → Resilience**
+2. Check the circuit breaker card for the affected provider
+3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
+4. Verify the provider is actually available before resetting
 
-Nếu nhà cung cấp liên tục chuyển sang trạng thái MỞ:
+### Provider keeps tripping the circuit breaker
 
-1. Kiểm tra**Bảng điều khiển → Sức khỏe → Tình trạng nhà cung cấp**để biết kiểu lỗi
-2. Đi tới**Cài đặt → Khả năng phục hồi → Hồ sơ nhà cung cấp**và tăng ngưỡng thất bại
-3. Kiểm tra xem nhà cung cấp có thay đổi giới hạn API hay yêu cầu xác thực lại không
-4. Xem lại phép đo từ xa về độ trễ - độ trễ cao có thể gây ra lỗi dựa trên thời gian chờ---
+If a provider repeatedly enters OPEN state:
+
+1. Check **Dashboard → Health → Provider Health** for the failure pattern
+2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
+3. Check if the provider has changed API limits or requires re-authentication
+4. Review latency telemetry — high latency may cause timeout-based failures
+
+---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- Đảm bảo bạn đang sử dụng đúng tiền tố: `deepgram/nova-3` hoặc `assemblyai/best`
-- Xác minh nhà cung cấp được kết nối trong**Bảng điều khiển → Nhà cung cấp**### Transcription returns empty or fails
+- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
+- Verify the provider is connected in **Dashboard → Providers**
 
-- Kiểm tra các định dạng âm thanh được hỗ trợ: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Xác minh kích thước tệp nằm trong giới hạn của nhà cung cấp (thường < 25 MB)
-- Kiểm tra tính hợp lệ của khóa API nhà cung cấp trong thẻ nhà cung cấp---
+### Transcription returns empty or fails
+
+- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Verify file size is within provider limits (typically < 25MB)
+- Check provider API key validity in the provider card
+
+---
 
 ## Translator Debugging
 
-Sử dụng**Trang tổng quan → Trình dịch**để gỡ lỗi các vấn đề dịch định dạng:
+Use **Dashboard → Translator** to debug format translation issues:
 
-| Chế độ                        | Khi nào nên sử dụng                                                                                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------ |
-| **Sân chơi**                  | So sánh các định dạng đầu vào/đầu ra cạnh nhau — dán một yêu cầu không thành công để xem nó dịch như thế nào |
-| **Người kiểm tra trò chuyện** | Gửi tin nhắn trực tiếp và kiểm tra toàn bộ tải trọng yêu cầu/phản hồi bao gồm các tiêu đề                    |
-| **Bàn thử nghiệm**            | Chạy thử nghiệm hàng loạt trên các kết hợp định dạng để tìm ra bản dịch nào bị lỗi                           |
-| **Màn hình trực tiếp**        | Xem luồng yêu cầu theo thời gian thực để nắm bắt các vấn đề dịch thuật không liên tục                        | ### Common format issues |
+| Mode             | When to Use                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
+| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
+| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
+| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
 
--**Thẻ tư duy không xuất hiện**— Kiểm tra xem nhà cung cấp mục tiêu có hỗ trợ tư duy và cài đặt ngân sách tư duy hay không -**Giảm cuộc gọi công cụ**— Một số bản dịch định dạng có thể loại bỏ các trường không được hỗ trợ; xác minh ở chế độ Playground -**Thiếu lời nhắc hệ thống**— Claude và Gemini xử lý lời nhắc hệ thống theo cách khác nhau; kiểm tra đầu ra bản dịch -**SDK trả về chuỗi thô thay vì đối tượng**— Đã sửa trong v1.1.0: trình khử trùng phản hồi hiện loại bỏ các trường không chuẩn (`x_groq`, `usage_breakdown`, v.v.) gây ra lỗi xác thực OpenAI SDK Pydantic -**GLM/ERNIE từ chối vai trò `system`**— Đã sửa trong v1.1.0: bộ chuẩn hóa vai trò tự động hợp nhất các thông báo hệ thống thành thông báo người dùng cho các kiểu máy không tương thích -**`vai trò nhà phát triển` không được nhận dạng**— Đã sửa trong v1.1.0: tự động chuyển đổi thành `system` cho các nhà cung cấp không phải OpenAI -**`json_schema` không hoạt động với Gemini**— Đã sửa trong v1.1.0: `response_format` hiện được chuyển đổi thành `responseMimeType` + `responseSchema` của Gemini---
+### Common format issues
+
+- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
+- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
+- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
+- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
+- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
+- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
+- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
+
+---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- Giới hạn tỷ lệ tự động chỉ áp dụng cho nhà cung cấp khóa API (không phải OAuth/đăng ký)
-- Xác minh**Cài đặt → Khả năng phục hồi → Hồ sơ nhà cung cấp**đã bật giới hạn tỷ lệ tự động
-- Kiểm tra xem nhà cung cấp có trả về mã trạng thái `429` hoặc tiêu đề `Thử lại sau` không### Tuning exponential backoff
+- Auto rate-limit only applies to API key providers (not OAuth/subscription)
+- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
+- Check if the provider returns `429` status codes or `Retry-After` headers
 
-Hồ sơ nhà cung cấp hỗ trợ các cài đặt này:
+### Tuning exponential backoff
 
--**Độ trễ cơ bản**— Thời gian chờ ban đầu sau lần thất bại đầu tiên (mặc định: 1 giây) -**Độ trễ tối đa**— Giới hạn thời gian chờ tối đa (mặc định: 30 giây) -**Hệ số**— Độ trễ tăng lên bao nhiêu cho mỗi lần thất bại liên tiếp (mặc định: 2x)### Anti-thundering herd
+Provider profiles support these settings:
 
-Khi nhiều yêu cầu đồng thời gặp phải một nhà cung cấp có tốc độ giới hạn, OmniRoute sử dụng mutex + giới hạn tốc độ tự động để tuần tự hóa các yêu cầu và ngăn chặn lỗi xếp tầng. Điều này là tự động đối với các nhà cung cấp khóa API.---
+- **Base delay** — Initial wait time after first failure (default: 1s)
+- **Max delay** — Maximum wait time cap (default: 30s)
+- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
+
+### Anti-thundering herd
+
+When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
+
+---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-Một số người dùng OmniRoute đặt cổng phía trước RAG hoặc ngăn tác nhân. Trong các thiết lập đó, người ta thường thấy một mẫu lạ: OmniRoute có vẻ ổn (nhà cung cấp hoạt động, cấu hình định tuyến ổn, không có cảnh báo giới hạn tốc độ) nhưng câu trả lời cuối cùng vẫn sai.
+Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
 
-Trong thực tế, những sự cố này thường đến từ đường ống RAG xuôi dòng chứ không phải từ chính cổng.
+In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
 
-Nếu bạn muốn có một từ vựng chung để mô tả những lỗi đó, bạn có thể sử dụng Bản đồ vấn đề WFGY, một tài nguyên văn bản giấy phép MIT bên ngoài xác định mười sáu mẫu lỗi RAG / LLM định kỳ. Ở mức độ cao, nó bao gồm:
+If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
 
-- thu hồi trôi dạt và ranh giới bối cảnh bị phá vỡ
-- các chỉ mục và cửa hàng vector trống hoặc cũ
-- nhúng và không khớp ngữ nghĩa
-- các vấn đề về lắp ráp và ngữ cảnh nhanh chóng
-- suy sụp logic và câu trả lời quá tự tin
-- thất bại phối hợp chuỗi dài và đại lý
-- bộ nhớ đa tác nhân và trôi dạt vai trò
-- vấn đề về triển khai và đặt hàng bootstrap
+- retrieval drift and broken context boundaries
+- empty or stale indexes and vector stores
+- embedding versus semantic mismatch
+- prompt assembly and context window issues
+- logic collapse and overconfident answers
+- long chain and agent coordination failures
+- multi agent memory and role drift
+- deployment and bootstrap ordering problems
 
-Ý tưởng rất đơn giản:
+The idea is simple:
 
-1. Khi bạn điều tra một phản hồi không tốt, hãy nắm bắt:
-   - nhiệm vụ và yêu cầu của người dùng
-   - kết hợp tuyến đường hoặc nhà cung cấp trong OmniRoute
-   - bất kỳ bối cảnh RAG nào được sử dụng ở phía dưới (tài liệu được truy xuất, lệnh gọi công cụ, v.v.)
-2. Ánh xạ sự cố tới một hoặc hai số Bản đồ vấn đề WFGY (`No.1` … `No.16`).
-3. Lưu số này vào bảng điều khiển, sổ ghi chép hoặc trình theo dõi sự cố của riêng bạn bên cạnh nhật ký OmniRoute.
-4. Sử dụng trang WFGY tương ứng để quyết định xem bạn có cần thay đổi chiến lược ngăn xếp, truy xuất hoặc định tuyến RAG của mình hay không.
+1. When you investigate a bad response, capture:
+   - user task and request
+   - route or provider combo in OmniRoute
+   - any RAG context used downstream (retrieved documents, tool calls, etc)
+2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
+3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
+4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
 
-Toàn văn và công thức nấu ăn cụ thể có tại đây (giấy phép MIT, chỉ văn bản):
+Full text and concrete recipes live here (MIT license, text only):
 
-[ĐỌC Bản đồ vấn đề WFGY](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
+[WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Bạn có thể bỏ qua phần này nếu bạn không chạy RAG hoặc đường dẫn tác nhân phía sau OmniRoute.---
+You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
+
+---
 
 ## Still Stuck?
 
--**Vấn đề về GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Kiến trúc**: Xem [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) để biết chi tiết nội bộ -**Tham khảo API**: Xem [`docs/API_REFERENCE.md`](API_REFERENCE.md) để biết tất cả các điểm cuối -**Bảng điều khiển sức khỏe**: Kiểm tra**Bảng điều khiển → Sức khỏe**để biết trạng thái hệ thống theo thời gian thực -**Trình dịch**: Sử dụng**Bảng điều khiển → Trình dịch**để gỡ lỗi các vấn đề về định dạng
+- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
+- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
+- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
+- **Translator**: Use **Dashboard → Translator** to debug format issues

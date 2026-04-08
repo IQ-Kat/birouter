@@ -4,6 +4,8 @@
 
 ---
 
+
+
 _Last updated: 2026-03-28_
 
 ## Executive Summary
@@ -36,6 +38,7 @@ Core capabilities:
 - Anti-thundering herd protection with mutex locking
 - Signature-based request deduplication cache
 - Domain layer: model availability, cost rules, fallback policy, lockout policy
+- Context Relay: session handoff summaries for account rotation continuity
 - Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
 - Policy engine for centralized request evaluation (lockout → budget → fallback)
 - Request telemetry with p50/p95/p99 latency aggregation
@@ -222,6 +225,8 @@ Services (business logic):
 - Wildcard model routing: `open-sse/services/wildcardRouter.ts`
 - Rate limit management: `open-sse/services/rateLimitManager.ts`
 - Circuit breaker: `open-sse/services/circuitBreaker.ts`
+- Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
+- Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
 
 Domain layer modules:
 
@@ -802,7 +807,10 @@ Environment variables actively used by code:
 5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
 6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
 7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
-8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
+8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies, **Context Relay** handoff config), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
+9. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated, `chat.ts` injects the handoff after account resolution. Handoff data lives in `context_handoffs` SQLite table. This split is intentional because only `chat.ts` knows whether the actual account changed.
+10. **Proxy enforcement** is now comprehensive: `tokenHealthCheck.ts` resolves proxy per connection, `/api/providers/validate` uses `runWithProxyContext`, and `proxyFetch.ts` uses `undici.fetch()` to maintain dispatcher compatibility on Node 22.
+11. **Node.js 24+ detection**: `/api/settings/require-login` returns `nodeVersion` and `nodeCompatible` fields. The login page renders a warning banner when the runtime is incompatible.
 
 ## Operational Verification Checklist
 

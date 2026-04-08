@@ -4,80 +4,93 @@
 
 ---
 
-_Cập nhật lần cuối: 28-03-2026_## Executive Summary
 
-OmniRoute là cổng định tuyến và bảng thông tin AI cục bộ được xây dựng trên Next.js.
-Nó cung cấp một điểm cuối tương thích với OpenAI (`/v1/*`) và định tuyến lưu lượng truy cập trên nhiều nhà cung cấp ngược dòng với bản dịch, dự phòng, làm mới mã thông báo và theo dõi việc sử dụng.
 
-Khả năng cốt lõi:
+_Last updated: 2026-03-28_
 
-- Bề mặt API tương thích OpenAI cho CLI/công cụ (28 nhà cung cấp)
-- Dịch yêu cầu/phản hồi trên các định dạng của nhà cung cấp
-- Dự phòng kết hợp mô hình (chuỗi nhiều mô hình)
-- Dự phòng cấp tài khoản (nhiều tài khoản cho mỗi nhà cung cấp)
-- Quản lý kết nối nhà cung cấp khóa OAuth + API
-- Tạo nhúng thông qua `/v1/embeddings` (6 nhà cung cấp, 9 mô hình)
-- Tạo hình ảnh qua `/v1/images/thế hệ` (4 nhà cung cấp, 9 kiểu máy)
-- Phân tích thẻ suy nghĩ (`<think>...</think>`) cho các mô hình suy luận
-- Dọn dẹp phản hồi để tương thích nghiêm ngặt với OpenAI SDK
-- Chuẩn hóa vai trò (nhà phát triển→hệ thống, hệ thống→người dùng) để tương thích giữa các nhà cung cấp
-- Chuyển đổi đầu ra có cấu trúc (json_schema → GeminiResponseSchema)
-- Tính bền vững cục bộ cho nhà cung cấp, khóa, bí danh, tổ hợp, cài đặt, giá cả
-- Theo dõi việc sử dụng/chi phí và ghi nhật ký yêu cầu
-- Đồng bộ hóa đám mây tùy chọn để đồng bộ hóa nhiều thiết bị/trạng thái
-- Danh sách cho phép/danh sách chặn IP để kiểm soát truy cập API
-- Tư duy quản lý ngân sách (passthrough/auto/custom/adaptive)
-- Tiêm nhắc nhở hệ thống toàn cầu
-- Theo dõi phiên và lấy dấu vân tay
-- Giới hạn tỷ lệ nâng cao cho mỗi tài khoản với hồ sơ dành riêng cho nhà cung cấp
-- Mô hình ngắt mạch cho khả năng phục hồi của nhà cung cấp
-- Bảo vệ đàn chống sét bằng khóa mutex
-- Bộ đệm chống trùng lặp yêu cầu dựa trên chữ ký
-- Lớp miền: tính khả dụng của mô hình, quy tắc chi phí, chính sách dự phòng, chính sách khóa
-- Tính bền vững của trạng thái miền (bộ đệm ghi SQLite dành cho dự phòng, ngân sách, khóa, bộ ngắt mạch)
-- Công cụ chính sách để đánh giá yêu cầu tập trung (khóa → ngân sách → dự phòng)
-- Yêu cầu đo từ xa với tổng hợp độ trễ p50/p95/p99
-- ID tương quan (X-Request-Id) để theo dõi từ đầu đến cuối
-- Ghi nhật ký kiểm tra tuân thủ với tính năng chọn không tham gia trên mỗi khóa API
-- Khung đánh giá để đảm bảo chất lượng LLM
-- Bảng điều khiển UI có khả năng phục hồi với trạng thái ngắt mạch theo thời gian thực
-- Nhà cung cấp OAuth mô-đun (12 mô-đun riêng lẻ trong `src/lib/oauth/providers/`)
+## Executive Summary
 
-Mô hình thời gian chạy chính:
+OmniRoute is a local AI routing gateway and dashboard built on Next.js.
+It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic across multiple upstream providers with translation, fallback, token refresh, and usage tracking.
 
-- Các tuyến ứng dụng Next.js trong `src/app/api/*` triển khai cả API bảng điều khiển và API tương thích
-- Một lõi định tuyến/SSE được chia sẻ trong `src/sse/*` + `open-sse/*` xử lý việc thực thi, dịch thuật, phát trực tuyến, dự phòng và sử dụng của nhà cung cấp## Scope and Boundaries
+Core capabilities:
+
+- OpenAI-compatible API surface for CLI/tools (28 providers)
+- Request/response translation across provider formats
+- Model combo fallback (multi-model sequence)
+- Account-level fallback (multi-account per provider)
+- OAuth + API-key provider connection management
+- Embedding generation via `/v1/embeddings` (6 providers, 9 models)
+- Image generation via `/v1/images/generations` (4 providers, 9 models)
+- Think tag parsing (`<think>...</think>`) for reasoning models
+- Response sanitization for strict OpenAI SDK compatibility
+- Role normalization (developer→system, system→user) for cross-provider compatibility
+- Structured output conversion (json_schema → Gemini responseSchema)
+- Local persistence for providers, keys, aliases, combos, settings, pricing
+- Usage/cost tracking and request logging
+- Optional cloud sync for multi-device/state sync
+- IP allowlist/blocklist for API access control
+- Thinking budget management (passthrough/auto/custom/adaptive)
+- Global system prompt injection
+- Session tracking and fingerprinting
+- Per-account enhanced rate limiting with provider-specific profiles
+- Circuit breaker pattern for provider resilience
+- Anti-thundering herd protection with mutex locking
+- Signature-based request deduplication cache
+- Domain layer: model availability, cost rules, fallback policy, lockout policy
+- Context Relay: session handoff summaries for account rotation continuity
+- Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
+- Policy engine for centralized request evaluation (lockout → budget → fallback)
+- Request telemetry with p50/p95/p99 latency aggregation
+- Correlation ID (X-Request-Id) for end-to-end tracing
+- Compliance audit logging with opt-out per API key
+- Eval framework for LLM quality assurance
+- Resilience UI dashboard with real-time circuit breaker status
+- Modular OAuth providers (12 individual modules under `src/lib/oauth/providers/`)
+
+Primary runtime model:
+
+- Next.js app routes under `src/app/api/*` implement both dashboard APIs and compatibility APIs
+- A shared SSE/routing core in `src/sse/*` + `open-sse/*` handles provider execution, translation, streaming, fallback, and usage
+
+## Scope and Boundaries
 
 ### In Scope
 
-- Thời gian chạy cổng cục bộ
-- API quản lý bảng điều khiển
-- Xác thực nhà cung cấp và làm mới mã thông báo
-- Yêu cầu dịch và truyền phát SSE
-- Trạng thái cục bộ + kiên trì sử dụng
-- Phối hợp đồng bộ hóa đám mây tùy chọn### Out of Scope
+- Local gateway runtime
+- Dashboard management APIs
+- Provider authentication and token refresh
+- Request translation and SSE streaming
+- Local state + usage persistence
+- Optional cloud sync orchestration
 
-- Triển khai dịch vụ đám mây đằng sau `NEXT_PUBLIC_CLOUD_URL`
-- Nhà cung cấp SLA/mặt phẳng điều khiển bên ngoài quy trình cục bộ
-- Bản thân các tệp nhị phân CLI bên ngoài (Claude CLI, Codex CLI, v.v.)## Dashboard Surface (Current)
+### Out of Scope
 
-Các trang chính trong `src/app/(dashboard)/dashboard/`:
+- Cloud service implementation behind `NEXT_PUBLIC_CLOUD_URL`
+- Provider SLA/control plane outside local process
+- External CLI binaries themselves (Claude CLI, Codex CLI, etc.)
 
-- `/dashboard` — bắt đầu nhanh + tổng quan về nhà cung cấp
-- `/dashboard/endpoint` — proxy điểm cuối + MCP + A2A + tab điểm cuối API
-- `/dashboard/providers` — kết nối và thông tin đăng nhập của nhà cung cấp
-- `/dashboard/combos` — chiến lược kết hợp, mẫu, quy tắc định tuyến mô hình
-- `/dashboard/costs` — tổng hợp chi phí và khả năng hiển thị giá cả
-- `/dashboard/analytics` — phân tích và đánh giá việc sử dụng
-- `/dashboard/limits` — kiểm soát hạn ngạch/tỷ lệ
-- `/dashboard/cli-tools` — Tích hợp CLI, phát hiện thời gian chạy, tạo cấu hình
-- `/dashboard/agents` — các tác nhân ACP được phát hiện + đăng ký tác nhân tùy chỉnh
-- `/dashboard/media` — sân chơi hình ảnh/video/âm nhạc
-- `/dashboard/search-tools` — lịch sử và kiểm tra nhà cung cấp dịch vụ tìm kiếm
-- `/dashboard/health` — thời gian hoạt động, ngắt mạch, giới hạn tốc độ
-- `/dashboard/logs` — nhật ký yêu cầu/proxy/kiểm toán/bàn điều khiển
-- `/dashboard/settings` — các tab cài đặt hệ thống (chung, định tuyến, mặc định kết hợp, v.v.)
-- `/dashboard/api-manager` — Quyền đối với mô hình và vòng đời của khóa API## High-Level System Context
+## Dashboard Surface (Current)
+
+Main pages under `src/app/(dashboard)/dashboard/`:
+
+- `/dashboard` — quick start + provider overview
+- `/dashboard/endpoint` — endpoint proxy + MCP + A2A + API endpoint tabs
+- `/dashboard/providers` — provider connections and credentials
+- `/dashboard/combos` — combo strategies, templates, model routing rules
+- `/dashboard/costs` — cost aggregation and pricing visibility
+- `/dashboard/analytics` — usage analytics and evaluations
+- `/dashboard/limits` — quota/rate controls
+- `/dashboard/cli-tools` — CLI onboarding, runtime detection, config generation
+- `/dashboard/agents` — detected ACP agents + custom agent registration
+- `/dashboard/media` — image/video/music playground
+- `/dashboard/search-tools` — search provider testing and history
+- `/dashboard/health` — uptime, circuit breakers, rate limits
+- `/dashboard/logs` — request/proxy/audit/console logs
+- `/dashboard/settings` — system settings tabs (general, routing, combo defaults, etc.)
+- `/dashboard/api-manager` — API key lifecycle and model permissions
+
+## High-Level System Context
 
 ```mermaid
 flowchart LR
@@ -129,139 +142,151 @@ flowchart LR
 
 ## 1) API and Routing Layer (Next.js App Routes)
 
-Các thư mục chính:
+Main directories:
 
-- `src/app/api/v1/*` và `src/app/api/v1beta/*` cho các API tương thích
-- `src/app/api/*` dành cho API quản lý/cấu hình
-- Tiếp theo viết lại trong `next.config.mjs` ánh xạ `/v1/*` thành `/api/v1/*`
+- `src/app/api/v1/*` and `src/app/api/v1beta/*` for compatibility APIs
+- `src/app/api/*` for management/configuration APIs
+- Next rewrites in `next.config.mjs` map `/v1/*` to `/api/v1/*`
 
-Các tuyến tương thích quan trọng:
+Important compatibility routes:
 
 - `src/app/api/v1/chat/completions/route.ts`
 - `src/app/api/v1/messages/route.ts`
 - `src/app/api/v1/responses/route.ts`
-- `src/app/api/v1/models/route.ts` — bao gồm các mô hình tùy chỉnh với `custom: true`
-- `src/app/api/v1/embeddings/route.ts` — thế hệ nhúng (6 nhà cung cấp)
-- `src/app/api/v1/images/Generations/route.ts` — tạo hình ảnh (4+ nhà cung cấp bao gồm AntiGravity/Nebius)
+- `src/app/api/v1/models/route.ts` — includes custom models with `custom: true`
+- `src/app/api/v1/embeddings/route.ts` — embedding generation (6 providers)
+- `src/app/api/v1/images/generations/route.ts` — image generation (4+ providers incl. Antigravity/Nebius)
 - `src/app/api/v1/messages/count_tokens/route.ts`
-- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — trò chuyện dành riêng cho mỗi nhà cung cấp
-- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — phần nhúng dành riêng cho mỗi nhà cung cấp
-- `src/app/api/v1/providers/[provider]/images/thế hệ/route.ts` — hình ảnh dành riêng cho mỗi nhà cung cấp
+- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — dedicated per-provider chat
+- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — dedicated per-provider embeddings
+- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — dedicated per-provider images
 - `src/app/api/v1beta/models/route.ts`
 - `src/app/api/v1beta/models/[...path]/route.ts`
 
-Các miền quản lý:
+Management domains:
 
-- Xác thực/cài đặt: `src/app/api/auth/*`, `src/app/api/settings/*`
-- Nhà cung cấp/kết nối: `src/app/api/providers*`
-- Các nút của nhà cung cấp: `src/app/api/provider-nodes*`
-- Model tùy chỉnh: `src/app/api/provider-models` (GET/POST/DELETE)
-- Danh mục mô hình: `src/app/api/models/route.ts` (GET)
-- Cấu hình proxy: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
+- Auth/settings: `src/app/api/auth/*`, `src/app/api/settings/*`
+- Providers/connections: `src/app/api/providers*`
+- Provider nodes: `src/app/api/provider-nodes*`
+- Custom models: `src/app/api/provider-models` (GET/POST/DELETE)
+- Model catalog: `src/app/api/models/route.ts` (GET)
+- Proxy config: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
 - OAuth: `src/app/api/oauth/*`
-- Khóa/bí danh/combos/giá: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
-- Cách sử dụng: `src/app/api/usage/*`
-- Đồng bộ/đám mây: `src/app/api/sync/*`, `src/app/api/cloud/*`
-- Trình trợ giúp công cụ CLI: `src/app/api/cli-tools/*`
-- Bộ lọc IP: `src/app/api/settings/ip-filter` (GET/PUT)
-- Ngân sách tư duy: `src/app/api/settings/thinking-budget` (GET/PUT)
-- Dấu nhắc hệ thống: `src/app/api/settings/system-prompt` (GET/PUT)
-- Phiên: `src/app/api/sessions` (GET)
-- Giới hạn tỷ lệ: `src/app/api/rate-limits` (GET)
-- Khả năng phục hồi: `src/app/api/resilience` (GET/PATCH) — hồ sơ nhà cung cấp, bộ ngắt mạch, trạng thái giới hạn tốc độ
-- Đặt lại khả năng phục hồi: `src/app/api/resilience/reset` (POST) — đặt lại bộ ngắt + thời gian hồi chiêu
-- Thống kê bộ đệm: `src/app/api/cache/stats` (GET/DELETE)
-- Tính khả dụng của mô hình: `src/app/api/models/availability` (GET/POST)
-- Đo từ xa: `src/app/api/telemetry/summary` (GET)
-- Ngân sách: `src/app/api/usage/budget` (GET/POST)
-- Chuỗi dự phòng: `src/app/api/fallback/chains` (GET/POST/DELETE)
-- Kiểm tra tuân thủ: `src/app/api/compliance/audit-log` (GET)
-- Đánh giá: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
-- Chính sách: `src/app/api/policies` (GET/POST)## 2) SSE + Translation Core
+- Keys/aliases/combos/pricing: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
+- Usage: `src/app/api/usage/*`
+- Sync/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
+- CLI tooling helpers: `src/app/api/cli-tools/*`
+- IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
+- Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
+- System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
+- Sessions: `src/app/api/sessions` (GET)
+- Rate limits: `src/app/api/rate-limits` (GET)
+- Resilience: `src/app/api/resilience` (GET/PATCH) — provider profiles, circuit breaker, rate limit state
+- Resilience reset: `src/app/api/resilience/reset` (POST) — reset breakers + cooldowns
+- Cache stats: `src/app/api/cache/stats` (GET/DELETE)
+- Model availability: `src/app/api/models/availability` (GET/POST)
+- Telemetry: `src/app/api/telemetry/summary` (GET)
+- Budget: `src/app/api/usage/budget` (GET/POST)
+- Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
+- Compliance audit: `src/app/api/compliance/audit-log` (GET)
+- Evals: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
+- Policies: `src/app/api/policies` (GET/POST)
 
-Các mô-đun dòng chảy chính:
+## 2) SSE + Translation Core
 
-- Mục nhập: `src/sse/handlers/chat.ts`
-- Điều phối cốt lõi: `open-sse/handlers/chatCore.ts`
-- Bộ điều hợp thực thi của nhà cung cấp: `open-sse/executors/*`
-- Phát hiện định dạng/cấu hình nhà cung cấp: `open-sse/services/provider.ts`
-- Phân tích/giải quyết mô hình: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- Logic dự phòng tài khoản: `open-sse/services/accountFallback.ts`
-- Sổ đăng ký dịch: `open-sse/translator/index.ts`
-- Chuyển đổi luồng: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- Trích xuất/chuẩn hóa cách sử dụng: `open-sse/utils/usageTracking.ts`
-- Trình phân tích cú pháp thẻ Think: `open-sse/utils/thinkTagParser.ts`
-- Trình xử lý nhúng: `open-sse/handlers/embeddings.ts`
-- Đăng ký nhà cung cấp nhúng: `open-sse/config/embeddingRegistry.ts`
-- Trình xử lý tạo hình ảnh: `open-sse/handlers/imageGeneration.ts`
-- Sổ đăng ký nhà cung cấp hình ảnh: `open-sse/config/imageRegistry.ts`
-- Làm sạch phản hồi: `open-sse/handlers/responseSanitizer.ts`
-- Chuẩn hóa vai trò: `open-sse/services/roleNormalizer.ts`
+Main flow modules:
 
-Dịch vụ (logic nghiệp vụ):
+- Entry: `src/sse/handlers/chat.ts`
+- Core orchestration: `open-sse/handlers/chatCore.ts`
+- Provider execution adapters: `open-sse/executors/*`
+- Format detection/provider config: `open-sse/services/provider.ts`
+- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- Account fallback logic: `open-sse/services/accountFallback.ts`
+- Translation registry: `open-sse/translator/index.ts`
+- Stream transformations: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- Usage extraction/normalization: `open-sse/utils/usageTracking.ts`
+- Think tag parser: `open-sse/utils/thinkTagParser.ts`
+- Embedding handler: `open-sse/handlers/embeddings.ts`
+- Embedding provider registry: `open-sse/config/embeddingRegistry.ts`
+- Image generation handler: `open-sse/handlers/imageGeneration.ts`
+- Image provider registry: `open-sse/config/imageRegistry.ts`
+- Response sanitization: `open-sse/handlers/responseSanitizer.ts`
+- Role normalization: `open-sse/services/roleNormalizer.ts`
 
-- Lựa chọn/chấm điểm tài khoản: `open-sse/services/accountSelector.ts`
-- Quản lý vòng đời bối cảnh: `open-sse/services/contextManager.ts`
-- Thực thi bộ lọc IP: `open-sse/services/ipFilter.ts`
-- Theo dõi phiên: `open-sse/services/sessionManager.ts`
-- Yêu cầu loại bỏ trùng lặp: `open-sse/services/signatureCache.ts`
-- Nội dung nhắc nhở của hệ thống: `open-sse/services/systemPrompt.ts`
-- Tư duy quản lý ngân sách: `open-sse/services/thinkingBudget.ts`
-- Định tuyến mô hình ký tự đại diện: `open-sse/services/wildcardRouter.ts`
-- Quản lý giới hạn tỷ lệ: `open-sse/services/rateLimitManager.ts`
-- Bộ ngắt mạch: `open-sse/services/ CircuitBreaker.ts`
+Services (business logic):
 
-Các mô-đun lớp miền:
+- Account selection/scoring: `open-sse/services/accountSelector.ts`
+- Context lifecycle management: `open-sse/services/contextManager.ts`
+- IP filter enforcement: `open-sse/services/ipFilter.ts`
+- Session tracking: `open-sse/services/sessionManager.ts`
+- Request deduplication: `open-sse/services/signatureCache.ts`
+- System prompt injection: `open-sse/services/systemPrompt.ts`
+- Thinking budget management: `open-sse/services/thinkingBudget.ts`
+- Wildcard model routing: `open-sse/services/wildcardRouter.ts`
+- Rate limit management: `open-sse/services/rateLimitManager.ts`
+- Circuit breaker: `open-sse/services/circuitBreaker.ts`
+- Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
+- Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
 
-- Tính khả dụng của mô hình: `src/lib/domain/modelAvailability.ts`
-- Quy tắc chi phí/ngân sách: `src/lib/domain/costRules.ts`
-- Chính sách dự phòng: `src/lib/domain/fallbackPolicy.ts`
-- Trình phân giải kết hợp: `src/lib/domain/comboResolver.ts`
-- Chính sách khóa: `src/lib/domain/lockoutPolicy.ts`
-- Công cụ chính sách: `src/domain/policyEngine.ts` — khóa tập trung → ngân sách → đánh giá dự phòng
-- Danh mục mã lỗi: `src/lib/domain/errorCodes.ts`
-- ID yêu cầu: `src/lib/domain/requestId.ts`
-- Thời gian chờ tìm nạp: `src/lib/domain/fetchTimeout.ts`
-- Yêu cầu đo từ xa: `src/lib/domain/requestTelemetry.ts`
-- Tuân thủ/kiểm toán: `src/lib/domain/compliance/index.ts`
-- Người chạy đánh giá: `src/lib/domain/evalRunner.ts`
-- Tính bền vững của trạng thái miền: `src/lib/db/domainState.ts` — SQLite CRUD dành cho chuỗi dự phòng, ngân sách, lịch sử chi phí, trạng thái khóa, bộ ngắt mạch
+Domain layer modules:
 
-Mô-đun nhà cung cấp OAuth (12 tệp riêng lẻ trong `src/lib/oauth/providers/`):
+- Model availability: `src/lib/domain/modelAvailability.ts`
+- Cost rules/budgets: `src/lib/domain/costRules.ts`
+- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
+- Combo resolver: `src/lib/domain/comboResolver.ts`
+- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
+- Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
+- Error codes catalog: `src/lib/domain/errorCodes.ts`
+- Request ID: `src/lib/domain/requestId.ts`
+- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
+- Request telemetry: `src/lib/domain/requestTelemetry.ts`
+- Compliance/audit: `src/lib/domain/compliance/index.ts`
+- Eval runner: `src/lib/domain/evalRunner.ts`
+- Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
-- Chỉ mục đăng ký: `src/lib/oauth/providers/index.ts`
-- Các nhà cung cấp cá nhân: `claude.ts`, `codex.ts`, `gemini.ts`, `antiGravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
-- Trình bao bọc mỏng: `src/lib/oauth/providers.ts` — tái xuất từ các mô-đun riêng lẻ## 3) Persistence Layer
+OAuth provider modules (12 individual files under `src/lib/oauth/providers/`):
 
-DB trạng thái chính (SQLite):
+- Registry index: `src/lib/oauth/providers/index.ts`
+- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
 
-- Cơ sở hạ tầng cốt lõi: `src/lib/db/core.ts` (tốt hơn-sqlite3, di chuyển, WAL)
-- Mặt tiền tái xuất: `src/lib/localDb.ts` (lớp tương thích mỏng cho người gọi)
-- tệp: `${DATA_DIR}/storage.sqlite` (hoặc `$XDG_CONFIG_HOME/omniroute/storage.sqlite` khi được đặt, nếu không thì `~/.omniroute/storage.sqlite`)
-- thực thể (bảng + không gian tên KV): nhà cung cấpConnections, nhà cung cấpNodes, modelAliases, combo, apiKeys, cài đặt, giá cả,**customModels**,**proxyConfig**,**ipFilter**,**thinkingBudget**,**systemPrompt**
+## 3) Persistence Layer
 
-Kiên trì sử dụng:
+Primary state DB (SQLite):
 
-- mặt tiền: `src/lib/usageDb.ts` (các mô-đun được phân tách trong `src/lib/usage/*`)
-- Bảng SQLite trong `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
-- các tạo phẩm tệp tùy chọn vẫn còn để tương thích/gỡ lỗi (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
-- các tệp JSON kế thừa được di chuyển sang SQLite bằng cách di chuyển khởi động khi có mặt
+- Core infra: `src/lib/db/core.ts` (better-sqlite3, migrations, WAL)
+- Re-export facade: `src/lib/localDb.ts` (thin compatibility layer for callers)
+- file: `${DATA_DIR}/storage.sqlite` (or `$XDG_CONFIG_HOME/omniroute/storage.sqlite` when set, else `~/.omniroute/storage.sqlite`)
+- entities (tables + KV namespaces): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
 
-Cơ sở dữ liệu trạng thái miền (SQLite):
+Usage persistence:
 
-- `src/lib/db/domainState.ts` — Hoạt động CRUD cho trạng thái miền
-- Các bảng (được tạo trong `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circle_breakers`
-- Mẫu bộ đệm ghi qua: Bản đồ trong bộ nhớ có thẩm quyền trong thời gian chạy; các đột biến được ghi đồng bộ vào SQLite; trạng thái được khôi phục từ DB khi khởi động nguội## 4) Auth + Security Surfaces
+- facade: `src/lib/usageDb.ts` (decomposed modules in `src/lib/usage/*`)
+- SQLite tables in `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
+- optional file artifacts remain for compatibility/debug (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
+- legacy JSON files are migrated to SQLite by startup migrations when present
 
-- Xác thực cookie bảng điều khiển: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
-- Tạo/xác minh khóa API: `src/shared/utils/apiKey.ts`
-- Bí mật của nhà cung cấp vẫn tồn tại trong các mục `providerConnections`
-- Hỗ trợ proxy gửi đi thông qua `open-sse/utils/proxyFetch.ts` (env vars) và `open-sse/utils/networkProxy.ts` (có thể định cấu hình cho mỗi nhà cung cấp hoặc toàn cầu)## 5) Cloud Sync
+Domain State DB (SQLite):
 
-- Trình lập lịch biểu khởi tạo: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
-- Nhiệm vụ định kỳ: `src/shared/services/cloudSyncScheduler.ts`
-- Tác vụ định kỳ: `src/shared/services/modelSyncScheduler.ts`
-- Tuyến điều khiển: `src/app/api/sync/cloud/route.ts`## Request Lifecycle (`/v1/chat/completions`)
+- `src/lib/db/domainState.ts` — CRUD operations for domain state
+- Tables (created in `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
+- Write-through cache pattern: in-memory Maps are authoritative at runtime; mutations are written synchronously to SQLite; state is restored from DB on cold start
+
+## 4) Auth + Security Surfaces
+
+- Dashboard cookie auth: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
+- API key generation/verification: `src/shared/utils/apiKey.ts`
+- Provider secrets persisted in `providerConnections` entries
+- Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
+
+## 5) Cloud Sync
+
+- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
+- Periodic task: `src/shared/services/cloudSyncScheduler.ts`
+- Periodic task: `src/shared/services/modelSyncScheduler.ts`
+- Control route: `src/app/api/sync/cloud/route.ts`
+
+## Request Lifecycle (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
@@ -338,7 +363,9 @@ flowchart TD
     Q -- No --> R[Return all unavailable]
 ```
 
-Các quyết định dự phòng được điều khiển bởi `open-sse/services/accountFallback.ts` bằng cách sử dụng mã trạng thái và phương pháp phỏng đoán thông báo lỗi. Định tuyến kết hợp bổ sung thêm một biện pháp bảo vệ: 400 lỗi trong phạm vi nhà cung cấp, chẳng hạn như lỗi xác thực vai trò và khối nội dung ngược dòng được coi là lỗi cục bộ mô hình để các mục tiêu kết hợp sau này vẫn có thể chạy.## OAuth Onboarding and Token Refresh Lifecycle
+Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics. Combo routing adds one extra guard: provider-scoped 400s such as upstream content-block and role-validation failures are treated as model-local failures so later combo targets can still run.
+
+## OAuth Onboarding and Token Refresh Lifecycle
 
 ```mermaid
 sequenceDiagram
@@ -368,7 +395,9 @@ sequenceDiagram
     Test-->>UI: validation result
 ```
 
-Làm mới trong khi lưu lượng truy cập trực tiếp được thực thi bên trong `open-sse/handlers/chatCore.ts` thông qua trình thực thi `refreshCredentials()`.## Cloud Sync Lifecycle (Enable / Sync / Disable)
+Refresh during live traffic is executed inside `open-sse/handlers/chatCore.ts` via executor `refreshCredentials()`.
+
+## Cloud Sync Lifecycle (Enable / Sync / Disable)
 
 ```mermaid
 sequenceDiagram
@@ -400,7 +429,9 @@ sequenceDiagram
     Sync-->>UI: disabled
 ```
 
-Đồng bộ hóa định kỳ được kích hoạt bởi `CloudSyncScheduler` khi bật đám mây.## Data Model and Storage Map
+Periodic sync is triggered by `CloudSyncScheduler` when cloud is enabled.
+
+## Data Model and Storage Map
 
 ```mermaid
 erDiagram
@@ -501,12 +532,14 @@ erDiagram
     }
 ```
 
-Tệp lưu trữ vật lý:
+Physical storage files:
 
-- DB thời gian chạy chính: `${DATA_DIR}/storage.sqlite`
-- dòng nhật ký yêu cầu: `${DATA_DIR}/log.txt` (tạo phẩm tương thích/gỡ lỗi)
-- kho lưu trữ tải trọng cuộc gọi có cấu trúc: `${DATA_DIR}/call_logs/`
-- phiên gỡ lỗi yêu cầu/trình dịch tùy chọn: `<repo>/logs/...`## Deployment Topology
+- primary runtime DB: `${DATA_DIR}/storage.sqlite`
+- request log lines: `${DATA_DIR}/log.txt` (compat/debug artifact)
+- structured call payload archives: `${DATA_DIR}/call_logs/`
+- optional translator/request debug sessions: `<repo>/logs/...`
+
+## Deployment Topology
 
 ```mermaid
 flowchart LR
@@ -541,205 +574,249 @@ flowchart LR
 
 ### Route and API Modules
 
-- `src/app/api/v1/*`, `src/app/api/v1beta/*`: các API tương thích
-- `src/app/api/v1/providers/[provider]/*`: các tuyến dành riêng cho mỗi nhà cung cấp (trò chuyện, nhúng, hình ảnh)
-- `src/app/api/providers*`: CRUD của nhà cung cấp, xác thực, kiểm tra
-- `src/app/api/provider-nodes*`: quản lý nút tương thích tùy chỉnh
-- `src/app/api/provider-models`: quản lý mô hình tùy chỉnh (CRUD)
-- `src/app/api/models/route.ts`: API danh mục mô hình (bí danh + mô hình tùy chỉnh)
-- `src/app/api/oauth/*`: Luồng OAuth/mã thiết bị
-- `src/app/api/keys*`: vòng đời của khóa API cục bộ
-- `src/app/api/models/alias`: quản lý bí danh
-- `src/app/api/combos*`: quản lý kết hợp dự phòng
-- `src/app/api/pricing`: ghi đè giá để tính chi phí
-- `src/app/api/settings/proxy`: cấu hình proxy (GET/PUT/DELETE)
+- `src/app/api/v1/*`, `src/app/api/v1beta/*`: compatibility APIs
+- `src/app/api/v1/providers/[provider]/*`: dedicated per-provider routes (chat, embeddings, images)
+- `src/app/api/providers*`: provider CRUD, validation, testing
+- `src/app/api/provider-nodes*`: custom compatible node management
+- `src/app/api/provider-models`: custom model management (CRUD)
+- `src/app/api/models/route.ts`: model catalog API (aliases + custom models)
+- `src/app/api/oauth/*`: OAuth/device-code flows
+- `src/app/api/keys*`: local API key lifecycle
+- `src/app/api/models/alias`: alias management
+- `src/app/api/combos*`: fallback combo management
+- `src/app/api/pricing`: pricing overrides for cost calculation
+- `src/app/api/settings/proxy`: proxy configuration (GET/PUT/DELETE)
 - `src/app/api/settings/proxy/test`: outbound proxy connectivity test (POST)
-- `src/app/api/usage/*`: API sử dụng và nhật ký
-- `src/app/api/sync/*` + `src/app/api/cloud/*`: đồng bộ hóa đám mây và trợ giúp đối mặt với đám mây
-- `src/app/api/cli-tools/*`: trình soạn thảo/kiểm tra cấu hình CLI cục bộ
-- `src/app/api/settings/ip-filter`: Danh sách cho phép/danh sách chặn IP (GET/PUT)
-- `src/app/api/settings/thinking-budget`: cấu hình ngân sách mã thông báo suy nghĩ (GET/PUT)
-- `src/app/api/settings/system-prompt`: dấu nhắc hệ thống toàn cầu (GET/PUT)
-- `src/app/api/sessions`: danh sách phiên hoạt động (GET)
-- `src/app/api/rate-limits`: trạng thái giới hạn tỷ lệ cho mỗi tài khoản (GET)### Routing and Execution Core
+- `src/app/api/usage/*`: usage and logs APIs
+- `src/app/api/sync/*` + `src/app/api/cloud/*`: cloud sync and cloud-facing helpers
+- `src/app/api/cli-tools/*`: local CLI config writers/checkers
+- `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
+- `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
+- `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
+- `src/app/api/sessions`: active session listing (GET)
+- `src/app/api/rate-limits`: per-account rate limit status (GET)
 
-- `src/sse/handlers/chat.ts`: phân tích cú pháp yêu cầu, xử lý kết hợp, vòng lặp chọn tài khoản
-- `open-sse/handlers/chatCore.ts`: dịch, gửi người thực thi, xử lý thử lại/làm mới, thiết lập luồng
-- `open-sse/executors/*`: hành vi định dạng và mạng dành riêng cho nhà cung cấp### Translation Registry and Format Converters
+### Routing and Execution Core
 
-- `open-sse/translator/index.ts`: đăng ký và điều phối dịch giả
-- Yêu cầu người dịch: `open-sse/translator/request/*`
-- Trình dịch phản hồi: `open-sse/translator/response/*`
-- Hằng định dạng: `open-sse/translator/formats.ts`### Persistence
+- `src/sse/handlers/chat.ts`: request parse, combo handling, account selection loop
+- `open-sse/handlers/chatCore.ts`: translation, executor dispatch, retry/refresh handling, stream setup
+- `open-sse/executors/*`: provider-specific network and format behavior
 
-- `src/lib/db/*`: duy trì cấu hình/trạng thái và tên miền liên tục trên SQLite
-- `src/lib/localDb.ts`: tái xuất khả năng tương thích cho các mô-đun DB
-- `src/lib/usageDb.ts`: mặt tiền lịch sử sử dụng/nhật ký cuộc gọi ở đầu các bảng SQLite## Provider Executor Coverage (Strategy Pattern)
+### Translation Registry and Format Converters
 
-Mỗi nhà cung cấp có một trình thực thi chuyên biệt mở rộng `BaseExecutor` (trong `open-sse/executors/base.ts`), cung cấp việc xây dựng URL, xây dựng tiêu đề, thử lại với thời gian chờ theo cấp số nhân, móc làm mới thông tin xác thực và phương thức điều phối `execute()`.
+- `open-sse/translator/index.ts`: translator registry and orchestration
+- Request translators: `open-sse/translator/request/*`
+- Response translators: `open-sse/translator/response/*`
+- Format constants: `open-sse/translator/formats.ts`
 
-| Người thi hành                  | (Các) nhà cung cấp                                                                                                                                           | Xử lý đặc biệt                                                      |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| `Trình thực thi mặc định`       | OpenAI, Claude, Gemini, Qwen, Qoder, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Cấu hình URL/tiêu đề động cho mỗi nhà cung cấp                      |
-| `Người thực thi phản trọng lực` | Google phản lực hấp dẫn                                                                                                                                      | ID dự án/phiên tùy chỉnh, Thử lại sau khi phân tích cú pháp         |
-| `CodexExecutor`                 | OpenAI Codex                                                                                                                                                 | Đưa vào các hướng dẫn hệ thống, buộc nỗ lực suy luận                |
-| `Người thực thi con trỏ`        | IDE con trỏ                                                                                                                                                  | Giao thức ConnectRPC, mã hóa Protobuf, ký yêu cầu qua tổng kiểm tra |
-| `GithubExecutor`                | Phi công phụ GitHub                                                                                                                                          | Làm mới mã thông báo Copilot, tiêu đề bắt chước VSCode              |
-| `KiroExecutor`                  | AWS CodeWhisperer/Kiro                                                                                                                                       | Định dạng nhị phân AWS EventStream → Chuyển đổi SSE                 |
-| `GeminiCLIExecutor`             | Song Tử CLI                                                                                                                                                  | Chu kỳ làm mới mã thông báo Google OAuth                            |
+### Persistence
 
-Tất cả các nhà cung cấp khác (bao gồm các nút tương thích tùy chỉnh) đều sử dụng `DefaultExecutor`.## Provider Compatibility Matrix
+- `src/lib/db/*`: persistent config/state and domain persistence on SQLite
+- `src/lib/localDb.ts`: compatibility re-export for DB modules
+- `src/lib/usageDb.ts`: usage history/call logs facade on top of SQLite tables
 
-| Nhà cung cấp        | Định dạng       | Xác thực                      | Truyền phát      | Không phát trực tuyến | Làm mới mã thông báo | API sử dụng                   |
-| ------------------- | --------------- | ----------------------------- | ---------------- | --------------------- | -------------------- | ----------------------------- | ------------------------------ |
-| Claude              | Claude          | Khóa API / OAuth              | ✅               | ✅                    | ✅                   | ⚠️ Chỉ dành cho quản trị viên |
-| Song Tử             | song tử         | Khóa API / OAuth              | ✅               | ✅                    | ✅                   | ⚠️ Bảng điều khiển đám mây    |
-| Song Tử CLI         | gemini-cli      | OAuth                         | ✅               | ✅                    | ✅                   | ⚠️ Bảng điều khiển đám mây    |
-| Phản lực hấp dẫn    | phản trọng lực  | OAuth                         | ✅               | ✅                    | ✅                   | ✅ API hạn ngạch đầy đủ       |
-| OpenAI              | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| Codex               | phản hồi openai | OAuth                         | ✅ ép buộc       | ❌                    | ✅                   | ✅ Giới hạn tỷ lệ             |
-| Phi công phụ GitHub | mở              | OAuth + Mã thông báo đồng lái | ✅               | ✅                    | ✅                   | ✅ Ảnh chụp nhanh hạn ngạch   |
-| Con trỏ             | con trỏ         | Tổng kiểm tra tùy chỉnh       | ✅               | ✅                    | ❌                   | ❌                            |
-| Kiro                | kiro            | AWS SSO OIDC                  | ✅ (EventStream) | ❌                    | ✅                   | ✅ Giới hạn sử dụng           |
-| Qwen                | mở              | OAuth                         | ✅               | ✅                    | ✅                   | ⚠️ Theo yêu cầu               |
-| Qoder               | mở              | OAuth (Cơ bản)                | ✅               | ✅                    | ✅                   | ⚠️ Theo yêu cầu               |
-| OpenRouter          | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| GLM/Kimi/MiniMax    | Claude          | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| DeepSeek            | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| Groq                | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| xAI (Grok)          | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| Mistral             | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| Lúng túng           | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| Cùng AI             | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| Pháo hoa AI         | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| Não                 | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| Kết hợp             | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            |
-| NVIDIA NIM          | mở              | Khóa API                      | ✅               | ✅                    | ❌                   | ❌                            | ## Format Translation Coverage |
+## Provider Executor Coverage (Strategy Pattern)
 
-Các định dạng nguồn được phát hiện bao gồm:
+Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
+
+| Executor              | Provider(s)                                                                                                                                                  | Special Handling                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `DefaultExecutor`     | OpenAI, Claude, Gemini, Qwen, Qoder, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Dynamic URL/header config per provider                               |
+| `AntigravityExecutor` | Google Antigravity                                                                                                                                           | Custom project/session IDs, Retry-After parsing                      |
+| `CodexExecutor`       | OpenAI Codex                                                                                                                                                 | Injects system instructions, forces reasoning effort                 |
+| `CursorExecutor`      | Cursor IDE                                                                                                                                                   | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
+| `GithubExecutor`      | GitHub Copilot                                                                                                                                               | Copilot token refresh, VSCode-mimicking headers                      |
+| `KiroExecutor`        | AWS CodeWhisperer/Kiro                                                                                                                                       | AWS EventStream binary format → SSE conversion                       |
+| `GeminiCLIExecutor`   | Gemini CLI                                                                                                                                                   | Google OAuth token refresh cycle                                     |
+
+All other providers (including custom compatible nodes) use the `DefaultExecutor`.
+
+## Provider Compatibility Matrix
+
+| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
+| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
+| Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
+| Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Gemini CLI       | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
+| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
+| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
+| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
+| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
+| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Qoder            | openai           | OAuth (Basic)         | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+
+## Format Translation Coverage
+
+Detected source formats include:
 
 - `openai`
-- `openai-phản hồi`
-- `claudia`
-- `song tử`
+- `openai-responses`
+- `claude`
+- `gemini`
 
-Các định dạng mục tiêu bao gồm:
+Target formats include:
 
-- Trò chuyện/Phản hồi OpenAI
+- OpenAI chat/Responses
 - Claude
-- Phong bì Gemini/Gemini-CLI/Phản trọng lực
+- Gemini/Gemini-CLI/Antigravity envelope
 - Kiro
-- Con trỏ
+- Cursor
 
-Các bản dịch sử dụng**OpenAI làm định dạng trung tâm**— tất cả các chuyển đổi đều thông qua OpenAI dưới dạng trung gian:```
+Translations use **OpenAI as the hub format** — all conversions go through OpenAI as intermediate:
+
+```
 Source Format → OpenAI (hub) → Target Format
+```
 
-````
+Translations are selected dynamically based on source payload shape and provider target format.
 
-Các bản dịch được chọn linh hoạt dựa trên hình dạng tải trọng nguồn và định dạng mục tiêu của nhà cung cấp.
+Additional processing layers in the translation pipeline:
 
-Các lớp xử lý bổ sung trong quy trình dịch thuật:
+- **Response sanitization** — Strips non-standard fields from OpenAI-format responses (both streaming and non-streaming) to ensure strict SDK compliance
+- **Role normalization** — Converts `developer` → `system` for non-OpenAI targets; merges `system` → `user` for models that reject the system role (GLM, ERNIE)
+- **Think tag extraction** — Parses `<think>...</think>` blocks from content into `reasoning_content` field
+- **Structured output** — Converts OpenAI `response_format.json_schema` to Gemini's `responseMimeType` + `responseSchema`
 
--**Sạch hóa phản hồi**— Loại bỏ các trường không chuẩn khỏi phản hồi ở định dạng OpenAI (cả phát trực tuyến và không phát trực tuyến) để đảm bảo tuân thủ nghiêm ngặt SDK
--**Chuẩn hóa vai trò**— Chuyển đổi `developer` → `system` cho các mục tiêu không phải OpenAI; hợp nhất `system` → `user` cho các mô hình từ chối vai trò hệ thống (GLM, ERNIE)
--**Trích xuất thẻ Think**— Phân tích cú pháp `<think>...</think>` chặn nội dung vào trường `reasoning_content`
--**Đầu ra có cấu trúc**— Chuyển đổi `response_format.json_schema` của OpenAI thành `responseMimeType` + `responseSchema` của Gemini## Supported API Endpoints
+## Supported API Endpoints
 
-| Điểm cuối | Định dạng | Người xử lý |
+| Endpoint                                           | Format             | Handler                                                             |
 | -------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
-| `POST /v1/chat/hoàn thành` | Trò chuyện OpenAI | `src/sse/handlers/chat.ts` |
-| `POST /v1/tin nhắn` | Tin nhắn Claude | Trình xử lý tương tự (tự động phát hiện) |
-| `POST /v1/phản hồi` | Phản hồi OpenAI | `open-sse/handlers/responsesHandler.ts` |
-| `POST /v1/nhúng` | Nhúng OpenAI | `open-sse/handlers/embeddings.ts` |
-| `NHẬN /v1/nhúng` | Danh sách mô hình | Tuyến đường API |
-| `POST /v1/images/thế hệ` | Hình ảnh OpenAI | `open-sse/handlers/imageGeneration.ts` |
-| `NHẬN /v1/hình ảnh/thế hệ` | Danh sách mô hình | Tuyến đường API |
-| `POST /v1/providers/{provider}/chat/completions` | Trò chuyện OpenAI | Dành riêng cho mỗi nhà cung cấp với xác thực mô hình |
-| `POST /v1/providers/{provider}/embeddings` | Nhúng OpenAI | Dành riêng cho mỗi nhà cung cấp với xác thực mô hình |
-| `POST /v1/providers/{provider}/images/thế hệ` | Hình ảnh OpenAI | Dành riêng cho mỗi nhà cung cấp với xác thực mô hình |
-| `POST /v1/messages/count_tokens` | Số lượng mã thông báo Claude | Tuyến đường API |
-| `NHẬN /v1/model` | Danh sách mô hình OpenAI | Tuyến API (trò chuyện + nhúng + hình ảnh + mô hình tùy chỉnh) |
-| `NHẬN /api/mô hình/danh mục` | Danh mục | Tất cả các mô hình được nhóm theo nhà cung cấp + loại |
-| `POST /v1beta/models/*:streamGenerateContent` | Song Tử bản xứ | Tuyến đường API |
-| `NHẬN/PUT/XÓA /api/settings/proxy` | Cấu hình proxy | Cấu hình proxy mạng |
-| `POST /api/settings/proxy/test` | Kết nối proxy | Điểm cuối kiểm tra sức khỏe/kết nối proxy |
-| `GET/POST/DELETE /api/provider-models` | Mô hình nhà cung cấp | Sao lưu siêu dữ liệu mô hình nhà cung cấp các mô hình có sẵn tùy chỉnh và được quản lý |## Bypass Handler
+| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                                          |
+| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                                        |
+| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`                             |
+| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                                   |
+| `GET /v1/embeddings`                               | Model listing      | API route                                                           |
+| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`                              |
+| `GET /v1/images/generations`                       | Model listing      | API route                                                           |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation                        |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation                        |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Dedicated per-provider with model validation                        |
+| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                                           |
+| `GET /v1/models`                                   | OpenAI Models list | API route (chat + embedding + image + custom models)                |
+| `GET /api/models/catalog`                          | Catalog            | All models grouped by provider + type                               |
+| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                                           |
+| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Network proxy configuration                                         |
+| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Proxy health/connectivity test endpoint                             |
+| `GET/POST/DELETE /api/provider-models`             | Provider Models    | Provider model metadata backing custom and managed available models |
 
-Trình xử lý bỏ qua (`open-sse/utils/bypassHandler.ts`) chặn các yêu cầu "loại bỏ" đã biết từ Claude CLI — ping khởi động, trích xuất tiêu đề và số lượng mã thông báo — và trả về**phản hồi giả**mà không tiêu tốn mã thông báo của nhà cung cấp ngược dòng. Điều này chỉ được kích hoạt khi `User-Agent` chứa `claude-cli`.## Request Logger Pipeline
+## Bypass Handler
 
-Trình ghi nhật ký yêu cầu (`open-sse/utils/requestLogger.ts`) cung cấp quy trình ghi nhật ký gỡ lỗi 7 giai đoạn, bị tắt theo mặc định, được bật thông qua `ENABLE_REQUEST_LOGS=true`:```
+The bypass handler (`open-sse/utils/bypassHandler.ts`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
+
+## Request Logger Pipeline
+
+The request logger (`open-sse/utils/requestLogger.ts`) provides a 7-stage debug logging pipeline, disabled by default, enabled via `ENABLE_REQUEST_LOGS=true`:
+
+```
 1_req_client.json → 2_req_source.json → 3_req_openai.json → 4_req_target.json
 → 5_res_provider.txt → 6_res_openai.txt → 7_res_client.txt
-````
+```
 
-Các tập tin được ghi vào `<repo>/logs/<session>/` cho mỗi phiên yêu cầu.## Failure Modes and Resilience
+Files are written to `<repo>/logs/<session>/` for each request session.
+
+## Failure Modes and Resilience
 
 ## 1) Account/Provider Availability
 
-- thời gian hồi chiêu của tài khoản nhà cung cấp đối với các lỗi tạm thời/tỷ lệ/xác thực
-- dự phòng tài khoản trước khi yêu cầu không thành công
-- dự phòng mô hình kết hợp khi đường dẫn mô hình/nhà cung cấp hiện tại đã hết## 2) Token Expiry
+- provider account cooldown on transient/rate/auth errors
+- account fallback before failing request
+- combo model fallback when current model/provider path is exhausted
 
-- kiểm tra trước và làm mới bằng cách thử lại đối với các nhà cung cấp có thể làm mới
-- Thử lại 401/403 sau lần thử làm mới trong đường dẫn lõi## 3) Stream Safety
+## 2) Token Expiry
 
-- bộ điều khiển luồng nhận biết ngắt kết nối
-- luồng dịch với tính năng xả cuối luồng và xử lý `[DONE]`
-- dự phòng ước tính sử dụng khi thiếu siêu dữ liệu sử dụng của nhà cung cấp## 4) Cloud Sync Degradation
+- pre-check and refresh with retry for refreshable providers
+- 401/403 retry after refresh attempt in core path
 
-- lỗi đồng bộ hóa xuất hiện nhưng thời gian chạy cục bộ vẫn tiếp tục
-- bộ lập lịch có logic có khả năng thử lại, nhưng việc thực thi định kỳ hiện gọi đồng bộ hóa một lần thử theo mặc định## 5) Data Integrity
+## 3) Stream Safety
 
-- Di chuyển lược đồ SQLite và móc nâng cấp tự động khi khởi động
-- JSON kế thừa → Đường dẫn tương thích di chuyển SQLite## Observability and Operational Signals
+- disconnect-aware stream controller
+- translation stream with end-of-stream flush and `[DONE]` handling
+- usage estimation fallback when provider usage metadata is missing
 
-Nguồn hiển thị thời gian chạy:
+## 4) Cloud Sync Degradation
 
-- nhật ký bảng điều khiển từ `src/sse/utils/logger.ts`
-- tổng hợp mức sử dụng theo yêu cầu trong SQLite (`usage_history`, `call_logs`, `proxy_logs`)
-- Ghi lại tải trọng chi tiết bốn giai đoạn trong SQLite (`request_detail_logs`) khi `settings.detailed_logs_enabled=true`
-- nhật ký trạng thái yêu cầu văn bản trong `log.txt` (tùy chọn/tương thích)
-- nhật ký dịch/yêu cầu sâu tùy chọn trong `logs/` khi `ENABLE_REQUEST_LOGS=true`
-- điểm cuối sử dụng bảng điều khiển (`/api/usage/*`) để sử dụng giao diện người dùng
+- sync errors are surfaced but local runtime continues
+- scheduler has retry-capable logic, but periodic execution currently calls single-attempt sync by default
 
-Tính năng thu thập tải trọng yêu cầu chi tiết lưu trữ tối đa bốn giai đoạn tải trọng JSON cho mỗi cuộc gọi định tuyến:
+## 5) Data Integrity
 
-- yêu cầu thô nhận được từ khách hàng
-- yêu cầu đã dịch thực sự được gửi ngược dòng
-- phản hồi của nhà cung cấp được xây dựng lại dưới dạng JSON; phản hồi theo luồng được nén thành bản tóm tắt cuối cùng cộng với siêu dữ liệu luồng
-- phản hồi cuối cùng của khách hàng được OmniRoute trả về; các phản hồi theo luồng được lưu trữ ở cùng một dạng tóm tắt nhỏ gọn## Security-Sensitive Boundaries
+- SQLite schema migrations and auto-upgrade hooks at startup
+- legacy JSON → SQLite migration compatibility path
 
-- Bí mật JWT (`JWT_SECRET`) bảo mật việc xác minh/ký cookie phiên bảng điều khiển
-- Khởi động mật khẩu ban đầu (`INITIAL_PASSWORD`) phải được định cấu hình rõ ràng để cung cấp lần đầu
-- Khóa API Bí mật HMAC (`API_KEY_SECRET`) bảo mật định dạng khóa API cục bộ được tạo
-- Bí mật của nhà cung cấp (khóa API/mã thông báo) được lưu giữ trong DB cục bộ và phải được bảo vệ ở cấp hệ thống tệp
-- Điểm cuối đồng bộ hóa đám mây dựa vào ngữ nghĩa xác thực khóa API + id máy## Environment and Runtime Matrix
+## Observability and Operational Signals
 
-Các biến môi trường được mã sử dụng tích cực:
+Runtime visibility sources:
 
-- Ứng dụng/xác thực: `JWT_SECRET`, `INITIAL_PASSWORD`
-- Bộ nhớ: `DATA_DIR`
-- Hành vi của nút tương thích: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
-- Ghi đè cơ sở lưu trữ tùy chọn (Linux/macOS khi không đặt `DATA_DIR`): `XDG_CONFIG_HOME`
-- Băm bảo mật: `API_KEY_SECRET`, `MACHINE_ID_SALT`
-- Ghi nhật ký: `ENABLE_REQUEST_LOGS`
-- URL đồng bộ hóa/đám mây: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
-- Proxy gửi đi: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` và các biến thể chữ thường
-- Cờ tính năng SOCKS5: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
-- Trình trợ giúp nền tảng/thời gian chạy (không phải cấu hình dành riêng cho ứng dụng): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`## Known Architectural Notes
+- console logs from `src/sse/utils/logger.ts`
+- per-request usage aggregates in SQLite (`usage_history`, `call_logs`, `proxy_logs`)
+- four-stage detailed payload captures in SQLite (`request_detail_logs`) when `settings.detailed_logs_enabled=true`
+- textual request status log in `log.txt` (optional/compat)
+- optional deep request/translation logs under `logs/` when `ENABLE_REQUEST_LOGS=true`
+- dashboard usage endpoints (`/api/usage/*`) for UI consumption
 
-1. `usageDb` và `localDb` chia sẻ cùng một chính sách thư mục cơ sở (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) với việc di chuyển tệp kế thừa.
-2. `/api/v1/route.ts` ủy quyền cho cùng một trình tạo danh mục hợp nhất được sử dụng bởi `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) để tránh trôi dạt ngữ nghĩa.
-3. Trình ghi yêu cầu ghi toàn bộ tiêu đề/nội dung khi được bật; coi thư mục nhật ký là nhạy cảm.
-4. Hoạt động của đám mây phụ thuộc vào `NEXT_PUBLIC_BASE_URL` chính xác và khả năng tiếp cận điểm cuối của đám mây.
-5. Thư mục `open-sse/` được xuất bản dưới dạng `@omniroute/open-sse`**gói không gian làm việc npm**. Mã nguồn nhập nó qua `@omniroute/open-sse/...` (được giải quyết bởi Next.js `transpilePackages`). Đường dẫn tệp trong tài liệu này vẫn sử dụng tên thư mục `open-sse/` để đảm bảo tính thống nhất.
-6. Các biểu đồ trong trang tổng quan sử dụng**Recharts**(dựa trên SVG) để hiển thị trực quan hóa phân tích tương tác, có thể truy cập (biểu đồ thanh sử dụng mô hình, bảng phân tích nhà cung cấp với tỷ lệ thành công).
-7. Kiểm thử E2E sử dụng**Playwright**(`tests/e2e/`), chạy qua `npm run test:e2e`. Kiểm thử đơn vị sử dụng**Trình chạy thử nghiệm Node.js**(`tests/unit/`), chạy qua `npm run test:unit`. Mã nguồn trong `src/` là**TypeScript**(`.ts`/`.tsx`); không gian làm việc `open-sse/` vẫn là JavaScript (`.js`).
-8. Trang cài đặt được tổ chức thành 5 tab: Bảo mật, Định tuyến (6 chiến lược toàn cầu: điền trước, quay vòng, p2c, ngẫu nhiên, ít sử dụng nhất, tối ưu hóa chi phí), Khả năng phục hồi (giới hạn tốc độ có thể chỉnh sửa, ngắt mạch, chính sách), AI (ngân sách suy nghĩ, lời nhắc hệ thống, bộ nhớ đệm nhắc nhở), Nâng cao (proxy).## Operational Verification Checklist
+Detailed request payload capture stores up to four JSON payload stages per routed call:
 
-- Build từ nguồn: `npm run build`
-- Xây dựng hình ảnh Docker: `docker build -t omniroute .`
-- Bắt đầu dịch vụ và xác minh:
-- `NHẬN/api/cài đặt`
-- `NHẬN /api/v1/model`
-- URL cơ sở mục tiêu CLI phải là `http://<host>:20128/v1` khi `PORT=20128`
+- raw request received from the client
+- translated request actually sent upstream
+- provider response reconstructed as JSON; streamed responses are compacted to the final summary plus stream metadata
+- final client response returned by OmniRoute; streamed responses are stored in the same compact summary form
+
+## Security-Sensitive Boundaries
+
+- JWT secret (`JWT_SECRET`) secures dashboard session cookie verification/signing
+- Initial password bootstrap (`INITIAL_PASSWORD`) should be explicitly configured for first-run provisioning
+- API key HMAC secret (`API_KEY_SECRET`) secures generated local API key format
+- Provider secrets (API keys/tokens) are persisted in local DB and should be protected at filesystem level
+- Cloud sync endpoints rely on API key auth + machine id semantics
+
+## Environment and Runtime Matrix
+
+Environment variables actively used by code:
+
+- App/auth: `JWT_SECRET`, `INITIAL_PASSWORD`
+- Storage: `DATA_DIR`
+- Compatible node behavior: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
+- Optional storage base override (Linux/macOS when `DATA_DIR` unset): `XDG_CONFIG_HOME`
+- Security hashing: `API_KEY_SECRET`, `MACHINE_ID_SALT`
+- Logging: `ENABLE_REQUEST_LOGS`
+- Sync/cloud URLing: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
+- Outbound proxy: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` and lowercase variants
+- SOCKS5 feature flags: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
+- Platform/runtime helpers (not app-specific config): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`
+
+## Known Architectural Notes
+
+1. `usageDb` and `localDb` share the same base directory policy (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) with legacy file migration.
+2. `/api/v1/route.ts` delegates to the same unified catalog builder used by `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) to avoid semantic drift.
+3. Request logger writes full headers/body when enabled; treat log directory as sensitive.
+4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
+5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
+6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
+7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
+8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies, **Context Relay** handoff config), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
+9. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated, `chat.ts` injects the handoff after account resolution. Handoff data lives in `context_handoffs` SQLite table. This split is intentional because only `chat.ts` knows whether the actual account changed.
+10. **Proxy enforcement** is now comprehensive: `tokenHealthCheck.ts` resolves proxy per connection, `/api/providers/validate` uses `runWithProxyContext`, and `proxyFetch.ts` uses `undici.fetch()` to maintain dispatcher compatibility on Node 22.
+11. **Node.js 24+ detection**: `/api/settings/require-login` returns `nodeVersion` and `nodeCompatible` fields. The login page renders a warning banner when the runtime is incompatible.
+
+## Operational Verification Checklist
+
+- Build from source: `npm run build`
+- Build Docker image: `docker build -t omniroute .`
+- Start service and verify:
+- `GET /api/settings`
+- `GET /api/v1/models`
+- CLI target base URL should be `http://<host>:20128/v1` when `PORT=20128`

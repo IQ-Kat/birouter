@@ -4,80 +4,93 @@
 
 ---
 
-_अंतिम अद्यतन: 2026-03-28_## Executive Summary
 
-ओमनीरूट एक स्थानीय एआई रूटिंग गेटवे और नेक्स्ट.जेएस पर निर्मित डैशबोर्ड है।
-यह एक एकल ओपनएआई-संगत एंडपॉइंट (`/v1/*`) प्रदान करता है और अनुवाद, फ़ॉलबैक, टोकन रिफ्रेश और उपयोग ट्रैकिंग के साथ कई अपस्ट्रीम प्रदाताओं के बीच ट्रैफ़िक को रूट करता है।
 
-मुख्य क्षमताएं:
+_Last updated: 2026-03-28_
 
-- सीएलआई/टूल्स के लिए ओपनएआई-संगत एपीआई सतह (28 प्रदाता)
-- प्रदाता प्रारूपों में अनुरोध/प्रतिक्रिया अनुवाद
-- मॉडल कॉम्बो फ़ॉलबैक (मल्टी-मॉडल अनुक्रम)
-- खाता-स्तरीय फ़ॉलबैक (प्रति प्रदाता बहु-खाता)
-- OAuth + एपीआई-कुंजी प्रदाता कनेक्शन प्रबंधन
-- `/v1/embeddings` के माध्यम से एम्बेडिंग पीढ़ी (6 प्रदाता, 9 मॉडल)
-- `/v1/images/पीढ़ी` के माध्यम से छवि निर्माण (4 प्रदाता, 9 मॉडल)
-- तर्क मॉडल के लिए थिंक टैग पार्सिंग (`<थिंक>...</थिंक>`) सोचें
-- सख्त ओपनएआई एसडीके संगतता के लिए प्रतिक्रिया स्वच्छता
-- क्रॉस-प्रदाता अनुकूलता के लिए भूमिका सामान्यीकरण (डेवलपर→सिस्टम, सिस्टम→उपयोगकर्ता)।
-- संरचित आउटपुट रूपांतरण (json_schema → जेमिनी रिस्पॉन्सस्कीमा)
-- प्रदाताओं, चाबियाँ, उपनाम, कॉम्बो, सेटिंग्स, मूल्य निर्धारण के लिए स्थानीय दृढ़ता
-- उपयोग/लागत ट्रैकिंग और अनुरोध लॉगिंग
-- मल्टी-डिवाइस/स्टेट सिंक के लिए वैकल्पिक क्लाउड सिंक
-- एपीआई एक्सेस नियंत्रण के लिए आईपी अनुमति सूची/ब्लॉकलिस्ट
-- सोच बजट प्रबंधन (पासथ्रू/ऑटो/कस्टम/अनुकूली)
-- वैश्विक प्रणाली शीघ्र इंजेक्शन
-- सत्र ट्रैकिंग और फ़िंगरप्रिंटिंग
-- प्रदाता-विशिष्ट प्रोफाइल के साथ प्रति-खाता बढ़ी हुई दर सीमित करना
-- प्रदाता लचीलेपन के लिए सर्किट ब्रेकर पैटर्न
-- म्यूटेक्स लॉकिंग के साथ एंटी-थंडरिंग झुंड सुरक्षा
-- हस्ताक्षर-आधारित अनुरोध डिडुप्लीकेशन कैश
-- डोमेन परत: मॉडल उपलब्धता, लागत नियम, फ़ॉलबैक नीति, लॉकआउट नीति
-- डोमेन स्थिति दृढ़ता (फ़ॉलबैक, बजट, लॉकआउट, सर्किट ब्रेकर के लिए SQLite राइट-थ्रू कैश)
-- केंद्रीकृत अनुरोध मूल्यांकन के लिए नीति इंजन (लॉकआउट → बजट → फ़ॉलबैक)
-- p50/p95/p99 विलंबता एकत्रीकरण के साथ टेलीमेट्री का अनुरोध करें
-- एंड-टू-एंड ट्रेसिंग के लिए सहसंबंध आईडी (एक्स-रिक्वेस्ट-आईडी)।
-- एपीआई कुंजी के अनुसार ऑप्ट-आउट के साथ अनुपालन ऑडिट लॉगिंग
-- एलएलएम गुणवत्ता आश्वासन के लिए इवल फ्रेमवर्क
-- वास्तविक समय सर्किट ब्रेकर स्थिति के साथ लचीलापन यूआई डैशबोर्ड
-- मॉड्यूलर OAuth प्रदाता (`src/lib/oauth/providers/` के अंतर्गत 12 व्यक्तिगत मॉड्यूल)
+## Executive Summary
 
-प्राथमिक रनटाइम मॉडल:
+OmniRoute is a local AI routing gateway and dashboard built on Next.js.
+It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic across multiple upstream providers with translation, fallback, token refresh, and usage tracking.
 
-- `src/app/api/*` के अंतर्गत Next.js ऐप रूट डैशबोर्ड एपीआई और संगतता एपीआई दोनों को लागू करते हैं
-- `src/sse/*` + `open-sse/*` में एक साझा SSE/रूटिंग कोर प्रदाता निष्पादन, अनुवाद, स्ट्रीमिंग, फ़ॉलबैक और उपयोग को संभालता है## Scope and Boundaries
+Core capabilities:
+
+- OpenAI-compatible API surface for CLI/tools (28 providers)
+- Request/response translation across provider formats
+- Model combo fallback (multi-model sequence)
+- Account-level fallback (multi-account per provider)
+- OAuth + API-key provider connection management
+- Embedding generation via `/v1/embeddings` (6 providers, 9 models)
+- Image generation via `/v1/images/generations` (4 providers, 9 models)
+- Think tag parsing (`<think>...</think>`) for reasoning models
+- Response sanitization for strict OpenAI SDK compatibility
+- Role normalization (developer→system, system→user) for cross-provider compatibility
+- Structured output conversion (json_schema → Gemini responseSchema)
+- Local persistence for providers, keys, aliases, combos, settings, pricing
+- Usage/cost tracking and request logging
+- Optional cloud sync for multi-device/state sync
+- IP allowlist/blocklist for API access control
+- Thinking budget management (passthrough/auto/custom/adaptive)
+- Global system prompt injection
+- Session tracking and fingerprinting
+- Per-account enhanced rate limiting with provider-specific profiles
+- Circuit breaker pattern for provider resilience
+- Anti-thundering herd protection with mutex locking
+- Signature-based request deduplication cache
+- Domain layer: model availability, cost rules, fallback policy, lockout policy
+- Context Relay: session handoff summaries for account rotation continuity
+- Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
+- Policy engine for centralized request evaluation (lockout → budget → fallback)
+- Request telemetry with p50/p95/p99 latency aggregation
+- Correlation ID (X-Request-Id) for end-to-end tracing
+- Compliance audit logging with opt-out per API key
+- Eval framework for LLM quality assurance
+- Resilience UI dashboard with real-time circuit breaker status
+- Modular OAuth providers (12 individual modules under `src/lib/oauth/providers/`)
+
+Primary runtime model:
+
+- Next.js app routes under `src/app/api/*` implement both dashboard APIs and compatibility APIs
+- A shared SSE/routing core in `src/sse/*` + `open-sse/*` handles provider execution, translation, streaming, fallback, and usage
+
+## Scope and Boundaries
 
 ### In Scope
 
-- स्थानीय गेटवे रनटाइम
-- डैशबोर्ड प्रबंधन एपीआई
-- प्रदाता प्रमाणीकरण और टोकन ताज़ा करें
-- अनुवाद और एसएसई स्ट्रीमिंग का अनुरोध करें
-- स्थानीय स्थिति + उपयोग की दृढ़ता
-- वैकल्पिक क्लाउड सिंक ऑर्केस्ट्रेशन### Out of Scope
+- Local gateway runtime
+- Dashboard management APIs
+- Provider authentication and token refresh
+- Request translation and SSE streaming
+- Local state + usage persistence
+- Optional cloud sync orchestration
 
-- `NEXT_PUBLIC_CLOUD_URL` के पीछे क्लाउड सेवा कार्यान्वयन
-- स्थानीय प्रक्रिया के बाहर प्रदाता एसएलए/नियंत्रण विमान
-- बाहरी सीएलआई बायनेरिज़ स्वयं (क्लाउड सीएलआई, कोडेक्स सीएलआई, आदि)## Dashboard Surface (Current)
+### Out of Scope
 
-`src/app/(डैशबोर्ड)/डैशबोर्ड/` के अंतर्गत मुख्य पृष्ठ:
+- Cloud service implementation behind `NEXT_PUBLIC_CLOUD_URL`
+- Provider SLA/control plane outside local process
+- External CLI binaries themselves (Claude CLI, Codex CLI, etc.)
 
-- `/डैशबोर्ड` - त्वरित शुरुआत + प्रदाता अवलोकन
-- `/डैशबोर्ड/एंडपॉइंट` - एंडपॉइंट प्रॉक्सी + एमसीपी + ए2ए + एपीआई एंडपॉइंट टैब
-- `/डैशबोर्ड/प्रदाता` - प्रदाता कनेक्शन और क्रेडेंशियल
-- `/डैशबोर्ड/कॉम्बोस` - कॉम्बो रणनीतियाँ, टेम्पलेट, मॉडल रूटिंग नियम
-- `/डैशबोर्ड/लागत` - लागत एकत्रीकरण और मूल्य निर्धारण दृश्यता
-- `/डैशबोर्ड/एनालिटिक्स` - उपयोग विश्लेषण और मूल्यांकन
-- `/डैशबोर्ड/सीमाएँ` - कोटा/दर नियंत्रण
-- `/डैशबोर्ड/क्ली-टूल्स` - सीएलआई ऑनबोर्डिंग, रनटाइम डिटेक्शन, कॉन्फिग जेनरेशन
-- `/डैशबोर्ड/एजेंट` - पता चला एसीपी एजेंट + कस्टम एजेंट पंजीकरण
-- `/डैशबोर्ड/मीडिया` - छवि/वीडियो/संगीत खेल का मैदान
-- `/डैशबोर्ड/सर्च-टूल्स` - खोज प्रदाता परीक्षण और इतिहास
-- `/डैशबोर्ड/स्वास्थ्य` - अपटाइम, सर्किट ब्रेकर, दर सीमा
-- `/डैशबोर्ड/लॉग्स` - अनुरोध/प्रॉक्सी/ऑडिट/कंसोल लॉग
-- `/डैशबोर्ड/सेटिंग्स` - सिस्टम सेटिंग्स टैब (सामान्य, रूटिंग, कॉम्बो डिफ़ॉल्ट, आदि)
-- `/डैशबोर्ड/एपीआई-मैनेजर` - एपीआई कुंजी जीवनचक्र और मॉडल अनुमतियाँ## High-Level System Context
+## Dashboard Surface (Current)
+
+Main pages under `src/app/(dashboard)/dashboard/`:
+
+- `/dashboard` — quick start + provider overview
+- `/dashboard/endpoint` — endpoint proxy + MCP + A2A + API endpoint tabs
+- `/dashboard/providers` — provider connections and credentials
+- `/dashboard/combos` — combo strategies, templates, model routing rules
+- `/dashboard/costs` — cost aggregation and pricing visibility
+- `/dashboard/analytics` — usage analytics and evaluations
+- `/dashboard/limits` — quota/rate controls
+- `/dashboard/cli-tools` — CLI onboarding, runtime detection, config generation
+- `/dashboard/agents` — detected ACP agents + custom agent registration
+- `/dashboard/media` — image/video/music playground
+- `/dashboard/search-tools` — search provider testing and history
+- `/dashboard/health` — uptime, circuit breakers, rate limits
+- `/dashboard/logs` — request/proxy/audit/console logs
+- `/dashboard/settings` — system settings tabs (general, routing, combo defaults, etc.)
+- `/dashboard/api-manager` — API key lifecycle and model permissions
+
+## High-Level System Context
 
 ```mermaid
 flowchart LR
@@ -129,139 +142,151 @@ flowchart LR
 
 ## 1) API and Routing Layer (Next.js App Routes)
 
-मुख्य निर्देशिकाएँ:
+Main directories:
 
-- अनुकूलता एपीआई के लिए `src/app/api/v1/*` और `src/app/api/v1beta/*`
-- प्रबंधन/कॉन्फ़िगरेशन एपीआई के लिए `src/app/api/*`
-- अगला `next.config.mjs` मैप `/v1/*` से `/api/v1/*` में फिर से लिखता है
+- `src/app/api/v1/*` and `src/app/api/v1beta/*` for compatibility APIs
+- `src/app/api/*` for management/configuration APIs
+- Next rewrites in `next.config.mjs` map `/v1/*` to `/api/v1/*`
 
-महत्वपूर्ण अनुकूलता मार्ग:
+Important compatibility routes:
 
 - `src/app/api/v1/chat/completions/route.ts`
 - `src/app/api/v1/messages/route.ts`
 - `src/app/api/v1/responses/route.ts`
-- `src/app/api/v1/models/route.ts` - इसमें `कस्टम: ट्रू` के साथ कस्टम मॉडल शामिल हैं
-- `src/app/api/v1/embeddings/route.ts` - एम्बेडिंग जेनरेशन (6 प्रदाता)
-- `src/app/api/v1/images/जेनरेशन/रूट.ts` - छवि निर्माण (एंटीग्रेविटी/नेबियस सहित 4+ प्रदाता)
+- `src/app/api/v1/models/route.ts` — includes custom models with `custom: true`
+- `src/app/api/v1/embeddings/route.ts` — embedding generation (6 providers)
+- `src/app/api/v1/images/generations/route.ts` — image generation (4+ providers incl. Antigravity/Nebius)
 - `src/app/api/v1/messages/count_tokens/route.ts`
-- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` - प्रति-प्रदाता समर्पित चैट
-- `src/app/api/v1/providers/[provider]/embeddings/route.ts` - प्रति-प्रदाता समर्पित एम्बेडिंग
-- `src/app/api/v1/providers/[provider]/images/nations/route.ts` - प्रति-प्रदाता समर्पित छवियां
+- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — dedicated per-provider chat
+- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — dedicated per-provider embeddings
+- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — dedicated per-provider images
 - `src/app/api/v1beta/models/route.ts`
 - `src/app/api/v1beta/models/[...path]/route.ts`
 
-प्रबंधन डोमेन:
+Management domains:
 
-- प्रामाणिक/सेटिंग्स: `src/app/api/auth/*`, `src/app/api/settings/*`
-- प्रदाता/कनेक्शन: `src/app/api/प्रदाता*`
-- प्रदाता नोड्स: `src/app/api/provider-nodes*`
-- कस्टम मॉडल: `src/app/api/provider-models` (प्राप्त करें/पोस्ट करें/हटाएं)
-- मॉडल कैटलॉग: `src/app/api/models/route.ts` (GET)
-- प्रॉक्सी कॉन्फ़िगरेशन: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
+- Auth/settings: `src/app/api/auth/*`, `src/app/api/settings/*`
+- Providers/connections: `src/app/api/providers*`
+- Provider nodes: `src/app/api/provider-nodes*`
+- Custom models: `src/app/api/provider-models` (GET/POST/DELETE)
+- Model catalog: `src/app/api/models/route.ts` (GET)
+- Proxy config: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
 - OAuth: `src/app/api/oauth/*`
-- कुंजी/उपनाम/कॉम्बोस/मूल्य निर्धारण: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
-- उपयोग: `src/app/api/usage/*`
-- सिंक/क्लाउड: `src/app/api/sync/*`, `src/app/api/cloud/*`
-- सीएलआई टूलींग सहायक: `src/app/api/cli-tools/*`
-- आईपी फ़िल्टर: `src/app/api/settings/ip-filter` (प्राप्त/पुट)
-- सोच बजट: `src/app/api/settings/thinking-budget` (प्राप्त/पुट)
-- सिस्टम प्रॉम्प्ट: `src/app/api/settings/system-prompt` (GET/PUT)
-- सत्र: `src/app/api/sessions` (प्राप्त करें)
-- दर सीमा: `src/app/api/दर-सीमा` (प्राप्त करें)
-- लचीलापन: `src/app/api/resilience` (GET/PATCH) - प्रदाता प्रोफाइल, सर्किट ब्रेकर, दर सीमा स्थिति
-- लचीलापन रीसेट: `src/app/api/resilience/reset` (POST) - रीसेट ब्रेकर + कूलडाउन
-- कैश आँकड़े: `src/app/api/cache/stats` (प्राप्त करें/हटाएँ)
-- मॉडल उपलब्धता: `src/app/api/मॉडल/उपलब्धता` (प्राप्त करें/पोस्ट करें)
-- टेलीमेट्री: `src/app/api/टेलीमेट्री/सारांश` (प्राप्त करें)
-- बजट: `src/app/api/usage/budget` (प्राप्त करें/पोस्ट करें)
-- फ़ॉलबैक चेन: `src/app/api/फ़ॉलबैक/चेन` (प्राप्त करें/पोस्ट करें/हटाएं)
-- अनुपालन ऑडिट: `src/app/api/compliance/audit-log` (GET)
-- इवल्स: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
-- नीतियां: `src/app/api/policies` (प्राप्त करें/पोस्ट करें)## 2) SSE + Translation Core
+- Keys/aliases/combos/pricing: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
+- Usage: `src/app/api/usage/*`
+- Sync/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
+- CLI tooling helpers: `src/app/api/cli-tools/*`
+- IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
+- Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
+- System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
+- Sessions: `src/app/api/sessions` (GET)
+- Rate limits: `src/app/api/rate-limits` (GET)
+- Resilience: `src/app/api/resilience` (GET/PATCH) — provider profiles, circuit breaker, rate limit state
+- Resilience reset: `src/app/api/resilience/reset` (POST) — reset breakers + cooldowns
+- Cache stats: `src/app/api/cache/stats` (GET/DELETE)
+- Model availability: `src/app/api/models/availability` (GET/POST)
+- Telemetry: `src/app/api/telemetry/summary` (GET)
+- Budget: `src/app/api/usage/budget` (GET/POST)
+- Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
+- Compliance audit: `src/app/api/compliance/audit-log` (GET)
+- Evals: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
+- Policies: `src/app/api/policies` (GET/POST)
 
-मुख्य प्रवाह मॉड्यूल:
+## 2) SSE + Translation Core
 
-- प्रविष्टि: `src/sse/handlers/chat.ts`
-- कोर ऑर्केस्ट्रेशन: `open-sse/handlers/chatCore.ts`
-- प्रदाता निष्पादन एडाप्टर: `ओपन-एसएसई/निष्पादक/*`
-- प्रारूप पहचान/प्रदाता कॉन्फिगरेशन: `open-sse/services/provider.ts`
-- मॉडल पार्स/रिज़ॉल्यूशन: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- खाता फ़ॉलबैक तर्क: `open-sse/services/accountFallback.ts`
-- अनुवाद रजिस्ट्री: `open-sse/translator/index.ts`
-- स्ट्रीम परिवर्तन: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- उपयोग निष्कर्षण/सामान्यीकरण: `open-sse/utils/usageTracking.ts`
-- टैग पार्सर सोचें: `open-sse/utils/thinkTagParser.ts`
-- एंबेडिंग हैंडलर: `open-sse/handlers/embeddings.ts`
-- एंबेडिंग प्रदाता रजिस्ट्री: `open-sse/config/embeddingRegistry.ts`
-- छवि निर्माण हैंडलर: `open-sse/handlers/imageGeneration.ts`
-- छवि प्रदाता रजिस्ट्री: `open-sse/config/imageRegistry.ts`
-- रिस्पॉन्स सेनिटाइजेशन: `ओपन-एसएसई/हैंडलर्स/रिस्पांससैनिटाइजर.टीएस`
-- भूमिका सामान्यीकरण: `open-sse/services/roleNormalizer.ts`
+Main flow modules:
 
-सेवाएँ (व्यावसायिक तर्क):
+- Entry: `src/sse/handlers/chat.ts`
+- Core orchestration: `open-sse/handlers/chatCore.ts`
+- Provider execution adapters: `open-sse/executors/*`
+- Format detection/provider config: `open-sse/services/provider.ts`
+- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- Account fallback logic: `open-sse/services/accountFallback.ts`
+- Translation registry: `open-sse/translator/index.ts`
+- Stream transformations: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- Usage extraction/normalization: `open-sse/utils/usageTracking.ts`
+- Think tag parser: `open-sse/utils/thinkTagParser.ts`
+- Embedding handler: `open-sse/handlers/embeddings.ts`
+- Embedding provider registry: `open-sse/config/embeddingRegistry.ts`
+- Image generation handler: `open-sse/handlers/imageGeneration.ts`
+- Image provider registry: `open-sse/config/imageRegistry.ts`
+- Response sanitization: `open-sse/handlers/responseSanitizer.ts`
+- Role normalization: `open-sse/services/roleNormalizer.ts`
 
-- खाता चयन/स्कोरिंग: `open-sse/services/accountSelector.ts`
-- संदर्भ जीवनचक्र प्रबंधन: `open-sse/services/contextManager.ts`
-- आईपी फ़िल्टर प्रवर्तन: `open-sse/services/ipFilter.ts`
-- सत्र ट्रैकिंग: `open-sse/services/sessionManager.ts`
-- डुप्लिकेशन अनुरोध: `open-sse/services/signatureCache.ts`
-- सिस्टम प्रॉम्प्ट इंजेक्शन: `open-sse/services/systemPrompt.ts`
-- सोच बजट प्रबंधन: `open-sse/services/thinkingBudget.ts`
-- वाइल्डकार्ड मॉडल रूटिंग: `open-sse/services/wildcardRouter.ts`
-- दर सीमा प्रबंधन: `open-sse/services/rateLimitManager.ts`
-- सर्किट ब्रेकर: `open-sse/services/circuitBreaker.ts`
+Services (business logic):
 
-डोमेन परत मॉड्यूल:
+- Account selection/scoring: `open-sse/services/accountSelector.ts`
+- Context lifecycle management: `open-sse/services/contextManager.ts`
+- IP filter enforcement: `open-sse/services/ipFilter.ts`
+- Session tracking: `open-sse/services/sessionManager.ts`
+- Request deduplication: `open-sse/services/signatureCache.ts`
+- System prompt injection: `open-sse/services/systemPrompt.ts`
+- Thinking budget management: `open-sse/services/thinkingBudget.ts`
+- Wildcard model routing: `open-sse/services/wildcardRouter.ts`
+- Rate limit management: `open-sse/services/rateLimitManager.ts`
+- Circuit breaker: `open-sse/services/circuitBreaker.ts`
+- Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
+- Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
 
-- मॉडल उपलब्धता: `src/lib/domain/modelAvailability.ts`
-- लागत नियम/बजट: `src/lib/domain/costRules.ts`
-- फ़ॉलबैक नीति: `src/lib/domain/fallbackPolicy.ts`
-- कॉम्बो रिज़ॉल्वर: `src/lib/domain/comboResolver.ts`
-- लॉकआउट नीति: `src/lib/domain/lockoutPolicy.ts`
-- नीति इंजन: `src/domain/policyEngine.ts` - केंद्रीकृत लॉकआउट → बजट → फ़ॉलबैक मूल्यांकन
-- त्रुटि कोड कैटलॉग: `src/lib/domain/errorCodes.ts`
-- अनुरोध आईडी: `src/lib/domain/requestId.ts`
-- फ़ेच टाइमआउट: `src/lib/domain/fetchTimeout.ts`
-- अनुरोध टेलीमेट्री: `src/lib/domain/requestTelemetry.ts`
-- अनुपालन/ऑडिट: `src/lib/domain/compliance/index.ts`
-- इवल रनर: `src/lib/domain/evalRunner.ts`
-- डोमेन स्थिति दृढ़ता: `src/lib/db/domainState.ts` - फ़ॉलबैक चेन, बजट, लागत इतिहास, लॉकआउट स्थिति, सर्किट ब्रेकर के लिए SQLite CRUD
+Domain layer modules:
 
-OAuth प्रदाता मॉड्यूल (`src/lib/oauth/providers/` के अंतर्गत 12 व्यक्तिगत फ़ाइलें):
+- Model availability: `src/lib/domain/modelAvailability.ts`
+- Cost rules/budgets: `src/lib/domain/costRules.ts`
+- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
+- Combo resolver: `src/lib/domain/comboResolver.ts`
+- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
+- Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
+- Error codes catalog: `src/lib/domain/errorCodes.ts`
+- Request ID: `src/lib/domain/requestId.ts`
+- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
+- Request telemetry: `src/lib/domain/requestTelemetry.ts`
+- Compliance/audit: `src/lib/domain/compliance/index.ts`
+- Eval runner: `src/lib/domain/evalRunner.ts`
+- Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
-- रजिस्ट्री सूचकांक: `src/lib/oauth/providers/index.ts`
-- व्यक्तिगत प्रदाता: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
-- पतला आवरण: `src/lib/oauth/providers.ts` - अलग-अलग मॉड्यूल से पुनः निर्यात## 3) Persistence Layer
+OAuth provider modules (12 individual files under `src/lib/oauth/providers/`):
 
-प्राथमिक अवस्था DB (SQLite):
+- Registry index: `src/lib/oauth/providers/index.ts`
+- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
 
-- कोर इन्फ्रा: `src/lib/db/core.ts` (बेहतर-sqlite3, माइग्रेशन, वाल)
-- पुनः निर्यात पहलू: `src/lib/localDb.ts` (कॉलर्स के लिए पतली अनुकूलता परत)
-- फ़ाइल: `${DATA_DIR}/storage.sqlite` (या `$XDG_CONFIG_HOME/omniroute/storage.sqlite` सेट होने पर, अन्यथा `~/.omniroute/storage.sqlite`)
-- इकाइयां (टेबल + केवी नेमस्पेस): प्रोवाइडरकनेक्शन्स, प्रोवाइडरनोड्स, मॉडलएलियासेस, कॉम्बो, एपीआईकीज़, सेटिंग्स, मूल्य निर्धारण,**कस्टममॉडल**,**प्रॉक्सीकॉन्फिग**,**आईपीफिल्टर**,**थिंकिंगबजट**,**सिस्टमप्रॉम्प्ट**
+## 3) Persistence Layer
 
-उपयोग दृढ़ता:
+Primary state DB (SQLite):
 
-- मुखौटा: `src/lib/usageDb.ts` (`src/lib/usage/*` में विघटित मॉड्यूल)
-- `storage.sqlite` में SQLite तालिकाएँ: `usage_history`, `call_logs`, `proxy_logs`
-- अनुकूलता/डीबग के लिए वैकल्पिक फ़ाइल कलाकृतियाँ बनी रहती हैं (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
-- मौजूद होने पर लीगेसी JSON फ़ाइलें स्टार्टअप माइग्रेशन द्वारा SQLite में माइग्रेट की जाती हैं
+- Core infra: `src/lib/db/core.ts` (better-sqlite3, migrations, WAL)
+- Re-export facade: `src/lib/localDb.ts` (thin compatibility layer for callers)
+- file: `${DATA_DIR}/storage.sqlite` (or `$XDG_CONFIG_HOME/omniroute/storage.sqlite` when set, else `~/.omniroute/storage.sqlite`)
+- entities (tables + KV namespaces): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
 
-डोमेन स्थिति DB (SQLite):
+Usage persistence:
 
-- `src/lib/db/domainState.ts` - डोमेन स्थिति के लिए CRUD संचालन
-- टेबल्स (`src/lib/db/core.ts` में निर्मित): `domain_fallback_चेन्स`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
-- राइट-थ्रू कैश पैटर्न: इन-मेमोरी मैप्स रनटाइम पर आधिकारिक होते हैं; उत्परिवर्तन SQLite के साथ समकालिक रूप से लिखे जाते हैं; कोल्ड स्टार्ट पर राज्य को डीबी से बहाल किया जाता है## 4) Auth + Security Surfaces
+- facade: `src/lib/usageDb.ts` (decomposed modules in `src/lib/usage/*`)
+- SQLite tables in `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
+- optional file artifacts remain for compatibility/debug (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
+- legacy JSON files are migrated to SQLite by startup migrations when present
 
-- डैशबोर्ड कुकी प्रमाणीकरण: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
-- एपीआई कुंजी निर्माण/सत्यापन: `src/shared/utils/apiKey.ts`
-- प्रदाता रहस्य `providerConnections` प्रविष्टियों में बने रहे
-- `open-sse/utils/proxyFetch.ts` (env vars) और `open-sse/utils/networkProxy.ts` (प्रति-प्रदाता या वैश्विक रूप से कॉन्फ़िगर करने योग्य) के माध्यम से आउटबाउंड प्रॉक्सी समर्थन## 5) Cloud Sync
+Domain State DB (SQLite):
 
-- शेड्यूलर init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
-- आवधिक कार्य: `src/shared/services/cloudSyncScheduler.ts`
-- आवधिक कार्य: `src/shared/services/modelSyncScheduler.ts`
-- नियंत्रण मार्ग: `src/app/api/sync/cloud/route.ts`## Request Lifecycle (`/v1/chat/completions`)
+- `src/lib/db/domainState.ts` — CRUD operations for domain state
+- Tables (created in `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
+- Write-through cache pattern: in-memory Maps are authoritative at runtime; mutations are written synchronously to SQLite; state is restored from DB on cold start
+
+## 4) Auth + Security Surfaces
+
+- Dashboard cookie auth: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
+- API key generation/verification: `src/shared/utils/apiKey.ts`
+- Provider secrets persisted in `providerConnections` entries
+- Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
+
+## 5) Cloud Sync
+
+- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
+- Periodic task: `src/shared/services/cloudSyncScheduler.ts`
+- Periodic task: `src/shared/services/modelSyncScheduler.ts`
+- Control route: `src/app/api/sync/cloud/route.ts`
+
+## Request Lifecycle (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
@@ -338,7 +363,9 @@ flowchart TD
     Q -- No --> R[Return all unavailable]
 ```
 
-फ़ॉलबैक निर्णय स्थिति कोड और त्रुटि-संदेश अनुमानों का उपयोग करके `open-sse/services/accountFallback.ts` द्वारा संचालित होते हैं। कॉम्बो रूटिंग एक अतिरिक्त गार्ड जोड़ता है: प्रदाता-स्कोप्ड 400s जैसे अपस्ट्रीम सामग्री-ब्लॉक और भूमिका-सत्यापन विफलताओं को मॉडल-स्थानीय विफलताओं के रूप में माना जाता है ताकि बाद में कॉम्बो लक्ष्य अभी भी चल सकें।## OAuth Onboarding and Token Refresh Lifecycle
+Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics. Combo routing adds one extra guard: provider-scoped 400s such as upstream content-block and role-validation failures are treated as model-local failures so later combo targets can still run.
+
+## OAuth Onboarding and Token Refresh Lifecycle
 
 ```mermaid
 sequenceDiagram
@@ -368,7 +395,9 @@ sequenceDiagram
     Test-->>UI: validation result
 ```
 
-लाइव ट्रैफ़िक के दौरान रिफ्रेश को निष्पादक `refreshCredentials()` के माध्यम से `open-sse/handlers/chatCore.ts` के अंदर निष्पादित किया जाता है।## Cloud Sync Lifecycle (Enable / Sync / Disable)
+Refresh during live traffic is executed inside `open-sse/handlers/chatCore.ts` via executor `refreshCredentials()`.
+
+## Cloud Sync Lifecycle (Enable / Sync / Disable)
 
 ```mermaid
 sequenceDiagram
@@ -400,7 +429,9 @@ sequenceDiagram
     Sync-->>UI: disabled
 ```
 
-क्लाउड सक्षम होने पर आवधिक सिंक `CloudSyncScheduler` द्वारा ट्रिगर किया जाता है।## Data Model and Storage Map
+Periodic sync is triggered by `CloudSyncScheduler` when cloud is enabled.
+
+## Data Model and Storage Map
 
 ```mermaid
 erDiagram
@@ -501,12 +532,14 @@ erDiagram
     }
 ```
 
-भौतिक भंडारण फ़ाइलें:
+Physical storage files:
 
-- प्राथमिक रनटाइम DB: `${DATA_DIR}/storage.sqlite`
-- अनुरोध लॉग लाइनें: `${DATA_DIR}/log.txt` (कॉम्पैट/डीबग आर्टिफैक्ट)
-- संरचित कॉल पेलोड अभिलेखागार: `${DATA_DIR}/call_logs/`
-- वैकल्पिक अनुवादक/अनुरोध डिबग सत्र: `<repo>/logs/...`## Deployment Topology
+- primary runtime DB: `${DATA_DIR}/storage.sqlite`
+- request log lines: `${DATA_DIR}/log.txt` (compat/debug artifact)
+- structured call payload archives: `${DATA_DIR}/call_logs/`
+- optional translator/request debug sessions: `<repo>/logs/...`
+
+## Deployment Topology
 
 ```mermaid
 flowchart LR
@@ -541,205 +574,249 @@ flowchart LR
 
 ### Route and API Modules
 
-- `src/app/api/v1/*`, `src/app/api/v1beta/*`: अनुकूलता एपीआई
-- `src/app/api/v1/providers/[provider]/*`: प्रति-प्रदाता समर्पित मार्ग (चैट, एम्बेडिंग, चित्र)
-- `src/app/api/providers*`: प्रदाता CRUD, सत्यापन, परीक्षण
-- `src/app/api/provider-nodes*`: कस्टम संगत नोड प्रबंधन
-- `src/app/api/provider-models`: कस्टम मॉडल प्रबंधन (CRUD)
-- `src/app/api/models/route.ts`: मॉडल कैटलॉग एपीआई (उपनाम + कस्टम मॉडल)
-- `src/app/api/oauth/*`: OAuth/डिवाइस-कोड प्रवाह
-- `src/app/api/keys*`: स्थानीय एपीआई कुंजी जीवनचक्र
-- `src/app/api/models/alias`: उपनाम प्रबंधन
-- `src/app/api/combos*`: फ़ॉलबैक कॉम्बो प्रबंधन
-- `src/app/api/pricing`: लागत गणना के लिए मूल्य निर्धारण ओवरराइड हो जाता है
-- `src/app/api/settings/proxy`: प्रॉक्सी कॉन्फ़िगरेशन (प्राप्त/पुट/हटाएं)
-- `src/app/api/settings/proxy/test`: आउटबाउंड प्रॉक्सी कनेक्टिविटी टेस्ट (POST)
-- `src/app/api/usage/*`: एपीआई का उपयोग और लॉग
-- `src/app/api/sync/*` + `src/app/api/cloud/*`: क्लाउड सिंक और क्लाउड-फेसिंग हेल्पर्स
-- `src/app/api/cli-tools/*`: स्थानीय सीएलआई कॉन्फ़िगरेशन लेखक/चेकर्स
-- `src/app/api/settings/ip-filter`: आईपी अनुमति सूची/ब्लॉकलिस्ट (प्राप्त/पुट)
-- `src/app/api/settings/thinking-budget`: थिंकिंग टोकन बजट कॉन्फ़िगरेशन (GET/PUT)
-- `src/app/api/settings/system-prompt`: ग्लोबल सिस्टम प्रॉम्प्ट (GET/PUT)
-- `src/app/api/sessions`: सक्रिय सत्र सूची (GET)
-- `src/app/api/rate-limits`: प्रति-खाता दर सीमा स्थिति (GET)### Routing and Execution Core
+- `src/app/api/v1/*`, `src/app/api/v1beta/*`: compatibility APIs
+- `src/app/api/v1/providers/[provider]/*`: dedicated per-provider routes (chat, embeddings, images)
+- `src/app/api/providers*`: provider CRUD, validation, testing
+- `src/app/api/provider-nodes*`: custom compatible node management
+- `src/app/api/provider-models`: custom model management (CRUD)
+- `src/app/api/models/route.ts`: model catalog API (aliases + custom models)
+- `src/app/api/oauth/*`: OAuth/device-code flows
+- `src/app/api/keys*`: local API key lifecycle
+- `src/app/api/models/alias`: alias management
+- `src/app/api/combos*`: fallback combo management
+- `src/app/api/pricing`: pricing overrides for cost calculation
+- `src/app/api/settings/proxy`: proxy configuration (GET/PUT/DELETE)
+- `src/app/api/settings/proxy/test`: outbound proxy connectivity test (POST)
+- `src/app/api/usage/*`: usage and logs APIs
+- `src/app/api/sync/*` + `src/app/api/cloud/*`: cloud sync and cloud-facing helpers
+- `src/app/api/cli-tools/*`: local CLI config writers/checkers
+- `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
+- `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
+- `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
+- `src/app/api/sessions`: active session listing (GET)
+- `src/app/api/rate-limits`: per-account rate limit status (GET)
 
-- `src/sse/handlers/chat.ts`: अनुरोध पार्स, कॉम्बो हैंडलिंग, खाता चयन लूप
-- `ओपन-एसएसई/हैंडलर/चैटकोर.टीएस`: अनुवाद, निष्पादक प्रेषण, पुनः प्रयास/रीफ्रेश हैंडलिंग, स्ट्रीम सेटअप
-- `ओपन-एसएसई/निष्पादक/*`: प्रदाता-विशिष्ट नेटवर्क और प्रारूप व्यवहार### Translation Registry and Format Converters
+### Routing and Execution Core
 
-- `open-sse/translator/index.ts`: अनुवादक रजिस्ट्री और ऑर्केस्ट्रेशन
-- अनुवादकों से अनुरोध: `ओपन-एसएसई/अनुवादक/अनुरोध/*`
-- प्रतिक्रिया अनुवादक: `ओपन-एसएसई/अनुवादक/प्रतिक्रिया/*`
-- प्रारूप स्थिरांक: `open-sse/translator/formats.ts`### Persistence
+- `src/sse/handlers/chat.ts`: request parse, combo handling, account selection loop
+- `open-sse/handlers/chatCore.ts`: translation, executor dispatch, retry/refresh handling, stream setup
+- `open-sse/executors/*`: provider-specific network and format behavior
 
-- `src/lib/db/*`: SQLite पर लगातार कॉन्फ़िगरेशन/स्थिति और डोमेन दृढ़ता
-- `src/lib/localDb.ts`: डीबी मॉड्यूल के लिए अनुकूलता पुनः निर्यात
-- `src/lib/usageDb.ts`: SQLite तालिकाओं के शीर्ष पर उपयोग इतिहास/कॉल लॉग मुखौटा## Provider Executor Coverage (Strategy Pattern)
+### Translation Registry and Format Converters
 
-प्रत्येक प्रदाता के पास `BaseExecutor` (`open-sse/executors/base.ts` में) का विस्तार करने वाला एक विशेष निष्पादक होता है, जो URL निर्माण, हेडर निर्माण, घातीय बैकऑफ़ के साथ पुनः प्रयास, क्रेडेंशियल रिफ्रेश हुक और `execute()` ऑर्केस्ट्रेशन विधि प्रदान करता है।
+- `open-sse/translator/index.ts`: translator registry and orchestration
+- Request translators: `open-sse/translator/request/*`
+- Response translators: `open-sse/translator/response/*`
+- Format constants: `open-sse/translator/formats.ts`
 
-| निष्पादक                    | प्रदाता(ओं)                                                                                                                                                                  | विशेष हैंडलिंग                                                                          |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `डिफ़ॉल्ट निष्पादक`         | ओपनएआई, क्लाउड, जेमिनी, क्वेन, क्यूडर, ओपनराउटर, जीएलएम, किमी, मिनीमैक्स, डीपसीक, ग्रोक, एक्सएआई, मिस्ट्रल, पर्प्लेक्सिटी, टुगेदर, फायरवर्क्स, सेरेब्रा, कोहेरे, एनवीआईडीआईए | प्रति प्रदाता डायनामिक यूआरएल/हेडर कॉन्फिगरेशन                                          |
-| 'एंटीग्रेविटी एक्ज़ीक्यूटर' | गूगल एंटीग्रेविटी                                                                                                                                                            | कस्टम प्रोजेक्ट/सत्र आईडी, पुनः प्रयास करें-पार्सिंग के बाद                             |
-| `कोडेक्स एक्ज़ीक्यूटर` ​​   | ओपनएआई कोडेक्स                                                                                                                                                               | सिस्टम निर्देश इंजेक्ट करता है, तर्क करने का प्रयास करता है                             |
-| `कर्सर निष्पादक`            | कर्सर आईडीई                                                                                                                                                                  | कनेक्टआरपीसी प्रोटोकॉल, प्रोटोबफ एन्कोडिंग, चेकसम के माध्यम से हस्ताक्षर करने का अनुरोध |
-| 'GithubExecutor'            | गिटहब कोपायलट                                                                                                                                                                | कोपायलट टोकन ताज़ा करें, VSCode-नकल हेडर                                                |
-| `कीरो एक्ज़ीक्यूटर` ​​      | एडब्ल्यूएस कोडव्हिस्परर/किरो                                                                                                                                                 | एडब्ल्यूएस इवेंटस्ट्रीम बाइनरी प्रारूप → एसएसई रूपांतरण                                 |
-| `जेमिनीसीएलआईएक्सक्यूटर` ​​ | जेमिनी सीएलआई                                                                                                                                                                | Google OAuth टोकन ताज़ा चक्र                                                            |
+### Persistence
 
-अन्य सभी प्रदाता (कस्टम संगत नोड्स सहित) `DefaultExecutor` का उपयोग करते हैं।## Provider Compatibility Matrix
+- `src/lib/db/*`: persistent config/state and domain persistence on SQLite
+- `src/lib/localDb.ts`: compatibility re-export for DB modules
+- `src/lib/usageDb.ts`: usage history/call logs facade on top of SQLite tables
 
-| प्रदाता               | प्रारूप              | प्रामाणिक                | स्ट्रीम           | नॉन-स्ट्रीम | टोकन ताज़ा करें | उपयोग एपीआई         |
-| --------------------- | -------------------- | ------------------------ | ----------------- | ----------- | --------------- | ------------------- | ------------------------------ |
-| क्लाउड                | क्लाउड               | एपीआई कुंजी / OAuth      | ✅                | ✅          | ✅              | ⚠️ केवल एडमिन       |
-| मिथुन                 | मिथुन                | एपीआई कुंजी / OAuth      | ✅                | ✅          | ✅              | ⚠️ क्लाउड कंसोल     |
-| जेमिनी सीएलआई         | मिथुन-क्ली           | OAuth                    | ✅                | ✅          | ✅              | ⚠️ क्लाउड कंसोल     |
-| प्रतिगुरुत्वाकर्षण    | प्रतिगुरुत्वाकर्षण   | OAuth                    | ✅                | ✅          | ✅              | ✅ पूर्ण कोटा एपीआई |
-| ओपनएआई                | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| कोडेक्स               | openai-प्रतिक्रियाएं | OAuth                    | ✅ मजबूर          | ❌          | ✅              | ✅ दर सीमा          |
-| गिटहब कोपायलट         | ओपनाई                | OAuth + सहपायलट टोकन     | ✅                | ✅          | ✅              | ✅ कोटा स्नैपशॉट    |
-| कर्सर                 | कर्सर                | कस्टम चेकसम              | ✅                | ✅          | ❌              | ❌                  |
-| किरो                  | किरो                 | एडब्ल्यूएस एसएसओ ओआईडीसी | ✅ (इवेंटस्ट्रीम) | ❌          | ✅              | ✅ उपयोग सीमा       |
-| क्वेन                 | ओपनाई                | OAuth                    | ✅                | ✅          | ✅              | ⚠️ प्रति अनुरोध     |
-| कोडर                  | ओपनाई                | OAuth (बेसिक)            | ✅                | ✅          | ✅              | ⚠️ प्रति अनुरोध     |
-| ओपनराउटर              | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| जीएलएम/किमी/मिनीमैक्स | क्लाउड               | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| डीपसीक                | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| ग्रोक                 | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| एक्सएआई (ग्रोक)       | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| मिस्ट्रल              | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| उलझन                  | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| एक साथ एआई            | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| आतिशबाजी एआई          | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| सेरेब्रस              | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| सहभागी                | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  |
-| एनवीडिया एनआईएम       | ओपनाई                | एपीआई कुंजी              | ✅                | ✅          | ❌              | ❌                  | ## Format Translation Coverage |
+## Provider Executor Coverage (Strategy Pattern)
 
-पता लगाए गए स्रोत प्रारूपों में शामिल हैं:
+Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
 
-- `ओपनाई`
-- `ओपनई-प्रतिक्रियाएँ`
-- `क्लाउड`
-- 'मिथुन'
+| Executor              | Provider(s)                                                                                                                                                  | Special Handling                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `DefaultExecutor`     | OpenAI, Claude, Gemini, Qwen, Qoder, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Dynamic URL/header config per provider                               |
+| `AntigravityExecutor` | Google Antigravity                                                                                                                                           | Custom project/session IDs, Retry-After parsing                      |
+| `CodexExecutor`       | OpenAI Codex                                                                                                                                                 | Injects system instructions, forces reasoning effort                 |
+| `CursorExecutor`      | Cursor IDE                                                                                                                                                   | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
+| `GithubExecutor`      | GitHub Copilot                                                                                                                                               | Copilot token refresh, VSCode-mimicking headers                      |
+| `KiroExecutor`        | AWS CodeWhisperer/Kiro                                                                                                                                       | AWS EventStream binary format → SSE conversion                       |
+| `GeminiCLIExecutor`   | Gemini CLI                                                                                                                                                   | Google OAuth token refresh cycle                                     |
 
-लक्ष्य प्रारूपों में शामिल हैं:
+All other providers (including custom compatible nodes) use the `DefaultExecutor`.
 
-- ओपनएआई चैट/प्रतिक्रियाएं
-  -क्लाउड
-- मिथुन/मिथुन-सीएलआई/एंटीग्रेविटी लिफाफा
-- किरो
-- कर्सर
+## Provider Compatibility Matrix
 
-अनुवाद**हब प्रारूप के रूप में ओपनएआई**का उपयोग करते हैं - सभी रूपांतरण मध्यवर्ती के रूप में ओपनएआई से गुजरते हैं:```
+| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
+| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
+| Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
+| Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Gemini CLI       | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
+| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
+| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
+| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
+| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
+| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Qoder            | openai           | OAuth (Basic)         | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+
+## Format Translation Coverage
+
+Detected source formats include:
+
+- `openai`
+- `openai-responses`
+- `claude`
+- `gemini`
+
+Target formats include:
+
+- OpenAI chat/Responses
+- Claude
+- Gemini/Gemini-CLI/Antigravity envelope
+- Kiro
+- Cursor
+
+Translations use **OpenAI as the hub format** — all conversions go through OpenAI as intermediate:
+
+```
 Source Format → OpenAI (hub) → Target Format
+```
 
-````
+Translations are selected dynamically based on source payload shape and provider target format.
 
-स्रोत पेलोड आकार और प्रदाता लक्ष्य प्रारूप के आधार पर अनुवादों का चयन गतिशील रूप से किया जाता है।
+Additional processing layers in the translation pipeline:
 
-अनुवाद पाइपलाइन में अतिरिक्त प्रसंस्करण परतें:
+- **Response sanitization** — Strips non-standard fields from OpenAI-format responses (both streaming and non-streaming) to ensure strict SDK compliance
+- **Role normalization** — Converts `developer` → `system` for non-OpenAI targets; merges `system` → `user` for models that reject the system role (GLM, ERNIE)
+- **Think tag extraction** — Parses `<think>...</think>` blocks from content into `reasoning_content` field
+- **Structured output** — Converts OpenAI `response_format.json_schema` to Gemini's `responseMimeType` + `responseSchema`
 
--**प्रतिक्रिया स्वच्छता**- सख्त एसडीके अनुपालन सुनिश्चित करने के लिए ओपनएआई-प्रारूप प्रतिक्रियाओं (स्ट्रीमिंग और गैर-स्ट्रीमिंग दोनों) से गैर-मानक फ़ील्ड हटा देता है
--**भूमिका सामान्यीकरण**- गैर-ओपनएआई लक्ष्यों के लिए `डेवलपर` → `सिस्टम` को रूपांतरित करता है; सिस्टम भूमिका को अस्वीकार करने वाले मॉडलों के लिए `सिस्टम` → `उपयोगकर्ता` को मर्ज करता है (जीएलएम, ईआरएनआईई)
--**टैग निष्कर्षण के बारे में सोचें**- पार्स `<सोच>...</सोच>` सामग्री से `reasoning_content` फ़ील्ड में ब्लॉक करता है
--**संरचित आउटपुट**- OpenAI `response_format.json_schema` को जेमिनी के `responseMimeType` + `responseSchema` में परिवर्तित करता है## Supported API Endpoints
+## Supported API Endpoints
 
-| समापन बिंदु | प्रारूप | हैंडलर |
-| -------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------- |
-| `पोस्ट /v1/चैट/समापन` | ओपनएआई चैट | `src/sse/handlers/chat.ts` |
-| `पोस्ट /v1/संदेश` | क्लाउड संदेश | वही हैंडलर (स्वतः पता चला) |
-| `पोस्ट /v1/प्रतिक्रियाएँ` | ओपनएआई प्रतिक्रियाएँ | `open-sse/handlers/responsesHandler.ts` |
-| `पोस्ट /v1/एम्बेडिंग` | ओपनएआई एंबेडिंग्स | `open-sse/handlers/embeddings.ts` |
-| `प्राप्त करें /v1/एम्बेडिंग्स` | मॉडल सूची | एपीआई मार्ग |
-| `पोस्ट /v1/छवियां/पीढ़ी` | OpenAI छवियाँ | `ओपन-एसएसई/हैंडलर/इमेजजेनरेशन.टीएस` |
-| `प्राप्त करें /v1/छवियां/पीढ़ी` | मॉडल सूची | एपीआई मार्ग |
-| `पोस्ट /v1/प्रदाता/{प्रदाता}/चैट/समापन` | ओपनएआई चैट | मॉडल सत्यापन के साथ प्रति-प्रदाता समर्पित |
-| `पोस्ट /v1/प्रदाता/{प्रदाता}/एम्बेडिंग्स` | ओपनएआई एंबेडिंग्स | मॉडल सत्यापन के साथ प्रति-प्रदाता समर्पित |
-| `पोस्ट /v1/प्रदाता/{प्रदाता}/छवियां/पीढ़ी` | OpenAI छवियाँ | मॉडल सत्यापन के साथ प्रति-प्रदाता समर्पित |
-| `POST /v1/messages/count_tokens` | क्लाउड टोकन गिनती | एपीआई मार्ग |
-| `प्राप्त करें /v1/मॉडल` | OpenAI मॉडल सूची | एपीआई मार्ग (चैट + एम्बेडिंग + छवि + कस्टम मॉडल) |
-| `प्राप्त करें /एपीआई/मॉडल/कैटलॉग` | कैटलॉग | प्रदाता + प्रकार | द्वारा समूहीकृत सभी मॉडल
-| `POST /v1beta/models/*:streamGenerateContent` | मिथुन राशि के जातक | एपीआई मार्ग |
-| `प्राप्त/पुट/डिलीट /एपीआई/सेटिंग्स/प्रॉक्सी` | प्रॉक्सी कॉन्फिग | नेटवर्क प्रॉक्सी कॉन्फ़िगरेशन |
-| `पोस्ट /एपीआई/सेटिंग्स/प्रॉक्सी/टेस्ट` | प्रॉक्सी कनेक्टिविटी | प्रॉक्सी स्वास्थ्य/कनेक्टिविटी परीक्षण समापन बिंदु |
-| `प्राप्त करें/पोस्ट करें/हटाएं /एपीआई/प्रदाता-मॉडल` | प्रदाता मॉडल | प्रदाता मॉडल मेटाडेटा समर्थन कस्टम और प्रबंधित उपलब्ध मॉडल |## Bypass Handler
+| Endpoint                                           | Format             | Handler                                                             |
+| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
+| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                                          |
+| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                                        |
+| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`                             |
+| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                                   |
+| `GET /v1/embeddings`                               | Model listing      | API route                                                           |
+| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`                              |
+| `GET /v1/images/generations`                       | Model listing      | API route                                                           |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation                        |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation                        |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Dedicated per-provider with model validation                        |
+| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                                           |
+| `GET /v1/models`                                   | OpenAI Models list | API route (chat + embedding + image + custom models)                |
+| `GET /api/models/catalog`                          | Catalog            | All models grouped by provider + type                               |
+| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                                           |
+| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Network proxy configuration                                         |
+| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Proxy health/connectivity test endpoint                             |
+| `GET/POST/DELETE /api/provider-models`             | Provider Models    | Provider model metadata backing custom and managed available models |
 
-बाईपास हैंडलर (`ओपन-एसएसई/यूटिल्स/बायपासहैंडलर.टीएस`) क्लाउड सीएलआई से ज्ञात "थ्रोअवे" अनुरोधों को रोकता है - वार्मअप पिंग, शीर्षक निष्कर्षण और टोकन गिनती - और अपस्ट्रीम प्रदाता टोकन का उपभोग किए बिना एक**नकली प्रतिक्रिया**देता है। यह तभी ट्रिगर होता है जब `User-Agent` में `claude-cli` होता है।## Request Logger Pipeline
+## Bypass Handler
 
-अनुरोध लकड़हारा (`open-sse/utils/requestLogger.ts`) एक 7-चरण डीबग लॉगिंग पाइपलाइन प्रदान करता है, जो डिफ़ॉल्ट रूप से अक्षम है, `ENABLE_REQUEST_LOGS=true` के माध्यम से सक्षम है:```
+The bypass handler (`open-sse/utils/bypassHandler.ts`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
+
+## Request Logger Pipeline
+
+The request logger (`open-sse/utils/requestLogger.ts`) provides a 7-stage debug logging pipeline, disabled by default, enabled via `ENABLE_REQUEST_LOGS=true`:
+
+```
 1_req_client.json → 2_req_source.json → 3_req_openai.json → 4_req_target.json
 → 5_res_provider.txt → 6_res_openai.txt → 7_res_client.txt
-````
+```
 
-प्रत्येक अनुरोध सत्र के लिए फ़ाइलें `<repo>/logs/<session>/` पर लिखी जाती हैं।## Failure Modes and Resilience
+Files are written to `<repo>/logs/<session>/` for each request session.
+
+## Failure Modes and Resilience
 
 ## 1) Account/Provider Availability
 
-- क्षणिक/दर/प्रामाणिक त्रुटियों पर प्रदाता खाता ठंडा हो गया
-- अनुरोध विफल होने से पहले खाता फ़ॉलबैक
-- वर्तमान मॉडल/प्रदाता पथ समाप्त होने पर कॉम्बो मॉडल फ़ॉलबैक## 2) Token Expiry
+- provider account cooldown on transient/rate/auth errors
+- account fallback before failing request
+- combo model fallback when current model/provider path is exhausted
 
-- ताज़ा करने योग्य प्रदाताओं के लिए पुनः प्रयास के साथ पूर्व-जांच और ताज़ा करें
-- कोर पथ में ताज़ा प्रयास के बाद 401/403 पुनः प्रयास करें## 3) Stream Safety
+## 2) Token Expiry
 
-- डिस्कनेक्ट-अवेयर स्ट्रीम नियंत्रक
-- एंड-ऑफ-स्ट्रीम फ्लश और `[DONE]` हैंडलिंग के साथ अनुवाद स्ट्रीम
-- प्रदाता उपयोग मेटाडेटा अनुपलब्ध होने पर उपयोग अनुमान फ़ॉलबैक## 4) Cloud Sync Degradation
+- pre-check and refresh with retry for refreshable providers
+- 401/403 retry after refresh attempt in core path
 
-- समन्वयन त्रुटियाँ सामने आती हैं लेकिन स्थानीय रनटाइम जारी रहता है
-- शेड्यूलर में पुनः प्रयास-सक्षम तर्क है, लेकिन आवधिक निष्पादन वर्तमान में डिफ़ॉल्ट रूप से एकल-प्रयास सिंक को कॉल करता है## 5) Data Integrity
+## 3) Stream Safety
 
-- स्टार्टअप पर SQLite स्कीमा माइग्रेशन और ऑटो-अपग्रेड हुक
-- लीगेसी JSON → SQLite माइग्रेशन संगतता पथ## Observability and Operational Signals
+- disconnect-aware stream controller
+- translation stream with end-of-stream flush and `[DONE]` handling
+- usage estimation fallback when provider usage metadata is missing
 
-रनटाइम दृश्यता स्रोत:
+## 4) Cloud Sync Degradation
 
-- कंसोल `src/sse/utils/logger.ts` से लॉग करता है
-- SQLite में प्रति-अनुरोध उपयोग समुच्चय (`use_history`, `call_logs`, `proxy_logs`)
-- जब `settings.detailed_logs_enabled=true` होता है तो SQLite (`request_detail_logs`) में चार चरण वाला विस्तृत पेलोड कैप्चर होता है
-- पाठ्य अनुरोध स्थिति लॉग इन `log.txt` (वैकल्पिक/कॉम्पैट)
-- `ENABLE_REQUEST_LOGS=true` होने पर `लॉग/` के अंतर्गत वैकल्पिक गहन अनुरोध/अनुवाद लॉग
-- यूआई खपत के लिए डैशबोर्ड उपयोग समापन बिंदु (`/api/usage/*`)।
+- sync errors are surfaced but local runtime continues
+- scheduler has retry-capable logic, but periodic execution currently calls single-attempt sync by default
 
-विस्तृत अनुरोध पेलोड कैप्चर प्रति रूटेड कॉल को चार JSON पेलोड चरणों तक संग्रहीत करता है:
+## 5) Data Integrity
 
-- ग्राहक से प्राप्त कच्चा अनुरोध
-- अनुवादित अनुरोध वास्तव में अपस्ट्रीम भेजा गया
-- प्रदाता प्रतिक्रिया JSON के रूप में पुनर्निर्मित; स्ट्रीम की गई प्रतिक्रियाओं को अंतिम सारांश और स्ट्रीम मेटाडेटा में संकलित किया जाता है
-- ओम्निरूट द्वारा लौटाई गई अंतिम ग्राहक प्रतिक्रिया; स्ट्रीम की गई प्रतिक्रियाएँ उसी संक्षिप्त सारांश रूप में संग्रहीत की जाती हैं## Security-Sensitive Boundaries
+- SQLite schema migrations and auto-upgrade hooks at startup
+- legacy JSON → SQLite migration compatibility path
 
-- JWT सीक्रेट (`JWT_SECRET`) डैशबोर्ड सत्र कुकी सत्यापन/हस्ताक्षर को सुरक्षित करता है
-- प्रारंभिक पासवर्ड बूटस्ट्रैप (`INITIAL_PASSWORD`) को प्रथम-रन प्रावधान के लिए स्पष्ट रूप से कॉन्फ़िगर किया जाना चाहिए
-- एपीआई कुंजी HMAC सीक्रेट (`API_KEY_SECRET`) उत्पन्न स्थानीय एपीआई कुंजी प्रारूप को सुरक्षित करता है
-- प्रदाता रहस्य (एपीआई कुंजी/टोकन) स्थानीय डीबी में बने रहते हैं और उन्हें फ़ाइल सिस्टम स्तर पर संरक्षित किया जाना चाहिए
-- क्लाउड सिंक एंडपॉइंट एपीआई कुंजी ऑथ + मशीन आईडी सेमेन्टिक्स पर निर्भर करते हैं## Environment and Runtime Matrix
+## Observability and Operational Signals
 
-कोड द्वारा सक्रिय रूप से उपयोग किए जाने वाले पर्यावरण चर:
+Runtime visibility sources:
 
-- ऐप/ऑथ: `JWT_SECRET`, `INITIAL_PASSWORD`
-- भंडारण: `DATA_DIR`
-- संगत नोड व्यवहार: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
-- वैकल्पिक स्टोरेज बेस ओवरराइड (Linux/macOS जब `DATA_DIR` अनसेट होता है): `XDG_CONFIG_HOME`
-- सुरक्षा हैशिंग: `API_KEY_SECRET`, `MACHINE_ID_SALT`
-- लॉगिंग: `ENABLE_REQUEST_LOGS`
-- सिंक/क्लाउड यूआरएल: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
-- आउटबाउंड प्रॉक्सी: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` और लोअरकेस वेरिएंट
-- SOCKS5 फ़ीचर फ़्लैग: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
-- प्लेटफ़ॉर्म/रनटाइम सहायक (ऐप-विशिष्ट कॉन्फ़िगरेशन नहीं): `एप्लिकेशन डेटा`, `NODE_ENV`, `पोर्ट`, `होस्टनाम`## Known Architectural Notes
+- console logs from `src/sse/utils/logger.ts`
+- per-request usage aggregates in SQLite (`usage_history`, `call_logs`, `proxy_logs`)
+- four-stage detailed payload captures in SQLite (`request_detail_logs`) when `settings.detailed_logs_enabled=true`
+- textual request status log in `log.txt` (optional/compat)
+- optional deep request/translation logs under `logs/` when `ENABLE_REQUEST_LOGS=true`
+- dashboard usage endpoints (`/api/usage/*`) for UI consumption
 
-1. `usageDb` और `localDb` लीगेसी फ़ाइल माइग्रेशन के साथ समान आधार निर्देशिका नीति (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) साझा करते हैं।
-2. `/api/v1/route.ts` सिमेंटिक बहाव से बचने के लिए `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) द्वारा उपयोग किए जाने वाले समान एकीकृत कैटलॉग बिल्डर को सौंपता है।
-3. अनुरोध लकड़हारा सक्षम होने पर पूर्ण हेडर/बॉडी लिखता है; लॉग निर्देशिका को संवेदनशील मानें।
-4. क्लाउड व्यवहार सही `NEXT_PUBLIC_BASE_URL` और क्लाउड एंडपॉइंट रीचैबिलिटी पर निर्भर करता है।
-5. `ओपन-एसएसई/` निर्देशिका को `@omniroute/ओपन-एसएसई`**एनपीएम वर्कस्पेस पैकेज**के रूप में प्रकाशित किया गया है। स्रोत कोड इसे `@omniroute/open-sse/...` (Next.js `transpilePackages` द्वारा हल) के माध्यम से आयात करता है। इस दस्तावेज़ में फ़ाइल पथ अभी भी स्थिरता के लिए निर्देशिका नाम `open-sse/` का उपयोग करते हैं।
-6. डैशबोर्ड में चार्ट सुलभ, इंटरैक्टिव एनालिटिक्स विज़ुअलाइज़ेशन (मॉडल उपयोग बार चार्ट, सफलता दर के साथ प्रदाता ब्रेकडाउन टेबल) के लिए**रिचार्ट्स**(एसवीजी-आधारित) का उपयोग करते हैं।
-7. E2E परीक्षण**Playwright**(`test/e2e/`) का उपयोग करते हैं, `npm run test:e2e` के माध्यम से चलते हैं। यूनिट परीक्षण**नोड.जेएस टेस्ट रनर**(`टेस्ट/यूनिट/`) का उपयोग करते हैं, जो `एनपीएम रन टेस्ट: यूनिट` के माध्यम से चलते हैं। `src/` के अंतर्गत स्रोत कोड**टाइपस्क्रिप्ट**(`.ts`/`.tsx`) है; `ओपन-एसएसई/` कार्यक्षेत्र जावास्क्रिप्ट (`.जेएस`) बना हुआ है।
-8. सेटिंग्स पृष्ठ को 5 टैब में व्यवस्थित किया गया है: सुरक्षा, रूटिंग (6 वैश्विक रणनीतियाँ: भरण-प्रथम, राउंड-रॉबिन, पी2सी, यादृच्छिक, कम से कम उपयोग किया गया, लागत-अनुकूलित), लचीलापन (संपादन योग्य दर सीमा, सर्किट ब्रेकर, नीतियां), एआई (सोच बजट, सिस्टम प्रॉम्प्ट, प्रॉम्प्ट कैश), उन्नत (प्रॉक्सी)।## Operational Verification Checklist
+Detailed request payload capture stores up to four JSON payload stages per routed call:
 
-- स्रोत से निर्माण: `एनपीएम रन बिल्ड`
-- डॉकर छवि बनाएँ: `docker build -t omniroute।`
-- सेवा प्रारंभ करें और सत्यापित करें:
-- `प्राप्त करें /एपीआई/सेटिंग्स`
-- `प्राप्त करें /api/v1/मॉडल`
-- जब `PORT=20128` हो तो CLI लक्ष्य आधार URL `http://<host>:20128/v1` होना चाहिए
+- raw request received from the client
+- translated request actually sent upstream
+- provider response reconstructed as JSON; streamed responses are compacted to the final summary plus stream metadata
+- final client response returned by OmniRoute; streamed responses are stored in the same compact summary form
+
+## Security-Sensitive Boundaries
+
+- JWT secret (`JWT_SECRET`) secures dashboard session cookie verification/signing
+- Initial password bootstrap (`INITIAL_PASSWORD`) should be explicitly configured for first-run provisioning
+- API key HMAC secret (`API_KEY_SECRET`) secures generated local API key format
+- Provider secrets (API keys/tokens) are persisted in local DB and should be protected at filesystem level
+- Cloud sync endpoints rely on API key auth + machine id semantics
+
+## Environment and Runtime Matrix
+
+Environment variables actively used by code:
+
+- App/auth: `JWT_SECRET`, `INITIAL_PASSWORD`
+- Storage: `DATA_DIR`
+- Compatible node behavior: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
+- Optional storage base override (Linux/macOS when `DATA_DIR` unset): `XDG_CONFIG_HOME`
+- Security hashing: `API_KEY_SECRET`, `MACHINE_ID_SALT`
+- Logging: `ENABLE_REQUEST_LOGS`
+- Sync/cloud URLing: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
+- Outbound proxy: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` and lowercase variants
+- SOCKS5 feature flags: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
+- Platform/runtime helpers (not app-specific config): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`
+
+## Known Architectural Notes
+
+1. `usageDb` and `localDb` share the same base directory policy (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) with legacy file migration.
+2. `/api/v1/route.ts` delegates to the same unified catalog builder used by `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) to avoid semantic drift.
+3. Request logger writes full headers/body when enabled; treat log directory as sensitive.
+4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
+5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
+6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
+7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
+8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies, **Context Relay** handoff config), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
+9. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated, `chat.ts` injects the handoff after account resolution. Handoff data lives in `context_handoffs` SQLite table. This split is intentional because only `chat.ts` knows whether the actual account changed.
+10. **Proxy enforcement** is now comprehensive: `tokenHealthCheck.ts` resolves proxy per connection, `/api/providers/validate` uses `runWithProxyContext`, and `proxyFetch.ts` uses `undici.fetch()` to maintain dispatcher compatibility on Node 22.
+11. **Node.js 24+ detection**: `/api/settings/require-login` returns `nodeVersion` and `nodeCompatible` fields. The login page renders a warning banner when the runtime is incompatible.
+
+## Operational Verification Checklist
+
+- Build from source: `npm run build`
+- Build Docker image: `docker build -t omniroute .`
+- Start service and verify:
+- `GET /api/settings`
+- `GET /api/v1/models`
+- CLI target base URL should be `http://<host>:20128/v1` when `PORT=20128`

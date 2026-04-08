@@ -4,102 +4,168 @@
 
 ---
 
-Візуальний путівник по кожному розділу інформаційної панелі OmniRoute.---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-Керуйте підключеннями постачальників AI: постачальників OAuth (Claude Code, Codex, Gemini CLI), постачальників ключів API (Groq, DeepSeek, OpenRouter) і безкоштовних постачальників (Qoder, Qwen, Kiro). Облікові записи Kiro включають відстеження кредитного балансу — залишок кредитів, загальну суму та дату поновлення можна побачити в Інформаційній панелі → Використання.![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Створюйте комбіновані моделі маршрутизації за допомогою 6 стратегій: пріоритетної, зваженої, циклічної, випадкової, найменш використовуваної та економічно оптимізованої. Кожне комбо об’єднує кілька моделей із автоматичним резервним копіюванням і містить швидкі шаблони та перевірку готовності.![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Комплексна аналітика використання із споживанням токенів, оцінками витрат, тепловими картами активності, тижневими діаграмами розподілу та розподілом за постачальниками.![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Моніторинг у режимі реального часу: безвідмовна робота, пам’ять, версія, процентилі затримки (p50/p95/p99), статистика кешу та стани автоматичного вимикача постачальника.![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Чотири режими для налагодження перекладів API:**Playground**(конвертер форматів),**Chat Tester**(живі запити),**Test Bench**(пакетні тести) і**Live Monitor**(потік у реальному часі).![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Тестуйте будь-яку модель прямо з приладової панелі. Вибирайте провайдера, модель і кінцеву точку, пишіть підказки за допомогою Monaco Editor, транслюйте відповіді в режимі реального часу, переривайте посередині потоку та переглядайте показники часу.---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Настроювані кольорові теми для всієї інформаційної панелі. Виберіть із 7 попередньо встановлених кольорів (кораловий, синій, червоний, зелений, фіолетовий, помаранчевий, блакитний) або створіть власну тему, вибравши будь-який шістнадцятковий колір. Підтримує світлий, темний і системний режими.---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-Комплексна панель налаштувань із вкладками:
+Comprehensive settings panel with tabs:
 
--**Загальні**— системне зберігання, керування резервним копіюванням (експорт/імпорт бази даних) -**Зовнішній вигляд**— селектор теми (темний/світлий/системний), попередньо встановлені теми кольорів і спеціальні кольори, видимість журналу стану здоров’я, елементи керування видимістю елементів бічної панелі -**Безпека**— захист кінцевих точок API, блокування настроюваних провайдерів, фільтрація IP-адрес, інформація про сеанс -**Маршрутизація**— Псевдоніми моделі, погіршення якості фонового завдання -**Стійкість**— постійне обмеження швидкості, налаштування автоматичного вимикача, автоматичне відключення заборонених облікових записів, моніторинг закінчення терміну дії постачальника -**Додатково**— заміна конфігурації, журнал аудиту конфігурації, резервний режим деградації![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-Конфігурація в один клік для інструментів кодування ШІ: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor і Factory Droid. Функції автоматичного застосування/скидання конфігурації, профілів підключення та відображення моделі.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Інформаційна панель для виявлення та керування агентами CLI. Показує сітку з 14 вбудованих агентів (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) із:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**Статус встановлення**— Встановлено/Не знайдено з визначенням версії -**Бейджи протоколу**— stdio, HTTP тощо. -**Користувацькі агенти**— реєструйте будь-який інструмент CLI за допомогою форми (ім’я, двійковий файл, команда версії, аргументи створення) -**Відповідність відбитків CLI**— перемикання для кожного постачальника, щоб відповідати власним підписам запиту CLI, зменшуючи ризик блокування, зберігаючи IP-адресу проксі-сервера---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Створюйте зображення, відео та музику з інформаційної панелі. Підтримує OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open і MusicGen.---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-Реєстрація запитів у режимі реального часу з фільтрацією за постачальником, моделлю, обліковим записом і ключем API. Показує коди стану, використання маркерів, затримку та деталі відповіді.![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Ваша уніфікована кінцева точка API з розбивкою можливостей: завершення чату, API відповідей, вбудовування, генерація зображень, переранжування, транскрипція аудіо, синтез мовлення з тексту, модерація та зареєстровані ключі API. Інтеграція Cloudflare Quick Tunnel і підтримка хмарного проксі для віддаленого доступу.![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Створення, область дії та відкликання ключів API. Кожен ключ можна обмежити певними моделями/постачальниками з повним доступом або дозволом лише на читання. Візуальне керування ключами з відстеженням використання.---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-Відстеження адміністративних дій із фільтрацією за типом дії, актором, метою, IP-адресою та міткою часу. Повна історія подій безпеки.---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Власна настільна програма Electron для Windows, macOS і Linux. Запустіть OmniRoute як окрему програму з інтеграцією в системний трей, підтримкою в автономному режимі, автоматичним оновленням і встановленням одним клацанням миші.
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-Ключові особливості:
+Key features:
 
-- Опитування готовності сервера (без порожнього екрана при холодному запуску)
-  — Системний трей із керуванням портами
-- Політика безпеки вмісту
-- Одноразове блокування
-- Автоматичне оновлення при перезавантаженні
-- Інтерфейс користувача, залежний від платформи (світлофори macOS, панель заголовка за замовчуванням у Windows/Linux)
-- Hardened Electron build packaging — символічні `node_modules` в автономному комплекті виявляються та відхиляються перед пакуванням, запобігаючи залежності часу виконання від комп’ютера збірки (версія 2.5.5+).
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 Повну документацію див. [`electron/README.md`](../electron/README.md).
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

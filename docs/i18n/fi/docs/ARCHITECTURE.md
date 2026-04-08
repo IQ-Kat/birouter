@@ -4,80 +4,93 @@
 
 ---
 
-_Viimeksi päivitetty: 2026-03-28_## Executive Summary
 
-OmniRoute on paikallinen AI-reititysyhdyskäytävä ja kojelauta, joka on rakennettu Next.js:lle.
-Se tarjoaa yhden OpenAI-yhteensopivan päätepisteen (`/v1/*`) ja reitittää liikenteen useiden alkupään palveluntarjoajien kesken kääntämisen, varaajan, tunnuksen päivityksen ja käytön seurannan avulla.
 
-Ydinominaisuudet:
+_Last updated: 2026-03-28_
 
-- OpenAI-yhteensopiva API-pinta CLI:lle/työkaluille (28 toimittajaa)
-- Pyydä/vastaa käännös palveluntarjoajan eri formaattien välillä
-- Mallin yhdistelmävara (usean mallin sarja)
-- Tilitason varatoiminto (usea tili palveluntarjoajaa kohti)
-- OAuth + API-avain tarjoajan yhteyden hallinta
-- Upottamisen luominen /v1/embeddings-tiedoston kautta (6 palveluntarjoajaa, 9 mallia)
-- Kuvien luominen /v1/images/generations-tiedoston kautta (4 toimittajaa, 9 mallia)
-- Ajattele tagien jäsentämistä (`<think>...</think>`) päättelymalleille
-- Vastauksen desinfiointi tiukan OpenAI SDK -yhteensopivuuden takaamiseksi
-- Roolien normalisointi (kehittäjä→järjestelmä, järjestelmä→käyttäjä) palveluntarjoajien välistä yhteensopivuutta varten
-- Strukturoitu lähdön muunnos (json_schema → Gemini responseSchema)
-- Paikallinen pysyvyys tarjoajille, avaimille, aliaksille, yhdistelmille, asetuksille, hinnoittelulle
-- Käytön/kustannusten seuranta ja pyyntöjen kirjaaminen
-- Valinnainen pilvisynkronointi usean laitteen/tilan synkronointiin
-- IP-sallitut / estolistat API-käyttöoikeuksien hallinnassa
-- Ajatteleva budjetin hallinta (läpivienti/automaattinen/mukautettu/mukautuva)
-- Globaali järjestelmän nopea ruiskutus
-- Istunnon seuranta ja sormenjäljet
-- Tilikohtainen tehostettu hintarajoitus tarjoajakohtaisilla profiileilla
-- Katkaisijakuvio palveluntarjoajan joustavuuden parantamiseksi
-- Ukkosta estävä laumasuoja mutex-lukolla
-- Allekirjoituspohjainen pyyntöjen duplikoinnin välimuisti
-- Verkkotunnustaso: mallin saatavuus, hintasäännöt, varakäytäntö, lukituskäytäntö
-- Verkkotunnuksen tilan pysyvyys (SQLite-kirjoitusvälimuisti varauksille, budjeteille, lukituksille, katkaisimille)
-- Käytäntömoottori keskitettyä pyyntöjen arviointia varten (sulku → budjetti → vara)
-- Pyydä telemetriaa p50/p95/p99-latenssiaggregaatiolla
-- Korrelaatiotunnus (X-Request-Id) päästä päähän -jäljitykseen
-- Vaatimustenmukaisuuden tarkastuksen kirjaaminen ja opt-out API-avaimella
-- Eval-kehys LLM-laadunvarmistukseen
-- Joustavan käyttöliittymän kojelauta, jossa on reaaliaikainen katkaisijatila
-- Modulaariset OAuth-palveluntarjoajat (12 yksittäistä moduulia kohdassa "src/lib/oauth/providers/")
+## Executive Summary
 
-Ensisijainen suoritusaikamalli:
+OmniRoute is a local AI routing gateway and dashboard built on Next.js.
+It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic across multiple upstream providers with translation, fallback, token refresh, and usage tracking.
 
-- Next.js-sovellusreitit kohdassa `src/app/api/*` toteuttavat sekä hallintapaneelin sovellusliittymiä että yhteensopivuussovellusliittymiä
-- Jaettu SSE/reititysydin kohdassa `src/sse/*` + `open-sse/*` hoitaa palveluntarjoajan suorittamisen, käännöksen, suoratoiston, varatoiminnon ja käytön## Scope and Boundaries
+Core capabilities:
+
+- OpenAI-compatible API surface for CLI/tools (28 providers)
+- Request/response translation across provider formats
+- Model combo fallback (multi-model sequence)
+- Account-level fallback (multi-account per provider)
+- OAuth + API-key provider connection management
+- Embedding generation via `/v1/embeddings` (6 providers, 9 models)
+- Image generation via `/v1/images/generations` (4 providers, 9 models)
+- Think tag parsing (`<think>...</think>`) for reasoning models
+- Response sanitization for strict OpenAI SDK compatibility
+- Role normalization (developer→system, system→user) for cross-provider compatibility
+- Structured output conversion (json_schema → Gemini responseSchema)
+- Local persistence for providers, keys, aliases, combos, settings, pricing
+- Usage/cost tracking and request logging
+- Optional cloud sync for multi-device/state sync
+- IP allowlist/blocklist for API access control
+- Thinking budget management (passthrough/auto/custom/adaptive)
+- Global system prompt injection
+- Session tracking and fingerprinting
+- Per-account enhanced rate limiting with provider-specific profiles
+- Circuit breaker pattern for provider resilience
+- Anti-thundering herd protection with mutex locking
+- Signature-based request deduplication cache
+- Domain layer: model availability, cost rules, fallback policy, lockout policy
+- Context Relay: session handoff summaries for account rotation continuity
+- Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
+- Policy engine for centralized request evaluation (lockout → budget → fallback)
+- Request telemetry with p50/p95/p99 latency aggregation
+- Correlation ID (X-Request-Id) for end-to-end tracing
+- Compliance audit logging with opt-out per API key
+- Eval framework for LLM quality assurance
+- Resilience UI dashboard with real-time circuit breaker status
+- Modular OAuth providers (12 individual modules under `src/lib/oauth/providers/`)
+
+Primary runtime model:
+
+- Next.js app routes under `src/app/api/*` implement both dashboard APIs and compatibility APIs
+- A shared SSE/routing core in `src/sse/*` + `open-sse/*` handles provider execution, translation, streaming, fallback, and usage
+
+## Scope and Boundaries
 
 ### In Scope
 
-- Paikallisen yhdyskäytävän suoritusaika
-- Kojelaudan hallintasovellusliittymät
-- Palveluntarjoajan todennus ja tunnuksen päivitys
-- Pyydä käännöstä ja SSE-suoratoistoa
-- Paikallinen tila + käytön pysyvyys
-- Valinnainen pilvisynkronointiorkesteri### Out of Scope
+- Local gateway runtime
+- Dashboard management APIs
+- Provider authentication and token refresh
+- Request translation and SSE streaming
+- Local state + usage persistence
+- Optional cloud sync orchestration
 
-- Pilvipalvelun toteutus osoitteen "NEXT_PUBLIC_CLOUD_URL" takana
-- Palveluntarjoajan SLA/ohjaustaso paikallisen prosessin ulkopuolella
-- Itse ulkoiset CLI-binaarit (Claude CLI, Codex CLI jne.)## Dashboard Surface (Current)
+### Out of Scope
 
-Pääsivut kohdassa `src/app/(dashboard)/dashboard/`:
+- Cloud service implementation behind `NEXT_PUBLIC_CLOUD_URL`
+- Provider SLA/control plane outside local process
+- External CLI binaries themselves (Claude CLI, Codex CLI, etc.)
 
-- `/dashboard` — pika-aloitus + palveluntarjoajan yleiskatsaus
-- "/dashboard/endpoint" - päätepisteen välityspalvelin + MCP + A2A + API-päätepisteen välilehdet
-- "/dashboard/providers" — palveluntarjoajan yhteydet ja tunnistetiedot
-- "/dashboard/combos" - yhdistelmästrategiat, mallit, mallin reitityssäännöt
-- "/dashboard/costs" — kustannusten yhteenlaskettu ja hinnoittelun näkyvyys
-- `/dashboard/analytics' — käyttöanalytiikka ja arvioinnit
-- "/dashboard/limits" - kiintiön/hinnan säätimet
-- "/dashboard/cli-tools" - CLI:n käyttöönotto, suorituksenaikainen tunnistus, asetusten luominen
-- "/dashboard/agents" — havaitut ACP-agentit + mukautetun agentin rekisteröinti
-- `/dashboard/media` — kuvan/videon/musiikin leikkipaikka
-- `/dashboard/search-tools' — hakupalveluntarjoajan testaus ja historia
-- `/dashboard/health' — käytettävyysaika, katkaisijat, nopeusrajoitukset
-- "/dashboard/logs" — pyyntö/välityspalvelin/tarkastus/konsolilokit
-- "/dashboard/settings" — järjestelmäasetusten välilehdet (yleiset, reititys, yhdistelmäoletusasetukset jne.)
-- `/dashboard/api-manager` — API-avaimen elinkaaren ja mallin käyttöoikeudet## High-Level System Context
+## Dashboard Surface (Current)
+
+Main pages under `src/app/(dashboard)/dashboard/`:
+
+- `/dashboard` — quick start + provider overview
+- `/dashboard/endpoint` — endpoint proxy + MCP + A2A + API endpoint tabs
+- `/dashboard/providers` — provider connections and credentials
+- `/dashboard/combos` — combo strategies, templates, model routing rules
+- `/dashboard/costs` — cost aggregation and pricing visibility
+- `/dashboard/analytics` — usage analytics and evaluations
+- `/dashboard/limits` — quota/rate controls
+- `/dashboard/cli-tools` — CLI onboarding, runtime detection, config generation
+- `/dashboard/agents` — detected ACP agents + custom agent registration
+- `/dashboard/media` — image/video/music playground
+- `/dashboard/search-tools` — search provider testing and history
+- `/dashboard/health` — uptime, circuit breakers, rate limits
+- `/dashboard/logs` — request/proxy/audit/console logs
+- `/dashboard/settings` — system settings tabs (general, routing, combo defaults, etc.)
+- `/dashboard/api-manager` — API key lifecycle and model permissions
+
+## High-Level System Context
 
 ```mermaid
 flowchart LR
@@ -129,139 +142,151 @@ flowchart LR
 
 ## 1) API and Routing Layer (Next.js App Routes)
 
-Päähakemistot:
+Main directories:
 
-- `src/app/api/v1/*` ja `src/app/api/v1beta/*` yhteensopiville sovellusliittymille
-- `src/app/api/*` hallinta-/määrityssovellusliittymille
-- Seuraavaksi kirjoitetaan uudelleen `next.config.mjs`-kartassa `/v1/*` muotoon `/api/v1/*`
+- `src/app/api/v1/*` and `src/app/api/v1beta/*` for compatibility APIs
+- `src/app/api/*` for management/configuration APIs
+- Next rewrites in `next.config.mjs` map `/v1/*` to `/api/v1/*`
 
-Tärkeitä yhteensopivuusreittejä:
+Important compatibility routes:
 
-- `src/app/api/v1/chat/completions/route.ts'
-- "src/app/api/v1/messages/route.ts".
-- "src/app/api/v1/responses/route.ts".
-- "src/app/api/v1/models/route.ts" - sisältää mukautettuja malleja "custom: true"
-- "src/app/api/v1/embeddings/route.ts" - upotuksen sukupolvi (6 tarjoajaa)
-- "src/app/api/v1/images/generations/route.ts" - kuvien luominen (4+ tarjoajaa, mukaan lukien Antigravity/Nebius)
+- `src/app/api/v1/chat/completions/route.ts`
+- `src/app/api/v1/messages/route.ts`
+- `src/app/api/v1/responses/route.ts`
+- `src/app/api/v1/models/route.ts` — includes custom models with `custom: true`
+- `src/app/api/v1/embeddings/route.ts` — embedding generation (6 providers)
+- `src/app/api/v1/images/generations/route.ts` — image generation (4+ providers incl. Antigravity/Nebius)
 - `src/app/api/v1/messages/count_tokens/route.ts`
-- "src/app/api/v1/providers/[provider]/chat/completions/route.ts" - palveluntarjoajakohtainen keskustelu
-- `src/app/api/v1/providers/[provider]/embeddings/route.ts' – omat palveluntarjoajakohtaiset upotukset
-- "src/app/api/v1/providers/[provider]/images/generations/route.ts" - palveluntarjoajakohtaiset kuvat
-- "src/app/api/v1beta/models/route.ts".
-- `src/app/api/v1beta/models/[...polku]/route.ts`
+- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — dedicated per-provider chat
+- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — dedicated per-provider embeddings
+- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — dedicated per-provider images
+- `src/app/api/v1beta/models/route.ts`
+- `src/app/api/v1beta/models/[...path]/route.ts`
 
-Hallintoverkkotunnukset:
+Management domains:
 
-- Todennus/asetukset: `src/app/api/auth/*`, `src/app/api/settings/*`
-- Palveluntarjoajat/yhteydet: `src/app/api/providers*`
-- Palveluntarjoajan solmut: `src/app/api/provider-nodes\*'
-- Mukautetut mallit: `src/app/api/provider-models' (GET/POST/DELETE)
-- Malliluettelo: `src/app/api/models/route.ts' (GET)
-- Välityspalvelimen konfiguraatio: "src/app/api/settings/proxy" (GET/PUT/DELETE) + "src/app/api/settings/proxy/test" (POST)
+- Auth/settings: `src/app/api/auth/*`, `src/app/api/settings/*`
+- Providers/connections: `src/app/api/providers*`
+- Provider nodes: `src/app/api/provider-nodes*`
+- Custom models: `src/app/api/provider-models` (GET/POST/DELETE)
+- Model catalog: `src/app/api/models/route.ts` (GET)
+- Proxy config: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
 - OAuth: `src/app/api/oauth/*`
-- Keys/aliases/combos/pricing: "src/app/api/keys*", "src/app/api/models/alias", "src/app/api/combos*", "src/app/api/pricing"
-- Käyttö: `src/app/api/usage/*`
-- Synkronointi/pilvi: `src/app/api/sync/*`, `src/app/api/cloud/*`
-- CLI-työkalujen apuohjelmat: `src/app/api/cli-tools/*`
-- IP-suodatin: `src/app/api/settings/ip-filter' (GET/PUT)
-- Thinking-budjetti: `src/app/api/settings/thinking-budget' (GET/PUT)
-- Järjestelmäkehote: `src/app/api/settings/system-prompt' (GET/PUT)
-- Istunnot: `src/app/api/sessions' (GET)
-- Nopeusrajoitukset: `src/app/api/rate-limits' (GET)
-- Kestävyys: "src/app/api/resilience" (GET/PATCH) – palveluntarjoajan profiilit, katkaisija, nopeusrajoitustila
-- Kestävyyden nollaus: "src/app/api/resilience/reset" (POST) - nollaa katkaisijat + jäähdytys
-- Välimuistitilastot: `src/app/api/cache/stats' (GET/DELETE)
-- Mallin saatavuus: `src/app/api/models/availability' (GET/POST)
-- Telemetria: "src/app/api/telemetry/summary" (GET)
-- Budjetti: `src/app/api/usage/budget' (GET/POST)
-- Varaketjut: `src/app/api/fallback/chains' (GET/POST/DELETE)
-- Vaatimustenmukaisuuden tarkastus: `src/app/api/compliance/audit-log' (GET)
-- Evals: "src/app/api/evals" (GET/POST), "src/app/api/evals/[suiteId]" (GET)
-- Käytännöt: `src/app/api/policies' (GET/POST)## 2) SSE + Translation Core
+- Keys/aliases/combos/pricing: `src/app/api/keys*`, `src/app/api/models/alias`, `src/app/api/combos*`, `src/app/api/pricing`
+- Usage: `src/app/api/usage/*`
+- Sync/cloud: `src/app/api/sync/*`, `src/app/api/cloud/*`
+- CLI tooling helpers: `src/app/api/cli-tools/*`
+- IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
+- Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
+- System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
+- Sessions: `src/app/api/sessions` (GET)
+- Rate limits: `src/app/api/rate-limits` (GET)
+- Resilience: `src/app/api/resilience` (GET/PATCH) — provider profiles, circuit breaker, rate limit state
+- Resilience reset: `src/app/api/resilience/reset` (POST) — reset breakers + cooldowns
+- Cache stats: `src/app/api/cache/stats` (GET/DELETE)
+- Model availability: `src/app/api/models/availability` (GET/POST)
+- Telemetry: `src/app/api/telemetry/summary` (GET)
+- Budget: `src/app/api/usage/budget` (GET/POST)
+- Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
+- Compliance audit: `src/app/api/compliance/audit-log` (GET)
+- Evals: `src/app/api/evals` (GET/POST), `src/app/api/evals/[suiteId]` (GET)
+- Policies: `src/app/api/policies` (GET/POST)
 
-Päävirtausmoduulit:
+## 2) SSE + Translation Core
 
-- Merkintä: "src/sse/handlers/chat.ts".
-- Ydinorkesteri: `open-sse/handlers/chatCore.ts`
-- Tarjoajan suoritussovittimet: `open-sse/executors/*`
-- Muototunnistuksen/palveluntarjoajan kokoonpano: `open-sse/services/provider.ts`
-- Mallin jäsennys/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- Tilin varalogiikka: "open-sse/services/accountFallback.ts".
-- Käännösrekisteri: "open-sse/translator/index.ts".
-- Stream-muunnokset: "open-sse/utils/stream.ts", "open-sse/utils/streamHandler.ts"
-- Käytön purkaminen/normalisointi: `open-sse/utils/usageTracking.ts`
-- Think tag -parser: `open-sse/utils/thinkTagParser.ts`
-- Upotuskäsittelijä: "open-sse/handlers/embeddings.ts".
-- Upotuspalveluntarjoajan rekisteri: `open-sse/config/embeddingRegistry.ts`
-- Kuvanluontikäsittelijä: "open-sse/handlers/imageGeneration.ts".
-- Kuvantarjoajan rekisteri: "open-sse/config/imageRegistry.ts".
-- Vastauksen desinfiointi: "open-sse/handlers/responseSanitizer.ts"
-- Roolin normalisointi: "open-sse/services/roleNormalizer.ts".
+Main flow modules:
 
-Palvelut (liiketoimintalogiikka):
+- Entry: `src/sse/handlers/chat.ts`
+- Core orchestration: `open-sse/handlers/chatCore.ts`
+- Provider execution adapters: `open-sse/executors/*`
+- Format detection/provider config: `open-sse/services/provider.ts`
+- Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- Account fallback logic: `open-sse/services/accountFallback.ts`
+- Translation registry: `open-sse/translator/index.ts`
+- Stream transformations: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- Usage extraction/normalization: `open-sse/utils/usageTracking.ts`
+- Think tag parser: `open-sse/utils/thinkTagParser.ts`
+- Embedding handler: `open-sse/handlers/embeddings.ts`
+- Embedding provider registry: `open-sse/config/embeddingRegistry.ts`
+- Image generation handler: `open-sse/handlers/imageGeneration.ts`
+- Image provider registry: `open-sse/config/imageRegistry.ts`
+- Response sanitization: `open-sse/handlers/responseSanitizer.ts`
+- Role normalization: `open-sse/services/roleNormalizer.ts`
 
-- Tilin valinta/pisteytys: `open-sse/services/accountSelector.ts`
-- Kontekstin elinkaarihallinta: `open-sse/services/contextManager.ts`
-- IP-suodattimen valvonta: "open-sse/services/ipFilter.ts".
-- Istunnon seuranta: `open-sse/services/sessionManager.ts`
-- Pyydä päällekkäisyyden poistoa: `open-sse/services/signatureCache.ts`
-- Järjestelmäkehotteen lisäys: "open-sse/services/systemPrompt.ts".
-- Ajatteleva budjetin hallinta: "open-sse/services/thinkingBudget.ts"
-- Jokerimerkkimallin reititys: `open-sse/services/wildcardRouter.ts`
-- Hintarajan hallinta: `open-sse/services/rateLimitManager.ts`
-- Katkaisija: "open-sse/services/circuitBreaker.ts"
+Services (business logic):
 
-Domain-kerroksen moduulit:
+- Account selection/scoring: `open-sse/services/accountSelector.ts`
+- Context lifecycle management: `open-sse/services/contextManager.ts`
+- IP filter enforcement: `open-sse/services/ipFilter.ts`
+- Session tracking: `open-sse/services/sessionManager.ts`
+- Request deduplication: `open-sse/services/signatureCache.ts`
+- System prompt injection: `open-sse/services/systemPrompt.ts`
+- Thinking budget management: `open-sse/services/thinkingBudget.ts`
+- Wildcard model routing: `open-sse/services/wildcardRouter.ts`
+- Rate limit management: `open-sse/services/rateLimitManager.ts`
+- Circuit breaker: `open-sse/services/circuitBreaker.ts`
+- Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
+- Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
 
-- Mallin saatavuus: "src/lib/domain/modelAvailability.ts".
-- Kustannussäännöt/budjetit: `src/lib/domain/costRules.ts`
-- Varakäytäntö: "src/lib/domain/fallbackPolicy.ts".
-- Yhdistelmäratkaisu: `src/lib/domain/comboResolver.ts'
-- Lukituskäytäntö: "src/lib/domain/lockoutPolicy.ts".
-- Käytäntömoottori: "src/domain/policyEngine.ts" — keskitetty lukitus → budjetti → varaarviointi
-- Virhekoodiluettelo: "src/lib/domain/errorCodes.ts".
-- Pyyntötunnus: `src/lib/domain/requestId.ts'
-- Haun aikakatkaisu: "src/lib/domain/fetchTimeout.ts".
-- Pyydä telemetriaa: `src/lib/domain/requestTelemetry.ts`
-- Vaatimustenmukaisuus/tarkastus: `src/lib/domain/compliance/index.ts'
+Domain layer modules:
+
+- Model availability: `src/lib/domain/modelAvailability.ts`
+- Cost rules/budgets: `src/lib/domain/costRules.ts`
+- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
+- Combo resolver: `src/lib/domain/comboResolver.ts`
+- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
+- Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
+- Error codes catalog: `src/lib/domain/errorCodes.ts`
+- Request ID: `src/lib/domain/requestId.ts`
+- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
+- Request telemetry: `src/lib/domain/requestTelemetry.ts`
+- Compliance/audit: `src/lib/domain/compliance/index.ts`
 - Eval runner: `src/lib/domain/evalRunner.ts`
-- Verkkotunnuksen tilan pysyvyys: `src/lib/db/domainState.ts' — SQLite CRUD varaketjuille, budjeteille, kustannushistorialle, lukitustilalle, katkaisimille
+- Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
-OAuth-palveluntarjoajan moduulit (12 yksittäistä tiedostoa kohdassa "src/lib/oauth/providers/"):
+OAuth provider modules (12 individual files under `src/lib/oauth/providers/`):
 
-- Rekisterihakemisto: "src/lib/oauth/providers/index.ts".
-- Yksittäiset palveluntarjoajat: "claude.ts", "codex.ts", "gemini.ts", "antigravity.ts", "qoder.ts", "qwen.ts", "kimi-coding.ts", "github.ts", "kiro.cursorts", `cline.ts`
-- Ohut kääre: "src/lib/oauth/providers.ts" - uudelleenvienti yksittäisistä moduuleista## 3) Persistence Layer
+- Registry index: `src/lib/oauth/providers/index.ts`
+- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
 
-Ensisijainen tila DB (SQLite):
+## 3) Persistence Layer
 
-- Ydininfrastruktuuri: "src/lib/db/core.ts" (better-sqlite3, migraatiot, WAL)
-- Vie julkisivu uudelleen: "src/lib/localDb.ts" (ohut yhteensopivuuskerros soittajille)
-- tiedosto: `${DATA_DIR}/storage.sqlite` (tai `$XDG_CONFIG_HOME/omniroute/storage.sqlite`, kun se on asetettu, muuten `~/.omniroute/storage.sqlite`)
-- entiteetit (taulukot + KV-nimitilat): providerConnections, providerNodes, mallialiakset, yhdistelmät, apiKeys, asetukset, hinnoittelu,**customModels**,**proxyConfig**,**ipFilter**,**thhinkingBudget**,**systemPrompt**
+Primary state DB (SQLite):
 
-Käytön pysyvyys:
+- Core infra: `src/lib/db/core.ts` (better-sqlite3, migrations, WAL)
+- Re-export facade: `src/lib/localDb.ts` (thin compatibility layer for callers)
+- file: `${DATA_DIR}/storage.sqlite` (or `$XDG_CONFIG_HOME/omniroute/storage.sqlite` when set, else `~/.omniroute/storage.sqlite`)
+- entities (tables + KV namespaces): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
 
-- julkisivu: "src/lib/usageDb.ts" (hajotetut moduulit tiedostossa "src/lib/usage/\*")
-- SQLite-taulukot tiedostossa "storage.sqlite": "usage_history", "call_logs", "proxy_logs"
-- valinnaiset tiedostoartefaktit jäävät yhteensopivuutta/virheenkorjausta varten (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
-- Vanhat JSON-tiedostot siirretään SQLiteen käynnistyssiirroilla, kun ne ovat olemassa
+Usage persistence:
+
+- facade: `src/lib/usageDb.ts` (decomposed modules in `src/lib/usage/*`)
+- SQLite tables in `storage.sqlite`: `usage_history`, `call_logs`, `proxy_logs`
+- optional file artifacts remain for compatibility/debug (`${DATA_DIR}/log.txt`, `${DATA_DIR}/call_logs/`, `<repo>/logs/...`)
+- legacy JSON files are migrated to SQLite by startup migrations when present
 
 Domain State DB (SQLite):
 
-- "src/lib/db/domainState.ts" - CRUD-toiminnot toimialueen tilalle
-- Taulukot (luodut tiedostossa "src/lib/db/core.ts"): "domain_fallback_chains", "domain_budgets", "domain_cost_history", "domain_lockout_state", "domain_circuit_breakers"
-- Kirjoitusvälimuistin malli: muistissa olevat kartat ovat arvovaltaisia ajon aikana; mutaatiot kirjoitetaan synkronisesti SQLiten kanssa; tila palautetaan DB:stä kylmäkäynnistyksen yhteydessä## 4) Auth + Security Surfaces
+- `src/lib/db/domainState.ts` — CRUD operations for domain state
+- Tables (created in `src/lib/db/core.ts`): `domain_fallback_chains`, `domain_budgets`, `domain_cost_history`, `domain_lockout_state`, `domain_circuit_breakers`
+- Write-through cache pattern: in-memory Maps are authoritative at runtime; mutations are written synchronously to SQLite; state is restored from DB on cold start
 
-- Hallintapaneelin evästeiden todennus: "src/proxy.ts", "src/app/api/auth/login/route.ts"
-- API-avaimen luonti/vahvistus: `src/shared/utils/apiKey.ts`
-- Palveluntarjoajan salaisuudet säilyivät "providerConnections"-merkinnöissä
-- Lähtevän välityspalvelimen tuki "open-sse/utils/proxyFetch.ts" (env vars) ja "open-sse/utils/networkProxy.ts" kautta (määritettävä palveluntarjoajakohtaisesti tai globaali)## 5) Cloud Sync
+## 4) Auth + Security Surfaces
 
-- Aikataulun aloitus: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
-- Säännöllinen tehtävä: `src/shared/services/cloudSyncScheduler.ts`
-- Säännöllinen tehtävä: `src/shared/services/modelSyncScheduler.ts`
-- Hallitse reittiä: `src/app/api/sync/cloud/route.ts'## Request Lifecycle (`/v1/chat/completions`)
+- Dashboard cookie auth: `src/proxy.ts`, `src/app/api/auth/login/route.ts`
+- API key generation/verification: `src/shared/utils/apiKey.ts`
+- Provider secrets persisted in `providerConnections` entries
+- Outbound proxy support via `open-sse/utils/proxyFetch.ts` (env vars) and `open-sse/utils/networkProxy.ts` (configurable per-provider or global)
+
+## 5) Cloud Sync
+
+- Scheduler init: `src/lib/initCloudSync.ts`, `src/shared/services/initializeCloudSync.ts`, `src/shared/services/modelSyncScheduler.ts`
+- Periodic task: `src/shared/services/cloudSyncScheduler.ts`
+- Periodic task: `src/shared/services/modelSyncScheduler.ts`
+- Control route: `src/app/api/sync/cloud/route.ts`
+
+## Request Lifecycle (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
@@ -338,7 +363,9 @@ flowchart TD
     Q -- No --> R[Return all unavailable]
 ```
 
-Varapäätökset tehdään "open-sse/services/accountFallback.ts":n avulla tilakoodeja ja virheviestiheuristiikkaa käyttäen. Yhdistelmäreititys lisää yhden ylimääräisen suojan: palveluntarjoajan kattamat 400:t, kuten ylävirran sisällön lohko- ja roolivahvistuksen epäonnistumiset, käsitellään mallin paikallisina virheinä, jotta myöhempiä yhdistelmäkohteita voidaan edelleen suorittaa.## OAuth Onboarding and Token Refresh Lifecycle
+Fallback decisions are driven by `open-sse/services/accountFallback.ts` using status codes and error-message heuristics. Combo routing adds one extra guard: provider-scoped 400s such as upstream content-block and role-validation failures are treated as model-local failures so later combo targets can still run.
+
+## OAuth Onboarding and Token Refresh Lifecycle
 
 ```mermaid
 sequenceDiagram
@@ -368,7 +395,9 @@ sequenceDiagram
     Test-->>UI: validation result
 ```
 
-Päivitys reaaliaikaisen liikenteen aikana suoritetaan "open-sse/handlers/chatCore.ts" -tiedostossa suorittimen "refreshCredentials()" kautta.## Cloud Sync Lifecycle (Enable / Sync / Disable)
+Refresh during live traffic is executed inside `open-sse/handlers/chatCore.ts` via executor `refreshCredentials()`.
+
+## Cloud Sync Lifecycle (Enable / Sync / Disable)
 
 ```mermaid
 sequenceDiagram
@@ -400,7 +429,9 @@ sequenceDiagram
     Sync-->>UI: disabled
 ```
 
-"CloudSyncScheduler" käynnistää säännöllisen synkronoinnin, kun pilvi on käytössä.## Data Model and Storage Map
+Periodic sync is triggered by `CloudSyncScheduler` when cloud is enabled.
+
+## Data Model and Storage Map
 
 ```mermaid
 erDiagram
@@ -501,12 +532,14 @@ erDiagram
     }
 ```
 
-Fyysiset tallennustiedostot:
+Physical storage files:
 
-- ensisijainen ajonaikainen tietokanta: `${DATA_DIR}/storage.sqlite`
-- pyyntölokin rivit: `${DATA_DIR}/log.txt` (compat/debug artefact)
-- jäsennellyt puhelun hyötykuorma-arkistot: `${DATA_DIR}/call_logs/`
-- valinnainen kääntäjä/pyydä virheenkorjausistuntoja: `<repo>/logs/...`## Deployment Topology
+- primary runtime DB: `${DATA_DIR}/storage.sqlite`
+- request log lines: `${DATA_DIR}/log.txt` (compat/debug artifact)
+- structured call payload archives: `${DATA_DIR}/call_logs/`
+- optional translator/request debug sessions: `<repo>/logs/...`
+
+## Deployment Topology
 
 ```mermaid
 flowchart LR
@@ -541,205 +574,249 @@ flowchart LR
 
 ### Route and API Modules
 
-- `src/app/api/v1/*`, `src/app/api/v1beta/*`: yhteensopivuussovellusliittymät
-- `src/app/api/v1/providers/[provider]/*`: omat palveluntarjoajakohtaiset reitit (chat, upotukset, kuvat)
-- `src/app/api/providers\*: palveluntarjoajan CRUD, validointi, testaus
-- `src/app/api/provider-nodes\*: mukautettu yhteensopiva solmuhallinta
-- "src/app/api/provider-models": mukautetun mallin hallinta (CRUD)
-- "src/app/api/models/route.ts": malliluettelon sovellusliittymä (aliakset + mukautetut mallit)
-- `src/app/api/oauth/*`: OAuth/laitekoodikulku
-- `src/app/api/keys\*: paikallisen API-avaimen elinkaari
-- "src/app/api/models/alias": aliaksen hallinta
-- `src/app/api/combos*`: varayhdistelmähallinta
-- "src/app/api/pricing": hinnoittelu ohittaa kustannuslaskennan
-- "src/app/api/settings/proxy": välityspalvelimen määritykset (GET/PUT/DELETE)
-- "src/app/api/settings/proxy/test": lähtevän välityspalvelimen yhteystesti (POST)
-- `src/app/api/usage/*`: käyttö- ja lokisovellusliittymät
-- `src/app/api/sync/*` + `src/app/api/cloud/*`: pilvisynkronointi ja pilveen suuntautuvat apuohjelmat
-- `src/app/api/cli-tools/*`: paikalliset CLI-asetusten kirjoittajat/tarkistajat
-- `src/app/api/settings/ip-filter': IP-sallittujen luettelo/estolista (GET/PUT)
-- `src/app/api/settings/thhinking-budget': ajattelutunnuksen budjetin konfiguraatio (GET/PUT)
-- "src/app/api/settings/system-prompt": yleinen järjestelmäkehote (GET/PUT)
-- `src/app/api/sessions': aktiivisten istuntojen luettelo (GET)
-- "src/app/api/rate-limits": tilikohtainen korkorajoitustila (GET)### Routing and Execution Core
+- `src/app/api/v1/*`, `src/app/api/v1beta/*`: compatibility APIs
+- `src/app/api/v1/providers/[provider]/*`: dedicated per-provider routes (chat, embeddings, images)
+- `src/app/api/providers*`: provider CRUD, validation, testing
+- `src/app/api/provider-nodes*`: custom compatible node management
+- `src/app/api/provider-models`: custom model management (CRUD)
+- `src/app/api/models/route.ts`: model catalog API (aliases + custom models)
+- `src/app/api/oauth/*`: OAuth/device-code flows
+- `src/app/api/keys*`: local API key lifecycle
+- `src/app/api/models/alias`: alias management
+- `src/app/api/combos*`: fallback combo management
+- `src/app/api/pricing`: pricing overrides for cost calculation
+- `src/app/api/settings/proxy`: proxy configuration (GET/PUT/DELETE)
+- `src/app/api/settings/proxy/test`: outbound proxy connectivity test (POST)
+- `src/app/api/usage/*`: usage and logs APIs
+- `src/app/api/sync/*` + `src/app/api/cloud/*`: cloud sync and cloud-facing helpers
+- `src/app/api/cli-tools/*`: local CLI config writers/checkers
+- `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
+- `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
+- `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
+- `src/app/api/sessions`: active session listing (GET)
+- `src/app/api/rate-limits`: per-account rate limit status (GET)
 
-- `src/sse/handlers/chat.ts: pyynnön jäsennys, yhdistelmäkäsittely, tilin valintasilmukka
-- `open-sse/handlers/chatCore.ts`: käännös, suorittimen lähettäminen, uudelleenyritys/päivityskäsittely, streamin määritys
-- `open-sse/executors/*`: palveluntarjoajakohtainen verkko- ja muotokäyttäytyminen### Translation Registry and Format Converters
+### Routing and Execution Core
 
-- "open-sse/translator/index.ts": kääntäjien rekisteri ja orkestrointi
-- Pyydä kääntäjiä: `open-sse/translator/request/*`
-- Vastauskääntäjät: `open-sse/translator/response/*`
-- Muotovakiot: "open-sse/translator/formats.ts".### Persistence
+- `src/sse/handlers/chat.ts`: request parse, combo handling, account selection loop
+- `open-sse/handlers/chatCore.ts`: translation, executor dispatch, retry/refresh handling, stream setup
+- `open-sse/executors/*`: provider-specific network and format behavior
 
-- `src/lib/db/*`: pysyvä konfiguraatio/tila ja verkkotunnuksen pysyvyys SQLitessa
-- `src/lib/localDb.ts`: DB-moduulien yhteensopivuuden uudelleenvienti
-- `src/lib/usageDb.ts`: käyttöhistorian/puhelulokien julkisivu SQLite-taulukoiden päällä## Provider Executor Coverage (Strategy Pattern)
+### Translation Registry and Format Converters
 
-Jokaisella palveluntarjoajalla on erikoistunut suorittaja, joka laajentaa "BaseExecutoria" (hakemistossa "open-sse/executors/base.ts"), joka tarjoaa URL-osoitteen rakentamisen, otsikon rakentamisen, uudelleenyrityksen eksponentiaalisella perääntymisellä, valtuustietojen päivityskoukut ja execute()-orkesterimenetelmän.
+- `open-sse/translator/index.ts`: translator registry and orchestration
+- Request translators: `open-sse/translator/request/*`
+- Response translators: `open-sse/translator/response/*`
+- Format constants: `open-sse/translator/formats.ts`
 
-| Toteuttaja            | Palveluntarjoaja(t)                                                                                                                                           | Erikoiskäsittely                                                                      |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| "DefaultExecutor"     | OpenAI, Claude, Gemini, Qwen, Qoder, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, ilotulitus, Cerebras, Cohere, NVIDIA | Dynaaminen URL-/otsikkomääritykset tarjoajakohtaisesti                                |
-| "AntigravityExecutor" | Google Antigravity                                                                                                                                            | Mukautetut projekti-/istuntotunnukset, Yritä uudelleen jäsentämisen jälkeen           |
-| "CodexExecutor"       | OpenAI Codex                                                                                                                                                  | Syöttää järjestelmäohjeita, pakottaa päättelyponnistuksen                             |
-| "CursorExecutor"      | Kohdistin IDE                                                                                                                                                 | ConnectRPC-protokolla, Protobuf-koodaus, pyynnön allekirjoitus tarkistussumman kautta |
-| "GithubExecutor"      | GitHub Copilot                                                                                                                                                | Copilot-tunnuksen päivitys, VSC-koodia jäljittelevät otsikot                          |
-| "KiroExecutor"        | AWS CodeWhisperer/Kiro                                                                                                                                        | AWS EventStream binaarimuoto → SSE-muunnos                                            |
-| "GeminiCLIExecutor"   | Gemini CLI                                                                                                                                                    | Google OAuth -tunnuksen päivitysjakso                                                 |
+### Persistence
 
-Kaikki muut palveluntarjoajat (mukaan lukien mukautetut yhteensopivat solmut) käyttävät DefaultExecutoria.## Provider Compatibility Matrix
+- `src/lib/db/*`: persistent config/state and domain persistence on SQLite
+- `src/lib/localDb.ts`: compatibility re-export for DB modules
+- `src/lib/usageDb.ts`: usage history/call logs facade on top of SQLite tables
 
-| Palveluntarjoaja | Muoto             | Auth                      | Striimaa             | Ei-stream | Token Refresh | Käyttösovellusliittymä      |
-| ---------------- | ----------------- | ------------------------- | -------------------- | --------- | ------------- | --------------------------- | ------------------------------ |
-| Claude           | claude            | API-avain / OAuth         | ✅                   | ✅        | ✅            | ⚠️ Vain järjestelmänvalvoja |
-| Kaksoset         | kaksoset          | API-avain / OAuth         | ✅                   | ✅        | ✅            | ⚠️ Cloud Console            |
-| Gemini CLI       | gemini-cli        | OAuth                     | ✅                   | ✅        | ✅            | ⚠️ Cloud Console            |
-| Antigravitaatio  | antigravitaatio   | OAuth                     | ✅                   | ✅        | ✅            | ✅ Full quota API           |
-| OpenAI           | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| Codex            | openai-vastaukset | OAuth                     | ✅ pakotettu         | ❌        | ✅            | ✅ Hintarajat               |
-| GitHub Copilot   | openai            | OAuth + Copilot Token     | ✅                   | ✅        | ✅            | ✅ Kiintiön tilannekuvat    |
-| Kursori          | kohdistin         | Mukautettu tarkistussumma | ✅                   | ✅        | ❌            | ❌                          |
-| Kiro             | kiro              | AWS SSO OIDC              | ✅ (TapahtumaStream) | ❌        | ✅            | ✅ Käyttörajoitukset        |
-| Qwen             | openai            | OAuth                     | ✅                   | ✅        | ✅            | ⚠️ Pyynnöstä                |
-| Qoder            | openai            | OAuth (Perus)             | ✅                   | ✅        | ✅            | ⚠️ Pyynnöstä                |
-| OpenRouter       | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| GLM/Kimi/MiniMax | claude            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| DeepSeek         | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| Groq             | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| xAI (Grok)       | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| Mistral          | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| Hämmennys        | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| Yhdessä AI       | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| Ilotulitus AI    | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| Aivot            | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| Cohere           | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          |
-| NVIDIA NIM       | openai            | API-avain                 | ✅                   | ✅        | ❌            | ❌                          | ## Format Translation Coverage |
+## Provider Executor Coverage (Strategy Pattern)
 
-Havaittuja lähdemuotoja ovat:
+Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
 
-- "openai".
-- "openai-vastaukset".
-- "claude".
-- "kaksoset".
+| Executor              | Provider(s)                                                                                                                                                  | Special Handling                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `DefaultExecutor`     | OpenAI, Claude, Gemini, Qwen, Qoder, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA | Dynamic URL/header config per provider                               |
+| `AntigravityExecutor` | Google Antigravity                                                                                                                                           | Custom project/session IDs, Retry-After parsing                      |
+| `CodexExecutor`       | OpenAI Codex                                                                                                                                                 | Injects system instructions, forces reasoning effort                 |
+| `CursorExecutor`      | Cursor IDE                                                                                                                                                   | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
+| `GithubExecutor`      | GitHub Copilot                                                                                                                                               | Copilot token refresh, VSCode-mimicking headers                      |
+| `KiroExecutor`        | AWS CodeWhisperer/Kiro                                                                                                                                       | AWS EventStream binary format → SSE conversion                       |
+| `GeminiCLIExecutor`   | Gemini CLI                                                                                                                                                   | Google OAuth token refresh cycle                                     |
 
-Kohdemuotoja ovat:
+All other providers (including custom compatible nodes) use the `DefaultExecutor`.
 
-- OpenAI chat / vastaukset
+## Provider Compatibility Matrix
+
+| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
+| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
+| Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
+| Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Gemini CLI       | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
+| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
+| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
+| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
+| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
+| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Qoder            | openai           | OAuth (Basic)         | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+
+## Format Translation Coverage
+
+Detected source formats include:
+
+- `openai`
+- `openai-responses`
+- `claude`
+- `gemini`
+
+Target formats include:
+
+- OpenAI chat/Responses
 - Claude
-- Gemini/Gemini-CLI/Antigravity-kuori
+- Gemini/Gemini-CLI/Antigravity envelope
 - Kiro
-- Kursori
+- Cursor
 
-Käännöksissä käytetään keskitinmuotona**OpenAI-muotoa**— kaikki konversiot menevät OpenAI:n kautta välimuotona:```
+Translations use **OpenAI as the hub format** — all conversions go through OpenAI as intermediate:
+
+```
 Source Format → OpenAI (hub) → Target Format
+```
 
-````
+Translations are selected dynamically based on source payload shape and provider target format.
 
-Käännökset valitaan dynaamisesti lähteen hyötykuorman muodon ja toimittajan kohdemuodon perusteella.
+Additional processing layers in the translation pipeline:
 
-Muut käsittelytasot käännösputkessa:
+- **Response sanitization** — Strips non-standard fields from OpenAI-format responses (both streaming and non-streaming) to ensure strict SDK compliance
+- **Role normalization** — Converts `developer` → `system` for non-OpenAI targets; merges `system` → `user` for models that reject the system role (GLM, ERNIE)
+- **Think tag extraction** — Parses `<think>...</think>` blocks from content into `reasoning_content` field
+- **Structured output** — Converts OpenAI `response_format.json_schema` to Gemini's `responseMimeType` + `responseSchema`
 
--**Vastausten desinfiointi**– Poistaa standardista poikkeavat kentät OpenAI-muotoisista vastauksista (sekä suoratoistosta että ei-suoratoistosta) varmistaakseen tiukan SDK-yhteensopivuuden
--**Roolin normalisointi**— Muuntaa "kehittäjä" → "järjestelmä" muille kuin OpenAI-kohteille; yhdistää `system` → `user` malleille, jotka hylkäävät järjestelmäroolin (GLM, ERNIE)
--**Think-tunnisteen purkaminen**— Jäsentää "<think>...</think>" -lohkot sisällöstä "reasoning_content"-kenttään
--**Strukturoitu tulos**— Muuntaa OpenAI `response_format.json_schema` Geminin `responseMimeType` + `responseSchema`.## Supported API Endpoints
+## Supported API Endpoints
 
-| Päätepiste | Muoto | Käsittelijä |
-| --------------------------------------------------- | ------------------- | -------------------------------------------------------------------- |
-| `POST /v1/chat/completions` | OpenAI Chat | `src/sse/handlers/chat.ts` |
-| `POST /v1/messages` | Claude Viestit | Sama käsittelijä (tunnistettu automaattisesti) |
-| `POST /v1/responses` | OpenAI-vastaukset | `open-sse/handlers/responsesHandler.ts` |
-| `POST /v1/embeddings` | OpenAI Embeddings | "open-sse/handlers/embeddings.ts" |
-| `HAE /v1/embeddings` | Malliluettelo | API reitti |
-| `POST /v1/images/generations` | OpenAI-kuvat | `open-sse/handlers/imageGeneration.ts` |
-| `GET /v1/images/generations` | Malliluettelo | API reitti |
-| `POST /v1/providers/{provider}/chat/completions` | OpenAI Chat | Palveluntarjoajakohtainen mallin validointi |
-| `POST /v1/providers/{provider}/embeddings` | OpenAI Embeddings | Palveluntarjoajakohtainen mallin validointi |
-| `POST /v1/providers/{provider}/images/generations` | OpenAI-kuvat | Palveluntarjoajakohtainen mallin validointi |
-| `POST /v1/messages/count_tokens` | Claude Token Count | API reitti |
-| `HAE /v1/mallit` | OpenAI-mallien luettelo | API-reitti (chat + upotus + kuva + mukautetut mallit) |
-| "GET /api/models/catalog" | Luettelo | Kaikki mallit ryhmitelty tarjoajan + tyypin mukaan |
-| `POST /v1beta/models/*:streamGenerateContent` | Gemini syntyperäinen | API reitti |
-| `GET/PUT/DELETE /api/settings/proxy` | Välityspalvelimen kokoonpano | Verkon välityspalvelimen määritykset |
-| "POST /api/settings/proxy/test" | Välityspalvelinyhteydet | Välityspalvelimen kunto/yhteystestin päätepiste |
-| `GET/POST/DELETE /api/provider-models` | Palveluntarjoajan mallit | Palveluntarjoajan mallin metatietojen tausta mukautettuja ja hallittuja saatavilla olevia malleja |## Bypass Handler
+| Endpoint                                           | Format             | Handler                                                             |
+| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
+| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                                          |
+| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                                        |
+| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`                             |
+| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                                   |
+| `GET /v1/embeddings`                               | Model listing      | API route                                                           |
+| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`                              |
+| `GET /v1/images/generations`                       | Model listing      | API route                                                           |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation                        |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation                        |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Dedicated per-provider with model validation                        |
+| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                                           |
+| `GET /v1/models`                                   | OpenAI Models list | API route (chat + embedding + image + custom models)                |
+| `GET /api/models/catalog`                          | Catalog            | All models grouped by provider + type                               |
+| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                                           |
+| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Network proxy configuration                                         |
+| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Proxy health/connectivity test endpoint                             |
+| `GET/POST/DELETE /api/provider-models`             | Provider Models    | Provider model metadata backing custom and managed available models |
 
-Ohituskäsittelijä (`open-sse/utils/bypassHandler.ts`) sieppaa Claude CLI:n tunnetut "heittopyynnöt" – lämmittelypingit, otsikon poiminnot ja tunnukset - ja palauttaa**väärennetyn vastauksen**kuluttamatta alkupään toimittajatunnuksia. Tämä käynnistyy vain, kun "User-Agent" sisältää "claude-cli".## Request Logger Pipeline
+## Bypass Handler
 
-Pyyntöloggeri (`open-sse/utils/requestLogger.ts`) tarjoaa 7-vaiheisen virheenkorjauslokiputken, joka on oletusarvoisesti pois käytöstä ja joka on käytössä kohdassa ENABLE_REQUEST_LOGS=true:```
+The bypass handler (`open-sse/utils/bypassHandler.ts`) intercepts known "throwaway" requests from Claude CLI — warmup pings, title extractions, and token counts — and returns a **fake response** without consuming upstream provider tokens. This is triggered only when `User-Agent` contains `claude-cli`.
+
+## Request Logger Pipeline
+
+The request logger (`open-sse/utils/requestLogger.ts`) provides a 7-stage debug logging pipeline, disabled by default, enabled via `ENABLE_REQUEST_LOGS=true`:
+
+```
 1_req_client.json → 2_req_source.json → 3_req_openai.json → 4_req_target.json
 → 5_res_provider.txt → 6_res_openai.txt → 7_res_client.txt
-````
+```
 
-Tiedostot kirjoitetaan hakemistoon `<repo>/logs/<session>/` jokaista pyyntöistuntoa varten.## Failure Modes and Resilience
+Files are written to `<repo>/logs/<session>/` for each request session.
+
+## Failure Modes and Resilience
 
 ## 1) Account/Provider Availability
 
-- Palveluntarjoajan tilin jäähtyminen ohimenevien / nopeus / todennusvirheiden vuoksi
-- tilin varaosa ennen epäonnistunutta pyyntöä
-- Yhdistelmämallin palautus, kun nykyisen mallin/palveluntarjoajan polku on käytetty loppuun## 2) Token Expiry
+- provider account cooldown on transient/rate/auth errors
+- account fallback before failing request
+- combo model fallback when current model/provider path is exhausted
 
-- esitarkista ja päivitä yrittämällä uudelleen päivitettävien palveluntarjoajien kohdalla
-- 401/403 yritä uudelleen päivitysyrityksen jälkeen ydinpolulla## 3) Stream Safety
+## 2) Token Expiry
 
-- irrotettava stream-ohjain
-- käännösvirta streamin lopun huuhtelulla ja [VALMIS]-käsittelyllä
-- käyttöarvion varavaihtoehto, kun palveluntarjoajan käytön metatiedot puuttuvat## 4) Cloud Sync Degradation
+- pre-check and refresh with retry for refreshable providers
+- 401/403 retry after refresh attempt in core path
 
-- Synkronointivirheet tulevat esiin, mutta paikallinen suoritusaika jatkuu
-- ajastimessa on uudelleenyrityslogiikka, mutta säännöllinen suoritus tällä hetkellä kutsuu oletusarvoisesti yhden yrityksen synkronointia## 5) Data Integrity
+## 3) Stream Safety
 
-- SQLite-skeeman siirrot ja automaattisen päivityksen koukut käynnistyksen yhteydessä
-- vanha JSON → SQLite-siirtoyhteensopivuuspolku## Observability and Operational Signals
+- disconnect-aware stream controller
+- translation stream with end-of-stream flush and `[DONE]` handling
+- usage estimation fallback when provider usage metadata is missing
 
-Ajonaikaisen näkyvyyden lähteet:
+## 4) Cloud Sync Degradation
 
-- konsolin lokit osoitteesta "src/sse/utils/logger.ts".
-- SQLiten pyyntökohtaiset käyttöaggregaatit ("usage_history", "call_logs", "proxy_logs")
-- nelivaiheiset yksityiskohtaiset hyötykuorman kaappaukset SQLitessa (`request_detail_logs`), kun `settings.detailed_logs_enabled=true`
-- tekstimuotoisen pyynnön tilaloki tiedostossa "log.txt" (valinnainen/compat)
-- valinnaiset syvät pyyntö-/käännöslokit lokit/-kohdassa, kun ENABLE_REQUEST_LOGS=true
-- hallintapaneelin käyttöpäätepisteet (`/api/usage/*`) käyttöliittymän käyttöä varten
+- sync errors are surfaced but local runtime continues
+- scheduler has retry-capable logic, but periodic execution currently calls single-attempt sync by default
 
-Yksityiskohtainen pyyntöhyötykuormakaappaus tallentaa jopa neljä JSON-hyötykuorman vaihetta reititettyä puhelua kohden:
+## 5) Data Integrity
 
-- Asiakkaalta saatu raakapyyntö
-- käännetty pyyntö todella lähetetty alkupäässä
-- palveluntarjoajan vastaus rekonstruoitu JSON-muodossa; suoratoistovastaukset tiivistetään lopulliseksi yhteenvedoksi ja virran metadataksi
-- OmniRouten palauttama lopullinen asiakkaan vastaus; suoratoistovastaukset tallennetaan samaan kompaktiin tiivistelmään## Security-Sensitive Boundaries
+- SQLite schema migrations and auto-upgrade hooks at startup
+- legacy JSON → SQLite migration compatibility path
 
-- JWT-salaisuus (`JWT_SECRET`) suojaa hallintapaneelin istunnon evästeen vahvistuksen/allekirjoituksen
-- Alkuperäisen salasanan käynnistys (`INITIAL_PASSWORD`) on määritettävä eksplisiittisesti ensiajoa varten
-- API-avaimen HMAC-salaisuus (`API_KEY_SECRET`) suojaa luodun paikallisen API-avainmuodon
-- Tarjoajan salaisuudet (API-avaimet/tunnisteet) säilyvät paikallisessa tietokannassa, ja ne tulee suojata tiedostojärjestelmätasolla
-- Pilvisynkronoinnin päätepisteet perustuvat API-avaimen todennus + konetunnuksen semantiikkaan## Environment and Runtime Matrix
+## Observability and Operational Signals
 
-Koodin aktiivisesti käyttämät ympäristömuuttujat:
+Runtime visibility sources:
 
-- Sovellus/todennus: "JWT_SECRET", "INITIAL_PASSWORD"
-- Tallennustila: "DATA_DIR".
-- Yhteensopivan solmun toiminta: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
-- Valinnainen tallennuskannan ohitus (Linux/macOS, kun "DATA_DIR" ei ole asetettu): "XDG_CONFIG_HOME"
-- Suojaushajautus: `API_KEY_SECRET`, `MACHINE_ID_SALT`
-- Kirjaaminen: "ENABLE_REQUEST_LOGS".
-- Synkronointi/pilvi-URL-osoite: NEXT_PUBLIC_BASE_URL, NEXT_PUBLIC_CLOUD_URL
-- Lähtevä välityspalvelin: "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY" ja pienet versiot
-- SOCKS5-ominaisuuden liput: "ENABLE_SOCKS5_PROXY", "NEXT_PUBLIC_ENABLE_SOCKS5_PROXY"
-- Alusta/ajonaikaiset apuohjelmat (ei sovelluskohtaiset asetukset): "APPDATA", "NODE_ENV", "PORTTI", "HOSTNAME"## Known Architectural Notes
+- console logs from `src/sse/utils/logger.ts`
+- per-request usage aggregates in SQLite (`usage_history`, `call_logs`, `proxy_logs`)
+- four-stage detailed payload captures in SQLite (`request_detail_logs`) when `settings.detailed_logs_enabled=true`
+- textual request status log in `log.txt` (optional/compat)
+- optional deep request/translation logs under `logs/` when `ENABLE_REQUEST_LOGS=true`
+- dashboard usage endpoints (`/api/usage/*`) for UI consumption
 
-1. `usageDb` ja `localDb` jakavat saman perushakemistokäytännön (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) vanhojen tiedostojen siirrolla.
-2. "/api/v1/route.ts" siirtää samaan yhdistetyn luettelon rakennustyökaluun, jota "/api/v1/models" ("src/app/api/v1/models/catalog.ts") käyttää semanttisen ajautumisen välttämiseksi.
-3. Pyyntöloggeri kirjoittaa täydet otsikot/runko, kun se on käytössä; käsittele lokihakemistoa arkaluontoisena.
-4. Pilven toiminta riippuu oikeasta NEXT_PUBLIC_BASE_URL-osoitteesta ja pilvipäätepisteen saavutettavuudesta.
-5. Hakemisto "open-sse/" julkaistaan ​​@omniroute/open-sse**npm-työtilapaketina**. Lähdekoodi tuo sen @omniroute/open-sse/...-tiedoston kautta (ratkaisi Next.js `transpilePackages`). Tämän asiakirjan tiedostopolut käyttävät edelleen hakemistonimeä `open-sse/` johdonmukaisuuden vuoksi.
-6. Hallintapaneelin kaaviot käyttävät**Uudelleenkaavioita**(SVG-pohjainen) helppokäyttöisten, interaktiivisten analytiikkavisualisoinnit (mallien käyttöpalkkikaaviot, toimittajien erittelytaulukot onnistumisprosentteineen) varten.
-7. E2E-testit käyttävät**Playwrightia**(`tests/e2e/`), suoritetaan komennolla "npm run test:e2e". Yksikkötesteissä käytetään**Node.js-testirunneria**(`tests/unit/`), suoritetaan komennolla "npm run test:unit". Lähdekoodi kohdassa `src/` on**TypeScript**(`.ts`/`.tsx`); `open-sse/`-työtila pysyy JavaScriptina (`.js`).
-8. Asetukset-sivu on järjestetty viiteen välilehteen: Suojaus, Reititys (6 globaalia strategiaa: täytä ensin, round-robin, p2c, satunnainen, vähiten käytetty, kustannusoptimoitu), Resilience (muokattavat nopeusrajoitukset, katkaisija, käytännöt), AI (ajattelubudjetti, järjestelmäkehote, kehote välimuisti), Advanced (välityspalvelin).## Operational Verification Checklist
+Detailed request payload capture stores up to four JSON payload stages per routed call:
 
-- Koonti lähteestä: `npm run build`
-- Build Docker -kuva: `docker build -t omniroute .`
-- Aloita huolto ja varmista:
-- "HAE /api/settings".
-- "GET /api/v1/models".
-- CLI-kohteen perus-URL-osoitteen tulee olla "http://<host>:20128/v1", kun PORT=20128
+- raw request received from the client
+- translated request actually sent upstream
+- provider response reconstructed as JSON; streamed responses are compacted to the final summary plus stream metadata
+- final client response returned by OmniRoute; streamed responses are stored in the same compact summary form
+
+## Security-Sensitive Boundaries
+
+- JWT secret (`JWT_SECRET`) secures dashboard session cookie verification/signing
+- Initial password bootstrap (`INITIAL_PASSWORD`) should be explicitly configured for first-run provisioning
+- API key HMAC secret (`API_KEY_SECRET`) secures generated local API key format
+- Provider secrets (API keys/tokens) are persisted in local DB and should be protected at filesystem level
+- Cloud sync endpoints rely on API key auth + machine id semantics
+
+## Environment and Runtime Matrix
+
+Environment variables actively used by code:
+
+- App/auth: `JWT_SECRET`, `INITIAL_PASSWORD`
+- Storage: `DATA_DIR`
+- Compatible node behavior: `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`
+- Optional storage base override (Linux/macOS when `DATA_DIR` unset): `XDG_CONFIG_HOME`
+- Security hashing: `API_KEY_SECRET`, `MACHINE_ID_SALT`
+- Logging: `ENABLE_REQUEST_LOGS`
+- Sync/cloud URLing: `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_CLOUD_URL`
+- Outbound proxy: `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` and lowercase variants
+- SOCKS5 feature flags: `ENABLE_SOCKS5_PROXY`, `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`
+- Platform/runtime helpers (not app-specific config): `APPDATA`, `NODE_ENV`, `PORT`, `HOSTNAME`
+
+## Known Architectural Notes
+
+1. `usageDb` and `localDb` share the same base directory policy (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) with legacy file migration.
+2. `/api/v1/route.ts` delegates to the same unified catalog builder used by `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) to avoid semantic drift.
+3. Request logger writes full headers/body when enabled; treat log directory as sensitive.
+4. Cloud behavior depends on correct `NEXT_PUBLIC_BASE_URL` and cloud endpoint reachability.
+5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
+6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
+7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
+8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies, **Context Relay** handoff config), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
+9. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated, `chat.ts` injects the handoff after account resolution. Handoff data lives in `context_handoffs` SQLite table. This split is intentional because only `chat.ts` knows whether the actual account changed.
+10. **Proxy enforcement** is now comprehensive: `tokenHealthCheck.ts` resolves proxy per connection, `/api/providers/validate` uses `runWithProxyContext`, and `proxyFetch.ts` uses `undici.fetch()` to maintain dispatcher compatibility on Node 22.
+11. **Node.js 24+ detection**: `/api/settings/require-login` returns `nodeVersion` and `nodeCompatible` fields. The login page renders a warning banner when the runtime is incompatible.
+
+## Operational Verification Checklist
+
+- Build from source: `npm run build`
+- Build Docker image: `docker build -t omniroute .`
+- Start service and verify:
+- `GET /api/settings`
+- `GET /api/v1/models`
+- CLI target base URL should be `http://<host>:20128/v1` when `PORT=20128`

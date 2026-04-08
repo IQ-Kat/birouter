@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const { resolveComboConfig, getDefaultComboConfig } =
   await import("../../open-sse/services/comboConfig.ts");
+const { createComboSchema } = await import("../../src/shared/validation/schemas.ts");
 
 test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   const first = getDefaultComboConfig();
@@ -12,6 +13,9 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.strategy, "priority");
   assert.equal(first.maxRetries, 1);
   assert.equal(first.timeoutMs, 600000);
+  assert.equal(first.handoffThreshold, 0.85);
+  assert.equal(first.maxMessagesForSummary, 30);
+  assert.deepEqual(first.handoffProviders, ["codex"]);
 
   first.strategy = "weighted";
   assert.equal(second.strategy, "priority");
@@ -77,6 +81,23 @@ test("resolveComboConfig ignores null and undefined overrides", () => {
   assert.equal(result.strategy, "priority");
 });
 
+test("resolveComboConfig preserves explicit empty handoffProviders overrides", () => {
+  const result = resolveComboConfig(
+    {
+      config: {
+        handoffProviders: [],
+      },
+    },
+    {
+      comboDefaults: {
+        handoffProviders: ["codex"],
+      },
+    }
+  );
+
+  assert.deepEqual(result.handoffProviders, []);
+});
+
 test("resolveComboConfig skips provider overrides when provider is absent", () => {
   const result = resolveComboConfig(
     { config: {} },
@@ -94,4 +115,21 @@ test("resolveComboConfig skips provider overrides when provider is absent", () =
 test("resolveComboConfig tolerates invalid or missing inputs and falls back to defaults", () => {
   assert.deepEqual(resolveComboConfig(null, null, "openai"), getDefaultComboConfig());
   assert.deepEqual(resolveComboConfig({}, { comboDefaults: null }, null), getDefaultComboConfig());
+});
+
+test("createComboSchema accepts context-relay strategy with handoff config", () => {
+  const parsed = createComboSchema.parse({
+    name: "codex-relay",
+    models: ["codex/gpt-5.4"],
+    strategy: "context-relay",
+    config: {
+      handoffThreshold: 0.85,
+      maxMessagesForSummary: 24,
+      handoffModel: "",
+    },
+  });
+
+  assert.equal(parsed.strategy, "context-relay");
+  assert.equal(parsed.config.handoffThreshold, 0.85);
+  assert.equal(parsed.config.maxMessagesForSummary, 24);
 });

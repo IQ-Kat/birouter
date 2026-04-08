@@ -4,102 +4,168 @@
 
 ---
 
-OmniRoute 대시보드의 모든 섹션에 대한 시각적 가이드입니다.---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-AI 공급자 연결 관리: OAuth 공급자(Claude Code, Codex, Gemini CLI), API 키 공급자(Groq, DeepSeek, OpenRouter) 및 무료 공급자(Qoder, Qwen, Kiro). Kiro 계정에는 크레딧 잔액 추적 기능이 포함되어 있습니다. 남은 크레딧, 총 허용량, 갱신 날짜는 대시보드 → 사용량에서 확인할 수 있습니다.![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-우선 순위, 가중치 적용, 라운드 로빈, 무작위, 최소 사용, 비용 최적화 등 6가지 전략을 사용하여 모델 라우팅 콤보를 만듭니다. 각 콤보는 자동 폴백을 통해 여러 모델을 연결하며 빠른 템플릿과 준비 상태 확인을 포함합니다.![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-토큰 소비, 비용 추정, 활동 히트맵, 주간 분포 차트 및 공급자별 분석을 포함한 포괄적인 사용량 분석입니다.![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-실시간 모니터링: 가동 시간, 메모리, 버전, 대기 시간 백분위수(p50/p95/p99), 캐시 통계 및 공급자 회로 차단기 상태.![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-API 번역 디버깅을 위한 4가지 모드:**플레이그라운드**(형식 변환기),**채팅 테스터**(실시간 요청),**테스트 벤치**(일괄 테스트),**라이브 모니터**(실시간 스트림).![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-대시보드에서 직접 모델을 테스트해 보세요. 공급자, 모델 및 엔드포인트를 선택하고, Monaco Editor로 프롬프트를 작성하고, 실시간으로 응답을 스트리밍하고, 중간 스트림을 중단하고, 타이밍 측정항목을 확인하세요.---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-전체 대시보드에 대한 사용자 정의 가능한 색상 테마입니다. 7가지 사전 설정된 색상(산호색, 파란색, 빨간색, 녹색, 보라색, 주황색, 청록색) 중에서 선택하거나 16진수 색상을 선택하여 사용자 정의 테마를 만드세요. 밝음, 어두움 및 시스템 모드를 지원합니다.---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-탭이 포함된 종합 설정 패널:
+Comprehensive settings panel with tabs:
 
--**일반**— 시스템 스토리지, 백업 관리(데이터베이스 내보내기/가져오기) -**모양**— 테마 선택기(어두움/밝음/시스템), 색상 테마 사전 설정 및 사용자 정의 색상, 상태 로그 표시, 사이드바 항목 표시 제어 -**보안**— API 엔드포인트 보호, 맞춤형 공급자 차단, IP 필터링, 세션 정보 -**라우팅**— 모델 별칭, 백그라운드 작업 성능 저하 -**복원력**— 속도 제한 지속성, 회로 차단기 조정, 금지된 계정 자동 비활성화, 공급자 만료 모니터링 -**고급**— 구성 재정의, 구성 감사 추적, 대체 성능 저하 모드![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-AI 코딩 도구에 대한 원클릭 구성: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor 및 Factory Droid. 자동화된 구성 적용/재설정, 연결 프로필 및 모델 매핑 기능이 있습니다.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-CLI 에이전트를 검색하고 관리하기 위한 대시보드입니다. 다음을 포함하는 14개의 내장 에이전트(Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp)의 그리드를 표시합니다.
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**설치 상태**— 버전 감지를 통해 설치됨/찾을 수 없음 -**프로토콜 배지**— stdio, HTTP 등 -**사용자 지정 에이전트**— 양식(이름, 바이너리, 버전 명령, 생성 인수)을 통해 모든 CLI 도구 등록 -**CLI 지문 일치**— 기본 CLI 요청 서명과 일치하도록 공급자별 토글을 통해 프록시 IP를 유지하면서 금지 위험을 줄입니다.---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-대시보드에서 이미지, 비디오, 음악을 생성하세요. OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open 및 MusicGen을 지원합니다.---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-공급자, 모델, 계정 및 API 키별로 필터링하여 실시간 요청 로깅. 상태 코드, 토큰 사용량, 대기 시간 및 응답 세부 정보를 표시합니다.![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-기능 분석이 포함된 통합 API 엔드포인트: 채팅 완료, 응답 API, 임베딩, 이미지 생성, 순위 재지정, 오디오 전사, 텍스트 음성 변환, 조정 및 등록된 API 키. 원격 액세스를 위한 Cloudflare Quick Tunnel 통합 및 클라우드 프록시 지원.![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-API 키를 생성, 범위 지정, 취소합니다. 각 키는 전체 액세스 또는 읽기 전용 권한이 있는 특정 모델/공급업체로 제한될 수 있습니다. 사용 추적을 통한 시각적 키 관리.---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-작업 유형, 행위자, 대상, IP 주소 및 타임스탬프를 기준으로 필터링하여 관리 작업을 추적합니다. 전체 보안 이벤트 내역.---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Windows, macOS, Linux용 기본 Electron 데스크톱 앱입니다. 시스템 트레이 통합, 오프라인 지원, 자동 업데이트 및 원클릭 설치 기능을 갖춘 독립형 애플리케이션으로 OmniRoute를 실행하세요.
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-주요 기능:
+Key features:
 
-- 서버 준비 폴링(콜드 스타트 시 빈 화면 없음)
-- 포트 관리 기능이 있는 시스템 트레이
-- 콘텐츠 보안 정책
-- 단일 인스턴스 잠금
-- 재시작 시 자동 업데이트
-- 플랫폼 조건부 UI(macOS 신호등, Windows/Linux 기본 제목 표시줄)
-- 강화된 Electron 빌드 패키징 — 독립 실행형 번들의 심볼릭 링크된 'node_modules'가 패키징 전에 감지 및 거부되어 빌드 시스템(v2.5.5+)에 대한 런타임 종속성을 방지합니다.
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 전체 문서는 [`electron/README.md`](../electron/README.md)를 참조하세요.
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

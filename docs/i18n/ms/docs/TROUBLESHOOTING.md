@@ -4,68 +4,142 @@
 
 ---
 
-Masalah dan penyelesaian biasa untuk OmniRoute.---
+
+
+Common problems and solutions for OmniRoute.
+
+---
 
 ## Quick Fixes
 
-| Masalah                                  | Penyelesaian                                                             |
-| ---------------------------------------- | ------------------------------------------------------------------------ | --- |
-| Log masuk pertama tidak berfungsi        | Tetapkan `INITIAL_PASSWORD` dalam `.env` (tiada lalai berkod keras)      |
-| Papan pemuka dibuka pada port yang salah | Tetapkan `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`  |
-| Tiada log permintaan di bawah `log/`     | Tetapkan `ENABLE_REQUEST_LOGS=true`                                      |
-| EACCES: kebenaran ditolak                | Tetapkan `DATA_DIR=/path/to/writable/dir` untuk mengatasi `~/.omniroute` |
-| Strategi penghalaan tidak menyimpan      | Kemas kini kepada v1.4.11+ (Pembetulan skema Zod untuk tetapan tetapan)  | --- |
+| Problem                       | Solution                                                           |
+| ----------------------------- | ------------------------------------------------------------------ |
+| First login not working       | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)            |
+| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
+| No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
+| EACCES: permission denied     | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`    |
+| Routing strategy not saving   | Update to v1.4.11+ (Zod schema fix for settings persistence)       |
+| Login crash / blank page      | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below |
+| Proxy "fetch failed"          | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below |
+
+---
+
+## Node.js Compatibility
+
+<a name="nodejs-compatibility"></a>
+
+### Login page crashes or shows "Module self-registration" error
+
+**Cause:** You are running Node.js 24+. The `better-sqlite3` native binary is not compatible with Node.js 24, which causes a fatal crash when the server tries to initialize the database.
+
+**Symptoms:**
+- Login page shows a blank screen or a server error
+- Console shows `Error: Module did not self-register` or similar native binding errors
+- Starting with v3.5.5, the login page shows an **orange warning banner** with your Node version if incompatibility is detected
+
+**Fix:**
+
+1. Install Node.js 22 LTS (recommended):
+   ```bash
+   nvm install 22
+   nvm use 22
+   ```
+2. Verify your version: `node --version` should show `v22.x.x`
+3. Reinstall OmniRoute: `npm install -g omniroute`
+4. Restart: `omniroute`
+
+> **Supported versions:** Node.js 18, 20, or 22 LTS. Node.js 24+ is **not supported**.
+
+---
+
+## Proxy Issues
+
+<a name="proxy-issues"></a>
+
+### Provider validation shows "fetch failed"
+
+**Cause:** The API key validation endpoint (`POST /api/providers/validate`) was previously bypassing proxy configuration, causing failures in environments that require proxy routing.
+
+**Fix (v3.5.5+):** This is now fixed. Provider validation routes through `runWithProxyContext`, honoring provider-level and global proxy settings automatically.
+
+### Token health check fails with "fetch failed"
+
+**Cause:** Background OAuth token refresh was not resolving proxy configuration per connection.
+
+**Fix (v3.5.5+):** The token health check scheduler now resolves proxy config per connection before attempting refresh. Update to v3.5.5+.
+
+### SOCKS5 proxy returns "invalid onRequestStart method"
+
+**Cause:** On Node.js 22, the undici@8 dispatcher is incompatible with Node's built-in `fetch()` implementation.
+
+**Fix (v3.5.5+):** OmniRoute now uses undici's own `fetch()` function when a proxy dispatcher is active, ensuring consistent behavior. Update to v3.5.5+.
+
+---
 
 ## Provider Issues
 
 ### "Language model did not provide messages"
 
-**Punca:**Kuota pembekal habis.
+**Cause:** Provider quota exhausted.
 
-**Betulkan:**
+**Fix:**
 
-1. Semak penjejak kuota papan pemuka
-2. Gunakan kombo dengan peringkat sandaran
-3. Tukar kepada peringkat yang lebih murah/percuma### Rate Limiting
+1. Check dashboard quota tracker
+2. Use a combo with fallback tiers
+3. Switch to cheaper/free tier
 
-**Punca:**Kuota langganan habis.
+### Rate Limiting
 
-**Betulkan:**
+**Cause:** Subscription quota exhausted.
 
-- Tambahkan sandaran: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Gunakan GLM/MiniMax sebagai sandaran murah### OAuth Token Expired
+**Fix:**
 
-Token auto-refresh OmniRoute. Jika isu berterusan:
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Use GLM/MiniMax as cheap backup
 
-1. Papan pemuka → Pembekal → Sambung semula
-2. Padam dan tambah semula sambungan pembekal---
+### OAuth Token Expired
+
+OmniRoute auto-refreshes tokens. If issues persist:
+
+1. Dashboard → Provider → Reconnect
+2. Delete and re-add the provider connection
+
+---
 
 ## Cloud Issues
 
 ### Cloud Sync Errors
 
-1. Sahkan mata `BASE_URL` pada contoh larian anda (cth., `http://localhost:20128`)
-2. Sahkan titik `CLOUD_URL` ke titik akhir awan anda (cth., `https://omniroute.dev`)
-3. Pastikan nilai `NEXT_PUBLIC_*` sejajar dengan nilai sebelah pelayan### Cloud `stream=false` Returns 500
+1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
+2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
+3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
-**Simptom:**`Token 'd' yang tidak dijangka...` pada titik akhir awan untuk panggilan bukan penstriman.
+### Cloud `stream=false` Returns 500
 
-**Punca:**Hulu mengembalikan muatan SSE sementara pelanggan menjangkakan JSON.
+**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
 
-**Penyelesaian:**Gunakan `strim=true` untuk panggilan terus awan. Masa jalan tempatan termasuk SSE→JSON sandaran.### Cloud Says Connected but "Invalid API key"
+**Cause:** Upstream returns SSE payload while client expects JSON.
 
-1. Cipta kunci baharu daripada papan pemuka setempat (`/api/keys`)
-2. Jalankan penyegerakan awan: Dayakan Awan → Segerakkan Sekarang
-3. Kekunci lama/tidak disegerakkan masih boleh mengembalikan `401` pada awan---
+**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
+
+### Cloud Says Connected but "Invalid API key"
+
+1. Create a fresh key from local dashboard (`/api/keys`)
+2. Run cloud sync: Enable Cloud → Sync Now
+3. Old/non-synced keys can still return `401` on cloud
+
+---
 
 ## Docker Issues
 
 ### CLI Tool Shows Not Installed
 
-1. Semak medan masa jalan: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. Untuk mod mudah alih: gunakan sasaran imej `runner-cli` (CLI yang digabungkan)
-3. Untuk mod lekap hos: tetapkan `CLI_EXTRA_PATHS` dan lekapkan direktori bin hos sebagai baca sahaja
-4. Jika `installed=true` dan `runnable=false`: binari ditemui tetapi gagal pemeriksaan kesihatan### Quick Runtime Validation
+1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. For portable mode: use image target `runner-cli` (bundled CLIs)
+3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
+4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
+
+### Quick Runtime Validation
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -79,16 +153,20 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### High Costs
 
-1. Semak statistik penggunaan dalam Papan Pemuka → Penggunaan
-2. Tukar model utama kepada GLM/MiniMax
-3. Gunakan peringkat percuma (Gemini CLI, Qoder) untuk tugasan yang tidak kritikal
-4. Tetapkan belanjawan kos setiap kunci API: Papan Pemuka → Kunci API → Belanjawan---
+1. Check usage stats in Dashboard → Usage
+2. Switch primary model to GLM/MiniMax
+3. Use free tier (Gemini CLI, Qoder) for non-critical tasks
+4. Set cost budgets per API key: Dashboard → API Keys → Budget
+
+---
 
 ## Debugging
 
 ### Enable Request Logs
 
-Tetapkan `ENABLE_REQUEST_LOGS=true` dalam fail `.env` anda. Log muncul di bawah direktori `log/`.### Check Provider Health
+Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` directory.
+
+### Check Provider Health
 
 ```bash
 # Health dashboard
@@ -100,101 +178,135 @@ curl http://localhost:20128/api/monitoring/health
 
 ### Runtime Storage
 
-- Keadaan utama: `${DATA_DIR}/storage.sqlite` (penyedia, kombo, alias, kunci, tetapan)
-- Penggunaan: Jadual SQLite dalam `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + pilihan `${DATA_DIR}/log.txt` dan `${DATA_DIR}/call_logs/`
-- Log permintaan: `<repo>/logs/...` (apabila `ENABLE_REQUEST_LOGS=true`)---
+- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
+- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/log.txt` and `${DATA_DIR}/call_logs/`
+- Request logs: `<repo>/logs/...` (when `ENABLE_REQUEST_LOGS=true`)
+
+---
 
 ## Circuit Breaker Issues
 
 ### Provider stuck in OPEN state
 
-Apabila pemutus litar pembekal DIBUKA, permintaan disekat sehingga tempoh bertenang tamat.
+When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
 
-**Betulkan:**
+**Fix:**
 
-1. Pergi ke**Papan Pemuka → Tetapan → Ketahanan**
-2. Periksa kad pemutus litar untuk pembekal yang terjejas
-3. Klik**Tetapkan Semula Semua**untuk mengosongkan semua pemutus, atau tunggu sehingga tempoh bertenang tamat
-4. Sahkan pembekal sebenarnya tersedia sebelum menetapkan semula### Provider keeps tripping the circuit breaker
+1. Go to **Dashboard → Settings → Resilience**
+2. Check the circuit breaker card for the affected provider
+3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
+4. Verify the provider is actually available before resetting
 
-Jika pembekal berulang kali memasuki keadaan OPEN:
+### Provider keeps tripping the circuit breaker
 
-1. Semak**Papan Pemuka → Kesihatan → Kesihatan Pembekal**untuk corak kegagalan
-2. Pergi ke**Tetapan → Ketahanan → Profil Pembekal**dan tingkatkan ambang kegagalan
-3. Semak sama ada pembekal telah menukar had API atau memerlukan pengesahan semula
-4. Semak telemetri kependaman — kependaman tinggi boleh menyebabkan kegagalan berdasarkan tamat masa---
+If a provider repeatedly enters OPEN state:
+
+1. Check **Dashboard → Health → Provider Health** for the failure pattern
+2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
+3. Check if the provider has changed API limits or requires re-authentication
+4. Review latency telemetry — high latency may cause timeout-based failures
+
+---
 
 ## Audio Transcription Issues
 
 ### "Unsupported model" error
 
-- Pastikan anda menggunakan awalan yang betul: `deepgram/nova-3` atau `assemblyai/best`
-- Sahkan pembekal disambungkan dalam**Papan Pemuka → Pembekal**### Transcription returns empty or fails
+- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
+- Verify the provider is connected in **Dashboard → Providers**
 
-- Semak format audio yang disokong: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Sahkan saiz fail berada dalam had pembekal (biasanya < 25MB)
-- Semak kesahihan kunci API pembekal dalam kad pembekal---
+### Transcription returns empty or fails
+
+- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
+- Verify file size is within provider limits (typically < 25MB)
+- Check provider API key validity in the provider card
+
+---
 
 ## Translator Debugging
 
-Gunakan**Papan Pemuka → Penterjemah**untuk menyahpepijat isu terjemahan format:
+Use **Dashboard → Translator** to debug format translation issues:
 
-| Mod                   | Bila Menggunakan                                                                                                   |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------ |
-| **Taman Permainan**   | Bandingkan format input/output sebelah menyebelah — tampal permintaan yang gagal untuk melihat cara ia menterjemah |
-| **Penguji Sembang**   | Hantar mesej langsung dan periksa muatan penuh permintaan/tindak balas termasuk pengepala                          |
-| **Bangku Ujian**      | Jalankan ujian kelompok merentas gabungan format untuk mencari terjemahan yang rosak                               |
-| **Pemantau Langsung** | Tonton aliran permintaan masa nyata untuk menangkap isu terjemahan terputus-putus                                  | ### Common format issues |
+| Mode             | When to Use                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
+| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
+| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
+| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
 
--**Teg pemikiran tidak muncul**— Semak sama ada pembekal sasaran menyokong pemikiran dan tetapan belanjawan pemikiran -**Panggilan alat terputus**— Sesetengah terjemahan format mungkin menanggalkan medan yang tidak disokong; sahkan dalam mod Taman Permainan -**Gesaan sistem tiada**— Gesaan sistem pengendalian Claude dan Gemini secara berbeza; semak output terjemahan -**SDK mengembalikan rentetan mentah dan bukannya objek**— Ditetapkan dalam v1.1.0: sanitizer respons kini menanggalkan medan bukan standard (`x_groq`, `penggunaan_pecahan`, dsb.) yang menyebabkan kegagalan pengesahan OpenAI SDK Pydantic -**GLM/ERNIE menolak peranan `sistem`**— Ditetapkan dalam v1.1.0: penormal peranan secara automatik menggabungkan mesej sistem ke dalam mesej pengguna untuk model yang tidak serasi -**peranan `pembangun` tidak dikenali**— Ditetapkan dalam v1.1.0: ditukar secara automatik kepada `sistem` untuk penyedia bukan OpenAI -**`json_schema` tidak berfungsi dengan Gemini**— Dibetulkan dalam v1.1.0: `response_format` kini ditukar kepada `responseMimeType` + `responseSchema` Gemini---
+### Common format issues
+
+- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
+- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
+- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
+- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
+- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
+- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
+- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
+
+---
 
 ## Resilience Settings
 
 ### Auto rate-limit not triggering
 
-- Had kadar automatik hanya digunakan untuk penyedia kunci API (bukan OAuth/langganan)
-- Sahkan**Tetapan → Ketahanan → Profil Pembekal**telah didayakan had kadar automatik
-- Semak sama ada pembekal mengembalikan kod status `429` atau pengepala `Cuba-Selepas`### Tuning exponential backoff
+- Auto rate-limit only applies to API key providers (not OAuth/subscription)
+- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
+- Check if the provider returns `429` status codes or `Retry-After` headers
 
-Profil pembekal menyokong tetapan ini:
+### Tuning exponential backoff
 
--**Kelewatan asas**— Masa menunggu awal selepas kegagalan pertama (lalai: 1s) -**Lengah maksimum**— Had masa menunggu maksimum (lalai: 30s) -**Pendarab**— Berapa banyak untuk meningkatkan kelewatan setiap kegagalan berturut-turut (lalai: 2x)### Anti-thundering herd
+Provider profiles support these settings:
 
-Apabila banyak permintaan serentak melanda penyedia terhad kadar, OmniRoute menggunakan mutex + pengehadan kadar automatik untuk menyerikan permintaan dan mencegah kegagalan berlatarkan. Ini adalah automatik untuk pembekal kunci API.---
+- **Base delay** — Initial wait time after first failure (default: 1s)
+- **Max delay** — Maximum wait time cap (default: 30s)
+- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
+
+### Anti-thundering herd
+
+When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
+
+---
 
 ## Optional RAG / LLM failure taxonomy (16 problems)
 
-Sesetengah pengguna OmniRoute meletakkan get laluan di hadapan RAG atau susunan ejen. Dalam persediaan tersebut adalah perkara biasa untuk melihat corak pelik: OmniRoute kelihatan sihat (penyedia, profil penghalaan ok, tiada makluman had kadar) tetapi jawapan akhir masih salah.
+Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
 
-Dalam praktiknya, kejadian ini biasanya datang dari saluran paip RAG hiliran, bukan dari pintu masuk itu sendiri.
+In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
 
-Jika anda mahukan perbendaharaan kata yang dikongsi untuk menerangkan kegagalan tersebut, anda boleh menggunakan WFGY ProblemMap, sumber teks lesen MIT luaran yang mentakrifkan enam belas corak kegagalan RAG / LLM berulang. Pada peringkat tinggi ia meliputi:
+If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
 
-- dapatan semula hanyut dan sempadan konteks yang pecah
-- indeks kosong atau basi dan kedai vektor
-- pembenaman berbanding ketidakpadanan semantik
-- isu tetingkap pemasangan dan konteks segera
-- logik runtuh dan jawapan terlalu yakin
-- rantai panjang dan kegagalan koordinasi ejen
-- memori pelbagai ejen dan hanyut peranan
-- masalah penempatan dan pesanan bootstrap
+- retrieval drift and broken context boundaries
+- empty or stale indexes and vector stores
+- embedding versus semantic mismatch
+- prompt assembly and context window issues
+- logic collapse and overconfident answers
+- long chain and agent coordination failures
+- multi agent memory and role drift
+- deployment and bootstrap ordering problems
 
-Ideanya mudah:
+The idea is simple:
 
-1. Apabila anda menyiasat respons yang tidak baik, tangkap:
-   - tugas dan permintaan pengguna
-   - kombo laluan atau pembekal dalam OmniRoute
-   - sebarang konteks RAG yang digunakan di hiliran (dokumen yang diambil, panggilan alat, dll)
-2. Petakan kejadian kepada satu atau dua nombor Peta Masalah WFGY (`No.1` … `No.16`).
-3. Simpan nombor dalam papan pemuka, buku jalanan atau penjejak insiden anda sendiri di sebelah log OmniRoute.
-4. Gunakan halaman WFGY yang sepadan untuk memutuskan sama ada anda perlu menukar strategi susunan RAG, retriever atau penghalaan anda.
+1. When you investigate a bad response, capture:
+   - user task and request
+   - route or provider combo in OmniRoute
+   - any RAG context used downstream (retrieved documents, tool calls, etc)
+2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
+3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
+4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
 
-Teks penuh dan resipi konkrit hidup di sini (lesen MIT, teks sahaja):
+Full text and concrete recipes live here (MIT license, text only):
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Anda boleh mengabaikan bahagian ini jika anda tidak menjalankan saluran paip RAG atau ejen di belakang OmniRoute.---
+You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
+
+---
 
 ## Still Stuck?
 
--**Isu GitHub**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Seni Bina**: Lihat [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) untuk mendapatkan butiran dalaman -**Rujukan API**: Lihat [`docs/API_REFERENCE.md`](API_REFERENCE.md) untuk semua titik akhir -**Papan Pemuka Kesihatan**: Semak**Papan Pemuka → Kesihatan**untuk status sistem masa nyata -**Penterjemah**: Gunakan**Papan Pemuka → Penterjemah**untuk menyahpepijat isu format
+- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Architecture**: See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
+- **API Reference**: See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
+- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
+- **Translator**: Use **Dashboard → Translator** to debug format issues

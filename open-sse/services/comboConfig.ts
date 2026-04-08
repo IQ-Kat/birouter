@@ -14,6 +14,10 @@ const DEFAULT_COMBO_CONFIG = {
   queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
   healthCheckEnabled: true,
   healthCheckTimeoutMs: 3000,
+  handoffThreshold: 0.85,
+  handoffModel: "",
+  handoffProviders: ["codex"],
+  maxMessagesForSummary: 30,
   maxComboDepth: 3,
   trackMetrics: true,
 };

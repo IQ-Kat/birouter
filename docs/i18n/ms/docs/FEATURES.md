@@ -4,102 +4,168 @@
 
 ---
 
-Panduan visual untuk setiap bahagian papan pemuka OmniRoute.---
+
+
+Visual guide to every section of the OmniRoute dashboard.
+
+---
 
 ## 🔌 Providers
 
-Urus sambungan pembekal AI: penyedia OAuth (Claude Code, Codex, Gemini CLI), penyedia kunci API (Groq, DeepSeek, OpenRouter) dan penyedia percuma (Qoder, Qwen, Kiro). Akaun Kiro termasuk penjejakan baki kredit — baki kredit, jumlah elaun dan tarikh pembaharuan boleh dilihat dalam Papan Pemuka → Penggunaan.![Providers Dashboard](screenshots/01-providers.png)
+Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
 ## 🎨 Combos
 
-Cipta gabungan penghalaan model dengan 6 strategi: keutamaan, wajaran, round-robin, rawak, paling kurang digunakan dan dioptimumkan kos. Setiap kombo merangkai berbilang model dengan sandaran automatik dan termasuk templat pantas dan semakan kesediaan.![Combos Dashboard](screenshots/02-combos.png)
+Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+
+![Combos Dashboard](screenshots/02-combos.png)
 
 ---
 
 ## 📊 Analytics
 
-Analitis penggunaan komprehensif dengan penggunaan token, anggaran kos, peta haba aktiviti, carta pengedaran mingguan dan pecahan setiap pembekal.![Analytics Dashboard](screenshots/03-analytics.png)
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
+
+![Analytics Dashboard](screenshots/03-analytics.png)
 
 ---
 
 ## 🏥 System Health
 
-Pemantauan masa nyata: masa aktif, memori, versi, persentil kependaman (p50/p95/p99), statistik cache dan keadaan pemutus litar pembekal.![Health Dashboard](screenshots/04-health.png)
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+
+![Health Dashboard](screenshots/04-health.png)
 
 ---
 
 ## 🔧 Translator Playground
 
-Empat mod untuk penyahpepijatan terjemahan API:**Taman Permainan**(penukar format),**Penguji Sembang**(permintaan langsung),**Bangku Ujian**(ujian kelompok) dan**Monitor Langsung**(strim masa nyata).![Translator Playground](screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](screenshots/05-translator.png)
 
 ---
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Uji mana-mana model terus dari papan pemuka. Pilih pembekal, model dan titik akhir, tulis gesaan dengan Editor Monaco, strim respons dalam masa nyata, batalkan pertengahan strim dan lihat metrik pemasaan.---
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
+
+---
 
 ## 🎨 Themes _(v2.0.5+)_
 
-Tema warna yang boleh disesuaikan untuk keseluruhan papan pemuka. Pilih daripada 7 warna pratetap (Coral, Biru, Merah, Hijau, Violet, Jingga, Cyan) atau buat tema tersuai dengan memilih mana-mana warna heks. Menyokong mod terang, gelap dan sistem.---
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
+
+---
 
 ## ⚙️ Settings
 
-Panel tetapan komprehensif dengan tab:
+Comprehensive settings panel with tabs:
 
--**Umum**— Storan sistem, pengurusan sandaran (pangkalan data eksport/import) -**Penampilan**— Pemilih tema (gelap/cahaya/sistem), pratetap tema warna dan warna tersuai, keterlihatan log kesihatan, kawalan keterlihatan item bar sisi -**Keselamatan**— Perlindungan titik akhir API, penyekatan pembekal tersuai, penapisan IP, maklumat sesi -**Penghalaan**— Alias model, kemerosotan tugas latar belakang -**Ketahanan**— Kegigihan had kadar, penalaan pemutus litar, nyahdaya automatik akaun terlarang, pemantauan tamat tempoh pembekal -**Lanjutan**— Penggantian konfigurasi, jejak audit konfigurasi, mod degradasi sandaran![Settings Dashboard](screenshots/06-settings.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+
+![Settings Dashboard](screenshots/06-settings.png)
 
 ---
 
 ## 🔧 CLI Tools
 
-Konfigurasi satu klik untuk alat pengekodan AI: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor dan Factory Droid. Menampilkan penggunaan/set semula konfigurasi automatik, profil sambungan dan pemetaan model.![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+
+![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Papan pemuka untuk menemui dan mengurus ejen CLI. Menunjukkan grid 14 ejen terbina dalam (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) dengan:
+Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
 
--**Status pemasangan**— Dipasang / Tidak Ditemui dengan pengesanan versi -**Lencana protokol**— stdio, HTTP, dsb. -**Ejen tersuai**— Daftar mana-mana alat CLI melalui borang (nama, binari, arahan versi, pertikaian spawn) -**Padanan Cap Jari CLI**— Togol setiap pembekal untuk memadankan tandatangan permintaan CLI asli, mengurangkan risiko larangan sambil mengekalkan IP proksi---
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+
+---
+
+## 🔗 Context Relay _(v3.5.5+)_
+
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
+
+Configurable via combo-level or global settings:
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+
+---
+
+## 🛡️ Proxy Hardening _(v3.5.5+)_
+
+Comprehensive proxy configuration enforcement across the entire request pipeline:
+
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Hasilkan imej, video dan muzik daripada papan pemuka. Menyokong OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open dan MusicGen.---
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
 
 ## 📝 Request Logs
 
-Pengelogan permintaan masa nyata dengan penapisan mengikut pembekal, model, akaun dan kunci API. Menunjukkan kod status, penggunaan token, kependaman dan butiran respons.![Usage Logs](screenshots/08-usage.png)
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](screenshots/08-usage.png)
 
 ---
 
 ## 🌐 API Endpoint
 
-Titik akhir API bersatu anda dengan pecahan keupayaan: Pelengkapan Sembang, API Respons, Pembenaman, Penjanaan Imej, Kedudukan Semula, Transkripsi Audio, Teks-ke-Pertuturan, Penyederhanaan dan kunci API berdaftar. Penyepaduan Cloudflare Quick Tunnel dan sokongan proksi awan untuk akses jauh.![Endpoint Dashboard](screenshots/09-endpoint.png)
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+
+![Endpoint Dashboard](screenshots/09-endpoint.png)
 
 ---
 
 ## 🔑 API Key Management
 
-Buat, skop dan batalkan kunci API. Setiap kunci boleh dihadkan kepada model/penyedia tertentu dengan akses penuh atau kebenaran baca sahaja. Pengurusan kunci visual dengan penjejakan penggunaan.---
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
 
 ## 📋 Audit Log
 
-Penjejakan tindakan pentadbiran dengan penapisan mengikut jenis tindakan, pelakon, sasaran, alamat IP dan cap masa. Sejarah peristiwa keselamatan penuh.---
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
 
 ## 🖥️ Desktop Application
 
-Apl desktop Native Electron untuk Windows, macOS dan Linux. Jalankan OmniRoute sebagai aplikasi kendiri dengan penyepaduan dulang sistem, sokongan luar talian, kemas kini automatik dan pemasangan satu klik.
+Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-ciri utama:
+Key features:
 
-- Undian kesediaan pelayan (tiada skrin kosong pada permulaan sejuk)
-- Dulang sistem dengan pengurusan port
-- Dasar Keselamatan Kandungan
-- Kunci satu contoh
-- Kemas kini automatik semasa dimulakan semula
-- UI bersyarat platform (lampu isyarat macOS, bar tajuk lalai Windows/Linux)
-- Pembungkusan binaan Elektron yang dikeraskan — `node_modules` yang dipautkan dalam himpunan kendiri dikesan dan ditolak sebelum pembungkusan, menghalang pergantungan masa jalan pada mesin binaan (v2.5.5+)
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 
-📖 Lihat [`electron/README.md`](../electron/README.md) untuk dokumentasi penuh.
+📖 See [`electron/README.md`](../electron/README.md) for full documentation.

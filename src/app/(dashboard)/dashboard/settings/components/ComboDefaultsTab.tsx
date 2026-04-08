@@ -6,6 +6,18 @@ import { cn } from "@/shared/utils/cn";
 import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
 import { useTranslations } from "next-intl";
 
+const STRATEGY_LABEL_FALLBACKS: Record<string, string> = {
+  "context-relay": "Context Relay",
+};
+
+function translateOrFallback(
+  t: ReturnType<typeof useTranslations>,
+  key: string,
+  fallback: string
+): string {
+  return typeof t.has === "function" && t.has(key) ? t(key) : fallback;
+}
+
 export default function ComboDefaultsTab() {
   const [comboDefaults, setComboDefaults] = useState<any>({
     strategy: "priority",
@@ -16,6 +28,9 @@ export default function ComboDefaultsTab() {
     healthCheckTimeoutMs: 3000,
     maxComboDepth: 3,
     trackMetrics: true,
+    handoffThreshold: 0.85,
+    handoffModel: "",
+    maxMessagesForSummary: 30,
   });
   const [providerOverrides, setProviderOverrides] = useState<any>({});
   const [newOverrideProvider, setNewOverrideProvider] = useState("");
@@ -24,7 +39,11 @@ export default function ComboDefaultsTab() {
   const tc = useTranslations("common");
   const strategyOptions = ROUTING_STRATEGIES.map((strategy) => ({
     value: strategy.value,
-    label: t(strategy.labelKey),
+    label: translateOrFallback(
+      t,
+      strategy.labelKey,
+      STRATEGY_LABEL_FALLBACKS[strategy.value] || strategy.value
+    ),
     icon: strategy.icon,
   }));
   const numericSettings = [
@@ -38,7 +57,9 @@ export default function ComboDefaultsTab() {
     fetch("/api/settings/combo-defaults")
       .then((res) => res.json())
       .then((data) => {
-        if (data.comboDefaults) setComboDefaults(data.comboDefaults);
+        if (data.comboDefaults) {
+          setComboDefaults((prev) => ({ ...prev, ...data.comboDefaults }));
+        }
         if (data.providerOverrides) setProviderOverrides(data.providerOverrides);
       })
       .catch((err) => console.error("Failed to fetch combo defaults:", err));
@@ -177,6 +198,64 @@ export default function ComboDefaultsTab() {
               }
               className="text-sm"
             />
+          </div>
+        )}
+
+        {comboDefaults.strategy === "context-relay" && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-border/50">
+            <Input
+              label={translateOrFallback(t, "contextRelayHandoffThreshold", "Handoff Threshold")}
+              type="number"
+              min={0.5}
+              max={0.94}
+              step={0.01}
+              value={comboDefaults.handoffThreshold ?? ""}
+              placeholder="0.85"
+              onChange={(e) =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  handoffThreshold: e.target.value ? Number(e.target.value) : undefined,
+                }))
+              }
+              className="text-sm"
+            />
+            <Input
+              label={translateOrFallback(t, "contextRelayMaxMessages", "Max Messages For Summary")}
+              type="number"
+              min={5}
+              max={100}
+              value={comboDefaults.maxMessagesForSummary ?? ""}
+              placeholder="30"
+              onChange={(e) =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  maxMessagesForSummary: e.target.value ? Number(e.target.value) : undefined,
+                }))
+              }
+              className="text-sm"
+            />
+            <Input
+              label={translateOrFallback(t, "contextRelaySummaryModel", "Summary Model")}
+              type="text"
+              value={comboDefaults.handoffModel ?? ""}
+              placeholder="codex/gpt-5.4"
+              onChange={(e) =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  handoffModel: e.target.value,
+                }))
+              }
+              className="text-sm"
+            />
+            <div className="md:col-span-3 rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                {translateOrFallback(
+                  t,
+                  "contextRelayProviderNote",
+                  "Context Relay currently generates handoffs for Codex accounts and uses these values as global defaults for new or unconfigured combos."
+                )}
+              </p>
+            </div>
           </div>
         )}
 

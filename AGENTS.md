@@ -135,7 +135,8 @@ All persistence uses SQLite through domain-specific modules:
 `core.ts`, `providers.ts`, `models.ts`, `combos.ts`, `apiKeys.ts`, `settings.ts`,
 `backup.ts`, `proxies.ts`, `prompts.ts`, `webhooks.ts`, `detailedLogs.ts`,
 `domainState.ts`, `registeredKeys.ts`, `quotaSnapshots.ts`, `modelComboMappings.ts`,
-`cliToolState.ts`, `encryption.ts`, `readCache.ts`, `secrets.ts`, `stateReset.ts`.
+`cliToolState.ts`, `encryption.ts`, `readCache.ts`, `secrets.ts`, `stateReset.ts`,
+`contextHandoffs.ts`.
 Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
 `src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
@@ -189,7 +190,7 @@ Includes request/response translators with helpers for image handling.
 `autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
 `contextManager.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`,
 `emergencyFallback.ts`, `workflowFSM.ts`, `backgroundTaskDetector.ts`, `ipFilter.ts`,
-`signatureCache.ts`, `volumeDetector.ts`, and more.
+`signatureCache.ts`, `volumeDetector.ts`, `contextHandoff.ts`, and more.
 
 ### Domain Layer (`src/domain/`)
 
