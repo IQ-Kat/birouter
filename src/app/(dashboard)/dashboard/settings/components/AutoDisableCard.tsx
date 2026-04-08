@@ -116,11 +116,10 @@ export default function AutoDisableCard() {
                 onChange={(e) =>
                   setDraft((prev) => ({ ...prev, threshold: parseInt(e.target.value) || 1 }))
                 }
-                disabled={!draft.enabled}
               />
             ) : (
               <span className={`text-sm font-mono ${!data.enabled && "opacity-50"}`}>
-                {data.threshold} {t("failures", { count: data.threshold })}
+                {t("failures", { count: data.threshold })}
               </span>
             )}
             <p className="text-xs text-text-muted mt-2">{t("autoDisableThresholdDesc")}</p>

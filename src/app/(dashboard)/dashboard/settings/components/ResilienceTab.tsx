@@ -79,7 +79,9 @@ function ProviderProfilesCard({ profiles, onSave, saving }) {
   ];
 
   const handleSave = () => {
-    onSave(draft);
+    // Only send 'oauth' and 'apikey' — the API schema rejects any other keys (e.g. 'local')
+    const { oauth, apikey } = draft ?? {};
+    onSave({ ...(oauth ? { oauth } : {}), ...(apikey ? { apikey } : {}) });
     setEditMode(false);
   };
 
