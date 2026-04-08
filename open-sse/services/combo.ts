@@ -1038,13 +1038,19 @@ export async function handleComboChat({
               const resetCandidates = [quotaInfo.window5h?.resetAt, quotaInfo.window7d?.resetAt]
                 .filter((value): value is string => typeof value === "string" && value.length > 0)
                 .sort();
+              const handoffSourceMessages =
+                Array.isArray(body?.messages) && body.messages.length > 0
+                  ? body.messages
+                  : Array.isArray(body?.input)
+                    ? body.input
+                    : [];
 
               maybeGenerateHandoff({
                 sessionId: relayOptions.sessionId,
                 comboName: combo.name,
                 connectionId,
                 percentUsed: quotaInfo.percentUsed,
-                messages: Array.isArray(body?.messages) ? body.messages : [],
+                messages: handoffSourceMessages,
                 model: modelStr,
                 expiresAt: resetCandidates[0] || null,
                 config: relayConfig,

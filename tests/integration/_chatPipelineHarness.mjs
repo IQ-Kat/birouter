@@ -203,6 +203,8 @@ export async function createChatPipelineHarness(prefix) {
   async function resetStorage() {
     globalThis.fetch = originalFetch;
     clearInflight();
+    idempotencyLayerModule.clearIdempotency();
+    semanticCacheModule.clearCache();
     resetAllAvailability();
     resetAllCircuitBreakers();
     apiKeysDb.resetApiKeyState();
@@ -220,6 +222,8 @@ export async function createChatPipelineHarness(prefix) {
     BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelayMs;
     globalThis.fetch = originalFetch;
     clearInflight();
+    idempotencyLayerModule.clearIdempotency();
+    semanticCacheModule.clearCache();
     clearSkillState();
     resetAllAvailability();
     resetAllCircuitBreakers();

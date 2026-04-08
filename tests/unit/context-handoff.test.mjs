@@ -48,8 +48,8 @@ test("buildHandoffSystemMessage and injectHandoffIntoBody preserve existing hist
     messageCount: 42,
     model: "codex/gpt-5.4",
     warningThresholdPct: 0.85,
-    generatedAt: "2026-04-08T12:00:00.000Z",
-    expiresAt: "2026-04-08T17:00:00.000Z",
+    generatedAt: "2099-04-08T12:00:00.000Z",
+    expiresAt: "2099-04-08T17:00:00.000Z",
   };
   const body = {
     messages: [
@@ -67,6 +67,40 @@ test("buildHandoffSystemMessage and injectHandoffIntoBody preserve existing hist
   assert.match(String(injected.messages[0].content), /<context_handoff>/);
   assert.equal(injected.messages[1].content, "Original system message");
   assert.equal(body.messages.length, 2);
+});
+
+test("injectHandoffIntoBody preserves Responses API shape for native Codex requests", () => {
+  const payload = {
+    sessionId: "sess-1",
+    comboName: "relay-combo",
+    fromAccount: "conn-a",
+    summary: "Keep the current plan and continue seamlessly",
+    keyDecisions: ["prefer Responses-native payloads"],
+    taskProgress: "Need to carry state across account switches",
+    activeEntities: ["chat.ts", "contextHandoff.ts"],
+    messageCount: 8,
+    model: "codex/gpt-5.4",
+    warningThresholdPct: 0.85,
+    generatedAt: "2099-04-08T12:00:00.000Z",
+    expiresAt: "2099-04-08T17:00:00.000Z",
+  };
+  const body = {
+    instructions: "Original instructions",
+    input: [
+      {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: "Continue" }],
+      },
+    ],
+  };
+
+  const injected = contextHandoff.injectHandoffIntoBody(body, payload);
+
+  assert.equal("messages" in injected, false);
+  assert.deepEqual(injected.input, body.input);
+  assert.match(String(injected.instructions), /<context_handoff>/);
+  assert.match(String(injected.instructions), /Original instructions/);
 });
 
 test("parseHandoffJSON accepts fenced JSON and normalizes fields", () => {
@@ -131,7 +165,7 @@ test("maybeGenerateHandoff persists a structured handoff once the threshold is r
       { role: "assistant", content: "Working on it" },
     ],
     model: "codex/gpt-5.4",
-    expiresAt: "2026-04-08T17:00:00.000Z",
+    expiresAt: "2099-04-08T17:00:00.000Z",
     handleSingleModel: async (body, modelStr) => {
       calls.push({ body, modelStr });
       return new Response(
@@ -308,7 +342,7 @@ test("context handoff DB module upserts and deletes active handoffs", () => {
     messageCount: 3,
     model: "codex/gpt-5.4",
     warningThresholdPct: 0.85,
-    generatedAt: "2026-04-08T10:00:00.000Z",
+    generatedAt: "2099-04-08T10:00:00.000Z",
     expiresAt: "2099-01-01T00:00:00.000Z",
   });
   handoffDb.upsertHandoff({
@@ -322,7 +356,7 @@ test("context handoff DB module upserts and deletes active handoffs", () => {
     messageCount: 4,
     model: "codex/gpt-5.4",
     warningThresholdPct: 0.86,
-    generatedAt: "2026-04-08T11:00:00.000Z",
+    generatedAt: "2099-04-08T11:00:00.000Z",
     expiresAt: "2099-01-01T00:00:00.000Z",
   });
 

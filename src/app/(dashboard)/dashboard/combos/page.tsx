@@ -1210,9 +1210,34 @@ function TestResultsView({ results }) {
 // Combo Form Modal
 // ─────────────────────────────────────────────
 function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
+  type CreateDraftSnapshot = {
+    name: string;
+    models: unknown[];
+    strategy: string;
+    config: Record<string, unknown>;
+    showAdvanced: boolean;
+    nameError: string;
+    agentSystemMessage: string;
+    agentToolFilter: string;
+    agentContextCache: boolean;
+  };
+
+  const getEmptyCreateDraftSnapshot = (): CreateDraftSnapshot => ({
+    name: "",
+    models: [],
+    strategy: "priority",
+    config: {},
+    showAdvanced: false,
+    nameError: "",
+    agentSystemMessage: "",
+    agentToolFilter: "",
+    agentContextCache: false,
+  });
+
   const t = useTranslations("combos");
   const tc = useTranslations("common");
   const notify = useNotificationStore();
+  const createDraftStateRef = useRef<CreateDraftSnapshot>(getEmptyCreateDraftSnapshot());
   const [name, setName] = useState(combo?.name || "");
   const [models, setModels] = useState(() => {
     return (combo?.models || []).map((m) => normalizeModelEntry(m));
@@ -1259,6 +1284,30 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     },
     [setAgentContextCache]
   );
+
+  useEffect(() => {
+    createDraftStateRef.current = {
+      name,
+      models,
+      strategy,
+      config,
+      showAdvanced,
+      nameError,
+      agentSystemMessage,
+      agentToolFilter,
+      agentContextCache,
+    };
+  }, [
+    name,
+    models,
+    strategy,
+    config,
+    showAdvanced,
+    nameError,
+    agentSystemMessage,
+    agentToolFilter,
+    agentContextCache,
+  ]);
 
   // DnD state
   const hasPricingForModel = useCallback(
@@ -1405,17 +1454,30 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
       };
     }
 
+    createDraftStateRef.current = getEmptyCreateDraftSnapshot();
+    resetFormForCombo(null, null);
+
     const loadDefaults = async () => {
       try {
         const response = await fetch("/api/settings/combo-defaults");
         const data = response.ok ? await response.json() : {};
-        if (!cancelled) {
+        const draft = createDraftStateRef.current;
+        const isPristineDraft =
+          draft.name.trim().length === 0 &&
+          draft.models.length === 0 &&
+          draft.strategy === "priority" &&
+          Object.keys(draft.config || {}).length === 0 &&
+          draft.showAdvanced === false &&
+          draft.nameError.length === 0 &&
+          draft.agentSystemMessage.length === 0 &&
+          draft.agentToolFilter.length === 0 &&
+          draft.agentContextCache === false;
+
+        if (!cancelled && isPristineDraft) {
           resetFormForCombo(null, data.comboDefaults || null);
         }
       } catch {
-        if (!cancelled) {
-          resetFormForCombo(null, null);
-        }
+        // Keep the blank create form if defaults fail to load.
       }
     };
 

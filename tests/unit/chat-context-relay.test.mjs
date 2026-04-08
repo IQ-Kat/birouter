@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.mjs";
 
 const harness = await createChatPipelineHarness("chat-context-relay");
-const { buildRequest, combosDb, handleChat, resetStorage, waitFor } = harness;
+const { BaseExecutor, buildRequest, combosDb, handleChat, resetStorage, waitFor } = harness;
 const providersDb = await import("../../src/lib/db/providers.ts");
 const handoffDb = await import("../../src/lib/db/contextHandoffs.ts");
 
@@ -194,4 +194,156 @@ test("handleChat generates and injects context-relay handoffs across Codex accou
   assert.match(upstreamBodies[1].serializedBody, /Carry over the router implementation state/);
   assert.equal(handoffDb.getHandoff(sessionId, "relay-combo"), null);
   await new Promise((resolve) => setTimeout(resolve, 50));
+});
+
+test("handleChat injects context-relay handoffs during live failover for Responses-native Codex requests", async () => {
+  BaseExecutor.RETRY_CONFIG.delayMs = 1;
+
+  const primary = await seedCodexOAuthConnection({
+    name: "codex-live-a",
+    email: "relay-live-a@example.com",
+    accessToken: "token-a",
+    refreshToken: "refresh-a",
+    workspaceId: "ws-a",
+    priority: 1,
+  });
+  await seedCodexOAuthConnection({
+    name: "codex-live-b",
+    email: "relay-live-b@example.com",
+    accessToken: "token-b",
+    refreshToken: "refresh-b",
+    workspaceId: "ws-b",
+    priority: 2,
+  });
+
+  await combosDb.createCombo({
+    name: "relay-live-combo",
+    strategy: "context-relay",
+    config: {
+      maxRetries: 0,
+      retryDelayMs: 0,
+      handoffThreshold: 0.85,
+      maxMessagesForSummary: 12,
+    },
+    models: ["codex/gpt-5.4"],
+  });
+
+  const upstreamBodies = [];
+  let primaryRequestCount = 0;
+
+  globalThis.fetch = async (url, init = {}) => {
+    const urlStr = String(url);
+    const headers = Object.fromEntries(new Headers(init.headers || {}).entries());
+    const authHeader = headers.authorization || headers.Authorization || "";
+
+    if (urlStr.includes("/backend-api/wham/usage")) {
+      return authHeader === "Bearer token-a" ? buildQuotaResponse(87) : buildQuotaResponse(20);
+    }
+
+    const body = init.body ? JSON.parse(String(init.body)) : {};
+    const serializedBody = JSON.stringify(body);
+    const isSummaryRequest =
+      body._omnirouteInternalRequest === "context-handoff" ||
+      serializedBody.includes("You are a context summarizer");
+
+    if (isSummaryRequest) {
+      return buildResponsesResponse(
+        JSON.stringify({
+          summary: "Carry over the Responses-native Codex session",
+          keyDecisions: ["Keep the request in /responses format"],
+          taskProgress: "Continue after the first account is exhausted",
+          activeEntities: ["src/sse/handlers/chat.ts", "open-sse/services/contextHandoff.ts"],
+        }),
+        "gpt-5.4"
+      );
+    }
+
+    upstreamBodies.push({ authHeader, body, serializedBody });
+
+    if (authHeader === "Bearer token-a") {
+      primaryRequestCount += 1;
+      if (primaryRequestCount >= 2) {
+        return new Response(JSON.stringify({ error: { message: "quota exceeded" } }), {
+          status: 429,
+          headers: { "content-type": "application/json" },
+        });
+      }
+    }
+
+    return buildResponsesResponse("relay-success", "gpt-5.4");
+  };
+
+  const firstResponse = await handleChat(
+    buildRequest({
+      headers: {
+        "X-Session-Id": "relay-live-session",
+        "X-OmniRoute-No-Cache": "true",
+      },
+      body: {
+        model: "relay-live-combo",
+        stream: false,
+        instructions: "Preserve the original Responses instructions",
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [{ type: "input_text", text: "Keep implementing the new combo" }],
+          },
+        ],
+      },
+    })
+  );
+
+  assert.equal(firstResponse.status, 200);
+
+  const sessionId = "ext:relay-live-session";
+  const savedHandoff = await waitFor(
+    () => handoffDb.getHandoff(sessionId, "relay-live-combo"),
+    2000
+  );
+  assert.ok(savedHandoff);
+  assert.equal(savedHandoff.fromAccount, primary.id);
+
+  const secondResponse = await handleChat(
+    buildRequest({
+      headers: {
+        "X-Session-Id": "relay-live-session",
+        "X-OmniRoute-No-Cache": "true",
+      },
+      body: {
+        model: "relay-live-combo",
+        stream: false,
+        instructions: "Continue with the current task",
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [{ type: "input_text", text: "Continue from where you left off" }],
+          },
+        ],
+      },
+    })
+  );
+
+  assert.equal(secondResponse.status, 200);
+
+  const relayedSecondaryCall = upstreamBodies.find(
+    (call) =>
+      call.authHeader === "Bearer token-b" &&
+      typeof call.body.instructions === "string" &&
+      call.body.instructions.includes("<context_handoff>")
+  );
+
+  assert.ok(relayedSecondaryCall);
+  assert.equal("messages" in relayedSecondaryCall.body, false);
+  assert.deepEqual(
+    relayedSecondaryCall.body.input[0].content[0].text,
+    "Continue from where you left off"
+  );
+  assert.match(
+    relayedSecondaryCall.body.instructions,
+    /Carry over the Responses-native Codex session/
+  );
+  assert.match(relayedSecondaryCall.body.instructions, /Continue with the current task/);
+  assert.equal(handoffDb.getHandoff(sessionId, "relay-live-combo"), null);
 });

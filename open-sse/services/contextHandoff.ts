@@ -63,7 +63,7 @@ export function resolveContextRelayConfig(
   const rawMaxMessages = Number(config?.maxMessagesForSummary);
   const hasExplicitProviders = Array.isArray(config?.handoffProviders);
   const handoffProviders = hasExplicitProviders
-    ? config?.handoffProviders
+    ? (config?.handoffProviders as unknown[])
         .map((item) => (typeof item === "string" ? item.trim().toLowerCase() : ""))
         .filter(Boolean)
     : ["codex"];
@@ -370,9 +370,34 @@ export function injectHandoffIntoBody(
   body: Record<string, unknown>,
   payload: HandoffPayload
 ): Record<string, unknown> {
+  const handoffContent = buildHandoffSystemMessage(payload);
+  const isResponsesRequest =
+    Object.prototype.hasOwnProperty.call(body, "input") ||
+    Object.prototype.hasOwnProperty.call(body, "instructions");
+
+  if (isResponsesRequest) {
+    const existingInstructions =
+      typeof body.instructions === "string" && body.instructions.trim().length > 0
+        ? body.instructions
+        : "";
+    const nextBody: Record<string, unknown> = {
+      ...body,
+      instructions: existingInstructions
+        ? `${handoffContent}\n\n${existingInstructions}`
+        : handoffContent,
+    };
+
+    if (Array.isArray(nextBody.messages) && nextBody.messages.length === 0) {
+      const { messages: _messages, ...rest } = nextBody;
+      return rest;
+    }
+
+    return nextBody;
+  }
+
   const handoffMessage = {
     role: "system",
-    content: buildHandoffSystemMessage(payload),
+    content: handoffContent,
   };
   const messages = Array.isArray(body.messages) ? [...body.messages] : [];
 

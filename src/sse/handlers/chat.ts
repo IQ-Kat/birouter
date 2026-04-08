@@ -509,8 +509,7 @@ async function handleSingleModelChat(
       comboStrategy === "context-relay" &&
       comboName &&
       runtimeOptions.sessionId &&
-      body?._omnirouteSkipContextRelay !== true &&
-      !excludeConnectionId
+      body?._omnirouteSkipContextRelay !== true
     ) {
       const handoff = getHandoff(runtimeOptions.sessionId, comboName);
       if (handoff && handoff.fromAccount !== credentials.connectionId) {
