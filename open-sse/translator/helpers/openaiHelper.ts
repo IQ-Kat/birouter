@@ -106,6 +106,14 @@ export function filterToOpenAIFormat(body) {
   delete body.metadata;
   delete body.anthropic_version;
 
+  // Map max_output_tokens (from Vercel AI SDK) to max_tokens logic
+  if (body.max_output_tokens !== undefined) {
+    if (body.max_tokens === undefined) {
+      body.max_tokens = body.max_output_tokens;
+    }
+    delete body.max_output_tokens;
+  }
+
   // Normalize tools to OpenAI format (from Claude, Gemini, etc.)
   if (body.tools && Array.isArray(body.tools) && body.tools.length > 0) {
     body.tools = body.tools
