@@ -162,7 +162,9 @@ export function generateRequestId() {
 
 // Generate session ID
 export function generateSessionId() {
-  return `-${Math.floor(Math.random() * 9000000000000000000)}`;
+  const bytes = crypto.randomBytes(8);
+  const num = bytes.readBigUInt64LE() % 9000000000000000000n;
+  return `-${num.toString()}`;
 }
 
 // Helper: Remove unsupported keywords recursively from object/array

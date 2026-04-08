@@ -88,16 +88,16 @@ test("search provider validators cover success, client errors, server errors and
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
     const target = String(url);
-    if (target.match(/search.brave.com/i)) {
+    if (target.match(/search\.brave\.com/i)) {
       return new Response(JSON.stringify({ results: [] }), { status: 200 });
     }
-    if (target.match(/api.exa.ai/i)) {
+    if (target.match(/api\.exa\.ai/i)) {
       return new Response(JSON.stringify({ error: "bad key" }), { status: 403 });
     }
-    if (target.match(/api.tavily.com/i)) {
+    if (target.match(/api\.tavily\.com/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 503 });
     }
-    if (target.match(/api.perplexity.ai/i)) {
+    if (target.match(/api\.perplexity\.ai/i)) {
       throw new Error("perplexity offline");
     }
     throw new Error(`unexpected fetch: ${target}`);
@@ -180,13 +180,13 @@ test("OpenAI-compatible validator covers /responses mode and final ping fallback
 test("Anthropic-compatible and Claude Code compatible validators cover direct success and bridge fallbacks", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
-    if (target.match(/anthropic-compatible.example.com/i) && init.method === "GET") {
+    if (target.match(/anthropic-compatible\.example\.com/i) && init.method === "GET") {
       return new Response(JSON.stringify({ data: [] }), { status: 200 });
     }
-    if (target.match(/cc-compatible.example.com/i) && init.method === "GET") {
+    if (target.match(/cc-compatible\.example\.com/i) && init.method === "GET") {
       return new Response(JSON.stringify({ error: "bridge unavailable" }), { status: 500 });
     }
-    if (target.match(/cc-compatible.example.com/i) && init.method === "POST") {
+    if (target.match(/cc-compatible\.example\.com/i) && init.method === "POST") {
       return new Response(JSON.stringify({ error: "rate limited" }), { status: 429 });
     }
     throw new Error(`unexpected fetch: ${target}`);
@@ -352,7 +352,7 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
     if (target.match(/inworld/i)) {
       throw new Error("inworld offline");
     }
-    if (target.match(/dashscope.aliyuncs.com/i)) {
+    if (target.match(/dashscope\.aliyuncs\.com/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 500 });
     }
     if (target.match(/longcat/i)) {
