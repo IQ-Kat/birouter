@@ -4,17 +4,25 @@ import bcrypt from "bcryptjs";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
+// Node.js compatibility check — better-sqlite3 requires Node <24
+function getNodeCompatibility() {
+  const nodeVersion = process.version;
+  const major = parseInt(nodeVersion.replace("v", "").split(".")[0], 10);
+  return { nodeVersion, nodeCompatible: major >= 18 && major < 24 };
+}
+
 export async function GET() {
+  const nodeInfo = getNodeCompatibility();
   try {
     const settings = await getSettings();
     const requireLogin = settings.requireLogin !== false;
     const hasPassword = !!settings.password || !!process.env.INITIAL_PASSWORD;
     const setupComplete = !!settings.setupComplete;
-    return NextResponse.json({ requireLogin, hasPassword, setupComplete });
+    return NextResponse.json({ requireLogin, hasPassword, setupComplete, ...nodeInfo });
   } catch (error) {
     console.error("[API] Error fetching require-login settings:", error);
     return NextResponse.json(
-      { requireLogin: true, hasPassword: true, setupComplete: true },
+      { requireLogin: true, hasPassword: true, setupComplete: true, ...nodeInfo },
       { status: 200 }
     );
   }

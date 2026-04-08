@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [hasPassword, setHasPassword] = useState(null);
   const [setupComplete, setSetupComplete] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [nodeVersion, setNodeVersion] = useState(null);
+  const [nodeCompatible, setNodeCompatible] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -31,6 +33,8 @@ export default function LoginPage() {
 
         if (res.ok) {
           const data = await res.json();
+          if (data.nodeVersion) setNodeVersion(data.nodeVersion);
+          if (data.nodeCompatible === false) setNodeCompatible(false);
           if (data.requireLogin === false) {
             router.push("/dashboard");
             router.refresh();
@@ -83,9 +87,39 @@ export default function LoginPage() {
     }
   };
 
+  const nodeWarningBanner = !nodeCompatible && nodeVersion ? (
+    <div className="w-full max-w-lg mx-auto mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
+      <div className="bg-red-950/60 border-2 border-red-500/40 rounded-2xl p-6 shadow-lg shadow-red-900/20 backdrop-blur-sm">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span className="material-symbols-outlined text-red-400 text-[28px]">error</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-bold text-red-300 mb-1">{t("nodeIncompatibleTitle")}</h3>
+            <p className="text-sm text-red-200/80 leading-relaxed mb-3">
+              {t("nodeIncompatibleDesc", { version: nodeVersion })}
+            </p>
+            <div className="bg-black/40 rounded-lg px-4 py-3 font-mono text-sm border border-red-500/20">
+              <div className="flex items-center gap-2 text-red-300/60 mb-1">
+                <span className="material-symbols-outlined text-[14px]">terminal</span>
+                <span className="text-xs">{t("nodeIncompatibleFixLabel")}</span>
+              </div>
+              <code className="text-amber-300">nvm install 22 && nvm use 22</code>
+            </div>
+            <p className="text-xs text-red-300/50 mt-3 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[14px]">info</span>
+              {t("nodeIncompatibleHint")}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   if (hasPassword === null || setupComplete === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+        {nodeWarningBanner}
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <div className="w-10 h-10 border-2 border-primary/20 rounded-full"></div>
@@ -99,7 +133,8 @@ export default function LoginPage() {
 
   if (!hasPassword && !setupComplete) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+        {nodeWarningBanner}
         <div
           className={`w-full max-w-md transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
         >
@@ -136,7 +171,8 @@ export default function LoginPage() {
 
   if (!hasPassword && setupComplete) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+        {nodeWarningBanner}
         <div
           className={`w-full max-w-md transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
         >
@@ -174,7 +210,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-bg">
+    <div className="min-h-screen flex flex-col bg-bg">
+      {nodeWarningBanner && (
+        <div className="flex justify-center pt-6 px-6">
+          {nodeWarningBanner}
+        </div>
+      )}
+      <div className="flex-1 flex bg-bg">
       <div className="flex-1 flex items-center justify-center p-6">
         <div
           className={`w-full max-w-sm transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
@@ -278,6 +320,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -2709,7 +2709,11 @@
     "waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForQoderAuthorization": "Waiting for Qoder authorization...",
-    "exchangingCodeForTokens": "Exchanging code for tokens..."
+    "exchangingCodeForTokens": "Exchanging code for tokens...",
+    "nodeIncompatibleTitle": "Incompatible Node.js Version",
+    "nodeIncompatibleDesc": "You are running Node.js {version}, which is not compatible with OmniRoute. The native SQLite module (better-sqlite3) requires Node.js 18–22 LTS.",
+    "nodeIncompatibleFixLabel": "Fix: install Node.js 22 LTS",
+    "nodeIncompatibleHint": "OmniRoute requires Node.js ≥18 and <24. Node 22 LTS is recommended for stability."
   },
   "landing": {
     "brandName": "OmniRoute",
