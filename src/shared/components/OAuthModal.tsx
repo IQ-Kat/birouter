@@ -75,6 +75,14 @@ export default function OAuthModal({
     async (code, state) => {
       if (!authData) return;
       try {
+        if (!authData.redirectUri || !authData.codeVerifier) {
+          throw new Error(
+            "OAuth session is incomplete (missing redirect URI or code verifier). Restart the connection and try again."
+          );
+        }
+
+        const normalizedState = typeof state === "string" && state.length > 0 ? state : undefined;
+
         const res = await fetch(`/api/oauth/${provider}/exchange`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -82,18 +90,29 @@ export default function OAuthModal({
             code,
             redirectUri: authData.redirectUri,
             codeVerifier: authData.codeVerifier,
-            state,
+            ...(normalizedState ? { state: normalizedState } : {}),
           }),
         });
 
         const data = await res.json();
         if (!res.ok) {
-          const errMsg =
+          const errorObject =
             typeof data.error === "object" && data.error !== null
-              ? ((data.error as Record<string, unknown>).message as string) ||
-                JSON.stringify(data.error)
-              : data.error || "Exchange failed";
-          throw new Error(errMsg);
+              ? (data.error as Record<string, unknown>)
+              : null;
+          const errMsg = errorObject
+            ? (errorObject.message as string) || JSON.stringify(errorObject)
+            : data.error || "Exchange failed";
+          const details = Array.isArray(errorObject?.details)
+            ? (errorObject.details as Array<{ field?: string; message?: string }>)
+                .map((detail) => {
+                  if (!detail?.message) return null;
+                  return detail.field ? `${detail.field}: ${detail.message}` : detail.message;
+                })
+                .filter(Boolean)
+                .join("; ")
+            : "";
+          throw new Error(details ? `${errMsg} (${details})` : errMsg);
         }
 
         setStep("success");
@@ -212,6 +231,13 @@ export default function OAuthModal({
       }
 
       let forceManual = false;
+
+      // Claude Code and Cline OAuth flows can finish on provider-hosted pages that
+      // show an auth code instead of redirecting back to OmniRoute.
+      // Start directly in manual mode so users always have an input to paste code/url.
+      if (provider === "claude" || provider === "cline") {
+        forceManual = true;
+      }
 
       // Codex: on localhost use callback server on port 1455,
       // on remote use standard auth code flow (callback server is unreachable)
@@ -497,6 +523,13 @@ export default function OAuthModal({
   const handleManualSubmit = async () => {
     try {
       setError(null);
+
+      if (!authData) {
+        throw new Error(
+          "OAuth session not initialized. Restart the connection flow and try again."
+        );
+      }
+
       const input = callbackUrl.trim();
       let code = null;
       let state = authData?.state || null;
@@ -661,14 +694,17 @@ export default function OAuthModal({
                   Step 2: Paste the callback URL or auth code here
                 </p>
                 <p className="text-xs text-text-muted mb-2">
-                  After authorization, paste the full callback URL. For Claude Code, you can also
-                  paste the Authentication Code directly, for example <code>code#state</code>.
+                  After authorization, paste the full callback URL. For Claude Code and Cline, you
+                  can also paste the Authentication Code directly, for example{" "}
+                  <code>code#state</code>.
                 </p>
                 <Input
                   value={callbackUrl}
                   onChange={(e) => setCallbackUrl(e.target.value)}
                   placeholder={
-                    provider === "claude" ? "code#state or /callback?code=..." : placeholderUrl
+                    provider === "claude" || provider === "cline"
+                      ? "code#state or /callback?code=..."
+                      : placeholderUrl
                   }
                   className="font-mono text-xs"
                 />
@@ -676,7 +712,7 @@ export default function OAuthModal({
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleManualSubmit} fullWidth disabled={!callbackUrl}>
+              <Button onClick={handleManualSubmit} fullWidth disabled={!callbackUrl || !authData}>
                 Connect
               </Button>
               <Button onClick={onClose} variant="ghost" fullWidth>

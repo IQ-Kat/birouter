@@ -1037,6 +1037,8 @@
     "audioTranscriptionDesc": "Transcribe audio files to text (Whisper)",
     "textToSpeech": "Text to Speech",
     "textToSpeechDesc": "Convert text to natural-sounding speech",
+    "musicGeneration": "Music Generation",
+    "musicDesc": "Generate music and audio tracks via ComfyUI (Stable Audio, MusicGen)",
     "moderations": "Moderations",
     "moderationsDesc": "Content moderation and safety classification",
     "responsesDesc": "OpenAI Responses API for Codex and advanced agentic workflows",

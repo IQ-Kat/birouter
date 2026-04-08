@@ -229,13 +229,32 @@ export async function POST(
 
     if (action === "exchange") {
       const { code, redirectUri, codeVerifier, state } = body;
+      const normalizedState = typeof state === "string" && state.length > 0 ? state : undefined;
+      const providerData = getProvider(provider);
+
+      if (providerData.flowType === "authorization_code_pkce" && !codeVerifier) {
+        return NextResponse.json(
+          {
+            error: {
+              message: "Invalid request",
+              details: [
+                {
+                  field: "codeVerifier",
+                  message: `Code verifier is required for ${provider} OAuth exchange`,
+                },
+              ],
+            },
+          },
+          { status: 400 }
+        );
+      }
 
       // Resolve proxy for this provider (provider-level → global → direct)
       const proxy = await resolveProxyForProvider(provider);
 
       // Exchange code for tokens (through proxy if configured)
       const tokenData = await runWithProxyContext(proxy, () =>
-        exchangeTokens(provider, code, redirectUri, codeVerifier, state)
+        exchangeTokens(provider, code, redirectUri, codeVerifier, normalizedState)
       );
 
       // Normalize: if name is missing, use email or displayName as fallback so accounts
