@@ -36,6 +36,13 @@ function getProviderBaseUrl(providerSpecificData: unknown): string | undefined {
   return typeof baseUrl === "string" && baseUrl.trim().length > 0 ? baseUrl : undefined;
 }
 
+async function getActiveProviderSpecificData(provider?: string | null): Promise<JsonRecord | null> {
+  if (!provider) return null;
+  const connections = await getProviderConnections({ provider });
+  const connection = connections.find((c) => c.isActive !== false);
+  return connection ? asJsonRecord(connection.providerSpecificData) : null;
+}
+
 export async function POST(request) {
   let rawBody;
   try {
@@ -71,7 +78,9 @@ export async function POST(request) {
     // Direct translation mode (Playground): sourceFormat → targetFormat in one shot
     if (step === "direct") {
       const src = reqSourceFormat || detectFormat(body);
-      const tgt = reqTargetFormat || (provider ? getTargetFormat(provider) : "openai");
+      const providerSpecificData = await getActiveProviderSpecificData(provider);
+      const tgt =
+        reqTargetFormat || (provider ? getTargetFormat(provider, providerSpecificData) : "openai");
       const model = getModelId(asJsonRecord(body));
       const translated = translateRequest(src, tgt, model, body, true, null, provider);
       return NextResponse.json({
@@ -129,7 +138,8 @@ export async function POST(request) {
         // Return format: { timestamp, body }
         const actualBody = getActualBody(asJsonRecord(body));
         const sourceFormat = FORMATS.OPENAI;
-        const targetFormat = getTargetFormat(provider);
+        const providerSpecificData = await getActiveProviderSpecificData(provider);
+        const targetFormat = getTargetFormat(provider, providerSpecificData);
         const model = getModelId(actualBody);
         const translated = translateRequest(
           sourceFormat,
@@ -181,6 +191,7 @@ export async function POST(request) {
         const url = buildProviderUrl(provider, model, true, {
           baseUrlIndex: 0,
           baseUrl: getProviderBaseUrl(connection.providerSpecificData),
+          providerSpecificData: connection.providerSpecificData,
         });
         const headers = buildProviderHeaders(provider, credentials, true, actualBody);
 

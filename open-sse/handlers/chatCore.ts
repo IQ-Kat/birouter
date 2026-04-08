@@ -671,7 +671,8 @@ export async function handleChatCore({
 
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
-  const targetFormat = modelTargetFormat || getTargetFormat(provider);
+  const targetFormat =
+    modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
   const noLogEnabled = apiKeyInfo?.noLog === true;
   const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
   const skillRequestId = generateRequestId();

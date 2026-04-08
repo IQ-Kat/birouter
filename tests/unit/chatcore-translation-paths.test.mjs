@@ -378,6 +378,36 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
   assert.equal("messages" in call.body, false);
 });
 
+test("chatCore honors providerSpecificData.apiType for legacy openai-compatible providers", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "openai-compatible-sp-openai",
+    model: "gpt-5.4",
+    endpoint: "/v1/chat/completions",
+    credentials: {
+      apiKey: "sk-test",
+      providerSpecificData: {
+        apiType: "responses",
+        baseUrl: "https://proxy.example.com/v1",
+        prefix: "sp-openai",
+      },
+    },
+    body: {
+      model: "gpt-5.4",
+      stream: false,
+      messages: [{ role: "user", content: "Reply with OK only." }],
+      max_tokens: 64,
+    },
+    responseFormat: "openai-responses",
+  });
+
+  const payload = await result.response.json();
+  assert.equal(result.success, true);
+  assert.match(call.url, /\/responses$/);
+  assert.ok(call.body.input);
+  assert.equal("messages" in call.body, false);
+  assert.equal(payload.choices[0].message.content, "ok");
+});
+
 test("chatCore helper exports detect responses passthrough paths and token expiry windows", () => {
   assert.equal(
     shouldUseNativeCodexPassthrough({

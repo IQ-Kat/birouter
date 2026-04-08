@@ -11,6 +11,11 @@ import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
+import {
+  getModelTargetFormat,
+  PROVIDER_ID_TO_ALIAS,
+} from "@omniroute/open-sse/config/providerModels.ts";
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
@@ -553,6 +558,11 @@ async function handleSingleModelChat(
     if (telemetry) telemetry.endPhase();
 
     const proxyLatency = Date.now() - proxyStartTime;
+    const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
+    const effectiveTargetFormat =
+      getModelTargetFormat(providerAlias, model) ||
+      getTargetFormat(provider, credentials.providerSpecificData) ||
+      targetFormat;
 
     // 5. Log proxy + translation events
     safeLogEvents({
@@ -562,7 +572,7 @@ async function handleSingleModelChat(
       provider,
       model,
       sourceFormat,
-      targetFormat,
+      targetFormat: effectiveTargetFormat,
       credentials,
       comboName,
       clientRawRequest,

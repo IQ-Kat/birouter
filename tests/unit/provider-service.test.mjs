@@ -25,6 +25,24 @@ test("OpenAI-compatible providers resolve responses URLs and formats", () => {
   assert.equal(getProviderFallbackCount("openai-compatible-responses-demo"), 1);
 });
 
+test("OpenAI-compatible legacy providers honor providerSpecificData.apiType", () => {
+  const providerSpecificData = {
+    apiType: "responses",
+    baseUrl: "https://legacy-proxy.example.com/v1/",
+  };
+  const config = getProviderConfig("openai-compatible-sp-openai", providerSpecificData);
+  const url = buildProviderUrl("openai-compatible-sp-openai", "gpt-5.4", false, {
+    providerSpecificData,
+  });
+
+  assert.equal(config.format, "openai-responses");
+  assert.equal(url, "https://legacy-proxy.example.com/v1/responses");
+  assert.equal(
+    getTargetFormat("openai-compatible-sp-openai", providerSpecificData),
+    "openai-responses"
+  );
+});
+
 test("Anthropic-compatible Claude Code providers use the Claude Code URL and headers", () => {
   const url = buildProviderUrl("anthropic-compatible-cc-demo", "claude-sonnet-4-6", false, {
     baseUrl: "https://proxy.example.com/v1/messages?beta=true",
