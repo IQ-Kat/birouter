@@ -146,10 +146,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     logProvider = toNonEmptyString(connection.provider) || "unknown";
     channelLabel = getModelSyncChannelLabel(connection);
 
-    // Fetch models from the existing /api/providers/[id]/models endpoint via localhost to prevent SSRF
-    const safeOrigin = `http://127.0.0.1:${process.env.PORT || 20128}`;
-    const modelsUrl = `${safeOrigin}/api/providers/${encodeURIComponent(id)}/models`;
-    const modelsRes = await fetch(modelsUrl, {
+    // Fetch models from the existing /api/providers/[id]/models endpoint.
+    // Construct a safe localhost URL from the incoming request's origin.
+    // The route only accepts authenticated or internal-scheduler requests,
+    // and the path is hardcoded — no user-controlled URL components reach fetch.
+    const SAFE_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
+    const incomingUrl = new URL(request.url);
+    const safeOrigin = SAFE_HOSTS.has(incomingUrl.hostname)
+      ? incomingUrl.origin
+      : `http://127.0.0.1:${process.env.PORT || "20128"}`;
+    const modelsPath = `/api/providers/${encodeURIComponent(id)}/models`;
+    const modelsRes = await fetch(new URL(modelsPath, safeOrigin).href, {
       method: "GET",
       headers: {
         cookie: request.headers.get("cookie") || "",
