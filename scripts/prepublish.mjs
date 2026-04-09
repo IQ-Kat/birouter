@@ -110,6 +110,15 @@ console.log("  📋 Copying standalone build to app/...");
 mkdirSync(APP_DIR, { recursive: true });
 cpSync(standaloneDir, APP_DIR, { recursive: true });
 
+// ── Next.js Turbopack Standalone Tracer Fix ───────────────
+// Workaround for Next.js 15+ standalone mode missing Turbopack chunks
+const staticChunksSrc = join(ROOT, ".next", "server", "chunks");
+const staticChunksDest = join(APP_DIR, ".next", "server", "chunks");
+if (existsSync(staticChunksSrc)) {
+  console.log("  📋 Patching standalone build with missing Turbopack chunks...");
+  cpSync(staticChunksSrc, staticChunksDest, { recursive: true, force: false });
+}
+
 // ── Step 5.5: Sanitize hardcoded build-machine paths ───────
 // Next.js standalone bakes absolute build-time paths into server.js and
 // required-server-files.json (outputFileTracingRoot, appDir, turbopack root).
