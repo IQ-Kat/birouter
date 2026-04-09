@@ -33,7 +33,7 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { provider, apiKey, validationModelId, customUserAgent } = validation.data;
+    const { provider, apiKey, validationModelId, customUserAgent, baseUrl: bodyBaseUrl } = validation.data;
 
     let providerSpecificData: any = { validationModelId };
     if (customUserAgent) {
@@ -55,7 +55,7 @@ export async function POST(request) {
       }
       providerSpecificData = {
         ...providerSpecificData,
-        baseUrl: node.baseUrl,
+        baseUrl: bodyBaseUrl || node.baseUrl,
         apiType: node.apiType,
         chatPath: node.chatPath,
         modelsPath: node.modelsPath,

@@ -135,6 +135,21 @@ export const IMAGE_PROVIDERS = {
     ],
     supportedSizes: ["512x512", "768x768", "1024x1024"],
   },
+
+  openrouter: {
+    id: "openrouter",
+    baseUrl: "https://openrouter.ai/api/v1/images/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [
+      { id: "openai/dall-e-3", name: "DALL-E 3 (via OpenRouter)" },
+      { id: "openai/gpt-image-1", name: "GPT Image 1 (via OpenRouter)" },
+      { id: "google/imagen-3.0-generate-002", name: "Imagen 3 (via OpenRouter)" },
+      { id: "black-forest-labs/FLUX.1-schnell", name: "FLUX.1 Schnell (via OpenRouter)" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024", "256x256", "512x512"],
+  },
 };
 
 /**
