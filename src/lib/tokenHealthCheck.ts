@@ -21,6 +21,7 @@ import {
   supportsTokenRefresh,
   isUnrecoverableRefreshError,
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
+import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds
@@ -29,6 +30,10 @@ const EXPIRED_RETRY_MAX = 3; // max retry attempts for expired connections befor
 const EXPIRED_RETRY_BACKOFF_MIN = 5; // backoff between expired retries (minutes)
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
+
+function getConnectionLogLabel(conn: { name?: string; email?: string; id?: string }): string {
+  return pickMaskedDisplayValue([conn.name, conn.email], conn.id || "-");
+}
 
 export function buildRefreshFailureUpdate(conn: any, now: string) {
   const wasExpired = conn.testStatus === "expired";
@@ -214,7 +219,7 @@ async function checkConnection(conn) {
     if (Date.now() - lastRetry < backoffMs) return;
 
     log(
-      `${LOG_PREFIX} Retrying expired ${conn.provider}/${conn.name || conn.email || conn.id} (attempt ${retryCount + 1}/${EXPIRED_RETRY_MAX})`
+      `${LOG_PREFIX} Retrying expired ${conn.provider}/${getConnectionLogLabel(conn)} (attempt ${retryCount + 1}/${EXPIRED_RETRY_MAX})`
     );
   }
 
@@ -222,7 +227,7 @@ async function checkConnection(conn) {
     const now = new Date().toISOString();
     await updateProviderConnection(conn.id, { lastHealthCheckAt: now });
     log(
-      `${LOG_PREFIX} Skipping ${conn.provider}/${conn.name || conn.email || conn.id} (refresh unsupported)`
+      `${LOG_PREFIX} Skipping ${conn.provider}/${getConnectionLogLabel(conn)} (refresh unsupported)`
     );
     return;
   }
@@ -240,9 +245,7 @@ async function checkConnection(conn) {
   if (Date.now() - lastCheck < intervalMs && !isAboutToExpire) return;
 
   const reason = isAboutToExpire ? "token expiring soon" : `interval: ${intervalMin}min`;
-  log(
-    `${LOG_PREFIX} Refreshing ${conn.provider}/${conn.name || conn.email || conn.id} (${reason})`
-  );
+  log(`${LOG_PREFIX} Refreshing ${conn.provider}/${getConnectionLogLabel(conn)} (${reason})`);
 
   const credentials = {
     refreshToken: conn.refreshToken,
@@ -289,7 +292,7 @@ async function checkConnection(conn) {
       refreshToken: null,
     });
     logError(
-      `${LOG_PREFIX} ✗ ${conn.provider}/${conn.name || conn.email || conn.id} — ` +
+      `${LOG_PREFIX} ✗ ${conn.provider}/${getConnectionLogLabel(conn)} — ` +
         `Refresh token is permanently invalid (${result.error}). ` +
         `Connection deactivated. Re-authenticate to restore.`
     );
@@ -326,12 +329,12 @@ async function checkConnection(conn) {
     }
 
     await updateProviderConnection(conn.id, updateData);
-    log(`${LOG_PREFIX} ✓ ${conn.provider}/${conn.name || conn.email || conn.id} refreshed`);
+    log(`${LOG_PREFIX} ✓ ${conn.provider}/${getConnectionLogLabel(conn)} refreshed`);
   } else {
     const updateData = buildRefreshFailureUpdate(conn, now);
     await updateProviderConnection(conn.id, updateData);
     logWarn(
-      `${LOG_PREFIX} ✗ ${conn.provider}/${conn.name || conn.email || conn.id} refresh failed` +
+      `${LOG_PREFIX} ✗ ${conn.provider}/${getConnectionLogLabel(conn)} refresh failed` +
         (conn.testStatus === "expired"
           ? ` (${updateData.expiredRetryCount}/${EXPIRED_RETRY_MAX} expired retries used)`
           : "")

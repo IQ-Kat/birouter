@@ -15,6 +15,7 @@ import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import { CardSkeleton } from "@/shared/components/Loading";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 
 const LS_GROUP_BY = "omniroute:limits:groupBy";
 const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
@@ -545,7 +546,10 @@ export default function ProviderLimits() {
                   </div>
                   <div className="min-w-0">
                     <div className="text-[13px] font-semibold text-text-main truncate">
-                      {conn.name || conn.displayName || conn.email || config.label}
+                      {pickMaskedDisplayValue(
+                        [conn.name, conn.displayName, conn.email],
+                        config.label
+                      )}
                     </div>
                     <div className="flex items-center gap-1.5 mt-1 min-h-5">
                       <span

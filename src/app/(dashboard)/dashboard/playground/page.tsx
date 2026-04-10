@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { ALIAS_TO_ID } from "@/shared/constants/providers";
+import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 import dynamic from "next/dynamic";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
@@ -254,7 +255,7 @@ export default function PlaygroundPage() {
         for (const conn of data?.connections || []) {
           conns.push({
             id: conn.id,
-            name: conn.name || conn.email || conn.id,
+            name: pickMaskedDisplayValue([conn.name, conn.email], conn.id),
             provider: conn.provider,
             authType: conn.authType || "apiKey",
           });

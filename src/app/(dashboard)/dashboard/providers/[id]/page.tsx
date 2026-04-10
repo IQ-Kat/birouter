@@ -43,7 +43,7 @@ import {
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
 import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
-import { maskEmail } from "@/shared/utils/maskEmail";
+import { maskEmail, pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -62,6 +62,7 @@ type ModelCompatSavePatch = {
   preserveOpenAIDeveloperRole?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
+  isHidden?: boolean;
 };
 
 type CompatModelRow = {
@@ -72,6 +73,7 @@ type CompatModelRow = {
   supportedEndpoints?: string[];
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
+  isHidden?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
 };
@@ -90,6 +92,42 @@ function getProtoSlice(
   protocol: string
 ) {
   return c?.compatByProtocol?.[protocol] ?? o?.compatByProtocol?.[protocol];
+}
+
+function isModelHidden(
+  modelId: string,
+  customMap: CompatModelMap,
+  overrideMap: CompatModelMap
+): boolean {
+  const c = customMap.get(modelId);
+  if (c && Object.prototype.hasOwnProperty.call(c, "isHidden")) {
+    return Boolean(c.isHidden);
+  }
+  const o = overrideMap.get(modelId);
+  if (o && Object.prototype.hasOwnProperty.call(o, "isHidden")) {
+    return Boolean(o.isHidden);
+  }
+  return false;
+}
+
+function providerText(
+  t: ((key: string, values?: Record<string, unknown>) => string) & {
+    has?: (key: string) => boolean;
+  },
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+): string {
+  if (typeof t.has === "function" && t.has(key)) {
+    return t(key, values);
+  }
+  if (values) {
+    return Object.entries(values).reduce(
+      (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
+      fallback
+    );
+  }
+  return fallback;
 }
 
 function effectiveNormalizeForProtocol(
@@ -295,6 +333,7 @@ interface ModelRowProps {
 interface PassthroughModelRowProps {
   modelId: string;
   fullModel: string;
+  isHidden?: boolean;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onDeleteAlias: () => void;
@@ -305,6 +344,8 @@ interface PassthroughModelRowProps {
   saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => void;
   getUpstreamHeadersRecord: (protocol: string) => Record<string, string>;
   compatDisabled?: boolean;
+  onToggleHidden?: (modelId: string, hidden: boolean) => Promise<void>;
+  togglingHidden?: boolean;
 }
 
 interface PassthroughModelsSectionProps {
@@ -327,6 +368,11 @@ interface PassthroughModelsSectionProps {
     }
   ) => Promise<void>;
   compatSavingModelId?: string;
+  isModelHidden: (modelId: string) => boolean;
+  onToggleHidden: (modelId: string, hidden: boolean) => Promise<void>;
+  onBulkToggleHidden: (modelIds: string[], hidden: boolean) => Promise<void>;
+  bulkTogglePending?: boolean;
+  togglingModelId?: string | null;
 }
 
 interface CustomModelsSectionProps {
@@ -366,10 +412,16 @@ interface CompatibleModelsSectionProps {
       normalizeToolCallId?: boolean;
       preserveDeveloperRole?: boolean;
       preserveOpenAIDeveloperRole?: boolean;
+      isHidden?: boolean;
     }
   ) => Promise<void>;
   compatSavingModelId?: string;
   onModelsChanged?: () => void;
+  isModelHidden: (modelId: string) => boolean;
+  onToggleHidden: (modelId: string, hidden: boolean) => Promise<void>;
+  onBulkToggleHidden: (modelIds: string[], hidden: boolean) => Promise<void>;
+  bulkTogglePending?: boolean;
+  togglingModelId?: string | null;
 }
 
 interface CooldownTimerProps {
@@ -860,6 +912,9 @@ export default function ProviderDetailPage() {
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
   const [modelFilter, setModelFilter] = useState("");
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
+  const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
+    null
+  );
   const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
@@ -1869,6 +1924,11 @@ export default function ProviderDetailPage() {
     protocol = MODEL_COMPAT_PROTOCOL_KEYS[0]
   ) => effectivePreserveForProtocol(modelId, protocol, customMap, overrideMap);
 
+  const effectiveModelHidden = useCallback(
+    (modelId: string) => isModelHidden(modelId, customMap, overrideMap),
+    [customMap, overrideMap]
+  );
+
   const getUpstreamHeadersRecordForModel = useCallback(
     (modelId: string, protocol: string) =>
       effectiveUpstreamHeadersForProtocol(modelId, protocol, customMap, overrideMap),
@@ -1945,14 +2005,21 @@ export default function ProviderDetailPage() {
     }
   };
 
-  const handleToggleModelHidden = async (modelId: string, hidden: boolean): Promise<void> => {
+  const handleToggleModelHidden = async (
+    providerKey: string,
+    modelId: string,
+    hidden: boolean
+  ): Promise<void> => {
     setTogglingModelId(modelId);
     try {
-      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}&modelId=${encodeURIComponent(modelId)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isHidden: hidden }),
-      });
+      const res = await fetch(
+        `/api/provider-models?provider=${encodeURIComponent(providerKey)}&modelId=${encodeURIComponent(modelId)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isHidden: hidden }),
+        }
+      );
       if (!res.ok) {
         const detail = await res.text().catch(() => "");
         notify.error(detail || t("failedSaveCustomModel"));
@@ -1964,6 +2031,32 @@ export default function ProviderDetailPage() {
       notify.error(t("failedSaveCustomModel"));
     } finally {
       setTogglingModelId(null);
+    }
+  };
+
+  const handleBulkToggleModelHidden = async (
+    providerKey: string,
+    modelIds: string[],
+    hidden: boolean
+  ): Promise<void> => {
+    if (modelIds.length === 0) return;
+    setBulkVisibilityAction(hidden ? "deselect" : "select");
+    try {
+      const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerKey)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isHidden: hidden, modelIds }),
+      });
+      if (!res.ok) {
+        const detail = await res.text().catch(() => "");
+        notify.error(detail || t("failedSaveCustomModel"));
+        return;
+      }
+      await fetchProviderModelMeta().catch(() => {});
+    } catch {
+      notify.error(t("failedSaveCustomModel"));
+    } finally {
+      setBulkVisibilityAction(null);
     }
   };
 
@@ -2046,6 +2139,15 @@ export default function ProviderDetailPage() {
             compatSavingModelId={compatSavingModelId}
             onModelsChanged={fetchProviderModelMeta}
             allowImport={compatibleSupportsModelImport}
+            isModelHidden={effectiveModelHidden}
+            onToggleHidden={(modelId, hidden) =>
+              handleToggleModelHidden(providerStorageAlias, modelId, hidden)
+            }
+            onBulkToggleHidden={(modelIds, hidden) =>
+              handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
+            }
+            bulkTogglePending={bulkVisibilityAction !== null}
+            togglingModelId={togglingModelId}
           />
         </div>
       );
@@ -2083,6 +2185,15 @@ export default function ProviderDetailPage() {
             getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
             saveModelCompatFlags={saveModelCompatFlags}
             compatSavingModelId={compatSavingModelId}
+            isModelHidden={effectiveModelHidden}
+            onToggleHidden={(modelId, hidden) =>
+              handleToggleModelHidden(providerStorageAlias, modelId, hidden)
+            }
+            onBulkToggleHidden={(modelIds, hidden) =>
+              handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
+            }
+            bulkTogglePending={bulkVisibilityAction !== null}
+            togglingModelId={togglingModelId}
           />
         </div>
       );
@@ -2115,31 +2226,43 @@ export default function ProviderDetailPage() {
         </div>
       );
     }
+    const modelsWithVisibility = models.map((model) => ({
+      ...model,
+      isHidden: effectiveModelHidden(model.id),
+    }));
     const filteredModels = modelFilter
-      ? models.filter((m) => m.id.toLowerCase().includes(modelFilter.toLowerCase()))
-      : models;
-    const activeCount = models.filter((m) => !m.isHidden).length;
+      ? modelsWithVisibility.filter((m) => m.id.toLowerCase().includes(modelFilter.toLowerCase()))
+      : modelsWithVisibility;
+    const activeCount = modelsWithVisibility.filter((m) => !m.isHidden).length;
+    const hiddenFilteredCount = filteredModels.filter((m) => m.isHidden).length;
+    const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
     return (
       <div>
         {importButton}
-        {models.length > 0 && (
-          <div className="flex items-center gap-2 mb-3">
-            <div className="relative flex-1 max-w-sm">
-              <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[15px] text-text-muted pointer-events-none">
-                search
-              </span>
-              <input
-                type="text"
-                value={modelFilter}
-                onChange={(e) => setModelFilter(e.target.value)}
-                placeholder={t("filterModels") || "Filter models…"}
-                className="w-full pl-7 pr-3 py-1.5 text-xs rounded-lg border border-border bg-sidebar/50 focus:outline-none focus:ring-1 focus:ring-primary text-text-main placeholder:text-text-muted"
-              />
-            </div>
-            <span className="text-xs text-text-muted whitespace-nowrap">
-              {activeCount}/{models.length} {t("modelsActive") || "active"}
-            </span>
-          </div>
+        {modelsWithVisibility.length > 0 && (
+          <ModelVisibilityToolbar
+            t={t}
+            filterValue={modelFilter}
+            onFilterChange={setModelFilter}
+            activeCount={activeCount}
+            totalCount={modelsWithVisibility.length}
+            onSelectAll={() =>
+              handleBulkToggleModelHidden(
+                providerId,
+                filteredModels.map((model) => model.id),
+                false
+              )
+            }
+            onDeselectAll={() =>
+              handleBulkToggleModelHidden(
+                providerId,
+                filteredModels.map((model) => model.id),
+                true
+              )
+            }
+            selectAllDisabled={hiddenFilteredCount === 0 || bulkVisibilityAction !== null}
+            deselectAllDisabled={visibleFilteredCount === 0 || bulkVisibilityAction !== null}
+          />
         )}
         <div className="flex flex-wrap gap-3">
           {filteredModels.map((model) => {
@@ -2157,14 +2280,18 @@ export default function ProviderDetailPage() {
                 getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecordForModel(model.id, p)}
                 saveModelCompatFlags={saveModelCompatFlags}
                 compatDisabled={compatSavingModelId === model.id}
-                onToggleHidden={handleToggleModelHidden}
+                onToggleHidden={(modelId, hidden) =>
+                  handleToggleModelHidden(providerId, modelId, hidden)
+                }
                 togglingHidden={togglingModelId === model.id}
               />
             );
           })}
           {filteredModels.length === 0 && modelFilter && (
             <p className="text-sm text-text-muted py-2">
-              {t("noModelsMatch") || `No models match "${modelFilter}"`}
+              {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
+                filter: modelFilter,
+              })}
             </p>
           )}
         </div>
@@ -2493,7 +2620,7 @@ export default function ProviderDetailPage() {
                         setProxyTarget({
                           level: "key",
                           id: conn.id,
-                          label: conn.name || conn.email || conn.id,
+                          label: pickMaskedDisplayValue([conn.name, conn.email], conn.id),
                         })
                       }
                       hasProxy={!!connProxyMap[conn.id]?.proxy}
@@ -2602,7 +2729,7 @@ export default function ProviderDetailPage() {
                               setProxyTarget({
                                 level: "key",
                                 id: conn.id,
-                                label: conn.name || conn.email || conn.id,
+                                label: pickMaskedDisplayValue([conn.name, conn.email], conn.id),
                               })
                             }
                             hasProxy={!!connProxyMap[conn.id]?.proxy}
@@ -2981,7 +3108,11 @@ function ModelRow({
             onClick={() => onToggleHidden(model.id, !isHidden)}
             disabled={togglingHidden}
             className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
-            title={isHidden ? (t("showModel") || "Show model") : (t("hideModel") || "Hide model")}
+            title={
+              isHidden
+                ? providerText(t, "showModel", "Show model")
+                : providerText(t, "hideModel", "Hide model")
+            }
           >
             <span className="material-symbols-outlined text-sm">
               {isHidden ? "visibility_off" : "visibility"}
@@ -3020,6 +3151,71 @@ ModelRow.propTypes = {
   compatDisabled: PropTypes.bool,
 };
 
+function ModelVisibilityToolbar({
+  t,
+  filterValue,
+  onFilterChange,
+  activeCount,
+  totalCount,
+  onSelectAll,
+  onDeselectAll,
+  selectAllDisabled,
+  deselectAllDisabled,
+}: {
+  t: ((key: string, values?: Record<string, unknown>) => string) & {
+    has?: (key: string) => boolean;
+  };
+  filterValue: string;
+  onFilterChange: (value: string) => void;
+  activeCount: number;
+  totalCount: number;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
+  selectAllDisabled?: boolean;
+  deselectAllDisabled?: boolean;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="relative min-w-[220px] flex-1">
+        <span className="material-symbols-outlined pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[15px] text-text-muted">
+          search
+        </span>
+        <input
+          type="text"
+          value={filterValue}
+          onChange={(e) => onFilterChange(e.target.value)}
+          placeholder={providerText(t, "filterModels", "Filter models…")}
+          className="w-full rounded-lg border border-border bg-sidebar/50 py-1.5 pl-7 pr-3 text-xs text-text-main placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
+      <button
+        onClick={onSelectAll}
+        disabled={selectAllDisabled}
+        className="flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2.5 py-1 text-[12px] text-text-main disabled:cursor-not-allowed disabled:opacity-50"
+        title={providerText(t, "selectAllModels", "Select all")}
+      >
+        <span className="material-symbols-outlined text-[16px]">done_all</span>
+        <span>{providerText(t, "selectAllModels", "Select all")}</span>
+      </button>
+      <button
+        onClick={onDeselectAll}
+        disabled={deselectAllDisabled}
+        className="flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2.5 py-1 text-[12px] text-text-main disabled:cursor-not-allowed disabled:opacity-50"
+        title={providerText(t, "deselectAllModels", "Deselect all")}
+      >
+        <span className="material-symbols-outlined text-[16px]">remove_done</span>
+        <span>{providerText(t, "deselectAllModels", "Deselect all")}</span>
+      </button>
+      <span className="whitespace-nowrap text-xs text-text-muted">
+        {providerText(t, "modelsActiveCount", "{active}/{total} active", {
+          active: activeCount,
+          total: totalCount,
+        })}
+      </span>
+    </div>
+  );
+}
+
 function PassthroughModelsSection({
   providerAlias,
   modelAliases,
@@ -3033,9 +3229,15 @@ function PassthroughModelsSection({
   getUpstreamHeadersRecord,
   saveModelCompatFlags,
   compatSavingModelId,
+  isModelHidden,
+  onToggleHidden,
+  onBulkToggleHidden,
+  bulkTogglePending,
+  togglingModelId,
 }: PassthroughModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
+  const [modelFilter, setModelFilter] = useState("");
 
   const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
     (model as string).startsWith(`${providerAlias}/`)
@@ -3044,12 +3246,20 @@ function PassthroughModelsSection({
   const allModels = providerAliases.map(([alias, fullModel]: [string, any]) => {
     const fmStr = fullModel as string;
     const prefix = `${providerAlias}/`;
+    const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
     return {
-      modelId: fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr,
+      modelId,
       fullModel,
       alias,
+      isHidden: isModelHidden(modelId),
     };
   });
+  const filteredModels = modelFilter
+    ? allModels.filter(({ modelId }) => modelId.toLowerCase().includes(modelFilter.toLowerCase()))
+    : allModels;
+  const activeCount = allModels.filter((model) => !model.isHidden).length;
+  const hiddenFilteredCount = filteredModels.filter((model) => model.isHidden).length;
+  const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
 
   // Generate default alias from modelId (last part after /)
   const generateDefaultAlias = (modelId) => {
@@ -3107,11 +3317,33 @@ function PassthroughModelsSection({
       {/* Models list */}
       {allModels.length > 0 && (
         <div className="flex flex-col gap-3">
-          {allModels.map(({ modelId, fullModel, alias }) => (
+          <ModelVisibilityToolbar
+            t={t}
+            filterValue={modelFilter}
+            onFilterChange={setModelFilter}
+            activeCount={activeCount}
+            totalCount={allModels.length}
+            onSelectAll={() =>
+              onBulkToggleHidden(
+                filteredModels.map((model) => model.modelId),
+                false
+              )
+            }
+            onDeselectAll={() =>
+              onBulkToggleHidden(
+                filteredModels.map((model) => model.modelId),
+                true
+              )
+            }
+            selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
+            deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
+          />
+          {filteredModels.map(({ modelId, fullModel, alias, isHidden }) => (
             <PassthroughModelRow
               key={fullModel as string}
               modelId={modelId}
               fullModel={fullModel}
+              isHidden={isHidden}
               copied={copied}
               onCopy={onCopy}
               onDeleteAlias={() => onDeleteAlias(alias)}
@@ -3122,8 +3354,17 @@ function PassthroughModelsSection({
               getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
               saveModelCompatFlags={saveModelCompatFlags}
               compatDisabled={compatSavingModelId === modelId}
+              onToggleHidden={onToggleHidden}
+              togglingHidden={togglingModelId === modelId}
             />
           ))}
+          {filteredModels.length === 0 && modelFilter && (
+            <p className="py-2 text-sm text-text-muted">
+              {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
+                filter: modelFilter,
+              })}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -3143,11 +3384,17 @@ PassthroughModelsSection.propTypes = {
   getUpstreamHeadersRecord: PropTypes.func.isRequired,
   saveModelCompatFlags: PropTypes.func.isRequired,
   compatSavingModelId: PropTypes.string,
+  isModelHidden: PropTypes.func.isRequired,
+  onToggleHidden: PropTypes.func.isRequired,
+  onBulkToggleHidden: PropTypes.func.isRequired,
+  bulkTogglePending: PropTypes.bool,
+  togglingModelId: PropTypes.string,
 };
 
 function PassthroughModelRow({
   modelId,
   fullModel,
+  isHidden,
   copied,
   onCopy,
   onDeleteAlias,
@@ -3158,11 +3405,20 @@ function PassthroughModelRow({
   getUpstreamHeadersRecord,
   saveModelCompatFlags,
   compatDisabled,
+  onToggleHidden,
+  togglingHidden,
 }: PassthroughModelRowProps) {
   return (
-    <div className="flex gap-0 rounded-lg border border-border p-3 hover:bg-sidebar/50">
+    <div
+      className={`flex gap-0 rounded-lg border border-border p-3 transition-opacity hover:bg-sidebar/50 ${
+        isHidden ? "opacity-50" : ""
+      }`}
+    >
       <div className="flex min-w-0 flex-1 items-start gap-3">
-        <span className="material-symbols-outlined shrink-0 text-base text-text-muted">
+        <span
+          className="material-symbols-outlined shrink-0 text-base text-text-muted"
+          style={{ color: isHidden ? "var(--color-text-muted)" : undefined }}
+        >
           smart_toy
         </span>
         <div className="min-w-0 flex-1">
@@ -3184,6 +3440,22 @@ function PassthroughModelRow({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1 self-start">
+        {onToggleHidden && (
+          <button
+            onClick={() => onToggleHidden(modelId, !isHidden)}
+            disabled={togglingHidden}
+            className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            title={
+              isHidden
+                ? providerText(t, "showModel", "Show model")
+                : providerText(t, "hideModel", "Hide model")
+            }
+          >
+            <span className="material-symbols-outlined text-sm">
+              {isHidden ? "visibility_off" : "visibility"}
+            </span>
+          </button>
+        )}
         <ModelCompatPopover
           t={t}
           effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
@@ -3210,6 +3482,7 @@ function PassthroughModelRow({
 PassthroughModelRow.propTypes = {
   modelId: PropTypes.string.isRequired,
   fullModel: PropTypes.string.isRequired,
+  isHidden: PropTypes.bool,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
   onDeleteAlias: PropTypes.func.isRequired,
@@ -3220,6 +3493,8 @@ PassthroughModelRow.propTypes = {
   getUpstreamHeadersRecord: PropTypes.func.isRequired,
   saveModelCompatFlags: PropTypes.func.isRequired,
   compatDisabled: PropTypes.bool,
+  onToggleHidden: PropTypes.func,
+  togglingHidden: PropTypes.bool,
 };
 
 // ============ Custom Models Section (for ALL providers) ============
@@ -3721,10 +3996,16 @@ function CompatibleModelsSection({
   compatSavingModelId,
   onModelsChanged,
   allowImport,
+  isModelHidden,
+  onToggleHidden,
+  onBulkToggleHidden,
+  bulkTogglePending,
+  togglingModelId,
 }: CompatibleModelsSectionProps) {
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [modelFilter, setModelFilter] = useState("");
   const notify = useNotificationStore();
 
   const providerAliases = useMemo(
@@ -3739,21 +4020,29 @@ function CompatibleModelsSection({
     const rows = providerAliases.map(([alias, fullModel]: [string, any]) => {
       const fmStr = fullModel as string;
       const prefix = `${providerStorageAlias}/`;
+      const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
       return {
-        modelId: fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr,
+        modelId,
         alias,
+        isHidden: isModelHidden(modelId),
       };
     });
 
     const seenModelIds = new Set(rows.map((row) => row.modelId));
     for (const model of fallbackModels) {
       if (!model?.id || seenModelIds.has(model.id)) continue;
-      rows.push({ modelId: model.id, alias: null });
+      rows.push({ modelId: model.id, alias: null, isHidden: isModelHidden(model.id) });
       seenModelIds.add(model.id);
     }
 
     return rows;
-  }, [fallbackModels, providerAliases, providerStorageAlias]);
+  }, [fallbackModels, isModelHidden, providerAliases, providerStorageAlias]);
+  const filteredModels = modelFilter
+    ? allModels.filter(({ modelId }) => modelId.toLowerCase().includes(modelFilter.toLowerCase()))
+    : allModels;
+  const activeCount = allModels.filter((model) => !model.isHidden).length;
+  const hiddenFilteredCount = filteredModels.filter((model) => model.isHidden).length;
+  const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
 
   const resolveAlias = useCallback(
     (modelId: string, workingAliases: Record<string, string>) =>
@@ -3935,11 +4224,33 @@ function CompatibleModelsSection({
 
       {allModels.length > 0 && (
         <div className="flex flex-col gap-3">
-          {allModels.map(({ modelId, alias }) => (
+          <ModelVisibilityToolbar
+            t={t}
+            filterValue={modelFilter}
+            onFilterChange={setModelFilter}
+            activeCount={activeCount}
+            totalCount={allModels.length}
+            onSelectAll={() =>
+              onBulkToggleHidden(
+                filteredModels.map((model) => model.modelId),
+                false
+              )
+            }
+            onDeselectAll={() =>
+              onBulkToggleHidden(
+                filteredModels.map((model) => model.modelId),
+                true
+              )
+            }
+            selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
+            deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
+          />
+          {filteredModels.map(({ modelId, alias, isHidden }) => (
             <PassthroughModelRow
               key={`${providerStorageAlias}:${modelId}`}
               modelId={modelId}
               fullModel={`${providerDisplayAlias}/${modelId}`}
+              isHidden={isHidden}
               copied={copied}
               onCopy={onCopy}
               onDeleteAlias={() => handleDeleteModel(modelId, alias)}
@@ -3950,8 +4261,17 @@ function CompatibleModelsSection({
               getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
               saveModelCompatFlags={saveModelCompatFlags}
               compatDisabled={compatSavingModelId === modelId}
+              onToggleHidden={onToggleHidden}
+              togglingHidden={togglingModelId === modelId}
             />
           ))}
+          {filteredModels.length === 0 && modelFilter && (
+            <p className="py-2 text-sm text-text-muted">
+              {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
+                filter: modelFilter,
+              })}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -3986,6 +4306,11 @@ CompatibleModelsSection.propTypes = {
   compatSavingModelId: PropTypes.string,
   onModelsChanged: PropTypes.func,
   allowImport: PropTypes.bool.isRequired,
+  isModelHidden: PropTypes.func.isRequired,
+  onToggleHidden: PropTypes.func.isRequired,
+  onBulkToggleHidden: PropTypes.func.isRequired,
+  bulkTogglePending: PropTypes.bool,
+  togglingModelId: PropTypes.string,
 };
 
 function CooldownTimer({ until }: CooldownTimerProps) {
@@ -4243,7 +4568,10 @@ function ConnectionRow({
 }: ConnectionRowProps) {
   const t = useTranslations("providers");
   const displayName = isOAuth
-    ? connection.name || connection.email || connection.displayName || t("oauthAccount")
+    ? pickMaskedDisplayValue(
+        [connection.name, connection.email, connection.displayName],
+        t("oauthAccount")
+      )
     : connection.name;
   const applyCodexAuthLabel =
     typeof t.has === "function" && t.has("applyCodexAuthLocal")
@@ -4943,6 +5271,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const [extraApiKeys, setExtraApiKeys] = useState<string[]>([]);
   const [newExtraKey, setNewExtraKey] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
 
   const isBailian = connection?.provider === "bailian-coding-plan";
   const defaultBailianUrl = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
@@ -4976,6 +5305,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
       setNewExtraKey("");
       setShowAdvanced(!!existingCustomUserAgent);
+      setShowEmail(false);
       setTestResult(null);
       setValidationResult(null);
       setSaveError(null);
@@ -5158,9 +5488,21 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         {isOAuth && connection.email && (
           <div className="bg-sidebar/50 p-3 rounded-lg">
             <p className="text-sm text-text-muted mb-1">{t("email")}</p>
-            <p className="font-medium" title={connection.email}>
-              {maskEmail(connection.email)}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="font-medium" title={showEmail ? connection.email : undefined}>
+                {showEmail ? connection.email : maskEmail(connection.email)}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowEmail((current) => !current)}
+                className="rounded p-1 text-text-muted hover:bg-sidebar hover:text-primary"
+                title={showEmail ? "Hide email" : "Show email"}
+              >
+                <span className="material-symbols-outlined text-sm">
+                  {showEmail ? "visibility_off" : "visibility"}
+                </span>
+              </button>
+            </div>
           </div>
         )}
         {isOAuth && (

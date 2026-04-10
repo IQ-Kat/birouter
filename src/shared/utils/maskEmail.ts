@@ -23,14 +23,36 @@ export function maskEmail(email: string | null | undefined, visibleChars = 2): s
   // If username is too short to mask meaningfully, return as-is
   if (username.length <= visibleChars) return email;
 
-  const maskedUser =
-    username.slice(0, visibleChars) + "*".repeat(username.length - visibleChars);
+  const maskedUser = username.slice(0, visibleChars) + "*".repeat(username.length - visibleChars);
 
   // Mask domain name: keep first char, mask the rest
   const maskedDomain =
-    domainName.length > 1
-      ? domainName.slice(0, 1) + "*".repeat(domainName.length - 1)
-      : domainName;
+    domainName.length > 1 ? domainName.slice(0, 1) + "*".repeat(domainName.length - 1) : domainName;
 
   return `${maskedUser}@${maskedDomain}${tld}`;
+}
+
+/**
+ * Masks the value only when it looks like an email address.
+ * Useful for fields like `name` that may be normalized to the raw email.
+ */
+export function maskEmailLikeValue(value: string | null | undefined, visibleChars = 2): string {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed.includes("@") ? maskEmail(trimmed, visibleChars) : trimmed;
+}
+
+/**
+ * Returns the first non-empty display value, masking it if it contains an email.
+ */
+export function pickMaskedDisplayValue(
+  values: Array<string | null | undefined>,
+  fallback = ""
+): string {
+  for (const value of values) {
+    const masked = maskEmailLikeValue(value);
+    if (masked) return masked;
+  }
+  return fallback;
 }

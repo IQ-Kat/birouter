@@ -28,6 +28,7 @@ import {
   serializePayloadForStorage,
 } from "../logPayloads";
 import { getCallLogMaxEntries, getCallLogRetentionDays } from "../logEnv";
+import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -159,7 +160,7 @@ async function resolveAccountName(connectionId: string | null | undefined) {
     const connections = await getProviderConnections();
     const conn = connections.find((item) => item.id === connectionId);
     if (conn) {
-      account = conn.name || conn.email || account;
+      account = pickMaskedDisplayValue([conn.name, conn.email], account);
     }
   } catch {
     // Best-effort lookup only.

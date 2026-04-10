@@ -1,6 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { maskEmail } from "../../src/shared/utils/maskEmail.ts";
+import {
+  maskEmail,
+  maskEmailLikeValue,
+  pickMaskedDisplayValue,
+} from "../../src/shared/utils/maskEmail.ts";
 
 describe("maskEmail", () => {
   it("masks standard email correctly", () => {
@@ -47,5 +51,18 @@ describe("maskEmail", () => {
   it("allows customizing visibleChars", () => {
     const result = maskEmail("hello@example.com", 3);
     assert.ok(result.startsWith("hel"), `Expected to start with 'hel', got: ${result}`);
+  });
+
+  it("masks email-like values stored in generic labels", () => {
+    assert.equal(maskEmailLikeValue("person@example.com"), "pe****@e******.com");
+    assert.equal(maskEmailLikeValue("Work Account"), "Work Account");
+  });
+
+  it("picks the first non-empty masked display value", () => {
+    assert.equal(
+      pickMaskedDisplayValue(["", "person@example.com", "fallback"], "fallback"),
+      "pe****@e******.com"
+    );
+    assert.equal(pickMaskedDisplayValue([null, "Workspace"], "fallback"), "Workspace");
   });
 });
