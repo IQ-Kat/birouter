@@ -775,6 +775,17 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 # Dashboard: http://localhost:20129
 ```
 
+### 2) Uninstalling
+
+When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
+
+| Command | Action |
+| --- | --- |
+| `npm run uninstall` | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`. |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+
+> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
+
 ### Long-Running Streaming Timeouts
 
 For most deployments, you only need:

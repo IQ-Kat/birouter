@@ -4,6 +4,7 @@
 
 ---
 
+
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
 _Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
@@ -490,6 +491,7 @@ Developers who want all responses in a specific language, with a specific tone, 
 - **9 Routing Strategies** — Global strategies that determine how requests are distributed
 - **Wildcard Router** — `provider/*` patterns route dynamically to any provider
 - **Combo Enable/Disable Toggle** — Toggle combos directly from the dashboard
+- **Manual Combo Ordering** — Drag combo cards by handle and persist the order in SQLite
 - **Provider Toggle** — Enable/disable all connections for a provider with one click
 - **Blocked Providers** — Exclude specific providers from `/v1/models` listing
 
@@ -777,6 +779,17 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 # API:       http://localhost:20128/v1
 # Dashboard: http://localhost:20129
 ```
+
+### 2) Uninstalling
+
+When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
+
+| Command | Action |
+| --- | --- |
+| `npm run uninstall` | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`. |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+
+> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
 
 ### Long-Running Streaming Timeouts
 
