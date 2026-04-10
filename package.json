@@ -85,6 +85,8 @@
     "check": "npm run lint && npm run test",
     "prepublishOnly": "npm run build:cli",
     "postinstall": "node scripts/postinstall.mjs",
+    "uninstall": "node scripts/uninstall.mjs",
+    "uninstall:full": "node scripts/uninstall.mjs --full",
     "prepare": "husky",
     "system-info": "node scripts/system-info.mjs"
   },
