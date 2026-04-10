@@ -61,6 +61,7 @@ let mainWindow = null;
 let tray = null;
 let nextServer = null;
 let serverPort = 20128;
+let isServerStopped = false;
 
 const getServerUrl = () => `http://localhost:${serverPort}`;
 
@@ -703,9 +704,21 @@ app.on("window-all-closed", () => {
 });
 
 // Clean up before quit
-app.on("before-quit", () => {
-  app.isQuitting = true;
-  stopNextServer();
+app.on("before-quit", async (event) => {
+  if (nextServer && !isServerStopped) {
+    event.preventDefault(); // Stop immediate quit
+    app.isQuitting = true;
+
+    // Stop server and wait up to 5s for graceful WAL checkpoint
+    const serverToStop = nextServer;
+    stopNextServer();
+    await waitForServerExit(serverToStop, 5000);
+
+    isServerStopped = true;
+    app.quit(); // Resume quit safely
+  } else {
+    app.isQuitting = true;
+  }
 });
 
 // Global error handlers
