@@ -2,7 +2,7 @@
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
-_Your universal API proxy — one endpoint, 60+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+_Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
 
 **Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
 
@@ -255,7 +255,7 @@ OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If 
 
 **How OmniRoute solves it:**
 
-- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 60+ providers
+- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 100+ providers
 - **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
 - **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
@@ -341,7 +341,7 @@ Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code..
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
 - **Onboarding Wizard** — Guided 4-step setup for first-time users
-- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 60+ providers
+- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 100+ providers
 
 </details>
 
@@ -775,6 +775,17 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 # Dashboard: http://localhost:20129
 ```
 
+### 2) Uninstalling
+
+When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
+
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+
+> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
+
 ### Long-Running Streaming Timeouts
 
 For most deployments, you only need:
@@ -1058,7 +1069,7 @@ volumes:
 | Image                    | Tag      | Size   | Description           |
 | ------------------------ | -------- | ------ | --------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `1.0.3`  | ~250MB | Current version       |
+| `diegosouzapw/omniroute` | `3.6.2`  | ~250MB | Current version       |
 
 ---
 
@@ -1305,17 +1316,22 @@ Then in `/dashboard/media` → **Transcription** tab: upload any audio or video 
 
 ## 💡 Key Features
 
-OmniRoute v3.5 is built as an operational platform, not just a relay proxy.
+OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
-### 🆕 New — v3.5.5 Highlights (Apr 2026)
+### 🆕 New — v3.6.x Highlights (Apr 2026)
 
-| Feature                          | What It Does                                                                                                                |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 🔗 **Context Relay Strategy**    | New combo strategy that preserves session continuity via structured handoff summaries when accounts rotate mid-conversation |
-| 🛡️ **Proxy Hardening**           | Token health check, API key validation, and undici dispatcher all honor proxy config — no more bypass in restricted envs    |
-| ⚠️ **Node.js 24 Login Warning**  | Login page proactively detects incompatible Node.js versions and shows a clear warning banner with instructions             |
-| 📎 **Gemini PDF Attachments**    | PDF files attached in chat messages are now correctly routed to Gemini via `inline_data` and generic base64 detection       |
-| 🔒 **CodeQL Security Hardening** | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                |
+| Feature                           | What It Does                                                                                                                |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 🗑️ **Uninstall / Full Uninstall** | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal scripts for all install methods |
+| 🔧 **OAuth Env Repair**           | One-click "Repair env" action for OAuth providers restores missing environment variables and fixes broken auth state        |
+| 🔒 **Graceful Electron Shutdown** | Electron `before-quit` now shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop app close         |
+| 👁️ **Model Visibility Toggle**    | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages            |
+| 📧 **Email Privacy Masking**      | OAuth account emails masked in provider dashboard (`di*****@g****.com`), full address visible on hover                      |
+| 🔗 **Context Relay Strategy**     | Combo strategy that preserves session continuity via structured handoff summaries when accounts rotate mid-conversation     |
+| 🛡️ **Proxy Hardening**            | Token health check, API key validation, and undici dispatcher all honor proxy config — no more bypass in restricted envs    |
+| ⚠️ **Node.js 24 Login Warning**   | Login page proactively detects incompatible Node.js versions and shows a clear warning banner with instructions             |
+| 📎 **Gemini PDF Attachments**     | PDF files attached in chat messages are now correctly routed to Gemini via `inline_data` and generic base64 detection       |
+| 🔒 **CodeQL Security Hardening**  | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                |
 
 ### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
 
@@ -2173,7 +2189,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 - **Runtime**: Node.js 18–22 LTS (⚠️ Node.js 24+ is **not supported** — `better-sqlite3` native binaries are incompatible)
 - **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
-- **Database**: LowDB (JSON) + SQLite (domain state + proxy logs + MCP audit + routing decisions)
+- **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
 - **Schemas**: Zod (MCP tool I/O validation, API contracts)
 - **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
 - **Streaming**: Server-Sent Events (SSE)
@@ -2191,22 +2207,24 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## 📖 Documentation
 
-| Document                                        | Description                                         |
-| ----------------------------------------------- | --------------------------------------------------- |
-| [User Guide](docs/USER_GUIDE.md)                | Providers, combos, CLI integration, deployment      |
-| [API Reference](docs/API_REFERENCE.md)          | All endpoints with examples                         |
-| [MCP Server](open-sse/mcp-server/README.md)     | 25 MCP tools, IDE configs, Python/TS/Go clients     |
-| [A2A Server](src/lib/a2a/README.md)             | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
-| [Auto-Combo Engine](docs/auto-combo.md)         | 6-factor scoring, mode packs, self-healing          |
-| [Context Relay](docs/features/context-relay.md) | Session handoff strategy for account rotation       |
-| [Troubleshooting](docs/TROUBLESHOOTING.md)      | Common problems and solutions                       |
-| [Architecture](docs/ARCHITECTURE.md)            | System architecture and internals                   |
-| [Contributing](CONTRIBUTING.md)                 | Development setup and guidelines                    |
-| [OpenAPI Spec](docs/openapi.yaml)               | OpenAPI 3.0 specification                           |
-| [Security Policy](SECURITY.md)                  | Vulnerability reporting and security practices      |
-| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)    | Complete guide: VM + nginx + Cloudflare setup       |
-| [Features Gallery](docs/FEATURES.md)            | Visual dashboard tour with screenshots              |
-| [Release Checklist](docs/RELEASE_CHECKLIST.md)  | Pre-release validation steps                        |
+| Document                                                 | Description                                         |
+| -------------------------------------------------------- | --------------------------------------------------- |
+| [User Guide](docs/USER_GUIDE.md)                         | Providers, combos, CLI integration, deployment      |
+| [API Reference](docs/API_REFERENCE.md)                   | All endpoints with examples                         |
+| [MCP Server](open-sse/mcp-server/README.md)              | 25 MCP tools, IDE configs, Python/TS/Go clients     |
+| [A2A Server](src/lib/a2a/README.md)                      | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
+| [Auto-Combo Engine](docs/auto-combo.md)                  | 6-factor scoring, mode packs, self-healing          |
+| [Context Relay](docs/features/context-relay.md)          | Session handoff strategy for account rotation       |
+| [Troubleshooting](docs/TROUBLESHOOTING.md)               | Common problems and solutions                       |
+| [Architecture](docs/ARCHITECTURE.md)                     | System architecture and internals                   |
+| [Codebase Documentation](docs/CODEBASE_DOCUMENTATION.md) | Beginner-friendly codebase walkthrough              |
+| [Uninstall Guide](docs/UNINSTALL.md)                     | Clean removal for all install methods               |
+| [Contributing](CONTRIBUTING.md)                          | Development setup and guidelines                    |
+| [OpenAPI Spec](docs/openapi.yaml)                        | OpenAPI 3.0 specification                           |
+| [Security Policy](SECURITY.md)                           | Vulnerability reporting and security practices      |
+| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)             | Complete guide: VM + nginx + Cloudflare setup       |
+| [Features Gallery](docs/FEATURES.md)                     | Visual dashboard tour with screenshots              |
+| [Release Checklist](docs/RELEASE_CHECKLIST.md)           | Pre-release validation steps                        |
 
 ---
 

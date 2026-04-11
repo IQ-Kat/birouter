@@ -1010,11 +1010,15 @@ export async function clearRecoveredProviderState(
 
 /**
  * Extract API key from request headers
+ * Follows management API standard: case-insensitive bearer matching and full trimming
  */
 export function extractApiKey(request: Request) {
-  const authHeader = request.headers.get("Authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    return authHeader.slice(7);
+  const authHeader = request.headers.get("Authorization") || request.headers.get("authorization");
+  if (typeof authHeader === "string") {
+    const trimmedHeader = authHeader.trim();
+    if (trimmedHeader.toLowerCase().startsWith("bearer ")) {
+      return trimmedHeader.slice(7).trim();
+    }
   }
   return null;
 }

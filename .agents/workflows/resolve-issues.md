@@ -100,6 +100,7 @@ For each bug, classify into one of 5 actions:
 | ---------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | **✅ CLOSE — Already Fixed** | Owner responded with fix + no user follow-up, OR community confirmed fix                    | Close with comment citing which version fixed it    |
 | **✅ CLOSE — Duplicate**     | Bot flagged >85% similarity + user provides no new info                                     | Close referencing the original issue                |
+| **✅ CLOSE — Stale**         | We requested logs/info > 7 days ago with no reply                                           | Close thanking the user, invite to reopen if needed |
 | **📝 RESPOND — Needs Info**  | Issue is real but missing critical reproduction details                                     | Comment asking for specifics per `/issue-triage`    |
 | **📝 RESPOND — User Config** | Error is caused by unsupported env (Node version, wrong model path, missing API enablement) | Comment explaining the user-side fix                |
 | **🔧 FIX — Code Change**     | Root cause is confirmed in the codebase                                                     | Research, implement, test, commit on release branch |

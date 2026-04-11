@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { ALIAS_TO_ID } from "@/shared/constants/providers";
-import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
+import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import dynamic from "next/dynamic";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
@@ -25,6 +26,7 @@ interface ProviderOption {
 interface ConnectionOption {
   id: string;
   name: string;
+  email?: string;
   provider: string;
   authType: string;
 }
@@ -255,7 +257,8 @@ export default function PlaygroundPage() {
         for (const conn of data?.connections || []) {
           conns.push({
             id: conn.id,
-            name: pickMaskedDisplayValue([conn.name, conn.email], conn.id),
+            name: conn.name || conn.id,
+            email: conn.email,
             provider: conn.provider,
             authType: conn.authType || "apiKey",
           });
@@ -459,6 +462,8 @@ export default function PlaygroundPage() {
     }
   };
 
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
+
   return (
     <div className="space-y-5">
       {/* Info Banner */}
@@ -540,7 +545,7 @@ export default function PlaygroundPage() {
                   },
                   ...providerConnections.map((c) => ({
                     value: c.id,
-                    label: c.name,
+                    label: pickDisplayValue([c.name, c.email], emailsVisible, c.id),
                   })),
                 ]}
                 className="w-full"

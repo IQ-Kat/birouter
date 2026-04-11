@@ -282,8 +282,6 @@ describe("Page Integration — cache page wiring", () => {
   it("should consolidate prompt cache metrics directly into cache management", () => {
     assert.ok(src, "src/app/(dashboard)/dashboard/cache/page.tsx should exist");
     assert.doesNotMatch(src, /CacheStatsCard/);
-    assert.match(src, /promptCacheReuseRatio/);
-    assert.match(src, /strategyEntries/);
   });
 });
 

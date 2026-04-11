@@ -869,7 +869,9 @@ test("chatCore refreshes GitHub credentials after 401 and retries with the refre
   });
 
   const payload = await result.response.json();
-  const providerCalls = calls.filter((entry) => entry.url.startsWith("https://api.githubcopilot.com/"));
+  const providerCalls = calls.filter((entry) =>
+    entry.url.startsWith("https://api.githubcopilot.com/")
+  );
 
   assert.equal(result.success, true);
   assert.equal(providerCalls.length, 2);
@@ -928,7 +930,13 @@ test("chatCore fallback proxy mode retries through CLIProxyAPI after retryable n
   const { calls, result } = await invokeChatCore({
     provider: "github",
     model: "gpt-4o",
-    credentials: { accessToken: "gh-token", providerSpecificData: {} },
+    credentials: {
+      accessToken: "gh-token",
+      providerSpecificData: {
+        copilotToken: "mock-token",
+        copilotTokenExpiresAt: Date.now() + 3600000,
+      },
+    },
     body: {
       model: "gpt-4o",
       messages: [{ role: "user", content: "hello" }],
@@ -963,7 +971,13 @@ test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after a retryable
   const { calls, result } = await invokeChatCore({
     provider: "github",
     model: "gpt-4o",
-    credentials: { accessToken: "gh-token", providerSpecificData: {} },
+    credentials: {
+      accessToken: "gh-token",
+      providerSpecificData: {
+        copilotToken: "mock-token",
+        copilotTokenExpiresAt: Date.now() + 3600000,
+      },
+    },
     body: {
       model: "gpt-4o",
       messages: [{ role: "user", content: "hello" }],
@@ -998,7 +1012,13 @@ test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after native exec
   const { calls, result } = await invokeChatCore({
     provider: "github",
     model: "gpt-4o",
-    credentials: { accessToken: "gh-token", providerSpecificData: {} },
+    credentials: {
+      accessToken: "gh-token",
+      providerSpecificData: {
+        copilotToken: "mock-token",
+        copilotTokenExpiresAt: Date.now() + 3600000,
+      },
+    },
     body: {
       model: "gpt-4o",
       messages: [{ role: "user", content: "hello" }],
@@ -1094,6 +1114,49 @@ test("chatCore returns a semantic cache HIT for repeated deterministic requests"
 
   const payload = await second.result.response.json();
   assert.equal(payload.choices[0].message.content, "cached-once");
+});
+
+test("chatCore skips semantic cache when disabled in settings", async () => {
+  await settingsDb.updateSettings({ semanticCacheEnabled: false });
+
+  let upstreamHits = 0;
+  const sharedBody = {
+    model: "gpt-4o-mini",
+    stream: false,
+    temperature: 0,
+    messages: [{ role: "user", content: "do not reuse this response locally" }],
+  };
+
+  const first = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      upstreamHits += 1;
+      return buildOpenAIResponse(false, `fresh-${upstreamHits}`);
+    },
+  });
+
+  const second = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: sharedBody,
+    responseFormat: "openai",
+    responseFactory() {
+      upstreamHits += 1;
+      return buildOpenAIResponse(false, `fresh-${upstreamHits}`);
+    },
+  });
+
+  assert.equal(first.calls.length, 1);
+  assert.equal(second.calls.length, 1);
+  assert.equal(upstreamHits, 2);
+  assert.equal(first.result.response.headers.get("X-OmniRoute-Cache"), "MISS");
+  assert.equal(second.result.response.headers.get("X-OmniRoute-Cache"), "MISS");
+
+  const payload = await second.result.response.json();
+  assert.equal(payload.choices[0].message.content, "fresh-2");
 });
 
 test("chatCore normalizes tool finish reasons and estimates usage when upstream omits it", async () => {

@@ -4,64 +4,74 @@
 
 ---
 
-Volledige gids voor het configureren van providers, het maken van combo's, het integreren van CLI-tools en het implementeren van OmniRoute.---
+
+
+Complete guide for configuring providers, creating combos, integrating CLI tools, and deploying OmniRoute.
+
+---
 
 ## Table of Contents
 
-- [Prijzen in één oogopslag](#-prijzen in één oogopslag)
-- [Gebruiksscenario's](#-use-cases)
-- [Providerinstellingen](#-provider-setup)
-- [CLI-integratie](#-cli-integratie)
-- [Implementatie](#-implementatie)
-- [Beschikbare modellen](#-beschikbare-modellen)
-- [Geavanceerde functies](#-advanced-features)---
+- [Pricing at a Glance](#-pricing-at-a-glance)
+- [Use Cases](#-use-cases)
+- [Provider Setup](#-provider-setup)
+- [CLI Integration](#-cli-integration)
+- [Deployment](#-deployment)
+- [Available Models](#-available-models)
+- [Advanced Features](#-advanced-features)
+
+---
 
 ## 💰 Pricing at a Glance
 
-| Niveau             | Aanbieder         | Kosten              | Quotum opnieuw instellen | Beste voor                  |
-| ------------------ | ----------------- | ------------------- | ------------------------ | --------------------------- |
-| **💳 ABONNEMENT**  | Claude Code (Pro) | $ 20/maand          | 5u + wekelijks           | Al geabonneerd              |
-|                    | Codex (Plus/Pro)  | $ 20-200/maand      | 5u + wekelijks           | OpenAI-gebruikers           |
-|                    | Tweeling CLI      | **GRATIS**          | 180K/maand + 1K/dag      | Iedereen!                   |
-|                    | GitHub-copiloot   | $ 10-19/maand       | Maandelijks              | GitHub-gebruikers           |
-| **🔑 API-SLEUTEL** | DeepSeek          | Betalen per gebruik | Geen                     | Goedkoop redeneren          |
-|                    | Groq              | Betalen per gebruik | Geen                     | Ultrasnelle gevolgtrekking  |
-|                    | xAI (Grok)        | Betalen per gebruik | Geen                     | Grok 4 redenering           |
-|                    | Mistral           | Betalen per gebruik | Geen                     | Door de EU gehoste modellen |
-|                    | Verbijstering     | Betalen per gebruik | Geen                     | Zoek-uitgebreid             |
-|                    | Samen AI          | Betalen per gebruik | Geen                     | Open source-modellen        |
-|                    | Vuurwerk AI       | Betalen per gebruik | Geen                     | Snelle FLUX-afbeeldingen    |
-|                    | Hersenen          | Betalen per gebruik | Geen                     | Snelheid op wafelschaal     |
-|                    | Cohier            | Betalen per gebruik | Geen                     | Commando R+ RAG             |
-|                    | NVIDIA NIM        | Betalen per gebruik | Geen                     | Enterprise-modellen         |
-| **💰GOEDKOOP**     | GLM-4.7           | $ 0,6/1 miljoen     | Dagelijks 10.00 uur      | Budgetback-up               |
-|                    | MiniMax M2.1      | $ 0,2/1 miljoen     | 5-uurs rollen            | Goedkoopste optie           |
-|                    | Kimi K2           | $ 9/maand plat      | 10 miljoen tokens/maand  | Voorspelbare kosten         |
-| **🆓 GRATIS**      | Qoder             | $0                  | Onbeperkt                | 8 modellen gratis           |
-|                    | Qwen              | $0                  | Onbeperkt                | 3 modellen gratis           |
-|                    | Kiro              | $0                  | Onbeperkt                | Claude vrij                 |
+| Tier                | Provider          | Cost        | Quota Reset      | Best For             |
+| ------------------- | ----------------- | ----------- | ---------------- | -------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly      | Already subscribed   |
+|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly      | OpenAI users         |
+|                     | Gemini CLI        | **FREE**    | 180K/mo + 1K/day | Everyone!            |
+|                     | GitHub Copilot    | $10-19/mo   | Monthly          | GitHub users         |
+| **🔑 API KEY**      | DeepSeek          | Pay per use | None             | Cheap reasoning      |
+|                     | Groq              | Pay per use | None             | Ultra-fast inference |
+|                     | xAI (Grok)        | Pay per use | None             | Grok 4 reasoning     |
+|                     | Mistral           | Pay per use | None             | EU-hosted models     |
+|                     | Perplexity        | Pay per use | None             | Search-augmented     |
+|                     | Together AI       | Pay per use | None             | Open-source models   |
+|                     | Fireworks AI      | Pay per use | None             | Fast FLUX images     |
+|                     | Cerebras          | Pay per use | None             | Wafer-scale speed    |
+|                     | Cohere            | Pay per use | None             | Command R+ RAG       |
+|                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
+| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
+|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
+|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
+| **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
+|                     | Qwen              | $0          | Unlimited        | 3 models free        |
+|                     | Kiro              | $0          | Unlimited        | Claude free          |
 
-**💡 Pro-tip:**Begin met Gemini CLI (180K gratis/maand) + Qoder (onbeperkt gratis) combo = $ 0 kosten!---
+**💡 Pro Tip:** Start with Gemini CLI (180K free/month) + Qoder (unlimited free) combo = $0 cost!
+
+---
 
 ## 🎯 Use Cases
 
 ### Case 1: "I have Claude Pro subscription"
 
-**Probleem:**Quotum verloopt ongebruikt, snelheidslimieten tijdens intensief coderen```
-Combo: "maximize-claude"
+**Problem:** Quota expires unused, rate limits during heavy coding
 
-1. cc/claude-opus-4-6 (use subscription fully)
-2. glm/glm-4.7 (cheap backup when quota out)
-3. if/kimi-k2-thinking (free emergency fallback)
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-6        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/kimi-k2-thinking       (free emergency fallback)
 
 Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
 vs. $20 + hitting limits = frustration
-
-````
+```
 
 ### Case 2: "I want zero cost"
 
-**Probleem:**Ik kan geen abonnementen betalen, heb betrouwbare AI-codering nodig```
+**Problem:** Can't afford subscriptions, need reliable AI coding
+
+```
 Combo: "free-forever"
   1. gc/gemini-3-flash         (180K free/month)
   2. if/kimi-k2-thinking       (unlimited free)
@@ -69,27 +79,29 @@ Combo: "free-forever"
 
 Monthly cost: $0
 Quality: Production-ready models
-````
+```
 
 ### Case 3: "I need 24/7 coding, no interruptions"
 
-**Probleem:**Deadlines, downtime is niet mogelijk```
-Combo: "always-on"
+**Problem:** Deadlines, can't afford downtime
 
-1. cc/claude-opus-4-6 (best quality)
-2. cx/gpt-5.2-codex (second subscription)
-3. glm/glm-4.7 (cheap, resets daily)
-4. minimax/MiniMax-M2.1 (cheapest, 5h reset)
-5. if/kimi-k2-thinking (free unlimited)
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-6        (best quality)
+  2. cx/gpt-5.2-codex          (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/kimi-k2-thinking       (free unlimited)
 
 Result: 5 layers of fallback = zero downtime
 Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
-
-````
+```
 
 ### Case 4: "I want FREE AI in OpenClaw"
 
-**Probleem:**AI-assistent nodig in berichtenapps, geheel gratis```
+**Problem:** Need AI assistant in messaging apps, completely free
+
+```
 Combo: "openclaw-free"
   1. if/glm-4.7                (unlimited free)
   2. if/minimax-m2.1           (unlimited free)
@@ -97,7 +109,7 @@ Combo: "openclaw-free"
 
 Monthly cost: $0
 Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-````
+```
 
 ---
 
@@ -118,7 +130,9 @@ Models:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro-tip:**Gebruik Opus voor complexe taken, Sonnet voor snelheid. OmniRoute houdt quota bij per model!#### OpenAI Codex (Plus/Pro)
+**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
+
+#### OpenAI Codex (Plus/Pro)
 
 ```bash
 Dashboard → Providers → Connect Codex
@@ -142,7 +156,9 @@ Models:
   gc/gemini-2.5-pro
 ```
 
-**Beste waarde:**Enorm gratis niveau! Gebruik dit vóór betaalde niveaus.#### GitHub Copilot
+**Best Value:** Huge free tier! Use this before paid tiers.
+
+#### GitHub Copilot
 
 ```bash
 Dashboard → Providers → Connect GitHub
@@ -159,21 +175,27 @@ Models:
 
 #### GLM-4.7 (Daily reset, $0.6/1M)
 
-1. Aanmelden: [Zhipu AI](https://open.bigmodel.cn/)
-2. Haal de API-sleutel op uit het Coderingsplan
-3. Dashboard → API-sleutel toevoegen: Provider: `glm`, API-sleutel: `uw-sleutel`
+1. Sign up: [Zhipu AI](https://open.bigmodel.cn/)
+2. Get API key from Coding Plan
+3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**Gebruik:**`glm/glm-4.7` —**Pro Tip:**Codeerplan biedt 3× quota tegen 1/7 kosten! Dagelijks resetten om 10:00 uur.#### MiniMax M2.1 (5h reset, $0.20/1M)
+**Use:** `glm/glm-4.7` — **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
 
-1. Aanmelden: [MiniMax](https://www.minimax.io/)
-2. API-sleutel ophalen → Dashboard → API-sleutel toevoegen
+#### MiniMax M2.1 (5h reset, $0.20/1M)
 
-**Gebruik:**`minimax/MiniMax-M2.1` —**Pro Tip:**Goedkoopste optie voor lange context (1M tokens)!#### Kimi K2 ($9/month flat)
+1. Sign up: [MiniMax](https://www.minimax.io/)
+2. Get API key → Dashboard → Add API Key
 
-1. Abonneer je op: [Moonshot AI](https://platform.moonshot.ai/)
-2. API-sleutel ophalen → Dashboard → API-sleutel toevoegen
+**Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
 
-**Gebruik:**`kimi/kimi-latest` —**Pro-tip:**Vaste $ 9/maand voor 10 miljoen tokens = $ 0,90/1 miljoen effectieve kosten!### 🆓 FREE Providers
+#### Kimi K2 ($9/month flat)
+
+1. Subscribe: [Moonshot AI](https://platform.moonshot.ai/)
+2. Get API key → Dashboard → Add API Key
+
+**Use:** `kimi/kimi-latest` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
+
+### 🆓 FREE Providers
 
 #### Qoder (8 FREE models)
 
@@ -202,6 +224,8 @@ Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ---
 
 ## 🎨 Combos
+
+You can reorder combo cards directly in **Dashboard → Combos** by dragging the handle on each card. The order is stored in SQLite and restored on reload.
 
 ### Example 1: Maximize Subscription → Cheap Backup
 
@@ -244,13 +268,14 @@ Settings → Models → Advanced:
 
 ### Claude Code
 
-Bewerk `~/.claude/config.json`:```json
-{
-"anthropic_api_base": "http://localhost:20128/v1",
-"anthropic_api_key": "your-omniroute-api-key"
-}
+Edit `~/.claude/config.json`:
 
-````
+```json
+{
+  "anthropic_api_base": "http://localhost:20128/v1",
+  "anthropic_api_key": "your-omniroute-api-key"
+}
+```
 
 ### Codex CLI
 
@@ -258,41 +283,42 @@ Bewerk `~/.claude/config.json`:```json
 export OPENAI_BASE_URL="http://localhost:20128"
 export OPENAI_API_KEY="your-omniroute-api-key"
 codex "your prompt"
-````
+```
 
 ### OpenClaw
 
-Bewerk `~/.openclaw/openclaw.json`:```json
+Edit `~/.openclaw/openclaw.json`:
+
+```json
 {
-"agents": {
-"defaults": {
-"model": { "primary": "omniroute/if/glm-4.7" }
+  "agents": {
+    "defaults": {
+      "model": { "primary": "omniroute/if/glm-4.7" }
+    }
+  },
+  "models": {
+    "providers": {
+      "omniroute": {
+        "baseUrl": "http://localhost:20128/v1",
+        "apiKey": "your-omniroute-api-key",
+        "api": "openai-completions",
+        "models": [{ "id": "if/glm-4.7", "name": "glm-4.7" }]
+      }
+    }
+  }
 }
-},
-"models": {
-"providers": {
-"omniroute": {
-"baseUrl": "http://localhost:20128/v1",
-"apiKey": "your-omniroute-api-key",
-"api": "openai-completions",
-"models": [{ "id": "if/glm-4.7", "name": "glm-4.7" }]
-}
-}
-}
-}
-
 ```
 
-**Of gebruik Dashboard:**CLI Tools → OpenClaw → Auto-config### Cline / Continue / RooCode
+**Or use Dashboard:** CLI Tools → OpenClaw → Auto-config
+
+### Cline / Continue / RooCode
 
 ```
-
 Provider: OpenAI Compatible
 Base URL: http://localhost:20128/v1
 API Key: [from dashboard]
 Model: cc/claude-opus-4-6
-
-````
+```
 
 ---
 
@@ -313,9 +339,22 @@ cp .env.example ~/.omniroute/.env
 omniroute
 # Or with custom port:
 omniroute --port 3000
-````
+```
 
-De CLI laadt automatisch `.env` van `~/.omniroute/.env` of `./.env`.### VPS Deployment
+The CLI automatically loads `.env` from `~/.omniroute/.env` or `./.env`.
+
+### Uninstalling
+
+When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
+
+| Command | Action |
+| --- | --- |
+| `npm run uninstall` | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`. |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+
+> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
+
+### VPS Deployment
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -336,23 +375,22 @@ npm run start
 
 ### PM2 Deployment (Low Memory)
 
-Voor servers met beperkt RAM-geheugen gebruikt u de geheugenlimietoptie:```bash
+For servers with limited RAM, use the memory limit option:
 
+```bash
 # With 512MB limit (default)
-
 pm2 start npm --name omniroute -- start
 
 # Or with custom memory limit
-
 OMNIROUTE_MEMORY_MB=512 pm2 start npm --name omniroute -- start
 
 # Or using ecosystem.config.js
-
 pm2 start ecosystem.config.js
+```
 
-````
+Create `ecosystem.config.js`:
 
-Maak `ecosystem.config.js` aan:```javascript
+```javascript
 module.exports = {
   apps: [
     {
@@ -370,7 +408,7 @@ module.exports = {
     },
   ],
 };
-````
+```
 
 ### Docker
 
@@ -382,12 +420,16 @@ docker build -t omniroute:cli .
 docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-data:/app/data omniroute:cli
 ```
 
-Voor de host-geïntegreerde modus met CLI-binaire bestanden raadpleegt u de Docker-sectie in de hoofddocumentatie.### Void Linux (xbps-src)
+For host-integrated mode with CLI binaries, see the Docker section in the main docs.
 
-Void Linux-gebruikers kunnen OmniRoute native verpakken en installeren met behulp van het `xbps-src` cross-compilatieframework. Dit automatiseert de standalone build van Node.js samen met de vereiste `better-sqlite3` native bindingen.
+### Void Linux (xbps-src)
+
+Void Linux users can package and install OmniRoute natively using the `xbps-src` cross-compilation framework. This automates the Node.js standalone build along with the required `better-sqlite3` native bindings.
 
 <details>
-<summary><b>Xbps-src-sjabloon bekijken</b></summary>```bash
+<summary><b>View xbps-src template</b></summary>
+
+```bash
 # Template file for 'omniroute'
 pkgname=omniroute
 version=3.2.4
@@ -408,62 +450,61 @@ export npm_config_loglevel=error
 export npm_config_fund=false
 export npm_config_audit=false
 
-do_build() { # Determine target CPU arch for node-gyp
-local \_gyp_arch
-case "$XBPS_TARGET_MACHINE" in
-aarch64*) \_gyp_arch=arm64 ;;
-armv7*|armv6*) \_gyp_arch=arm ;;
-i686*) \_gyp_arch=ia32 ;;
-\*) \_gyp_arch=x64 ;;
-esac
+do_build() {
+	# Determine target CPU arch for node-gyp
+	local _gyp_arch
+	case "$XBPS_TARGET_MACHINE" in
+		aarch64*) _gyp_arch=arm64 ;;
+		armv7*|armv6*) _gyp_arch=arm ;;
+		i686*) _gyp_arch=ia32 ;;
+		*) _gyp_arch=x64 ;;
+	esac
 
-    # 1) Install all deps – skip scripts
-    NODE_ENV=development npm ci --ignore-scripts
+	# 1) Install all deps – skip scripts
+	NODE_ENV=development npm ci --ignore-scripts
 
-    # 2) Build the Next.js standalone bundle
-    npm run build
+	# 2) Build the Next.js standalone bundle
+	npm run build
 
-    # 3) Copy static assets into standalone
-    cp -r .next/static .next/standalone/.next/static
-    [ -d public ] && cp -r public .next/standalone/public || true
+	# 3) Copy static assets into standalone
+	cp -r .next/static .next/standalone/.next/static
+	[ -d public ] && cp -r public .next/standalone/public || true
 
-    # 4) Compile better-sqlite3 native binding
-    local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
-    (cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
+	# 4) Compile better-sqlite3 native binding
+	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
+	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
 
-    # 5) Place the compiled binding into the standalone bundle
-    local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
-    mkdir -p "$_bs3_release"
-    cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
+	# 5) Place the compiled binding into the standalone bundle
+	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
+	mkdir -p "$_bs3_release"
+	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
 
-    # 6) Remove arch-specific sharp bundles
-    rm -rf .next/standalone/node_modules/@img
+	# 6) Remove arch-specific sharp bundles
+	rm -rf .next/standalone/node_modules/@img
 
-    # 7) Copy pino runtime deps omitted by Next.js static analysis:
-    for _mod in pino-abstract-transport split2 process-warning; do
-    	cp -r "node_modules/$_mod" .next/standalone/node_modules/
-    done
-
+	# 7) Copy pino runtime deps omitted by Next.js static analysis:
+	for _mod in pino-abstract-transport split2 process-warning; do
+		cp -r "node_modules/$_mod" .next/standalone/node_modules/
+	done
 }
 
 do_check() {
-npm run test:unit
+	npm run test:unit
 }
 
 do_install() {
-vmkdir usr/lib/omniroute/.next
-vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
+	vmkdir usr/lib/omniroute/.next
+	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 
-    # Prevent removal of empty Next.js app router dirs by the post-install hook
-    for _d in \
-    	.next/standalone/.next/server/app/dashboard \
-    	.next/standalone/.next/server/app/dashboard/settings \
-    	.next/standalone/.next/server/app/dashboard/providers; do
-    	touch "${DESTDIR}/usr/lib/omniroute/${_d}/.keep"
-    done
+	# Prevent removal of empty Next.js app router dirs by the post-install hook
+	for _d in \
+		.next/standalone/.next/server/app/dashboard \
+		.next/standalone/.next/server/app/dashboard/settings \
+		.next/standalone/.next/server/app/dashboard/providers; do
+		touch "${DESTDIR}/usr/lib/omniroute/${_d}/.keep"
+	done
 
-    cat > "${WRKDIR}/omniroute" <<'EOF'
-
+	cat > "${WRKDIR}/omniroute" <<'EOF'
 #!/bin/sh
 export PORT="${PORT:-20128}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
@@ -475,80 +516,85 @@ EOF
 }
 
 post_install() {
-vlicense LICENSE
+	vlicense LICENSE
 }
-
-````
+```
 
 </details>
 
 ### Environment Variables
 
-| Variabel | Standaard | Beschrijving |
-| ------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| `JWT_SECRET` | `omniroute-standaard-geheim-wijzig-mij` | JWT-ondertekeningsgeheim (**productiewijziging**) |
-| `INITIAL_PASSWORD` | `123456` | Wachtwoord voor eerste aanmelding |
-| `DATA_DIR` | `~/.omniroute` | Gegevensmap (db, gebruik, logs) |
-| `POORT` | standaard raamwerk | Servicepoort (`20128` in voorbeelden) |
-| `HOSTNAAM` | standaard raamwerk | Bind host (Docker is standaard `0.0.0.0`) |
-| `NODE_ENV` | runtime-standaard | Stel `productie` in voor implementatie |
-| `BASE_URL` | `http://localhost:20128` | Interne basis-URL aan serverzijde |
-| `CLOUD_URL` | `https://omniroute.dev` | Basis-URL van cloudsynchronisatie-eindpunt |
-| `API_KEY_SECRET` | `eindpunt-proxy-api-sleutelgeheim` | HMAC-geheim voor gegenereerde API-sleutels |
-| `REQUIRE_API_KEY` | `vals` | Bearer API-sleutel afdwingen op `/v1/*` |
-| `ALLOW_API_KEY_REVEAL` | `vals` | Sta Api Manager toe om op aanvraag volledige API-sleutels te kopiëren |
-| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70` | Verversingsfrequentie aan de serverzijde voor in de cache opgeslagen Provider Limits-gegevens; Knoppen voor het vernieuwen van de gebruikersinterface activeren nog steeds handmatige synchronisatie |
-| `DISABLE_SQLITE_AUTO_BACKUP` | `vals` | Schakel automatische SQLite-snapshots uit vóór schrijven/importeren/herstellen; handmatige back-ups werken nog steeds |
+| Variable                                | Default                              | Description                                                                                               |
+| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
+| `INITIAL_PASSWORD`                      | `123456`                             | First login password                                                                                      |
+| `DATA_DIR`                              | `~/.omniroute`                       | Data directory (db, usage, logs)                                                                          |
+| `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
+| `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
+| `NODE_ENV`                              | runtime default                      | Set `production` for deploy                                                                               |
+| `BASE_URL`                              | `http://localhost:20128`             | Server-side internal base URL                                                                             |
+| `CLOUD_URL`                             | `https://omniroute.dev`              | Cloud sync endpoint base URL                                                                              |
+| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
+| `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow Api Manager to copy full API keys on demand                                                         |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
+| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
 | `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
-| `AUTH_COOKIE_SECURE` | `vals` | Forceer `Secure` auth-cookie (achter HTTPS reverse proxy) |
-| `CLOUDFLARED_BIN` | uitgeschakeld | Gebruik een bestaand `cloudflared` binair bestand in plaats van een beheerde download |
-| `CLOUDFLARED_PROTOCOL` | `http2` | Transport voor beheerde Quick Tunnels (`http2`, `quic` of `auto`) |
-| `OMNIROUTE_MEMORY_MB` | `512` | Node.js-heaplimiet in MB |
-| `PROMPT_CACHE_MAX_SIZE` | `50` | Max. promptcache-items |
-| `SEMANTIC_CACHE_MAX_SIZE` | `100` | Max. semantische cache-items |Voor de volledige referentie van de omgevingsvariabelen, zie [README](../README.md).---
+| `AUTH_COOKIE_SECURE`                    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                                   |
+| `CLOUDFLARED_BIN`                       | unset                                | Use an existing `cloudflared` binary instead of managed download                                          |
+| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Transport for managed Quick Tunnels (`http2`, `quic`, or `auto`)                                          |
+| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js heap limit in MB                                                                                  |
+| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Max prompt cache entries                                                                                  |
+| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Max semantic cache entries                                                                                |
+
+For the full environment variable reference, see the [README](../README.md).
+
+---
 
 ## 📊 Available Models
 
 <details>
-<summary><b>Bekijk alle beschikbare modellen</b></summary>
+<summary><b>View all available models</b></summary>
 
-**Claude-code (`cc/`)**— Pro/Max: `cc/claude-opus-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
+**Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
-**Codex (`cx/`)**— Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
+**Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
 
-**Gemini CLI (`gc/`)**— GRATIS: `gc/gemini-3-flash-preview`, `gc/gemini-2.5-pro`
+**Gemini CLI (`gc/`)** — FREE: `gc/gemini-3-flash-preview`, `gc/gemini-2.5-pro`
 
-**GitHub Copiloot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
+**GitHub Copilot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
 
-**GLM (`glm/`)**— $0,6/1 miljoen: `glm/glm-4,7`
+**GLM (`glm/`)** — $0.6/1M: `glm/glm-4.7`
 
-**MiniMax (`minimax/`)**— $0,2/1M: `minimax/MiniMax-M2.1`
+**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.1`
 
-**Qoder (`if/`)**— GRATIS: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
+**Qoder (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
 
-**Qwen (`qw/`)**— GRATIS: `qw/qwen3-coder-plus`, `qw/qwen3-coder-flash`
+**Qwen (`qw/`)** — FREE: `qw/qwen3-coder-plus`, `qw/qwen3-coder-flash`
 
-**Kiro (`kr/`)**— GRATIS: `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`
+**Kiro (`kr/`)** — FREE: `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`
 
 **DeepSeek (`ds/`)**: `ds/deepseek-chat`, `ds/deepseek-reasoner`
 
-**Groq (`groq/`)**: `groq/llama-3.3-70b-veelzijdig`, `groq/llama-4-maverick-17b-128e-instruct`
+**Groq (`groq/`)**: `groq/llama-3.3-70b-versatile`, `groq/llama-4-maverick-17b-128e-instruct`
 
-**xAI (`xai/`)**: `xai/grok-4`, `xai/grok-4-0709-snel redeneren`, `xai/grok-code-mini`
+**xAI (`xai/`)**: `xai/grok-4`, `xai/grok-4-0709-fast-reasoning`, `xai/grok-code-mini`
 
-**Mistral (`mistral/`)**: `mistral/mistral-groot-2501`, `mistral/codestral-2501`
+**Mistral (`mistral/`)**: `mistral/mistral-large-2501`, `mistral/codestral-2501`
 
-**Verbijstering (`pplx/`)**: `pplx/sonar-pro`, `pplx/sonar`
+**Perplexity (`pplx/`)**: `pplx/sonar-pro`, `pplx/sonar`
 
-**Samen AI (`samen/`)**: `samen/meta-llama/Llama-3.3-70B-Instruct-Turbo`
+**Together AI (`together/`)**: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo`
 
-**Vuurwerk AI (`fireworks/`)**: `fireworks/accounts/fireworks/models/deepseek-v3p1`
+**Fireworks AI (`fireworks/`)**: `fireworks/accounts/fireworks/models/deepseek-v3p1`
 
 **Cerebras (`cerebras/`)**: `cerebras/llama-3.3-70b`
 
 **Cohere (`cohere/`)**: `cohere/command-r-plus-08-2024`
 
-**NVIDIA NIM (`nvidia/`)**: `nvidia/nvidia/llama-3.3-70b-instruct`</details>
+**NVIDIA NIM (`nvidia/`)**: `nvidia/nvidia/llama-3.3-70b-instruct`
+
+</details>
 
 ---
 
@@ -556,7 +602,9 @@ vlicense LICENSE
 
 ### Custom Models
 
-Voeg elke model-ID toe aan elke provider zonder te wachten op een app-update:```bash
+Add any model ID to any provider without waiting for an app update:
+
+```bash
 # Via API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
@@ -564,23 +612,28 @@ curl -X POST http://localhost:20128/api/provider-models \
 
 # List: curl http://localhost:20128/api/provider-models?provider=openai
 # Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-4.5-preview"
-````
+```
 
-Of gebruik Dashboard:**Aanbieders → [Aanbieder] → Aangepaste modellen**.
+Or use Dashboard: **Providers → [Provider] → Custom Models**.
 
-Opmerkingen:
+Notes:
 
-- OpenRouter en OpenAI/Anthropic-compatibele providers worden uitsluitend beheerd vanuit**Beschikbare modellen**. Handmatig toevoegen, importeren en automatisch synchroniseren komen allemaal in dezelfde lijst met beschikbare modellen terecht, dus er is geen aparte sectie Aangepaste modellen voor die providers.
-- De sectie**Aangepaste modellen**is bedoeld voor providers die geen beheerde import van beschikbare modellen beschikbaar stellen.### Dedicated Provider Routes
+- OpenRouter and OpenAI/Anthropic-compatible providers are managed from **Available Models** only. Manual add, import, and auto-sync all land in the same available-model list, so there is no separate Custom Models section for those providers.
+- The **Custom Models** section is intended for providers that do not expose managed available-model imports.
 
-Routeer verzoeken rechtstreeks naar een specifieke provider met modelvalidatie:```bash
+### Dedicated Provider Routes
+
+Route requests directly to a specific provider with model validation:
+
+```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
 POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
+```
 
-````
+The provider prefix is auto-added if missing. Mismatched models return `400`.
 
-Het providervoorvoegsel wordt automatisch toegevoegd als het ontbreekt. Niet-overeenkomende modellen retourneren '400'.### Network Proxy Configuration
+### Network Proxy Configuration
 
 ```bash
 # Set global proxy
@@ -594,170 +647,203 @@ curl -X PUT http://localhost:20128/api/settings/proxy \
 # Test proxy
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
-````
+```
 
-**Voorrang:**Sleutelspecifiek → Combospecifiek → Providerspecifiek → Globaal → Omgeving.### Model Catalog API
+**Precedence:** Key-specific → Combo-specific → Provider-specific → Global → Environment.
+
+### Model Catalog API
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Retourneert modellen gegroepeerd op provider met typen (`chat`, `embedding`, `image`).### Cloud Sync
+Returns models grouped by provider with types (`chat`, `embedding`, `image`).
 
-- Synchroniseer providers, combo's en instellingen op verschillende apparaten
-- Automatische achtergrondsynchronisatie met time-out + fail-fast
-- Geef de voorkeur aan `BASE_URL`/`CLOUD_URL` aan de serverzijde in productie### Cloudflare Quick Tunnel
+### Cloud Sync
 
-- Beschikbaar in**Dashboard → Eindpunten**voor Docker en andere zelf-gehoste implementaties
-- Creëert een tijdelijke `https://*.trycloudflare.com` URL die doorstuurt naar uw huidige OpenAI-compatibele `/v1` eindpunt
-- Schakel eerst de installatie 'cloudflared' alleen in als dat nodig is; herstart later en hergebruikt hetzelfde beheerde binaire bestand
-- Quick Tunnels worden niet automatisch hersteld na een herstart van OmniRoute of een container; schakel ze indien nodig opnieuw in vanaf het dashboard
-- Tunnel-URL's zijn kortstondig en veranderen elke keer dat u de tunnel stopt/start
-- Beheerde Quick Tunnels gebruiken standaard HTTP/2-transport om luidruchtige QUIC UDP-bufferwaarschuwingen in beperkte containers te voorkomen
-- Stel `CLOUDFLARED_PROTOCOL=quic` of `auto` in als u de beheerde transportkeuze wilt overschrijven
-- Stel `CLOUDFLARED_BIN` in als u liever een vooraf geïnstalleerd `cloudflared` binair bestand gebruikt in plaats van de beheerde download### LLM Gateway Intelligence (Phase 9)
+- Sync providers, combos, and settings across devices
+- Automatic background sync with timeout + fail-fast
+- Prefer server-side `BASE_URL`/`CLOUD_URL` in production
 
--**Semantische cache**— Auto-caches van niet-streaming, temperatuur=0 reacties (omzeilen met `X-OmniRoute-No-Cache: true`) -**Request Idempotency**— Ontdubbelt verzoeken binnen 5 seconden via de header 'Idempotency-Key' of 'X-Request-Id' -**Voortgang bijhouden**— Meld u aan voor SSE `event: progress`-gebeurtenissen via `X-OmniRoute-Progress: true` header---
+### Cloudflare Quick Tunnel
+
+- Available in **Dashboard → Endpoints** for Docker and other self-hosted deployments
+- Creates a temporary `https://*.trycloudflare.com` URL that forwards to your current OpenAI-compatible `/v1` endpoint
+- First enable installs `cloudflared` only when needed; later restarts reuse the same managed binary
+- Quick Tunnels are not auto-restored after an OmniRoute or container restart; re-enable them from the dashboard when needed
+- Tunnel URLs are ephemeral and change every time you stop/start the tunnel
+- Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained containers
+- Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want to override the managed transport choice
+- Set `CLOUDFLARED_BIN` if you prefer using a preinstalled `cloudflared` binary instead of the managed download
+
+### LLM Gateway Intelligence (Phase 9)
+
+- **Semantic Cache** — Auto-caches non-streaming, temperature=0 responses (bypass with `X-OmniRoute-No-Cache: true`)
+- **Request Idempotency** — Deduplicates requests within 5s via `Idempotency-Key` or `X-Request-Id` header
+- **Progress Tracking** — Opt-in SSE `event: progress` events via `X-OmniRoute-Progress: true` header
+
+---
 
 ### Translator Playground
 
-Toegang via**Dashboard → Vertaler**. Debug en visualiseer hoe OmniRoute API-verzoeken tussen providers vertaalt.
+Access via **Dashboard → Translator**. Debug and visualize how OmniRoute translates API requests between providers.
 
-| Modus           | Doel                                                                                                  |
-| --------------- | ----------------------------------------------------------------------------------------------------- |
-| **Speeltuin**   | Selecteer bron-/doelformaten, plak een verzoek en bekijk direct de vertaalde uitvoer                  |
-| **Chattester**  | Stuur livechatberichten via de proxy en inspecteer de volledige aanvraag/antwoordcyclus               |
-| **Proefbank**   | Voer batchtests uit voor meerdere formaatcombinaties om de juistheid van de vertalingen te verifiëren |
-| **Livemonitor** | Bekijk realtime vertalingen terwijl verzoeken via de proxy                                            |
+| Mode             | Purpose                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| **Playground**   | Select source/target formats, paste a request, and see the translated output instantly |
+| **Chat Tester**  | Send live chat messages through the proxy and inspect the full request/response cycle  |
+| **Test Bench**   | Run batch tests across multiple format combinations to verify translation correctness  |
+| **Live Monitor** | Watch real-time translations as requests flow through the proxy                        |
 
-**Gebruiksscenario's:**
+**Use cases:**
 
-- Debug waarom een specifieke client/provider-combinatie mislukt
-- Controleer of denktags, tooloproepen en systeemprompts correct worden vertaald
-- Vergelijk formaatverschillen tussen OpenAI-, Claude-, Gemini- en Responses API-formaten---
+- Debug why a specific client/provider combination fails
+- Verify that thinking tags, tool calls, and system prompts translate correctly
+- Compare format differences between OpenAI, Claude, Gemini, and Responses API formats
+
+---
 
 ### Routing Strategies
 
-Configureer via**Dashboard → Instellingen → Routing**.
+Configure via **Dashboard → Settings → Routing**.
 
-| Strategie                        | Beschrijving                                                                                                                          |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| **Eerst invullen**               | Gebruikt accounts in volgorde van prioriteit: het primaire account handelt alle verzoeken af ​​totdat deze niet meer beschikbaar zijn |
-| **Ronde Robin**                  | Bladert door alle accounts met een configureerbare sticky limiet (standaard: 3 oproepen per account)                                  |
-| **P2C (Kracht van twee keuzes)** | Kiest 2 willekeurige accounts en routes naar de gezondere – balanceert de belasting met bewustzijn van de gezondheid                  |
-| **Willekeurig**                  | Selecteert willekeurig een account voor elk verzoek met behulp van Fisher-Yates shuffle                                               |
-| **Minst gebruikt**               | Routes naar het account met het oudste `lastUsedAt`-tijdstempel, waarbij het verkeer gelijkmatig wordt verdeeld                       |
-| **Kostengeoptimaliseerd**        | Routes naar het account met de laagste prioriteitswaarde, geoptimaliseerd voor providers met de laagste kosten                        | #### External Sticky Session Header |
+| Strategy                       | Description                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **Fill First**                 | Uses accounts in priority order — primary account handles all requests until unavailable         |
+| **Round Robin**                | Cycles through all accounts with a configurable sticky limit (default: 3 calls per account)      |
+| **P2C (Power of Two Choices)** | Picks 2 random accounts and routes to the healthier one — balances load with awareness of health |
+| **Random**                     | Randomly selects an account for each request using Fisher-Yates shuffle                          |
+| **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
+| **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
 
-Voor externe sessie-affiniteit (bijvoorbeeld Claude Code/Codex-agenten achter omgekeerde proxy's), verzendt u:```http
+#### External Sticky Session Header
+
+For external session affinity (for example, Claude Code/Codex agents behind reverse proxies), send:
+
+```http
 X-Session-Id: your-session-key
+```
 
-````
+OmniRoute also accepts `x_session_id` and returns the effective session key in `X-OmniRoute-Session-Id`.
 
-OmniRoute accepteert ook `x_session_id` en retourneert de effectieve sessiesleutel in `X-OmniRoute-Session-Id`.
+If you use Nginx and send underscore-form headers, enable:
 
-Als u Nginx gebruikt en headers in onderstrepingsformulier verzendt, schakelt u het volgende in:```nginx
+```nginx
 underscores_in_headers on;
-````
+```
 
 #### Wildcard Model Aliases
 
-Maak jokertekenpatronen om modelnamen opnieuw toe te wijzen:```
-Pattern: claude-sonnet-_ → Target: cc/claude-sonnet-4-5-20250929
-Pattern: gpt-_ → Target: gh/gpt-5.1-codex
+Create wildcard patterns to remap model names:
 
-````
+```
+Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-5-20250929
+Pattern: gpt-*               →  Target: gh/gpt-5.1-codex
+```
 
-Jokertekens ondersteunen `*` (willekeurige tekens) en `?` (enkel teken).#### Fallback Chains
+Wildcards support `*` (any characters) and `?` (single character).
 
-Definieer globale fallback-ketens die op alle verzoeken van toepassing zijn:```
+#### Fallback Chains
+
+Define global fallback chains that apply across all requests:
+
+```
 Chain: production-fallback
   1. cc/claude-opus-4-6
   2. gh/gpt-5.1-codex
   3. glm/glm-4.7
-````
+```
 
 ---
 
 ### Resilience & Circuit Breakers
 
-Configureer via**Dashboard → Instellingen → Veerkracht**.
+Configure via **Dashboard → Settings → Resilience**.
 
-OmniRoute implementeert veerkracht op providerniveau met vier componenten:
+OmniRoute implements provider-level resilience with four components:
 
-1.**Providerprofielen**— Configuratie per provider voor:
+1. **Provider Profiles** — Per-provider configuration for:
+   - Failure threshold (how many failures before opening)
+   - Cooldown duration
+   - Rate limit detection sensitivity
+   - Exponential backoff parameters
 
-- Foutdrempel (hoeveel fouten vóór opening)
-- Cooldown-duur
-- Snelheidslimietdetectiegevoeligheid
-- Exponentiële uitstelparameters
+2. **Editable Rate Limits** — System-level defaults configurable in the dashboard:
+   - **Requests Per Minute (RPM)** — Maximum requests per minute per account
+   - **Min Time Between Requests** — Minimum gap in milliseconds between requests
+   - **Max Concurrent Requests** — Maximum simultaneous requests per account
+   - Click **Edit** to modify, then **Save** or **Cancel**. Values persist via the resilience API.
 
-  2.**Bewerkbare tarieflimieten**— Standaardinstellingen op systeemniveau configureerbaar in het dashboard: -**Verzoeken per minuut (RPM)**— Maximaal aantal verzoeken per minuut per account -**Min. tijd tussen verzoeken**— Minimale pauze in milliseconden tussen verzoeken -**Max. gelijktijdige verzoeken**— Maximaal gelijktijdige verzoeken per account
+3. **Circuit Breaker** — Tracks failures per provider and automatically opens the circuit when a threshold is reached:
+   - **CLOSED** (Healthy) — Requests flow normally
+   - **OPEN** — Provider is temporarily blocked after repeated failures
+   - **HALF_OPEN** — Testing if provider has recovered
 
-- Klik op**Bewerken**om te wijzigen en vervolgens op**Opslaan**of**Annuleren**. Waarden blijven behouden via de veerkracht-API.
+4. **Policies & Locked Identifiers** — Shows circuit breaker status and locked identifiers with force-unlock capability.
 
-  3.**Circuit Breaker**— Volgt storingen per provider en opent automatisch het circuit wanneer een drempel wordt bereikt: -**GESLOTEN**(Gezond) — Verzoeken stromen normaal door -**OPEN**— Provider is tijdelijk geblokkeerd na herhaalde fouten -**HALF_OPEN**— Testen of de provider is hersteld
+5. **Rate Limit Auto-Detection** — Monitors `429` and `Retry-After` headers to proactively avoid hitting provider rate limits.
 
-  4.**Beleid en vergrendelde identificatiegegevens**— Toont de status van de stroomonderbreker en vergrendelde identificatiegegevens met de mogelijkheid tot geforceerd ontgrendelen.
+**Pro Tip:** Use **Reset All** button to clear all circuit breakers and cooldowns when a provider recovers from an outage.
 
-  5.**Automatische detectie van snelheidslimiet**— Controleert de headers '429' en 'Retry-After' om proactief te voorkomen dat de tarieflimieten van de provider worden overschreden.
-
-**Pro-tip:**Gebruik de knop**Alles resetten**om alle stroomonderbrekers en cooldowns te wissen wanneer een provider herstelt van een storing.---
+---
 
 ### Database Export / Import
 
-Beheer databaseback-ups in**Dashboard → Instellingen → Systeem en opslag**.
+Manage database backups in **Dashboard → Settings → System & Storage**.
 
-| Actie                          | Beschrijving                                                                                                                                                  |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| **Database exporteren**        | Downloadt de huidige SQLite-database als een `.sqlite`-bestand                                                                                                |
-| **Alles exporteren (.tar.gz)** | Downloadt een volledig back-uparchief inclusief: database, instellingen, combo's, providerverbindingen (geen inloggegevens), API-sleutelmetagegevens          |
-| **Database importeren**        | Upload een `.sqlite`-bestand om de huidige database te vervangen. Er wordt automatisch een pre-importback-up gemaakt tenzij `DISABLE_SQLITE_AUTO_BACKUP=true` | ```bash |
+| Action                   | Description                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                                      |
+| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata                 |
+| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created unless `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
+```bash
 # API: Export database
-
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
 # API: Export all (full archive)
-
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
 # API: Import database
-
 curl -X POST http://localhost:20128/api/db-backups/import \
- -F "file=@backup.sqlite"
+  -F "file=@backup.sqlite"
+```
 
-````
+**Import Validation:** The imported file is validated for integrity (SQLite pragma check), required tables (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), and size (max 100MB).
 
-**Importvalidatie:**Het geïmporteerde bestand wordt gevalideerd op integriteit (SQLite pragma check), vereiste tabellen (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) en grootte (max. 100 MB).
+**Use Cases:**
 
-**Gebruiksscenario's:**
+- Migrate OmniRoute between machines
+- Create external backups for disaster recovery
+- Share configurations between team members (export all → share archive)
 
-- Migreer OmniRoute tussen machines
-- Maak externe back-ups voor noodherstel
-- Deel configuraties tussen teamleden (alles exporteren → archief delen)---
+---
 
 ### Settings Dashboard
 
-De instellingenpagina is onderverdeeld in 6 tabbladen voor eenvoudige navigatie:
+The settings page is organized into 6 tabs for easy navigation:
 
-| Tabblad | Inhoud |
-| -------------- | ----------------------------------------------------------------------------------- |
-|**Algemeen**| Hulpmiddelen voor systeemopslag, weergave-instellingen, themabediening en zichtbaarheid in de zijbalk per item |
-|**Beveiliging**| Login-/wachtwoordinstellingen, IP-toegangscontrole, API-authenticatie voor `/modellen` en providerblokkering |
-|**Routing**| Globale routeringsstrategie (6 opties), wildcard-modelaliassen, fallback-ketens, combo-standaardwaarden |
-|**Veerkracht**| Providerprofielen, bewerkbare tarieflimieten, status van stroomonderbrekers, beleid en vergrendelde identificatiegegevens |
-|**AI**| Denken aan budgetconfiguratie, globale systeempromptinjectie, prompt cachestatistieken |
-|**Geavanceerd**| Globale proxyconfiguratie (HTTP/SOCKS5) |---
+| Tab            | Contents                                                                                       |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| **General**    | System storage tools, appearance settings, theme controls, and per-item sidebar visibility     |
+| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking      |
+| **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults   |
+| **Resilience** | Provider profiles, editable rate limits, circuit breaker status, policies & locked identifiers |
+| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats              |
+| **Advanced**   | Global proxy configuration (HTTP/SOCKS5)                                                       |
+
+---
 
 ### Costs & Budget Management
 
-Toegang via**Dashboard → Kosten**.
+Access via **Dashboard → Costs**.
 
-| Tabblad | Doel |
-| ----------- | ------------------------------------------------------------------------------ |
-|**Begroting**| Stel bestedingslimieten per API-sleutel in met dagelijkse/wekelijkse/maandelijkse budgetten en realtime tracking |
-|**Prijzen**| Bekijk en bewerk modelprijsgegevens — kosten per 1K input/output-tokens per provider |```bash
+| Tab         | Purpose                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| **Budget**  | Set spending limits per API key with daily/weekly/monthly budgets and real-time tracking |
+| **Pricing** | View and edit model pricing entries — cost per 1K input/output tokens per provider       |
+
+```bash
 # API: Set a budget
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
@@ -765,63 +851,73 @@ curl -X POST http://localhost:20128/api/usage/budget \
 
 # API: Get current budget status
 curl http://localhost:20128/api/usage/budget
-````
+```
 
-**Kosten bijhouden:**Bij elk verzoek wordt het tokengebruik geregistreerd en worden de kosten berekend met behulp van de prijstabel. Bekijk de uitsplitsingen in**Dashboard → Gebruik**per provider, model en API-sleutel.---
+**Cost Tracking:** Every request logs token usage and calculates cost using the pricing table. View breakdowns in **Dashboard → Usage** by provider, model, and API key.
+
+---
 
 ### Audio Transcription
 
-OmniRoute ondersteunt audiotranscriptie via het OpenAI-compatibele eindpunt:```bash
+OmniRoute supports audio transcription via the OpenAI-compatible endpoint:
+
+```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
 # Example with curl
-
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
- -H "Authorization: Bearer your-api-key" \
- -F "file=@audio.mp3" \
- -F "model=deepgram/nova-3"
+  -H "Authorization: Bearer your-api-key" \
+  -F "file=@audio.mp3" \
+  -F "model=deepgram/nova-3"
+```
 
-````
+Available providers: **Deepgram** (`deepgram/`), **AssemblyAI** (`assemblyai/`).
 
-Beschikbare providers:**Deepgram**(`deepgram/`),**AssemblyAI**(`assemblyai/`).
+Supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
 
-Ondersteunde audioformaten: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.---
+---
 
 ### Combo Balancing Strategies
 
-Configureer de balans per combo in**Dashboard → Combo's → Maken/bewerken → Strategie**.
+Configure per-combo balancing in **Dashboard → Combos → Create/Edit → Strategy**.
 
-| Strategie | Beschrijving |
-| ------------------ | ----------------------------------------------------------------- |
-|**Round-Robin**| Roteert opeenvolgend door modellen |
-|**Prioriteit**| Probeert altijd het eerste model; valt alleen terug op fouten |
-|**Willekeurig**| Kiest voor elk verzoek een willekeurig model uit de combo |
-|**Gewogen**| Routes proportioneel op basis van toegekende gewichten per model |
-|**Minst gebruikt**| Routes naar het model met de minste recente verzoeken (gebruikt combo-statistieken) |
-|**Kostengeoptimaliseerd**| Routes naar het goedkoopste beschikbare model (gebruikt prijstabel) |
+| Strategy           | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Round-Robin**    | Rotates through models sequentially                                      |
+| **Priority**       | Always tries the first model; falls back only on error                   |
+| **Random**         | Picks a random model from the combo for each request                     |
+| **Weighted**       | Routes proportionally based on assigned weights per model                |
+| **Least-Used**     | Routes to the model with the fewest recent requests (uses combo metrics) |
+| **Cost-Optimized** | Routes to the cheapest available model (uses pricing table)              |
 
-Algemene combo-standaardinstellingen kunnen worden ingesteld in**Dashboard → Instellingen → Routing → Combo-standaardwaarden**.---
+Global combo defaults can be set in **Dashboard → Settings → Routing → Combo Defaults**.
+
+---
 
 ### Health Dashboard
 
-Toegang via**Dashboard → Gezondheid**. Realtime overzicht van de systeemstatus met 6 kaarten:
+Access via **Dashboard → Health**. Real-time system health overview with 6 cards:
 
-| Kaart | Wat het laat zien |
-| -------------------- | ---------------------------------------------------- |
-|**Systeemstatus**| Uptime, versie, geheugengebruik, datadirectory |
-|**Provider Gezondheid**| Status stroomonderbreker per provider (gesloten/open/halfopen) |
-|**Tarieflimieten**| Actieve afkoelperiodes voor tarieflimieten per account met resterende tijd |
-|**Actieve vergrendelingen**| Providers tijdelijk geblokkeerd door het lockoutbeleid |
-|**Handtekeningcache**| Deduplicatiecachestatistieken (actieve sleutels, trefpercentage) |
-|**Latentietelemetrie**| p50/p95/p99-latentieaggregatie per provider |
+| Card                  | What It Shows                                               |
+| --------------------- | ----------------------------------------------------------- |
+| **System Status**     | Uptime, version, memory usage, data directory               |
+| **Provider Health**   | Per-provider circuit breaker state (Closed/Open/Half-Open)  |
+| **Rate Limits**       | Active rate limit cooldowns per account with remaining time |
+| **Active Lockouts**   | Providers temporarily blocked by the lockout policy         |
+| **Signature Cache**   | Deduplication cache stats (active keys, hit rate)           |
+| **Latency Telemetry** | p50/p95/p99 latency aggregation per provider                |
 
-**Pro-tip:**De Gezondheidspagina wordt elke 10 seconden automatisch vernieuwd. Gebruik de stroomonderbrekerkaart om te identificeren welke providers problemen ondervinden.---
+**Pro Tip:** The Health page auto-refreshes every 10 seconds. Use the circuit breaker card to identify which providers are experiencing issues.
+
+---
 
 ## 🖥️ Desktop Application (Electron)
 
-OmniRoute is beschikbaar als native desktop-applicatie voor Windows, macOS en Linux.### Installeren
+OmniRoute is available as a native desktop application for Windows, macOS, and Linux.
+
+### Installeren
 
 ```bash
 # From the electron directory:
@@ -833,7 +929,7 @@ npm run dev
 
 # Production mode (uses standalone build):
 npm start
-````
+```
 
 ### Building Installers
 
@@ -845,20 +941,24 @@ npm run build:mac      # macOS (.dmg universal)
 npm run build:linux    # Linux (.AppImage)
 ```
 
-Uitvoer → `elektron/dist-elektron/`### Key Features
+Output → `electron/dist-electron/`
 
-| Kenmerk                       | Beschrijving                                                             |
-| ----------------------------- | ------------------------------------------------------------------------ | ------------------------- |
-| **Servergereedheid**          | Pollt de server voordat het venster wordt weergegeven (geen leeg scherm) |
-| **Systeemvak**                | Minimaliseren naar lade, poort wijzigen, afsluiten vanuit lademenu       |
-| **Havenbeheer**               | Serverpoort vanuit lade wijzigen (server automatisch opnieuw opstarten)  |
-| **Inhoudsbeveiligingsbeleid** | Beperkende CSP via sessieheaders                                         |
-| **Enkel exemplaar**           | Er kan slechts één app-exemplaar tegelijk worden uitgevoerd              |
-| **Offlinemodus**              | Gebundelde Next.js-server werkt zonder internet                          | ### Environment Variables |
+### Key Features
 
-| Variabel              | Standaard | Beschrijving                     |
-| --------------------- | --------- | -------------------------------- |
-| `OMNIROUTE_PORT`      | `20128`   | Serverpoort                      |
-| `OMNIROUTE_MEMORY_MB` | `512`     | Node.js-heaplimiet (64–16384 MB) |
+| Feature                     | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| **Server Readiness**        | Polls server before showing window (no blank screen) |
+| **System Tray**             | Minimize to tray, change port, quit from tray menu   |
+| **Port Management**         | Change server port from tray (auto-restarts server)  |
+| **Content Security Policy** | Restrictive CSP via session headers                  |
+| **Single Instance**         | Only one app instance can run at a time              |
+| **Offline Mode**            | Bundled Next.js server works without internet        |
 
-📖 Volledige documentatie: [`electron/README.md`](../electron/README.md)
+### Environment Variables
+
+| Variable              | Default | Description                      |
+| --------------------- | ------- | -------------------------------- |
+| `OMNIROUTE_PORT`      | `20128` | Server port                      |
+| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
+
+📖 Full documentation: [`electron/README.md`](../electron/README.md)

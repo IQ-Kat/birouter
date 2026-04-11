@@ -65,3 +65,36 @@ test("providers validate route returns 400 for invalid provider type", async () 
   // Should return 400 for unsupported
   assert.equal(response.status, 400);
 });
+
+test("providers validate route forwards baseUrl to built-in specialty validators", async () => {
+  await resetStorage();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url) === "https://us.inference.heroku.com/v1/chat/completions") {
+      assert.equal(init.headers.Authorization, "Bearer heroku-key");
+      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+    }
+    throw new Error(`unexpected fetch: ${url}`);
+  };
+
+  try {
+    const request = new Request("http://localhost/api/providers/validate", {
+      method: "POST",
+      body: JSON.stringify({
+        provider: "heroku",
+        apiKey: "heroku-key",
+        baseUrl: "https://us.inference.heroku.com",
+      }),
+    });
+
+    const response = await validateRoute.POST(request);
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(body.valid, true);
+    assert.equal(body.error, null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

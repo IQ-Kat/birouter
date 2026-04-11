@@ -15,7 +15,9 @@ import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import { CardSkeleton } from "@/shared/components/Loading";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
-import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
+import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 
 const LS_GROUP_BY = "omniroute:limits:groupBy";
 const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
@@ -79,6 +81,7 @@ function formatCountdown(resetAt) {
 
 export default function ProviderLimits() {
   const t = useTranslations("usage");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const [connections, setConnections] = useState([]);
   const [quotaData, setQuotaData] = useState({});
   const [loading, setLoading] = useState({});
@@ -427,6 +430,7 @@ export default function ProviderLimits() {
             {visibleConnections.length !== sortedConnections.length &&
               ` ${t("filteredFromCount", { count: sortedConnections.length })}`}
           </span>
+          <EmailPrivacyToggle />
         </div>
 
         <div className="flex items-center gap-2">
@@ -546,8 +550,9 @@ export default function ProviderLimits() {
                   </div>
                   <div className="min-w-0">
                     <div className="text-[13px] font-semibold text-text-main truncate">
-                      {pickMaskedDisplayValue(
+                      {pickDisplayValue(
                         [conn.name, conn.displayName, conn.email],
+                        emailsVisible,
                         config.label
                       )}
                     </div>

@@ -156,6 +156,49 @@ test("DefaultExecutor.buildUrl handles openai-compatible and anthropic-compatibl
   );
 });
 
+test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base URLs", () => {
+  const bailian = new DefaultExecutor("bailian-coding-plan");
+  const heroku = new DefaultExecutor("heroku");
+  const databricks = new DefaultExecutor("databricks");
+  const snowflake = new DefaultExecutor("snowflake");
+  const gigachat = new DefaultExecutor("gigachat");
+
+  assert.equal(
+    bailian.buildUrl("qwen3-coder-plus", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+      },
+    }),
+    "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages?beta=true"
+  );
+  assert.equal(
+    heroku.buildUrl("claude-4-sonnet", true, 0, {
+      providerSpecificData: { baseUrl: "https://us.inference.heroku.com" },
+    }),
+    "https://us.inference.heroku.com/v1/chat/completions"
+  );
+  assert.equal(
+    databricks.buildUrl("databricks-gpt-5", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints",
+      },
+    }),
+    "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints/chat/completions"
+  );
+  assert.equal(
+    snowflake.buildUrl("llama3.3-70b", true, 0, {
+      providerSpecificData: { baseUrl: "https://account.snowflakecomputing.com" },
+    }),
+    "https://account.snowflakecomputing.com/api/v2/cortex/inference:complete"
+  );
+  assert.equal(
+    gigachat.buildUrl("GigaChat-2-Pro", true, 0, {
+      providerSpecificData: { baseUrl: "https://gigachat.devices.sberbank.ru/api/v1" },
+    }),
+    "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+  );
+});
+
 test("DefaultExecutor.buildUrl falls back to OpenAI config for unknown providers", () => {
   const executor = new DefaultExecutor("unknown-provider");
   assert.equal(executor.config.baseUrl, PROVIDERS.openai.baseUrl);
@@ -196,6 +239,24 @@ test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compa
   assert.equal(anthropicHeaders["x-api-key"], "anth-key");
   assert.equal(anthropicHeaders["anthropic-version"], "2023-06-01");
   assert.equal(anthropicHeaders.Accept, "text/event-stream");
+});
+
+test("DefaultExecutor.buildHeaders handles Snowflake PATs and GigaChat access tokens", () => {
+  const snowflake = new DefaultExecutor("snowflake");
+  const gigachat = new DefaultExecutor("gigachat");
+
+  const snowflakePatHeaders = snowflake.buildHeaders({ apiKey: "pat/test-token" }, false);
+  const snowflakeJwtHeaders = snowflake.buildHeaders({ apiKey: "jwt-token" }, false);
+  const gigachatHeaders = gigachat.buildHeaders({ accessToken: "gigachat-token" }, false);
+
+  assert.equal(snowflakePatHeaders.Authorization, "Bearer test-token");
+  assert.equal(
+    snowflakePatHeaders["X-Snowflake-Authorization-Token-Type"],
+    "PROGRAMMATIC_ACCESS_TOKEN"
+  );
+  assert.equal(snowflakeJwtHeaders.Authorization, "Bearer jwt-token");
+  assert.equal(snowflakeJwtHeaders["X-Snowflake-Authorization-Token-Type"], "KEYPAIR_JWT");
+  assert.equal(gigachatHeaders.Authorization, "Bearer gigachat-token");
 });
 
 test("DefaultExecutor.buildHeaders strips DashScope headers for Qwen API keys and preserves them for OAuth", () => {
@@ -315,6 +376,20 @@ test("DefaultExecutor.refreshCredentials returns null without refresh token", as
   assert.equal(result, null);
 });
 
+test("DefaultExecutor.needsRefresh requests a proactive token for GigaChat", () => {
+  const executor = new DefaultExecutor("gigachat");
+
+  assert.equal(executor.needsRefresh({ apiKey: "base64-basic-credentials" }), true);
+  assert.equal(
+    executor.needsRefresh({
+      apiKey: "base64-basic-credentials",
+      accessToken: "existing-token",
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    }),
+    false
+  );
+});
+
 test("DefaultExecutor.refreshCredentials delegates to OAuth refresh and returns new tokens", async () => {
   const executor = new DefaultExecutor("gemini");
   const originalFetch = globalThis.fetch;
@@ -405,6 +480,49 @@ test("BaseExecutor.execute returns response metadata and merges headers", async 
     assert.equal(result.headers["X-Trace-Id"], "trace-1");
     assert.equal(result.headers.Accept, "text/event-stream");
     assert.equal(captured.options.body.includes('"transformed":true'), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("BaseExecutor.execute refreshes credentials before the request when needed", async () => {
+  class RefreshingExecutor extends BaseExecutor {
+    constructor() {
+      super("refreshing-provider", {
+        baseUrl: "https://refresh.example/v1/chat/completions",
+      });
+    }
+
+    needsRefresh() {
+      return true;
+    }
+
+    async refreshCredentials() {
+      return {
+        accessToken: "fresh-token",
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      };
+    }
+  }
+
+  const executor = new RefreshingExecutor();
+  const originalFetch = globalThis.fetch;
+  let capturedHeaders;
+  globalThis.fetch = async (url, options) => {
+    assert.equal(String(url), "https://refresh.example/v1/chat/completions");
+    capturedHeaders = options.headers;
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+
+  try {
+    await executor.execute({
+      model: "gpt-4.1",
+      body: {},
+      stream: false,
+      credentials: { apiKey: "stale-token" },
+    });
+
+    assert.equal(capturedHeaders.Authorization, "Bearer fresh-token");
   } finally {
     globalThis.fetch = originalFetch;
   }

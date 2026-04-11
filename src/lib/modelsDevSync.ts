@@ -175,7 +175,7 @@ const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   // Additional providers that may overlap with OmniRoute
   alibaba: ["ali", "alibaba", "bcp", "alicode", "alicode-intl"],
   zai: ["zai", "glm"], // GLM models via Z.AI
-  moonshot: ["kimi", "kimi-coding", "kmc", "kmca"],
+  moonshot: ["moonshot", "kimi", "kimi-coding", "kmc", "kmca"],
   minimax: ["minimax", "minimax-cn"],
   longcat: ["lc", "longcat"],
   pollinations: ["pol", "pollinations"],

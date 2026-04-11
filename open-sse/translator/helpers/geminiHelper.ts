@@ -100,11 +100,18 @@ export function convertOpenAIContentToParts(content) {
         }
 
         // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."})
-        if (typeof item.data === "string" && !item.data.startsWith("http")) {
-          const rawData = item.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
+        const rawDataStr = item.data || item.file?.data || item.document?.data;
+        const mimeTypeFallback =
+          item.mime_type ||
+          item.media_type ||
+          item.file?.mime_type ||
+          item.document?.mime_type ||
+          "application/octet-stream";
+        if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
+          const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
           parts.push({
             inlineData: {
-              mimeType: item.mime_type || item.media_type || "application/octet-stream",
+              mimeType: mimeTypeFallback,
               data: rawData,
             },
           });

@@ -102,6 +102,102 @@ const KIMI_CODING_SHARED = {
   ] as RegistryModel[],
 } as const;
 
+const buildModels = (ids: readonly string[]): RegistryModel[] =>
+  ids.map((id) => ({ id, name: id }));
+
+const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
+  deepinfra: buildModels([
+    "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+    "deepseek-ai/DeepSeek-R1",
+    "meta-llama/Llama-3.3-70B-Instruct",
+    "anthropic/claude-4-sonnet",
+  ]),
+  "vercel-ai-gateway": buildModels([
+    "openai/gpt-4.1",
+    "anthropic/claude-4-sonnet",
+    "google/gemini-2.5-pro",
+    "moonshotai/kimi-k2",
+    "vercel/v0-1.5-md",
+  ]),
+  "lambda-ai": buildModels([
+    "deepseek-r1-671b",
+    "llama3.3-70b-instruct-fp8",
+    "qwen25-coder-32b-instruct",
+  ]),
+  sambanova: buildModels([
+    "DeepSeek-V3.1",
+    "Llama-4-Maverick-17B-128E-Instruct",
+    "Qwen3-32B",
+    "gpt-oss-120b",
+  ]),
+  nscale: buildModels([
+    "Qwen/QwQ-32B",
+    "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+    "meta-llama/Llama-3.3-70B-Instruct",
+  ]),
+  ovhcloud: buildModels([
+    "Meta-Llama-3_3-70B-Instruct",
+    "Qwen2.5-Coder-32B-Instruct",
+    "Mistral-Small-3.2-24B-Instruct-2506",
+  ]),
+  baseten: buildModels(["moonshotai/Kimi-K2.5", "zai-org/GLM-5", "deepseek-ai/DeepSeek-V3.1"]),
+  publicai: buildModels([
+    "swiss-ai/apertus-70b-instruct",
+    "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "allenai/Olmo-3-32B-Think",
+  ]),
+  moonshot: buildModels(["kimi-k2.5", "kimi-latest", "moonshot-v1-auto"]),
+  "meta-llama": buildModels([
+    "Llama-3.3-70B-Instruct",
+    "Llama-4-Maverick-17B-128E-Instruct-FP8",
+    "Llama-4-Scout-17B-16E-Instruct-FP8",
+  ]),
+  "v0-vercel": buildModels(["v0-1.0-md", "v0-1.5-lg", "v0-1.5-md"]),
+  morph: buildModels(["morph-v3-fast", "morph-v3-large"]),
+  "featherless-ai": buildModels(["featherless-ai/Qwerky-72B", "featherless-ai/Qwerky-QwQ-32B"]),
+  friendliai: buildModels(["meta-llama-3.1-70b-instruct", "meta-llama-3.1-8b-instruct"]),
+  llamagate: buildModels(["qwen2.5-coder-7b", "deepseek-coder-6.7b", "qwen3-vl-8b"]),
+  heroku: buildModels(["claude-3-5-sonnet-latest", "claude-4-sonnet"]),
+  galadriel: buildModels(["galadriel-latest"]),
+  databricks: buildModels([
+    "databricks-gpt-5",
+    "databricks-meta-llama-3-3-70b-instruct",
+    "databricks-claude-sonnet-4",
+    "databricks-gemini-2-5-pro",
+  ]),
+  snowflake: buildModels(["llama3.1-70b", "llama3.3-70b", "deepseek-r1", "claude-3-5-sonnet"]),
+  wandb: buildModels([
+    "openai/gpt-oss-120b",
+    "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+    "deepseek-ai/DeepSeek-V3.1",
+  ]),
+  volcengine: buildModels([
+    "deepseek-v3-2-251201",
+    "doubao-seed-2-0-code-preview-260215",
+    "kimi-k2-thinking-251104",
+    "glm-4-7-251222",
+  ]),
+  ai21: buildModels(["jamba-large-1.7", "jamba-mini-1.7", "jamba-1.5-large"]),
+  gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),
+  venice: buildModels(["venice-latest"]),
+  codestral: buildModels(["codestral-2405", "codestral-latest"]),
+  upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
+  maritalk: buildModels(["sabia-3", "sabia-3-small"]),
+  "xiaomi-mimo": buildModels(["MiMo-7B-RL", "MiMo-7B-SFT"]),
+  "inference-net": buildModels([
+    "meta-llama/Llama-3.3-70B-Instruct",
+    "deepseek-ai/DeepSeek-R1",
+    "Qwen/Qwen2.5-72B-Instruct",
+  ]),
+  nanogpt: buildModels(["chatgpt-4o-latest", "claude-3.5-sonnet", "gpt-4o-mini"]),
+  predibase: buildModels(["llama-3.3-70b"]),
+  bytez: buildModels([
+    "meta-llama/Llama-3.3-70B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3",
+    "Qwen/Qwen2.5-72B-Instruct",
+  ]),
+};
+
 function mapStainlessOs() {
   switch (platform()) {
     case "darwin":
@@ -1402,6 +1498,358 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "deepseek-v3-0324", name: "DeepSeek V3 (🆓 EU)" },
       { id: "gpt-oss-120b", name: "GPT-OSS 120B (🆓 EU)" },
     ],
+  },
+
+  deepinfra: {
+    id: "deepinfra",
+    alias: "deepinfra",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.deepinfra.com/v1/openai/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.deepinfra,
+  },
+
+  "vercel-ai-gateway": {
+    id: "vercel-ai-gateway",
+    alias: "vag",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://ai-gateway.vercel.sh/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["vercel-ai-gateway"],
+  },
+
+  "lambda-ai": {
+    id: "lambda-ai",
+    alias: "lambda",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.lambda.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["lambda-ai"],
+  },
+
+  sambanova: {
+    id: "sambanova",
+    alias: "samba",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.sambanova.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.sambanova,
+  },
+
+  nscale: {
+    id: "nscale",
+    alias: "nscale",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://inference.api.nscale.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.nscale,
+  },
+
+  ovhcloud: {
+    id: "ovhcloud",
+    alias: "ovh",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.ovhcloud,
+  },
+
+  baseten: {
+    id: "baseten",
+    alias: "baseten",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://inference.baseten.co/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.baseten,
+  },
+
+  publicai: {
+    id: "publicai",
+    alias: "publicai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.publicai.co/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.publicai,
+  },
+
+  moonshot: {
+    id: "moonshot",
+    alias: "moonshot",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.moonshot.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.moonshot,
+  },
+
+  "meta-llama": {
+    id: "meta-llama",
+    alias: "meta",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.llama.com/compat/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["meta-llama"],
+  },
+
+  "v0-vercel": {
+    id: "v0-vercel",
+    alias: "v0",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.v0.dev/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["v0-vercel"],
+  },
+
+  morph: {
+    id: "morph",
+    alias: "morph",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.morphllm.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.morph,
+  },
+
+  "featherless-ai": {
+    id: "featherless-ai",
+    alias: "featherless",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.featherless.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["featherless-ai"],
+  },
+
+  friendliai: {
+    id: "friendliai",
+    alias: "friendli",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.friendli.ai/dedicated/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.friendliai,
+  },
+
+  llamagate: {
+    id: "llamagate",
+    alias: "llamagate",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://llamagate.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.llamagate,
+  },
+
+  heroku: {
+    id: "heroku",
+    alias: "heroku",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://us.inference.heroku.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.heroku,
+  },
+
+  galadriel: {
+    id: "galadriel",
+    alias: "galadriel",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.galadriel.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.galadriel,
+  },
+
+  databricks: {
+    id: "databricks",
+    alias: "databricks",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://adb-0000000000000000.0.azuredatabricks.net/serving-endpoints",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.databricks,
+  },
+
+  snowflake: {
+    id: "snowflake",
+    alias: "snowflake",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://example-account.snowflakecomputing.com/api/v2",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.snowflake,
+  },
+
+  wandb: {
+    id: "wandb",
+    alias: "wandb",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.inference.wandb.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.wandb,
+  },
+
+  volcengine: {
+    id: "volcengine",
+    alias: "volcengine",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.volcengine,
+  },
+
+  ai21: {
+    id: "ai21",
+    alias: "ai21",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.ai21.com/studio/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.ai21,
+  },
+
+  gigachat: {
+    id: "gigachat",
+    alias: "gigachat",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://gigachat.devices.sberbank.ru/api/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.gigachat,
+  },
+
+  venice: {
+    id: "venice",
+    alias: "venice",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.venice.ai/api/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.venice,
+  },
+
+  codestral: {
+    id: "codestral",
+    alias: "codestral",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://codestral.mistral.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.codestral,
+  },
+
+  upstage: {
+    id: "upstage",
+    alias: "upstage",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.upstage.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.upstage,
+  },
+
+  maritalk: {
+    id: "maritalk",
+    alias: "maritalk",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://chat.maritaca.ai/api/chat/inference",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.maritalk,
+  },
+
+  "xiaomi-mimo": {
+    id: "xiaomi-mimo",
+    alias: "mimo",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.xiaomi.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["xiaomi-mimo"],
+  },
+
+  "inference-net": {
+    id: "inference-net",
+    alias: "inet",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.inference.net/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS["inference-net"],
+  },
+
+  nanogpt: {
+    id: "nanogpt",
+    alias: "nanogpt",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://nano-gpt.com/api/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.nanogpt,
+  },
+
+  predibase: {
+    id: "predibase",
+    alias: "predibase",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://serving.app.predibase.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.predibase,
+  },
+
+  bytez: {
+    id: "bytez",
+    alias: "bytez",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.bytez.com/models/v2",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.bytez,
   },
 
   aimlapi: {

@@ -5,10 +5,10 @@
  * to prevent identity exposure in dashboards and logs.
  *
  * @example
- *   maskEmail("diego.souza@gmail.com")  // "di*********@g****.com"
+ *   maskEmail("diego.souza@gmail.com")  // "die********@gmail.com"
  *   maskEmail("a@b.com")                // "a@b.com"  (too short to mask)
  */
-export function maskEmail(email: string | null | undefined, visibleChars = 2): string {
+export function maskEmail(email: string | null | undefined, visibleChars = 3): string {
   if (!email) return "";
   if (!email.includes("@")) return email;
 
@@ -25,9 +25,8 @@ export function maskEmail(email: string | null | undefined, visibleChars = 2): s
 
   const maskedUser = username.slice(0, visibleChars) + "*".repeat(username.length - visibleChars);
 
-  // Mask domain name: keep first char, mask the rest
-  const maskedDomain =
-    domainName.length > 1 ? domainName.slice(0, 1) + "*".repeat(domainName.length - 1) : domainName;
+  // Preserve the full domain name to maintain clear provider account differentiation
+  const maskedDomain = domainName;
 
   return `${maskedUser}@${maskedDomain}${tld}`;
 }
@@ -36,7 +35,7 @@ export function maskEmail(email: string | null | undefined, visibleChars = 2): s
  * Masks the value only when it looks like an email address.
  * Useful for fields like `name` that may be normalized to the raw email.
  */
-export function maskEmailLikeValue(value: string | null | undefined, visibleChars = 2): string {
+export function maskEmailLikeValue(value: string | null | undefined, visibleChars = 3): string {
   if (!value) return "";
   const trimmed = value.trim();
   if (!trimmed) return "";
@@ -55,4 +54,23 @@ export function pickMaskedDisplayValue(
     if (masked) return masked;
   }
   return fallback;
+}
+
+/**
+ * Visibility-aware variant of pickMaskedDisplayValue.
+ * When `showFull` is true, returns the raw (unmasked) value.
+ * When `showFull` is false, returns the masked value (default behavior).
+ */
+export function pickDisplayValue(
+  values: Array<string | null | undefined>,
+  showFull: boolean,
+  fallback = ""
+): string {
+  if (showFull) {
+    for (const value of values) {
+      if (value?.trim()) return value.trim();
+    }
+    return fallback;
+  }
+  return pickMaskedDisplayValue(values, fallback);
 }
