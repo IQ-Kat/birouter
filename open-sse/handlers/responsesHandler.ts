@@ -7,6 +7,7 @@ import { getCorsOrigin } from "../utils/cors.ts";
 import { handleChatCore } from "./chatCore.ts";
 import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
+import { createSseHeartbeatTransform } from "../utils/sseHeartbeat.ts";
 
 /**
  * Handle /v1/responses request
@@ -19,6 +20,7 @@ import { createResponsesApiTransformStream } from "../transformer/responsesTrans
  * @param {function} options.onRequestSuccess - Callback when request succeeds
  * @param {function} options.onDisconnect - Callback when client disconnects
  * @param {string} options.connectionId - Connection ID for usage tracking
+ * @param {AbortSignal} [options.signal] - Abort signal for request/disconnect cleanup
  * @returns {Promise<{success: boolean, response?: Response, status?: number, error?: string}>}
  */
 export async function handleResponsesCore({
@@ -30,6 +32,7 @@ export async function handleResponsesCore({
   onRequestSuccess,
   onDisconnect,
   connectionId,
+  signal,
 }) {
   // Convert Responses API format to Chat Completions format
   const convertedBody = convertResponsesApiFormat(body);
@@ -66,7 +69,9 @@ export async function handleResponsesCore({
 
   // Transform SSE stream to Responses API format (no logging in worker)
   const transformStream = createResponsesApiTransformStream(null);
-  const transformedBody = response.body.pipeThrough(transformStream);
+  const transformedBody = response.body
+    .pipeThrough(transformStream)
+    .pipeThrough(createSseHeartbeatTransform({ signal }));
 
   return {
     success: true,
