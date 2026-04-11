@@ -344,7 +344,7 @@ test("startCloudflaredTunnel records an error state when the child exits before 
   assert.equal(state.status, "error");
   assert.match(
     state.lastError,
-    /(certificate signed by unknown authority|cloudflared exited unexpectedly \(1\))/
+    /(certificate signed by unknown authority|cloudflared exited (unexpectedly|before tunnel URL was ready) \(1\))/
   );
 });
 
