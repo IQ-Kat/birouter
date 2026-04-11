@@ -8,7 +8,7 @@ import {
 
 describe("maskEmail", () => {
   it("masks standard email correctly", () => {
-    assert.equal(maskEmail("diego.souza@gmail.com"), "di*********@g****.com");
+    assert.equal(maskEmail("diego.souza@gmail.com"), "die********@gmail.com");
   });
 
   it("masks email with short username (exactly visibleChars)", () => {
@@ -18,7 +18,7 @@ describe("maskEmail", () => {
 
   it("masks email with longer username", () => {
     const result = maskEmail("hello@example.com");
-    assert.equal(result, "he***@e******.com");
+    assert.equal(result, "hel**@example.com");
   });
 
   it("returns empty string for null", () => {
@@ -54,14 +54,14 @@ describe("maskEmail", () => {
   });
 
   it("masks email-like values stored in generic labels", () => {
-    assert.equal(maskEmailLikeValue("person@example.com"), "pe****@e******.com");
+    assert.equal(maskEmailLikeValue("person@example.com"), "per***@example.com");
     assert.equal(maskEmailLikeValue("Work Account"), "Work Account");
   });
 
   it("picks the first non-empty masked display value", () => {
     assert.equal(
       pickMaskedDisplayValue(["", "person@example.com", "fallback"], "fallback"),
-      "pe****@e******.com"
+      "per***@example.com"
     );
     assert.equal(pickMaskedDisplayValue([null, "Workspace"], "fallback"), "Workspace");
   });

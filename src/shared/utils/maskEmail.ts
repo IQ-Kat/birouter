@@ -5,7 +5,7 @@
  * to prevent identity exposure in dashboards and logs.
  *
  * @example
- *   maskEmail("diego.souza@gmail.com")  // "di*********@g****.com"
+ *   maskEmail("diego.souza@gmail.com")  // "die********@gmail.com"
  *   maskEmail("a@b.com")                // "a@b.com"  (too short to mask)
  */
 export function maskEmail(email: string | null | undefined, visibleChars = 3): string {
