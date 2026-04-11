@@ -2219,6 +2219,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 | [Architecture](docs/ARCHITECTURE.md)                     | System architecture and internals                   |
 | [Codebase Documentation](docs/CODEBASE_DOCUMENTATION.md) | Beginner-friendly codebase walkthrough              |
 | [Uninstall Guide](docs/UNINSTALL.md)                     | Clean removal for all install methods               |
+| [Environment Config](docs/ENVIRONMENT.md)                | Complete `.env` variables and references            |
 | [Contributing](CONTRIBUTING.md)                          | Development setup and guidelines                    |
 | [OpenAPI Spec](docs/openapi.yaml)                        | OpenAPI 3.0 specification                           |
 | [Security Policy](SECURITY.md)                           | Vulnerability reporting and security practices      |
