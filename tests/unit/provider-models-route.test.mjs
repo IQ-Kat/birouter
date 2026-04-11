@@ -143,6 +143,23 @@ test("provider models route returns static catalog entries for providers with ha
   assert.equal(body.models.length, 8);
 });
 
+test("provider models route returns the local catalog for new built-in chat-openai-compat providers", async () => {
+  const connection = await seedConnection("deepinfra", {
+    apiKey: "deepinfra-key",
+  });
+
+  const response = await callRoute(connection.id);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "deepinfra");
+  assert.equal(body.source, "local_catalog");
+  assert.match(body.warning, /cached catalog/i);
+  assert.ok(Array.isArray(body.models));
+  assert.ok(body.models.length > 0);
+  assert.ok(body.models.some((model) => model.id === "Qwen/Qwen3-Coder-480B-A35B-Instruct"));
+});
+
 test("provider models route validates Gemini CLI credentials before fetching quota buckets", async () => {
   const missingToken = await seedConnection("gemini-cli", {
     authType: "oauth",

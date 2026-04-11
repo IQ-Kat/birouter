@@ -1812,7 +1812,9 @@
     "modelsPathHint": "Custom models path for validation (e.g. /v4/models)",
     "statusDeactivated": "Deactivated (Manual)",
     "statusBanned": "Banned / Sandbox Violation",
-    "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted"
+    "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted",
+    "showEmails": "Show all emails",
+    "hideEmails": "Hide all emails"
   },
   "settings": {
     "title": "Settings",

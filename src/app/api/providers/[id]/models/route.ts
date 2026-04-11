@@ -688,6 +688,20 @@ export async function GET(
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
         : undefined;
+    const localCatalog = PROVIDER_MODELS[provider] || [];
+    if (!config && localCatalog.length > 0) {
+      return buildResponse({
+        provider,
+        connectionId,
+        models: localCatalog.map((m: any) => ({
+          id: m.id,
+          name: m.name || m.id,
+          owned_by: provider,
+        })),
+        source: "local_catalog",
+        warning: "API unavailable — using cached catalog",
+      });
+    }
     if (!config) {
       return NextResponse.json(
         { error: `Provider ${provider} does not support models listing` },

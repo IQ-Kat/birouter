@@ -14,6 +14,7 @@ import {
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
+import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
@@ -78,6 +79,34 @@ function resolveChatUrl(provider: string, baseUrl: string, providerSpecificData:
   }
 
   return normalized;
+}
+
+function normalizeHerokuChatUrl(baseUrl: string) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (!normalized) return "";
+  return normalized.endsWith("/v1/chat/completions")
+    ? normalized
+    : `${normalized}/v1/chat/completions`;
+}
+
+function normalizeDatabricksChatUrl(baseUrl: string) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (!normalized) return "";
+  return normalized.endsWith("/chat/completions") ? normalized : `${normalized}/chat/completions`;
+}
+
+function normalizeSnowflakeChatUrl(baseUrl: string) {
+  const normalized = normalizeBaseUrl(baseUrl)
+    .replace(/\/cortex\/inference:complete$/, "")
+    .replace(/\/api\/v2$/, "");
+  if (!normalized) return "";
+  return `${normalized}/api/v2/cortex/inference:complete`;
+}
+
+function normalizeGigachatChatUrl(baseUrl: string) {
+  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
+  if (!normalized) return "";
+  return `${normalized}/chat/completions`;
 }
 
 function getCustomUserAgent(providerSpecificData: any = {}) {
@@ -183,6 +212,37 @@ async function validateOpenAILikeProvider({
 
   // 4xx other than auth (e.g., invalid model/body) usually means auth passed.
   return { valid: true, error: null };
+}
+
+async function validateDirectChatProvider({ url, headers, body, providerSpecificData = {} }: any) {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: applyCustomUserAgent(headers, providerSpecificData),
+      body: JSON.stringify(body),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return { valid: false, error: error.message || "Validation failed" };
+  }
 }
 
 async function validateAnthropicLikeProvider({
@@ -478,6 +538,97 @@ async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData 
   } catch (error: any) {
     return { valid: false, error: error.message || "Validation failed" };
   }
+}
+
+async function validateHerokuProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
+  if (!baseUrl) {
+    return { valid: false, error: "Missing base URL" };
+  }
+
+  return validateDirectChatProvider({
+    url: normalizeHerokuChatUrl(baseUrl),
+    headers: buildBearerHeaders(apiKey, providerSpecificData),
+    body: {
+      model: providerSpecificData.validationModelId || "claude-4-sonnet",
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData,
+  });
+}
+
+async function validateDatabricksProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
+  if (!baseUrl) {
+    return { valid: false, error: "Missing base URL" };
+  }
+
+  return validateDirectChatProvider({
+    url: normalizeDatabricksChatUrl(baseUrl),
+    headers: buildBearerHeaders(apiKey, providerSpecificData),
+    body: {
+      model: providerSpecificData.validationModelId || "databricks-meta-llama-3-3-70b-instruct",
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData,
+  });
+}
+
+async function validateSnowflakeProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
+  if (!baseUrl) {
+    return { valid: false, error: "Missing base URL" };
+  }
+
+  const usesProgrammaticAccessToken = apiKey.startsWith("pat/");
+  return validateDirectChatProvider({
+    url: normalizeSnowflakeChatUrl(baseUrl),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${usesProgrammaticAccessToken ? apiKey.slice(4) : apiKey}`,
+      "X-Snowflake-Authorization-Token-Type": usesProgrammaticAccessToken
+        ? "PROGRAMMATIC_ACCESS_TOKEN"
+        : "KEYPAIR_JWT",
+    },
+    body: {
+      model: providerSpecificData.validationModelId || "llama3.3-70b",
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData,
+  });
+}
+
+async function validateGigachatProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl =
+    normalizeBaseUrl(providerSpecificData.baseUrl) || "https://gigachat.devices.sberbank.ru/api/v1";
+
+  let token;
+  try {
+    token = await getGigachatAccessToken({ credentials: apiKey });
+  } catch (error: any) {
+    if (String(error?.message || "").match(/\b(401|403)\b/)) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    return { valid: false, error: error.message || "Validation failed" };
+  }
+
+  return validateDirectChatProvider({
+    url: normalizeGigachatChatUrl(baseUrl),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.accessToken}`,
+      Accept: "application/json",
+    },
+    body: {
+      model: providerSpecificData.validationModelId || "GigaChat-2-Pro",
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData,
+  });
 }
 
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -866,6 +1017,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
+    heroku: validateHerokuProvider,
+    databricks: validateDatabricksProvider,
+    snowflake: validateSnowflakeProvider,
+    gigachat: validateGigachatProvider,
     // LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
     longcat: async ({ apiKey, providerSpecificData }: any) => {
       try {

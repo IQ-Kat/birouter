@@ -5,6 +5,9 @@ import { execSync } from "child_process";
 
 const args = process.argv.slice(2);
 const fullUninstall = args.includes("--full");
+const uninstallAlreadyInProgress =
+  process.env.OMNIROUTE_SKIP_UNINSTALL_HOOK === "1" ||
+  process.env.npm_lifecycle_event === "uninstall";
 
 console.log("🛑 OmniRoute Uninstaller");
 console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -37,13 +40,25 @@ if (fullUninstall) {
 }
 
 // 3. NPM uninstall
-console.log("🗑️ Removing npm package...");
-try {
-  execSync("npm uninstall -g omniroute", { stdio: "inherit" });
-  console.log("\n✅ OmniRoute has been successfully uninstalled from your system.");
-  if (!fullUninstall) {
-    console.log(`ℹ️ Your configurations and databases were preserved in ${dataDir}.`);
+if (uninstallAlreadyInProgress) {
+  console.log("ℹ️ npm uninstall is already in progress. Skipping nested uninstall command.");
+} else {
+  console.log("🗑️ Removing npm package...");
+  try {
+    execSync("npm uninstall -g omniroute", {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        OMNIROUTE_SKIP_UNINSTALL_HOOK: "1",
+      },
+    });
+    console.log("\n✅ OmniRoute has been successfully uninstalled from your system.");
+    if (!fullUninstall) {
+      console.log(`ℹ️ Your configurations and databases were preserved in ${dataDir}.`);
+    }
+  } catch (error) {
+    console.warn(
+      "⚠️ Failed to remove npm package. You might need to run this command with 'sudo'."
+    );
   }
-} catch (error) {
-  console.warn("⚠️ Failed to remove npm package. You might need to run this command with 'sudo'.");
 }

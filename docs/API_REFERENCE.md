@@ -320,14 +320,37 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 
 ### Internal / System APIs
 
-| Endpoint        | Method | Description                                          |
-| --------------- | ------ | ---------------------------------------------------- |
-| `/api/init`     | GET    | Application initialization check (used on first run) |
-| `/api/tags`     | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`  | POST   | Trigger graceful server restart                      |
-| `/api/shutdown` | POST   | Trigger graceful server shutdown                     |
+| Endpoint                 | Method | Description                                          |
+| ------------------------ | ------ | ---------------------------------------------------- |
+| `/api/init`              | GET    | Application initialization check (used on first run) |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
+| `/api/restart`           | POST   | Trigger graceful server restart                      |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| `/api/system-info`       | GET    | Generate system diagnostics report                   |
 
 > **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
+
+### OAuth Environment Repair _(v3.6.1+)_
+
+```bash
+POST /api/system/env/repair
+Content-Type: application/json
+
+{
+  "provider": "claude-code"
+}
+```
+
+Repairs missing or corrupted OAuth environment variables for a specific provider. Returns:
+
+```json
+{
+  "success": true,
+  "repaired": ["CLAUDE_CODE_OAUTH_CLIENT_ID", "CLAUDE_CODE_OAUTH_CLIENT_SECRET"],
+  "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
+}
+```
 
 ---
 

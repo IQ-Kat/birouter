@@ -398,3 +398,146 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
   assert.equal(elevenOffline.error, "elevenlabs offline");
   assert.equal(longcatValid.valid, true);
 });
+
+test("specialty validators cover Heroku, Databricks, Snowflake and GigaChat success paths", async () => {
+  const seen = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    seen.push({ url: target, headers: init.headers || {} });
+
+    if (target === "https://ngw.devices.sberbank.ru:9443/api/v2/oauth") {
+      assert.equal(init.headers.Authorization, "Basic gigachat-basic-creds");
+      return new Response(
+        JSON.stringify({
+          tok: "gigachat-access-token",
+          exp: Date.now() + 60 * 60 * 1000,
+        }),
+        { status: 200 }
+      );
+    }
+    if (target === "https://us.inference.heroku.com/v1/chat/completions") {
+      assert.equal(init.headers.Authorization, "Bearer heroku-key");
+      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+    }
+    if (
+      target ===
+      "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints/chat/completions"
+    ) {
+      assert.equal(init.headers.Authorization, "Bearer databricks-key");
+      return new Response(JSON.stringify({ error: "unprocessable" }), { status: 422 });
+    }
+    if (target === "https://account.snowflakecomputing.com/api/v2/cortex/inference:complete") {
+      assert.equal(init.headers.Authorization, "Bearer snowflake-token");
+      assert.equal(
+        init.headers["X-Snowflake-Authorization-Token-Type"],
+        "PROGRAMMATIC_ACCESS_TOKEN"
+      );
+      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+    }
+    if (target === "https://gigachat.devices.sberbank.ru/api/v1/chat/completions") {
+      assert.equal(init.headers.Authorization, "Bearer gigachat-access-token");
+      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const heroku = await validateProviderApiKey({
+    provider: "heroku",
+    apiKey: "heroku-key",
+    providerSpecificData: { baseUrl: "https://us.inference.heroku.com" },
+  });
+  const databricks = await validateProviderApiKey({
+    provider: "databricks",
+    apiKey: "databricks-key",
+    providerSpecificData: {
+      baseUrl: "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints",
+    },
+  });
+  const snowflake = await validateProviderApiKey({
+    provider: "snowflake",
+    apiKey: "pat/snowflake-token",
+    providerSpecificData: { baseUrl: "https://account.snowflakecomputing.com" },
+  });
+  const gigachat = await validateProviderApiKey({
+    provider: "gigachat",
+    apiKey: "gigachat-basic-creds",
+  });
+
+  assert.equal(heroku.valid, true);
+  assert.equal(databricks.valid, true);
+  assert.equal(snowflake.valid, true);
+  assert.equal(gigachat.valid, true);
+  assert.equal(
+    seen.some((call) => call.url === "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"),
+    true
+  );
+});
+
+test("specialty validators surface missing base URLs and invalid auth for Heroku, Databricks, Snowflake and GigaChat", async () => {
+  const missingHerokuBase = await validateProviderApiKey({
+    provider: "heroku",
+    apiKey: "heroku-key",
+    providerSpecificData: {},
+  });
+  const missingDatabricksBase = await validateProviderApiKey({
+    provider: "databricks",
+    apiKey: "databricks-key",
+    providerSpecificData: {},
+  });
+  const missingSnowflakeBase = await validateProviderApiKey({
+    provider: "snowflake",
+    apiKey: "snowflake-key",
+    providerSpecificData: {},
+  });
+
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+    if (target === "https://ngw.devices.sberbank.ru:9443/api/v2/oauth") {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+    if (target === "https://us.inference.heroku.com/v1/chat/completions") {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+    if (
+      target ===
+      "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints/chat/completions"
+    ) {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+    if (target === "https://account.snowflakecomputing.com/api/v2/cortex/inference:complete") {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const herokuInvalid = await validateProviderApiKey({
+    provider: "heroku",
+    apiKey: "heroku-key",
+    providerSpecificData: { baseUrl: "https://us.inference.heroku.com" },
+  });
+  const databricksInvalid = await validateProviderApiKey({
+    provider: "databricks",
+    apiKey: "databricks-key",
+    providerSpecificData: {
+      baseUrl: "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints",
+    },
+  });
+  const snowflakeInvalid = await validateProviderApiKey({
+    provider: "snowflake",
+    apiKey: "snowflake-key",
+    providerSpecificData: { baseUrl: "https://account.snowflakecomputing.com" },
+  });
+  const gigachatInvalid = await validateProviderApiKey({
+    provider: "gigachat",
+    apiKey: "gigachat-basic-creds-invalid",
+  });
+
+  assert.equal(missingHerokuBase.error, "Missing base URL");
+  assert.equal(missingDatabricksBase.error, "Missing base URL");
+  assert.equal(missingSnowflakeBase.error, "Missing base URL");
+  assert.equal(herokuInvalid.error, "Invalid API key");
+  assert.equal(databricksInvalid.error, "Invalid API key");
+  assert.equal(snowflakeInvalid.error, "Invalid API key");
+  assert.equal(gigachatInvalid.error, "Invalid API key");
+});

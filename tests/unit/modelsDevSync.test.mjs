@@ -408,6 +408,10 @@ describe("modelsDevSync — mapProviderId", () => {
   it("maps bedrock to [kiro, kr]", () => {
     assert.deepEqual(mapProviderId("bedrock"), ["kiro", "kr"]);
   });
+
+  it("maps moonshot to the canonical provider plus Kimi aliases", () => {
+    assert.deepEqual(mapProviderId("moonshot"), ["moonshot", "kimi", "kimi-coding", "kmc", "kmca"]);
+  });
 });
 
 describe("modelsDevSync — fetchModelsDev (live API)", () => {

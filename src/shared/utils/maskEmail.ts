@@ -56,3 +56,22 @@ export function pickMaskedDisplayValue(
   }
   return fallback;
 }
+
+/**
+ * Visibility-aware variant of pickMaskedDisplayValue.
+ * When `showFull` is true, returns the raw (unmasked) value.
+ * When `showFull` is false, returns the masked value (default behavior).
+ */
+export function pickDisplayValue(
+  values: Array<string | null | undefined>,
+  showFull: boolean,
+  fallback = ""
+): string {
+  if (showFull) {
+    for (const value of values) {
+      if (value?.trim()) return value.trim();
+    }
+    return fallback;
+  }
+  return pickMaskedDisplayValue(values, fallback);
+}

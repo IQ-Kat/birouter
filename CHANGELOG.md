@@ -4,6 +4,16 @@
 
 ---
 
+## [3.6.2] — 2026-04-11
+
+### ✨ New Features
+
+- **Global Email Privacy Toggle:** Added a persistent eye-icon toggle button across all dashboard pages (Providers, Usage Limits, Playground) that reveals or hides masked email addresses. Toggle state is stored in localStorage and synced globally via Zustand store
+- **Documentation Refresh:** Updated README, ARCHITECTURE, FEATURES, and API_REFERENCE for v3.6.2 with accurate provider counts (60+), new executor list, and system API documentation
+- **Uninstall Guide:** Created comprehensive `docs/UNINSTALL.md` covering clean uninstallation for all deployment methods (npm, Docker, Electron, source)
+
+---
+
 ## [3.6.1] — 2026-04-10
 
 ### ✨ New Features
