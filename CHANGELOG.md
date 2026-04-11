@@ -12,6 +12,11 @@
 - **Documentation Refresh:** Updated README, ARCHITECTURE, FEATURES, and API_REFERENCE for v3.6.2 with accurate provider counts (60+), new executor list, and system API documentation
 - **Uninstall Guide:** Created comprehensive `docs/UNINSTALL.md` covering clean uninstallation for all deployment methods (npm, Docker, Electron, source)
 
+### 🐛 Bug Fixes
+
+- **PDF Attachments:** Unlocked deep string object parsing (`geminiHelper`) ensuring Gemini translation successfully passes complex PDF payloads from OpenAI-compatible streams without dropping them silently (#993)
+- **SkillsMP Engine:** Corrected object extraction path mappings inside the API router to fix UI marketplace rendering under Docker/Standalone Node isolated deployments (#988)
+
 ---
 
 ## [3.6.1] — 2026-04-10
