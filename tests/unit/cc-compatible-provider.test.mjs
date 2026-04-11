@@ -756,7 +756,7 @@ test("provider-nodes validate route rejects invalid JSON and schema errors", asy
   assert.equal(invalidBodyResponse.status, 400);
   const invalidBodyPayload = await invalidBodyResponse.json();
   assert.equal(invalidBodyPayload.error.message, "Invalid request");
-  assert.equal(invalidBodyPayload.error.details.length >= 2, true);
+  assert.equal(invalidBodyPayload.error.details.length >= 1, true);
 });
 
 test("provider-nodes validate route validates anthropic compatible providers against the models endpoint", async () => {

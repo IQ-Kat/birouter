@@ -2679,7 +2679,7 @@
     "restartServerWithNewPassword": "Перезагрузите сервер - он будет использовать новый пароль.",
     "backToLogin": "Вернуться к входу",
     "forgotPassword": "Забыли пароль?",
-    "defaultPasswordHint": "Пароль по умолчанию: 123456 (если не задан INITIAL_PASSWORD)",
+    "defaultPasswordHint": "Пароль по умолчанию: CHANGEME (если не задан INITIAL_PASSWORD)",
     "Authorization": "Авторизация",
     "Content-Disposition": "Содержание-Расположение",
     "waitingForAuthorization": "Ожидание авторизации...",

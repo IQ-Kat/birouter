@@ -5005,6 +5005,7 @@ function AddApiKeyModal({
   const defaultRegion = "us-central1";
   const isGlm = provider === "glm";
   const isQoder = provider === "qoder";
+  const isCloudflare = provider === "cloudflare-ai";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -5015,6 +5016,7 @@ function AddApiKeyModal({
     apiRegion: "international",
     validationModelId: "",
     customUserAgent: "",
+    accountId: "",
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5047,7 +5049,7 @@ function AddApiKeyModal({
   };
 
   const handleSubmit = async () => {
-    if (!provider || !formData.apiKey) return;
+    if (!provider || (!isCompatible && !formData.apiKey)) return;
 
     setSaving(true);
     setSaveError(null);
@@ -5101,6 +5103,8 @@ function AddApiKeyModal({
         providerSpecificData.region = formData.region;
       } else if (isGlm) {
         providerSpecificData.apiRegion = formData.apiRegion;
+      } else if (isCloudflare && formData.accountId.trim()) {
+        providerSpecificData.accountId = formData.accountId.trim();
       }
 
       const payload = {
@@ -5159,7 +5163,7 @@ function AddApiKeyModal({
           <div className="pt-6">
             <Button
               onClick={handleValidate}
-              disabled={!formData.apiKey || validating || saving}
+              disabled={(!isCompatible && !formData.apiKey) || validating || saving}
               variant="secondary"
             >
               {validating ? t("checking") : t("check")}
@@ -5251,6 +5255,15 @@ function AddApiKeyModal({
             hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
           />
         )}
+        {isCloudflare && (
+          <Input
+            label="Account ID"
+            value={formData.accountId}
+            onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
+            placeholder="Cloudflare Account ID"
+            hint="Find it in the Cloudflare dashboard URL or settings"
+          />
+        )}
         {isGlm && (
           <div>
             <label className="text-sm font-medium text-text-main mb-1 block">API Region</label>
@@ -5273,7 +5286,7 @@ function AddApiKeyModal({
             fullWidth
             disabled={
               !formData.name ||
-              !formData.apiKey ||
+              (!isCompatible && !formData.apiKey) ||
               saving ||
               (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)
             }
@@ -5326,6 +5339,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     validationModelId: "",
     tag: "",
     customUserAgent: "",
+    accountId: "",
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5343,6 +5357,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
   const isVertex = connection?.provider === "vertex";
   const isGlm = connection?.provider === "glm";
+  const isCloudflare = connection?.provider === "cloudflare-ai";
   const defaultRegion = "us-central1";
 
   useEffect(() => {
@@ -5354,6 +5369,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const rawCustomUserAgent = connection.providerSpecificData?.customUserAgent;
       const existingCustomUserAgent =
         typeof rawCustomUserAgent === "string" ? rawCustomUserAgent : "";
+      const rawAccountId = connection.providerSpecificData?.accountId;
+      const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -5365,6 +5382,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
         customUserAgent: existingCustomUserAgent,
+        accountId: existingAccountId,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5408,7 +5426,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   };
 
   const handleValidate = async () => {
-    if (!connection?.provider || !formData.apiKey) return;
+    if (!connection?.provider || (!isCompatible && !formData.apiKey)) return;
     setValidating(true);
     setValidationResult(null);
     try {
@@ -5506,6 +5524,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           updates.providerSpecificData.region = formData.region;
         } else if (isGlm) {
           updates.providerSpecificData.apiRegion = formData.apiRegion;
+        } else if (isCloudflare && formData.accountId.trim()) {
+          updates.providerSpecificData.accountId = formData.accountId.trim();
         }
       } else {
         // Also persist tag for OAuth accounts
@@ -5607,7 +5627,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               <div className="pt-6">
                 <Button
                   onClick={handleValidate}
-                  disabled={!formData.apiKey || validating || saving}
+                  disabled={(!isCompatible && !formData.apiKey) || validating || saving}
                   variant="secondary"
                 >
                   {validating ? t("checking") : t("check")}
@@ -5680,6 +5700,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             onChange={(e) => setFormData({ ...formData, region: e.target.value })}
             placeholder={defaultRegion}
             hint="ex: us-central1 ou europe-west4. Partner models usam a região global automaticamente."
+          />
+        )}
+
+        {isCloudflare && (
+          <Input
+            label="Account ID"
+            value={formData.accountId}
+            onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
+            placeholder="Cloudflare Account ID"
+            hint="Find it in the Cloudflare dashboard URL or settings"
           />
         )}
 

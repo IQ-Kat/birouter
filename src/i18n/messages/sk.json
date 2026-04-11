@@ -2650,7 +2650,7 @@
     "restartServerWithNewPassword": "Reštartujte server - použije nové heslo",
     "backToLogin": "Späť na Prihlásenie",
     "forgotPassword": "Zabudli ste heslo?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "defaultPasswordHint": "Default password: CHANGEME (unless INITIAL_PASSWORD was set)",
     "Authorization": "Autorizácia",
     "Content-Disposition": "Obsah-Dispozícia",
     "waitingForAuthorization": "Čaká sa na autorizáciu...",

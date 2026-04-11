@@ -2650,7 +2650,7 @@
     "restartServerWithNewPassword": "Start de server opnieuw op. Deze gebruikt het nieuwe wachtwoord",
     "backToLogin": "Terug naar Inloggen",
     "forgotPassword": "Wachtwoord vergeten?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "defaultPasswordHint": "Default password: CHANGEME (unless INITIAL_PASSWORD was set)",
     "Authorization": "Autorisatie",
     "Content-Disposition": "Inhoud-dispositie",
     "waitingForAuthorization": "Wachten op toestemming...",
