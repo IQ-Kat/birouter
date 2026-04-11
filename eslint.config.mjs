@@ -40,6 +40,7 @@ const eslintConfig = [
       "node_modules/**",
       // VS Code extension and its large test fixtures
       "vscode-extension/**",
+      "_mono_repo/**",
       // Electron app
       "electron/**",
       // Docs

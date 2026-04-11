@@ -67,3 +67,6 @@ clipr/
 omnirouteCloud/
 omnirouteSite/
 vscode-extension/
+
+# Root-level underscore-prefixed directories (private/draft — never publish)
+/_*/

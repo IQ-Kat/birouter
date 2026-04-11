@@ -2650,7 +2650,7 @@
     "restartServerWithNewPassword": "Redémarrez le serveur - il utilisera le nouveau mot de passe",
     "backToLogin": "Retour à la connexion",
     "forgotPassword": "Mot de passe oublié ?",
-    "defaultPasswordHint": "Default password: 123456 (unless INITIAL_PASSWORD was set)",
+    "defaultPasswordHint": "Default password: CHANGEME (unless INITIAL_PASSWORD was set)",
     "Authorization": "Autorisation",
     "Content-Disposition": "Disposition du contenu",
     "waitingForAuthorization": "Waiting for authorization...",

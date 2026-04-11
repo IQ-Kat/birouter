@@ -1021,6 +1021,18 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     databricks: validateDatabricksProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
+    vertex: async ({ apiKey }: any) => {
+      try {
+        const { parseSAFromApiKey, getAccessToken } =
+          await import("@omniroute/open-sse/executors/vertex.ts");
+        const sa = parseSAFromApiKey(apiKey);
+        // Validates credentials by successfully exchanging them for a JWT from Google Identity
+        await getAccessToken(sa);
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return { valid: false, error: "Invalid Service Account JSON: " + error.message };
+      }
+    },
     // LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
     longcat: async ({ apiKey, providerSpecificData }: any) => {
       try {

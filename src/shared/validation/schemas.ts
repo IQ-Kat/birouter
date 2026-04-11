@@ -1023,7 +1023,7 @@ export const updateProviderNodeSchema = z.object({
 
 export const providerNodeValidateSchema = z.object({
   baseUrl: z.string().trim().min(1, "Base URL and API key required"),
-  apiKey: z.string().trim().min(1, "Base URL and API key required"),
+  apiKey: z.string().trim().optional(),
   type: z.enum(["openai-compatible", "anthropic-compatible"]).optional(),
   compatMode: z.enum(["cc"]).optional(),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
@@ -1106,7 +1106,7 @@ export const providersBatchTestSchema = z
 
 export const validateProviderApiKeySchema = z.object({
   provider: z.string().trim().min(1, "Provider and API key required"),
-  apiKey: z.string().trim().min(1, "Provider and API key required"),
+  apiKey: z.string().trim().optional(),
   validationModelId: z.string().trim().optional(),
   customUserAgent: z.string().trim().max(500).optional(),
   baseUrl: z.string().trim().url().optional(),

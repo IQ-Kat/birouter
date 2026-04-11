@@ -808,6 +808,7 @@ export async function handleChatCore({
     delete b.disable_stream;
     delete b.disable_streaming;
     delete b.streaming;
+    delete b.prompt_cache_retention;
   }
 
   const stream = resolveStreamFlag(body?.stream, acceptHeader);

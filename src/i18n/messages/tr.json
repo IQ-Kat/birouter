@@ -2650,7 +2650,7 @@
     "restartServerWithNewPassword": "Sunucuyu yeniden başlatın; yeni şifre kullanılacaktır",
     "backToLogin": "Girişe Geri Dön",
     "forgotPassword": "Şifrenizi mi unuttunuz?",
-    "defaultPasswordHint": "Varsayılan şifre: 123456 (INITIAL_PASSWORD ayarlanmadığı sürece)",
+    "defaultPasswordHint": "Varsayılan şifre: CHANGEME (INITIAL_PASSWORD ayarlanmadığı sürece)",
     "Authorization": "Authorization",
     "Content-Disposition": "Content-Disposition",
     "waitingForAuthorization": "Yetkilendirme bekleniyor...",

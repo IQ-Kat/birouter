@@ -147,6 +147,10 @@ ensurePackage(
 );
 
 // removed better-sqlite3 to ensure ABI compatibility via electron-builder
+const bundledSqlite = join(ELECTRON_STANDALONE_DIR, "node_modules", "better-sqlite3");
+if (existsSync(bundledSqlite)) {
+  rmSync(bundledSqlite, { recursive: true, force: true });
+}
 
 console.log(
   `[electron] prepared standalone bundle: ${relative(ROOT, ELECTRON_STANDALONE_DIR) || "."}`
