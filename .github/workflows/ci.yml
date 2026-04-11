@@ -124,6 +124,7 @@ jobs:
         run: npx is-my-node-vulnerable || true
 
       - name: Run Snyk Vulnerability checks
+        if: github.actor != 'dependabot[bot]'
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
