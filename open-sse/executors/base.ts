@@ -240,8 +240,8 @@ export class BaseExecutor {
     return null;
   }
 
-  needsRefresh(credentials: ProviderCredentials) {
-    if (!credentials.expiresAt) return false;
+  needsRefresh(credentials?: ProviderCredentials | null) {
+    if (!credentials?.expiresAt) return false;
     const expiresAtMs = new Date(credentials.expiresAt).getTime();
     return expiresAtMs - Date.now() < 5 * 60 * 1000;
   }

@@ -84,9 +84,7 @@ function ensurePackage(pkgPath, sourcePath) {
 }
 
 function removeGeneratedElectronArtifacts() {
-  const generatedDirs = [
-    join(ELECTRON_STANDALONE_DIR, "electron", "dist-electron"),
-  ];
+  const generatedDirs = [join(ELECTRON_STANDALONE_DIR, "electron", "dist-electron")];
 
   for (const dir of generatedDirs) {
     rmSync(dir, { recursive: true, force: true });
@@ -148,10 +146,7 @@ ensurePackage(
   join(ROOT, "node_modules", "@swc", "helpers")
 );
 
-ensurePackage(
-  join(ELECTRON_STANDALONE_DIR, "node_modules", "better-sqlite3"),
-  join(ROOT, "node_modules", "better-sqlite3")
-);
+// removed better-sqlite3 to ensure ABI compatibility via electron-builder
 
 console.log(
   `[electron] prepared standalone bundle: ${relative(ROOT, ELECTRON_STANDALONE_DIR) || "."}`

@@ -63,16 +63,19 @@ export async function verifyAuth(request: any): Promise<string | null> {
   }
 
   // 2. Check Bearer API key
-  const authHeader = request.headers.get("authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const apiKey = authHeader.slice(7);
-    try {
-      // Dynamic import to avoid circular dependencies during build
-      const { validateApiKey } = await import("@/lib/db/apiKeys");
-      const isValid = await validateApiKey(apiKey);
-      if (isValid) return null; // ✔ Authenticated via API key
-    } catch {
-      // DB not ready or import error — deny access
+  const authHeader = request.headers.get("authorization") || request.headers.get("Authorization");
+  if (typeof authHeader === "string") {
+    const trimmedHeader = authHeader.trim();
+    if (trimmedHeader.toLowerCase().startsWith("bearer ")) {
+      const apiKey = trimmedHeader.slice(7).trim();
+      try {
+        // Dynamic import to avoid circular dependencies during build
+        const { validateApiKey } = await import("@/lib/db/apiKeys");
+        const isValid = await validateApiKey(apiKey);
+        if (isValid) return null; // ✔ Authenticated via API key
+      } catch {
+        // DB not ready or import error — deny access
+      }
     }
   }
 
@@ -94,14 +97,17 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
     return true;
   }
   // 1. Check API key (for external clients)
-  const authHeader = request.headers.get("authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const apiKey = authHeader.slice(7);
-    try {
-      const { validateApiKey } = await import("@/lib/db/apiKeys");
-      if (await validateApiKey(apiKey)) return true;
-    } catch {
-      // DB not ready or import error
+  const authHeader = request.headers.get("authorization") || request.headers.get("Authorization");
+  if (typeof authHeader === "string") {
+    const trimmedHeader = authHeader.trim();
+    if (trimmedHeader.toLowerCase().startsWith("bearer ")) {
+      const apiKey = trimmedHeader.slice(7).trim();
+      try {
+        const { validateApiKey } = await import("@/lib/db/apiKeys");
+        if (await validateApiKey(apiKey)) return true;
+      } catch {
+        // DB not ready or import error
+      }
     }
   }
 

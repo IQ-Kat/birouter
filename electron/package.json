@@ -22,6 +22,7 @@
     "pack": "npm run prepare:bundle && electron-builder --dir"
   },
   "dependencies": {
+    "better-sqlite3": "^12.8.0",
     "electron-updater": "^6.8.3"
   },
   "devDependencies": {

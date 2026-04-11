@@ -930,7 +930,13 @@ test("chatCore fallback proxy mode retries through CLIProxyAPI after retryable n
   const { calls, result } = await invokeChatCore({
     provider: "github",
     model: "gpt-4o",
-    credentials: { accessToken: "gh-token", providerSpecificData: {} },
+    credentials: {
+      accessToken: "gh-token",
+      providerSpecificData: {
+        copilotToken: "mock-token",
+        copilotTokenExpiresAt: Date.now() + 3600000,
+      },
+    },
     body: {
       model: "gpt-4o",
       messages: [{ role: "user", content: "hello" }],
@@ -965,7 +971,13 @@ test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after a retryable
   const { calls, result } = await invokeChatCore({
     provider: "github",
     model: "gpt-4o",
-    credentials: { accessToken: "gh-token", providerSpecificData: {} },
+    credentials: {
+      accessToken: "gh-token",
+      providerSpecificData: {
+        copilotToken: "mock-token",
+        copilotTokenExpiresAt: Date.now() + 3600000,
+      },
+    },
     body: {
       model: "gpt-4o",
       messages: [{ role: "user", content: "hello" }],
@@ -1000,7 +1012,13 @@ test("chatCore fallback proxy mode surfaces CLIProxyAPI errors after native exec
   const { calls, result } = await invokeChatCore({
     provider: "github",
     model: "gpt-4o",
-    credentials: { accessToken: "gh-token", providerSpecificData: {} },
+    credentials: {
+      accessToken: "gh-token",
+      providerSpecificData: {
+        copilotToken: "mock-token",
+        copilotTokenExpiresAt: Date.now() + 3600000,
+      },
+    },
     body: {
       model: "gpt-4o",
       messages: [{ role: "user", content: "hello" }],

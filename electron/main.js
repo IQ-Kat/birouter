@@ -66,22 +66,9 @@ let isServerStopped = false;
 const getServerUrl = () => `http://localhost:${serverPort}`;
 
 function resolveNodeExecutable(env = process.env) {
-  const candidates = [
-    env.OMNIROUTE_NODE_PATH,
-    "/usr/local/bin/node",
-    "/opt/homebrew/bin/node",
-    "/opt/local/bin/node",
-  ].filter(Boolean);
-
-  for (const candidate of candidates) {
-    try {
-      if (fs.existsSync(candidate)) return candidate;
-    } catch {
-      /* continue */
-    }
-  }
-
-  return "node";
+  // #1081: Ensure Next.js standalone runs using Electron's Node runtime
+  // instead of a randomly found system Node to prevent ABI architecture mismatches.
+  return process.execPath;
 }
 
 function resolveDataDir(overridePath, env = process.env) {
@@ -550,6 +537,8 @@ function startNextServer() {
       DATA_DIR: dataDir,
       PORT: String(serverPort),
       NODE_ENV: "production",
+      ELECTRON_RUN_AS_NODE: "1",
+      NODE_PATH: path.join(process.resourcesPath, "app.asar.unpacked", "node_modules"),
     },
     stdio: "pipe",
   });

@@ -676,7 +676,11 @@ test("cache metrics and trend coerce null aggregate fields to zero", async () =>
   db.prepare = (sql) => {
     const text = String(sql);
 
-    if (text.includes("COUNT(*) as totalRequests") && text.includes("tokens_cache_read > 0")) {
+    if (
+      text.includes("COUNT(*) as totalRequests") &&
+      text.includes("SUM(tokens_input) as totalInputTokens") &&
+      !text.includes("GROUP BY")
+    ) {
       return {
         get: () => ({
           totalRequests: 2,
@@ -687,7 +691,7 @@ test("cache metrics and trend coerce null aggregate fields to zero", async () =>
       };
     }
 
-    if (text.includes("SELECT COUNT(*) as totalRequests") && text.includes("FROM usage_history")) {
+    if (text.match(/SELECT\s+COUNT\(\*\)\s+as\s+totalRequests\s+FROM\s+usage_history\s*$/)) {
       return {
         get: () => ({
           totalRequests: 5,
@@ -700,7 +704,8 @@ test("cache metrics and trend coerce null aggregate fields to zero", async () =>
         all: () => [
           {
             provider: "openai",
-            requests: 1,
+            totalRequests: 1,
+            cachedRequests: 1,
             inputTokens: null,
             cachedTokens: null,
             cacheCreationTokens: null,
@@ -753,6 +758,8 @@ test("cache metrics and trend coerce null aggregate fields to zero", async () =>
     assert.equal(metrics.totalCacheCreationTokens, 0);
     assert.deepEqual(metrics.byProvider.openai, {
       requests: 1,
+      totalRequests: 1,
+      cachedRequests: 1,
       inputTokens: 0,
       cachedTokens: 0,
       cacheCreationTokens: 0,
