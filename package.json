@@ -16,6 +16,7 @@
     "scripts/postinstall.mjs",
     "scripts/sync-env.mjs",
     "scripts/native-binary-compat.mjs",
+    "scripts/build-next-isolated.mjs",
     "README.md",
     "LICENSE"
   ],
