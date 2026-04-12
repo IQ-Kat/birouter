@@ -5,7 +5,7 @@ import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { movePath } = await import("../../scripts/build-next-isolated.mjs");
+const { movePath, resolveNextBuildEnv } = await import("../../scripts/build-next-isolated.mjs");
 
 async function withTempDir(fn) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-build-next-isolated-"));
@@ -87,4 +87,17 @@ test("movePath rethrows non-EXDEV rename failures", async () => {
       (error) => error?.code === "EACCES"
     );
   });
+});
+
+test("resolveNextBuildEnv forces stable build worker mode unless already provided", () => {
+  const defaultEnv = resolveNextBuildEnv({ NODE_ENV: "test" });
+  assert.equal(defaultEnv.NEXT_PRIVATE_BUILD_WORKER, "0");
+  assert.equal(defaultEnv.NODE_ENV, "test");
+
+  const preservedEnv = resolveNextBuildEnv({
+    NODE_ENV: "production",
+    NEXT_PRIVATE_BUILD_WORKER: "1",
+  });
+  assert.equal(preservedEnv.NEXT_PRIVATE_BUILD_WORKER, "1");
+  assert.equal(preservedEnv.NODE_ENV, "production");
 });

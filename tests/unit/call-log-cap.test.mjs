@@ -41,6 +41,9 @@ test("call logs store a single per-request artifact with pipeline details", asyn
     requestedModel: "openai/gpt-5",
     provider: "openai",
     duration: 42,
+    comboName: "combo-a",
+    comboStepId: "step-openai-a",
+    comboExecutionKey: "combo-a:0:step-openai-a",
     requestBody: { messages: [{ role: "user", content: "hello" }] },
     responseBody: { id: "resp_1", choices: [{ message: { content: "world" } }] },
     pipelinePayloads: {
@@ -57,6 +60,9 @@ test("call logs store a single per-request artifact with pipeline details", asyn
 
   const detail = await callLogs.getCallLogById(logId);
   assert.equal(detail?.requestedModel, "openai/gpt-5");
+  assert.equal(detail?.comboName, "combo-a");
+  assert.equal(detail?.comboStepId, "step-openai-a");
+  assert.equal(detail?.comboExecutionKey, "combo-a:0:step-openai-a");
   assert.equal(detail?.pipelinePayloads?.clientRawRequest?.body?.raw, true);
   assert.equal(detail?.pipelinePayloads?.providerRequest?.body?.translated, true);
   assert.equal(detail?.pipelinePayloads?.providerResponse?.body?.upstream, true);
@@ -70,6 +76,9 @@ test("call logs store a single per-request artifact with pipeline details", asyn
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.equal(artifact.summary.id, logId);
   assert.equal(artifact.summary.requestedModel, "openai/gpt-5");
+  assert.equal(artifact.summary.comboName, "combo-a");
+  assert.equal(artifact.summary.comboStepId, "step-openai-a");
+  assert.equal(artifact.summary.comboExecutionKey, "combo-a:0:step-openai-a");
   assert.equal(artifact.pipeline.clientRawRequest.body.raw, true);
   assert.equal("sourceRequest" in artifact.pipeline, false);
 });
@@ -468,4 +477,32 @@ test("saveCallLog logs and returns when sqlite persistence throws unexpectedly",
   assert.equal(consoleCalls.length, 1);
   assert.match(consoleCalls[0], /Failed to save call log/);
   assert.match(consoleCalls[0], /simulated sqlite prepare failure/);
+});
+
+test("getCallLogs and getCallLogById expose combo target identifiers", async () => {
+  await callLogs.saveCallLog({
+    id: "combo-target-log",
+    timestamp: "2026-03-31T08:15:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 503,
+    model: "openai/gpt-4o-mini",
+    requestedModel: "router-fixed-accounts",
+    provider: "openai",
+    connectionId: "conn-fixed-2",
+    comboName: "router-fixed-accounts",
+    comboStepId: "step-openai-secondary",
+    comboExecutionKey: "router-fixed-accounts:1:step-openai-secondary",
+    error: "upstream unavailable",
+  });
+
+  const logs = await callLogs.getCallLogs({ search: "step-openai-secondary" });
+  assert.equal(logs.length, 1);
+  assert.equal(logs[0].comboStepId, "step-openai-secondary");
+  assert.equal(logs[0].comboExecutionKey, "router-fixed-accounts:1:step-openai-secondary");
+
+  const detail = await callLogs.getCallLogById("combo-target-log");
+  assert.equal(detail?.comboName, "router-fixed-accounts");
+  assert.equal(detail?.comboStepId, "step-openai-secondary");
+  assert.equal(detail?.comboExecutionKey, "router-fixed-accounts:1:step-openai-secondary");
 });

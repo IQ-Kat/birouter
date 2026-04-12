@@ -146,7 +146,15 @@ test("resolveComboForModel returns the highest-priority enabled combo", async ()
 
   assert.ok(resolved);
   assert.equal(resolved.name, "priority");
-  assert.deepEqual(resolved.models, [{ provider: "openai", model: "gpt-4o" }]);
+  assert.deepEqual(resolved.models, [
+    {
+      id: "priority-model-1-openai-gpt-4o",
+      kind: "model",
+      providerId: "openai",
+      model: "openai/gpt-4o",
+      weight: 0,
+    },
+  ]);
 });
 
 test("resolveComboForModel skips corrupted combo payloads and keeps scanning", async () => {

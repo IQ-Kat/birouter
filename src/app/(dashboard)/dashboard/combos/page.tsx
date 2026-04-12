@@ -1,23 +1,52 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import {
-  Card,
-  Button,
-  Modal,
-  Input,
-  Toggle,
-  CardSkeleton,
-  ModelSelectModal,
-  ProxyConfigModal,
-  EmptyState,
-} from "@/shared/components";
+import dynamic from "next/dynamic";
+import Button from "@/shared/components/Button";
+import Card from "@/shared/components/Card";
+import { CardSkeleton } from "@/shared/components/Loading";
+import EmptyState from "@/shared/components/EmptyState";
+import Input from "@/shared/components/Input";
+import Modal from "@/shared/components/Modal";
+import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
-import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useNotificationStore } from "@/store/notificationStore";
 import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
+import {
+  COMBO_BUILDER_AUTO_CONNECTION,
+  COMBO_BUILDER_STAGES,
+  buildPrecisionComboModelStep,
+  canAccessComboBuilderStage,
+  findNextSuggestedConnectionId,
+  getComboBuilderStageChecks,
+  getNextComboBuilderStage,
+  getPreviousComboBuilderStage,
+  hasExactModelStepDuplicate,
+  parseQualifiedModel,
+} from "@/lib/combos/builderDraft";
 import { useTranslations } from "next-intl";
+
+const ModelSelectModal = dynamic(() => import("@/shared/components/ModelSelectModal"), {
+  ssr: false,
+});
+const ProxyConfigModal = dynamic(() => import("@/shared/components/ProxyConfigModal"), {
+  ssr: false,
+});
+const ModelRoutingSection = dynamic(() => import("@/shared/components/ModelRoutingSection"), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-white/[0.02] p-4">
+      <div className="flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[18px]">route</span>
+        <div className="flex-1 min-w-0">
+          <div className="h-4 w-40 rounded bg-black/5 dark:bg-white/5" />
+          <div className="h-3 w-64 rounded bg-black/5 dark:bg-white/5 mt-2" />
+        </div>
+      </div>
+    </div>
+  ),
+});
 
 // Validate combo name: letters, numbers, -, _, /, .
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.-]+$/;
@@ -197,6 +226,32 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
 };
 
 const COMBO_USAGE_GUIDE_STORAGE_KEY = "omniroute:combos:hide-usage-guide";
+const COMBO_FORM_STAGE_META = [
+  {
+    id: "basics",
+    fallbackLabel: "Basics",
+    fallbackDescription: "Name and starting template.",
+    icon: "looks_one",
+  },
+  {
+    id: "steps",
+    fallbackLabel: "Steps",
+    fallbackDescription: "Provider, model and account selection.",
+    icon: "looks_two",
+  },
+  {
+    id: "strategy",
+    fallbackLabel: "Strategy",
+    fallbackDescription: "Routing behavior and advanced settings.",
+    icon: "looks_3",
+  },
+  {
+    id: "review",
+    fallbackLabel: "Review",
+    fallbackDescription: "Final verification before saving.",
+    icon: "fact_check",
+  },
+];
 
 const COMBO_TEMPLATE_FALLBACK = {
   title: "Quick templates",
@@ -367,11 +422,88 @@ function getStrategyRecommendationText(t, strategy, field) {
 // ─────────────────────────────────────────────
 function normalizeModelEntry(entry) {
   if (typeof entry === "string") return { model: entry, weight: 0 };
-  return { model: entry.model, weight: entry.weight || 0 };
+  if (entry?.kind === "combo-ref") {
+    return {
+      ...entry,
+      model: entry.comboName,
+      weight: entry.weight || 0,
+    };
+  }
+  return {
+    ...entry,
+    model: entry.model,
+    weight: entry.weight || 0,
+  };
 }
 
 function getModelString(entry) {
-  return typeof entry === "string" ? entry : entry.model;
+  if (typeof entry === "string") return entry;
+  if (entry?.kind === "combo-ref") return entry.comboName;
+  return entry.model;
+}
+
+function findProviderNodeByIdentifier(providerNodes, providerIdentifier) {
+  return (providerNodes || []).find(
+    (node) => node.id === providerIdentifier || node.prefix === providerIdentifier
+  );
+}
+
+function findBuilderProviderByIdentifier(builderProviders, providerIdentifier) {
+  return (builderProviders || []).find(
+    (provider) =>
+      provider.providerId === providerIdentifier ||
+      provider.alias === providerIdentifier ||
+      provider.prefix === providerIdentifier
+  );
+}
+
+function formatComboEntryDisplay(
+  entry,
+  {
+    providerNodes = [],
+    builderProviders = [],
+    includeConnection = false,
+  }: {
+    providerNodes?: any[];
+    builderProviders?: any[];
+    includeConnection?: boolean;
+  } = {}
+) {
+  const normalizedEntry = normalizeModelEntry(entry);
+  if (normalizedEntry.kind === "combo-ref") {
+    return `Combo → ${normalizedEntry.comboName}`;
+  }
+
+  const parsed = parseQualifiedModel(normalizedEntry.model);
+  if (!parsed) return normalizedEntry.model;
+
+  const providerIdentifier = normalizedEntry.providerId || parsed.providerId;
+  const builderProvider = findBuilderProviderByIdentifier(builderProviders, providerIdentifier);
+  const providerNode = findProviderNodeByIdentifier(providerNodes, providerIdentifier);
+  const providerLabel = builderProvider?.displayName || providerNode?.name || providerIdentifier;
+  const modelLabel =
+    builderProvider?.models?.find((model) => model.id === parsed.modelId)?.name || parsed.modelId;
+
+  if (!includeConnection) {
+    return `${providerLabel}/${modelLabel}`;
+  }
+
+  const connectionId = normalizedEntry.connectionId || null;
+  const connectionLabel =
+    (connectionId &&
+      builderProvider?.connections?.find((connection) => connection.id === connectionId)?.label) ||
+    normalizedEntry.label ||
+    null;
+
+  if (connectionId) {
+    return `${providerLabel}/${modelLabel} · ${connectionLabel || `acct ${connectionId.slice(0, 8)}`}`;
+  }
+
+  if (normalizedEntry.providerId || builderProvider) {
+    return `${providerLabel}/${modelLabel} · dynamic account`;
+  }
+
+  return `${providerLabel}/${modelLabel}`;
 }
 
 // ─────────────────────────────────────────────
@@ -398,6 +530,7 @@ export default function CombosPage() {
   const [comboDragIndex, setComboDragIndex] = useState(null);
   const [comboDragOverIndex, setComboDragOverIndex] = useState(null);
   const [savingComboOrder, setSavingComboOrder] = useState(false);
+  const comboDragIndexRef = useRef<number | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -571,6 +704,7 @@ export default function CombosPage() {
   };
 
   const resetComboDragState = () => {
+    comboDragIndexRef.current = null;
     setComboDragIndex(null);
     setComboDragOverIndex(null);
   };
@@ -580,6 +714,7 @@ export default function CombosPage() {
       e.preventDefault();
       return;
     }
+    comboDragIndexRef.current = index;
     setComboDragIndex(index);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", combos[index]?.id || `${index}`);
@@ -599,14 +734,15 @@ export default function CombosPage() {
 
   const handleComboDragOver = (e, index) => {
     e.preventDefault();
-    if (comboDragIndex === null || comboDragIndex === index) return;
+    const activeDragIndex = comboDragIndexRef.current ?? comboDragIndex;
+    if (activeDragIndex === null || activeDragIndex === index) return;
     e.dataTransfer.dropEffect = "move";
     setComboDragOverIndex(index);
   };
 
   const handleComboDrop = async (e, dropIndex) => {
     e.preventDefault();
-    const fromIndex = comboDragIndex;
+    const fromIndex = comboDragIndexRef.current ?? comboDragIndex;
     resetComboDragState();
 
     if (fromIndex === null || fromIndex === dropIndex) return;
@@ -1080,17 +1216,6 @@ function ComboCard({
   const tc = useTranslations("common");
   const strategyDescription = getStrategyDescription(t, strategy);
 
-  // Resolve provider UUID to user-defined name
-  const formatModelDisplay = (modelValue) => {
-    const parts = modelValue.split("/");
-    if (parts.length !== 2) return modelValue;
-    const [providerIdentifier, modelId] = parts;
-    const matchedNode = (providerNodes || []).find(
-      (node) => node.id === providerIdentifier || node.prefix === providerIdentifier
-    );
-    return matchedNode ? `${matchedNode.name}/${modelId}` : modelValue;
-  };
-
   return (
     <Card
       padding="sm"
@@ -1165,13 +1290,16 @@ function ComboCard({
                 <span className="text-xs text-text-muted italic">{t("noModels")}</span>
               ) : (
                 models.slice(0, 3).map((entry, index) => {
-                  const { model, weight } = normalizeModelEntry(entry);
+                  const { weight } = normalizeModelEntry(entry);
                   return (
                     <code
                       key={index}
                       className="text-[10px] font-mono bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded text-text-muted"
                     >
-                      {formatModelDisplay(model)}
+                      {formatComboEntryDisplay(entry, {
+                        providerNodes,
+                        includeConnection: true,
+                      })}
                       {strategy === "weighted" && weight > 0 ? ` (${weight}%)` : ""}
                     </code>
                   );
@@ -1281,12 +1409,24 @@ function TestResultsView({ results }) {
           <span className="material-symbols-outlined text-emerald-500 text-[18px]">
             check_circle
           </span>
-          <span>
-            Resolved by:{" "}
-            <code className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded">
-              {results.resolvedBy}
-            </code>
-          </span>
+          <div className="min-w-0">
+            <div>
+              Resolved by:{" "}
+              <code className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded">
+                {results.resolvedBy}
+              </code>
+            </div>
+            {results.resolvedByTarget?.connectionId || results.resolvedByTarget?.stepId ? (
+              <div className="mt-1 text-xs text-text-muted">
+                {results.resolvedByTarget?.connectionId
+                  ? `account ${results.resolvedByTarget.connectionId.slice(0, 8)}`
+                  : "dynamic account"}
+                {results.resolvedByTarget?.stepId
+                  ? ` · step ${results.resolvedByTarget.stepId}`
+                  : ""}
+              </div>
+            ) : null}
+          </div>
         </div>
       )}
       {results.results?.map((r, i) => (
@@ -1306,7 +1446,15 @@ function TestResultsView({ results }) {
           >
             {r.status === "ok" ? "check_circle" : r.status === "skipped" ? "skip_next" : "error"}
           </span>
-          <code className="font-mono flex-1">{r.model}</code>
+          <div className="min-w-0 flex-1">
+            <code className="font-mono block truncate">{r.label || r.model}</code>
+            {r.connectionId || r.stepId ? (
+              <div className="mt-0.5 text-[10px] text-text-muted">
+                {r.connectionId ? `acct ${r.connectionId.slice(0, 8)}` : "dynamic account"}
+                {r.stepId ? ` · ${r.stepId}` : ""}
+              </div>
+            ) : null}
+          </div>
           {r.latencyMs !== undefined && <span className="text-text-muted">{r.latencyMs}ms</span>}
           <span
             className={`text-[10px] uppercase font-medium ${
@@ -1371,6 +1519,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   const [pricingByProvider, setPricingByProvider] = useState({});
   const [modelAliases, setModelAliases] = useState({});
   const [providerNodes, setProviderNodes] = useState([]);
+  const [builderOptions, setBuilderOptions] = useState({ providers: [], comboRefs: [] });
+  const [builderLoading, setBuilderLoading] = useState(false);
+  const [builderProviderId, setBuilderProviderId] = useState("");
+  const [builderModelId, setBuilderModelId] = useState("");
+  const [builderConnectionId, setBuilderConnectionId] = useState(COMBO_BUILDER_AUTO_CONNECTION);
+  const [builderComboRefName, setBuilderComboRefName] = useState("");
+  const [builderError, setBuilderError] = useState("");
+  const [builderStage, setBuilderStage] = useState(COMBO_BUILDER_STAGES[0]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [config, setConfig] = useState(combo?.config || {});
   const [showStrategyNudge, setShowStrategyNudge] = useState(false);
@@ -1434,13 +1590,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   // DnD state
   const hasPricingForModel = useCallback(
     (modelValue) => {
-      const parts = modelValue.split("/");
-      if (parts.length !== 2) return false;
+      const parsed = parseQualifiedModel(modelValue);
+      if (!parsed) return false;
 
-      const [providerIdentifier, modelId] = parts;
-      const matchedNode = providerNodes.find(
-        (node) => node.id === providerIdentifier || node.prefix === providerIdentifier
-      );
+      const { providerId: providerIdentifier, modelId } = parsed;
+      const matchedNode = findProviderNodeByIdentifier(providerNodes, providerIdentifier);
 
       const providerCandidates = [providerIdentifier];
       if (matchedNode?.apiType) providerCandidates.push(matchedNode.apiType);
@@ -1453,6 +1607,32 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   const [dragIndex, setDragIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const builderProviders = builderOptions.providers || [];
+  const builderComboRefs = (builderOptions.comboRefs || []).filter(
+    (comboRef) => comboRef.name !== combo?.name && comboRef.name !== name.trim()
+  );
+  const selectedBuilderProvider =
+    builderProviders.find((provider) => provider.providerId === builderProviderId) || null;
+  const selectedBuilderModel =
+    selectedBuilderProvider?.models?.find((model) => model.id === builderModelId) || null;
+  const selectedBuilderConnections = selectedBuilderProvider?.connections || [];
+  const selectedBuilderConnection =
+    builderConnectionId && builderConnectionId !== COMBO_BUILDER_AUTO_CONNECTION
+      ? selectedBuilderConnections.find((connection) => connection.id === builderConnectionId) ||
+        null
+      : null;
+  const builderCandidateStep =
+    selectedBuilderProvider && selectedBuilderModel
+      ? buildPrecisionComboModelStep({
+          providerId: selectedBuilderProvider.providerId,
+          modelId: selectedBuilderModel.id,
+          connectionId:
+            builderConnectionId !== COMBO_BUILDER_AUTO_CONNECTION ? builderConnectionId : null,
+          connectionLabel: selectedBuilderConnection?.label || null,
+        })
+      : null;
+  const builderHasDuplicate =
+    builderCandidateStep && hasExactModelStepDuplicate(models, builderCandidateStep);
   const weightTotal = models.reduce((sum, modelEntry) => sum + (modelEntry.weight || 0), 0);
   const pricedModelCount = models.reduce(
     (count, modelEntry) => count + (hasPricingForModel(modelEntry.model) ? 1 : 0),
@@ -1471,6 +1651,33 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     pricedModelCount < models.length;
   const hasInvalidWeightedTotal =
     strategy === "weighted" && models.length > 0 && weightTotal !== 100;
+  const builderStageChecks = getComboBuilderStageChecks({
+    name,
+    nameError,
+    modelsCount: models.length,
+    hasInvalidWeightedTotal,
+    hasCostOptimizedWithoutPricing,
+  });
+  const canAdvanceFromCurrentStage =
+    builderStage === "basics"
+      ? builderStageChecks.basics
+      : builderStage === "steps"
+        ? builderStageChecks.steps
+        : true;
+  const currentStageIndex = COMBO_FORM_STAGE_META.findIndex(
+    (stageMeta) => stageMeta.id === builderStage
+  );
+  const pinnedAccountCount = models.filter((entry) => Boolean(entry?.connectionId)).length;
+  const comboRefCount = models.filter((entry) => entry?.kind === "combo-ref").length;
+  const uniqueProviderCount = new Set(
+    models
+      .map((entry) => {
+        const target = getModelString(entry);
+        const parsed = parseQualifiedModel(target);
+        return entry?.providerId || parsed?.providerId || null;
+      })
+      .filter(Boolean)
+  ).size;
   const saveBlocked =
     !name.trim() ||
     !!nameError ||
@@ -1533,11 +1740,13 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   }
 
   const fetchModalData = async () => {
+    setBuilderLoading(true);
     try {
-      const [aliasesRes, nodesRes, pricingRes] = await Promise.all([
+      const [aliasesRes, nodesRes, pricingRes, builderRes] = await Promise.all([
         fetch("/api/models/alias"),
         fetch("/api/provider-nodes"),
         fetch("/api/pricing"),
+        fetch("/api/combos/builder/options"),
       ]);
 
       if (!aliasesRes.ok || !nodesRes.ok) {
@@ -1546,6 +1755,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
         );
       }
       const pricingData = pricingRes.ok ? await pricingRes.json() : {};
+      const builderData = builderRes.ok ? await builderRes.json() : {};
 
       const [aliasesData, nodesData] = await Promise.all([aliasesRes.json(), nodesRes.json()]);
       setPricingByProvider(
@@ -1555,14 +1765,31 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
       );
       setModelAliases(aliasesData.aliases || {});
       setProviderNodes(nodesData.nodes || []);
+      setBuilderOptions({
+        providers: builderData.providers || [],
+        comboRefs: builderData.comboRefs || [],
+      });
     } catch (error) {
       console.error("Error fetching modal data:", error);
+      setBuilderOptions({ providers: [], comboRefs: [] });
+    } finally {
+      setBuilderLoading(false);
     }
   };
 
   useEffect(() => {
     if (isOpen) fetchModalData();
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setBuilderProviderId("");
+    setBuilderModelId("");
+    setBuilderConnectionId(COMBO_BUILDER_AUTO_CONNECTION);
+    setBuilderComboRefName("");
+    setBuilderError("");
+    setBuilderStage("basics");
+  }, [combo?.id, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -1611,6 +1838,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   }, [combo, getEmptyCreateDraftSnapshot, isOpen, resetFormForCombo]);
 
   useEffect(() => {
+    if (!isOpen) return;
+    if (builderProviderId) return;
+    if (builderProviders.length === 1) {
+      setBuilderProviderId(builderProviders[0].providerId);
+    }
+  }, [builderProviderId, builderProviders, isOpen]);
+
+  useEffect(() => {
     if (!strategyChangeMountedRef.current) {
       strategyChangeMountedRef.current = true;
       return;
@@ -1641,10 +1876,113 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     else setNameError("");
   };
 
-  const handleAddModel = (model) => {
-    if (!models.find((m) => m.model === model.value)) {
-      setModels([...models, { model: model.value, weight: 0 }]);
+  const handleBuilderProviderChange = (e) => {
+    const nextProviderId = e.target.value;
+    setBuilderProviderId(nextProviderId);
+    setBuilderModelId("");
+    setBuilderConnectionId(COMBO_BUILDER_AUTO_CONNECTION);
+    setBuilderError("");
+  };
+
+  const handleBuilderModelChange = (e) => {
+    const nextModelId = e.target.value;
+    setBuilderModelId(nextModelId);
+    setBuilderError("");
+
+    if (!nextModelId || !selectedBuilderProvider) {
+      setBuilderConnectionId(COMBO_BUILDER_AUTO_CONNECTION);
+      return;
     }
+
+    setBuilderConnectionId(
+      findNextSuggestedConnectionId(
+        models,
+        selectedBuilderProvider.providerId,
+        nextModelId,
+        selectedBuilderProvider.connections || []
+      )
+    );
+  };
+
+  const handleBuilderConnectionChange = (e) => {
+    setBuilderConnectionId(e.target.value || COMBO_BUILDER_AUTO_CONNECTION);
+    setBuilderError("");
+  };
+
+  const handleGoToNextStage = () => {
+    setBuilderStage((currentStage) => getNextComboBuilderStage(currentStage));
+  };
+
+  const handleGoToPreviousStage = () => {
+    setBuilderStage((currentStage) => getPreviousComboBuilderStage(currentStage));
+  };
+
+  const handleAddBuilderStep = () => {
+    if (!selectedBuilderProvider || !selectedBuilderModel) {
+      return;
+    }
+
+    const nextStep = buildPrecisionComboModelStep({
+      providerId: selectedBuilderProvider.providerId,
+      modelId: selectedBuilderModel.id,
+      connectionId:
+        builderConnectionId !== COMBO_BUILDER_AUTO_CONNECTION ? builderConnectionId : null,
+      connectionLabel: selectedBuilderConnection?.label || null,
+    });
+
+    if (hasExactModelStepDuplicate(models, nextStep)) {
+      setBuilderError(
+        getI18nOrFallback(
+          t,
+          "builderDuplicateExact",
+          "This exact provider/model/account step is already in the combo."
+        )
+      );
+      return;
+    }
+
+    const nextModels = [...models, nextStep];
+    setModels(nextModels);
+    setBuilderError("");
+    setBuilderConnectionId(
+      findNextSuggestedConnectionId(
+        nextModels,
+        selectedBuilderProvider.providerId,
+        selectedBuilderModel.id,
+        selectedBuilderConnections
+      )
+    );
+  };
+
+  const handleAddComboReference = () => {
+    if (!builderComboRefName) return;
+
+    setModels([
+      ...models,
+      {
+        kind: "combo-ref",
+        comboName: builderComboRefName,
+        weight: 0,
+      },
+    ]);
+    setBuilderComboRefName("");
+    setBuilderError("");
+  };
+
+  const handleAddModel = (model) => {
+    const nextEntry = { model: model.value, weight: 0 };
+    if (hasExactModelStepDuplicate(models, nextEntry)) {
+      setBuilderError(
+        getI18nOrFallback(
+          t,
+          "builderDuplicateExact",
+          "This exact provider/model/account step is already in the combo."
+        )
+      );
+      return;
+    }
+    setModels([...models, nextEntry]);
+    setBuilderError("");
   };
 
   const handleRemoveModel = (index) => {
@@ -1751,23 +2089,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   // Format model display name with readable provider name
   const formatModelDisplay = useCallback(
-    (modelValue) => {
-      const parts = modelValue.split("/");
-      if (parts.length !== 2) return modelValue;
-
-      const [providerIdentifier, modelId] = parts;
-      // Match by node ID or prefix
-      const matchedNode = providerNodes.find(
-        (node) => node.id === providerIdentifier || node.prefix === providerIdentifier
-      );
-
-      if (matchedNode) {
-        return `${matchedNode.name}/${modelId}`;
-      }
-
-      return modelValue;
+    (entry) => {
+      return formatComboEntryDisplay(entry, {
+        providerNodes,
+        builderProviders,
+        includeConnection: true,
+      });
     },
-    [providerNodes]
+    [builderProviders, providerNodes]
   );
 
   const handleMoveUp = (index) => {
@@ -1827,7 +2156,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
     const saveData: any = {
       name: name.trim(),
-      models: strategy === "weighted" ? models : models.map((m) => m.model),
+      models,
       strategy,
     };
 
@@ -1866,683 +2195,1152 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
         size="full"
       >
         <div className="flex flex-col gap-3">
-          {/* Name */}
-          <div>
-            <Input
-              label={t("comboName")}
-              value={name}
-              onChange={handleNameChange}
-              placeholder={t("comboNamePlaceholder")}
-              error={nameError}
-            />
-            <p className="text-[10px] text-text-muted mt-0.5">{t("nameHint")}</p>
-          </div>
-
-          {!isEdit && (
-            <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
-              <div className="mb-2">
-                <p className="text-xs font-medium">
-                  {getI18nOrFallback(t, "templatesTitle", COMBO_TEMPLATE_FALLBACK.title)}
+          <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div>
+                <p className="text-xs font-semibold text-text-main">
+                  {getI18nOrFallback(t, "builderFlowTitle", "Combo Builder Flow")}
                 </p>
                 <p className="text-[10px] text-text-muted mt-0.5">
                   {getI18nOrFallback(
                     t,
-                    "templatesDescription",
-                    COMBO_TEMPLATE_FALLBACK.description
+                    "builderFlowDescription",
+                    "Move through the stages in order to define the combo, build the steps, choose the routing strategy and review the result."
                   )}
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-                {COMBO_TEMPLATES.map((template) => (
-                  <button
-                    type="button"
-                    key={template.id}
-                    onClick={() => applyTemplate(template)}
-                    className={`text-left rounded-md border px-3 py-2 transition-all ${
-                      template.isFeatured
-                        ? "border-emerald-500/50 bg-emerald-500/5 hover:border-emerald-500/80 hover:bg-emerald-500/10 ring-1 ring-emerald-500/20"
-                        : "border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] hover:border-primary/40 hover:bg-primary/5"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`material-symbols-outlined text-[16px] ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}
-                      >
-                        {template.icon}
-                      </span>
-                      <span className="text-[12px] font-semibold text-text-main">
-                        {getI18nOrFallback(t, template.titleKey, template.fallbackTitle)}
-                      </span>
-                      {template.isFeatured && (
-                        <span className="ml-auto text-[9px] font-bold uppercase tracking-wide bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded">
-                          FREE
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-text-muted mt-1.5 leading-[1.5]">
-                      {getI18nOrFallback(t, template.descKey, template.fallbackDesc)}
-                    </p>
-                    <p
-                      className={`text-[10px] mt-1.5 font-medium ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}
-                    >
-                      {getI18nOrFallback(t, "templateApply", COMBO_TEMPLATE_FALLBACK.apply)} →
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Strategy Toggle */}
-          <div>
-            <div className="flex items-center gap-1 mb-1.5">
-              <label className="text-sm font-medium">{t("routingStrategy")}</label>
-              <Tooltip content={getStrategyDescription(t, strategy)}>
-                <span className="material-symbols-outlined text-[13px] text-text-muted cursor-help">
-                  help
-                </span>
-              </Tooltip>
-            </div>
-            <div className="grid grid-cols-3 gap-1 p-0.5 bg-black/5 dark:bg-white/5 rounded-lg">
-              {STRATEGY_OPTIONS.map((s) => (
-                <button
-                  key={s.value}
-                  onClick={() => setStrategy(s.value)}
-                  data-testid={`strategy-option-${s.value}`}
-                  title={getStrategyDescription(t, s.value)}
-                  aria-label={`${getStrategyLabel(t, s.value)}. ${getStrategyDescription(
-                    t,
-                    s.value
-                  )}`}
-                  className={`py-1.5 px-2 rounded-md text-xs font-medium transition-all ${
-                    strategy === s.value
-                      ? "bg-white dark:bg-bg-main shadow-sm text-primary"
-                      : "text-text-muted hover:text-text-main"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[14px] align-middle mr-0.5">
-                    {s.icon}
-                  </span>
-                  {getStrategyLabel(t, s.value)}
-                </button>
-              ))}
-            </div>
-            <p className="text-[10px] text-text-muted mt-0.5">
-              {getStrategyDescription(t, strategy)}
-            </p>
-            <div className="mt-2">
-              <StrategyGuidanceCard strategy={strategy} />
-            </div>
-            <div className="mt-2">
-              <StrategyRecommendationsPanel
-                strategy={strategy}
-                onApply={applyStrategyRecommendations}
-                showNudge={showStrategyNudge}
-              />
-            </div>
-          </div>
-
-          {/* Models */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium">{t("models")}</label>
-              {strategy === "weighted" && models.length > 1 && (
-                <button
-                  onClick={handleAutoBalance}
-                  className="text-[10px] text-primary hover:text-primary/80 transition-colors"
-                >
-                  {t("autoBalance")}
-                </button>
-              )}
-            </div>
-
-            {models.length === 0 ? (
-              <div className="text-center py-4 border border-dashed border-black/10 dark:border-white/10 rounded-lg bg-black/[0.01] dark:bg-white/[0.01]">
-                <span className="material-symbols-outlined text-text-muted text-xl mb-1">
-                  layers
-                </span>
-                <p className="text-xs text-text-muted">{t("noModelsYet")}</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1 max-h-[240px] overflow-y-auto">
-                {models.map((entry, index) => (
-                  <div
-                    key={`${entry.model}-${index}`}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDrop={(e) => handleDrop(e, index)}
-                    className={`group/item flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-all cursor-grab active:cursor-grabbing ${
-                      dragOverIndex === index && dragIndex !== index
-                        ? "bg-primary/10 border border-primary/30"
-                        : "bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] border border-transparent"
-                    } ${dragIndex === index ? "opacity-50" : ""}`}
-                  >
-                    {/* Drag handle */}
-                    <span className="material-symbols-outlined text-[14px] text-text-muted/40 cursor-grab shrink-0">
-                      drag_indicator
-                    </span>
-
-                    {/* Index badge */}
-                    <span className="text-[10px] font-medium text-text-muted w-3 text-center shrink-0">
-                      {index + 1}
-                    </span>
-
-                    {/* Model display */}
-                    <div className="flex-1 min-w-0 px-1 text-xs text-text-main truncate">
-                      {formatModelDisplay(entry.model)}
-                    </div>
-
-                    {strategy === "cost-optimized" && (
-                      <span
-                        className={`text-[9px] px-1.5 py-0.5 rounded-full uppercase font-semibold ${
-                          hasPricingForModel(entry.model)
-                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                            : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                        }`}
-                        title={
-                          hasPricingForModel(entry.model)
-                            ? getI18nOrFallback(t, "pricingAvailable", "Pricing available")
-                            : getI18nOrFallback(t, "pricingMissing", "No pricing")
-                        }
-                      >
-                        {hasPricingForModel(entry.model)
-                          ? getI18nOrFallback(t, "pricingAvailableShort", "priced")
-                          : getI18nOrFallback(t, "pricingMissingShort", "no-price")}
-                      </span>
-                    )}
-
-                    {/* Weight input (weighted mode only) */}
-                    {strategy === "weighted" && (
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={entry.weight}
-                          onChange={(e) => handleWeightChange(index, e.target.value)}
-                          className="w-10 text-[11px] text-center py-0.5 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                        />
-                        <span className="text-[10px] text-text-muted">%</span>
-                      </div>
-                    )}
-
-                    {/* Priority arrows (priority mode) */}
-                    {strategy === "priority" && (
-                      <div className="flex items-center gap-0.5">
-                        <button
-                          onClick={() => handleMoveUp(index)}
-                          disabled={index === 0}
-                          className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                          title={t("moveUp")}
-                        >
-                          <span className="material-symbols-outlined text-[12px]">
-                            arrow_upward
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => handleMoveDown(index)}
-                          disabled={index === models.length - 1}
-                          className={`p-0.5 rounded ${index === models.length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                          title={t("moveDown")}
-                        >
-                          <span className="material-symbols-outlined text-[12px]">
-                            arrow_downward
-                          </span>
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Remove */}
-                    <button
-                      onClick={() => handleRemoveModel(index)}
-                      className="p-0.5 hover:bg-red-500/10 rounded text-text-muted hover:text-red-500 transition-all"
-                      title={t("removeModel")}
-                    >
-                      <span className="material-symbols-outlined text-[12px]">close</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Weight total indicator */}
-            {strategy === "weighted" && models.length > 0 && <WeightTotalBar models={models} />}
-
-            {strategy === "cost-optimized" && models.length > 0 && (
-              <div className="mt-2 rounded-md border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] px-2 py-1.5">
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-text-muted">
-                    {getI18nOrFallback(t, "pricingCoverage", "Pricing coverage")}
-                  </span>
-                  <span className="font-medium text-text-main">
-                    {pricedModelCount}/{models.length} ({pricingCoveragePercent}%)
-                  </span>
-                </div>
-                <div className="h-1.5 mt-1 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      pricingCoveragePercent === 100
-                        ? "bg-emerald-500"
-                        : pricingCoveragePercent > 0
-                          ? "bg-amber-500"
-                          : "bg-red-500"
-                    }`}
-                    style={{ width: `${pricingCoveragePercent}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-text-muted mt-1">
-                  {getI18nOrFallback(
-                    t,
-                    "pricingCoverageHint",
-                    "Cost-optimized works best when all combo models have pricing."
-                  )}
-                </p>
-              </div>
-            )}
-
-            {hasNoModels && (
-              <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">warning</span>
-                <span>{t("noModelsYet")}</span>
-              </div>
-            )}
-
-            {hasInvalidWeightedTotal && (
-              <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">warning</span>
-                <span>
-                  {t("weighted")} {weightTotal}% {"\u2260"} 100%. {t("autoBalance")}
-                </span>
-              </div>
-            )}
-
-            {hasRoundRobinSingleModel && (
-              <div className="mt-2 rounded-md border border-blue-500/20 bg-blue-500/10 px-2 py-1.5 text-[10px] text-blue-700 dark:text-blue-300 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">info</span>
-                <span>
-                  {getI18nOrFallback(
-                    t,
-                    "warningRoundRobinSingleModel",
-                    "Round-robin is most useful with at least 2 models."
-                  )}
-                </span>
-              </div>
-            )}
-
-            {hasCostOptimizedPartialPricing && (
-              <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">warning</span>
-                <span>
-                  {typeof t.has === "function" && t.has("warningCostOptimizedPartialPricing")
-                    ? t("warningCostOptimizedPartialPricing", {
-                        priced: pricedModelCount,
-                        total: models.length,
-                      })
-                    : `Only ${pricedModelCount} of ${models.length} models have pricing. Routing may be partially cost-aware.`}
-                </span>
-              </div>
-            )}
-
-            {hasCostOptimizedWithoutPricing && (
-              <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">warning</span>
-                <span>
-                  {getI18nOrFallback(
-                    t,
-                    "warningCostOptimizedNoPricing",
-                    "No pricing data found for this combo. Cost-optimized may route unexpectedly."
-                  )}
-                </span>
-              </div>
-            )}
-
-            <div className="mt-2">
-              <ComboReadinessPanel checks={readinessChecks} blockers={saveBlockers} />
-            </div>
-
-            {/* Add Model button */}
-            <button
-              onClick={() => setShowModelSelect(true)}
-              className="w-full mt-2 py-2 border border-dashed border-black/10 dark:border-white/10 rounded-lg text-xs text-text-muted hover:text-primary hover:border-primary/30 transition-colors flex items-center justify-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[16px]">add</span>
-              {t("addModel")}
-            </button>
-          </div>
-
-          {/* Advanced Config Toggle */}
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-1 text-xs text-text-muted hover:text-text-main transition-colors self-start"
-          >
-            <span className="material-symbols-outlined text-[14px]">
-              {showAdvanced ? "expand_less" : "expand_more"}
-            </span>
-            {t("advancedSettings")}
-          </button>
-
-          {showAdvanced && (
-            <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <FieldLabelWithHelp
-                    label={t("maxRetries")}
-                    help={getI18nOrFallback(
-                      t,
-                      "advancedHelp.maxRetries",
-                      ADVANCED_FIELD_HELP_FALLBACK.maxRetries
-                    )}
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    max="10"
-                    value={config.maxRetries ?? ""}
-                    placeholder="1"
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        maxRetries: e.target.value ? Number(e.target.value) : undefined,
-                      })
-                    }
-                    className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <FieldLabelWithHelp
-                    label={t("retryDelay")}
-                    help={getI18nOrFallback(
-                      t,
-                      "advancedHelp.retryDelay",
-                      ADVANCED_FIELD_HELP_FALLBACK.retryDelay
-                    )}
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    max="60000"
-                    step="500"
-                    value={config.retryDelayMs ?? ""}
-                    placeholder="2000"
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        retryDelayMs: e.target.value ? Number(e.target.value) : undefined,
-                      })
-                    }
-                    className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <FieldLabelWithHelp
-                    label={t("timeout")}
-                    help={getI18nOrFallback(
-                      t,
-                      "advancedHelp.timeout",
-                      ADVANCED_FIELD_HELP_FALLBACK.timeout
-                    )}
-                  />
-                  <input
-                    type="number"
-                    min="1000"
-                    max="600000"
-                    step="1000"
-                    value={config.timeoutMs ?? ""}
-                    placeholder="120000"
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        timeoutMs: e.target.value ? Number(e.target.value) : undefined,
-                      })
-                    }
-                    className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                  />
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <FieldLabelWithHelp
-                    label={t("healthcheck")}
-                    help={getI18nOrFallback(
-                      t,
-                      "advancedHelp.healthcheck",
-                      ADVANCED_FIELD_HELP_FALLBACK.healthcheck
-                    )}
-                  />
-                  <input
-                    type="checkbox"
-                    checked={config.healthCheckEnabled !== false}
-                    onChange={(e) => setConfig({ ...config, healthCheckEnabled: e.target.checked })}
-                    className="accent-primary"
-                  />
-                </div>
-              </div>
-              {strategy === "round-robin" && (
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
-                  <div>
-                    <FieldLabelWithHelp
-                      label={t("concurrencyPerModel")}
-                      help={getI18nOrFallback(
-                        t,
-                        "advancedHelp.concurrencyPerModel",
-                        ADVANCED_FIELD_HELP_FALLBACK.concurrencyPerModel
-                      )}
-                    />
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={config.concurrencyPerModel ?? ""}
-                      placeholder="3"
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          concurrencyPerModel: e.target.value ? Number(e.target.value) : undefined,
-                        })
-                      }
-                      className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <FieldLabelWithHelp
-                      label={t("queueTimeout")}
-                      help={getI18nOrFallback(
-                        t,
-                        "advancedHelp.queueTimeout",
-                        ADVANCED_FIELD_HELP_FALLBACK.queueTimeout
-                      )}
-                    />
-                    <input
-                      type="number"
-                      min="1000"
-                      max="120000"
-                      step="1000"
-                      value={config.queueTimeoutMs ?? ""}
-                      placeholder="30000"
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          queueTimeoutMs: e.target.value ? Number(e.target.value) : undefined,
-                        })
-                      }
-                      className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                </div>
-              )}
-              {strategy === "context-relay" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
-                  <div>
-                    <FieldLabelWithHelp
-                      label={getI18nOrFallback(
-                        t,
-                        "contextRelayHandoffThreshold",
-                        "Handoff Threshold"
-                      )}
-                      help={getI18nOrFallback(
-                        t,
-                        "contextRelayHandoffThresholdHelp",
-                        "When quota usage reaches this threshold, OmniRoute generates a structured handoff summary before the account is exhausted."
-                      )}
-                    />
-                    <input
-                      type="number"
-                      min="0.5"
-                      max="0.94"
-                      step="0.01"
-                      value={config.handoffThreshold ?? ""}
-                      placeholder="0.85"
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          handoffThreshold: e.target.value ? Number(e.target.value) : undefined,
-                        })
-                      }
-                      className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <FieldLabelWithHelp
-                      label={getI18nOrFallback(
-                        t,
-                        "contextRelayMaxMessages",
-                        "Max Messages For Summary"
-                      )}
-                      help={getI18nOrFallback(
-                        t,
-                        "contextRelayMaxMessagesHelp",
-                        "Limits how much recent history is condensed into the relay summary."
-                      )}
-                    />
-                    <input
-                      type="number"
-                      min="5"
-                      max="100"
-                      value={config.maxMessagesForSummary ?? ""}
-                      placeholder="30"
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          maxMessagesForSummary: e.target.value
-                            ? Number(e.target.value)
-                            : undefined,
-                        })
-                      }
-                      className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <FieldLabelWithHelp
-                      label={getI18nOrFallback(t, "contextRelaySummaryModel", "Summary Model")}
-                      help={getI18nOrFallback(
-                        t,
-                        "contextRelaySummaryModelHelp",
-                        "Optional override model used only for generating the handoff summary. Leave empty to reuse the active combo model."
-                      )}
-                    />
-                    <input
-                      type="text"
-                      value={config.handoffModel ?? ""}
-                      placeholder="codex/gpt-5.4"
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          handoffModel: e.target.value || undefined,
-                        })
-                      }
-                      className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-3 rounded-md border border-fuchsia-500/20 bg-fuchsia-500/5 px-2 py-1.5">
-                    <p className="text-[10px] text-fuchsia-700 dark:text-fuchsia-300">
-                      {getI18nOrFallback(
-                        t,
-                        "contextRelayProviderNote",
-                        "Context Relay currently generates handoffs for Codex account rotation. Pair it with multiple accounts of the same provider for the best continuity."
-                      )}
-                    </p>
-                  </div>
-                </div>
-              )}
-              <p className="text-[10px] text-text-muted">{t("advancedHint")}</p>
-            </div>
-          )}
-
-          {/* Agent Features (#399 / #401 / #454) */}
-          <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="material-symbols-outlined text-[14px] text-primary">smart_toy</span>
-              <p className="text-xs font-medium">Agent Features</p>
-              <span className="text-[10px] text-text-muted">
-                — optional, for agent/tool workflows
+              <span className="text-[10px] uppercase tracking-wide text-text-muted">
+                {currentStageIndex + 1}/{COMBO_FORM_STAGE_META.length}
               </span>
             </div>
 
-            {/* System Message Override */}
-            <div>
-              <label className="text-[11px] font-medium text-text-muted block mb-0.5">
-                System Message Override
-              </label>
-              <textarea
-                rows={2}
-                value={agentSystemMessage}
-                onChange={(e) => setAgentSystemMessage(e.target.value)}
-                placeholder="Override the system prompt for all requests routed through this combo…"
-                className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none resize-none"
-              />
-              <p className="text-[10px] text-text-muted mt-0.5">
-                Replaces any system message sent by the client. Leave empty to pass through client
-                system messages.
-              </p>
-            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {COMBO_FORM_STAGE_META.map((stageMeta, index) => {
+                const isActive = builderStage === stageMeta.id;
+                const canVisitStage = isActive
+                  ? true
+                  : canAccessComboBuilderStage(stageMeta.id, builderStageChecks);
+                const isCompleted =
+                  stageMeta.id === "review"
+                    ? false
+                    : stageMeta.id === "basics"
+                      ? builderStageChecks.basics
+                      : stageMeta.id === "steps"
+                        ? builderStageChecks.steps
+                        : builderStageChecks.strategy;
 
-            {/* Tool Filter Regex */}
-            <div>
-              <label className="text-[11px] font-medium text-text-muted block mb-0.5">
-                Tool Filter Regex
-              </label>
-              <input
-                type="text"
-                value={agentToolFilter}
-                onChange={(e) => setAgentToolFilter(e.target.value)}
-                placeholder="e.g. ^(bash|computer)$"
-                className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none font-mono"
-              />
-              <p className="text-[10px] text-text-muted mt-0.5">
-                Only tools whose name matches this regex are forwarded to the provider. Leave empty
-                to forward all tools.
-              </p>
-            </div>
-
-            {/* Context Cache Protection */}
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <label className="text-[11px] font-medium text-text-muted block">
-                  Context Cache Protection
-                </label>
-                <p className="text-[10px] text-text-muted">
-                  Pins the provider/model across turns to preserve cache sessions. Internal tags are
-                  stripped before forwarding to the provider.
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={agentContextCache}
-                onChange={(e) => setAgentContextCache(e.target.checked)}
-                className="accent-primary shrink-0"
-              />
+                return (
+                  <button
+                    key={stageMeta.id}
+                    type="button"
+                    data-testid={`combo-builder-stage-${stageMeta.id}`}
+                    onClick={() => {
+                      if (!canVisitStage) return;
+                      setBuilderStage(stageMeta.id);
+                    }}
+                    disabled={!canVisitStage}
+                    className={`text-left rounded-lg border px-3 py-2 transition-all ${
+                      isActive
+                        ? "border-primary bg-primary/8"
+                        : canVisitStage
+                          ? "border-black/8 dark:border-white/8 bg-white/60 dark:bg-white/[0.02] hover:border-primary/40"
+                          : "border-black/6 dark:border-white/6 bg-black/[0.015] dark:bg-white/[0.015] opacity-60 cursor-not-allowed"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`material-symbols-outlined text-[14px] ${
+                          isCompleted && !isActive
+                            ? "text-emerald-500"
+                            : isActive
+                              ? "text-primary"
+                              : "text-text-muted"
+                        }`}
+                      >
+                        {isCompleted && !isActive ? "check_circle" : stageMeta.icon}
+                      </span>
+                      <span className="text-[11px] font-semibold text-text-main">
+                        {getI18nOrFallback(
+                          t,
+                          `builderStage.${stageMeta.id}.label`,
+                          stageMeta.fallbackLabel
+                        )}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-text-muted mt-1 leading-[1.45]">
+                      {getI18nOrFallback(
+                        t,
+                        `builderStage.${stageMeta.id}.description`,
+                        stageMeta.fallbackDescription
+                      )}
+                    </p>
+                    <p className="text-[9px] uppercase tracking-wide mt-1 text-text-muted">
+                      {index < currentStageIndex
+                        ? getI18nOrFallback(t, "builderStageVisited", "Visited")
+                        : isActive
+                          ? getI18nOrFallback(t, "builderStageCurrent", "Current")
+                          : canVisitStage
+                            ? getI18nOrFallback(t, "builderStagePending", "Pending")
+                            : getI18nOrFallback(t, "builderStageLocked", "Locked")}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
+
+          {builderStage === "basics" && (
+            <>
+              {/* Name */}
+              <div>
+                <Input
+                  label={t("comboName")}
+                  value={name}
+                  onChange={handleNameChange}
+                  placeholder={t("comboNamePlaceholder")}
+                  error={nameError}
+                />
+                <p className="text-[10px] text-text-muted mt-0.5">{t("nameHint")}</p>
+              </div>
+
+              {!isEdit && (
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+                  <div className="mb-2">
+                    <p className="text-xs font-medium">
+                      {getI18nOrFallback(t, "templatesTitle", COMBO_TEMPLATE_FALLBACK.title)}
+                    </p>
+                    <p className="text-[10px] text-text-muted mt-0.5">
+                      {getI18nOrFallback(
+                        t,
+                        "templatesDescription",
+                        COMBO_TEMPLATE_FALLBACK.description
+                      )}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                    {COMBO_TEMPLATES.map((template) => (
+                      <button
+                        type="button"
+                        key={template.id}
+                        onClick={() => applyTemplate(template)}
+                        data-testid={`combo-template-${template.id}`}
+                        className={`text-left rounded-md border px-3 py-2 transition-all ${
+                          template.isFeatured
+                            ? "border-emerald-500/50 bg-emerald-500/5 hover:border-emerald-500/80 hover:bg-emerald-500/10 ring-1 ring-emerald-500/20"
+                            : "border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] hover:border-primary/40 hover:bg-primary/5"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`material-symbols-outlined text-[16px] ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}
+                          >
+                            {template.icon}
+                          </span>
+                          <span className="text-[12px] font-semibold text-text-main">
+                            {getI18nOrFallback(t, template.titleKey, template.fallbackTitle)}
+                          </span>
+                          {template.isFeatured && (
+                            <span className="ml-auto text-[9px] font-bold uppercase tracking-wide bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded">
+                              FREE
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-text-muted mt-1.5 leading-[1.5]">
+                          {getI18nOrFallback(t, template.descKey, template.fallbackDesc)}
+                        </p>
+                        <p
+                          className={`text-[10px] mt-1.5 font-medium ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}
+                        >
+                          {getI18nOrFallback(t, "templateApply", COMBO_TEMPLATE_FALLBACK.apply)} →
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Strategy Toggle */}
+          {builderStage === "strategy" && (
+            <div>
+              <div className="flex items-center gap-1 mb-1.5">
+                <label className="text-sm font-medium">{t("routingStrategy")}</label>
+                <Tooltip content={getStrategyDescription(t, strategy)}>
+                  <span className="material-symbols-outlined text-[13px] text-text-muted cursor-help">
+                    help
+                  </span>
+                </Tooltip>
+              </div>
+              <div className="grid grid-cols-3 gap-1 p-0.5 bg-black/5 dark:bg-white/5 rounded-lg">
+                {STRATEGY_OPTIONS.map((s) => (
+                  <button
+                    key={s.value}
+                    onClick={() => setStrategy(s.value)}
+                    data-testid={`strategy-option-${s.value}`}
+                    title={getStrategyDescription(t, s.value)}
+                    aria-label={`${getStrategyLabel(t, s.value)}. ${getStrategyDescription(
+                      t,
+                      s.value
+                    )}`}
+                    className={`py-1.5 px-2 rounded-md text-xs font-medium transition-all ${
+                      strategy === s.value
+                        ? "bg-white dark:bg-bg-main shadow-sm text-primary"
+                        : "text-text-muted hover:text-text-main"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[14px] align-middle mr-0.5">
+                      {s.icon}
+                    </span>
+                    {getStrategyLabel(t, s.value)}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-text-muted mt-0.5">
+                {getStrategyDescription(t, strategy)}
+              </p>
+              <div className="mt-2">
+                <StrategyGuidanceCard strategy={strategy} />
+              </div>
+              <div className="mt-2">
+                <StrategyRecommendationsPanel
+                  strategy={strategy}
+                  onApply={applyStrategyRecommendations}
+                  showNudge={showStrategyNudge}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Models */}
+          {builderStage === "steps" && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium">{t("models")}</label>
+                {strategy === "weighted" && models.length > 1 && (
+                  <button
+                    onClick={handleAutoBalance}
+                    className="text-[10px] text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {t("autoBalance")}
+                  </button>
+                )}
+              </div>
+
+              <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3 mb-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold text-text-main">
+                      {getI18nOrFallback(t, "builderTitle", "Precision Builder")}
+                    </p>
+                    <p className="text-[10px] text-text-muted mt-0.5">
+                      {getI18nOrFallback(
+                        t,
+                        "builderDescription",
+                        "Build each combo step in sequence: provider, model, then account. This allows repeating the same provider and model with different accounts."
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowModelSelect(true)}
+                    className="text-[10px] shrink-0 text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {getI18nOrFallback(t, "builderBrowseCatalog", "Legacy model browser")}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
+                      1. {getI18nOrFallback(t, "builderProvider", "Provider")}
+                    </label>
+                    <select
+                      value={builderProviderId}
+                      onChange={handleBuilderProviderChange}
+                      data-testid="combo-builder-provider"
+                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                    >
+                      <option value="">
+                        {builderLoading
+                          ? getI18nOrFallback(t, "builderLoadingProviders", "Loading providers…")
+                          : getI18nOrFallback(t, "builderSelectProvider", "Select provider")}
+                      </option>
+                      {builderProviders.map((provider) => (
+                        <option key={provider.providerId} value={provider.providerId}>
+                          {provider.displayName} ({provider.connectionCount} acct
+                          {provider.connectionCount === 1 ? "" : "s"})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
+                      2. {getI18nOrFallback(t, "builderModel", "Model")}
+                    </label>
+                    <select
+                      value={builderModelId}
+                      onChange={handleBuilderModelChange}
+                      disabled={!selectedBuilderProvider}
+                      data-testid="combo-builder-model"
+                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none disabled:opacity-50"
+                    >
+                      <option value="">
+                        {selectedBuilderProvider
+                          ? getI18nOrFallback(t, "builderSelectModel", "Select model")
+                          : getI18nOrFallback(t, "builderProviderFirst", "Choose provider first")}
+                      </option>
+                      {(selectedBuilderProvider?.models || []).map((model) => (
+                        <option key={model.id} value={model.id}>
+                          {model.name}
+                          {model.source ? ` · ${model.source}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
+                      3. {getI18nOrFallback(t, "builderAccount", "Account")}
+                    </label>
+                    <select
+                      value={builderConnectionId}
+                      onChange={handleBuilderConnectionChange}
+                      disabled={!selectedBuilderModel}
+                      data-testid="combo-builder-account"
+                      className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none disabled:opacity-50"
+                    >
+                      <option value={COMBO_BUILDER_AUTO_CONNECTION}>
+                        {getI18nOrFallback(
+                          t,
+                          "builderDynamicAccount",
+                          "Auto-select account at runtime"
+                        )}
+                      </option>
+                      {selectedBuilderConnections.map((connection) => (
+                        <option key={connection.id} value={connection.id}>
+                          {connection.label}
+                          {connection.status !== "active" ? ` · ${connection.status}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mt-2 rounded-md border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] px-2.5 py-2">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "builderPreview", "Current step preview")}
+                  </p>
+                  <p className="text-xs text-text-main mt-1">
+                    {builderCandidateStep
+                      ? formatModelDisplay(builderCandidateStep)
+                      : getI18nOrFallback(
+                          t,
+                          "builderPreviewEmpty",
+                          "Choose provider and model to preview the next step."
+                        )}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                    <Button
+                      onClick={handleAddBuilderStep}
+                      size="sm"
+                      disabled={!builderCandidateStep || !!builderHasDuplicate}
+                      data-testid="combo-builder-add-step"
+                    >
+                      {getI18nOrFallback(t, "builderAddStep", "Add detailed step")}
+                    </Button>
+                    {builderHasDuplicate && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-300">
+                        {getI18nOrFallback(
+                          t,
+                          "builderDuplicateExact",
+                          "This exact provider/model/account step is already in the combo."
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5">
+                  <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
+                    {getI18nOrFallback(t, "builderComboRef", "Reference another combo")}
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <select
+                      value={builderComboRefName}
+                      onChange={(e) => setBuilderComboRefName(e.target.value)}
+                      className="flex-1 text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                    >
+                      <option value="">
+                        {getI18nOrFallback(
+                          t,
+                          "builderSelectComboRef",
+                          "Select an existing combo to reference"
+                        )}
+                      </option>
+                      {builderComboRefs.map((comboRef) => (
+                        <option key={comboRef.id} value={comboRef.name}>
+                          {comboRef.name} · {comboRef.strategy} · {comboRef.stepCount} step
+                          {comboRef.stepCount === 1 ? "" : "s"}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      onClick={handleAddComboReference}
+                      variant="ghost"
+                      size="sm"
+                      disabled={!builderComboRefName}
+                    >
+                      {getI18nOrFallback(t, "builderAddComboRef", "Add combo ref")}
+                    </Button>
+                  </div>
+                </div>
+
+                {builderError && (
+                  <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300">
+                    {builderError}
+                  </div>
+                )}
+              </div>
+
+              {models.length === 0 ? (
+                <div className="text-center py-4 border border-dashed border-black/10 dark:border-white/10 rounded-lg bg-black/[0.01] dark:bg-white/[0.01]">
+                  <span className="material-symbols-outlined text-text-muted text-xl mb-1">
+                    layers
+                  </span>
+                  <p className="text-xs text-text-muted">{t("noModelsYet")}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1 max-h-[240px] overflow-y-auto">
+                  {models.map((entry, index) => (
+                    <div
+                      key={`${entry.model}-${index}`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      className={`group/item flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-all cursor-grab active:cursor-grabbing ${
+                        dragOverIndex === index && dragIndex !== index
+                          ? "bg-primary/10 border border-primary/30"
+                          : "bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] border border-transparent"
+                      } ${dragIndex === index ? "opacity-50" : ""}`}
+                    >
+                      {/* Drag handle */}
+                      <span className="material-symbols-outlined text-[14px] text-text-muted/40 cursor-grab shrink-0">
+                        drag_indicator
+                      </span>
+
+                      {/* Index badge */}
+                      <span className="text-[10px] font-medium text-text-muted w-3 text-center shrink-0">
+                        {index + 1}
+                      </span>
+
+                      {/* Model display */}
+                      <div className="flex-1 min-w-0 px-1">
+                        <div className="text-xs text-text-main truncate">
+                          {formatModelDisplay(entry)}
+                        </div>
+                        <div className="text-[10px] text-text-muted truncate">
+                          {entry.kind === "combo-ref"
+                            ? getI18nOrFallback(t, "builderComboRefStep", "Nested combo reference")
+                            : entry.connectionId
+                              ? getI18nOrFallback(t, "builderPinnedAccount", "Pinned account")
+                              : entry.providerId
+                                ? getI18nOrFallback(
+                                    t,
+                                    "builderDynamicAccountShort",
+                                    "Dynamic account"
+                                  )
+                                : getI18nOrFallback(t, "builderLegacyEntry", "Legacy model entry")}
+                        </div>
+                      </div>
+
+                      {strategy === "cost-optimized" && (
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded-full uppercase font-semibold ${
+                            hasPricingForModel(entry.model)
+                              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                              : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                          }`}
+                          title={
+                            hasPricingForModel(entry.model)
+                              ? getI18nOrFallback(t, "pricingAvailable", "Pricing available")
+                              : getI18nOrFallback(t, "pricingMissing", "No pricing")
+                          }
+                        >
+                          {hasPricingForModel(entry.model)
+                            ? getI18nOrFallback(t, "pricingAvailableShort", "priced")
+                            : getI18nOrFallback(t, "pricingMissingShort", "no-price")}
+                        </span>
+                      )}
+
+                      {/* Weight input (weighted mode only) */}
+                      {strategy === "weighted" && (
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={entry.weight}
+                            onChange={(e) => handleWeightChange(index, e.target.value)}
+                            className="w-10 text-[11px] text-center py-0.5 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                          />
+                          <span className="text-[10px] text-text-muted">%</span>
+                        </div>
+                      )}
+
+                      {/* Priority arrows (priority mode) */}
+                      {strategy === "priority" && (
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            onClick={() => handleMoveUp(index)}
+                            disabled={index === 0}
+                            className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
+                            title={t("moveUp")}
+                          >
+                            <span className="material-symbols-outlined text-[12px]">
+                              arrow_upward
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleMoveDown(index)}
+                            disabled={index === models.length - 1}
+                            className={`p-0.5 rounded ${index === models.length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
+                            title={t("moveDown")}
+                          >
+                            <span className="material-symbols-outlined text-[12px]">
+                              arrow_downward
+                            </span>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Remove */}
+                      <button
+                        onClick={() => handleRemoveModel(index)}
+                        className="p-0.5 hover:bg-red-500/10 rounded text-text-muted hover:text-red-500 transition-all"
+                        title={t("removeModel")}
+                      >
+                        <span className="material-symbols-outlined text-[12px]">close</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Weight total indicator */}
+              {strategy === "weighted" && models.length > 0 && <WeightTotalBar models={models} />}
+
+              {strategy === "cost-optimized" && models.length > 0 && (
+                <div className="mt-2 rounded-md border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] px-2 py-1.5">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-text-muted">
+                      {getI18nOrFallback(t, "pricingCoverage", "Pricing coverage")}
+                    </span>
+                    <span className="font-medium text-text-main">
+                      {pricedModelCount}/{models.length} ({pricingCoveragePercent}%)
+                    </span>
+                  </div>
+                  <div className="h-1.5 mt-1 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        pricingCoveragePercent === 100
+                          ? "bg-emerald-500"
+                          : pricingCoveragePercent > 0
+                            ? "bg-amber-500"
+                            : "bg-red-500"
+                      }`}
+                      style={{ width: `${pricingCoveragePercent}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-text-muted mt-1">
+                    {getI18nOrFallback(
+                      t,
+                      "pricingCoverageHint",
+                      "Cost-optimized works best when all combo models have pricing."
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {hasNoModels && (
+                <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">warning</span>
+                  <span>{t("noModelsYet")}</span>
+                </div>
+              )}
+
+              {hasInvalidWeightedTotal && (
+                <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">warning</span>
+                  <span>
+                    {t("weighted")} {weightTotal}% {"\u2260"} 100%. {t("autoBalance")}
+                  </span>
+                </div>
+              )}
+
+              {hasRoundRobinSingleModel && (
+                <div className="mt-2 rounded-md border border-blue-500/20 bg-blue-500/10 px-2 py-1.5 text-[10px] text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">info</span>
+                  <span>
+                    {getI18nOrFallback(
+                      t,
+                      "warningRoundRobinSingleModel",
+                      "Round-robin is most useful with at least 2 models."
+                    )}
+                  </span>
+                </div>
+              )}
+
+              {hasCostOptimizedPartialPricing && (
+                <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">warning</span>
+                  <span>
+                    {typeof t.has === "function" && t.has("warningCostOptimizedPartialPricing")
+                      ? t("warningCostOptimizedPartialPricing", {
+                          priced: pricedModelCount,
+                          total: models.length,
+                        })
+                      : `Only ${pricedModelCount} of ${models.length} models have pricing. Routing may be partially cost-aware.`}
+                  </span>
+                </div>
+              )}
+
+              {hasCostOptimizedWithoutPricing && (
+                <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">warning</span>
+                  <span>
+                    {getI18nOrFallback(
+                      t,
+                      "warningCostOptimizedNoPricing",
+                      "No pricing data found for this combo. Cost-optimized may route unexpectedly."
+                    )}
+                  </span>
+                </div>
+              )}
+
+              <div className="mt-2">
+                <ComboReadinessPanel checks={readinessChecks} blockers={saveBlockers} />
+              </div>
+
+              <button
+                onClick={() => setShowModelSelect(true)}
+                className="w-full mt-2 py-2 border border-dashed border-black/10 dark:border-white/10 rounded-lg text-xs text-text-muted hover:text-primary hover:border-primary/30 transition-colors flex items-center justify-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[16px]">travel_explore</span>
+                {getI18nOrFallback(t, "builderOpenLegacyCatalog", "Browse legacy model catalog")}
+              </button>
+            </div>
+          )}
+
+          {/* Advanced Config Toggle */}
+          {builderStage === "strategy" && (
+            <>
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center gap-1 text-xs text-text-muted hover:text-text-main transition-colors self-start"
+              >
+                <span className="material-symbols-outlined text-[14px]">
+                  {showAdvanced ? "expand_less" : "expand_more"}
+                </span>
+                {t("advancedSettings")}
+              </button>
+
+              {showAdvanced && (
+                <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <FieldLabelWithHelp
+                        label={t("maxRetries")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.maxRetries",
+                          ADVANCED_FIELD_HELP_FALLBACK.maxRetries
+                        )}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={config.maxRetries ?? ""}
+                        placeholder="1"
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            maxRetries: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabelWithHelp
+                        label={t("retryDelay")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.retryDelay",
+                          ADVANCED_FIELD_HELP_FALLBACK.retryDelay
+                        )}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="60000"
+                        step="500"
+                        value={config.retryDelayMs ?? ""}
+                        placeholder="2000"
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            retryDelayMs: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabelWithHelp
+                        label={t("timeout")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.timeout",
+                          ADVANCED_FIELD_HELP_FALLBACK.timeout
+                        )}
+                      />
+                      <input
+                        type="number"
+                        min="1000"
+                        max="600000"
+                        step="1000"
+                        value={config.timeoutMs ?? ""}
+                        placeholder="120000"
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            timeoutMs: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <FieldLabelWithHelp
+                        label={t("healthcheck")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.healthcheck",
+                          ADVANCED_FIELD_HELP_FALLBACK.healthcheck
+                        )}
+                      />
+                      <input
+                        type="checkbox"
+                        checked={config.healthCheckEnabled !== false}
+                        onChange={(e) =>
+                          setConfig({ ...config, healthCheckEnabled: e.target.checked })
+                        }
+                        className="accent-primary"
+                      />
+                    </div>
+                  </div>
+                  {strategy === "round-robin" && (
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                      <div>
+                        <FieldLabelWithHelp
+                          label={t("concurrencyPerModel")}
+                          help={getI18nOrFallback(
+                            t,
+                            "advancedHelp.concurrencyPerModel",
+                            ADVANCED_FIELD_HELP_FALLBACK.concurrencyPerModel
+                          )}
+                        />
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={config.concurrencyPerModel ?? ""}
+                          placeholder="3"
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              concurrencyPerModel: e.target.value
+                                ? Number(e.target.value)
+                                : undefined,
+                            })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <FieldLabelWithHelp
+                          label={t("queueTimeout")}
+                          help={getI18nOrFallback(
+                            t,
+                            "advancedHelp.queueTimeout",
+                            ADVANCED_FIELD_HELP_FALLBACK.queueTimeout
+                          )}
+                        />
+                        <input
+                          type="number"
+                          min="1000"
+                          max="120000"
+                          step="1000"
+                          value={config.queueTimeoutMs ?? ""}
+                          placeholder="30000"
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              queueTimeoutMs: e.target.value ? Number(e.target.value) : undefined,
+                            })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {strategy === "context-relay" && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                      <div>
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(
+                            t,
+                            "contextRelayHandoffThreshold",
+                            "Handoff Threshold"
+                          )}
+                          help={getI18nOrFallback(
+                            t,
+                            "contextRelayHandoffThresholdHelp",
+                            "When quota usage reaches this threshold, OmniRoute generates a structured handoff summary before the account is exhausted."
+                          )}
+                        />
+                        <input
+                          type="number"
+                          min="0.5"
+                          max="0.94"
+                          step="0.01"
+                          value={config.handoffThreshold ?? ""}
+                          placeholder="0.85"
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              handoffThreshold: e.target.value ? Number(e.target.value) : undefined,
+                            })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(
+                            t,
+                            "contextRelayMaxMessages",
+                            "Max Messages For Summary"
+                          )}
+                          help={getI18nOrFallback(
+                            t,
+                            "contextRelayMaxMessagesHelp",
+                            "Limits how much recent history is condensed into the relay summary."
+                          )}
+                        />
+                        <input
+                          type="number"
+                          min="5"
+                          max="100"
+                          value={config.maxMessagesForSummary ?? ""}
+                          placeholder="30"
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              maxMessagesForSummary: e.target.value
+                                ? Number(e.target.value)
+                                : undefined,
+                            })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(t, "contextRelaySummaryModel", "Summary Model")}
+                          help={getI18nOrFallback(
+                            t,
+                            "contextRelaySummaryModelHelp",
+                            "Optional override model used only for generating the handoff summary. Leave empty to reuse the active combo model."
+                          )}
+                        />
+                        <input
+                          type="text"
+                          value={config.handoffModel ?? ""}
+                          placeholder="codex/gpt-5.4"
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              handoffModel: e.target.value || undefined,
+                            })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div className="md:col-span-3 rounded-md border border-fuchsia-500/20 bg-fuchsia-500/5 px-2 py-1.5">
+                        <p className="text-[10px] text-fuchsia-700 dark:text-fuchsia-300">
+                          {getI18nOrFallback(
+                            t,
+                            "contextRelayProviderNote",
+                            "Context Relay currently generates handoffs for Codex account rotation. Pair it with multiple accounts of the same provider for the best continuity."
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-text-muted">{t("advancedHint")}</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Agent Features (#399 / #401 / #454) */}
+          {builderStage === "strategy" && (
+            <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="material-symbols-outlined text-[14px] text-primary">
+                  smart_toy
+                </span>
+                <p className="text-xs font-medium">Agent Features</p>
+                <span className="text-[10px] text-text-muted">
+                  — optional, for agent/tool workflows
+                </span>
+              </div>
+
+              {/* System Message Override */}
+              <div>
+                <label className="text-[11px] font-medium text-text-muted block mb-0.5">
+                  System Message Override
+                </label>
+                <textarea
+                  rows={2}
+                  value={agentSystemMessage}
+                  onChange={(e) => setAgentSystemMessage(e.target.value)}
+                  placeholder="Override the system prompt for all requests routed through this combo…"
+                  className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none resize-none"
+                />
+                <p className="text-[10px] text-text-muted mt-0.5">
+                  Replaces any system message sent by the client. Leave empty to pass through client
+                  system messages.
+                </p>
+              </div>
+
+              {/* Tool Filter Regex */}
+              <div>
+                <label className="text-[11px] font-medium text-text-muted block mb-0.5">
+                  Tool Filter Regex
+                </label>
+                <input
+                  type="text"
+                  value={agentToolFilter}
+                  onChange={(e) => setAgentToolFilter(e.target.value)}
+                  placeholder="e.g. ^(bash|computer)$"
+                  className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none font-mono"
+                />
+                <p className="text-[10px] text-text-muted mt-0.5">
+                  Only tools whose name matches this regex are forwarded to the provider. Leave
+                  empty to forward all tools.
+                </p>
+              </div>
+
+              {/* Context Cache Protection */}
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <label className="text-[11px] font-medium text-text-muted block">
+                    Context Cache Protection
+                  </label>
+                  <p className="text-[10px] text-text-muted">
+                    Pins the provider/model across turns to preserve cache sessions. Internal tags
+                    are stripped before forwarding to the provider.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={agentContextCache}
+                  onChange={(e) => setAgentContextCache(e.target.checked)}
+                  className="accent-primary shrink-0"
+                />
+              </div>
+            </div>
+          )}
+
+          {builderStage === "review" && (
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "reviewName", "Name")}
+                  </p>
+                  <p className="text-sm font-semibold text-text-main mt-1 break-all">
+                    {name || "—"}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "reviewStrategy", "Strategy")}
+                  </p>
+                  <p className="text-sm font-semibold text-text-main mt-1">
+                    {getStrategyLabel(t, strategy)}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "reviewSteps", "Steps")}
+                  </p>
+                  <p className="text-sm font-semibold text-text-main mt-1">{models.length}</p>
+                </div>
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "reviewAccounts", "Pinned accounts")}
+                  </p>
+                  <p className="text-sm font-semibold text-text-main mt-1">{pinnedAccountCount}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "reviewProviders", "Providers")}
+                  </p>
+                  <p className="text-sm font-semibold text-text-main mt-1">{uniqueProviderCount}</p>
+                </div>
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "reviewComboRefs", "Combo refs")}
+                  </p>
+                  <p className="text-sm font-semibold text-text-main mt-1">{comboRefCount}</p>
+                </div>
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "reviewAdvanced", "Advanced config")}
+                  </p>
+                  <p className="text-sm font-semibold text-text-main mt-1">
+                    {Object.keys(config || {}).length}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {getI18nOrFallback(t, "reviewAgentFlags", "Agent flags")}
+                  </p>
+                  <p className="text-sm font-semibold text-text-main mt-1">
+                    {
+                      [
+                        agentSystemMessage,
+                        agentToolFilter,
+                        agentContextCache ? "cache" : "",
+                      ].filter(Boolean).length
+                    }
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
+                <p className="text-xs font-semibold text-text-main">
+                  {getI18nOrFallback(t, "reviewSequence", "Execution sequence")}
+                </p>
+                <div className="mt-2 flex flex-col gap-1.5 max-h-[260px] overflow-y-auto">
+                  {models.length === 0 ? (
+                    <p className="text-[11px] text-text-muted">
+                      {getI18nOrFallback(t, "reviewNoSteps", "No steps added yet.")}
+                    </p>
+                  ) : (
+                    models.map((entry, index) => (
+                      <div
+                        key={`${getModelString(entry) || "entry"}-${index}`}
+                        className="rounded-md border border-black/6 dark:border-white/6 bg-white/70 dark:bg-white/[0.03] px-2.5 py-2"
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-[10px] font-semibold text-text-muted mt-0.5">
+                            {index + 1}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-text-main truncate">
+                              {formatModelDisplay(entry)}
+                            </p>
+                            <p className="text-[10px] text-text-muted mt-0.5">
+                              {entry.kind === "combo-ref"
+                                ? getI18nOrFallback(
+                                    t,
+                                    "builderComboRefStep",
+                                    "Nested combo reference"
+                                  )
+                                : entry.connectionId
+                                  ? getI18nOrFallback(t, "builderPinnedAccount", "Pinned account")
+                                  : entry.providerId
+                                    ? getI18nOrFallback(
+                                        t,
+                                        "builderDynamicAccountShort",
+                                        "Dynamic account"
+                                      )
+                                    : getI18nOrFallback(
+                                        t,
+                                        "builderLegacyEntry",
+                                        "Legacy model entry"
+                                      )}
+                              {strategy === "weighted" && entry.weight > 0
+                                ? ` · ${entry.weight}%`
+                                : ""}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <ComboReadinessPanel checks={readinessChecks} blockers={saveBlockers} />
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">
-            <Button onClick={onClose} variant="ghost" fullWidth size="sm">
-              {tc("cancel")}
+            <Button
+              onClick={builderStage === "basics" ? onClose : handleGoToPreviousStage}
+              variant="ghost"
+              fullWidth
+              size="sm"
+              data-testid="combo-builder-back"
+            >
+              {builderStage === "basics" ? tc("cancel") : getI18nOrFallback(tc, "back", "Back")}
             </Button>
-            <Button onClick={handleSave} fullWidth size="sm" disabled={saveBlocked}>
-              {saving ? t("saving") : isEdit ? tc("save") : t("createCombo")}
-            </Button>
+            {builderStage === "review" ? (
+              <Button onClick={handleSave} fullWidth size="sm" disabled={saveBlocked}>
+                {saving ? t("saving") : isEdit ? tc("save") : t("createCombo")}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleGoToNextStage}
+                fullWidth
+                size="sm"
+                disabled={!canAdvanceFromCurrentStage}
+                data-testid="combo-builder-next"
+              >
+                {getI18nOrFallback(tc, "next", "Next")}
+              </Button>
+            )}
           </div>
+
+          {builderStage !== "review" && !canAdvanceFromCurrentStage && (
+            <div className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300">
+              {builderStage === "basics"
+                ? getI18nOrFallback(
+                    t,
+                    "builderNeedValidName",
+                    "Define a valid combo name before continuing."
+                  )
+                : getI18nOrFallback(
+                    t,
+                    "builderNeedSteps",
+                    "Add at least one step before continuing to the next stage."
+                  )}
+            </div>
+          )}
         </div>
       </Modal>
 

@@ -20,6 +20,10 @@ function formatShare(value: number) {
   return formatPercent(value * 100, 1);
 }
 
+function formatPercentOrDash(value: number | null, digits = 1) {
+  return typeof value === "number" ? formatPercent(value, digits) : "n/a";
+}
+
 function formatLatency(value: number) {
   return `${Math.round(value).toLocaleString()}ms`;
 }
@@ -95,6 +99,7 @@ function ComboHealthCard({ combo }: { combo: ComboHealthMetrics }) {
       ),
     [combo.usageSkew.modelDistribution]
   );
+  const targetHealth = combo.targetHealth || [];
 
   return (
     <Card className="overflow-hidden p-0">
@@ -251,6 +256,73 @@ function ComboHealthCard({ combo }: { combo: ComboHealthMetrics }) {
           </div>
         </section>
       </div>
+
+      {targetHealth.length > 0 ? (
+        <div className="border-t border-black/5 px-6 py-5 dark:border-white/5">
+          <div>
+            <div className="text-sm font-semibold text-text-main">Execution targets</div>
+            <div className="mt-1 text-xs text-text-muted">
+              Step-level runtime metrics and quota visibility for structured combo targets.
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {targetHealth.map((target) => (
+              <div
+                key={target.executionKey}
+                className="rounded-lg border border-black/5 bg-black/[0.02] p-4 dark:border-white/5 dark:bg-white/[0.02]"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-text-main">
+                      {target.label || target.model}
+                    </div>
+                    <div className="mt-1 text-xs text-text-muted">
+                      {target.provider}
+                      {target.connectionId ? ` · ${target.connectionId.slice(0, 8)}` : ""}
+                    </div>
+                    <div className="mt-1 text-[11px] text-text-muted">{target.stepId}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {target.lastStatus ? (
+                      <Badge size="sm" variant={target.lastStatus === "ok" ? "success" : "error"}>
+                        {target.lastStatus}
+                      </Badge>
+                    ) : null}
+                    <Badge size="sm" variant="default">
+                      {target.requests} req
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  <DistributionBar
+                    label="Success"
+                    value={Math.max(target.successRate, 0) / 100}
+                    meta={formatPercent(target.successRate, 0)}
+                  />
+                  <DistributionBar
+                    label="Latency"
+                    value={target.avgLatencyMs > 0 ? 1 : 0}
+                    meta={formatLatency(target.avgLatencyMs)}
+                  />
+                  <DistributionBar
+                    label="Quota"
+                    value={Math.max(target.quotaRemainingPct || 0, 0) / 100}
+                    meta={formatPercentOrDash(target.quotaRemainingPct)}
+                  />
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
+                  <span>Quota scope: {target.quotaScope}</span>
+                  {target.quotaTrend ? <span>Trend: {target.quotaTrend}</span> : null}
+                  {target.quotaIsExhausted ? <span>Exhausted</span> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </Card>
   );
 }

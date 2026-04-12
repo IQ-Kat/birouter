@@ -63,13 +63,33 @@ export const createKeySchema = z.object({
 
 // ──── Combo Schemas ────
 
-// A model entry can be a plain string (legacy) or an object with weight
+const comboStepMetaSchema = {
+  id: z.string().trim().min(1).max(200).optional(),
+  weight: z.number().min(0).max(100).optional().default(0),
+  label: z.string().trim().min(1).max(200).optional(),
+};
+
+const comboModelStepInputSchema = z.object({
+  kind: z.literal("model").optional(),
+  provider: z.string().trim().min(1).max(120).optional(),
+  providerId: z.string().trim().min(1).max(120).optional(),
+  model: z.string().trim().min(1).max(300),
+  connectionId: z.string().trim().min(1).max(200).nullable().optional(),
+  tags: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
+  ...comboStepMetaSchema,
+});
+
+const comboRefStepInputSchema = z.object({
+  kind: z.literal("combo-ref"),
+  comboName: z.string().trim().min(1).max(100),
+  ...comboStepMetaSchema,
+});
+
+// A combo entry can be a plain string (legacy), a legacy object, or a structured ComboStep.
 const comboModelEntry = z.union([
-  z.string(),
-  z.object({
-    model: z.string().min(1),
-    weight: z.number().min(0).max(100).default(0),
-  }),
+  z.string().trim().min(1).max(300),
+  comboModelStepInputSchema,
+  comboRefStepInputSchema,
 ]);
 
 const comboStrategySchema = z.enum([
@@ -102,6 +122,22 @@ const scoringWeightsSchema = z
   })
   .optional();
 
+const compositeTierEntrySchema = z
+  .object({
+    stepId: z.string().trim().min(1).max(200),
+    fallbackTier: z.string().trim().min(1).max(100).optional(),
+    label: z.string().trim().min(1).max(200).optional(),
+    description: z.string().trim().min(1).max(500).optional(),
+  })
+  .strict();
+
+const compositeTiersSchema = z
+  .object({
+    defaultTier: z.string().trim().min(1).max(100),
+    tiers: z.record(z.string().trim().min(1).max(100), compositeTierEntrySchema),
+  })
+  .strict();
+
 const comboRuntimeConfigSchema = z
   .object({
     strategy: comboStrategySchema.optional(),
@@ -125,6 +161,7 @@ const comboRuntimeConfigSchema = z
     budgetCap: z.number().positive().optional(),
     explorationRate: z.number().min(0).max(1).optional(),
     routerStrategy: z.string().optional(),
+    compositeTiers: compositeTiersSchema.optional(),
   })
   .strict();
 
@@ -536,6 +573,24 @@ export const updateComboDefaultsSchema = z
         message: "Nothing to update",
         path: [],
       });
+    }
+
+    if (value.comboDefaults?.compositeTiers) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "compositeTiers is only supported on concrete combos",
+        path: ["comboDefaults", "compositeTiers"],
+      });
+    }
+
+    for (const [providerId, config] of Object.entries(value.providerOverrides || {})) {
+      if (config?.compositeTiers) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "compositeTiers is only supported on concrete combos",
+          path: ["providerOverrides", providerId, "compositeTiers"],
+        });
+      }
     }
   });
 

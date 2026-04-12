@@ -46,8 +46,18 @@ test("createCombo stores default strategy and supports lookup by id and name", a
     models: [{ provider: "openai", model: "gpt-4.1" }],
   });
 
+  assert.equal(combo.version, 2);
   assert.equal(combo.strategy, "priority");
   assert.equal(combo.sortOrder, 1);
+  assert.deepEqual(combo.models, [
+    {
+      id: "priority-combo-model-1-openai-gpt-4-1",
+      kind: "model",
+      providerId: "openai",
+      model: "openai/gpt-4.1",
+      weight: 0,
+    },
+  ]);
   assert.deepEqual(await combosDb.getComboById(combo.id), combo);
   assert.deepEqual(await combosDb.getComboByName("Priority Combo"), combo);
 });
@@ -134,4 +144,66 @@ test("deleteCombo reports missing ids and removes existing rows", async () => {
   assert.equal(await combosDb.deleteCombo("missing-combo"), false);
   assert.equal(await combosDb.deleteCombo(combo.id), true);
   assert.equal(await combosDb.getComboById(combo.id), null);
+});
+
+test("getCombos upgrades legacy persisted entries to version 2 and resolves combo refs", async () => {
+  const db = core.getDbInstance();
+  const now = new Date().toISOString();
+
+  db.prepare(
+    "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(
+    "combo-child",
+    "child",
+    JSON.stringify({
+      id: "combo-child",
+      name: "child",
+      models: ["openai/gpt-4o-mini"],
+      strategy: "priority",
+      createdAt: now,
+      updatedAt: now,
+    }),
+    1,
+    now,
+    now
+  );
+
+  db.prepare(
+    "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(
+    "combo-parent",
+    "parent",
+    JSON.stringify({
+      id: "combo-parent",
+      name: "parent",
+      models: ["child", { model: "anthropic/claude-sonnet-4", weight: 2 }],
+      strategy: "priority",
+      createdAt: now,
+      updatedAt: now,
+    }),
+    2,
+    now,
+    now
+  );
+
+  const combos = await combosDb.getCombos();
+  const parent = combos.find((combo) => combo.name === "parent");
+
+  assert.ok(parent);
+  assert.equal(parent.version, 2);
+  assert.deepEqual(parent.models, [
+    {
+      id: "parent-ref-1-child",
+      kind: "combo-ref",
+      comboName: "child",
+      weight: 0,
+    },
+    {
+      id: "parent-model-2-anthropic-claude-sonnet-4",
+      kind: "model",
+      providerId: "anthropic",
+      model: "anthropic/claude-sonnet-4",
+      weight: 2,
+    },
+  ]);
 });

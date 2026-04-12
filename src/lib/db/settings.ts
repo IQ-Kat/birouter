@@ -7,6 +7,7 @@ import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { invalidateDbCache } from "./readCache";
 import { resolveProxyForConnectionFromRegistry } from "./proxies";
+import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 
 type JsonRecord = Record<string, unknown>;
 type PricingModels = Record<string, JsonRecord>;
@@ -313,23 +314,8 @@ function resolveProviderAliasOrId(providerOrAlias: string): string {
 }
 
 function getComboModelProvider(modelEntry: unknown): string | null {
-  const record = toRecord(modelEntry);
-  if (typeof record.provider === "string") {
-    return resolveProviderAliasOrId(record.provider);
-  }
-
-  const modelValue =
-    typeof modelEntry === "string"
-      ? modelEntry
-      : typeof record.model === "string"
-        ? record.model
-        : null;
-
-  if (!modelValue) return null;
-
-  const [providerOrAlias] = modelValue.split("/", 1);
-  if (!providerOrAlias) return null;
-  return resolveProviderAliasOrId(providerOrAlias);
+  const providerOrAlias = getComboEntryProvider(modelEntry);
+  return providerOrAlias ? resolveProviderAliasOrId(providerOrAlias) : null;
 }
 
 function migrateProxyEntry(value: unknown): JsonRecord | null {

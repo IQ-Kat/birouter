@@ -162,17 +162,24 @@ const SCHEMA_SQL = `
     path TEXT,
     status INTEGER,
     model TEXT,
+    requested_model TEXT,
     provider TEXT,
     account TEXT,
     connection_id TEXT,
     duration INTEGER DEFAULT 0,
     tokens_in INTEGER DEFAULT 0,
     tokens_out INTEGER DEFAULT 0,
+    tokens_cache_read INTEGER DEFAULT NULL,
+    tokens_cache_creation INTEGER DEFAULT NULL,
+    tokens_reasoning INTEGER DEFAULT NULL,
+    request_type TEXT,
     source_format TEXT,
     target_format TEXT,
     api_key_id TEXT,
     api_key_name TEXT,
     combo_name TEXT,
+    combo_step_id TEXT,
+    combo_execution_key TEXT,
     request_body TEXT,
     response_body TEXT,
     error TEXT,
@@ -401,6 +408,42 @@ function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN has_pipeline_details INTEGER DEFAULT 0");
       console.log("[DB] Added call_logs.has_pipeline_details column");
     }
+    if (!columnNames.has("requested_model")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN requested_model TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.requested_model column");
+    }
+    if (!columnNames.has("request_type")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN request_type TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.request_type column");
+    }
+    if (!columnNames.has("tokens_cache_read")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN tokens_cache_read INTEGER DEFAULT NULL");
+      console.log("[DB] Added call_logs.tokens_cache_read column");
+    }
+    if (!columnNames.has("tokens_cache_creation")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN tokens_cache_creation INTEGER DEFAULT NULL");
+      console.log("[DB] Added call_logs.tokens_cache_creation column");
+    }
+    if (!columnNames.has("tokens_reasoning")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN tokens_reasoning INTEGER DEFAULT NULL");
+      console.log("[DB] Added call_logs.tokens_reasoning column");
+    }
+    if (!columnNames.has("combo_step_id")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN combo_step_id TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.combo_step_id column");
+    }
+    if (!columnNames.has("combo_execution_key")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN combo_execution_key TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.combo_execution_key column");
+    }
+
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model)"
+    );
+    db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type)");
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_cl_combo_target ON call_logs(combo_name, combo_execution_key, timestamp)"
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify call_logs schema:", message);
@@ -424,6 +467,7 @@ export function getDbInstance(): SqliteDatabase {
     memoryDb.pragma("journal_mode = WAL");
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
+    ensureCallLogsColumns(memoryDb);
     setDb(memoryDb);
     return memoryDb;
   }
@@ -522,6 +566,37 @@ export function getDbInstance(): SqliteDatabase {
     db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
       "020",
       "combo_sort_order"
+    );
+  }
+  if (hasColumn(db, "call_logs", "request_type")) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "007",
+      "search_request_type"
+    );
+  }
+  if (hasColumn(db, "call_logs", "requested_model")) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "009",
+      "requested_model"
+    );
+  }
+  if (
+    hasColumn(db, "call_logs", "tokens_cache_read") &&
+    hasColumn(db, "call_logs", "tokens_cache_creation") &&
+    hasColumn(db, "call_logs", "tokens_reasoning")
+  ) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "018",
+      "call_logs_detailed_tokens"
+    );
+  }
+  if (
+    hasColumn(db, "call_logs", "combo_step_id") &&
+    hasColumn(db, "call_logs", "combo_execution_key")
+  ) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "021",
+      "combo_call_log_targets"
     );
   }
   runMigrations(db);

@@ -137,7 +137,15 @@ export default function HealthPage() {
     );
   }
 
-  const { system, providerHealth, providerSummary, rateLimitStatus, lockouts } = data;
+  const {
+    system,
+    providerHealth,
+    providerSummary,
+    rateLimitStatus,
+    lockouts,
+    sessions,
+    quotaMonitor,
+  } = data;
   const cbEntries = Object.entries(providerHealth || {});
   const lockoutEntries = Object.entries(lockouts || {});
 
@@ -270,6 +278,138 @@ export default function HealthPage() {
               info
             </span>
           </p>
+        </Card>
+      </div>
+
+      {/* Session & Quota Observability */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-primary">groups</span>
+              Session Activity
+            </h2>
+            <span className="text-xs text-text-muted">{sessions?.activeCount ?? 0} active</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="rounded-xl border border-border/40 bg-surface/30 p-3">
+              <div className="text-xs text-text-muted">Sticky-bound sessions</div>
+              <div className="text-2xl font-semibold text-text-main mt-1">
+                {sessions?.stickyBoundCount ?? 0}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border/40 bg-surface/30 p-3">
+              <div className="text-xs text-text-muted">Sessions by API key</div>
+              <div className="text-2xl font-semibold text-text-main mt-1">
+                {Object.keys(sessions?.byApiKey || {}).length}
+              </div>
+            </div>
+          </div>
+          {sessions?.top?.length > 0 ? (
+            <div className="space-y-2">
+              {sessions.top.slice(0, 5).map((session: any) => (
+                <div
+                  key={session.sessionId}
+                  className="rounded-lg border border-border/30 bg-surface/20 p-3 flex items-center justify-between gap-3"
+                >
+                  <div className="min-w-0">
+                    <div className="font-mono text-xs text-text-main truncate">
+                      {session.sessionId}
+                    </div>
+                    <div className="text-xs text-text-muted mt-1">
+                      {session.requestCount} requests
+                      {session.connectionId ? ` • ${session.connectionId.slice(0, 8)}…` : ""}
+                    </div>
+                  </div>
+                  <div className="text-right text-xs text-text-muted shrink-0">
+                    <div>{Math.round((session.idleMs || 0) / 1000)}s idle</div>
+                    <div>{Math.round((session.ageMs || 0) / 1000)}s age</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-text-muted">No active sessions tracked yet.</p>
+          )}
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-primary">radar</span>
+              Quota Monitors
+            </h2>
+            <span className="text-xs text-text-muted">{quotaMonitor?.active ?? 0} active</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="rounded-xl border border-border/40 bg-surface/30 p-3">
+              <div className="text-xs text-text-muted">Alerting</div>
+              <div className="text-2xl font-semibold text-amber-400 mt-1">
+                {quotaMonitor?.alerting ?? 0}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border/40 bg-surface/30 p-3">
+              <div className="text-xs text-text-muted">Exhausted</div>
+              <div className="text-2xl font-semibold text-red-400 mt-1">
+                {quotaMonitor?.exhausted ?? 0}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border/40 bg-surface/30 p-3">
+              <div className="text-xs text-text-muted">Errors</div>
+              <div className="text-2xl font-semibold text-orange-400 mt-1">
+                {quotaMonitor?.errors ?? 0}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border/40 bg-surface/30 p-3">
+              <div className="text-xs text-text-muted">Providers</div>
+              <div className="text-2xl font-semibold text-text-main mt-1">
+                {Object.keys(quotaMonitor?.byProvider || {}).length}
+              </div>
+            </div>
+          </div>
+          {quotaMonitor?.monitors?.length > 0 ? (
+            <div className="space-y-2">
+              {quotaMonitor.monitors.slice(0, 5).map((monitor: any) => (
+                <div
+                  key={`${monitor.sessionId}:${monitor.accountId}`}
+                  className="rounded-lg border border-border/30 bg-surface/20 p-3 flex items-center justify-between gap-3"
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-text-main truncate">
+                      {monitor.provider} • {monitor.accountId.slice(0, 8)}…
+                    </div>
+                    <div className="text-xs text-text-muted mt-1 truncate">
+                      {monitor.sessionId} • {monitor.status}
+                    </div>
+                  </div>
+                  <div className="text-right text-xs shrink-0">
+                    <div
+                      className={
+                        monitor.status === "exhausted"
+                          ? "text-red-400"
+                          : monitor.status === "warning"
+                            ? "text-amber-400"
+                            : monitor.status === "error"
+                              ? "text-orange-400"
+                              : "text-text-main"
+                      }
+                    >
+                      {typeof monitor.lastQuotaPercent === "number"
+                        ? `${Math.round(monitor.lastQuotaPercent * 100)}%`
+                        : "—"}
+                    </div>
+                    <div className="text-text-muted">
+                      {monitor.nextPollDelayMs
+                        ? `${Math.round(monitor.nextPollDelayMs / 1000)}s`
+                        : "—"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-text-muted">No session quota monitors active.</p>
+          )}
         </Card>
       </div>
 

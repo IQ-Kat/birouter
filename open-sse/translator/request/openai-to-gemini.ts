@@ -8,7 +8,7 @@ import {
   capMaxOutputTokens,
   capThinkingBudget,
   getDefaultThinkingBudget,
-} from "../../../src/shared/constants/modelSpecs.ts";
+} from "../../../src/lib/modelCapabilities.ts";
 
 import * as crypto from "crypto";
 

@@ -479,6 +479,8 @@ export async function handleChatCore({
   comboName,
   comboStrategy = null,
   isCombo = false,
+  comboStepId = null,
+  comboExecutionKey = null,
   disableEmergencyFallback = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
@@ -746,6 +748,8 @@ export async function handleChatCore({
       sourceFormat,
       targetFormat,
       comboName,
+      comboStepId,
+      comboExecutionKey,
       apiKeyId: apiKeyInfo?.id || null,
       apiKeyName: apiKeyInfo?.name || null,
       noLog: noLogEnabled,

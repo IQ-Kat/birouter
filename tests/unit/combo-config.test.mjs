@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 
 const { resolveComboConfig, getDefaultComboConfig } =
   await import("../../open-sse/services/comboConfig.ts");
-const { createComboSchema } = await import("../../src/shared/validation/schemas.ts");
+const { createComboSchema, updateComboDefaultsSchema } =
+  await import("../../src/shared/validation/schemas.ts");
 
 test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   const first = getDefaultComboConfig();
@@ -132,4 +133,122 @@ test("createComboSchema accepts context-relay strategy with handoff config", () 
   assert.equal(parsed.strategy, "context-relay");
   assert.equal(parsed.config.handoffThreshold, 0.85);
   assert.equal(parsed.config.maxMessagesForSummary, 24);
+});
+
+test("createComboSchema accepts structured combo steps with pinned connection and combo refs", () => {
+  const parsed = createComboSchema.parse({
+    name: "codex-pinned",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-codex-a",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+        weight: 10,
+      },
+      {
+        kind: "combo-ref",
+        id: "step-fallback",
+        comboName: "backup-codex",
+        weight: 5,
+      },
+    ],
+  });
+
+  assert.equal(parsed.models[0].kind, "model");
+  assert.equal(parsed.models[0].providerId, "codex");
+  assert.equal(parsed.models[0].connectionId, "conn-codex-a");
+  assert.equal(parsed.models[1].kind, "combo-ref");
+  assert.equal(parsed.models[1].comboName, "backup-codex");
+});
+
+test("createComboSchema accepts composite tiers that reference normalized combo steps", () => {
+  const parsed = createComboSchema.parse({
+    name: "tiered-codex",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+      {
+        kind: "model",
+        id: "step-backup",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-b",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: {
+            stepId: "step-primary",
+            fallbackTier: "backup",
+            label: "Codex A",
+          },
+          backup: {
+            stepId: "step-backup",
+            description: "Fallback account",
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(parsed.config.compositeTiers.defaultTier, "primary");
+  assert.equal(parsed.config.compositeTiers.tiers.primary.stepId, "step-primary");
+  assert.equal(parsed.config.compositeTiers.tiers.primary.fallbackTier, "backup");
+  assert.equal(parsed.config.compositeTiers.tiers.backup.stepId, "step-backup");
+});
+
+test("updateComboDefaultsSchema rejects composite tiers in global defaults and provider overrides", () => {
+  const result = updateComboDefaultsSchema.safeParse({
+    comboDefaults: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: {
+            stepId: "step-primary",
+          },
+        },
+      },
+    },
+    providerOverrides: {
+      codex: {
+        compositeTiers: {
+          defaultTier: "backup",
+          tiers: {
+            backup: {
+              stepId: "step-backup",
+            },
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, false);
+  assert.deepEqual(
+    result.error.issues.map((issue) => ({
+      path: issue.path.join("."),
+      message: issue.message,
+    })),
+    [
+      {
+        path: "comboDefaults.compositeTiers",
+        message: "compositeTiers is only supported on concrete combos",
+      },
+      {
+        path: "providerOverrides.codex.compositeTiers",
+        message: "compositeTiers is only supported on concrete combos",
+      },
+    ]
+  );
 });

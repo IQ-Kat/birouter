@@ -11,6 +11,7 @@
 /**
  * @typedef {import('./types.js').Combo} Combo
  */
+import { getComboStepTarget, getComboStepWeight } from "@/lib/combos/steps";
 
 /** @type {Map<string, number>} Persistent round-robin counters per combo */
 const roundRobinCounters = new Map();
@@ -30,7 +31,12 @@ export function resolveComboModel(combo: any, context: any = {}) {
   }
 
   // Normalize models to { model, weight } format
-  const normalized = models.map((m) => (typeof m === "string" ? { model: m, weight: 1 } : m));
+  const normalized = models
+    .map((entry) => ({
+      model: getComboStepTarget(entry) || "",
+      weight: getComboStepWeight(entry) || 1,
+    }))
+    .filter((entry) => entry.model);
 
   const strategy = combo.strategy || "priority";
 
@@ -93,6 +99,8 @@ export function resolveComboModel(combo: any, context: any = {}) {
  * @returns {string[]} Remaining models in order
  */
 export function getComboFallbacks(combo, primaryIndex) {
-  const models = (combo.models || []).map((m) => (typeof m === "string" ? m : m.model));
+  const models = (combo.models || [])
+    .map((entry) => getComboStepTarget(entry))
+    .filter((entry): entry is string => !!entry);
   return [...models.slice(primaryIndex + 1), ...models.slice(0, primaryIndex)];
 }

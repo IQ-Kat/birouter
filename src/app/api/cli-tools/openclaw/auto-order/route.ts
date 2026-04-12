@@ -5,6 +5,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { getComboModelProvider } from "@/lib/combos/steps";
 import { resolveOmniRouteBaseUrl } from "@/shared/utils/resolveOmniRouteBaseUrl";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
@@ -18,7 +19,12 @@ export async function GET() {
     ]);
 
     const health = healthRes.status === "fulfilled" ? await healthRes.value.json() : {};
-    const combos = combosRes.status === "fulfilled" ? await combosRes.value.json() : [];
+    const combosPayload = combosRes.status === "fulfilled" ? await combosRes.value.json() : [];
+    const combos = Array.isArray(combosPayload)
+      ? combosPayload
+      : Array.isArray(combosPayload?.combos)
+        ? combosPayload.combos
+        : [];
 
     // Build provider scores from circuit breaker state
     const breakers: any[] = health?.circuitBreakers || [];
@@ -29,8 +35,10 @@ export async function GET() {
     if (Array.isArray(combos)) {
       for (const combo of combos) {
         for (const model of combo.models || combo.data?.models || []) {
-          allProviders.add(model.provider);
-          providerScores.set(model.provider, (providerScores.get(model.provider) || 0) + 1);
+          const provider = getComboModelProvider(model);
+          if (!provider) continue;
+          allProviders.add(provider);
+          providerScores.set(provider, (providerScores.get(provider) || 0) + 1);
         }
       }
     }

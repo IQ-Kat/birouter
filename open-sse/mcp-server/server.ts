@@ -12,6 +12,11 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  getComboModelProvider,
+  getComboModelString,
+  getComboStepTarget,
+} from "../../src/lib/combos/steps.ts";
 
 import {
   MCP_TOOLS,
@@ -105,11 +110,17 @@ function normalizeComboModels(
   rawModels: unknown
 ): Array<{ provider: string; model: string; priority: number }> {
   return toArray(rawModels).map((rawModel, index) => {
-    const model = toRecord(rawModel);
+    const modelRecord = toRecord(rawModel);
+    const modelString = getComboModelString(rawModel);
+    const target = getComboStepTarget(rawModel);
+    const provider =
+      getComboModelProvider(rawModel) ||
+      (modelString ? "unknown" : target ? "combo" : toString(modelRecord.provider, "unknown"));
+
     return {
-      provider: toString(model.provider, "unknown"),
-      model: toString(model.model, "unknown"),
-      priority: toNumber(model.priority, index + 1),
+      provider,
+      model: modelString || target || toString(modelRecord.model, "unknown"),
+      priority: toNumber(modelRecord.priority, index + 1),
     };
   });
 }

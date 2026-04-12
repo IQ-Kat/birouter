@@ -6,7 +6,7 @@ import {
   getSettings,
   getCachedSettings,
 } from "@/lib/localDb";
-import { getQuotaWindowStatus, isAccountQuotaExhausted } from "@/domain/quotaCache";
+import { getQuotaCache, getQuotaWindowStatus, isAccountQuotaExhausted } from "@/domain/quotaCache";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -22,6 +22,7 @@ import {
   getPassthroughProviders,
 } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
+import { preflightQuota } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
 import * as log from "../utils/logger";
@@ -64,6 +65,8 @@ interface RecoverableConnectionState {
 interface CredentialSelectionOptions {
   allowSuppressedConnections?: boolean;
   bypassQuotaPolicy?: boolean;
+  forcedConnectionId?: string | null;
+  excludeConnectionIds?: string[] | null;
 }
 
 const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
@@ -132,6 +135,16 @@ interface QuotaLimitPolicy {
   enabled: boolean;
   thresholdPercent: number;
   windows: string[];
+}
+
+interface QuotaCacheView {
+  quotas?: Record<
+    string,
+    {
+      remainingPercentage?: number;
+      resetAt?: string | null;
+    }
+  >;
 }
 
 function normalizeQuotaThreshold(value: unknown, fallback = CODEX_QUOTA_THRESHOLD_PERCENT): number {
@@ -300,6 +313,192 @@ function getEarliestFutureDate(candidates: Array<string | null>): string | null 
   );
 }
 
+function getConnectionQuotaHeadroomPercent(
+  provider: string,
+  connection: ProviderConnectionView
+): number | null {
+  const policy = resolveQuotaLimitPolicy(provider, connection.providerSpecificData);
+  const percentages: number[] = [];
+  const seenWindows = new Set<string>();
+
+  const collectWindow = (windowName: string) => {
+    const normalizedWindow = normalizeWindowName(windowName);
+    if (!normalizedWindow || seenWindows.has(normalizedWindow)) return;
+    seenWindows.add(normalizedWindow);
+
+    const status = getQuotaWindowStatus(connection.id, normalizedWindow, policy.thresholdPercent);
+    if (!status) return;
+    percentages.push(Math.max(0, Math.min(100, status.remainingPercentage)));
+  };
+
+  for (const windowName of policy.windows) {
+    collectWindow(windowName);
+  }
+
+  if (percentages.length > 0) {
+    return Math.min(...percentages);
+  }
+
+  const quotaEntry = getQuotaCache(connection.id) as QuotaCacheView | null;
+  const rawQuotas = quotaEntry?.quotas || {};
+  for (const quota of Object.values(rawQuotas)) {
+    if (!quota) continue;
+    const resetAt = toStringOrNull(quota.resetAt);
+    if (resetAt) {
+      const resetMs = new Date(resetAt).getTime();
+      if (Number.isFinite(resetMs) && resetMs <= Date.now()) {
+        continue;
+      }
+    }
+    const remaining = toNumber(quota.remainingPercentage, Number.NaN);
+    if (Number.isFinite(remaining)) {
+      percentages.push(Math.max(0, Math.min(100, remaining)));
+    }
+  }
+
+  return percentages.length > 0 ? Math.min(...percentages) : null;
+}
+
+function getConnectionErrorPenalty(connection: ProviderConnectionView): number {
+  const errorType = normalizeStatus(connection.lastErrorType);
+  const errorSource = normalizeStatus(connection.lastErrorSource);
+  const numericErrorCode = toNumber(connection.errorCode, 0);
+
+  let penalty = 0;
+  if (connection.lastError) penalty += 6;
+
+  if (
+    errorType === "rate_limited" ||
+    errorType === "quota_exhausted" ||
+    errorType === "quota" ||
+    numericErrorCode === 429
+  ) {
+    penalty += 24;
+  } else if (numericErrorCode === 401 || numericErrorCode === 403 || errorSource === "oauth") {
+    penalty += 18;
+  } else if (numericErrorCode >= 500) {
+    penalty += 10;
+  }
+
+  return penalty;
+}
+
+function getConnectionRecencyPenalty(connection: ProviderConnectionView): number {
+  if (!connection.lastUsedAt) return 0;
+  const ageMs = Date.now() - new Date(connection.lastUsedAt).getTime();
+  if (!Number.isFinite(ageMs)) return 0;
+  if (ageMs < 15_000) return 3;
+  if (ageMs < 60_000) return 2;
+  if (ageMs < 5 * 60_000) return 1;
+  return 0;
+}
+
+function getP2CConnectionScore(
+  provider: string,
+  connection: ProviderConnectionView
+): { score: number; quotaHeadroomPercent: number | null } {
+  const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection).blocked;
+  const quotaExhausted = isAccountQuotaExhausted(connection.id);
+  const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(provider, connection);
+
+  let quotaPenalty = 0;
+  if (quotaHeadroomPercent !== null) {
+    quotaPenalty += Math.round((100 - quotaHeadroomPercent) / 8);
+    if (quotaHeadroomPercent <= 10) quotaPenalty += 10;
+    else if (quotaHeadroomPercent <= 25) quotaPenalty += 4;
+  } else if (!quotaBlocked && !quotaExhausted) {
+    quotaPenalty += 4;
+  }
+
+  const score =
+    (quotaExhausted ? 200 : 0) +
+    (quotaBlocked ? 80 : 0) +
+    getConnectionErrorPenalty(connection) +
+    Math.min(40, (connection.backoffLevel || 0) * 8) +
+    quotaPenalty +
+    Math.min(12, (connection.consecutiveUseCount || 0) * 2) +
+    getConnectionRecencyPenalty(connection) +
+    Math.min(6, Math.max(0, connection.priority || 0) - 1);
+
+  return { score, quotaHeadroomPercent };
+}
+
+function compareP2CConnections(
+  provider: string,
+  a: ProviderConnectionView,
+  b: ProviderConnectionView
+): number {
+  const aScore = getP2CConnectionScore(provider, a);
+  const bScore = getP2CConnectionScore(provider, b);
+  if (aScore.score !== bScore.score) {
+    return aScore.score - bScore.score;
+  }
+
+  const aHeadroom = aScore.quotaHeadroomPercent ?? -1;
+  const bHeadroom = bScore.quotaHeadroomPercent ?? -1;
+  if (aHeadroom !== bHeadroom) {
+    return bHeadroom - aHeadroom;
+  }
+
+  if ((a.priority || 999) !== (b.priority || 999)) {
+    return (a.priority || 999) - (b.priority || 999);
+  }
+
+  return a.id.localeCompare(b.id);
+}
+
+function normalizeExcludedConnectionIds(
+  excludeConnectionId: string | null,
+  extraExcludedConnectionIds: string[] | null | undefined
+): Set<string> {
+  const normalized = new Set<string>();
+
+  if (typeof excludeConnectionId === "string" && excludeConnectionId.trim().length > 0) {
+    normalized.add(excludeConnectionId.trim());
+  }
+
+  if (Array.isArray(extraExcludedConnectionIds)) {
+    for (const connectionId of extraExcludedConnectionIds) {
+      if (typeof connectionId === "string" && connectionId.trim().length > 0) {
+        normalized.add(connectionId.trim());
+      }
+    }
+  }
+
+  return normalized;
+}
+
+function buildQuotaPreflightRateLimitedResult(
+  provider: string,
+  blockedByPreflight: Array<{
+    id: string;
+    quotaPercent?: number;
+    resetAt?: string | null;
+  }>
+) {
+  const retryAfter =
+    getEarliestFutureDate(blockedByPreflight.map((entry) => entry.resetAt ?? null)) ||
+    new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  const blockedSummary = blockedByPreflight
+    .map((entry) => {
+      const percent = Number.isFinite(entry.quotaPercent)
+        ? `${Math.round((entry.quotaPercent as number) * 100)}%`
+        : "quota exhausted";
+      return `${entry.id.slice(0, 8)}(${percent})`;
+    })
+    .join("; ");
+
+  log.info("AUTH", `${provider} | quota preflight filtered account(s): ${blockedSummary}`);
+
+  return {
+    allRateLimited: true,
+    retryAfter,
+    retryAfterHuman: formatRetryAfter(retryAfter),
+    lastError: `All ${provider} accounts blocked by quota preflight`,
+    lastErrorCode: 429,
+  };
+}
+
 // Mutex to prevent race conditions during account selection
 let selectionMutex = Promise.resolve();
 
@@ -355,6 +554,14 @@ export async function getProviderCredentials(
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
     const bypassQuotaPolicy = options.bypassQuotaPolicy === true;
+    const forcedConnectionId =
+      typeof options.forcedConnectionId === "string" && options.forcedConnectionId.trim().length > 0
+        ? options.forcedConnectionId.trim()
+        : null;
+    const excludedConnectionIds = normalizeExcludedConnectionIds(
+      excludeConnectionId,
+      options.excludeConnectionIds
+    );
 
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
     const providersToSearch = getProviderSearchPool(provider);
@@ -370,9 +577,14 @@ export async function getProviderCredentials(
     if (allowedConnections && allowedConnections.length > 0) {
       connections = connections.filter((conn) => allowedConnections.includes(conn.id));
     }
+    if (forcedConnectionId) {
+      connections = connections.filter((conn) => conn.id === forcedConnectionId);
+    }
     log.debug(
       "AUTH",
-      `${provider} | total connections: ${connections.length}, excludeId: ${excludeConnectionId || "none"}`
+      `${provider} | total connections: ${connections.length}, excludeIds: ${
+        excludedConnectionIds.size > 0 ? Array.from(excludedConnectionIds).join(",") : "none"
+      }, forcedId: ${forcedConnectionId || "none"}`
     );
 
     if (connections.length === 0) {
@@ -381,10 +593,15 @@ export async function getProviderCredentials(
       const allConnectionsResults = await Promise.all(
         providersToSearch.map((p) => getProviderConnections({ provider: p }))
       );
-      const allConnectionsRaw = allConnectionsResults.filter(Array.isArray).flat();
-      const allConnections = (Array.isArray(allConnectionsRaw) ? allConnectionsRaw : [])
+      let allConnections = (allConnectionsResults.filter(Array.isArray).flat() as unknown[])
         .map(toProviderConnection)
         .filter((conn) => conn.id.length > 0);
+      if (allowedConnections && allowedConnections.length > 0) {
+        allConnections = allConnections.filter((conn) => allowedConnections.includes(conn.id));
+      }
+      if (forcedConnectionId) {
+        allConnections = allConnections.filter((conn) => conn.id === forcedConnectionId);
+      }
       log.debug("AUTH", `${provider} | all connections (incl inactive): ${allConnections.length}`);
       if (allConnections.length > 0) {
         const earliest = getEarliestRateLimitedUntil(allConnections);
@@ -436,7 +653,7 @@ export async function getProviderCredentials(
 
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
-      if (excludeConnectionId && c.id === excludeConnectionId) return false;
+      if (excludedConnectionIds.has(c.id)) return false;
       if (!allowSuppressedConnections) {
         if (isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
@@ -452,7 +669,7 @@ export async function getProviderCredentials(
       `${provider} | available: ${availableConnections.length}/${connections.length}`
     );
     connections.forEach((c) => {
-      const excluded = excludeConnectionId && c.id === excludeConnectionId;
+      const excluded = excludedConnectionIds.has(c.id);
       const rateLimited = isAccountUnavailable(c.rateLimitedUntil);
       const terminalStatus = isTerminalConnectionStatus(c);
       const codexScopeLimited = provider === "codex" && isCodexScopeUnavailable(c, requestedModel);
@@ -662,22 +879,20 @@ export async function getProviderCredentials(
         });
       }
     } else if (strategy === "p2c") {
-      // Power of Two Choices: pick 2 random, choose the one with fewer failures
-      if (orderedConnections.length <= 2) {
-        connection = orderedConnections[0];
+      const candidatePool = withQuota.length > 0 ? withQuota : orderedConnections;
+      // Power of Two Choices: sample from the quota-eligible pool and compare
+      // health instead of defaulting to random-first selection.
+      if (candidatePool.length <= 2) {
+        connection = [...candidatePool].sort((a, b) => compareP2CConnections(provider, a, b))[0];
       } else {
         const i =
-          parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % orderedConnections.length;
+          parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % candidatePool.length;
         let j =
-          parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) %
-          (orderedConnections.length - 1);
+          parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % (candidatePool.length - 1);
         if (j >= i) j++;
-        const a = orderedConnections[i];
-        const b = orderedConnections[j];
-        // Prefer the one with fewer consecutive uses / better health
-        const scoreA = (a.consecutiveUseCount || 0) + (a.lastError ? 10 : 0);
-        const scoreB = (b.consecutiveUseCount || 0) + (b.lastError ? 10 : 0);
-        connection = scoreA <= scoreB ? a : b;
+        const a = candidatePool[i];
+        const b = candidatePool[j];
+        connection = compareP2CConnections(provider, a, b) <= 0 ? a : b;
       }
     } else if (strategy === "random") {
       // Random: Fisher-Yates-inspired random pick
@@ -732,6 +947,79 @@ export async function getProviderCredentials(
     };
   } finally {
     if (resolveMutex) resolveMutex();
+  }
+}
+
+export async function getProviderCredentialsWithQuotaPreflight(
+  provider: string,
+  excludeConnectionId: string | null = null,
+  allowedConnections: string[] | null = null,
+  requestedModel: string | null = null,
+  options: CredentialSelectionOptions = {}
+) {
+  if (options.bypassQuotaPolicy === true) {
+    return getProviderCredentials(
+      provider,
+      excludeConnectionId,
+      allowedConnections,
+      requestedModel,
+      options
+    );
+  }
+
+  const blockedByPreflight: Array<{
+    id: string;
+    quotaPercent?: number;
+    resetAt?: string | null;
+  }> = [];
+  const excludedConnectionIds = normalizeExcludedConnectionIds(
+    excludeConnectionId,
+    options.excludeConnectionIds
+  );
+
+  while (true) {
+    const credentials = await getProviderCredentials(
+      provider,
+      null,
+      allowedConnections,
+      requestedModel,
+      {
+        ...options,
+        excludeConnectionIds: Array.from(excludedConnectionIds),
+      }
+    );
+
+    if (!credentials) {
+      if (blockedByPreflight.length > 0) {
+        return buildQuotaPreflightRateLimitedResult(provider, blockedByPreflight);
+      }
+      return null;
+    }
+
+    if (credentials.allRateLimited) {
+      return credentials;
+    }
+
+    const preflight = await preflightQuota(provider, credentials.connectionId, credentials);
+    if (preflight.proceed) {
+      return credentials;
+    }
+
+    blockedByPreflight.push({
+      id: credentials.connectionId,
+      quotaPercent: preflight.quotaPercent,
+      resetAt: preflight.resetAt ?? null,
+    });
+    excludedConnectionIds.add(credentials.connectionId);
+
+    log.info(
+      "AUTH",
+      `${provider} | preflight blocked ${credentials.connectionId.slice(0, 8)}${
+        Number.isFinite(preflight.quotaPercent)
+          ? ` at ${Math.round((preflight.quotaPercent as number) * 100)}%`
+          : ""
+      }`
+    );
   }
 }
 

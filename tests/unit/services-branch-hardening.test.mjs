@@ -81,12 +81,15 @@ test("model capability helpers cover denylist, empty input and default-safe path
   assert.equal(modelCapabilities.supportsToolCalling(""), false);
   assert.equal(modelCapabilities.supportsToolCalling("openai/gpt-oss-120b"), false);
   assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), false);
-  assert.equal(modelCapabilities.supportsToolCalling("openai/gpt-4o"), true);
+  assert.equal(
+    modelCapabilities.supportsToolCalling("openai/nonexistent-default-safe-model"),
+    true
+  );
 
   assert.equal(modelCapabilities.supportsReasoning(""), true);
   assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4-6"), false);
   assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4"), false);
-  assert.equal(modelCapabilities.supportsReasoning("openai/gpt-4o"), true);
+  assert.equal(modelCapabilities.supportsReasoning("openai/nonexistent-default-safe-model"), true);
 });
 
 test("combo agent middleware covers system override, tool filtering, tag stripping and pin propagation", () => {
@@ -214,12 +217,26 @@ test("combo metrics cover empty reads, intent tracking, per-model stats and rese
     latencyMs: 120,
     fallbackCount: 1,
     strategy: "priority",
+    target: {
+      executionKey: "writer>step-openai-a",
+      stepId: "step-openai-a",
+      provider: "openai",
+      connectionId: "conn-openai-a",
+      label: "Primary OpenAI",
+    },
   });
   comboMetrics.recordComboRequest("writer", "openai/gpt-4o", {
     success: false,
     latencyMs: 80,
     fallbackCount: 0,
     strategy: "least-used",
+    target: {
+      executionKey: "writer>step-openai-a",
+      stepId: "step-openai-a",
+      provider: "openai",
+      connectionId: "conn-openai-a",
+      label: "Primary OpenAI",
+    },
   });
   comboMetrics.recordComboRequest("writer", null, {
     success: true,
@@ -241,6 +258,10 @@ test("combo metrics cover empty reads, intent tracking, per-model stats and rese
   assert.equal(writer.byModel["openai/gpt-4o"].requests, 2);
   assert.equal(writer.byModel["openai/gpt-4o"].successRate, 50);
   assert.equal(writer.byModel["openai/gpt-4o"].avgLatencyMs, 100);
+  assert.equal(writer.byTarget["writer>step-openai-a"].requests, 2);
+  assert.equal(writer.byTarget["writer>step-openai-a"].successRate, 50);
+  assert.equal(writer.byTarget["writer>step-openai-a"].connectionId, "conn-openai-a");
+  assert.equal(writer.byTarget["writer>step-openai-a"].label, "Primary OpenAI");
 
   const allMetrics = comboMetrics.getAllComboMetrics();
   assert.equal(Object.keys(allMetrics).length, 2);

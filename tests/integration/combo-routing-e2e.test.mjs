@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { createChatPipelineHarness } from "./_chatPipelineHarness.mjs";
 
 const harness = await createChatPipelineHarness("combo-routing");
+const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const {
   BaseExecutor,
   buildClaudeResponse,
@@ -16,6 +17,7 @@ const {
   resetStorage,
   seedConnection,
   toPlainHeaders,
+  waitFor,
 } = harness;
 
 test.beforeEach(async () => {
@@ -170,6 +172,102 @@ test("priority combo falls back to the secondary model when the first one fails"
   assert.match(attempts[0], /\/chat\/completions$/);
   assert.match(attempts[1], /\?beta=true$/);
   assert.equal(json.choices[0].message.content, "Fallback answered");
+});
+
+test("priority combo can repeat the same provider/model with different fixed accounts", async () => {
+  const firstConn = await seedConnection("openai", {
+    name: "openai-fixed-1",
+    apiKey: "sk-openai-fixed-1",
+  });
+  const secondConn = await seedConnection("openai", {
+    name: "openai-fixed-2",
+    apiKey: "sk-openai-fixed-2",
+  });
+  assert.notEqual(firstConn.id, secondConn.id);
+  await combosDb.createCombo({
+    name: "router-fixed-accounts",
+    strategy: "priority",
+    config: { maxRetries: 0, retryDelayMs: 0 },
+    models: [
+      {
+        id: "step-openai-primary",
+        kind: "model",
+        providerId: "openai",
+        model: "gpt-4o-mini",
+        connectionId: firstConn.id,
+      },
+      {
+        id: "step-openai-secondary",
+        kind: "model",
+        providerId: "openai",
+        model: "gpt-4o-mini",
+        connectionId: secondConn.id,
+      },
+    ],
+  });
+
+  const authHeaders = [];
+  let firstAttemptHeader = null;
+  globalThis.fetch = async (_url, init = {}) => {
+    const headers = toPlainHeaders(init.headers);
+    authHeaders.push(headers.Authorization);
+    if (!firstAttemptHeader) {
+      firstAttemptHeader = headers.Authorization;
+      return new Response(JSON.stringify({ error: { message: "first account down" } }), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return buildOpenAIResponse("Second fixed account answered");
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      body: buildOpenAIChatBody("router-fixed-accounts"),
+    })
+  );
+  const json = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(authHeaders.length, 2);
+  assert.notEqual(authHeaders[0], authHeaders[1]);
+  assert.deepEqual(
+    new Set(authHeaders),
+    new Set(["Bearer sk-openai-fixed-1", "Bearer sk-openai-fixed-2"])
+  );
+  assert.equal(json.choices[0].message.content, "Second fixed account answered");
+
+  const comboLogs = await waitFor(async () => {
+    const logs = await callLogs.getCallLogs({ combo: true, limit: 10 });
+    return logs.length >= 2 ? logs : null;
+  });
+
+  assert.ok(comboLogs, "expected combo call logs to be persisted");
+  const targetLogs = comboLogs
+    .filter((entry) => entry.comboName === "router-fixed-accounts")
+    .sort((left, right) => (left.timestamp || "").localeCompare(right.timestamp || ""));
+
+  assert.equal(targetLogs.length, 2);
+  assert.deepEqual(
+    targetLogs.map((entry) => ({
+      comboStepId: entry.comboStepId,
+      comboExecutionKey: entry.comboExecutionKey,
+      status: entry.status,
+    })),
+    [
+      {
+        comboStepId: "step-openai-primary",
+        comboExecutionKey: "step-openai-primary",
+        status: 503,
+      },
+      {
+        comboStepId: "step-openai-secondary",
+        comboExecutionKey: "step-openai-secondary",
+        status: 200,
+      },
+    ]
+  );
 });
 
 test("model combo mappings route explicit model ids through the configured combo", async () => {

@@ -31,6 +31,23 @@ export interface ComboHealthMetrics {
   comboName: string;
   strategy: string;
   models: string[];
+  targetHealth?: Array<{
+    executionKey: string;
+    stepId: string;
+    model: string;
+    provider: string;
+    connectionId: string | null;
+    label: string | null;
+    requests: number;
+    successRate: number;
+    avgLatencyMs: number;
+    lastStatus: "ok" | "error" | null;
+    lastUsedAt: string | null;
+    quotaRemainingPct: number | null;
+    quotaIsExhausted: boolean | null;
+    quotaTrend: "improving" | "stable" | "declining" | null;
+    quotaScope: "connection" | "provider" | "none";
+  }>;
   quotaHealth: {
     providers: Array<{
       provider: string;

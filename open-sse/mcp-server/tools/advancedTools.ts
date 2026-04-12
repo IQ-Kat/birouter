@@ -18,6 +18,11 @@
 import { logToolCall } from "../audit.ts";
 import { normalizeQuotaResponse } from "../../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
+import {
+  getComboModelProvider,
+  getComboModelString,
+  getComboStepTarget,
+} from "../../../src/lib/combos/steps.ts";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
@@ -80,8 +85,8 @@ function getComboModels(combo: JsonRecord): ComboModel[] {
   const nestedModels = toArrayOfRecords(toRecord(combo.data).models);
   const sourceModels = directModels.length > 0 ? directModels : nestedModels;
   return sourceModels.map((model) => ({
-    provider: toString(model.provider, "unknown"),
-    model: toString(model.model, ""),
+    provider: getComboModelProvider(model) || (getComboModelString(model) ? "unknown" : "combo"),
+    model: getComboModelString(model) || getComboStepTarget(model) || "",
     inputCostPer1M: toNumber(model.inputCostPer1M, 3.0),
   }));
 }
