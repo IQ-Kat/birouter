@@ -1,14 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getDbInstance, SQLITE_FILE } from "@/lib/db/core";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * GET /api/db-backups/exportAll
  * Exports the entire database + settings as a ZIP archive
+ * Security: Requires admin authentication.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     if (!SQLITE_FILE) {
       return NextResponse.json(

@@ -28,6 +28,8 @@ scripts/
 .vscode/
 .agents/
 .env*
+app/.env
+app/.env*
 eslint.config.mjs
 prettier.config.mjs
 postcss.config.mjs
