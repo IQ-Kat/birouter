@@ -1,12 +1,14 @@
 /**
  * maskEmail — Privacy display utility for email addresses.
  *
- * Masks the username and domain name portions of an email address
- * to prevent identity exposure in dashboards and logs.
+ * Masks both username and domain portions of an email address.
+ * - Username: keep the first `visibleChars`, mask the rest
+ * - Domain: mask everything except the final `visibleChars`
  *
  * @example
- *   maskEmail("diego.souza@gmail.com")  // "die********@gmail.com"
- *   maskEmail("a@b.com")                // "a@b.com"  (too short to mask)
+ *   maskEmail("diego.souza@outlook.com.br")  // "die********@***********.br"
+ *   maskEmail("user@gmail.com")              // "use*@******.com"
+ *   maskEmail("a@b.com")                     // "a@b.com"  (too short to mask)
  */
 export function maskEmail(email: string | null | undefined, visibleChars = 3): string {
   if (!email) return "";
@@ -14,21 +16,20 @@ export function maskEmail(email: string | null | undefined, visibleChars = 3): s
 
   const atIndex = email.lastIndexOf("@");
   const username = email.slice(0, atIndex);
-  const rest = email.slice(atIndex + 1); // "gmail.com", "co.uk", etc.
-
-  const dotIndex = rest.indexOf(".");
-  const domainName = dotIndex !== -1 ? rest.slice(0, dotIndex) : rest;
-  const tld = dotIndex !== -1 ? rest.slice(dotIndex) : ""; // ".com", ".co.uk"
+  const domain = email.slice(atIndex + 1);
 
   // If username is too short to mask meaningfully, return as-is
   if (username.length <= visibleChars) return email;
 
   const maskedUser = username.slice(0, visibleChars) + "*".repeat(username.length - visibleChars);
+  if (domain.length <= visibleChars) {
+    return `${maskedUser}@${domain}`;
+  }
 
-  // Preserve the full domain name to maintain clear provider account differentiation
-  const maskedDomain = domainName;
+  const maskedDomain =
+    "*".repeat(domain.length - visibleChars) + domain.slice(domain.length - visibleChars);
 
-  return `${maskedUser}@${maskedDomain}${tld}`;
+  return `${maskedUser}@${maskedDomain}`;
 }
 
 /**

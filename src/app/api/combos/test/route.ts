@@ -40,6 +40,7 @@ async function testComboTarget(target, internalUrl) {
           // Force a fresh execution path so combo tests cannot be satisfied by
           // OmniRoute's semantic cache or other request reuse layers.
           "X-OmniRoute-No-Cache": "true",
+          ...(target.connectionId ? { "X-OmniRoute-Connection": target.connectionId } : {}),
           "X-Request-Id": `combo-test-${randomUUID()}`,
         },
         body: JSON.stringify(testBody),

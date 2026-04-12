@@ -1730,22 +1730,21 @@ async function handleRoundRobinCombo({
           });
           recordedAttempts++;
           if (provider) {
-            import("../../src/lib/localDb")
-              .then(({ setLKGP }) =>
-                Promise.all([
-                  setLKGP(combo.name, target.executionKey, provider),
-                  setLKGP(combo.name, combo.id || combo.name, provider),
-                ])
-              )
-              .catch((err) =>
-                log.warn(
-                  "COMBO-RR",
-                  "Failed to record Last Known Good Provider. This is non-fatal.",
-                  {
-                    err,
-                  }
-                )
+            try {
+              const { setLKGP } = await import("../../src/lib/localDb");
+              await Promise.all([
+                setLKGP(combo.name, target.executionKey, provider),
+                setLKGP(combo.name, combo.id || combo.name, provider),
+              ]);
+            } catch (err) {
+              log.warn(
+                "COMBO-RR",
+                "Failed to record Last Known Good Provider. This is non-fatal.",
+                {
+                  err,
+                }
               );
+            }
           }
           return result;
         }

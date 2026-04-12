@@ -302,6 +302,13 @@ test("DefaultExecutor.buildHeaders rotates extra API keys and builds Claude Code
     },
     true
   );
+  const ccJsonHeaders = cc.buildHeaders(
+    {
+      apiKey: "cc-key",
+      providerSpecificData: { ccSessionId: "session-1" },
+    },
+    false
+  );
 
   assert.equal(first.Authorization, "Bearer primary");
   assert.equal(second.Authorization, "Bearer extra-1");
@@ -309,6 +316,7 @@ test("DefaultExecutor.buildHeaders rotates extra API keys and builds Claude Code
   assert.equal(ccHeaders["anthropic-version"], CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION);
   assert.equal(ccHeaders["X-Claude-Code-Session-Id"], "session-1");
   assert.equal(ccHeaders.Accept, "text/event-stream");
+  assert.equal(ccJsonHeaders.Accept, "application/json");
 });
 
 test("DefaultExecutor.transformRequest is a passthrough and preserves model ids with slashes", () => {

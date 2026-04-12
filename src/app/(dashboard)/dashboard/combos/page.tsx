@@ -45,20 +45,6 @@ const ModelSelectModal = dynamic(() => import("@/shared/components/ModelSelectMo
 const ProxyConfigModal = dynamic(() => import("@/shared/components/ProxyConfigModal"), {
   ssr: false,
 });
-const ModelRoutingSection = dynamic(() => import("@/shared/components/ModelRoutingSection"), {
-  ssr: false,
-  loading: () => (
-    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-white/[0.02] p-4">
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined text-primary text-[18px]">route</span>
-        <div className="flex-1 min-w-0">
-          <div className="h-4 w-40 rounded bg-black/5 dark:bg-white/5" />
-          <div className="h-3 w-64 rounded bg-black/5 dark:bg-white/5 mt-2" />
-        </div>
-      </div>
-    </div>
-  ),
-});
 
 // Validate combo name: letters, numbers, -, _, /, .
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.-]+$/;
@@ -883,6 +869,7 @@ export default function CombosPage() {
         <ComboUsageGuide
           onHide={() => setShowUsageGuide(false)}
           onHideForever={handleHideUsageGuideForever}
+          onCreateCombo={() => setShowCreateModal(true)}
         />
       )}
 
@@ -930,10 +917,6 @@ export default function CombosPage() {
           </div>
         </Card>
       )}
-
-      {/* Model Routing Rules (#563) */}
-      <ModelRoutingSection combos={combos} />
-
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-1">
         {[
           {
@@ -1116,9 +1099,35 @@ export default function CombosPage() {
   );
 }
 
-function ComboUsageGuide({ onHide, onHideForever }) {
+const COMBO_WIZARD_STEPS = [
+  {
+    step: 1,
+    icon: "badge",
+    titleKey: "wizardStep1Title",
+    descKey: "wizardStep1Desc",
+  },
+  {
+    step: 2,
+    icon: "hub",
+    titleKey: "wizardStep2Title",
+    descKey: "wizardStep2Desc",
+  },
+  {
+    step: 3,
+    icon: "route",
+    titleKey: "wizardStep3Title",
+    descKey: "wizardStep3Desc",
+  },
+  {
+    step: 4,
+    icon: "check_circle",
+    titleKey: "wizardStep4Title",
+    descKey: "wizardStep4Desc",
+  },
+];
+
+function ComboUsageGuide({ onHide, onHideForever, onCreateCombo }) {
   const t = useTranslations("combos");
-  const guideStrategies = ["priority", "cost-optimized", "least-used"];
 
   return (
     <Card padding="sm">
@@ -1130,8 +1139,16 @@ function ComboUsageGuide({ onHide, onHideForever }) {
             </span>
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold">{t("routingStrategy")}</h2>
-            <p className="text-xs text-text-muted mt-0.5">{t("description")}</p>
+            <h2 className="text-sm font-semibold">
+              {getI18nOrFallback(t, "wizardGuideTitle", "Getting Started with Combos")}
+            </h2>
+            <p className="text-xs text-text-muted mt-0.5">
+              {getI18nOrFallback(
+                t,
+                "wizardGuideDesc",
+                "Create model combos to route AI traffic intelligently"
+              )}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -1149,26 +1166,44 @@ function ComboUsageGuide({ onHide, onHideForever }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
-        {guideStrategies.map((strategyValue) => {
-          const strategyMeta = getStrategyMeta(strategyValue);
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+        {COMBO_WIZARD_STEPS.map((step, index) => {
           return (
             <div
-              key={strategyValue}
-              className="rounded-lg border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-2.5"
+              key={step.step}
+              className="relative rounded-lg border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-2.5"
             >
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px] text-primary">
-                  {strategyMeta.icon}
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="inline-flex size-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                  {step.step}
                 </span>
-                <span className="text-xs font-medium">{getStrategyLabel(t, strategyValue)}</span>
+                <span className="material-symbols-outlined text-[14px] text-primary">
+                  {step.icon}
+                </span>
               </div>
-              <p className="text-[11px] leading-4 text-text-muted mt-1.5">
-                {getStrategyDescription(t, strategyValue)}
+              <p className="text-xs font-medium">
+                {getI18nOrFallback(t, step.titleKey, step.titleKey)}
               </p>
+              <p className="mt-1 text-[11px] leading-4 text-text-muted">
+                {getI18nOrFallback(t, step.descKey, step.descKey)}
+              </p>
+              {index < COMBO_WIZARD_STEPS.length - 1 && (
+                <span className="absolute -right-2.5 top-1/2 z-10 hidden -translate-y-1/2 text-text-muted md:block">
+                  <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </span>
+              )}
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-3 flex items-center gap-2">
+        <Button size="sm" icon="add" onClick={onCreateCombo}>
+          {getI18nOrFallback(t, "createFirstCombo", "Create Your First Combo")}
+        </Button>
+        <span className="text-[10px] text-text-muted">
+          {getI18nOrFallback(t, "wizardGuideHint", "or click + Create Combo above")}
+        </span>
       </div>
     </Card>
   );

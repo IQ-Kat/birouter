@@ -1,5 +1,5 @@
-import { execSync, execFileSync } from "child_process";
-import { existsSync } from "fs";
+import { execFileSync, execSync } from "child_process";
+import { existsSync, readFileSync } from "fs";
 
 /**
  * Get raw machine ID using OS-specific methods.
@@ -59,12 +59,7 @@ function getMachineIdRaw(): string {
   try {
     for (const filePath of ["/etc/machine-id", "/var/lib/dbus/machine-id"]) {
       try {
-        const content = execFileSync("cat", [filePath], {
-          encoding: "utf8",
-          timeout: 5000,
-        })
-          .trim()
-          .toLowerCase();
+        const content = readFileSync(filePath, "utf8").trim().toLowerCase();
         if (content.length > 8) return content;
       } catch {
         // Try the next candidate file

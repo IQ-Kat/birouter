@@ -351,6 +351,8 @@ test("combo test route preserves structured step metadata for repeated model/acc
     fetchCalls.map(({ init }) => JSON.parse(init.body).model),
     ["openai/gpt-4o-mini", "openai/gpt-4o-mini"]
   );
+  assert.equal(fetchCalls[0].init.headers["X-OmniRoute-Connection"], "conn-openai-a");
+  assert.equal(fetchCalls[1].init.headers["X-OmniRoute-Connection"], "conn-openai-b");
   assert.equal(body.results[0].connectionId, "conn-openai-a");
   assert.equal(body.results[0].label, "Account A");
   assert.equal(body.results[1].connectionId, "conn-openai-b");

@@ -179,7 +179,7 @@ export class DefaultExecutor extends BaseExecutor {
         }
     }
 
-    if (stream) headers["Accept"] = "text/event-stream";
+    headers["Accept"] = stream ? "text/event-stream" : "application/json";
 
     // Qwen header cleanup: Remove X-Dashscope-* headers if using an API key (DashScope compatible mode).
     // If using OAuth (Qwen Code), we MUST keep them for portal.qwen.ai to accept the request.

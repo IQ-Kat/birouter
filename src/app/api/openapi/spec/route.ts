@@ -6,15 +6,12 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import yaml from "js-yaml";
 
 let cachedSpec: { data: any; mtime: number } | null = null;
-const ROUTE_DIR = path.dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = path.resolve(ROUTE_DIR, "../../../../../");
 const OPENAPI_SPEC_CANDIDATES = [
-  path.join(PROJECT_ROOT, "docs", "openapi.yaml"),
-  path.join(PROJECT_ROOT, "app", "docs", "openapi.yaml"),
+  path.join(process.cwd(), "docs", "openapi.yaml"),
+  path.join(process.cwd(), "app", "docs", "openapi.yaml"),
 ];
 
 export async function GET() {

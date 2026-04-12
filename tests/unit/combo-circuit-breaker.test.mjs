@@ -6,6 +6,7 @@ const { CircuitBreaker, getCircuitBreaker, getAllCircuitBreakerStatuses, STATE }
   await import("../../src/shared/utils/circuitBreaker.ts");
 
 const { handleComboChat, getComboFromData } = await import("../../open-sse/services/combo.ts");
+const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 
 const { PROVIDER_PROFILES } = await import("../../open-sse/config/constants.ts");
 
@@ -38,25 +39,31 @@ function mockHandler(statusSequence) {
   };
 }
 
+function getComboTargetBreakerKey(combo, index = 0) {
+  const step = normalizeComboStep(combo.models[index], {
+    comboName: combo.name,
+    index,
+  });
+  return `combo:${combo.name}:${step.id}`;
+}
+
 // ─── Circuit Breaker Integration Tests ──────────────────────────────────────
 // NOTE: combo.ts uses the full model string (e.g. "combo:groq/llama-3.3-70b")
 // as the circuit breaker key, not just the provider prefix.
 
 test("handleComboChat: circuit breaker opens after repeated 502 errors", async () => {
-  // breaker key mirrors what combo.ts uses: "combo:<full-model-string>"
-  const breakerKey = "combo:groq/llama-3.3-70b";
-  const breaker = getCircuitBreaker(breakerKey, {
-    failureThreshold: 3,
-    resetTimeout: 60000,
-  });
-  breaker.reset();
-
   const combo = {
     name: "test-combo",
     models: [{ model: "groq/llama-3.3-70b", weight: 0 }],
     strategy: "priority",
     config: { maxRetries: 0 },
   };
+  const breakerKey = getComboTargetBreakerKey(combo);
+  const breaker = getCircuitBreaker(breakerKey, {
+    failureThreshold: 3,
+    resetTimeout: 60000,
+  });
+  breaker.reset();
 
   const log = mockLog();
 
@@ -82,7 +89,15 @@ test("handleComboChat: circuit breaker opens after repeated 502 errors", async (
 
 test("handleComboChat: skips models with open circuit breaker", async () => {
   // Set up: groq breaker is OPEN, fireworks breaker is CLOSED
-  const groqBreakerKey = "combo:groq/llama-3.3-70b";
+  const combo = {
+    name: "test-skip-combo",
+    models: [
+      { model: "groq/llama-3.3-70b", weight: 0 },
+      { model: "fireworks/deepseek-v3p1", weight: 0 },
+    ],
+    strategy: "priority",
+  };
+  const groqBreakerKey = getComboTargetBreakerKey(combo, 0);
   const groqBreaker = getCircuitBreaker(groqBreakerKey, {
     failureThreshold: 3,
     resetTimeout: 60000,
@@ -94,21 +109,12 @@ test("handleComboChat: skips models with open circuit breaker", async () => {
   groqBreaker._onFailure();
   assert.equal(groqBreaker.getStatus().state, STATE.OPEN);
 
-  const fireworksBreakerKey = "combo:fireworks/deepseek-v3p1";
+  const fireworksBreakerKey = getComboTargetBreakerKey(combo, 1);
   const fireworksBreaker = getCircuitBreaker(fireworksBreakerKey, {
     failureThreshold: 5,
     resetTimeout: 30000,
   });
   fireworksBreaker.reset();
-
-  const combo = {
-    name: "test-skip-combo",
-    models: [
-      { model: "groq/llama-3.3-70b", weight: 0 },
-      { model: "fireworks/deepseek-v3p1", weight: 0 },
-    ],
-    strategy: "priority",
-  };
 
   const log = mockLog();
 
@@ -132,17 +138,6 @@ test("handleComboChat: skips models with open circuit breaker", async () => {
 });
 
 test("handleComboChat: returns 503 when all breakers are open", async () => {
-  // Open both breakers using the full model string keys
-  const groqBreaker = getCircuitBreaker("combo:groq/llama-3.3-70b");
-  groqBreaker.reset();
-  groqBreaker._onFailure();
-  groqBreaker._onFailure();
-  groqBreaker._onFailure();
-
-  const fireworksBreaker = getCircuitBreaker("combo:fireworks/deepseek-v3p1");
-  fireworksBreaker.reset();
-  for (let i = 0; i < 5; i++) fireworksBreaker._onFailure();
-
   const combo = {
     name: "test-all-open",
     models: [
@@ -151,6 +146,25 @@ test("handleComboChat: returns 503 when all breakers are open", async () => {
     ],
     strategy: "priority",
   };
+
+  // Open both breakers explicitly before invoking the combo.
+  const groqBreaker = getCircuitBreaker(getComboTargetBreakerKey(combo, 0), {
+    failureThreshold: 3,
+    resetTimeout: 60000,
+  });
+  groqBreaker.reset();
+  groqBreaker._onFailure();
+  groqBreaker._onFailure();
+  groqBreaker._onFailure();
+  assert.equal(groqBreaker.getStatus().state, STATE.OPEN);
+
+  const fireworksBreaker = getCircuitBreaker(getComboTargetBreakerKey(combo, 1), {
+    failureThreshold: 5,
+    resetTimeout: 30000,
+  });
+  fireworksBreaker.reset();
+  for (let i = 0; i < 5; i++) fireworksBreaker._onFailure();
+  assert.equal(fireworksBreaker.getStatus().state, STATE.OPEN);
 
   const log = mockLog();
 
@@ -170,18 +184,17 @@ test("handleComboChat: returns 503 when all breakers are open", async () => {
 });
 
 test("handleComboChat: 429 errors also trigger circuit breaker", async () => {
-  const breakerKey = "combo:cerebras/llama-3.3-70b";
-  const breaker = getCircuitBreaker(breakerKey, {
-    failureThreshold: 5,
-    resetTimeout: 30000,
-  });
-  breaker.reset();
-
   const combo = {
     name: "test-429",
     models: [{ model: "cerebras/llama-3.3-70b", weight: 0 }],
     strategy: "priority",
   };
+  const breakerKey = getComboTargetBreakerKey(combo);
+  const breaker = getCircuitBreaker(breakerKey, {
+    failureThreshold: 5,
+    resetTimeout: 30000,
+  });
+  breaker.reset();
 
   const log = mockLog();
 

@@ -206,9 +206,7 @@ export class BaseExecutor {
       headers["Authorization"] = `Bearer ${effectiveKey}`;
     }
 
-    if (stream) {
-      headers["Accept"] = "text/event-stream";
-    }
+    headers["Accept"] = stream ? "text/event-stream" : "application/json";
 
     return headers;
   }

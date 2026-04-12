@@ -183,6 +183,22 @@ export const createComboSchema = z.object({
 // ──── Settings Schemas ────
 // FASE-01: Removed .passthrough() — only explicitly listed fields are accepted
 
+const settingsFallbackStrategySchema = z.enum([
+  "priority",
+  "weighted",
+  "round-robin",
+  "context-relay",
+  "fill-first",
+  "p2c",
+  "random",
+  "least-used",
+  "cost-optimized",
+  "strict-random",
+  "auto",
+  "context-optimized",
+  "lkgp",
+]);
+
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
   currentPassword: z.string().max(200).optional(),
@@ -200,17 +216,7 @@ export const updateSettingsSchema = z.object({
   hideHealthCheckLogs: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   // Routing settings (#134)
-  fallbackStrategy: z
-    .enum([
-      "fill-first",
-      "round-robin",
-      "p2c",
-      "random",
-      "least-used",
-      "cost-optimized",
-      "strict-random",
-    ])
-    .optional(),
+  fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   // Auto intent classifier settings (multilingual routing)

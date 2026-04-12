@@ -16,6 +16,7 @@ const originalWindir = process.env.windir;
 const originalExecSync = childProcess.execSync;
 const originalExecFileSync = childProcess.execFileSync;
 const originalExistsSync = fs.existsSync;
+const originalReadFileSync = fs.readFileSync;
 
 function setPlatform(value) {
   Object.defineProperty(process, "platform", {
@@ -32,6 +33,7 @@ test.afterEach(() => {
   childProcess.execSync = originalExecSync;
   childProcess.execFileSync = originalExecFileSync;
   fs.existsSync = originalExistsSync;
+  fs.readFileSync = originalReadFileSync;
 
   if (originalPlatformDescriptor) {
     Object.defineProperty(process, "platform", originalPlatformDescriptor);
@@ -82,10 +84,9 @@ test("machineId: falls back to Linux machine-id files before hostname", async ()
   setPlatform("linux");
 
   fs.existsSync = () => false;
-  childProcess.execFileSync = (command, args, options) => {
-    assert.equal(command, "cat");
-    assert.deepEqual(args, ["/etc/machine-id"]);
-    assert.equal(options.encoding, "utf8");
+  fs.readFileSync = (filePath, encoding) => {
+    assert.equal(filePath, "/etc/machine-id");
+    assert.equal(encoding, "utf8");
     return "LINUX-MACHINE-ID\n";
   };
   childProcess.execSync = () => {

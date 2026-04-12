@@ -61,7 +61,10 @@ import {
   isFallbackDecision,
   shouldUseFallback,
 } from "@omniroute/open-sse/services/emergencyFallback.ts";
-import { registerCodexQuotaFetcher } from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
+import {
+  registerCodexConnection,
+  registerCodexQuotaFetcher,
+} from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
 
 // Register Codex quota fetcher at module load (once per server start).
 // This hooks into the quotaPreflight + quotaMonitor systems so that combos
@@ -178,6 +181,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   // T04: client-provided external session header has priority over generated fingerprint.
   const externalSessionId = extractExternalSessionId(request.headers);
   const sessionId = externalSessionId || generateStableSessionId(body);
+  const requestedConnectionId = request.headers.get("x-omniroute-connection")?.trim() || null;
   if (sessionId) {
     touchSession(sessionId);
   }
@@ -393,7 +397,11 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     null,
     apiKeyInfo,
     telemetry,
-    { sessionId, forceLiveComboTest: isComboLiveTest },
+    {
+      sessionId,
+      forceLiveComboTest: isComboLiveTest,
+      forcedConnectionId: requestedConnectionId,
+    },
     null,
     false
   );
@@ -541,6 +549,20 @@ async function handleSingleModelChat(
       }
     }
     const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
+    if (provider === "codex" && refreshedCredentials?.accessToken && credentials.connectionId) {
+      const workspaceId =
+        typeof refreshedCredentials?.providerSpecificData?.workspaceId === "string" &&
+        refreshedCredentials.providerSpecificData.workspaceId.trim().length > 0
+          ? refreshedCredentials.providerSpecificData.workspaceId
+          : typeof credentials?.providerSpecificData?.workspaceId === "string" &&
+              credentials.providerSpecificData.workspaceId.trim().length > 0
+            ? credentials.providerSpecificData.workspaceId
+            : undefined;
+      registerCodexConnection(credentials.connectionId, {
+        accessToken: refreshedCredentials.accessToken,
+        ...(workspaceId ? { workspaceId } : {}),
+      });
+    }
     if (runtimeOptions.sessionId && body?._omnirouteInternalRequest !== "context-handoff") {
       touchSession(runtimeOptions.sessionId, credentials.connectionId);
       startQuotaMonitor(
