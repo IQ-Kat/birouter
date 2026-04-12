@@ -171,19 +171,25 @@ test.describe("Combo Unification", () => {
     test.skip(page.url().includes("/login"), "Authentication enabled without a login fixture.");
 
     await page.getByRole("button", { name: /create combo/i }).click();
+    await page.getByLabel(/combo name/i).waitFor({ state: "visible" });
     await page.getByLabel(/combo name/i).fill("e2e-auto-builder");
     await page.getByTestId("combo-builder-next").click();
 
+    await page.getByTestId("combo-builder-provider").waitFor({ state: "visible" });
     await page.getByTestId("combo-builder-provider").selectOption("openai");
+    await page.getByTestId("combo-builder-model").waitFor({ state: "attached" });
     await page.getByTestId("combo-builder-model").selectOption("gpt-4o-mini");
     await page.getByTestId("combo-builder-add-step").click();
     await page.getByTestId("combo-builder-next").click();
 
+    await page.getByTestId("strategy-option-auto").waitFor({ state: "visible" });
     await page.getByTestId("strategy-option-auto").click();
     await page.getByTestId("combo-builder-next").click();
 
-    await expect(page.getByText("Candidate Pool", { exact: true })).toBeVisible();
-    await expect(page.getByText("Mode Pack", { exact: true })).toBeVisible();
-    await expect(page.getByText("Exploration Rate", { exact: true })).toBeVisible();
+    await expect(page.getByText("Candidate Pool", { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Mode Pack", { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Exploration Rate", { exact: true })).toBeVisible({
+      timeout: 5000,
+    });
   });
 });
