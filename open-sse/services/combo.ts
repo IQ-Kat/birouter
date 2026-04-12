@@ -81,6 +81,14 @@ type ComboRuntimeStep =
       label: string | null;
     };
 
+function isRecord(value): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function toTrimmedString(value): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
 /**
  * Validate that a successful (HTTP 200) non-streaming response actually contains
  * meaningful content. Returns { valid: true } or { valid: false, reason }.
@@ -240,15 +248,93 @@ function normalizeRuntimeStep(entry, comboName, index, allCombos, path = []) {
 }
 
 function getDirectComboTargets(combo) {
-  return (combo.models || [])
-    .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, null))
-    .filter((entry): entry is ResolvedComboTarget => entry?.kind === "model");
+  return getOrderedTopLevelRuntimeSteps(combo, null).filter(
+    (entry): entry is ResolvedComboTarget => entry?.kind === "model"
+  );
 }
 
 function getTopLevelRuntimeSteps(combo, allCombos, path = []) {
   return (combo.models || [])
     .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, allCombos, path))
     .filter((entry): entry is ComboRuntimeStep => entry !== null);
+}
+
+function getCompositeTierStepOrder(combo): string[] {
+  const compositeTiers = isRecord(combo?.config) ? combo.config.compositeTiers : null;
+  if (!isRecord(compositeTiers)) return [];
+
+  const defaultTier = toTrimmedString(compositeTiers.defaultTier);
+  const tiers = isRecord(compositeTiers.tiers) ? compositeTiers.tiers : null;
+  if (!defaultTier || !tiers) return [];
+
+  const orderedStepIds: string[] = [];
+  const visitedTiers = new Set<string>();
+  const seenStepIds = new Set<string>();
+  const tierEntries = new Map(
+    Object.entries(tiers)
+      .map(([tierName, rawTier]) => {
+        if (!isRecord(rawTier)) return null;
+        const normalizedTierName = toTrimmedString(tierName);
+        const stepId = toTrimmedString(rawTier.stepId);
+        const fallbackTier = toTrimmedString(rawTier.fallbackTier);
+        if (!normalizedTierName || !stepId) return null;
+        return [normalizedTierName, { stepId, fallbackTier }] as const;
+      })
+      .filter(Boolean)
+  );
+
+  let currentTier = defaultTier;
+  while (currentTier && tierEntries.has(currentTier) && !visitedTiers.has(currentTier)) {
+    visitedTiers.add(currentTier);
+    const entry = tierEntries.get(currentTier);
+    if (!entry) break;
+    if (!seenStepIds.has(entry.stepId)) {
+      orderedStepIds.push(entry.stepId);
+      seenStepIds.add(entry.stepId);
+    }
+    currentTier = entry.fallbackTier;
+  }
+
+  for (const entry of tierEntries.values()) {
+    if (!seenStepIds.has(entry.stepId)) {
+      orderedStepIds.push(entry.stepId);
+      seenStepIds.add(entry.stepId);
+    }
+  }
+
+  return orderedStepIds;
+}
+
+function hasCompositeTierRuntimeOrder(combo): boolean {
+  return getCompositeTierStepOrder(combo).length > 0;
+}
+
+function orderRuntimeStepsByCompositeTiers(steps: ComboRuntimeStep[], combo): ComboRuntimeStep[] {
+  const orderedStepIds = getCompositeTierStepOrder(combo);
+  if (orderedStepIds.length === 0) return steps;
+
+  const byStepId = new Map(steps.map((step) => [step.stepId, step]));
+  const seen = new Set<string>();
+  const ordered: ComboRuntimeStep[] = [];
+
+  for (const stepId of orderedStepIds) {
+    const step = byStepId.get(stepId);
+    if (!step || seen.has(step.stepId)) continue;
+    ordered.push(step);
+    seen.add(step.stepId);
+  }
+
+  for (const step of steps) {
+    if (seen.has(step.stepId)) continue;
+    ordered.push(step);
+    seen.add(step.stepId);
+  }
+
+  return ordered;
+}
+
+function getOrderedTopLevelRuntimeSteps(combo, allCombos, path = []) {
+  return orderRuntimeStepsByCompositeTiers(getTopLevelRuntimeSteps(combo, allCombos, path), combo);
 }
 
 function expandRuntimeStep(step, allCombos, visited = new Set(), depth = 0, path = []) {
@@ -280,7 +366,7 @@ export function resolveNestedComboTargets(
   if (visited.has(combo.name)) return [];
   visited.add(combo.name);
 
-  const runtimeSteps = getTopLevelRuntimeSteps(combo, allCombos, path);
+  const runtimeSteps = getOrderedTopLevelRuntimeSteps(combo, allCombos, path);
   const resolved: ResolvedComboTarget[] = [];
 
   for (const step of runtimeSteps) {
@@ -401,12 +487,14 @@ function selectWeightedTarget(targets: Array<{ weight: number }>) {
 
 function orderTargetsForWeightedFallback(
   targets: Array<{ executionKey: string; weight: number }>,
-  selectedExecutionKey: string
+  selectedExecutionKey: string,
+  preserveExistingOrder = false
 ) {
   const selected = targets.find((target) => target.executionKey === selectedExecutionKey);
-  const rest = targets
-    .filter((target) => target.executionKey !== selectedExecutionKey)
-    .sort((a, b) => b.weight - a.weight);
+  const rest = targets.filter((target) => target.executionKey !== selectedExecutionKey);
+  if (!preserveExistingOrder) {
+    rest.sort((a, b) => b.weight - a.weight);
+  }
   return [selected, ...rest].filter(Boolean);
 }
 
@@ -742,9 +830,7 @@ export function resolveComboTargets(combo, allCombos) {
 }
 
 function resolveWeightedTargets(combo, allCombos) {
-  const topLevelSteps = allCombos
-    ? getTopLevelRuntimeSteps(combo, allCombos)
-    : getDirectComboTargets(combo);
+  const topLevelSteps = getOrderedTopLevelRuntimeSteps(combo, allCombos);
   if (topLevelSteps.length === 0) {
     return { orderedTargets: [], selectedStep: null };
   }
@@ -754,7 +840,11 @@ function resolveWeightedTargets(combo, allCombos) {
     return { orderedTargets: [], selectedStep: null };
   }
 
-  const orderedSteps = orderTargetsForWeightedFallback(topLevelSteps, selectedStep.executionKey);
+  const orderedSteps = orderTargetsForWeightedFallback(
+    topLevelSteps,
+    selectedStep.executionKey,
+    hasCompositeTierRuntimeOrder(combo)
+  );
   const expandedTargets = orderedSteps.flatMap((step) => {
     if (!allCombos) {
       return step.kind === "model" ? [step] : [];

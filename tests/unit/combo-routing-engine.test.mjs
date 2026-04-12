@@ -223,6 +223,68 @@ test("handleComboChat priority strategy defaults to first model and records succ
   assert.equal(metrics.strategy, "priority");
 });
 
+test("handleComboChat priority strategy honors composite tier order before fallback", async () => {
+  const calls = [];
+  const combo = {
+    name: "priority-composite-tiers",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "openai",
+        model: "openai/gpt-4o-mini",
+      },
+      {
+        kind: "model",
+        id: "step-backup",
+        providerId: "anthropic",
+        model: "claude/sonnet",
+      },
+      {
+        kind: "model",
+        id: "step-last",
+        providerId: "google",
+        model: "gemini/gemini-2.5-flash",
+      },
+    ],
+    config: {
+      maxRetries: 0,
+      compositeTiers: {
+        defaultTier: "backup",
+        tiers: {
+          backup: {
+            stepId: "step-backup",
+            fallbackTier: "primary",
+          },
+          primary: {
+            stepId: "step-primary",
+          },
+        },
+      },
+    },
+  };
+
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      if (modelStr === "claude/sonnet") {
+        return errorResponse(503, "backup failed");
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["claude/sonnet", "openai/gpt-4o-mini"]);
+});
+
 test("handleComboChat weighted strategy selects by weight and falls back in descending weight order", async () => {
   const originalRandom = Math.random;
   const calls = [];
@@ -531,6 +593,64 @@ test("handleComboChat round-robin rotates sequentially across requests", async (
   }
 
   assert.deepEqual(calls, ["model-a", "model-b", "model-a"]);
+});
+
+test("handleComboChat round-robin starts from composite tier default ordering", async () => {
+  const calls = [];
+  const combo = {
+    name: "rr-composite-order",
+    strategy: "round-robin",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "openai",
+        model: "openai/gpt-4o-mini",
+      },
+      {
+        kind: "model",
+        id: "step-backup",
+        providerId: "anthropic",
+        model: "claude/sonnet",
+      },
+    ],
+    config: {
+      maxRetries: 0,
+      concurrencyPerModel: 1,
+      queueTimeoutMs: 1000,
+      compositeTiers: {
+        defaultTier: "backup",
+        tiers: {
+          backup: {
+            stepId: "step-backup",
+            fallbackTier: "primary",
+          },
+          primary: {
+            stepId: "step-primary",
+          },
+        },
+      },
+    },
+  };
+
+  for (let i = 0; i < 2; i++) {
+    const result = await handleComboChat({
+      body: {},
+      combo,
+      handleSingleModel: async (_body, modelStr) => {
+        calls.push(modelStr);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      allCombos: null,
+    });
+
+    assert.equal(result.ok, true);
+  }
+
+  assert.deepEqual(calls, ["claude/sonnet", "openai/gpt-4o-mini"]);
 });
 
 test("combo helpers short-circuit safely for missing combos, cycles, and excessive depth", () => {

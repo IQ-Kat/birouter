@@ -18,6 +18,13 @@ Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI)
 
 Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
+Recent combo improvements:
+
+- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
+- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
+- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
+- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+
 ![Combos Dashboard](screenshots/02-combos.png)
 
 ---
@@ -32,7 +39,7 @@ Comprehensive usage analytics with token consumption, cost estimates, activity h
 
 ## 🏥 System Health
 
-Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, and provider circuit breaker states.
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
 
 ![Health Dashboard](screenshots/04-health.png)
 
