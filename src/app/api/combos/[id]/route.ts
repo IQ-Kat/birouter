@@ -59,6 +59,7 @@ export async function PUT(request, { params }) {
     if (!currentCombo) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
     }
+    const allCombos = await getCombos();
 
     const comboName = validation.data.name || currentCombo.name;
     const body = validation.data.models
@@ -66,6 +67,7 @@ export async function PUT(request, { params }) {
           ...validation.data,
           models: normalizeComboModels(validation.data.models, {
             comboName,
+            allCombos,
           }),
         }
       : validation.data;
@@ -89,7 +91,6 @@ export async function PUT(request, { params }) {
 
     // Validate nested combo DAG (no circular references, max depth)
     if (body.models) {
-      const allCombos = await getCombos();
       // Update the combo in the list temporarily for validation
       const updatedCombos = allCombos.map((c) => (c.id === id ? { ...c, ...body } : c));
       if (comboName) {

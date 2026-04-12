@@ -123,6 +123,30 @@ test("POST /api/combos persists valid composite tiers", async () => {
   assert.equal(stored.models[0].id, "step-primary");
 });
 
+test("POST /api/combos preserves legacy string combo refs during normalization", async () => {
+  await combosDb.createCombo({
+    name: "child-ref",
+    strategy: "priority",
+    models: ["openai/gpt-4o-mini"],
+  });
+
+  const response = await createRoute.POST(
+    makeCreateRequest({
+      name: "parent-ref",
+      strategy: "priority",
+      models: ["child-ref"],
+    })
+  );
+  const body = await response.json();
+  const stored = await combosDb.getComboByName("parent-ref");
+
+  assert.equal(response.status, 201);
+  assert.equal(body.models[0].kind, "combo-ref");
+  assert.equal(body.models[0].comboName, "child-ref");
+  assert.equal(stored.models[0].kind, "combo-ref");
+  assert.equal(stored.models[0].comboName, "child-ref");
+});
+
 test("PUT /api/combos rejects updates that orphan an existing composite tier step reference", async () => {
   const combo = await combosDb.createCombo(createTieredComboInput());
 
@@ -154,4 +178,32 @@ test("PUT /api/combos rejects updates that orphan an existing composite tier ste
       ],
     },
   });
+});
+
+test("PUT /api/combos preserves legacy string combo refs during normalization", async () => {
+  await combosDb.createCombo({
+    name: "child-ref",
+    strategy: "priority",
+    models: ["openai/gpt-4o-mini"],
+  });
+  const combo = await combosDb.createCombo({
+    name: "parent-ref",
+    strategy: "priority",
+    models: ["openai/gpt-4o"],
+  });
+
+  const response = await comboRoute.PUT(
+    makeUpdateRequest({
+      models: ["child-ref"],
+    }),
+    { params: Promise.resolve({ id: combo.id }) }
+  );
+  const body = await response.json();
+  const stored = await combosDb.getComboById(combo.id);
+
+  assert.equal(response.status, 200);
+  assert.equal(body.models[0].kind, "combo-ref");
+  assert.equal(body.models[0].comboName, "child-ref");
+  assert.equal(stored.models[0].kind, "combo-ref");
+  assert.equal(stored.models[0].comboName, "child-ref");
 });

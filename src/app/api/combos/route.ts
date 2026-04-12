@@ -29,8 +29,10 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+    const allCombos = await getCombos();
     const normalizedModels = normalizeComboModels(validation.data.models, {
       comboName: validation.data.name,
+      allCombos,
     });
     const comboInput = {
       ...validation.data,
@@ -49,7 +51,6 @@ export async function POST(request) {
     }
 
     // Validate nested combo DAG (no circular references, max depth)
-    const allCombos = await getCombos();
     // Temporarily add the new combo to validate its graph
     const tempCombo = {
       ...comboInput,
