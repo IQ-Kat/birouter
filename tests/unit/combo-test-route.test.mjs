@@ -302,6 +302,66 @@ test("combo test route launches model probes concurrently while preserving combo
   );
 });
 
+test("combo test route preserves structured step metadata for repeated model/account targets", async () => {
+  await createTestCombo([
+    {
+      kind: "model",
+      providerId: "openai",
+      model: "openai/gpt-4o-mini",
+      connectionId: "conn-openai-a",
+      label: "Account A",
+    },
+    {
+      kind: "model",
+      providerId: "openai",
+      model: "openai/gpt-4o-mini",
+      connectionId: "conn-openai-b",
+      label: "Account B",
+    },
+  ]);
+
+  const fetchCalls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({ url: String(url), init });
+    const body = JSON.parse(init.body);
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              content: `OK:${body.model}`,
+            },
+          },
+        ],
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  const response = await route.POST(makeRequest());
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(fetchCalls.length, 2);
+  assert.deepEqual(
+    fetchCalls.map(({ init }) => JSON.parse(init.body).model),
+    ["openai/gpt-4o-mini", "openai/gpt-4o-mini"]
+  );
+  assert.equal(fetchCalls[0].init.headers["X-OmniRoute-Connection"], "conn-openai-a");
+  assert.equal(fetchCalls[1].init.headers["X-OmniRoute-Connection"], "conn-openai-b");
+  assert.equal(body.results[0].connectionId, "conn-openai-a");
+  assert.equal(body.results[0].label, "Account A");
+  assert.equal(body.results[1].connectionId, "conn-openai-b");
+  assert.equal(body.results[1].label, "Account B");
+  assert.notEqual(body.results[0].executionKey, body.results[1].executionKey);
+  assert.equal(body.resolvedByExecutionKey, body.results[0].executionKey);
+  assert.equal(body.resolvedByTarget.connectionId, "conn-openai-a");
+});
+
 test("combo test route rejects empty combos and respects forwarded base URLs", async () => {
   await createTestCombo([]);
 

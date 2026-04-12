@@ -8,7 +8,7 @@ import {
 
 describe("maskEmail", () => {
   it("masks standard email correctly", () => {
-    assert.equal(maskEmail("diego.souza@gmail.com"), "die********@gmail.com");
+    assert.equal(maskEmail("diego.souza@gmail.com"), "die********@******com");
   });
 
   it("masks email with short username (exactly visibleChars)", () => {
@@ -18,7 +18,7 @@ describe("maskEmail", () => {
 
   it("masks email with longer username", () => {
     const result = maskEmail("hello@example.com");
-    assert.equal(result, "hel**@example.com");
+    assert.equal(result, "hel**@********com");
   });
 
   it("returns empty string for null", () => {
@@ -38,14 +38,12 @@ describe("maskEmail", () => {
   });
 
   it("handles multi-part TLDs correctly", () => {
-    const result = maskEmail("user@company.co.uk");
-    assert.ok(result.endsWith(".co.uk"), `Expected .co.uk suffix, got: ${result}`);
-    assert.ok(result.includes("@"), "Should contain @");
+    assert.equal(maskEmail("diego.souza@outlook.com.br"), "die********@***********.br");
+    assert.equal(maskEmail("evelyn@outlook.com.br"), "eve***@***********.br");
   });
 
   it("handles single-char domain name", () => {
-    const result = maskEmail("user@x.com");
-    assert.ok(result.includes("@x.com"), `Expected @x.com in: ${result}`);
+    assert.equal(maskEmail("user@x.com"), "use*@**com");
   });
 
   it("allows customizing visibleChars", () => {
@@ -54,14 +52,14 @@ describe("maskEmail", () => {
   });
 
   it("masks email-like values stored in generic labels", () => {
-    assert.equal(maskEmailLikeValue("person@example.com"), "per***@example.com");
+    assert.equal(maskEmailLikeValue("person@example.com"), "per***@********com");
     assert.equal(maskEmailLikeValue("Work Account"), "Work Account");
   });
 
   it("picks the first non-empty masked display value", () => {
     assert.equal(
       pickMaskedDisplayValue(["", "person@example.com", "fallback"], "fallback"),
-      "per***@example.com"
+      "per***@********com"
     );
     assert.equal(pickMaskedDisplayValue([null, "Workspace"], "fallback"), "Workspace");
   });

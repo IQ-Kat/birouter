@@ -18,6 +18,7 @@ const { resetAllCircuitBreakers, getCircuitBreaker } =
 const { resetAll: resetAllSemaphores } =
   await import("../../open-sse/services/rateLimitSemaphore.ts");
 const { _resetAllDecks } = await import("../../src/shared/utils/shuffleDeck.ts");
+const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -161,7 +162,17 @@ test("handleComboChat context-relay skips unavailable models and falls through t
 });
 
 test("handleComboChat context-relay skips models with an open circuit breaker", async () => {
-  const breaker = getCircuitBreaker("combo:codex/gpt-5.4", {
+  const combo = {
+    name: "relay-breaker",
+    strategy: "context-relay",
+    models: ["codex/gpt-5.4", "openai/gpt-4o-mini"],
+    config: { maxRetries: 0 },
+  };
+  const firstStep = normalizeComboStep(combo.models[0], {
+    comboName: combo.name,
+    index: 0,
+  });
+  const breaker = getCircuitBreaker(`combo:${combo.name}:${firstStep.id}`, {
     failureThreshold: 1,
     resetTimeout: 60000,
   });
@@ -174,12 +185,7 @@ test("handleComboChat context-relay skips models with an open circuit breaker", 
     body: {
       messages: [{ role: "user", content: "Breaker" }],
     },
-    combo: {
-      name: "relay-breaker",
-      strategy: "context-relay",
-      models: ["codex/gpt-5.4", "openai/gpt-4o-mini"],
-      config: { maxRetries: 0 },
-    },
+    combo,
     handleSingleModel: async (_body, modelStr) => {
       calls.push(modelStr);
       return okResponse();

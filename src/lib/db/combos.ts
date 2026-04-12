@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { normalizeComboRecord } from "@/lib/combos/steps";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -30,6 +31,45 @@ function withSortOrder(payload: string, sortOrder: number | null): JsonRecord {
   return parsed;
 }
 
+function getComboNameSet(
+  db: ReturnType<typeof getDbInstance>,
+  extraNames: string[] = []
+): Set<string> {
+  const rows = db.prepare("SELECT name FROM combos").all();
+  const names = new Set<string>();
+
+  for (const row of rows) {
+    const record = asRecord(row);
+    if (typeof record.name === "string" && record.name.trim().length > 0) {
+      names.add(record.name.trim());
+    }
+  }
+
+  for (const name of extraNames) {
+    if (typeof name === "string" && name.trim().length > 0) {
+      names.add(name.trim());
+    }
+  }
+
+  return names;
+}
+
+function normalizeStoredCombo(
+  combo: JsonRecord,
+  db: ReturnType<typeof getDbInstance>,
+  extraNames: string[] = []
+): JsonRecord {
+  return normalizeComboRecord(combo, {
+    allCombos: getComboNameSet(db, extraNames),
+  }) as JsonRecord;
+}
+
+function parseComboRow(row: unknown): JsonRecord | null {
+  const payload = getSerializedData(row);
+  if (!payload) return null;
+  return withSortOrder(payload, getSortOrder(row));
+}
+
 function getNextSortOrder() {
   const db = getDbInstance();
   const row = db.prepare("SELECT COALESCE(MAX(sort_order), 0) AS sort_order FROM combos").get();
@@ -39,47 +79,60 @@ function getNextSortOrder() {
 
 export async function getCombos() {
   const db = getDbInstance();
-  return db
+  const rawCombos = db
     .prepare("SELECT data, sort_order FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC")
     .all()
-    .map((row) => {
-      const payload = getSerializedData(row);
-      if (!payload) return null;
-      return withSortOrder(payload, getSortOrder(row));
-    })
+    .map((row) => parseComboRow(row))
     .filter((row): row is JsonRecord => row !== null);
+
+  const comboNames = rawCombos
+    .map((combo) => (typeof combo.name === "string" ? combo.name.trim() : ""))
+    .filter((name): name is string => name.length > 0);
+
+  return rawCombos.map((combo) =>
+    normalizeComboRecord(combo, {
+      allCombos: comboNames,
+    })
+  );
 }
 
 export async function getComboById(id: string) {
   const db = getDbInstance();
   const row = db.prepare("SELECT data, sort_order FROM combos WHERE id = ?").get(id);
-  const payload = getSerializedData(row);
-  return payload ? withSortOrder(payload, getSortOrder(row)) : null;
+  const combo = parseComboRow(row);
+  if (!combo) return null;
+  return normalizeStoredCombo(combo, db, typeof combo.name === "string" ? [combo.name] : []);
 }
 
 export async function getComboByName(name: string) {
   const db = getDbInstance();
   const row = db.prepare("SELECT data, sort_order FROM combos WHERE name = ?").get(name);
-  const payload = getSerializedData(row);
-  return payload ? withSortOrder(payload, getSortOrder(row)) : null;
+  const combo = parseComboRow(row);
+  if (!combo) return null;
+  return normalizeStoredCombo(combo, db, [name]);
 }
 
 export async function createCombo(data: JsonRecord) {
   const db = getDbInstance();
   const now = new Date().toISOString();
   const sortOrder = typeof data.sortOrder === "number" ? data.sortOrder : getNextSortOrder();
-
-  const combo = {
-    id: uuidv4(),
-    name: data.name,
-    models: data.models || [],
-    strategy: data.strategy || "priority",
-    config: data.config || {},
-    isHidden: Boolean(data.isHidden),
-    sortOrder,
-    createdAt: now,
-    updatedAt: now,
-  };
+  const comboId = typeof data.id === "string" && data.id.trim().length > 0 ? data.id : uuidv4();
+  const combo = normalizeStoredCombo(
+    {
+      ...data,
+      id: comboId,
+      name: data.name,
+      models: data.models || [],
+      strategy: data.strategy || "priority",
+      config: data.config || {},
+      isHidden: Boolean(data.isHidden),
+      sortOrder,
+      createdAt: now,
+      updatedAt: now,
+    },
+    db,
+    typeof data.name === "string" ? [data.name] : []
+  );
 
   db.prepare(
     "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
@@ -94,9 +147,8 @@ export async function updateCombo(id: string, data: JsonRecord) {
   const existing = db.prepare("SELECT data, sort_order FROM combos WHERE id = ?").get(id);
   if (!existing) return null;
 
-  const serializedCurrent = getSerializedData(existing);
-  if (!serializedCurrent) return null;
-  const current = withSortOrder(serializedCurrent, getSortOrder(existing));
+  const current = parseComboRow(existing);
+  if (!current) return null;
   const sortOrder =
     typeof data.sortOrder === "number"
       ? data.sortOrder
@@ -114,13 +166,14 @@ export async function updateCombo(id: string, data: JsonRecord) {
     typeof merged["name"] === "string" && merged["name"].trim().length > 0
       ? merged["name"]
       : currentName;
+  const normalizedMerged = normalizeStoredCombo({ ...merged, name: nextName }, db, [nextName]);
 
   db.prepare(
     "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ? WHERE id = ?"
-  ).run(nextName, JSON.stringify({ ...merged, name: nextName }), sortOrder, merged.updatedAt, id);
+  ).run(nextName, JSON.stringify(normalizedMerged), sortOrder, normalizedMerged.updatedAt, id);
 
   backupDbFile("pre-write");
-  return { ...merged, name: nextName };
+  return normalizedMerged;
 }
 
 export async function reorderCombos(comboIds: string[]) {
@@ -168,15 +221,23 @@ export async function reorderCombos(comboIds: string[]) {
       return [String(record.id), row];
     })
   );
+  const comboNames = rows
+    .map((row) => {
+      const combo = parseComboRow(row);
+      return combo && typeof combo.name === "string" ? combo.name.trim() : "";
+    })
+    .filter((name): name is string => name.length > 0);
 
   const reorderTransaction = db.transaction(() => {
     orderedIds.forEach((id, index) => {
       const row = rowById.get(id);
-      const payload = row ? getSerializedData(row) : null;
-      if (!payload) return;
-      const combo = withSortOrder(payload, getSortOrder(row));
+      const combo = row ? parseComboRow(row) : null;
+      if (!combo) return;
       const sortOrder = index + 1;
-      const updatedCombo = { ...combo, sortOrder, updatedAt: now };
+      const updatedCombo = normalizeComboRecord(
+        { ...combo, sortOrder, updatedAt: now },
+        { allCombos: comboNames }
+      );
       update.run(JSON.stringify(updatedCombo), sortOrder, now, id);
     });
   });

@@ -72,6 +72,25 @@ function resolveProviderModelAlias(providerOrAlias, modelId) {
 }
 
 /**
+ * Resolve a provider/model pair into canonical provider ID + provider-scoped model ID.
+ * Keeps provider-specific legacy aliases out of downstream capability and budget lookups.
+ */
+export function resolveCanonicalProviderModel(providerOrAlias, modelId) {
+  if (!modelId || typeof modelId !== "string") {
+    return {
+      provider: resolveProviderAlias(providerOrAlias),
+      model: modelId || null,
+    };
+  }
+
+  const provider = resolveProviderAlias(providerOrAlias);
+  return {
+    provider,
+    model: resolveProviderModelAlias(provider, modelId),
+  };
+}
+
+/**
  * Parse model string: "alias/model" or "provider/model" or just alias
  * Supports [1m] suffix for extended 1M context window (e.g. "claude-sonnet-4-6[1m]")
  */

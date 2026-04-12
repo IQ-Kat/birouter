@@ -11,15 +11,20 @@ export interface PreflightQuotaResult {
   proceed: boolean;
   reason?: string;
   quotaPercent?: number;
+  resetAt?: string | null;
 }
 
 export interface QuotaInfo {
   used: number;
   total: number;
   percentUsed: number;
+  resetAt?: string | null;
 }
 
-export type QuotaFetcher = (connectionId: string) => Promise<QuotaInfo | null>;
+export type QuotaFetcher = (
+  connectionId: string,
+  connection?: Record<string, unknown>
+) => Promise<QuotaInfo | null>;
 
 const EXHAUSTION_THRESHOLD = 0.95;
 const WARN_THRESHOLD = 0.8;
@@ -51,7 +56,7 @@ export async function preflightQuota(
 
   let quota: QuotaInfo | null = null;
   try {
-    quota = await fetcher(connectionId);
+    quota = await fetcher(connectionId, connection);
   } catch {
     return { proceed: true };
   }
@@ -66,7 +71,12 @@ export async function preflightQuota(
     console.info(
       `[QuotaPreflight] ${provider}/${connectionId}: ${(percentUsed * 100).toFixed(1)}% used — switching`
     );
-    return { proceed: false, reason: "quota_exhausted", quotaPercent: percentUsed };
+    return {
+      proceed: false,
+      reason: "quota_exhausted",
+      quotaPercent: percentUsed,
+      resetAt: quota.resetAt ?? null,
+    };
   }
 
   if (percentUsed >= WARN_THRESHOLD) {

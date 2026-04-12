@@ -11,7 +11,7 @@
  * (commit 6cea566, Mar 8 2026).
  */
 
-import { getModelContextLimit } from "../../src/lib/modelsDevSync";
+import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { parseModel } from "./model.ts";
 import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
 

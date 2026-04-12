@@ -3,6 +3,8 @@ import { z } from "zod";
 import { getDbInstance } from "@/lib/db/core";
 import { getComboById, getCombos } from "@/lib/db/combos";
 import { getQuotaSnapshots } from "@/lib/db/quotaSnapshots";
+import { getComboMetrics } from "@omniroute/open-sse/services/comboMetrics.ts";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import type {
   ComboHealthMetrics,
   ComboHealthResponse,
@@ -10,13 +12,11 @@ import type {
   UtilizationTimeRange,
 } from "@/shared/types/utilization";
 
-type ComboModelNode = string | { model?: string | null };
-
 type ComboRecord = {
   id?: string;
   name?: string;
   strategy?: string;
-  models?: ComboModelNode[];
+  models?: unknown[];
 };
 
 type ModelUsageRow = {
@@ -43,6 +43,40 @@ type ProviderHealth = {
   remainingPct: number;
   isExhausted: boolean;
   trend: "improving" | "stable" | "declining";
+};
+
+type ResolvedComboTargetView = {
+  stepId: string;
+  executionKey: string;
+  modelStr: string;
+  provider: string;
+  connectionId: string | null;
+  label: string | null;
+};
+
+type RuntimeTargetMetricView = {
+  requests?: number;
+  successRate?: number;
+  avgLatencyMs?: number;
+  lastStatus?: "ok" | "error" | null;
+  lastUsedAt?: string | null;
+};
+
+type HistoricalTargetUsageRow = {
+  combo_execution_key: string | null;
+  combo_step_id: string | null;
+  status: number | null;
+  duration: number | null;
+  timestamp: string | null;
+};
+
+type HistoricalTargetMetricView = {
+  stepId: string | null;
+  requests: number;
+  successRate: number;
+  avgLatencyMs: number;
+  lastStatus: "ok" | "error" | null;
+  lastUsedAt: string | null;
 };
 
 const querySchema = z.object({
@@ -84,23 +118,13 @@ function toSafeNumber(value: number | null | undefined): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function normalizeComboModels(models: ComboModelNode[] | undefined): string[] {
-  if (!Array.isArray(models)) return [];
-
-  return models
-    .map((entry) => {
-      if (typeof entry === "string") return entry;
-      if (entry && typeof entry === "object" && typeof entry.model === "string") {
-        return entry.model;
-      }
-      return "";
-    })
-    .filter((entry): entry is string => entry.trim().length > 0);
-}
-
 function extractProvider(model: string): string {
   const [provider] = model.split("/");
   return provider?.trim() || "unknown";
+}
+
+function toNonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
 function calculateGini(values: number[]): number {
@@ -194,6 +218,50 @@ function buildProviderHealth(provider: string, snapshots: QuotaSnapshotRow[]): P
     provider,
     remainingPct: roundNumber(lastAverage),
     isExhausted,
+    trend,
+  };
+}
+
+function buildConnectionHealth(
+  provider: string,
+  connectionId: string,
+  snapshots: QuotaSnapshotRow[]
+): ProviderHealth | null {
+  if (snapshots.length === 0) return null;
+
+  const ordered = [...snapshots].sort((left, right) => {
+    const leftView = left as unknown as QuotaSnapshotView;
+    const rightView = right as unknown as QuotaSnapshotView;
+    return (leftView.createdAt || "").localeCompare(rightView.createdAt || "");
+  });
+  const firstSnapshot = ordered.find((entry) => {
+    const snapshotView = entry as unknown as QuotaSnapshotView;
+    return (
+      snapshotView.remainingPercentage !== null && snapshotView.remainingPercentage !== undefined
+    );
+  });
+  const lastSnapshot = [...ordered].reverse().find((entry) => {
+    const snapshotView = entry as unknown as QuotaSnapshotView;
+    return (
+      snapshotView.remainingPercentage !== null && snapshotView.remainingPercentage !== undefined
+    );
+  });
+
+  const firstRemaining =
+    (firstSnapshot as unknown as QuotaSnapshotView | undefined)?.remainingPercentage ?? 0;
+  const lastRemaining =
+    (lastSnapshot as unknown as QuotaSnapshotView | undefined)?.remainingPercentage ?? 0;
+  const delta = lastRemaining - firstRemaining;
+
+  let trend: ProviderHealth["trend"] = "stable";
+  if (delta >= 5) trend = "improving";
+  if (delta <= -5) trend = "declining";
+
+  return {
+    provider: `${provider}:${connectionId}`,
+    remainingPct: roundNumber(lastRemaining),
+    isExhausted:
+      (ordered[ordered.length - 1] as unknown as QuotaSnapshotView | undefined)?.isExhausted === 1,
     trend,
   };
 }
@@ -298,13 +366,168 @@ function buildQuotaHealth(providers: string[], since: string): ComboHealthMetric
   };
 }
 
-function buildComboHealth(combo: ComboRecord, since: string): ComboHealthMetrics | null {
+function getHistoricalTargetMetrics(
+  comboName: string,
+  since: string
+): Map<string, HistoricalTargetMetricView> {
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT
+         combo_execution_key,
+         combo_step_id,
+         status,
+         duration,
+         timestamp
+       FROM call_logs
+       WHERE combo_name = ?
+         AND timestamp >= ?
+         AND COALESCE(NULLIF(combo_execution_key, ''), NULLIF(combo_step_id, '')) IS NOT NULL
+       ORDER BY combo_execution_key ASC, combo_step_id ASC, timestamp DESC`
+    )
+    .all(comboName, since) as HistoricalTargetUsageRow[];
+
+  const metrics = new Map<
+    string,
+    {
+      stepId: string | null;
+      requests: number;
+      successCount: number;
+      totalLatencyMs: number;
+      lastStatus: "ok" | "error" | null;
+      lastUsedAt: string | null;
+    }
+  >();
+
+  for (const row of rows) {
+    const executionKey =
+      toNonEmptyString(row.combo_execution_key) || toNonEmptyString(row.combo_step_id);
+    if (!executionKey) continue;
+
+    let metric = metrics.get(executionKey);
+    if (!metric) {
+      const statusCode = toSafeNumber(row.status);
+      metric = {
+        stepId: toNonEmptyString(row.combo_step_id),
+        requests: 0,
+        successCount: 0,
+        totalLatencyMs: 0,
+        lastStatus: statusCode > 0 ? (statusCode < 400 ? "ok" : "error") : null,
+        lastUsedAt: toNonEmptyString(row.timestamp),
+      };
+      metrics.set(executionKey, metric);
+    }
+
+    metric.requests += 1;
+    metric.totalLatencyMs += toSafeNumber(row.duration);
+    if (toSafeNumber(row.status) >= 200 && toSafeNumber(row.status) < 400) {
+      metric.successCount += 1;
+    }
+    if (!metric.stepId) {
+      metric.stepId = toNonEmptyString(row.combo_step_id);
+    }
+  }
+
+  return new Map(
+    Array.from(metrics.entries()).map(([executionKey, metric]) => [
+      executionKey,
+      {
+        stepId: metric.stepId,
+        requests: metric.requests,
+        successRate:
+          metric.requests > 0 ? Math.round((metric.successCount / metric.requests) * 100) : 0,
+        avgLatencyMs: metric.requests > 0 ? Math.round(metric.totalLatencyMs / metric.requests) : 0,
+        lastStatus: metric.lastStatus,
+        lastUsedAt: metric.lastUsedAt,
+      },
+    ])
+  );
+}
+
+function buildTargetHealth(
+  comboName: string,
+  targets: ResolvedComboTargetView[],
+  since: string
+): NonNullable<ComboHealthMetrics["targetHealth"]> {
+  const comboMetrics = getComboMetrics(comboName);
+  const historicalMetrics = getHistoricalTargetMetrics(comboName, since);
+
+  return targets.map((target) => {
+    const historicalMetric =
+      historicalMetrics.get(target.executionKey) || historicalMetrics.get(target.stepId) || null;
+    const runtimeMetric =
+      historicalMetric === null
+        ? ((comboMetrics?.byTarget?.[target.executionKey] ||
+            comboMetrics?.byTarget?.[target.stepId] ||
+            null) as RuntimeTargetMetricView | null)
+        : null;
+
+    let quotaRemainingPct: number | null = null;
+    let quotaIsExhausted: boolean | null = null;
+    let quotaTrend: "improving" | "stable" | "declining" | null = null;
+    let quotaScope: "connection" | "provider" | "none" = "none";
+
+    if (target.connectionId) {
+      const connectionHealth = buildConnectionHealth(
+        target.provider,
+        target.connectionId,
+        getQuotaSnapshots({
+          provider: target.provider,
+          connectionId: target.connectionId,
+          since,
+        })
+      );
+      if (connectionHealth) {
+        quotaRemainingPct = connectionHealth.remainingPct;
+        quotaIsExhausted = connectionHealth.isExhausted;
+        quotaTrend = connectionHealth.trend;
+        quotaScope = "connection";
+      }
+    }
+
+    if (quotaScope === "none") {
+      const providerSnapshots = getQuotaSnapshots({ provider: target.provider, since });
+      const providerHealth = buildProviderHealth(target.provider, providerSnapshots);
+      if (providerSnapshots.length > 0) {
+        quotaRemainingPct = providerHealth.remainingPct;
+        quotaIsExhausted = providerHealth.isExhausted;
+        quotaTrend = providerHealth.trend;
+        quotaScope = "provider";
+      }
+    }
+
+    return {
+      executionKey: target.executionKey,
+      stepId: target.stepId,
+      model: target.modelStr,
+      provider: target.provider,
+      connectionId: target.connectionId,
+      label: target.label,
+      requests: toSafeNumber(historicalMetric?.requests ?? runtimeMetric?.requests),
+      successRate: toSafeNumber(historicalMetric?.successRate ?? runtimeMetric?.successRate),
+      avgLatencyMs: toSafeNumber(historicalMetric?.avgLatencyMs ?? runtimeMetric?.avgLatencyMs),
+      lastStatus: historicalMetric?.lastStatus ?? runtimeMetric?.lastStatus ?? null,
+      lastUsedAt: historicalMetric?.lastUsedAt ?? runtimeMetric?.lastUsedAt ?? null,
+      quotaRemainingPct,
+      quotaIsExhausted,
+      quotaTrend,
+      quotaScope,
+    };
+  });
+}
+
+function buildComboHealth(
+  combo: ComboRecord,
+  since: string,
+  allCombos: ComboRecord[]
+): ComboHealthMetrics | null {
   const comboId = typeof combo.id === "string" ? combo.id : "";
   const comboName = typeof combo.name === "string" ? combo.name : "";
   if (!comboId || !comboName) return null;
 
-  const models = normalizeComboModels(combo.models);
-  const providers = Array.from(new Set(models.map(extractProvider)));
+  const targets = resolveNestedComboTargets(combo, allCombos) as ResolvedComboTargetView[];
+  const models = targets.map((target) => target.modelStr);
+  const providers = Array.from(new Set(targets.map((target) => target.provider)));
 
   return {
     comboId,
@@ -314,6 +537,7 @@ function buildComboHealth(combo: ComboRecord, since: string): ComboHealthMetrics
         ? combo.strategy
         : "priority",
     models,
+    targetHealth: buildTargetHealth(comboName, targets, since),
     quotaHealth: buildQuotaHealth(providers, since),
     usageSkew: buildUsageSkew(comboName, models, since),
     performance: buildPerformance(comboName, since),
@@ -340,21 +564,24 @@ export async function GET(request: Request) {
     const { range, comboId } = parsedQuery.data;
     const since = getRangeStartIso(range);
 
+    const allCombos = (await getCombos()) as ComboRecord[];
     let combos: ComboRecord[] = [];
     if (comboId) {
-      const combo = (await getComboById(comboId)) as ComboRecord | null;
+      const combo =
+        allCombos.find((entry) => entry.id === comboId) ||
+        ((await getComboById(comboId)) as ComboRecord | null);
       if (!combo) {
         return NextResponse.json({ error: "Combo not found" }, { status: 404 });
       }
       combos = [combo];
     } else {
-      combos = (await getCombos()) as ComboRecord[];
+      combos = allCombos;
     }
 
     const response: ComboHealthResponse = {
       timeRange: range,
       combos: combos
-        .map((combo) => buildComboHealth(combo, since))
+        .map((combo) => buildComboHealth(combo, since, allCombos))
         .filter((combo): combo is ComboHealthMetrics => combo !== null),
     };
 

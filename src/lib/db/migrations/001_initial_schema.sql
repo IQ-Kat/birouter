@@ -115,17 +115,24 @@ CREATE TABLE IF NOT EXISTS call_logs (
   path TEXT,
   status INTEGER,
   model TEXT,
+  requested_model TEXT,
   provider TEXT,
   account TEXT,
   connection_id TEXT,
   duration INTEGER DEFAULT 0,
   tokens_in INTEGER DEFAULT 0,
   tokens_out INTEGER DEFAULT 0,
+  tokens_cache_read INTEGER DEFAULT NULL,
+  tokens_cache_creation INTEGER DEFAULT NULL,
+  tokens_reasoning INTEGER DEFAULT NULL,
+  request_type TEXT,
   source_format TEXT,
   target_format TEXT,
   api_key_id TEXT,
     api_key_name TEXT,
     combo_name TEXT,
+    combo_step_id TEXT,
+    combo_execution_key TEXT,
     request_body TEXT,
     response_body TEXT,
     error TEXT,
@@ -134,6 +141,10 @@ CREATE TABLE IF NOT EXISTS call_logs (
 );
 CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
 CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
+CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model);
+CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type);
+CREATE INDEX IF NOT EXISTS idx_cl_combo_target
+  ON call_logs(combo_name, combo_execution_key, timestamp);
 
 CREATE TABLE IF NOT EXISTS proxy_logs (
   id TEXT PRIMARY KEY,

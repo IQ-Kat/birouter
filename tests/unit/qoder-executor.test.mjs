@@ -29,6 +29,7 @@ test("QoderExecutor: buildHeaders inherits configured user agent, auth and strea
     "Content-Type": "application/json",
     "User-Agent": "Qoder-Cli",
     Authorization: "Bearer token",
+    Accept: "application/json",
   });
 });
 
@@ -115,7 +116,10 @@ test("validateQoderCliPat succeeds when the validation endpoint returns OK", asy
     if (urlStr.includes("/ping")) {
       return new Response("pong", { status: 200 });
     }
-    assert.match(urlStr, /api1\.qoder\.sh\/algo\/api\/v2\/service\/pro\/sse\/agent_chat_generation/);
+    assert.match(
+      urlStr,
+      /api1\.qoder\.sh\/algo\/api\/v2\/service\/pro\/sse\/agent_chat_generation/
+    );
     assert.equal(options.method, "POST");
     assert.match(String(options.headers.Authorization), /^Bearer COSY\./);
     return new Response("{}", { status: 200 });

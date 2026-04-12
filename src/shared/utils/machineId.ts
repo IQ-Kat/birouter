@@ -1,4 +1,4 @@
-import { execSync, execFileSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
 
 /**
@@ -58,9 +58,11 @@ function getMachineIdRaw(): string {
   // Strategy 3: Linux — read machine-id files directly (no `head` or pipe)
   try {
     for (const filePath of ["/etc/machine-id", "/var/lib/dbus/machine-id"]) {
-      if (existsSync(filePath)) {
+      try {
         const content = readFileSync(filePath, "utf8").trim().toLowerCase();
         if (content.length > 8) return content;
+      } catch {
+        // Try the next candidate file
       }
     }
   } catch {

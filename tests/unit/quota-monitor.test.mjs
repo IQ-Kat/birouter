@@ -10,9 +10,13 @@ const {
   startQuotaMonitor,
   stopQuotaMonitor,
   getActiveMonitorCount,
+  getQuotaMonitorSnapshot,
+  getQuotaMonitorSummary,
+  clearQuotaMonitors,
 } = quotaMonitor;
 
 const { preflightQuota } = quotaPreflight;
+const { touchSession, clearSessions } = await import("../../open-sse/services/sessionManager.ts");
 
 function createConnection(providerSpecificData = {}) {
   return { providerSpecificData };
@@ -100,6 +104,11 @@ test("isQuotaMonitorEnabled reads the provider flag strictly", () => {
   assert.equal(isQuotaMonitorEnabled(createConnection()), false);
 });
 
+test.afterEach(() => {
+  clearQuotaMonitors();
+  clearSessions();
+});
+
 test("startQuotaMonitor is a no-op when the monitor is disabled", async () => {
   await withFakeTimers(async ({ scheduled }) => {
     startQuotaMonitor("quota-disabled-session", "provider-disabled", "conn-1", createConnection());
@@ -112,6 +121,7 @@ test("startQuotaMonitor schedules the initial normal poll once per session", asy
   const sessionId = `quota-normal-${Date.now()}`;
 
   await withFakeTimers(async ({ scheduled }) => {
+    touchSession(sessionId, "conn-2");
     startQuotaMonitor(
       sessionId,
       "provider-normal",
@@ -160,6 +170,7 @@ test("quota monitor keeps normal polling when no fetcher is registered", async (
   const sessionId = `quota-missing-fetcher-${Date.now()}`;
 
   await withFakeTimers(async ({ scheduled, runNextTimer }) => {
+    touchSession(sessionId, "conn-3");
     startQuotaMonitor(
       sessionId,
       "provider-missing-fetcher",
@@ -191,6 +202,7 @@ test("quota monitor switches to critical polling and suppresses duplicate warnin
   await withFakeTimers(async ({ scheduled, runNextTimer }) => {
     await withPatchedConsole({ warn: (message) => warnings.push(message) }, async () => {
       await withMockedNow(1_700_000_000_000, async () => {
+        touchSession(sessionId, "conn-4");
         startQuotaMonitor(
           sessionId,
           provider,
@@ -232,6 +244,7 @@ test("quota monitor logs exhaustion and clears suppression state on stop", async
       },
       async () => {
         await withMockedNow(1_700_000_000_000, async () => {
+          touchSession(sessionId, "conn-5");
           startQuotaMonitor(
             sessionId,
             provider,
@@ -260,6 +273,7 @@ test("quota monitor logs exhaustion and clears suppression state on stop", async
       },
       async () => {
         await withMockedNow(1_700_000_000_000, async () => {
+          touchSession(sessionId, "conn-5");
           startQuotaMonitor(
             sessionId,
             provider,
@@ -285,6 +299,7 @@ test("quota monitor falls back to normal polling when the fetcher throws", async
   });
 
   await withFakeTimers(async ({ scheduled, runNextTimer }) => {
+    touchSession(sessionId, "conn-6");
     startQuotaMonitor(
       sessionId,
       provider,
@@ -297,5 +312,55 @@ test("quota monitor falls back to normal polling when the fetcher throws", async
     assert.equal(scheduled[0].delay, 60_000);
 
     stopQuotaMonitor(sessionId);
+  });
+});
+
+test("quota monitor exposes runtime snapshot and restarts when the session account changes", async () => {
+  const provider = `quota-snapshot-${Date.now()}`;
+  const sessionId = `quota-snapshot-session-${Date.now()}`;
+  let calls = 0;
+
+  registerMonitorFetcher(provider, async () => {
+    calls += 1;
+    return {
+      used: 91,
+      total: 100,
+      percentUsed: 0.91,
+      resetAt: "2026-04-12T15:00:00.000Z",
+    };
+  });
+
+  await withFakeTimers(async ({ runNextTimer }) => {
+    touchSession(sessionId, "conn-7");
+    startQuotaMonitor(
+      sessionId,
+      provider,
+      "conn-7",
+      createConnection({ quotaMonitorEnabled: true })
+    );
+    await runNextTimer();
+
+    const firstSnapshot = getQuotaMonitorSnapshot(sessionId);
+    assert.equal(firstSnapshot?.provider, provider);
+    assert.equal(firstSnapshot?.accountId, "conn-7");
+    assert.equal(firstSnapshot?.status, "warning");
+    assert.equal(firstSnapshot?.lastQuotaPercent, 0.91);
+    assert.equal(firstSnapshot?.lastResetAt, "2026-04-12T15:00:00.000Z");
+
+    startQuotaMonitor(
+      sessionId,
+      provider,
+      "conn-8",
+      createConnection({ quotaMonitorEnabled: true })
+    );
+
+    const restartedSnapshot = getQuotaMonitorSnapshot(sessionId);
+    assert.equal(restartedSnapshot?.accountId, "conn-8");
+    assert.equal(restartedSnapshot?.status, "starting");
+
+    const summary = getQuotaMonitorSummary();
+    assert.equal(summary.active, 1);
+    assert.equal(summary.statusCounts.starting, 1);
+    assert.equal(calls, 1);
   });
 });

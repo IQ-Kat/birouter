@@ -59,6 +59,8 @@ type CallLogArtifact = {
     apiKeyId: string | null;
     apiKeyName: string | null;
     comboName: string | null;
+    comboStepId: string | null;
+    comboExecutionKey: string | null;
   };
   requestBody: unknown;
   responseBody: unknown;
@@ -202,6 +204,8 @@ function buildArtifact(
     apiKeyId: string | null;
     apiKeyName: string | null;
     comboName: string | null;
+    comboStepId: string | null;
+    comboExecutionKey: string | null;
   },
   requestBody: unknown,
   responseBody: unknown,
@@ -235,6 +239,8 @@ function buildArtifact(
       apiKeyId: logEntry.apiKeyId,
       apiKeyName: logEntry.apiKeyName,
       comboName: logEntry.comboName,
+      comboStepId: logEntry.comboStepId,
+      comboExecutionKey: logEntry.comboExecutionKey,
     },
     requestBody: requestBody ?? null,
     responseBody: responseBody ?? null,
@@ -418,6 +424,9 @@ export async function saveCallLog(entry: any) {
       apiKeyId,
       apiKeyName: entry.apiKeyName || null,
       comboName: entry.comboName || null,
+      comboStepId: toStringOrNull(entry.comboStepId),
+      comboExecutionKey:
+        toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
       requestBody: serializePayloadForStorage(protectedRequestBody, 8192),
       responseBody: serializePayloadForStorage(protectedResponseBody, 8192),
       error: toStoredErrorString(protectedError),
@@ -431,16 +440,17 @@ export async function saveCallLog(entry: any) {
         account, connection_id, duration, tokens_in, tokens_out,
         tokens_cache_read, tokens_cache_creation, tokens_reasoning,
         request_type, source_format,
-        target_format, api_key_id, api_key_name, combo_name, request_body, response_body, error,
-        artifact_relpath, has_pipeline_details
+        target_format, api_key_id, api_key_name, combo_name, combo_step_id,
+        combo_execution_key, request_body, response_body, error, artifact_relpath,
+        has_pipeline_details
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
         @account, @connectionId, @duration, @tokensIn, @tokensOut,
         @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
         @requestType, @sourceFormat,
-        @targetFormat, @apiKeyId, @apiKeyName, @comboName, @requestBody, @responseBody, @error,
-        NULL, 0
+        @targetFormat, @apiKeyId, @apiKeyName, @comboName, @comboStepId,
+        @comboExecutionKey, @requestBody, @responseBody, @error, NULL, 0
       )
     `
     ).run(logEntry);
@@ -544,6 +554,7 @@ export async function getCallLogs(filter: any = {}) {
       requested_model LIKE @searchQ OR provider LIKE @searchQ OR
       api_key_name LIKE @searchQ OR api_key_id LIKE @searchQ OR
       combo_name LIKE @searchQ OR CAST(status AS TEXT) LIKE @searchQ
+      OR combo_step_id LIKE @searchQ OR combo_execution_key LIKE @searchQ
     )`);
     params.searchQ = `%${filter.search}%`;
   }
@@ -581,6 +592,8 @@ export async function getCallLogs(filter: any = {}) {
       targetFormat: toStringOrNull(l.target_format),
       error: toStringOrNull(l.error),
       comboName: toStringOrNull(l.combo_name),
+      comboStepId: toStringOrNull(l.combo_step_id),
+      comboExecutionKey: toStringOrNull(l.combo_execution_key),
       apiKeyId: toStringOrNull(l.api_key_id),
       apiKeyName: toStringOrNull(l.api_key_name),
       hasRequestBody: typeof l.request_body === "string" && l.request_body.length > 0,
@@ -634,6 +647,8 @@ export async function getCallLogById(id: string) {
     apiKeyId: toStringOrNull(entryRow.api_key_id),
     apiKeyName: toStringOrNull(entryRow.api_key_name),
     comboName: toStringOrNull(entryRow.combo_name),
+    comboStepId: toStringOrNull(entryRow.combo_step_id),
+    comboExecutionKey: toStringOrNull(entryRow.combo_execution_key),
     requestBody: parseStoredPayload(entryRow.request_body),
     responseBody: parseStoredPayload(entryRow.response_body),
     error: toStringOrNull(entryRow.error),

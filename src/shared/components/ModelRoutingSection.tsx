@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 export interface ModelMapping {
   id: string;
@@ -17,11 +18,14 @@ interface Combo {
   name: string;
 }
 
-export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] }) {
+export default function ModelRoutingSection({ combos: externalCombos }: { combos?: Combo[] } = {}) {
+  const t = useTranslations("settings");
   const [mappings, setMappings] = useState<ModelMapping[]>([]);
+  const [internalCombos, setInternalCombos] = useState<Combo[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const combos = externalCombos || internalCombos;
 
   // Form state
   const [pattern, setPattern] = useState("");
@@ -52,6 +56,22 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (externalCombos !== undefined) return;
+    let cancelled = false;
+    fetch("/api/combos")
+      .then((res) => (res.ok ? res.json() : { combos: [] }))
+      .then((data) => {
+        if (!cancelled) {
+          setInternalCombos(Array.isArray(data?.combos) ? data.combos : []);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [externalCombos]);
 
   const refetchMappings = async () => {
     const data = await loadMappings();
@@ -100,7 +120,7 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this model routing rule?")) return;
+    if (!confirm(t("deleteRoutingRule"))) return;
     try {
       await fetch(`/api/model-combo-mappings/${id}`, { method: "DELETE" });
       setMappings((prev) => prev.filter((m) => m.id !== id));
@@ -126,10 +146,8 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-[18px]">route</span>
           <div>
-            <h3 className="text-sm font-semibold">Model Routing Rules</h3>
-            <p className="text-[11px] text-text-muted">
-              Automatically route models to specific combos using glob patterns
-            </p>
+            <h3 className="text-sm font-semibold">{t("modelRoutingTitle")}</h3>
+            <p className="text-[11px] text-text-muted">{t("modelRoutingDesc")}</p>
           </div>
         </div>
         {!adding && (
@@ -139,7 +157,7 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
                        bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">add</span>
-            Add Rule
+            {t("addRule")}
           </button>
         )}
       </div>
@@ -150,7 +168,7 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
-                Pattern
+                {t("pattern")}
               </label>
               <input
                 value={pattern}
@@ -159,13 +177,11 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
                 className="w-full mt-0.5 px-2.5 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10
                            bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-primary"
               />
-              <p className="text-[9px] text-text-muted mt-0.5">
-                Use * for any chars, ? for single char. Case-insensitive.
-              </p>
+              <p className="text-[9px] text-text-muted mt-0.5">{t("patternHint")}</p>
             </div>
             <div>
               <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
-                Route to Combo
+                {t("routeToCombo")}
               </label>
               <select
                 value={comboId}
@@ -173,7 +189,7 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
                 className="w-full mt-0.5 px-2.5 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10
                            bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="">Select combo...</option>
+                <option value="">{t("selectCombo")}</option>
                 {combos.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -183,7 +199,7 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
             </div>
             <div>
               <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
-                Priority
+                {t("priority")}
               </label>
               <input
                 type="number"
@@ -192,13 +208,11 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
                 className="w-full mt-0.5 px-2.5 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10
                            bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-primary"
               />
-              <p className="text-[9px] text-text-muted mt-0.5">
-                Higher = checked first. Use 10+ for specific patterns.
-              </p>
+              <p className="text-[9px] text-text-muted mt-0.5">{t("priorityHint")}</p>
             </div>
             <div>
               <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
-                Description
+                {t("description")}
               </label>
               <input
                 value={description}
@@ -216,14 +230,14 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
               className="px-3 py-1 text-xs font-medium rounded-lg bg-primary text-white
                          hover:bg-primary/90 disabled:opacity-40 transition-colors"
             >
-              {editingId ? "Update" : "Save"}
+              {editingId ? t("update") : t("save")}
             </button>
             <button
               onClick={resetForm}
               className="px-3 py-1 text-xs font-medium rounded-lg
                          bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             >
-              Cancel
+              {t("cancel")}
             </button>
           </div>
         </div>
@@ -231,18 +245,11 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
 
       {/* Mappings list */}
       {loading ? (
-        <div className="mt-3 text-xs text-text-muted">Loading...</div>
+        <div className="mt-3 text-xs text-text-muted">{t("loading")}</div>
       ) : mappings.length === 0 ? (
         <div className="mt-3 text-center py-4">
-          <p className="text-xs text-text-muted">
-            No routing rules configured. Requests use the global combo by default.
-          </p>
-          <p className="text-[10px] text-text-muted mt-1">
-            Add a rule like{" "}
-            <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5">claude-opus*</code>
-            {" → "} <span className="font-medium">frontier-combo</span> to automatically route
-            requests.
-          </p>
+          <p className="text-xs text-text-muted">{t("noRoutingRules")}</p>
+          <p className="text-[10px] text-text-muted mt-1">{t("routingRuleHint")}</p>
         </div>
       ) : (
         <div className="mt-3 flex flex-col gap-1.5">
@@ -277,7 +284,7 @@ export default function ModelRoutingSection({ combos = [] }: { combos?: Combo[] 
                 <button
                   onClick={() => handleToggle(m)}
                   className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                  title={m.enabled ? "Disable" : "Enable"}
+                  title={m.enabled ? t("disable") : t("enable")}
                 >
                   <span
                     className={`material-symbols-outlined text-[14px] ${m.enabled ? "text-emerald-500" : "text-text-muted"}`}

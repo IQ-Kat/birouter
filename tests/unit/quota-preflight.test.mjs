@@ -102,6 +102,7 @@ test("preflightQuota blocks when usage reaches the exhaustion threshold", async 
     proceed: false,
     reason: "quota_exhausted",
     quotaPercent: 0.95,
+    resetAt: null,
   });
   assert.equal(infos.length, 1);
   assert.match(infos[0], /switching/i);

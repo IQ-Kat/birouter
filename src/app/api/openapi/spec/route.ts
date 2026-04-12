@@ -9,17 +9,15 @@ import path from "path";
 import yaml from "js-yaml";
 
 let cachedSpec: { data: any; mtime: number } | null = null;
+const OPENAPI_SPEC_CANDIDATES = [
+  path.join(process.cwd(), "docs", "openapi.yaml"),
+  path.join(process.cwd(), "app", "docs", "openapi.yaml"),
+];
 
 export async function GET() {
   try {
-    // Try multiple locations for the spec file
-    const candidates = [
-      path.join(process.cwd(), "docs", "openapi.yaml"),
-      path.join(process.cwd(), "app", "docs", "openapi.yaml"),
-    ];
-
     let specPath = "";
-    for (const p of candidates) {
+    for (const p of OPENAPI_SPEC_CANDIDATES) {
       if (fs.existsSync(p)) {
         specPath = p;
         break;

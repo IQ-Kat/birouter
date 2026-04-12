@@ -76,6 +76,50 @@ export function registerCodexConnection(connectionId: string, meta: CodexConnect
   connectionRegistry.set(connectionId, meta);
 }
 
+function getCodexConnectionMeta(
+  connectionId: string,
+  connection?: Record<string, unknown>
+): CodexConnectionMeta | null {
+  if (connection && typeof connection === "object") {
+    const providerSpecificData =
+      connection.providerSpecificData &&
+      typeof connection.providerSpecificData === "object" &&
+      !Array.isArray(connection.providerSpecificData)
+        ? (connection.providerSpecificData as Record<string, unknown>)
+        : {};
+    const accessToken =
+      typeof connection.accessToken === "string" && connection.accessToken.trim().length > 0
+        ? connection.accessToken
+        : null;
+    const workspaceId =
+      typeof providerSpecificData.workspaceId === "string" &&
+      providerSpecificData.workspaceId.trim().length > 0
+        ? providerSpecificData.workspaceId
+        : undefined;
+
+    if (accessToken) {
+      const meta = { accessToken, ...(workspaceId ? { workspaceId } : {}) };
+      connectionRegistry.set(connectionId, meta);
+      return meta;
+    }
+  }
+
+  return connectionRegistry.get(connectionId) || null;
+}
+
+function getDominantResetAt(quota: {
+  window5h: { percentUsed: number; resetAt: string | null };
+  window7d: { percentUsed: number; resetAt: string | null };
+}): string | null {
+  if (quota.window7d.percentUsed > quota.window5h.percentUsed) {
+    return quota.window7d.resetAt || quota.window5h.resetAt;
+  }
+  if (quota.window5h.percentUsed > quota.window7d.percentUsed) {
+    return quota.window5h.resetAt || quota.window7d.resetAt;
+  }
+  return quota.window7d.resetAt || quota.window5h.resetAt;
+}
+
 // ─── Core Fetcher ────────────────────────────────────────────────────────────
 
 /**
@@ -85,7 +129,10 @@ export function registerCodexConnection(connectionId: string, meta: CodexConnect
  * @param connectionId - Connection ID from the DB (used to look up credentials)
  * @returns QuotaInfo or null if fetch fails / no credentials
  */
-export async function fetchCodexQuota(connectionId: string): Promise<QuotaInfo | null> {
+export async function fetchCodexQuota(
+  connectionId: string,
+  connection?: Record<string, unknown>
+): Promise<QuotaInfo | null> {
   // Check cache first
   const cached = quotaCache.get(connectionId);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
@@ -93,7 +140,7 @@ export async function fetchCodexQuota(connectionId: string): Promise<QuotaInfo |
   }
 
   // Look up credentials
-  const meta = connectionRegistry.get(connectionId);
+  const meta = getCodexConnectionMeta(connectionId, connection);
   if (!meta?.accessToken) {
     // No credentials registered — skip preflight gracefully
     return null;
@@ -206,6 +253,10 @@ function parseCodexUsageResponse(data: unknown): CodexDualWindowQuota | null {
     used: worstPercentUsed,
     total: 100,
     percentUsed: percentUsedNormalized,
+    resetAt: getDominantResetAt({
+      window5h: { percentUsed: usedPercent5h / 100, resetAt: resetAt5h },
+      window7d: { percentUsed: usedPercent7d / 100, resetAt: resetAt7d },
+    }),
     window5h: { percentUsed: usedPercent5h / 100, resetAt: resetAt5h },
     window7d: { percentUsed: usedPercent7d / 100, resetAt: resetAt7d },
     limitReached,

@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.6.3",
+  "version": "3.6.4",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "electron": "^41.2.0",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^26.8.1"
   },
   "build": {
     "appId": "online.omniroute.desktop",

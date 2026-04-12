@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import {
-  getProviderCredentials,
+  getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
   extractApiKey,
   isValidApiKey,
@@ -56,14 +56,14 @@ import {
   registerKeySession,
   isSessionRegisteredForKey,
 } from "@omniroute/open-sse/services/sessionManager.ts";
+import { startQuotaMonitor } from "@omniroute/open-sse/services/quotaMonitor.ts";
 import {
   isFallbackDecision,
   shouldUseFallback,
 } from "@omniroute/open-sse/services/emergencyFallback.ts";
 import {
-  registerCodexQuotaFetcher,
   registerCodexConnection,
-  fetchCodexQuota,
+  registerCodexQuotaFetcher,
 } from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
 
 // Register Codex quota fetcher at module load (once per server start).
@@ -181,6 +181,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   // T04: client-provided external session header has priority over generated fingerprint.
   const externalSessionId = extractExternalSessionId(request.headers);
   const sessionId = externalSessionId || generateStableSessionId(body);
+  const requestedConnectionId = request.headers.get("x-omniroute-connection")?.trim() || null;
   if (sessionId) {
     touchSession(sessionId);
   }
@@ -249,7 +250,10 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
     // Pre-check function used by combo routing. For explicit combo live tests,
     // avoid pre-skipping so each model gets a real execution attempt.
-    const checkModelAvailable = async (modelString: string) => {
+    const checkModelAvailable = async (
+      modelString: string,
+      target?: { connectionId?: string | null }
+    ) => {
       if (isComboLiveTest) return true;
 
       // Use getModelInfo to properly resolve custom prefixes
@@ -257,47 +261,28 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       const provider = modelInfo.provider;
       if (!provider) return true; // can't determine provider, let it try
 
-      // Check domain-level availability (cooldown)
-      if (!isModelAvailable(provider, modelInfo.model || modelString)) {
+      const resolvedModel = modelInfo.model || modelString;
+      const hasForcedConnection =
+        typeof target?.connectionId === "string" && target.connectionId.trim().length > 0;
+
+      // Fixed-account combo steps must bypass the provider/model cooldown gate here.
+      // A previous account failure can quarantine the model globally, but the next
+      // step may intentionally pin a different connection for the same model.
+      if (!hasForcedConnection && !isModelAvailable(provider, resolvedModel)) {
         log.debug("AVAILABILITY", `${provider}/${modelInfo.model} in cooldown, skipping`);
         return false;
       }
 
-      const creds = await getProviderCredentials(
+      const creds = await getProviderCredentialsWithQuotaPreflight(
         provider,
         null,
         apiKeyInfo?.allowedConnections ?? null,
-        modelInfo.model || modelString
+        resolvedModel,
+        {
+          ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
+        }
       );
       if (!creds || creds.allRateLimited) return false;
-
-      // ── Codex Quota Preflight (Item 1-2) ──────────────────────────────────
-      // Proactively skip Codex accounts that have consumed >= 95% of either
-      // their 5h or 7d quota window. This prevents requests from failing with
-      // a 429 and then retrying — we switch accounts early instead.
-      if (provider === "codex" && creds.connectionId) {
-        // Register connection metadata so the fetcher can call the usage API
-        if (creds.accessToken) {
-          registerCodexConnection(creds.connectionId, {
-            accessToken: creds.accessToken,
-            workspaceId:
-              typeof creds.providerSpecificData?.workspaceId === "string"
-                ? creds.providerSpecificData.workspaceId
-                : undefined,
-          });
-        }
-
-        const quotaInfo = await fetchCodexQuota(creds.connectionId);
-        if (quotaInfo && quotaInfo.percentUsed >= 0.95) {
-          const pct = (quotaInfo.percentUsed * 100).toFixed(1);
-          log.info(
-            "QUOTA_PREFLIGHT",
-            `Skipping Codex account ${creds.connectionId.slice(0, 8)}...: quota at ${pct}% (preflight)`
-          );
-          return false;
-        }
-      }
-      // ──────────────────────────────────────────────────────────────────────
 
       return true;
     };
@@ -316,7 +301,15 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     const response = await (handleComboChat as any)({
       body,
       combo,
-      handleSingleModel: (b: any, m: string) =>
+      handleSingleModel: (
+        b: any,
+        m: string,
+        target?: {
+          connectionId?: string | null;
+          executionKey?: string | null;
+          stepId?: string | null;
+        }
+      ) =>
         handleSingleModelChat(
           b,
           m,
@@ -328,6 +321,9 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           {
             sessionId,
             forceLiveComboTest: isComboLiveTest,
+            forcedConnectionId: target?.connectionId ?? null,
+            comboStepId: target?.stepId || null,
+            comboExecutionKey: target?.executionKey || target?.stepId || null,
           },
           combo.strategy,
           true
@@ -401,7 +397,11 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     null,
     apiKeyInfo,
     telemetry,
-    { sessionId, forceLiveComboTest: isComboLiveTest },
+    {
+      sessionId,
+      forceLiveComboTest: isComboLiveTest,
+      forcedConnectionId: requestedConnectionId,
+    },
     null,
     false
   );
@@ -437,6 +437,9 @@ async function handleSingleModelChat(
     emergencyFallbackTried?: boolean;
     forceLiveComboTest?: boolean;
     sessionId?: string | null;
+    forcedConnectionId?: string | null;
+    comboStepId?: string | null;
+    comboExecutionKey?: string | null;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -447,11 +450,20 @@ async function handleSingleModelChat(
 
   const { provider, model, sourceFormat, targetFormat, extendedContext } = resolved;
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
+  const hasForcedConnection =
+    typeof runtimeOptions.forcedConnectionId === "string" &&
+    runtimeOptions.forcedConnectionId.trim().length > 0;
+  const bypassReason = forceLiveComboTest
+    ? "combo live test"
+    : hasForcedConnection
+      ? "fixed combo step connection"
+      : undefined;
 
   // 2. Pipeline gates (availability + circuit breaker)
   const gate = checkPipelineGates(provider, model, {
-    ignoreCircuitBreaker: forceLiveComboTest,
-    ignoreModelCooldown: forceLiveComboTest,
+    ignoreCircuitBreaker: forceLiveComboTest || hasForcedConnection,
+    ignoreModelCooldown: forceLiveComboTest || hasForcedConnection,
+    ...(bypassReason ? { bypassReason } : {}),
   });
   if (gate) return gate;
 
@@ -471,17 +483,22 @@ async function handleSingleModelChat(
   let lastCooldownMs = 0;
 
   while (true) {
-    const credentials = await getProviderCredentials(
+    const credentials = await getProviderCredentialsWithQuotaPreflight(
       provider,
       excludeConnectionId,
       apiKeyInfo?.allowedConnections ?? null,
       model,
-      forceLiveComboTest
-        ? {
-            allowSuppressedConnections: true,
-            bypassQuotaPolicy: true,
-          }
-        : undefined
+      {
+        ...(forceLiveComboTest
+          ? {
+              allowSuppressedConnections: true,
+              bypassQuotaPolicy: true,
+            }
+          : {}),
+        ...(runtimeOptions.forcedConnectionId
+          ? { forcedConnectionId: runtimeOptions.forcedConnectionId }
+          : {}),
+      }
     );
 
     if (!credentials || credentials.allRateLimited) {
@@ -531,11 +548,30 @@ async function handleSingleModelChat(
         );
       }
     }
+    const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
+    if (provider === "codex" && refreshedCredentials?.accessToken && credentials.connectionId) {
+      const workspaceId =
+        typeof refreshedCredentials?.providerSpecificData?.workspaceId === "string" &&
+        refreshedCredentials.providerSpecificData.workspaceId.trim().length > 0
+          ? refreshedCredentials.providerSpecificData.workspaceId
+          : typeof credentials?.providerSpecificData?.workspaceId === "string" &&
+              credentials.providerSpecificData.workspaceId.trim().length > 0
+            ? credentials.providerSpecificData.workspaceId
+            : undefined;
+      registerCodexConnection(credentials.connectionId, {
+        accessToken: refreshedCredentials.accessToken,
+        ...(workspaceId ? { workspaceId } : {}),
+      });
+    }
     if (runtimeOptions.sessionId && body?._omnirouteInternalRequest !== "context-handoff") {
       touchSession(runtimeOptions.sessionId, credentials.connectionId);
+      startQuotaMonitor(
+        runtimeOptions.sessionId,
+        provider,
+        credentials.connectionId,
+        refreshedCredentials
+      );
     }
-
-    const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
     const proxyInfo = await safeResolveProxy(credentials.connectionId);
     const proxyStartTime = Date.now();
 
@@ -557,6 +593,8 @@ async function handleSingleModelChat(
       comboName,
       comboStrategy,
       isCombo,
+      comboStepId: runtimeOptions.comboStepId ?? null,
+      comboExecutionKey: runtimeOptions.comboExecutionKey ?? runtimeOptions.comboStepId ?? null,
       extendedContext,
     });
     if (telemetry) telemetry.endPhase();
@@ -634,7 +672,13 @@ async function handleSingleModelChat(
             comboName,
             apiKeyInfo,
             telemetry,
-            { ...runtimeOptions, emergencyFallbackTried: true },
+            {
+              ...runtimeOptions,
+              emergencyFallbackTried: true,
+              forcedConnectionId: null,
+              comboStepId: null,
+              comboExecutionKey: null,
+            },
             null, // no strategy for emergency fallback
             Boolean(comboName) // isCombo if comboName exists
           );

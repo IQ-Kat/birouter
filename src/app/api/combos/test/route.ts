@@ -1,16 +1,29 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
-import { getComboByName } from "@/lib/localDb";
+import { getComboByName, getCombos } from "@/lib/localDb";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-async function testComboModel(modelStr, internalUrl) {
+function buildComboTestResult(target, partial = {}) {
+  return {
+    model: target.modelStr,
+    provider: target.provider,
+    stepId: target.stepId,
+    executionKey: target.executionKey,
+    connectionId: target.connectionId,
+    label: target.label,
+    ...partial,
+  };
+}
+
+async function testComboTarget(target, internalUrl) {
   const startTime = Date.now();
   try {
     // Send a minimal but real chat request through the same internal
     // endpoint an external OpenAI-compatible client would use.
-    const testBody = buildComboTestRequestBody(modelStr);
+    const testBody = buildComboTestRequestBody(target.modelStr);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
@@ -27,6 +40,7 @@ async function testComboModel(modelStr, internalUrl) {
           // Force a fresh execution path so combo tests cannot be satisfied by
           // OmniRoute's semantic cache or other request reuse layers.
           "X-OmniRoute-No-Cache": "true",
+          ...(target.connectionId ? { "X-OmniRoute-Connection": target.connectionId } : {}),
           "X-Request-Id": `combo-test-${randomUUID()}`,
         },
         body: JSON.stringify(testBody),
@@ -48,16 +62,15 @@ async function testComboModel(modelStr, internalUrl) {
 
       const responseText = extractComboTestResponseText(responseBody);
       if (!responseText) {
-        return {
-          model: modelStr,
+        return buildComboTestResult(target, {
           status: "error",
           statusCode: res.status,
           error: "Provider returned HTTP 200 but no text content.",
           latencyMs,
-        };
+        });
       }
 
-      return { model: modelStr, status: "ok", latencyMs, responseText };
+      return buildComboTestResult(target, { status: "ok", latencyMs, responseText });
     }
 
     let errorMsg = "";
@@ -68,21 +81,19 @@ async function testComboModel(modelStr, internalUrl) {
       errorMsg = res.statusText;
     }
 
-    return {
-      model: modelStr,
+    return buildComboTestResult(target, {
       status: "error",
       statusCode: res.status,
       error: errorMsg,
       latencyMs,
-    };
+    });
   } catch (error) {
     const latencyMs = Date.now() - startTime;
-    return {
-      model: modelStr,
+    return buildComboTestResult(target, {
       status: "error",
       error: error.name === "AbortError" ? "Timeout (20s)" : error.message,
       latencyMs,
-    };
+    });
   }
 }
 
@@ -119,22 +130,35 @@ export async function POST(request) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
     }
 
-    const models = (combo.models || []).map((m) => (typeof m === "string" ? m : m.model));
+    const allCombos = await getCombos();
+    const targets = resolveNestedComboTargets(combo, allCombos);
 
-    if (models.length === 0) {
+    if (targets.length === 0) {
       return NextResponse.json({ error: "Combo has no models" }, { status: 400 });
     }
 
     const internalUrl = `${getBaseUrl(request)}/v1/chat/completions`;
     const results = await Promise.all(
-      models.map((modelStr) => testComboModel(modelStr, internalUrl))
+      targets.map((target) => testComboTarget(target, internalUrl))
     );
-    const resolvedBy = results.find((result) => result.status === "ok")?.model || null;
+    const resolvedResult = results.find((result) => result.status === "ok") || null;
+    const resolvedBy = resolvedResult?.model || null;
 
     return NextResponse.json({
       comboName,
       strategy: combo.strategy || "priority",
       resolvedBy,
+      resolvedByExecutionKey: resolvedResult?.executionKey || null,
+      resolvedByTarget: resolvedResult
+        ? {
+            model: resolvedResult.model,
+            provider: resolvedResult.provider,
+            stepId: resolvedResult.stepId,
+            executionKey: resolvedResult.executionKey,
+            connectionId: resolvedResult.connectionId,
+            label: resolvedResult.label,
+          }
+        : null,
       results,
       testedAt: new Date().toISOString(),
     });

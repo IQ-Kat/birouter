@@ -63,17 +63,17 @@ export async function GET() {
         ],
       },
       {
-        id: "auto-combo",
-        name: "Auto-Managed Model Combos",
+        id: "intelligent-routing",
+        name: "Intelligent Model Combos",
         description:
-          "Self-healing model chains that dynamically adapt to provider " +
-          "health and quota availability. Uses a scoring function based on " +
-          "quota, health, cost, latency, task fitness, and stability.",
-        tags: ["combo", "auto", "self-healing", "adaptive"],
+          "Self-healing model chains with auto and LKGP routing. " +
+          "Adapts to provider health, quota, latency, and cost using " +
+          "the unified combos dashboard intelligent routing controls.",
+        tags: ["combo", "intelligent-routing", "self-healing", "adaptive"],
         examples: [
           "Create an auto-managed combo for coding tasks",
           "Switch to cost-saver mode",
-          "Show the Auto-Combo scoring breakdown",
+          "Show the intelligent routing scoring breakdown",
         ],
       },
       {

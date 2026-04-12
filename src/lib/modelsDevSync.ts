@@ -34,7 +34,7 @@ type PricingEntry = {
 type PricingModels = Record<string, PricingEntry>;
 type PricingByProvider = Record<string, PricingModels>;
 
-interface CapabilityEntry {
+export interface ModelCapabilityEntry {
   tool_call: boolean | null;
   reasoning: boolean | null;
   attachment: boolean | null;
@@ -54,7 +54,7 @@ interface CapabilityEntry {
   interleaved_field: string | null;
 }
 
-type CapabilitiesByProvider = Record<string, Record<string, CapabilityEntry>>;
+export type CapabilitiesByProvider = Record<string, Record<string, ModelCapabilityEntry>>;
 
 interface SyncStatus {
   enabled: boolean;
@@ -209,6 +209,8 @@ let activeSyncIntervalMs = SYNC_INTERVAL_MS;
 let cachedData: ModelsDevData | null = null;
 let cacheTime = 0;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+let cachedCapabilities: CapabilitiesByProvider | null = null;
+let cachedCapabilitiesLoadedAll = false;
 
 // ─── Core: Fetch ─────────────────────────────────────────
 
@@ -297,7 +299,7 @@ export function transformModelsDevToCapabilities(raw: ModelsDevData): Capabiliti
     const omniRouteProviders = mapProviderId(providerId);
 
     for (const [modelId, model] of Object.entries(providerData.models || {})) {
-      const cap: CapabilityEntry = {
+      const cap: ModelCapabilityEntry = {
         tool_call: model.tool_call ?? null,
         reasoning: model.reasoning ?? null,
         attachment: model.attachment ?? null,
@@ -336,6 +338,31 @@ export function transformModelsDevToCapabilities(raw: ModelsDevData): Capabiliti
 
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+function mapCapabilityRecord(record: Record<string, unknown>): ModelCapabilityEntry {
+  return {
+    tool_call: record.tool_call === 1 ? true : record.tool_call === 0 ? false : null,
+    reasoning: record.reasoning === 1 ? true : record.reasoning === 0 ? false : null,
+    attachment: record.attachment === 1 ? true : record.attachment === 0 ? false : null,
+    structured_output:
+      record.structured_output === 1 ? true : record.structured_output === 0 ? false : null,
+    temperature: record.temperature === 1 ? true : record.temperature === 0 ? false : null,
+    modalities_input: typeof record.modalities_input === "string" ? record.modalities_input : "[]",
+    modalities_output:
+      typeof record.modalities_output === "string" ? record.modalities_output : "[]",
+    knowledge_cutoff: typeof record.knowledge_cutoff === "string" ? record.knowledge_cutoff : null,
+    release_date: typeof record.release_date === "string" ? record.release_date : null,
+    last_updated: typeof record.last_updated === "string" ? record.last_updated : null,
+    status: typeof record.status === "string" ? record.status : null,
+    family: typeof record.family === "string" ? record.family : null,
+    open_weights: record.open_weights === 1 ? true : record.open_weights === 0 ? false : null,
+    limit_context: typeof record.limit_context === "number" ? record.limit_context : null,
+    limit_input: typeof record.limit_input === "number" ? record.limit_input : null,
+    limit_output: typeof record.limit_output === "number" ? record.limit_output : null,
+    interleaved_field:
+      typeof record.interleaved_field === "string" ? record.interleaved_field : null,
+  };
 }
 
 /**
@@ -429,10 +456,20 @@ export function ensureCapabilitiesTable(): void {
 /**
  * Read synced capabilities from `model_capabilities` table.
  */
-export function getSyncedCapabilities(
-  provider?: string,
-  modelId?: string
-): Record<string, Record<string, CapabilityEntry>> {
+export function getSyncedCapabilities(provider?: string, modelId?: string): CapabilitiesByProvider {
+  if (cachedCapabilitiesLoadedAll) {
+    if (!provider) {
+      return cachedCapabilities || {};
+    }
+
+    if (!modelId) {
+      return cachedCapabilities?.[provider] ? { [provider]: cachedCapabilities[provider] } : {};
+    }
+
+    const providerCaps = cachedCapabilities?.[provider];
+    return providerCaps?.[modelId] ? { [provider]: { [modelId]: providerCaps[modelId] } } : {};
+  }
+
   const db = getDbInstance();
   ensureCapabilitiesTable();
 
@@ -449,7 +486,7 @@ export function getSyncedCapabilities(
   }
 
   const rows = db.prepare(query).all(...params);
-  const result: Record<string, Record<string, CapabilityEntry>> = {};
+  const result: CapabilitiesByProvider = {};
 
   for (const row of rows) {
     const record = toRecord(row);
@@ -458,33 +495,34 @@ export function getSyncedCapabilities(
     if (!prov || !mid) continue;
 
     if (!result[prov]) result[prov] = {};
-    result[prov][mid] = {
-      tool_call: record.tool_call === 1 ? true : record.tool_call === 0 ? false : null,
-      reasoning: record.reasoning === 1 ? true : record.reasoning === 0 ? false : null,
-      attachment: record.attachment === 1 ? true : record.attachment === 0 ? false : null,
-      structured_output:
-        record.structured_output === 1 ? true : record.structured_output === 0 ? false : null,
-      temperature: record.temperature === 1 ? true : record.temperature === 0 ? false : null,
-      modalities_input:
-        typeof record.modalities_input === "string" ? record.modalities_input : "[]",
-      modalities_output:
-        typeof record.modalities_output === "string" ? record.modalities_output : "[]",
-      knowledge_cutoff:
-        typeof record.knowledge_cutoff === "string" ? record.knowledge_cutoff : null,
-      release_date: typeof record.release_date === "string" ? record.release_date : null,
-      last_updated: typeof record.last_updated === "string" ? record.last_updated : null,
-      status: typeof record.status === "string" ? record.status : null,
-      family: typeof record.family === "string" ? record.family : null,
-      open_weights: record.open_weights === 1 ? true : record.open_weights === 0 ? false : null,
-      limit_context: typeof record.limit_context === "number" ? record.limit_context : null,
-      limit_input: typeof record.limit_input === "number" ? record.limit_input : null,
-      limit_output: typeof record.limit_output === "number" ? record.limit_output : null,
-      interleaved_field:
-        typeof record.interleaved_field === "string" ? record.interleaved_field : null,
-    };
+    result[prov][mid] = mapCapabilityRecord(record);
+  }
+
+  if (!provider && !modelId) {
+    cachedCapabilities = result;
+    cachedCapabilitiesLoadedAll = true;
   }
 
   return result;
+}
+
+export function getSyncedCapability(
+  provider: string,
+  modelId: string
+): ModelCapabilityEntry | null {
+  if (!provider || !modelId) return null;
+
+  if (cachedCapabilitiesLoadedAll) {
+    return cachedCapabilities?.[provider]?.[modelId] ?? null;
+  }
+
+  const db = getDbInstance();
+  ensureCapabilitiesTable();
+  const row = db
+    .prepare("SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1")
+    .get(provider, modelId);
+  if (!row) return null;
+  return mapCapabilityRecord(toRecord(row));
 }
 
 /**
@@ -536,6 +574,8 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
   });
   tx();
   backupDbFile("pre-write");
+  cachedCapabilities = data;
+  cachedCapabilitiesLoadedAll = true;
 }
 
 /**
@@ -546,6 +586,8 @@ export function clearModelsDevCapabilities(): void {
   ensureCapabilitiesTable();
   db.prepare("DELETE FROM model_capabilities").run();
   backupDbFile("pre-write");
+  cachedCapabilities = {};
+  cachedCapabilitiesLoadedAll = true;
 }
 
 // ─── Main sync function ──────────────────────────────────

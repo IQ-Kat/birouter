@@ -40,6 +40,8 @@ async function seedConnection(provider, overrides = {}) {
     priority: overrides.priority,
     rateLimitedUntil: overrides.rateLimitedUntil,
     lastError: overrides.lastError,
+    lastErrorType: overrides.lastErrorType,
+    lastErrorSource: overrides.lastErrorSource,
     errorCode: overrides.errorCode,
     backoffLevel: overrides.backoffLevel,
     providerSpecificData: overrides.providerSpecificData || {},
@@ -145,6 +147,60 @@ test("getProviderCredentials enforces generic quota policy unless explicitly byp
   assert.match(blocked.lastError, /configured quota threshold/i);
   assert.equal(blocked.retryAfter, resetAt);
   assert.equal(bypassed.connectionId, connection.id);
+});
+
+test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight accounts and selects the next healthy one", async () => {
+  const blocked = await seedConnection("openai", {
+    name: "quota-preflight-blocked",
+    apiKey: "sk-preflight-blocked",
+    providerSpecificData: {
+      quotaPreflightEnabled: true,
+    },
+  });
+  const healthy = await seedConnection("openai", {
+    name: "quota-preflight-healthy",
+    apiKey: "sk-preflight-healthy",
+    providerSpecificData: {
+      quotaPreflightEnabled: true,
+    },
+  });
+
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
+    used: connectionId === blocked.id ? 96 : 40,
+    total: 100,
+    percentUsed: connectionId === blocked.id ? 0.96 : 0.4,
+  }));
+
+  const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai");
+
+  assert.equal(selected.connectionId, healthy.id);
+});
+
+test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a forced connection is blocked by preflight", async () => {
+  const blocked = await seedConnection("openai", {
+    name: "quota-preflight-forced",
+    apiKey: "sk-preflight-forced",
+    providerSpecificData: {
+      quotaPreflightEnabled: true,
+    },
+  });
+
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
+    used: connectionId === blocked.id ? 99 : 20,
+    total: 100,
+    percentUsed: connectionId === blocked.id ? 0.99 : 0.2,
+    resetAt: futureIso(120_000),
+  }));
+
+  const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai", null, null, null, {
+    forcedConnectionId: blocked.id,
+  });
+
+  assert.equal(selected.allRateLimited, true);
+  assert.equal(selected.lastErrorCode, 429);
+  assert.match(selected.lastError, /quota preflight/i);
 });
 
 test("resolveQuotaLimitPolicy normalizes Codex windows, thresholds, and defaults", () => {
@@ -267,6 +323,43 @@ test("getProviderCredentials honors allowedConnections filters", async () => {
   assert.equal(selected.connectionId, selectedConn.id);
   assert.equal(selected.apiKey, "sk-selected");
   assert.notEqual(selected.connectionId, skipped.id);
+});
+
+test("getProviderCredentials honors forcedConnectionId even when another account is preferred", async () => {
+  await seedConnection("openai", {
+    name: "forced-default",
+    priority: 1,
+    apiKey: "sk-default",
+  });
+  const forcedConn = await seedConnection("openai", {
+    name: "forced-target",
+    priority: 99,
+    apiKey: "sk-forced",
+  });
+
+  const selected = await auth.getProviderCredentials("openai", null, null, null, {
+    forcedConnectionId: forcedConn.id,
+  });
+
+  assert.equal(selected.connectionId, forcedConn.id);
+  assert.equal(selected.apiKey, "sk-forced");
+});
+
+test("getProviderCredentials intersects forcedConnectionId with allowedConnections", async () => {
+  const allowedConn = await seedConnection("openai", {
+    name: "forced-allowed",
+    apiKey: "sk-allowed",
+  });
+  const blockedConn = await seedConnection("openai", {
+    name: "forced-blocked",
+    apiKey: "sk-blocked",
+  });
+
+  const selected = await auth.getProviderCredentials("openai", null, [allowedConn.id], null, {
+    forcedConnectionId: blockedConn.id,
+  });
+
+  assert.equal(selected, null);
 });
 
 test("getProviderCredentials retains rate-limited accounts when allowSuppressedConnections is enabled", async () => {
@@ -530,6 +623,67 @@ test("getProviderCredentials cost-optimized selects the lowest priority account"
   const selected = await auth.getProviderCredentials("openai");
 
   assert.equal(selected.connectionId, cheapest.id);
+});
+
+test("getProviderCredentials p2c prefers the account with more quota headroom over raw priority", async () => {
+  await settingsDb.updateSettings({ fallbackStrategy: "p2c" });
+  const nearLimit = await seedConnection("openai", {
+    name: "p2c-near-limit",
+    priority: 1,
+    apiKey: "sk-p2c-near-limit",
+    providerSpecificData: {
+      limitPolicy: {
+        enabled: true,
+        thresholdPercent: 80,
+        windows: ["daily"],
+      },
+    },
+  });
+  const healthy = await seedConnection("openai", {
+    name: "p2c-healthy-headroom",
+    priority: 9,
+    apiKey: "sk-p2c-healthy",
+    providerSpecificData: {
+      limitPolicy: {
+        enabled: true,
+        thresholdPercent: 80,
+        windows: ["daily"],
+      },
+    },
+  });
+
+  quotaCache.setQuotaCache(nearLimit.id, "openai", {
+    daily: { remainingPercentage: 12, resetAt: futureIso(180_000) },
+  });
+  quotaCache.setQuotaCache(healthy.id, "openai", {
+    daily: { remainingPercentage: 78, resetAt: futureIso(180_000) },
+  });
+
+  const selected = await auth.getProviderCredentials("openai");
+
+  assert.equal(selected.connectionId, healthy.id);
+});
+
+test("getProviderCredentials p2c deprioritizes accounts with recent rate-limit/backoff signals", async () => {
+  await settingsDb.updateSettings({ fallbackStrategy: "p2c" });
+  await seedConnection("openai", {
+    name: "p2c-rate-limited-history",
+    priority: 1,
+    apiKey: "sk-p2c-rate-limited",
+    lastError: "rate limit",
+    lastErrorType: "rate_limited",
+    errorCode: 429,
+    backoffLevel: 3,
+  });
+  const healthy = await seedConnection("openai", {
+    name: "p2c-clean-account",
+    priority: 8,
+    apiKey: "sk-p2c-clean",
+  });
+
+  const selected = await auth.getProviderCredentials("openai");
+
+  assert.equal(selected.connectionId, healthy.id);
 });
 
 test("getProviderCredentials resolves the nvidia special alias pool", async () => {

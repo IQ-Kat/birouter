@@ -52,7 +52,7 @@ function runNextBuild() {
     const child = spawn(process.execPath, [nextBin, "build"], {
       cwd: projectRoot,
       stdio: "inherit",
-      env: process.env,
+      env: resolveNextBuildEnv(process.env),
     });
 
     const forward = (signal) => {
@@ -72,6 +72,13 @@ function runNextBuild() {
       resolve({ code: code ?? 1, signal: null });
     });
   });
+}
+
+export function resolveNextBuildEnv(baseEnv = process.env) {
+  return {
+    ...baseEnv,
+    NEXT_PRIVATE_BUILD_WORKER: baseEnv.NEXT_PRIVATE_BUILD_WORKER || "0",
+  };
 }
 
 export async function main() {

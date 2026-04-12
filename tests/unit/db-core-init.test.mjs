@@ -131,6 +131,78 @@ function createLegacySchemaDb(sqliteFile, { withData = false } = {}) {
   seedDb.close();
 }
 
+function createLegacyCallLogsDb(sqliteFile) {
+  const seedDb = new Database(sqliteFile);
+  seedDb.exec(`
+    CREATE TABLE provider_connections (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL,
+      auth_type TEXT,
+      name TEXT,
+      email TEXT,
+      priority INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      access_token TEXT,
+      refresh_token TEXT,
+      expires_at TEXT,
+      token_expires_at TEXT,
+      scope TEXT,
+      project_id TEXT,
+      test_status TEXT,
+      error_code TEXT,
+      last_error TEXT,
+      last_error_at TEXT,
+      last_error_type TEXT,
+      last_error_source TEXT,
+      backoff_level INTEGER DEFAULT 0,
+      rate_limited_until TEXT,
+      health_check_interval INTEGER,
+      last_health_check_at TEXT,
+      last_tested TEXT,
+      api_key TEXT,
+      id_token TEXT,
+      provider_specific_data TEXT,
+      expires_in INTEGER,
+      display_name TEXT,
+      global_priority INTEGER,
+      default_model TEXT,
+      token_type TEXT,
+      consecutive_use_count INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX idx_pc_provider ON provider_connections(provider);
+    CREATE INDEX idx_pc_active ON provider_connections(is_active);
+    CREATE INDEX idx_pc_priority ON provider_connections(provider, priority);
+
+    CREATE TABLE call_logs (
+      id TEXT PRIMARY KEY,
+      timestamp TEXT NOT NULL,
+      method TEXT,
+      path TEXT,
+      status INTEGER,
+      model TEXT,
+      provider TEXT,
+      account TEXT,
+      connection_id TEXT,
+      duration INTEGER DEFAULT 0,
+      tokens_in INTEGER DEFAULT 0,
+      tokens_out INTEGER DEFAULT 0,
+      source_format TEXT,
+      target_format TEXT,
+      api_key_id TEXT,
+      api_key_name TEXT,
+      combo_name TEXT,
+      request_body TEXT,
+      response_body TEXT,
+      error TEXT
+    );
+    CREATE INDEX idx_cl_timestamp ON call_logs(timestamp);
+    CREATE INDEX idx_cl_status ON call_logs(status);
+  `);
+  seedDb.close();
+}
+
 test.beforeEach(() => {
   restoreEnv();
   cleanupGlobalDb();
@@ -390,6 +462,63 @@ test(
           db
             .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
             .get("last_used_at")
+        );
+
+        core.resetDbInstance();
+      });
+    } finally {
+      removePath(dataDir);
+    }
+  }
+);
+
+test(
+  "legacy call_logs schemas are upgraded before combo target indexes are created",
+  serial,
+  async () => {
+    const dataDir = makeTempDir("omniroute-db-legacy-call-logs-");
+    const sqliteFile = path.join(dataDir, "storage.sqlite");
+    createLegacyCallLogsDb(sqliteFile);
+
+    try {
+      await withEnv({ DATA_DIR: dataDir }, async () => {
+        const core = await importFresh("src/lib/db/core.ts");
+        const db = core.getDbInstance();
+
+        assert.ok(
+          db
+            .prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?")
+            .get("requested_model")
+        );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?")
+            .get("request_type")
+        );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?")
+            .get("combo_step_id")
+        );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?")
+            .get("combo_execution_key")
+        );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
+            .get("idx_call_logs_requested_model")
+        );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
+            .get("idx_call_logs_request_type")
+        );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
+            .get("idx_cl_combo_target")
         );
 
         core.resetDbInstance();

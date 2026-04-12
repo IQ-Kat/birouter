@@ -18,10 +18,17 @@ import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddlewar
 import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
-import { DEFAULT_WEIGHTS, scorePool } from "./autoCombo/scoring.ts";
+import { getTaskFitness } from "./autoCombo/taskFitness.ts";
+import { calculateFactors, calculateScore, DEFAULT_WEIGHTS } from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
 import { getSessionConnection } from "./sessionManager.ts";
-import { getModelContextLimit } from "../../src/lib/modelsDevSync";
+import { getModelContextLimit } from "../../src/lib/modelCapabilities";
+import {
+  getComboModelString,
+  getComboStepTarget,
+  getComboStepWeight,
+  normalizeComboStep,
+} from "../../src/lib/combos/steps.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
 const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];
@@ -50,6 +57,37 @@ const DEFAULT_MODEL_P95_MS = {
   "deepseek-chat": 2000,
 };
 const MIN_HISTORY_SAMPLES = 10;
+
+type ResolvedComboTarget = {
+  kind: "model";
+  stepId: string;
+  executionKey: string;
+  modelStr: string;
+  provider: string;
+  providerId: string | null;
+  connectionId: string | null;
+  weight: number;
+  label: string | null;
+};
+
+type ComboRuntimeStep =
+  | ResolvedComboTarget
+  | {
+      kind: "combo-ref";
+      stepId: string;
+      executionKey: string;
+      comboName: string;
+      weight: number;
+      label: string | null;
+    };
+
+function isRecord(value): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function toTrimmedString(value): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
 
 /**
  * Validate that a successful (HTTP 200) non-streaming response actually contains
@@ -140,8 +178,206 @@ const rrCounters = new Map();
  * Supports both legacy string format and new object format
  */
 function normalizeModelEntry(entry) {
-  if (typeof entry === "string") return { model: entry, weight: 0 };
-  return { model: entry.model, weight: entry.weight || 0 };
+  return {
+    model: getComboStepTarget(entry) || "",
+    weight: getComboStepWeight(entry),
+  };
+}
+
+function getTargetProvider(modelStr: string, providerId?: string | null): string {
+  const parsed = parseModel(modelStr);
+  return providerId || parsed.provider || parsed.providerAlias || "unknown";
+}
+
+function getComboBreakerKey(comboName: string, executionKey: string): string {
+  return `combo:${comboName}:${executionKey}`;
+}
+
+function toRecordedTarget(target: ResolvedComboTarget) {
+  return {
+    executionKey: target.executionKey,
+    stepId: target.stepId,
+    provider: target.provider,
+    providerId: target.providerId,
+    connectionId: target.connectionId,
+    label: target.label,
+  };
+}
+
+function buildExecutionKey(path: string[], stepId: string): string {
+  return [...path, stepId].join(">");
+}
+
+function normalizeRuntimeStep(entry, comboName, index, allCombos, path = []) {
+  const step = normalizeComboStep(entry, {
+    comboName,
+    index,
+    allCombos,
+  });
+  if (!step) return null;
+
+  const executionKey = buildExecutionKey(path, step.id);
+  const label = typeof step.label === "string" ? step.label : null;
+  const weight = step.weight || 0;
+
+  if (step.kind === "combo-ref") {
+    return {
+      kind: "combo-ref",
+      stepId: step.id,
+      executionKey,
+      comboName: step.comboName,
+      weight,
+      label,
+    };
+  }
+
+  const modelStr = getComboModelString(step);
+  if (!modelStr) return null;
+
+  return {
+    kind: "model",
+    stepId: step.id,
+    executionKey,
+    modelStr,
+    provider: getTargetProvider(modelStr, step.providerId),
+    providerId: step.providerId || null,
+    connectionId: step.connectionId || null,
+    weight,
+    label,
+  } satisfies ResolvedComboTarget;
+}
+
+function getDirectComboTargets(combo) {
+  return getOrderedTopLevelRuntimeSteps(combo, null).filter(
+    (entry): entry is ResolvedComboTarget => entry?.kind === "model"
+  );
+}
+
+function getTopLevelRuntimeSteps(combo, allCombos, path = []) {
+  return (combo.models || [])
+    .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, allCombos, path))
+    .filter((entry): entry is ComboRuntimeStep => entry !== null);
+}
+
+function getCompositeTierStepOrder(combo): string[] {
+  const compositeTiers = isRecord(combo?.config) ? combo.config.compositeTiers : null;
+  if (!isRecord(compositeTiers)) return [];
+
+  const defaultTier = toTrimmedString(compositeTiers.defaultTier);
+  const tiers = isRecord(compositeTiers.tiers) ? compositeTiers.tiers : null;
+  if (!defaultTier || !tiers) return [];
+
+  const orderedStepIds: string[] = [];
+  const visitedTiers = new Set<string>();
+  const seenStepIds = new Set<string>();
+  const tierEntries = new Map(
+    Object.entries(tiers)
+      .map(([tierName, rawTier]) => {
+        if (!isRecord(rawTier)) return null;
+        const normalizedTierName = toTrimmedString(tierName);
+        const stepId = toTrimmedString(rawTier.stepId);
+        const fallbackTier = toTrimmedString(rawTier.fallbackTier);
+        if (!normalizedTierName || !stepId) return null;
+        return [normalizedTierName, { stepId, fallbackTier }] as const;
+      })
+      .filter(Boolean)
+  );
+
+  let currentTier = defaultTier;
+  while (currentTier && tierEntries.has(currentTier) && !visitedTiers.has(currentTier)) {
+    visitedTiers.add(currentTier);
+    const entry = tierEntries.get(currentTier);
+    if (!entry) break;
+    if (!seenStepIds.has(entry.stepId)) {
+      orderedStepIds.push(entry.stepId);
+      seenStepIds.add(entry.stepId);
+    }
+    currentTier = entry.fallbackTier;
+  }
+
+  for (const entry of tierEntries.values()) {
+    if (!seenStepIds.has(entry.stepId)) {
+      orderedStepIds.push(entry.stepId);
+      seenStepIds.add(entry.stepId);
+    }
+  }
+
+  return orderedStepIds;
+}
+
+function hasCompositeTierRuntimeOrder(combo): boolean {
+  return getCompositeTierStepOrder(combo).length > 0;
+}
+
+function orderRuntimeStepsByCompositeTiers(steps: ComboRuntimeStep[], combo): ComboRuntimeStep[] {
+  const orderedStepIds = getCompositeTierStepOrder(combo);
+  if (orderedStepIds.length === 0) return steps;
+
+  const byStepId = new Map(steps.map((step) => [step.stepId, step]));
+  const seen = new Set<string>();
+  const ordered: ComboRuntimeStep[] = [];
+
+  for (const stepId of orderedStepIds) {
+    const step = byStepId.get(stepId);
+    if (!step || seen.has(step.stepId)) continue;
+    ordered.push(step);
+    seen.add(step.stepId);
+  }
+
+  for (const step of steps) {
+    if (seen.has(step.stepId)) continue;
+    ordered.push(step);
+    seen.add(step.stepId);
+  }
+
+  return ordered;
+}
+
+function getOrderedTopLevelRuntimeSteps(combo, allCombos, path = []) {
+  return orderRuntimeStepsByCompositeTiers(getTopLevelRuntimeSteps(combo, allCombos, path), combo);
+}
+
+function expandRuntimeStep(step, allCombos, visited = new Set(), depth = 0, path = []) {
+  if (step.kind === "model") return [step];
+  if (depth > MAX_COMBO_DEPTH) return [];
+
+  const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
+  const nestedCombo = combos.find((combo) => combo.name === step.comboName);
+  if (!nestedCombo || visited.has(step.comboName)) return [];
+
+  return resolveNestedComboTargets(nestedCombo, combos, new Set(visited), depth + 1, [
+    ...path,
+    step.stepId,
+  ]);
+}
+
+export function resolveNestedComboTargets(
+  combo,
+  allCombos,
+  visited = new Set(),
+  depth = 0,
+  path = []
+) {
+  const directTargets = (combo.models || [])
+    .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, null, path))
+    .filter((entry): entry is ResolvedComboTarget => entry?.kind === "model");
+
+  if (depth > MAX_COMBO_DEPTH) return directTargets;
+  if (visited.has(combo.name)) return [];
+  visited.add(combo.name);
+
+  const runtimeSteps = getOrderedTopLevelRuntimeSteps(combo, allCombos, path);
+  const resolved: ResolvedComboTarget[] = [];
+
+  for (const step of runtimeSteps) {
+    if (step.kind === "combo-ref") {
+      resolved.push(...expandRuntimeStep(step, allCombos, new Set(visited), depth, path));
+      continue;
+    }
+    resolved.push(step);
+  }
+
+  return resolved;
 }
 
 /**
@@ -232,37 +468,34 @@ export function resolveNestedComboModels(combo, allCombos, visited = new Set(), 
   return resolved;
 }
 
-/**
- * Select a model using weighted random distribution
- * @param {Array} models - Array of { model, weight } entries
- * @returns {string} Selected model string
- */
-function selectWeightedModel(models) {
-  const entries = models.map((m) => normalizeModelEntry(m));
-  const totalWeight = entries.reduce((sum, m) => sum + m.weight, 0);
+function selectWeightedTarget(targets: Array<{ weight: number }>) {
+  if (targets.length === 0) return null;
 
+  const totalWeight = targets.reduce((sum, target) => sum + (target.weight || 0), 0);
   if (totalWeight <= 0) {
-    // All weights are 0 → uniform random
-    return entries[Math.floor(Math.random() * entries.length)].model;
+    return targets[Math.floor(Math.random() * targets.length)];
   }
 
   let random = Math.random() * totalWeight;
-  for (const entry of entries) {
-    random -= entry.weight;
-    if (random <= 0) return entry.model;
+  for (const target of targets) {
+    random -= target.weight || 0;
+    if (random <= 0) return target;
   }
-  return entries[entries.length - 1].model; // safety fallback
+
+  return targets[targets.length - 1];
 }
 
-/**
- * Order models for weighted fallback (selected first, then by descending weight)
- */
-function orderModelsForWeightedFallback(models, selectedModel) {
-  const entries = models.map((m) => normalizeModelEntry(m));
-  const selected = entries.find((e) => e.model === selectedModel);
-  const rest = entries.filter((e) => e.model !== selectedModel).sort((a, b) => b.weight - a.weight); // highest weight first for fallback
-
-  return [selected, ...rest].filter(Boolean).map((e) => e.model);
+function orderTargetsForWeightedFallback(
+  targets: Array<{ executionKey: string; weight: number }>,
+  selectedExecutionKey: string,
+  preserveExistingOrder = false
+) {
+  const selected = targets.find((target) => target.executionKey === selectedExecutionKey);
+  const rest = targets.filter((target) => target.executionKey !== selectedExecutionKey);
+  if (!preserveExistingOrder) {
+    rest.sort((a, b) => b.weight - a.weight);
+  }
+  return [selected, ...rest].filter(Boolean);
 }
 
 // shuffleArray and getNextModelFromDeck moved to src/shared/utils/shuffleDeck.ts
@@ -297,6 +530,22 @@ async function sortModelsByCost(models) {
   }
 }
 
+async function sortTargetsByCost(targets: ResolvedComboTarget[]) {
+  const orderedModels = await sortModelsByCost(targets.map((target) => target.modelStr));
+  const byModel = new Map<string, ResolvedComboTarget[]>();
+  for (const target of targets) {
+    const queue = byModel.get(target.modelStr) || [];
+    queue.push(target);
+    byModel.set(target.modelStr, queue);
+  }
+  return orderedModels
+    .map((modelStr) => {
+      const queue = byModel.get(modelStr);
+      return queue?.shift() || null;
+    })
+    .filter((target): target is ResolvedComboTarget => target !== null);
+}
+
 /**
  * Sort models by usage count (least-used first) for least-used strategy
  * @param {Array<string>} models - Model strings
@@ -315,6 +564,25 @@ function sortModelsByUsage(models, comboName) {
   return withUsage.map((e) => e.modelStr);
 }
 
+function sortTargetsByUsage(targets: ResolvedComboTarget[], comboName: string) {
+  const orderedModels = sortModelsByUsage(
+    targets.map((target) => target.modelStr),
+    comboName
+  );
+  const byModel = new Map<string, ResolvedComboTarget[]>();
+  for (const target of targets) {
+    const queue = byModel.get(target.modelStr) || [];
+    queue.push(target);
+    byModel.set(target.modelStr, queue);
+  }
+  return orderedModels
+    .map((modelStr) => {
+      const queue = byModel.get(modelStr);
+      return queue?.shift() || null;
+    })
+    .filter((target): target is ResolvedComboTarget => target !== null);
+}
+
 /**
  * Sort models by context window size (largest first) for context-optimized strategy.
  * Uses models.dev synced capabilities to get context limits.
@@ -331,6 +599,22 @@ function sortModelsByContextSize(models) {
   });
   withContext.sort((a, b) => b.context - a.context);
   return withContext.map((e) => e.modelStr);
+}
+
+function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
+  const orderedModels = sortModelsByContextSize(targets.map((target) => target.modelStr));
+  const byModel = new Map<string, ResolvedComboTarget[]>();
+  for (const target of targets) {
+    const queue = byModel.get(target.modelStr) || [];
+    queue.push(target);
+    byModel.set(target.modelStr, queue);
+  }
+  return orderedModels
+    .map((modelStr) => {
+      const queue = byModel.get(modelStr);
+      return queue?.shift() || null;
+    })
+    .filter((target): target is ResolvedComboTarget => target !== null);
 }
 
 function toTextContent(content) {
@@ -437,7 +721,7 @@ function getBootstrapLatencyMs(modelId) {
   return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
 }
 
-async function buildAutoCandidates(modelStrings, comboName) {
+async function buildAutoCandidates(targets, comboName) {
   const metrics = getComboMetrics(comboName);
   const { getPricingForModel } = await import("../../src/lib/localDb");
   let historicalLatencyStats = {};
@@ -453,9 +737,10 @@ async function buildAutoCandidates(modelStrings, comboName) {
   }
 
   const candidates = await Promise.all(
-    modelStrings.map(async (modelStr) => {
+    targets.map(async (target) => {
+      const modelStr = target.modelStr;
       const parsed = parseModel(modelStr);
-      const provider = parsed.provider || parsed.providerAlias || "unknown";
+      const provider = target.provider || parsed.provider || parsed.providerAlias || "unknown";
       const model = parsed.model || modelStr;
       const historicalKey = `${provider}/${model}`;
       const historicalModelMetric = historicalLatencyStats[historicalKey] || null;
@@ -503,11 +788,16 @@ async function buildAutoCandidates(modelStrings, comboName) {
           ? Math.max(10, historicalStdDev)
           : Math.max(10, p95LatencyMs * 0.1);
 
-      const breakerStateRaw = getCircuitBreaker(`combo:${modelStr}`)?.getStatus?.()?.state;
+      const breakerStateRaw = getCircuitBreaker(
+        getComboBreakerKey(comboName, target.executionKey)
+      )?.getStatus?.()?.state;
       const circuitBreakerState =
         breakerStateRaw === "OPEN" || breakerStateRaw === "HALF_OPEN" ? breakerStateRaw : "CLOSED";
 
       return {
+        stepId: target.stepId,
+        executionKey: target.executionKey,
+        modelStr,
         provider,
         model,
         quotaRemaining: 100,
@@ -524,6 +814,66 @@ async function buildAutoCandidates(modelStrings, comboName) {
   );
 
   return candidates;
+}
+
+function dedupeTargetsByExecutionKey(targets: ResolvedComboTarget[]) {
+  const seen = new Set<string>();
+  return targets.filter((target) => {
+    if (seen.has(target.executionKey)) return false;
+    seen.add(target.executionKey);
+    return true;
+  });
+}
+
+export function resolveComboTargets(combo, allCombos) {
+  return allCombos ? resolveNestedComboTargets(combo, allCombos) : getDirectComboTargets(combo);
+}
+
+function resolveWeightedTargets(combo, allCombos) {
+  const topLevelSteps = getOrderedTopLevelRuntimeSteps(combo, allCombos);
+  if (topLevelSteps.length === 0) {
+    return { orderedTargets: [], selectedStep: null };
+  }
+
+  const selectedStep = selectWeightedTarget(topLevelSteps);
+  if (!selectedStep) {
+    return { orderedTargets: [], selectedStep: null };
+  }
+
+  const orderedSteps = orderTargetsForWeightedFallback(
+    topLevelSteps,
+    selectedStep.executionKey,
+    hasCompositeTierRuntimeOrder(combo)
+  );
+  const expandedTargets = orderedSteps.flatMap((step) => {
+    if (!allCombos) {
+      return step.kind === "model" ? [step] : [];
+    }
+    return expandRuntimeStep(step, allCombos, new Set([combo.name]));
+  });
+
+  return {
+    orderedTargets: dedupeTargetsByExecutionKey(expandedTargets),
+    selectedStep,
+  };
+}
+
+function scoreAutoTargets(targets, candidates, taskType, weights) {
+  const candidateByExecutionKey = new Map(
+    candidates.map((candidate) => [candidate.executionKey, candidate])
+  );
+  return targets
+    .map((target) => {
+      const candidate = candidateByExecutionKey.get(target.executionKey);
+      if (!candidate) return null;
+      const factors = calculateFactors(candidate, candidates, taskType, getTaskFitness);
+      return {
+        target,
+        score: calculateScore(factors, weights),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score);
 }
 
 /**
@@ -548,7 +898,6 @@ export async function handleComboChat({
   relayOptions,
 }) {
   const strategy = combo.strategy || "priority";
-  const models = combo.models || [];
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
@@ -566,8 +915,8 @@ export async function handleComboChat({
   }
   // Wrap handleSingleModel to inject context caching tag on response (#401)
   const handleSingleModelWrapped = combo.context_cache_protection
-    ? async (b, modelStr) => {
-        const res = await handleSingleModel(b, modelStr);
+    ? async (b, modelStr, target) => {
+        const res = await handleSingleModel(b, modelStr, target);
         if (!res.ok) return res;
 
         // Non-streaming: inject tag into JSON response
@@ -749,47 +1098,28 @@ export async function handleComboChat({
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = config.retryDelayMs ?? 2000;
 
-  let orderedModels;
+  let orderedTargets =
+    strategy === "weighted"
+      ? resolveWeightedTargets(combo, allCombos)?.orderedTargets || []
+      : resolveComboTargets(combo, allCombos);
 
-  // Resolve nested combos if allCombos provided
-  if (allCombos) {
-    const flatModels = resolveNestedComboModels(combo, allCombos);
-    if (strategy === "weighted") {
-      // For weighted + nested, select from original models then fallback sequentially
-      const selected = selectWeightedModel(models);
-      orderedModels = orderModelsForWeightedFallback(models, selected);
-      // If entries were nested, they are already resolved to flat
-      orderedModels = orderedModels.flatMap((m) => {
-        const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
-        const nested = combos.find((c) => c.name === m);
-        if (nested) return resolveNestedComboModels(nested, allCombos);
-        return [m];
-      });
-      log.info(
-        "COMBO",
-        `Weighted selection with nested resolution: ${orderedModels.length} total models`
-      );
-    } else {
-      orderedModels = flatModels;
-      log.info("COMBO", `${strategy} with nested resolution: ${orderedModels.length} total models`);
-    }
-  } else if (strategy === "weighted") {
-    const selected = selectWeightedModel(models);
-    orderedModels = orderModelsForWeightedFallback(models, selected);
-    log.info("COMBO", `Weighted selection: ${selected} (from ${models.length} models)`);
-  } else {
-    orderedModels = models.map((m) => normalizeModelEntry(m).model);
+  if (strategy === "weighted") {
+    log.info(
+      "COMBO",
+      `Weighted selection${allCombos ? " with nested resolution" : ""}: ${orderedTargets.length} total targets`
+    );
+  } else if (allCombos) {
+    log.info("COMBO", `${strategy} with nested resolution: ${orderedTargets.length} total targets`);
   }
 
-  // Apply strategy-specific ordering
   if (strategy === "auto") {
     const requestHasTools = Array.isArray(body?.tools) && body.tools.length > 0;
-    let eligibleModels = [...orderedModels];
+    let eligibleTargets = [...orderedTargets];
 
     if (requestHasTools) {
-      const filtered = eligibleModels.filter((m) => supportsToolCalling(m));
+      const filtered = eligibleTargets.filter((target) => supportsToolCalling(target.modelStr));
       if (filtered.length > 0) {
-        eligibleModels = filtered;
+        eligibleTargets = filtered;
       } else {
         log.warn(
           "COMBO",
@@ -816,14 +1146,7 @@ export async function handleComboChat({
 
     const candidatePool = Array.isArray(autoConfigSource.candidatePool)
       ? autoConfigSource.candidatePool
-      : [
-          ...new Set(
-            eligibleModels.map((m) => {
-              const parsed = parseModel(m);
-              return parsed.provider || parsed.providerAlias || "unknown";
-            })
-          ),
-        ];
+      : [...new Set(eligibleTargets.map((target) => target.provider))];
 
     const weights =
       autoConfigSource.weights && typeof autoConfigSource.weights === "object"
@@ -838,7 +1161,6 @@ export async function handleComboChat({
     const modePack =
       typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
 
-    // Retrieve last known good provider (LKGP) for this combo/model (#919)
     let lastKnownGoodProvider: string | undefined;
     try {
       const { getLKGP } = await import("../../src/lib/localDb");
@@ -848,7 +1170,7 @@ export async function handleComboChat({
       log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
     }
 
-    const candidates = await buildAutoCandidates(eligibleModels, combo.name);
+    const candidates = await buildAutoCandidates(eligibleTargets, combo.name);
     if (candidates.length > 0) {
       let selectedProvider = null;
       let selectedModel = null;
@@ -892,51 +1214,80 @@ export async function handleComboChat({
         selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
       }
 
-      const modelLookup = new Map();
-      for (const modelStr of eligibleModels) {
-        const parsed = parseModel(modelStr);
-        const provider = parsed.provider || parsed.providerAlias || "unknown";
-        const modelId = parsed.model || modelStr;
-        modelLookup.set(`${provider}/${modelId}`, modelStr);
-      }
+      const scoredTargets = scoreAutoTargets(eligibleTargets, candidates, taskType, weights);
+      const rankedTargets = scoredTargets.map((entry) => entry.target);
+      const selectedTarget =
+        scoredTargets.find((entry) => {
+          const parsed = parseModel(entry.target.modelStr);
+          const modelId = parsed.model || entry.target.modelStr;
+          return entry.target.provider === selectedProvider && modelId === selectedModel;
+        })?.target ||
+        rankedTargets[0] ||
+        eligibleTargets[0];
 
-      const ranked = scorePool(candidates, taskType, weights)
-        .map((r) => modelLookup.get(`${r.provider}/${r.model}`) || `${r.provider}/${r.model}`)
-        .filter(Boolean);
-
-      const selectedModelStr =
-        modelLookup.get(`${selectedProvider}/${selectedModel}`) ||
-        `${selectedProvider}/${selectedModel}`;
-      orderedModels = [...new Set([selectedModelStr, ...ranked, ...eligibleModels])];
+      orderedTargets = dedupeTargetsByExecutionKey(
+        [selectedTarget, ...rankedTargets, ...eligibleTargets].filter(Boolean)
+      );
 
       log.info(
         "COMBO",
-        `Auto selection: ${selectedModelStr} | intent=${intent} task=${taskType} | strategy=${routingStrategy} | ${selectionReason}`
+        `Auto selection: ${selectedTarget?.modelStr || `${selectedProvider}/${selectedModel}`} | intent=${intent} task=${taskType} | strategy=${routingStrategy} | ${selectionReason}`
       );
     } else {
       log.warn("COMBO", "Auto strategy has no candidates, keeping default ordering");
     }
+  } else if (strategy === "lkgp") {
+    try {
+      const { getLKGP } = await import("../../src/lib/localDb");
+      const lkgpProvider = await getLKGP(combo.name, combo.id || combo.name);
+
+      if (lkgpProvider) {
+        const lkgpIndex = orderedTargets.findIndex(
+          (target) =>
+            target.provider === lkgpProvider || target.modelStr.startsWith(`${lkgpProvider}/`)
+        );
+
+        if (lkgpIndex > 0) {
+          const [lkgpTarget] = orderedTargets.splice(lkgpIndex, 1);
+          orderedTargets.unshift(lkgpTarget);
+          log.info(
+            "COMBO",
+            `[LKGP] Prioritizing last known good provider ${lkgpProvider} for combo "${combo.name}"`
+          );
+        }
+      }
+    } catch (err) {
+      log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
+    }
   } else if (strategy === "strict-random") {
-    const selectedId = await getNextFromDeck(`combo:${combo.name}`, orderedModels);
-    // Put selected model first so the fallback loop tries it first
-    const rest = orderedModels.filter((m) => m !== selectedId);
-    orderedModels = [selectedId, ...rest];
+    const selectedExecutionKey = await getNextFromDeck(
+      `combo:${combo.name}`,
+      orderedTargets.map((target) => target.executionKey)
+    );
+    const selectedTarget =
+      orderedTargets.find((target) => target.executionKey === selectedExecutionKey) || null;
+    const rest = orderedTargets.filter((target) => target.executionKey !== selectedExecutionKey);
+    orderedTargets = [selectedTarget, ...rest].filter(Boolean);
     log.info(
       "COMBO",
-      `Strict-random deck: ${selectedId} selected (${orderedModels.length} models)`
+      `Strict-random deck: ${selectedExecutionKey} selected (${orderedTargets.length} targets)`
     );
   } else if (strategy === "random") {
-    orderedModels = fisherYatesShuffle([...orderedModels]);
-    log.info("COMBO", `Random shuffle: ${orderedModels.length} models`);
+    orderedTargets = fisherYatesShuffle([...orderedTargets]);
+    log.info("COMBO", `Random shuffle: ${orderedTargets.length} targets`);
   } else if (strategy === "least-used") {
-    orderedModels = sortModelsByUsage(orderedModels, combo.name);
-    log.info("COMBO", `Least-used ordering: ${orderedModels[0]} has fewest requests`);
+    orderedTargets = sortTargetsByUsage(orderedTargets, combo.name);
+    log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);
   } else if (strategy === "cost-optimized") {
-    orderedModels = await sortModelsByCost(orderedModels);
-    log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedModels[0]})`);
+    orderedTargets = await sortTargetsByCost(orderedTargets);
+    log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedTargets[0]?.modelStr})`);
   } else if (strategy === "context-optimized") {
-    orderedModels = sortModelsByContextSize(orderedModels);
-    log.info("COMBO", `Context-optimized ordering: largest first (${orderedModels[0]})`);
+    orderedTargets = sortTargetsByContextSize(orderedTargets);
+    log.info("COMBO", `Context-optimized ordering: largest first (${orderedTargets[0]?.modelStr})`);
+  }
+
+  if (orderedTargets.length === 0) {
+    return unavailableResponse(503, "Combo has no executable targets");
   }
 
   let lastError = null;
@@ -944,13 +1295,14 @@ export async function handleComboChat({
   let lastStatus = null;
   const startTime = Date.now();
   let fallbackCount = 0;
+  let recordedAttempts = 0;
 
-  for (let i = 0; i < orderedModels.length; i++) {
-    const modelStr = orderedModels[i];
-    const parsed = parseModel(modelStr);
-    const provider = parsed.provider || parsed.providerAlias || "unknown";
+  for (let i = 0; i < orderedTargets.length; i++) {
+    const target = orderedTargets[i];
+    const modelStr = target.modelStr;
+    const provider = target.provider;
     const profile = getProviderProfile(provider);
-    const breakerKey = `combo:${modelStr}`;
+    const breakerKey = getComboBreakerKey(combo.name, target.executionKey);
     const breaker = getCircuitBreaker(breakerKey, {
       failureThreshold: profile.circuitBreakerThreshold,
       resetTimeout: profile.circuitBreakerReset,
@@ -965,7 +1317,7 @@ export async function handleComboChat({
 
     // Pre-check: skip models where all accounts are in cooldown
     if (isModelAvailable) {
-      const available = await isModelAvailable(modelStr);
+      const available = await isModelAvailable(modelStr, target);
       if (!available) {
         log.info("COMBO", `Skipping ${modelStr} (all accounts in cooldown)`);
         if (i > 0) fallbackCount++;
@@ -985,10 +1337,10 @@ export async function handleComboChat({
 
       log.info(
         "COMBO",
-        `Trying model ${i + 1}/${orderedModels.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
+        `Trying model ${i + 1}/${orderedTargets.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
       );
 
-      const result = await handleSingleModelWrapped(body, modelStr);
+      const result = await handleSingleModelWrapped(body, modelStr, target);
 
       // Success — validate response quality before returning
       if (result.ok) {
@@ -1004,7 +1356,9 @@ export async function handleComboChat({
             latencyMs: Date.now() - startTime,
             fallbackCount,
             strategy,
+            target: toRecordedTarget(target),
           });
+          recordedAttempts++;
           if (i > 0) fallbackCount++;
           break; // move to next model
         }
@@ -1019,7 +1373,9 @@ export async function handleComboChat({
           latencyMs,
           fallbackCount,
           strategy,
+          target: toRecordedTarget(target),
         });
+        recordedAttempts++;
 
         // Context-relay intentionally splits responsibilities:
         // combo.ts decides whether a successful turn should generate a handoff,
@@ -1062,13 +1418,17 @@ export async function handleComboChat({
 
         // Record last known good provider (LKGP) for this combo/model (#919)
         if (provider) {
-          import("../../src/lib/localDb")
-            .then(({ setLKGP }) => setLKGP(combo.name, combo.id || combo.name, provider))
-            .catch((err) =>
-              log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
-                err,
-              })
-            );
+          try {
+            const { setLKGP } = await import("../../src/lib/localDb");
+            await Promise.all([
+              setLKGP(combo.name, target.executionKey, provider),
+              setLKGP(combo.name, combo.id || combo.name, provider),
+            ]);
+          } catch (err) {
+            log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
+              err,
+            });
+          }
         }
 
         return result;
@@ -1129,6 +1489,14 @@ export async function handleComboChat({
 
       if (!shouldFallback && !comboBadRequestFallback) {
         log.warn("COMBO", `Model ${modelStr} failed (no fallback)`, { status: result.status });
+        recordComboRequest(combo.name, modelStr, {
+          success: false,
+          latencyMs: Date.now() - startTime,
+          fallbackCount,
+          strategy,
+          target: toRecordedTarget(target),
+        });
+        recordedAttempts++;
         return result;
       }
 
@@ -1146,6 +1514,14 @@ export async function handleComboChat({
       }
 
       // Done retrying this model
+      recordComboRequest(combo.name, modelStr, {
+        success: false,
+        latencyMs: Date.now() - startTime,
+        fallbackCount,
+        strategy,
+        target: toRecordedTarget(target),
+      });
+      recordedAttempts++;
       lastError = errorText || String(result.status);
       if (!lastStatus) lastStatus = result.status;
       if (i > 0) fallbackCount++;
@@ -1161,13 +1537,15 @@ export async function handleComboChat({
   }
 
   // Early exit: check if all models have breaker OPEN
-  const allBreakersOpen = orderedModels.every((m) => {
-    return !getCircuitBreaker(`combo:${m}`).canExecute();
+  const allBreakersOpen = orderedTargets.every((target) => {
+    return !getCircuitBreaker(getComboBreakerKey(combo.name, target.executionKey)).canExecute();
   });
 
   // All models failed
   const latencyMs = Date.now() - startTime;
-  recordComboRequest(combo.name, null, { success: false, latencyMs, fallbackCount, strategy });
+  if (recordedAttempts === 0) {
+    recordComboRequest(combo.name, null, { success: false, latencyMs, fallbackCount, strategy });
+  }
 
   if (allBreakersOpen) {
     log.warn("COMBO", "All models have circuit breaker OPEN — aborting");
@@ -1226,7 +1604,6 @@ async function handleRoundRobinCombo({
   settings,
   allCombos,
 }) {
-  const models = combo.models || [];
   const config = settings
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
@@ -1235,17 +1612,10 @@ async function handleRoundRobinCombo({
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = config.retryDelayMs ?? 2000;
 
-  // Resolve models (support nested combos)
-  let orderedModels;
-  if (allCombos) {
-    orderedModels = resolveNestedComboModels(combo, allCombos);
-  } else {
-    orderedModels = models.map((m) => normalizeModelEntry(m).model);
-  }
-
-  const modelCount = orderedModels.length;
+  const orderedTargets = resolveComboTargets(combo, allCombos);
+  const modelCount = orderedTargets.length;
   if (modelCount === 0) {
-    return unavailableResponse(503, "Round-robin combo has no models");
+    return unavailableResponse(503, "Round-robin combo has no executable targets");
   }
 
   // Get and increment atomic counter
@@ -1258,15 +1628,17 @@ async function handleRoundRobinCombo({
   let lastStatus = null;
   let earliestRetryAfter = null;
   let fallbackCount = 0;
+  let recordedAttempts = 0;
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
     const modelIndex = (startIndex + offset) % modelCount;
-    const modelStr = orderedModels[modelIndex];
-    const parsed = parseModel(modelStr);
-    const provider = parsed.provider || parsed.providerAlias || "unknown";
+    const target = orderedTargets[modelIndex];
+    const modelStr = target.modelStr;
+    const provider = target.provider;
     const profile = getProviderProfile(provider);
-    const breakerKey = `combo:${modelStr}`;
+    const breakerKey = getComboBreakerKey(combo.name, target.executionKey);
+    const semaphoreKey = `combo:${combo.name}:${target.executionKey}`;
     const breaker = getCircuitBreaker(breakerKey, {
       failureThreshold: profile.circuitBreakerThreshold,
       resetTimeout: profile.circuitBreakerReset,
@@ -1281,7 +1653,7 @@ async function handleRoundRobinCombo({
 
     // Pre-check availability
     if (isModelAvailable) {
-      const available = await isModelAvailable(modelStr);
+      const available = await isModelAvailable(modelStr, target);
       if (!available) {
         log.info("COMBO-RR", `Skipping ${modelStr} (all accounts in cooldown)`);
         if (offset > 0) fallbackCount++;
@@ -1292,7 +1664,7 @@ async function handleRoundRobinCombo({
     // Acquire semaphore slot (may wait in queue)
     let release;
     try {
-      release = await semaphore.acquire(modelStr, {
+      release = await semaphore.acquire(semaphoreKey, {
         maxConcurrency: concurrency,
         timeoutMs: queueTimeout,
       });
@@ -1321,7 +1693,7 @@ async function handleRoundRobinCombo({
           `[RR #${counter}] → ${modelStr}${offset > 0 ? ` (fallback +${offset})` : ""}${retry > 0 ? ` (retry ${retry})` : ""}`
         );
 
-        const result = await handleSingleModel(body, modelStr);
+        const result = await handleSingleModel(body, modelStr, target);
 
         // Success — validate response quality before returning
         if (result.ok) {
@@ -1337,7 +1709,9 @@ async function handleRoundRobinCombo({
               latencyMs: Date.now() - startTime,
               fallbackCount,
               strategy: "round-robin",
+              target: toRecordedTarget(target),
             });
+            recordedAttempts++;
             if (offset > 0) fallbackCount++;
             break; // move to next model
           }
@@ -1352,7 +1726,26 @@ async function handleRoundRobinCombo({
             latencyMs,
             fallbackCount,
             strategy: "round-robin",
+            target: toRecordedTarget(target),
           });
+          recordedAttempts++;
+          if (provider) {
+            try {
+              const { setLKGP } = await import("../../src/lib/localDb");
+              await Promise.all([
+                setLKGP(combo.name, target.executionKey, provider),
+                setLKGP(combo.name, combo.id || combo.name, provider),
+              ]);
+            } catch (err) {
+              log.warn(
+                "COMBO-RR",
+                "Failed to record Last Known Good Provider. This is non-fatal.",
+                {
+                  err,
+                }
+              );
+            }
+          }
           return result;
         }
 
@@ -1404,7 +1797,7 @@ async function handleRoundRobinCombo({
 
         // Transient errors → mark in semaphore AND record circuit breaker failure
         if (TRANSIENT_FOR_BREAKER.includes(result.status) && cooldownMs > 0) {
-          semaphore.markRateLimited(modelStr, cooldownMs);
+          semaphore.markRateLimited(semaphoreKey, cooldownMs);
           breaker._onFailure();
           log.warn(
             "COMBO-RR",
@@ -1414,6 +1807,14 @@ async function handleRoundRobinCombo({
 
         if (!shouldFallback && !comboBadRequestFallback) {
           log.warn("COMBO-RR", `${modelStr} failed (no fallback)`, { status: result.status });
+          recordComboRequest(combo.name, modelStr, {
+            success: false,
+            latencyMs: Date.now() - startTime,
+            fallbackCount,
+            strategy: "round-robin",
+            target: toRecordedTarget(target),
+          });
+          recordedAttempts++;
           return result;
         }
 
@@ -1431,6 +1832,14 @@ async function handleRoundRobinCombo({
         }
 
         // Done with this model
+        recordComboRequest(combo.name, modelStr, {
+          success: false,
+          latencyMs: Date.now() - startTime,
+          fallbackCount,
+          strategy: "round-robin",
+          target: toRecordedTarget(target),
+        });
+        recordedAttempts++;
         lastError = errorText || String(result.status);
         if (!lastStatus) lastStatus = result.status;
         if (offset > 0) fallbackCount++;
@@ -1451,16 +1860,18 @@ async function handleRoundRobinCombo({
 
   // All models exhausted
   const latencyMs = Date.now() - startTime;
-  recordComboRequest(combo.name, null, {
-    success: false,
-    latencyMs,
-    fallbackCount,
-    strategy: "round-robin",
-  });
+  if (recordedAttempts === 0) {
+    recordComboRequest(combo.name, null, {
+      success: false,
+      latencyMs,
+      fallbackCount,
+      strategy: "round-robin",
+    });
+  }
 
   // Early exit: check if all models have breaker OPEN
-  const allBreakersOpen = orderedModels.every((m) => {
-    return !getCircuitBreaker(`combo:${m}`).canExecute();
+  const allBreakersOpen = orderedTargets.every((target) => {
+    return !getCircuitBreaker(getComboBreakerKey(combo.name, target.executionKey)).canExecute();
   });
 
   if (allBreakersOpen) {

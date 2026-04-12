@@ -479,6 +479,8 @@ export async function handleChatCore({
   comboName,
   comboStrategy = null,
   isCombo = false,
+  comboStepId = null,
+  comboExecutionKey = null,
   disableEmergencyFallback = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
@@ -746,6 +748,8 @@ export async function handleChatCore({
       sourceFormat,
       targetFormat,
       comboName,
+      comboStepId,
+      comboExecutionKey,
       apiKeyId: apiKeyInfo?.id || null,
       apiKeyName: apiKeyInfo?.name || null,
       noLog: noLogEnabled,
@@ -953,7 +957,10 @@ export async function handleChatCore({
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
-  const upstreamStream = stream || isClaudeCodeCompatible;
+  // Respect the client's explicit non-streaming intent for CC-compatible providers.
+  // Most upstreams can answer JSON directly; the SSE->JSON fallback remains as a
+  // compatibility path when an upstream still responds with event-stream.
+  const upstreamStream = stream;
   let ccSessionId: string | null = null;
 
   // Determine if we should preserve client-side cache_control headers

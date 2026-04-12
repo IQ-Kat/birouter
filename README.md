@@ -244,6 +244,8 @@ Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Eve
 - **Provider Limits Tracking** — Cached quota snapshots refresh on a server-side schedule (default `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) with manual refresh available in the UI
 - **Multi-Account Support** — Multiple accounts per provider with auto round-robin — when one runs out, switches to the next
 - **Custom Combos** — Customizable fallback chains with 13 balancing strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, **context-relay**)
+- **Structured Combo Builder** — Build combos step-by-step with explicit provider + model + account selection, including repeated providers and fixed-account targets
+- **Quota-Aware P2C** — Power-of-two account selection now factors quota headroom, backoff, recent errors, and consecutive use
 - **Codex Business Quotas** — Business/Team workspace quota monitoring directly in the dashboard
 
 </details>
@@ -2231,16 +2233,16 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## 🗺️ Roadmap
 
-OmniRoute has **210+ features planned** across multiple development phases. Here are the key areas:
+OmniRoute has **218+ features planned** across multiple development phases. Here are the key areas:
 
-| Category                      | Planned Features | Highlights                                                                             |
-| ----------------------------- | ---------------- | -------------------------------------------------------------------------------------- |
-| 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, P2C account selection      |
-| 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping   |
-| 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, cost tracking per model         |
-| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, provider cooldowns, multi-account Codex, Copilot quota parsing |
-| ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API         |
-| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode            |
+| Category                      | Planned Features | Highlights                                                                                            |
+| ----------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
+| 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, quota-aware P2C, step-based combo routing |
+| 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping                  |
+| 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, combo target health, cost tracking per model   |
+| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, provider cooldowns, multi-account Codex, Copilot quota parsing                |
+| ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API                        |
+| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode                           |
 
 ### 🔜 Coming Soon
 

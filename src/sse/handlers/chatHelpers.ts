@@ -64,11 +64,16 @@ export async function resolveModelOrError(modelStr: string, body: any, endpointP
 export function checkPipelineGates(
   provider: string,
   model: string,
-  options: { ignoreCircuitBreaker?: boolean; ignoreModelCooldown?: boolean } = {}
+  options: {
+    ignoreCircuitBreaker?: boolean;
+    ignoreModelCooldown?: boolean;
+    bypassReason?: string;
+  } = {}
 ) {
+  const bypassReason = options.bypassReason || "pipeline override";
   const modelAvailable = isModelAvailable(provider, model);
   if (!modelAvailable && options.ignoreModelCooldown) {
-    log.info("AVAILABILITY", `${provider}/${model} cooldown bypassed for combo live test`);
+    log.info("AVAILABILITY", `${provider}/${model} cooldown bypassed (${bypassReason})`);
   } else if (!modelAvailable) {
     log.warn("AVAILABILITY", `${provider}/${model} is in cooldown, rejecting request`);
     return unavailableResponse(
@@ -85,7 +90,7 @@ export function checkPipelineGates(
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
   });
   if (options.ignoreCircuitBreaker && !breaker.canExecute()) {
-    log.info("CIRCUIT", `Bypassing OPEN circuit breaker for combo live test: ${provider}`);
+    log.info("CIRCUIT", `Bypassing OPEN circuit breaker for ${provider} (${bypassReason})`);
   } else if (!breaker.canExecute()) {
     log.warn("CIRCUIT", `Circuit breaker OPEN for ${provider}, rejecting request`);
     return unavailableResponse(
@@ -114,6 +119,8 @@ export async function executeChatWithBreaker({
   comboName,
   comboStrategy,
   isCombo,
+  comboStepId,
+  comboExecutionKey,
   extendedContext,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
@@ -133,6 +140,8 @@ export async function executeChatWithBreaker({
           comboName,
           comboStrategy,
           isCombo,
+          comboStepId,
+          comboExecutionKey,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,

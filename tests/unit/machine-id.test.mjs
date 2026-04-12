@@ -83,7 +83,7 @@ test("machineId: reads the Windows MachineGuid via REG.exe when available", asyn
 test("machineId: falls back to Linux machine-id files before hostname", async () => {
   setPlatform("linux");
 
-  fs.existsSync = (filePath) => filePath === "/etc/machine-id";
+  fs.existsSync = () => false;
   fs.readFileSync = (filePath, encoding) => {
     assert.equal(filePath, "/etc/machine-id");
     assert.equal(encoding, "utf8");

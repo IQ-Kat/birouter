@@ -67,7 +67,7 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(compactHeaders.Accept, undefined);
+  assert.equal(compactHeaders.Accept, "application/json");
 });
 
 test("CodexExecutor.transformRequest injects default instructions, clamps reasoning and strips unsupported fields", () => {

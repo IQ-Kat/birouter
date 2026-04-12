@@ -31,10 +31,15 @@ export default function ComboDefaultsTab() {
     handoffThreshold: 0.85,
     handoffModel: "",
     maxMessagesForSummary: 30,
+    stickyRoundRobinLimit: 3,
   });
   const [providerOverrides, setProviderOverrides] = useState<any>({});
   const [newOverrideProvider, setNewOverrideProvider] = useState("");
   const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error" | ""; message: string }>({
+    type: "",
+    message: "",
+  });
   const t = useTranslations("settings");
   const tc = useTranslations("common");
   const strategyOptions = ROUTING_STRATEGIES.map((strategy) => ({
@@ -54,27 +59,75 @@ export default function ComboDefaultsTab() {
   ];
 
   useEffect(() => {
-    fetch("/api/settings/combo-defaults")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.comboDefaults) {
-          setComboDefaults((prev) => ({ ...prev, ...data.comboDefaults }));
-        }
-        if (data.providerOverrides) setProviderOverrides(data.providerOverrides);
+    Promise.all([
+      fetch("/api/settings/combo-defaults").then((res) => res.json()),
+      fetch("/api/settings").then((res) => res.json()),
+    ])
+      .then(([comboData, settingsData]) => {
+        setComboDefaults((prev) => ({
+          ...prev,
+          ...(comboData.comboDefaults || {}),
+          strategy:
+            settingsData.fallbackStrategy ?? comboData.comboDefaults?.strategy ?? prev.strategy,
+          stickyRoundRobinLimit:
+            settingsData.stickyRoundRobinLimit ??
+            comboData.comboDefaults?.stickyRoundRobinLimit ??
+            prev.stickyRoundRobinLimit,
+        }));
+        if (comboData.providerOverrides) setProviderOverrides(comboData.providerOverrides);
       })
       .catch((err) => console.error("Failed to fetch combo defaults:", err));
   }, []);
 
+  const showStatus = (type: "success" | "error", message: string) => {
+    setStatus({ type, message });
+    setTimeout(() => setStatus({ type: "", message: "" }), 2500);
+  };
+
+  const syncGlobalRoutingSettings = async (patch: Record<string, unknown>) => {
+    const keys = Object.keys(patch);
+    if (keys.length === 0) return true;
+
+    const res = await fetch("/api/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to sync global routing settings");
+    }
+
+    return true;
+  };
+
   const saveComboDefaults = async () => {
     setSaving(true);
     try {
-      await fetch("/api/settings/combo-defaults", {
+      const { stickyRoundRobinLimit, ...comboDefaultsPayload } = comboDefaults;
+      const settingsPatch: Record<string, unknown> = {};
+      if (comboDefaults.strategy) {
+        settingsPatch.fallbackStrategy = comboDefaults.strategy;
+      }
+      if (comboDefaults.strategy === "round-robin" && stickyRoundRobinLimit !== undefined) {
+        settingsPatch.stickyRoundRobinLimit = stickyRoundRobinLimit;
+      }
+
+      const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comboDefaults, providerOverrides }),
+        body: JSON.stringify({ comboDefaults: comboDefaultsPayload, providerOverrides }),
       });
+
+      if (!comboDefaultsRes.ok) {
+        throw new Error("Failed to save combo defaults");
+      }
+
+      await syncGlobalRoutingSettings(settingsPatch);
+      showStatus("success", t("savedSuccessfully"));
     } catch (err) {
       console.error("Failed to save combo defaults:", err);
+      showStatus("error", t("errorOccurred"));
     } finally {
       setSaving(false);
     }
@@ -103,8 +156,38 @@ export default function ComboDefaultsTab() {
             tune
           </span>
         </div>
-        <h3 className="text-lg font-semibold">{t("comboDefaultsTitle")}</h3>
+        <h3 className="text-lg font-semibold">
+          {translateOrFallback(t, "comboDefaultsTitle", "Default Routing & Combo Settings")}
+        </h3>
         <span className="text-xs text-text-muted ml-auto">{t("globalComboConfig")}</span>
+        {status.message && (
+          <span
+            className={`text-xs font-medium ml-2 ${
+              status.type === "success" ? "text-emerald-500" : "text-red-500"
+            }`}
+          >
+            {status.message}
+          </span>
+        )}
+      </div>
+      <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
+        <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+          {translateOrFallback(t, "routingAdvancedGuideTitle", "Advanced routing guidance")}
+        </p>
+        <p className="text-xs text-text-muted mt-1">
+          {translateOrFallback(
+            t,
+            "routingAdvancedGuideHint1",
+            "Use Fill First for predictable priority, Round Robin for fairness, and P2C for latency resilience."
+          )}
+        </p>
+        <p className="text-xs text-text-muted">
+          {translateOrFallback(
+            t,
+            "routingAdvancedGuideHint2",
+            "If providers vary in quality or cost, start with Cost Opt for background work and Least Used for balanced wear."
+          )}
+        </p>
       </div>
       <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
         <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
@@ -130,7 +213,15 @@ export default function ComboDefaultsTab() {
                 key={s.value}
                 role="tab"
                 aria-selected={comboDefaults.strategy === s.value}
-                onClick={() => setComboDefaults((prev) => ({ ...prev, strategy: s.value }))}
+                onClick={async () => {
+                  setComboDefaults((prev) => ({ ...prev, strategy: s.value }));
+                  try {
+                    await syncGlobalRoutingSettings({ fallbackStrategy: s.value });
+                  } catch (error) {
+                    console.error("Failed to sync fallback strategy:", error);
+                    showStatus("error", t("errorOccurred"));
+                  }
+                }}
                 className={cn(
                   "px-2 py-1 rounded text-xs font-medium transition-all flex items-center justify-center gap-0.5",
                   comboDefaults.strategy === s.value
@@ -144,6 +235,35 @@ export default function ComboDefaultsTab() {
             ))}
           </div>
         </div>
+
+        {comboDefaults.strategy === "round-robin" && (
+          <div className="flex items-center justify-between pt-3 border-t border-border/30">
+            <div>
+              <p className="text-sm font-medium">{t("stickyLimit")}</p>
+              <p className="text-xs text-text-muted">{t("stickyLimitDesc")}</p>
+            </div>
+            <Input
+              type="number"
+              min="1"
+              max="10"
+              value={comboDefaults.stickyRoundRobinLimit || 3}
+              onChange={async (e) => {
+                const nextLimit = parseInt(e.target.value) || 3;
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  stickyRoundRobinLimit: nextLimit,
+                }));
+                try {
+                  await syncGlobalRoutingSettings({ stickyRoundRobinLimit: nextLimit });
+                } catch (error) {
+                  console.error("Failed to sync sticky round robin limit:", error);
+                  showStatus("error", t("errorOccurred"));
+                }
+              }}
+              className="w-20 text-center"
+            />
+          </div>
+        )}
 
         {/* Numeric settings */}
         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">

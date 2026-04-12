@@ -15,6 +15,7 @@ const {
   handleComboChat,
   shouldFallbackComboBadRequest,
 } = await import("../../open-sse/services/combo.ts");
+const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 const { registerStrategy } = await import("../../open-sse/services/autoCombo/routerStrategy.ts");
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
@@ -81,11 +82,18 @@ function capabilityEntry(limitContext) {
   };
 }
 
+function getComboTargetBreakerKey(comboName, index, stepInput) {
+  const step = normalizeComboStep(stepInput, { comboName, index });
+  if (!step) throw new Error(`Failed to normalize combo step for ${comboName}#${index}`);
+  return `combo:${comboName}:${step.id}`;
+}
+
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await settingsDb.resetAllPricing();
+  settingsDb.clearAllLKGP();
   clearModelsDevCapabilities();
 }
 
@@ -144,6 +152,30 @@ test("validateComboDAG rejects circular references and resolveNestedComboModels 
   );
 });
 
+test("resolveNestedComboModels expands explicit combo-ref steps", () => {
+  const combos = [
+    {
+      name: "root",
+      models: [
+        { id: "root-ref-child", kind: "combo-ref", comboName: "child", weight: 0 },
+        { id: "root-model", kind: "model", providerId: "openai", model: "openai/gpt-4o-mini" },
+      ],
+    },
+    {
+      name: "child",
+      models: [
+        { id: "child-model", kind: "model", providerId: "anthropic", model: "claude/sonnet" },
+      ],
+    },
+  ];
+
+  validateComboDAG("root", combos);
+  assert.deepEqual(resolveNestedComboModels(combos[0], combos), [
+    "claude/sonnet",
+    "openai/gpt-4o-mini",
+  ]);
+});
+
 test("validateComboDAG enforces maximum nesting depth", () => {
   const combos = [
     { name: "c1", models: ["c2"] },
@@ -177,13 +209,81 @@ test("handleComboChat priority strategy defaults to first model and records succ
   });
 
   const metrics = getComboMetrics("priority-default");
+  const firstStep = normalizeComboStep(combo.models[0], {
+    comboName: combo.name,
+    index: 0,
+  });
 
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
   assert.equal(metrics.totalRequests, 1);
   assert.equal(metrics.totalSuccesses, 1);
   assert.equal(metrics.byModel["openai/gpt-4o-mini"].requests, 1);
+  assert.equal(metrics.byTarget[firstStep.id].requests, 1);
+  assert.equal(metrics.byTarget[firstStep.id].model, "openai/gpt-4o-mini");
   assert.equal(metrics.strategy, "priority");
+});
+
+test("handleComboChat priority strategy honors composite tier order before fallback", async () => {
+  const calls = [];
+  const combo = {
+    name: "priority-composite-tiers",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "openai",
+        model: "openai/gpt-4o-mini",
+      },
+      {
+        kind: "model",
+        id: "step-backup",
+        providerId: "anthropic",
+        model: "claude/sonnet",
+      },
+      {
+        kind: "model",
+        id: "step-last",
+        providerId: "google",
+        model: "gemini/gemini-2.5-flash",
+      },
+    ],
+    config: {
+      maxRetries: 0,
+      compositeTiers: {
+        defaultTier: "backup",
+        tiers: {
+          backup: {
+            stepId: "step-backup",
+            fallbackTier: "primary",
+          },
+          primary: {
+            stepId: "step-primary",
+          },
+        },
+      },
+    },
+  };
+
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      if (modelStr === "claude/sonnet") {
+        return errorResponse(503, "backup failed");
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["claude/sonnet", "openai/gpt-4o-mini"]);
 });
 
 test("handleComboChat weighted strategy selects by weight and falls back in descending weight order", async () => {
@@ -384,6 +484,65 @@ test("handleComboChat falls through empty successful responses and records failu
   assert.equal(metrics.byModel["model-b"].lastStatus, "ok");
 });
 
+test("handleComboChat records per-target metrics separately when the same model repeats with different accounts", async () => {
+  const calls = [];
+  const combo = {
+    name: "per-target-repeat",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        providerId: "openai",
+        model: "openai/gpt-4o-mini",
+        connectionId: "conn-openai-a",
+        label: "Account A",
+      },
+      {
+        kind: "model",
+        providerId: "openai",
+        model: "openai/gpt-4o-mini",
+        connectionId: "conn-openai-b",
+        label: "Account B",
+      },
+    ],
+    config: { maxRetries: 0 },
+  };
+
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body, modelStr, target) => {
+      calls.push(`${modelStr}:${target?.connectionId || "none"}`);
+      if (target?.connectionId === "conn-openai-a") {
+        return errorResponse(503, "account-a down");
+      }
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  const firstStep = normalizeComboStep(combo.models[0], {
+    comboName: combo.name,
+    index: 0,
+  });
+  const secondStep = normalizeComboStep(combo.models[1], {
+    comboName: combo.name,
+    index: 1,
+  });
+  const metrics = getComboMetrics(combo.name);
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/gpt-4o-mini:conn-openai-a", "openai/gpt-4o-mini:conn-openai-b"]);
+  assert.equal(metrics.byModel["openai/gpt-4o-mini"].requests, 2);
+  assert.equal(metrics.byTarget[firstStep.id].failures, 1);
+  assert.equal(metrics.byTarget[firstStep.id].connectionId, "conn-openai-a");
+  assert.equal(metrics.byTarget[secondStep.id].successes, 1);
+  assert.equal(metrics.byTarget[secondStep.id].connectionId, "conn-openai-b");
+});
+
 test("handleComboChat preserves the first failure status but surfaces the last error message", async () => {
   const result = await handleComboChat({
     body: {},
@@ -435,6 +594,64 @@ test("handleComboChat round-robin rotates sequentially across requests", async (
   }
 
   assert.deepEqual(calls, ["model-a", "model-b", "model-a"]);
+});
+
+test("handleComboChat round-robin starts from composite tier default ordering", async () => {
+  const calls = [];
+  const combo = {
+    name: "rr-composite-order",
+    strategy: "round-robin",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "openai",
+        model: "openai/gpt-4o-mini",
+      },
+      {
+        kind: "model",
+        id: "step-backup",
+        providerId: "anthropic",
+        model: "claude/sonnet",
+      },
+    ],
+    config: {
+      maxRetries: 0,
+      concurrencyPerModel: 1,
+      queueTimeoutMs: 1000,
+      compositeTiers: {
+        defaultTier: "backup",
+        tiers: {
+          backup: {
+            stepId: "step-backup",
+            fallbackTier: "primary",
+          },
+          primary: {
+            stepId: "step-primary",
+          },
+        },
+      },
+    },
+  };
+
+  for (let i = 0; i < 2; i++) {
+    const result = await handleComboChat({
+      body: {},
+      combo,
+      handleSingleModel: async (_body, modelStr) => {
+        calls.push(modelStr);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      allCombos: null,
+    });
+
+    assert.equal(result.ok, true);
+  }
+
+  assert.deepEqual(calls, ["claude/sonnet", "openai/gpt-4o-mini"]);
 });
 
 test("combo helpers short-circuit safely for missing combos, cycles, and excessive depth", () => {
@@ -674,11 +891,17 @@ test("handleComboChat round-robin returns 503 when no models are configured", as
   });
 
   assert.equal(result.status, 503);
-  assert.match((await result.json()).error.message, /Round-robin combo has no models/);
+  assert.match((await result.json()).error.message, /Round-robin combo has no executable targets/);
 });
 
 test("handleComboChat round-robin falls through semaphore timeouts and malformed success payloads", async () => {
-  const release = await acquireSemaphore("model-a", { maxConcurrency: 1, timeoutMs: 100 });
+  const release = await acquireSemaphore(
+    getComboTargetBreakerKey("rr-timeout-fallback", 0, "model-a"),
+    {
+      maxConcurrency: 1,
+      timeoutMs: 100,
+    }
+  );
   const calls = [];
 
   try {
@@ -995,11 +1218,14 @@ test("handleComboChat returns a 503 when every model is unavailable before execu
 });
 
 test("handleComboChat returns the circuit-breaker unavailable response when all breakers are open", async () => {
-  for (const modelStr of ["openai/model-a", "openai/model-b"]) {
-    const breaker = getCircuitBreaker(`combo:${modelStr}`, {
-      failureThreshold: 1,
-      resetTimeout: 60000,
-    });
+  for (const [index, modelStr] of ["openai/model-a", "openai/model-b"].entries()) {
+    const breaker = getCircuitBreaker(
+      getComboTargetBreakerKey("all-breakers-open", index, modelStr),
+      {
+        failureThreshold: 1,
+        resetTimeout: 60000,
+      }
+    );
     breaker._onFailure();
   }
 
@@ -1051,6 +1277,81 @@ test("handleComboChat auto strategy honors LKGP after filtering to tool-capable 
 
   assert.equal(result.ok, true);
   assert.equal(calls[0], "claude/claude-sonnet-4-6");
+});
+
+test("handleComboChat standalone lkgp strategy prioritizes the last known good provider", async () => {
+  await settingsDb.setLKGP("standalone-lkgp", "standalone-lkgp", "anthropic");
+
+  const calls = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      id: "standalone-lkgp",
+      name: "standalone-lkgp",
+      strategy: "lkgp",
+      models: ["openai/gpt-4o-mini", "anthropic/claude-sonnet-4-6"],
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls[0], "anthropic/claude-sonnet-4-6");
+});
+
+test("handleComboChat standalone lkgp strategy falls back to original order when no state exists", async () => {
+  const calls = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      id: "standalone-lkgp-no-state",
+      name: "standalone-lkgp-no-state",
+      strategy: "lkgp",
+      models: ["openai/gpt-4o-mini", "anthropic/claude-sonnet-4-6"],
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls[0], "openai/gpt-4o-mini");
+});
+
+test("handleComboChat standalone lkgp strategy updates LKGP after a successful call", async () => {
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      id: "standalone-lkgp-save",
+      name: "standalone-lkgp-save",
+      strategy: "lkgp",
+      models: ["openai/gpt-4o-mini"],
+    },
+    handleSingleModel: async () => okResponse(),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  const persistedProvider = await settingsDb.getLKGP(
+    "standalone-lkgp-save",
+    "standalone-lkgp-save"
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(persistedProvider, "openai");
 });
 
 test("handleComboChat auto strategy falls back to the full pool when tool filtering empties candidates", async () => {
@@ -1315,11 +1616,14 @@ test("handleComboChat round-robin resolves nested combos and returns inactive wh
 });
 
 test("handleComboChat round-robin returns circuit-breaker unavailable when every model is open", async () => {
-  for (const modelStr of ["openai/model-a", "openai/model-b"]) {
-    const breaker = getCircuitBreaker(`combo:${modelStr}`, {
-      failureThreshold: 1,
-      resetTimeout: 60000,
-    });
+  for (const [index, modelStr] of ["openai/model-a", "openai/model-b"].entries()) {
+    const breaker = getCircuitBreaker(
+      getComboTargetBreakerKey("rr-breakers-open", index, modelStr),
+      {
+        failureThreshold: 1,
+        resetTimeout: 60000,
+      }
+    );
     breaker._onFailure();
   }
 

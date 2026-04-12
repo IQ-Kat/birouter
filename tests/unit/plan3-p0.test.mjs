@@ -249,7 +249,7 @@ test("CodexExecutor does not request SSE accept header for compact requests", ()
     },
     false
   );
-  assert.equal(headers.Accept, undefined);
+  assert.equal(headers.Accept, "application/json");
 });
 
 test("CodexExecutor preserves native responses payloads for Codex passthrough", () => {

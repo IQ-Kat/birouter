@@ -1,6 +1,7 @@
 // Re-export from open-sse with localDb integration
 import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
 import { getSettings } from "@/lib/localDb";
+import { getComboStepTarget } from "@/lib/combos/steps";
 import {
   parseModel,
   resolveModelAliasFromMap,
@@ -147,5 +148,7 @@ export async function getComboForModel(modelStr) {
 export async function getComboModels(modelStr) {
   const combo = await getCombo(modelStr);
   if (!combo) return null;
-  return combo.models.map((m) => (typeof m === "string" ? m : m.model));
+  return (combo.models || [])
+    .map((entry) => getComboStepTarget(entry))
+    .filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
 }

@@ -63,16 +63,36 @@ export const createKeySchema = z.object({
 
 // ──── Combo Schemas ────
 
-// A model entry can be a plain string (legacy) or an object with weight
+const comboStepMetaSchema = {
+  id: z.string().trim().min(1).max(200).optional(),
+  weight: z.number().min(0).max(100).optional().default(0),
+  label: z.string().trim().min(1).max(200).optional(),
+};
+
+const comboModelStepInputSchema = z.object({
+  kind: z.literal("model").optional(),
+  provider: z.string().trim().min(1).max(120).optional(),
+  providerId: z.string().trim().min(1).max(120).optional(),
+  model: z.string().trim().min(1).max(300),
+  connectionId: z.string().trim().min(1).max(200).nullable().optional(),
+  tags: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
+  ...comboStepMetaSchema,
+});
+
+const comboRefStepInputSchema = z.object({
+  kind: z.literal("combo-ref"),
+  comboName: z.string().trim().min(1).max(100),
+  ...comboStepMetaSchema,
+});
+
+// A combo entry can be a plain string (legacy), a legacy object, or a structured ComboStep.
 const comboModelEntry = z.union([
-  z.string(),
-  z.object({
-    model: z.string().min(1),
-    weight: z.number().min(0).max(100).default(0),
-  }),
+  z.string().trim().min(1).max(300),
+  comboModelStepInputSchema,
+  comboRefStepInputSchema,
 ]);
 
-const comboStrategySchema = z.enum([
+export const comboStrategySchema = z.enum([
   "priority",
   "weighted",
   "round-robin",
@@ -85,7 +105,6 @@ const comboStrategySchema = z.enum([
   "fill-first",
   // #729 schema fixes for combo edit/save
   "p2c",
-  "auto",
   "lkgp",
   "context-optimized",
 ]);
@@ -101,6 +120,22 @@ const scoringWeightsSchema = z
     tierPriority: z.number().min(0).max(1).optional().default(0.05),
   })
   .optional();
+
+const compositeTierEntrySchema = z
+  .object({
+    stepId: z.string().trim().min(1).max(200),
+    fallbackTier: z.string().trim().min(1).max(100).optional(),
+    label: z.string().trim().min(1).max(200).optional(),
+    description: z.string().trim().min(1).max(500).optional(),
+  })
+  .strict();
+
+const compositeTiersSchema = z
+  .object({
+    defaultTier: z.string().trim().min(1).max(100),
+    tiers: z.record(z.string().trim().min(1).max(100), compositeTierEntrySchema),
+  })
+  .strict();
 
 const comboRuntimeConfigSchema = z
   .object({
@@ -125,6 +160,7 @@ const comboRuntimeConfigSchema = z
     budgetCap: z.number().positive().optional(),
     explorationRate: z.number().min(0).max(1).optional(),
     routerStrategy: z.string().optional(),
+    compositeTiers: compositeTiersSchema.optional(),
   })
   .strict();
 
@@ -144,20 +180,24 @@ export const createComboSchema = z.object({
   context_length: z.number().int().min(1000).max(2000000).optional(),
 });
 
-// ──── Auto-Combo Schemas ────
-
-export const createAutoComboSchema = z.object({
-  id: z.string().trim().min(1, "id is required").max(100),
-  name: z.string().trim().min(1, "name is required").max(200),
-  candidatePool: z.array(z.string().min(1)).optional().default([]),
-  weights: scoringWeightsSchema,
-  modePack: z.string().max(100).optional(),
-  budgetCap: z.number().positive().optional(),
-  explorationRate: z.number().min(0).max(1).optional().default(0.05),
-});
-
 // ──── Settings Schemas ────
 // FASE-01: Removed .passthrough() — only explicitly listed fields are accepted
+
+const settingsFallbackStrategySchema = z.enum([
+  "priority",
+  "weighted",
+  "round-robin",
+  "context-relay",
+  "fill-first",
+  "p2c",
+  "random",
+  "least-used",
+  "cost-optimized",
+  "strict-random",
+  "auto",
+  "context-optimized",
+  "lkgp",
+]);
 
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
@@ -176,17 +216,7 @@ export const updateSettingsSchema = z.object({
   hideHealthCheckLogs: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   // Routing settings (#134)
-  fallbackStrategy: z
-    .enum([
-      "fill-first",
-      "round-robin",
-      "p2c",
-      "random",
-      "least-used",
-      "cost-optimized",
-      "strict-random",
-    ])
-    .optional(),
+  fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   // Auto intent classifier settings (multilingual routing)
@@ -536,6 +566,24 @@ export const updateComboDefaultsSchema = z
         message: "Nothing to update",
         path: [],
       });
+    }
+
+    if (value.comboDefaults?.compositeTiers) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "compositeTiers is only supported on concrete combos",
+        path: ["comboDefaults", "compositeTiers"],
+      });
+    }
+
+    for (const [providerId, config] of Object.entries(value.providerOverrides || {})) {
+      if (config?.compositeTiers) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "compositeTiers is only supported on concrete combos",
+          path: ["providerOverrides", providerId, "compositeTiers"],
+        });
+      }
     }
   });
 

@@ -13,8 +13,12 @@ export const ThinkingMode = {
   ADAPTIVE: "adaptive", // Scale based on request complexity
 };
 
-import { capThinkingBudget, getDefaultThinkingBudget } from "@/shared/constants/modelSpecs";
-import { supportsReasoning } from "./modelCapabilities.ts";
+import {
+  capThinkingBudget,
+  getDefaultThinkingBudget,
+  getResolvedModelCapabilities,
+  supportsReasoning,
+} from "@/lib/modelCapabilities";
 
 // Effort → budget token mapping
 export const EFFORT_BUDGETS = {
@@ -289,6 +293,9 @@ function applyAdaptiveBudget(body, cfg) {
  */
 export function hasThinkingCapableModel(body) {
   const model = body.model || "";
+  const resolved = getResolvedModelCapabilities(model);
+  if (resolved.supportsThinking === true) return true;
+  if (resolved.supportsThinking === false) return false;
   return (
     model.includes("claude") ||
     model.includes("o1") ||

@@ -10,20 +10,66 @@ import {
 } from "../../open-sse/services/codexQuotaFetcher.ts";
 import { preflightQuota } from "../../open-sse/services/quotaPreflight.ts";
 import {
+  clearQuotaMonitors,
   getActiveMonitorCount,
   startQuotaMonitor,
   stopQuotaMonitor,
 } from "../../open-sse/services/quotaMonitor.ts";
+import { clearSessions, touchSession } from "../../open-sse/services/sessionManager.ts";
 
 const originalFetch = globalThis.fetch;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  clearQuotaMonitors();
+  clearSessions();
 });
 
 test("fetchCodexQuota returns null when no registered credentials exist", async () => {
   const quota = await fetchCodexQuota(`missing-${Date.now()}`);
   assert.equal(quota, null);
+});
+
+test("fetchCodexQuota can read credentials directly from the provided connection snapshot", async () => {
+  const connectionId = `codex-inline-${Date.now()}`;
+  const calls = [];
+
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return new Response(
+      JSON.stringify({
+        rate_limit: {
+          primary_window: {
+            used_percent: 70,
+            reset_after_seconds: 45,
+          },
+          secondary_window: {
+            used_percent: 20,
+            reset_after_seconds: 300,
+          },
+        },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  const quota = await fetchCodexQuota(connectionId, {
+    accessToken: "inline-token",
+    providerSpecificData: {
+      workspaceId: "workspace-inline",
+    },
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].init.headers.Authorization, "Bearer inline-token");
+  assert.equal(calls[0].init.headers["chatgpt-account-id"], "workspace-inline");
+  assert.equal(quota.percentUsed, 0.7);
+  assert.ok(typeof quota.resetAt === "string");
+
+  invalidateCodexQuotaCache(connectionId);
 });
 
 test("fetchCodexQuota parses dual-window usage, forwards workspace headers, and caches results", async () => {
@@ -141,6 +187,7 @@ test("registerCodexQuotaFetcher exposes Codex quota to preflight and monitor flo
     providerSpecificData: { quotaPreflightEnabled: true },
   });
 
+  touchSession("session-codex", connectionId);
   startQuotaMonitor("session-codex", "codex", connectionId, {
     providerSpecificData: { quotaMonitorEnabled: true },
   });

@@ -365,9 +365,9 @@ test("chatCore resolves stream mode from body.stream and Accept header", async (
   });
 
   assert.equal(explicitTrue.call.headers.Accept, "text/event-stream");
-  assert.equal(explicitFalse.call.headers.Accept, undefined);
+  assert.equal(explicitFalse.call.headers.Accept, "application/json");
   assert.equal(acceptDriven.call.headers.Accept, "text/event-stream");
-  assert.equal(jsonDefault.call.headers.Accept, undefined);
+  assert.equal(jsonDefault.call.headers.Accept, "application/json");
 });
 
 test("chatCore injects memories when enabled and memories are found", async () => {

@@ -1,13 +1,52 @@
 import { NextResponse } from "next/server";
 import { jwtVerify, SignJWT } from "jose";
 import { generateRequestId } from "./shared/utils/requestId";
-import { getSettings } from "./lib/localDb";
-import { isPublicRoute, verifyAuth, isAuthRequired } from "./shared/utils/apiAuth";
 import { checkBodySize, getBodySizeLimit } from "./shared/middleware/bodySizeGuard";
 import { isDraining } from "./lib/gracefulShutdown";
-import { isModelSyncInternalRequest } from "./shared/services/modelSyncScheduler";
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "");
+const E2E_MODE = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
+const PUBLIC_API_ROUTES = [
+  "/api/auth/login",
+  "/api/auth/logout",
+  "/api/auth/status",
+  "/api/settings/require-login",
+  "/api/init",
+  "/api/monitoring/health",
+  "/api/v1/",
+  "/api/cloud/",
+  "/api/oauth/",
+];
+
+let apiAuthModulePromise: Promise<typeof import("./shared/utils/apiAuth")> | null = null;
+let settingsModulePromise: Promise<typeof import("./lib/db/settings")> | null = null;
+let modelSyncModulePromise: Promise<typeof import("./shared/services/modelSyncScheduler")> | null =
+  null;
+
+function isPublicApiRoute(pathname: string): boolean {
+  return PUBLIC_API_ROUTES.some((route) => pathname.startsWith(route));
+}
+
+async function getApiAuthModule() {
+  if (!apiAuthModulePromise) {
+    apiAuthModulePromise = import("./shared/utils/apiAuth");
+  }
+  return apiAuthModulePromise;
+}
+
+async function getSettingsModule() {
+  if (!settingsModulePromise) {
+    settingsModulePromise = import("./lib/db/settings");
+  }
+  return settingsModulePromise;
+}
+
+async function getModelSyncModule() {
+  if (!modelSyncModulePromise) {
+    modelSyncModulePromise = import("./shared/services/modelSyncScheduler");
+  }
+  return modelSyncModulePromise;
+}
 
 export async function proxy(request: any) {
   const { pathname } = request.nextUrl;
@@ -37,14 +76,24 @@ export async function proxy(request: any) {
     if (bodySizeRejection) return bodySizeRejection;
   }
 
+  if (E2E_MODE) {
+    if (pathname.startsWith("/dashboard")) {
+      return response;
+    }
+    if (pathname.startsWith("/api/") && !pathname.startsWith("/api/v1/")) {
+      return response;
+    }
+  }
+
   // ──────────────── Protect Management API Routes ────────────────
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/v1/")) {
     // Allow public routes (login, logout, health, etc.)
-    if (isPublicRoute(pathname)) {
+    if (isPublicApiRoute(pathname)) {
       return response;
     }
 
     // Allow the model auto-sync scheduler to reach only its internal provider routes.
+    const { isModelSyncInternalRequest } = await getModelSyncModule();
     if (
       isModelSyncInternalRequest(request) &&
       /^\/api\/providers\/[^/]+\/(sync-models|models)$/.test(pathname)
@@ -53,6 +102,7 @@ export async function proxy(request: any) {
     }
 
     // Check if auth is required at all (respects requireLogin setting)
+    const { isAuthRequired, verifyAuth } = await getApiAuthModule();
     const authRequired = await isAuthRequired();
     if (!authRequired) {
       return response;
@@ -83,6 +133,7 @@ export async function proxy(request: any) {
 
     try {
       // Direct import — no HTTP self-fetch overhead
+      const { getSettings } = await getSettingsModule();
       const settings = await getSettings();
       // Skip auth if login is not required
       if (settings.requireLogin === false) {

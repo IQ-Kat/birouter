@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProviderConnections, getSettings } from "@/lib/localDb";
+import { buildHealthPayload } from "@/lib/monitoring/observability";
 import { APP_CONFIG } from "@/shared/constants/config";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 
@@ -15,67 +16,38 @@ export async function GET() {
     const { getAllRateLimitStatus } = await import("@omniroute/open-sse/services/rateLimitManager");
     const { getAllModelLockouts } = await import("@omniroute/open-sse/services/accountFallback");
     const { getInflightCount } = await import("@omniroute/open-sse/services/requestDedup.ts");
+    const { getQuotaMonitorSummary, getQuotaMonitorSnapshots } =
+      await import("@omniroute/open-sse/services/quotaMonitor.ts");
+    const { getActiveSessions, getAllActiveSessionCountsByKey } =
+      await import("@omniroute/open-sse/services/sessionManager.ts");
 
     const settings = await getSettings();
     const connections = await getProviderConnections();
     const circuitBreakers = getAllCircuitBreakerStatuses();
     const rateLimitStatus = getAllRateLimitStatus();
     const lockouts = getAllModelLockouts();
+    const quotaMonitorSummary = getQuotaMonitorSummary();
+    const quotaMonitorMonitors = getQuotaMonitorSnapshots();
+    const activeSessions = getActiveSessions();
+    const activeSessionsByKey = getAllActiveSessionCountsByKey();
     const { getAllHealthStatuses } = await import("@/lib/localHealthCheck");
-
-    // System info
-    const system = {
-      version: APP_CONFIG.version,
-      nodeVersion: process.version,
-      uptime: process.uptime(),
-      memoryUsage: process.memoryUsage(),
-      pid: process.pid,
-      platform: process.platform,
-    };
-
-    // Provider health summary (circuitBreakers is an Array of { name, state, ... })
-    const providerHealth = {};
-    for (const cb of circuitBreakers) {
-      // Skip test circuit breakers (leftover from unit tests)
-      if (cb.name.startsWith("test-") || cb.name.startsWith("test_")) continue;
-      providerHealth[cb.name] = {
-        state: cb.state,
-        failures: cb.failureCount || 0,
-        lastFailure: cb.lastFailureTime,
-      };
-    }
-
-    const configuredProviders = new Set(connections.map((c: any) => c.provider));
-    const activeProviders = new Set(
-      connections.filter((c: any) => c.isActive !== false).map((c: any) => c.provider)
-    );
-
-    return NextResponse.json({
-      status: "healthy",
-      timestamp: new Date().toISOString(),
-      system,
-      providerHealth,
-      providerSummary: {
-        catalogCount: Object.keys(AI_PROVIDERS).length,
-        configuredCount: configuredProviders.size,
-        activeCount: activeProviders.size,
-        monitoredCount: Object.keys(providerHealth).length,
-      },
-      localProviders: getAllHealthStatuses(),
+    const payload = buildHealthPayload({
+      appVersion: APP_CONFIG.version,
+      catalogCount: Object.keys(AI_PROVIDERS).length,
+      settings,
+      connections,
+      circuitBreakers,
       rateLimitStatus,
       lockouts,
-      dedup: {
-        inflightRequests: getInflightCount(),
-      },
-      cryptography: {
-        status:
-          process.env.STORAGE_ENCRYPTION_KEY && process.env.STORAGE_ENCRYPTION_KEY.length >= 32
-            ? "healthy"
-            : "missing_or_invalid",
-        provider: "aes-256-gcm",
-      },
-      setupComplete: settings?.setupComplete || false,
+      localProviders: getAllHealthStatuses(),
+      inflightRequests: getInflightCount(),
+      quotaMonitorSummary,
+      quotaMonitorMonitors,
+      activeSessions,
+      activeSessionsByKey,
     });
+
+    return NextResponse.json(payload);
   } catch (error) {
     console.error("[API] GET /api/monitoring/health error:", error);
     return NextResponse.json({ status: "error", error: "Health check failed" }, { status: 500 });
