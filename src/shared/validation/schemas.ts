@@ -92,7 +92,7 @@ const comboModelEntry = z.union([
   comboRefStepInputSchema,
 ]);
 
-const comboStrategySchema = z.enum([
+export const comboStrategySchema = z.enum([
   "priority",
   "weighted",
   "round-robin",
@@ -105,7 +105,6 @@ const comboStrategySchema = z.enum([
   "fill-first",
   // #729 schema fixes for combo edit/save
   "p2c",
-  "auto",
   "lkgp",
   "context-optimized",
 ]);
@@ -179,18 +178,6 @@ export const createComboSchema = z.object({
   tool_filter_regex: z.string().max(1000).optional(),
   context_cache_protection: z.boolean().optional(),
   context_length: z.number().int().min(1000).max(2000000).optional(),
-});
-
-// ──── Auto-Combo Schemas ────
-
-export const createAutoComboSchema = z.object({
-  id: z.string().trim().min(1, "id is required").max(100),
-  name: z.string().trim().min(1, "name is required").max(200),
-  candidatePool: z.array(z.string().min(1)).optional().default([]),
-  weights: scoringWeightsSchema,
-  modePack: z.string().max(100).optional(),
-  budgetCap: z.number().positive().optional(),
-  explorationRate: z.number().min(0).max(1).optional().default(0.05),
 });
 
 // ──── Settings Schemas ────

@@ -158,6 +158,27 @@ test("combo builder stage helpers expose completion state and linear navigation"
   assert.equal(builderDraft.getNextComboBuilderStage("review"), "review");
   assert.equal(builderDraft.getPreviousComboBuilderStage("review"), "strategy");
   assert.equal(builderDraft.getPreviousComboBuilderStage("basics"), "basics");
+  assert.deepEqual(builderDraft.getComboBuilderStages({ strategy: "priority" }), [
+    "basics",
+    "steps",
+    "strategy",
+    "review",
+  ]);
+  assert.deepEqual(builderDraft.getComboBuilderStages({ strategy: "auto" }), [
+    "basics",
+    "steps",
+    "strategy",
+    "intelligent",
+    "review",
+  ]);
+  assert.equal(
+    builderDraft.getNextComboBuilderStage("strategy", { strategy: "auto" }),
+    "intelligent"
+  );
+  assert.equal(
+    builderDraft.getPreviousComboBuilderStage("review", { strategy: "auto" }),
+    "intelligent"
+  );
 
   const checks = builderDraft.getComboBuilderStageChecks({
     name: "codex-stack",
@@ -171,6 +192,10 @@ test("combo builder stage helpers expose completion state and linear navigation"
   assert.equal(builderDraft.canAccessComboBuilderStage("steps", checks), true);
   assert.equal(builderDraft.canAccessComboBuilderStage("strategy", checks), true);
   assert.equal(builderDraft.canAccessComboBuilderStage("review", checks), true);
+  assert.equal(
+    builderDraft.canAccessComboBuilderStage("intelligent", checks, { strategy: "auto" }),
+    false
+  );
 
   const lockedChecks = builderDraft.getComboBuilderStageChecks({
     name: "",
@@ -183,4 +208,22 @@ test("combo builder stage helpers expose completion state and linear navigation"
   assert.equal(builderDraft.canAccessComboBuilderStage("steps", lockedChecks), false);
   assert.equal(builderDraft.canAccessComboBuilderStage("strategy", lockedChecks), false);
   assert.equal(builderDraft.canAccessComboBuilderStage("review", lockedChecks), false);
+});
+
+test("intelligent builder stage is accessible only after strategy checks pass", () => {
+  const readyChecks = builderDraft.getComboBuilderStageChecks({
+    name: "auto-stack",
+    nameError: "",
+    modelsCount: 2,
+    hasInvalidWeightedTotal: false,
+    hasCostOptimizedWithoutPricing: false,
+  });
+
+  assert.equal(
+    builderDraft.canAccessComboBuilderStage("intelligent", readyChecks, { strategy: "auto" }),
+    true
+  );
+  assert.equal(builderDraft.isIntelligentBuilderStrategy("auto"), true);
+  assert.equal(builderDraft.isIntelligentBuilderStrategy("lkgp"), true);
+  assert.equal(builderDraft.isIntelligentBuilderStrategy("priority"), false);
 });

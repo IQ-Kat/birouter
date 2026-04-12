@@ -93,6 +93,7 @@ async function resetStorage() {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await settingsDb.resetAllPricing();
+  settingsDb.clearAllLKGP();
   clearModelsDevCapabilities();
 }
 
@@ -1276,6 +1277,81 @@ test("handleComboChat auto strategy honors LKGP after filtering to tool-capable 
 
   assert.equal(result.ok, true);
   assert.equal(calls[0], "claude/claude-sonnet-4-6");
+});
+
+test("handleComboChat standalone lkgp strategy prioritizes the last known good provider", async () => {
+  await settingsDb.setLKGP("standalone-lkgp", "standalone-lkgp", "anthropic");
+
+  const calls = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      id: "standalone-lkgp",
+      name: "standalone-lkgp",
+      strategy: "lkgp",
+      models: ["openai/gpt-4o-mini", "anthropic/claude-sonnet-4-6"],
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls[0], "anthropic/claude-sonnet-4-6");
+});
+
+test("handleComboChat standalone lkgp strategy falls back to original order when no state exists", async () => {
+  const calls = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      id: "standalone-lkgp-no-state",
+      name: "standalone-lkgp-no-state",
+      strategy: "lkgp",
+      models: ["openai/gpt-4o-mini", "anthropic/claude-sonnet-4-6"],
+    },
+    handleSingleModel: async (_body, modelStr) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls[0], "openai/gpt-4o-mini");
+});
+
+test("handleComboChat standalone lkgp strategy updates LKGP after a successful call", async () => {
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      id: "standalone-lkgp-save",
+      name: "standalone-lkgp-save",
+      strategy: "lkgp",
+      models: ["openai/gpt-4o-mini"],
+    },
+    handleSingleModel: async () => okResponse(),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+
+  const persistedProvider = await settingsDb.getLKGP(
+    "standalone-lkgp-save",
+    "standalone-lkgp-save"
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(persistedProvider, "openai");
 });
 
 test("handleComboChat auto strategy falls back to the full pool when tool filtering empties candidates", async () => {

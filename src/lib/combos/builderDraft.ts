@@ -3,9 +3,30 @@ import type { ComboModelStep } from "@/lib/combos/steps";
 type JsonRecord = Record<string, unknown>;
 
 export const COMBO_BUILDER_AUTO_CONNECTION = "__auto__";
-export const COMBO_BUILDER_STAGES = ["basics", "steps", "strategy", "review"] as const;
+export const COMBO_BUILDER_STAGES = [
+  "basics",
+  "steps",
+  "strategy",
+  "intelligent",
+  "review",
+] as const;
 
 export type ComboBuilderStage = (typeof COMBO_BUILDER_STAGES)[number];
+export type ComboBuilderStageOptions = {
+  strategy?: string | null;
+};
+
+export function isIntelligentBuilderStrategy(strategy: unknown): boolean {
+  return strategy === "auto" || strategy === "lkgp";
+}
+
+export function getComboBuilderStages(options: ComboBuilderStageOptions = {}): ComboBuilderStage[] {
+  if (isIntelligentBuilderStrategy(options.strategy)) {
+    return [...COMBO_BUILDER_STAGES];
+  }
+
+  return COMBO_BUILDER_STAGES.filter((stage) => stage !== "intelligent");
+}
 
 function isRecord(value: unknown): value is JsonRecord {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -129,25 +150,37 @@ export function getComboBuilderStageChecks({
 
 export function canAccessComboBuilderStage(
   stage: ComboBuilderStage,
-  checks: ReturnType<typeof getComboBuilderStageChecks>
+  checks: ReturnType<typeof getComboBuilderStageChecks>,
+  options: ComboBuilderStageOptions = {}
 ): boolean {
+  const availableStages = getComboBuilderStages(options);
+  if (!availableStages.includes(stage)) return false;
   if (stage === "basics") return true;
   if (stage === "steps") return checks.basics;
   if (stage === "strategy") return checks.basics && checks.steps;
+  if (stage === "intelligent") return checks.basics && checks.steps && checks.strategy;
   if (stage === "review") return checks.basics && checks.steps;
   return false;
 }
 
-export function getNextComboBuilderStage(stage: ComboBuilderStage): ComboBuilderStage {
-  const stageIndex = COMBO_BUILDER_STAGES.indexOf(stage);
-  if (stageIndex === -1 || stageIndex >= COMBO_BUILDER_STAGES.length - 1) {
+export function getNextComboBuilderStage(
+  stage: ComboBuilderStage,
+  options: ComboBuilderStageOptions = {}
+): ComboBuilderStage {
+  const stages = getComboBuilderStages(options);
+  const stageIndex = stages.indexOf(stage);
+  if (stageIndex === -1 || stageIndex >= stages.length - 1) {
     return "review";
   }
-  return COMBO_BUILDER_STAGES[stageIndex + 1];
+  return stages[stageIndex + 1];
 }
 
-export function getPreviousComboBuilderStage(stage: ComboBuilderStage): ComboBuilderStage {
-  const stageIndex = COMBO_BUILDER_STAGES.indexOf(stage);
+export function getPreviousComboBuilderStage(
+  stage: ComboBuilderStage,
+  options: ComboBuilderStageOptions = {}
+): ComboBuilderStage {
+  const stages = getComboBuilderStages(options);
+  const stageIndex = stages.indexOf(stage);
   if (stageIndex <= 0) return "basics";
-  return COMBO_BUILDER_STAGES[stageIndex - 1];
+  return stages[stageIndex - 1];
 }

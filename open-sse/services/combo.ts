@@ -1236,6 +1236,29 @@ export async function handleComboChat({
     } else {
       log.warn("COMBO", "Auto strategy has no candidates, keeping default ordering");
     }
+  } else if (strategy === "lkgp") {
+    try {
+      const { getLKGP } = await import("../../src/lib/localDb");
+      const lkgpProvider = await getLKGP(combo.name, combo.id || combo.name);
+
+      if (lkgpProvider) {
+        const lkgpIndex = orderedTargets.findIndex(
+          (target) =>
+            target.provider === lkgpProvider || target.modelStr.startsWith(`${lkgpProvider}/`)
+        );
+
+        if (lkgpIndex > 0) {
+          const [lkgpTarget] = orderedTargets.splice(lkgpIndex, 1);
+          orderedTargets.unshift(lkgpTarget);
+          log.info(
+            "COMBO",
+            `[LKGP] Prioritizing last known good provider ${lkgpProvider} for combo "${combo.name}"`
+          );
+        }
+      }
+    } catch (err) {
+      log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
+    }
   } else if (strategy === "strict-random") {
     const selectedExecutionKey = await getNextFromDeck(
       `combo:${combo.name}`,
@@ -1395,18 +1418,17 @@ export async function handleComboChat({
 
         // Record last known good provider (LKGP) for this combo/model (#919)
         if (provider) {
-          import("../../src/lib/localDb")
-            .then(({ setLKGP }) =>
-              Promise.all([
-                setLKGP(combo.name, target.executionKey, provider),
-                setLKGP(combo.name, combo.id || combo.name, provider),
-              ])
-            )
-            .catch((err) =>
-              log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
-                err,
-              })
-            );
+          try {
+            const { setLKGP } = await import("../../src/lib/localDb");
+            await Promise.all([
+              setLKGP(combo.name, target.executionKey, provider),
+              setLKGP(combo.name, combo.id || combo.name, provider),
+            ]);
+          } catch (err) {
+            log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
+              err,
+            });
+          }
         }
 
         return result;
