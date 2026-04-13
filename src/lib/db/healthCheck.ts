@@ -1,3 +1,5 @@
+import { normalizeComboStep } from "@/lib/combos/steps";
+
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
 
@@ -152,9 +154,29 @@ function repairComboRows(
     const nextModels: unknown[] = [];
     let removedSteps = 0;
     let clearedConnectionPins = 0;
+    let normalizedLegacyComboRefs = 0;
 
-    for (const rawStep of currentModels) {
+    for (const [index, rawStep] of currentModels.entries()) {
       if (!isRecord(rawStep)) {
+        if (typeof rawStep === "string") {
+          const normalizedStep = normalizeComboStep(rawStep, {
+            comboName: row.name,
+            index,
+            allCombos: existingComboNames,
+          });
+          if (normalizedStep?.kind === "combo-ref") {
+            if (
+              normalizedStep.comboName === row.name ||
+              !existingComboNames.has(normalizedStep.comboName)
+            ) {
+              removedSteps += 1;
+              continue;
+            }
+            nextModels.push(normalizedStep);
+            normalizedLegacyComboRefs += 1;
+            continue;
+          }
+        }
         nextModels.push(rawStep);
         continue;
       }
@@ -181,11 +203,11 @@ function repairComboRows(
       nextModels.push(rawStep);
     }
 
-    if (removedSteps === 0 && clearedConnectionPins === 0) {
+    if (removedSteps === 0 && clearedConnectionPins === 0 && normalizedLegacyComboRefs === 0) {
       continue;
     }
 
-    issueCount += removedSteps + clearedConnectionPins;
+    issueCount += removedSteps + clearedConnectionPins + normalizedLegacyComboRefs;
     if (!options.autoRepair) continue;
 
     const nextCombo = {
@@ -198,6 +220,9 @@ function repairComboRows(
           clearedConnectionPins > 0
             ? `${clearedConnectionPins} missing connection pin(s) cleared.`
             : null,
+          normalizedLegacyComboRefs > 0
+            ? `${normalizedLegacyComboRefs} legacy combo ref step(s) canonicalized.`
+            : null,
         ]
           .filter(Boolean)
           .join(" "),
@@ -207,7 +232,7 @@ function repairComboRows(
     };
 
     updateComboStmt.run(JSON.stringify(nextCombo), checkedAt, row.id);
-    repairedCount += removedSteps + clearedConnectionPins;
+    repairedCount += removedSteps + clearedConnectionPins + normalizedLegacyComboRefs;
   }
 
   return { issueCount, repairedCount };
@@ -391,22 +416,26 @@ export function runDbHealthCheck(
     });
   }
 
-  const comboRows = db
-    .prepare(
-      "SELECT id, name, data, sort_order, created_at, updated_at FROM combos ORDER BY name COLLATE NOCASE ASC"
-    )
-    .all() as ComboRow[];
-  const comboRepair = repairComboRows(db, comboRows, checkedAt, { autoRepair });
-  if (comboRepair.issueCount > 0) {
-    issues.push({
-      type: "broken_reference",
-      table: "combos",
-      description:
-        "Combos contained broken combo references, invalid JSON, or pinned connections that no longer exist.",
-      count: comboRepair.issueCount,
-    });
-    ensureBackupBeforeRepair();
-    repairedCount += comboRepair.repairedCount;
+  if (hasRows(db, "combos")) {
+    const comboRows = db
+      .prepare(
+        "SELECT id, name, data, sort_order, created_at, updated_at FROM combos ORDER BY name COLLATE NOCASE ASC"
+      )
+      .all() as ComboRow[];
+    const comboRepair = repairComboRows(db, comboRows, checkedAt, { autoRepair });
+    if (comboRepair.issueCount > 0) {
+      issues.push({
+        type: "broken_reference",
+        table: "combos",
+        description:
+          "Combos contained broken combo references, legacy combo refs, invalid JSON, or pinned connections that no longer exist.",
+        count: comboRepair.issueCount,
+      });
+      if (autoRepair) {
+        ensureBackupBeforeRepair();
+        repairedCount += comboRepair.repairedCount;
+      }
+    }
   }
 
   const orphanQuotaCount = countOrphanQuotaSnapshots(db);

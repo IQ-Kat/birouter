@@ -77,6 +77,19 @@ test("runDbHealthCheck reports issues without mutating when autoRepair is disabl
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM domain_fallback_chains").get().count, 1);
 });
 
+test("runDbHealthCheck tolerates databases without a combos table", async () => {
+  const db = core.getDbInstance();
+  db.exec("DROP TABLE combos");
+
+  const result = healthCheckDb.runDbHealthCheck(db, { autoRepair: false });
+
+  assert.equal(result.isHealthy, true);
+  assert.equal(
+    result.issues.some((issue) => issue.table === "combos"),
+    false
+  );
+});
+
 test("runDbHealthCheck auto-repairs orphan rows and invalid JSON payloads", async () => {
   const db = core.getDbInstance();
   insertBrokenRows(db);
@@ -110,6 +123,25 @@ test("runDbHealthCheck repairs broken combo payloads, combo refs and stale conne
     name: "Healthy Connection",
     apiKey: "sk-healthy",
   });
+  db.prepare(
+    "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(
+    "combo-child",
+    "combo-child",
+    JSON.stringify({
+      id: "combo-child",
+      name: "combo-child",
+      strategy: "priority",
+      models: ["openai/gpt-4o-mini"],
+      config: {},
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    }),
+    0,
+    now,
+    now
+  );
 
   db.prepare(
     "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
@@ -125,6 +157,8 @@ test("runDbHealthCheck repairs broken combo payloads, combo refs and stale conne
       name: "combo-broken",
       strategy: "priority",
       models: [
+        "combo-child",
+        "combo-broken",
         { id: "ref-missing", kind: "combo-ref", comboName: "missing-child", weight: 0 },
         {
           id: "model-pinned",
@@ -168,17 +202,58 @@ test("runDbHealthCheck repairs broken combo payloads, combo refs and stale conne
     result.issues.some((issue) => issue.table === "combos"),
     true
   );
-  assert.equal(result.repairedCount, 3);
+  assert.equal(result.repairedCount, 5);
   assert.equal(invalidCombo.isActive, false);
   assert.match(invalidCombo.repairNote, /invalid JSON/i);
-  assert.equal(repairedCombo.models.length, 2);
+  assert.equal(repairedCombo.models.length, 3);
   assert.equal(
-    repairedCombo.models.some((step) => step.kind === "combo-ref"),
-    false
+    repairedCombo.models.some(
+      (step) => step.kind === "combo-ref" && step.comboName === "combo-child"
+    ),
+    true
   );
-  assert.equal("connectionId" in repairedCombo.models[0], false);
-  assert.equal(repairedCombo.models[1].connectionId, activeConnection.id);
+  assert.equal("connectionId" in repairedCombo.models[1], false);
+  assert.equal(repairedCombo.models[2].connectionId, activeConnection.id);
   assert.match(repairedCombo.repairNote, /broken combo step/i);
+  assert.match(repairedCombo.repairNote, /legacy combo ref/i);
+});
+
+test("runDbHealthCheck diagnosis does not request backups for combo-only issues", async () => {
+  const db = core.getDbInstance();
+  const now = new Date().toISOString();
+  let backupAttempts = 0;
+
+  db.prepare(
+    "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(
+    "combo-broken",
+    "combo-broken",
+    JSON.stringify({
+      id: "combo-broken",
+      name: "combo-broken",
+      strategy: "priority",
+      models: [{ id: "ref-missing", kind: "combo-ref", comboName: "missing-child", weight: 0 }],
+      config: {},
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    }),
+    1,
+    now,
+    now
+  );
+
+  const result = healthCheckDb.runDbHealthCheck(db, {
+    autoRepair: false,
+    createBackupBeforeRepair: () => {
+      backupAttempts += 1;
+      return true;
+    },
+  });
+
+  assert.equal(result.repairedCount, 0);
+  assert.equal(result.backupCreated, false);
+  assert.equal(backupAttempts, 0);
 });
 
 test("getDbInstance can auto-repair persisted broken rows when startup repair is forced", async () => {
