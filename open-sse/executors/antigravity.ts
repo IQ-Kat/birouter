@@ -1,6 +1,15 @@
 import crypto, { randomUUID } from "crypto";
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
+import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
+import { antigravityUserAgent, googApiClientHeader } from "../services/antigravityHeaders.ts";
+import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
+import {
+  injectCreditsField,
+  shouldRetryWithCredits,
+  handleCreditsFailure,
+} from "../services/antigravityCredits.ts";
+import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
@@ -79,13 +88,15 @@ export class AntigravityExecutor extends BaseExecutor {
   }
 
   buildHeaders(credentials, stream = true) {
-    return {
+    const raw = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials.accessToken}`,
-      "User-Agent": this.config.headers?.["User-Agent"] || "antigravity/1.104.0 darwin/arm64",
-      "X-OmniRoute-Source": "omniroute",
+      "User-Agent": antigravityUserAgent(),
+      "X-Goog-Api-Client": googApiClientHeader(),
       Accept: "text/event-stream",
     };
+    // Scrub proxy/fingerprint headers that reveal non-native traffic
+    return scrubProxyAndFingerprintHeaders(raw);
   }
 
   transformRequest(model, body, stream, credentials) {
@@ -158,6 +169,20 @@ export class AntigravityExecutor extends BaseExecutor {
     };
 
     const upstreamModel = cleanModelName(model);
+
+    // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")
+    const requestContents = transformedRequest.contents;
+    if (Array.isArray(requestContents)) {
+      for (const msg of requestContents) {
+        if (Array.isArray(msg.parts)) {
+          for (const part of msg.parts) {
+            if (typeof part.text === "string") {
+              part.text = obfuscateSensitiveWords(part.text);
+            }
+          }
+        }
+      }
+    }
 
     return {
       ...body,
@@ -427,40 +452,40 @@ export class AntigravityExecutor extends BaseExecutor {
               const errorBody = await response.clone().text();
               const errorJson = JSON.parse(errorBody);
               const errorMessage = errorJson?.error?.message || errorJson?.message || "";
-              const lowerMsg = errorMessage.toLowerCase();
 
-              // ── AI Credits Overages fallback ─────────────────────────────────
-              // MUST run BEFORE parseRetryFromErrorMessage: the API embeds the
-              // reset time in the same message ("reset after 141h22m11s"), so
-              // parseRetryFromErrorMessage fills retryMs and the !retryMs guard
-              // below would silently skip the credit injection.
+              // 1. Try to parse explicit retry time from message
+              const parsedRetryMs = this.parseRetryFromErrorMessage(errorMessage);
+
+              // 2. Classify 429
+              const category = classify429(errorMessage);
+
+              // 3. For quota_exhausted, attempt Google One AI credits retry FIRST!
               if (
-                lowerMsg.includes("exhausted your capacity") ||
-                lowerMsg.includes("exhausted your") ||
-                lowerMsg.includes("daily limit") ||
-                lowerMsg.includes("quota exceeded")
+                category === "quota_exhausted" &&
+                shouldRetryWithCredits(
+                  credentials?.accessToken || "",
+                  process.env.ANTIGRAVITY_CREDITS === "1" ||
+                    process.env.ANTIGRAVITY_CREDITS === "true"
+                )
               ) {
-                if (!isCreditsExhausted(accountId) && !transformedBody?.enabledCreditTypes) {
-                  log?.info?.(
-                    "CREDITS",
-                    `Quota exhausted for ${model} — retrying with GOOGLE_ONE_AI credits (account: ${accountId})`
-                  );
-                  const creditBody = { ...transformedBody, enabledCreditTypes: ["GOOGLE_ONE_AI"] };
-                  const creditRes = await fetch(url, {
+                log?.info?.("AG_CREDITS", "Retrying with Google One AI credits");
+                const creditsBody = injectCreditsField(transformedBody);
+                try {
+                  const creditsResp = await fetch(url, {
                     method: "POST",
                     headers,
-                    body: JSON.stringify(creditBody),
+                    body: JSON.stringify(creditsBody),
                     signal,
                   });
-
-                  if (creditRes.ok) {
+                  if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
+                    log?.info?.("AG_CREDITS", `Credits retry succeeded: ${creditsResp.status}`);
                     if (!stream) {
                       const collected = await this.collectStreamToResponse(
-                        creditRes,
+                        creditsResp,
                         model,
                         url,
                         headers,
-                        creditBody,
+                        creditsBody,
                         log,
                         signal
                       );
@@ -481,53 +506,28 @@ export class AntigravityExecutor extends BaseExecutor {
                       }
                       return collected;
                     }
-                    return { response: creditRes, url, headers, transformedBody: creditBody };
+                    return { response: creditsResp, url, headers, transformedBody: creditsBody };
                   }
 
-                  // Credit retry also failed — check if credits are exhausted
-                  try {
-                    const creditErrText = await creditRes.clone().text();
-                    const creditErrJson = JSON.parse(creditErrText);
-                    const creditErrMsg = (creditErrJson?.error?.message || "").toLowerCase();
-                    if (
-                      creditErrMsg.includes("credit") ||
-                      creditErrMsg.includes("insufficient") ||
-                      creditErrMsg.includes("exhausted")
-                    ) {
-                      log?.warn?.(
-                        "CREDITS",
-                        `GOOGLE_ONE_AI credits exhausted for account ${accountId} — caching for 5h`
-                      );
-                      markCreditsExhausted(accountId);
-                    }
-                  } catch {
-                    /**/
-                  }
-                  // Fall through to normal fallback logic below
-                } else if (!isCreditsExhausted(accountId) && transformedBody?.enabledCreditTypes) {
-                  // Already had credits injected and still failed — mark exhausted
+                  // Credit retry also 429'd
+                  handleCreditsFailure(credentials?.accessToken || "");
+                  log?.warn?.("AG_CREDITS", "Credits retry also 429'd");
+
+                  // Also mark in our legacy exhaustion map to avoid retrying other routes
                   markCreditsExhausted(accountId);
-                  log?.warn?.("CREDITS", `Credits exhausted for account ${accountId}`);
-                }
-
-                // Hard quota limit — force fallback to next account regardless
-                retryMs = 24 * 60 * 60 * 1000;
-              } else {
-                // Not a quota-exhaustion error — try to parse a Retry-After from the message
-                retryMs = this.parseRetryFromErrorMessage(errorMessage);
-
-                if (!retryMs) {
-                  if (lowerMsg.includes("free tier") || lowerMsg.includes("free")) {
-                    retryMs = 24 * 60 * 60 * 1000;
-                  } else if (
-                    lowerMsg.includes("pro") ||
-                    lowerMsg.includes("per minute") ||
-                    lowerMsg.includes("rpm")
-                  ) {
-                    retryMs = 60 * 1000;
-                  }
+                } catch (creditsErr) {
+                  handleCreditsFailure(credentials?.accessToken || "");
+                  log?.warn?.("AG_CREDITS", `Credits retry failed: ${creditsErr}`);
                 }
               }
+
+              // 4. Decide final retry time (apply 4-tier engine)
+              const decision: Decision = decide429(category, parsedRetryMs);
+              retryMs = decision.retryAfterMs;
+              log?.debug?.(
+                "AG_429",
+                `Category: ${category}, Decision: ${decision.kind} — ${decision.reason}`
+              );
             } catch (e) {
               // Ignore parse errors, will fall back to exponential backoff
             }
