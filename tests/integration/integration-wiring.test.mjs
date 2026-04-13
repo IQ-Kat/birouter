@@ -323,4 +323,37 @@ describe("Page Integration — combos page empty state", () => {
     assert.match(src, /pickDisplayValue/);
     assert.match(src, /emailVisibilityTooltip/);
   });
+
+  it("should mask combo test result labels with the global email privacy toggle", () => {
+    assert.match(src, /function TestResultsView/);
+    assert.match(src, /pickDisplayValue\(\[r\.label\], emailsVisible, r\.model\)/);
+  });
+});
+
+describe("Page Integration — provider test results privacy", () => {
+  const providersSrc = readProjectFile("src/app/(dashboard)/dashboard/providers/page.tsx");
+  const providerDetailSrc = readProjectFile(
+    "src/app/(dashboard)/dashboard/providers/[id]/page.tsx"
+  );
+
+  it("should mask provider test batch names with the global email privacy toggle", () => {
+    assert.ok(providersSrc, "src/app/(dashboard)/dashboard/providers/page.tsx should exist");
+    assert.match(providersSrc, /useEmailPrivacyStore/);
+    assert.match(
+      providersSrc,
+      /pickDisplayValue\(\[r\.connectionName\], emailsVisible, r\.connectionName\)/
+    );
+  });
+
+  it("should mask provider detail test result names with the global email privacy toggle", () => {
+    assert.ok(
+      providerDetailSrc,
+      "src/app/(dashboard)/dashboard/providers/[id]/page.tsx should exist"
+    );
+    assert.match(providerDetailSrc, /const emailsVisible = useEmailPrivacyStore/);
+    assert.match(
+      providerDetailSrc,
+      /pickDisplayValue\(\s*\[r\.connectionName\],\s*emailsVisible,\s*r\.connectionName\s*\)/
+    );
+  });
 });

@@ -1632,6 +1632,8 @@ function ComboCard({
 // Test Results View
 // ─────────────────────────────────────────────
 function TestResultsView({ results }) {
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
+
   if (results.error) {
     return (
       <div className="flex items-center gap-2 text-red-500 text-sm">
@@ -1686,7 +1688,9 @@ function TestResultsView({ results }) {
             {r.status === "ok" ? "check_circle" : r.status === "skipped" ? "skip_next" : "error"}
           </span>
           <div className="min-w-0 flex-1">
-            <code className="font-mono block truncate">{r.label || r.model}</code>
+            <code className="font-mono block truncate">
+              {pickDisplayValue([r.label], emailsVisible, r.model)}
+            </code>
             {r.connectionId || r.stepId ? (
               <div className="mt-0.5 text-[10px] text-text-muted">
                 {r.connectionId ? `acct ${r.connectionId.slice(0, 8)}` : "dynamic account"}

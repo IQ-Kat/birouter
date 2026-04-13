@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
+import { getActiveSidebarHref } from "@/shared/utils/sidebarRouteMatch";
 import { APP_CONFIG } from "@/shared/constants/config";
 import OmniRouteLogo from "./OmniRouteLogo";
 import Button from "./Button";
@@ -91,13 +92,6 @@ export default function Sidebar({
     };
   }, []);
 
-  const isActive = (href, exact) => {
-    if (exact) {
-      return pathname === href;
-    }
-    return pathname.startsWith(href);
-  };
-
   const handleShutdown = async () => {
     setIsShuttingDown(true);
     try {
@@ -140,9 +134,13 @@ export default function Sidebar({
         .filter((item) => !hiddenSidebarSet.has(item.id)),
     }))
     .filter((section) => section.items.length > 0);
+  const activeHref = getActiveSidebarHref(
+    pathname,
+    visibleSections.flatMap((section) => section.items)
+  );
 
   const renderNavLink = (item) => {
-    const active = !item.external && isActive(item.href, item.exact);
+    const active = !item.external && activeHref === item.href;
     const className = cn(
       "flex items-center gap-3 rounded-lg transition-all group",
       collapsed ? "justify-center px-2 py-2.5" : "px-4 py-2",
@@ -305,9 +303,7 @@ export default function Sidebar({
             collapsed ? "p-2 flex flex-col gap-1" : "p-3 flex gap-2"
           )}
           style={{
-            paddingBottom: isMacElectron
-              ? "calc(0.75rem + var(--desktop-safe-bottom))"
-              : undefined,
+            paddingBottom: isMacElectron ? "calc(0.75rem + var(--desktop-safe-bottom))" : undefined,
           }}
         >
           <button

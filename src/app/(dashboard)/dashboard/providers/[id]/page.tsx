@@ -915,6 +915,7 @@ export default function ProviderDetailPage() {
   const [headerImgError, setHeaderImgError] = useState(false);
   const { copied, copy } = useCopyToClipboard();
   const t = useTranslations("providers");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const notify = useNotificationStore();
   const [proxyTarget, setProxyTarget] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
@@ -1337,7 +1338,6 @@ export default function ProviderDetailPage() {
       console.error("Error toggling rate limit:", error);
     }
   };
-
 
   const [cpaProviderEnabled, setCpaProviderEnabled] = useState(false);
 
@@ -2713,11 +2713,7 @@ export default function ProviderDetailPage() {
                         setProxyTarget({
                           level: "key",
                           id: conn.id,
-                          label: pickDisplayValue(
-                            [conn.name, conn.email],
-                            useEmailPrivacyStore.getState().emailsVisible,
-                            conn.id
-                          ),
+                          label: pickDisplayValue([conn.name, conn.email], emailsVisible, conn.id),
                         })
                       }
                       hasProxy={!!connProxyMap[conn.id]?.proxy}
@@ -2828,7 +2824,7 @@ export default function ProviderDetailPage() {
                                 id: conn.id,
                                 label: pickDisplayValue(
                                   [conn.name, conn.email],
-                                  useEmailPrivacyStore.getState().emailsVisible,
+                                  emailsVisible,
                                   conn.id
                                 ),
                               })
@@ -3003,7 +2999,9 @@ export default function ProviderDetailPage() {
                         {r.valid ? "check_circle" : "error"}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <span className="font-medium">{r.connectionName}</span>
+                        <span className="font-medium">
+                          {pickDisplayValue([r.connectionName], emailsVisible, r.connectionName)}
+                        </span>
                       </div>
                       {r.latencyMs !== undefined && (
                         <span className="text-text-muted font-mono tabular-nums">
@@ -4845,9 +4843,10 @@ function ConnectionRow({
                       ? "bg-indigo-500/15 text-indigo-500 hover:bg-indigo-500/25"
                       : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
                   }`}
-                  title={cliproxyapiDeepMode
-                    ? "Using CLIProxyAPI for deeper Claude Code emulation (uTLS, multi-account, device profiles)"
-                    : "Enable CLIProxyAPI backend for deeper Claude Code OAuth emulation"
+                  title={
+                    cliproxyapiDeepMode
+                      ? "Using CLIProxyAPI for deeper Claude Code emulation (uTLS, multi-account, device profiles)"
+                      : "Enable CLIProxyAPI backend for deeper Claude Code OAuth emulation"
                   }
                 >
                   <span className="material-symbols-outlined text-[13px]">swap_horiz</span>
