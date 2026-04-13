@@ -1,3 +1,5 @@
+import os from "node:os";
+
 /**
  * Antigravity and Gemini CLI header utilities.
  *
@@ -6,8 +8,6 @@
  *
  * Based on CLIProxyAPI's misc/header_utils.go.
  */
-
-import os from "node:os";
 
 const ANTIGRAVITY_VERSION = "1.21.9";
 const GEMINI_CLI_VERSION = "0.31.0";
@@ -33,31 +33,16 @@ function getArch(): string {
   }
 }
 
-function getAntigravityOS(): string {
-  const p = os.platform();
-  switch (p) {
-    case "darwin": return "darwin";
-    case "win32": return "windows";
-    default: return p;
-  }
-}
-
-function getAntigravityArch(): string {
-  const a = os.arch();
-  switch (a) {
-    case "x64": return "amd64";
-    case "ia32": return "386";
-    case "arm64": return "arm64";
-    default: return a;
-  }
-}
-
 /**
- * Antigravity User-Agent: "antigravity/VERSION OS/ARCH"
- * Example: "antigravity/1.21.9 darwin/arm64"
+ * Antigravity User-Agent: "antigravity/VERSION darwin/arm64"
+ *
+ * Always claims darwin/arm64 regardless of actual server OS.
+ * Real Antigravity is a macOS desktop tool — most users are on macOS.
+ * Claiming linux/amd64 from a datacenter IP is MORE suspicious than
+ * darwin/arm64. Matches CLIProxyAPI's proven production behavior.
  */
 export function antigravityUserAgent(): string {
-  return `antigravity/${ANTIGRAVITY_VERSION} ${getAntigravityOS()}/${getAntigravityArch()}`;
+  return `antigravity/${ANTIGRAVITY_VERSION} darwin/arm64`;
 }
 
 /**
