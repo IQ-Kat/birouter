@@ -175,6 +175,30 @@ test("handleResponsesCore preserves previous_response_id and handles empty input
   assert.equal(call.body.stream, true);
 });
 
+test("handleResponsesCore preserves store for Codex responses when connection opt-in is enabled", async () => {
+  const { call, result } = await invokeResponsesCore({
+    body: {
+      model: "gpt-5.3-codex",
+      input: [],
+      previous_response_id: "resp_prev_store",
+      store: true,
+    },
+    provider: "codex",
+    model: "gpt-5.3-codex",
+    credentials: {
+      accessToken: "codex-token",
+      providerSpecificData: {
+        openaiStoreEnabled: true,
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.body.previous_response_id, "resp_prev_store");
+  assert.equal(call.body.store, true);
+  assert.equal(call.body.stream, true);
+});
+
 test("handleResponsesCore transforms upstream OpenAI SSE into Responses API SSE", async () => {
   const { result } = await invokeResponsesCore({
     body: {

@@ -25,6 +25,7 @@ import {
   generateSessionId,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
+import { buildGeminiTools } from "../helpers/geminiToolsSanitizer.ts";
 
 type GeminiPart = Record<string, unknown>;
 type GeminiContent = { role: string; parts: GeminiPart[] };
@@ -54,7 +55,10 @@ type GeminiRequest = {
   generationConfig: GeminiGenerationConfig;
   safetySettings: unknown;
   systemInstruction?: GeminiContent;
-  tools?: Array<{ functionDeclarations: GeminiFunctionDeclaration[] }>;
+  tools?: Array<{
+    functionDeclarations?: GeminiFunctionDeclaration[];
+    googleSearch?: Record<string, unknown>;
+  }>;
   cachedContent?: string;
 };
 
@@ -69,7 +73,10 @@ type CloudCodeEnvelope = {
     contents: GeminiContent[];
     systemInstruction?: GeminiContent;
     generationConfig: GeminiGenerationConfig;
-    tools?: Array<{ functionDeclarations: GeminiFunctionDeclaration[] }>;
+    tools?: Array<{
+      functionDeclarations?: GeminiFunctionDeclaration[];
+      googleSearch?: Record<string, unknown>;
+    }>;
     safetySettings?: unknown;
     toolConfig?: {
       functionCallingConfig: { mode: string };
@@ -277,35 +284,9 @@ function openaiToGeminiBase(model, body, stream) {
   }
 
   // Convert tools
-  if (body.tools && Array.isArray(body.tools) && body.tools.length > 0) {
-    const functionDeclarations = [];
-    for (const t of body.tools) {
-      // Check if already in Anthropic/Claude format (no type field, direct name/description/input_schema)
-      if (t.name && t.input_schema) {
-        functionDeclarations.push({
-          name: t.name,
-          description: t.description || "",
-          parameters: cleanJSONSchemaForAntigravity(
-            t.input_schema || { type: "object", properties: {} }
-          ),
-        });
-      }
-      // OpenAI format
-      else if (t.type === "function" && t.function) {
-        const fn = t.function;
-        functionDeclarations.push({
-          name: fn.name,
-          description: fn.description || "",
-          parameters: cleanJSONSchemaForAntigravity(
-            fn.parameters || { type: "object", properties: {} }
-          ),
-        });
-      }
-    }
-
-    if (functionDeclarations.length > 0) {
-      result.tools = [{ functionDeclarations }];
-    }
+  const geminiTools = buildGeminiTools(body.tools);
+  if (geminiTools) {
+    result.tools = geminiTools;
   }
 
   // Convert response_format to Gemini's responseMimeType/responseSchema
@@ -437,7 +418,7 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
     }
 
     // Add toolConfig for Antigravity
-    if (geminiCLI.tools?.length > 0) {
+    if (geminiCLI.tools?.some((tool) => Array.isArray(tool.functionDeclarations))) {
       envelope.request.toolConfig = {
         functionCallingConfig: { mode: "VALIDATED" },
       };
@@ -534,19 +515,9 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
 
   // Convert Claude tools to Gemini functionDeclarations
   if (claudeRequest.tools && Array.isArray(claudeRequest.tools)) {
-    const functionDeclarations = [];
-    for (const tool of claudeRequest.tools) {
-      if (tool.name && tool.input_schema) {
-        const cleanedSchema = cleanJSONSchemaForAntigravity(tool.input_schema);
-        functionDeclarations.push({
-          name: tool.name,
-          description: tool.description || "",
-          parameters: cleanedSchema,
-        });
-      }
-    }
-    if (functionDeclarations.length > 0) {
-      envelope.request.tools = [{ functionDeclarations }];
+    const geminiTools = buildGeminiTools(claudeRequest.tools);
+    if (geminiTools) {
+      envelope.request.tools = geminiTools;
       envelope.request.toolConfig = {
         functionCallingConfig: { mode: "VALIDATED" },
       };

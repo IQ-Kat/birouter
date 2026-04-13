@@ -38,6 +38,7 @@ import {
   bestComboForTaskInput,
   explainRouteInput,
   getSessionSnapshotInput,
+  dbHealthCheckInput,
   syncPricingInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
@@ -59,6 +60,7 @@ import {
   handleBestComboForTask,
   handleExplainRoute,
   handleGetSessionSnapshot,
+  handleDbHealthCheck,
   handleSyncPricing,
 } from "./tools/advancedTools.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
@@ -757,6 +759,18 @@ export function createMcpServer(): McpServer {
       getSessionSnapshotInput.parse(args ?? {});
       return handleGetSessionSnapshot();
     })
+  );
+
+  server.registerTool(
+    "omniroute_db_health_check",
+    {
+      description:
+        "Diagnoses or repairs OmniRoute database drift, including broken combo references and orphan quota/domain rows",
+      inputSchema: dbHealthCheckInput,
+    },
+    withScopeEnforcement("omniroute_db_health_check", (args) =>
+      handleDbHealthCheck(dbHealthCheckInput.parse(args ?? {}))
+    )
   );
 
   server.registerTool(

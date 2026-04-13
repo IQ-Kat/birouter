@@ -236,3 +236,27 @@ test("QoderExecutor: stream calls pass through successful SSE responses", async 
     globalThis.fetch = originalFetch;
   }
 });
+
+test("QoderExecutor: neutralizes incompatible tool_choice when Qwen thinking is active", () => {
+  const executor = new QoderExecutor();
+  const result = executor.transformRequest("qwen3-coder-plus", {
+    messages: [{ role: "user", content: "hi" }],
+    thinking: true,
+    tool_choice: "required",
+  });
+
+  assert.equal(result.model, "qwen3-coder-plus");
+  assert.equal(result.tool_choice, "auto");
+});
+
+test("QoderExecutor: preserves tool_choice when thinking is inactive", () => {
+  const executor = new QoderExecutor();
+  const forcedTool = { type: "function", function: { name: "pwd" } };
+  const result = executor.transformRequest("qwen3-coder-plus", {
+    messages: [{ role: "user", content: "hi" }],
+    tool_choice: forcedTool,
+  });
+
+  assert.equal(result.model, "qwen3-coder-plus");
+  assert.deepEqual(result.tool_choice, forcedTool);
+});

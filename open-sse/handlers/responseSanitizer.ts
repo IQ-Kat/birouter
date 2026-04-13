@@ -32,6 +32,23 @@ function toNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function hasVisibleMessageContent(content: unknown): boolean {
+  if (typeof content === "string") {
+    return content.trim().length > 0;
+  }
+
+  if (!Array.isArray(content)) return false;
+
+  return content.some((contentPart) => {
+    const part = toRecord(contentPart);
+    if (!part) return false;
+    if (typeof part.text === "string" && part.text.trim().length > 0) return true;
+    if (typeof part.content === "string" && part.content.trim().length > 0) return true;
+    const partType = toString(part.type);
+    return Boolean(partType && partType !== "thinking" && partType !== "reasoning");
+  });
+}
+
 // Matches <think>...</think> blocks and <thinking>...</thinking> (greedy, dotAll)
 const THINK_TAG_REGEX = /<(?:think|thinking)>([\s\S]*?)<\/(?:think|thinking)>/gi;
 
@@ -214,6 +231,13 @@ function sanitizeMessage(msg: unknown): unknown {
     if (reasoningParts.length > 0) {
       sanitized.reasoning_content = reasoningParts.join("");
     }
+  }
+
+  // Non-streaming responses should not expose both visible content and reasoning_content.
+  // Some clients drop the visible assistant text or render duplicated panels when both fields
+  // are present in the final payload. Keep reasoning_content only for reasoning-only messages.
+  if (sanitized.reasoning_content !== undefined && hasVisibleMessageContent(sanitized.content)) {
+    delete sanitized.reasoning_content;
   }
 
   // Preserve tool_calls

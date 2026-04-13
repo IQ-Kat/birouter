@@ -6,6 +6,7 @@ import {
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
+import { buildGeminiTools } from "../helpers/geminiToolsSanitizer.ts";
 
 /**
  * Direct Claude → Gemini request translator.
@@ -168,22 +169,9 @@ export function claudeToGeminiRequest(model, body, stream) {
   }
 
   // ── Convert tools ──────────────────────────────────────────────
-  if (body.tools && Array.isArray(body.tools) && body.tools.length > 0) {
-    const functionDeclarations = [];
-    for (const tool of body.tools) {
-      if (tool.name) {
-        functionDeclarations.push({
-          name: tool.name,
-          description: tool.description || "",
-          parameters: cleanJSONSchemaForAntigravity(
-            tool.input_schema || { type: "object", properties: {} }
-          ),
-        });
-      }
-    }
-    if (functionDeclarations.length > 0) {
-      result.tools = [{ functionDeclarations }];
-    }
+  const geminiTools = buildGeminiTools(body.tools);
+  if (geminiTools) {
+    result.tools = geminiTools;
   }
 
   // ── Thinking config ────────────────────────────────────────────

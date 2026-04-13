@@ -130,6 +130,29 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.instructions, "keep this");
 });
 
+test("CodexExecutor.transformRequest preserves store-enabled responses state when explicitly enabled", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    _omnirouteResponsesStore: true,
+    instructions: "keep this",
+    previous_response_id: "resp_prev_123",
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.3-codex", body, false, {
+    requestEndpointPath: "/responses/compact",
+    providerSpecificData: {
+      openaiStoreEnabled: true,
+      requestDefaults: { serviceTier: "priority" },
+    },
+  });
+
+  assert.equal(result._omnirouteResponsesStore, undefined);
+  assert.equal(result.store, true);
+  assert.equal(result.previous_response_id, "resp_prev_123");
+});
+
 test("CodexExecutor.transformRequest applies per-connection reasoning and service tier defaults", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(

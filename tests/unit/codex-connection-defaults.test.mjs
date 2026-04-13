@@ -99,6 +99,7 @@ test("provider connection persistence normalizes request defaults without droppi
     authType: "oauth",
     email: "normalize@example.com",
     providerSpecificData: {
+      openaiStoreEnabled: true,
       workspaceId: "ws-normalize",
       tag: "team-z",
       requestDefaults: {
@@ -114,6 +115,7 @@ test("provider connection persistence normalizes request defaults without droppi
     serviceTier: "priority",
     customFlag: "keep-me",
   });
+  assert.equal(created.providerSpecificData.openaiStoreEnabled, true);
   assert.equal(created.providerSpecificData.workspaceId, "ws-normalize");
   assert.equal(created.providerSpecificData.tag, "team-z");
 
@@ -127,6 +129,7 @@ test("provider connection persistence normalizes request defaults without droppi
   assert.deepEqual(updated.providerSpecificData.requestDefaults, {
     reasoningEffort: "medium",
   });
+  assert.equal(updated.providerSpecificData.openaiStoreEnabled, true);
   assert.equal(updated.providerSpecificData.workspaceId, "ws-normalize");
   assert.equal(updated.providerSpecificData.tag, "team-z");
 });

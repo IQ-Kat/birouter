@@ -35,7 +35,7 @@ export async function handleResponsesCore({
   signal,
 }) {
   // Convert Responses API format to Chat Completions format
-  const convertedBody = convertResponsesApiFormat(body);
+  const convertedBody = convertResponsesApiFormat(body, credentials);
 
   // Ensure stream is enabled
   convertedBody.stream = true;

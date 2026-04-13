@@ -9,6 +9,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -203,6 +204,12 @@ export class DefaultExecutor extends BaseExecutor {
    * "org/model-name") — we must NOT strip path segments. (Fix #493)
    */
   transformRequest(model, body, stream, credentials) {
+    void model;
+    void stream;
+    void credentials;
+    if (this.provider === "qwen" && typeof body === "object" && body !== null) {
+      return sanitizeQwenThinkingToolChoice(body, "QwenExecutor");
+    }
     return body;
   }
 

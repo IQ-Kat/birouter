@@ -2009,6 +2009,7 @@ export async function handleChatCore({
     trackPendingRequest(model, provider, connectionId, false);
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
+    let responseFormatForTranslation = targetFormat;
     const rawBody = await providerResponse.text();
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
@@ -2016,10 +2017,19 @@ export async function handleChatCore({
 
     if (looksLikeSSE) {
       // Upstream returned SSE even though stream=false; convert best-effort to JSON.
+      const looksLikeResponsesSSE =
+        targetFormat === FORMATS.OPENAI_RESPONSES ||
+        provider === "codex" ||
+        /(^|\n)\s*(?:event:\s*response\.|data:\s*\{.*"type"\s*:\s*"response\.)/m.test(rawBody);
+      responseFormatForTranslation = looksLikeResponsesSSE
+        ? FORMATS.OPENAI_RESPONSES
+        : targetFormat === FORMATS.CLAUDE
+          ? FORMATS.CLAUDE
+          : FORMATS.OPENAI;
       const parsedFromSSE =
-        targetFormat === FORMATS.OPENAI_RESPONSES
+        responseFormatForTranslation === FORMATS.OPENAI_RESPONSES
           ? parseSSEToResponsesOutput(rawBody, model)
-          : targetFormat === FORMATS.CLAUDE
+          : responseFormatForTranslation === FORMATS.CLAUDE
             ? parseSSEToClaudeResponse(rawBody, model)
             : parseSSEToOpenAIResponse(rawBody, model);
 
@@ -2211,10 +2221,10 @@ export async function handleChatCore({
 
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
-    let translatedResponse = needsTranslation(targetFormat, clientResponseFormat)
+    let translatedResponse = needsTranslation(responseFormatForTranslation, clientResponseFormat)
       ? translateNonStreamingResponse(
           responseBody,
-          targetFormat,
+          responseFormatForTranslation,
           clientResponseFormat,
           toolNameMap as Map<string, string> | null
         )

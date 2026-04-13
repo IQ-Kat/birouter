@@ -866,7 +866,36 @@ test("handleComboChat returns the earliest retry-after when all priority targets
   assert.ok(Number(result.headers.get("Retry-After")) >= 1);
 });
 
-test("handleComboChat round-robin returns 503 when no models are configured", async () => {
+test("handleComboChat returns 404 model_not_found when a combo has no executable targets", async () => {
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "empty-priority",
+      strategy: "priority",
+      models: [],
+    },
+    handleSingleModel: async () => {
+      throw new Error("handleSingleModel should not run for empty combos");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: {
+      comboDefaults: {
+        maxRetries: 0,
+        retryDelayMs: 1,
+      },
+    },
+    allCombos: null,
+  });
+
+  const payload = await result.json();
+
+  assert.equal(result.status, 404);
+  assert.equal(payload.error.code, "model_not_found");
+  assert.match(payload.error.message, /Combo has no executable targets/);
+});
+
+test("handleComboChat round-robin returns 404 when no models are configured", async () => {
   const result = await handleComboChat({
     body: {},
     combo: {
@@ -890,8 +919,11 @@ test("handleComboChat round-robin returns 503 when no models are configured", as
     allCombos: null,
   });
 
-  assert.equal(result.status, 503);
-  assert.match((await result.json()).error.message, /Round-robin combo has no executable targets/);
+  const payload = await result.json();
+
+  assert.equal(result.status, 404);
+  assert.equal(payload.error.code, "model_not_found");
+  assert.match(payload.error.message, /Round-robin combo has no executable targets/);
 });
 
 test("handleComboChat round-robin falls through semaphore timeouts and malformed success payloads", async () => {

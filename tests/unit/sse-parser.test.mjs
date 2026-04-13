@@ -155,3 +155,47 @@ test("parseSSEToResponsesOutput handles large payloads without truncation", () =
 
   assert.equal(parsed.output[0].content[0].text.length, 10_000);
 });
+
+test("parseSSEToResponsesOutput treats response.cancelled as terminal and reconstructs output from deltas", () => {
+  const rawSSE = [
+    "event: response.created",
+    'data: {"type":"response.created","response":{"id":"resp_cancelled","model":"gpt-5.3-codex","status":"in_progress","output":[]}}',
+    "",
+    "event: response.output_item.added",
+    'data: {"type":"response.output_item.added","output_index":0,"item":{"id":"msg_1","type":"message","role":"assistant","content":[{"type":"output_text","text":""}]}}',
+    "",
+    "event: response.output_text.delta",
+    'data: {"type":"response.output_text.delta","item_id":"msg_1","output_index":0,"content_index":0,"delta":"Hel"}',
+    "",
+    "event: response.output_text.delta",
+    'data: {"type":"response.output_text.delta","item_id":"msg_1","output_index":0,"content_index":0,"delta":"lo"}',
+    "",
+    "event: response.cancelled",
+    'data: {"type":"response.cancelled","response":{"id":"resp_cancelled","model":"gpt-5.3-codex","status":"cancelled","output":[],"usage":{"input_tokens":3}}}',
+    "",
+    "data: [DONE]",
+  ].join("\n");
+
+  const parsed = parseSSEToResponsesOutput(rawSSE, "fallback-model");
+
+  assert.equal(parsed.id, "resp_cancelled");
+  assert.equal(parsed.status, "cancelled");
+  assert.equal(parsed.output[0].type, "message");
+  assert.equal(parsed.output[0].content[0].text, "Hello");
+  assert.deepEqual(parsed.usage, { input_tokens: 3 });
+});
+
+test("parseSSEToResponsesOutput treats response.canceled as terminal and reconstructs message text without added item", () => {
+  const rawSSE = [
+    'data: {"type":"response.output_text.delta","output_index":0,"content_index":0,"delta":"Bye"}',
+    'data: {"type":"response.canceled","response":{"id":"resp_canceled","model":"gpt-5.3-codex","output":[]}}',
+    "data: [DONE]",
+  ].join("\n");
+
+  const parsed = parseSSEToResponsesOutput(rawSSE, "fallback-model");
+
+  assert.equal(parsed.id, "resp_canceled");
+  assert.equal(parsed.status, "canceled");
+  assert.equal(parsed.output[0].type, "message");
+  assert.equal(parsed.output[0].content[0].text, "Bye");
+});

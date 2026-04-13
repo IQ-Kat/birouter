@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   maskEmail,
   maskEmailLikeValue,
+  pickDisplayValue,
   pickMaskedDisplayValue,
 } from "../../src/shared/utils/maskEmail.ts";
 
@@ -62,5 +63,17 @@ describe("maskEmail", () => {
       "per***@********com"
     );
     assert.equal(pickMaskedDisplayValue([null, "Workspace"], "fallback"), "Workspace");
+  });
+
+  it("respects the global visibility toggle when picking display values", () => {
+    assert.equal(
+      pickDisplayValue(["person@example.com", "Workspace"], false, "fallback"),
+      "per***@********com"
+    );
+    assert.equal(
+      pickDisplayValue(["person@example.com", "Workspace"], true, "fallback"),
+      "person@example.com"
+    );
+    assert.equal(pickDisplayValue([null, "Workspace"], false, "fallback"), "Workspace");
   });
 });

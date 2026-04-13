@@ -45,6 +45,14 @@ const KIMI_CONFIG = {
   apiVersion: "2023-06-01",
 };
 
+const CURSOR_USAGE_CONFIG = {
+  usageUrl: "https://www.cursor.com/api/usage",
+  userMetaUrl: "https://www.cursor.com/api/auth/me",
+  subscriptionUrl: "https://www.cursor.com/api/subscription",
+  clientVersion: "3.1.0",
+  userAgent: "Cursor/3.1.0",
+};
+
 type JsonRecord = Record<string, unknown>;
 type UsageQuota = {
   used: number;
@@ -185,6 +193,8 @@ export async function getUsageForProvider(connection) {
       return await getIflowUsage(accessToken);
     case "glm":
       return await getGlmUsage(apiKey, providerSpecificData);
+    case "cursor":
+      return await getCursorUsage(accessToken);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -416,6 +426,178 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
     return label ? `Copilot ${label}` : "GitHub Copilot";
   }
   return "GitHub Copilot";
+}
+
+function buildCursorUsageHeaders(accessToken: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${accessToken}`,
+    Accept: "application/json",
+    "User-Agent": CURSOR_USAGE_CONFIG.userAgent,
+    "x-cursor-client-version": CURSOR_USAGE_CONFIG.clientVersion,
+    "x-cursor-user-agent": CURSOR_USAGE_CONFIG.userAgent,
+  };
+}
+
+function getFirstPositiveNumber(...values: unknown[]): number {
+  for (const value of values) {
+    const parsed = toNumber(value, Number.NaN);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return 0;
+}
+
+function getCursorMonthlyRequestLimit(usageData: JsonRecord, subscriptionData: JsonRecord): number {
+  return getFirstPositiveNumber(
+    getFieldValue(subscriptionData, "team_max_monthly_requests", "teamMaxMonthlyRequests"),
+    getFieldValue(usageData, "team_max_request_usage", "teamMaxRequestUsage"),
+    getFieldValue(subscriptionData, "team_max_request_usage", "teamMaxRequestUsage"),
+    getFieldValue(usageData, "hard_limit", "hardLimit"),
+    getFieldValue(subscriptionData, "max_monthly_requests", "maxMonthlyRequests")
+  );
+}
+
+function getCursorOnDemandLimit(usageData: JsonRecord, subscriptionData: JsonRecord): number {
+  const onDemand = toRecord(getFieldValue(usageData, "on_demand", "onDemand"));
+  return getFirstPositiveNumber(
+    getFieldValue(onDemand, "max_requests", "maxRequests"),
+    getCursorMonthlyRequestLimit(usageData, subscriptionData)
+  );
+}
+
+function formatCursorQuota(
+  usedValue: unknown,
+  totalValue: unknown,
+  resetValue: unknown
+): UsageQuota {
+  const total = Math.max(0, toNumber(totalValue, 0));
+  const rawUsed = Math.max(0, toNumber(usedValue, 0));
+  const used = total > 0 ? Math.min(rawUsed, total) : rawUsed;
+  const remaining = total > 0 ? Math.max(total - used, 0) : 0;
+
+  return {
+    used,
+    total,
+    remaining,
+    remainingPercentage: total > 0 ? clampPercentage((remaining / total) * 100) : 0,
+    resetAt: parseResetTime(resetValue),
+    unlimited: false,
+  };
+}
+
+function inferCursorPlanName(userMeta: JsonRecord, subscriptionData: JsonRecord): string {
+  const teamInfo = toRecord(getFieldValue(userMeta, "team_info", "teamInfo"));
+  const candidates = [
+    getFieldValue(userMeta, "plan", "plan"),
+    getFieldValue(userMeta, "subscription_type", "subscriptionType"),
+    getFieldValue(subscriptionData, "subscription_type", "subscriptionType"),
+    getFieldValue(subscriptionData, "plan", "plan"),
+  ];
+  const planText = candidates.find((value) => typeof value === "string" && value.trim().length > 0);
+  const normalized = typeof planText === "string" ? planText.trim().toLowerCase() : "";
+
+  if (Object.keys(teamInfo).length > 0 || normalized.includes("team")) return "Cursor Team";
+  if (normalized.includes("enterprise")) return "Cursor Enterprise";
+  if (normalized.includes("pro")) return "Cursor Pro";
+  if (normalized.includes("free")) return "Cursor Free";
+  return "Cursor";
+}
+
+async function fetchCursorUsageDocument(url: string, accessToken: string) {
+  const response = await fetch(url, {
+    method: "GET",
+    headers: buildCursorUsageHeaders(accessToken),
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    return {
+      ok: false,
+      status: response.status,
+      data: {} as JsonRecord,
+      text,
+    };
+  }
+
+  try {
+    const parsed = text ? JSON.parse(text) : {};
+    return {
+      ok: true,
+      status: response.status,
+      data: toRecord(parsed),
+      text,
+    };
+  } catch {
+    return {
+      ok: false,
+      status: response.status,
+      data: {} as JsonRecord,
+      text,
+    };
+  }
+}
+
+async function getCursorUsage(accessToken: string) {
+  try {
+    if (!accessToken) {
+      return {
+        message: "Cursor token expired or unavailable. Please re-authenticate the connection.",
+      };
+    }
+
+    const [usageSummary, userMeta, subscription] = await Promise.all([
+      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.usageUrl, accessToken),
+      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.userMetaUrl, accessToken),
+      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.subscriptionUrl, accessToken),
+    ]);
+
+    const authDenied = [usageSummary, userMeta, subscription].some(
+      (result) => result.status === 401 || result.status === 403
+    );
+    if (authDenied) {
+      return {
+        message:
+          "Cursor token expired or permission denied. Please re-authenticate the connection.",
+      };
+    }
+
+    const usageData = usageSummary.data;
+    const userMetaData = userMeta.data;
+    const subscriptionData = subscription.data;
+    const plan = inferCursorPlanName(userMetaData, subscriptionData);
+
+    const quotas: Record<string, UsageQuota> = {};
+    const totalUsed = getFieldValue(usageData, "num_requests_total", "numRequestsTotal");
+    const totalLimit = getCursorMonthlyRequestLimit(usageData, subscriptionData);
+    const totalReset =
+      getFieldValue(usageData, "reset_date", "resetDate") ||
+      getFieldValue(subscriptionData, "reset_date", "resetDate");
+
+    if (toNumber(totalUsed, 0) > 0 || totalLimit > 0) {
+      quotas.requests = formatCursorQuota(totalUsed, totalLimit, totalReset);
+    }
+
+    const onDemand = toRecord(getFieldValue(usageData, "on_demand", "onDemand"));
+    const onDemandUsed = getFieldValue(onDemand, "num_requests", "numRequests");
+    const onDemandLimit = getCursorOnDemandLimit(usageData, subscriptionData);
+    const onDemandReset =
+      getFieldValue(onDemand, "reset_date", "resetDate") ||
+      getFieldValue(usageData, "reset_date", "resetDate") ||
+      getFieldValue(subscriptionData, "reset_date", "resetDate");
+
+    if (toNumber(onDemandUsed, 0) > 0 || onDemandLimit > 0) {
+      quotas.on_demand = formatCursorQuota(onDemandUsed, onDemandLimit, onDemandReset);
+    }
+
+    if (Object.keys(quotas).length > 0) {
+      return { plan, quotas };
+    }
+
+    return { plan, message: "Cursor connected. Unable to parse quota data." };
+  } catch (error) {
+    return { message: `Unable to fetch Cursor usage: ${(error as Error).message}` };
+  }
 }
 
 // ── Gemini CLI subscription info cache ──────────────────────────────────────
@@ -1352,6 +1534,11 @@ export const __testing = {
   parseResetTime,
   formatGitHubQuotaSnapshot,
   inferGitHubPlanName,
+  buildCursorUsageHeaders,
+  formatCursorQuota,
+  getCursorMonthlyRequestLimit,
+  getCursorOnDemandLimit,
+  inferCursorPlanName,
   getGeminiCliPlanLabel,
   getAntigravityPlanLabel,
 };

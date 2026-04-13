@@ -757,6 +757,68 @@ test("usage service covers Qwen, Qoder and GLM branches", async () => {
   );
 });
 
+test("usage service parses Cursor team quotas and clamps on-demand ratio", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+
+    if (String(url).endsWith("/api/usage")) {
+      return new Response(
+        JSON.stringify({
+          numRequestsTotal: 450,
+          hard_limit: 100,
+          teamMaxRequestUsage: 500,
+          onDemand: {
+            numRequests: 600,
+          },
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (String(url).endsWith("/api/auth/me")) {
+      return new Response(
+        JSON.stringify({
+          plan: "team",
+          teamInfo: { id: "team-1", name: "Core Team" },
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (String(url).endsWith("/api/subscription")) {
+      return new Response(
+        JSON.stringify({
+          teamMaxMonthlyRequests: 500,
+        }),
+        { status: 200 }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${url}`);
+  };
+
+  const usage = await usageService.getUsageForProvider({
+    provider: "cursor",
+    accessToken: "cursor-token",
+  });
+
+  assert.equal(calls.length, 3);
+  for (const call of calls) {
+    assert.equal(call.init.headers.Authorization, "Bearer cursor-token");
+    assert.equal(call.init.headers["User-Agent"], "Cursor/3.1.0");
+    assert.equal(call.init.headers["x-cursor-client-version"], "3.1.0");
+  }
+
+  assert.equal(usage.plan, "Cursor Team");
+  assert.equal(usage.quotas.requests.total, 500);
+  assert.equal(usage.quotas.requests.used, 450);
+  assert.equal(usage.quotas.requests.remainingPercentage, 10);
+  assert.equal(usage.quotas.on_demand.total, 500);
+  assert.equal(usage.quotas.on_demand.used, 500);
+  assert.equal(usage.quotas.on_demand.remainingPercentage, 0);
+});
+
 test("usage helper branches cover reset parsing, GitHub quota math, and plan inference fallbacks", () => {
   const fixedDate = new Date("2026-01-02T03:04:05.000Z");
 
@@ -855,6 +917,32 @@ test("usage helper branches cover reset parsing, GitHub quota math, and plan inf
     "Copilot Student"
   );
   assert.equal(__testing.inferGitHubPlanName({}, null), "GitHub Copilot");
+
+  assert.deepEqual(__testing.buildCursorUsageHeaders("cursor-token"), {
+    Authorization: "Bearer cursor-token",
+    Accept: "application/json",
+    "User-Agent": "Cursor/3.1.0",
+    "x-cursor-client-version": "3.1.0",
+    "x-cursor-user-agent": "Cursor/3.1.0",
+  });
+  assert.equal(
+    __testing.getCursorMonthlyRequestLimit(
+      { hard_limit: 100, teamMaxRequestUsage: 400 },
+      { teamMaxMonthlyRequests: 500 }
+    ),
+    500
+  );
+  assert.equal(__testing.getCursorOnDemandLimit({ onDemand: { maxRequests: 120 } }, {}), 120);
+  assert.deepEqual(__testing.formatCursorQuota(150, 100, null), {
+    used: 100,
+    total: 100,
+    remaining: 0,
+    remainingPercentage: 0,
+    resetAt: null,
+    unlimited: false,
+  });
+  assert.equal(__testing.inferCursorPlanName({ teamInfo: { id: "team-1" } }, {}), "Cursor Team");
+  assert.equal(__testing.inferCursorPlanName({ plan: "pro" }, {}), "Cursor Pro");
 });
 
 test("usage helper branches cover Gemini CLI and Antigravity plan label fallbacks", () => {

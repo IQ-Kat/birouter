@@ -16,6 +16,10 @@ function normalizeString(value: unknown): string | undefined {
   return normalized || undefined;
 }
 
+function hasNonEmptyString(value: unknown): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 export function normalizeCodexReasoningEffort(value: unknown): CodexReasoningEffort | undefined {
   const normalized = normalizeString(value);
   if (!normalized || !CODEX_REASONING_EFFORT_SET.has(normalized)) {
@@ -77,7 +81,55 @@ export function normalizeProviderSpecificData(
     }
   }
 
+  if ("openaiStoreEnabled" in normalized && typeof normalized.openaiStoreEnabled !== "boolean") {
+    delete normalized.openaiStoreEnabled;
+  }
+
   return Object.keys(normalized).length > 0 ? normalized : undefined;
+}
+
+export function isOpenAIResponsesStoreEnabled(providerSpecificData: unknown): boolean {
+  return asRecord(providerSpecificData).openaiStoreEnabled === true;
+}
+
+export function buildOpenAIStoreSessionId(sessionId: unknown): string | undefined {
+  if (!hasNonEmptyString(sessionId)) return undefined;
+
+  const normalized = String(sessionId)
+    .trim()
+    .replace(/^ext:/i, "")
+    .replace(/[^a-zA-Z0-9._:-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
+
+  if (!normalized) return undefined;
+  return `omniroute-session-${normalized}`;
+}
+
+export function ensureOpenAIStoreSessionFallback(
+  body: Record<string, unknown>,
+  sessionId: unknown
+): Record<string, unknown> {
+  const explicitSessionId = body.session_id;
+  const explicitConversationId = body.conversation_id;
+  const promptCacheKey = body.prompt_cache_key ?? body.promptCacheKey;
+
+  if (
+    hasNonEmptyString(explicitSessionId) ||
+    hasNonEmptyString(explicitConversationId) ||
+    hasNonEmptyString(promptCacheKey)
+  ) {
+    return body;
+  }
+
+  const fallbackSessionId = buildOpenAIStoreSessionId(sessionId);
+  if (!fallbackSessionId) return body;
+
+  return {
+    ...body,
+    session_id: fallbackSessionId,
+  };
 }
 
 export function getProviderRequestDefaults(

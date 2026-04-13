@@ -316,4 +316,11 @@ describe("Page Integration — combos page empty state", () => {
     assert.match(src, /pricingCoverage/);
     assert.match(src, /warningCostOptimizedPartialPricing/);
   });
+
+  it("should wire combo account labels to the global email privacy toggle", () => {
+    assert.match(src, /EmailPrivacyToggle/);
+    assert.match(src, /useEmailPrivacyStore/);
+    assert.match(src, /pickDisplayValue/);
+    assert.match(src, /emailVisibilityTooltip/);
+  });
 });

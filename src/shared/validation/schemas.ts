@@ -42,6 +42,15 @@ function validateProviderSpecificData(
     });
   }
 
+  const openaiStoreEnabled = data.openaiStoreEnabled;
+  if (openaiStoreEnabled !== undefined && typeof openaiStoreEnabled !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.openaiStoreEnabled must be a boolean",
+      path: ["openaiStoreEnabled"],
+    });
+  }
+
   const requestDefaults = data.requestDefaults;
   if (requestDefaults === undefined) return;
   if (!requestDefaults || typeof requestDefaults !== "object" || Array.isArray(requestDefaults)) {

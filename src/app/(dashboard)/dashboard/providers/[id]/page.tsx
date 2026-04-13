@@ -5457,6 +5457,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     accountId: "",
     codexReasoningEffort: "medium",
     codexFastServiceTier: false,
+    codexOpenaiStoreEnabled: false,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5504,6 +5505,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         accountId: existingAccountId,
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
         codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
+        codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5659,6 +5661,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             reasoningEffort: formData.codexReasoningEffort,
             ...(formData.codexFastServiceTier ? { serviceTier: "priority" } : {}),
           };
+          updates.providerSpecificData.openaiStoreEnabled =
+            formData.codexOpenaiStoreEnabled === true;
         }
       }
       const error = (await onSave(updates)) as void | unknown;
@@ -5711,6 +5715,12 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(checked) => setFormData({ ...formData, codexFastServiceTier: checked })}
               label="Codex Fast Service Tier"
               description="When enabled, injects `service_tier=priority` for this connection if the client leaves the tier unset."
+            />
+            <Toggle
+              checked={formData.codexOpenaiStoreEnabled}
+              onChange={(checked) => setFormData({ ...formData, codexOpenaiStoreEnabled: checked })}
+              label="OpenAI Responses Store"
+              description="Preserves `store`, `previous_response_id`, and adds a stable fallback `session_id` for long Codex sessions. Enable only when the upstream account accepts stored Responses."
             />
           </div>
         )}

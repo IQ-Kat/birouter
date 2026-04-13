@@ -386,6 +386,7 @@ export async function deleteProviderConnection(id: string) {
   const existing = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
   if (!existing) return false;
 
+  db.prepare("DELETE FROM quota_snapshots WHERE connection_id = ?").run(id);
   db.prepare("DELETE FROM provider_connections WHERE id = ?").run(id);
   const existingRecord = toRecord(existing);
   const providerId =
@@ -400,6 +401,22 @@ export async function deleteProviderConnection(id: string) {
 
 export async function deleteProviderConnectionsByProvider(providerId: string) {
   const db = getDbInstance() as unknown as DbLike;
+  const connectionIds = db
+    .prepare("SELECT id FROM provider_connections WHERE provider = ?")
+    .all(providerId)
+    .map((row) => {
+      const record = toRecord(row);
+      return typeof record.id === "string" ? record.id : null;
+    })
+    .filter((id): id is string => id !== null);
+
+  if (connectionIds.length > 0) {
+    const deleteSnapshots = db.prepare("DELETE FROM quota_snapshots WHERE connection_id = ?");
+    for (const connectionId of connectionIds) {
+      deleteSnapshots.run(connectionId);
+    }
+  }
+
   const result = db.prepare("DELETE FROM provider_connections WHERE provider = ?").run(providerId);
   backupDbFile("pre-write");
   return result.changes;

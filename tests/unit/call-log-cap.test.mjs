@@ -443,6 +443,64 @@ test("getCallLogById returns legacy pipeline details even when no legacy disk ar
   assert.equal(detail?.hasPipelineDetails, true);
 });
 
+test("saveCallLog keeps payloads below 256KB inline in sqlite", async () => {
+  const requestBody = { payload: "x".repeat(64 * 1024) };
+  const responseBody = { payload: "y".repeat(96 * 1024) };
+
+  await callLogs.saveCallLog({
+    id: "inline-payload-limit",
+    timestamp: "2026-03-31T09:00:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "openai/gpt-4.1",
+    provider: "openai",
+    duration: 5,
+    requestBody,
+    responseBody,
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare("SELECT request_body, response_body FROM call_logs WHERE id = ?")
+    .get("inline-payload-limit");
+  const storedRequest = JSON.parse(row.request_body);
+  const storedResponse = JSON.parse(row.response_body);
+
+  assert.equal(storedRequest._truncated, undefined);
+  assert.equal(storedResponse._truncated, undefined);
+
+  const detail = await callLogs.getCallLogById("inline-payload-limit");
+  assert.equal(detail?.requestBody?.payload?.length, requestBody.payload.length);
+  assert.equal(detail?.responseBody?.payload?.length, responseBody.payload.length);
+});
+
+test("saveCallLog still truncates oversized inline sqlite payloads above 256KB", async () => {
+  const requestBody = { payload: "x".repeat(320 * 1024) };
+
+  await callLogs.saveCallLog({
+    id: "truncated-inline-payload-limit",
+    timestamp: "2026-03-31T09:05:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 500,
+    model: "openai/gpt-4.1",
+    provider: "openai",
+    duration: 7,
+    requestBody,
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare("SELECT request_body FROM call_logs WHERE id = ?")
+    .get("truncated-inline-payload-limit");
+  const storedRequest = JSON.parse(row.request_body);
+
+  assert.equal(storedRequest._truncated, true);
+  assert.equal(storedRequest._preview.length, 256 * 1024);
+  assert.ok(storedRequest._originalSize > storedRequest._preview.length);
+});
+
 test("saveCallLog logs and returns when sqlite persistence throws unexpectedly", async () => {
   const db = core.getDbInstance();
   const originalPrepare = db.prepare;

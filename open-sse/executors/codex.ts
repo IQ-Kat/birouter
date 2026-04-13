@@ -1,9 +1,12 @@
+import {
+  getCodexRequestDefaults,
+  isOpenAIResponsesStoreEnabled,
+} from "@/lib/providers/requestDefaults";
 import { BaseExecutor } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { refreshCodexToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
-import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
@@ -321,6 +324,12 @@ function normalizeEffortValue(value: unknown): string | undefined {
   return normalized || undefined;
 }
 
+function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
+  const marker = body._omnirouteResponsesStore;
+  delete body._omnirouteResponsesStore;
+  return marker;
+}
+
 /**
  * Codex Executor - handles OpenAI Codex API (Responses API format)
  * Automatically injects default instructions if missing.
@@ -395,11 +404,18 @@ export class CodexExecutor extends BaseExecutor {
    * Transform request before sending - inject default instructions if missing
    */
   transformRequest(model, body, stream, credentials) {
+    // Do not mutate the caller's payload in place. Combo quality checks and
+    // other post-execute paths still inspect the original request body.
+    body =
+      body && typeof body === "object" ? structuredClone(body) : ({} as Record<string, unknown>);
+
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
     const requestDefaults = getCodexRequestDefaults(credentials?.providerSpecificData);
+    const storeEnabled = isOpenAIResponsesStoreEnabled(credentials?.providerSpecificData);
     const thinkingBudgetConfig = getThinkingBudgetConfig();
     const allowConnectionReasoningDefaults = thinkingBudgetConfig.mode === ThinkingMode.PASSTHROUGH;
+    const responsesStoreMarker = consumeResponsesStoreMarker(body);
 
     // Codex /responses rejects stream=false, but /responses/compact rejects the stream field entirely.
     if (isCompactRequest) {
@@ -424,8 +440,11 @@ export class CodexExecutor extends BaseExecutor {
       body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
     }
 
-    // Ensure store is false (Codex requirement)
-    body.store = false;
+    if (!storeEnabled) {
+      body.store = false;
+    } else if (responsesStoreMarker !== undefined && body.store === undefined) {
+      body.store = responsesStoreMarker;
+    }
 
     // Cursor can send native Responses payloads with role=system items inside `input`.
     // Codex rejects system messages there; they must be folded into `instructions`.
