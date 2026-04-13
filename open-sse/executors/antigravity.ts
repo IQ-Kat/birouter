@@ -94,6 +94,7 @@ export class AntigravityExecutor extends BaseExecutor {
       "User-Agent": antigravityUserAgent(),
       "X-Goog-Api-Client": googApiClientHeader(),
       Accept: "text/event-stream",
+      "X-OmniRoute-Source": "omniroute",
     };
     // Scrub proxy/fingerprint headers that reveal non-native traffic
     return scrubProxyAndFingerprintHeaders(raw);
