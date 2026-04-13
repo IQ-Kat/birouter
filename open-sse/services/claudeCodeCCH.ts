@@ -17,12 +17,18 @@ import xxhashInit from "xxhash-wasm";
 const CCH_SEED = 0x6e52736ac806831en;
 const CCH_PATTERN = /\bcch=([0-9a-f]{5});/;
 
+let xxhashPromise: Promise<void> | null = null;
 let xxhash64Fn: ((input: Uint8Array, seed: bigint) => bigint) | null = null;
 
 async function ensureXxhash() {
   if (xxhash64Fn) return;
-  const hasher = await xxhashInit();
-  xxhash64Fn = hasher.h64Raw;
+  if (!xxhashPromise) {
+    xxhashPromise = (async () => {
+      const hasher = await xxhashInit();
+      xxhash64Fn = hasher.h64Raw;
+    })();
+  }
+  return xxhashPromise;
 }
 
 export async function computeCCH(bodyBytes: Uint8Array): Promise<string> {
