@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+---
+
+## [3.6.5] — 2026-04-12
 
 ### ✨ New Features
 
