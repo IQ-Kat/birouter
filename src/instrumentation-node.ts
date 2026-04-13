@@ -125,6 +125,21 @@ export async function registerNodejs(): Promise<void> {
       }
     }
 
+    if (settings.backgroundDegradation) {
+      try {
+        const bgSettings =
+          typeof settings.backgroundDegradation === "string"
+            ? JSON.parse(settings.backgroundDegradation)
+            : settings.backgroundDegradation;
+        const { setBackgroundDegradationConfig } =
+          await import("@omniroute/open-sse/services/backgroundTaskDetector.ts");
+        setBackgroundDegradationConfig(bgSettings);
+        console.log(`[STARTUP] Restored background task degradation config from settings`);
+      } catch (err: unknown) {
+        console.warn(`[STARTUP] Failed to parse background degradation settings:`, err);
+      }
+    }
+
     const migration = await migrateCodexConnectionDefaultsFromLegacySettings();
     if (migration.migrated) {
       console.log(

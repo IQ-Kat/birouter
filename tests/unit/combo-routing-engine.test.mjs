@@ -1618,7 +1618,7 @@ test("handleComboChat context cache protection flushes cleanly when a stream end
   assert.equal(result.ok, true);
   assert.equal(result.headers.get("X-OmniRoute-Model"), "openai/gpt-4o-mini");
   assert.match(text, /data: \[DONE\]/);
-  assert.match(text, /"content":"\\\\n\\\\n"/);
+  assert.match(text, /"content":""/);
   assert.doesNotMatch(text, /<omniModel>/);
 });
 

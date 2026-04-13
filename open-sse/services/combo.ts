@@ -1042,7 +1042,10 @@ export async function handleComboChat({
             const text = sanitizeDecoder.decode(chunk, { stream: true });
             if (text) {
               if (text.includes("<omniModel>")) {
-                const cleaned = text.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                const cleaned = text.replace(
+                  /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g,
+                  ""
+                );
                 if (cleaned) controller.enqueue(encoder.encode(cleaned));
               } else {
                 controller.enqueue(encoder.encode(text));
@@ -1053,7 +1056,10 @@ export async function handleComboChat({
             const tail = sanitizeDecoder.decode();
             if (tail) {
               if (tail.includes("<omniModel>")) {
-                const cleaned = tail.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                const cleaned = tail.replace(
+                  /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g,
+                  ""
+                );
                 if (cleaned) controller.enqueue(encoder.encode(cleaned));
               } else {
                 controller.enqueue(encoder.encode(tail));
