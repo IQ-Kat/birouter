@@ -5,6 +5,14 @@ import {
   deleteUpstreamProxyConfig,
 } from "@/lib/db/upstreamProxy";
 
+import { z } from "zod";
+import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+
+const upstreamProxySchema = z.object({
+  mode: z.enum(["native", "cliproxyapi", "fallback"]).default("native"),
+  enabled: z.boolean().optional().default(true),
+});
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ providerId: string }> }
@@ -29,9 +37,13 @@ export async function PUT(
     return NextResponse.json({ error: "providerId required" }, { status: 400 });
   }
 
-  const body = await request.json();
-  const mode = body.mode === "cliproxyapi" || body.mode === "fallback" ? body.mode : "native";
-  const enabled = body.enabled !== false;
+  const rawBody = await request.json();
+  const validation = validateBody(upstreamProxySchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json(validation.error, { status: 400 });
+  }
+
+  const { mode, enabled } = validation.data;
 
   const config = await upsertUpstreamProxyConfig({
     providerId,
