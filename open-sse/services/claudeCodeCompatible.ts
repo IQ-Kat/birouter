@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 
+import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
@@ -12,6 +13,9 @@ export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA =
 export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.89 (external, sdk-cli)";
 export const CLAUDE_CODE_COMPATIBLE_BILLING_HEADER =
   "x-anthropic-billing-header: cc_version=2.1.89.728; cc_entrypoint=sdk-cli; cch=00000;";
+export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
+  process.env
+);
 
 type HeaderLike =
   | Headers
@@ -97,7 +101,7 @@ export function buildClaudeCodeCompatibleHeaders(
     "x-app": "cli",
     "User-Agent": CLAUDE_CODE_COMPATIBLE_USER_AGENT,
     "X-Stainless-Retry-Count": "0",
-    "X-Stainless-Timeout": "300",
+    "X-Stainless-Timeout": String(CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS),
     "X-Stainless-Lang": "js",
     "X-Stainless-Package-Version": "0.74.0",
     "X-Stainless-OS": "MacOS",
