@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 
+import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { computeFingerprint, extractFirstUserMessageText } from "./claudeCodeFingerprint.ts";
@@ -33,6 +34,9 @@ export function buildBillingHeader(messages?: Array<{ role?: string; content?: u
 
 /** @deprecated Use buildBillingHeader() for dynamic fingerprint */
 export const CLAUDE_CODE_COMPATIBLE_BILLING_HEADER = `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_COMPATIBLE_VERSION}.000; cc_entrypoint=cli; cch=00000;`;
+export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
+  process.env
+);
 
 type HeaderLike =
   | Headers
@@ -118,7 +122,7 @@ export function buildClaudeCodeCompatibleHeaders(
     "x-app": "cli",
     "User-Agent": CLAUDE_CODE_COMPATIBLE_USER_AGENT,
     "X-Stainless-Retry-Count": "0",
-    "X-Stainless-Timeout": "600",
+    "X-Stainless-Timeout": String(CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS),
     "X-Stainless-Lang": "js",
     "X-Stainless-Package-Version": "0.80.0",
     "X-Stainless-OS": "MacOS",

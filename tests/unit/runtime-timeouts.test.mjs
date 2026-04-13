@@ -65,6 +65,21 @@ test("TLS client timeout defaults to FETCH_TIMEOUT_MS and can be overridden", ()
   assert.equal(overriddenConfig.timeoutMs, 720000);
 });
 
+test("stainless timeout derives from fetch timeout and rounds up to whole seconds", () => {
+  assert.equal(
+    runtimeTimeouts.getStainlessTimeoutSeconds({
+      REQUEST_TIMEOUT_MS: "1200000",
+    }),
+    1200
+  );
+  assert.equal(
+    runtimeTimeouts.getStainlessTimeoutSeconds({
+      FETCH_TIMEOUT_MS: "600001",
+    }),
+    601
+  );
+});
+
 test("API bridge timeouts align request timeout with long proxy timeout by default", () => {
   const config = runtimeTimeouts.getApiBridgeTimeoutConfig({
     API_BRIDGE_PROXY_TIMEOUT_MS: "600000",
