@@ -33,7 +33,7 @@ test("sanitizeOpenAIResponse strips non-standard fields and preserves required t
   });
 });
 
-test("sanitizeOpenAIResponse extracts thinking, collapses newlines, and preserves tool calls", () => {
+test("sanitizeOpenAIResponse extracts thinking, collapses newlines, strips final reasoning_content, and preserves tool calls", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_test",
     model: "gpt-4.1",
@@ -54,26 +54,26 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, and preserve
   assert.equal(sanitized.choices[0].index, 2);
   assert.equal(sanitized.choices[0].finish_reason, "tool_calls");
   assert.equal(sanitized.choices[0].message.content, "Hello\n\nworld");
-  assert.equal(sanitized.choices[0].message.reasoning_content, "internal chain");
+  assert.equal(sanitized.choices[0].message.reasoning_content, undefined);
   assert.deepEqual(sanitized.choices[0].message.tool_calls, [{ id: "call_1" }]);
   assert.deepEqual(sanitized.choices[0].message.function_call, { name: "legacy" });
 });
 
-test("sanitizeOpenAIResponse preserves native reasoning_content over extracted think tags", () => {
+test("sanitizeOpenAIResponse preserves native reasoning_content when no visible content remains", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "gpt-4.1",
     choices: [
       {
         message: {
           role: "assistant",
-          content: "<think>discard me</think>Visible text",
+          content: "<think>discard me</think>",
           reasoning_content: "provider reasoning",
         },
       },
     ],
   });
 
-  assert.equal(sanitized.choices[0].message.content, "Visible text");
+  assert.equal(sanitized.choices[0].message.content, "");
   assert.equal(sanitized.choices[0].message.reasoning_content, "provider reasoning");
 });
 
@@ -96,7 +96,7 @@ test("sanitizeOpenAIResponse maps Claude-style usage fields and strips extras", 
   });
 });
 
-test("sanitizeOpenAIResponse normalizes reasoning_details arrays into reasoning_content", () => {
+test("sanitizeOpenAIResponse strips reasoning_details-derived reasoning_content when visible text exists", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "openrouter/model",
     choices: [
@@ -108,6 +108,26 @@ test("sanitizeOpenAIResponse normalizes reasoning_details arrays into reasoning_
             { type: "reasoning.text", text: "first " },
             { type: "thinking", content: "second" },
             { type: "other", text: "ignored" },
+          ],
+        },
+      },
+    ],
+  });
+
+  assert.equal(sanitized.choices[0].message.reasoning_content, undefined);
+});
+
+test("sanitizeOpenAIResponse keeps reasoning_details-derived reasoning_content for reasoning-only messages", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    model: "openrouter/model",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "",
+          reasoning_details: [
+            { type: "reasoning.text", text: "first " },
+            { type: "thinking", content: "second" },
           ],
         },
       },

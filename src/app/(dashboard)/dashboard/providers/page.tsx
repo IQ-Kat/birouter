@@ -23,6 +23,8 @@ import {
 } from "@/shared/constants/providers";
 import Link from "next/link";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
+import { pickDisplayValue } from "@/shared/utils/maskEmail";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
 import { useTranslations } from "next-intl";
@@ -1569,6 +1571,7 @@ AddCcCompatibleModal.propTypes = {
 function ProviderTestResultsView({ results }) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
 
   // Guard: never crash on malformed/null results (would trigger error boundary)
   if (!results || typeof results !== "object") {
@@ -1636,7 +1639,9 @@ function ProviderTestResultsView({ results }) {
             {r.valid ? "check_circle" : "error"}
           </span>
           <div className="flex-1 min-w-0">
-            <span className="font-medium">{r.connectionName}</span>
+            <span className="font-medium">
+              {pickDisplayValue([r.connectionName], emailsVisible, r.connectionName)}
+            </span>
             <span className="text-text-muted ml-1.5">({r.provider})</span>
           </div>
           {r.latencyMs !== undefined && (

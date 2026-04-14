@@ -5,7 +5,7 @@
  */
 
 import { checkFallbackError, formatRetryAfter, getProviderProfile } from "./accountFallback.ts";
-import { unavailableResponse } from "../utils/error.ts";
+import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
@@ -44,6 +44,10 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
 ];
 
 const MAX_COMBO_DEPTH = 3;
+
+function comboModelNotFoundResponse(message: string) {
+  return errorResponse(404, message);
+}
 
 // Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
 const DEFAULT_MODEL_P95_MS = {
@@ -913,6 +917,7 @@ export async function handleComboChat({
   if (pinnedModel) {
     log.info("COMBO", `[#401] Context caching: pinned model=${pinnedModel}`);
   }
+  const clientRequestedStream = body?.stream === true;
   // Wrap handleSingleModel to inject context caching tag on response (#401)
   const handleSingleModelWrapped = combo.context_cache_protection
     ? async (b, modelStr, target) => {
@@ -951,7 +956,7 @@ export async function handleComboChat({
         // SDKs close the connection on finish_reason, so anything sent after
         // that marker is silently dropped.
         if (!res.body) return res;
-        const tagContent = `\\n<omniModel>${modelStr}</omniModel>\\n`;
+        const tagContent = `<omniModel>${modelStr}</omniModel>`;
         const encoder = new TextEncoder();
         const decoder = new TextDecoder();
         let tagInjected = false;
@@ -1037,7 +1042,10 @@ export async function handleComboChat({
             const text = sanitizeDecoder.decode(chunk, { stream: true });
             if (text) {
               if (text.includes("<omniModel>")) {
-                const cleaned = text.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                const cleaned = text.replace(
+                  /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g,
+                  ""
+                );
                 if (cleaned) controller.enqueue(encoder.encode(cleaned));
               } else {
                 controller.enqueue(encoder.encode(text));
@@ -1048,7 +1056,10 @@ export async function handleComboChat({
             const tail = sanitizeDecoder.decode();
             if (tail) {
               if (tail.includes("<omniModel>")) {
-                const cleaned = tail.replace(/\n?<omniModel>[^<]+<\/omniModel>\n?/g, "");
+                const cleaned = tail.replace(
+                  /(?:\\n|\n)?<omniModel>[^<]+<\/omniModel>(?:\\n|\n)?/g,
+                  ""
+                );
                 if (cleaned) controller.enqueue(encoder.encode(cleaned));
               } else {
                 controller.enqueue(encoder.encode(tail));
@@ -1287,7 +1298,7 @@ export async function handleComboChat({
   }
 
   if (orderedTargets.length === 0) {
-    return unavailableResponse(503, "Combo has no executable targets");
+    return comboModelNotFoundResponse("Combo has no executable targets");
   }
 
   let lastError = null;
@@ -1344,7 +1355,7 @@ export async function handleComboChat({
 
       // Success — validate response quality before returning
       if (result.ok) {
-        const quality = await validateResponseQuality(result, !!body.stream, log);
+        const quality = await validateResponseQuality(result, clientRequestedStream, log);
         if (!quality.valid) {
           log.warn(
             "COMBO",
@@ -1615,7 +1626,7 @@ async function handleRoundRobinCombo({
   const orderedTargets = resolveComboTargets(combo, allCombos);
   const modelCount = orderedTargets.length;
   if (modelCount === 0) {
-    return unavailableResponse(503, "Round-robin combo has no executable targets");
+    return comboModelNotFoundResponse("Round-robin combo has no executable targets");
   }
 
   // Get and increment atomic counter
@@ -1623,6 +1634,7 @@ async function handleRoundRobinCombo({
   rrCounters.set(combo.name, counter + 1);
   const startIndex = counter % modelCount;
 
+  const clientRequestedStream = body?.stream === true;
   const startTime = Date.now();
   let lastError = null;
   let lastStatus = null;
@@ -1697,7 +1709,7 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
-          const quality = await validateResponseQuality(result, !!body.stream, log);
+          const quality = await validateResponseQuality(result, clientRequestedStream, log);
           if (!quality.valid) {
             log.warn(
               "COMBO-RR",

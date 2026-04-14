@@ -22,6 +22,10 @@ import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { getSettings, getCombos } from "@/lib/localDb";
 import { sanitizeRequest } from "../../shared/utils/inputSanitizer";
 import {
+  ensureOpenAIStoreSessionFallback,
+  isOpenAIResponsesStoreEnabled,
+} from "@/lib/providers/requestDefaults";
+import {
   resolveModelOrError,
   checkPipelineGates,
   executeChatWithBreaker,
@@ -549,6 +553,12 @@ async function handleSingleModelChat(
       }
     }
     const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
+    const storeEnabled = isOpenAIResponsesStoreEnabled(
+      refreshedCredentials?.providerSpecificData ?? credentials?.providerSpecificData
+    );
+    if (provider === "codex" && storeEnabled && runtimeOptions.sessionId) {
+      requestBody = ensureOpenAIStoreSessionFallback(requestBody, runtimeOptions.sessionId);
+    }
     if (provider === "codex" && refreshedCredentials?.accessToken && credentials.connectionId) {
       const workspaceId =
         typeof refreshedCredentials?.providerSpecificData?.workspaceId === "string" &&

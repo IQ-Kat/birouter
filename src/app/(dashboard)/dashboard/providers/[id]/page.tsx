@@ -46,6 +46,7 @@ import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
 import { maskEmail, pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
+import { getCodexRequestDefaults as _getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -462,6 +463,9 @@ interface ConnectionRowProps {
   onToggleRateLimit: (enabled?: boolean) => void;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
+  isCcCompatible?: boolean;
+  cliproxyapiEnabled?: boolean;
+  onToggleCliproxyapiMode?: (enabled?: boolean) => void;
   onRetest: () => void;
   isRetesting?: boolean;
   onEdit: () => void;
@@ -535,6 +539,13 @@ interface EditCompatibleNodeModalProps {
 const CC_COMPATIBLE_LABEL = "CC Compatible";
 const CC_COMPATIBLE_DETAILS_TITLE = "CC Compatible Details";
 const CC_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
+const CODEX_REASONING_STRENGTH_OPTIONS = [
+  { value: "none", label: "None" },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "xhigh", label: "XHigh" },
+];
 
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
@@ -544,6 +555,21 @@ function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly
   return {
     use5h: typeof record.use5h === "boolean" ? record.use5h : true,
     useWeekly: typeof record.useWeekly === "boolean" ? record.useWeekly : true,
+  };
+}
+
+/**
+ * UI adapter around the canonical getCodexRequestDefaults from requestDefaults.ts.
+ * Adds the "medium" fallback for reasoningEffort required by the connection form.
+ */
+function getCodexRequestDefaults(providerSpecificData: unknown): {
+  reasoningEffort: string;
+  serviceTier?: "priority";
+} {
+  const defaults = _getCodexRequestDefaults(providerSpecificData);
+  return {
+    reasoningEffort: defaults.reasoningEffort ?? "medium",
+    ...(defaults.serviceTier ? { serviceTier: defaults.serviceTier } : {}),
   };
 }
 
@@ -889,6 +915,7 @@ export default function ProviderDetailPage() {
   const [headerImgError, setHeaderImgError] = useState(false);
   const { copied, copy } = useCopyToClipboard();
   const t = useTranslations("providers");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const notify = useNotificationStore();
   const [proxyTarget, setProxyTarget] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
@@ -1309,6 +1336,62 @@ export default function ProviderDetailPage() {
       }
     } catch (error) {
       console.error("Error toggling rate limit:", error);
+    }
+  };
+
+  const [cpaProviderEnabled, setCpaProviderEnabled] = useState(false);
+
+  // Load upstream proxy config for this provider on mount
+  useEffect(() => {
+    if (!isCcCompatible) return;
+    fetch(`/api/settings`)
+      .then((r) => r.json())
+      .then((data) => {
+        // Check if this provider has CLIProxyAPI routing enabled
+        // The upstream_proxy_config is synced via the settings API
+      })
+      .catch(() => {});
+
+    // Also check via direct upstream proxy config lookup
+    fetch(`/api/upstream-proxy/${providerId}`)
+      .then((r) => {
+        if (!r.ok) return null;
+        return r.json();
+      })
+      .then((data) => {
+        if (data?.enabled && (data.mode === "cliproxyapi" || data.mode === "fallback")) {
+          setCpaProviderEnabled(true);
+        }
+      })
+      .catch(() => {});
+  }, [isCcCompatible, providerId]);
+
+  const handleToggleCliproxyapiMode = async (_connectionId, enabled) => {
+    try {
+      // Write to upstream_proxy_config table which resolveExecutorWithProxy reads
+      const res = await fetch(`/api/upstream-proxy/${providerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: enabled ? "cliproxyapi" : "native",
+          enabled: enabled,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error || "Failed to update CLIProxyAPI routing");
+        return;
+      }
+
+      setCpaProviderEnabled(enabled);
+      notify.success(
+        enabled
+          ? "Requests now route through CLIProxyAPI (deeper emulation)"
+          : "Requests now use native OmniRoute (direct)"
+      );
+    } catch {
+      notify.error("Failed to update CLIProxyAPI routing");
     }
   };
 
@@ -2589,6 +2672,11 @@ export default function ProviderDetailPage() {
                       onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                       onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
                       isCodex={providerId === "codex"}
+                      isCcCompatible={isCcCompatible}
+                      cliproxyapiEnabled={cpaProviderEnabled}
+                      onToggleCliproxyapiMode={(enabled) =>
+                        handleToggleCliproxyapiMode(conn.id, enabled)
+                      }
                       onToggleCodex5h={(enabled) =>
                         handleToggleCodexLimit(conn.id, "use5h", enabled)
                       }
@@ -2625,11 +2713,7 @@ export default function ProviderDetailPage() {
                         setProxyTarget({
                           level: "key",
                           id: conn.id,
-                          label: pickDisplayValue(
-                            [conn.name, conn.email],
-                            useEmailPrivacyStore.getState().emailsVisible,
-                            conn.id
-                          ),
+                          label: pickDisplayValue([conn.name, conn.email], emailsVisible, conn.id),
                         })
                       }
                       hasProxy={!!connProxyMap[conn.id]?.proxy}
@@ -2740,7 +2824,7 @@ export default function ProviderDetailPage() {
                                 id: conn.id,
                                 label: pickDisplayValue(
                                   [conn.name, conn.email],
-                                  useEmailPrivacyStore.getState().emailsVisible,
+                                  emailsVisible,
                                   conn.id
                                 ),
                               })
@@ -2915,7 +2999,9 @@ export default function ProviderDetailPage() {
                         {r.valid ? "check_circle" : "error"}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <span className="font-medium">{r.connectionName}</span>
+                        <span className="font-medium">
+                          {pickDisplayValue([r.connectionName], emailsVisible, r.connectionName)}
+                        </span>
                       </div>
                       {r.latencyMs !== undefined && (
                         <span className="text-text-muted font-mono tabular-nums">
@@ -4555,6 +4641,8 @@ function ConnectionRow({
   connection,
   isOAuth,
   isCodex,
+  isCcCompatible,
+  cliproxyapiEnabled,
   isFirst,
   isLast,
   onMoveUp,
@@ -4563,6 +4651,7 @@ function ConnectionRow({
   onToggleRateLimit,
   onToggleCodex5h,
   onToggleCodexWeekly,
+  onToggleCliproxyapiMode,
   onRetest,
   isRetesting,
   onEdit,
@@ -4654,6 +4743,7 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
+  const cliproxyapiDeepMode = !!cliproxyapiEnabled;
 
   return (
     <div
@@ -4743,6 +4833,27 @@ function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
+            {isCcCompatible && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleCliproxyapiMode?.(!cliproxyapiDeepMode)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    cliproxyapiDeepMode
+                      ? "bg-indigo-500/15 text-indigo-500 hover:bg-indigo-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={
+                    cliproxyapiDeepMode
+                      ? "Using CLIProxyAPI for deeper Claude Code emulation (uTLS, multi-account, device profiles)"
+                      : "Enable CLIProxyAPI backend for deeper Claude Code OAuth emulation"
+                  }
+                >
+                  <span className="material-symbols-outlined text-[13px]">swap_horiz</span>
+                  CPA {cliproxyapiDeepMode ? "ON" : "OFF"}
+                </button>
+              </>
+            )}
             {isCodex && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
@@ -4932,6 +5043,9 @@ ConnectionRow.propTypes = {
   onToggleRateLimit: PropTypes.func.isRequired,
   onToggleCodex5h: PropTypes.func,
   onToggleCodexWeekly: PropTypes.func,
+  isCcCompatible: PropTypes.bool,
+  cliproxyapiEnabled: PropTypes.bool,
+  onToggleCliproxyapiMode: PropTypes.func,
   onRetest: PropTypes.func.isRequired,
   isRetesting: PropTypes.bool,
   onEdit: PropTypes.func.isRequired,
@@ -5340,6 +5454,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     tag: "",
     customUserAgent: "",
     accountId: "",
+    codexReasoningEffort: "medium",
+    codexFastServiceTier: false,
+    codexOpenaiStoreEnabled: false,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5358,6 +5475,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isVertex = connection?.provider === "vertex";
   const isGlm = connection?.provider === "glm";
   const isCloudflare = connection?.provider === "cloudflare-ai";
+  const isCodex = connection?.provider === "codex";
   const defaultRegion = "us-central1";
 
   useEffect(() => {
@@ -5371,6 +5489,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         typeof rawCustomUserAgent === "string" ? rawCustomUserAgent : "";
       const rawAccountId = connection.providerSpecificData?.accountId;
       const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
+      const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -5383,6 +5502,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         tag: (connection.providerSpecificData?.tag as string) || "",
         customUserAgent: existingCustomUserAgent,
         accountId: existingAccountId,
+        codexReasoningEffort: codexRequestDefaults.reasoningEffort,
+        codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
+        codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5533,6 +5655,14 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           ...(connection.providerSpecificData || {}),
           tag: formData.tag.trim() || undefined,
         };
+        if (isCodex) {
+          updates.providerSpecificData.requestDefaults = {
+            reasoningEffort: formData.codexReasoningEffort,
+            ...(formData.codexFastServiceTier ? { serviceTier: "priority" } : {}),
+          };
+          updates.providerSpecificData.openaiStoreEnabled =
+            formData.codexOpenaiStoreEnabled === true;
+        }
       }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
@@ -5570,6 +5700,29 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           placeholder="e.g. personal, work, team-a"
           hint="Used to group accounts in the provider view"
         />
+        {isCodex && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Select
+              label="Default thinking strength"
+              value={formData.codexReasoningEffort}
+              options={CODEX_REASONING_STRENGTH_OPTIONS}
+              onChange={(e) => setFormData({ ...formData, codexReasoningEffort: e.target.value })}
+              hint="Used when the client does not send a reasoning effort and the global Thinking Budget mode is passthrough."
+            />
+            <Toggle
+              checked={formData.codexFastServiceTier}
+              onChange={(checked) => setFormData({ ...formData, codexFastServiceTier: checked })}
+              label="Codex Fast Service Tier"
+              description="When enabled, injects `service_tier=priority` for this connection if the client leaves the tier unset."
+            />
+            <Toggle
+              checked={formData.codexOpenaiStoreEnabled}
+              onChange={(checked) => setFormData({ ...formData, codexOpenaiStoreEnabled: checked })}
+              label="OpenAI Responses Store"
+              description="Preserves `store`, `previous_response_id`, and adds a stable fallback `session_id` for long Codex sessions. Enable only when the upstream account accepts stored Responses."
+            />
+          </div>
+        )}
         {isOAuth && connection.email && (
           <div className="bg-sidebar/50 p-3 rounded-lg">
             <p className="text-sm text-text-muted mb-1">{t("email")}</p>

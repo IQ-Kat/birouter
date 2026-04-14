@@ -570,9 +570,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "connect-accept-encoding": "gzip",
       "connect-protocol-version": "1",
       "Content-Type": "application/connect+proto",
-      "User-Agent": "connect-es/1.6.1",
+      "User-Agent": "Cursor/3.1.0",
     },
-    clientVersion: "1.1.3",
+    clientVersion: "3.1.0",
     models: [
       { id: "default", name: "Auto (Server Picks)" },
       { id: "claude-4.6-opus-high-thinking", name: "Claude 4.6 Opus High Thinking" },

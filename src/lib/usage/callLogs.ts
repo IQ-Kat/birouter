@@ -68,6 +68,8 @@ type CallLogArtifact = {
   pipeline?: RequestPipelinePayloads;
 };
 
+const CALL_LOG_INLINE_BODY_LIMIT = 256 * 1024;
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -427,8 +429,8 @@ export async function saveCallLog(entry: any) {
       comboStepId: toStringOrNull(entry.comboStepId),
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
-      requestBody: serializePayloadForStorage(protectedRequestBody, 8192),
-      responseBody: serializePayloadForStorage(protectedResponseBody, 8192),
+      requestBody: serializePayloadForStorage(protectedRequestBody, CALL_LOG_INLINE_BODY_LIMIT),
+      responseBody: serializePayloadForStorage(protectedResponseBody, CALL_LOG_INLINE_BODY_LIMIT),
       error: toStoredErrorString(protectedError),
     };
 

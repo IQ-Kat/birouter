@@ -5,6 +5,7 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 
 function getAuthToken(credentials: ProviderCredentials): string {
   if (typeof credentials.apiKey === "string" && credentials.apiKey.trim()) {
@@ -25,6 +26,15 @@ function getAuthToken(credentials: ProviderCredentials): string {
 export class QoderExecutor extends BaseExecutor {
   constructor() {
     super("qoder", PROVIDERS.qoder);
+  }
+
+  transformRequest(model: string, body: unknown): Record<string, unknown> {
+    const payload = {
+      ...(typeof body === "object" && body !== null ? body : {}),
+      model,
+    };
+
+    return sanitizeQwenThinkingToolChoice(payload, "QoderExecutor");
   }
 
   async execute({ model, body, stream, credentials, signal, upstreamExtraHeaders }: ExecuteInput) {
@@ -90,10 +100,7 @@ export class QoderExecutor extends BaseExecutor {
 
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
-    const payload = {
-      ...(typeof body === "object" && body !== null ? body : {}),
-      model: mappedModel,
-    };
+    const payload = this.transformRequest(mappedModel, body, stream, credentials);
 
     const bodyStr = JSON.stringify(payload);
 

@@ -9,6 +9,7 @@ import path from "path";
 import fs from "fs";
 import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { runMigrations } from "./migrationRunner";
+import { runDbHealthCheck } from "./healthCheck";
 
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
@@ -455,6 +456,96 @@ function hasColumn(db: SqliteDatabase, tableName: string, columnName: string): b
   return rows.some((row) => row.name === columnName);
 }
 
+function isAutomatedTestProcess(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    (process.env.NODE_ENV === "test" ||
+      process.env.VITEST !== undefined ||
+      process.argv.some((arg) => arg.includes("test")))
+  );
+}
+
+function shouldRunStartupDbHealthCheck(): boolean {
+  if (process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK === "1") return true;
+  return !isAutomatedTestProcess();
+}
+
+function createHealthCheckBackup(db: SqliteDatabase): boolean {
+  const isTest = isAutomatedTestProcess();
+  if (isTest) return false;
+
+  try {
+    const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const backupPath = path.join(backupDir, `db_${timestamp}_health-check-repair.sqlite`);
+    const escapedBackupPath = backupPath.replace(/'/g, "''");
+
+    db.exec(`VACUUM INTO '${escapedBackupPath}'`);
+    console.log(`[DB] Health-check backup created: ${backupPath}`);
+    return true;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("[DB] Failed to create health-check backup:", message);
+    return false;
+  }
+}
+
+let dbHealthCheckTimer: NodeJS.Timeout | null = null;
+
+function getDbHealthCheckIntervalMs(): number {
+  const rawValue = process.env.OMNIROUTE_DB_HEALTHCHECK_INTERVAL_MS;
+  if (typeof rawValue === "string" && rawValue.trim().length > 0) {
+    const parsed = Number(rawValue);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return parsed;
+    }
+  }
+  return 6 * 60 * 60 * 1000;
+}
+
+function clearDbHealthCheckScheduler() {
+  if (dbHealthCheckTimer) {
+    clearInterval(dbHealthCheckTimer);
+    dbHealthCheckTimer = null;
+  }
+}
+
+function startDbHealthCheckScheduler(db: SqliteDatabase) {
+  clearDbHealthCheckScheduler();
+  if (isCloud || isBuildPhase || isAutomatedTestProcess()) return;
+
+  const intervalMs = getDbHealthCheckIntervalMs();
+  if (intervalMs <= 0) return;
+
+  dbHealthCheckTimer = setInterval(() => {
+    try {
+      if (!db.open) return;
+      runDbHealthCheck(db, {
+        autoRepair: true,
+        expectedSchemaVersion: "1",
+        createBackupBeforeRepair: () => createHealthCheckBackup(db),
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn("[DB] Periodic health-check failed:", message);
+    }
+  }, intervalMs);
+  dbHealthCheckTimer.unref?.();
+}
+
+export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
+  const db = getDbInstance();
+  return runDbHealthCheck(db, {
+    autoRepair: options?.autoRepair === true,
+    expectedSchemaVersion: "1",
+    createBackupBeforeRepair: () => createHealthCheckBackup(db),
+  });
+}
+
 export function getDbInstance(): SqliteDatabase {
   const existing = getDb();
   if (existing) return existing;
@@ -532,9 +623,13 @@ export function getDbInstance(): SqliteDatabase {
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      console.warn("[DB] Could not probe existing DB, will create fresh:", message);
+      console.warn("[DB] Could not probe existing DB:", message);
+      // SAFETY: Never delete the database — rename to backup so data can be recovered.
+      // The old code would silently destroy all user data on any probe failure.
+      const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;
       try {
-        fs.unlinkSync(sqliteFile);
+        fs.renameSync(sqliteFile, failedPath);
+        console.warn(`[DB] Renamed corrupt DB to ${path.basename(failedPath)}`);
       } catch {
         /* ok */
       }
@@ -611,13 +706,22 @@ export function getDbInstance(): SqliteDatabase {
     "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')"
   );
   versionStmt.run();
+  if (shouldRunStartupDbHealthCheck()) {
+    runDbHealthCheck(db, {
+      autoRepair: true,
+      expectedSchemaVersion: "1",
+      createBackupBeforeRepair: () => createHealthCheckBackup(db),
+    });
+  }
 
   setDb(db);
+  startDbHealthCheckScheduler(db);
   console.log(`[DB] SQLite database ready: ${sqliteFile}`);
   return db;
 }
 
 export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | null }): boolean {
+  clearDbHealthCheckScheduler();
   const db = getDb();
   if (!db) return false;
 

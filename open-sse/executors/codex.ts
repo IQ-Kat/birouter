@@ -1,7 +1,12 @@
+import {
+  getCodexRequestDefaults,
+  isOpenAIResponsesStoreEnabled,
+} from "@/lib/providers/requestDefaults";
 import { BaseExecutor } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { refreshCodexToken } from "../services/tokenRefresh.ts";
+import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
@@ -160,7 +165,6 @@ export function getCodexDualWindowCooldownMs(
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
 const CODEX_FAST_WIRE_VALUE = "priority";
-let defaultFastServiceTierEnabled = false;
 
 function stringifyCodexInstructionContent(content: unknown): string {
   if (typeof content === "string") {
@@ -285,10 +289,6 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
   return normalized;
 }
 
-export function setDefaultFastServiceTierEnabled(enabled: boolean): void {
-  defaultFastServiceTierEnabled = enabled;
-}
-
 /**
  * Maximum reasoning effort allowed per Codex model.
  * Models not listed here default to "xhigh" (unrestricted).
@@ -316,6 +316,18 @@ function clampEffort(model: string, requested: string): string {
     return max;
   }
   return requested;
+}
+
+function normalizeEffortValue(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim().toLowerCase();
+  return normalized || undefined;
+}
+
+function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
+  const marker = body._omnirouteResponsesStore;
+  delete body._omnirouteResponsesStore;
+  return marker;
 }
 
 /**
@@ -392,8 +404,18 @@ export class CodexExecutor extends BaseExecutor {
    * Transform request before sending - inject default instructions if missing
    */
   transformRequest(model, body, stream, credentials) {
+    // Do not mutate the caller's payload in place. Combo quality checks and
+    // other post-execute paths still inspect the original request body.
+    body =
+      body && typeof body === "object" ? structuredClone(body) : ({} as Record<string, unknown>);
+
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
+    const requestDefaults = getCodexRequestDefaults(credentials?.providerSpecificData);
+    const storeEnabled = isOpenAIResponsesStoreEnabled(credentials?.providerSpecificData);
+    const thinkingBudgetConfig = getThinkingBudgetConfig();
+    const allowConnectionReasoningDefaults = thinkingBudgetConfig.mode === ThinkingMode.PASSTHROUGH;
+    const responsesStoreMarker = consumeResponsesStoreMarker(body);
 
     // Codex /responses rejects stream=false, but /responses/compact rejects the stream field entirely.
     if (isCompactRequest) {
@@ -407,8 +429,8 @@ export class CodexExecutor extends BaseExecutor {
     const requestServiceTier = normalizeServiceTierValue(body.service_tier);
     if (requestServiceTier) {
       body.service_tier = requestServiceTier;
-    } else if (defaultFastServiceTierEnabled) {
-      body.service_tier = CODEX_FAST_WIRE_VALUE;
+    } else if (requestDefaults.serviceTier) {
+      body.service_tier = requestDefaults.serviceTier;
     }
 
     // If no instructions provided, inject default Codex instructions
@@ -418,8 +440,11 @@ export class CodexExecutor extends BaseExecutor {
       body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
     }
 
-    // Ensure store is false (Codex requirement)
-    body.store = false;
+    if (!storeEnabled) {
+      body.store = false;
+    } else if (responsesStoreMarker !== undefined && body.store === undefined) {
+      body.store = responsesStoreMarker;
+    }
 
     // Cursor can send native Responses payloads with role=system items inside `input`.
     // Codex rejects system messages there; they must be folded into `instructions`.
@@ -435,37 +460,42 @@ export class CodexExecutor extends BaseExecutor {
     delete body.messages;
     delete body.prompt;
 
-    if (nativeCodexPassthrough) {
-      return body;
-    }
-
-    // Extract thinking level from model name suffix
-    // e.g., gpt-5.3-codex-high → high, gpt-5.3-codex → medium (default)
     const effortLevels = ["none", "low", "medium", "high", "xhigh"];
     let modelEffort: string | null = null;
-    // Track the clean model name (suffix stripped) for clamp lookup
-    let cleanModel = model;
+    let cleanModel = typeof body.model === "string" ? body.model : model;
     for (const level of effortLevels) {
-      if (model.endsWith(`-${level}`)) {
+      if (typeof cleanModel === "string" && cleanModel.endsWith(`-${level}`)) {
         modelEffort = level;
-        // Strip suffix from model name for actual API call
-        body.model = body.model.replace(`-${level}`, "");
+        body.model = cleanModel.slice(0, -`-${level}`.length);
         cleanModel = body.model;
         break;
       }
     }
 
-    // Priority: explicit reasoning.effort > reasoning_effort param > model suffix > default (medium)
-    if (!body.reasoning) {
-      const rawEffort = body.reasoning_effort || modelEffort || "medium";
-      // Clamp effort to the model's maximum allowed level (feature-07)
-      const effort = clampEffort(cleanModel, rawEffort);
-      body.reasoning = { effort };
-    } else if (body.reasoning.effort) {
-      // Also clamp if reasoning object was provided directly
-      body.reasoning.effort = clampEffort(cleanModel, body.reasoning.effort);
+    const explicitReasoning = normalizeEffortValue(body?.reasoning?.effort);
+    const requestReasoningEffort = normalizeEffortValue(body.reasoning_effort);
+    const fallbackReasoningEffort = allowConnectionReasoningDefaults
+      ? requestDefaults.reasoningEffort || "medium"
+      : undefined;
+    const rawEffort =
+      explicitReasoning || requestReasoningEffort || modelEffort || fallbackReasoningEffort;
+
+    if (explicitReasoning) {
+      body.reasoning = {
+        ...(body.reasoning && typeof body.reasoning === "object" ? body.reasoning : {}),
+        effort: clampEffort(cleanModel, explicitReasoning),
+      };
+    } else if (rawEffort) {
+      body.reasoning = {
+        ...(body.reasoning && typeof body.reasoning === "object" ? body.reasoning : {}),
+        effort: clampEffort(cleanModel, rawEffort),
+      };
     }
     delete body.reasoning_effort;
+
+    if (nativeCodexPassthrough) {
+      return body;
+    }
 
     // Remove unsupported parameters for Codex API
     delete body.temperature;

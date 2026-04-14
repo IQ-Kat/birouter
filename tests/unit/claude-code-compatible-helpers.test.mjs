@@ -5,6 +5,7 @@ const {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS,
+  CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS,
   isClaudeCodeCompatibleProvider,
   stripAnthropicMessagesSuffix,
   stripClaudeCodeCompatibleEndpointSuffix,
@@ -46,6 +47,10 @@ test("buildClaudeCodeCompatibleHeaders emits stream-aware auth headers and sessi
   assert.equal(streamHeaders.Accept, "text/event-stream");
   assert.equal(streamHeaders["x-api-key"], "sk-demo");
   assert.equal(streamHeaders["X-Claude-Code-Session-Id"], "session-123");
+  assert.equal(
+    streamHeaders["X-Stainless-Timeout"],
+    String(CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS)
+  );
   assert.equal(jsonHeaders.Accept, "application/json");
   assert.equal(jsonHeaders["X-Claude-Code-Session-Id"], undefined);
 });

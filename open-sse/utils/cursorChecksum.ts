@@ -8,6 +8,9 @@
 import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";
 
+const CURSOR_CLIENT_VERSION = "3.1.0";
+const CURSOR_USER_AGENT = `Cursor/${CURSOR_CLIENT_VERSION}`;
+
 /**
  * Generate SHA-256 hash like generateHashed64Hex
  * @param {string} input - Input string
@@ -112,11 +115,12 @@ export function buildCursorHeaders(accessToken, machineId = null, ghostMode = tr
     "connect-accept-encoding": "gzip",
     "connect-protocol-version": "1",
     "Content-Type": "application/connect+proto",
-    "User-Agent": "connect-es/1.6.1",
+    "User-Agent": CURSOR_USER_AGENT,
     "x-amzn-trace-id": `Root=${crypto.randomUUID()}`,
     "x-client-key": clientKey,
     "x-cursor-checksum": checksum,
-    "x-cursor-client-version": "1.1.3",
+    "x-cursor-client-version": CURSOR_CLIENT_VERSION,
+    "x-cursor-user-agent": CURSOR_USER_AGENT,
     "x-cursor-config-version": crypto.randomUUID(),
     "x-cursor-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     "x-ghost-mode": ghostMode ? "true" : "false",

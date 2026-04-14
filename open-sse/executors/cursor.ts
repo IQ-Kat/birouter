@@ -33,6 +33,9 @@ import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";
 import zlib from "zlib";
 
+const CURSOR_CLIENT_VERSION = "3.1.0";
+const CURSOR_USER_AGENT = `Cursor/${CURSOR_CLIENT_VERSION}`;
+
 // Detect cloud environment
 const isCloudEnv = () => {
   if (typeof caches !== "undefined" && typeof caches === "object") return true;
@@ -251,11 +254,11 @@ export class CursorExecutor extends BaseExecutor {
       "connect-accept-encoding": "gzip",
       "connect-protocol-version": "1",
       "content-type": "application/connect+proto",
-      "user-agent": "connect-es/1.6.1",
+      "user-agent": CURSOR_USER_AGENT,
       "x-amzn-trace-id": `Root=${crypto.randomUUID()}`,
       "x-client-key": crypto.createHash("sha256").update(cleanToken).digest("hex"),
       "x-cursor-checksum": this.generateChecksum(machineId),
-      "x-cursor-client-version": "2.3.41",
+      "x-cursor-client-version": CURSOR_CLIENT_VERSION,
       "x-cursor-client-type": "ide",
       "x-cursor-client-os":
         process.platform === "win32"
@@ -265,6 +268,7 @@ export class CursorExecutor extends BaseExecutor {
             : "linux",
       "x-cursor-client-arch": process.arch === "arm64" ? "aarch64" : "x64",
       "x-cursor-client-device-type": "desktop",
+      "x-cursor-user-agent": CURSOR_USER_AGENT,
       "x-cursor-config-version": crypto.randomUUID(),
       "x-cursor-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       "x-ghost-mode": ghostMode ? "true" : "false",

@@ -328,6 +328,19 @@ test("DefaultExecutor.transformRequest is a passthrough and preserves model ids 
   assert.equal(result.model, "zai-org/GLM-5-FP8");
 });
 
+test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for Qwen thinking", () => {
+  const executor = new DefaultExecutor("qwen");
+  const body = {
+    messages: [{ role: "user", content: "hi" }],
+    thinking: { type: "enabled" },
+    tool_choice: { type: "function", function: { name: "pwd" } },
+  };
+  const result = executor.transformRequest("qwen3-coder-plus", body, true, {});
+
+  assert.notEqual(result, body);
+  assert.equal(result.tool_choice, "auto");
+});
+
 test("BaseExecutor helpers manage custom user agents and upstream extra headers", () => {
   const headers = { "user-agent": "old", Authorization: "Bearer old" };
 

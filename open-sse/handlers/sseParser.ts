@@ -399,6 +399,132 @@ export function parseSSEToClaudeResponse(rawSSE, fallbackModel) {
  * Convert Responses API SSE events into a single non-streaming response object.
  * Expects events such as response.created / response.in_progress / response.completed.
  */
+const RESPONSES_TERMINAL_EVENT_TYPES = new Set([
+  "response.completed",
+  "response.done",
+  "response.cancelled",
+  "response.canceled",
+  "response.failed",
+  "response.incomplete",
+]);
+
+function toOutputIndex(value) {
+  if (typeof value === "number" && Number.isInteger(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isInteger(parsed)) return parsed;
+  }
+  return null;
+}
+
+function cloneResponseItem(item) {
+  const record = toRecord(item);
+  return {
+    ...record,
+    ...(Array.isArray(record.content)
+      ? {
+          content: record.content.map((contentPart) => {
+            const part = toRecord(contentPart);
+            return { ...part };
+          }),
+        }
+      : {}),
+    ...(Array.isArray(record.summary)
+      ? {
+          summary: record.summary.map((summaryPart) => {
+            const part = toRecord(summaryPart);
+            return { ...part };
+          }),
+        }
+      : {}),
+  };
+}
+
+function ensureResponsesMessageItem(outputItems, outputIndex) {
+  const existing = outputItems.get(outputIndex);
+  if (existing?.type === "message") return existing;
+
+  const next = {
+    ...(existing && typeof existing === "object" ? existing : {}),
+    id: existing?.id || `msg_${Date.now()}_${outputIndex}`,
+    type: "message",
+    role: "assistant",
+    content: Array.isArray(existing?.content)
+      ? existing.content.map((contentPart) => ({ ...toRecord(contentPart) }))
+      : [{ type: "output_text", annotations: [], text: "" }],
+  };
+
+  if (next.content.length === 0) {
+    next.content.push({ type: "output_text", annotations: [], text: "" });
+  }
+
+  outputItems.set(outputIndex, next);
+  return next;
+}
+
+function ensureResponsesReasoningItem(outputItems, outputIndex, itemId) {
+  const existing = outputItems.get(outputIndex);
+  if (existing?.type === "reasoning") return existing;
+
+  const next = {
+    ...(existing && typeof existing === "object" ? existing : {}),
+    id: itemId || existing?.id || `rs_${Date.now()}_${outputIndex}`,
+    type: "reasoning",
+    summary: Array.isArray(existing?.summary)
+      ? existing.summary.map((summaryPart) => ({ ...toRecord(summaryPart) }))
+      : [{ type: "summary_text", text: "" }],
+  };
+
+  if (next.summary.length === 0) {
+    next.summary.push({ type: "summary_text", text: "" });
+  }
+
+  outputItems.set(outputIndex, next);
+  return next;
+}
+
+function ensureResponsesFunctionCallItem(outputItems, outputIndex, itemId, callId, name) {
+  const existing = outputItems.get(outputIndex);
+  if (existing?.type === "function_call") {
+    if (callId && !existing.call_id) existing.call_id = callId;
+    if (name && !existing.name) existing.name = name;
+    if (itemId && !existing.id) existing.id = itemId;
+    return existing;
+  }
+
+  const next = {
+    ...(existing && typeof existing === "object" ? existing : {}),
+    id: itemId || existing?.id || `fc_${callId || `${Date.now()}_${outputIndex}`}`,
+    type: "function_call",
+    call_id: callId || existing?.call_id || "",
+    name: name || existing?.name || "",
+    arguments: typeof existing?.arguments === "string" ? existing.arguments : "",
+  };
+
+  outputItems.set(outputIndex, next);
+  return next;
+}
+
+function mergeResponseItems(existing, incoming) {
+  const next = cloneResponseItem(incoming);
+  if (!existing || typeof existing !== "object") return next;
+
+  return {
+    ...existing,
+    ...next,
+    ...(Array.isArray(next.content)
+      ? {
+          content: next.content,
+        }
+      : {}),
+    ...(Array.isArray(next.summary)
+      ? {
+          summary: next.summary,
+        }
+      : {}),
+  };
+}
+
 export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
   const lines = String(rawSSE || "").split("\n");
   const events = [];
@@ -409,7 +535,11 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
     const payload = trimmed.slice(5).trim();
     if (!payload || payload === "[DONE]") continue;
     try {
-      events.push(JSON.parse(payload));
+      const parsed = JSON.parse(payload);
+      const record = toRecord(parsed);
+      if (Object.keys(record).length > 0) {
+        events.push(record);
+      }
     } catch {
       // Ignore malformed lines and continue best-effort parsing.
     }
@@ -417,12 +547,104 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
 
   if (events.length === 0) return null;
 
-  let completed = null;
+  let terminalResponse = null;
+  let terminalEventType = "";
   let latestResponse = null;
+  const outputItems = new Map();
 
   for (const evt of events) {
-    if (evt?.type === "response.completed" && evt.response) {
-      completed = evt.response;
+    const eventType = toString(evt?.type);
+    const outputIndex = toOutputIndex(evt?.output_index);
+    const item = toRecord(evt?.item);
+
+    if (outputIndex !== null && eventType === "response.output_item.added") {
+      outputItems.set(outputIndex, cloneResponseItem(item));
+    }
+
+    if (outputIndex !== null && eventType === "response.output_item.done") {
+      const existing = outputItems.get(outputIndex);
+      outputItems.set(outputIndex, mergeResponseItems(existing, item));
+    }
+
+    if (outputIndex !== null && eventType === "response.output_text.delta") {
+      const messageItem = ensureResponsesMessageItem(outputItems, outputIndex);
+      const content = Array.isArray(messageItem.content) ? messageItem.content : [];
+      const firstPart =
+        content.length > 0 ? { ...toRecord(content[0]) } : { type: "output_text", annotations: [] };
+      firstPart.type = firstPart.type || "output_text";
+      firstPart.annotations = Array.isArray(firstPart.annotations) ? firstPart.annotations : [];
+      firstPart.text = `${toString(firstPart.text)}${toString(evt.delta)}`;
+      content[0] = firstPart;
+      messageItem.content = content;
+    }
+
+    if (outputIndex !== null && eventType === "response.output_text.done") {
+      const messageItem = ensureResponsesMessageItem(outputItems, outputIndex);
+      const content = Array.isArray(messageItem.content) ? messageItem.content : [];
+      const firstPart =
+        content.length > 0 ? { ...toRecord(content[0]) } : { type: "output_text", annotations: [] };
+      firstPart.type = firstPart.type || "output_text";
+      firstPart.annotations = Array.isArray(firstPart.annotations) ? firstPart.annotations : [];
+      firstPart.text = toString(evt.text, toString(firstPart.text));
+      content[0] = firstPart;
+      messageItem.content = content;
+    }
+
+    if (outputIndex !== null && eventType === "response.reasoning_summary_text.delta") {
+      const reasoningItem = ensureResponsesReasoningItem(
+        outputItems,
+        outputIndex,
+        toString(evt.item_id)
+      );
+      const summary = Array.isArray(reasoningItem.summary) ? reasoningItem.summary : [];
+      const firstPart =
+        summary.length > 0 ? { ...toRecord(summary[0]) } : { type: "summary_text", text: "" };
+      firstPart.type = firstPart.type || "summary_text";
+      firstPart.text = `${toString(firstPart.text)}${toString(evt.delta)}`;
+      summary[0] = firstPart;
+      reasoningItem.summary = summary;
+    }
+
+    if (outputIndex !== null && eventType === "response.reasoning_summary_text.done") {
+      const reasoningItem = ensureResponsesReasoningItem(
+        outputItems,
+        outputIndex,
+        toString(evt.item_id)
+      );
+      const summary = Array.isArray(reasoningItem.summary) ? reasoningItem.summary : [];
+      const firstPart =
+        summary.length > 0 ? { ...toRecord(summary[0]) } : { type: "summary_text", text: "" };
+      firstPart.type = firstPart.type || "summary_text";
+      firstPart.text = toString(evt.text, toString(firstPart.text));
+      summary[0] = firstPart;
+      reasoningItem.summary = summary;
+    }
+
+    if (outputIndex !== null && eventType === "response.function_call_arguments.delta") {
+      const functionCallItem = ensureResponsesFunctionCallItem(
+        outputItems,
+        outputIndex,
+        toString(evt.item_id),
+        "",
+        ""
+      );
+      functionCallItem.arguments = `${toString(functionCallItem.arguments)}${toString(evt.delta)}`;
+    }
+
+    if (outputIndex !== null && eventType === "response.function_call_arguments.done") {
+      const functionCallItem = ensureResponsesFunctionCallItem(
+        outputItems,
+        outputIndex,
+        toString(evt.item_id),
+        "",
+        ""
+      );
+      functionCallItem.arguments = toString(evt.arguments, toString(functionCallItem.arguments));
+    }
+
+    if (RESPONSES_TERMINAL_EVENT_TYPES.has(eventType) && evt.response) {
+      terminalResponse = evt.response;
+      terminalEventType = eventType;
     }
     if (evt?.response && typeof evt.response === "object") {
       latestResponse = evt.response;
@@ -431,16 +653,33 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
     }
   }
 
-  const picked = completed || latestResponse;
+  const picked = terminalResponse || latestResponse;
   if (!picked || typeof picked !== "object") return null;
+  const reconstructedOutput = [...outputItems.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([, item]) => item)
+    .filter((item) => item && typeof item === "object");
+  const pickedOutput = Array.isArray(picked.output) ? picked.output : [];
+  const statusFallback =
+    terminalEventType === "response.cancelled"
+      ? "cancelled"
+      : terminalEventType === "response.canceled"
+        ? "canceled"
+        : terminalEventType === "response.failed"
+          ? "failed"
+          : terminalEventType === "response.incomplete"
+            ? "incomplete"
+            : terminalResponse
+              ? "completed"
+              : "in_progress";
 
   return {
     id: picked.id || `resp_${Date.now()}`,
-    object: "response",
+    object: picked.object || "response",
     model: picked.model || fallbackModel || "unknown",
-    output: Array.isArray(picked.output) ? picked.output : [],
+    output: pickedOutput.length > 0 ? pickedOutput : reconstructedOutput,
     usage: picked.usage || null,
-    status: picked.status || (completed ? "completed" : "in_progress"),
+    status: picked.status || statusFallback,
     created_at: picked.created_at || Math.floor(Date.now() / 1000),
     metadata: picked.metadata || {},
   };

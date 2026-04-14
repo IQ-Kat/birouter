@@ -179,6 +179,7 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
         },
       ],
       tool_choice: { type: "function", function: { name: "read_file" } },
+      previous_response_id: "resp_prev_123",
       temperature: 0.2,
       max_tokens: 100,
       top_p: 0.9,
@@ -190,6 +191,7 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
   assert.equal(result.instructions, "Rules");
   assert.equal(result.stream, true);
   assert.equal(result.store, false);
+  assert.equal(result.previous_response_id, "resp_prev_123");
   assert.deepEqual(result.input, [
     {
       type: "message",
@@ -230,6 +232,51 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
   assert.equal(result.temperature, 0.2);
   assert.equal(result.max_tokens, 100);
   assert.equal(result.top_p, 0.9);
+});
+
+test("Responses round-trip preserves store and previous_response_id when opt-in is enabled", () => {
+  const credentials = {
+    providerSpecificData: {
+      openaiStoreEnabled: true,
+    },
+  };
+
+  const chatBody = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      instructions: "Rules",
+      input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "Hello" }] }],
+      previous_response_id: "resp_prev_store",
+      store: true,
+    },
+    false,
+    credentials
+  );
+
+  const result = openaiToOpenAIResponsesRequest("gpt-4o", chatBody, false, credentials);
+
+  assert.equal(result.previous_response_id, "resp_prev_store");
+  assert.equal(result.store, true);
+  assert.equal(result.instructions, "Rules");
+});
+
+test("Chat -> Responses preserves prompt_cache_key and session affinity fields", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      prompt_cache_key: "cache-key-1",
+      session_id: "omniroute-session-abc",
+      conversation_id: "conv-123",
+    },
+    false,
+    { providerSpecificData: { openaiStoreEnabled: true } }
+  );
+
+  assert.equal(result.prompt_cache_key, "cache-key-1");
+  assert.equal(result.session_id, "omniroute-session-abc");
+  assert.equal(result.conversation_id, "conv-123");
+  assert.equal(result.store, undefined);
 });
 
 test("Chat -> Responses filters orphan function_call_output items and leaves empty instructions when absent", () => {

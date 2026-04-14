@@ -9,6 +9,7 @@ import {
   wrapConnectRPCFrame,
 } from "../../open-sse/utils/cursorProtobuf.ts";
 import {
+  buildCursorHeaders,
   generateCursorChecksum,
   generateHashed64Hex,
   generateSessionId,
@@ -100,6 +101,9 @@ test("CursorExecutor.buildHeaders strips token prefixes and derives checksum/ses
     assert.equal(headers["x-client-key"], generateHashed64Hex("real-token"));
     assert.equal(headers["x-session-id"], generateSessionId("real-token"));
     assert.equal(headers["x-cursor-checksum"], generateCursorChecksum("machine-1"));
+    assert.equal(headers["x-cursor-client-version"], "3.1.0");
+    assert.equal(headers["x-cursor-user-agent"], "Cursor/3.1.0");
+    assert.equal(headers["user-agent"], "Cursor/3.1.0");
     assert.equal(headers["x-ghost-mode"], "false");
     assert.equal(headers["connect-protocol-version"], "1");
     assert.match(headers["x-amzn-trace-id"], /^Root=/);
@@ -107,6 +111,16 @@ test("CursorExecutor.buildHeaders strips token prefixes and derives checksum/ses
   } finally {
     Date.now = originalDateNow;
   }
+});
+
+test("buildCursorHeaders utility stays aligned with Cursor Composer 2 versioned headers", () => {
+  const headers = buildCursorHeaders("prefix::real-token", "machine-1", false);
+
+  assert.equal(headers.Authorization, "Bearer real-token");
+  assert.equal(headers["x-cursor-client-version"], "3.1.0");
+  assert.equal(headers["x-cursor-user-agent"], "Cursor/3.1.0");
+  assert.equal(headers["User-Agent"], "Cursor/3.1.0");
+  assert.equal(headers["x-ghost-mode"], "false");
 });
 
 test("CursorExecutor.buildHeaders requires a machine ID", () => {

@@ -4,11 +4,13 @@
  * Responses API uses: { input: [...], instructions: "..." }
  * Chat API uses: { messages: [...] }
  */
-import { register } from "../registry.ts";
+import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { generateToolCallId } from "../helpers/toolCallHelper.ts";
+import { register } from "../registry.ts";
 
 type JsonRecord = Record<string, unknown>;
+const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -44,6 +46,8 @@ export function openaiResponsesToOpenAIRequest(
 
   const root = toRecord(body);
   if (root.input === undefined) return body;
+  const credentialRecord = toRecord(credentials);
+  const storeEnabled = isOpenAIResponsesStoreEnabled(credentialRecord.providerSpecificData);
 
   // Validate tool types — only function tools can be translated to Chat Completions
   const tools = toArray(root.tools);
@@ -271,6 +275,9 @@ export function openaiResponsesToOpenAIRequest(
   delete result.input;
   delete result.instructions;
   delete result.include;
+  if (storeEnabled && root.store !== undefined) {
+    result[RESPONSES_STORE_MARKER] = root.store;
+  }
   delete result.store;
   delete result.reasoning;
 
@@ -287,15 +294,18 @@ export function openaiToOpenAIResponsesRequest(
   credentials: unknown
 ): unknown {
   void stream;
-  void credentials;
 
   const root = toRecord(body);
+  const credentialRecord = toRecord(credentials);
+  const storeEnabled = isOpenAIResponsesStoreEnabled(credentialRecord.providerSpecificData);
   const result: JsonRecord = {
     model,
     input: [],
     stream: true,
-    store: false,
   };
+  if (!storeEnabled) {
+    result.store = false;
+  }
 
   const input = result.input as JsonRecord[];
 
@@ -514,10 +524,29 @@ export function openaiToOpenAIResponsesRequest(
   }
 
   // Pass through relevant fields
+  if (root.previous_response_id !== undefined) {
+    result.previous_response_id = root.previous_response_id;
+  }
+  if (root.prompt_cache_key !== undefined) {
+    result.prompt_cache_key = root.prompt_cache_key;
+  }
+  if (root.session_id !== undefined) {
+    result.session_id = root.session_id;
+  }
+  if (root.conversation_id !== undefined) {
+    result.conversation_id = root.conversation_id;
+  }
   if (root.service_tier !== undefined) result.service_tier = root.service_tier;
   if (root.temperature !== undefined) result.temperature = root.temperature;
   if (root.max_tokens !== undefined) result.max_tokens = root.max_tokens;
   if (root.top_p !== undefined) result.top_p = root.top_p;
+  if (storeEnabled) {
+    if (root[RESPONSES_STORE_MARKER] !== undefined) {
+      result.store = root[RESPONSES_STORE_MARKER];
+    } else if (root.store !== undefined) {
+      result.store = root.store;
+    }
+  }
 
   return result;
 }

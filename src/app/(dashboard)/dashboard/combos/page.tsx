@@ -11,7 +11,10 @@ import Input from "@/shared/components/Input";
 import Modal from "@/shared/components/Modal";
 import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
+import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { pickDisplayValue } from "@/shared/utils/maskEmail";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
 import {
@@ -467,10 +470,12 @@ function formatComboEntryDisplay(
     providerNodes = [],
     builderProviders = [],
     includeConnection = false,
+    showFullEmails = true,
   }: {
     providerNodes?: any[];
     builderProviders?: any[];
     includeConnection?: boolean;
+    showFullEmails?: boolean;
   } = {}
 ) {
   const normalizedEntry = normalizeModelEntry(entry);
@@ -493,11 +498,14 @@ function formatComboEntryDisplay(
   }
 
   const connectionId = normalizedEntry.connectionId || null;
-  const connectionLabel =
+  const rawConnectionLabel =
     (connectionId &&
       builderProvider?.connections?.find((connection) => connection.id === connectionId)?.label) ||
     normalizedEntry.label ||
     null;
+  const connectionLabel = rawConnectionLabel
+    ? pickDisplayValue([rawConnectionLabel], showFullEmails, rawConnectionLabel)
+    : null;
 
   if (connectionId) {
     return `${providerLabel}/${modelLabel} · ${connectionLabel || `acct ${connectionId.slice(0, 8)}`}`;
@@ -516,6 +524,7 @@ function formatComboEntryDisplay(
 export default function CombosPage() {
   const t = useTranslations("combos");
   const tc = useTranslations("common");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [combos, setCombos] = useState([]);
@@ -848,12 +857,38 @@ export default function CombosPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <p className="text-sm text-text-muted mt-1">{t("description")}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-2 rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] px-2.5 py-1.5">
+            <span className="hidden lg:inline text-xs text-text-muted">
+              {getI18nOrFallback(
+                t,
+                "emailVisibilityHint",
+                "Account emails here follow the global privacy toggle."
+              )}
+            </span>
+            <Tooltip
+              position="bottom"
+              content={getI18nOrFallback(
+                t,
+                "emailVisibilityTooltip",
+                "Use the eye icon to reveal or hide account emails globally across combos, providers and quota screens."
+              )}
+            >
+              <span className="inline-flex">
+                <EmailPrivacyToggle size="md" />
+              </span>
+            </Tooltip>
+            <span className="text-[11px] text-text-muted">
+              {emailsVisible
+                ? getI18nOrFallback(t, "emailVisibilityStateOn", "Emails visible globally")
+                : getI18nOrFallback(t, "emailVisibilityStateOff", "Emails masked globally")}
+            </span>
+          </div>
           {!showUsageGuide && (
             <Button size="sm" variant="ghost" onClick={handleShowUsageGuide}>
               {getI18nOrFallback(t, "usageGuideShow", "Show guide")}
@@ -1416,6 +1451,7 @@ function ComboCard({
   const isDisabled = combo.isActive === false;
   const t = useTranslations("combos");
   const tc = useTranslations("common");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const strategyDescription = getStrategyDescription(t, strategy);
 
   return (
@@ -1501,6 +1537,7 @@ function ComboCard({
                       {formatComboEntryDisplay(entry, {
                         providerNodes,
                         includeConnection: true,
+                        showFullEmails: emailsVisible,
                       })}
                       {strategy === "weighted" && weight > 0 ? ` (${weight}%)` : ""}
                     </code>
@@ -1595,6 +1632,8 @@ function ComboCard({
 // Test Results View
 // ─────────────────────────────────────────────
 function TestResultsView({ results }) {
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
+
   if (results.error) {
     return (
       <div className="flex items-center gap-2 text-red-500 text-sm">
@@ -1649,7 +1688,9 @@ function TestResultsView({ results }) {
             {r.status === "ok" ? "check_circle" : r.status === "skipped" ? "skip_next" : "error"}
           </span>
           <div className="min-w-0 flex-1">
-            <code className="font-mono block truncate">{r.label || r.model}</code>
+            <code className="font-mono block truncate">
+              {pickDisplayValue([r.label], emailsVisible, r.model)}
+            </code>
             {r.connectionId || r.stepId ? (
               <div className="mt-0.5 text-[10px] text-text-muted">
                 {r.connectionId ? `acct ${r.connectionId.slice(0, 8)}` : "dynamic account"}
@@ -1708,6 +1749,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   const t = useTranslations("combos");
   const tc = useTranslations("common");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const notify = useNotificationStore();
   const createDraftStateRef = useRef<CreateDraftSnapshot>(getEmptyCreateDraftSnapshot());
   const [name, setName] = useState(combo?.name || "");
@@ -2314,9 +2356,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
         providerNodes,
         builderProviders,
         includeConnection: true,
+        showFullEmails: emailsVisible,
       });
     },
-    [builderProviders, providerNodes]
+    [builderProviders, emailsVisible, providerNodes]
   );
 
   const handleMoveUp = (index) => {
@@ -2760,7 +2803,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       </option>
                       {selectedBuilderConnections.map((connection) => (
                         <option key={connection.id} value={connection.id}>
-                          {connection.label}
+                          {pickDisplayValue([connection.label], emailsVisible, connection.label)}
                           {connection.status !== "active" ? ` · ${connection.status}` : ""}
                         </option>
                       ))}

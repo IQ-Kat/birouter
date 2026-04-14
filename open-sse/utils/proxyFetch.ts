@@ -165,6 +165,9 @@ export async function runWithProxyContext(proxyConfig, fn) {
 
 async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
   if (options?.dispatcher) {
+    // When a dispatcher is present, we MUST use the undici library fetch
+    // to ensure version compatibility. Node 22 built-in fetch (undici v6)
+    // is incompatible with undici v8 dispatchers (missing onRequestStart, etc.)
     return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
   }
 
@@ -206,7 +209,16 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
         dispatcher: getDefaultDispatcher(),
       });
     } catch (dispatcherError) {
-      const msg = dispatcherError instanceof Error ? dispatcherError.message : String(dispatcherError);
+      const msg =
+        dispatcherError instanceof Error ? dispatcherError.message : String(dispatcherError);
+      // CAUTION: Do NOT fallback to native fetch if the error is a version mismatch (invalid onRequestStart)
+      // because the native fetch will definitely fail with the undici v8 dispatcher.
+      if (msg.includes("onRequestStart")) {
+        console.error(
+          `[ProxyFetch] Fatal version mismatch: Dispatcher (v8) vs Fetch (v6/native). Hardware upgrade or SOCKS5 config isolation required. Error: ${msg}`
+        );
+        throw dispatcherError;
+      }
       // Only fallback for connection/dispatcher errors, not HTTP errors
       if (msg.includes("fetch failed") || msg.includes("ECONNREFUSED") || msg.includes("UND_ERR")) {
         console.warn(`[ProxyFetch] Undici dispatcher failed, falling back to native fetch: ${msg}`);

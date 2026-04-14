@@ -831,7 +831,51 @@ export const getSessionSnapshotTool: McpToolDefinition<
   sourceEndpoints: ["/api/usage/analytics", "/api/telemetry/summary"],
 };
 
-// --- Tool 18: omniroute_sync_pricing ---
+// --- Tool 18: omniroute_db_health_check ---
+export const dbHealthCheckInput = z.object({
+  autoRepair: z
+    .boolean()
+    .optional()
+    .describe("When true, runs the database auto-repair flow before returning the result"),
+});
+
+export const dbHealthCheckOutput = z.object({
+  isHealthy: z.boolean(),
+  issues: z.array(
+    z.object({
+      type: z.enum([
+        "integrity_check_failed",
+        "broken_reference",
+        "stale_snapshot",
+        "invalid_state",
+      ]),
+      table: z.string(),
+      description: z.string(),
+      count: z.number(),
+    })
+  ),
+  repairedCount: z.number(),
+  backupCreated: z.boolean(),
+  autoRepair: z.boolean(),
+  checkedAt: z.string(),
+});
+
+export const dbHealthCheckTool: McpToolDefinition<
+  typeof dbHealthCheckInput,
+  typeof dbHealthCheckOutput
+> = {
+  name: "omniroute_db_health_check",
+  description:
+    "Diagnoses OmniRoute database drift such as orphan quota/domain rows, invalid JSON state, and broken combo references. Set autoRepair=true to repair those rows before returning the report.",
+  inputSchema: dbHealthCheckInput,
+  outputSchema: dbHealthCheckOutput,
+  scopes: ["read:health", "write:resilience"],
+  auditLevel: "full",
+  phase: 2,
+  sourceEndpoints: ["/api/v1/db/health"],
+};
+
+// --- Tool 19: omniroute_sync_pricing ---
 export const syncPricingInput = z.object({
   sources: z
     .array(z.string())
@@ -959,6 +1003,7 @@ export const MCP_TOOLS = [
   bestComboForTaskTool,
   explainRouteTool,
   getSessionSnapshotTool,
+  dbHealthCheckTool,
   syncPricingTool,
   cacheStatsTool,
   cacheFlushTool,

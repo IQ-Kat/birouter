@@ -51,11 +51,13 @@ export class CursorService {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/connect+proto",
       "Connect-Protocol-Version": "1",
+      "User-Agent": `Cursor/${this.config.clientVersion}`,
       "x-cursor-client-version": this.config.clientVersion,
       "x-cursor-client-type": this.config.clientType,
       "x-cursor-client-os": this.detectOS(),
       "x-cursor-client-arch": this.detectArch(),
       "x-cursor-client-device-type": "desktop",
+      "x-cursor-user-agent": `Cursor/${this.config.clientVersion}`,
       "x-cursor-checksum": checksum,
       "x-ghost-mode": ghostMode ? "true" : "false",
     };

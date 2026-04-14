@@ -105,10 +105,11 @@ export async function registerNodejs(): Promise<void> {
   }
 
   try {
-    const [{ setCustomAliases }, { setDefaultFastServiceTierEnabled }] = await Promise.all([
-      import("@omniroute/open-sse/services/modelDeprecation.ts"),
-      import("@omniroute/open-sse/executors/codex.ts"),
-    ]);
+    const [{ setCustomAliases }, { migrateCodexConnectionDefaultsFromLegacySettings }] =
+      await Promise.all([
+        import("@omniroute/open-sse/services/modelDeprecation.ts"),
+        import("@/lib/providers/codexConnectionDefaults"),
+      ]);
     const settings = await getSettings();
 
     if (settings.modelAliases) {
@@ -124,16 +125,35 @@ export async function registerNodejs(): Promise<void> {
       }
     }
 
-    const persisted =
-      typeof settings.codexServiceTier === "string"
-        ? JSON.parse(settings.codexServiceTier)
-        : settings.codexServiceTier;
+    if (settings.backgroundDegradation) {
+      try {
+        const bgSettings =
+          typeof settings.backgroundDegradation === "string"
+            ? JSON.parse(settings.backgroundDegradation)
+            : settings.backgroundDegradation;
+        const { setBackgroundDegradationConfig } =
+          await import("@omniroute/open-sse/services/backgroundTaskDetector.ts");
+        setBackgroundDegradationConfig(bgSettings);
+        console.log(`[STARTUP] Restored background task degradation config from settings`);
+      } catch (err: unknown) {
+        console.warn(`[STARTUP] Failed to parse background degradation settings:`, err);
+      }
+    }
 
-    if (typeof persisted?.enabled === "boolean") {
-      setDefaultFastServiceTierEnabled(persisted.enabled);
+    const migration = await migrateCodexConnectionDefaultsFromLegacySettings();
+    if (migration.migrated) {
       console.log(
-        `[STARTUP] Restored Codex fast service tier: ${persisted.enabled ? "on" : "off"}`
+        `[STARTUP] Migrated Codex connection defaults for ${migration.updatedConnectionIds.length} connection(s)`
       );
+      if (settings.cloudEnabled === true) {
+        const [{ syncToCloud }, { getConsistentMachineId }] = await Promise.all([
+          import("@/lib/cloudSync"),
+          import("@/shared/utils/machineId"),
+        ]);
+        const machineId = await getConsistentMachineId();
+        await syncToCloud(machineId);
+        console.log("[STARTUP] Synced migrated Codex connection defaults to cloud");
+      }
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

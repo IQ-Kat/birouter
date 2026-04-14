@@ -520,10 +520,9 @@ test("handleChatCore respects non-streaming upstream requests for CC compatible 
   assert.equal(calls.length, 1);
   assert.equal(calls[0].headers.Accept, "application/json");
   assert.equal(calls[0].body.stream, undefined);
-  assert.equal(
-    calls[0].body.system.some((block) => block.cache_control !== undefined),
-    false
-  );
+  // PR #1188: billing header system block carries cache_control: ephemeral for
+  // proper billing attribution. Only user-facing message blocks should be free of
+  // auto-injected cache markers (non-preserve mode).
   assert.equal(
     calls[0].body.messages.some((message) =>
       message.content.some((block) => block.cache_control !== undefined)

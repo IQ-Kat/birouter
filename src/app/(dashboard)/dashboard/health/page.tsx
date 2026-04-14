@@ -43,6 +43,8 @@ export default function HealthPage() {
   const tc = useTranslations("common");
   const tp = useTranslations("providers");
   const [data, setData] = useState(null);
+  const [dbHealth, setDbHealth] = useState(null);
+  const [dbHealthError, setDbHealthError] = useState(null);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [telemetry, setTelemetry] = useState(null);
@@ -50,6 +52,7 @@ export default function HealthPage() {
   const [signatureCache, setSignatureCache] = useState(null);
   const [degradation, setDegradation] = useState(null);
   const [resetting, setResetting] = useState(false);
+  const [repairingDb, setRepairingDb] = useState(false);
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -61,6 +64,18 @@ export default function HealthPage() {
       setLastRefresh(new Date());
     } catch (err) {
       setError(err.message);
+    }
+  }, []);
+
+  const fetchDbHealth = useCallback(async () => {
+    try {
+      const res = await fetch("/api/v1/db/health");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setDbHealth(json);
+      setDbHealthError(null);
+    } catch (err) {
+      setDbHealthError(err.message);
     }
   }, []);
 
@@ -83,12 +98,14 @@ export default function HealthPage() {
   useEffect(() => {
     fetchHealth();
     fetchExtras();
+    fetchDbHealth();
     const interval = setInterval(() => {
       fetchHealth();
       fetchExtras();
+      fetchDbHealth();
     }, 15000);
     return () => clearInterval(interval);
-  }, [fetchHealth, fetchExtras]);
+  }, [fetchHealth, fetchExtras, fetchDbHealth]);
 
   const handleResetHealth = async () => {
     if (!confirm(t("resetConfirm"))) return;
@@ -103,6 +120,24 @@ export default function HealthPage() {
       console.error("Failed to reset health:", err);
     } finally {
       setResetting(false);
+    }
+  };
+
+  const handleRepairDb = async () => {
+    setRepairingDb(true);
+    try {
+      const res = await fetch("/api/v1/db/health", { method: "POST" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      setDbHealth(json);
+      setDbHealthError(null);
+      await fetchHealth();
+      await fetchExtras();
+    } catch (err) {
+      console.error("Failed to repair database health:", err);
+      setDbHealthError(err.message);
+    } finally {
+      setRepairingDb(false);
     }
   };
 
@@ -167,6 +202,7 @@ export default function HealthPage() {
             onClick={() => {
               fetchHealth();
               fetchExtras();
+              fetchDbHealth();
             }}
             className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
             title={tc("refresh")}
@@ -197,6 +233,87 @@ export default function HealthPage() {
           {data.status === "healthy" ? t("allOperational") : t("issuesDetected")}
         </span>
       </div>
+
+      <Card className="p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div
+                className={`flex items-center justify-center size-9 rounded-lg ${
+                  dbHealth?.isHealthy
+                    ? "bg-green-500/10 text-green-500"
+                    : "bg-amber-500/10 text-amber-500"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">database</span>
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-text-main">Database Health</h2>
+                <p className="text-sm text-text-muted">
+                  Diagnose and repair stale quota/domain rows and broken combo references.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+              <div className="rounded-xl border border-border bg-surface/50 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-muted">Status</p>
+                <p
+                  className={`mt-1 text-sm font-medium ${
+                    dbHealth?.isHealthy ? "text-green-400" : "text-amber-400"
+                  }`}
+                >
+                  {dbHealth?.isHealthy ? "Healthy" : "Attention needed"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-surface/50 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-muted">Issues</p>
+                <p className="mt-1 text-sm font-medium text-text-main">
+                  {dbHealth?.issues?.length ?? 0}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-surface/50 p-3">
+                <p className="text-xs uppercase tracking-wide text-text-muted">Repairs</p>
+                <p className="mt-1 text-sm font-medium text-text-main">
+                  {dbHealth?.repairedCount ?? 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col items-stretch gap-2 min-w-[180px]">
+            <button
+              onClick={handleRepairDb}
+              disabled={repairingDb}
+              className="px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {repairingDb ? "Repairing..." : "Run Auto-Repair"}
+            </button>
+            {dbHealth?.backupCreated && (
+              <p className="text-xs text-text-muted">
+                A repair backup was created before mutating.
+              </p>
+            )}
+            {dbHealthError && <p className="text-xs text-red-400">{dbHealthError}</p>}
+          </div>
+        </div>
+        {Array.isArray(dbHealth?.issues) && dbHealth.issues.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {dbHealth.issues.map((issue, index) => (
+              <div
+                key={`${issue.table}-${issue.type}-${index}`}
+                className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm text-text-main">{issue.description}</p>
+                  <span className="text-xs text-amber-400">{issue.count}</span>
+                </div>
+                <p className="text-xs text-text-muted mt-1">
+                  {issue.table} · {issue.type}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* System Info Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

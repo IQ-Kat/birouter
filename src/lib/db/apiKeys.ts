@@ -554,6 +554,8 @@ export async function deleteApiKey(id: string) {
 
   if (result.changes === 0) return false;
 
+  db.prepare("DELETE FROM domain_budgets WHERE api_key_id = ?").run(id);
+  db.prepare("DELETE FROM domain_cost_history WHERE api_key_id = ?").run(id);
   setNoLog(id, false);
 
   // Invalidate caches since a key was removed

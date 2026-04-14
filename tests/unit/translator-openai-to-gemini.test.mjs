@@ -270,6 +270,53 @@ test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool n
   assert.equal(responseTurn.parts[0].functionResponse.name, "weather");
 });
 
+test("OpenAI -> Gemini request gives googleSearch precedence over function tools", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: "Search the web" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "weather",
+            description: "Fetch weather",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+        { type: "web_search" },
+      ],
+    },
+    false
+  );
+
+  assert.deepEqual(result.tools, [{ googleSearch: {} }]);
+});
+
+test("OpenAI -> Antigravity keeps googleSearch without function calling config", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: "Search the web" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "weather",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+        { type: "web_search_preview" },
+      ],
+    },
+    false,
+    { projectId: "proj-search" }
+  );
+
+  assert.deepEqual(result.request.tools, [{ googleSearch: {} }]);
+  assert.equal(result.request.toolConfig, undefined);
+});
+
 test("OpenAI -> Gemini helper IDs and JSON parsing stay in the expected format", () => {
   assert.match(generateRequestId(), /^agent-/);
   assert.match(generateSessionId(), /^-\d+$/);

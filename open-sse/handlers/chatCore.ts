@@ -129,6 +129,11 @@ import {
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
+import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
+import {
+  enforceThinkingTemperature,
+  disableThinkingIfToolChoiceForced,
+} from "../services/claudeCodeConstraints.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1025,6 +1030,17 @@ export async function handleChatCore({
         now: new Date(),
         preserveCacheControl,
       });
+
+      // Apply PR #1188 parity pipeline (synchronous steps — CCH signing is async and
+      // runs later in BaseExecutor over the serialized string).
+      // Only thinking constraints and tool remapping are applied here; cache-control
+      // limit enforcement (enforceCacheControlLimit) is intentionally omitted because
+      // the billing-header system block added by buildClaudeCodeCompatibleRequest counts
+      // toward the 4-block cap and would strip legitimate client cache markers.
+      remapToolNamesInRequest(translatedBody);
+      enforceThinkingTemperature(translatedBody);
+      disableThinkingIfToolChoiceForced(translatedBody);
+
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough && preserveCacheControl) {
       // Pure passthrough: when preserveCacheControl is true, forward the body
@@ -1993,6 +2009,7 @@ export async function handleChatCore({
     trackPendingRequest(model, provider, connectionId, false);
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
+    let responseFormatForTranslation = targetFormat;
     const rawBody = await providerResponse.text();
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
@@ -2000,10 +2017,19 @@ export async function handleChatCore({
 
     if (looksLikeSSE) {
       // Upstream returned SSE even though stream=false; convert best-effort to JSON.
+      const looksLikeResponsesSSE =
+        targetFormat === FORMATS.OPENAI_RESPONSES ||
+        provider === "codex" ||
+        /(^|\n)\s*(?:event:\s*response\.|data:\s*\{.*"type"\s*:\s*"response\.)/m.test(rawBody);
+      responseFormatForTranslation = looksLikeResponsesSSE
+        ? FORMATS.OPENAI_RESPONSES
+        : targetFormat === FORMATS.CLAUDE
+          ? FORMATS.CLAUDE
+          : FORMATS.OPENAI;
       const parsedFromSSE =
-        targetFormat === FORMATS.OPENAI_RESPONSES
+        responseFormatForTranslation === FORMATS.OPENAI_RESPONSES
           ? parseSSEToResponsesOutput(rawBody, model)
-          : targetFormat === FORMATS.CLAUDE
+          : responseFormatForTranslation === FORMATS.CLAUDE
             ? parseSSEToClaudeResponse(rawBody, model)
             : parseSSEToOpenAIResponse(rawBody, model);
 
@@ -2195,10 +2221,10 @@ export async function handleChatCore({
 
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
-    let translatedResponse = needsTranslation(targetFormat, clientResponseFormat)
+    let translatedResponse = needsTranslation(responseFormatForTranslation, clientResponseFormat)
       ? translateNonStreamingResponse(
           responseBody,
-          targetFormat,
+          responseFormatForTranslation,
           clientResponseFormat,
           toolNameMap as Map<string, string> | null
         )
