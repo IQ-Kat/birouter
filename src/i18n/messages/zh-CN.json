@@ -1163,6 +1163,28 @@
     "reorderHandle": "拖拽排序",
     "failedReorder": "模型重排序失败",
     "builderFlowTitle": "组合构建流程",
+    "builderStage": {
+      "basics": {
+        "label": "基础",
+        "description": "名称和起始模板"
+      },
+      "steps": {
+        "label": "步骤",
+        "description": "提供商、模型和账户选择"
+      },
+      "strategy": {
+        "label": "策略",
+        "description": "路由行为和高级设置"
+      },
+      "intelligent": {
+        "label": "智能路由",
+        "description": "自动路由候选池、预设和评分"
+      },
+      "review": {
+        "label": "审查",
+        "description": "保存前的最终验证"
+      }
+    },
     "builderStageVisited": "阶段已完成",
     "builderStageCurrent": "当前阶段",
     "builderStagePending": "待处理",
