@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Card, Modal } from "@/shared/components";
 
 type ProxyItem = {
@@ -51,6 +52,7 @@ const EMPTY_FORM = {
 };
 
 export default function ProxyRegistryManager() {
+  const t = useTranslations("proxyRegistry");
   const [items, setItems] = useState<ProxyItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,7 +126,7 @@ export default function ProxyRegistryManager() {
       const res = await fetch("/api/settings/proxies");
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data?.error?.message || "Failed to load proxy registry");
+        setError(data?.error?.message || t("errorLoadFailed"));
         setItems([]);
         return;
       }
@@ -134,7 +136,7 @@ export default function ProxyRegistryManager() {
       void loadHealth();
       void loadAllUsage(ids);
     } catch (e: any) {
-      setError(e?.message || "Failed to load proxy registry");
+      setError(e?.message || t("errorLoadFailed"));
       setItems([]);
     } finally {
       setLoading(false);
@@ -221,7 +223,7 @@ export default function ProxyRegistryManager() {
       if (!res.ok) {
         setTestById((prev) => ({
           ...prev,
-          [item.id]: { success: false, error: data?.error?.message || "Test failed" },
+          [item.id]: { success: false, error: data?.error?.message || t("failed") },
         }));
         return;
       }
@@ -235,7 +237,7 @@ export default function ProxyRegistryManager() {
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.host.trim()) {
-      setError("Name and host are required");
+      setError(t("errorNameHostRequired"));
       return;
     }
 
@@ -270,7 +272,7 @@ export default function ProxyRegistryManager() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data?.error?.message || "Failed to save proxy");
+        setError(data?.error?.message || t("errorSaveFailed"));
         return;
       }
 
@@ -278,7 +280,7 @@ export default function ProxyRegistryManager() {
       setForm(EMPTY_FORM);
       await load();
     } catch (e: any) {
-      setError(e?.message || "Failed to save proxy");
+      setError(e?.message || t("errorSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -298,9 +300,7 @@ export default function ProxyRegistryManager() {
       const payload = await res.json().catch(() => ({}));
       const inUse = res.status === 409;
       if (inUse) {
-        const ok = window.confirm(
-          "This proxy is still assigned. Force delete and remove all assignments?"
-        );
+        const ok = window.confirm(t("errorForceDeleteConfirm"));
         if (!ok) return;
 
         const forceRes = await fetch(`/api/settings/proxies?id=${encodeURIComponent(id)}&force=1`, {
@@ -309,7 +309,7 @@ export default function ProxyRegistryManager() {
 
         if (!forceRes.ok) {
           const forcePayload = await forceRes.json().catch(() => ({}));
-          setError(forcePayload?.error?.message || "Failed to force delete proxy");
+          setError(forcePayload?.error?.message || t("errorDeleteFailed"));
           return;
         }
 
@@ -317,9 +317,9 @@ export default function ProxyRegistryManager() {
         return;
       }
 
-      setError(payload?.error?.message || "Failed to delete proxy");
+      setError(payload?.error?.message || t("errorDeleteFailed"));
     } catch (e: any) {
-      setError(e?.message || "Failed to delete proxy");
+      setError(e?.message || t("errorDeleteFailed"));
     }
   };
 
@@ -334,12 +334,12 @@ export default function ProxyRegistryManager() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data?.error?.message || "Failed to migrate legacy proxy config");
+        setError(data?.error?.message || t("errorMigrateFailed"));
         return;
       }
       await load();
     } catch (e: any) {
-      setError(e?.message || "Failed to migrate legacy proxy config");
+      setError(e?.message || t("errorMigrateFailed"));
     } finally {
       setMigrating(false);
     }
@@ -368,7 +368,7 @@ export default function ProxyRegistryManager() {
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(payload?.error?.message || "Failed to run bulk assignment");
+        setError(payload?.error?.message || t("errorBulkFailed"));
         return;
       }
 
@@ -376,7 +376,7 @@ export default function ProxyRegistryManager() {
       setBulkScopeIds("");
       await load();
     } catch (e: any) {
-      setError(e?.message || "Failed to run bulk assignment");
+      setError(e?.message || t("errorBulkFailed"));
     } finally {
       setBulkSaving(false);
     }
@@ -387,8 +387,8 @@ export default function ProxyRegistryManager() {
       <Card className="p-6">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
-            <h3 className="text-lg font-semibold">Proxy Registry</h3>
-            <p className="text-sm text-text-muted">Store reusable proxies and track assignments.</p>
+            <h3 className="text-lg font-semibold">{t("title")}</h3>
+            <p className="text-sm text-text-muted">{t("description")}</p>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -399,7 +399,7 @@ export default function ProxyRegistryManager() {
               loading={migrating}
               data-testid="proxy-registry-import-legacy"
             >
-              Import Legacy
+              {t("importLegacy")}
             </Button>
             <Button
               size="sm"
@@ -408,7 +408,7 @@ export default function ProxyRegistryManager() {
               onClick={() => setBulkOpen(true)}
               data-testid="proxy-registry-open-bulk"
             >
-              Bulk Assign
+              {t("bulkAssign")}
             </Button>
             <Button
               size="sm"
@@ -416,7 +416,7 @@ export default function ProxyRegistryManager() {
               onClick={openCreate}
               data-testid="proxy-registry-open-create"
             >
-              Add Proxy
+              {t("addProxy")}
             </Button>
           </div>
         </div>
@@ -428,20 +428,20 @@ export default function ProxyRegistryManager() {
         )}
 
         {loading ? (
-          <div className="text-sm text-text-muted">Loading proxies...</div>
+          <div className="text-sm text-text-muted">{t("loading")}</div>
         ) : items.length === 0 ? (
-          <div className="text-sm text-text-muted">No saved proxies yet.</div>
+          <div className="text-sm text-text-muted">{t("noProxies")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-text-muted border-b border-border">
-                  <th className="py-2 pr-3">Name</th>
-                  <th className="py-2 pr-3">Endpoint</th>
-                  <th className="py-2 pr-3">Status</th>
-                  <th className="py-2 pr-3">Health (24h)</th>
-                  <th className="py-2 pr-3">Usage</th>
-                  <th className="py-2">Actions</th>
+                  <th className="py-2 pr-3">{t("tableName")}</th>
+                  <th className="py-2 pr-3">{t("tableEndpoint")}</th>
+                  <th className="py-2 pr-3">{t("tableStatus")}</th>
+                  <th className="py-2 pr-3">{t("tableHealth")}</th>
+                  <th className="py-2 pr-3">{t("tableUsage")}</th>
+                  <th className="py-2">{t("tableActions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -483,8 +483,10 @@ export default function ProxyRegistryManager() {
                             )
                           ) : health ? (
                             <>
-                              <span>{health.successRate ?? 0}% success</span>
-                              <span>{health.avgLatencyMs ?? "-"} ms avg</span>
+                              <span>{t("successRate", { rate: health.successRate ?? 0 })}</span>
+                              <span>
+                                {t("avgLatency", { latency: health.avgLatencyMs ?? "-" })}
+                              </span>
                             </>
                           ) : (
                             <span>—</span>
@@ -493,8 +495,8 @@ export default function ProxyRegistryManager() {
                       </td>
                       <td className="py-2 pr-3 text-xs text-text-muted">
                         {usageById[item.id] != null
-                          ? `${usageById[item.id].count} assignment(s)`
-                          : "—"}
+                          ? t("assignmentsCount", { count: usageById[item.id].count })
+                          : t("noData")}
                       </td>
                       <td className="py-2">
                         <div className="flex items-center gap-1">
@@ -505,7 +507,7 @@ export default function ProxyRegistryManager() {
                             onClick={() => void handleTestProxy(item)}
                             loading={testingId === item.id}
                           >
-                            Test
+                            {t("test")}
                           </Button>
                           <Button
                             size="sm"
@@ -513,7 +515,7 @@ export default function ProxyRegistryManager() {
                             icon="edit"
                             onClick={() => openEdit(item)}
                           >
-                            Edit
+                            {t("edit")}
                           </Button>
                           <Button
                             size="sm"
@@ -522,7 +524,7 @@ export default function ProxyRegistryManager() {
                             onClick={() => void handleDelete(item.id)}
                             className="!text-red-400"
                           >
-                            Delete
+                            {t("delete")}
                           </Button>
                         </div>
                       </td>
@@ -540,13 +542,13 @@ export default function ProxyRegistryManager() {
         onClose={() => {
           if (!saving) setModalOpen(false);
         }}
-        title={editingId ? "Edit Proxy" : "Create Proxy"}
+        title={editingId ? t("modalEditTitle") : t("modalCreateTitle")}
         maxWidth="lg"
       >
         <div className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-text-muted mb-1 block">Name</label>
+              <label className="text-xs text-text-muted mb-1 block">{t("labelName")}</label>
               <input
                 data-testid="proxy-registry-name-input"
                 className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"

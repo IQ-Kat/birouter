@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
+import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
@@ -31,6 +32,7 @@ export default function OAuthModal({
   onClose,
   idcConfig,
 }: OAuthModalProps) {
+  const t = useTranslations("oauthModal");
   const [step, setStep] = useState("waiting"); // waiting | input | success | error
   const [authData, setAuthData] = useState(null);
   const [callbackUrl, setCallbackUrl] = useState("");
@@ -569,7 +571,12 @@ export default function OAuthModal({
   if (!provider || !providerInfo) return null;
 
   return (
-    <Modal isOpen={isOpen} title={`Connect ${providerInfo.name}`} onClose={onClose} size="lg">
+    <Modal
+      isOpen={isOpen}
+      title={t("title", { providerName: providerInfo.name })}
+      onClose={onClose}
+      size="lg"
+    >
       <div className="flex flex-col gap-4">
         {/* Waiting Step (Localhost - popup mode) */}
         {step === "waiting" && !isDeviceCode && (
@@ -579,16 +586,11 @@ export default function OAuthModal({
                 progress_activity
               </span>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Waiting for Authorization</h3>
-            <p className="text-sm text-text-muted mb-2">
-              Complete the authorization in the popup window.
-            </p>
-            <p className="text-xs text-text-muted mb-4 opacity-70">
-              If the popup closes without redirecting back (e.g. Qoder), this dialog will
-              automatically switch to manual URL input mode.
-            </p>
+            <h3 className="text-lg font-semibold mb-2">{t("waiting")}</h3>
+            <p className="text-sm text-text-muted mb-2">{t("completeAuthInPopup")}</p>
+            <p className="text-xs text-text-muted mb-4 opacity-70">{t("popupClosedHint")}</p>
             <Button variant="ghost" onClick={() => setStep("input")}>
-              Popup blocked? Enter URL manually
+              {t("popupBlocked")}
             </Button>
           </div>
         )}
@@ -597,11 +599,9 @@ export default function OAuthModal({
         {step === "waiting" && isDeviceCode && deviceData && (
           <>
             <div className="text-center py-4">
-              <p className="text-sm text-text-muted mb-4">
-                Visit the URL below and enter the code:
-              </p>
+              <p className="text-sm text-text-muted mb-4">{t("deviceCodeVisitUrl")}</p>
               <div className="bg-sidebar p-4 rounded-lg mb-4">
-                <p className="text-xs text-text-muted mb-1">Verification URL</p>
+                <p className="text-xs text-text-muted mb-1">{t("deviceCodeVerificationUrl")}</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-sm break-all">{deviceData.verification_uri}</code>
                   <Button
@@ -613,7 +613,7 @@ export default function OAuthModal({
                 </div>
               </div>
               <div className="bg-primary/10 p-4 rounded-lg">
-                <p className="text-xs text-text-muted mb-1">Your Code</p>
+                <p className="text-xs text-text-muted mb-1">{t("deviceCodeYourCode")}</p>
                 <div className="flex items-center justify-center gap-2">
                   <p className="text-2xl font-mono font-bold text-primary">
                     {deviceData.user_code}
@@ -630,7 +630,7 @@ export default function OAuthModal({
             {polling && (
               <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
                 <span className="material-symbols-outlined animate-spin">progress_activity</span>
-                Waiting for authorization...
+                {t("deviceCodeWaiting")}
               </div>
             )}
           </>
@@ -646,33 +646,27 @@ export default function OAuthModal({
                   <span className="material-symbols-outlined text-sm align-middle mr-1">
                     warning
                   </span>
-                  <strong>Remote access + Google OAuth:</strong> The default credentials only accept
-                  redirects to <code>localhost</code>. After authorizing, your browser will try to
-                  open <code>localhost</code> — copy that full URL and paste it below. For fully
-                  remote use without this manual step,{" "}
-                  <a
-                    href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline"
-                  >
-                    configure your own OAuth credentials
-                  </a>
-                  .
+                  <strong
+                    dangerouslySetInnerHTML={{
+                      __html: t("googleOAuthWarning")
+                        .replace(
+                          "<a>",
+                          '<a href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server" target="_blank" rel="noreferrer" class="underline">'
+                        )
+                        .replace("</a>", "</a>"),
+                    }}
+                  />
                 </div>
               )}
               {/* Generic remote info for other providers */}
               {!isTrueLocalhost && !GOOGLE_OAUTH_PROVIDERS.has(provider) && (
                 <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
                   <span className="material-symbols-outlined text-sm align-middle mr-1">info</span>
-                  <strong>Remote access:</strong> Since you&apos;re accessing OmniRoute remotely,
-                  after authorizing you&apos;ll see an error page (localhost not found). That&apos;s
-                  expected — just copy the full URL from your browser&apos;s address bar and paste
-                  it below.
+                  {t("remoteAccessInfo")}
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium mb-2">Step 1: Open this URL in your browser</p>
+                <p className="text-sm font-medium mb-2">{t("step1OpenUrl")}</p>
                 <div className="flex gap-2">
                   <Input
                     value={authData?.authUrl || ""}
@@ -684,19 +678,21 @@ export default function OAuthModal({
                     icon={copied === "auth_url" ? "check" : "content_copy"}
                     onClick={() => copy(authData?.authUrl, "auth_url")}
                   >
-                    Copy
+                    {t("copy")}
                   </Button>
                 </div>
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-2">
-                  Step 2: Paste the callback URL or auth code here
-                </p>
+                <p className="text-sm font-medium mb-2">{t("step2PasteCallback")}</p>
                 <p className="text-xs text-text-muted mb-2">
-                  After authorization, paste the full callback URL. For Claude Code and Cline, you
-                  can also paste the Authentication Code directly, for example{" "}
-                  <code>code#state</code>.
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: t("step2Hint")
+                        .replace("<code>", "<code>")
+                        .replace("</code>", "</code>"),
+                    }}
+                  />
                 </p>
                 <Input
                   value={callbackUrl}
@@ -713,10 +709,10 @@ export default function OAuthModal({
 
             <div className="flex gap-2">
               <Button onClick={handleManualSubmit} fullWidth disabled={!callbackUrl || !authData}>
-                Connect
+                {t("connect")}
               </Button>
               <Button onClick={onClose} variant="ghost" fullWidth>
-                Cancel
+                {t("cancel")}
               </Button>
             </div>
           </>
@@ -730,12 +726,12 @@ export default function OAuthModal({
                 check_circle
               </span>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Connected Successfully!</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("success")}</h3>
             <p className="text-sm text-text-muted mb-4">
-              Your {providerInfo.name} account has been connected.
+              {t("successMessage", { providerName: providerInfo.name })}
             </p>
             <Button onClick={onClose} fullWidth>
-              Done
+              {t("done")}
             </Button>
           </div>
         )}
@@ -746,14 +742,14 @@ export default function OAuthModal({
             <div className="size-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <span className="material-symbols-outlined text-3xl text-red-600">error</span>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Connection Failed</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("error")}</h3>
             <p className="text-sm text-red-600 mb-4">{error}</p>
             <div className="flex gap-2">
               <Button onClick={startOAuthFlow} variant="secondary" fullWidth>
-                Try Again
+                {t("tryAgain")}
               </Button>
               <Button onClick={onClose} variant="ghost" fullWidth>
-                Cancel
+                {t("cancel")}
               </Button>
             </div>
           </div>

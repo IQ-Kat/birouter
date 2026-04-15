@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { getDefaultPricing, formatCost } from "@/shared/constants/pricing";
 
 export default function PricingModal({ isOpen, onClose, onSave }) {
+  const t = useTranslations("pricingModal");
   const [pricingData, setPricingData] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -62,18 +64,18 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
         onClose();
       } else {
         const error = await response.json();
-        alert(`Failed to save pricing: ${error.error}`);
+        alert(`${t("errorSaveFailed")}: ${error.error}`);
       }
     } catch (error) {
       console.error("Failed to save pricing:", error);
-      alert("Failed to save pricing");
+      alert(t("errorSaveFailed"));
     } finally {
       setSaving(false);
     }
   };
 
   const handleReset = async () => {
-    if (!confirm("Reset all pricing to defaults? This cannot be undone.")) return;
+    if (!confirm(t("resetConfirm"))) return;
 
     try {
       const response = await fetch("/api/pricing", { method: "DELETE" });
@@ -83,7 +85,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
       }
     } catch (error) {
       console.error("Failed to reset pricing:", error);
-      alert("Failed to reset pricing");
+      alert(t("errorResetFailed"));
     }
   };
 
@@ -98,7 +100,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
       <div className="bg-bg-base border border-border rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Pricing Configuration</h2>
+          <h2 className="text-xl font-semibold">{t("title")}</h2>
           <button
             onClick={onClose}
             className="text-text-muted hover:text-text text-2xl leading-none"
@@ -110,15 +112,20 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
         {/* Content */}
         <div className="flex-1 overflow-auto p-4">
           {loading ? (
-            <div className="text-center py-8 text-text-muted">Loading pricing data...</div>
+            <div className="text-center py-8 text-text-muted">{t("loading")}</div>
           ) : (
             <div className="space-y-6">
               {/* Instructions */}
               <div className="bg-bg-subtle border border-border rounded-lg p-3 text-sm">
-                <p className="font-medium mb-1">Pricing Rates Format</p>
+                <p className="font-medium mb-1">{t("pricingRatesFormat")}</p>
                 <p className="text-text-muted">
-                  All rates are in <strong>dollars per million tokens</strong> ($/1M tokens).
-                  Example: Input rate of 2.50 means $2.50 per 1,000,000 input tokens.
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: t("ratesDescription")
+                        .replace("<strong>", "<strong>")
+                        .replace("</strong>", "</strong>"),
+                    }}
+                  />
                 </p>
               </div>
 
@@ -134,12 +141,12 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
                       <table className="w-full text-sm">
                         <thead className="bg-bg-hover text-text-muted uppercase text-xs">
                           <tr>
-                            <th className="px-3 py-2 text-left">Model</th>
-                            <th className="px-3 py-2 text-right">Input</th>
-                            <th className="px-3 py-2 text-right">Output</th>
-                            <th className="px-3 py-2 text-right">Cached</th>
-                            <th className="px-3 py-2 text-right">Reasoning</th>
-                            <th className="px-3 py-2 text-right">Cache Creation</th>
+                            <th className="px-3 py-2 text-left">{t("model")}</th>
+                            <th className="px-3 py-2 text-right">{t("input")}</th>
+                            <th className="px-3 py-2 text-right">{t("output")}</th>
+                            <th className="px-3 py-2 text-right">{t("cached")}</th>
+                            <th className="px-3 py-2 text-right">{t("reasoning")}</th>
+                            <th className="px-3 py-2 text-right">{t("cacheCreation")}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -170,7 +177,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
               })}
 
               {allProviders.length === 0 && (
-                <div className="text-center py-8 text-text-muted">No pricing data available</div>
+                <div className="text-center py-8 text-text-muted">{t("noPricingData")}</div>
               )}
             </div>
           )}
@@ -183,7 +190,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
             className="px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded border border-red-500/20 transition-colors"
             disabled={saving}
           >
-            Reset to Defaults
+            {t("resetToDefaults")}
           </button>
           <div className="flex gap-2">
             <button
@@ -191,14 +198,14 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
               className="px-4 py-2 text-sm text-text-muted hover:text-text border border-border rounded transition-colors"
               disabled={saving}
             >
-              Cancel
+              {t("cancel")}
             </button>
             <button
               onClick={handleSave}
               className="px-4 py-2 text-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t("saving") : t("saveChanges")}
             </button>
           </div>
         </div>
