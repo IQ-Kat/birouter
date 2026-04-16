@@ -176,7 +176,6 @@ export function CompactStatGrid({ sections }: { sections: CompactStatSection[] }
 export function ActivityHeatmap({ activityMap }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-
   const cells = useMemo(() => {
     const today = new Date();
     const days = [];
@@ -218,8 +217,6 @@ export function ActivityHeatmap({ activityMap }) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
     }
   }, [weeks]);
-
-
   const monthLabels = useMemo(() => {
     const labels = [];
     let lastMonth = -1;
@@ -270,47 +267,49 @@ export function ActivityHeatmap({ activityMap }) {
         </span>
       </div>
 
-      <div className="flex gap-[3px] mb-1 ml-6" style={{ fontSize: "10px" }}>
-        {monthLabels.map((m, i) => (
-          <span
-            key={i}
-            className="text-text-muted"
-            style={{
-              position: "relative",
-              left: `${m.weekIdx * 13}px`,
-              marginLeft: i === 0 ? 0 : "-20px",
-            }}
-          >
-            {m.label}
-          </span>
-        ))}
-      </div>
-
       <div
         ref={scrollRef}
-        className="flex gap-[3px] overflow-x-auto"
+        className="overflow-x-auto"
       >
-        <div className="flex flex-col gap-[3px] shrink-0 text-[10px] text-text-muted pr-1">
-          <span className="h-[10px]"></span>
-          <span className="h-[10px] leading-[10px]">Mon</span>
-          <span className="h-[10px]"></span>
-          <span className="h-[10px] leading-[10px]">Wed</span>
-          <span className="h-[10px]"></span>
-          <span className="h-[10px] leading-[10px]">Fri</span>
-          <span className="h-[10px]"></span>
+        <div className="flex gap-[3px] mb-1 ml-6" style={{ fontSize: "10px" }}>
+          {monthLabels.map((m, i) => (
+            <span
+              key={i}
+              className="text-text-muted"
+              style={{
+                position: "relative",
+                left: `${m.weekIdx * 13}px`,
+                marginLeft: i === 0 ? 0 : "-20px",
+              }}
+            >
+              {m.label}
+            </span>
+          ))}
         </div>
 
-        {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-[3px]">
-            {week.map((day, di) => (
-              <div
-                key={di}
-                title={day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""}
-                className={`w-[10px] h-[10px] rounded-[2px] ${day ? getCellColor(day.value) : "bg-transparent"}`}
-              />
-            ))}
+        <div className="flex gap-[3px]">
+          <div className="flex flex-col gap-[3px] shrink-0 text-[10px] text-text-muted pr-1 sticky left-0 z-10 bg-surface">
+            <span className="h-[10px]"></span>
+            <span className="h-[10px] leading-[10px]">Mon</span>
+            <span className="h-[10px]"></span>
+            <span className="h-[10px] leading-[10px]">Wed</span>
+            <span className="h-[10px]"></span>
+            <span className="h-[10px] leading-[10px]">Fri</span>
+            <span className="h-[10px]"></span>
           </div>
-        ))}
+
+          {weeks.map((week, wi) => (
+            <div key={wi} className="flex flex-col gap-[3px]">
+              {week.map((day, di) => (
+                <div
+                  key={di}
+                  title={day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""}
+                  className={`w-[10px] h-[10px] rounded-[2px] ${day ? getCellColor(day.value) : "bg-transparent"}`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center gap-1 mt-2 ml-6 text-[10px] text-text-muted">
