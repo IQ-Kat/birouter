@@ -882,6 +882,17 @@ export function getDbInstance(): SqliteDatabase {
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       console.warn("[DB] Could not probe existing DB:", message);
+
+      // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
+      if (
+        message.includes("Module did not self-register") ||
+        message.includes("could not be found") ||
+        message.includes("ERR_DLOPEN_FAILED") ||
+        (e as any)?.code === "ERR_DLOPEN_FAILED"
+      ) {
+        throw e;
+      }
+
       // SAFETY: Never delete the database — rename to backup so data can be recovered.
       // The old code would silently destroy all user data on any probe failure.
       const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;

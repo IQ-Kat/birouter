@@ -48,7 +48,7 @@ const MIGRATIONS_DIR = resolveMigrationsDir();
  *
  * Set to 0 to disable this safety check.
  */
-const MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 5;
+const MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 50;
 
 const RENAMED_MIGRATION_COMPATIBILITY = [
   {
