@@ -6,7 +6,7 @@ import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
-import { refreshCodexToken } from "../services/tokenRefresh.ts";
+import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
@@ -425,7 +425,7 @@ export class CodexExecutor extends BaseExecutor {
       log?.warn?.("TOKEN_REFRESH", "Codex: no refresh token available, re-authentication required");
       return null;
     }
-    const result = await refreshCodexToken(credentials.refreshToken, log);
+    const result = await getAccessToken("codex", credentials, log);
     if (!result || result.error) {
       log?.warn?.(
         "TOKEN_REFRESH",
