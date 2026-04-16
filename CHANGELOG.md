@@ -9,9 +9,16 @@
 ### ✨ New Features
 
 - **feat(i18n):** Add internationalization support for combo features and dashboard components; sync translations across 31 keys (#1318)
+- **feat(core):** Add stopSequences support and expand tool definitions to include Google Search capabilities
+- **security:** Resolve GitHub CodeQL scan alerts and enforce deep SSRF mitigations
 
 ### 🐛 Bug Fixes
 
+- **fix(providers):** Add grok-web SSO cookie validation handler (#1334)
+- **fix(db):** Preserve key_value settings (dashboard passwords, saved aliases) across DB heuristic recreation cycles (#1333)
+- **fix(routing):** Allow combo fallback to cascade context overflow 400 errors instead of immediate aborts (#1331)
+- **fix(core):** Resolve thinking leaks, consecutive roles, and missing thoughtSignatures for Antigravity translator (#1316)
+- **fix(providers):** Default to batch testing execution blocks for web, search, and audio modalities to prevent connection timeouts
 - **fix(cli):** Resolve Node 22 TS entrypoint incompatibility by using esbuild compilation (#1315)
 - **fix(chat):** Preserve max_output_tokens for Responses API targets in chatCore sanitization (#1313)
 - **fix(api):** API Manager usage stats showing 0 for all registered keys (#1310)
