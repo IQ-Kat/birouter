@@ -224,6 +224,39 @@ function hoistSystemMessagesToInstructions(body: Record<string, unknown>): void 
   body.input = filteredInput;
 }
 
+/**
+ * Convert role=system messages in `input` to role=developer.
+ *
+ * GPT-5 models support the `developer` role in input, but reject `system`.
+ * Unlike hoistSystemMessagesToInstructions(), this keeps the content inside
+ * the `input` array where it benefits from OpenAI's automatic prompt caching.
+ *
+ * OpenAI's prompt caching matches on the serialized prefix of the `input` array
+ * (+ tools). The `instructions` field is NOT included in the cache key for
+ * GPT-5 models. Moving system prompts from `input` to `instructions` therefore
+ * removes them from the cacheable prefix, resulting in 0% cache hit rates.
+ *
+ * Ref: https://community.openai.com/t/caching-is-borked-for-gpt-5-models/1359574
+ * Ref: https://community.openai.com/t/no-caching-with-model-responses/1338627
+ */
+function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
+  if (!Array.isArray(body.input)) return;
+
+  for (const itemValue of body.input) {
+    if (!itemValue || typeof itemValue !== "object" || Array.isArray(itemValue)) {
+      continue;
+    }
+
+    const item = itemValue as Record<string, unknown>;
+    const role = typeof item.role === "string" ? item.role : "";
+    const type = typeof item.type === "string" ? item.type : "";
+    const isSystemMessage = role === "system" && (!type || type === "message");
+    if (isSystemMessage) {
+      item.role = "developer";
+    }
+  }
+}
+
 function normalizeCodexTools(body: Record<string, unknown>): void {
   if (!Array.isArray(body.tools)) return;
 
@@ -436,11 +469,41 @@ export class CodexExecutor extends BaseExecutor {
       body.service_tier = requestDefaults.serviceTier;
     }
 
-    // If no instructions provided, inject default Codex instructions
-    // NOTE: must run before the passthrough return — Codex upstream rejects
-    // requests without instructions even when the body is forwarded as-is.
-    if (!body.instructions || body.instructions.trim() === "") {
-      body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
+    // ── System prompt handling: cache-aware strategy ──
+    //
+    // For GPT-5 models, OpenAI's automatic prompt caching only considers the
+    // `input` array content (+ tools). The `instructions` field is NOT included
+    // in the cache prefix computation. Moving system prompts from `input` into
+    // `instructions` therefore removes them from the cacheable prefix, causing
+    // 0% cache hit rates even with identical repeated requests.
+    //
+    // For native passthrough (client sends Responses API format directly):
+    //   - Convert system → developer role in-place (Codex accepts developer but rejects system)
+    //   - Only inject minimal instructions if the field is completely empty
+    //   - Do NOT inject CODEX_DEFAULT_INSTRUCTIONS (it would bloat the non-cached field)
+    //
+    // For translated requests (from Chat Completions format):
+    //   - Continue hoisting system messages to instructions (legacy behavior)
+    //   - Inject CODEX_DEFAULT_INSTRUCTIONS as fallback
+    //
+    // Ref: https://community.openai.com/t/caching-is-borked-for-gpt-5-models/1359574
+    // Ref: https://community.openai.com/t/no-caching-with-model-responses/1338627
+    if (nativeCodexPassthrough) {
+      // Passthrough path: keep system prompts in input for caching.
+      // Convert system → developer role since Codex rejects role=system in input.
+      convertSystemToDeveloperRole(body);
+
+      // Codex still requires a non-empty instructions field.
+      // Use a minimal placeholder if the client didn't provide one.
+      if (!body.instructions || (typeof body.instructions === "string" && body.instructions.trim() === "")) {
+        body.instructions = "Follow the developer instructions in the conversation.";
+      }
+    } else {
+      // Translated path: hoist system messages to instructions (legacy behavior).
+      if (!body.instructions || (typeof body.instructions === "string" && body.instructions.trim() === "")) {
+        body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
+      }
+      hoistSystemMessagesToInstructions(body);
     }
 
     if (!storeEnabled) {
@@ -448,10 +511,6 @@ export class CodexExecutor extends BaseExecutor {
     } else if (responsesStoreMarker !== undefined && body.store === undefined) {
       body.store = responsesStoreMarker;
     }
-
-    // Cursor can send native Responses payloads with role=system items inside `input`.
-    // Codex rejects system messages there; they must be folded into `instructions`.
-    hoistSystemMessagesToInstructions(body);
 
     // Codex Responses only supports function tools with non-empty names.
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
