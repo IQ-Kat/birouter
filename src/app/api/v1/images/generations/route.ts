@@ -48,6 +48,9 @@ export async function GET() {
     owned_by: m.provider,
     type: "image",
     supported_sizes: m.supportedSizes,
+    input_modalities: m.inputModalities || ["text"],
+    output_modalities: ["image"],
+    ...(m.description ? { description: m.description } : {}),
   }));
 
   // Include custom models tagged for images
@@ -67,6 +70,8 @@ export async function GET() {
           owned_by: providerId,
           type: "image",
           supported_sizes: null,
+          input_modalities: ["text"],
+          output_modalities: ["image"],
         });
       }
     }

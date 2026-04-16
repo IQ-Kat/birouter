@@ -263,6 +263,8 @@ test("image registry resolves flux aliases and exposes planned catalog aliases",
   });
 
   const modelIds = new Set(getAllImageModels().map((model) => model.id));
+  const fluxRedux = getAllImageModels().find((model) => model.id === "flux-redux");
+  const fluxKontext = getAllImageModels().find((model) => model.id === "flux-kontext");
   for (const alias of [
     "flux-kontext",
     "flux-kontext-max",
@@ -273,6 +275,8 @@ test("image registry resolves flux aliases and exposes planned catalog aliases",
   ]) {
     assert.equal(modelIds.has(alias), true, `Expected alias ${alias} in image catalog`);
   }
+  assert.deepEqual(fluxRedux?.inputModalities, ["text", "image"]);
+  assert.deepEqual(fluxKontext?.inputModalities, ["text", "image"]);
 });
 
 test("handleImageGeneration calls Fal AI with Key auth and normalizes URL results to base64", async () => {

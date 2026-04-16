@@ -132,6 +132,7 @@ import {
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
+import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -858,6 +859,7 @@ export async function handleChatCore({
 
   const stream = resolveStreamFlag(body?.stream, acceptHeader);
   const settings = await getCachedSettings();
+  setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
   // Create request logger for this session: sourceFormat_targetFormat_model

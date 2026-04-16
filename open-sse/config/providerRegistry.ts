@@ -8,6 +8,14 @@
 
 import { platform, arch } from "os";
 import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
+import {
+  ANTHROPIC_BETA_API_KEY,
+  ANTHROPIC_BETA_CLAUDE_OAUTH,
+  ANTHROPIC_VERSION_HEADER,
+  CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
+  CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
+  CLAUDE_CLI_USER_AGENT,
+} from "./anthropicHeaders.ts";
 import { getCodexDefaultHeaders } from "./codexClient.ts";
 import {
   GLMT_REQUEST_DEFAULTS,
@@ -108,8 +116,8 @@ const KIMI_CODING_SHARED = {
   baseUrl: "https://api.kimi.com/coding/v1/messages",
   authHeader: "x-api-key",
   headers: {
-    "Anthropic-Version": "2023-06-01",
-    "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+    "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+    "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
     { id: "kimi-k2.5", name: "Kimi K2.5" },
@@ -255,16 +263,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     defaultContextLength: 200000,
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta":
-        "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
       "Anthropic-Dangerous-Direct-Browser-Access": "true",
-      "User-Agent": "claude-cli/2.1.63 (external, cli)",
+      "User-Agent": CLAUDE_CLI_USER_AGENT,
       "X-App": "cli",
       "X-Stainless-Helper-Method": "stream",
       "X-Stainless-Retry-Count": "0",
-      "X-Stainless-Runtime-Version": "v24.3.0",
-      "X-Stainless-Package-Version": "0.74.0",
+      "X-Stainless-Runtime-Version": CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
+      "X-Stainless-Package-Version": CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
       "X-Stainless-Runtime": "node",
       "X-Stainless-Lang": "js",
       "X-Stainless-Arch": mapStainlessArch(),
@@ -744,8 +751,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "x-api-key",
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
@@ -769,8 +776,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "x-api-key",
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "glm-5", name: "GLM 5" },
@@ -901,8 +908,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
@@ -925,8 +932,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.

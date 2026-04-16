@@ -5,36 +5,71 @@
  * Each provider has its own request format and endpoint.
  */
 
-const IMAGE_MODEL_ALIASES = {
+interface ImageModelEntry {
+  id: string;
+  name: string;
+  inputModalities?: string[];
+  description?: string;
+}
+
+interface ImageProviderConfig {
+  id: string;
+  baseUrl: string;
+  fallbackUrl?: string;
+  proUrl?: string;
+  statusUrl?: string;
+  alias?: string;
+  authType: string;
+  authHeader: string;
+  format: string;
+  models: ImageModelEntry[];
+  supportedSizes: string[];
+}
+
+interface ImageModelAliasEntry {
+  provider: string;
+  model: string;
+  name: string;
+  listInCatalog: boolean;
+  inputModalities?: string[];
+  description?: string;
+}
+
+const IMAGE_MODEL_ALIASES: Record<string, ImageModelAliasEntry> = {
   "flux-kontext": {
     provider: "pollinations",
     model: "flux-kontext",
     name: "FLUX Kontext",
     listInCatalog: true,
+    inputModalities: ["text", "image"],
   },
   "flux-kontext-max": {
     provider: "together",
     model: "black-forest-labs/FLUX.1.1-pro",
     name: "FLUX Kontext Max",
     listInCatalog: true,
+    inputModalities: ["text", "image"],
   },
   "flux-redux": {
     provider: "together",
     model: "black-forest-labs/FLUX.1-redux",
     name: "FLUX Redux",
     listInCatalog: true,
+    inputModalities: ["text", "image"],
   },
   "flux-depth": {
     provider: "together",
     model: "black-forest-labs/FLUX.1-depth",
     name: "FLUX Depth",
     listInCatalog: true,
+    inputModalities: ["text", "image"],
   },
   "flux-canny": {
     provider: "together",
     model: "black-forest-labs/FLUX.1-canny",
     name: "FLUX Canny",
     listInCatalog: true,
+    inputModalities: ["text", "image"],
   },
   "flux-dev-lora": {
     provider: "together",
@@ -67,7 +102,7 @@ function findImageModelConfig(providerId, modelId) {
   return provider.models.find((model) => model.id === modelId) || null;
 }
 
-export const IMAGE_PROVIDERS = {
+export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/images/generations",
@@ -99,12 +134,32 @@ export const IMAGE_PROVIDERS = {
     authHeader: "bearer",
     format: "openai",
     models: [
-      { id: "black-forest-labs/FLUX.1.1-pro", name: "FLUX 1.1 Pro" },
+      {
+        id: "black-forest-labs/FLUX.1.1-pro",
+        name: "FLUX 1.1 Pro",
+        inputModalities: ["text", "image"],
+        description: "Advanced contextual image editing and image-to-image generation",
+      },
       { id: "black-forest-labs/FLUX.1-schnell-Free", name: "FLUX 1 Schnell (Free)" },
       { id: "stabilityai/stable-diffusion-xl-base-1.0", name: "SDXL Base 1.0" },
-      { id: "black-forest-labs/FLUX.1-redux", name: "FLUX.1 Redux" },
-      { id: "black-forest-labs/FLUX.1-depth", name: "FLUX.1 Depth" },
-      { id: "black-forest-labs/FLUX.1-canny", name: "FLUX.1 Canny" },
+      {
+        id: "black-forest-labs/FLUX.1-redux",
+        name: "FLUX.1 Redux",
+        inputModalities: ["text", "image"],
+        description: "Generate prompt-guided variations from an input image",
+      },
+      {
+        id: "black-forest-labs/FLUX.1-depth",
+        name: "FLUX.1 Depth",
+        inputModalities: ["text", "image"],
+        description: "Depth-conditioned image generation from an input image",
+      },
+      {
+        id: "black-forest-labs/FLUX.1-canny",
+        name: "FLUX.1 Canny",
+        inputModalities: ["text", "image"],
+        description: "Canny edge guided image generation from an input image",
+      },
       { id: "black-forest-labs/FLUX.1-dev-lora", name: "FLUX.1 Dev LoRA" },
     ],
     supportedSizes: ["1024x1024", "512x512"],
@@ -231,8 +286,18 @@ export const IMAGE_PROVIDERS = {
       { id: "gptimage", name: "GPT Image 1 Mini" },
       { id: "qwen-image", name: "Qwen Image Plus" },
       { id: "wan-image", name: "Wan 2.7 Image" },
-      { id: "flux-kontext", name: "FLUX.1 Kontext" },
-      { id: "flux-kontext-max", name: "FLUX.1 Kontext Max" },
+      {
+        id: "flux-kontext",
+        name: "FLUX.1 Kontext",
+        inputModalities: ["text", "image"],
+        description: "Context-aware image editing with optional source image",
+      },
+      {
+        id: "flux-kontext-max",
+        name: "FLUX.1 Kontext Max",
+        inputModalities: ["text", "image"],
+        description: "Higher quality Kontext editing with optional source image",
+      },
       { id: "gptimage-large", name: "GPT Image 1.5" },
     ],
     supportedSizes: ["1024x1024", "512x512"],
@@ -277,20 +342,24 @@ export const IMAGE_PROVIDERS = {
       { id: "sd3.5-medium", name: "sd3.5-medium" },
       { id: "stable-image-ultra", name: "Stable Image Ultra" },
       { id: "stable-image-core", name: "Stable Image Core" },
-      { id: "inpaint", name: "Inpaint" },
-      { id: "outpaint", name: "Outpaint" },
-      { id: "erase", name: "Erase" },
-      { id: "search-and-replace", name: "Search and Replace" },
-      { id: "search-and-recolor", name: "Search and Recolor" },
-      { id: "remove-background", name: "Remove Background" },
-      { id: "replace-background-and-relight", name: "Replace Background and Relight" },
-      { id: "fast", name: "Fast Upscale" },
-      { id: "conservative", name: "Conservative Upscale" },
-      { id: "creative", name: "Creative Upscale" },
-      { id: "sketch", name: "Sketch Control" },
-      { id: "structure", name: "Structure Control" },
-      { id: "style", name: "Style Control" },
-      { id: "style-transfer", name: "Style Transfer" },
+      { id: "inpaint", name: "Inpaint", inputModalities: ["text", "image"] },
+      { id: "outpaint", name: "Outpaint", inputModalities: ["text", "image"] },
+      { id: "erase", name: "Erase", inputModalities: ["image"] },
+      { id: "search-and-replace", name: "Search and Replace", inputModalities: ["text", "image"] },
+      { id: "search-and-recolor", name: "Search and Recolor", inputModalities: ["text", "image"] },
+      { id: "remove-background", name: "Remove Background", inputModalities: ["image"] },
+      {
+        id: "replace-background-and-relight",
+        name: "Replace Background and Relight",
+        inputModalities: ["text", "image"],
+      },
+      { id: "fast", name: "Fast Upscale", inputModalities: ["image"] },
+      { id: "conservative", name: "Conservative Upscale", inputModalities: ["image"] },
+      { id: "creative", name: "Creative Upscale", inputModalities: ["text", "image"] },
+      { id: "sketch", name: "Sketch Control", inputModalities: ["text", "image"] },
+      { id: "structure", name: "Structure Control", inputModalities: ["text", "image"] },
+      { id: "style", name: "Style Control", inputModalities: ["text", "image"] },
+      { id: "style-transfer", name: "Style Transfer", inputModalities: ["text", "image"] },
     ],
     supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
   },
@@ -302,10 +371,14 @@ export const IMAGE_PROVIDERS = {
     authHeader: "x-key",
     format: "black-forest-labs",
     models: [
-      { id: "flux-kontext-pro", name: "flux-kontext-pro" },
-      { id: "flux-kontext-max", name: "flux-kontext-max" },
-      { id: "flux-pro-1.0-fill", name: "flux-pro-1.0-fill" },
-      { id: "flux-pro-1.0-expand", name: "flux-pro-1.0-expand" },
+      { id: "flux-kontext-pro", name: "flux-kontext-pro", inputModalities: ["text", "image"] },
+      { id: "flux-kontext-max", name: "flux-kontext-max", inputModalities: ["text", "image"] },
+      { id: "flux-pro-1.0-fill", name: "flux-pro-1.0-fill", inputModalities: ["text", "image"] },
+      {
+        id: "flux-pro-1.0-expand",
+        name: "flux-pro-1.0-expand",
+        inputModalities: ["text", "image"],
+      },
       { id: "flux-pro-1.1", name: "flux-pro-1.1" },
       { id: "flux-pro-1.1-ultra", name: "flux-pro-1.1-ultra" },
       { id: "flux-dev", name: "flux-dev" },
@@ -333,7 +406,7 @@ export const IMAGE_PROVIDERS = {
     authType: "apikey",
     authHeader: "x-api-key",
     format: "topaz",
-    models: [{ id: "topaz-enhance", name: "topaz-enhance" }],
+    models: [{ id: "topaz-enhance", name: "topaz-enhance", inputModalities: ["image"] }],
     supportedSizes: ["1024x1024"],
   },
 };
@@ -396,6 +469,8 @@ export function getAllImageModels() {
         name: model.name,
         provider: providerId,
         supportedSizes: config.supportedSizes,
+        inputModalities: model.inputModalities || ["text"],
+        description: model.description || undefined,
       });
     }
   }
@@ -408,6 +483,8 @@ export function getAllImageModels() {
       name: target.name || modelConfig?.name || alias,
       provider: target.provider,
       supportedSizes: providerConfig?.supportedSizes || [],
+      inputModalities: target.inputModalities || modelConfig?.inputModalities || ["text"],
+      description: target.description || modelConfig?.description || undefined,
     });
   }
   return models;

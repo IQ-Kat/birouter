@@ -1,6 +1,14 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
+import {
+  ANTHROPIC_BETA_FULL,
+  ANTHROPIC_VERSION_HEADER,
+  CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
+  CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
+  CLAUDE_CLI_USER_AGENT,
+  CLAUDE_CLI_VERSION,
+} from "../config/anthropicHeaders.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { computeFingerprint, extractFirstUserMessageText } from "./claudeCodeFingerprint.ts";
@@ -26,11 +34,10 @@ export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 8092;
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = "2023-06-01";
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA =
-  "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,token-efficient-tools-2025-02-19";
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.87";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = `claude-cli/${CLAUDE_CODE_COMPATIBLE_VERSION} (external, cli)`;
+export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = ANTHROPIC_VERSION_HEADER;
+export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = ANTHROPIC_BETA_FULL;
+export const CLAUDE_CODE_COMPATIBLE_VERSION = CLAUDE_CLI_VERSION;
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = CLAUDE_CLI_USER_AGENT;
 /**
  * Build the billing header dynamically with fingerprint and CCH placeholder.
  * The cch=00000 placeholder is later replaced by signRequestBody().
@@ -136,11 +143,11 @@ export function buildClaudeCodeCompatibleHeaders(
     "X-Stainless-Retry-Count": "0",
     "X-Stainless-Timeout": String(CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS),
     "X-Stainless-Lang": "js",
-    "X-Stainless-Package-Version": "0.80.0",
+    "X-Stainless-Package-Version": CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
     "X-Stainless-OS": "MacOS",
     "X-Stainless-Arch": "arm64",
     "X-Stainless-Runtime": "node",
-    "X-Stainless-Runtime-Version": "v24.3.0",
+    "X-Stainless-Runtime-Version": CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
     "accept-language": "*",
     "sec-fetch-mode": "cors",
     "accept-encoding": "identity",

@@ -337,6 +337,25 @@ test("v1 models catalog includes media, moderation, rerank, video, and music mod
   assert.equal(byId.get("comfyui/stable-audio-open")?.type, "music");
 });
 
+test("v1 models catalog exposes image model input and output modalities for advanced image providers", async () => {
+  await seedConnection("together", { name: "together-images" });
+  await seedConnection("topaz", { name: "topaz-images" });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = await response.json();
+  const byId = new Map(body.data.map((item) => [item.id, item]));
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(byId.get("flux-redux")?.input_modalities, ["text", "image"]);
+  assert.deepEqual(byId.get("flux-redux")?.output_modalities, ["image"]);
+  assert.equal(byId.get("flux-redux")?.type, "image");
+  assert.ok(byId.get("flux-redux")?.supported_sizes?.includes("1024x1024"));
+  assert.deepEqual(byId.get("topaz/topaz-enhance")?.input_modalities, ["image"]);
+  assert.deepEqual(byId.get("topaz/topaz-enhance")?.output_modalities, ["image"]);
+});
+
 test("v1 models catalog tolerates custom model lookup failures and keeps builtin models available", async () => {
   await seedConnection("openai", { name: "openai-custom-failure" });
 

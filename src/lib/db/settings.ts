@@ -47,6 +47,7 @@ export async function getSettings() {
     stickyRoundRobinLimit: 3,
     requestRetry: 3,
     maxRetryIntervalSec: 30,
+    antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
     hiddenSidebarItems: [],
     alwaysPreserveClientCache: "auto",

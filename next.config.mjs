@@ -14,6 +14,11 @@ const nextConfig = {
     },
   },
   output: "standalone",
+  outputFileTracingExcludes: {
+    // Planning/task docs are not runtime assets and can break standalone copies
+    // when broad fs/path tracing pulls the whole repository into the NFT graph.
+    "/*": ["./_tasks/**/*"],
+  },
   serverExternalPackages: [
     "pino",
     "pino-pretty",

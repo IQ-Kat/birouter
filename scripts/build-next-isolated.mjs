@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -13,8 +14,19 @@ import { pathToFileURL } from "node:url";
  */
 
 const projectRoot = process.cwd();
-const legacyAppDir = path.join(projectRoot, "app");
-const backupDir = path.join(projectRoot, `.app-build-backup-${process.pid}-${Date.now()}`);
+const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
+const transientBuildPaths = [
+  {
+    label: "legacy app snapshot",
+    sourcePath: path.join(projectRoot, "app"),
+    backupPath: path.join(backupRoot, "app"),
+  },
+  {
+    label: "task planning workspace",
+    sourcePath: path.join(projectRoot, "_tasks"),
+    backupPath: path.join(backupRoot, "_tasks"),
+  },
+];
 
 async function exists(targetPath) {
   try {
@@ -26,6 +38,8 @@ async function exists(targetPath) {
 }
 
 export async function movePath(sourcePath, destinationPath, fsImpl = fs) {
+  await fsImpl.mkdir(path.dirname(destinationPath), { recursive: true });
+
   try {
     await fsImpl.rename(sourcePath, destinationPath);
   } catch (error) {
@@ -82,12 +96,13 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
 }
 
 export async function main() {
-  let moved = false;
+  const movedPaths = [];
 
   try {
-    if (await exists(legacyAppDir)) {
-      await movePath(legacyAppDir, backupDir);
-      moved = true;
+    for (const entry of transientBuildPaths) {
+      if (!(await exists(entry.sourcePath))) continue;
+      await movePath(entry.sourcePath, entry.backupPath);
+      movedPaths.push(entry);
     }
 
     const result = await runNextBuild();
@@ -113,16 +128,24 @@ export async function main() {
     console.error("[build-next-isolated] Build failed:", error);
     process.exitCode = 1;
   } finally {
-    if (moved) {
+    while (movedPaths.length > 0) {
+      const entry = movedPaths.pop();
+      if (!entry) continue;
       try {
-        await movePath(backupDir, legacyAppDir);
+        await movePath(entry.backupPath, entry.sourcePath);
       } catch (restoreError) {
         console.error(
-          `[build-next-isolated] Failed to restore legacy app dir from ${backupDir}:`,
+          `[build-next-isolated] Failed to restore ${entry.label} from ${entry.backupPath}:`,
           restoreError
         );
         process.exitCode = 1;
       }
+    }
+
+    try {
+      await fs.rm(backupRoot, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.warn("[build-next-isolated] Failed to clean temporary backup root:", cleanupError);
     }
   }
 }

@@ -24,6 +24,8 @@ const fallbackStrategyValues = [
   "lkgp",
 ] as const;
 
+const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
+
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
   currentPassword: z.string().max(200).optional(),
@@ -68,6 +70,7 @@ export const updateSettingsSchema = z.object({
   stripModelPrefix: z.boolean().optional(),
   // Cache control preservation mode
   alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
+  antigravitySignatureCacheMode: z.enum(signatureCacheModeValues).optional(),
   // Adaptive Volume Routing
   adaptiveVolumeRouting: z.boolean().optional(),
   // Usage token buffer — safety margin added to reported prompt/input token counts.

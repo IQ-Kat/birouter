@@ -63,5 +63,19 @@ describe("Settings API - debugMode and hiddenSidebarItems", () => {
         "hiddenSidebarItems should be updated"
       );
     });
+
+    test("updateSettings persists antigravitySignatureCacheMode", async () => {
+      const result = await updateSettings({
+        antigravitySignatureCacheMode: "bypass-strict",
+      });
+      assert.ok(result, "updateSettings should return truthy result");
+
+      const settings = await getSettings();
+      assert.strictEqual(
+        settings.antigravitySignatureCacheMode,
+        "bypass-strict",
+        "antigravitySignatureCacheMode should be updated"
+      );
+    });
   });
 });

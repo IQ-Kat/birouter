@@ -17,14 +17,14 @@ test("T28: gemini-cli catalog includes preview models, gemini uses API sync", ()
   assert.ok(geminiCliIds.includes("gemini-3-flash-preview"));
 });
 
-test("T28: antigravity static catalog exposes current Gemini 3.1 model IDs", () => {
+test("T28: antigravity static catalog exposes client-visible Gemini preview IDs", () => {
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
 
-  assert.ok(staticIds.includes("gemini-3.1-pro-high"));
+  assert.ok(staticIds.includes("gemini-3-pro-preview"));
   assert.ok(staticIds.includes("gemini-3.1-pro-low"));
-  assert.ok(staticIds.includes("gemini-3-flash"));
+  assert.ok(staticIds.includes("gemini-3-flash-preview"));
   assert.ok(!staticIds.includes("gemini-3-pro-high"));
-  assert.ok(!staticIds.includes("gemini-3-pro-low"));
+  assert.ok(!staticIds.includes("gemini-3.1-pro-high"));
 });
 
 test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias compatibility", async () => {

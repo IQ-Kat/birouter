@@ -18,6 +18,11 @@ import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityH
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getGlmModelsUrl } from "@omniroute/open-sse/config/glmProvider.ts";
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
+import {
+  getClientVisibleAntigravityModelName,
+  toClientAntigravityModelId,
+} from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -78,6 +83,17 @@ function normalizeAntigravityModelsResponse(data: unknown): Array<{ id: string; 
     .filter((value): value is { id: string; name: string } => Boolean(value));
 }
 
+function mapAntigravityModelForClient(model: { id: string; name: string }): {
+  id: string;
+  name: string;
+} {
+  const clientId = toClientAntigravityModelId(model.id);
+  return {
+    id: clientId,
+    name: getClientVisibleAntigravityModelName(clientId, model.name),
+  };
+}
+
 type ProviderModelsConfigEntry = {
   url: string;
   method: "GET" | "POST";
@@ -118,9 +134,9 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   antigravity: () => [
     { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-    { id: "gemini-3-flash", name: "Gemini 3 Flash" },
+    { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
     { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
-    { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
+    { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview" },
     { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
     { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
   ],
@@ -682,6 +698,8 @@ export async function GET(
         });
       }
 
+      await resolveAntigravityVersion();
+
       for (const discoveryUrl of discoveryUrls) {
         try {
           const response = await safeOutboundFetch(discoveryUrl, {
@@ -701,7 +719,9 @@ export async function GET(
             continue;
           }
 
-          const remoteModels = normalizeAntigravityModelsResponse(await response.json());
+          const remoteModels = normalizeAntigravityModelsResponse(await response.json()).map(
+            mapAntigravityModelForClient
+          );
           if (remoteModels.length > 0) {
             return buildResponse({
               provider,

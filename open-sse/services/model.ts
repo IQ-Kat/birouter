@@ -1,4 +1,5 @@
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.ts";
+import { ANTIGRAVITY_MODEL_ALIASES } from "../config/antigravityModelAliases.ts";
 import { resolveWildcardAlias } from "./wildcardRouter.ts";
 
 // Derive alias→provider mapping from the single source of truth (PROVIDER_ID_TO_ALIAS)
@@ -36,7 +37,7 @@ const PROVIDER_MODEL_ALIASES = {
     "gpt-oss-120b": "openai/gpt-oss-120b",
     "nvidia/gpt-oss-120b": "openai/gpt-oss-120b",
   },
-  antigravity: {},
+  antigravity: ANTIGRAVITY_MODEL_ALIASES,
 };
 
 const CROSS_PROXY_MODEL_ALIASES = {

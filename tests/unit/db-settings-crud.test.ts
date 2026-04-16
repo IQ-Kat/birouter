@@ -68,11 +68,13 @@ test("getSettings exposes defaults and updateSettings persists typed values", as
   assert.equal(defaults.idempotencyWindowMs, 5000);
   assert.equal(defaults.requestRetry, 3);
   assert.equal(defaults.maxRetryIntervalSec, 30);
+  assert.equal(defaults.antigravitySignatureCacheMode, "enabled");
   assert.equal(updated.requireLogin, false);
   assert.equal(updated.cloudEnabled, true);
   assert.equal(updated.stickyRoundRobinLimit, 7);
   assert.equal(updated.requestRetry, 5);
   assert.equal(updated.maxRetryIntervalSec, 12);
+  assert.equal(updated.antigravitySignatureCacheMode, "enabled");
   assert.equal(updated.label, "task-303");
   assert.equal(await settingsDb.isCloudEnabled(), true);
 });

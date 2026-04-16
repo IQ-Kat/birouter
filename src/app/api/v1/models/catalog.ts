@@ -382,6 +382,9 @@ export async function getUnifiedModelsResponse(
         owned_by: imgModel.provider,
         type: "image",
         supported_sizes: imgModel.supportedSizes,
+        input_modalities: imgModel.inputModalities || ["text"],
+        output_modalities: ["image"],
+        ...(imgModel.description ? { description: imgModel.description } : {}),
       });
     }
 

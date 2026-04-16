@@ -7,6 +7,7 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { setCliCompatProviders } from "../../../../open-sse/config/cliFingerprints";
+import { setGeminiThoughtSignatureMode } from "@omniroute/open-sse/services/geminiThoughtSignatureStore.ts";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { validateProxyUrl, upsertUpstreamProxyConfig } from "@/lib/db/upstreamProxy";
 
@@ -153,6 +154,10 @@ export async function PATCH(request) {
     if ("alwaysPreserveClientCache" in body) {
       const { invalidateCacheControlSettingsCache } = await import("@/lib/cacheControlSettings");
       invalidateCacheControlSettingsCache();
+    }
+
+    if ("antigravitySignatureCacheMode" in body) {
+      setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
     }
 
     // Sync models.dev sync settings (compare old vs new state)

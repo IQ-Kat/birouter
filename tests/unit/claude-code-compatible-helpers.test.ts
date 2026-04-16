@@ -58,7 +58,9 @@ test("buildClaudeCodeCompatibleHeaders emits stream-aware auth headers and sessi
 
 test("Claude Code compatible beta set stays conservative for third-party proxies", () => {
   assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("oauth-2025-04-20"));
-  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("token-efficient-tools-2025-02-19"));
+  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("advanced-tool-use-2025-11-20"));
+  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("fast-mode-2026-02-01"));
+  assert.ok(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("token-efficient-tools-2026-03-28"));
   assert.equal(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("fast-mode-2025-04-01"), false);
   assert.equal(CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA.includes("redact-thinking-2025-06-20"), false);
 });

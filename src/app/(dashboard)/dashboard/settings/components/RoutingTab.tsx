@@ -8,6 +8,7 @@ import FallbackChainsEditor from "./FallbackChainsEditor";
 export default function RoutingTab() {
   const [settings, setSettings] = useState<any>({
     alwaysPreserveClientCache: "auto",
+    antigravitySignatureCacheMode: "enabled",
   });
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
@@ -154,6 +155,74 @@ export default function RoutingTab() {
       </Card>
 
       <FallbackChainsEditor />
+
+      <Card>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-sky-500/10 text-sky-500">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              fingerprint
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">Antigravity Signature Cache Mode</h3>
+            <p className="text-sm text-text-muted">
+              Control whether OmniRoute reuses only stored Gemini thought signatures or accepts
+              validated client-provided signatures in Antigravity-compatible tool-call flows.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            {
+              value: "enabled",
+              label: "Enabled",
+              desc: "Current behavior. Ignore client-provided signatures and keep using the stored OmniRoute flow.",
+            },
+            {
+              value: "bypass",
+              label: "Bypass",
+              desc: "Accept client-provided signatures after lightweight validation and fall back to the stored signature when invalid.",
+            },
+            {
+              value: "bypass-strict",
+              label: "Bypass Strict",
+              desc: "Require full protobuf validation before accepting a client-provided signature.",
+            },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => updateSetting({ antigravitySignatureCacheMode: option.value })}
+              disabled={loading}
+              className={`w-full flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-all ${
+                settings.antigravitySignatureCacheMode === option.value
+                  ? "border-sky-500/50 bg-sky-500/5 ring-1 ring-sky-500/20"
+                  : "border-border/50 hover:border-border hover:bg-surface/30"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={`material-symbols-outlined text-[16px] ${
+                    settings.antigravitySignatureCacheMode === option.value
+                      ? "text-sky-400"
+                      : "text-text-muted"
+                  }`}
+                >
+                  {settings.antigravitySignatureCacheMode === option.value
+                    ? "check_circle"
+                    : "radio_button_unchecked"}
+                </span>
+                <span
+                  className={`text-sm font-medium ${settings.antigravitySignatureCacheMode === option.value ? "text-sky-400" : ""}`}
+                >
+                  {option.label}
+                </span>
+              </div>
+              <p className="text-xs text-text-muted ml-7">{option.desc}</p>
+            </button>
+          ))}
+        </div>
+      </Card>
 
       <Card>
         <div className="flex items-center gap-3 mb-4">

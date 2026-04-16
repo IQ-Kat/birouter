@@ -1,4 +1,9 @@
 import os from "node:os";
+import {
+  ANTIGRAVITY_FALLBACK_VERSION,
+  getCachedAntigravityVersion,
+  resolveAntigravityVersion,
+} from "./antigravityVersion.ts";
 
 /**
  * Antigravity and Gemini CLI header utilities.
@@ -11,7 +16,7 @@ import os from "node:os";
 
 type AntigravityHeaderProfile = "loadCodeAssist" | "fetchAvailableModels" | "models";
 
-const ANTIGRAVITY_VERSION = "1.21.9";
+const ANTIGRAVITY_VERSION = ANTIGRAVITY_FALLBACK_VERSION;
 const GEMINI_CLI_VERSION = "0.31.0";
 const GEMINI_SDK_VERSION = "1.41.0";
 const NODE_VERSION = "v22.19.0";
@@ -68,7 +73,12 @@ function getArch(): string {
  * darwin/arm64. Matches CLIProxyAPI's proven production behavior.
  */
 export function antigravityUserAgent(): string {
-  return `antigravity/${ANTIGRAVITY_VERSION} darwin/arm64`;
+  return `antigravity/${getCachedAntigravityVersion()} darwin/arm64`;
+}
+
+export async function resolveAntigravityUserAgent(): Promise<string> {
+  const version = await resolveAntigravityVersion();
+  return `antigravity/${version} darwin/arm64`;
 }
 
 export function getAntigravityLoadCodeAssistMetadata(): Record<string, string> {

@@ -1,8 +1,8 @@
 import crypto, { randomUUID } from "crypto";
-import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
-import { antigravityUserAgent, googApiClientHeader } from "../services/antigravityHeaders.ts";
+import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
 import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
 import {
   injectCreditsField,
@@ -13,6 +13,8 @@ import {
 } from "../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
+import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
+import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
@@ -91,6 +93,7 @@ function markCreditsExhausted(accountId: string): void {
 function cleanModelName(model: string): string {
   if (!model) return model;
   let clean = model.includes("/") ? model.split("/").pop()! : model;
+  clean = resolveAntigravityModelId(clean);
   // Normalize bare Pro IDs to the Low tier (matching OpenClaw convention).
   // The upstream API requires an explicit tier suffix; bare IDs cause errors.
   if (BARE_PRO_IDS.has(clean)) {
@@ -120,7 +123,6 @@ export class AntigravityExecutor extends BaseExecutor {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials.accessToken}`,
       "User-Agent": antigravityUserAgent(),
-      "X-Goog-Api-Client": googApiClientHeader(),
       Accept: "text/event-stream",
       "X-OmniRoute-Source": "omniroute",
     };
@@ -442,7 +444,16 @@ export class AntigravityExecutor extends BaseExecutor {
     return collect();
   }
 
-  async execute({ model, body, stream, credentials, signal, log, upstreamExtraHeaders }) {
+  async execute({
+    model,
+    body,
+    stream,
+    credentials,
+    signal,
+    log,
+    upstreamExtraHeaders,
+  }: ExecuteInput) {
+    await resolveAntigravityVersion();
     const fallbackCount = this.getFallbackCount();
     let lastError = null;
     let lastStatus = 0;
@@ -517,7 +528,7 @@ export class AntigravityExecutor extends BaseExecutor {
               //    signal — multi-hour Retry-After upgrades rate_limited to
               //    quota_exhausted so the GOOGLE_ONE_AI credits retry fires).
               const effectiveRetryHintMs = retryMs ?? parsedRetryMs ?? null;
-              const category = classify429(errorMessage, effectiveRetryHintMs);
+              const category = classify429(errorMessage);
 
               // 3. For quota_exhausted, attempt Google One AI credits retry FIRST!
               //    Skip if credits were already injected on the first call
