@@ -4,7 +4,7 @@
 
 ---
 
-## [3.6.7] — 2026-04-16
+## [3.6.8] — 2026-04-16
 
 ### ✨ New Features
 
@@ -21,6 +21,8 @@
 - **fix(db):** Increase mass-migration threshold from 5 to 50 pending migrations to protect legacy users upgrading node
 - **fix(db):** Prevent migration runner safety aborts from triggering on fresh `DATA_DIR` installations by detecting new databases (#1328)
 - **fix(mcp):** Checkpoint and close MCP audit SQLite database safely on process signals and shutdown (#1348)
+- **fix(mcp):** Fully decouple MCP audit SQLite connection caching via globalThis to fix unhandled teardown in standalone Next.js chunks (#1349)
+- **fix(cli):** Avoid creating app router directory during postinstall initialization on non-built source trees (#1351)
 - **fix(codex):** Correctly translate `system` role to `developer` in input array to unlock GPT-5 automatic prompt caching (#1346)
 - **fix(core):** Pass client headers to executor in chatCore (#1335)
 - **fix(providers):** Separate test batch calls and ignore unknown connections
