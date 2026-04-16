@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useLocale } from "next-intl";
 import Card from "../Card";
 import { getModelColor } from "@/shared/constants/colors";
@@ -174,6 +174,9 @@ export function CompactStatGrid({ sections }: { sections: CompactStatSection[] }
 // ── ActivityHeatmap ────────────────────────────────────────────────────────
 
 export function ActivityHeatmap({ activityMap }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+
   const cells = useMemo(() => {
     const today = new Date();
     const days = [];
@@ -208,6 +211,14 @@ export function ActivityHeatmap({ activityMap }) {
     if (current.length > 0) w.push(current);
     return w;
   }, [cells]);
+
+  // Auto-scroll to the right edge so the current date is visible
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [weeks]);
+
 
   const monthLabels = useMemo(() => {
     const labels = [];
@@ -275,7 +286,10 @@ export function ActivityHeatmap({ activityMap }) {
         ))}
       </div>
 
-      <div className="flex gap-[3px] overflow-x-auto">
+      <div
+        ref={scrollRef}
+        className="flex gap-[3px] overflow-x-auto"
+      >
         <div className="flex flex-col gap-[3px] shrink-0 text-[10px] text-text-muted pr-1">
           <span className="h-[10px]"></span>
           <span className="h-[10px] leading-[10px]">Mon</span>
