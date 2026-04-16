@@ -1102,7 +1102,16 @@
     "reviewAdvanced": "Advanced Settings",
     "reviewAgentFlags": "Agent Flags",
     "reviewSequence": "Model Sequence",
-    "reviewNoSteps": "No steps configured"
+    "reviewNoSteps": "No steps configured",
+    "agentFeaturesTitle": "Agent Features",
+    "agentFeaturesDescription": "— optional, for agent/tool workflows",
+    "agentFeaturesSystemMessageOverride": "System Message Override",
+    "agentFeaturesSystemMessagePlaceholder": "Override the system prompt for all requests routed through this combo…",
+    "agentFeaturesSystemMessageHint": "Replaces any system message sent by the client. Leave empty to pass through client system messages.",
+    "agentFeaturesToolFilterRegex": "Tool Filter Regex",
+    "agentFeaturesToolFilterHint": "Only tools whose name matches this regex are forwarded to the provider. Leave empty to forward all tools.",
+    "agentFeaturesContextCacheProtection": "Context Cache Protection",
+    "agentFeaturesContextCacheHint": "Pins the provider/model across turns to preserve cache sessions. Internal tags are stripped before forwarding to the provider."
   },
   "costs": {
     "title": "Costs",

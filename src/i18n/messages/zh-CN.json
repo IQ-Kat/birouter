@@ -1101,7 +1101,16 @@
     "reviewAdvanced": "高级设置",
     "reviewAgentFlags": "Agent 标志",
     "reviewSequence": "模型序列",
-    "reviewNoSteps": "未配置任何步骤"
+    "reviewNoSteps": "未配置任何步骤",
+    "agentFeaturesTitle": "智能代理功能",
+    "agentFeaturesDescription": "— 可选，用于智能体/工具工作流",
+    "agentFeaturesSystemMessageOverride": "系统消息覆盖",
+    "agentFeaturesSystemMessagePlaceholder": "覆盖通过此组合路由的所有请求的系统提示…",
+    "agentFeaturesSystemMessageHint": "替换客户端发送的任何系统消息。留空则透传客户端系统消息。",
+    "agentFeaturesToolFilterRegex": "工具过滤器正则",
+    "agentFeaturesToolFilterHint": "只有名称匹配此正则的工具才会转发给供应商。留空则转发所有工具。",
+    "agentFeaturesContextCacheProtection": "上下文缓存保护",
+    "agentFeaturesContextCacheHint": "跨轮次锁定供应商/模型以保持缓存会话。内部标签在转发给供应商前会被移除。"
   },
   "costs": {
     "title": "成本",

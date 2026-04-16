@@ -3388,34 +3388,31 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                 <span className="material-symbols-outlined text-[14px] text-primary">
                   smart_toy
                 </span>
-                <p className="text-xs font-medium">Agent Features</p>
-                <span className="text-[10px] text-text-muted">
-                  — optional, for agent/tool workflows
-                </span>
+                <p className="text-xs font-medium">{t("agentFeaturesTitle")}</p>
+                <span className="text-[10px] text-text-muted">{t("agentFeaturesDescription")}</span>
               </div>
 
               {/* System Message Override */}
               <div>
                 <label className="text-[11px] font-medium text-text-muted block mb-0.5">
-                  System Message Override
+                  {t("agentFeaturesSystemMessageOverride")}
                 </label>
                 <textarea
                   rows={2}
                   value={agentSystemMessage}
                   onChange={(e) => setAgentSystemMessage(e.target.value)}
-                  placeholder="Override the system prompt for all requests routed through this combo…"
+                  placeholder={t("agentFeaturesSystemMessagePlaceholder")}
                   className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none resize-none"
                 />
                 <p className="text-[10px] text-text-muted mt-0.5">
-                  Replaces any system message sent by the client. Leave empty to pass through client
-                  system messages.
+                  {t("agentFeaturesSystemMessageHint")}
                 </p>
               </div>
 
               {/* Tool Filter Regex */}
               <div>
                 <label className="text-[11px] font-medium text-text-muted block mb-0.5">
-                  Tool Filter Regex
+                  {t("agentFeaturesToolFilterRegex")}
                 </label>
                 <input
                   type="text"
@@ -3425,8 +3422,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none font-mono"
                 />
                 <p className="text-[10px] text-text-muted mt-0.5">
-                  Only tools whose name matches this regex are forwarded to the provider. Leave
-                  empty to forward all tools.
+                  {t("agentFeaturesToolFilterHint")}
                 </p>
               </div>
 
@@ -3434,11 +3430,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <label className="text-[11px] font-medium text-text-muted block">
-                    Context Cache Protection
+                    {t("agentFeaturesContextCacheProtection")}
                   </label>
                   <p className="text-[10px] text-text-muted">
-                    Pins the provider/model across turns to preserve cache sessions. Internal tags
-                    are stripped before forwarding to the provider.
+                    {t("agentFeaturesContextCacheHint")}
                   </p>
                 </div>
                 <input
