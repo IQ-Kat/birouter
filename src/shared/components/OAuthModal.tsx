@@ -646,16 +646,21 @@ export default function OAuthModal({
                   <span className="material-symbols-outlined text-sm align-middle mr-1">
                     warning
                   </span>
-                  <strong
-                    dangerouslySetInnerHTML={{
-                      __html: t("googleOAuthWarning")
-                        .replace(
-                          "<a>",
-                          '<a href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server" target="_blank" rel="noreferrer" class="underline">'
-                        )
-                        .replace("</a>", "</a>"),
-                    }}
-                  />
+                  <strong>
+                    {t.rich("googleOAuthWarning", {
+                      code: (chunks) => <code>{chunks}</code>,
+                      a: (chunks) => (
+                        <a
+                          href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline"
+                        >
+                          {chunks}
+                        </a>
+                      ),
+                    })}
+                  </strong>
                 </div>
               )}
               {/* Generic remote info for other providers */}
@@ -686,13 +691,9 @@ export default function OAuthModal({
               <div>
                 <p className="text-sm font-medium mb-2">{t("step2PasteCallback")}</p>
                 <p className="text-xs text-text-muted mb-2">
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: t("step2Hint")
-                        .replace("<code>", "<code>")
-                        .replace("</code>", "</code>"),
-                    }}
-                  />
+                  {t.rich("step2Hint", {
+                    code: (chunks) => <code>{chunks}</code>,
+                  })}
                 </p>
                 <Input
                   value={callbackUrl}

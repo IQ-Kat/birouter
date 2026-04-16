@@ -119,13 +119,9 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
               <div className="bg-bg-subtle border border-border rounded-lg p-3 text-sm">
                 <p className="font-medium mb-1">{t("pricingRatesFormat")}</p>
                 <p className="text-text-muted">
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: t("ratesDescription")
-                        .replace("<strong>", "<strong>")
-                        .replace("</strong>", "</strong>"),
-                    }}
-                  />
+                  {t.rich("ratesDescription", {
+                    strong: (chunks) => <strong>{chunks}</strong>,
+                  })}
                 </p>
               </div>
 

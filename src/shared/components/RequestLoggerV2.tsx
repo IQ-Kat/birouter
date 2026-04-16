@@ -116,27 +116,33 @@ export default function RequestLoggerV2() {
   const t = useTranslations("requestLogger");
 
   // Get translated status filters
-  const getStatusFilters = () => [
-    { key: "all", label: t("statusFilters.all"), icon: "" },
-    { key: "error", label: t("statusFilters.error"), icon: "error" },
-    { key: "ok", label: t("statusFilters.success"), icon: "check_circle" },
-    { key: "combo", label: t("statusFilters.combo"), icon: "hub" },
-  ];
+  const statusFilters = useMemo(
+    () => [
+      { key: "all", label: t("statusFilters.all"), icon: "" },
+      { key: "error", label: t("statusFilters.error"), icon: "error" },
+      { key: "ok", label: t("statusFilters.success"), icon: "check_circle" },
+      { key: "combo", label: t("statusFilters.combo"), icon: "hub" },
+    ],
+    [t]
+  );
 
   // Get translated columns
-  const getColumns = () => [
-    { key: "status", label: t("columns.status") },
-    { key: "model", label: t("columns.model") },
-    { key: "requestedModel", label: t("columns.requested") },
-    { key: "provider", label: t("columns.provider") },
-    { key: "protocol", label: t("columns.protocol") },
-    { key: "account", label: t("columns.account") },
-    { key: "apiKey", label: t("columns.apiKey") },
-    { key: "combo", label: t("columns.combo") },
-    { key: "tokens", label: t("columns.tokens") },
-    { key: "duration", label: t("columns.duration") },
-    { key: "time", label: t("columns.time") },
-  ];
+  const columns = useMemo(
+    () => [
+      { key: "status", label: t("columns.status") },
+      { key: "model", label: t("columns.model") },
+      { key: "requestedModel", label: t("columns.requested") },
+      { key: "provider", label: t("columns.provider") },
+      { key: "protocol", label: t("columns.protocol") },
+      { key: "account", label: t("columns.account") },
+      { key: "apiKey", label: t("columns.apiKey") },
+      { key: "combo", label: t("columns.combo") },
+      { key: "tokens", label: t("columns.tokens") },
+      { key: "duration", label: t("columns.duration") },
+      { key: "time", label: t("columns.time") },
+    ],
+    [t]
+  );
 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -159,7 +165,7 @@ export default function RequestLoggerV2() {
 
   // Column visibility with localStorage persistence
   const [visibleColumns, setVisibleColumns] = useState(() => {
-    const defaultVisible = Object.fromEntries(getColumns().map((c) => [c.key, true]));
+    const defaultVisible = Object.fromEntries(columns.map((c) => [c.key, true]));
     if (typeof window === "undefined") return defaultVisible;
     try {
       const saved = localStorage.getItem("loggerVisibleColumns");
@@ -525,7 +531,7 @@ export default function RequestLoggerV2() {
       {/* Quick Filters */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Status Filters */}
-        {getStatusFilters().map((f) => (
+        {statusFilters.map((f) => (
           <button
             key={f.key}
             onClick={() => setActiveFilter(activeFilter === f.key ? "all" : f.key)}
@@ -582,7 +588,7 @@ export default function RequestLoggerV2() {
       {/* Column Visibility Toggles */}
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="text-[10px] text-text-muted uppercase tracking-wider mr-1">Columns</span>
-        {getColumns().map((col) => (
+        {columns.map((col) => (
           <button
             key={col.key}
             onClick={() => toggleColumn(col.key)}
