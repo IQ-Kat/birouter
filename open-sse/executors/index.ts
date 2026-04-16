@@ -12,6 +12,7 @@ import { OpencodeExecutor } from "./opencode.ts";
 import { PuterExecutor } from "./puter.ts";
 import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
+import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
 
 const executors = {
@@ -34,6 +35,8 @@ const executors = {
   vertex: new VertexExecutor(),
   cliproxyapi: new CliproxyapiExecutor(),
   cpa: new CliproxyapiExecutor(), // Alias
+  "perplexity-web": new PerplexityWebExecutor(),
+  "pplx-web": new PerplexityWebExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
 };
 
@@ -64,4 +67,5 @@ export { OpencodeExecutor } from "./opencode.ts";
 export { PuterExecutor } from "./puter.ts";
 export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { VertexExecutor } from "./vertex.ts";
+export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";

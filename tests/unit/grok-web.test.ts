@@ -24,7 +24,9 @@ function mockFetch(status: number, events: unknown[]) {
       status,
       headers: { "Content-Type": "application/json" },
     });
-  return () => { globalThis.fetch = original; };
+  return () => {
+    globalThis.fetch = original;
+  };
 }
 
 function mockFetchCapture(events: unknown[]) {
@@ -42,10 +44,18 @@ function mockFetchCapture(events: unknown[]) {
     });
   };
   return {
-    restore: () => { globalThis.fetch = original; },
-    get url() { return capturedUrl; },
-    get headers() { return capturedHeaders; },
-    get body() { return capturedBody; },
+    restore: () => {
+      globalThis.fetch = original;
+    },
+    get url() {
+      return capturedUrl;
+    },
+    get headers() {
+      return capturedHeaders;
+    },
+    get body() {
+      return capturedBody;
+    },
   };
 }
 
@@ -89,7 +99,9 @@ test("Non-streaming: simple response", async () => {
     assert.equal(json.choices[0].message.content, "Hello world!");
     assert.equal(json.choices[0].finish_reason, "stop");
     assert.ok(json.id.startsWith("chatcmpl-grok-"));
-  } finally { restore(); }
+  } finally {
+    restore();
+  }
 });
 
 // ─── Streaming ──────────────────────────────────────────────────────────────
@@ -120,7 +132,9 @@ test("Streaming: produces valid SSE chunks", async () => {
     // Last line is [DONE]
     const lastLine = text.trim().split("\n").filter(Boolean).pop();
     assert.equal(lastLine, "data: [DONE]");
-  } finally { restore(); }
+  } finally {
+    restore();
+  }
 });
 
 // ─── Error handling ─────────────────────────────────────────────────────────
@@ -141,7 +155,9 @@ test("Error: 401 returns auth error", async () => {
     const json = await result.response.json();
     assert.ok(json.error.message.includes("auth failed"));
     assert.ok(json.error.message.includes("sso"));
-  } finally { restore(); }
+  } finally {
+    restore();
+  }
 });
 
 test("Error: 429 returns rate limit message", async () => {
@@ -159,7 +175,9 @@ test("Error: 429 returns rate limit message", async () => {
     assert.equal(result.response.status, 429);
     const json = await result.response.json();
     assert.ok(json.error.message.includes("rate limited"));
-  } finally { restore(); }
+  } finally {
+    restore();
+  }
 });
 
 test("Error: empty messages returns 400", async () => {
@@ -190,7 +208,9 @@ test("Error: Grok stream error returns 502", async () => {
     assert.equal(result.response.status, 502);
     const json = await result.response.json();
     assert.ok(json.error.message.includes("Internal error"));
-  } finally { restore(); }
+  } finally {
+    restore();
+  }
 });
 
 // ─── Auth headers ───────────────────────────────────────────────────────────
@@ -208,7 +228,9 @@ test("Auth: cookie sends sso= header", async () => {
       log: null,
     });
     assert.equal(cap.headers["Cookie"], "sso=my-sso-token-value");
-  } finally { cap.restore(); }
+  } finally {
+    cap.restore();
+  }
 });
 
 test("Auth: strips sso= prefix if user included it", async () => {
@@ -225,7 +247,9 @@ test("Auth: strips sso= prefix if user included it", async () => {
     });
     assert.equal(cap.headers["Cookie"], "sso=my-token");
     assert.ok(!cap.headers["Cookie"].includes("sso=sso="));
-  } finally { cap.restore(); }
+  } finally {
+    cap.restore();
+  }
 });
 
 // ─── Request format ─────────────────────────────────────────────────────────
@@ -247,7 +271,9 @@ test("Request: posts to correct Grok endpoint", async () => {
     assert.ok(cap.headers["x-statsig-id"], "Should have x-statsig-id header");
     assert.ok(cap.headers["x-xai-request-id"], "Should have x-xai-request-id header");
     assert.ok(cap.headers["traceparent"]?.startsWith("00-"), "Should have W3C traceparent");
-  } finally { cap.restore(); }
+  } finally {
+    cap.restore();
+  }
 });
 
 test("Request: payload has correct model mapping", async () => {
@@ -265,7 +291,9 @@ test("Request: payload has correct model mapping", async () => {
     assert.equal(cap.body.modelName, "grok-4-1-thinking-1129");
     assert.equal(cap.body.modelMode, "MODEL_MODE_EXPERT");
     assert.equal(cap.body.temporary, true);
-  } finally { cap.restore(); }
+  } finally {
+    cap.restore();
+  }
 });
 
 test("Request: grok-4-heavy maps to heavy mode", async () => {
@@ -282,7 +310,9 @@ test("Request: grok-4-heavy maps to heavy mode", async () => {
     });
     assert.equal(cap.body.modelName, "grok-4");
     assert.equal(cap.body.modelMode, "MODEL_MODE_HEAVY");
-  } finally { cap.restore(); }
+  } finally {
+    cap.restore();
+  }
 });
 
 // ─── Message parsing ────────────────────────────────────────────────────────
@@ -311,7 +341,9 @@ test("Message parsing: combines system + history + user", async () => {
     assert.ok(msg.includes("Follow up"), "Should contain current user message");
     assert.ok(msg.includes("Be helpful"), "Should contain system message");
     assert.ok(msg.includes("First answer"), "Should contain assistant history");
-  } finally { cap.restore(); }
+  } finally {
+    cap.restore();
+  }
 });
 
 // ─── Provider registry ──────────────────────────────────────────────────────
@@ -348,6 +380,11 @@ test("Statsig: x-statsig-id is valid base64", async () => {
     const statsig = cap.headers["x-statsig-id"];
     assert.ok(statsig, "Should have statsig header");
     const decoded = atob(statsig);
-    assert.ok(decoded.startsWith("e:TypeError:"), `Decoded statsig should start with e:TypeError:, got: ${decoded}`);
-  } finally { cap.restore(); }
+    assert.ok(
+      decoded.startsWith("e:TypeError:"),
+      `Decoded statsig should start with e:TypeError:, got: ${decoded}`
+    );
+  } finally {
+    cap.restore();
+  }
 });
