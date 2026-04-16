@@ -120,6 +120,21 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     avoid: "Avoid when models have different quality or latency and order matters.",
     example: "Example: Multiple accounts of the same model to distribute usage evenly.",
   },
+  auto: {
+    when: "Use when you have one preferred model and only want fallback on failure.",
+    avoid: "Avoid when you need balanced load between models.",
+    example: "Example: Primary coding model with cheaper backup for outages.",
+  },
+  lkgp: {
+    when: "Use when you have one preferred model and only want fallback on failure.",
+    avoid: "Avoid when you need balanced load between models.",
+    example: "Example: Primary coding model with cheaper backup for outages.",
+  },
+  "context-optimized": {
+    when: "Use when you have one preferred model and only want fallback on failure.",
+    avoid: "Avoid when you need balanced load between models.",
+    example: "Example: Primary coding model with cheaper backup for outages.",
+  },
 };
 
 const ADVANCED_FIELD_HELP_FALLBACK = {
@@ -222,6 +237,33 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
       "Use at least 2 models for meaningful distribution.",
       "Ideal for same-model accounts to evenly spread quota.",
       "Guarantees no model is skipped or repeated within a cycle.",
+    ],
+  },
+  auto: {
+    title: "Fail-safe baseline",
+    description: "Use one primary model and keep fallback chain short and reliable.",
+    tips: [
+      "Put your most reliable model first.",
+      "Keep 1-2 backup models with similar quality.",
+      "Use safe retries to absorb transient provider failures.",
+    ],
+  },
+  lkgp: {
+    title: "Fail-safe baseline",
+    description: "Use one primary model and keep fallback chain short and reliable.",
+    tips: [
+      "Put your most reliable model first.",
+      "Keep 1-2 backup models with similar quality.",
+      "Use safe retries to absorb transient provider failures.",
+    ],
+  },
+  "context-optimized": {
+    title: "Fail-safe baseline",
+    description: "Use one primary model and keep fallback chain short and reliable.",
+    tips: [
+      "Put your most reliable model first.",
+      "Keep 1-2 backup models with similar quality.",
+      "Use safe retries to absorb transient provider failures.",
     ],
   },
 };
@@ -2467,7 +2509,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                 <p className="text-[10px] text-text-muted mt-0.5">
                   {getI18nOrFallback(
                     t,
-                    "builderFlowDescription",
+                    "builderStagesDescription",
                     "Move through the stages in order to define the combo, build the steps, choose the routing strategy and review the result."
                   )}
                 </p>
@@ -2719,7 +2761,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                     <p className="text-[10px] text-text-muted mt-0.5">
                       {getI18nOrFallback(
                         t,
-                        "builderDescription",
+                        "builderStepsDescription",
                         "Build each combo step in sequence: provider, model, then account. This allows repeating the same provider and model with different accounts."
                       )}
                     </p>
@@ -2797,7 +2839,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       <option value={COMBO_BUILDER_AUTO_CONNECTION}>
                         {getI18nOrFallback(
                           t,
-                          "builderDynamicAccount",
+                          "autoSelectAccount",
                           "Auto-select account at runtime"
                         )}
                       </option>
@@ -2820,7 +2862,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       ? formatModelDisplay(builderCandidateStep)
                       : getI18nOrFallback(
                           t,
-                          "builderPreviewEmpty",
+                          "previewNextStep",
                           "Choose provider and model to preview the next step."
                         )}
                   </p>
@@ -2858,7 +2900,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                       <option value="">
                         {getI18nOrFallback(
                           t,
-                          "builderSelectComboRef",
+                          "selectComboToReference",
                           "Select an existing combo to reference"
                         )}
                       </option>
@@ -3113,7 +3155,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                 className="w-full mt-2 py-2 border border-dashed border-black/10 dark:border-white/10 rounded-lg text-xs text-text-muted hover:text-primary hover:border-primary/30 transition-colors flex items-center justify-center gap-1"
               >
                 <span className="material-symbols-outlined text-[16px]">travel_explore</span>
-                {getI18nOrFallback(t, "builderOpenLegacyCatalog", "Browse legacy model catalog")}
+                {getI18nOrFallback(t, "browseLegacyCatalog", "Browse legacy model catalog")}
               </button>
             </div>
           )}
@@ -3668,7 +3710,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                   )
                 : getI18nOrFallback(
                     t,
-                    "builderNeedSteps",
+                    "addStepBeforeContinue",
                     "Add at least one step before continuing to the next stage."
                   )}
             </div>
