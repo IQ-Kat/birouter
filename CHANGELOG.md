@@ -23,6 +23,8 @@
 - **fix(mcp):** Checkpoint and close MCP audit SQLite database safely on process signals and shutdown (#1348)
 - **fix(mcp):** Fully decouple MCP audit SQLite connection caching via globalThis to fix unhandled teardown in standalone Next.js chunks (#1349)
 - **fix(cli):** Avoid creating app router directory during postinstall initialization on non-built source trees (#1351)
+- **fix(providers):** Resolve token refresh race condition causing Codex accounts to be erroneously flagged with `refresh_token_reused` by Auth0
+- **fix(auth):** Seal privilege escalation vector by enforcing JWT session checking exclusively on `/api/keys` management endpoints (#1353)
 - **fix(codex):** Correctly translate `system` role to `developer` in input array to unlock GPT-5 automatic prompt caching (#1346)
 - **fix(core):** Pass client headers to executor in chatCore (#1335)
 - **fix(providers):** Separate test batch calls and ignore unknown connections
