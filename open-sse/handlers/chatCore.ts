@@ -910,8 +910,12 @@ export async function handleChatCore({
   }
 
   // ── Common input sanitization (runs for ALL paths including passthrough) ──
-  // #994: Normalize max_output_tokens to max_tokens for universal compatibility
-  if (body.max_output_tokens !== undefined) {
+  // #994: Normalize max_output_tokens to max_tokens for universal compatibility.
+  // Skip for Responses API targets where max_output_tokens is the canonical field;
+  // normalizing it to max_tokens there causes "Unsupported parameter: max_tokens"
+  // errors because Responses→Responses passthrough skips the translator that would
+  // convert it back (see openaiToOpenAIResponsesRequest).
+  if (body.max_output_tokens !== undefined && targetFormat !== FORMATS.OPENAI_RESPONSES) {
     if (body.max_tokens === undefined) {
       body.max_tokens = body.max_output_tokens;
     }
