@@ -159,7 +159,8 @@ export function applyThinkingBudget(body, config = null) {
   // Early exit: strip ALL reasoning/thinking params for models that don't support them.
   // Sending thinking params to unsupported models (e.g. AG claude-sonnet-4-6) causes 400 errors.
   const modelStr = typeof body.model === "string" ? body.model : "";
-  if (modelStr && !supportsReasoning(modelStr)) {
+  const isClaude = modelStr.toLowerCase().includes("claude");
+  if (modelStr && (!supportsReasoning(modelStr) || (!isClaude && modelStr.includes("gemini")))) {
     return stripThinkingConfig(body);
   }
 

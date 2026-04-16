@@ -152,19 +152,20 @@ export function claudeToGeminiRequest(model, body, stream) {
         // Map Claude roles to Gemini roles
         const geminiRole = msg.role === "assistant" ? "model" : "user";
 
-        // Gemini 3+ expects the signature on the first functionCall part in a tool-call
+        // Gemini 3+ expects the signature on all functionCall parts in a tool-call
         // batch. If the assistant turn had no explicit thinking block, inject a fallback
-        // signature into that first functionCall. (#927)
+        // signature into all functionCalls.
         if (geminiRole === "model") {
           const hasFunctionCall = parts.some((p) => p.functionCall);
           const hasSignature = parts.some((p) => p.thoughtSignature);
           if (hasFunctionCall && !hasSignature) {
-            const fcIndex = parts.findIndex((p) => p.functionCall);
-            if (fcIndex >= 0) {
-              parts[fcIndex] = {
-                ...parts[fcIndex],
-                thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
-              };
+            for (let i = 0; i < parts.length; i++) {
+              if (parts[i].functionCall) {
+                parts[i] = {
+                  ...parts[i],
+                  thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
+                };
+              }
             }
           }
         }

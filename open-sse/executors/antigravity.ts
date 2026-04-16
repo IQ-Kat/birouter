@@ -150,13 +150,27 @@ export class AntigravityExecutor extends BaseExecutor {
         // Antigravity rejects synthetic thought text, but Gemini 3+ requires any
         // returned thoughtSignature metadata to survive model tool-call turns.
         const parts =
-          c.parts?.filter((p) => !p.thought && (hasFunctionCall || !p.thoughtSignature)) || [];
+          c.parts?.filter((p) => {
+            // Drop empty text parts
+            if (typeof p.text === "string" && p.text === "") return false;
+            // Drop empty functionCalls
+            if (p.functionCall && !p.functionCall.name) return false;
+
+            return !p.thought && (hasFunctionCall || !p.thoughtSignature);
+          }) || [];
         return { ...c, role, parts };
       }) || [];
 
-    const contents = normalizedContents.filter((c) =>
-      Array.isArray(c.parts) ? c.parts.length > 0 : true
-    );
+    // Merge consecutive same-role entries and filter out empty sequences
+    const contents = [];
+    for (const c of normalizedContents) {
+      if (!Array.isArray(c.parts) || c.parts.length === 0) continue;
+      if (contents.length > 0 && contents[contents.length - 1].role === c.role) {
+        contents[contents.length - 1].parts.push(...c.parts);
+      } else {
+        contents.push(c);
+      }
+    }
 
     const transformedRequest = {
       ...body.request,
