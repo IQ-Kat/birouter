@@ -136,7 +136,10 @@
     "Failed to save pricing": "Не удалось сохранить цену.",
     "Failed to reset pricing": "Не удалось сбросить цены.",
     "apikey": "API-ключ",
-    "http": "HTTP"
+    "http": "HTTP",
+    "checkSystemStatus": "Check System Status",
+    "goToDashboard": "Go to Dashboard",
+    "nothingHere": "Nothing here yet"
   },
   "sidebar": {
     "home": "Главная",
@@ -640,7 +643,8 @@
       "opencode": "Используйте, если вы предпочитаете запускать собственные агенты терминала и автоматизировать скрипты через OpenCode.",
       "kiro": "Используйте при интеграции Kiro и централизованном управлении маршрутизацией модели из OmniRoute.",
       "antigravity": "Используйте, когда трафик Антигравитации/Киро необходимо перехватить через MITM и направить в OmniRoute.",
-      "copilot": "Используйте его, если вам нужен пользовательский интерфейс в стиле чата Copilot, одновременно обеспечивая соблюдение ключей OmniRoute и правил маршрутизации."
+      "copilot": "Используйте его, если вам нужен пользовательский интерфейс в стиле чата Copilot, одновременно обеспечивая соблюдение ключей OmniRoute и правил маршрутизации.",
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE с MITM",
@@ -655,7 +659,8 @@
       "opencode": "OpenCode - агент кодирования с ИИ в терминале",
       "kiro": "Amazon Kiro - IDE с ИИ",
       "windsurf": "Редактор кода Windsurf с ИИ",
-      "copilot": "Ассистент GitHub Copilot с ИИ"
+      "copilot": "Ассистент GitHub Copilot с ИИ",
+      "qwen": "Alibaba Qwen Code CLI"
     },
     "guides": {
       "cursor": {
@@ -914,6 +919,16 @@
         "when": "Используйте, когда нужен идеально ровный spread - каждая модель используется один раз перед повтором.",
         "avoid": "Избегайте, когда модели отличаются по качеству или задержке и важен порядок.",
         "example": "Пример: несколько аккаунтов одной модели для равномерного распределения использования."
+      },
+      "context-relay": {
+        "when": "Use when long sessions must survive account rotation without losing the working context.",
+        "example": "Example: Codex sessions that rotate across multiple accounts near quota exhaustion.",
+        "avoid": "Avoid when account switching is rare or when you do not want extra summarization requests."
+      },
+      "p2c": {
+        "example": "Example: High-throughput inference across 4+ equivalent model endpoints.",
+        "avoid": "Avoid for small combos with 2 or fewer models — no benefit over round-robin.",
+        "when": "Use when you want low-latency selection using Power-of-Two-Choices algorithm."
       }
     },
     "advancedHelp": {
@@ -1033,7 +1048,117 @@
     "wizardStep3Title": "Choose Strategy",
     "wizardStep3Desc": "Pick how requests are distributed across your models - 13 strategies available",
     "wizardStep4Title": "Review & Save",
-    "wizardStep4Desc": "Review your configuration and activate the combo"
+    "wizardStep4Desc": "Review your configuration and activate the combo",
+    "cooldownMinutes": "Cooldown: {minutes}m",
+    "contextRelaySummaryModel": "Summary Model",
+    "filterEmptyDeterministicDescription": "Only auto and LKGP combos exist right now. Switch back to All or create a deterministic combo.",
+    "weightCostInv": "Cost",
+    "strategyRules": "Rules (6-Factor Scoring)",
+    "builderStage": {
+      "basics": {
+        "label": "Basics",
+        "description": "Name and starting template"
+      },
+      "strategy": {
+        "label": "Strategy",
+        "description": "Routing behavior and advanced settings"
+      },
+      "intelligent": {
+        "description": "Auto-routing candidate pool, presets, and scoring",
+        "label": "Smart Routing"
+      },
+      "steps": {
+        "description": "Provider, model, and account selection",
+        "label": "Steps"
+      },
+      "review": {
+        "label": "Review",
+        "description": "Final validation before saving"
+      }
+    },
+    "excludedProvidersHint": "Providers with an OPEN circuit breaker are temporarily excluded from routing.",
+    "reviewComboRefs": "Combo References",
+    "builderSelectModel": "Select model",
+    "builderAddComboRef": "Add combo reference",
+    "emailVisibilityStateOn": "On",
+    "filterEmptyIntelligentDescription": "Create an auto or LKGP combo to populate the intelligent routing dashboard.",
+    "reviewName": "Name",
+    "intelligentPanelDesc": "Real-time scoring and health status for this auto-routing combo.",
+    "contextRelayProviderNote": "Context Relay currently generates handoffs for Codex account rotation. Pair it with multiple accounts of the same provider for the best continuity.",
+    "activeModePack": "Active Mode Pack",
+    "modePackUpdated": "Mode pack updated to {pack}.",
+    "filterAll": "All",
+    "allProvidersEvaluated": "No candidate pool configured. All active providers are evaluated at runtime.",
+    "budgetCapLabel": "Budget Cap (USD / request)",
+    "filterDeterministic": "Deterministic",
+    "weightHealth": "Health",
+    "builderPinnedAccount": "Pinned Account",
+    "reviewAgentFlags": "Agent Flags",
+    "reviewAccounts": "Accounts",
+    "reviewNoSteps": "No steps configured",
+    "reorderHandle": "Drag to reorder",
+    "weightTaskFit": "Task Fit",
+    "incidentMode": "Incident Mode",
+    "weightQuota": "Quota",
+    "modePackLabel": "Mode Pack",
+    "builderPreview": "Preview",
+    "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
+    "candidatePoolLabel": "Candidate Pool",
+    "builderAddStep": "Add step",
+    "modePackHint": "Switch presets to bias the routing engine without rebuilding the combo.",
+    "reviewSteps": "Steps",
+    "weightLatencyInv": "Latency",
+    "filterEmptyTitle": "No combos match this strategy filter.",
+    "explorationRateLabel": "Exploration Rate",
+    "noExcludedProviders": "No providers are currently excluded.",
+    "weightStability": "Stability",
+    "candidatePoolHint": "Select which providers this engine should evaluate. Leave empty to use all active providers.",
+    "allProvidersHealthy": "Providers are reporting healthy routing conditions.",
+    "builderIntelligentDesc": "Configure the multi-factor scoring engine for this auto-routing combo.",
+    "builderStageVisited": "Stage completed",
+    "candidatePoolEmpty": "No active providers available yet.",
+    "reviewIntelligentTitle": "Intelligent Routing Config",
+    "builderTitle": "Build a Combo",
+    "contextRelayMaxMessagesHelp": "Limits how much recent history is condensed into the relay summary.",
+    "builderAccount": "Account",
+    "builderStageLocked": "Locked — complete previous stage first",
+    "reviewAdvanced": "Advanced Settings",
+    "intelligentPanelTitle": "Intelligent Routing Dashboard",
+    "failedReorder": "Failed to reorder models",
+    "routerStrategyLabel": "Router Strategy",
+    "candidatePoolAllProviders": "All providers",
+    "statusOverview": "Status Overview",
+    "builderModel": "Model",
+    "builderProvider": "Provider",
+    "emailVisibilityStateOff": "Off",
+    "reviewStrategy": "Strategy",
+    "providerScores": "Provider Scores",
+    "builderComboRef": "Combo Ref",
+    "builderStageCurrent": "Current stage",
+    "budgetCapPlaceholder": "No limit",
+    "highCircuitBreakerRate": "High circuit breaker trip rate detected.",
+    "contextRelayHandoffThresholdHelp": "When quota usage reaches this threshold, OmniRoute generates a structured handoff summary before the active account is exhausted.",
+    "normalOperation": "Normal Operation",
+    "builderLegacyEntry": "Legacy entry",
+    "builderIntelligentTitle": "Intelligent Routing Configuration",
+    "builderProviderFirst": "Pick provider first",
+    "contextRelay": "Context Relay",
+    "contextRelayDesc": "Preserves session continuity with handoff summaries when accounts rotate",
+    "contextRelayMaxMessages": "Max Messages For Summary",
+    "weightTierPriority": "Tier",
+    "reviewSequence": "Model Sequence",
+    "builderBrowseCatalog": "Browse catalog",
+    "contextRelayHandoffThreshold": "Handoff Threshold",
+    "reviewProviders": "Providers",
+    "builderFlowTitle": "Combo Builder Flow",
+    "builderStagePending": "Pending",
+    "builderLoadingProviders": "Loading providers...",
+    "excludedProviders": "Excluded Providers",
+    "builderComboRefStep": "Add combo reference",
+    "builderSelectProvider": "Select provider",
+    "filterIntelligent": "Intelligent",
+    "contextRelaySummaryModelHelp": "Optional override model used only for generating the handoff summary. Leave empty to reuse the active combo model.",
+    "advancedWeightsTitle": "Advanced: Scoring Weights"
   },
   "costs": {
     "title": "Затраты",
@@ -1171,7 +1296,9 @@
     "a2aQuickStartStep2": "Отправляйте JSON-RPC-запросы на `POST /a2a` через `message/send` или `message/stream`.",
     "a2aQuickStartStep3": "Отслеживайте и управляйте задачами через `tasks/get` и `tasks/cancel`.",
     "completionsLegacy": "Завершения (устар.)",
-    "completionsLegacyDesc": "Устаревшие текстовые завершения OpenAI — поддерживают и строку prompt, и массив messages"
+    "completionsLegacyDesc": "Устаревшие текстовые завершения OpenAI — поддерживают и строку prompt, и массив messages",
+    "musicDesc": "Generate music and audio tracks via ComfyUI (Stable Audio, MusicGen)",
+    "musicGeneration": "Music Generation"
   },
   "endpoints": {
     "tabProxy": "Прокси конечных точек",
@@ -1778,7 +1905,17 @@
     "chatPathHint": "Пользовательский путь чата для провайдеров с нестандартными API (например, /v4/chat/completions)",
     "modelsPathLabel": "Путь эндпоинта моделей",
     "modelsPathPlaceholder": "/models",
-    "modelsPathHint": "Пользовательский путь моделей для проверки (например, /v4/models)"
+    "modelsPathHint": "Пользовательский путь моделей для проверки (например, /v4/models)",
+    "showEmails": "Show all emails",
+    "deselectAllModels": "Deselect all",
+    "embeddings": "Embeddings",
+    "hideEmails": "Hide all emails",
+    "audioSpeech": "Audio Speech",
+    "imagesGenerations": "Images Generations",
+    "noModelsMatch": "No models match \"{filter}\"",
+    "modelsActiveCount": "{active}/{total} active",
+    "audioTranscriptions": "Audio Transcriptions",
+    "selectAllModels": "Select all"
   },
   "settings": {
     "title": "Настройки",
@@ -2295,7 +2432,11 @@
     "wildcardPatternModeDesc": "Use wildcard aliases with * and ? when a family of models should map to one target.",
     "noExactAliasesConfigured": "No exact-match aliases configured.",
     "wildcardRulesTitle": "Wildcard Rules",
-    "noWildcardAliasesConfigured": "No wildcard aliases configured."
+    "noWildcardAliasesConfigured": "No wildcard aliases configured.",
+    "contextRelayProviderNote": "Context Relay currently generates handoffs for Codex accounts and uses these values as global defaults for new or unconfigured combos.",
+    "contextRelayMaxMessages": "Max Messages For Summary",
+    "contextRelaySummaryModel": "Summary Model",
+    "contextRelayHandoffThreshold": "Handoff Threshold"
   },
   "translator": {
     "title": "Переводчик",
@@ -2721,7 +2862,11 @@
     "waitingForOpenAIAuthorization": "Ожидание авторизации OpenAI...",
     "waitingForAntigravityAuthorization": "Ожидание авторизации Antigravity...",
     "waitingForQoderAuthorization": "Ожидание авторизации Qoder...",
-    "exchangingCodeForTokens": "Обмен кода на токены..."
+    "exchangingCodeForTokens": "Обмен кода на токены...",
+    "nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
+    "nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS) or 22.22.2+ (22.x LTS). Node 22 LTS is recommended.",
+    "nodeIncompatibleTitle": "Incompatible Node.js Version",
+    "nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release"
   },
   "landing": {
     "brandName": "ОмниРоут",
@@ -3045,7 +3190,8 @@
     "factual": "Фактическая",
     "episodic": "Эпизодическая",
     "procedural": "Процедурная",
-    "semantic": "Семантическая"
+    "semantic": "Семантическая",
+    "delete": "Delete"
   },
   "skills": {
     "title": "Навыки",
@@ -3188,6 +3334,25 @@
     "deduplicatedRequests": "Дедуплицированные запросы",
     "peakCached": "Пик кэша",
     "savedCalls": "Сэкономленные API-запросы",
-    "totalProcessed": "Всего запросов обработано"
+    "totalProcessed": "Всего запросов обработано",
+    "trendHour": "Hour",
+    "promptCacheSectionDesc": "Shows provider-side prompt caching activity from usage history so you can see where cache control is active and how much input reuse you are getting.",
+    "promptTrendDesc": "Hourly request volume, cache coverage, and cache read volume across the last 24 hours.",
+    "busiestHour": "Busiest Hour",
+    "semanticEntriesDesc": "Persisted semantic cache records currently stored in SQLite. Provider-side prompt cache activity is not listed here.",
+    "activityVolume": "Activity",
+    "semanticCache": "Semantic Cache",
+    "peakCacheRate": "Peak Cache Rate",
+    "noPromptCacheData": "No provider-side prompt cache activity has been recorded yet.",
+    "hoursTracked": "hours tracked",
+    "cacheRate": "Cache Rate",
+    "lastUpdated": "Last updated",
+    "cachedRequests24h": "Cached Requests (24h)",
+    "entriesLoadError": "Failed to load semantic cache entries.",
+    "semanticCacheSectionDesc": "OmniRoute's own deterministic response cache. When enabled, repeated non-streaming temperature=0 requests can be served locally without hitting the upstream provider.",
+    "semanticCacheDisabledDesc": "Semantic cache is disabled. OmniRoute will skip local response reuse until you turn it back on in Settings.",
+    "cacheRateDesc": "of total requests",
+    "noTrendData": "No prompt cache activity has been recorded over the last 24 hours.",
+    "providerCacheRateDesc": "Each provider exposes total input tokens, cache read tokens, and cache write tokens so you can verify the reuse ratio against raw totals."
   }
 }
