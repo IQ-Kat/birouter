@@ -16,6 +16,7 @@ permissions:
 
 env:
   CI_NODE_VERSION: "22.22.2"
+  CI_NODE_24_VERSION: "24"
 
 jobs:
   lint:
@@ -183,6 +184,26 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+      - run: npm run test:unit
+
+  node-24-compat:
+    name: Node 24 Compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_24_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:node-runtime
+      - run: npm run build
       - run: npm run test:unit
 
   test-coverage:
@@ -413,6 +434,7 @@ jobs:
       - build
       - package-artifact
       - test-unit
+      - node-24-compat
       - test-coverage
       - sonarqube
       - coverage-pr-comment

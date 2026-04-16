@@ -64,7 +64,7 @@ Common problems and solutions for OmniRoute.
 - Full example:
 
 ```
-dlopen(/Users/<user>/.nvm/versions/node/v24.13.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
+dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
 **Fix — rebuild for your local environment (no Node.js downgrade required):**
@@ -75,7 +75,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported secure range is now **`>=20.20.2 <21` or `>=22.22.2 <23`** (`engines` field in `package.json`). If you are on Node.js 24, the rebuild may silence this specific startup error but other issues can still occur — moving to a patched Node.js 22 LTS release remains the recommended path.
+> **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported range is **`>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`** (`engines` field in `package.json`). Node.js 24.x LTS (Krypton) is fully supported with `better-sqlite3` v12.x.
 
 ---
 
