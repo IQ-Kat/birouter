@@ -579,7 +579,7 @@ export async function refreshKiroToken(
 /**
  * Specialized refresh for Qoder OAuth tokens
  */
-export async function refreshIflowToken(refreshToken, log, proxyConfig = null) {
+export async function refreshQoderToken(refreshToken, log, proxyConfig = null) {
   if (!OAUTH_ENDPOINTS.qoder.token || !PROVIDERS.qoder.clientId || !PROVIDERS.qoder.clientSecret) {
     log?.warn?.(
       "TOKEN_REFRESH",
@@ -746,7 +746,7 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig =
       return await refreshQwenToken(credentials.refreshToken, log, proxyConfig);
 
     case "qoder":
-      return await refreshIflowToken(credentials.refreshToken, log, proxyConfig);
+      return await refreshQoderToken(credentials.refreshToken, log, proxyConfig);
 
     case "github":
       return await refreshGitHubToken(credentials.refreshToken, log, proxyConfig);

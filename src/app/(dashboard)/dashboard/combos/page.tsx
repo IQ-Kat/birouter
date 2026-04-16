@@ -314,7 +314,7 @@ const COMBO_TEMPLATE_FALLBACK = {
   balancedDesc: "Least-used routing to spread demand over time.",
   freeStackTitle: "Free Stack ($0)",
   freeStackDesc:
-    "Round-robin across all free providers: Kiro, iFlow, Qwen, Gemini CLI. Zero cost, never stops.",
+    "Round-robin across all free providers: Kiro, Qoder, Qwen, Gemini CLI. Zero cost, never stops.",
   paidPremiumTitle: "Paid Premium",
   paidPremiumDesc:
     "Round-robin across paid subscriptions: Cursor, Antigravity. Top-tier models, distributed load.",
@@ -1812,7 +1812,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   const [builderConnectionId, setBuilderConnectionId] = useState(COMBO_BUILDER_AUTO_CONNECTION);
   const [builderComboRefName, setBuilderComboRefName] = useState("");
   const [builderError, setBuilderError] = useState("");
-  const [builderStage, setBuilderStage] = useState(COMBO_BUILDER_STAGES[0]);
+  const [builderStage, setBuilderStage] = useState<string>(COMBO_BUILDER_STAGES[0]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [config, setConfig] = useState(combo?.config || {});
   const [showStrategyNudge, setShowStrategyNudge] = useState(false);
@@ -2724,7 +2724,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
               t={t}
               config={config}
               activeProviders={activeProviders}
-              onChange={(nextIntelligentConfig) =>
+              onChange={(nextIntelligentConfig: any) =>
                 setConfig((previousConfig) => ({
                   ...previousConfig,
                   ...nextIntelligentConfig,

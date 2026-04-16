@@ -29,7 +29,7 @@ export async function getUsageForProvider(connection) {
     case "qwen":
       return await getQwenUsage(accessToken, providerSpecificData);
     case "qoder":
-      return await getIflowUsage(accessToken);
+      return await getQoderUsage(accessToken);
     case "kiro":
       return await getKiroUsage(accessToken);
     default:
@@ -275,7 +275,7 @@ async function getAntigravityUsage(
  * Claude Usage (legacy fallback)
  * Real Claude OAuth quota windows are fetched in @omniroute/open-sse/services/usage.ts.
  */
-async function getClaudeUsage() {
+async function getClaudeUsage(accessToken?: string) {
   try {
     return {
       message:
@@ -326,7 +326,7 @@ async function getQwenUsage(accessToken, providerSpecificData) {
 /**
  * Qoder Usage
  */
-async function getIflowUsage(accessToken) {
+async function getQoderUsage(accessToken) {
   try {
     // Qoder may have usage endpoint
     return { message: "Qoder connected. Usage tracked per request." };

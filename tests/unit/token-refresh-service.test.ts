@@ -14,7 +14,7 @@ const {
   refreshQwenToken,
   refreshCodexToken,
   refreshKiroToken,
-  refreshIflowToken,
+  refreshQoderToken,
   refreshGitHubToken,
   refreshCopilotToken,
   supportsTokenRefresh,
@@ -105,9 +105,12 @@ async function withPatchedProperties(target, patch, fn) {
 }
 
 async function withFastRetryTimers(fn) {
-  const originalSetTimeout = globalThis.setTimeout;
-  globalThis.setTimeout = (callback, delay = 0, ...args) =>
-    originalSetTimeout(callback, delay === 30_000 ? delay : 0, ...args);
+  const originalSetTimeout = globalThis.setTimeout as any;
+  (globalThis as any).setTimeout = Object.assign(
+    ((callback: any, delay = 0, ...args: any[]) =>
+      originalSetTimeout(callback, delay === 30_000 ? delay : 0, ...args)) as any,
+    { __promisify__: originalSetTimeout.__promisify__ }
+  );
   try {
     return await fn();
   } finally {
@@ -458,7 +461,7 @@ test("refreshKiroToken falls back to the social-auth refresh endpoint", async ()
   });
 });
 
-test("refreshIflowToken uses basic auth once qoder oauth settings are configured", async () => {
+test("refreshQoderToken uses basic auth once qoder oauth settings are configured", async () => {
   const log = createLog();
   const calls = [];
 
@@ -485,7 +488,7 @@ test("refreshIflowToken uses basic auth once qoder oauth settings are configured
               });
             },
             async () => {
-              const result = await refreshIflowToken("qoder-refresh", log);
+              const result = await refreshQoderToken("qoder-refresh", log);
               assert.deepEqual(result, {
                 accessToken: "qoder-access",
                 refreshToken: "qoder-refresh-next",
@@ -663,7 +666,7 @@ test("getAccessToken cleans the in-flight cache after resolve and separates diff
     },
     async () => {
       await withMockedFetch(
-        async (_url, options = {}) => {
+        async (_url, options: any = {}) => {
           fetchCount += 1;
           const refreshToken = new URLSearchParams(bodyToString(options.body)).get("refresh_token");
           return jsonResponse({
@@ -716,7 +719,7 @@ test("getAllAccessTokens refreshes only active connections with providers", asyn
     },
     async () => {
       await withMockedFetch(
-        async (_url, options = {}) => {
+        async (_url, options: any = {}) => {
           fetchCount += 1;
           const refreshToken = new URLSearchParams(bodyToString(options.body)).get("refresh_token");
           return jsonResponse({

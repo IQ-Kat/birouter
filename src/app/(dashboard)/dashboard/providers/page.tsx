@@ -624,19 +624,19 @@ export default function ProvidersPage() {
               <span className="size-2.5 rounded-full bg-purple-500" title="Web/Cookie" />
             </h2>
             <button
-              onClick={() => handleBatchTest("apikey")}
+              onClick={() => handleBatchTest("web-cookie")}
               disabled={!!testingMode}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "apikey"
+                testingMode === "web-cookie"
                   ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                   : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
               }`}
               title={t("testAll")}
             >
               <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "apikey" ? "sync" : "play_arrow"}
+                {testingMode === "web-cookie" ? "sync" : "play_arrow"}
               </span>
-              {testingMode === "apikey" ? t("testing") : t("testAll")}
+              {testingMode === "web-cookie" ? t("testing") : t("testAll")}
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -664,19 +664,19 @@ export default function ProvidersPage() {
               Search Providers <span className="size-2.5 rounded-full bg-teal-500" title="Search" />
             </h2>
             <button
-              onClick={() => handleBatchTest("apikey")}
+              onClick={() => handleBatchTest("search")}
               disabled={!!testingMode}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "apikey"
+                testingMode === "search"
                   ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                   : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
               }`}
               title={t("testAll")}
             >
               <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "apikey" ? "sync" : "play_arrow"}
+                {testingMode === "search" ? "sync" : "play_arrow"}
               </span>
-              {testingMode === "apikey" ? t("testing") : t("testAll")}
+              {testingMode === "search" ? t("testing") : t("testAll")}
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -704,19 +704,19 @@ export default function ProvidersPage() {
               Audio Providers <span className="size-2.5 rounded-full bg-rose-500" title="Audio" />
             </h2>
             <button
-              onClick={() => handleBatchTest("apikey")}
+              onClick={() => handleBatchTest("audio")}
               disabled={!!testingMode}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "apikey"
+                testingMode === "audio"
                   ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                   : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
               }`}
               title={t("testAll")}
             >
               <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "apikey" ? "sync" : "play_arrow"}
+                {testingMode === "audio" ? "sync" : "play_arrow"}
               </span>
-              {testingMode === "apikey" ? t("testing") : t("testAll")}
+              {testingMode === "audio" ? t("testing") : t("testAll")}
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

@@ -8,7 +8,7 @@ import {
   refreshGoogleToken as _refreshGoogleToken,
   refreshQwenToken as _refreshQwenToken,
   refreshCodexToken as _refreshCodexToken,
-  refreshIflowToken as _refreshIflowToken,
+  refreshQoderToken as _refreshQoderToken,
   refreshGitHubToken as _refreshGitHubToken,
   refreshCopilotToken as _refreshCopilotToken,
   getAccessToken as _getAccessToken,
@@ -53,9 +53,9 @@ export const refreshCodexToken = async (refreshToken: string) => {
   return _refreshCodexToken(refreshToken, log, proxy);
 };
 
-export const refreshIflowToken = async (refreshToken: string) => {
+export const refreshQoderToken = async (refreshToken: string) => {
   const proxy = await resolveProxyForProvider("qoder");
-  return _refreshIflowToken(refreshToken, log, proxy);
+  return _refreshQoderToken(refreshToken, log, proxy);
 };
 
 export const refreshGitHubToken = async (refreshToken: string) => {

@@ -16,6 +16,7 @@ test("usage fetcher retries Antigravity quota discovery across shared fallback U
     calls.push({ url: String(url), init });
 
     if (String(url).includes("daily-cloudcode-pa.googleapis.com")) {
+      // lgtm[js/incomplete-url-substring-sanitization]
       return new Response("unavailable", { status: 503 });
     }
 
@@ -34,7 +35,7 @@ test("usage fetcher retries Antigravity quota discovery across shared fallback U
     );
   };
 
-  const usage = await usageFetcher.getUsageForProvider({
+  const usage: any = await usageFetcher.getUsageForProvider({
     provider: "antigravity",
     accessToken: "ag-token",
     providerSpecificData: { email: "coder@example.com" },
