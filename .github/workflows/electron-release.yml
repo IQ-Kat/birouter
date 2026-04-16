@@ -71,13 +71,11 @@ jobs:
             deb_ext: .deb
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
+      - uses: actions/checkout@v6
+      - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Cache node_modules

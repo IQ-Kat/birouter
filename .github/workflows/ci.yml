@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 env:
-  CI_NODE_VERSION: "22.22.2"
+  CI_NODE_VERSION: "24"
   CI_NODE_24_VERSION: "24"
 
 jobs:
