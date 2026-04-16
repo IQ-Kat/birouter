@@ -267,3 +267,9 @@ export {
 } from "./db/providerLimits";
 
 export type { ProviderLimitsCacheEntry } from "./db/providerLimits";
+
+export {
+  getPersistedCreditBalance,
+  getAllPersistedCreditBalances,
+  persistCreditBalance,
+} from "./db/creditBalance";
