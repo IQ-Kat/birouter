@@ -8,6 +8,7 @@
 
 ### ✨ New Features
 
+- **feat(core):** Add full support for Node.js 24 LTS (Krypton) environments with continuous integration coverage (#1340)
 - **feat(dashboard):** Display Antigravity credit balance in dashboard Limits & Quotas (#1338)
 - **feat(i18n):** Add internationalization support for combo features and dashboard components; sync translations across 31 keys (#1318)
 - **feat(core):** Add stopSequences support and expand tool definitions to include Google Search capabilities
@@ -15,6 +16,7 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(db):** Prevent migration runner safety aborts from triggering on fresh `DATA_DIR` installations by detecting new databases (#1328)
 - **fix(core):** Pass client headers to executor in chatCore (#1335)
 - **fix(providers):** Separate test batch calls and ignore unknown connections
 - **fix(providers):** Add grok-web SSO cookie validation handler (#1334)
