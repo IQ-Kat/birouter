@@ -30,7 +30,7 @@ function getAuthGroup(providerId) {
       providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
   )
     return "compatible";
-  return "apikey";
+  return "unknown";
 }
 
 function isCompatibleProvider(providerId) {
