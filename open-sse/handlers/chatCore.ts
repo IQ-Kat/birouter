@@ -910,8 +910,21 @@ export async function handleChatCore({
   }
 
   // ── Common input sanitization (runs for ALL paths including passthrough) ──
-  // #994: Normalize max_output_tokens to max_tokens for universal compatibility
-  if (body.max_output_tokens !== undefined) {
+  // #994: Normalize between max_output_tokens and max_tokens for universal compatibility.
+  // For Responses API targets, max_output_tokens is the canonical field. For others,
+  // max_tokens is preferred. We handle normalization here to support passthrough
+  // paths where the translator is skipped.
+  if (targetFormat === FORMATS.OPENAI_RESPONSES) {
+    if (body.max_output_tokens === undefined) {
+      if (body.max_completion_tokens !== undefined) {
+        body.max_output_tokens = body.max_completion_tokens;
+        delete body.max_completion_tokens;
+      } else if (body.max_tokens !== undefined) {
+        body.max_output_tokens = body.max_tokens;
+        delete body.max_tokens;
+      }
+    }
+  } else if (body.max_output_tokens !== undefined) {
     if (body.max_tokens === undefined) {
       body.max_tokens = body.max_output_tokens;
     }
