@@ -791,7 +791,9 @@ export function getDbInstance(): SqliteDatabase {
           .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='key_value'")
           .get();
         if (hasKv) {
-          const rowCount = (kvProbe.prepare("SELECT COUNT(*) AS c FROM key_value").get() as { c: number }).c;
+          const rowCount = (
+            kvProbe.prepare("SELECT COUNT(*) AS c FROM key_value").get() as { c: number }
+          ).c;
           if (rowCount > KEY_VALUE_PRESERVE_LIMIT) {
             console.warn(
               `[DB] key_value has ${rowCount} rows (limit ${KEY_VALUE_PRESERVE_LIMIT}), skipping preservation`
@@ -818,6 +820,12 @@ export function getDbInstance(): SqliteDatabase {
       console.warn(`[DB] Could not preserve key_value: ${message}`);
     }
   }
+
+  // Track whether the DB file is brand new (fresh DATA_DIR / Docker volume).
+  // This is needed so the migration runner skips the mass-migration safety abort
+  // that would otherwise trigger because heuristic seeding marks some migrations
+  // as applied, making the fresh DB look like a wiped existing DB (#1328).
+  const isNewDb = !fs.existsSync(sqliteFile);
 
   // Detect and handle old schema format — preserve data when possible (#146)
   // Uses a single probe connection that becomes the real connection when possible.
@@ -983,7 +991,7 @@ export function getDbInstance(): SqliteDatabase {
       "call_logs_summary_storage"
     );
   }
-  runMigrations(db);
+  runMigrations(db, { isNewDb });
   offloadLegacyCallLogDetails(db);
 
   // Auto-migrate from db.json if exists

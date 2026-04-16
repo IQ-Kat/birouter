@@ -40,3 +40,29 @@ export function shouldRetryWithCredits(authKey: string, creditsEnabled: boolean)
 export function handleCreditsFailure(authKey: string): boolean {
   return recordCreditsFailure(authKey);
 }
+
+/**
+ * Read the ANTIGRAVITY_CREDITS env var to determine the credits injection strategy.
+ *
+ * - "off"    — never inject credits (default if env var is missing)
+ * - "retry"  — inject credits only as a 429 fallback
+ * - "always" — inject credits on every request (skip normal quota path)
+ */
+export type CreditsMode = "off" | "retry" | "always";
+
+export function getCreditsMode(): CreditsMode {
+  const raw = (process.env.ANTIGRAVITY_CREDITS || "").trim().toLowerCase();
+  if (raw === "always" || raw === "retry") return raw;
+  return "off";
+}
+
+/**
+ * Determine if the executor should inject credits on the *first* request
+ * (credits-first mode). Returns true only when creditsMode === "always"
+ * and the auth key hasn't been disabled by repeated failures.
+ */
+export function shouldUseCreditsFirst(authKey: string, creditsMode: CreditsMode | string): boolean {
+  if (creditsMode !== "always") return false;
+  if (isCreditsDisabled(authKey)) return false;
+  return true;
+}

@@ -150,12 +150,10 @@ function reconcileRenumberedMigrations(
 
   for (const compatibility of RENAMED_MIGRATION_COMPATIBILITY) {
     const hasTargetFile = files.some(
-      (file) =>
-        file.version === compatibility.toVersion && file.name === compatibility.toName
+      (file) => file.version === compatibility.toVersion && file.name === compatibility.toName
     );
     const hasSourceFile = files.some(
-      (file) =>
-        file.version === compatibility.fromVersion && file.name !== compatibility.fromName
+      (file) => file.version === compatibility.fromVersion && file.name !== compatibility.fromName
     );
 
     if (!hasTargetFile || !hasSourceFile) {
@@ -241,7 +239,8 @@ function createPreMigrationBackup(db: Database.Database): string | null {
  * 2. Aborts if too many pending migrations on an existing DB (likely wipe)
  * 3. Creates automatic backup before running any migrations
  */
-export function runMigrations(db: Database.Database): number {
+export function runMigrations(db: Database.Database, options?: { isNewDb?: boolean }): number {
+  const isNewDb = options?.isNewDb === true;
   ensureMigrationsTable(db);
 
   const files = getMigrationFiles();
@@ -284,6 +283,7 @@ export function runMigrations(db: Database.Database): number {
 
   if (
     !isTestEnvironment &&
+    !isNewDb &&
     process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true" &&
     MAX_PENDING_MIGRATIONS_ON_EXISTING_DB > 0 &&
     applied.size > 0 &&
