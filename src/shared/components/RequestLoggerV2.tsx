@@ -130,6 +130,7 @@ export default function RequestLoggerV2() {
   const columns = useMemo(
     () => [
       { key: "status", label: t("columns.status") },
+      { key: "cacheSource", label: t("columns.cacheSource") },
       { key: "model", label: t("columns.model") },
       { key: "requestedModel", label: t("columns.requested") },
       { key: "provider", label: t("columns.provider") },
@@ -138,6 +139,7 @@ export default function RequestLoggerV2() {
       { key: "apiKey", label: t("columns.apiKey") },
       { key: "combo", label: t("columns.combo") },
       { key: "tokens", label: t("columns.tokens") },
+      { key: "tps", label: t("columns.tps") },
       { key: "duration", label: t("columns.duration") },
       { key: "time", label: t("columns.time") },
     ],
@@ -634,7 +636,7 @@ export default function RequestLoggerV2() {
                   )}
                   {visibleColumns.cacheSource && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      Cache Source
+                      {t("columns.cacheSource")}
                     </th>
                   )}
                   {visibleColumns.model && (
@@ -679,7 +681,7 @@ export default function RequestLoggerV2() {
                   )}
                   {visibleColumns.tps && (
                     <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                      TPS
+                      {t("columns.tps")}
                     </th>
                   )}
                   {visibleColumns.duration && (

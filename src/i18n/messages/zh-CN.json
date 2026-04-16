@@ -3653,6 +3653,7 @@
     },
     "columns": {
       "status": "状态",
+      "cacheSource": "缓存来源",
       "model": "模型",
       "requested": "请求",
       "provider": "提供商",
@@ -3661,6 +3662,7 @@
       "apiKey": "API密钥",
       "combo": "组合",
       "tokens": "Tokens",
+      "tps": "TPS",
       "duration": "时长",
       "time": "时间"
     },

@@ -3556,6 +3556,7 @@
     },
     "columns": {
       "status": "Status",
+      "cacheSource": "Cache Source",
       "model": "Model",
       "requested": "Requested",
       "provider": "Provider",
@@ -3564,6 +3565,7 @@
       "apiKey": "API Key",
       "combo": "Combo",
       "tokens": "Tokens",
+      "tps": "TPS",
       "duration": "Duration",
       "time": "Time"
     },
