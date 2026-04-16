@@ -15,7 +15,7 @@ Common problems and solutions for OmniRoute.
 | No logs written to disk                             | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                                                                                        |
 | EACCES: permission denied                           | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                                                                                          |
 | Routing strategy not saving                         | Update to v1.4.11+ (Zod schema fix for settings persistence)                                                                                             |
-| Login crash / blank page                            | You may be on Node.js 24+ — see [Node.js Compatibility](#nodejs-compatibility) below                                                                     |
+| Login crash / blank page                            | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                         |
 | `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
 | Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
 
@@ -27,10 +27,7 @@ Common problems and solutions for OmniRoute.
 
 ### Login page crashes or shows "Module self-registration" error
 
-**Cause:** You are running a Node.js version outside OmniRoute's approved secure runtime floor. Two cases matter:
-
-1. **Node.js 24+**: `better-sqlite3` is not supported here and startup can fail hard.
-2. **Older Node 20/22 patch levels**: the runtime may start, but it falls below the patched security floor OmniRoute now requires.
+**Cause:** You are running a Node.js version outside OmniRoute's approved secure runtime floor. The most common case is running an older Node 20, 22, or 24 patch level that falls below the patched security floor OmniRoute requires.
 
 **Symptoms:**
 
@@ -40,16 +37,16 @@ Common problems and solutions for OmniRoute.
 
 **Fix:**
 
-1. Install a patched Node.js 22 LTS release (recommended):
+1. Install a supported Node.js LTS release (recommended: Node.js 24.x):
    ```bash
-   nvm install 22.22.2
-   nvm use 22.22.2
+   nvm install 24
+   nvm use 24
    ```
-2. Verify your version: `node --version` should show `v22.22.2` or newer on the 22.x LTS line
+2. Verify your version: `node --version` should show `v24.0.0` or newer on the 24.x LTS line
 3. Reinstall OmniRoute: `npm install -g omniroute`
 4. Restart: `omniroute`
 
-> **Supported secure versions:** `>=20.20.2 <21` or `>=22.22.2 <23`. Node.js 24+ is **not supported**.
+> **Supported secure versions:** `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`. Node.js 24.x LTS (Krypton) is fully supported.
 
 ### macOS: `dlopen` / "slice is not valid mach-o file"
 

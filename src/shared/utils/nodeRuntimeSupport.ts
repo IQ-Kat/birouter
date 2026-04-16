@@ -16,7 +16,7 @@ export const SECURE_NODE_LINES = Object.freeze([
 export const RECOMMENDED_NODE_VERSION = "24.14.1";
 export const SUPPORTED_NODE_RANGE = ">=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <25";
 export const SUPPORTED_NODE_DISPLAY =
-  "Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS), or 24.x (24.x LTS)";
+  "Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS), or 24.0.0+ (24.x LTS)";
 
 export interface NodeVersionInfo {
   major: number;
