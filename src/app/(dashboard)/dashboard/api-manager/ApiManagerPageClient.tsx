@@ -187,17 +187,11 @@ export default function ApiManagerPageClient() {
           (entry: any) => entry.apiKeyName === key.name
         );
 
-        // Find the most recent call-log for this key to determine lastUsed
-        const keyLogs = (logs || []).filter(
+        // The call-logs endpoint returns entries sorted by timestamp DESC,
+        // so the first match is the most recent one.
+        const lastUsed = (logs || []).find(
           (log: any) => log.apiKeyName === key.name
-        );
-        const lastUsed =
-          keyLogs.length > 0
-            ? keyLogs.sort(
-                (a: any, b: any) =>
-                  new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-              )[0]?.timestamp
-            : null;
+        )?.timestamp || null;
 
         stats[key.id] = {
           totalRequests: analyticsMatch?.requests ?? 0,
