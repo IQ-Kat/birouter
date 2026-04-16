@@ -4,6 +4,19 @@
 
 ---
 
+## [3.6.7] — 2026-04-16
+
+### ✨ New Features
+
+- **feat(i18n):** Add internationalization support for combo features and dashboard components; sync translations across 31 keys (#1318)
+
+### 🐛 Bug Fixes
+
+- **fix(cli):** Resolve Node 22 TS entrypoint incompatibility by using esbuild compilation (#1315)
+- **fix(chat):** Preserve max_output_tokens for Responses API targets in chatCore sanitization (#1313)
+- **fix(api):** API Manager usage stats showing 0 for all registered keys (#1310)
+- **fix(dashboard):** Auto-scroll ActivityHeatmap to show current date (#1309)
+
 ## [3.6.6] — 2026-04-15
 
 ### ✨ New Features

@@ -904,6 +904,16 @@
         "when": "Use when you want perfectly even spread — each model used once before repeating.",
         "avoid": "Avoid when models have different quality or latency and order matters.",
         "example": "Example: Multiple accounts of the same model to distribute usage evenly."
+      },
+      "p2c": {
+        "when": "Use when you want low-latency selection using Power-of-Two-Choices algorithm.",
+        "avoid": "Avoid for small combos with 2 or fewer models — no benefit over round-robin.",
+        "example": "Example: High-throughput inference across 4+ equivalent model endpoints."
+      },
+      "context-relay": {
+        "when": "Use when long sessions must survive account rotation without losing the working context.",
+        "avoid": "Avoid when account switching is rare or when you do not want extra summarization requests.",
+        "example": "Example: Codex sessions that rotate across multiple accounts near quota exhaustion."
       }
     },
     "advancedHelp": {
@@ -1073,6 +1083,16 @@
     "reorderHandle": "Drag to reorder",
     "failedReorder": "Failed to reorder models",
     "builderFlowTitle": "Combo Builder Flow",
+    "builderStage": {
+      "basics": { "label": "Basics", "description": "Name and starting template" },
+      "steps": { "label": "Steps", "description": "Provider, model, and account selection" },
+      "strategy": { "label": "Strategy", "description": "Routing behavior and advanced settings" },
+      "intelligent": {
+        "label": "Smart Routing",
+        "description": "Auto-routing candidate pool, presets, and scoring"
+      },
+      "review": { "label": "Review", "description": "Final validation before saving" }
+    },
     "builderStageVisited": "Stage completed",
     "builderStageCurrent": "Current stage",
     "builderStagePending": "Pending",

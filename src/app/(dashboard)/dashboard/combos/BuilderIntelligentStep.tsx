@@ -164,7 +164,11 @@ export default function BuilderIntelligentStep({
           >
             {MODE_PACK_OPTIONS.map((modePack) => (
               <option key={modePack.id} value={modePack.id}>
-                {modePack.label}
+                {getI18nOrFallback(
+                  t,
+                  `modePack${modePack.id[0].toUpperCase()}${modePack.id.slice(1)}`,
+                  modePack.label
+                )}
               </option>
             ))}
           </select>
