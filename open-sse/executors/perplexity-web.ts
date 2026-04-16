@@ -33,9 +33,9 @@ const CITATION_RE = /\[\d+\]/g;
 const GROK_TAG_RE = /<grok:[^>]*>.*?<\/grok:[^>]*>/gs;
 const GROK_SELF_RE = /<grok:[^>]*\/>/g;
 const XML_DECL_RE = /<[?]xml[^?]*[?]>/g;
-const SCRIPT_RE = /<script[^>]*>.*?<\/script>/gs;
-const SCRIPT_TAG_RE = /<\/?script[^>]*>/g;
-const RESPONSE_TAG_RE = /<\/?response[^>]*>/g;
+const SCRIPT_RE = /<script[^>]*>[^]*?<\/script>/gi;
+const SCRIPT_TAG_RE = /<\/?script[^>]*>/gi;
+const RESPONSE_TAG_RE = /<\/?response[^>]*>/gi;
 const MULTI_SPACE = / {2,}/g;
 const MULTI_NL = /\n{3,}/g;
 

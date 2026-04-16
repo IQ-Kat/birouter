@@ -81,7 +81,8 @@ function noProxyMatch(targetUrl) {
 
     // Support wildcard matching (e.g. 192.168.* or *.local)
     if (patternHost.includes("*")) {
-      const regexStr = "^" + patternHost.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+      const regexStr =
+        "^" + patternHost.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$";
       if (new RegExp(regexStr).test(hostname)) return true;
     }
 

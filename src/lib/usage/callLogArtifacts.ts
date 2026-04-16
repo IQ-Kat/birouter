@@ -75,7 +75,7 @@ export function writeCallArtifact(
   try {
     const serialized = JSON.stringify(artifact, null, 2);
     const sizeBytes = Buffer.byteLength(serialized);
-    const sha256 = crypto.createHash("sha256").update(serialized).digest("hex");
+    const artifactHash = crypto.createHash("sha256").update(serialized).digest("hex");
 
     fs.mkdirSync(path.dirname(absPath), { recursive: true });
     fs.writeFileSync(tmpPath, serialized);
@@ -84,7 +84,7 @@ export function writeCallArtifact(
     return {
       relPath: relativePath,
       sizeBytes,
-      sha256,
+      sha256: artifactHash,
     };
   } catch (error) {
     try {

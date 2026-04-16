@@ -217,8 +217,8 @@ function compressThinking(messages: Record<string, unknown>[]) {
     // Remove thinking XML tags from string content
     if (typeof msg.content === "string") {
       const cleaned = msg.content
-        .replace(/<thinking>[\s\S]*?<\/thinking>/g, "")
-        .replace(/<antThinking>[\s\S]*?<\/antThinking>/g, "")
+        .replace(/<thinking>[^]*?<\/thinking>/g, "")
+        .replace(/<antThinking>[^]*?<\/antThinking>/g, "")
         .trim();
       return { ...msg, content: cleaned || "[thinking compressed]" };
     }
