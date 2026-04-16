@@ -495,12 +495,18 @@ export class CodexExecutor extends BaseExecutor {
 
       // Codex still requires a non-empty instructions field.
       // Use a minimal placeholder if the client didn't provide one.
-      if (!body.instructions || (typeof body.instructions === "string" && body.instructions.trim() === "")) {
+      if (
+        !body.instructions ||
+        (typeof body.instructions === "string" && body.instructions.trim() === "")
+      ) {
         body.instructions = "Follow the developer instructions in the conversation.";
       }
     } else {
       // Translated path: hoist system messages to instructions (legacy behavior).
-      if (!body.instructions || (typeof body.instructions === "string" && body.instructions.trim() === "")) {
+      if (
+        !body.instructions ||
+        (typeof body.instructions === "string" && body.instructions.trim() === "")
+      ) {
         body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
       }
       hoistSystemMessagesToInstructions(body);
