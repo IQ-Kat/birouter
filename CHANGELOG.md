@@ -8,12 +8,15 @@
 
 ### ✨ New Features
 
+- **feat(dashboard):** Display Antigravity credit balance in dashboard Limits & Quotas (#1338)
 - **feat(i18n):** Add internationalization support for combo features and dashboard components; sync translations across 31 keys (#1318)
 - **feat(core):** Add stopSequences support and expand tool definitions to include Google Search capabilities
 - **security:** Resolve GitHub CodeQL scan alerts and enforce deep SSRF mitigations
 
 ### 🐛 Bug Fixes
 
+- **fix(core):** Pass client headers to executor in chatCore (#1335)
+- **fix(providers):** Separate test batch calls and ignore unknown connections
 - **fix(providers):** Add grok-web SSO cookie validation handler (#1334)
 - **fix(db):** Preserve key_value settings (dashboard passwords, saved aliases) across DB heuristic recreation cycles (#1333)
 - **fix(routing):** Allow combo fallback to cascade context overflow 400 errors instead of immediate aborts (#1331)
