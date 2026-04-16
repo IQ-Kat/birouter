@@ -166,24 +166,36 @@ export default function ApiManagerPageClient() {
   const fetchUsageStats = async (apiKeys: ApiKey[]) => {
     if (apiKeys.length === 0) return;
     try {
-      const res = await fetch("/api/usage/call-logs?limit=1000");
-      if (!res.ok) return;
-      const logs = await res.json();
+      // Fetch analytics (accurate aggregated counts) and recent call-logs
+      // (for lastUsed timestamps) in parallel.
+      // The previous approach matched call-logs by key.id === log.apiKeyId,
+      // but these use different ID schemes and never matched, yielding 0.
+      const [analyticsRes, logsRes] = await Promise.all([
+        fetch("/api/usage/analytics?range=all"),
+        fetch("/api/usage/call-logs?limit=1000"),
+      ]);
+
+      const analytics = analyticsRes.ok ? await analyticsRes.json() : null;
+      const byApiKey: any[] = analytics?.byApiKey || [];
+      const logs = logsRes.ok ? await logsRes.json() : [];
+
       const stats: Record<string, KeyUsageStats> = {};
 
       for (const key of apiKeys) {
-        const keyLogs = (logs || []).filter(
-          (log: any) => log.apiKeyId === key.id || log.apiKeyName === key.name
+        // Match analytics entry by key name (reliable across both systems)
+        const analyticsMatch = byApiKey.find(
+          (entry: any) => entry.apiKeyName === key.name
         );
+
+        // The call-logs endpoint returns entries sorted by timestamp DESC,
+        // so the first match is the most recent one.
+        const lastUsed = (logs || []).find(
+          (log: any) => log.apiKeyName === key.name
+        )?.timestamp || null;
+
         stats[key.id] = {
-          totalRequests: keyLogs.length,
-          lastUsed:
-            keyLogs.length > 0
-              ? keyLogs.sort(
-                  (a: any, b: any) =>
-                    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-                )[0]?.timestamp
-              : null,
+          totalRequests: analyticsMatch?.requests ?? 0,
+          lastUsed,
         };
       }
       setUsageStats(stats);
