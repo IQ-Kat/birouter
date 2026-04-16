@@ -41,6 +41,7 @@ type GeminiGenerationConfig = {
   };
   responseMimeType?: string;
   responseSchema?: unknown;
+  stopSequences?: string[] | unknown[];
 };
 
 type GeminiFunctionDeclaration = {

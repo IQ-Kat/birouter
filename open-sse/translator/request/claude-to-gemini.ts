@@ -25,7 +25,11 @@ export function claudeToGeminiRequest(model, body, stream) {
     generationConfig: Record<string, unknown>;
     safetySettings: unknown;
     systemInstruction?: { role: string; parts: Array<{ text: string }> };
-    tools?: Array<{ functionDeclarations: Array<Record<string, unknown>> }>;
+    tools?: Array<{
+      functionDeclarations?: Array<Record<string, unknown>>;
+      googleSearch?: Record<string, unknown>;
+      googleSearchRetrieval?: Record<string, unknown>;
+    }>;
     _toolNameMap?: Map<string, string>;
   } = {
     model: model,
