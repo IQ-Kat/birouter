@@ -17,6 +17,7 @@ import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getGlmModelsUrl } from "@omniroute/open-sse/config/glmProvider.ts";
+import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -161,7 +162,19 @@ export function getStaticModelsForProvider(
   provider: string
 ): Array<{ id: string; name: string }> | undefined {
   const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
-  return staticModelsFn ? staticModelsFn() : undefined;
+  if (staticModelsFn) {
+    return staticModelsFn();
+  }
+
+  const imageProvider = getImageProvider(provider);
+  if (imageProvider) {
+    return imageProvider.models.map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    }));
+  }
+
+  return undefined;
 }
 
 // Provider models endpoints configuration
@@ -771,15 +784,12 @@ export async function GET(
     }
 
     // Static model providers (no remote /models API)
-    const staticModelsFn =
-      provider in STATIC_MODEL_PROVIDERS
-        ? STATIC_MODEL_PROVIDERS[provider as keyof typeof STATIC_MODEL_PROVIDERS]
-        : undefined;
-    if (staticModelsFn) {
+    const staticModels = getStaticModelsForProvider(provider);
+    if (staticModels) {
       return buildResponse({
         provider,
         connectionId,
-        models: staticModelsFn(),
+        models: staticModels,
       });
     }
 
@@ -802,7 +812,7 @@ export async function GET(
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
         : undefined;
-    const localCatalog = PROVIDER_MODELS[provider] || [];
+    const localCatalog = getStaticModelsForProvider(provider) || PROVIDER_MODELS[provider] || [];
     if (!config && localCatalog.length > 0) {
       return buildResponse({
         provider,

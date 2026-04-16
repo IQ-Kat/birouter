@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { IMAGE_PROVIDERS } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 type Modality = "image" | "video" | "music" | "speech" | "transcription";
 type GenerationResult = {
@@ -11,6 +13,19 @@ type GenerationResult = {
   timestamp: number;
   audioUrl?: string;
 };
+
+const PROVIDER_METADATA = AI_PROVIDERS as Record<string, { name?: string }>;
+const IMAGE_PROVIDER_MODELS = Object.entries(IMAGE_PROVIDERS).map(([providerId, config]) => ({
+  id: providerId,
+  name: PROVIDER_METADATA[providerId]?.name || providerId,
+  models: config.models.map((model) => ({
+    id: `${providerId}/${model.id}`,
+    name: model.name,
+  })),
+}));
+const IMAGE_PROVIDERS_REQUIRING_CREDENTIALS = Object.entries(IMAGE_PROVIDERS)
+  .filter(([, config]) => config.authType !== "none")
+  .map(([providerId]) => providerId);
 
 const MODALITY_CONFIG: Record<
   Modality,
@@ -30,7 +45,7 @@ const MODALITY_CONFIG: Record<
     label: "Image Generation",
     placeholder: "A serene landscape with mountains at sunset...",
     color: "from-purple-500 to-pink-500",
-    needsCredentials: ["openai", "xai", "fireworks", "nebius", "hyperbolic"],
+    needsCredentials: IMAGE_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   video: {
     icon: "videocam",
@@ -67,82 +82,12 @@ const MODALITY_CONFIG: Record<
   },
 };
 
-// Static provider+model registry (mirrors open-sse/config/*Registry.ts)
+// Provider+model registry (image is derived from the runtime image registry to avoid drift)
 const PROVIDER_MODELS: Record<
   Modality,
   { id: string; name: string; models: { id: string; name: string }[] }[]
 > = {
-  image: [
-    {
-      id: "openai",
-      name: "OpenAI",
-      models: [
-        { id: "openai/dall-e-3", name: "DALL-E 3" },
-        { id: "openai/dall-e-2", name: "DALL-E 2" },
-      ],
-    },
-    {
-      id: "xai",
-      name: "xAI (Grok)",
-      models: [{ id: "xai/grok-2-image-1212", name: "Grok 2 Image" }],
-    },
-    {
-      id: "together",
-      name: "Together AI",
-      models: [
-        { id: "together/stabilityai/stable-diffusion-xl-base-1.0", name: "SDXL" },
-        { id: "together/black-forest-labs/FLUX.1-schnell-Free", name: "FLUX.1 Schnell" },
-      ],
-    },
-    {
-      id: "fireworks",
-      name: "Fireworks AI",
-      models: [
-        {
-          id: "fireworks/accounts/fireworks/models/stable-diffusion-xl-1024-v1-0",
-          name: "SDXL 1024",
-        },
-        { id: "fireworks/accounts/fireworks/models/flux-1-dev-fp8", name: "FLUX.1 Dev" },
-      ],
-    },
-    {
-      id: "nebius",
-      name: "Nebius AI",
-      models: [
-        { id: "nebius/black-forest-labs/flux-dev", name: "FLUX Dev" },
-        { id: "nebius/black-forest-labs/flux-schnell", name: "FLUX Schnell" },
-      ],
-    },
-    {
-      id: "hyperbolic",
-      name: "Hyperbolic",
-      models: [
-        { id: "hyperbolic/SDXL1.0-base", name: "SDXL Base" },
-        { id: "hyperbolic/stable-diffusion-2", name: "SD 2" },
-      ],
-    },
-    {
-      id: "nanobanana",
-      name: "NanoBanana",
-      models: [
-        { id: "nanobanana/nanobanana-flash", name: "NanoBanana Flash" },
-        { id: "nanobanana/nanobanana-pro", name: "NanoBanana Pro" },
-      ],
-    },
-    {
-      id: "sdwebui",
-      name: "SD WebUI",
-      models: [{ id: "sdwebui/sd_xl_base_1.0", name: "SDXL Base (Local)" }],
-    },
-    {
-      id: "comfyui",
-      name: "ComfyUI",
-      models: [
-        { id: "comfyui/flux-dev", name: "FLUX Dev (Local)" },
-        { id: "comfyui/sdxl", name: "SDXL (Local)" },
-      ],
-    },
-  ],
+  image: IMAGE_PROVIDER_MODELS,
   video: [
     {
       id: "comfyui",

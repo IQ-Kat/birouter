@@ -5,6 +5,68 @@
  * Each provider has its own request format and endpoint.
  */
 
+const IMAGE_MODEL_ALIASES = {
+  "flux-kontext": {
+    provider: "pollinations",
+    model: "flux-kontext",
+    name: "FLUX Kontext",
+    listInCatalog: true,
+  },
+  "flux-kontext-max": {
+    provider: "together",
+    model: "black-forest-labs/FLUX.1.1-pro",
+    name: "FLUX Kontext Max",
+    listInCatalog: true,
+  },
+  "flux-redux": {
+    provider: "together",
+    model: "black-forest-labs/FLUX.1-redux",
+    name: "FLUX Redux",
+    listInCatalog: true,
+  },
+  "flux-depth": {
+    provider: "together",
+    model: "black-forest-labs/FLUX.1-depth",
+    name: "FLUX Depth",
+    listInCatalog: true,
+  },
+  "flux-canny": {
+    provider: "together",
+    model: "black-forest-labs/FLUX.1-canny",
+    name: "FLUX Canny",
+    listInCatalog: true,
+  },
+  "flux-dev-lora": {
+    provider: "together",
+    model: "black-forest-labs/FLUX.1-dev-lora",
+    name: "FLUX Dev LoRA",
+    listInCatalog: true,
+  },
+  kontext: {
+    provider: "pollinations",
+    model: "flux-kontext",
+    name: "FLUX Kontext",
+    listInCatalog: false,
+  },
+  "pollinations/kontext": {
+    provider: "pollinations",
+    model: "flux-kontext",
+    name: "FLUX Kontext",
+    listInCatalog: false,
+  },
+};
+
+function resolveImageModelAlias(modelStr) {
+  const alias = IMAGE_MODEL_ALIASES[modelStr];
+  return alias ? { provider: alias.provider, model: alias.model } : null;
+}
+
+function findImageModelConfig(providerId, modelId) {
+  const provider = IMAGE_PROVIDERS[providerId];
+  if (!provider) return null;
+  return provider.models.find((model) => model.id === modelId) || null;
+}
+
 export const IMAGE_PROVIDERS = {
   openai: {
     id: "openai",
@@ -40,6 +102,10 @@ export const IMAGE_PROVIDERS = {
       { id: "black-forest-labs/FLUX.1.1-pro", name: "FLUX 1.1 Pro" },
       { id: "black-forest-labs/FLUX.1-schnell-Free", name: "FLUX 1 Schnell (Free)" },
       { id: "stabilityai/stable-diffusion-xl-base-1.0", name: "SDXL Base 1.0" },
+      { id: "black-forest-labs/FLUX.1-redux", name: "FLUX.1 Redux" },
+      { id: "black-forest-labs/FLUX.1-depth", name: "FLUX.1 Depth" },
+      { id: "black-forest-labs/FLUX.1-canny", name: "FLUX.1 Canny" },
+      { id: "black-forest-labs/FLUX.1-dev-lora", name: "FLUX.1 Dev LoRA" },
     ],
     supportedSizes: ["1024x1024", "512x512"],
   },
@@ -165,10 +231,110 @@ export const IMAGE_PROVIDERS = {
       { id: "gptimage", name: "GPT Image 1 Mini" },
       { id: "qwen-image", name: "Qwen Image Plus" },
       { id: "wan-image", name: "Wan 2.7 Image" },
-      { id: "kontext", name: "FLUX.1 Kontext" },
+      { id: "flux-kontext", name: "FLUX.1 Kontext" },
+      { id: "flux-kontext-max", name: "FLUX.1 Kontext Max" },
       { id: "gptimage-large", name: "GPT Image 1.5" },
     ],
     supportedSizes: ["1024x1024", "512x512"],
+  },
+
+  "fal-ai": {
+    id: "fal-ai",
+    baseUrl: "https://fal.run",
+    authType: "apikey",
+    authHeader: "key",
+    format: "fal-ai",
+    models: [
+      { id: "fal-ai/flux-pro/v1.1", name: "FLUX.1 Pro v1.1" },
+      { id: "fal-ai/flux-pro/v1.1-ultra", name: "FLUX.1 Pro v1.1 Ultra" },
+      { id: "fal-ai/flux/schnell", name: "FLUX.1 Schnell" },
+      { id: "bria/text-to-image/3.2", name: "Bria 3.2" },
+      { id: "fal-ai/bytedance/seedream/v3/text-to-image", name: "SeeDream V3" },
+      { id: "fal-ai/bytedance/dreamina/v3.1/text-to-image", name: "Dreamina V3.1" },
+      { id: "fal-ai/ideogram/v3", name: "Ideogram V3" },
+      { id: "fal-ai/imagen4/preview", name: "Imagen 4 Preview" },
+      { id: "fal-ai/imagen4/preview/fast", name: "Imagen 4 Preview Fast" },
+      { id: "fal-ai/imagen4/preview/ultra", name: "Imagen 4 Preview Ultra" },
+      { id: "fal-ai/recraft/v3/text-to-image", name: "Recraft V3 via Fal" },
+      { id: "fal-ai/stable-diffusion-v35-medium", name: "Stable Diffusion v3.5 Medium" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
+  },
+
+  "stability-ai": {
+    id: "stability-ai",
+    baseUrl: "https://api.stability.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "stability-ai",
+    models: [
+      { id: "sd3", name: "sd3" },
+      { id: "sd3-large", name: "sd3-large" },
+      { id: "sd3-large-turbo", name: "sd3-large-turbo" },
+      { id: "sd3-medium", name: "sd3-medium" },
+      { id: "sd3.5-large", name: "sd3.5-large" },
+      { id: "sd3.5-large-turbo", name: "sd3.5-large-turbo" },
+      { id: "sd3.5-medium", name: "sd3.5-medium" },
+      { id: "stable-image-ultra", name: "Stable Image Ultra" },
+      { id: "stable-image-core", name: "Stable Image Core" },
+      { id: "inpaint", name: "Inpaint" },
+      { id: "outpaint", name: "Outpaint" },
+      { id: "erase", name: "Erase" },
+      { id: "search-and-replace", name: "Search and Replace" },
+      { id: "search-and-recolor", name: "Search and Recolor" },
+      { id: "remove-background", name: "Remove Background" },
+      { id: "replace-background-and-relight", name: "Replace Background and Relight" },
+      { id: "fast", name: "Fast Upscale" },
+      { id: "conservative", name: "Conservative Upscale" },
+      { id: "creative", name: "Creative Upscale" },
+      { id: "sketch", name: "Sketch Control" },
+      { id: "structure", name: "Structure Control" },
+      { id: "style", name: "Style Control" },
+      { id: "style-transfer", name: "Style Transfer" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
+  },
+
+  "black-forest-labs": {
+    id: "black-forest-labs",
+    baseUrl: "https://api.bfl.ai",
+    authType: "apikey",
+    authHeader: "x-key",
+    format: "black-forest-labs",
+    models: [
+      { id: "flux-kontext-pro", name: "flux-kontext-pro" },
+      { id: "flux-kontext-max", name: "flux-kontext-max" },
+      { id: "flux-pro-1.0-fill", name: "flux-pro-1.0-fill" },
+      { id: "flux-pro-1.0-expand", name: "flux-pro-1.0-expand" },
+      { id: "flux-pro-1.1", name: "flux-pro-1.1" },
+      { id: "flux-pro-1.1-ultra", name: "flux-pro-1.1-ultra" },
+      { id: "flux-dev", name: "flux-dev" },
+      { id: "flux-pro", name: "flux-pro" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
+  },
+
+  recraft: {
+    id: "recraft",
+    baseUrl: "https://external.api.recraft.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "recraft",
+    models: [
+      { id: "recraftv2", name: "recraftv2" },
+      { id: "recraftv3", name: "recraftv3" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
+  },
+
+  topaz: {
+    id: "topaz",
+    baseUrl: "https://api.topazlabs.com",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    format: "topaz",
+    models: [{ id: "topaz-enhance", name: "topaz-enhance" }],
+    supportedSizes: ["1024x1024"],
   },
 };
 
@@ -186,14 +352,25 @@ export function getImageProvider(providerId) {
 export function parseImageModel(modelStr) {
   if (!modelStr) return { provider: null, model: null };
 
+  const directAlias = resolveImageModelAlias(modelStr);
+  if (directAlias) {
+    return directAlias;
+  }
+
   // Try each provider prefix
   for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
     if (modelStr.startsWith(providerId + "/")) {
-      return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
+      const model = modelStr.slice(providerId.length + 1);
+      const aliased =
+        resolveImageModelAlias(`${providerId}/${model}`) || resolveImageModelAlias(model);
+      return aliased || { provider: providerId, model };
     }
     // Check alias if available
     if (config.alias && modelStr.startsWith(config.alias + "/")) {
-      return { provider: providerId, model: modelStr.slice(config.alias.length + 1) };
+      const model = modelStr.slice(config.alias.length + 1);
+      const aliased =
+        resolveImageModelAlias(`${providerId}/${model}`) || resolveImageModelAlias(model);
+      return aliased || { provider: providerId, model };
     }
   }
 
@@ -222,5 +399,20 @@ export function getAllImageModels() {
       });
     }
   }
+  for (const [alias, target] of Object.entries(IMAGE_MODEL_ALIASES)) {
+    if (!target.listInCatalog) continue;
+    const providerConfig = IMAGE_PROVIDERS[target.provider];
+    const modelConfig = findImageModelConfig(target.provider, target.model);
+    models.push({
+      id: alias,
+      name: target.name || modelConfig?.name || alias,
+      provider: target.provider,
+      supportedSizes: providerConfig?.supportedSizes || [],
+    });
+  }
   return models;
+}
+
+export function getImageModelAliases() {
+  return IMAGE_MODEL_ALIASES;
 }

@@ -6,7 +6,8 @@ import { join } from "node:path";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-images-"));
 
-const { IMAGE_PROVIDERS } = await import("../../open-sse/config/imageRegistry.ts");
+const { IMAGE_PROVIDERS, parseImageModel, getAllImageModels } =
+  await import("../../open-sse/config/imageRegistry.ts");
 const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
 
 function immediateTimeout(callback, _ms, ...args) {
@@ -245,6 +246,329 @@ test("handleImageGeneration treats unknown provider prefixes as invalid image mo
   assert.equal(result.success, false);
   assert.equal(result.status, 400);
   assert.match(result.error, /Invalid image model: mystery\/model-1/);
+});
+
+test("image registry resolves flux aliases and exposes planned catalog aliases", () => {
+  assert.deepEqual(parseImageModel("flux-kontext"), {
+    provider: "pollinations",
+    model: "flux-kontext",
+  });
+  assert.deepEqual(parseImageModel("pollinations/kontext"), {
+    provider: "pollinations",
+    model: "flux-kontext",
+  });
+  assert.deepEqual(parseImageModel("flux-redux"), {
+    provider: "together",
+    model: "black-forest-labs/FLUX.1-redux",
+  });
+
+  const modelIds = new Set(getAllImageModels().map((model) => model.id));
+  for (const alias of [
+    "flux-kontext",
+    "flux-kontext-max",
+    "flux-redux",
+    "flux-depth",
+    "flux-canny",
+    "flux-dev-lora",
+  ]) {
+    assert.equal(modelIds.has(alias), true, `Expected alias ${alias} in image catalog`);
+  }
+});
+
+test("handleImageGeneration calls Fal AI with Key auth and normalizes URL results to base64", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestCapture;
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://fal.run/fal-ai/flux-pro/v1.1-ultra") {
+      requestCapture = {
+        url: stringUrl,
+        headers: options.headers,
+        body: JSON.parse(String(options.body || "{}")),
+      };
+
+      return new Response(
+        JSON.stringify({
+          images: [{ url: "https://cdn.example.com/fal-ultra.png" }],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    if (stringUrl === "https://cdn.example.com/fal-ultra.png") {
+      return new Response(new Uint8Array([5, 6, 7]), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "fal-ai/fal-ai/flux-pro/v1.1-ultra",
+        prompt: "cinematic skyline",
+        size: "1024x1792",
+        n: 2,
+        image_url: "https://example.com/source.png",
+        response_format: "b64_json",
+      },
+      credentials: { apiKey: "fal-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(requestCapture.url, "https://fal.run/fal-ai/flux-pro/v1.1-ultra");
+    assert.equal(requestCapture.headers.Authorization, "Key fal-key");
+    assert.equal(requestCapture.body.aspect_ratio, "9:16");
+    assert.equal(requestCapture.body.image_url, "https://example.com/source.png");
+    assert.equal(requestCapture.body.num_images, 2);
+    assert.equal(requestCapture.body.sync_mode, true);
+    assert.equal(result.data.data[0].b64_json, "BQYH");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration routes Stability AI edit models to native endpoints", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestCapture;
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://example.com/stability-input.png") {
+      return new Response(new Uint8Array([4, 5]), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
+    }
+
+    if (stringUrl === "https://api.stability.ai/v2beta/stable-image/edit/inpaint") {
+      requestCapture = {
+        url: stringUrl,
+        headers: options.headers,
+        body: JSON.parse(String(options.body || "{}")),
+      };
+
+      return new Response(JSON.stringify({ image: "c3RhYmlsaXR5LWltYWdl" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "stability-ai/inpaint",
+        prompt: "replace the sky with aurora",
+        negative_prompt: "rain",
+        image_url: "https://example.com/stability-input.png",
+        mask: "data:image/png;base64,AA==",
+        response_format: "b64_json",
+      },
+      credentials: { apiKey: "stability-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(requestCapture.url, "https://api.stability.ai/v2beta/stable-image/edit/inpaint");
+    assert.equal(requestCapture.headers.Authorization, "Bearer stability-key");
+    assert.equal(requestCapture.body.image, "BAU=");
+    assert.equal(requestCapture.body.mask, "AA==");
+    assert.equal(requestCapture.body.output_format, "png");
+    assert.equal(result.data.data[0].b64_json, "c3RhYmlsaXR5LWltYWdl");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration polls Black Forest Labs results and sends base64 input images", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  let createCapture;
+  let pollCapture;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://example.com/bfl-input.png") {
+      return new Response(new Uint8Array([1, 2]), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
+    }
+
+    if (stringUrl === "https://api.bfl.ai/v1/flux-kontext-pro") {
+      createCapture = {
+        url: stringUrl,
+        headers: options.headers,
+        body: JSON.parse(String(options.body || "{}")),
+      };
+
+      return new Response(JSON.stringify({ polling_url: "https://api.bfl.ai/result/123" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.bfl.ai/result/123") {
+      pollCapture = {
+        url: stringUrl,
+        headers: options.headers,
+      };
+
+      return new Response(
+        JSON.stringify({
+          status: "Ready",
+          result: { sample: "https://cdn.example.com/bfl-result.png" },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    if (stringUrl === "https://cdn.example.com/bfl-result.png") {
+      return new Response(new Uint8Array([9, 8, 7]), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "black-forest-labs/flux-kontext-pro",
+        prompt: "change the car color to blue",
+        image_url: "https://example.com/bfl-input.png",
+        size: "1024x1792",
+        response_format: "b64_json",
+      },
+      credentials: { apiKey: "bfl-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(createCapture.url, "https://api.bfl.ai/v1/flux-kontext-pro");
+    assert.equal(createCapture.headers["x-key"], "bfl-key");
+    assert.equal(createCapture.body.input_image, "AQI=");
+    assert.equal(createCapture.body.aspect_ratio, "9:16");
+    assert.equal(pollCapture.headers["x-key"], "bfl-key");
+    assert.equal(result.data.data[0].b64_json, "CQgH");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleImageGeneration calls native Recraft endpoint with model in body", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      headers: options.headers,
+      body: JSON.parse(String(options.body || "{}")),
+    };
+
+    return new Response(
+      JSON.stringify({
+        data: [{ url: "https://cdn.example.com/recraft.png" }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "recraft/recraftv3",
+        prompt: "vector fox logo",
+        size: "1024x1024",
+        style: "digital_illustration",
+      },
+      credentials: { apiKey: "recraft-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(captured.url, "https://external.api.recraft.ai/v1/images/generations");
+    assert.equal(captured.headers.Authorization, "Bearer recraft-key");
+    assert.deepEqual(captured.body, {
+      model: "recraftv3",
+      prompt: "vector fox logo",
+      size: "1024x1024",
+      style: "digital_illustration",
+    });
+    assert.equal(result.data.data[0].url, "https://cdn.example.com/recraft.png");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration uploads source images to Topaz and returns base64 output", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestCapture;
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://example.com/topaz-input.png") {
+      return new Response(new Uint8Array([1, 2, 3]), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
+    }
+
+    if (stringUrl === "https://api.topazlabs.com/image/v1/enhance") {
+      const formData = options.body as FormData;
+      requestCapture = {
+        url: stringUrl,
+        headers: options.headers,
+        outputWidth: formData.get("output_width"),
+        outputHeight: formData.get("output_height"),
+        image: formData.get("image"),
+      };
+
+      return new Response(new Uint8Array([7, 7, 7]), {
+        status: 200,
+        headers: { "content-type": "image/jpeg" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "topaz/topaz-enhance",
+        prompt: "enhance image",
+        image_url: "https://example.com/topaz-input.png",
+        size: "2048x2048",
+        response_format: "b64_json",
+      },
+      credentials: { apiKey: "topaz-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(requestCapture.url, "https://api.topazlabs.com/image/v1/enhance");
+    assert.equal(requestCapture.headers["X-API-Key"], "topaz-key");
+    assert.equal(requestCapture.outputWidth, "2048");
+    assert.equal(requestCapture.outputHeight, "2048");
+    assert.ok(requestCapture.image instanceof File);
+    assert.equal(result.data.data[0].b64_json, "BwcH");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("handleImageGeneration transforms Gemini image responses from Antigravity", async () => {
