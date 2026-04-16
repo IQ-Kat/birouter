@@ -170,3 +170,4 @@ docs/superpowers/
 # GitNexus local index
 .gitnexus
 .worktrees
+bin/omniroute.mjs
