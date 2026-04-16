@@ -11,12 +11,17 @@
 - **feat(core):** Add full support for Node.js 24 LTS (Krypton) environments with continuous integration coverage (#1340)
 - **feat(dashboard):** Display Antigravity credit balance in dashboard Limits & Quotas (#1338)
 - **feat(i18n):** Add internationalization support for combo features and dashboard components; sync translations across 31 keys (#1318)
+- **feat(providers):** Add Claude Opus 4.7 to Claude Code OAuth models natively with extended context and caching (#1347)
 - **feat(core):** Add stopSequences support and expand tool definitions to include Google Search capabilities
 - **security:** Resolve GitHub CodeQL scan alerts and enforce deep SSRF mitigations
 
 ### 🐛 Bug Fixes
 
+- **fix(db):** Prevent native module ABI load crashes from assuming database corruption and skipping databases
+- **fix(db):** Increase mass-migration threshold from 5 to 50 pending migrations to protect legacy users upgrading node
 - **fix(db):** Prevent migration runner safety aborts from triggering on fresh `DATA_DIR` installations by detecting new databases (#1328)
+- **fix(mcp):** Checkpoint and close MCP audit SQLite database safely on process signals and shutdown (#1348)
+- **fix(codex):** Correctly translate `system` role to `developer` in input array to unlock GPT-5 automatic prompt caching (#1346)
 - **fix(core):** Pass client headers to executor in chatCore (#1335)
 - **fix(providers):** Separate test batch calls and ignore unknown connections
 - **fix(providers):** Add grok-web SSO cookie validation handler (#1334)
