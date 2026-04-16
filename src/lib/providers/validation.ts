@@ -1028,6 +1028,98 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
   }),
 };
 
+async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    let token = apiKey;
+    if (token.startsWith("sso=")) token = token.slice(4);
+
+    // Generate the same Cloudflare-bypass headers the GrokWebExecutor uses.
+    const randomHex = (n: number) => {
+      const a = new Uint8Array(n);
+      crypto.getRandomValues(a);
+      return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
+    };
+    const statsigMsg = `e:TypeError: Cannot read properties of null (reading 'children')`;
+    const traceId = randomHex(16);
+    const spanId = randomHex(8);
+
+    const response = await validationWrite("https://grok.com/rest/app-chat/conversations/new", {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          Accept: "*/*",
+          "Accept-Encoding": "gzip, deflate, br, zstd",
+          "Accept-Language": "en-US,en;q=0.9",
+          Baggage:
+            "sentry-environment=production,sentry-release=d6add6fb0460641fd482d767a335ef72b9b6abb8,sentry-public_key=b311e0f2690c81f25e2c4cf6d4f7ce1c",
+          "Cache-Control": "no-cache",
+          "Content-Type": "application/json",
+          Cookie: `sso=${token}`,
+          Origin: "https://grok.com",
+          Pragma: "no-cache",
+          Referer: "https://grok.com/",
+          "Sec-Ch-Ua": '"Google Chrome";v="136", "Chromium";v="136", "Not(A:Brand";v="24"',
+          "Sec-Ch-Ua-Mobile": "?0",
+          "Sec-Ch-Ua-Platform": '"macOS"',
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+          "x-statsig-id": btoa(statsigMsg),
+          "x-xai-request-id": crypto.randomUUID(),
+          traceparent: `00-${traceId}-${spanId}-00`,
+        },
+        providerSpecificData
+      ),
+      body: JSON.stringify({
+        temporary: true,
+        modelName: "grok-4-1-thinking-1129",
+        modelMode: "MODEL_MODE_FAST",
+        message: "test",
+        fileAttachments: [],
+        imageAttachments: [],
+        disableSearch: true,
+        enableImageGeneration: false,
+        returnImageBytes: false,
+        returnRawGrokInXaiRequest: false,
+        enableImageStreaming: false,
+        imageGenerationCount: 0,
+        forceConcise: true,
+        toolOverrides: {},
+        enableSideBySide: false,
+        sendFinalMetadata: false,
+        isReasoning: false,
+        disableTextFollowUps: true,
+        disableMemory: true,
+        forceSideBySide: false,
+        isAsyncChat: false,
+        disableSelfHarmShortCircuit: false,
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid SSO cookie — re-paste from grok.com DevTools → Cookies → sso",
+      };
+    }
+
+    // 200 or non-auth 4xx (e.g. 400, 429) means the cookie is accepted
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Grok unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   if (!provider || !apiKey) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
@@ -1066,6 +1158,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     databricks: validateDatabricksProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
+    "grok-web": validateGrokWebProvider,
     vertex: async ({ apiKey }: any) => {
       try {
         const { parseSAFromApiKey, getAccessToken } =
