@@ -659,7 +659,8 @@
       "opencode": "OpenCode AI 编码智能体（终端）",
       "kiro": "Amazon Kiro - AI 驱动 IDE",
       "windsurf": "Windsurf AI Code Editor",
-      "copilot": "GitHub Copilot AI Assistant"
+      "copilot": "GitHub Copilot AI Assistant",
+      "qwen": "Alibaba Qwen Code CLI"
     },
     "guides": {
       "cursor": {
@@ -1976,7 +1977,11 @@
     "statusBanned": "已封禁 / 沙箱违规",
     "statusCreditsExhausted": "余额不足 / 配额已耗尽",
     "showEmails": "显示所有邮箱",
-    "hideEmails": "隐藏所有邮箱"
+    "hideEmails": "隐藏所有邮箱",
+    "imagesGenerations": "Images Generations",
+    "audioSpeech": "Audio Speech",
+    "audioTranscriptions": "Audio Transcriptions",
+    "embeddings": "Embeddings"
   },
   "settings": {
     "title": "设置",

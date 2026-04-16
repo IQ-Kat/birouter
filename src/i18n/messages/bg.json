@@ -136,7 +136,10 @@
     "Failed to save pricing": "Неуспешно запазване на цената",
     "Failed to reset pricing": "Неуспешно нулиране на цените",
     "apikey": "API ключ",
-    "http": "HTTP"
+    "http": "HTTP",
+    "checkSystemStatus": "Check System Status",
+    "goToDashboard": "Go to Dashboard",
+    "nothingHere": "Nothing here yet"
   },
   "sidebar": {
     "home": "Начало",
@@ -640,7 +643,8 @@
       "opencode": "Използвайте, когато предпочитате нативни за терминални агенти и скриптова автоматизация чрез OpenCode.",
       "kiro": "Използвайте, когато интегрирате Kiro и контролирате маршрутизирането на модела централно от OmniRoute.",
       "antigravity": "Използвайте, когато трафикът на Antigravity/Kiro трябва да бъде прихванат чрез MITM и насочен към OmniRoute.",
-      "copilot": "Използвайте, когато искате UX в стил на чат Copilot, като същевременно налагате OmniRoute ключове и правила за маршрутизиране."
+      "copilot": "Използвайте, когато искате UX в стил на чат Copilot, като същевременно налагате OmniRoute ключове и правила за маршрутизиране.",
+      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
     },
     "toolDescriptions": {
       "antigravity": "Google Antigravity IDE с MITM",
@@ -655,7 +659,8 @@
       "opencode": "OpenCode AI coding agent (Terminal)",
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
-      "copilot": "GitHub Copilot AI Assistant"
+      "copilot": "GitHub Copilot AI Assistant",
+      "qwen": "Alibaba Qwen Code CLI"
     },
     "guides": {
       "cursor": {
@@ -890,6 +895,16 @@
         "when": "Use when you want perfectly even spread — each model used once before repeating.",
         "avoid": "Avoid when models have different quality or latency and order matters.",
         "example": "Example: Multiple accounts of the same model to distribute usage evenly."
+      },
+      "p2c": {
+        "when": "Use when you want low-latency selection using Power-of-Two-Choices algorithm.",
+        "example": "Example: High-throughput inference across 4+ equivalent model endpoints.",
+        "avoid": "Avoid for small combos with 2 or fewer models — no benefit over round-robin."
+      },
+      "context-relay": {
+        "example": "Example: Codex sessions that rotate across multiple accounts near quota exhaustion.",
+        "when": "Use when long sessions must survive account rotation without losing the working context.",
+        "avoid": "Avoid when account switching is rare or when you do not want extra summarization requests."
       }
     },
     "advancedHelp": {
@@ -1009,7 +1024,117 @@
     "wizardStep3Title": "Choose Strategy",
     "wizardStep3Desc": "Pick how requests are distributed across your models - 13 strategies available",
     "wizardStep4Title": "Review & Save",
-    "wizardStep4Desc": "Review your configuration and activate the combo"
+    "wizardStep4Desc": "Review your configuration and activate the combo",
+    "emailVisibilityStateOff": "Off",
+    "builderStage": {
+      "steps": {
+        "description": "Provider, model, and account selection",
+        "label": "Steps"
+      },
+      "basics": {
+        "description": "Name and starting template",
+        "label": "Basics"
+      },
+      "review": {
+        "label": "Review",
+        "description": "Final validation before saving"
+      },
+      "intelligent": {
+        "description": "Auto-routing candidate pool, presets, and scoring",
+        "label": "Smart Routing"
+      },
+      "strategy": {
+        "description": "Routing behavior and advanced settings",
+        "label": "Strategy"
+      }
+    },
+    "builderPinnedAccount": "Pinned Account",
+    "weightTierPriority": "Tier",
+    "builderStageCurrent": "Current stage",
+    "budgetCapLabel": "Budget Cap (USD / request)",
+    "builderAccount": "Account",
+    "builderAddStep": "Add step",
+    "modePackUpdated": "Mode pack updated to {pack}.",
+    "builderModel": "Model",
+    "builderProvider": "Provider",
+    "builderStagePending": "Pending",
+    "filterAll": "All",
+    "explorationRateHint": "{percent}% of requests can explore non-optimal providers.",
+    "candidatePoolAllProviders": "All providers",
+    "routerStrategyLabel": "Router Strategy",
+    "reviewProviders": "Providers",
+    "reviewAccounts": "Accounts",
+    "intelligentPanelDesc": "Real-time scoring and health status for this auto-routing combo.",
+    "candidatePoolEmpty": "No active providers available yet.",
+    "builderSelectProvider": "Select provider",
+    "reviewStrategy": "Strategy",
+    "strategyRules": "Rules (6-Factor Scoring)",
+    "normalOperation": "Normal Operation",
+    "builderTitle": "Build a Combo",
+    "contextRelayDesc": "Preserves session continuity with handoff summaries when accounts rotate",
+    "reviewNoSteps": "No steps configured",
+    "reviewComboRefs": "Combo References",
+    "allProvidersHealthy": "Providers are reporting healthy routing conditions.",
+    "filterEmptyIntelligentDescription": "Create an auto or LKGP combo to populate the intelligent routing dashboard.",
+    "builderPreview": "Preview",
+    "reviewIntelligentTitle": "Intelligent Routing Config",
+    "reviewSteps": "Steps",
+    "weightTaskFit": "Task Fit",
+    "filterEmptyDeterministicDescription": "Only auto and LKGP combos exist right now. Switch back to All or create a deterministic combo.",
+    "builderIntelligentDesc": "Configure the multi-factor scoring engine for this auto-routing combo.",
+    "builderAddComboRef": "Add combo reference",
+    "activeModePack": "Active Mode Pack",
+    "highCircuitBreakerRate": "High circuit breaker trip rate detected.",
+    "statusOverview": "Status Overview",
+    "contextRelayHandoffThresholdHelp": "When quota usage reaches this threshold, OmniRoute generates a structured handoff summary before the active account is exhausted.",
+    "reorderHandle": "Drag to reorder",
+    "modePackLabel": "Mode Pack",
+    "excludedProviders": "Excluded Providers",
+    "noExcludedProviders": "No providers are currently excluded.",
+    "budgetCapPlaceholder": "No limit",
+    "builderBrowseCatalog": "Browse catalog",
+    "contextRelayMaxMessagesHelp": "Limits how much recent history is condensed into the relay summary.",
+    "failedReorder": "Failed to reorder models",
+    "providerScores": "Provider Scores",
+    "reviewAgentFlags": "Agent Flags",
+    "builderLoadingProviders": "Loading providers...",
+    "builderLegacyEntry": "Legacy entry",
+    "builderProviderFirst": "Pick provider first",
+    "reviewName": "Name",
+    "filterIntelligent": "Intelligent",
+    "weightLatencyInv": "Latency",
+    "contextRelaySummaryModel": "Summary Model",
+    "incidentMode": "Incident Mode",
+    "builderComboRef": "Combo Ref",
+    "contextRelayProviderNote": "Context Relay currently generates handoffs for Codex account rotation. Pair it with multiple accounts of the same provider for the best continuity.",
+    "weightHealth": "Health",
+    "emailVisibilityStateOn": "On",
+    "weightStability": "Stability",
+    "filterDeterministic": "Deterministic",
+    "explorationRateLabel": "Exploration Rate",
+    "reviewAdvanced": "Advanced Settings",
+    "contextRelayMaxMessages": "Max Messages For Summary",
+    "cooldownMinutes": "Cooldown: {minutes}m",
+    "reviewSequence": "Model Sequence",
+    "builderStageVisited": "Stage completed",
+    "builderIntelligentTitle": "Intelligent Routing Configuration",
+    "excludedProvidersHint": "Providers with an OPEN circuit breaker are temporarily excluded from routing.",
+    "contextRelay": "Context Relay",
+    "builderFlowTitle": "Combo Builder Flow",
+    "weightCostInv": "Cost",
+    "modePackHint": "Switch presets to bias the routing engine without rebuilding the combo.",
+    "advancedWeightsTitle": "Advanced: Scoring Weights",
+    "candidatePoolHint": "Select which providers this engine should evaluate. Leave empty to use all active providers.",
+    "candidatePoolLabel": "Candidate Pool",
+    "contextRelayHandoffThreshold": "Handoff Threshold",
+    "contextRelaySummaryModelHelp": "Optional override model used only for generating the handoff summary. Leave empty to reuse the active combo model.",
+    "builderStageLocked": "Locked — complete previous stage first",
+    "allProvidersEvaluated": "No candidate pool configured. All active providers are evaluated at runtime.",
+    "builderSelectModel": "Select model",
+    "filterEmptyTitle": "No combos match this strategy filter.",
+    "weightQuota": "Quota",
+    "builderComboRefStep": "Add combo reference",
+    "intelligentPanelTitle": "Intelligent Routing Dashboard"
   },
   "costs": {
     "title": "Разходи",
@@ -1147,7 +1272,9 @@
     "a2aQuickStartStep2": "Изпратете JSON - RPC заявки до@@ PH0 @@, като използвате @@ PH1 @@ или @@ PH2 @@.",
     "a2aQuickStartStep3": "Проследяване и контрол на задачите с помощта на @@ PH0 @@ и @@ PH1 @@.",
     "completionsLegacy": "Completions (Legacy)",
-    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format"
+    "completionsLegacyDesc": "Legacy OpenAI text completions — accepts both prompt string and messages array format",
+    "musicDesc": "Generate music and audio tracks via ComfyUI (Stable Audio, MusicGen)",
+    "musicGeneration": "Music Generation"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -1749,7 +1876,22 @@
     "close": "Close",
     "statusDeactivated": "Deactivated (Manual)",
     "statusBanned": "Banned / Sandbox Violation",
-    "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted"
+    "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted",
+    "noModelsMatch": "No models match \"{filter}\"",
+    "audioTranscriptions": "Audio Transcriptions",
+    "deselectAllModels": "Deselect all",
+    "audioSpeech": "Audio Speech",
+    "repairEnvHint": "Restore missing OAuth defaults into .env without overwriting existing values.",
+    "embeddings": "Embeddings",
+    "hideEmails": "Hide all emails",
+    "imagesGenerations": "Images Generations",
+    "repairEnvFailed": "Failed to repair .env",
+    "repairEnv": "Repair env",
+    "selectAllModels": "Select all",
+    "modelsActiveCount": "{active}/{total} active",
+    "repairEnvWorking": "Repairing...",
+    "showEmails": "Show all emails",
+    "repairEnvSuccess": "OAuth defaults restored"
   },
   "settings": {
     "title": "Настройки",
@@ -2266,7 +2408,11 @@
     "wildcardPatternModeDesc": "Use wildcard aliases with * and ? when a family of models should map to one target.",
     "noExactAliasesConfigured": "No exact-match aliases configured.",
     "wildcardRulesTitle": "Wildcard Rules",
-    "noWildcardAliasesConfigured": "No wildcard aliases configured."
+    "noWildcardAliasesConfigured": "No wildcard aliases configured.",
+    "contextRelayMaxMessages": "Max Messages For Summary",
+    "contextRelayHandoffThreshold": "Handoff Threshold",
+    "contextRelaySummaryModel": "Summary Model",
+    "contextRelayProviderNote": "Context Relay currently generates handoffs for Codex accounts and uses these values as global defaults for new or unconfigured combos."
   },
   "translator": {
     "title": "Преводач",
@@ -2692,7 +2838,11 @@
     "waitingForOpenAIAuthorization": "Изчаква се разрешение за OpenAI...",
     "waitingForAntigravityAuthorization": "Изчаква се разрешение за антигравитация...",
     "waitingForQoderAuthorization": "Изчаква се разрешение за Qoder...",
-    "exchangingCodeForTokens": "Размяна на код за токени..."
+    "exchangingCodeForTokens": "Размяна на код за токени...",
+    "nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS) or 22.22.2+ (22.x LTS). Node 22 LTS is recommended.",
+    "nodeIncompatibleTitle": "Incompatible Node.js Version",
+    "nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
+    "nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release"
   },
   "landing": {
     "brandName": "OmniRoute",
@@ -3108,7 +3258,26 @@
     "peakCached": "Peak cached",
     "deduplicatedRequests": "Deduplicated Requests",
     "savedCalls": "Saved API Calls",
-    "totalProcessed": "Total Requests Processed"
+    "totalProcessed": "Total Requests Processed",
+    "trendHour": "Hour",
+    "busiestHour": "Busiest Hour",
+    "activityVolume": "Activity",
+    "promptTrendDesc": "Hourly request volume, cache coverage, and cache read volume across the last 24 hours.",
+    "noTrendData": "No prompt cache activity has been recorded over the last 24 hours.",
+    "noPromptCacheData": "No provider-side prompt cache activity has been recorded yet.",
+    "providerCacheRateDesc": "Each provider exposes total input tokens, cache read tokens, and cache write tokens so you can verify the reuse ratio against raw totals.",
+    "hoursTracked": "hours tracked",
+    "cacheRate": "Cache Rate",
+    "promptCacheSectionDesc": "Shows provider-side prompt caching activity from usage history so you can see where cache control is active and how much input reuse you are getting.",
+    "semanticCacheSectionDesc": "OmniRoute's own deterministic response cache. When enabled, repeated non-streaming temperature=0 requests can be served locally without hitting the upstream provider.",
+    "semanticEntriesDesc": "Persisted semantic cache records currently stored in SQLite. Provider-side prompt cache activity is not listed here.",
+    "entriesLoadError": "Failed to load semantic cache entries.",
+    "semanticCacheDisabledDesc": "Semantic cache is disabled. OmniRoute will skip local response reuse until you turn it back on in Settings.",
+    "cachedRequests24h": "Cached Requests (24h)",
+    "semanticCache": "Semantic Cache",
+    "cacheRateDesc": "of total requests",
+    "lastUpdated": "Last updated",
+    "peakCacheRate": "Peak Cache Rate"
   },
   "memory": {
     "title": "Memory Management",
@@ -3132,7 +3301,8 @@
     "factual": "Factual",
     "episodic": "Episodic",
     "procedural": "Procedural",
-    "semantic": "Semantic"
+    "semantic": "Semantic",
+    "delete": "Delete"
   },
   "skills": {
     "title": "Skills",
