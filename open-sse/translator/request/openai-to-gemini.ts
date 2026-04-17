@@ -225,7 +225,7 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
             .map((tc) => resolveGeminiThoughtSignature(tc.id, extractClientThoughtSignature(tc)))
             .find((signature) => typeof signature === "string" && signature.length > 0);
 
-          const shouldUseEmbeddedSignature = !parts.some((p) => p.thoughtSignature);
+          let shouldUseEmbeddedSignature = !parts.some((p) => p.thoughtSignature);
 
           for (const tc of msg.tool_calls) {
             if (tc.type !== "function") continue;
@@ -238,6 +238,10 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
             const embeddedThoughtSignature = shouldUseEmbeddedSignature
               ? firstPersistedSignature || signatureForToolCall || DEFAULT_THINKING_GEMINI_SIGNATURE
               : undefined;
+
+            if (embeddedThoughtSignature) {
+              shouldUseEmbeddedSignature = false;
+            }
 
             // Gemini expects the signature on the functionCall part itself.
             parts.push({
