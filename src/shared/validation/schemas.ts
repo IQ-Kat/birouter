@@ -42,6 +42,15 @@ function validateProviderSpecificData(
     });
   }
 
+  const cx = data.cx;
+  if (cx !== undefined && cx !== null && (typeof cx !== "string" || cx.length > 500)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.cx must be a string up to 500 chars",
+      path: ["cx"],
+    });
+  }
+
   const openaiStoreEnabled = data.openaiStoreEnabled;
   if (openaiStoreEnabled !== undefined && typeof openaiStoreEnabled !== "boolean") {
     ctx.addIssue({
@@ -110,6 +119,75 @@ function validateProviderSpecificData(
       path: ["consoleApiKey"],
     });
   }
+
+  const groupTag = data.tag;
+  if (
+    groupTag !== undefined &&
+    groupTag !== null &&
+    (typeof groupTag !== "string" || groupTag.length > 100)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.tag must be a string up to 100 chars",
+      path: ["tag"],
+    });
+  }
+
+  const routingTags = data.tags;
+  if (routingTags !== undefined && routingTags !== null) {
+    if (!Array.isArray(routingTags) || routingTags.length > 50) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "providerSpecificData.tags must be an array with at most 50 items",
+        path: ["tags"],
+      });
+    } else if (
+      routingTags.some(
+        (tag) => typeof tag !== "string" || tag.trim().length === 0 || tag.trim().length > 64
+      )
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "providerSpecificData.tags must contain non-empty strings up to 64 characters each",
+        path: ["tags"],
+      });
+    }
+  }
+
+  const excludedModels = data.excludedModels ?? data.excluded_models;
+  if (excludedModels !== undefined && excludedModels !== null) {
+    if (typeof excludedModels === "string") {
+      if (excludedModels.length > 5000) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "providerSpecificData.excludedModels string must be up to 5000 chars",
+          path: ["excludedModels"],
+        });
+      }
+    } else if (!Array.isArray(excludedModels) || excludedModels.length > 100) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "providerSpecificData.excludedModels must be an array with at most 100 items",
+        path: ["excludedModels"],
+      });
+    } else if (
+      excludedModels.some(
+        (pattern) =>
+          typeof pattern !== "string" ||
+          pattern.trim().length === 0 ||
+          pattern.trim().length > 200 ||
+          pattern.trim() === "**"
+      )
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "providerSpecificData.excludedModels must contain non-empty patterns up to 200 characters",
+        path: ["excludedModels"],
+      });
+    }
+  }
 }
 
 // Re-export validation helpers from dedicated module to avoid webpack barrel-file
@@ -119,21 +197,47 @@ export type { ValidationResult } from "./helpers";
 
 // ──── Provider Schemas ────
 
-export const createProviderSchema = z.object({
-  provider: z.string().min(1).max(100),
-  apiKey: z.string().min(1).max(10000),
-  name: z.string().min(1).max(200),
-  priority: z.number().int().min(1).max(100).optional(),
-  globalPriority: z.number().int().min(1).max(100).nullable().optional(),
-  defaultModel: z.string().max(200).nullable().optional(),
-  testStatus: z.string().max(50).optional(),
-  providerSpecificData: z
-    .record(z.string(), z.unknown())
-    .optional()
-    .superRefine((data, ctx) => {
-      validateProviderSpecificData(data, ctx);
-    }),
-});
+export const createProviderSchema = z
+  .object({
+    provider: z.string().min(1).max(100),
+    apiKey: z.string().max(10000).optional(),
+    name: z.string().min(1).max(200),
+    priority: z.number().int().min(1).max(100).optional(),
+    globalPriority: z.number().int().min(1).max(100).nullable().optional(),
+    defaultModel: z.string().max(200).nullable().optional(),
+    testStatus: z.string().max(50).optional(),
+    providerSpecificData: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .superRefine((data, ctx) => {
+        validateProviderSpecificData(data, ctx);
+      }),
+  })
+  .superRefine((data, ctx) => {
+    const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
+    if (data.provider !== "searxng-search" && apiKey.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "API key is required",
+        path: ["apiKey"],
+      });
+    }
+
+    const cx =
+      data.providerSpecificData && typeof data.providerSpecificData === "object"
+        ? (data.providerSpecificData as Record<string, unknown>).cx
+        : undefined;
+    if (
+      data.provider === "google-pse-search" &&
+      (typeof cx !== "string" || cx.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Programmable Search Engine ID (cx) is required",
+        path: ["providerSpecificData", "cx"],
+      });
+    }
+  });
 
 // ──── API Key Schemas ────
 
@@ -433,15 +537,38 @@ export const v1CountTokensSchema = z
   })
   .catchall(z.unknown());
 
-export const setBudgetSchema = z.object({
-  apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
-  dailyLimitUsd: z.coerce.number().positive("dailyLimitUsd must be greater than zero"),
-  monthlyLimitUsd: z.coerce
-    .number()
-    .positive("monthlyLimitUsd must be greater than zero")
-    .optional(),
-  warningThreshold: z.coerce.number().min(0).max(1).optional(),
-});
+export const setBudgetSchema = z
+  .object({
+    apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+    dailyLimitUsd: z.coerce.number().positive("dailyLimitUsd must be greater than zero").optional(),
+    weeklyLimitUsd: z.coerce
+      .number()
+      .positive("weeklyLimitUsd must be greater than zero")
+      .optional(),
+    monthlyLimitUsd: z.coerce
+      .number()
+      .positive("monthlyLimitUsd must be greater than zero")
+      .optional(),
+    warningThreshold: z.coerce.number().min(0).max(1).optional(),
+    resetInterval: z.enum(["daily", "weekly", "monthly"]).optional(),
+    resetTime: z
+      .string()
+      .trim()
+      .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
+      .optional(),
+  })
+  .superRefine((value, ctx) => {
+    const hasAnyLimit = [value.dailyLimitUsd, value.weeklyLimitUsd, value.monthlyLimitUsd].some(
+      (entry) => typeof entry === "number" && Number.isFinite(entry) && entry > 0
+    );
+    if (!hasAnyLimit) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one budget limit must be provided",
+        path: ["dailyLimitUsd"],
+      });
+    }
+  });
 
 export const policyActionSchema = z
   .object({
@@ -748,6 +875,54 @@ export const updateThinkingBudgetSchema = z
       value.effortLevel === undefined &&
       value.baseBudget === undefined &&
       value.complexityMultiplier === undefined
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "No valid fields to update",
+        path: [],
+      });
+    }
+  });
+
+const payloadRuleModelSpecSchema = z
+  .object({
+    name: z.string().trim().min(1),
+    protocol: z.string().trim().min(1).optional(),
+  })
+  .strict();
+
+const payloadMutationRuleSchema = z
+  .object({
+    models: z.array(payloadRuleModelSpecSchema).min(1),
+    params: z
+      .record(z.string().trim().min(1), z.unknown())
+      .refine((value) => Object.keys(value).length > 0, "params must contain at least one path"),
+  })
+  .strict();
+
+const payloadFilterRuleSchema = z
+  .object({
+    models: z.array(payloadRuleModelSpecSchema).min(1),
+    params: z.array(z.string().trim().min(1)).min(1),
+  })
+  .strict();
+
+export const updatePayloadRulesSchema = z
+  .object({
+    default: z.array(payloadMutationRuleSchema).optional(),
+    override: z.array(payloadMutationRuleSchema).optional(),
+    filter: z.array(payloadFilterRuleSchema).optional(),
+    defaultRaw: z.array(payloadMutationRuleSchema).optional(),
+    "default-raw": z.array(payloadMutationRuleSchema).optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (
+      value.default === undefined &&
+      value.override === undefined &&
+      value.filter === undefined &&
+      value.defaultRaw === undefined &&
+      value["default-raw"] === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -1268,13 +1443,24 @@ export const providersBatchTestSchema = z
     }
   });
 
-export const validateProviderApiKeySchema = z.object({
-  provider: z.string().trim().min(1, "Provider and API key required"),
-  apiKey: z.string().trim().optional(),
-  validationModelId: z.string().trim().optional(),
-  customUserAgent: z.string().trim().max(500).optional(),
-  baseUrl: z.string().trim().url().optional(),
-});
+export const validateProviderApiKeySchema = z
+  .object({
+    provider: z.string().trim().min(1, "Provider and API key required"),
+    apiKey: z.string().trim().optional(),
+    validationModelId: z.string().trim().optional(),
+    customUserAgent: z.string().trim().max(500).optional(),
+    baseUrl: z.string().trim().url().optional(),
+    cx: z.string().trim().max(500).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.provider === "google-pse-search" && !data.cx) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Programmable Search Engine ID (cx) is required",
+        path: ["cx"],
+      });
+    }
+  });
 
 const geminiPartSchema = z
   .object({
@@ -1404,7 +1590,17 @@ export const v1SearchSchema = z
       .min(1, "Query is required")
       .max(500, "Query must be 500 characters or fewer"),
     provider: z
-      .enum(["serper-search", "brave-search", "perplexity-search", "exa-search", "tavily-search"])
+      .enum([
+        "serper-search",
+        "brave-search",
+        "perplexity-search",
+        "exa-search",
+        "tavily-search",
+        "google-pse-search",
+        "linkup-search",
+        "searchapi-search",
+        "searxng-search",
+      ])
       .optional(),
     max_results: z.coerce.number().int().min(1).max(100).default(5),
     search_type: z.enum(["web", "news"]).default("web"),

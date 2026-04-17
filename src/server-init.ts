@@ -4,6 +4,10 @@ import { enforceWebRuntimeEnv } from "./lib/env/runtimeEnv";
 import { enforceSecrets } from "./shared/utils/secretsValidator";
 import { initAuditLog, cleanupExpiredLogs, logAuditEvent } from "./lib/compliance/index";
 import { initConsoleInterceptor } from "./lib/consoleInterceptor";
+import { startBudgetResetJob } from "./lib/jobs/budgetResetJob";
+import { getSettings } from "./lib/db/settings";
+import { setPayloadRulesConfig } from "@omniroute/open-sse/services/payloadRules.ts";
+import { startSpendBatchWriter } from "./lib/spend/batchWriter";
 
 async function startServer() {
   // Trigger request-log layout migration during startup, before serving requests.
@@ -44,8 +48,21 @@ async function startServer() {
   console.log("Starting server with cloud sync...");
 
   try {
+    const settings = await getSettings();
+    if (settings.payloadRules) {
+      const payloadRules =
+        typeof settings.payloadRules === "string"
+          ? JSON.parse(settings.payloadRules)
+          : settings.payloadRules;
+      setPayloadRulesConfig(payloadRules);
+      console.log("[STARTUP] Restored payload rules config from settings");
+    }
+
     // Initialize cloud sync
+    startSpendBatchWriter();
+    console.log("[STARTUP] Spend batch writer started");
     await initializeCloudSync();
+    startBudgetResetJob();
     console.log("Server started with cloud sync initialized");
 
     // Log server start event to audit log

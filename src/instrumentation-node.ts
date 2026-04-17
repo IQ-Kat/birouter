@@ -89,16 +89,20 @@ export async function registerNodejs(): Promise<void> {
     { startBackgroundRefresh },
     { startProviderLimitsSyncScheduler },
     { getSettings },
+    { startSpendBatchWriter },
   ] = await Promise.all([
     import("@/lib/gracefulShutdown"),
     import("@/lib/apiBridgeServer"),
     import("@/domain/quotaCache"),
     import("@/shared/services/providerLimitsSyncScheduler"),
     import("@/lib/db/settings"),
+    import("@/lib/spend/batchWriter"),
   ]);
 
   initGracefulShutdown();
   initApiBridgeServer();
+  startSpendBatchWriter();
+  console.log("[STARTUP] Spend batch writer started");
   if (!isBackgroundServicesDisabled()) {
     startBackgroundRefresh();
     console.log("[STARTUP] Quota cache background refresh started");
@@ -148,6 +152,21 @@ export async function registerNodejs(): Promise<void> {
         console.log(`[STARTUP] Restored background task degradation config from settings`);
       } catch (err: unknown) {
         console.warn(`[STARTUP] Failed to parse background degradation settings:`, err);
+      }
+    }
+
+    if (settings.payloadRules) {
+      try {
+        const payloadRules =
+          typeof settings.payloadRules === "string"
+            ? JSON.parse(settings.payloadRules)
+            : settings.payloadRules;
+        const { setPayloadRulesConfig } =
+          await import("@omniroute/open-sse/services/payloadRules.ts");
+        setPayloadRulesConfig(payloadRules);
+        console.log("[STARTUP] Restored payload rules config from settings");
+      } catch (err: unknown) {
+        console.warn(`[STARTUP] Failed to parse payload rules settings:`, err);
       }
     }
 

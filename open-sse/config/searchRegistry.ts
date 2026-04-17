@@ -15,7 +15,7 @@ export interface SearchProviderConfig {
   name: string;
   baseUrl: string;
   method: "GET" | "POST";
-  authType: "apikey";
+  authType: "apikey" | "none";
   authHeader: string;
   costPerQuery: number;
   freeMonthlyQuota: number;
@@ -106,6 +106,70 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     timeoutMs: 10_000,
     cacheTTLMs: 5 * 60 * 1000,
   },
+
+  "google-pse-search": {
+    id: "google-pse-search",
+    name: "Google Programmable Search",
+    baseUrl: "https://www.googleapis.com/customsearch/v1",
+    method: "GET",
+    authType: "apikey",
+    authHeader: "key",
+    costPerQuery: 0.005,
+    freeMonthlyQuota: 3000,
+    searchTypes: ["web", "news"],
+    defaultMaxResults: 5,
+    maxMaxResults: 10,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+  },
+
+  "linkup-search": {
+    id: "linkup-search",
+    name: "Linkup Search",
+    baseUrl: "https://api.linkup.so/v1/search",
+    method: "POST",
+    authType: "apikey",
+    authHeader: "bearer",
+    costPerQuery: 0.005,
+    freeMonthlyQuota: 1000,
+    searchTypes: ["web"],
+    defaultMaxResults: 5,
+    maxMaxResults: 50,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+  },
+
+  "searchapi-search": {
+    id: "searchapi-search",
+    name: "SearchAPI",
+    baseUrl: "https://www.searchapi.io/api/v1/search",
+    method: "GET",
+    authType: "apikey",
+    authHeader: "api_key",
+    costPerQuery: 0.004,
+    freeMonthlyQuota: 100,
+    searchTypes: ["web", "news"],
+    defaultMaxResults: 5,
+    maxMaxResults: 100,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+  },
+
+  "searxng-search": {
+    id: "searxng-search",
+    name: "SearXNG Search",
+    baseUrl: "http://localhost:8888/search",
+    method: "GET",
+    authType: "none",
+    authHeader: "none",
+    costPerQuery: 0,
+    freeMonthlyQuota: 999999,
+    searchTypes: ["web", "news"],
+    defaultMaxResults: 5,
+    maxMaxResults: 50,
+    timeoutMs: 10_000,
+    cacheTTLMs: 3 * 60 * 1000,
+  },
 };
 
 /**
@@ -121,6 +185,16 @@ export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {
  */
 export function getSearchProvider(providerId: string): SearchProviderConfig | null {
   return SEARCH_PROVIDERS[providerId] || null;
+}
+
+export function supportsSearchType(
+  providerOrId: SearchProviderConfig | string | null | undefined,
+  searchType: string
+): boolean {
+  const provider =
+    typeof providerOrId === "string" ? getSearchProvider(providerOrId) : providerOrId || null;
+  if (!provider) return false;
+  return provider.searchTypes.includes(searchType);
 }
 
 /**
@@ -143,12 +217,20 @@ export function getAllSearchProviders(): Array<{
  * If an explicit provider is given, validate and return it.
  * Otherwise, return the cheapest by costPerQuery.
  */
-export function selectProvider(explicitProvider?: string): SearchProviderConfig | null {
+export function selectProvider(
+  explicitProvider?: string,
+  searchType?: string
+): SearchProviderConfig | null {
   if (explicitProvider) {
-    return SEARCH_PROVIDERS[explicitProvider] || null;
+    const provider = SEARCH_PROVIDERS[explicitProvider] || null;
+    if (!provider) return null;
+    if (searchType && !supportsSearchType(provider, searchType)) return null;
+    return provider;
   }
 
-  const providers = Object.values(SEARCH_PROVIDERS);
+  const providers = Object.values(SEARCH_PROVIDERS).filter((provider) =>
+    searchType ? supportsSearchType(provider, searchType) : true
+  );
   if (providers.length === 0) return null;
 
   return providers.reduce((cheapest, p) => (p.costPerQuery < cheapest.costPerQuery ? p : cheapest));

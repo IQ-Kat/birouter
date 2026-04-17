@@ -88,6 +88,25 @@ registerCodexQuotaFetcher();
 // can proactively switch accounts before quota is exhausted.
 registerBailianCodingPlanQuotaFetcher();
 
+function normalizeAllowedConnectionIds(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const ids = value.filter(
+    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0
+  );
+  return ids.length > 0 ? ids : null;
+}
+
+function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): string[] | null {
+  const first = normalizeAllowedConnectionIds(primary);
+  const second = normalizeAllowedConnectionIds(secondary);
+
+  if (first && second) {
+    return first.filter((id) => second.includes(id));
+  }
+
+  return first || second || null;
+}
+
 /**
  * Handle chat completion request
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
@@ -269,7 +288,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     // avoid pre-skipping so each model gets a real execution attempt.
     const checkModelAvailable = async (
       modelString: string,
-      target?: { connectionId?: string | null }
+      target?: { connectionId?: string | null; allowedConnectionIds?: string[] | null }
     ) => {
       if (isComboLiveTest) return true;
 
@@ -281,6 +300,14 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       const resolvedModel = modelInfo.model || modelString;
       const hasForcedConnection =
         typeof target?.connectionId === "string" && target.connectionId.trim().length > 0;
+      const allowedConnections = intersectAllowedConnectionIds(
+        apiKeyInfo?.allowedConnections ?? null,
+        target?.allowedConnectionIds ?? null
+      );
+
+      if (Array.isArray(allowedConnections) && allowedConnections.length === 0) {
+        return false;
+      }
 
       // Fixed-account combo steps must bypass the provider/model cooldown gate here.
       // A previous account failure can quarantine the model globally, but the next
@@ -293,7 +320,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       const creds = await getProviderCredentialsWithQuotaPreflight(
         provider,
         null,
-        apiKeyInfo?.allowedConnections ?? null,
+        allowedConnections,
         resolvedModel,
         {
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
@@ -339,6 +366,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
             sessionId,
             forceLiveComboTest: isComboLiveTest,
             forcedConnectionId: target?.connectionId ?? null,
+            allowedConnectionIds: target?.allowedConnectionIds ?? null,
             comboStepId: target?.stepId || null,
             comboExecutionKey: target?.executionKey || target?.stepId || null,
           },
@@ -455,6 +483,7 @@ async function handleSingleModelChat(
     forceLiveComboTest?: boolean;
     sessionId?: string | null;
     forcedConnectionId?: string | null;
+    allowedConnectionIds?: string[] | null;
     comboStepId?: string | null;
     comboExecutionKey?: string | null;
   } = {},
@@ -470,6 +499,10 @@ async function handleSingleModelChat(
   const hasForcedConnection =
     typeof runtimeOptions.forcedConnectionId === "string" &&
     runtimeOptions.forcedConnectionId.trim().length > 0;
+  const effectiveAllowedConnections = intersectAllowedConnectionIds(
+    apiKeyInfo?.allowedConnections ?? null,
+    runtimeOptions.allowedConnectionIds ?? null
+  );
   const bypassReason = forceLiveComboTest
     ? "combo live test"
     : hasForcedConnection
@@ -508,6 +541,14 @@ async function handleSingleModelChat(
     : baseRetrySettings;
   const requestSignal = request?.signal ?? null;
 
+  if (Array.isArray(effectiveAllowedConnections) && effectiveAllowedConnections.length === 0) {
+    log.debug("AUTH", `${provider}/${model} filtered out by connection-level routing constraints`);
+    return errorResponse(
+      HTTP_STATUS.SERVICE_UNAVAILABLE,
+      "No eligible connections matched the requested routing constraints"
+    );
+  }
+
   // 3. Credential retry loop
   let requestRetryAttempt = 0;
   let requestRetryLastError = null;
@@ -524,7 +565,7 @@ async function handleSingleModelChat(
       const credentials = await getProviderCredentialsWithQuotaPreflight(
         provider,
         null,
-        apiKeyInfo?.allowedConnections ?? null,
+        effectiveAllowedConnections,
         model,
         {
           excludeConnectionIds: Array.from(excludedConnectionIds),

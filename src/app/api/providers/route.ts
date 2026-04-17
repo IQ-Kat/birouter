@@ -10,7 +10,7 @@ import {
   getProviderNodeById,
   isCloudEnabled,
 } from "@/models";
-import { APIKEY_PROVIDERS } from "@/shared/constants/config";
+import { APIKEY_PROVIDERS, SEARCH_PROVIDERS } from "@/shared/constants/config";
 import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
@@ -76,6 +76,7 @@ export async function POST(request: Request) {
     // Business validation
     const isValidProvider =
       APIKEY_PROVIDERS[provider] ||
+      SEARCH_PROVIDERS[provider] ||
       provider === "qoder" ||
       isOpenAICompatibleProvider(provider) ||
       isAnthropicCompatibleProvider(provider);

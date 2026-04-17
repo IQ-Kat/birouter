@@ -5,6 +5,7 @@ import {
   getAllSearchProviders,
   getSearchProvider,
   selectProvider,
+  supportsSearchType,
   SEARCH_PROVIDERS,
   SEARCH_CREDENTIAL_FALLBACKS,
 } from "@omniroute/open-sse/config/searchRegistry.ts";
@@ -111,7 +112,20 @@ export async function POST(request: Request) {
   if (policy.rejection) return policy.rejection;
 
   // Resolve provider and credentials
-  let providerConfig = selectProvider(body.provider);
+  if (body.provider) {
+    const explicitProvider = getSearchProvider(body.provider);
+    if (!explicitProvider) {
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, `Unknown search provider: ${body.provider}`);
+    }
+    if (!supportsSearchType(explicitProvider, body.search_type)) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `Search provider ${body.provider} does not support search_type: ${body.search_type}`
+      );
+    }
+  }
+
+  let providerConfig = selectProvider(body.provider, body.search_type);
   if (!providerConfig) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -126,10 +140,20 @@ export async function POST(request: Request) {
   if (body.provider) {
     // Explicit provider — single credential lookup (with fallback)
     credentials = await resolveSearchCredentials(providerConfig.id);
+    if (
+      !credentials &&
+      providerConfig.authType === "none" &&
+      typeof body.provider_options?.baseUrl === "string" &&
+      body.provider_options.baseUrl.trim().length > 0
+    ) {
+      credentials = { providerSpecificData: { baseUrl: body.provider_options.baseUrl.trim() } };
+    }
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
-        `No credentials configured for search provider: ${providerConfig.id}. Add an API key for "${providerConfig.id}" in the dashboard.`
+        providerConfig.authType === "none"
+          ? `Search provider ${providerConfig.id} is not configured. Set its base URL in the dashboard or pass provider_options.baseUrl.`
+          : `No credentials configured for search provider: ${providerConfig.id}. Add an API key for "${providerConfig.id}" in the dashboard.`
       );
     }
   } else {
@@ -139,6 +163,7 @@ export async function POST(request: Request) {
     if (!credentials) {
       // Sort by cost to find cheapest with credentials
       const sortedIds = Object.values(SEARCH_PROVIDERS)
+        .filter((provider) => supportsSearchType(provider, body.search_type))
         .sort((a, b) => a.costPerQuery - b.costPerQuery)
         .map((p) => p.id);
 
@@ -163,6 +188,7 @@ export async function POST(request: Request) {
 
     // Find alternate for failover — must bind credentials to the matched provider
     const otherIds = Object.values(SEARCH_PROVIDERS)
+      .filter((provider) => supportsSearchType(provider, body.search_type))
       .sort((a, b) => a.costPerQuery - b.costPerQuery)
       .map((p) => p.id)
       .filter((id) => id !== providerConfig.id);

@@ -36,6 +36,8 @@ const PROVIDER_MODEL_ALIASES = {
   nvidia: {
     "gpt-oss-120b": "openai/gpt-oss-120b",
     "nvidia/gpt-oss-120b": "openai/gpt-oss-120b",
+    "gpt-oss-20b": "openai/gpt-oss-20b",
+    "nvidia/gpt-oss-20b": "openai/gpt-oss-20b",
   },
   antigravity: ANTIGRAVITY_MODEL_ALIASES,
 };

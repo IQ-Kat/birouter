@@ -288,6 +288,216 @@ test("handleSearch builds Tavily requests with topic and raw content normalizati
   }
 });
 
+test("handleSearch builds Google PSE requests with key/cx query params and normalizes items", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl;
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+
+    return new Response(
+      JSON.stringify({
+        items: [
+          {
+            title: "Programmable result",
+            link: "https://google.example.com/page",
+            snippet: "Google snippet",
+            pagemap: {
+              cse_image: [{ src: "https://google.example.com/image.png" }],
+            },
+          },
+        ],
+        searchInformation: { totalResults: "42" },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "google custom search",
+      provider: "google-pse-search",
+      maxResults: 3,
+      searchType: "web",
+      country: "US",
+      language: "en",
+      credentials: { apiKey: "google-key", providerSpecificData: { cx: "engine-id" } },
+      log: null,
+    });
+
+    const url = new URL(capturedUrl);
+    assert.equal(url.origin + url.pathname, "https://www.googleapis.com/customsearch/v1");
+    assert.equal(url.searchParams.get("key"), "google-key");
+    assert.equal(url.searchParams.get("cx"), "engine-id");
+    assert.equal(url.searchParams.get("q"), "google custom search");
+    assert.equal(url.searchParams.get("num"), "3");
+    assert.equal(result.success, true);
+    assert.equal(result.data.results[0].metadata.image_url, "https://google.example.com/image.png");
+    assert.equal(result.data.metrics.total_results_available, 42);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleSearch builds Linkup requests and normalizes searchResults payload", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, init = {}) => {
+    captured = {
+      url: String(url),
+      headers: init.headers,
+      body: JSON.parse(String(init.body || "{}")),
+    };
+
+    return new Response(
+      JSON.stringify({
+        results: [
+          {
+            name: "Linkup result",
+            url: "https://linkup.example.com/page",
+            content: "Retrieved content",
+            type: "web",
+          },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "linkup test",
+      provider: "linkup-search",
+      maxResults: 4,
+      searchType: "web",
+      domainFilter: ["example.com", "-blocked.com"],
+      credentials: { apiKey: "linkup-key" },
+      log: null,
+    });
+
+    assert.equal(captured.url, "https://api.linkup.so/v1/search");
+    assert.equal(captured.headers.Authorization, "Bearer linkup-key");
+    assert.deepEqual(captured.body, {
+      q: "linkup test",
+      depth: "standard",
+      outputType: "searchResults",
+      maxResults: 4,
+      includeDomains: ["example.com"],
+      excludeDomains: ["blocked.com"],
+    });
+    assert.equal(result.success, true);
+    assert.equal(result.data.results[0].title, "Linkup result");
+    assert.equal(result.data.results[0].content.text, "Retrieved content");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleSearch builds SearchAPI requests and normalizes organic results", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl;
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+
+    return new Response(
+      JSON.stringify({
+        search_information: { total_results: 18 },
+        organic_results: [
+          {
+            title: "SearchAPI result",
+            link: "https://searchapi.example.com/page",
+            snippet: "SearchAPI snippet",
+            date: "2026-04-06",
+            source: "SearchAPI Source",
+            thumbnail: "https://searchapi.example.com/thumb.png",
+          },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "searchapi query",
+      provider: "searchapi-search",
+      maxResults: 2,
+      searchType: "news",
+      country: "US",
+      language: "en",
+      credentials: { apiKey: "searchapi-key" },
+      log: null,
+    });
+
+    const url = new URL(capturedUrl);
+    assert.equal(url.origin + url.pathname, "https://www.searchapi.io/api/v1/search");
+    assert.equal(url.searchParams.get("engine"), "google_news");
+    assert.equal(url.searchParams.get("api_key"), "searchapi-key");
+    assert.equal(url.searchParams.get("gl"), "us");
+    assert.equal(url.searchParams.get("hl"), "en");
+    assert.equal(result.success, true);
+    assert.equal(result.data.results[0].metadata.author, "SearchAPI Source");
+    assert.equal(
+      result.data.results[0].metadata.image_url,
+      "https://searchapi.example.com/thumb.png"
+    );
+    assert.equal(result.data.metrics.total_results_available, 18);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleSearch builds SearXNG requests with custom baseUrl and no apiKey", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl;
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+
+    return new Response(
+      JSON.stringify({
+        results: [
+          {
+            title: "SearXNG result",
+            url: "https://searx.example.com/page",
+            content: "Metasearch snippet",
+            publishedDate: "2026-04-07",
+            engines: ["duckduckgo", "brave"],
+          },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "privacy search",
+      provider: "searxng-search",
+      maxResults: 5,
+      searchType: "news",
+      language: "pt-BR",
+      credentials: {
+        providerSpecificData: { baseUrl: "http://localhost:9999" },
+      },
+      log: null,
+    });
+
+    const url = new URL(capturedUrl);
+    assert.equal(url.origin + url.pathname, "http://localhost:9999/search");
+    assert.equal(url.searchParams.get("format"), "json");
+    assert.equal(url.searchParams.get("categories"), "news");
+    assert.equal(url.searchParams.get("language"), "pt-BR");
+    assert.equal(result.success, true);
+    assert.equal(result.data.provider, "searxng-search");
+    assert.equal(result.data.results[0].metadata.source_type, "duckduckgo, brave");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleSearch rejects queries with invalid control characters", async () => {
   const result = await handleSearch({
     query: "bad\u0000query",

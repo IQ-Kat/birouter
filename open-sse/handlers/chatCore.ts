@@ -45,6 +45,7 @@ import {
 } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
+import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
 import {
   getModelNormalizeToolCallId,
@@ -54,6 +55,10 @@ import {
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
+import {
+  applyConfiguredPayloadRules,
+  resolvePayloadRuleProtocols,
+} from "../services/payloadRules.ts";
 import {
   shouldPreserveCacheControl,
   providerSupportsCaching,
@@ -127,6 +132,7 @@ import {
 } from "@/lib/memory/settings";
 import { injectSkills } from "@/lib/skills/injection";
 import { handleToolCallExecution } from "@/lib/skills/interception";
+import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 import {
   buildClaudeCodeCompatibleRequest,
   isClaudeCodeCompatibleProvider,
@@ -641,6 +647,15 @@ export async function handleChatCore({
   const cachedIdemp = checkIdempotency(idempotencyKey);
   if (cachedIdemp) {
     log?.debug?.("IDEMPOTENCY", `Hit for key=${idempotencyKey?.slice(0, 12)}...`);
+    const idempotentUsage =
+      cachedIdemp.response && typeof cachedIdemp.response === "object"
+        ? ((cachedIdemp.response as Record<string, unknown>).usage as
+            | Record<string, unknown>
+            | undefined)
+        : undefined;
+    const idempotentCost = idempotentUsage
+      ? await calculateCost(provider, model, idempotentUsage)
+      : 0;
     return {
       success: true,
       response: new Response(JSON.stringify(cachedIdemp.response), {
@@ -649,6 +664,14 @@ export async function handleChatCore({
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": getCorsOrigin(),
           "X-OmniRoute-Idempotent": "true",
+          ...buildOmniRouteResponseMetaHeaders({
+            provider,
+            model,
+            cacheHit: false,
+            latencyMs: Date.now() - startTime,
+            usage: idempotentUsage,
+            costUsd: idempotentCost,
+          }),
         },
       }),
     };
@@ -907,6 +930,10 @@ export async function handleChatCore({
     if (cached) {
       log?.debug?.("CACHE", `Semantic cache HIT for ${model} (stream=${stream})`);
       reqLogger.logConvertedResponse(cached as Record<string, unknown>);
+      const cachedUsage =
+        extractUsageFromResponse(cached as Record<string, unknown>, provider) ||
+        ((cached as Record<string, unknown>)?.usage as Record<string, unknown> | undefined);
+      const cachedCost = cachedUsage ? await calculateCost(provider, model, cachedUsage) : 0;
       persistAttemptLogs({
         status: 200,
         tokens: (cached as Record<string, unknown>)?.usage,
@@ -922,7 +949,15 @@ export async function handleChatCore({
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": getCorsOrigin(),
-            "X-OmniRoute-Cache": "HIT",
+            [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
+            ...buildOmniRouteResponseMetaHeaders({
+              provider,
+              model,
+              cacheHit: true,
+              latencyMs: Date.now() - startTime,
+              usage: cachedUsage,
+              costUsd: cachedCost,
+            }),
           },
         }),
       };
@@ -1538,6 +1573,38 @@ export async function handleChatCore({
         translatedBody.model === modelToCall
           ? translatedBody
           : { ...translatedBody, model: modelToCall };
+      const payloadRuleModel =
+        typeof bodyToSend.model === "string" && bodyToSend.model.length > 0
+          ? bodyToSend.model
+          : modelToCall;
+      const payloadRuleProtocols = resolvePayloadRuleProtocols({
+        provider,
+        targetFormat,
+      });
+      const payloadRuleResult = await applyConfiguredPayloadRules(
+        bodyToSend,
+        payloadRuleModel,
+        payloadRuleProtocols
+      );
+      bodyToSend = payloadRuleResult.payload;
+
+      if (payloadRuleResult.applied.length > 0) {
+        const appliedSummary = payloadRuleResult.applied
+          .map((rule) => {
+            if (rule.type === "filter") return `${rule.type}:${rule.path}`;
+            const serializedValue = JSON.stringify(rule.value);
+            const safeValue =
+              typeof serializedValue === "string" && serializedValue.length > 80
+                ? `${serializedValue.slice(0, 77)}...`
+                : serializedValue;
+            return `${rule.type}:${rule.path}=${safeValue}`;
+          })
+          .join(", ");
+        log?.debug?.(
+          "PAYLOAD_RULES",
+          `Applied ${payloadRuleResult.applied.length} rule(s) for ${payloadRuleModel} (${payloadRuleProtocols.join(", ")}): ${appliedSummary}`
+        );
+      }
 
       // Qwen OAuth rejects requests without a non-empty `user` field.
       // Some minimal OpenAI-compatible clients omit it, so we backfill a
@@ -2387,11 +2454,6 @@ export async function handleChatCore({
       });
     }
 
-    if (apiKeyInfo?.id && usage) {
-      const estimatedCost = await calculateCost(provider, model, usage);
-      if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
-    }
-
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
     let translatedResponse = needsTranslation(responsePayloadFormat, clientResponseFormat)
@@ -2515,13 +2577,31 @@ export async function handleChatCore({
       cacheSource: "upstream",
     });
 
+    const responseUsage =
+      (usage && typeof usage === "object" ? usage : null) ||
+      (translatedResponse?.usage && typeof translatedResponse.usage === "object"
+        ? translatedResponse.usage
+        : null);
+    const estimatedCost = responseUsage ? await calculateCost(provider, model, responseUsage) : 0;
+    if (apiKeyInfo?.id && estimatedCost > 0) {
+      recordCost(apiKeyInfo.id, estimatedCost);
+    }
+
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": getCorsOrigin(),
-          "X-OmniRoute-Cache": "MISS",
+          [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
+          ...buildOmniRouteResponseMetaHeaders({
+            provider,
+            model,
+            cacheHit: false,
+            latencyMs: Date.now() - startTime,
+            usage: responseUsage,
+            costUsd: estimatedCost,
+          }),
         },
       }),
     };
@@ -2539,6 +2619,15 @@ export async function handleChatCore({
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
     "Access-Control-Allow-Origin": getCorsOrigin(),
+    [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
+    ...buildOmniRouteResponseMetaHeaders({
+      provider,
+      model,
+      cacheHit: false,
+      latencyMs: 0,
+      usage: null,
+      costUsd: 0,
+    }),
   };
 
   // Create transform stream with logger for streaming response
@@ -2701,7 +2790,7 @@ export async function handleChatCore({
     // Chain: provider → transform → progress → client
     const transformedBody = pipeWithDisconnect(providerResponse, transformStream, streamController);
     finalStream = transformedBody.pipeThrough(progressTransform);
-    responseHeaders["X-OmniRoute-Progress"] = "enabled";
+    responseHeaders[OMNIROUTE_RESPONSE_HEADERS.progress] = "enabled";
   } else {
     finalStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
   }

@@ -122,6 +122,73 @@ test("search provider validators cover success, client errors, server errors and
   assert.equal(calls[0].init.headers["User-Agent"], "SearchSuite/1.0");
 });
 
+test("extended search provider validators cover Google PSE, Linkup, SearchAPI and SearXNG", async () => {
+  const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = "true";
+  const calls = [];
+  try {
+    globalThis.fetch = async (url, init = {}) => {
+      calls.push({ url: String(url), init });
+      const target = String(url);
+      if (target.startsWith("https://www.googleapis.com/customsearch/v1")) {
+        return new Response(JSON.stringify({ items: [] }), { status: 200 });
+      }
+      if (target.startsWith("https://api.linkup.so/v1/search")) {
+        return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+      }
+      if (target.startsWith("https://www.searchapi.io/api/v1/search")) {
+        return new Response(JSON.stringify({ organic_results: [] }), { status: 200 });
+      }
+      if (target.startsWith("http://localhost:9999/search")) {
+        return new Response(JSON.stringify({ results: [] }), { status: 200 });
+      }
+      throw new Error(`unexpected fetch: ${target}`);
+    };
+
+    const google = await validateProviderApiKey({
+      provider: "google-pse-search",
+      apiKey: "google-key",
+      providerSpecificData: { cx: "engine-id" },
+    });
+    const linkup = await validateProviderApiKey({
+      provider: "linkup-search",
+      apiKey: "linkup-key",
+    });
+    const searchapi = await validateProviderApiKey({
+      provider: "searchapi-search",
+      apiKey: "searchapi-key",
+    });
+    const searxng = await validateProviderApiKey({
+      provider: "searxng-search",
+      providerSpecificData: { baseUrl: "http://localhost:9999/search" },
+    });
+
+    assert.equal(google.valid, true);
+    assert.equal(linkup.valid, true);
+    assert.equal(searchapi.valid, true);
+    assert.equal(searxng.valid, true);
+    assert.match(calls[0].url, /cx=engine-id/);
+    assert.equal(calls[1].init.headers.Authorization, "Bearer linkup-key");
+    assert.match(calls[2].url, /api_key=searchapi-key/);
+  } finally {
+    if (originalAllowPrivateProviderUrls === undefined) {
+      delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+    } else {
+      process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+    }
+  }
+});
+
+test("google PSE validator requires cx", async () => {
+  const result = await validateProviderApiKey({
+    provider: "google-pse-search",
+    apiKey: "google-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Programmable Search Engine ID (cx) is required");
+});
+
 test("OpenAI-compatible validator covers /responses mode and final ping fallback", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {

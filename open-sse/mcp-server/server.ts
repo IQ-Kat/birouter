@@ -525,7 +525,11 @@ async function handleWebSearch(args: {
     | "brave-search"
     | "perplexity-search"
     | "exa-search"
-    | "tavily-search";
+    | "tavily-search"
+    | "google-pse-search"
+    | "linkup-search"
+    | "searchapi-search"
+    | "searxng-search";
 }) {
   const start = Date.now();
   try {

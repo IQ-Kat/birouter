@@ -25,6 +25,7 @@ const LOBEHUB_PROVIDER_MAP: Record<string, string> = {
   gemini: "google",
   "gemini-cli": "gemini",
   google: "google",
+  "google-pse-search": "google",
   deepseek: "deepseek",
   groq: "groq",
   mistral: "mistral",

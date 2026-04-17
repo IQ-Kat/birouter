@@ -1,5 +1,8 @@
 type JsonRecord = Record<string, unknown>;
 
+import { normalizeExcludedModelPatterns } from "@/domain/connectionModelRules";
+import { normalizeRoutingTags } from "@/domain/tagRouter";
+
 export const CODEX_REASONING_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"] as const;
 
 export type CodexReasoningEffort = (typeof CODEX_REASONING_EFFORT_VALUES)[number];
@@ -83,6 +86,40 @@ export function normalizeProviderSpecificData(
 
   if ("openaiStoreEnabled" in normalized && typeof normalized.openaiStoreEnabled !== "boolean") {
     delete normalized.openaiStoreEnabled;
+  }
+
+  if ("tag" in normalized) {
+    if (typeof normalized.tag === "string") {
+      const trimmedTag = normalized.tag.trim();
+      if (trimmedTag) {
+        normalized.tag = trimmedTag;
+      } else {
+        delete normalized.tag;
+      }
+    } else {
+      delete normalized.tag;
+    }
+  }
+
+  if ("tags" in normalized) {
+    const tags = normalizeRoutingTags(normalized.tags);
+    if (tags.length > 0) {
+      normalized.tags = tags;
+    } else {
+      delete normalized.tags;
+    }
+  }
+
+  if ("excludedModels" in normalized || "excluded_models" in normalized) {
+    const excludedModels = normalizeExcludedModelPatterns(
+      normalized.excludedModels ?? normalized.excluded_models
+    );
+    if (excludedModels.length > 0) {
+      normalized.excludedModels = excludedModels;
+    } else {
+      delete normalized.excludedModels;
+    }
+    delete normalized.excluded_models;
   }
 
   return Object.keys(normalized).length > 0 ? normalized : undefined;

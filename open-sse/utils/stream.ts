@@ -17,6 +17,8 @@ import {
   formatSSE,
   unwrapGeminiChunk,
 } from "./streamHelpers.ts";
+import { calculateCost } from "@/lib/usage/costCalculator";
+import { buildOmniRouteSseMetadataComment } from "@/domain/omnirouteResponseMeta";
 import {
   createStructuredSSECollector,
   buildStreamSummaryFromEvents,
@@ -337,6 +339,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   // Passthrough: accumulate content and reasoning separately for call log response body
   let passthroughAccumulatedContent = "";
   let passthroughAccumulatedReasoning = "";
+  const streamStartedAt = Date.now();
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
@@ -478,6 +481,24 @@ export function createSSEStream(options: StreamOptions = {}) {
     controller.enqueue(encoder.encode(output));
   };
 
+  const emitFinalSseMetadata = async (
+    controller: TransformStreamDefaultController,
+    finalUsage: UsageTokenRecord | Record<string, unknown> | null | undefined
+  ) => {
+    const costUsd = finalUsage ? await calculateCost(provider, model, finalUsage) : 0;
+    const comment = buildOmniRouteSseMetadataComment({
+      provider,
+      model,
+      cacheHit: false,
+      latencyMs: Date.now() - streamStartedAt,
+      usage: finalUsage,
+      costUsd,
+    });
+    if (!comment) return;
+    reqLogger?.appendConvertedChunk?.(comment);
+    controller.enqueue(encoder.encode(comment));
+  };
+
   return new TransformStream(
     {
       start(controller) {
@@ -571,9 +592,13 @@ export function createSSEStream(options: StreamOptions = {}) {
               if (providerPayload) {
                 providerPayloadCollector.push(providerPayload);
                 if ((providerPayload as { done?: unknown }).done === true) {
-                  clientPayloadCollector.push(providerPayload);
+                  continue;
                 }
               }
+            }
+
+            if (trimmed.startsWith("data:") && trimmed.slice(5).trim() === "[DONE]") {
+              continue;
             }
 
             if (trimmed.startsWith("data:") && trimmed.slice(5).trim() !== "[DONE]") {
@@ -835,13 +860,6 @@ export function createSSEStream(options: StreamOptions = {}) {
           providerPayloadCollector.push(parsed);
 
           if (parsed && parsed.done) {
-            if (!doneSent) {
-              doneSent = true;
-              clientPayloadCollector.push({ done: true });
-              const output = "data: [DONE]\n\n";
-              reqLogger?.appendConvertedChunk?.(output);
-              controller.enqueue(encoder.encode(output));
-            }
             continue;
           }
 
@@ -956,7 +974,7 @@ export function createSSEStream(options: StreamOptions = {}) {
         }
       },
 
-      flush(controller) {
+      async flush(controller) {
         // Clean up idle watchdog timer
         if (idleTimer) {
           clearInterval(idleTimer);
@@ -1041,6 +1059,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                 tokens: null,
                 status: "200 OK",
               }).catch(() => {});
+            }
+            if (!doneSent) {
+              await emitFinalSseMetadata(controller, usage);
+              doneSent = true;
+              clientPayloadCollector.push({ done: true });
+              const doneOutput = "data: [DONE]\n\n";
+              reqLogger?.appendConvertedChunk?.(doneOutput);
+              controller.enqueue(encoder.encode(doneOutput));
             }
             // Notify caller for call log persistence (include full response body with accumulated content)
             if (onComplete) {
@@ -1216,6 +1242,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           // Send [DONE] (only if not already sent during transform)
           if (!doneSent) {
+            await emitFinalSseMetadata(controller, state?.usage as Record<string, unknown> | null);
             doneSent = true;
             clientPayloadCollector.push({ done: true });
             const doneOutput = "data: [DONE]\n\n";

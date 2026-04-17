@@ -45,8 +45,11 @@ export default function BudgetTab() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     dailyLimitUsd: "",
+    weeklyLimitUsd: "",
     monthlyLimitUsd: "",
     warningThreshold: "80",
+    resetInterval: "daily",
+    resetTime: "00:00",
   });
   const notify = useNotificationStore();
   const formatCurrency = (value) =>
@@ -56,6 +59,28 @@ export default function BudgetTab() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(Number(value || 0));
+  const formatDateTime = (value) =>
+    value
+      ? new Intl.DateTimeFormat(locale, {
+          dateStyle: "medium",
+          timeStyle: "short",
+          timeZone: "UTC",
+        }).format(new Date(value))
+      : "—";
+
+  const getActiveLimitFromForm = () => {
+    const daily = parseFloat(form.dailyLimitUsd) || 0;
+    const weekly = parseFloat(form.weeklyLimitUsd) || 0;
+    const monthly = parseFloat(form.monthlyLimitUsd) || 0;
+
+    if (form.resetInterval === "monthly") {
+      return monthly || daily;
+    }
+    if (form.resetInterval === "weekly") {
+      return weekly || daily;
+    }
+    return daily;
+  };
 
   // Load API keys
   useEffect(() => {
@@ -80,6 +105,8 @@ export default function BudgetTab() {
         setBudget(data);
         if (data.dailyLimitUsd)
           setForm((f) => ({ ...f, dailyLimitUsd: String(data.dailyLimitUsd) }));
+        if (data.weeklyLimitUsd)
+          setForm((f) => ({ ...f, weeklyLimitUsd: String(data.weeklyLimitUsd) }));
         if (data.monthlyLimitUsd)
           setForm((f) => ({ ...f, monthlyLimitUsd: String(data.monthlyLimitUsd) }));
         if (data.warningThreshold)
@@ -88,6 +115,12 @@ export default function BudgetTab() {
             ...f,
             warningThreshold: String(Math.round(data.warningThreshold * 100)),
           }));
+        if (data.resetInterval) {
+          setForm((f) => ({ ...f, resetInterval: data.resetInterval }));
+        }
+        if (data.resetTime) {
+          setForm((f) => ({ ...f, resetTime: data.resetTime }));
+        }
       }
     } catch {
       // silent
@@ -106,10 +139,13 @@ export default function BudgetTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           apiKeyId: selectedKey,
-          dailyLimitUsd: form.dailyLimitUsd ? parseFloat(form.dailyLimitUsd) : null,
-          monthlyLimitUsd: form.monthlyLimitUsd ? parseFloat(form.monthlyLimitUsd) : null,
+          dailyLimitUsd: form.dailyLimitUsd ? parseFloat(form.dailyLimitUsd) : undefined,
+          weeklyLimitUsd: form.weeklyLimitUsd ? parseFloat(form.weeklyLimitUsd) : undefined,
+          monthlyLimitUsd: form.monthlyLimitUsd ? parseFloat(form.monthlyLimitUsd) : undefined,
           // schema expects a fraction (0–1); UI shows percentage (0–100)
           warningThreshold: (parseInt(form.warningThreshold) || 80) / 100,
+          resetInterval: form.resetInterval,
+          resetTime: form.resetTime || "00:00",
         }),
       });
       if (res.ok) {
@@ -147,9 +183,12 @@ export default function BudgetTab() {
   }
 
   const dailyLimit = budget?.dailyLimitUsd || parseFloat(form.dailyLimitUsd) || 0;
+  const weeklyLimit = budget?.weeklyLimitUsd || parseFloat(form.weeklyLimitUsd) || 0;
   const monthlyLimit = budget?.monthlyLimitUsd || parseFloat(form.monthlyLimitUsd) || 0;
   const dailyCost = budget?.totalCostToday || 0;
   const monthlyCost = budget?.totalCostMonth || 0;
+  const activeLimit = budget?.activeLimitUsd || getActiveLimitFromForm();
+  const activeCost = budget?.totalCostPeriod || 0;
   const warnPct = (parseInt(form.warningThreshold) || 80) / 100;
 
   return (
@@ -181,7 +220,7 @@ export default function BudgetTab() {
         </div>
 
         {/* Current Spend */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="p-4 rounded-lg border border-border/30 bg-surface/20">
             <p className="text-sm text-text-muted mb-2">{t("todaysSpend")}</p>
             <p className="text-2xl font-bold text-text-main">{formatCurrency(dailyCost)}</p>
@@ -206,6 +245,24 @@ export default function BudgetTab() {
               />
             )}
           </div>
+          <div className="p-4 rounded-lg border border-border/30 bg-surface/20">
+            <p className="text-sm text-text-muted mb-2">Active Period Spend</p>
+            <p className="text-2xl font-bold text-text-main">{formatCurrency(activeCost)}</p>
+            {activeLimit > 0 && (
+              <ProgressBar
+                value={activeCost}
+                max={activeLimit}
+                warningAt={warnPct}
+                formatCurrency={formatCurrency}
+              />
+            )}
+            <div className="mt-3 space-y-1 text-xs text-text-muted">
+              <p>
+                Interval: {(budget?.resetInterval || form.resetInterval || "daily").toUpperCase()}
+              </p>
+              <p>Next reset (UTC): {formatDateTime(budget?.budgetResetAt)}</p>
+            </div>
+          </div>
         </div>
 
         {/* Budget Form */}
@@ -220,6 +277,15 @@ export default function BudgetTab() {
               placeholder={t("dailyLimitPlaceholder")}
               value={form.dailyLimitUsd}
               onChange={(e) => setForm({ ...form, dailyLimitUsd: e.target.value })}
+            />
+            <Input
+              label="Weekly Limit (USD)"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g. 25.00"
+              value={form.weeklyLimitUsd}
+              onChange={(e) => setForm({ ...form, weeklyLimitUsd: e.target.value })}
             />
             <Input
               label={t("monthlyLimitUsd")}
@@ -239,6 +305,30 @@ export default function BudgetTab() {
               value={form.warningThreshold}
               onChange={(e) => setForm({ ...form, warningThreshold: e.target.value })}
             />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="space-y-1">
+              <label className="text-sm text-text-muted block">Reset Interval</label>
+              <select
+                value={form.resetInterval}
+                onChange={(e) => setForm({ ...form, resetInterval: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-border/50 bg-surface/30 text-text-main text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            <Input
+              label="Reset Time (UTC)"
+              type="time"
+              value={form.resetTime}
+              onChange={(e) => setForm({ ...form, resetTime: e.target.value })}
+            />
+          </div>
+          <div className="mb-4 rounded-lg border border-border/30 bg-surface/20 px-4 py-3 text-sm text-text-muted">
+            <p>Weekly limit: {weeklyLimit > 0 ? formatCurrency(weeklyLimit) : "Not configured"}</p>
+            <p>Next reset (UTC): {formatDateTime(budget?.budgetResetAt)}</p>
           </div>
           <Button variant="primary" onClick={handleSave} loading={saving}>
             {t("saveLimits")}

@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { SEARCH_PROVIDERS } from "@omniroute/open-sse/config/searchRegistry.ts";
 import { getDbInstance } from "@/lib/db/core";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 
@@ -56,19 +57,11 @@ export async function GET(req: Request) {
       )
       .all() as Array<{ provider: string; cnt: number }>;
 
-    // Cost per search provider (matching searchRegistry.ts rates)
-    const COST_PER_QUERY: Record<string, number> = {
-      "serper-search": 0.001,
-      "brave-search": 0.003,
-      "perplexity-search": 0.005,
-      "exa-search": 0.01,
-      "tavily-search": 0.004,
-    };
-
     const byProvider: Record<string, { count: number; costUsd: number }> = {};
     let totalCostUsd = 0;
     for (const row of provRows) {
-      const cost = (COST_PER_QUERY[row.provider] ?? 0.001) * row.cnt;
+      const costPerQuery = SEARCH_PROVIDERS[row.provider]?.costPerQuery ?? 0;
+      const cost = costPerQuery * row.cnt;
       byProvider[row.provider] = { count: row.cnt, costUsd: cost };
       totalCostUsd += cost;
     }

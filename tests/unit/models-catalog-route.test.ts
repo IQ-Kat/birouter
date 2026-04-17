@@ -98,6 +98,51 @@ test("v1 models catalog accepts bearer API keys and filters the list by allowed 
   );
 });
 
+test("v1 models catalog hides models excluded by every active connection while keeping models served by at least one account", async () => {
+  const first = await seedConnection("openai", {
+    name: "openai-first",
+    providerSpecificData: {
+      excludedModels: ["gpt-4o*"],
+    },
+  });
+  const second = await seedConnection("openai", {
+    name: "openai-second",
+    providerSpecificData: {
+      excludedModels: ["gpt-4.1*"],
+    },
+  });
+
+  let response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  let body = await response.json();
+  let ids = new Set(body.data.map((item) => item.id));
+
+  assert.equal(response.status, 200);
+  assert.equal(ids.has("openai/gpt-4o-mini"), true);
+
+  await providersDb.updateProviderConnection(second.id, {
+    providerSpecificData: {
+      excludedModels: ["gpt-4o*"],
+    },
+  });
+
+  response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  body = await response.json();
+  ids = new Set(body.data.map((item) => item.id));
+
+  assert.equal(response.status, 200);
+  assert.equal(ids.has("openai/gpt-4o-mini"), false);
+
+  await providersDb.updateProviderConnection(first.id, {
+    providerSpecificData: {
+      excludedModels: [],
+    },
+  });
+});
+
 test("v1 models catalog includes combos and custom models while excluding hidden models and blocked providers", async () => {
   await settingsDb.updateSettings({
     blockedProviders: ["claude"],

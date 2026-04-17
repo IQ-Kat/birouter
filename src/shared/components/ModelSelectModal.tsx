@@ -7,6 +7,10 @@ import Modal from "./Modal";
 import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import {
+  getModelCatalogSourceLabel,
+  matchesModelCatalogQuery,
+} from "@/shared/utils/modelCatalogSearch";
+import {
   OAUTH_PROVIDERS,
   FREE_PROVIDERS,
   APIKEY_PROVIDERS,
@@ -126,6 +130,7 @@ export default function ModelSelectModal({
             id: fullModel.replace(`${alias}/`, ""),
             name: aliasName,
             value: fullModel,
+            source: "alias",
           }));
 
         // Merge custom models for passthrough providers
@@ -136,6 +141,7 @@ export default function ModelSelectModal({
             name: cm.name || cm.id,
             value: `${alias}/${cm.id}`,
             isCustom: true,
+            source: cm.source === "api-sync" ? "api-sync" : "custom",
           }));
 
         const allModels = [...aliasModels, ...customEntries];
@@ -162,6 +168,7 @@ export default function ModelSelectModal({
             id: fullModel.replace(`${providerId}/`, ""),
             name: aliasName,
             value: `${nodePrefix}/${fullModel.replace(`${providerId}/`, "")}`,
+            source: "alias",
           }));
 
         const fallbackEntries = (
@@ -173,6 +180,7 @@ export default function ModelSelectModal({
             name: fm.name || fm.id,
             value: `${nodePrefix}/${fm.id}`,
             isFallback: true,
+            source: "fallback",
           }));
 
         // Merge custom models for custom providers
@@ -187,6 +195,7 @@ export default function ModelSelectModal({
             name: cm.name || cm.id,
             value: `${nodePrefix}/${cm.id}`,
             isCustom: true,
+            source: cm.source === "api-sync" ? "api-sync" : "custom",
           }));
 
         const allModels = [...nodeModels, ...fallbackEntries, ...customEntries];
@@ -209,6 +218,7 @@ export default function ModelSelectModal({
           id: m.id,
           name: m.name,
           value: `${alias}/${m.id}`,
+          source: "system",
         }));
 
         const customEntries = providerCustomModels
@@ -218,6 +228,7 @@ export default function ModelSelectModal({
             name: cm.name || cm.id,
             value: `${alias}/${cm.id}`,
             isCustom: true,
+            source: cm.source === "api-sync" ? "api-sync" : "custom",
           }));
 
         const allModels = [...systemEntries, ...customEntries];
@@ -251,8 +262,12 @@ export default function ModelSelectModal({
     const filtered: Record<string, any> = {};
 
     Object.entries(groupedModels).forEach(([providerId, group]: [string, any]) => {
-      const matchedModels = group.models.filter(
-        (m) => m.name.toLowerCase().includes(query) || m.id.toLowerCase().includes(query)
+      const matchedModels = group.models.filter((model) =>
+        matchesModelCatalogQuery(query, {
+          modelId: model.id,
+          modelName: model.name,
+          source: model.source,
+        })
       );
 
       const providerNameMatches = group.name.toLowerCase().includes(query);
@@ -260,7 +275,7 @@ export default function ModelSelectModal({
       if (matchedModels.length > 0 || providerNameMatches) {
         filtered[providerId] = {
           ...group,
-          models: matchedModels,
+          models: matchedModels.length > 0 ? matchedModels : group.models,
         };
       }
     });
@@ -368,7 +383,11 @@ export default function ModelSelectModal({
                   >
                     {isAdded && <span className="mr-0.5 opacity-70">✓</span>}
                     {model.name}
-                    {model.isCustom ? " ★" : ""}
+                    {model.source && (
+                      <span className="ml-1 text-[10px] uppercase opacity-70">
+                        {getModelCatalogSourceLabel(model.source)}
+                      </span>
+                    )}
                   </button>
                 );
               })}

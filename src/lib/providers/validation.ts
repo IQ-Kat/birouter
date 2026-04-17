@@ -985,7 +985,7 @@ async function validateSearchProvider(
 
 const SEARCH_VALIDATOR_CONFIGS: Record<
   string,
-  (apiKey: string) => { url: string; init: RequestInit }
+  (apiKey: string, providerSpecificData?: any) => { url: string; init: RequestInit }
 > = {
   "serper-search": (apiKey) => ({
     url: "https://google.serper.dev/search",
@@ -1026,6 +1026,57 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       body: JSON.stringify({ query: "test", max_results: 1 }),
     },
   }),
+  "google-pse-search": (apiKey, providerSpecificData = {}) => {
+    const cx = providerSpecificData?.cx;
+    if (!cx || typeof cx !== "string") {
+      throw new Error("Programmable Search Engine ID (cx) is required");
+    }
+    return {
+      url: `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(
+        cx
+      )}&q=test&num=1`,
+      init: {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      },
+    };
+  },
+  "linkup-search": (apiKey) => ({
+    url: "https://api.linkup.so/v1/search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        q: "test",
+        depth: "standard",
+        outputType: "searchResults",
+        maxResults: 1,
+      }),
+    },
+  }),
+  "searchapi-search": (apiKey) => ({
+    url: `https://www.searchapi.io/api/v1/search?engine=google&q=test&api_key=${encodeURIComponent(
+      apiKey
+    )}`,
+    init: {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    },
+  }),
+  "searxng-search": (_apiKey, providerSpecificData = {}) => {
+    const baseUrl =
+      typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+        ? providerSpecificData.baseUrl.trim().replace(/\/+$/, "")
+        : "http://localhost:8888/search";
+    const searchUrl = baseUrl.endsWith("/search") ? baseUrl : `${baseUrl}/search`;
+    return {
+      url: `${searchUrl}?q=test&format=json`,
+      init: {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      },
+    };
+  },
 };
 
 async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -1121,7 +1172,8 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
 }
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
-  if (!provider || !apiKey) {
+  const requiresApiKey = provider !== "searxng-search";
+  if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
 
@@ -1197,7 +1249,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
         id,
         ({ apiKey, providerSpecificData }: any) => {
-          const { url, init } = configFn(apiKey);
+          const { url, init } = configFn(apiKey, providerSpecificData);
           return validateSearchProvider(url, init, providerSpecificData);
         },
       ])

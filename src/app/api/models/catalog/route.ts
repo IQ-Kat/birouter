@@ -3,6 +3,7 @@ import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { AI_PROVIDERS, ALIAS_TO_ID } from "@/shared/constants/providers";
+import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 
 /**
  * GET /api/models/catalog
@@ -12,6 +13,41 @@ export async function GET() {
   try {
     const connections = await getProviderConnections();
     const activeProviders = new Set(connections.map((c) => c.provider));
+    const connectionsByProvider = new Map<string, typeof connections>();
+    const registerConnectionKey = (
+      key: string | null | undefined,
+      connection: (typeof connections)[number]
+    ) => {
+      if (!key) return;
+      const existing = connectionsByProvider.get(key) || [];
+      existing.push(connection);
+      connectionsByProvider.set(key, existing);
+    };
+    for (const connection of connections) {
+      registerConnectionKey(connection.provider, connection);
+      registerConnectionKey(
+        PROVIDER_ID_TO_ALIAS[connection.provider] || connection.provider,
+        connection
+      );
+    }
+    const getConnectionsForProvider = (...keys: Array<string | null | undefined>) => {
+      const seen = new Set<string>();
+      const collected: typeof connections = [];
+      for (const key of keys) {
+        if (!key) continue;
+        for (const connection of connectionsByProvider.get(key) || []) {
+          if (!connection?.id || seen.has(connection.id)) continue;
+          seen.add(connection.id);
+          collected.push(connection);
+        }
+      }
+      return collected;
+    };
+    const providerSupportsModel = (providerId: string, modelId: string) =>
+      hasEligibleConnectionForModel(
+        getConnectionsForProvider(providerId, PROVIDER_ID_TO_ALIAS[providerId]),
+        modelId
+      );
     const customModelsMap = await getAllCustomModels().catch(() => ({}));
 
     const catalog: Record<string, any> = {};
@@ -28,6 +64,7 @@ export async function GET() {
       }
 
       for (const model of models) {
+        if (!providerSupportsModel(providerId, model.id)) continue;
         catalog[alias].models.push({
           id: `${alias}/${model.id}`,
           name: model.name,
@@ -39,6 +76,8 @@ export async function GET() {
 
     // Embedding models
     for (const emb of getAllEmbeddingModels()) {
+      const rawModelId = emb.id.split("/").pop() || emb.id;
+      if (!providerSupportsModel(emb.provider, rawModelId)) continue;
       const parts = emb.id.split("/");
       const provAlias = parts[0];
       if (!catalog[provAlias]) {
@@ -58,6 +97,8 @@ export async function GET() {
 
     // Image models
     for (const img of getAllImageModels()) {
+      const rawModelId = img.id.split("/").pop() || img.id;
+      if (!providerSupportsModel(img.provider, rawModelId)) continue;
       const provAlias = img.provider;
       if (!catalog[provAlias]) {
         catalog[provAlias] = {
@@ -86,6 +127,7 @@ export async function GET() {
       }
 
       for (const model of models as any[]) {
+        if (!providerSupportsModel(providerId, model.id)) continue;
         const fullId = `${alias}/${model.id}`;
         // Skip duplicates
         if (catalog[alias].models.some((m) => m.id === fullId)) continue;
