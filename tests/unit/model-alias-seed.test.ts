@@ -34,11 +34,11 @@ test("default model alias seed writes missing aliases and is idempotent", async 
 
   assert.deepEqual(first.failed, []);
   assert.equal(first.applied.length, Object.keys(DEFAULT_MODEL_ALIAS_SEED).length);
-  assert.equal(aliases["gemini-3-pro-high"], "antigravity/gemini-3.1-pro-high");
+  assert.equal(aliases["gemini-3-pro-high"], "antigravity/gemini-3-pro-preview");
   assert.equal(aliases["gemini-3-pro-low"], "antigravity/gemini-3.1-pro-low");
-  assert.equal(aliases["gemini-3-pro-preview"], "antigravity/gemini-3.1-pro-high");
-  assert.equal(aliases["gemini-3.1-pro-preview"], "antigravity/gemini-3.1-pro-high");
-  assert.equal(aliases["gemini-3-flash-preview"], "antigravity/gemini-3-flash");
+  assert.equal(aliases["gemini-3-pro-preview"], "antigravity/gemini-3-pro-preview");
+  assert.equal(aliases["gemini-3.1-pro-preview"], "antigravity/gemini-3-pro-preview");
+  assert.equal(aliases["gemini-3-flash-preview"], "antigravity/gemini-3-flash-preview");
 
   const routed = await sseModelService.getModelInfo("gemini-3-pro-high");
   assert.deepEqual(routed, {

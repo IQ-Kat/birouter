@@ -5,14 +5,95 @@ import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderSc
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 
 const LOAD_CODE_ASSIST_URL = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
+const ONBOARD_USER_URL = "https://cloudcode-pa.googleapis.com/v1internal:onboardUser";
 const PROJECT_TTL_MS = 30_000; // 30 seconds — matches native Gemini CLI
 const MAX_CACHE_SIZE = 100;
 const LOAD_CODE_ASSIST_TIMEOUT_MS = 10_000; // 10 seconds timeout
+const ONBOARD_TIMEOUT_MS = 30_000;
+const ONBOARD_MAX_ATTEMPTS = 10;
+const ONBOARD_DELAY_MS = 5_000;
+const DEFAULT_PROJECT_ID = "default-project";
+const DEFAULT_ONBOARD_TIER = "free-tier";
+const LOAD_CODE_ASSIST_METADATA = Object.freeze({
+  ideType: "ANTIGRAVITY",
+  platform: "PLATFORM_UNSPECIFIED",
+  pluginType: "GEMINI",
+  duetProject: DEFAULT_PROJECT_ID,
+});
+const ONBOARD_METADATA = Object.freeze({
+  ideType: "ANTIGRAVITY",
+  pluginType: "GEMINI",
+  duetProject: DEFAULT_PROJECT_ID,
+});
 
 // Per-account cache: accessToken -> { projectId, expiresAt }
 const projectCache = new Map<string, { projectId: string; expiresAt: number }>();
 // In-flight deduplication: prevents thundering herd on cache miss
 const inflightRefresh = new Map<string, Promise<string | null>>();
+
+type LoadCodeAssistResponse = {
+  cloudaicompanionProject?: string | { id?: string | null } | null;
+  allowedTiers?: Array<{ id?: string | null; isDefault?: boolean | null }> | null;
+};
+
+type OnboardOptions = {
+  attempts?: number;
+  delayMs?: number;
+};
+
+function normalizeGeminiModel(model: string): string {
+  return typeof model === "string" && model.trim().length > 0
+    ? model.replace(/^models\//, "").trim()
+    : "unknown";
+}
+
+function extractProjectId(payload: unknown): string {
+  if (!payload || typeof payload !== "object") return "";
+  const data = payload as LoadCodeAssistResponse;
+  if (typeof data.cloudaicompanionProject === "string") {
+    return data.cloudaicompanionProject.trim();
+  }
+  if (typeof data.cloudaicompanionProject?.id === "string") {
+    return data.cloudaicompanionProject.id.trim();
+  }
+  return "";
+}
+
+function extractDefaultTierId(payload: unknown): string {
+  if (!payload || typeof payload !== "object") return DEFAULT_ONBOARD_TIER;
+  const tiers = Array.isArray((payload as LoadCodeAssistResponse).allowedTiers)
+    ? (payload as LoadCodeAssistResponse).allowedTiers
+    : [];
+  for (const tier of tiers) {
+    if (tier?.isDefault && typeof tier.id === "string" && tier.id.trim()) {
+      return tier.id.trim();
+    }
+  }
+  return DEFAULT_ONBOARD_TIER;
+}
+
+function cacheProject(accessToken: string, projectId: string): void {
+  if (projectCache.size >= MAX_CACHE_SIZE) {
+    const now = Date.now();
+    for (const [key, val] of projectCache) {
+      if (val.expiresAt <= now) projectCache.delete(key);
+    }
+    if (projectCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = projectCache.keys().next().value;
+      if (firstKey !== undefined) projectCache.delete(firstKey);
+    }
+  }
+
+  projectCache.set(accessToken, {
+    projectId,
+    expiresAt: Date.now() + PROJECT_TTL_MS,
+  });
+}
+
+function sleep(ms: number): Promise<void> {
+  if (!ms || ms <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export class GeminiCLIExecutor extends BaseExecutor {
   constructor() {
@@ -20,6 +101,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
   }
 
   buildUrl(model, stream, urlIndex = 0) {
+    this._currentModel = normalizeGeminiModel(model);
     const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
     return `${this.config.baseUrl}:${action}`;
   }
@@ -36,8 +118,79 @@ export class GeminiCLIExecutor extends BaseExecutor {
     return scrubProxyAndFingerprintHeaders(raw);
   }
 
-  // Track current model for dynamic UA (set by transformRequest)
+  // Track current model for dynamic UA. BaseExecutor calls buildUrl before buildHeaders.
   private _currentModel = "unknown";
+
+  async onboardManagedProject(
+    accessToken: string,
+    tierId = DEFAULT_ONBOARD_TIER,
+    options: OnboardOptions = {}
+  ): Promise<string | null> {
+    const attempts =
+      Number.isInteger(options.attempts) && options.attempts! > 0
+        ? Number(options.attempts)
+        : ONBOARD_MAX_ATTEMPTS;
+    const delayMs =
+      typeof options.delayMs === "number" &&
+      Number.isFinite(options.delayMs) &&
+      options.delayMs >= 0
+        ? options.delayMs
+        : ONBOARD_DELAY_MS;
+
+    const requestBody = {
+      tierId: tierId || DEFAULT_ONBOARD_TIER,
+      metadata: { ...ONBOARD_METADATA },
+    };
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), ONBOARD_TIMEOUT_MS);
+
+        let response;
+        try {
+          response = await fetch(ONBOARD_USER_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+              "User-Agent": "GeminiCLI/1.0.0",
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
+
+        if (response.ok) {
+          const payload = await response.json();
+          const managedProjectId = extractProjectId(payload?.response);
+
+          if (payload?.done === true && managedProjectId) {
+            return managedProjectId;
+          }
+
+          if (payload?.done === true) {
+            return DEFAULT_PROJECT_ID;
+          }
+        } else {
+          console.warn(
+            `[OmniRoute] onboardUser returned ${response.status} on attempt ${attempt + 1}`
+          );
+        }
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.warn(`[OmniRoute] onboardUser attempt ${attempt + 1} failed (${msg})`);
+      }
+
+      if (attempt < attempts - 1) {
+        await sleep(delayMs);
+      }
+    }
+
+    return null;
+  }
 
   /**
    * Fetch the current cloudaicompanionProject via loadCodeAssist API.
@@ -78,11 +231,8 @@ export class GeminiCLIExecutor extends BaseExecutor {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            metadata: {
-              ideType: "IDE_UNSPECIFIED",
-              platform: "PLATFORM_UNSPECIFIED",
-              pluginType: "GEMINI",
-            },
+            cloudaicompanionProject: DEFAULT_PROJECT_ID,
+            metadata: { ...LOAD_CODE_ASSIST_METADATA },
           }),
           signal: controller.signal,
         });
@@ -97,37 +247,24 @@ export class GeminiCLIExecutor extends BaseExecutor {
         return null;
       }
 
-      const data = await response.json();
-      let projectId = "";
-      if (typeof data.cloudaicompanionProject === "string") {
-        projectId = data.cloudaicompanionProject.trim();
-      } else if (typeof data.cloudaicompanionProject?.id === "string") {
-        projectId = data.cloudaicompanionProject.id.trim();
+      const data = (await response.json()) as LoadCodeAssistResponse;
+      let projectId = extractProjectId(data);
+
+      if (!projectId) {
+        console.warn(
+          "[OmniRoute] loadCodeAssist returned no project — attempting managed project onboarding"
+        );
+        projectId = await this.onboardManagedProject(accessToken, extractDefaultTierId(data));
       }
 
       if (!projectId) {
         console.warn(
-          "[OmniRoute] loadCodeAssist returned no project — falling back to stored projectId"
+          "[OmniRoute] managed project onboarding failed — falling back to stored projectId"
         );
         return null;
       }
 
-      // Cache for 30 seconds (evict stale entries if cache is full)
-      if (projectCache.size >= MAX_CACHE_SIZE) {
-        const now = Date.now();
-        for (const [key, val] of projectCache) {
-          if (val.expiresAt <= now) projectCache.delete(key);
-        }
-        // If still full, evict the oldest entry (Map maintains insertion order)
-        if (projectCache.size >= MAX_CACHE_SIZE) {
-          const firstKey = projectCache.keys().next().value;
-          if (firstKey !== undefined) projectCache.delete(firstKey);
-        }
-      }
-      projectCache.set(accessToken, {
-        projectId,
-        expiresAt: Date.now() + PROJECT_TTL_MS,
-      });
+      cacheProject(accessToken, projectId);
 
       return projectId;
     } catch (error) {
@@ -138,8 +275,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
   }
 
   async transformRequest(model, body, stream, credentials) {
-    // Track model for dynamic User-Agent
-    this._currentModel = model || "unknown";
+    this._currentModel = normalizeGeminiModel(model);
 
     // Refresh the project ID via loadCodeAssist (cached for 30s).
     if (body && typeof body === "object" && body.request && credentials.accessToken) {

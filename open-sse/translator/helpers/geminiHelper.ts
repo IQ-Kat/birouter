@@ -1,8 +1,8 @@
 // Gemini helper functions for translator
 
-// Unsupported JSON Schema constraints that should be removed for Antigravity
-// Reference: CLIProxyAPI/internal/util/gemini_schema.go (removeUnsupportedKeywords)
-export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [
+// Unsupported JSON Schema constraints that should be removed for Antigravity.
+// `additionalProperties` is handled separately so `true` can be preserved.
+export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   // Basic constraints (not supported by Gemini API)
   "minLength",
   "maxLength",
@@ -17,14 +17,24 @@ export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [
   "examples",
   // JSON Schema meta keywords
   "$schema",
+  "$id",
+  "$anchor",
+  "$dynamicRef",
+  "$dynamicAnchor",
+  "$vocabulary",
+  "$comment",
   "$defs",
   "definitions",
   "const",
   "$ref",
   // Object validation keywords (not supported)
-  "additionalProperties",
   "propertyNames",
   "patternProperties",
+  "unevaluatedProperties",
+  "unevaluatedItems",
+  "contains",
+  "minContains",
+  "maxContains",
   // Complex schema keywords (handled by flattenAnyOfOneOf/mergeAllOf)
   "anyOf",
   "oneOf",
@@ -41,6 +51,9 @@ export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [
   "else",
   "contentMediaType",
   "contentEncoding",
+  "contentSchema",
+  "readOnly",
+  "writeOnly",
   // Non-standard schema fields (not recognized by Gemini API)
   "deprecated",
   "optional",
@@ -61,7 +74,9 @@ export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [
   "strokeColor",
   "strokeThickness",
   "textColor",
-];
+]);
+
+export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [...GEMINI_UNSUPPORTED_SCHEMA_KEYS];
 
 // Default safety settings
 export const DEFAULT_SAFETY_SETTINGS = [
@@ -182,6 +197,87 @@ export function generateSessionId() {
   return `-${num.toString()}`;
 }
 
+function cloneSchemaValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => cloneSchemaValue(item));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, cloneSchemaValue(nestedValue)])
+    );
+  }
+  return value;
+}
+
+function toRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function decodeJsonPointerSegment(segment) {
+  return String(segment).replace(/~1/g, "/").replace(/~0/g, "~");
+}
+
+function resolveLocalReference(root, ref) {
+  if (typeof ref !== "string" || !ref.startsWith("#/")) return null;
+
+  let current = root;
+  const segments = ref
+    .slice(2)
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => decodeJsonPointerSegment(segment));
+
+  for (const segment of segments) {
+    if (!current || typeof current !== "object" || !(segment in current)) {
+      return null;
+    }
+    current = current[segment];
+  }
+
+  return current;
+}
+
+function inlineLocalSchemaRefs(node, root, activeRefs = new Set()) {
+  if (Array.isArray(node)) {
+    return node.map((item) => inlineLocalSchemaRefs(item, root, activeRefs));
+  }
+
+  if (!node || typeof node !== "object") {
+    return node;
+  }
+
+  const record = { ...node };
+  const ref = typeof record.$ref === "string" ? record.$ref : "";
+  if (ref.startsWith("#/$defs/") || ref.startsWith("#/definitions/")) {
+    const rest = { ...record };
+    delete rest.$ref;
+
+    if (activeRefs.has(ref)) {
+      return inlineLocalSchemaRefs(rest, root, activeRefs);
+    }
+
+    const resolved = resolveLocalReference(root, ref);
+    if (!resolved || typeof resolved !== "object") {
+      return inlineLocalSchemaRefs(rest, root, activeRefs);
+    }
+
+    activeRefs.add(ref);
+    const merged = {
+      ...toRecord(inlineLocalSchemaRefs(cloneSchemaValue(resolved), root, activeRefs)),
+      ...rest,
+    };
+    activeRefs.delete(ref);
+    return inlineLocalSchemaRefs(merged, root, activeRefs);
+  }
+
+  return Object.fromEntries(
+    Object.entries(record).map(([key, value]) => [
+      key,
+      inlineLocalSchemaRefs(value, root, activeRefs),
+    ])
+  );
+}
+
 // Helper: Remove unsupported keywords recursively from object/array
 function removeUnsupportedKeywords(obj, keywords) {
   if (!obj || typeof obj !== "object") return;
@@ -193,7 +289,7 @@ function removeUnsupportedKeywords(obj, keywords) {
   } else {
     // Delete unsupported keys at current level
     for (const key of Object.keys(obj)) {
-      if (keywords.includes(key) || key.startsWith("x-")) {
+      if (keywords.has(key) || key.startsWith("x-")) {
         delete obj[key];
       }
     }
@@ -202,6 +298,27 @@ function removeUnsupportedKeywords(obj, keywords) {
       if (value && typeof value === "object") {
         removeUnsupportedKeywords(value, keywords);
       }
+    }
+  }
+}
+
+function normalizeAdditionalProperties(obj) {
+  if (!obj || typeof obj !== "object") return;
+
+  if (Array.isArray(obj)) {
+    for (const item of obj) {
+      normalizeAdditionalProperties(item);
+    }
+    return;
+  }
+
+  if ("additionalProperties" in obj && obj.additionalProperties !== true) {
+    delete obj.additionalProperties;
+  }
+
+  for (const value of Object.values(obj)) {
+    if (value && typeof value === "object") {
+      normalizeAdditionalProperties(value);
     }
   }
 }
@@ -359,8 +476,8 @@ function flattenTypeArrays(obj) {
 export function cleanJSONSchemaForAntigravity(schema) {
   if (!schema || typeof schema !== "object") return schema;
 
-  // Mutate directly (schema is only used once per request)
-  let cleaned = schema;
+  const root = cloneSchemaValue(schema);
+  let cleaned = inlineLocalSchemaRefs(root, root);
 
   // Phase 1: Convert and prepare
   convertConstToEnum(cleaned);
@@ -371,10 +488,13 @@ export function cleanJSONSchemaForAntigravity(schema) {
   flattenAnyOfOneOf(cleaned);
   flattenTypeArrays(cleaned);
 
-  // Phase 3: Remove all unsupported keywords at ALL levels (including inside arrays)
-  removeUnsupportedKeywords(cleaned, UNSUPPORTED_SCHEMA_CONSTRAINTS);
+  // Phase 3: Preserve the only supported additionalProperties shape before keyword cleanup.
+  normalizeAdditionalProperties(cleaned);
 
-  // Phase 4: Cleanup required fields recursively
+  // Phase 4: Remove all unsupported keywords at ALL levels (including inside arrays).
+  removeUnsupportedKeywords(cleaned, GEMINI_UNSUPPORTED_SCHEMA_KEYS);
+
+  // Phase 5: Cleanup required fields recursively.
   function cleanupRequired(obj) {
     if (!obj || typeof obj !== "object") return;
 
@@ -399,7 +519,7 @@ export function cleanJSONSchemaForAntigravity(schema) {
 
   cleanupRequired(cleaned);
 
-  // Phase 5: Add placeholder for empty object schemas (Antigravity requirement)
+  // Phase 6: Add placeholder for empty object schemas (Antigravity requirement).
   function addPlaceholders(obj) {
     if (!obj || typeof obj !== "object") return;
 

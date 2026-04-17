@@ -307,6 +307,24 @@ function parseNonStreamingSSEPayload(
   return null;
 }
 
+function convertNDJSONToSSE(rawBody: string): string {
+  const chunks = String(rawBody || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (chunks.length === 0) return rawBody;
+
+  return `${chunks.map((chunk) => `data: ${chunk}\n`).join("\n")}\n`;
+}
+
+function normalizeNonStreamingEventPayload(rawBody: string, contentType: string): string {
+  if (contentType.includes("application/x-ndjson")) {
+    return convertNDJSONToSSE(rawBody);
+  }
+  return rawBody;
+}
+
 function getHeaderValueCaseInsensitive(
   headers: Record<string, unknown> | null | undefined,
   targetName: string
@@ -2180,11 +2198,19 @@ export async function handleChatCore({
     const rawBody = await providerResponse.text();
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
-      contentType.includes("text/event-stream") || /(^|\n)\s*(event|data):/m.test(rawBody);
+      contentType.includes("text/event-stream") ||
+      contentType.includes("application/x-ndjson") ||
+      /(^|\n)\s*(event|data):/m.test(rawBody);
 
     if (looksLikeSSE) {
+      const streamPayload = normalizeNonStreamingEventPayload(rawBody, contentType);
+      const streamKind = contentType.includes("application/x-ndjson") ? "NDJSON" : "SSE";
+      log?.warn?.(
+        "STREAM",
+        `Unexpected ${streamKind} response for non-streaming request — buffering`
+      );
       // Upstream returned SSE even though stream=false; convert best-effort to JSON.
-      const parsedFromSSE = parseNonStreamingSSEPayload(rawBody, targetFormat, model);
+      const parsedFromSSE = parseNonStreamingSSEPayload(streamPayload, targetFormat, model);
 
       if (!parsedFromSSE) {
         appendRequestLog({

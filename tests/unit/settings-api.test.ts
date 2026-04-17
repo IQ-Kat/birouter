@@ -1,6 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { getSettings, updateSettings } from "../../src/lib/db/settings.ts";
+const settingsRoute = await import("../../src/app/api/settings/route.ts");
 
 describe("Settings API - debugMode and hiddenSidebarItems", () => {
   describe("debugMode", () => {
@@ -76,6 +77,20 @@ describe("Settings API - debugMode and hiddenSidebarItems", () => {
         "bypass-strict",
         "antigravitySignatureCacheMode should be updated"
       );
+    });
+
+    test("PUT /api/settings reuses the PATCH update flow", async () => {
+      const response = await settingsRoute.PUT(
+        new Request("http://localhost/api/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ antigravitySignatureCacheMode: "bypass" }),
+        })
+      );
+      const body = await response.json();
+
+      assert.equal(response.status, 200);
+      assert.equal(body.antigravitySignatureCacheMode, "bypass");
     });
   });
 });

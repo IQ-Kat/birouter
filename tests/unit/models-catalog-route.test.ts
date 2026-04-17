@@ -206,6 +206,26 @@ test("v1 models catalog exposes claude alias and provider-prefixed built-in mode
   assert.deepEqual(aliasModel.output_modalities, ["text"]);
 });
 
+test("v1 models catalog exposes Antigravity client-visible preview aliases instead of upstream internal IDs", async () => {
+  await seedConnection("antigravity", {
+    authType: "oauth",
+    name: "antigravity-preview",
+    apiKey: null,
+    accessToken: "antigravity-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = await response.json();
+  const ids = new Set(body.data.map((item) => item.id));
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.has("antigravity/gemini-3-pro-preview"));
+  assert.ok(ids.has("antigravity/gemini-3-flash-preview"));
+  assert.equal(ids.has("antigravity/gemini-3.1-pro-high"), false);
+});
+
 test("v1 models catalog uses provider-node prefixes for compatible provider custom models", async () => {
   await providersDb.createProviderNode({
     id: "anthropic-compatible-demo",

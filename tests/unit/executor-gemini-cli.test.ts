@@ -7,18 +7,21 @@ test("GeminiCLIExecutor.buildUrl and buildHeaders match the native Gemini CLI fi
   const executor = new GeminiCLIExecutor();
 
   assert.equal(
-    executor.buildUrl("gemini-2.5-flash", true),
+    executor.buildUrl("models/gemini-2.5-flash", true),
     "https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse"
   );
   assert.equal(
-    executor.buildUrl("gemini-2.5-flash", false),
+    executor.buildUrl("models/gemini-2.5-flash", false),
     "https://cloudcode-pa.googleapis.com/v1internal:generateContent"
   );
 
   const headers = executor.buildHeaders({ accessToken: "gcli-token" }, true);
   assert.equal(headers.Authorization, "Bearer gcli-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.match(headers["User-Agent"], /GeminiCLI/);
+  assert.match(
+    headers["User-Agent"],
+    /^GeminiCLI\/1\.0\.0\/gemini-2\.5-flash \((linux|macos|windows); (x64|arm64|x86)\)$/
+  );
   assert.match(headers["X-Goog-Api-Client"], /google-genai-sdk/);
 });
 
@@ -60,6 +63,93 @@ test("GeminiCLIExecutor.refreshProject returns null on failed loadCodeAssist res
 
   try {
     assert.equal(await executor.refreshProject("access-token-2"), null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GeminiCLIExecutor.refreshProject onboards a managed project when loadCodeAssist has no project", async () => {
+  const executor = new GeminiCLIExecutor();
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    const body = init.body ? JSON.parse(String(init.body)) : null;
+    calls.push({ url: String(url), body });
+
+    if (String(url).endsWith("loadCodeAssist")) {
+      return new Response(
+        JSON.stringify({
+          allowedTiers: [{ id: "free-tier", isDefault: true }],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (String(url).endsWith("onboardUser")) {
+      return new Response(
+        JSON.stringify({
+          done: true,
+          response: {
+            cloudaicompanionProject: {
+              id: "managed-project-id",
+            },
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${url}`);
+  };
+
+  try {
+    assert.equal(await executor.refreshProject("access-token-3"), "managed-project-id");
+    assert.deepEqual(
+      calls.map((call) => call.url.split(":").at(-1)),
+      ["loadCodeAssist", "onboardUser"]
+    );
+    assert.equal(calls[0].body.cloudaicompanionProject, "default-project");
+    assert.equal(calls[0].body.metadata.ideType, "ANTIGRAVITY");
+    assert.equal(calls[0].body.metadata.duetProject, "default-project");
+    assert.equal(calls[1].body.tierId, "free-tier");
+    assert.equal(calls[1].body.metadata.ideType, "ANTIGRAVITY");
+    assert.equal(calls[1].body.metadata.duetProject, "default-project");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GeminiCLIExecutor.onboardManagedProject retries until completion", async () => {
+  const executor = new GeminiCLIExecutor();
+  const originalFetch = globalThis.fetch;
+  let attempts = 0;
+
+  globalThis.fetch = async (url) => {
+    attempts += 1;
+    assert.match(String(url), /onboardUser$/);
+    return new Response(
+      JSON.stringify(
+        attempts === 1
+          ? { done: false }
+          : {
+              done: true,
+              response: { cloudaicompanionProject: { id: "managed-project-retry" } },
+            }
+      ),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    assert.equal(
+      await executor.onboardManagedProject("access-token-4", "free-tier", {
+        attempts: 2,
+        delayMs: 0,
+      }),
+      "managed-project-retry"
+    );
+    assert.equal(attempts, 2);
   } finally {
     globalThis.fetch = originalFetch;
   }

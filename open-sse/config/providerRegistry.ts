@@ -8,6 +8,7 @@
 
 import { platform, arch } from "os";
 import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
+import { ANTIGRAVITY_PUBLIC_MODELS } from "./antigravityModelAliases.ts";
 import {
   ANTHROPIC_BETA_API_KEY,
   ANTHROPIC_BETA_CLAUDE_OAUTH,
@@ -481,15 +482,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretEnv: "ANTIGRAVITY_OAUTH_CLIENT_SECRET",
       clientSecretDefault: "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",
     },
-    models: [
-      { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
-      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
-      { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
-      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
-      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
-      { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
-    ],
+    models: [...ANTIGRAVITY_PUBLIC_MODELS],
     passthroughModels: true,
   },
 
@@ -638,7 +631,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     defaultContextLength: 200000,
     headers: {
-      "Anthropic-Version": "2023-06-01",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },

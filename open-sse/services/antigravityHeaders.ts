@@ -17,7 +17,7 @@ import {
 type AntigravityHeaderProfile = "loadCodeAssist" | "fetchAvailableModels" | "models";
 
 const ANTIGRAVITY_VERSION = ANTIGRAVITY_FALLBACK_VERSION;
-const GEMINI_CLI_VERSION = "0.31.0";
+const GEMINI_CLI_VERSION = "1.0.0";
 const GEMINI_SDK_VERSION = "1.41.0";
 const NODE_VERSION = "v22.19.0";
 const LOAD_CODE_ASSIST_USER_AGENT = "google-api-nodejs-client/9.15.1";
@@ -42,9 +42,9 @@ function getPlatform(): string {
   const p = os.platform();
   switch (p) {
     case "win32":
-      return "win32";
+      return "windows";
     case "darwin":
-      return "darwin";
+      return "macos";
     default:
       return p; // "linux", etc.
   }
@@ -120,7 +120,7 @@ export function getAntigravityHeaders(
 
 /**
  * Gemini CLI User-Agent: "GeminiCLI/VERSION/MODEL (OS; ARCH)"
- * Example: "GeminiCLI/0.31.0/gemini-3-flash (darwin; arm64)"
+ * Example: "GeminiCLI/1.0.0/gemini-3-flash (macos; arm64)"
  */
 export function geminiCLIUserAgent(model: string): string {
   return `GeminiCLI/${GEMINI_CLI_VERSION}/${model || "unknown"} (${getPlatform()}; ${getArch()})`;

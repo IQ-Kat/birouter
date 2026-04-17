@@ -294,7 +294,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
     apiKey: null,
   });
   const seenUrls = [];
-  antigravityVersion.seedAntigravityVersionCache("1.23.2");
+  antigravityVersion.seedAntigravityVersionCache("1.22.2");
 
   globalThis.fetch = async (url, init = {}) => {
     seenUrls.push(String(url));

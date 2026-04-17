@@ -1,12 +1,12 @@
 import { getModelAliases, setModelAlias } from "@/lib/db/models";
 
 export const DEFAULT_MODEL_ALIAS_SEED = Object.freeze({
-  "gemini-3-pro-high": "antigravity/gemini-3.1-pro-high",
+  "gemini-3-pro-high": "antigravity/gemini-3-pro-preview",
   "gemini-3-pro-low": "antigravity/gemini-3.1-pro-low",
-  "gemini-3-pro-preview": "antigravity/gemini-3.1-pro-high",
-  "gemini-3.1-pro-preview": "antigravity/gemini-3.1-pro-high",
-  "gemini-3.1-pro-preview-customtools": "antigravity/gemini-3.1-pro-high",
-  "gemini-3-flash-preview": "antigravity/gemini-3-flash",
+  "gemini-3-pro-preview": "antigravity/gemini-3-pro-preview",
+  "gemini-3.1-pro-preview": "antigravity/gemini-3-pro-preview",
+  "gemini-3.1-pro-preview-customtools": "antigravity/gemini-3-pro-preview",
+  "gemini-3-flash-preview": "antigravity/gemini-3-flash-preview",
 });
 
 type SeedLogger = {

@@ -20,6 +20,7 @@ import { getGlmModelsUrl } from "@omniroute/open-sse/config/glmProvider.ts";
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 import {
+  ANTIGRAVITY_PUBLIC_MODELS,
   getClientVisibleAntigravityModelName,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
@@ -131,15 +132,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "nanobanana-flash", name: "NanoBanana Flash (Gemini 2.5 Flash)" },
     { id: "nanobanana-pro", name: "NanoBanana Pro (Gemini 3 Pro)" },
   ],
-  antigravity: () => [
-    { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
-    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-    { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
-    { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
-    { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview" },
-    { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
-    { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
-  ],
+  antigravity: () => ANTIGRAVITY_PUBLIC_MODELS.map((model) => ({ ...model })),
   claude: () => [
     { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
     { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
