@@ -67,7 +67,7 @@ async function withEnv(overrides, fn) {
       if (value === undefined) {
         delete process.env[key];
       } else {
-        process.env[key] = value;
+        process.env[key] = value as string;
       }
     }
   }

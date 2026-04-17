@@ -247,7 +247,7 @@ test("usage service covers Gemini CLI tier-label fallbacks and fetch error handl
     if (String(_url).includes("loadCodeAssist")) {
       return new Response(JSON.stringify({ currentTier: { id: "tier_pro" } }), { status: 200 });
     }
-    assert.ok(String(init.body).includes("project-throw"));
+    assert.ok(String((init as any).body).includes("project-throw"));
     throw new Error("quota endpoint offline");
   };
   const fetchError: any = await usageService.getUsageForProvider({
@@ -365,7 +365,8 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
       return new Response("bad gateway", { status: 502 });
     }
 
-    if (String(url).startsWith("https://daily-cloudcode-pa.googleapis.com/")) {
+    const urlStr = String(url);
+    if (urlStr.includes("://daily-cloudcode-pa.googleapis.com/")) {
       return new Response("bad gateway", { status: 502 });
     }
 
@@ -552,7 +553,7 @@ test("usage service covers Claude default-plan fallback, legacy org denial and f
 test("usage service covers Codex, Kiro and Kimi usage parsing and error branches", async () => {
   globalThis.fetch = async (url, init = {}) => {
     if (String(url).includes("/backend-api/wham/usage")) {
-      assert.equal(init.headers["chatgpt-account-id"], "workspace-123");
+      assert.equal((init as any).headers["chatgpt-account-id"], "workspace-123");
       return new Response(
         JSON.stringify({
           plan_type: "plus",
@@ -796,7 +797,7 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
 
   globalThis.fetch = async (url, init = {}) => {
     if (String(url).includes("/api/monitor/usage/quota/limit")) {
-      assert.equal(init.headers.Authorization, "Bearer glm-key");
+      assert.equal((init as any).headers.Authorization, "Bearer glm-key");
       return new Response(
         JSON.stringify({
           data: {

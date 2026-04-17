@@ -16,8 +16,8 @@ test("usage fetcher retries Antigravity quota discovery across shared fallback U
     calls.push({ url: String(url), init });
 
     // Mock the first two to fail with 503
-    if (String(url).includes("cloudcode-pa.googleapis.com") && !String(url).includes("sandbox")) {
-      // lgtm[js/incomplete-url-substring-sanitization]
+    const urlStr = String(url);
+    if (urlStr.includes("://cloudcode-pa.googleapis.com/") && !urlStr.includes("sandbox")) {
       return new Response("unavailable", { status: 503 });
     }
 

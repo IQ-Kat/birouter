@@ -493,3 +493,31 @@ export function getAllImageModels() {
 export function getImageModelAliases() {
   return IMAGE_MODEL_ALIASES;
 }
+
+export function getImageModelEntry(modelStr) {
+  if (!modelStr) return null;
+
+  const alias = IMAGE_MODEL_ALIASES[modelStr];
+  if (alias) {
+    const modelConfig = findImageModelConfig(alias.provider, alias.model);
+    return {
+      provider: alias.provider,
+      model: alias.model,
+      inputModalities: alias.inputModalities || modelConfig?.inputModalities || ["text"],
+      description: alias.description || modelConfig?.description || undefined,
+    };
+  }
+
+  const { provider, model } = parseImageModel(modelStr);
+  if (!provider || !model) return null;
+
+  const modelConfig = findImageModelConfig(provider, model);
+  if (!modelConfig) return null;
+
+  return {
+    provider,
+    model,
+    inputModalities: modelConfig.inputModalities || ["text"],
+    description: modelConfig.description || undefined,
+  };
+}

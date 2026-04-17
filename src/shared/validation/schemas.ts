@@ -491,7 +491,7 @@ export const v1EmbeddingsSchema = z
 export const v1ImageGenerationSchema = z
   .object({
     model: modelIdSchema,
-    prompt: nonEmptyStringSchema,
+    prompt: nonEmptyStringSchema.optional(),
   })
   .catchall(z.unknown());
 

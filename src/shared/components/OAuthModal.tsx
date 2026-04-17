@@ -648,15 +648,15 @@ export default function OAuthModal({
                   </span>
                   <strong>
                     {t.rich("googleOAuthWarning", {
-                      code: (chunks) => <code>{chunks}</code>,
-                      a: (chunks) => (
+                      code: (c) => <code className="font-mono">{c}</code>,
+                      a: (c) => (
                         <a
                           href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
                           target="_blank"
                           rel="noreferrer"
                           className="underline"
                         >
-                          {chunks}
+                          {c}
                         </a>
                       ),
                     })}
@@ -692,7 +692,7 @@ export default function OAuthModal({
                 <p className="text-sm font-medium mb-2">{t("step2PasteCallback")}</p>
                 <p className="text-xs text-text-muted mb-2">
                   {t.rich("step2Hint", {
-                    code: (chunks) => <code>{chunks}</code>,
+                    code: (c) => <code className="font-mono">{c}</code>,
                   })}
                 </p>
                 <Input

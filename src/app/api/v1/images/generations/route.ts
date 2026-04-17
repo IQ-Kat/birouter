@@ -10,6 +10,7 @@ import {
   parseImageModel,
   getAllImageModels,
   getImageProvider,
+  getImageModelEntry,
 } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -85,6 +86,21 @@ export async function GET() {
 /**
  * POST /v1/images/generations — generate images
  */
+function hasImageGenerationInput(body: Record<string, unknown>) {
+  if (typeof body.image_url === "string" && body.image_url.trim()) return true;
+  if (typeof body.image === "string" && body.image.trim()) return true;
+  if (Array.isArray(body.imageUrls) && body.imageUrls.some((value) => typeof value === "string")) {
+    return true;
+  }
+  if (
+    Array.isArray(body.image_urls) &&
+    body.image_urls.some((value) => typeof value === "string")
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export async function POST(request) {
   let rawBody;
   try {
@@ -150,6 +166,26 @@ export async function POST(request) {
 
   // Check provider config for auth bypass
   const providerConfig = getImageProvider(provider);
+  const imageModelEntry = getImageModelEntry(body.model);
+  const inputModalities = imageModelEntry?.inputModalities || ["text"];
+  const requiresPrompt = inputModalities.includes("text");
+  const requiresImageInput = inputModalities.includes("image");
+  const hasPrompt = typeof body.prompt === "string" && body.prompt.trim().length > 0;
+  const hasImageInput = hasImageGenerationInput(body);
+
+  if (requiresPrompt && !hasPrompt) {
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `Prompt is required for image model: ${body.model}`
+    );
+  }
+
+  if (requiresImageInput && !hasImageInput) {
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `Image input is required for image model: ${body.model}`
+    );
+  }
 
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;

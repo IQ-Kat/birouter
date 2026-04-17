@@ -437,11 +437,16 @@ function buildClaudeCodeCompatibleMessages(messages: MessageLike[]) {
     .filter(
       (
         message
-      ): message is { role: "user" | "assistant"; content: Array<Record<string, unknown>> } =>
-        !!message && message.content.length > 0
+      ): message is {
+        role: "user" | "assistant";
+        content: Array<{ type: string; text: string }>;
+      } => !!message && message.content.length > 0
     );
 
-  const merged: Array<{ role: "user" | "assistant"; content: Array<Record<string, unknown>> }> = [];
+  const merged: Array<{
+    role: "user" | "assistant";
+    content: Array<{ type: string; text: string }>;
+  }> = [];
 
   for (const message of converted) {
     const last = merged[merged.length - 1];
@@ -575,7 +580,7 @@ function buildClaudeCodeCompatibleSystemBlocks({
   for (const systemBlock of customSystemBlocks) {
     const preparedBlock = { ...systemBlock };
     if (!preserveCacheControl) {
-      delete preparedBlock.cache_control;
+      delete preparedBlock["cache_control"];
     }
     blocks.push(preparedBlock);
   }
@@ -735,7 +740,7 @@ function normalizeClaudeMessageInput(messages: unknown) {
         content: normalizeClaudeContentInput(record.content),
       };
     })
-    .filter((message): message is Record<string, unknown> => !!message);
+    .filter((message): message is Record<string, unknown> & { content: unknown } => !!message);
 }
 
 function normalizeClaudeToolInput(tools: unknown) {

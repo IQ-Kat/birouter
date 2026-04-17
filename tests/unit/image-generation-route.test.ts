@@ -1,0 +1,113 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-image-route-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
+
+const originalFetch = globalThis.fetch;
+
+async function resetStorage() {
+  globalThis.fetch = originalFetch;
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+async function seedConnection(provider: string, overrides: { apiKey?: string | null } = {}) {
+  return providersDb.createProviderConnection({
+    provider,
+    authType: "apikey",
+    name: `${provider}-${Math.random().toString(16).slice(2, 8)}`,
+    apiKey: overrides.apiKey ?? "test-key",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {},
+  });
+}
+
+test.beforeEach(async () => {
+  await resetStorage();
+});
+
+test.after(() => {
+  globalThis.fetch = originalFetch;
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("v1 image models GET exposes image-only modalities for image-only models", async () => {
+  const response = await imageRoute.GET();
+  const body = await response.json();
+  const byId = new Map(body.data.map((item: { id: string }) => [item.id, item]));
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(byId.get("topaz/topaz-enhance")?.input_modalities, ["image"]);
+  assert.deepEqual(byId.get("stability-ai/remove-background")?.input_modalities, ["image"]);
+  assert.deepEqual(byId.get("stability-ai/fast")?.input_modalities, ["image"]);
+});
+
+test("v1 image generation POST accepts promptless requests for image-only models", async () => {
+  await seedConnection("topaz", { apiKey: "topaz-key" });
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://example.com/topaz-input.png") {
+      return new Response(new Uint8Array([1, 2, 3]), {
+        status: 200,
+        headers: { "content-type": "image/png" },
+      });
+    }
+
+    if (stringUrl === "https://api.topazlabs.com/image/v1/enhance") {
+      const formData = options.body as FormData;
+      assert.ok(formData.get("image") instanceof File);
+      return new Response(new Uint8Array([7, 7, 7]), {
+        status: 200,
+        headers: { "content-type": "image/jpeg" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "topaz/topaz-enhance",
+        image_url: "https://example.com/topaz-input.png",
+        size: "2048x2048",
+        response_format: "b64_json",
+      }),
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.data[0].b64_json, "BwcH");
+});
+
+test("v1 image generation POST still requires prompts for text-input models", async () => {
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai/dall-e-3",
+        image_url: "https://example.com/source.png",
+      }),
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.match(body.error.message, /Prompt is required for image model: openai\/dall-e-3/);
+});

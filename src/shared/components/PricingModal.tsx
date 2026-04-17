@@ -120,7 +120,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
                 <p className="font-medium mb-1">{t("pricingRatesFormat")}</p>
                 <p className="text-text-muted">
                   {t.rich("ratesDescription", {
-                    strong: (chunks) => <strong>{chunks}</strong>,
+                    strong: (c) => <strong className="font-semibold">{c}</strong>,
                   })}
                 </p>
               </div>

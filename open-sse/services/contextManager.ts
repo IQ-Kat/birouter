@@ -216,10 +216,23 @@ function compressThinking(messages: Record<string, unknown>[]) {
 
     // Remove thinking XML tags from string content
     if (typeof msg.content === "string") {
-      const cleaned = msg.content
-        .replace(/<thinking>.*?<\/thinking>/gs, "")
-        .replace(/<antThinking>.*?<\/antThinking>/gs, "")
-        .trim();
+      let cleaned = msg.content;
+      for (const [start, end] of [
+        ["<thinking>", "</thinking>"],
+        ["<antThinking>", "</antThinking>"],
+      ]) {
+        while (true) {
+          const s = cleaned.indexOf(start);
+          if (s === -1) break;
+          const e = cleaned.indexOf(end, s + start.length);
+          if (e === -1) {
+            cleaned = cleaned.slice(0, s);
+            break;
+          }
+          cleaned = cleaned.slice(0, s) + cleaned.slice(e + end.length);
+        }
+      }
+      cleaned = cleaned.trim();
       return { ...msg, content: cleaned || "[thinking compressed]" };
     }
 
