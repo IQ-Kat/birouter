@@ -514,6 +514,11 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
   assert.match(fetchCalls[0].url, /\/responses$/);
   assert.equal(fetchCalls[0].headers.Authorization, "Bearer sk-codex-primary");
   assert.equal(json.object, "response");
+  assert.equal(json.output[0].type, "message");
+  assert.equal(json.output[0].content[0].text, "responses streamed from codex");
+  assert.equal(json.output_text, "responses streamed from codex");
+  assert.equal(json.usage.input_tokens_details.cached_tokens, 40);
+  assert.equal(json.usage.output_tokens_details.reasoning_tokens, 13);
 
   assert.ok(callLog, "expected a call log row to be created");
   assert.equal(callLog.provider, "codex");

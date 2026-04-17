@@ -135,12 +135,12 @@ test("package.json test script runs tests", () => {
 
 // ─── Runtime Wiring Checks ───────────────────────────
 
-test("chat handler imports inputSanitizer", () => {
+test("chat handler wires guardrail pre-call validation", () => {
   const content = readIfExists("src/sse/handlers/chat.ts");
   assert.ok(content, "src/sse/handlers/chat.ts should exist");
   assert.ok(
-    content.includes("inputSanitizer") || content.includes("sanitizeRequest"),
-    "chat.ts should import and use input sanitizer"
+    content.includes("guardrailRegistry") && content.includes("runPreCallHooks"),
+    "chat.ts should route request validation through the guardrail registry"
   );
 });
 

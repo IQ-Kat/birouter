@@ -55,6 +55,7 @@ import {
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
+import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
 import {
   applyConfiguredPayloadRules,
   resolvePayloadRuleProtocols,
@@ -80,7 +81,7 @@ import {
   parseSSEToOpenAIResponse,
   parseSSEToResponsesOutput,
 } from "./sseParser.ts";
-import { sanitizeOpenAIResponse } from "./responseSanitizer.ts";
+import { sanitizeOpenAIResponse, sanitizeResponsesApiResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
@@ -115,6 +116,7 @@ import {
   isFallbackDecision,
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
+import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
 import {
   resolveExplicitStreamAlias,
   resolveStreamFlag,
@@ -757,6 +759,20 @@ export async function handleChatCore({
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat =
     modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
+  const { body: bodyWithWebSearchFallback, fallback: webSearchFallbackPlan } =
+    prepareWebSearchFallbackBody(body as Record<string, unknown>, {
+      provider,
+      sourceFormat,
+      targetFormat,
+      nativeCodexPassthrough,
+    });
+  if (webSearchFallbackPlan.enabled) {
+    body = bodyWithWebSearchFallback as typeof body;
+    log?.info?.(
+      "TOOLS",
+      `Converted ${webSearchFallbackPlan.convertedToolCount} web_search tool(s) to OmniRoute fallback for ${provider}`
+    );
+  }
   const noLogEnabled = apiKeyInfo?.noLog === true;
   const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
   const skillRequestId = generateRequestId();
@@ -2492,10 +2508,9 @@ export async function handleChatCore({
     // Strips non-standard fields (x_groq, usage_breakdown, service_tier, etc.)
     // Extracts <think> and <thinking> tags into reasoning_content
     // Source format determines output shape. If we are outputting OpenAI shape or pseudo-OpenAI shape, sanitize.
-    if (
-      clientResponseFormat === FORMATS.OPENAI ||
-      clientResponseFormat === FORMATS.OPENAI_RESPONSES
-    ) {
+    if (clientResponseFormat === FORMATS.OPENAI_RESPONSES) {
+      translatedResponse = sanitizeResponsesApiResponse(translatedResponse);
+    } else if (clientResponseFormat === FORMATS.OPENAI) {
       translatedResponse = sanitizeOpenAIResponse(translatedResponse);
     }
 
@@ -2529,18 +2544,82 @@ export async function handleChatCore({
       }
     }
 
-    if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+    const customSkillExecutionEnabled =
+      Boolean(apiKeyInfo?.id) && memorySettings?.skillsEnabled === true;
+    const builtinToolNames = webSearchFallbackPlan.toolName ? [webSearchFallbackPlan.toolName] : [];
+    if (customSkillExecutionEnabled || builtinToolNames.length > 0) {
       const skillSessionId = pipelineSessionId;
 
       translatedResponse = await handleToolCallExecution(
         translatedResponse,
         getSkillsModelIdForFormat(sourceFormat),
         {
-          apiKeyId: apiKeyInfo.id,
+          apiKeyId: apiKeyInfo?.id || "local",
           sessionId: skillSessionId,
           requestId: skillRequestId,
+          builtinToolNames,
+          customSkillExecutionEnabled,
         }
       );
+    }
+
+    const guardrailContext = {
+      apiKeyInfo,
+      disabledGuardrails: resolveDisabledGuardrails({
+        apiKeyInfo: (apiKeyInfo as Record<string, unknown> | null) ?? null,
+        body,
+        headers: (clientRawRequest?.headers as Headers | Record<string, unknown> | null) ?? null,
+      }),
+      endpoint: clientRawRequest?.endpoint || null,
+      headers: (clientRawRequest?.headers as Headers | Record<string, unknown> | null) ?? null,
+      log,
+      method: "POST",
+      model,
+      provider,
+      sourceFormat: responsePayloadFormat,
+      stream: false,
+      targetFormat: clientResponseFormat,
+    } as const;
+    const postCallGuardrails = await guardrailRegistry.runPostCallHooks(
+      translatedResponse,
+      guardrailContext
+    );
+    translatedResponse = postCallGuardrails.response;
+
+    const responseUsage =
+      (usage && typeof usage === "object" ? usage : null) ||
+      (translatedResponse?.usage && typeof translatedResponse.usage === "object"
+        ? translatedResponse.usage
+        : null);
+    const estimatedCost = responseUsage ? await calculateCost(provider, model, responseUsage) : 0;
+
+    if (postCallGuardrails.blocked) {
+      const guardrailMessage = postCallGuardrails.message || "Response blocked by guardrail";
+      persistAttemptLogs({
+        status: HTTP_STATUS.BAD_REQUEST,
+        tokens: usage,
+        responseBody,
+        providerRequest: finalBody || translatedBody,
+        providerResponse: looksLikeSSE
+          ? {
+              _streamed: true,
+              _format: "sse-json",
+              summary: responseBody,
+            }
+          : responseBody,
+        clientResponse: buildErrorBody(HTTP_STATUS.BAD_REQUEST, guardrailMessage),
+        claudeCacheMeta: claudePromptCacheLogMeta,
+        claudeCacheUsageMeta: cacheUsageLogMeta,
+        cacheSource: "upstream",
+      });
+      if (apiKeyInfo?.id && estimatedCost > 0) {
+        recordCost(apiKeyInfo.id, estimatedCost);
+      }
+      log?.warn?.(
+        "GUARDRAIL",
+        `Response blocked by ${postCallGuardrails.guardrail || "guardrail"}: ${guardrailMessage}`
+      );
+      return createErrorResult(HTTP_STATUS.BAD_REQUEST, guardrailMessage);
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
@@ -2576,13 +2655,6 @@ export async function handleChatCore({
       claudeCacheUsageMeta: cacheUsageLogMeta,
       cacheSource: "upstream",
     });
-
-    const responseUsage =
-      (usage && typeof usage === "object" ? usage : null) ||
-      (translatedResponse?.usage && typeof translatedResponse.usage === "object"
-        ? translatedResponse.usage
-        : null);
-    const estimatedCost = responseUsage ? await calculateCost(provider, model, responseUsage) : 0;
     if (apiKeyInfo?.id && estimatedCost > 0) {
       recordCost(apiKeyInfo.id, estimatedCost);
     }

@@ -109,6 +109,13 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".config/opencode/opencode.json",
     },
   },
+  amp: {
+    defaultCommand: "amp",
+    envBinKey: "CLI_AMP_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 12000,
+    paths: {},
+  },
   qoder: {
     defaultCommand: "qodercli",
     envBinKey: "CLI_QODER_BIN",

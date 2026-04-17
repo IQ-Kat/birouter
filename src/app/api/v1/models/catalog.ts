@@ -21,6 +21,11 @@ import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getSyncedAvailableModels } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
+import {
+  INTERNAL_PROXY_ERROR,
+  enrichCatalogModelEntry,
+  getCatalogDiagnosticsHeaders,
+} from "@/lib/modelMetadataRegistry";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -141,6 +146,7 @@ export async function getUnifiedModelsResponse(
     "Access-Control-Allow-Origin": CORS_ORIGIN,
   }
 ) {
+  const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   try {
     // Issue #100: Optionally require authentication for /models (security hardening)
     // When enabled, unauthenticated requests get 401 with proper error response.
@@ -159,7 +165,13 @@ export async function getUnifiedModelsResponse(
               code: "invalid_api_key",
             },
           },
-          { status: 401 }
+          {
+            status: 401,
+            headers: {
+              ...corsHeaders,
+              ...diagnosticHeaders,
+            },
+          }
         );
       }
     }
@@ -675,20 +687,37 @@ export async function getUnifiedModelsResponse(
       finalModels = filtered;
     }
 
+    const enrichedModels = finalModels.map((model) => enrichCatalogModelEntry(model));
+
     return Response.json(
       {
         object: "list",
-        data: finalModels,
+        data: enrichedModels,
       },
       {
-        headers: corsHeaders,
+        headers: {
+          ...corsHeaders,
+          ...diagnosticHeaders,
+        },
       }
     );
   } catch (error) {
     console.log("Error fetching models:", error);
     return Response.json(
-      { error: { message: (error as any).message, type: "server_error" } },
-      { status: 500 }
+      {
+        error: {
+          message: (error as any).message,
+          type: "server_error",
+          code: INTERNAL_PROXY_ERROR,
+        },
+      },
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          ...diagnosticHeaders,
+        },
+      }
     );
   }
 }

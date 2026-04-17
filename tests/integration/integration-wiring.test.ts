@@ -74,9 +74,10 @@ describe("Pipeline Wiring — sse chat handler", () => {
   const src = readProjectFile("src/sse/handlers/chat.ts");
   const coreSrc = readProjectFile("open-sse/handlers/chatCore.ts");
 
-  it("should import and use request sanitization", () => {
+  it("should import and use guardrail pre-call validation", () => {
     assert.ok(src, "src/sse/handlers/chat.ts should exist");
-    assert.match(src, /sanitizeRequest/);
+    assert.match(src, /guardrailRegistry/);
+    assert.match(src, /runPreCallHooks/);
   });
 
   it("should import circuit breaker integration", () => {

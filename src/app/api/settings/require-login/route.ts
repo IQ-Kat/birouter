@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { getSettings, updateSettings } from "@/lib/localDb";
+import {
+  hasManagementPasswordConfigured,
+  hashManagementPassword,
+} from "@/lib/auth/managementPassword";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
@@ -13,7 +16,7 @@ function getNodeCompatibility() {
 }
 
 function hasConfiguredPassword(settings: Record<string, unknown>) {
-  return Boolean(settings.password) || Boolean(process.env.INITIAL_PASSWORD);
+  return hasManagementPasswordConfigured(settings);
 }
 
 function isBootstrapSecurityWindow(settings: Record<string, unknown>) {
@@ -25,7 +28,7 @@ export async function GET() {
   try {
     const settings = await getSettings();
     const requireLogin = settings.requireLogin !== false;
-    const hasPassword = !!settings.password || !!process.env.INITIAL_PASSWORD;
+    const hasPassword = hasManagementPasswordConfigured(settings);
     const setupComplete = !!settings.setupComplete;
     return NextResponse.json({ requireLogin, hasPassword, setupComplete, ...nodeInfo });
   } catch (error) {
@@ -77,7 +80,7 @@ export async function POST(request: Request) {
     }
 
     if (password) {
-      const hashedPassword = await bcrypt.hash(password, 12);
+      const hashedPassword = await hashManagementPassword(password);
       updates.password = hashedPassword;
     }
 

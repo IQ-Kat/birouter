@@ -1,5 +1,7 @@
 import { skillExecutor } from "./executor";
+import { builtinSkills } from "./builtins";
 import { detectProvider } from "./injection";
+import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS_INTERCEPTION");
@@ -14,6 +16,60 @@ interface ExecutionContext {
   apiKeyId: string;
   sessionId: string;
   requestId: string;
+  builtinToolNames?: string[];
+  customSkillExecutionEnabled?: boolean;
+}
+
+const BUILTIN_TOOL_ALIASES: Record<string, string> = {
+  [OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME]: "web_search",
+};
+
+function resolveBuiltinHandlerName(
+  toolName: string,
+  context: ExecutionContext
+): keyof typeof builtinSkills | null {
+  const [rawName] = toolName.includes("@") ? toolName.split("@") : [toolName];
+  const canonicalName = BUILTIN_TOOL_ALIASES[rawName] || rawName;
+  const allowed = new Set(
+    (context.builtinToolNames || []).map((name) => BUILTIN_TOOL_ALIASES[name] || name)
+  );
+
+  if (!allowed.has(canonicalName)) {
+    return null;
+  }
+
+  return canonicalName in builtinSkills ? (canonicalName as keyof typeof builtinSkills) : null;
+}
+
+function getResponsesOutputContainer(response: Record<string, unknown> | null | undefined): {
+  root: Record<string, unknown>;
+  responseRoot: Record<string, unknown>;
+  output: unknown[];
+} | null {
+  if (!response || typeof response !== "object") return null;
+
+  if (Array.isArray(response.output)) {
+    return {
+      root: response,
+      responseRoot: response,
+      output: response.output,
+    };
+  }
+
+  if (
+    response.response &&
+    typeof response.response === "object" &&
+    !Array.isArray(response.response) &&
+    Array.isArray((response.response as Record<string, unknown>).output)
+  ) {
+    return {
+      root: response,
+      responseRoot: response.response as Record<string, unknown>,
+      output: (response.response as Record<string, unknown>).output as unknown[],
+    };
+  }
+
+  return null;
 }
 
 export async function interceptToolCalls(
@@ -23,6 +79,30 @@ export async function interceptToolCalls(
   const results = await Promise.all(
     toolCalls.map(async (call) => {
       try {
+        const builtinHandlerName = resolveBuiltinHandlerName(call.name, context);
+        if (builtinHandlerName) {
+          log.info("skills.interception.builtin_tool_detected", {
+            toolName: call.name,
+            builtinHandler: builtinHandlerName,
+            callId: call.id,
+          });
+
+          const result = await builtinSkills[builtinHandlerName](call.arguments, {
+            apiKeyId: context.apiKeyId,
+            sessionId: context.sessionId,
+          });
+
+          log.info("skills.interception.execution_complete", {
+            toolName: call.name,
+            callId: call.id,
+          });
+
+          return {
+            id: call.id,
+            result,
+          };
+        }
+
         const [name, version] = call.name.includes("@")
           ? call.name.split("@")
           : [call.name, "latest"];
@@ -82,12 +162,23 @@ export function extractToolCalls(response: any, modelId: string): ToolCall[] {
             Array.isArray(choice?.message?.tool_calls) ? choice.message.tool_calls : []
           )
         : [];
-      const toolCalls = rootToolCalls.length > 0 ? rootToolCalls : choiceToolCalls;
+      const responsesOutput = getResponsesOutputContainer(response);
+      const responsesToolCalls = responsesOutput
+        ? responsesOutput.output
+            .map((item: unknown) => (item && typeof item === "object" ? (item as any) : null))
+            .filter((item: any) => item?.type === "function_call")
+        : [];
+      const toolCalls =
+        rootToolCalls.length > 0
+          ? rootToolCalls
+          : choiceToolCalls.length > 0
+            ? choiceToolCalls
+            : responsesToolCalls;
 
       return toolCalls.map((tc: any) => ({
-        id: tc.id || `call_${Date.now()}`,
-        name: tc.function?.name || "",
-        arguments: parseArguments(tc.function?.arguments || "{}"),
+        id: tc.call_id || tc.id || `call_${Date.now()}`,
+        name: tc.function?.name || tc.name || "",
+        arguments: parseArguments(tc.function?.arguments || tc.arguments || "{}"),
       }));
     }
 
@@ -129,7 +220,13 @@ export async function handleToolCallExecution(
   modelId: string,
   context: ExecutionContext
 ): Promise<any> {
-  const toolCalls = extractToolCalls(response, modelId);
+  const toolCalls = extractToolCalls(response, modelId).filter((call) => {
+    const builtinHandlerName = resolveBuiltinHandlerName(call.name, context);
+    if (builtinHandlerName) {
+      return true;
+    }
+    return context.customSkillExecutionEnabled !== false;
+  });
 
   if (toolCalls.length === 0) {
     return response;
@@ -140,7 +237,31 @@ export async function handleToolCallExecution(
   const provider = detectProvider(modelId);
 
   switch (provider) {
-    case "openai":
+    case "openai": {
+      const responsesOutput = getResponsesOutputContainer(response);
+      if (responsesOutput) {
+        const functionOutputs = results.map((result) => ({
+          type: "function_call_output",
+          call_id: result.id,
+          output: JSON.stringify(result.result),
+        }));
+
+        if (responsesOutput.root === responsesOutput.responseRoot) {
+          return {
+            ...response,
+            output: [...responsesOutput.output, ...functionOutputs],
+          };
+        }
+
+        return {
+          ...response,
+          response: {
+            ...responsesOutput.responseRoot,
+            output: [...responsesOutput.output, ...functionOutputs],
+          },
+        };
+      }
+
       return {
         ...response,
         tool_results: results.map((r) => ({
@@ -148,6 +269,7 @@ export async function handleToolCallExecution(
           output: JSON.stringify(r.result),
         })),
       };
+    }
 
     case "anthropic":
       return {

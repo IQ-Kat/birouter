@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "../../open-sse/services/webSearchFallback.ts";
 
 import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 
@@ -710,4 +711,139 @@ test("builtin and custom skills coexist in the injected tool list", async () => 
 
   assert.equal(response.status, 200);
   assert.deepEqual(toolNames, ["lookupWeather@1.0.0", "webSearch@1.0.0"]);
+});
+
+test("web_search fallback converts built-in tools for unsupported providers and executes search", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-web-search-fallback" });
+  await seedConnection("serper-search", { apiKey: "serper-search-key" });
+  const apiKey = await seedApiKey();
+
+  const upstreamBodies = [];
+  const searchCalls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    const urlStr = String(url);
+    const body = init.body ? JSON.parse(String(init.body)) : null;
+
+    if (urlStr.includes("google.serper.dev/search")) {
+      searchCalls.push({ url: urlStr, init, body });
+      return new Response(
+        JSON.stringify({
+          organic: [
+            {
+              title: "OmniRoute Search Result",
+              link: "https://example.com/omniroute",
+              snippet: "Fresh OmniRoute web search fallback result",
+            },
+          ],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    upstreamBodies.push(body);
+    return buildOpenAIToolCallResponse({
+      toolName: OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME,
+      toolCallId: "call_web_search",
+      argumentsObject: {
+        query: "latest omniroute release notes",
+        max_results: 3,
+      },
+    });
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      authKey: apiKey.key,
+      body: {
+        model: "openai/gpt-4o-mini",
+        stream: false,
+        messages: [
+          { role: "user", content: "Search the web for the latest OmniRoute release notes" },
+        ],
+        tools: [{ type: "web_search", search_context_size: "medium" }],
+      },
+    })
+  );
+  const json = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(upstreamBodies.length, 1);
+  assert.equal(upstreamBodies[0].tools[0].type, "function");
+  assert.equal(upstreamBodies[0].tools[0].function.name, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.equal(searchCalls.length, 1);
+  assert.equal(json.choices[0].finish_reason, "tool_calls");
+  assert.equal(json.tool_results[0].tool_call_id, "call_web_search");
+  const output = JSON.parse(json.tool_results[0].output);
+  assert.equal(output.success, true);
+  assert.equal(output.provider, "serper-search");
+  assert.equal(output.results[0].title, "OmniRoute Search Result");
+});
+
+test("web_search fallback preserves Responses API output by appending function_call_output", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-web-search-responses" });
+  await seedConnection("serper-search", { apiKey: "serper-search-key" });
+  const apiKey = await seedApiKey();
+
+  globalThis.fetch = async (url, init = {}) => {
+    const urlStr = String(url);
+    if (urlStr.includes("google.serper.dev/search")) {
+      return new Response(
+        JSON.stringify({
+          organic: [
+            {
+              title: "Responses Search Result",
+              link: "https://example.com/responses",
+              snippet: "Responses API fallback result",
+            },
+          ],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    return buildOpenAIToolCallResponse({
+      toolName: OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME,
+      toolCallId: "call_responses_web_search",
+      argumentsObject: {
+        query: "latest omniroute roadmap",
+      },
+    });
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/responses",
+      authKey: apiKey.key,
+      body: {
+        model: "openai/gpt-4o-mini",
+        stream: false,
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [
+              { type: "input_text", text: "Search the web for the latest OmniRoute roadmap" },
+            ],
+          },
+        ],
+        tools: [{ type: "web_search_preview", search_context_size: "low" }],
+      },
+    })
+  );
+  const json = await response.json();
+  const functionCall = json.output.find((item) => item.type === "function_call");
+  const functionCallOutput = json.output.find((item) => item.type === "function_call_output");
+
+  assert.equal(response.status, 200);
+  assert.ok(functionCall, "should include the original function_call item");
+  assert.ok(functionCallOutput, "should append function_call_output");
+  assert.equal(functionCall.name, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.equal(functionCallOutput.call_id, "call_responses_web_search");
+  const output =
+    typeof functionCallOutput.output === "string"
+      ? JSON.parse(functionCallOutput.output)
+      : functionCallOutput.output;
+  assert.equal(output.success, true);
+  assert.equal(output.results[0].title, "Responses Search Result");
 });

@@ -2,7 +2,11 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import { GITHUB_CONFIG, GEMINI_CONFIG } from "@/lib/oauth/constants/oauth";
+import { GEMINI_CONFIG } from "@/lib/oauth/constants/oauth";
+import {
+  getGitHubCopilotInternalUserHeaders,
+  getKiroServiceHeaders,
+} from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
 import {
   getAntigravityHeaders,
   antigravityUserAgent,
@@ -65,12 +69,7 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
     }
 
     const response = await fetch("https://api.github.com/copilot_internal/user", {
-      headers: {
-        Authorization: `Bearer ${copilotToken}`,
-        Accept: "application/json",
-        "X-GitHub-Api-Version": GITHUB_CONFIG.apiVersion,
-        "User-Agent": GITHUB_CONFIG.userAgent,
-      },
+      headers: getGitHubCopilotInternalUserHeaders(`Bearer ${copilotToken}`),
     });
 
     if (!response.ok) {
@@ -459,9 +458,7 @@ async function getKiroUsage(accessToken: string) {
       method: "GET",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        "User-Agent": "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0",
-        "X-Amz-User-Agent": "aws-sdk-js/3.0.0 kiro-ide/1.0.0",
+        ...getKiroServiceHeaders("application/json"),
       },
     });
 

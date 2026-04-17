@@ -6,8 +6,13 @@ import { initAuditLog, cleanupExpiredLogs, logAuditEvent } from "./lib/complianc
 import { initConsoleInterceptor } from "./lib/consoleInterceptor";
 import { startBudgetResetJob } from "./lib/jobs/budgetResetJob";
 import { getSettings } from "./lib/db/settings";
-import { setPayloadRulesConfig } from "@omniroute/open-sse/services/payloadRules.ts";
+import { applyRuntimeSettings } from "./lib/config/runtimeSettings";
+import { startRuntimeConfigHotReload } from "./lib/config/hotReload";
 import { startSpendBatchWriter } from "./lib/spend/batchWriter";
+import { registerDefaultGuardrails } from "./lib/guardrails";
+import { ensurePersistentManagementPasswordHash } from "./lib/auth/managementPassword";
+import { skillExecutor } from "./lib/skills/executor";
+import { registerBuiltinSkills } from "./lib/skills/builtins";
 
 async function startServer() {
   // Trigger request-log layout migration during startup, before serving requests.
@@ -48,21 +53,32 @@ async function startServer() {
   console.log("Starting server with cloud sync...");
 
   try {
-    const settings = await getSettings();
-    if (settings.payloadRules) {
-      const payloadRules =
-        typeof settings.payloadRules === "string"
-          ? JSON.parse(settings.payloadRules)
-          : settings.payloadRules;
-      setPayloadRulesConfig(payloadRules);
-      console.log("[STARTUP] Restored payload rules config from settings");
+    let settings = await getSettings();
+    const passwordState = await ensurePersistentManagementPasswordHash({
+      logger: console,
+      settings,
+      source: "startup",
+    });
+    settings = passwordState.settings;
+    const runtimeChanges = await applyRuntimeSettings(settings, { force: true, source: "startup" });
+    if (runtimeChanges.length > 0) {
+      console.log(
+        `[STARTUP] Runtime settings hydrated: ${runtimeChanges
+          .map((entry) => entry.section)
+          .join(", ")}`
+      );
     }
 
     // Initialize cloud sync
     startSpendBatchWriter();
+    registerDefaultGuardrails();
+    registerBuiltinSkills(skillExecutor);
     console.log("[STARTUP] Spend batch writer started");
+    console.log("[STARTUP] Guardrail registry initialized");
+    console.log("[STARTUP] Builtin skill handlers registered");
     await initializeCloudSync();
     startBudgetResetJob();
+    startRuntimeConfigHotReload();
     console.log("Server started with cloud sync initialized");
 
     // Log server start event to audit log

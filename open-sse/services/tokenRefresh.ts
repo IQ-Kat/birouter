@@ -1,4 +1,5 @@
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 
@@ -682,13 +683,7 @@ export async function refreshCopilotToken(githubAccessToken, log, proxyConfig = 
   try {
     const response = await runWithProxyContext(proxyConfig, () =>
       fetch("https://api.github.com/copilot_internal/v2/token", {
-        headers: {
-          Authorization: `token ${githubAccessToken}`,
-          "User-Agent": "GithubCopilot/1.0",
-          "Editor-Version": "vscode/1.100.0",
-          "Editor-Plugin-Version": "copilot/1.300.0",
-          Accept: "application/json",
-        },
+        headers: getGitHubCopilotRefreshHeaders(`token ${githubAccessToken}`),
       })
     );
 

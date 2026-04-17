@@ -5,6 +5,7 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { getQoderDashscopeCompatHeaders } from "../config/providerHeaderProfiles.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 
 function getAuthToken(credentials: ProviderCredentials): string {
@@ -89,13 +90,7 @@ export class QoderExecutor extends BaseExecutor {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      "x-dashscope-authtype": "qwen-oauth",
-      "x-dashscope-cachecontrol": "enable",
-      "user-agent": "QwenCode/0.11.1 (linux; x64)",
-      "x-dashscope-useragent": "QwenCode/0.11.1 (linux; x64)",
-      "x-stainless-arch": "x64",
-      "x-stainless-lang": "js",
-      "x-stainless-os": "Linux",
+      ...getQoderDashscopeCompatHeaders(),
     };
 
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);

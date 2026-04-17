@@ -8,6 +8,11 @@ import {
   ANTIGRAVITY_BASE_URLS,
 } from "../config/antigravityUpstream.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
+import {
+  CURSOR_REGISTRY_VERSION,
+  getCursorUsageHeaders,
+  getGitHubCopilotInternalUserHeaders,
+} from "../config/providerHeaderProfiles.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import {
@@ -21,12 +26,6 @@ import {
   updateAntigravityRemainingCredits,
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
-
-// GitHub API config
-const GITHUB_CONFIG = {
-  apiVersion: "2022-11-28",
-  userAgent: "GitHubCopilotChat/0.26.7",
-};
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
@@ -68,8 +67,7 @@ const CURSOR_USAGE_CONFIG = {
   usageUrl: "https://www.cursor.com/api/usage",
   userMetaUrl: "https://www.cursor.com/api/auth/me",
   subscriptionUrl: "https://www.cursor.com/api/subscription",
-  clientVersion: "3.1.0",
-  userAgent: "Cursor/3.1.0",
+  clientVersion: CURSOR_REGISTRY_VERSION,
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -290,14 +288,7 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
 
     // copilot_internal/user API requires GitHub OAuth token, not copilotToken
     const response = await fetch("https://api.github.com/copilot_internal/user", {
-      headers: {
-        Authorization: `token ${accessToken}`,
-        Accept: "application/json",
-        "X-GitHub-Api-Version": GITHUB_CONFIG.apiVersion,
-        "User-Agent": GITHUB_CONFIG.userAgent,
-        "Editor-Version": "vscode/1.100.0",
-        "Editor-Plugin-Version": "copilot-chat/0.26.7",
-      },
+      headers: getGitHubCopilotInternalUserHeaders(`token ${accessToken}`),
     });
 
     if (!response.ok) {
@@ -479,13 +470,7 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
 }
 
 function buildCursorUsageHeaders(accessToken: string): Record<string, string> {
-  return {
-    Authorization: `Bearer ${accessToken}`,
-    Accept: "application/json",
-    "User-Agent": CURSOR_USAGE_CONFIG.userAgent,
-    "x-cursor-client-version": CURSOR_USAGE_CONFIG.clientVersion,
-    "x-cursor-user-agent": CURSOR_USAGE_CONFIG.userAgent,
-  };
+  return getCursorUsageHeaders(accessToken, CURSOR_USAGE_CONFIG.clientVersion);
 }
 
 function getFirstPositiveNumber(...values: unknown[]): number {

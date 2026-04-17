@@ -25,11 +25,11 @@ import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { getCachedSettings, getSettings, getCombos } from "@/lib/localDb";
-import { sanitizeRequest } from "../../shared/utils/inputSanitizer";
 import {
   ensureOpenAIStoreSessionFallback,
   isOpenAIResponsesStoreEnabled,
 } from "@/lib/providers/requestDefaults";
+import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
 import {
   resolveModelOrError,
   checkPipelineGates,
@@ -134,20 +134,6 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     clientRawRequest = buildClientRawRequest(request, rawClientBody);
   }
 
-  // FASE-01: Input sanitization — prompt injection detection & PII redaction
-  telemetry.startPhase("validate");
-  const sanitizeResult = sanitizeRequest(body, log as any);
-  if (sanitizeResult.blocked) {
-    log.warn("SANITIZER", "Request blocked due to prompt injection", {
-      detections: sanitizeResult.detections,
-    });
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Request rejected: suspicious content detected");
-  }
-  if (sanitizeResult.modified && sanitizeResult.sanitizedBody) {
-    body = sanitizeResult.sanitizedBody;
-  }
-  telemetry.endPhase();
-
   // T01 — Accept header negotiation
   // If client asks for text/event-stream via the Accept header AND the JSON body
   // does not explicitly set stream=false, treat it as stream=true.
@@ -233,6 +219,35 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     return policy.rejection;
   }
   const apiKeyInfo = policy.apiKeyInfo;
+  telemetry.endPhase();
+
+  // Guardrail pre-call pipeline — prompt injection, PII masking, and future custom rules.
+  telemetry.startPhase("validate");
+  const preCallGuardrails = await guardrailRegistry.runPreCallHooks(body, {
+    apiKeyInfo,
+    disabledGuardrails: resolveDisabledGuardrails({
+      apiKeyInfo: apiKeyInfo as Record<string, unknown> | null,
+      body,
+      headers: request.headers,
+    }),
+    endpoint: new URL(request.url).pathname,
+    headers: request.headers,
+    log,
+    method: request.method,
+    model: modelStr,
+    stream: body?.stream === true,
+  });
+  if (preCallGuardrails.blocked) {
+    log.warn("GUARDRAIL", "Request blocked during pre-call guardrails", {
+      guardrail: preCallGuardrails.guardrail,
+      message: preCallGuardrails.message,
+    });
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      preCallGuardrails.message || "Request rejected: suspicious content detected"
+    );
+  }
+  body = preCallGuardrails.payload;
   telemetry.endPhase();
 
   // T08: per-key active session limit (0 = unlimited).

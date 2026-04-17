@@ -1,6 +1,10 @@
 import { BaseExecutor, ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
+import {
+  getGitHubCopilotChatHeaders,
+  getGitHubCopilotRefreshHeaders,
+} from "../config/providerHeaderProfiles.ts";
 
 export class GithubExecutor extends BaseExecutor {
   /** Stashed per-request so buildHeaders() can read the client's x-initiator value. */
@@ -154,32 +158,17 @@ export class GithubExecutor extends BaseExecutor {
       clientInitiator === "agent" || clientInitiator === "user" ? clientInitiator : "user";
 
     return {
+      ...getGitHubCopilotChatHeaders(stream ? "text/event-stream" : "application/json", initiator),
       Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      "copilot-integration-id": "vscode-chat",
-      "editor-version": "vscode/1.110.0",
-      "editor-plugin-version": "copilot-chat/0.38.0",
-      "user-agent": "GitHubCopilotChat/0.38.0",
-      "openai-intent": "conversation-panel",
-      "x-github-api-version": "2025-04-01",
       "x-request-id":
         crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      "x-vscode-user-agent-library-version": "electron-fetch",
-      "X-Initiator": initiator,
-      Accept: stream ? "text/event-stream" : "application/json",
     };
   }
 
   async refreshCopilotToken(githubAccessToken, log) {
     try {
       const response = await fetch("https://api.github.com/copilot_internal/v2/token", {
-        headers: {
-          Authorization: `token ${githubAccessToken}`,
-          "User-Agent": "GithubCopilot/1.0",
-          "Editor-Version": "vscode/1.110.0",
-          "Editor-Plugin-Version": "copilot/1.300.0",
-          Accept: "application/json",
-        },
+        headers: getGitHubCopilotRefreshHeaders(`token ${githubAccessToken}`),
       });
       if (!response.ok) return null;
       const data = await response.json();

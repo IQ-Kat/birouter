@@ -3,6 +3,12 @@ import {
   ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
   getAntigravityLoadCodeAssistClientMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import {
+  GITHUB_COPILOT_API_VERSION,
+  GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
+  GITHUB_COPILOT_CHAT_USER_AGENT,
+  GITHUB_COPILOT_EDITOR_VERSION,
+} from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
 
 /**
  * OAuth Configuration Constants
@@ -13,9 +19,8 @@ import {
  *
  * These are public OAuth client credentials for desktop/CLI applications
  * that rely on PKCE for security (RFC 8252), not on secret confidentiality.
- * The same values appear in providerRegistry.ts for the legacy provider
- * bridge; they are intentionally co-located with their respective config
- * objects here for readability and to avoid a cross-layer import.
+ * Shared header/version fingerprints now come from the central provider
+ * header profile module so OAuth, usage fetchers and executors stay aligned.
  */
 
 // Claude OAuth Configuration (Authorization Code Flow with PKCE)
@@ -176,11 +181,11 @@ export const GITHUB_CONFIG = {
   tokenUrl: "https://github.com/login/oauth/access_token",
   userInfoUrl: "https://api.github.com/user",
   scopes: "read:user",
-  apiVersion: "2022-11-28", // Updated to supported version
+  apiVersion: GITHUB_COPILOT_API_VERSION,
   copilotTokenUrl: "https://api.github.com/copilot_internal/v2/token",
-  userAgent: "GitHubCopilotChat/0.26.7",
-  editorVersion: "vscode/1.85.0",
-  editorPluginVersion: "copilot-chat/0.26.7",
+  userAgent: GITHUB_COPILOT_CHAT_USER_AGENT,
+  editorVersion: GITHUB_COPILOT_EDITOR_VERSION,
+  editorPluginVersion: GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
 };
 
 // Kiro OAuth Configuration

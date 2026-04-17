@@ -1,4 +1,5 @@
 import { SkillHandler } from "./types";
+import { executeWebSearch } from "@/lib/search/executeWebSearch";
 
 export const builtinSkills: Record<string, SkillHandler> = {
   file_read: async (input, context) => {
@@ -26,14 +27,72 @@ export const builtinSkills: Record<string, SkillHandler> = {
   },
 
   web_search: async (input, context) => {
-    const { query, limit = 10 } = input as { query: string; limit?: number };
+    const {
+      query,
+      limit,
+      max_results,
+      search_type,
+      provider,
+      country,
+      language,
+      time_range,
+      offset,
+      filters,
+      content,
+      provider_options,
+      strict_filters,
+    } = input as {
+      query: string;
+      limit?: number;
+      max_results?: number;
+      search_type?: "web" | "news";
+      provider?: string;
+      country?: string;
+      language?: string;
+      time_range?: "any" | "day" | "week" | "month" | "year";
+      offset?: number;
+      filters?: {
+        include_domains?: string[];
+        exclude_domains?: string[];
+        safe_search?: "off" | "moderate" | "strict";
+      };
+      content?: {
+        snippet?: boolean;
+        full_page?: boolean;
+        format?: "text" | "markdown";
+        max_characters?: number;
+      };
+      provider_options?: Record<string, unknown>;
+      strict_filters?: boolean;
+    };
     if (!query) {
       throw new Error("Missing required field: query");
     }
+    const search = await executeWebSearch({
+      query,
+      provider,
+      limit,
+      max_results,
+      search_type,
+      country,
+      language,
+      time_range,
+      offset,
+      filters,
+      content,
+      provider_options,
+      strict_filters,
+      apiKeyId: context.apiKeyId || null,
+    });
     return {
       success: true,
-      query,
-      results: [{ title: "Stub result", url: "https://example.com", snippet: "Stub" }],
+      provider: search.data.provider,
+      query: search.data.query,
+      results: search.data.results,
+      answer: search.data.answer,
+      usage: search.cached ? { queries_used: 0, search_cost_usd: 0 } : search.data.usage,
+      metrics: search.data.metrics,
+      cached: search.cached,
       context: context.apiKeyId,
     };
   },

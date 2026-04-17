@@ -11,8 +11,10 @@ test.afterEach(() => {
 });
 
 test("usage service covers GitHub free-plan parsing, auth denial and unsupported providers", async () => {
-  globalThis.fetch = async () =>
-    new Response(
+  const calls = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    calls.push(init);
+    return new Response(
       JSON.stringify({
         copilot_plan: "free",
         limited_user_reset_date: new Date(Date.now() + 60_000).toISOString(),
@@ -29,6 +31,7 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
       }),
       { status: 200 }
     );
+  };
 
   const freeUsage: any = await usageService.getUsageForProvider({
     provider: "github",
@@ -40,6 +43,11 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   assert.equal(freeUsage.quotas.premium_interactions.used, 50);
   assert.equal(freeUsage.quotas.chat.remaining, 20);
   assert.equal(freeUsage.quotas.completions.remainingPercentage, 80);
+  assert.equal(calls[0].headers.Authorization, "token gho-free");
+  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.38.0");
+  assert.equal(calls[0].headers["Editor-Version"], "vscode/1.110.0");
+  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/0.38.0");
+  assert.equal(calls[0].headers["X-GitHub-Api-Version"], "2025-04-01");
 
   globalThis.fetch = async () => new Response("forbidden", { status: 403 });
   const forbidden: any = await usageService.getUsageForProvider({
@@ -353,8 +361,11 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
       );
     }
 
-    if (String(url).includes("daily-cloudcode-pa.googleapis.com")) {
-      // lgtm[js/incomplete-url-substring-sanitization]
+    if (String(url).startsWith("https://cloudcode-pa.googleapis.com/")) {
+      return new Response("bad gateway", { status: 502 });
+    }
+
+    if (String(url).startsWith("https://daily-cloudcode-pa.googleapis.com/")) {
       return new Response("bad gateway", { status: 502 });
     }
 
@@ -382,11 +393,12 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   assert.deepEqual(
     quotaCalls.map((call) => call.url),
     [
+      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
       "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
       "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
     ]
   );
-  assert.match(quotaCalls[1].init.headers["User-Agent"], /^antigravity\//);
+  assert.match(quotaCalls[2].init.headers["User-Agent"], /^antigravity\//);
   assert.equal(usage.plan, "Business");
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 500);
 });

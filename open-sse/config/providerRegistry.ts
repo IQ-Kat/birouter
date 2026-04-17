@@ -24,7 +24,15 @@ import {
   GLM_SHARED_HEADERS,
   GLM_SHARED_MODELS,
 } from "./glmProvider.ts";
-import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
+import {
+  CURSOR_REGISTRY_VERSION,
+  getAntigravityProviderHeaders,
+  getCursorRegistryHeaders,
+  getGitHubCopilotChatHeaders,
+  getKiroServiceHeaders,
+  getQoderDefaultHeaders,
+  getQwenOauthHeaders,
+} from "./providerHeaderProfiles.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -394,22 +402,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://chat.qwen.ai/api/v1/services/aigc/text-generation/generation",
     authType: "oauth",
     authHeader: "bearer",
-    headers: {
-      "User-Agent": "QwenCode/0.12.3 (linux; x64)",
-      "X-Dashscope-AuthType": "qwen-oauth",
-      "X-Dashscope-CacheControl": "enable",
-      "X-Dashscope-UserAgent": "QwenCode/0.12.3 (linux; x64)",
-      "X-Stainless-Arch": "x64",
-      "X-Stainless-Lang": "js",
-      "X-Stainless-Os": "Linux",
-      "X-Stainless-Package-Version": "5.11.0",
-      "X-Stainless-Retry-Count": "1",
-      "X-Stainless-Runtime": "node",
-      "X-Stainless-Runtime-Version": "v18.19.1",
-      Connection: "keep-alive",
-      "Accept-Language": "*",
-      "Sec-Fetch-Mode": "cors",
-    },
+    headers: getQwenOauthHeaders(),
     oauth: {
       clientIdEnv: "QWEN_OAUTH_CLIENT_ID",
       clientIdDefault: "f0304373b74a44d2b584a3fb70ca9e56",
@@ -432,9 +425,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://api.qoder.com/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
-    headers: {
-      "User-Agent": "Qoder-Cli",
-    },
+    headers: getQoderDefaultHeaders(),
     oauth: {
       clientIdEnv: "QODER_OAUTH_CLIENT_ID",
       clientSecretEnv: "QODER_OAUTH_CLIENT_SECRET",
@@ -473,9 +464,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     authType: "oauth",
     authHeader: "bearer",
-    headers: {
-      "User-Agent": antigravityUserAgent(),
-    },
+    headers: getAntigravityProviderHeaders(),
     oauth: {
       clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
       clientIdDefault: "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
@@ -496,18 +485,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     defaultContextLength: 128000,
-    headers: {
-      "copilot-integration-id": "vscode-chat",
-      "editor-version": "vscode/1.110.0",
-      "editor-plugin-version": "copilot-chat/0.38.0",
-      "user-agent": "GitHubCopilotChat/0.38.0",
-      "openai-intent": "conversation-panel",
-      "x-github-api-version": "2025-04-01",
-      "x-vscode-user-agent-library-version": "electron-fetch",
-      "X-Initiator": "user",
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: getGitHubCopilotChatHeaders(),
     models: [
       { id: "gpt-4.1", name: "GPT-4.1" },
       { id: "gpt-4o", name: "GPT-4o" },
@@ -546,13 +524,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     defaultContextLength: 200000,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/vnd.amazon.eventstream",
-      "X-Amz-Target": "AmazonCodeWhispererStreamingService.GenerateAssistantResponse",
-      "User-Agent": "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0",
-      "X-Amz-User-Agent": "aws-sdk-js/3.0.0 kiro-ide/1.0.0",
-    },
+    headers: getKiroServiceHeaders(),
     oauth: {
       tokenUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/refreshToken",
       authUrl: "https://prod.us-east-1.auth.desktop.kiro.dev",
@@ -573,13 +545,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     defaultContextLength: 200000,
-    headers: {
-      "connect-accept-encoding": "gzip",
-      "connect-protocol-version": "1",
-      "Content-Type": "application/connect+proto",
-      "User-Agent": "Cursor/3.1.0",
-    },
-    clientVersion: "3.1.0",
+    headers: getCursorRegistryHeaders(),
+    clientVersion: CURSOR_REGISTRY_VERSION,
     models: [
       { id: "default", name: "Auto (Server Picks)" },
       { id: "claude-4.6-opus-high-thinking", name: "Claude 4.6 Opus High Thinking" },
