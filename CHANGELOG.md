@@ -4,16 +4,22 @@
 
 ---
 
-## [3.6.8] — 2026-04-16
+## [3.6.8] — 2026-04-17
 
 ### ✨ New Features
 
+- **feat(providers):** Support `xhigh` reasoning tier exclusively on Claude models that expose it (#1356)
+- **feat(providers):** Add CC Compatible connection-level 1M context toggle (#1357)
 - **feat(core):** Add full support for Node.js 24 LTS (Krypton) environments with continuous integration coverage (#1340)
 - **feat(dashboard):** Display Antigravity credit balance in dashboard Limits & Quotas (#1338)
 - **feat(i18n):** Add internationalization support for combo features and dashboard components; sync translations across 31 keys (#1318)
 - **feat(providers):** Add Claude Opus 4.7 to Claude Code OAuth models natively with extended context and caching (#1347)
 - **feat(core):** Add stopSequences support and expand tool definitions to include Google Search capabilities
 - **security:** Resolve GitHub CodeQL scan alerts and enforce deep SSRF mitigations
+
+### 🔧 Maintenance & Architecture
+
+- **refactor(core):** Split CLI runner and decouple migration engine for extensibility (#1358)
 
 ### 🐛 Bug Fixes
 
