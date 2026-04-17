@@ -35,24 +35,11 @@ export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 8092;
-<<<<<<< HEAD
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = ANTHROPIC_VERSION_HEADER;
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = ANTHROPIC_BETA_FULL;
 export const CLAUDE_CODE_COMPATIBLE_VERSION = CLAUDE_CLI_VERSION;
 export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = CLAUDE_CLI_USER_AGENT;
-||||||| d868124c
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = "2023-06-01";
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA =
-  "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,token-efficient-tools-2025-02-19";
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.87";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = `claude-cli/${CLAUDE_CODE_COMPATIBLE_VERSION} (external, cli)`;
-=======
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = "2023-06-01";
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA =
-  "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,token-efficient-tools-2025-02-19";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.87";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = `claude-cli/${CLAUDE_CODE_COMPATIBLE_VERSION} (external, cli)`;
 const CONTEXT_1M_SUPPORTED_MODELS = [
   "claude-opus-4-7",
   "claude-opus-4-6",
@@ -60,7 +47,6 @@ const CONTEXT_1M_SUPPORTED_MODELS = [
   "claude-sonnet-4-5",
   "claude-sonnet-4",
 ];
->>>>>>> coder/cc-compatible-1m-toggle
 /**
  * Build the billing header dynamically with fingerprint and CCH placeholder.
  * The cch=00000 placeholder is later replaced by signRequestBody().
