@@ -48,7 +48,10 @@ import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
 import { maskEmail, pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
-import { getCodexRequestDefaults as _getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
+import {
+  getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
+  getCodexRequestDefaults as _getCodexRequestDefaults,
+} from "@/lib/providers/requestDefaults";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
@@ -605,6 +608,15 @@ function getCodexRequestDefaults(providerSpecificData: unknown): {
   return {
     reasoningEffort: defaults.reasoningEffort ?? "medium",
     ...(defaults.serviceTier ? { serviceTier: defaults.serviceTier } : {}),
+  };
+}
+
+function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
+  context1m: boolean;
+} {
+  const defaults = _getClaudeCodeCompatibleRequestDefaults(providerSpecificData);
+  return {
+    context1m: defaults.context1m === true,
   };
 }
 
@@ -5389,6 +5401,7 @@ function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    ccCompatibleContext1m: false,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5497,6 +5510,9 @@ function AddApiKeyModal({
       } else if (isCloudflare && formData.accountId.trim()) {
         providerSpecificData.accountId = formData.accountId.trim();
       }
+      if (isCcCompatible && formData.ccCompatibleContext1m) {
+        providerSpecificData.requestDefaults = { context1m: true };
+      }
 
       const payload = {
         name: formData.name,
@@ -5603,6 +5619,16 @@ function AddApiKeyModal({
         {saveError && (
           <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
             {saveError}
+          </div>
+        )}
+        {isCcCompatible && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Toggle
+              checked={formData.ccCompatibleContext1m}
+              onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
+              label="CC Compatible 1M Context"
+              description="When enabled, this connection appends `anthropic-beta: context-1m-2025-08-07`."
+            />
           </div>
         )}
         {isCompatible && (
@@ -5797,6 +5823,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexFastServiceTier: false,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    ccCompatibleContext1m: false,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5819,6 +5846,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isSearxng = connection?.provider === "searxng-search";
   const isGooglePse = connection?.provider === "google-pse-search";
   const apiKeyOptional = isSearxng;
+  const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
   const defaultRegion = "us-central1";
 
   useEffect(() => {
@@ -5835,6 +5863,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const rawAccountId = connection.providerSpecificData?.accountId;
       const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
+      const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
+        connection.providerSpecificData
+      );
       const rawConsoleApiKey = connection.providerSpecificData?.consoleApiKey;
       const existingConsoleApiKey = typeof rawConsoleApiKey === "string" ? rawConsoleApiKey : "";
       setFormData({
@@ -5859,6 +5890,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        ccCompatibleContext1m: ccRequestDefaults.context1m,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -6022,6 +6054,21 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         } else if (isCloudflare && formData.accountId.trim()) {
           updates.providerSpecificData.accountId = formData.accountId.trim();
         }
+        if (isCcCompatible) {
+          const currentRequestDefaults =
+            updates.providerSpecificData.requestDefaults &&
+            typeof updates.providerSpecificData.requestDefaults === "object" &&
+            !Array.isArray(updates.providerSpecificData.requestDefaults)
+              ? { ...(updates.providerSpecificData.requestDefaults as Record<string, unknown>) }
+              : {};
+          if (formData.ccCompatibleContext1m) {
+            currentRequestDefaults.context1m = true;
+          } else {
+            delete currentRequestDefaults.context1m;
+          }
+          updates.providerSpecificData.requestDefaults =
+            Object.keys(currentRequestDefaults).length > 0 ? currentRequestDefaults : undefined;
+        }
       } else {
         // Also persist tag for OAuth accounts
         updates.providerSpecificData = {
@@ -6109,6 +6156,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(checked) => setFormData({ ...formData, codexOpenaiStoreEnabled: checked })}
               label="OpenAI Responses Store"
               description="Preserves `store`, `previous_response_id`, and adds a stable fallback `session_id` for long Codex sessions. Enable only when the upstream account accepts stored Responses."
+            />
+          </div>
+        )}
+        {isCcCompatible && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Toggle
+              checked={formData.ccCompatibleContext1m}
+              onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
+              label="CC Compatible 1M Context"
+              description="When enabled, this connection appends `anthropic-beta: context-1m-2025-08-07`."
             />
           </div>
         )}
