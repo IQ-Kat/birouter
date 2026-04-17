@@ -109,8 +109,12 @@ export function compressContext(
   const provider = options.provider || "default";
   const maxTokens =
     options.maxTokens || getTokenLimit(provider, (body.model as string) || options.model || null);
-  const reserveTokens = options.reserveTokens || 16000; // Reserve for response
-  const targetTokens = maxTokens - reserveTokens;
+  const defaultReserveTokens = Math.min(16000, Math.max(256, Math.floor(maxTokens * 0.15)));
+  const reserveTokens = Math.min(
+    options.reserveTokens ?? defaultReserveTokens,
+    Math.max(0, maxTokens - 1)
+  );
+  const targetTokens = Math.max(0, maxTokens - reserveTokens);
 
   let messages = [...body.messages];
   let currentTokens = estimateTokens(JSON.stringify(messages));
