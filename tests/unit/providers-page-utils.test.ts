@@ -6,6 +6,7 @@ const providerPageUtils =
 const providerPageStorage =
   await import("../../src/app/(dashboard)/dashboard/providers/providerPageStorage.ts");
 const providers = await import("../../src/shared/constants/providers.ts");
+const providerCatalog = await import("../../src/lib/providers/catalog.ts");
 
 test("merged OAuth providers keep free-tier providers in the OAuth section", () => {
   const statsCalls = [];
@@ -105,4 +106,86 @@ test("configured-only preference storage round-trips correctly", () => {
   providerPageStorage.writeConfiguredOnlyPreference(false, mockStorage);
   assert.equal(storage.has(providerPageStorage.SHOW_CONFIGURED_ONLY_STORAGE_KEY), false);
   assert.equal(providerPageStorage.readConfiguredOnlyPreference(mockStorage), false);
+});
+
+test("static catalog entries resolve search, audio, web-cookie and upstream providers", () => {
+  const searchProvider = providerPageUtils.resolveDashboardProviderInfo("brave-search");
+  const audioProvider = providerPageUtils.resolveDashboardProviderInfo("assemblyai");
+  const webCookieProvider = providerPageUtils.resolveDashboardProviderInfo("grok-web");
+  const perplexityWebProvider = providerPageUtils.resolveDashboardProviderInfo("perplexity-web");
+  const upstreamProvider = providerPageUtils.resolveDashboardProviderInfo("cliproxyapi");
+
+  assert.equal(searchProvider?.category, "search");
+  assert.equal(searchProvider?.name, providers.SEARCH_PROVIDERS["brave-search"].name);
+
+  assert.equal(audioProvider?.category, "audio");
+  assert.equal(audioProvider?.name, providers.AUDIO_ONLY_PROVIDERS.assemblyai.name);
+
+  assert.equal(webCookieProvider?.category, "web-cookie");
+  assert.equal(webCookieProvider?.name, providers.WEB_COOKIE_PROVIDERS["grok-web"].name);
+
+  assert.equal(perplexityWebProvider?.category, "web-cookie");
+  assert.equal(perplexityWebProvider?.name, providers.WEB_COOKIE_PROVIDERS["perplexity-web"].name);
+
+  assert.equal(upstreamProvider?.category, "upstream-proxy");
+  assert.equal(
+    upstreamProvider?.name,
+    providerCatalog.STATIC_PROVIDER_CATALOG_GROUPS["upstream-proxy"].providers.cliproxyapi.name
+  );
+});
+
+test("managed provider connection ids include supported static categories and exclude upstream proxy", () => {
+  assert.equal(providerCatalog.isManagedProviderConnectionId("qoder"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("assemblyai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("grok-web"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("perplexity-web"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("brave-search"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("cliproxyapi"), false);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("claude"), false);
+});
+
+test("grok-web taxonomy stays web-cookie only and does not leak into api-key entries", () => {
+  assert.equal("grok-web" in providers.APIKEY_PROVIDERS, false);
+  assert.equal("grok-web" in providers.WEB_COOKIE_PROVIDERS, true);
+
+  const apiKeyEntries = providerPageUtils.buildStaticProviderEntries("apikey", () => ({
+    total: 0,
+  }));
+  const webCookieEntries = providerPageUtils.buildStaticProviderEntries("web-cookie", () => ({
+    total: 0,
+  }));
+
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "grok-web"),
+    false
+  );
+  assert.equal(
+    webCookieEntries.some((entry) => entry.providerId === "grok-web"),
+    true
+  );
+});
+
+test("compatible catalog entries keep dynamic compatible metadata", () => {
+  const compatibleProvider = providerPageUtils.resolveDashboardProviderInfo(
+    "openai-compatible-lab",
+    {
+      providerNode: {
+        id: "openai-compatible-lab",
+        type: "openai-compatible",
+        apiType: "responses",
+        baseUrl: "https://example.test",
+      },
+      compatibleLabels: {
+        ccCompatibleName: "CC Compatible",
+        anthropicCompatibleName: "Anthropic Compatible",
+        openAiCompatibleName: "OpenAI Compatible",
+      },
+    }
+  );
+
+  assert.equal(compatibleProvider?.category, "compatible");
+  assert.equal(compatibleProvider?.displayAuthType, "compatible");
+  assert.equal(compatibleProvider?.toggleAuthType, "apikey");
+  assert.equal(compatibleProvider?.apiType, "responses");
+  assert.equal(compatibleProvider?.baseUrl, "https://example.test");
 });

@@ -75,6 +75,16 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint: "Paste your sso= cookie value from grok.com",
     passthroughModels: true,
   },
+  "perplexity-web": {
+    id: "perplexity-web",
+    alias: "pplx-web",
+    name: "Perplexity Web (Pro/Max)",
+    icon: "search",
+    color: "#20808D",
+    textIcon: "PW",
+    website: "https://www.perplexity.ai",
+    authHint: "Paste your __Secure-next-auth.session-token cookie value from perplexity.ai",
+  },
 };
 
 // API Key Providers
@@ -238,17 +248,6 @@ export const APIKEY_PROVIDERS = {
     color: "#1DA1F2",
     textIcon: "XA",
     website: "https://x.ai",
-  },
-  "grok-web": {
-    id: "grok-web",
-    alias: "grok-web",
-    name: "Grok Web (Subscription)",
-    icon: "auto_awesome",
-    color: "#1DA1F2",
-    textIcon: "GW",
-    website: "https://grok.com",
-    authHint:
-      "Paste your sso cookie value from grok.com (found in browser DevTools → Cookies → sso)",
   },
   mistral: {
     id: "mistral",

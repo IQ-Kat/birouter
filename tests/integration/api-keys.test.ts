@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-api-keys-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -109,11 +110,10 @@ test("API keys POST also requires management auth when login protection is enabl
 
 test("POST /api/keys creates a key, preserves special characters, and persists noLog", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
   const response = await listRoute.POST(
-    makeRequest("http://localhost/api/keys", {
+    await makeManagementSessionRequest("http://localhost/api/keys", {
       method: "POST",
-      token: authKey.key,
       body: { name: "Key / Prod #1", noLog: true },
     })
   );
@@ -130,19 +130,17 @@ test("POST /api/keys creates a key, preserves special characters, and persists n
 
 test("POST /api/keys validates missing and oversized names", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
 
   const missingName = await listRoute.POST(
-    makeRequest("http://localhost/api/keys", {
+    await makeManagementSessionRequest("http://localhost/api/keys", {
       method: "POST",
-      token: authKey.key,
       body: {},
     })
   );
   const oversizedName = await listRoute.POST(
-    makeRequest("http://localhost/api/keys", {
+    await makeManagementSessionRequest("http://localhost/api/keys", {
       method: "POST",
-      token: authKey.key,
       body: { name: "x".repeat(201) },
     })
   );
@@ -153,15 +151,12 @@ test("POST /api/keys validates missing and oversized names", async () => {
 
 test("POST /api/keys returns a server error for malformed JSON payloads", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
 
   const response = await listRoute.POST(
-    new Request("http://localhost/api/keys", {
+    await makeManagementSessionRequest("http://localhost/api/keys", {
       method: "POST",
-      headers: {
-        authorization: `Bearer ${authKey.key}`,
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: "{",
     })
   );
@@ -173,17 +168,15 @@ test("POST /api/keys returns a server error for malformed JSON payloads", async 
 
 test("GET /api/keys lists masked keys with pagination and GET /api/keys/[id] stays masked", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
   const createdA = await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
   const createdB = await apiKeysDb.createApiKey("Beta", MACHINE_ID);
 
   const listResponse = await listRoute.GET(
-    makeRequest("http://localhost/api/keys?limit=1&offset=1", {
-      token: authKey.key,
-    })
+    await makeManagementSessionRequest("http://localhost/api/keys?limit=1&offset=1")
   );
   const getResponse = await keyRoute.GET(
-    makeRequest(`http://localhost/api/keys/${createdB.id}`, { token: authKey.key }),
+    await makeManagementSessionRequest(`http://localhost/api/keys/${createdB.id}`),
     { params: Promise.resolve({ id: createdB.id }) }
   );
 
@@ -205,14 +198,12 @@ test("GET /api/keys lists masked keys with pagination and GET /api/keys/[id] sta
 
 test("GET /api/keys falls back to default pagination for invalid query params", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
   await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
   await apiKeysDb.createApiKey("Beta", MACHINE_ID);
 
   const response = await listRoute.GET(
-    makeRequest("http://localhost/api/keys?limit=0&offset=-25", {
-      token: authKey.key,
-    })
+    await makeManagementSessionRequest("http://localhost/api/keys?limit=0&offset=-25")
   );
   const body = await response.json();
 
@@ -224,14 +215,12 @@ test("GET /api/keys falls back to default pagination for invalid query params", 
 
 test("GET /api/keys treats non-numeric pagination params as defaults", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
   await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
   await apiKeysDb.createApiKey("Beta", MACHINE_ID);
 
   const response = await listRoute.GET(
-    makeRequest("http://localhost/api/keys?limit=abc&offset=xyz", {
-      token: authKey.key,
-    })
+    await makeManagementSessionRequest("http://localhost/api/keys?limit=abc&offset=xyz")
   );
   const body = await response.json();
 
@@ -252,9 +241,7 @@ test("GET /api/keys uses default pagination when query params are absent and rep
   const createdB = await apiKeysDb.createApiKey("Beta", MACHINE_ID);
 
   const response = await listRoute.GET(
-    makeRequest("http://localhost/api/keys", {
-      token: authKey.key,
-    })
+    await makeManagementSessionRequest("http://localhost/api/keys")
   );
   const body = await response.json();
 
@@ -272,7 +259,7 @@ test("GET /api/keys uses default pagination when query params are absent and rep
 test("POST /api/keys triggers cloud sync when cloud mode is enabled", async () => {
   await enableManagementAuth();
   await localDb.updateSettings({ cloudEnabled: true });
-  const authKey = await createManagementKey();
+  await createManagementKey();
   const originalFetch = globalThis.fetch;
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
@@ -282,9 +269,8 @@ test("POST /api/keys triggers cloud sync when cloud mode is enabled", async () =
 
   try {
     const response = await listRoute.POST(
-      makeRequest("http://localhost/api/keys", {
+      await makeManagementSessionRequest("http://localhost/api/keys", {
         method: "POST",
-        token: authKey.key,
         body: { name: "Cloud Synced Key" },
       })
     );
@@ -338,7 +324,7 @@ test("GET /api/keys returns 500 when the key store throws unexpectedly", async (
 test("POST /api/keys still succeeds when cloud sync fails after creation", async () => {
   await enableManagementAuth();
   await localDb.updateSettings({ cloudEnabled: true });
-  const authKey = await createManagementKey();
+  await createManagementKey();
   const originalFetch = globalThis.fetch;
   let syncAttempts = 0;
 
@@ -349,9 +335,8 @@ test("POST /api/keys still succeeds when cloud sync fails after creation", async
 
   try {
     const response = await listRoute.POST(
-      makeRequest("http://localhost/api/keys", {
+      await makeManagementSessionRequest("http://localhost/api/keys", {
         method: "POST",
-        token: authKey.key,
         body: { name: "Cloud Failure Tolerated" },
       })
     );
@@ -369,21 +354,21 @@ test("POST /api/keys still succeeds when cloud sync fails after creation", async
 
 test("GET /api/keys/[id] returns 404 for an unknown key and reveal is gated by the feature flag", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
   const created = await apiKeysDb.createApiKey("Reveal Target", MACHINE_ID);
 
   const missingResponse = await keyRoute.GET(
-    makeRequest("http://localhost/api/keys/missing", { token: authKey.key }),
+    await makeManagementSessionRequest("http://localhost/api/keys/missing"),
     { params: Promise.resolve({ id: "missing" }) }
   );
   const revealDisabled = await revealRoute.GET(
-    makeRequest(`http://localhost/api/keys/${created.id}/reveal`, { token: authKey.key }),
+    await makeManagementSessionRequest(`http://localhost/api/keys/${created.id}/reveal`),
     { params: Promise.resolve({ id: created.id }) }
   );
 
   process.env.ALLOW_API_KEY_REVEAL = "true";
   const revealEnabled = await revealRoute.GET(
-    makeRequest(`http://localhost/api/keys/${created.id}/reveal`, { token: authKey.key }),
+    await makeManagementSessionRequest(`http://localhost/api/keys/${created.id}/reveal`),
     { params: Promise.resolve({ id: created.id }) }
   );
 
@@ -401,12 +386,11 @@ test("GET /api/keys/[id] returns 404 for an unknown key and reveal is gated by t
 
 test("PATCH /api/keys/[id] updates permissions and rejects invalid payloads", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
   const created = await apiKeysDb.createApiKey("Mutable", MACHINE_ID);
   const patchResponse = await keyRoute.PATCH(
-    makeRequest(`http://localhost/api/keys/${created.id}`, {
+    await makeManagementSessionRequest(`http://localhost/api/keys/${created.id}`, {
       method: "PATCH",
-      token: authKey.key,
       body: {
         noLog: true,
         allowedModels: ["gpt-4.1-mini"],
@@ -418,20 +402,16 @@ test("PATCH /api/keys/[id] updates permissions and rejects invalid payloads", as
     { params: Promise.resolve({ id: created.id }) }
   );
   const invalidJsonResponse = await keyRoute.PATCH(
-    new Request(`http://localhost/api/keys/${created.id}`, {
+    await makeManagementSessionRequest(`http://localhost/api/keys/${created.id}`, {
       method: "PATCH",
-      headers: {
-        authorization: `Bearer ${authKey.key}`,
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: "{",
     }),
     { params: Promise.resolve({ id: created.id }) }
   );
   const missingKeyResponse = await keyRoute.PATCH(
-    makeRequest("http://localhost/api/keys/missing", {
+    await makeManagementSessionRequest("http://localhost/api/keys/missing", {
       method: "PATCH",
-      token: authKey.key,
       body: { noLog: false },
     }),
     { params: Promise.resolve({ id: "missing" }) }
@@ -457,20 +437,18 @@ test("PATCH /api/keys/[id] updates permissions and rejects invalid payloads", as
 
 test("DELETE /api/keys/[id] removes keys and reports missing resources", async () => {
   await enableManagementAuth();
-  const authKey = await createManagementKey();
+  await createManagementKey();
   const created = await apiKeysDb.createApiKey("Disposable", MACHINE_ID);
 
   const deleteResponse = await keyRoute.DELETE(
-    makeRequest(`http://localhost/api/keys/${created.id}`, {
+    await makeManagementSessionRequest(`http://localhost/api/keys/${created.id}`, {
       method: "DELETE",
-      token: authKey.key,
     }),
     { params: Promise.resolve({ id: created.id }) }
   );
   const missingDeleteResponse = await keyRoute.DELETE(
-    makeRequest("http://localhost/api/keys/missing", {
+    await makeManagementSessionRequest("http://localhost/api/keys/missing", {
       method: "DELETE",
-      token: authKey.key,
     }),
     { params: Promise.resolve({ id: "missing" }) }
   );

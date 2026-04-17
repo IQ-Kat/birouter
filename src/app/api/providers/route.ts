@@ -10,7 +10,6 @@ import {
   getProviderNodeById,
   isCloudEnabled,
 } from "@/models";
-import { APIKEY_PROVIDERS, SEARCH_PROVIDERS } from "@/shared/constants/config";
 import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
@@ -22,9 +21,14 @@ import { createProviderSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { normalizeQoderPatProviderData } from "@omniroute/open-sse/services/qoderCli";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 
 // GET /api/providers - List all connections
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const connections = await getProviderConnections();
 
@@ -52,6 +56,9 @@ export async function GET() {
 
 // POST /api/providers - Create new connection (API Key only, OAuth via separate flow)
 export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   const auditContext = getAuditRequestContext(request);
 
   try {
@@ -75,9 +82,7 @@ export async function POST(request: Request) {
 
     // Business validation
     const isValidProvider =
-      APIKEY_PROVIDERS[provider] ||
-      SEARCH_PROVIDERS[provider] ||
-      provider === "qoder" ||
+      isManagedProviderConnectionId(provider) ||
       isOpenAICompatibleProvider(provider) ||
       isAnthropicCompatibleProvider(provider);
 

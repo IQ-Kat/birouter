@@ -15,18 +15,26 @@ import { pathToFileURL } from "node:url";
 
 const projectRoot = process.cwd();
 const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
-const transientBuildPaths = [
-  {
-    label: "legacy app snapshot",
-    sourcePath: path.join(projectRoot, "app"),
-    backupPath: path.join(backupRoot, "app"),
-  },
-  {
-    label: "task planning workspace",
-    sourcePath: path.join(projectRoot, "_tasks"),
-    backupPath: path.join(backupRoot, "_tasks"),
-  },
-];
+
+export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
+  const paths = [
+    {
+      label: "legacy app snapshot",
+      sourcePath: path.join(rootDir, "app"),
+      backupPath: path.join(backupRoot, "app"),
+    },
+  ];
+
+  if (env.OMNIROUTE_BUILD_MOVE_TASKS === "1") {
+    paths.push({
+      label: "task planning workspace",
+      sourcePath: path.join(rootDir, "_tasks"),
+      backupPath: path.join(backupRoot, "_tasks"),
+    });
+  }
+
+  return paths;
+}
 
 async function exists(targetPath) {
   try {
@@ -38,7 +46,8 @@ async function exists(targetPath) {
 }
 
 export async function movePath(sourcePath, destinationPath, fsImpl = fs) {
-  await fsImpl.mkdir(path.dirname(destinationPath), { recursive: true });
+  const mkdir = typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
+  await mkdir(path.dirname(destinationPath), { recursive: true });
 
   try {
     await fsImpl.rename(sourcePath, destinationPath);
@@ -95,8 +104,22 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
   };
 }
 
+export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = fs) {
+  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  const pruneTargets = [path.join(standaloneRoot, "_tasks")];
+
+  for (const targetPath of pruneTargets) {
+    if (!(await exists(targetPath))) continue;
+    await fsImpl.rm(targetPath, { recursive: true, force: true });
+    console.log(
+      `[build-next-isolated] Pruned standalone artifact: ${path.relative(rootDir, targetPath)}`
+    );
+  }
+}
+
 export async function main() {
   const movedPaths = [];
+  const transientBuildPaths = getTransientBuildPaths();
 
   try {
     for (const entry of transientBuildPaths) {
@@ -121,6 +144,15 @@ export async function main() {
         );
       } catch (copyErr) {
         console.warn("[build-next-isolated] Non-fatal error copying static assets:", copyErr);
+      }
+
+      try {
+        await pruneStandaloneArtifacts(projectRoot);
+      } catch (pruneErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error pruning standalone artifacts:",
+          pruneErr
+        );
       }
     }
     process.exitCode = result.code;

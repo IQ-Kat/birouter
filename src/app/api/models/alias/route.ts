@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getModelAliases, setModelAlias, deleteModelAlias, isCloudEnabled } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { cloudModelAliasUpdateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
@@ -10,20 +9,19 @@ import {
   getCatalogDiagnosticsHeaders,
   resolveModelAliasLookup,
 } from "@/lib/modelMetadataRegistry";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // GET /api/models/alias - Get all aliases
 export async function GET(request) {
   const alias = new URL(request.url).searchParams.get("alias");
   try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        {
-          status: 401,
-          headers: getCatalogDiagnosticsHeaders({ request }),
-        }
-      );
+    const authError = await requireManagementAuth(request);
+    if (authError) {
+      const headers = getCatalogDiagnosticsHeaders({ request, resolvedAlias: alias });
+      for (const [key, value] of Object.entries(headers)) {
+        authError.headers.set(key, value);
+      }
+      return authError;
     }
 
     if (alias) {
@@ -113,12 +111,12 @@ export async function PUT(request) {
   }
 
   try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401, headers: diagnosticHeaders }
-      );
+    const authError = await requireManagementAuth(request);
+    if (authError) {
+      for (const [key, value] of Object.entries(diagnosticHeaders)) {
+        authError.headers.set(key, value);
+      }
+      return authError;
     }
 
     const validation = validateBody(cloudModelAliasUpdateSchema, rawBody);
@@ -157,12 +155,12 @@ export async function PUT(request) {
 export async function DELETE(request) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   try {
-    // Require authentication for security
-    if (!(await isAuthenticated(request))) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401, headers: diagnosticHeaders }
-      );
+    const authError = await requireManagementAuth(request);
+    if (authError) {
+      for (const [key, value] of Object.entries(diagnosticHeaders)) {
+        authError.headers.set(key, value);
+      }
+      return authError;
     }
 
     const { searchParams } = new URL(request.url);

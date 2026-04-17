@@ -70,6 +70,15 @@ const REAL_023_FIX_MEMORY_FTS_UUID_SQL = fs.readFileSync(
   "utf8"
 );
 
+test("migration infrastructure avoids cwd-based repo tracing fallbacks", () => {
+  const runnerSource = fs.readFileSync(path.resolve("src/lib/db/migrationRunner.ts"), "utf8");
+  const dataPathsSource = fs.readFileSync(path.resolve("src/lib/dataPaths.ts"), "utf8");
+
+  assert.doesNotMatch(runnerSource, /process\.cwd\(\)/);
+  assert.doesNotMatch(dataPathsSource, /process\.cwd\(\)/);
+  assert.match(runnerSource, /fileURLToPath\(import\.meta\.url\)/);
+});
+
 test("runMigrations applies pending files sequentially in version order", serial, async () => {
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
   const db = createDb();
@@ -524,14 +533,15 @@ test(
         db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
         [{ version: "021" }, { version: "022" }, { version: "023" }]
       );
-      assert.deepEqual(
-        db.prepare("SELECT memory_id, content FROM memories").get(),
-        { memory_id: 1, content: "memory content" }
-      );
-      assert.deepEqual(
-        db.prepare("SELECT rowid, content, key FROM memory_fts").get(),
-        { rowid: 1, content: "memory content", key: "topic" }
-      );
+      assert.deepEqual(db.prepare("SELECT memory_id, content FROM memories").get(), {
+        memory_id: 1,
+        content: "memory content",
+      });
+      assert.deepEqual(db.prepare("SELECT rowid, content, key FROM memory_fts").get(), {
+        rowid: 1,
+        content: "memory content",
+        key: "topic",
+      });
     } finally {
       db.close();
     }

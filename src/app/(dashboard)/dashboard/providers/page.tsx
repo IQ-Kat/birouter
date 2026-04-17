@@ -15,14 +15,8 @@ import {
   Toggle,
 } from "@/shared/components";
 import {
-  OAUTH_PROVIDERS,
-  APIKEY_PROVIDERS,
-  WEB_COOKIE_PROVIDERS,
-  SEARCH_PROVIDERS,
-  AUDIO_ONLY_PROVIDERS,
-} from "@/shared/constants/config";
-import {
   FREE_PROVIDERS,
+  OAUTH_PROVIDERS,
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
@@ -36,7 +30,7 @@ import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
 import { useTranslations } from "next-intl";
 import {
   buildMergedOAuthProviderEntries,
-  buildProviderEntries,
+  buildStaticProviderEntries,
   filterConfiguredProviderEntries,
 } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
@@ -403,22 +397,22 @@ export default function ProvidersPage() {
   );
 
   const apiKeyProviderEntries = filterConfiguredProviderEntries(
-    buildProviderEntries(APIKEY_PROVIDERS, "apikey", "apikey", getProviderStats),
+    buildStaticProviderEntries("apikey", getProviderStats),
     showConfiguredOnly
   );
 
   const webCookieProviderEntries = filterConfiguredProviderEntries(
-    buildProviderEntries(WEB_COOKIE_PROVIDERS, "apikey", "apikey", getProviderStats),
+    buildStaticProviderEntries("web-cookie", getProviderStats),
     showConfiguredOnly
   );
 
   const searchProviderEntries = filterConfiguredProviderEntries(
-    buildProviderEntries(SEARCH_PROVIDERS, "apikey", "apikey", getProviderStats),
+    buildStaticProviderEntries("search", getProviderStats),
     showConfiguredOnly
   );
 
   const audioProviderEntries = filterConfiguredProviderEntries(
-    buildProviderEntries(AUDIO_ONLY_PROVIDERS, "apikey", "apikey", getProviderStats),
+    buildStaticProviderEntries("audio", getProviderStats),
     showConfiguredOnly
   );
 

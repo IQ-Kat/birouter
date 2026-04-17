@@ -46,6 +46,15 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
 
+function isAutomatedTestProcess(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    (process.env.NODE_ENV === "test" ||
+      process.env.VITEST !== undefined ||
+      process.argv.some((arg) => arg.includes("test")))
+  );
+}
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -240,6 +249,14 @@ async function applyModelsDevSyncSection(
   force: boolean
 ) {
   const { startPeriodicSync, stopPeriodicSync } = await import("@/lib/modelsDevSync");
+  const skipBackgroundSyncInTests =
+    isAutomatedTestProcess() && process.env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1";
+
+  if (skipBackgroundSyncInTests) {
+    stopPeriodicSync();
+    return;
+  }
+
   const wasEnabled = previousSnapshot.modelsDevSyncEnabled === true;
   const isEnabled = currentSnapshot.modelsDevSyncEnabled === true;
   const intervalChanged =

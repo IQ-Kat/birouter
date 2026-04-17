@@ -25,17 +25,25 @@ import type Database from "better-sqlite3";
  * `file://` URL, causing `fileURLToPath` to throw `ERR_INVALID_FILE_URL_PATH`.
  */
 function resolveMigrationsDir(): string {
-  try {
-    const metaUrl = import.meta.url;
-    if (metaUrl && metaUrl.startsWith("file://")) {
-      const __filename = fileURLToPath(metaUrl);
-      return path.join(path.dirname(__filename), "migrations");
-    }
-  } catch {
-    // fileURLToPath failed (e.g. Windows global install) — use fallback
+  const configuredDir = process.env.OMNIROUTE_MIGRATIONS_DIR;
+  if (typeof configuredDir === "string" && configuredDir.trim().length > 0) {
+    return path.resolve(configuredDir);
   }
-  // Fallback: resolve relative to cwd (works for both dev and global installs)
-  return path.join(process.cwd(), "src", "lib", "db", "migrations");
+
+  try {
+    return path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
+  } catch {
+    // Fall through to a more defensive URL parse below.
+  }
+
+  const metaUrl = import.meta.url;
+  if (typeof metaUrl === "string" && metaUrl.startsWith("file://")) {
+    return path.join(path.dirname(fileURLToPath(metaUrl)), "migrations");
+  }
+
+  throw new Error(
+    "[Migration] Could not resolve migrations directory. Set OMNIROUTE_MIGRATIONS_DIR."
+  );
 }
 
 const MIGRATIONS_DIR = resolveMigrationsDir();

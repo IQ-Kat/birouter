@@ -1,23 +1,43 @@
 import initializeCloudSync from "@/shared/services/initializeCloudSync";
 import { startBudgetResetJob } from "@/lib/jobs/budgetResetJob";
 import { startModelSyncScheduler } from "@/shared/services/modelSyncScheduler";
-import "@/lib/tokenHealthCheck"; // Proactive token health-check scheduler
 
-// Initialize background sync services when this module is imported
+// Initialize runtime background sync services once per server process.
 let initialized = false;
 
-function isBackgroundServicesDisabled(): boolean {
-  const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
-  if (!raw) return false;
-  return new Set(["1", "true", "yes", "on"]).has(raw.trim().toLowerCase());
+function isAutomatedTestProcess(
+  env: NodeJS.ProcessEnv = process.env,
+  argv: string[] = process.argv
+): boolean {
+  return (
+    env.NODE_ENV === "test" || env.VITEST !== undefined || argv.some((arg) => arg.includes("test"))
+  );
+}
+
+export function shouldSkipCloudSyncInitialization(
+  env: NodeJS.ProcessEnv = process.env,
+  argv: string[] = process.argv
+): boolean {
+  if (env.NEXT_PHASE === "phase-production-build") {
+    return true;
+  }
+
+  const raw = env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+  if (raw && new Set(["1", "true", "yes", "on"]).has(raw.trim().toLowerCase())) {
+    return true;
+  }
+
+  return isAutomatedTestProcess(env, argv) && env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1";
 }
 
 export async function ensureCloudSyncInitialized() {
-  if (isBackgroundServicesDisabled()) {
+  if (shouldSkipCloudSyncInitialization()) {
     return false;
   }
   if (!initialized) {
     try {
+      const { initTokenHealthCheck } = await import("@/lib/tokenHealthCheck");
+      initTokenHealthCheck();
       await initializeCloudSync();
       startModelSyncScheduler();
       startBudgetResetJob();
@@ -28,8 +48,5 @@ export async function ensureCloudSyncInitialized() {
   }
   return initialized;
 }
-
-// Auto-initialize when module loads
-ensureCloudSyncInitialized().catch((err) => console.error("[CloudSync] ensure failed:", err));
 
 export default ensureCloudSyncInitialized;

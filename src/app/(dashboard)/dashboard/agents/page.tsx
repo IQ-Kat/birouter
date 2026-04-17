@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, Button, Input } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { useTranslations } from "next-intl";
-import { AI_PROVIDERS } from "@/shared/constants/config";
+import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { CLI_COMPAT_PROVIDER_IDS } from "@/shared/constants/cliCompatProviders";
 
 interface AgentInfo {

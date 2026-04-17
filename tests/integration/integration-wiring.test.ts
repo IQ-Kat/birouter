@@ -216,6 +216,37 @@ describe("API Routes — T09 /v1 catalog consistency", () => {
   });
 });
 
+describe("Dashboard Wiring — T05 payload rules", () => {
+  const settingsPageSrc = readProjectFile("src/app/(dashboard)/dashboard/settings/page.tsx");
+  const payloadRulesTabSrc = readProjectFile(
+    "src/app/(dashboard)/dashboard/settings/components/PayloadRulesTab.tsx"
+  );
+  const openapiSrc = readProjectFile("docs/openapi.yaml");
+
+  it("settings page should surface payload rules inside advanced settings", () => {
+    assert.ok(settingsPageSrc, "settings page source should exist");
+    assert.match(settingsPageSrc, /import PayloadRulesTab from "\.\/components\/PayloadRulesTab"/);
+    assert.match(settingsPageSrc, /activeTab === "advanced"/);
+    assert.match(settingsPageSrc, /<PayloadRulesTab\s*\/>/);
+  });
+
+  it("payload rules tab should read and write through the dedicated settings endpoint", () => {
+    assert.ok(payloadRulesTabSrc, "payload rules tab source should exist");
+    assert.match(payloadRulesTabSrc, /fetch\("\/api\/settings\/payload-rules"\)/);
+    assert.match(payloadRulesTabSrc, /fetch\("\/api\/settings\/payload-rules",\s*\{/);
+    assert.match(payloadRulesTabSrc, /method:\s*"PUT"/);
+    assert.match(payloadRulesTabSrc, /default-raw/);
+  });
+
+  it("openapi should document the payload rules management surface", () => {
+    assert.ok(openapiSrc, "docs/openapi.yaml should exist");
+    assert.match(openapiSrc, /\/api\/settings\/payload-rules:/);
+    assert.match(openapiSrc, /summary:\s+Get payload rules configuration/);
+    assert.match(openapiSrc, /ManagementSessionAuth:/);
+    assert.match(openapiSrc, /PayloadRulesConfig:/);
+  });
+});
+
 // ─── Barrel Exports ─────────────────────────────────
 
 describe("Barrel Exports — shared/components", () => {
@@ -373,5 +404,38 @@ describe("Page Integration — provider test results privacy", () => {
       providerDetailSrc,
       /pickDisplayValue\(\s*\[r\.connectionName\],\s*emailsVisible,\s*r\.connectionName\s*\)/
     );
+  });
+
+  it("should resolve provider detail metadata through the shared dashboard catalog", () => {
+    assert.ok(
+      providerDetailSrc,
+      "src/app/(dashboard)/dashboard/providers/[id]/page.tsx should exist"
+    );
+    assert.match(providerDetailSrc, /resolveDashboardProviderInfo/);
+  });
+
+  it("should treat upstream proxy entries as a dedicated management surface", () => {
+    assert.ok(
+      providerDetailSrc,
+      "src/app/(dashboard)/dashboard/providers/[id]/page.tsx should exist"
+    );
+    assert.match(providerDetailSrc, /isUpstreamProxyProvider/);
+    assert.match(providerDetailSrc, /Managed via Upstream Proxy Settings/);
+  });
+});
+
+describe("Page Integration — legacy provider create route retirement", () => {
+  const legacyProviderNewSrc = readProjectFile(
+    "src/app/(dashboard)/dashboard/providers/new/page.tsx"
+  );
+
+  it("should redirect legacy /dashboard/providers/new to the canonical providers flow", () => {
+    assert.ok(
+      legacyProviderNewSrc,
+      "src/app/(dashboard)/dashboard/providers/new/page.tsx should exist"
+    );
+    assert.match(legacyProviderNewSrc, /redirect\("\/dashboard\/providers"\)/);
+    assert.doesNotMatch(legacyProviderNewSrc, /authMethod:\s*"api_key"/);
+    assert.doesNotMatch(legacyProviderNewSrc, /displayName/);
   });
 });

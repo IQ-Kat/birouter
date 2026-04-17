@@ -1,5 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 import { getSettings, updateSettings } from "../../src/lib/db/settings.ts";
 const settingsRoute = await import("../../src/app/api/settings/route.ts");
 
@@ -81,10 +82,9 @@ describe("Settings API - debugMode and hiddenSidebarItems", () => {
 
     test("PUT /api/settings reuses the PATCH update flow", async () => {
       const response = await settingsRoute.PUT(
-        new Request("http://localhost/api/settings", {
+        await makeManagementSessionRequest("http://localhost/api/settings", {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ antigravitySignatureCacheMode: "bypass" }),
+          body: { antigravitySignatureCacheMode: "bypass" },
         })
       );
       const body = await response.json();

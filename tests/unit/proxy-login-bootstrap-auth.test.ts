@@ -22,7 +22,7 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-function makeRequest(pathname, method = "GET") {
+function makeRequest(pathname, method = "GET", headers) {
   return {
     nextUrl: {
       pathname,
@@ -34,7 +34,7 @@ function makeRequest(pathname, method = "GET") {
         return undefined;
       },
     },
-    headers: new Headers(),
+    headers: new Headers(headers),
     url: `http://localhost:20128${pathname}`,
   };
 }
@@ -79,6 +79,25 @@ test("proxy requires auth for POST /api/settings/require-login after setup", asy
   const body = await response.json();
 
   assert.equal(response.status, 401);
+  assert.equal(body.error.code, "AUTH_001");
+});
+
+test("proxy rejects bearer tokens for POST /api/settings/require-login after setup", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    setupComplete: true,
+  });
+
+  const { proxy } = await importFreshProxy();
+  const response = await proxy(
+    makeRequest("/api/settings/require-login", "POST", {
+      authorization: "Bearer sk-invalid",
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 403);
   assert.equal(body.error.code, "AUTH_001");
 });
 

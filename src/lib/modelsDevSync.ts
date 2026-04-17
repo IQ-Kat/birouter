@@ -202,6 +202,9 @@ export function mapProviderId(modelsDevProviderId: string): string[] {
 // ─── Periodic sync state ─────────────────────────────────
 
 let syncTimer: ReturnType<typeof setInterval> | null = null;
+let activeSyncAbortController: AbortController | null = null;
+let activeSyncPromise: Promise<SyncResult> | null = null;
+let activePeriodicSyncToken: { stopped: boolean } | null = null;
 let lastSyncTime: string | null = null;
 let lastSyncModelCount = 0;
 let lastSyncCapabilityCount = 0;
@@ -211,6 +214,48 @@ let cacheTime = 0;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 let cachedCapabilities: CapabilitiesByProvider | null = null;
 let cachedCapabilitiesLoadedAll = false;
+const MODELS_DEV_ABORT_ERROR = "AbortError";
+
+function createAbortError(): Error {
+  const error = new Error("models.dev sync aborted");
+  error.name = MODELS_DEV_ABORT_ERROR;
+  return error;
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === MODELS_DEV_ABORT_ERROR;
+}
+
+function createAbortedSyncResult(dryRun: boolean): SyncResult {
+  return {
+    success: false,
+    modelCount: 0,
+    providerCount: 0,
+    capabilityCount: 0,
+    dryRun,
+    error: "aborted",
+  };
+}
+
+async function sleepWithAbort(ms: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+
+    const onAbort = () => {
+      clearTimeout(timeout);
+      reject(createAbortError());
+    };
+
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
 
 // ─── Core: Fetch ─────────────────────────────────────────
 
@@ -218,14 +263,14 @@ let cachedCapabilitiesLoadedAll = false;
  * Fetch raw data from models.dev API.
  * Uses in-memory cache with 24h TTL to avoid repeated fetches.
  */
-export async function fetchModelsDev(): Promise<ModelsDevData> {
+export async function fetchModelsDev(signal?: AbortSignal): Promise<ModelsDevData> {
   // Return cached data if still fresh
   if (cachedData && Date.now() - cacheTime < CACHE_TTL_MS) {
     return cachedData;
   }
 
   const response = await fetch(MODELS_DEV_API_URL, {
-    signal: AbortSignal.timeout(30000),
+    signal: signal ?? AbortSignal.timeout(30000),
   });
   if (!response.ok) {
     throw new Error(`models.dev fetch failed [${response.status}]: ${response.statusText}`);
@@ -599,16 +644,22 @@ export async function syncModelsDev(opts?: {
   dryRun?: boolean;
   syncCapabilities?: boolean;
   maxRetries?: number;
+  signal?: AbortSignal;
 }): Promise<SyncResult> {
   const dryRun = opts?.dryRun ?? false;
   const syncCapabilities = opts?.syncCapabilities ?? true;
   const maxRetries = opts?.maxRetries ?? 3;
+  const signal = opts?.signal;
 
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    if (signal?.aborted) {
+      return createAbortedSyncResult(dryRun);
+    }
+
     try {
-      const raw = await fetchModelsDev();
+      const raw = await fetchModelsDev(signal);
       const pricing = transformModelsDevToPricing(raw);
       const capabilities = syncCapabilities ? transformModelsDevToCapabilities(raw) : {};
 
@@ -620,6 +671,10 @@ export async function syncModelsDev(opts?: {
       const capabilityCount = syncCapabilities
         ? Object.values(capabilities).reduce((sum, models) => sum + Object.keys(models).length, 0)
         : 0;
+
+      if (signal?.aborted) {
+        return createAbortedSyncResult(dryRun);
+      }
 
       if (!dryRun) {
         saveModelsDevPricing(pricing);
@@ -641,6 +696,10 @@ export async function syncModelsDev(opts?: {
         ...(dryRun ? { data: { pricing, capabilities } } : {}),
       };
     } catch (err) {
+      if (signal?.aborted || isAbortError(err)) {
+        return createAbortedSyncResult(dryRun);
+      }
+
       lastError = err instanceof Error ? err : new Error(String(err));
 
       if (attempt < maxRetries) {
@@ -649,7 +708,14 @@ export async function syncModelsDev(opts?: {
           `[MODELS_DEV] Sync attempt ${attempt + 1} failed, retrying in ${delayMs}ms:`,
           lastError.message
         );
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        try {
+          await sleepWithAbort(delayMs, signal);
+        } catch (sleepError) {
+          if (signal?.aborted || isAbortError(sleepError)) {
+            return createAbortedSyncResult(dryRun);
+          }
+          throw sleepError;
+        }
       }
     }
   }
@@ -676,10 +742,33 @@ export function startPeriodicSync(intervalMs?: number): void {
 
   const interval = intervalMs ?? SYNC_INTERVAL_MS;
   activeSyncIntervalMs = interval;
+  const syncToken = { stopped: false };
+  activePeriodicSyncToken = syncToken;
   console.log(`[MODELS_DEV] Starting periodic sync every ${interval / 1000}s`);
 
+  const launchSync = () => {
+    if (syncToken.stopped) {
+      return Promise.resolve(createAbortedSyncResult(false));
+    }
+
+    if (activeSyncPromise) return activeSyncPromise;
+
+    const controller = new AbortController();
+    activeSyncAbortController = controller;
+    const promise = syncModelsDev({ signal: controller.signal }).finally(() => {
+      if (activeSyncAbortController === controller) {
+        activeSyncAbortController = null;
+      }
+      if (activeSyncPromise === promise) {
+        activeSyncPromise = null;
+      }
+    });
+    activeSyncPromise = promise;
+    return promise;
+  };
+
   // Initial sync (non-blocking)
-  syncModelsDev()
+  launchSync()
     .then((result) => {
       if (result.success) {
         console.log(
@@ -692,7 +781,7 @@ export function startPeriodicSync(intervalMs?: number): void {
     });
 
   syncTimer = setInterval(() => {
-    syncModelsDev()
+    launchSync()
       .then((result) => {
         if (result.success) {
           console.log(`[MODELS_DEV] Periodic sync complete: ${result.modelCount} pricing entries`);
@@ -712,6 +801,16 @@ export function startPeriodicSync(intervalMs?: number): void {
  * Stop periodic sync and cleanup timer.
  */
 export function stopPeriodicSync(): void {
+  if (activePeriodicSyncToken) {
+    activePeriodicSyncToken.stopped = true;
+    activePeriodicSyncToken = null;
+  }
+
+  if (activeSyncAbortController) {
+    activeSyncAbortController.abort();
+    activeSyncAbortController = null;
+  }
+
   if (syncTimer) {
     clearInterval(syncTimer);
     syncTimer = null;

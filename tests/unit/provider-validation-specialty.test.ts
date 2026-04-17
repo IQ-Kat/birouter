@@ -83,6 +83,57 @@ test("specialty providers surface network failures and non-auth upstream failure
   assert.equal(longcat.error, "longcat offline");
 });
 
+test("web-cookie provider validators accept valid Grok and Perplexity session cookies", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    calls.push({ url: target, init });
+
+    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
+      return new Response(JSON.stringify({ ok: true }), { status: 400 });
+    }
+    if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const grok = await validateProviderApiKey({ provider: "grok-web", apiKey: "sso=grok-cookie" });
+  const perplexity = await validateProviderApiKey({
+    provider: "perplexity-web",
+    apiKey: "__Secure-next-auth.session-token=pplx-cookie",
+  });
+
+  assert.equal(grok.valid, true);
+  assert.equal(perplexity.valid, true);
+  assert.equal(calls[0].init.headers.Cookie, "sso=grok-cookie");
+  assert.equal(calls[1].init.headers.Cookie, "__Secure-next-auth.session-token=pplx-cookie");
+});
+
+test("web-cookie provider validators surface auth failures for expired session cookies", async () => {
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+    if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const grok = await validateProviderApiKey({ provider: "grok-web", apiKey: "grok-cookie" });
+  const perplexity = await validateProviderApiKey({
+    provider: "perplexity-web",
+    apiKey: "pplx-cookie",
+  });
+
+  assert.match(grok.error || "", /Invalid SSO cookie/i);
+  assert.match(perplexity.error || "", /Invalid Perplexity session cookie/i);
+});
+
 test("search provider validators cover success, client errors, server errors and custom user agent injection", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {

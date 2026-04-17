@@ -750,6 +750,70 @@ paths:
         "200":
           description: Updated settings
 
+  /api/settings/payload-rules:
+    get:
+      tags: [Settings]
+      summary: Get payload rules configuration
+      description: |
+        Returns the current payload rules used to mutate outgoing request payloads before they
+        are sent upstream.
+
+        Requires a dashboard management session cookie when management auth is enabled.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Current payload rules configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayloadRulesConfig"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+        "500":
+          description: Failed to read payload rules configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+    put:
+      tags: [Settings]
+      summary: Update payload rules configuration
+      description: |
+        Persists and hot reloads payload rules. The legacy input field `default-raw` is accepted
+        on writes and normalized to `defaultRaw` in responses/runtime state.
+
+        Requires a dashboard management session cookie when management auth is enabled.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePayloadRulesRequest"
+      responses:
+        "200":
+          description: Updated payload rules configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayloadRulesConfig"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+        "500":
+          description: Failed to update payload rules configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+
   /api/settings/combo-defaults:
     get:
       tags: [Settings]
@@ -1997,6 +2061,11 @@ components:
       type: http
       scheme: bearer
       description: API key obtained from the OmniRoute dashboard
+    ManagementSessionAuth:
+      type: apiKey
+      in: cookie
+      name: auth_token
+      description: Dashboard management session cookie for protected management routes
 
   parameters:
     ResourceId:
@@ -2017,8 +2086,171 @@ components:
               error:
                 type: string
                 example: Unauthorized
+    ManagementAuthenticationRequired:
+      description: Authentication required for management routes
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              message: Authentication required
+              type: invalid_request
+            requestId: 3f9f6f5a-509a-4b35-b0a7-2d2d99d73a01
+    ManagementInvalidToken:
+      description: Bearer tokens are not accepted for management routes
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              message: Invalid management token
+              type: invalid_request
+            requestId: 1b6a6ff8-d60c-4900-8d0a-25f81749f0a3
+    ValidationError:
+      description: Request body failed validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationErrorResponse"
 
   schemas:
+    ApiErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            type:
+              type: string
+            details:
+              description: Optional additional error details
+        requestId:
+          type: string
+          format: uuid
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [message, details]
+          properties:
+            message:
+              type: string
+              example: Invalid request
+            details:
+              type: array
+              items:
+                type: object
+                required: [field, message]
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+
+    PayloadRuleModelSpec:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        protocol:
+          type: string
+          minLength: 1
+
+    PayloadMutationRule:
+      type: object
+      additionalProperties: false
+      required: [models, params]
+      properties:
+        models:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PayloadRuleModelSpec"
+        params:
+          type: object
+          minProperties: 1
+          additionalProperties: true
+
+    PayloadFilterRule:
+      type: object
+      additionalProperties: false
+      required: [models, params]
+      properties:
+        models:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PayloadRuleModelSpec"
+        params:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            minLength: 1
+
+    PayloadRulesConfig:
+      type: object
+      additionalProperties: false
+      required: [default, override, filter, defaultRaw]
+      properties:
+        default:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadMutationRule"
+        override:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadMutationRule"
+        filter:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadFilterRule"
+        defaultRaw:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadMutationRule"
+
+    UpdatePayloadRulesRequest:
+      type: object
+      additionalProperties: false
+      description: At least one payload-rules section must be present in the request body.
+      properties:
+        default:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadMutationRule"
+        override:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadMutationRule"
+        filter:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadFilterRule"
+        defaultRaw:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadMutationRule"
+        default-raw:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayloadMutationRule"
+      anyOf:
+        - required: [default]
+        - required: [override]
+        - required: [filter]
+        - required: [defaultRaw]
+        - required: [default-raw]
+
     ChatCompletionRequest:
       type: object
       required: [model, messages]

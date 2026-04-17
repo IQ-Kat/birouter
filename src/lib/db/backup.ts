@@ -222,17 +222,20 @@ export function backupDbFile(reason = "auto") {
     const backupDir = getBackupDir();
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
 
-    // Shrink check vs latest backup
-    const existingBackups = fs
-      .readdirSync(backupDir)
-      .filter((f) => f.startsWith("db_") && f.endsWith(".sqlite"))
-      .sort();
-    if (existingBackups.length > 0) {
-      const latestBackup = existingBackups[existingBackups.length - 1];
-      const latestStat = fs.statSync(path.join(backupDir, latestBackup));
-      if (latestStat.size > 4096 && stat.size < latestStat.size * 0.5) {
-        console.warn(`[DB] Backup SKIPPED — DB shrank from ${latestStat.size}B to ${stat.size}B`);
-        return null;
+    if (reason !== "manual" && reason !== "pre-restore") {
+      // Shrink detection is useful for automatic safety backups, but it should
+      // never block an explicit operator action like manual backup or pre-restore.
+      const existingBackups = fs
+        .readdirSync(backupDir)
+        .filter((f) => f.startsWith("db_") && f.endsWith(".sqlite"))
+        .sort();
+      if (existingBackups.length > 0) {
+        const latestBackup = existingBackups[existingBackups.length - 1];
+        const latestStat = fs.statSync(path.join(backupDir, latestBackup));
+        if (latestStat.size > 4096 && stat.size < latestStat.size * 0.5) {
+          console.warn(`[DB] Backup SKIPPED — DB shrank from ${latestStat.size}B to ${stat.size}B`);
+          return null;
+        }
       }
     }
 

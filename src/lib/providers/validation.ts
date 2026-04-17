@@ -1171,6 +1171,86 @@ async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: an
   }
 }
 
+async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    let sessionToken = apiKey;
+    let bearerToken: string | null = null;
+
+    if (sessionToken.startsWith("__Secure-next-auth.session-token=")) {
+      sessionToken = sessionToken.slice("__Secure-next-auth.session-token=".length);
+    } else if (/^bearer\s+/i.test(sessionToken)) {
+      bearerToken = sessionToken.replace(/^bearer\s+/i, "").trim();
+      sessionToken = "";
+    }
+
+    const timezone =
+      typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
+    const headers = applyCustomUserAgent(
+      {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+        Origin: "https://www.perplexity.ai",
+        Referer: "https://www.perplexity.ai/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+        "X-App-ApiClient": "default",
+        "X-App-ApiVersion": "client-1.11.0",
+        ...(bearerToken
+          ? { Authorization: `Bearer ${bearerToken}` }
+          : sessionToken
+            ? { Cookie: `__Secure-next-auth.session-token=${sessionToken}` }
+            : {}),
+      },
+      providerSpecificData
+    );
+
+    const response = await validationWrite("https://www.perplexity.ai/rest/sse/perplexity_ask", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        query_str: "test",
+        params: {
+          query_str: "test",
+          search_focus: "internet",
+          mode: "concise",
+          model_preference: "default",
+          sources: ["web"],
+          attachments: [],
+          frontend_uuid: crypto.randomUUID(),
+          frontend_context_uuid: crypto.randomUUID(),
+          version: "client-1.11.0",
+          language: "en-US",
+          timezone,
+          search_recency_filter: null,
+          is_incognito: true,
+          use_schematized_api: true,
+          last_backend_uuid: null,
+        },
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Invalid Perplexity session cookie — re-paste __Secure-next-auth.session-token from perplexity.ai",
+      };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Perplexity unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = provider !== "searxng-search";
   if (!provider || (requiresApiKey && !apiKey)) {
@@ -1211,6 +1291,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
     "grok-web": validateGrokWebProvider,
+    "perplexity-web": validatePerplexityWebProvider,
     vertex: async ({ apiKey }: any) => {
       try {
         const { parseSAFromApiKey, getAccessToken } =

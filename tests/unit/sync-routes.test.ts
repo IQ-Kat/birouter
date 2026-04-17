@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-sync-routes-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -73,15 +74,14 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
   const managementKey = await apiKeysDb.createApiKey("Management", "machine-sync-routes");
 
   const createResponse = await syncTokensRoute.POST(
-    new Request("http://localhost/api/sync/tokens", {
+    await makeManagementSessionRequest("http://localhost/api/sync/tokens", {
       method: "POST",
+      token: managementKey.key,
       headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${managementKey.key}`,
         "x-request-id": "req-sync-token-create",
         "x-forwarded-for": "198.51.100.30",
       },
-      body: JSON.stringify({ name: "Desktop client" }),
+      body: { name: "Desktop client" },
     })
   );
 
@@ -92,8 +92,8 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
   assert.equal(createdBody.syncToken.syncApiKeyId, managementKey.id);
 
   const listResponse = await syncTokensRoute.GET(
-    new Request("http://localhost/api/sync/tokens", {
-      headers: { authorization: `Bearer ${managementKey.key}` },
+    await makeManagementSessionRequest("http://localhost/api/sync/tokens", {
+      token: managementKey.key,
     })
   );
   assert.equal(listResponse.status, 200);
@@ -118,8 +118,8 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
   assert.equal(typeof bundlePayload.bundle, "object");
 
   const secondListResponse = await syncTokensRoute.GET(
-    new Request("http://localhost/api/sync/tokens", {
-      headers: { authorization: `Bearer ${managementKey.key}` },
+    await makeManagementSessionRequest("http://localhost/api/sync/tokens", {
+      token: managementKey.key,
     })
   );
   const secondListBody = await secondListResponse.json();
@@ -136,14 +136,17 @@ test("sync token routes issue, list, use and revoke dedicated tokens", async () 
   assert.equal(notModifiedResponse.status, 304);
 
   const revokeResponse = await syncTokenByIdRoute.DELETE(
-    new Request(`http://localhost/api/sync/tokens/${createdBody.syncToken.id}`, {
-      method: "DELETE",
-      headers: {
-        authorization: `Bearer ${managementKey.key}`,
-        "x-request-id": "req-sync-token-revoke",
-        "x-forwarded-for": "198.51.100.30",
-      },
-    }),
+    await makeManagementSessionRequest(
+      `http://localhost/api/sync/tokens/${createdBody.syncToken.id}`,
+      {
+        method: "DELETE",
+        token: managementKey.key,
+        headers: {
+          "x-request-id": "req-sync-token-revoke",
+          "x-forwarded-for": "198.51.100.30",
+        },
+      }
+    ),
     { params: Promise.resolve({ id: createdBody.syncToken.id }) }
   );
 

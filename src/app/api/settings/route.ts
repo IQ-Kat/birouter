@@ -12,8 +12,12 @@ import {
   hashManagementPassword,
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const settings = await getSettings();
     const { password, ...safeSettings } = settings;
@@ -38,7 +42,10 @@ export async function GET() {
   }
 }
 
-export async function PATCH(request) {
+export async function PATCH(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const rawBody = await request.json();
 

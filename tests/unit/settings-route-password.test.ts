@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-settings-route-password-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -39,13 +40,12 @@ test("settings route password update requires the current INITIAL_PASSWORD after
   process.env.INITIAL_PASSWORD = "bootstrap-secret";
 
   const response = await settingsRoute.PATCH(
-    new Request("http://localhost/api/settings", {
+    await makeManagementSessionRequest("http://localhost/api/settings", {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
+      body: {
         currentPassword: "bootstrap-secret",
         newPassword: "rotated-secret",
-      }),
+      },
     })
   );
   const settings = await settingsDb.getSettings();
@@ -66,13 +66,12 @@ test("settings route password update rejects the wrong current password after mi
   process.env.INITIAL_PASSWORD = "bootstrap-secret";
 
   const response = await settingsRoute.PATCH(
-    new Request("http://localhost/api/settings", {
+    await makeManagementSessionRequest("http://localhost/api/settings", {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
+      body: {
         currentPassword: "wrong-secret",
         newPassword: "rotated-secret",
-      }),
+      },
     })
   );
 

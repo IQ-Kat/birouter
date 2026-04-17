@@ -203,6 +203,125 @@ function createLegacyCallLogsDb(sqliteFile) {
   seedDb.close();
 }
 
+function createRecoverableDb(sqliteFile) {
+  const seedDb = new Database(sqliteFile);
+  const now = new Date().toISOString();
+  seedDb.exec(`
+    CREATE TABLE provider_connections (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL,
+      auth_type TEXT,
+      name TEXT,
+      is_active INTEGER DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE provider_nodes (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      name TEXT NOT NULL,
+      prefix TEXT,
+      api_type TEXT,
+      base_url TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE key_value (
+      namespace TEXT NOT NULL,
+      key TEXT NOT NULL,
+      value TEXT NOT NULL,
+      PRIMARY KEY (namespace, key)
+    );
+
+    CREATE TABLE combos (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      data TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE api_keys (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      key TEXT NOT NULL UNIQUE,
+      machine_id TEXT,
+      allowed_models TEXT DEFAULT '[]',
+      no_log INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+  `);
+
+  seedDb
+    .prepare(
+      "INSERT INTO provider_connections (id, provider, auth_type, name, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    )
+    .run("recover-openai", "openai", "apikey", "Recover Me", 1, now, now);
+  seedDb
+    .prepare(
+      "INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    )
+    .run(
+      "recover-node",
+      "custom",
+      "Recover Node",
+      "recover",
+      "openai",
+      "https://example.com",
+      now,
+      now
+    );
+  seedDb
+    .prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)")
+    .run("settings", "globalFallbackModel", JSON.stringify("openai/gpt-4o-mini"));
+  seedDb
+    .prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)")
+    .run("modelAliases", "fast-default", JSON.stringify("openai/gpt-4o-mini"));
+  seedDb
+    .prepare(
+      "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+    )
+    .run(
+      "recover-combo",
+      "Recover Combo",
+      JSON.stringify({
+        id: "recover-combo",
+        name: "Recover Combo",
+        models: ["openai/gpt-4o-mini"],
+      }),
+      1,
+      now,
+      now
+    );
+  seedDb
+    .prepare(
+      "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    )
+    .run(
+      "recover-key",
+      "Recover Key",
+      "sk-recover-key",
+      "machine-recover",
+      JSON.stringify(["openai/gpt-4o-mini"]),
+      1,
+      now
+    );
+  seedDb.close();
+}
+
+function listProbeFailedBackups(sqliteFile) {
+  const directory = path.dirname(sqliteFile);
+  const prefix = `${path.basename(sqliteFile)}.probe-failed-`;
+  return fs
+    .readdirSync(directory)
+    .filter((name) => name.startsWith(prefix))
+    .map((name) => path.join(directory, name))
+    .sort();
+}
+
 test.beforeEach(() => {
   restoreEnv();
   cleanupGlobalDb();
@@ -572,36 +691,119 @@ test(
     seedDb.close();
 
     try {
-      await withEnv(
-        { DATA_DIR: dataDir, DISABLE_SQLITE_AUTO_BACKUP: "true" },
-        async () => {
-          const core = await importFresh("src/lib/db/core.ts");
-          const db = core.getDbInstance();
+      await withEnv({ DATA_DIR: dataDir, DISABLE_SQLITE_AUTO_BACKUP: "true" }, async () => {
+        const core = await importFresh("src/lib/db/core.ts");
+        const db = core.getDbInstance();
 
-          assert.ok(
-            db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("022")
-          );
-          assert.ok(
-            db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("023")
-          );
-          assert.ok(
-            db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("026")
-          );
-          assert.equal(
-            db
-              .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")
-              .get("022", "call_logs_cache_source"),
-            undefined
-          );
-          assert.deepEqual(db.prepare("SELECT memory_id FROM memories").get(), { memory_id: 1 });
-          assert.deepEqual(db.prepare("SELECT rowid, content FROM memory_fts").get(), {
-            rowid: 1,
-            content: "memory content",
-          });
+        assert.ok(
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("022")
+        );
+        assert.ok(
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("023")
+        );
+        assert.ok(
+          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("026")
+        );
+        assert.equal(
+          db
+            .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")
+            .get("022", "call_logs_cache_source"),
+          undefined
+        );
+        assert.deepEqual(db.prepare("SELECT memory_id FROM memories").get(), { memory_id: 1 });
+        assert.deepEqual(db.prepare("SELECT rowid, content FROM memory_fts").get(), {
+          rowid: 1,
+          content: "memory content",
+        });
 
-          core.resetDbInstance();
+        core.resetDbInstance();
+      });
+    } finally {
+      removePath(dataDir);
+    }
+  }
+);
+
+test(
+  "probe failures restore preserved critical state instead of booting with an empty database",
+  serial,
+  async () => {
+    const dataDir = makeTempDir("omniroute-db-probe-recover-");
+    const sqliteFile = path.join(dataDir, "storage.sqlite");
+    createRecoverableDb(sqliteFile);
+
+    const originalPrepare = Database.prototype.prepare;
+
+    try {
+      Database.prototype.prepare = function patchedPrepare(sql, ...args) {
+        if (String(sql).includes("schema_migrations")) {
+          throw new Error("forced probe failure");
         }
-      );
+        return originalPrepare.call(this, sql, ...args);
+      };
+
+      await withEnv({ DATA_DIR: dataDir }, async () => {
+        const core = await importFresh("src/lib/db/core.ts");
+        const db = core.getDbInstance();
+
+        assert.deepEqual(
+          db
+            .prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?")
+            .get("recover-openai"),
+          { id: "recover-openai", provider: "openai", name: "Recover Me" }
+        );
+        assert.deepEqual(
+          db.prepare("SELECT id, name FROM provider_nodes WHERE id = ?").get("recover-node"),
+          { id: "recover-node", name: "Recover Node" }
+        );
+        assert.deepEqual(
+          db.prepare("SELECT id, name FROM combos WHERE id = ?").get("recover-combo"),
+          { id: "recover-combo", name: "Recover Combo" }
+        );
+        assert.deepEqual(
+          db.prepare("SELECT id, name, no_log FROM api_keys WHERE id = ?").get("recover-key"),
+          { id: "recover-key", name: "Recover Key", no_log: 1 }
+        );
+        assert.deepEqual(
+          db
+            .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = ?")
+            .get("globalFallbackModel"),
+          { value: JSON.stringify("openai/gpt-4o-mini") }
+        );
+        assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
+
+        core.resetDbInstance();
+      });
+    } finally {
+      Database.prototype.prepare = originalPrepare;
+      removePath(dataDir);
+    }
+  }
+);
+
+test(
+  "probe failures without a safe snapshot abort startup and keep manual recovery explicit",
+  serial,
+  async () => {
+    const dataDir = makeTempDir("omniroute-db-probe-abort-");
+    const sqliteFile = path.join(dataDir, "storage.sqlite");
+    fs.writeFileSync(sqliteFile, "not-a-valid-sqlite-database");
+
+    try {
+      await withEnv({ DATA_DIR: dataDir }, async () => {
+        const core = await importFresh("src/lib/db/core.ts");
+
+        assert.throws(() => core.getDbInstance(), /Manual recovery required after probe failure/i);
+        assert.equal(fs.existsSync(sqliteFile), false);
+        assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
+
+        const restartedCore = await importFresh("src/lib/db/core.ts");
+        assert.throws(
+          () => restartedCore.getDbInstance(),
+          /Manual recovery required before startup/i
+        );
+        assert.equal(fs.existsSync(sqliteFile), false);
+      });
     } finally {
       removePath(dataDir);
     }

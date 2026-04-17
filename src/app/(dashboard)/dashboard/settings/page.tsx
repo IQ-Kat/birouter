@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
-import { APP_CONFIG } from "@/shared/constants/config";
+import { APP_CONFIG } from "@/shared/constants/appConfig";
 import { useTranslations } from "next-intl";
 import SystemStorageTab from "./components/SystemStorageTab";
 import SecurityTab from "./components/SecurityTab";
@@ -20,6 +20,7 @@ import MemorySkillsTab from "./components/MemorySkillsTab";
 import ModelsDevSyncTab from "./components/ModelsDevSyncTab";
 import ResilienceTab from "./components/ResilienceTab";
 import CliproxyapiSettingsTab from "./components/CliproxyapiSettingsTab";
+import PayloadRulesTab from "./components/PayloadRulesTab";
 import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
 
 const tabs = [
@@ -115,6 +116,7 @@ export default function SettingsPage() {
 
           {activeTab === "advanced" && (
             <div className="flex flex-col gap-6">
+              <PayloadRulesTab />
               <ProxyTab />
               <CliproxyapiSettingsTab />
             </div>

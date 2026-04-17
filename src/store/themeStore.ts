@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { THEME_CONFIG } from "@/shared/constants/config";
+import { THEME_CONFIG } from "@/shared/constants/appConfig";
 
 interface ThemeState {
   theme: string;
