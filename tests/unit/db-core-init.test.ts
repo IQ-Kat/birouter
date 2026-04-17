@@ -445,6 +445,7 @@ test(
           DATA_DIR: undefined,
           XDG_CONFIG_HOME: undefined,
           HOME: fakeHome,
+          USERPROFILE: fakeHome,
           APPDATA: undefined,
         },
         async () => {
@@ -803,6 +804,7 @@ test(
           /Manual recovery required before startup/i
         );
         assert.equal(fs.existsSync(sqliteFile), false);
+        core.resetDbInstance();
       });
     } finally {
       removePath(dataDir);

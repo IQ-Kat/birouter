@@ -47,7 +47,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
   const missingPaths = findMissingArtifactPaths(
     [
       "app/server.js",
-      "bin/omniroute.ts",
+      "bin/omniroute.mjs",
       "package.json",
       "scripts/postinstall.mjs",
       "scripts/postinstallSupport.mjs",
@@ -57,6 +57,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
 
   assert.deepEqual(missingPaths, [
     "bin/mcp-server.mjs",
+    "bin/nodeRuntimeSupport.mjs",
     "scripts/native-binary-compat.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);
