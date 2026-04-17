@@ -69,11 +69,9 @@ async function resolveSearchExecutionCredentials(providerConfig: {
   id: string;
   authType: string;
 }): Promise<Record<string, any> | null> {
-  if (providerConfig.authType === "none") {
-    return {};
-  }
-
-  return resolveSearchCredentials(providerConfig.id);
+  const credentials = await resolveSearchCredentials(providerConfig.id);
+  if (credentials) return credentials;
+  return providerConfig.authType === "none" ? {} : null;
 }
 
 // Helper: build domain filter array from filters object
