@@ -1840,7 +1840,8 @@ export async function handleChatCore({
     const newCredentials = (await refreshWithRetry(
       () => executor.refreshCredentials(credentials, log),
       3,
-      log
+      log,
+      provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
     )) as null | {
       accessToken?: string;
       copilotToken?: string;
