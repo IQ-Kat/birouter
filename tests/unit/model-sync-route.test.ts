@@ -442,11 +442,10 @@ test("model sync route records added, removed, and updated model diffs with fall
   assert.ok(logs[0].account.includes("*"), `Expected masked email, got: ${logs[0].account}`);
 });
 
-test("model sync route accepts external API-key auth, forwards cookies, filters built-ins, and syncs aliases", async () => {
+test("model sync route forwards cookies, filters built-ins, and syncs aliases for internal requests", async () => {
   await resetStorage();
   await enableAuth();
 
-  const authKey = await apiKeysDb.createApiKey("sync-external", "machine-sync");
   const connection = await providersDb.createProviderConnection({
     provider: "openrouter",
     authType: "apikey",
@@ -479,8 +478,8 @@ test("model sync route accepts external API-key auth, forwards cookies, filters 
     new Request(`http://localhost/api/providers/${connection.id}/sync-models`, {
       method: "POST",
       headers: {
-        authorization: `Bearer ${authKey.key}`,
         cookie: "session=test-cookie",
+        ...scheduler.buildModelSyncInternalHeaders(),
       },
     }),
     { params: { id: connection.id } }

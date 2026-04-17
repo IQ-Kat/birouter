@@ -705,9 +705,12 @@ function prepareClaudeCodeCompatibleBody(
   const prepared = prepareClaudeRequest(
     {
       system: normalizeClaudeSystemInput(claudeBody.system),
-      messages: normalizeClaudeMessageInput(claudeBody.messages),
+      messages: normalizeClaudeMessageInput(claudeBody.messages) as Array<{
+        role?: string;
+        content?: string | Array<Record<string, unknown>>;
+      }>,
       tools: normalizeClaudeToolInput(claudeBody.tools),
-      thinking: readRecord(claudeBody.thinking) || claudeBody.thinking,
+      thinking: (readRecord(claudeBody.thinking) || null) as Record<string, unknown> | null,
     },
     CLAUDE_CODE_COMPATIBLE_PREFIX,
     true

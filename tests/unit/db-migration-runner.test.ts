@@ -674,7 +674,7 @@ test(
       assert.throws(
         () =>
           withNonTestEnvironment(() =>
-            withMockedMigrationFs(buildMockMigrationFiles(1, 12, "legacy_abort"), () =>
+            withMockedMigrationFs(buildMockMigrationFiles(1, 60, "legacy_abort"), () =>
               runner.runMigrations(db)
             )
           ),

@@ -63,10 +63,13 @@ export function getSpecificity(pattern) {
  * @param {Array<{ pattern: string, target: string, [key: string]: unknown }>} aliases - Alias entries
  * @returns {{ pattern: string, target: string, specificity: number } | null}
  */
-export function resolveWildcardAlias(model, aliases) {
+export function resolveWildcardAlias(
+  model: string,
+  aliases: WildcardAliasEntry[]
+): ResolvedWildcardAlias | null {
   if (!model || !aliases || !Array.isArray(aliases)) return null;
 
-  const matches = [];
+  const matches: ResolvedWildcardAlias[] = [];
   for (const alias of aliases) {
     const pattern = alias.pattern || alias.alias || alias.from;
     const target = alias.target || alias.model || alias.to;
@@ -115,3 +118,18 @@ export function resolveModel(model, exactAliases = {}, wildcardAliases = []) {
   // 3. Return original
   return model;
 }
+type WildcardAliasEntry = {
+  pattern?: string;
+  alias?: string;
+  from?: string;
+  target?: string;
+  model?: string;
+  to?: string;
+  [key: string]: unknown;
+};
+
+type ResolvedWildcardAlias = WildcardAliasEntry & {
+  pattern: string;
+  target: string;
+  specificity: number;
+};

@@ -464,7 +464,7 @@ function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord |
               text: collapseExcessiveNewlines(toString(partRecord.text) || ""),
             };
           })
-          .filter((part): part is JsonRecord => part !== null)
+          .filter((part): part is { type: string; text: string } => part !== null)
       : [];
 
     return {

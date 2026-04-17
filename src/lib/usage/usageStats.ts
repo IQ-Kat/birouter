@@ -13,6 +13,29 @@ import { getAccountDisplayName } from "@/lib/display/names";
 import { calculateCost } from "./costCalculator";
 
 type JsonRecord = Record<string, unknown>;
+type UsageBucket = {
+  requests: number;
+  promptTokens: number;
+  completionTokens: number;
+  cost: number;
+};
+
+type UsageBreakdown = UsageBucket & {
+  rawModel?: string;
+  provider?: string;
+  lastUsed?: string;
+  connectionId?: string;
+  accountName?: string;
+  apiKeyId?: string | null;
+  apiKeyName?: string;
+};
+
+type ActiveRequest = {
+  model: string;
+  provider: string;
+  account: string;
+  count: number;
+};
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -56,7 +79,19 @@ export async function getUsageStats() {
 
   const pendingRequests = getPendingRequests();
 
-  const stats = {
+  const stats: {
+    totalRequests: number;
+    totalPromptTokens: number;
+    totalCompletionTokens: number;
+    totalCost: number;
+    byProvider: Record<string, UsageBreakdown>;
+    byModel: Record<string, UsageBreakdown>;
+    byAccount: Record<string, UsageBreakdown>;
+    byApiKey: Record<string, UsageBreakdown>;
+    last10Minutes: UsageBucket[];
+    pending: ReturnType<typeof getPendingRequests>;
+    activeRequests: ActiveRequest[];
+  } = {
     totalRequests: rows.length,
     totalPromptTokens: 0,
     totalCompletionTokens: 0,
@@ -91,7 +126,7 @@ export async function getUsageStats() {
   const now = new Date();
   const currentMinuteStart = new Date(Math.floor(now.getTime() / 60000) * 60000);
 
-  const bucketMap = {};
+  const bucketMap: Record<number, UsageBucket> = {};
   for (let i = 0; i < 10; i++) {
     const bucketTime = new Date(currentMinuteStart.getTime() - (9 - i) * 60 * 1000);
     const bucketKey = bucketTime.getTime();
@@ -169,7 +204,7 @@ export async function getUsageStats() {
     stats.byModel[modelKey].promptTokens += promptTokens;
     stats.byModel[modelKey].completionTokens += completionTokens;
     stats.byModel[modelKey].cost += entryCost;
-    if (new Date(timestamp) > new Date(stats.byModel[modelKey].lastUsed)) {
+    if (new Date(timestamp) > new Date(stats.byModel[modelKey].lastUsed || timestamp)) {
       stats.byModel[modelKey].lastUsed = timestamp;
     }
 
@@ -195,7 +230,7 @@ export async function getUsageStats() {
       stats.byAccount[accountKey].promptTokens += promptTokens;
       stats.byAccount[accountKey].completionTokens += completionTokens;
       stats.byAccount[accountKey].cost += entryCost;
-      if (new Date(timestamp) > new Date(stats.byAccount[accountKey].lastUsed)) {
+      if (new Date(timestamp) > new Date(stats.byAccount[accountKey].lastUsed || timestamp)) {
         stats.byAccount[accountKey].lastUsed = timestamp;
       }
     }
@@ -220,7 +255,7 @@ export async function getUsageStats() {
       stats.byApiKey[apiKey].promptTokens += promptTokens;
       stats.byApiKey[apiKey].completionTokens += completionTokens;
       stats.byApiKey[apiKey].cost += entryCost;
-      if (new Date(timestamp) > new Date(stats.byApiKey[apiKey].lastUsed)) {
+      if (new Date(timestamp) > new Date(stats.byApiKey[apiKey].lastUsed || timestamp)) {
         stats.byApiKey[apiKey].lastUsed = timestamp;
       }
     }

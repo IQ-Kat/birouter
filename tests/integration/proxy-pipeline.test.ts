@@ -71,7 +71,7 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
   });
 
   it("chatCore should record cost for both non-streaming and streaming responses", () => {
-    assert.match(coreSrc, /if \(apiKeyInfo\?\.id && usage\)/);
+    assert.match(coreSrc, /if \(apiKeyInfo\?\.id && estimatedCost > 0\)/);
     assert.match(coreSrc, /if \(apiKeyInfo\?\.id && streamUsage\)/);
   });
 });

@@ -94,7 +94,16 @@ function getAuthKey(
 }
 
 function getHost(): string {
-  return process.env.ALIBABA_CODING_PLAN_HOST || BAILIAN_QUOTA_HOSTS.international;
+  const configuredHost = process.env.ALIBABA_CODING_PLAN_HOST?.trim();
+  if (!configuredHost) {
+    return BAILIAN_QUOTA_HOSTS.international;
+  }
+
+  if (/^https?:\/\//i.test(configuredHost)) {
+    return configuredHost;
+  }
+
+  return `https://${configuredHost}`;
 }
 
 function getQuotaUrl(): string {

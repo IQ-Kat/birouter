@@ -2,6 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
+import {
+  clearAntigravityVersionCache,
+  seedAntigravityVersionCache,
+} from "../../open-sse/services/antigravityVersion.ts";
 
 async function withEnv(name, value, fn) {
   const previous = process.env[name];
@@ -21,6 +25,10 @@ async function withEnv(name, value, fn) {
     }
   }
 }
+
+test.afterEach(() => {
+  clearAntigravityVersionCache();
+});
 
 test("AntigravityExecutor.buildUrl always targets the streaming endpoint", () => {
   const executor = new AntigravityExecutor();
@@ -215,6 +223,7 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
   const calls = [];
+  seedAntigravityVersionCache("2026.04.17-test");
 
   globalThis.fetch = async (url) => {
     calls.push(String(url));
@@ -269,6 +278,7 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
 test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for a long wait", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
+  seedAntigravityVersionCache("2026.04.17-test");
 
   globalThis.fetch = async () =>
     new Response(

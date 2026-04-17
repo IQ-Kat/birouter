@@ -1,12 +1,18 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Settings Toggles", () => {
+  const getDebugToggle = (page) =>
+    page
+      .getByText(/enable debug mode/i)
+      .locator('xpath=ancestor::div[contains(@class, "flex items-center justify-between")][1]')
+      .getByRole("switch");
+
   test("Debug mode toggle should work", async ({ page }) => {
     await page.goto("/dashboard/settings");
     await page.waitForLoadState("networkidle");
     await page.getByRole("tab", { name: /advanced/i }).click();
 
-    const debugToggle = page.getByRole("switch").first();
+    const debugToggle = getDebugToggle(page);
 
     await expect(debugToggle).toBeVisible({ timeout: 15000 });
 
@@ -74,7 +80,7 @@ test.describe("Settings Toggles", () => {
     await page.waitForLoadState("networkidle");
     await page.getByRole("tab", { name: /advanced/i }).click();
 
-    const debugToggle = page.getByRole("switch").first();
+    const debugToggle = getDebugToggle(page);
 
     await expect(debugToggle).toBeVisible({ timeout: 15000 });
 
@@ -85,6 +91,8 @@ test.describe("Settings Toggles", () => {
     await page.reload();
     await page.waitForLoadState("networkidle");
     await page.getByRole("tab", { name: /advanced/i }).click();
-    await expect(debugToggle).toHaveAttribute("aria-checked", nextState, { timeout: 15000 });
+    await expect(getDebugToggle(page)).toHaveAttribute("aria-checked", nextState, {
+      timeout: 15000,
+    });
   });
 });

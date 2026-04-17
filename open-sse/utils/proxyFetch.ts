@@ -225,6 +225,7 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
         return await tlsClient.fetch(targetUrl, {
           ...options,
           headers: options.headers,
+          signal: options.signal ?? undefined,
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
