@@ -65,6 +65,15 @@ async function resolveSearchCredentials(providerId: string) {
   return null;
 }
 
+async function resolveSearchExecutionCredentials(providerConfig: {
+  id: string;
+  authType: string;
+}): Promise<Record<string, any> | null> {
+  const credentials = await resolveSearchCredentials(providerConfig.id);
+  if (credentials) return credentials;
+  return providerConfig.authType === "none" ? {} : null;
+}
+
 // Helper: build domain filter array from filters object
 function buildDomainFilter(filters?: {
   include_domains?: string[];
@@ -139,26 +148,16 @@ export async function POST(request: Request) {
 
   if (body.provider) {
     // Explicit provider — single credential lookup (with fallback)
-    credentials = await resolveSearchCredentials(providerConfig.id);
-    if (
-      !credentials &&
-      providerConfig.authType === "none" &&
-      typeof body.provider_options?.baseUrl === "string" &&
-      body.provider_options.baseUrl.trim().length > 0
-    ) {
-      credentials = { providerSpecificData: { baseUrl: body.provider_options.baseUrl.trim() } };
-    }
+    credentials = await resolveSearchExecutionCredentials(providerConfig);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
-        providerConfig.authType === "none"
-          ? `Search provider ${providerConfig.id} is not configured. Set its base URL in the dashboard or pass provider_options.baseUrl.`
-          : `No credentials configured for search provider: ${providerConfig.id}. Add an API key for "${providerConfig.id}" in the dashboard.`
+        `No credentials configured for search provider: ${providerConfig.id}. Add an API key for "${providerConfig.id}" in the dashboard.`
       );
     }
   } else {
     // Auto-select — try the resolved provider first, then iterate others by cost
-    credentials = await resolveSearchCredentials(providerConfig.id);
+    credentials = await resolveSearchExecutionCredentials(providerConfig);
 
     if (!credentials) {
       // Sort by cost to find cheapest with credentials
@@ -170,7 +169,7 @@ export async function POST(request: Request) {
       for (const pid of sortedIds) {
         if (pid === providerConfig.id) continue;
         const altConfig = getSearchProvider(pid);
-        const altCreds = await resolveSearchCredentials(pid);
+        const altCreds = altConfig ? await resolveSearchExecutionCredentials(altConfig) : null;
         if (altConfig && altCreds) {
           providerConfig = altConfig;
           credentials = altCreds;
@@ -194,7 +193,8 @@ export async function POST(request: Request) {
       .filter((id) => id !== providerConfig.id);
 
     for (const pid of otherIds) {
-      const creds = await resolveSearchCredentials(pid);
+      const altConfig = getSearchProvider(pid);
+      const creds = altConfig ? await resolveSearchExecutionCredentials(altConfig) : null;
       if (creds) {
         alternateProviderId = pid;
         alternateCredentials = creds;

@@ -72,6 +72,10 @@ export async function POST(request) {
   }
   const body = validation.data;
 
+  if (typeof body.prompt !== "string" || body.prompt.trim().length === 0) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Prompt is required");
+  }
+
   // Optional API key validation
   if (process.env.REQUIRE_API_KEY === "true") {
     const apiKey = extractApiKey(request);

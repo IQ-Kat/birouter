@@ -31,13 +31,13 @@ function withMockedMigrationFs(files, fn) {
     return originalExistsSync(target);
   };
 
-  fs.readdirSync = (target, options) => {
+  fs.readdirSync = ((target: string, options?: any) => {
     if (files && isMigrationDir(target)) {
       return Object.keys(files);
     }
 
     return originalReaddirSync(target, options);
-  };
+  }) as any;
 
   fs.readFileSync = (target, options) => {
     const fileName = path.basename(String(target));
@@ -183,13 +183,19 @@ test("runMigrations skips versions that are already tracked as applied", serial,
 
     assert.equal(secondRun, 0);
     assert.equal(
-      db.prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?").get("001")
-        .count,
+      (
+        db
+          .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+          .get("001") as any
+      ).count,
       1
     );
     assert.equal(
-      db.prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?").get("002")
-        .count,
+      (
+        db
+          .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+          .get("002") as any
+      ).count,
       1
     );
   } finally {
@@ -269,9 +275,11 @@ test(
         undefined
       );
       assert.equal(
-        db
-          .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
-          .get("002").count,
+        (
+          db
+            .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+            .get("002") as any
+        ).count,
         0
       );
     } finally {
@@ -666,7 +674,7 @@ test(
       assert.throws(
         () =>
           withNonTestEnvironment(() =>
-            withMockedMigrationFs(buildMockMigrationFiles(1, 12, "legacy_abort"), () =>
+            withMockedMigrationFs(buildMockMigrationFiles(1, 60, "legacy_abort"), () =>
               runner.runMigrations(db)
             )
           ),

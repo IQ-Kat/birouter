@@ -18,10 +18,11 @@ export default function ConfigAuditPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text-primary,#fff)]">
-            Configuration Audit
+            Configuration & Security Audit
           </h1>
           <p className="text-sm text-[var(--text-secondary,#aaa)] mt-1">
-            Track and diff changes made to routing policies, combos, and connections.
+            Track administrative actions, authentication events, and security logs across the
+            system.
           </p>
         </div>
         {summary && (

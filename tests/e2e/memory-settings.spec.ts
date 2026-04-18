@@ -142,11 +142,13 @@ test.describe("Memory settings", () => {
       await fulfillJson(route, { error: "Method not allowed in memory settings stub" }, 405);
     });
 
-    await page.route("**/api/memory", async (route) => {
+    await page.route(/\/api\/memory(?:\?.*)?$/, async (route) => {
       await fulfillJson(route, {
-        memories: state.memories,
+        data: state.memories,
+        total: state.memories.length,
+        totalPages: 1,
         stats: {
-          totalEntries: state.memories.length,
+          total: state.memories.length,
           tokensUsed: state.memories.length * 24,
           hitRate: state.memories.length > 0 ? 0.75 : 0,
         },
@@ -167,7 +169,7 @@ test.describe("Memory settings", () => {
       if (settingsHydrationRetries++ > 0) {
         await page.reload({ waitUntil: "commit" }).catch(() => {});
       }
-      await expect(page.getByTestId("memory-settings-card")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("memory-enabled-switch")).toBeVisible({ timeout: 15000 });
     }).toPass({ timeout: 45_000, intervals: [1000, 2500, 5000] });
     await expect(page.getByTestId("memory-enabled-switch")).toHaveAttribute(
       "aria-checked",

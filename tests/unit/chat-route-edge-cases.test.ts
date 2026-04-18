@@ -245,7 +245,8 @@ test("Test 6: handleChat correctly sets isResponsesEndpoint for /v1/responses", 
 
   const json = await response.json();
   assert.equal(response.status, 200);
-  assert.equal(json.choices[0].message.content, "Responses OK");
+  const responseText = json.output_text || json.output?.[0]?.content?.[0]?.text;
+  assert.equal(responseText, "Responses OK");
 });
 
 test("handleChat returns Semantic Cache hit", async () => {

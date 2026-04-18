@@ -274,8 +274,8 @@ test("fetchBailianQuota retries with China host on ConsoleNeedLogin", async () =
   });
 
   assert.equal(calls.length, 2);
-  assert.ok(calls[0].url.includes("modelstudio.console.alibabacloud.com")); // lgtm[js/incomplete-url-substring-sanitization]
-  assert.ok(calls[1].url.includes("bailian.console.aliyun.com")); // lgtm[js/incomplete-url-substring-sanitization]
+  assert.ok(calls[0].url.includes("://modelstudio.console.alibabacloud.com/"));
+  assert.ok(calls[1].url.includes("://bailian.console.aliyun.com/"));
   assert.equal(quota?.percentUsed, 0.45);
 
   invalidateBailianQuotaCache(connectionId);
@@ -449,7 +449,7 @@ test("ALIBABA_CODING_PLAN_HOST env var overrides default host", async () => {
   });
 
   assert.equal(calls.length, 1);
-  assert.ok(calls[0].url.includes("custom.bailian.aliyun.com")); // lgtm[js/incomplete-url-substring-sanitization]
+  assert.ok(calls[0].url.includes("://custom.bailian.aliyun.com/"));
   assert.equal(quota?.percentUsed, 0.55);
 
   process.env.ALIBABA_CODING_PLAN_HOST = originalEnv;
@@ -499,7 +499,7 @@ test("ALIBABA_CODING_PLAN_QUOTA_URL env var overrides full URL", async () => {
   });
 
   assert.equal(calls.length, 1);
-  assert.ok(calls[0].url.includes("override.example.com")); // lgtm[js/incomplete-url-substring-sanitization]
+  assert.ok(calls[0].url.includes("://override.example.com/"));
   assert.equal(quota?.percentUsed, 0.2);
 
   process.env.ALIBABA_CODING_PLAN_QUOTA_URL = originalEnv;

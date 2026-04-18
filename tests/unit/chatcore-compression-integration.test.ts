@@ -10,14 +10,16 @@ test("chatCore integration: compressContext called proactively when context exce
   const contextLimit = getTokenLimit(provider, model);
   const threshold = Math.floor(contextLimit * 0.85);
 
-  const largeMessage = "x".repeat(threshold * 4 + 1000);
+  const history = Array.from({ length: 24 }, (_, index) => [
+    { role: "user", content: `Question ${index}: ${"context ".repeat(80)}` },
+    { role: "assistant", content: `Answer ${index}: ${"history ".repeat(80)}` },
+  ]).flat();
   const body = {
     model,
     messages: [
       { role: "system", content: "You are helpful." },
-      { role: "user", content: "Garbage 1".repeat(1000) },
-      { role: "assistant", content: "Garbage 2".repeat(1000) },
-      { role: "user", content: largeMessage },
+      ...history,
+      { role: "user", content: "Final question?" },
     ],
   };
 
@@ -37,6 +39,11 @@ test("chatCore integration: compressContext called proactively when context exce
   assert.ok(
     result.stats.final <= contextLimit,
     `Final tokens ${result.stats.final} should fit within limit ${contextLimit}`
+  );
+  assert.equal(
+    result.body.messages[result.body.messages.length - 1].content,
+    "Final question?",
+    "Latest user turn should be preserved after compression"
   );
 });
 

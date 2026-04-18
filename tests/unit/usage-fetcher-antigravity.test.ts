@@ -15,9 +15,11 @@ test("usage fetcher retries Antigravity quota discovery across shared fallback U
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
 
-    // Mock the first two to fail with 503
-    if (String(url).includes("cloudcode-pa.googleapis.com") && !String(url).includes("sandbox")) {
-      // lgtm[js/incomplete-url-substring-sanitization]
+    const urlStr = String(url);
+    if (
+      urlStr === "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels" ||
+      urlStr === "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels"
+    ) {
       return new Response("unavailable", { status: 503 });
     }
 

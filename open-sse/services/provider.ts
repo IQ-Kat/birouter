@@ -29,7 +29,10 @@ export function isClaudeCodeCompatible(provider) {
   return typeof provider === "string" && provider.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
 
-export function getOpenAICompatibleType(provider, providerSpecificData = null) {
+export function getOpenAICompatibleType(
+  provider,
+  providerSpecificData: Record<string, unknown> | null = null
+) {
   if (!isOpenAICompatible(provider)) return "chat";
   const configuredType =
     providerSpecificData &&
@@ -277,7 +280,10 @@ export function buildProviderUrl(
     }
     // Custom URL builder (e.g. gemini, gemini-cli)
     if (entry.urlBuilder) {
-      return entry.urlBuilder(entry.baseUrl, model, stream);
+      const baseUrl = entry.baseUrl || config.baseUrl;
+      if (baseUrl) {
+        return entry.urlBuilder(baseUrl, model, stream);
+      }
     }
     // URL suffix (e.g. claude: ?beta=true)
     if (entry.urlSuffix) {

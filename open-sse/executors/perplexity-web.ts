@@ -33,8 +33,6 @@ const CITATION_RE = /\[\d+\]/g;
 const GROK_TAG_RE = /<grok:[^>]*>.*?<\/grok:[^>]*>/gs;
 const GROK_SELF_RE = /<grok:[^>]*\/>/g;
 const XML_DECL_RE = /<[?]xml[^?]*[?]>/g;
-const SCRIPT_RE = /<script\b[^>]*>.*?<\/script>/gis;
-const SCRIPT_TAG_RE = /<\/?script\b[^>]*>/gi;
 const RESPONSE_TAG_RE = /<\/?response\b[^>]*>/gi;
 const MULTI_SPACE = / {2,}/g;
 const MULTI_NL = /\n{3,}/g;
@@ -109,8 +107,6 @@ function cleanResponse(text: string, strip = true): string {
   t = t.replace(GROK_TAG_RE, "");
   t = t.replace(GROK_SELF_RE, "");
   t = t.replace(RESPONSE_TAG_RE, "");
-  t = t.replace(SCRIPT_RE, ""); // lgtm[js/incomplete-multi-character-sanitization]
-  t = t.replace(SCRIPT_TAG_RE, ""); // lgtm[js/incomplete-multi-character-sanitization]
   if (strip) {
     t = t.replace(MULTI_SPACE, " ");
     t = t.replace(MULTI_NL, "\n\n");

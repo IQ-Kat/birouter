@@ -176,3 +176,151 @@ test("v1 search POST accepts authless SearXNG with provider_options baseUrl", as
     globalThis.fetch = originalFetch;
   }
 });
+
+test("v1 search POST accepts authless SearXNG with the built-in default base URL", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl = "";
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+    return new Response(
+      JSON.stringify({
+        results: [
+          {
+            title: "Default SearXNG result",
+            url: "https://searx.example/default",
+            content: "Default self-hosted response",
+            engines: ["duckduckgo"],
+          },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const response = await searchRoute.POST(
+      new Request("http://localhost/api/v1/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: "default self hosted meta search",
+          provider: "searxng-search",
+          search_type: "web",
+        }),
+      })
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(
+      capturedUrl,
+      "http://localhost:8888/search?q=default+self+hosted+meta+search&format=json&categories=general"
+    );
+    assert.equal(body.provider, "searxng-search");
+    assert.equal(body.results[0].title, "Default SearXNG result");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("v1 search POST preserves stored SearXNG baseUrl for authless providers", async () => {
+  await seedConnection("searxng-search", {
+    apiKey: null,
+    authType: "none",
+    providerSpecificData: {
+      baseUrl: "http://127.0.0.1:9090/custom-search",
+    },
+  });
+
+  const originalFetch = globalThis.fetch;
+  let capturedUrl = "";
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+    return new Response(
+      JSON.stringify({
+        results: [
+          {
+            title: "Stored SearXNG result",
+            url: "https://searx.example/stored",
+            content: "Stored self-hosted response",
+            engines: ["duckduckgo"],
+          },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const response = await searchRoute.POST(
+      new Request("http://localhost/api/v1/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: "stored self hosted meta search",
+          provider: "searxng-search",
+          search_type: "web",
+        }),
+      })
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(
+      capturedUrl,
+      "http://127.0.0.1:9090/custom-search/search?q=stored+self+hosted+meta+search&format=json&categories=general"
+    );
+    assert.equal(body.provider, "searxng-search");
+    assert.equal(body.results[0].title, "Stored SearXNG result");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("v1 search POST auto-select uses authless SearXNG when no API-key providers are configured", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl = "";
+
+  globalThis.fetch = async (url) => {
+    capturedUrl = String(url);
+    return new Response(
+      JSON.stringify({
+        results: [
+          {
+            title: "Auto-selected SearXNG result",
+            url: "https://searx.example/auto",
+            content: "Auto-selected self-hosted response",
+            engines: ["duckduckgo"],
+          },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const response = await searchRoute.POST(
+      new Request("http://localhost/api/v1/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: "auto select self hosted search",
+          search_type: "web",
+        }),
+      })
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(
+      capturedUrl,
+      "http://localhost:8888/search?q=auto+select+self+hosted+search&format=json&categories=general"
+    );
+    assert.equal(body.provider, "searxng-search");
+    assert.equal(body.results[0].title, "Auto-selected SearXNG result");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
