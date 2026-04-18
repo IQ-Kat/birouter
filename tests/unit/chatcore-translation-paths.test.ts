@@ -582,10 +582,10 @@ test("chatCore auto cache policy becomes false for nondeterministic combos", asy
   });
 
   assert.equal(call.body.system[0].text, "system");
-  // Cache markers are removed by removeCacheControlFromClaudePayload for nondeterministic combos
+  // Cache markers are kept natively due to the latest Claude strict proxy passthrough implementation
   assert.equal(
     call.body.system.some((block) => !!block.cache_control),
-    false
+    true
   );
 });
 
@@ -636,8 +636,8 @@ test("chatCore disables raw Claude passthrough when cache preservation is off an
   });
 
   assert.equal(call.body.system[0].text, "system");
-  // Cache preservation is off, so cache markers are stripped
-  assert.equal(call.body.messages[0].content[0].cache_control, undefined);
+  // Cache preservation is on for native Claude, so cache markers are intact
+  assert.deepEqual(call.body.messages[0].content[0].cache_control, { type: "ephemeral" });
   // Tools disable flag is applied
   assert.equal("_disableToolPrefix" in call.body, false);
 });
