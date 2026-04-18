@@ -18,6 +18,7 @@ test("normalizes JSON strings before log protection and redacts sensitive keys",
   const protectedPayload = protectPayloadForLog(
     JSON.stringify({
       authorization: "Bearer secret-token-value",
+      "x-goog-api-key": "gemini-test-key",
       nested: {
         apiKey: "top-secret-key",
       },
@@ -26,6 +27,7 @@ test("normalizes JSON strings before log protection and redacts sensitive keys",
 
   assert.deepEqual(protectedPayload, {
     authorization: "[REDACTED]",
+    "x-goog-api-key": "[REDACTED]",
     nested: {
       apiKey: "[REDACTED]",
     },

@@ -897,7 +897,7 @@ async function probeAntigravityCreditBalance(
     for (const baseUrl of ANTIGRAVITY_BASE_URLS) {
       const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
 
-      const sessionId = `-${Math.floor(Math.random() * 9_000_000_000_000_000_000)}`;
+      const sessionId = `-${globalThis.crypto.randomUUID()}`;
       const body = {
         project: projectId,
         model: "gemini-2-flash",

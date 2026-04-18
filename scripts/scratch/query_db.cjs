@@ -15,4 +15,4 @@ console.log(settings.filter(s => JSON.stringify(s).toLowerCase().includes('iflow
 
 const apiKeys = db.prepare("SELECT * FROM api_keys").all();
 console.log("=== api_keys ===");
-console.log(apiKeys.filter(k => JSON.stringify(k).toLowerCase().includes('iflow')));
+console.log(apiKeys.map(k => ({...k, key: "[REDACTED]"})).filter(k => JSON.stringify(k).toLowerCase().includes('iflow')));
