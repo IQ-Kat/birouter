@@ -30,7 +30,7 @@ test("fetchBailianQuota returns null when no registered credentials exist", asyn
 
 test("fetchBailianQuota uses apiKey when consoleApiKey is absent", async () => {
   const connectionId = `bailian-inline-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
@@ -76,7 +76,7 @@ test("fetchBailianQuota uses apiKey when consoleApiKey is absent", async () => {
 
 test("fetchBailianQuota uses apiKey when consoleApiKey is empty string", async () => {
   const connectionId = `bailian-empty-console-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
@@ -125,7 +125,7 @@ test("fetchBailianQuota uses apiKey when consoleApiKey is empty string", async (
 
 test("fetchBailianQuota prefers consoleApiKey when present", async () => {
   const connectionId = `bailian-console-key-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
@@ -174,7 +174,7 @@ test("fetchBailianQuota prefers consoleApiKey when present", async () => {
 
 test("fetchBailianQuota parses triple-window and returns percentUsed = max(5h%, weekly%, monthly%)", async () => {
   const connectionId = `bailian-triple-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
@@ -222,7 +222,7 @@ test("fetchBailianQuota parses triple-window and returns percentUsed = max(5h%, 
 
 test("fetchBailianQuota retries with China host on ConsoleNeedLogin", async () => {
   const connectionId = `bailian-retry-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
@@ -283,7 +283,7 @@ test("fetchBailianQuota retries with China host on ConsoleNeedLogin", async () =
 
 test("fetchBailianQuota does not retry more than once on ConsoleNeedLogin", async () => {
   const connectionId = `bailian-no-retry-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
@@ -353,7 +353,7 @@ test("fetchBailianQuota returns null when response has no codingPlanQuotaInfo", 
 });
 test("fetchBailianQuota caches results within TTL", async () => {
   const connectionId = `bailian-cache-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
@@ -408,7 +408,7 @@ test("fetchBailianQuota caches results within TTL", async () => {
 
 test("ALIBABA_CODING_PLAN_HOST env var overrides default host", async () => {
   const connectionId = `bailian-env-host-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
   const originalEnv = process.env.ALIBABA_CODING_PLAN_HOST;
 
   process.env.ALIBABA_CODING_PLAN_HOST = "custom.bailian.aliyun.com";
@@ -458,7 +458,7 @@ test("ALIBABA_CODING_PLAN_HOST env var overrides default host", async () => {
 
 test("ALIBABA_CODING_PLAN_QUOTA_URL env var overrides full URL", async () => {
   const connectionId = `bailian-env-url-${Date.now()}`;
-  const calls = [];
+  const calls: any[] = [];
   const originalEnv = process.env.ALIBABA_CODING_PLAN_QUOTA_URL;
 
   process.env.ALIBABA_CODING_PLAN_QUOTA_URL = "https://override.example.com/api/v1/quota";
