@@ -127,7 +127,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
   const t = useTranslations("header");
   const { title, description, breadcrumbs } = usePageInfo(pathname);
   const isMacElectron =
-    isElectron && typeof window !== "undefined" && window.electronAPI?.platform === "darwin";
+    isElectron && typeof window !== "undefined" && (window as any).electronAPI?.platform === "darwin";
 
   const handleLogout = async () => {
     try {
