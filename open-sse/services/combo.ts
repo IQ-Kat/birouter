@@ -61,6 +61,16 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /third-party apps/i,
 ];
 
+// Patterns that signal all accounts for a provider are rate-limited / exhausted.
+// Used to detect 503 responses from handleNoCredentials so combo can fallback.
+const ALL_ACCOUNTS_RATE_LIMITED_PATTERNS = [/unavailable/i, /service temporarily unavailable/i];
+
+function isAllAccountsRateLimitedResponse(status: number, contentType: string | null, errorText: string): boolean {
+  if (status !== 503) return false;
+  if (!contentType?.includes("application/json")) return false;
+  return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
+}
+
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
 
@@ -1625,6 +1635,12 @@ export async function handleComboChat({
         }
       }
 
+      const isAllAccountsRateLimited = isAllAccountsRateLimitedResponse(
+        result.status,
+        result.headers?.get("content-type") ?? null,
+        errorText
+      );
+
       const { shouldFallback, cooldownMs } = checkFallbackError(
         result.status,
         errorText,
@@ -1641,7 +1657,9 @@ export async function handleComboChat({
         breaker._onFailure();
       }
 
-      if (!shouldFallback && !comboBadRequestFallback) {
+      if (isAllAccountsRateLimited) {
+        log.info("COMBO", `All accounts rate-limited for ${modelStr}, falling back to next model`);
+      } else if (!shouldFallback && !comboBadRequestFallback) {
         log.warn("COMBO", `Model ${modelStr} failed (no fallback)`, { status: result.status });
         recordComboRequest(combo.name, modelStr, {
           success: false,
@@ -1966,6 +1984,12 @@ async function handleRoundRobinCombo({
         );
         const comboBadRequestFallback = shouldFallbackComboBadRequest(result.status, errorText);
 
+        const isAllAccountsRateLimited = isAllAccountsRateLimitedResponse(
+          result.status,
+          result.headers?.get("content-type") ?? null,
+          errorText
+        );
+
         // Transient errors → mark in semaphore AND record circuit breaker failure
         if (TRANSIENT_FOR_BREAKER.includes(result.status) && cooldownMs > 0) {
           semaphore.markRateLimited(semaphoreKey, cooldownMs);
@@ -1976,7 +2000,9 @@ async function handleRoundRobinCombo({
           );
         }
 
-        if (!shouldFallback && !comboBadRequestFallback) {
+        if (isAllAccountsRateLimited) {
+          log.info("COMBO", `All accounts rate-limited for ${modelStr}, falling back to next model`);
+        } else if (!shouldFallback && !comboBadRequestFallback) {
           log.warn("COMBO-RR", `${modelStr} failed (no fallback)`, { status: result.status });
           recordComboRequest(combo.name, modelStr, {
             success: false,
