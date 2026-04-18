@@ -366,7 +366,7 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
     }
 
     const urlStr = String(url);
-    if (urlStr.includes("://daily-cloudcode-pa.googleapis.com/")) {
+    if (urlStr.startsWith("https://daily-cloudcode-pa.googleapis.com/")) {
       return new Response("bad gateway", { status: 502 });
     }
 
