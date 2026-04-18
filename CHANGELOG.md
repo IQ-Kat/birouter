@@ -39,6 +39,9 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(context):** Scale reserved context tokens dynamically using a 15% sliding window for smaller models
+- **test(core):** Replace unit test with integration test for proactive context compression to align with isolated runner rules (#1378)
+- **fix(services):** Pass origin provider to refreshWithRetry to avoid tripping the generic "unknown" circuit breaker (fixes Codex accounts erroneously disabling)
 - **fix(db):** Prevent native module ABI load crashes from assuming database corruption and skipping databases
 - **fix(db):** Increase mass-migration threshold from 5 to 50 pending migrations to protect legacy users upgrading node
 - **fix(db):** Prevent migration runner safety aborts from triggering on fresh `DATA_DIR` installations by detecting new databases (#1328)
