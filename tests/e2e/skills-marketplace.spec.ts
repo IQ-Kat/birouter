@@ -90,8 +90,8 @@ test.describe("Skills marketplace", () => {
       customInstalls: 0,
     };
 
-    await page.route("**/api/skills/executions", async (route) => {
-      await fulfillJson(route, { executions: [] });
+    await page.route(/\/api\/skills\/executions(?:\?.*)?$/, async (route) => {
+      await fulfillJson(route, { data: [], total: 0, totalPages: 1 });
     });
 
     await page.route(/\/api\/skills\/marketplace(?:\?.*)?$/, async (route) => {
@@ -151,8 +151,12 @@ test.describe("Skills marketplace", () => {
       await fulfillJson(route, { success: true });
     });
 
-    await page.route("**/api/skills", async (route) => {
-      await fulfillJson(route, { skills: state.skills });
+    await page.route(/\/api\/skills(?:\?.*)?$/, async (route) => {
+      await fulfillJson(route, {
+        data: state.skills,
+        total: state.skills.length,
+        totalPages: 1,
+      });
     });
 
     await gotoOrSkip(page, "/dashboard/skills");

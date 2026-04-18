@@ -23,9 +23,6 @@ import {
   ProxyConfigModal,
 } from "@/shared/components";
 import {
-  FREE_PROVIDERS,
-  OAUTH_PROVIDERS,
-  APIKEY_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -37,6 +34,11 @@ import {
   compatibleProviderSupportsModelImport,
   getCompatibleFallbackModels,
 } from "@/lib/providers/managedAvailableModels";
+import {
+  getModelCatalogSourceLabel,
+  matchesModelCatalogQuery,
+  normalizeModelCatalogSource,
+} from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
@@ -46,7 +48,11 @@ import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
 import { maskEmail, pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
-import { getCodexRequestDefaults as _getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
+import {
+  getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
+  getCodexRequestDefaults as _getCodexRequestDefaults,
+} from "@/lib/providers/requestDefaults";
+import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -318,7 +324,7 @@ function anyUpstreamHeadersBadge(
 }
 
 interface ModelRowProps {
-  model: { id: string; isHidden?: boolean };
+  model: { id: string; name?: string; source?: string; isHidden?: boolean };
   fullModel: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
@@ -336,6 +342,7 @@ interface ModelRowProps {
 interface PassthroughModelRowProps {
   modelId: string;
   fullModel: string;
+  source?: string;
   isHidden?: boolean;
   copied?: string;
   onCopy: (text: string, key: string) => void;
@@ -354,6 +361,7 @@ interface PassthroughModelRowProps {
 interface PassthroughModelsSectionProps {
   providerAlias: string;
   modelAliases: Record<string, string>;
+  customModels?: CompatModelRow[];
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onSetAlias: (modelId: string, alias: string) => Promise<void>;
@@ -390,6 +398,7 @@ interface CompatibleModelsSectionProps {
   providerStorageAlias: string;
   providerDisplayAlias: string;
   modelAliases: Record<string, string>;
+  customModels?: CompatModelRow[];
   fallbackModels?: CompatModelRow[];
   allowImport: boolean;
   description: string;
@@ -429,6 +438,34 @@ interface CompatibleModelsSectionProps {
 
 interface CooldownTimerProps {
   until: string | number | Date;
+}
+
+function getModelSourceBadgeClass(source?: string): string {
+  switch (normalizeModelCatalogSource(source)) {
+    case "api-sync":
+      return "border-sky-500/30 bg-sky-500/10 text-sky-300";
+    case "custom":
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
+    case "fallback":
+      return "border-amber-500/30 bg-amber-500/10 text-amber-300";
+    case "alias":
+      return "border-violet-500/30 bg-violet-500/10 text-violet-300";
+    case "system":
+    default:
+      return "border-border bg-sidebar/70 text-text-muted";
+  }
+}
+
+function ModelSourceBadge({ source }: { source?: string }) {
+  return (
+    <span
+      className={`rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${getModelSourceBadgeClass(
+        source
+      )}`}
+    >
+      {getModelCatalogSourceLabel(source)}
+    </span>
+  );
 }
 
 interface ConnectionRowConnection {
@@ -492,9 +529,10 @@ interface AddApiKeyModalProps {
   isCcCompatible?: boolean;
   onSave: (data: {
     name: string;
-    apiKey: string;
+    apiKey?: string;
     priority: number;
     baseUrl?: string;
+    providerSpecificData?: Record<string, unknown>;
   }) => Promise<void | unknown>;
   onClose: () => void;
 }
@@ -570,6 +608,15 @@ function getCodexRequestDefaults(providerSpecificData: unknown): {
   return {
     reasoningEffort: defaults.reasoningEffort ?? "medium",
     ...(defaults.serviceTier ? { serviceTier: defaults.serviceTier } : {}),
+  };
+}
+
+function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
+  context1m: boolean;
+} {
+  const defaults = _getClaudeCodeCompatibleRequestDefaults(providerSpecificData);
+  return {
+    context1m: defaults.context1m === true,
   };
 }
 
@@ -953,52 +1000,50 @@ export default function ProviderDetailPage() {
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
 
-  const providerInfo = providerNode
-    ? {
-        id: providerNode.id,
-        name:
-          providerNode.name ||
-          (isCcCompatible
-            ? CC_COMPATIBLE_LABEL
-            : providerNode.type === "anthropic-compatible"
-              ? t("anthropicCompatibleName")
-              : t("openaiCompatibleName")),
-        color: isCcCompatible
-          ? "#B45309"
-          : providerNode.type === "anthropic-compatible"
-            ? "#D97757"
-            : "#10A37F",
-        textIcon: isCcCompatible
-          ? "CC"
-          : providerNode.type === "anthropic-compatible"
-            ? "AC"
-            : "OC",
-        apiType: providerNode.apiType,
-        baseUrl: providerNode.baseUrl,
-        type: providerNode.type,
-      }
-    : (FREE_PROVIDERS as any)[providerId] ||
-      (OAUTH_PROVIDERS as any)[providerId] ||
-      (APIKEY_PROVIDERS as any)[providerId];
+  const providerInfo = resolveDashboardProviderInfo(providerId, {
+    providerNode,
+    compatibleLabels: {
+      ccCompatibleName: CC_COMPATIBLE_LABEL,
+      anthropicCompatibleName: t("anthropicCompatibleName"),
+      openAiCompatibleName: t("openaiCompatibleName"),
+    },
+  });
   const providerSupportsOAuth =
-    !!(FREE_PROVIDERS as any)[providerId] || !!(OAUTH_PROVIDERS as any)[providerId];
+    providerInfo?.toggleAuthType === "oauth" || providerInfo?.toggleAuthType === "free";
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
   // For Gemini: always use synced API models (empty if no keys added yet)
   // For other providers: merge registry models with custom/imported models (deduped)
   const models = useMemo(() => {
-    if (providerId === "gemini") return syncedAvailableModels;
-    if (!modelMeta.customModels || modelMeta.customModels.length === 0) return registryModels;
-    const registryIds = new Set(registryModels.map((m) => m.id));
+    if (providerId === "gemini") {
+      return syncedAvailableModels.map((model: any) => ({
+        ...model,
+        source: model?.source === "api-sync" ? "api-sync" : "api-sync",
+      }));
+    }
+
+    const builtInModels = registryModels.map((model) => ({
+      ...model,
+      source: "system",
+    }));
+
+    if (!modelMeta.customModels || modelMeta.customModels.length === 0) return builtInModels;
+
+    const registryIds = new Set(builtInModels.map((m) => m.id));
     const customExtras = modelMeta.customModels
       .filter((cm: any) => cm.id && !registryIds.has(cm.id))
-      .map((cm: any) => ({ id: cm.id, name: cm.name || cm.id }));
-    return [...registryModels, ...customExtras];
+      .map((cm: any) => ({
+        id: cm.id,
+        name: cm.name || cm.id,
+        source: cm.source === "api-sync" ? "api-sync" : "custom",
+      }));
+    return [...builtInModels, ...customExtras];
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   const isSearchProvider = providerId.endsWith("-search");
+  const isUpstreamProxyProvider = providerInfo?.category === "upstream-proxy";
   const compatibleSupportsModelImport = compatibleProviderSupportsModelImport(providerId);
 
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
@@ -2258,6 +2303,7 @@ export default function ProviderDetailPage() {
             providerStorageAlias={providerStorageAlias}
             providerDisplayAlias={providerDisplayAlias}
             modelAliases={modelAliases}
+            customModels={modelMeta.customModels}
             fallbackModels={compatibleFallbackModels}
             description={description}
             inputLabel={inputLabel}
@@ -2313,6 +2359,7 @@ export default function ProviderDetailPage() {
           <PassthroughModelsSection
             providerAlias={providerAlias}
             modelAliases={modelAliases}
+            customModels={modelMeta.customModels}
             copied={copied}
             onCopy={copy}
             onSetAlias={handleSetAlias}
@@ -2368,9 +2415,13 @@ export default function ProviderDetailPage() {
       ...model,
       isHidden: effectiveModelHidden(model.id),
     }));
-    const filteredModels = modelFilter
-      ? modelsWithVisibility.filter((m) => m.id.toLowerCase().includes(modelFilter.toLowerCase()))
-      : modelsWithVisibility;
+    const filteredModels = modelsWithVisibility.filter((model) =>
+      matchesModelCatalogQuery(modelFilter, {
+        modelId: model.id,
+        modelName: model.name,
+        source: model.source,
+      })
+    );
     const activeCount = modelsWithVisibility.filter((m) => !m.isHidden).length;
     const hiddenFilteredCount = filteredModels.filter((m) => m.isHidden).length;
     const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
@@ -2599,294 +2650,341 @@ export default function ProviderDetailPage() {
       )}
 
       {/* Connections */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">{t("connections")}</h2>
-            {/* Provider-level proxy indicator/button */}
-            <button
-              onClick={() =>
-                setProxyTarget({
-                  level: "provider",
-                  id: providerId,
-                  label: providerInfo?.name || providerId,
-                })
-              }
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
-                proxyConfig?.providers?.[providerId]
-                  ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
-                  : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-              }`}
-              title={
-                proxyConfig?.providers?.[providerId]
-                  ? t("providerProxyTitleConfigured", {
-                      host: proxyConfig.providers[providerId].host || t("configured"),
-                    })
-                  : t("providerProxyConfigureHint")
-              }
-            >
-              <span className="material-symbols-outlined text-[14px]">vpn_lock</span>
-              {proxyConfig?.providers?.[providerId]
-                ? proxyConfig.providers[providerId].host || t("providerProxy")
-                : t("providerProxy")}
-            </button>
-          </div>
-          {connections.length > 1 && (
-            <button
-              onClick={handleBatchTestAll}
-              disabled={batchTesting || !!retestingId}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                batchTesting
-                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-              }`}
-              title={t("testAll")}
-              aria-label={t("testAll")}
-            >
-              <span className="material-symbols-outlined text-[14px]">
-                {batchTesting ? "sync" : "play_arrow"}
-              </span>
-              {batchTesting ? t("testing") : t("testAll")}
-            </button>
-          )}
-          {!isCompatible ? (
-            <div className="flex items-center gap-2">
-              <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
-                {providerSupportsPat ? "Add PAT" : t("add")}
-              </Button>
-              {providerId === "qoder" && (
-                <Button size="sm" variant="secondary" onClick={() => setShowOAuthModal(true)}>
-                  Experimental OAuth
-                </Button>
-              )}
+      {!isUpstreamProxyProvider && (
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold">{t("connections")}</h2>
+              {/* Provider-level proxy indicator/button */}
+              <button
+                onClick={() =>
+                  setProxyTarget({
+                    level: "provider",
+                    id: providerId,
+                    label: providerInfo?.name || providerId,
+                  })
+                }
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+                  proxyConfig?.providers?.[providerId]
+                    ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                    : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                }`}
+                title={
+                  proxyConfig?.providers?.[providerId]
+                    ? t("providerProxyTitleConfigured", {
+                        host: proxyConfig.providers[providerId].host || t("configured"),
+                      })
+                    : t("providerProxyConfigureHint")
+                }
+              >
+                <span className="material-symbols-outlined text-[14px]">vpn_lock</span>
+                {proxyConfig?.providers?.[providerId]
+                  ? proxyConfig.providers[providerId].host || t("providerProxy")
+                  : t("providerProxy")}
+              </button>
             </div>
-          ) : (
-            connections.length === 0 && (
-              <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
-                {t("add")}
-              </Button>
-            )
-          )}
-        </div>
-
-        {connections.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
-              <span className="material-symbols-outlined text-[32px]">
-                {isOAuth ? "lock" : "key"}
-              </span>
-            </div>
-            <p className="text-text-main font-medium mb-1">{t("noConnectionsYet")}</p>
-            <p className="text-sm text-text-muted mb-4">{t("addFirstConnectionHint")}</p>
-            {!isCompatible && (
-              <div className="flex items-center justify-center gap-2">
-                <Button icon="add" onClick={openPrimaryAddFlow}>
-                  {providerSupportsPat ? "Add PAT" : t("addConnection")}
+            {connections.length > 1 && (
+              <button
+                onClick={handleBatchTestAll}
+                disabled={batchTesting || !!retestingId}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  batchTesting
+                    ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                    : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+                }`}
+                title={t("testAll")}
+                aria-label={t("testAll")}
+              >
+                <span className="material-symbols-outlined text-[14px]">
+                  {batchTesting ? "sync" : "play_arrow"}
+                </span>
+                {batchTesting ? t("testing") : t("testAll")}
+              </button>
+            )}
+            {!isCompatible ? (
+              <div className="flex items-center gap-2">
+                <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
+                  {providerSupportsPat ? "Add PAT" : t("add")}
                 </Button>
                 {providerId === "qoder" && (
-                  <Button variant="secondary" onClick={() => setShowOAuthModal(true)}>
+                  <Button size="sm" variant="secondary" onClick={() => setShowOAuthModal(true)}>
                     Experimental OAuth
                   </Button>
                 )}
               </div>
+            ) : (
+              connections.length === 0 && (
+                <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+                  {t("add")}
+                </Button>
+              )
             )}
           </div>
-        ) : (
-          (() => {
-            // Group connections by tag (providerSpecificData.tag)
-            const sorted = [...connections].sort((a, b) => (a.priority || 0) - (b.priority || 0));
-            const hasAnyTag = sorted.some((c) => c.providerSpecificData?.tag as string | undefined);
 
-            if (!hasAnyTag) {
-              // No tags — render flat list as before
+          {connections.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+                <span className="material-symbols-outlined text-[32px]">
+                  {isOAuth ? "lock" : "key"}
+                </span>
+              </div>
+              <p className="text-text-main font-medium mb-1">{t("noConnectionsYet")}</p>
+              <p className="text-sm text-text-muted mb-4">{t("addFirstConnectionHint")}</p>
+              {!isCompatible && (
+                <div className="flex items-center justify-center gap-2">
+                  <Button icon="add" onClick={openPrimaryAddFlow}>
+                    {providerSupportsPat ? "Add PAT" : t("addConnection")}
+                  </Button>
+                  {providerId === "qoder" && (
+                    <Button variant="secondary" onClick={() => setShowOAuthModal(true)}>
+                      Experimental OAuth
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            (() => {
+              // Group connections by tag (providerSpecificData.tag)
+              const sorted = [...connections].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+              const hasAnyTag = sorted.some(
+                (c) => c.providerSpecificData?.tag as string | undefined
+              );
+
+              if (!hasAnyTag) {
+                // No tags — render flat list as before
+                return (
+                  <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                    {sorted.map((conn, index) => (
+                      <ConnectionRow
+                        key={conn.id}
+                        connection={conn}
+                        isOAuth={conn.authType === "oauth"}
+                        isFirst={index === 0}
+                        isLast={index === sorted.length - 1}
+                        onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
+                        onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
+                        onToggleActive={(isActive) =>
+                          handleUpdateConnectionStatus(conn.id, isActive)
+                        }
+                        onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                        isCodex={providerId === "codex"}
+                        isCcCompatible={isCcCompatible}
+                        cliproxyapiEnabled={cpaProviderEnabled}
+                        onToggleCliproxyapiMode={(enabled) =>
+                          handleToggleCliproxyapiMode(conn.id, enabled)
+                        }
+                        onToggleCodex5h={(enabled) =>
+                          handleToggleCodexLimit(conn.id, "use5h", enabled)
+                        }
+                        onToggleCodexWeekly={(enabled) =>
+                          handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                        }
+                        onRetest={() => handleRetestConnection(conn.id)}
+                        isRetesting={retestingId === conn.id}
+                        onEdit={() => {
+                          setSelectedConnection(conn);
+                          setShowEditModal(true);
+                        }}
+                        onDelete={() => handleDelete(conn.id)}
+                        onReauth={
+                          conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined
+                        }
+                        onRefreshToken={
+                          conn.authType === "oauth" ? () => handleRefreshToken(conn.id) : undefined
+                        }
+                        isRefreshing={refreshingId === conn.id}
+                        onApplyCodexAuthLocal={
+                          providerId === "codex"
+                            ? () => handleApplyCodexAuthLocal(conn.id)
+                            : undefined
+                        }
+                        isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                        onExportCodexAuthFile={
+                          providerId === "codex"
+                            ? () => handleExportCodexAuthFile(conn.id)
+                            : undefined
+                        }
+                        isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
+                        onProxy={() =>
+                          setProxyTarget({
+                            level: "key",
+                            id: conn.id,
+                            label: pickDisplayValue(
+                              [conn.name, conn.email],
+                              emailsVisible,
+                              conn.id
+                            ),
+                          })
+                        }
+                        hasProxy={!!connProxyMap[conn.id]?.proxy}
+                        proxySource={connProxyMap[conn.id]?.level || null}
+                        proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                      />
+                    ))}
+                  </div>
+                );
+              }
+
+              // Build ordered tag groups: untagged first, then alphabetically
+              const groupMap = new Map<string, typeof sorted>();
+              for (const conn of sorted) {
+                const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim() || "";
+                if (!groupMap.has(tag)) groupMap.set(tag, []);
+                groupMap.get(tag)!.push(conn);
+              }
+              const groupKeys = Array.from(groupMap.keys()).sort((a, b) => {
+                if (a === "") return -1;
+                if (b === "") return 1;
+                return a.localeCompare(b);
+              });
+
               return (
-                <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
-                  {sorted.map((conn, index) => (
-                    <ConnectionRow
-                      key={conn.id}
-                      connection={conn}
-                      isOAuth={conn.authType === "oauth"}
-                      isFirst={index === 0}
-                      isLast={index === sorted.length - 1}
-                      onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
-                      onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
-                      onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
-                      onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
-                      isCodex={providerId === "codex"}
-                      isCcCompatible={isCcCompatible}
-                      cliproxyapiEnabled={cpaProviderEnabled}
-                      onToggleCliproxyapiMode={(enabled) =>
-                        handleToggleCliproxyapiMode(conn.id, enabled)
-                      }
-                      onToggleCodex5h={(enabled) =>
-                        handleToggleCodexLimit(conn.id, "use5h", enabled)
-                      }
-                      onToggleCodexWeekly={(enabled) =>
-                        handleToggleCodexLimit(conn.id, "useWeekly", enabled)
-                      }
-                      onRetest={() => handleRetestConnection(conn.id)}
-                      isRetesting={retestingId === conn.id}
-                      onEdit={() => {
-                        setSelectedConnection(conn);
-                        setShowEditModal(true);
-                      }}
-                      onDelete={() => handleDelete(conn.id)}
-                      onReauth={
-                        conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined
-                      }
-                      onRefreshToken={
-                        conn.authType === "oauth" ? () => handleRefreshToken(conn.id) : undefined
-                      }
-                      isRefreshing={refreshingId === conn.id}
-                      onApplyCodexAuthLocal={
-                        providerId === "codex"
-                          ? () => handleApplyCodexAuthLocal(conn.id)
-                          : undefined
-                      }
-                      isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
-                      onExportCodexAuthFile={
-                        providerId === "codex"
-                          ? () => handleExportCodexAuthFile(conn.id)
-                          : undefined
-                      }
-                      isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
-                      onProxy={() =>
-                        setProxyTarget({
-                          level: "key",
-                          id: conn.id,
-                          label: pickDisplayValue([conn.name, conn.email], emailsVisible, conn.id),
-                        })
-                      }
-                      hasProxy={!!connProxyMap[conn.id]?.proxy}
-                      proxySource={connProxyMap[conn.id]?.level || null}
-                      proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
-                    />
-                  ))}
+                <div className="flex flex-col gap-0">
+                  {groupKeys.map((tag, gi) => {
+                    const groupConns = groupMap.get(tag)!;
+                    return (
+                      <div
+                        key={tag || "__untagged__"}
+                        className={
+                          gi > 0
+                            ? "border-t border-black/[0.06] dark:border-white/[0.06] mt-1 pt-1"
+                            : ""
+                        }
+                      >
+                        {tag && (
+                          <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+                            <span className="material-symbols-outlined text-[13px] text-text-muted/50">
+                              label
+                            </span>
+                            <span className="text-[11px] font-semibold uppercase tracking-widest text-text-muted/60 select-none">
+                              {tag}
+                            </span>
+                            <div className="flex-1 h-px bg-black/[0.04] dark:bg-white/[0.04]" />
+                            <span className="text-[10px] text-text-muted/40">
+                              {groupConns.length}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                          {groupConns.map((conn, index) => (
+                            <ConnectionRow
+                              key={conn.id}
+                              connection={conn}
+                              isOAuth={conn.authType === "oauth"}
+                              isFirst={gi === 0 && index === 0}
+                              isLast={
+                                gi === groupKeys.length - 1 && index === groupConns.length - 1
+                              }
+                              onMoveUp={() =>
+                                handleSwapPriority(conn, sorted[sorted.indexOf(conn) - 1])
+                              }
+                              onMoveDown={() =>
+                                handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])
+                              }
+                              onToggleActive={(isActive) =>
+                                handleUpdateConnectionStatus(conn.id, isActive)
+                              }
+                              onToggleRateLimit={(enabled) =>
+                                handleToggleRateLimit(conn.id, enabled)
+                              }
+                              isCodex={providerId === "codex"}
+                              onToggleCodex5h={(enabled) =>
+                                handleToggleCodexLimit(conn.id, "use5h", enabled)
+                              }
+                              onToggleCodexWeekly={(enabled) =>
+                                handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                              }
+                              onRetest={() => handleRetestConnection(conn.id)}
+                              isRetesting={retestingId === conn.id}
+                              onEdit={() => {
+                                setSelectedConnection(conn);
+                                setShowEditModal(true);
+                              }}
+                              onDelete={() => handleDelete(conn.id)}
+                              onReauth={
+                                conn.authType === "oauth"
+                                  ? () => setShowOAuthModal(true)
+                                  : undefined
+                              }
+                              onRefreshToken={
+                                conn.authType === "oauth"
+                                  ? () => handleRefreshToken(conn.id)
+                                  : undefined
+                              }
+                              isRefreshing={refreshingId === conn.id}
+                              onApplyCodexAuthLocal={
+                                providerId === "codex"
+                                  ? () => handleApplyCodexAuthLocal(conn.id)
+                                  : undefined
+                              }
+                              isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                              onExportCodexAuthFile={
+                                providerId === "codex"
+                                  ? () => handleExportCodexAuthFile(conn.id)
+                                  : undefined
+                              }
+                              isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
+                              onProxy={() =>
+                                setProxyTarget({
+                                  level: "key",
+                                  id: conn.id,
+                                  label: pickDisplayValue(
+                                    [conn.name, conn.email],
+                                    emailsVisible,
+                                    conn.id
+                                  ),
+                                })
+                              }
+                              hasProxy={!!connProxyMap[conn.id]?.proxy}
+                              proxySource={connProxyMap[conn.id]?.level || null}
+                              proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               );
-            }
+            })()
+          )}
+        </Card>
+      )}
 
-            // Build ordered tag groups: untagged first, then alphabetically
-            const groupMap = new Map<string, typeof sorted>();
-            for (const conn of sorted) {
-              const tag = (conn.providerSpecificData?.tag as string | undefined)?.trim() || "";
-              if (!groupMap.has(tag)) groupMap.set(tag, []);
-              groupMap.get(tag)!.push(conn);
-            }
-            const groupKeys = Array.from(groupMap.keys()).sort((a, b) => {
-              if (a === "") return -1;
-              if (b === "") return 1;
-              return a.localeCompare(b);
-            });
-
-            return (
-              <div className="flex flex-col gap-0">
-                {groupKeys.map((tag, gi) => {
-                  const groupConns = groupMap.get(tag)!;
-                  return (
-                    <div
-                      key={tag || "__untagged__"}
-                      className={
-                        gi > 0
-                          ? "border-t border-black/[0.06] dark:border-white/[0.06] mt-1 pt-1"
-                          : ""
-                      }
-                    >
-                      {tag && (
-                        <div className="flex items-center gap-2 px-3 pt-2 pb-1">
-                          <span className="material-symbols-outlined text-[13px] text-text-muted/50">
-                            label
-                          </span>
-                          <span className="text-[11px] font-semibold uppercase tracking-widest text-text-muted/60 select-none">
-                            {tag}
-                          </span>
-                          <div className="flex-1 h-px bg-black/[0.04] dark:bg-white/[0.04]" />
-                          <span className="text-[10px] text-text-muted/40">
-                            {groupConns.length}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
-                        {groupConns.map((conn, index) => (
-                          <ConnectionRow
-                            key={conn.id}
-                            connection={conn}
-                            isOAuth={conn.authType === "oauth"}
-                            isFirst={gi === 0 && index === 0}
-                            isLast={gi === groupKeys.length - 1 && index === groupConns.length - 1}
-                            onMoveUp={() =>
-                              handleSwapPriority(conn, sorted[sorted.indexOf(conn) - 1])
-                            }
-                            onMoveDown={() =>
-                              handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])
-                            }
-                            onToggleActive={(isActive) =>
-                              handleUpdateConnectionStatus(conn.id, isActive)
-                            }
-                            onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
-                            isCodex={providerId === "codex"}
-                            onToggleCodex5h={(enabled) =>
-                              handleToggleCodexLimit(conn.id, "use5h", enabled)
-                            }
-                            onToggleCodexWeekly={(enabled) =>
-                              handleToggleCodexLimit(conn.id, "useWeekly", enabled)
-                            }
-                            onRetest={() => handleRetestConnection(conn.id)}
-                            isRetesting={retestingId === conn.id}
-                            onEdit={() => {
-                              setSelectedConnection(conn);
-                              setShowEditModal(true);
-                            }}
-                            onDelete={() => handleDelete(conn.id)}
-                            onReauth={
-                              conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined
-                            }
-                            onRefreshToken={
-                              conn.authType === "oauth"
-                                ? () => handleRefreshToken(conn.id)
-                                : undefined
-                            }
-                            isRefreshing={refreshingId === conn.id}
-                            onApplyCodexAuthLocal={
-                              providerId === "codex"
-                                ? () => handleApplyCodexAuthLocal(conn.id)
-                                : undefined
-                            }
-                            isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
-                            onExportCodexAuthFile={
-                              providerId === "codex"
-                                ? () => handleExportCodexAuthFile(conn.id)
-                                : undefined
-                            }
-                            isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
-                            onProxy={() =>
-                              setProxyTarget({
-                                level: "key",
-                                id: conn.id,
-                                label: pickDisplayValue(
-                                  [conn.name, conn.email],
-                                  emailsVisible,
-                                  conn.id
-                                ),
-                              })
-                            }
-                            hasProxy={!!connProxyMap[conn.id]?.proxy}
-                            proxySource={connProxyMap[conn.id]?.level || null}
-                            proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()
-        )}
-      </Card>
+      {isUpstreamProxyProvider && (
+        <Card>
+          <div className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Managed via Upstream Proxy Settings</h2>
+              <p className="text-sm text-text-muted mt-1">
+                CLIProxyAPI is configured as an upstream proxy layer, not as a direct provider
+                connection. Manage the binary/runtime in CLI Tools and enable proxy routing on each
+                provider via the provider proxy controls.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/dashboard/cli-tools"
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">terminal</span>
+                Open CLI Tools
+              </Link>
+              <Link
+                href="/dashboard/settings"
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">settings</span>
+                Open Settings
+              </Link>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Models — hidden for search providers (they don't have models) */}
-      {!isSearchProvider && (
+      {!isSearchProvider && !isUpstreamProxyProvider && (
         <Card>
           <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
           {renderModelsSection()}
@@ -2921,55 +3019,83 @@ export default function ProviderDetailPage() {
               </p>
             </div>
           )}
+          {providerId === "google-pse-search" && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <span className="material-symbols-outlined text-sm text-amber-300">tune</span>
+              <p className="text-xs text-amber-200">
+                Google Programmable Search requires two values: your API key and the Search Engine
+                ID (<strong>cx</strong>) from the Programmable Search Engine dashboard.
+              </p>
+            </div>
+          )}
+          {providerId === "searxng-search" && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <span className="material-symbols-outlined text-sm text-emerald-300">dns</span>
+              <p className="text-xs text-emerald-200">
+                SearXNG is self-hosted. Configure the instance base URL here. API key is optional
+                and can be left blank for public or unauthenticated instances. Local/private URL
+                validation requires{" "}
+                <code className="rounded bg-black/20 px-1 py-0.5">
+                  OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true
+                </code>
+                .
+              </p>
+            </div>
+          )}
         </Card>
       )}
 
       {/* Modals */}
-      {providerId === "kiro" ? (
-        <KiroOAuthWrapper
-          isOpen={showOAuthModal}
-          providerInfo={providerInfo}
-          onSuccess={handleOAuthSuccess}
-          onClose={() => {
-            setShowOAuthModal(false);
-          }}
-        />
-      ) : providerId === "cursor" ? (
-        <CursorAuthModal
-          isOpen={showOAuthModal}
-          onSuccess={handleOAuthSuccess}
-          onClose={() => {
-            setShowOAuthModal(false);
-          }}
-        />
-      ) : (
-        <OAuthModal
-          isOpen={showOAuthModal}
+      {!isUpstreamProxyProvider &&
+        (providerId === "kiro" ? (
+          <KiroOAuthWrapper
+            isOpen={showOAuthModal}
+            providerInfo={providerInfo}
+            onSuccess={handleOAuthSuccess}
+            onClose={() => {
+              setShowOAuthModal(false);
+            }}
+          />
+        ) : providerId === "cursor" ? (
+          <CursorAuthModal
+            isOpen={showOAuthModal}
+            onSuccess={handleOAuthSuccess}
+            onClose={() => {
+              setShowOAuthModal(false);
+            }}
+          />
+        ) : (
+          <OAuthModal
+            isOpen={showOAuthModal}
+            provider={providerId}
+            providerInfo={providerInfo}
+            onSuccess={handleOAuthSuccess}
+            onClose={() => {
+              setShowOAuthModal(false);
+            }}
+          />
+        ))}
+      {!isUpstreamProxyProvider && (
+        <AddApiKeyModal
+          isOpen={showAddApiKeyModal}
           provider={providerId}
-          providerInfo={providerInfo}
-          onSuccess={handleOAuthSuccess}
-          onClose={() => {
-            setShowOAuthModal(false);
-          }}
+          providerName={providerInfo.name}
+          isCompatible={isCompatible}
+          isAnthropic={isAnthropicProtocolCompatible}
+          isCcCompatible={isCcCompatible}
+          onSave={handleSaveApiKey}
+          onClose={() => setShowAddApiKeyModal(false)}
         />
       )}
-      <AddApiKeyModal
-        isOpen={showAddApiKeyModal}
-        provider={providerId}
-        providerName={providerInfo.name}
-        isCompatible={isCompatible}
-        isAnthropic={isAnthropicProtocolCompatible}
-        isCcCompatible={isCcCompatible}
-        onSave={handleSaveApiKey}
-        onClose={() => setShowAddApiKeyModal(false)}
-      />
-      <EditConnectionModal
-        isOpen={showEditModal}
-        connection={selectedConnection}
-        onSave={handleUpdateConnection}
-        onClose={() => setShowEditModal(false)}
-      />
-      {isCompatible && (
+      {!isUpstreamProxyProvider && (
+        <EditConnectionModal
+          isOpen={showEditModal}
+          connection={selectedConnection}
+          onSave={handleUpdateConnection}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
+      {!isUpstreamProxyProvider && isCompatible && (
         <EditCompatibleNodeModal
           isOpen={showEditNodeModal}
           node={providerNode}
@@ -3232,6 +3358,7 @@ function ModelRow({
         <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
           {fullModel}
         </code>
+        <ModelSourceBadge source={model.source} />
         <button
           onClick={() => onCopy(fullModel, `model-${model.id}`)}
           className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
@@ -3359,6 +3486,7 @@ function ModelVisibilityToolbar({
 function PassthroughModelsSection({
   providerAlias,
   modelAliases,
+  customModels = [],
   copied,
   onCopy,
   onSetAlias,
@@ -3378,6 +3506,7 @@ function PassthroughModelsSection({
   const [newModel, setNewModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [modelFilter, setModelFilter] = useState("");
+  const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
 
   const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
     (model as string).startsWith(`${providerAlias}/`)
@@ -3387,16 +3516,24 @@ function PassthroughModelsSection({
     const fmStr = fullModel as string;
     const prefix = `${providerAlias}/`;
     const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
+    const customModel = customModelMap.get(modelId);
     return {
       modelId,
       fullModel,
       alias,
+      displayName: alias,
+      source: customModel ? customModel.source || "custom" : "alias",
       isHidden: isModelHidden(modelId),
     };
   });
-  const filteredModels = modelFilter
-    ? allModels.filter(({ modelId }) => modelId.toLowerCase().includes(modelFilter.toLowerCase()))
-    : allModels;
+  const filteredModels = allModels.filter((model) =>
+    matchesModelCatalogQuery(modelFilter, {
+      modelId: model.modelId,
+      modelName: model.displayName,
+      alias: model.alias,
+      source: model.source,
+    })
+  );
   const activeCount = allModels.filter((model) => !model.isHidden).length;
   const hiddenFilteredCount = filteredModels.filter((model) => model.isHidden).length;
   const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
@@ -3478,11 +3615,12 @@ function PassthroughModelsSection({
             selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
             deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
           />
-          {filteredModels.map(({ modelId, fullModel, alias, isHidden }) => (
+          {filteredModels.map(({ modelId, fullModel, alias, isHidden, source }) => (
             <PassthroughModelRow
               key={fullModel as string}
               modelId={modelId}
               fullModel={fullModel}
+              source={source}
               isHidden={isHidden}
               copied={copied}
               onCopy={onCopy}
@@ -3514,6 +3652,7 @@ function PassthroughModelsSection({
 PassthroughModelsSection.propTypes = {
   providerAlias: PropTypes.string.isRequired,
   modelAliases: PropTypes.object.isRequired,
+  customModels: PropTypes.array,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
   onSetAlias: PropTypes.func.isRequired,
@@ -3534,6 +3673,7 @@ PassthroughModelsSection.propTypes = {
 function PassthroughModelRow({
   modelId,
   fullModel,
+  source,
   isHidden,
   copied,
   onCopy,
@@ -3567,6 +3707,7 @@ function PassthroughModelRow({
             <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
               {fullModel}
             </code>
+            <ModelSourceBadge source={source} />
             <button
               onClick={() => onCopy(fullModel, `model-${modelId}`)}
               className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
@@ -3622,6 +3763,7 @@ function PassthroughModelRow({
 PassthroughModelRow.propTypes = {
   modelId: PropTypes.string.isRequired,
   fullModel: PropTypes.string.isRequired,
+  source: PropTypes.string,
   isHidden: PropTypes.bool,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
@@ -4125,6 +4267,7 @@ function CompatibleModelsSection({
   providerStorageAlias,
   providerDisplayAlias,
   modelAliases,
+  customModels = [],
   fallbackModels = [],
   description,
   inputLabel,
@@ -4155,6 +4298,7 @@ function CompatibleModelsSection({
   const [importing, setImporting] = useState(false);
   const [modelFilter, setModelFilter] = useState("");
   const notify = useNotificationStore();
+  const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
 
   const providerAliases = useMemo(
     () =>
@@ -4169,9 +4313,12 @@ function CompatibleModelsSection({
       const fmStr = fullModel as string;
       const prefix = `${providerStorageAlias}/`;
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
+      const customModel = customModelMap.get(modelId);
       return {
         modelId,
         alias,
+        displayName: alias,
+        source: customModel ? customModel.source || "custom" : "alias",
         isHidden: isModelHidden(modelId),
       };
     });
@@ -4179,15 +4326,26 @@ function CompatibleModelsSection({
     const seenModelIds = new Set(rows.map((row) => row.modelId));
     for (const model of fallbackModels) {
       if (!model?.id || seenModelIds.has(model.id)) continue;
-      rows.push({ modelId: model.id, alias: null, isHidden: isModelHidden(model.id) });
+      rows.push({
+        modelId: model.id,
+        alias: null,
+        displayName: model.name || model.id,
+        source: "fallback",
+        isHidden: isModelHidden(model.id),
+      });
       seenModelIds.add(model.id);
     }
 
     return rows;
-  }, [fallbackModels, isModelHidden, providerAliases, providerStorageAlias]);
-  const filteredModels = modelFilter
-    ? allModels.filter(({ modelId }) => modelId.toLowerCase().includes(modelFilter.toLowerCase()))
-    : allModels;
+  }, [customModelMap, fallbackModels, isModelHidden, providerAliases, providerStorageAlias]);
+  const filteredModels = allModels.filter((model) =>
+    matchesModelCatalogQuery(modelFilter, {
+      modelId: model.modelId,
+      modelName: model.displayName,
+      alias: model.alias,
+      source: model.source,
+    })
+  );
   const activeCount = allModels.filter((model) => !model.isHidden).length;
   const hiddenFilteredCount = filteredModels.filter((model) => model.isHidden).length;
   const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
@@ -4393,11 +4551,12 @@ function CompatibleModelsSection({
             selectAllDisabled={hiddenFilteredCount === 0 || bulkTogglePending}
             deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
           />
-          {filteredModels.map(({ modelId, alias, isHidden }) => (
+          {filteredModels.map(({ modelId, alias, isHidden, source }) => (
             <PassthroughModelRow
               key={`${providerStorageAlias}:${modelId}`}
               modelId={modelId}
               fullModel={`${providerDisplayAlias}/${modelId}`}
+              source={source}
               isHidden={isHidden}
               copied={copied}
               onCopy={onCopy}
@@ -4430,6 +4589,7 @@ CompatibleModelsSection.propTypes = {
   providerStorageAlias: PropTypes.string.isRequired,
   providerDisplayAlias: PropTypes.string.isRequired,
   modelAliases: PropTypes.object.isRequired,
+  customModels: PropTypes.array,
   fallbackModels: PropTypes.array,
   description: PropTypes.string.isRequired,
   inputLabel: PropTypes.string.isRequired,
@@ -4855,9 +5015,9 @@ function ConnectionRow({
             {connection.lastError && connection.isActive !== false && (
               <span
                 className={`text-xs truncate max-w-[300px] ${statusPresentation.errorTextClass}`}
-                title={connection.lastError.replace(/[<>]/g, "")}
+                title={connection.lastError}
               >
-                {connection.lastError.replace(/[<>]/g, "")}
+                {connection.lastError}
               </span>
             )}
             <span className="text-xs text-text-muted">#{connection.priority}</span>
@@ -5112,11 +5272,13 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "heroku",
   "databricks",
   "snowflake",
+  "searxng-search",
 ]);
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
   "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
+  "searxng-search": "http://localhost:8888/search",
 };
 
 function getProviderBaseUrlDefault(providerId?: string | null) {
@@ -5135,6 +5297,8 @@ function getProviderBaseUrlHint(providerId?: string | null) {
       return "Required: paste the Databricks serving-endpoints base URL. The app will append /chat/completions.";
     case "snowflake":
       return "Required: paste the Snowflake account base URL. The app will append /api/v2/cortex/inference:complete.";
+    case "searxng-search":
+      return "Required: paste your SearXNG instance base URL. The app will use /search and request format=json. Local/private URLs require OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true for dashboard validation.";
     default:
       return undefined;
   }
@@ -5151,9 +5315,51 @@ function getProviderBaseUrlPlaceholder(providerId?: string | null) {
       return "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints";
     case "snowflake":
       return "https://example-account.snowflakecomputing.com";
+    case "searxng-search":
+      return "http://localhost:8888/search";
     default:
       return "";
   }
+}
+
+function parseRoutingTagsInput(value: string): string[] | undefined {
+  const tags = Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((tag) => tag.trim().toLowerCase())
+        .filter(Boolean)
+    )
+  );
+  return tags.length > 0 ? tags : undefined;
+}
+
+function parseExcludedModelsInput(value: string): string[] | undefined {
+  const patterns = Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((pattern) => pattern.trim())
+        .filter(Boolean)
+    )
+  );
+  return patterns.length > 0 ? patterns : undefined;
+}
+
+function formatRoutingTagsInput(value: unknown): string {
+  if (!Array.isArray(value)) return "";
+  return value
+    .filter((tag): tag is string => typeof tag === "string" && tag.trim().length > 0)
+    .join(", ");
+}
+
+function formatExcludedModelsInput(value: unknown): string {
+  if (!Array.isArray(value)) return "";
+  return value
+    .filter(
+      (pattern): pattern is string => typeof pattern === "string" && pattern.trim().length > 0
+    )
+    .join(", ");
 }
 
 function AddApiKeyModal({
@@ -5174,18 +5380,28 @@ function AddApiKeyModal({
   const isGlm = provider === "glm" || provider === "glmt";
   const isQoder = provider === "qoder";
   const isCloudflare = provider === "cloudflare-ai";
+  const isSearxng = provider === "searxng-search";
+  const isGooglePse = provider === "google-pse-search";
+  const isGrokWeb = provider === "grok-web";
+  const isPerplexityWeb = provider === "perplexity-web";
+  const isWebSessionProvider = isGrokWeb || isPerplexityWeb;
+  const apiKeyOptional = isSearxng;
 
   const [formData, setFormData] = useState({
     name: "",
     apiKey: "",
     priority: 1,
     baseUrl: defaultBaseUrl,
+    cx: "",
     region: isVertex ? defaultRegion : "",
     apiRegion: "international",
     validationModelId: "",
+    routingTags: "",
+    excludedModels: "",
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    ccCompatibleContext1m: false,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5206,6 +5422,7 @@ function AddApiKeyModal({
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
+          cx: formData.cx.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -5218,11 +5435,16 @@ function AddApiKeyModal({
   };
 
   const handleSubmit = async () => {
-    if (!provider || (!isCompatible && !formData.apiKey)) return;
+    if (!provider || (!isCompatible && !apiKeyOptional && !formData.apiKey)) return;
 
     setSaving(true);
     setSaveError(null);
     try {
+      if (isGooglePse && !formData.cx.trim()) {
+        setSaveError("Programmable Search Engine ID (cx) is required");
+        return;
+      }
+
       let validatedBaseUrl = null;
       if (usesBaseUrl) {
         const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
@@ -5246,6 +5468,7 @@ function AddApiKeyModal({
             validationModelId: formData.validationModelId || undefined,
             customUserAgent: formData.customUserAgent.trim() || undefined,
             baseUrl: formData.baseUrl.trim() || undefined,
+            cx: formData.cx.trim() || undefined,
           }),
         });
         const data = await res.json();
@@ -5266,8 +5489,17 @@ function AddApiKeyModal({
       if (formData.customUserAgent.trim()) {
         providerSpecificData.customUserAgent = formData.customUserAgent.trim();
       }
+      if (formData.routingTags.trim()) {
+        providerSpecificData.tags = parseRoutingTagsInput(formData.routingTags);
+      }
+      if (formData.excludedModels.trim()) {
+        providerSpecificData.excludedModels = parseExcludedModelsInput(formData.excludedModels);
+      }
       if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
         providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
+      }
+      if (isGooglePse && formData.cx.trim()) {
+        providerSpecificData.cx = formData.cx.trim();
       }
       if (usesBaseUrl) {
         providerSpecificData.baseUrl = validatedBaseUrl;
@@ -5278,10 +5510,13 @@ function AddApiKeyModal({
       } else if (isCloudflare && formData.accountId.trim()) {
         providerSpecificData.accountId = formData.accountId.trim();
       }
+      if (isCcCompatible && formData.ccCompatibleContext1m) {
+        providerSpecificData.requestDefaults = { context1m: true };
+      }
 
       const payload = {
         name: formData.name,
-        apiKey: formData.apiKey,
+        apiKey: formData.apiKey.trim() || undefined,
         priority: formData.priority,
         testStatus: "active",
         providerSpecificData:
@@ -5314,7 +5549,15 @@ function AddApiKeyModal({
         />
         <div className="flex gap-2">
           <Input
-            label={isQoder ? "Personal Access Token" : t("apiKeyLabel")}
+            label={
+              isQoder
+                ? "Personal Access Token"
+                : isWebSessionProvider
+                  ? "Session Cookie"
+                  : isSearxng
+                    ? "API Key (optional)"
+                    : t("apiKeyLabel")
+            }
             type="password"
             value={formData.apiKey}
             onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
@@ -5322,26 +5565,52 @@ function AddApiKeyModal({
             placeholder={
               isVertex
                 ? "Cole o Service Account JSON aqui"
-                : isQoder
-                  ? "Paste your Qoder Personal Access Token"
-                  : undefined
+                : isGrokWeb
+                  ? "Paste your sso cookie value from grok.com"
+                  : isPerplexityWeb
+                    ? "Paste your __Secure-next-auth.session-token value"
+                    : isSearxng
+                      ? "Optional"
+                      : isQoder
+                        ? "Paste your Qoder Personal Access Token"
+                        : undefined
             }
             hint={
               isQoder
                 ? "Supported path: PAT via qodercli. Browser OAuth remains experimental."
-                : undefined
+                : isGrokWeb
+                  ? "Paste the sso cookie from grok.com. A full 'sso=...' value also works."
+                  : isPerplexityWeb
+                    ? "Paste the __Secure-next-auth.session-token cookie from perplexity.ai."
+                    : isSearxng
+                      ? "Optional. Leave blank if your SearXNG instance does not require authentication."
+                      : undefined
             }
           />
           <div className="pt-6">
             <Button
               onClick={handleValidate}
-              disabled={(!isCompatible && !formData.apiKey) || validating || saving}
+              disabled={
+                (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                (isGooglePse && !formData.cx.trim()) ||
+                validating ||
+                saving
+              }
               variant="secondary"
             >
               {validating ? t("checking") : t("check")}
             </Button>
           </div>
         </div>
+        {isGooglePse && (
+          <Input
+            label="Search Engine ID (cx)"
+            value={formData.cx}
+            onChange={(e) => setFormData({ ...formData, cx: e.target.value })}
+            placeholder="012345678901234567890:abc123xyz"
+            hint="Required. Find this in your Programmable Search Engine overview."
+          />
+        )}
         {validationResult && (
           <Badge variant={validationResult === "success" ? "success" : "error"}>
             {validationResult === "success" ? t("valid") : t("invalid")}
@@ -5350,6 +5619,16 @@ function AddApiKeyModal({
         {saveError && (
           <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
             {saveError}
+          </div>
+        )}
+        {isCcCompatible && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Toggle
+              checked={formData.ccCompatibleContext1m}
+              onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
+              label="CC Compatible 1M Context"
+              description="When enabled, this connection appends `anthropic-beta: context-1m-2025-08-07`."
+            />
           </div>
         )}
         {isCompatible && (
@@ -5391,6 +5670,20 @@ function AddApiKeyModal({
               onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
               placeholder="my-app/1.0"
               hint="Optional override sent upstream as the User-Agent header for this connection"
+            />
+            <Input
+              label="Routing Tags"
+              value={formData.routingTags}
+              onChange={(e) => setFormData({ ...formData, routingTags: e.target.value })}
+              placeholder="fast, cheap, eu-region"
+              hint="Comma-separated tags matched against request metadata.tags for tag-based routing"
+            />
+            <Input
+              label="Excluded Models"
+              value={formData.excludedModels}
+              onChange={(e) => setFormData({ ...formData, excludedModels: e.target.value })}
+              placeholder="gpt-5*, claude-opus-*, gemini-*-pro*"
+              hint="Comma-separated wildcard patterns. This connection will never serve matching models."
             />
             {provider === "bailian-coding-plan" && (
               <Input
@@ -5468,7 +5761,8 @@ function AddApiKeyModal({
             fullWidth
             disabled={
               !formData.name ||
-              (!isCompatible && !formData.apiKey) ||
+              (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+              (isGooglePse && !formData.cx.trim()) ||
               saving ||
               (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)
             }
@@ -5516,16 +5810,20 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     apiKey: "",
     healthCheckInterval: 60,
     baseUrl: "",
+    cx: "",
     region: "",
     apiRegion: "international",
     validationModelId: "",
     tag: "",
+    routingTags: "",
+    excludedModels: "",
     customUserAgent: "",
     accountId: "",
     codexReasoningEffort: "medium",
     codexFastServiceTier: false,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    ccCompatibleContext1m: false,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5545,6 +5843,10 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
+  const isSearxng = connection?.provider === "searxng-search";
+  const isGooglePse = connection?.provider === "google-pse-search";
+  const apiKeyOptional = isSearxng;
+  const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
   const defaultRegion = "us-central1";
 
   useEffect(() => {
@@ -5556,9 +5858,14 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       const rawCustomUserAgent = connection.providerSpecificData?.customUserAgent;
       const existingCustomUserAgent =
         typeof rawCustomUserAgent === "string" ? rawCustomUserAgent : "";
+      const rawCx = connection.providerSpecificData?.cx;
+      const existingCx = typeof rawCx === "string" ? rawCx : "";
       const rawAccountId = connection.providerSpecificData?.accountId;
       const existingAccountId = typeof rawAccountId === "string" ? rawAccountId : "";
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
+      const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
+        connection.providerSpecificData
+      );
       const rawConsoleApiKey = connection.providerSpecificData?.consoleApiKey;
       const existingConsoleApiKey = typeof rawConsoleApiKey === "string" ? rawConsoleApiKey : "";
       setFormData({
@@ -5567,16 +5874,23 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         apiKey: "",
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || defaultBaseUrl,
+        cx: existingCx,
         region: existingRegion || (isVertex ? defaultRegion : ""),
         apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
+        routingTags: formatRoutingTagsInput(connection.providerSpecificData?.tags),
+        excludedModels: formatExcludedModelsInput(
+          connection.providerSpecificData?.excludedModels ??
+            connection.providerSpecificData?.excluded_models
+        ),
         customUserAgent: existingCustomUserAgent,
         accountId: existingAccountId,
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
         codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        ccCompatibleContext1m: ccRequestDefaults.context1m,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -5620,7 +5934,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   };
 
   const handleValidate = async () => {
-    if (!connection?.provider || (!isCompatible && !formData.apiKey)) return;
+    if (!connection?.provider || (!isCompatible && !apiKeyOptional && !formData.apiKey)) return;
     setValidating(true);
     setValidationResult(null);
     try {
@@ -5633,6 +5947,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
+          cx: formData.cx.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -5653,6 +5968,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         priority: formData.priority,
         healthCheckInterval: formData.healthCheckInterval,
       };
+
+      if (isGooglePse && !formData.cx.trim()) {
+        setSaveError("Programmable Search Engine ID (cx) is required");
+        return;
+      }
 
       let validatedBaseUrl = null;
       if (usesBaseUrl) {
@@ -5680,6 +6000,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 validationModelId: formData.validationModelId || undefined,
                 customUserAgent: formData.customUserAgent.trim() || undefined,
                 baseUrl: formData.baseUrl.trim() || undefined,
+                cx: formData.cx.trim() || undefined,
               }),
             });
             const data = await res.json();
@@ -5707,6 +6028,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           ...(connection.providerSpecificData || {}),
           extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
           tag: formData.tag.trim() || undefined,
+          tags: parseRoutingTagsInput(formData.routingTags),
+          excludedModels: parseExcludedModelsInput(formData.excludedModels),
           customUserAgent: formData.customUserAgent.trim(),
         };
         if (connection.provider === "bailian-coding-plan") {
@@ -5719,6 +6042,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         if (formData.validationModelId) {
           updates.providerSpecificData.validationModelId = formData.validationModelId;
         }
+        if (isGooglePse) {
+          updates.providerSpecificData.cx = formData.cx.trim() || undefined;
+        }
         if (usesBaseUrl) {
           updates.providerSpecificData.baseUrl = validatedBaseUrl;
         } else if (isVertex) {
@@ -5728,11 +6054,28 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         } else if (isCloudflare && formData.accountId.trim()) {
           updates.providerSpecificData.accountId = formData.accountId.trim();
         }
+        if (isCcCompatible) {
+          const currentRequestDefaults =
+            updates.providerSpecificData.requestDefaults &&
+            typeof updates.providerSpecificData.requestDefaults === "object" &&
+            !Array.isArray(updates.providerSpecificData.requestDefaults)
+              ? { ...(updates.providerSpecificData.requestDefaults as Record<string, unknown>) }
+              : {};
+          if (formData.ccCompatibleContext1m) {
+            currentRequestDefaults.context1m = true;
+          } else {
+            delete currentRequestDefaults.context1m;
+          }
+          updates.providerSpecificData.requestDefaults =
+            Object.keys(currentRequestDefaults).length > 0 ? currentRequestDefaults : undefined;
+        }
       } else {
         // Also persist tag for OAuth accounts
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           tag: formData.tag.trim() || undefined,
+          tags: parseRoutingTagsInput(formData.routingTags),
+          excludedModels: parseExcludedModelsInput(formData.excludedModels),
         };
         if (isCodex) {
           updates.providerSpecificData.requestDefaults = {
@@ -5779,6 +6122,20 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           placeholder="e.g. personal, work, team-a"
           hint="Used to group accounts in the provider view"
         />
+        <Input
+          label="Routing Tags"
+          value={formData.routingTags}
+          onChange={(e) => setFormData({ ...formData, routingTags: e.target.value })}
+          placeholder="fast, cheap, eu-region"
+          hint="Comma-separated tags matched against request metadata.tags for tag-based routing"
+        />
+        <Input
+          label="Excluded Models"
+          value={formData.excludedModels}
+          onChange={(e) => setFormData({ ...formData, excludedModels: e.target.value })}
+          placeholder="gpt-5*, claude-opus-*, gemini-*-pro*"
+          hint="Comma-separated wildcard patterns. This connection will be skipped for matching models."
+        />
         {isCodex && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             <Select
@@ -5799,6 +6156,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(checked) => setFormData({ ...formData, codexOpenaiStoreEnabled: checked })}
               label="OpenAI Responses Store"
               description="Preserves `store`, `previous_response_id`, and adds a stable fallback `session_id` for long Codex sessions. Enable only when the upstream account accepts stored Responses."
+            />
+          </div>
+        )}
+        {isCcCompatible && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Toggle
+              checked={formData.ccCompatibleContext1m}
+              onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
+              label="CC Compatible 1M Context"
+              description="When enabled, this connection appends `anthropic-beta: context-1m-2025-08-07`."
             />
           </div>
         )}
@@ -5848,24 +6215,42 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           <>
             <div className="flex gap-2">
               <Input
-                label={t("apiKeyLabel")}
+                label={isSearxng ? "API Key (optional)" : t("apiKeyLabel")}
                 type="password"
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                 placeholder={isVertex ? "Cole o Service Account JSON aqui" : t("enterNewApiKey")}
-                hint={t("leaveBlankKeepCurrentApiKey")}
+                hint={
+                  isSearxng
+                    ? "Optional. Leave blank to keep the current key or when the instance does not require authentication."
+                    : t("leaveBlankKeepCurrentApiKey")
+                }
                 className="flex-1"
               />
               <div className="pt-6">
                 <Button
                   onClick={handleValidate}
-                  disabled={(!isCompatible && !formData.apiKey) || validating || saving}
+                  disabled={
+                    (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                    (isGooglePse && !formData.cx.trim()) ||
+                    validating ||
+                    saving
+                  }
                   variant="secondary"
                 >
                   {validating ? t("checking") : t("check")}
                 </Button>
               </div>
             </div>
+            {isGooglePse && (
+              <Input
+                label="Search Engine ID (cx)"
+                value={formData.cx}
+                onChange={(e) => setFormData({ ...formData, cx: e.target.value })}
+                placeholder="012345678901234567890:abc123xyz"
+                hint="Required. Find this in your Programmable Search Engine overview."
+              />
+            )}
             {validationResult && (
               <Badge variant={validationResult === "success" ? "success" : "error"}>
                 {validationResult === "success" ? t("valid") : t("invalid")}
@@ -6054,7 +6439,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         )}
 
         <div className="flex gap-2">
-          <Button onClick={handleSubmit} fullWidth disabled={saving}>
+          <Button
+            onClick={handleSubmit}
+            fullWidth
+            disabled={saving || (isGooglePse && !formData.cx.trim())}
+          >
             {saving ? t("saving") : t("save")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>

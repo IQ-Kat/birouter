@@ -80,6 +80,8 @@ class TlsClient {
   async getSession() {
     if (!this.available) return null;
     if (this.session) return this.session;
+    const createSessionFn = createSession;
+    if (!createSessionFn) return null;
 
     const proxy = getProxyFromEnv();
     const sessionOpts: Record<string, unknown> = {
@@ -91,7 +93,7 @@ class TlsClient {
       console.log(`[TlsClient] Using proxy: ${proxy}`);
     }
 
-    this.session = await createSession(sessionOpts);
+    this.session = await createSessionFn(sessionOpts);
     console.log("[TlsClient] Session created (Chrome 124 TLS fingerprint)");
     return this.session;
   }

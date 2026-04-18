@@ -31,13 +31,13 @@ function withMockedMigrationFs(files, fn) {
     return originalExistsSync(target);
   };
 
-  fs.readdirSync = (target, options) => {
+  fs.readdirSync = ((target: string, options?: any) => {
     if (files && isMigrationDir(target)) {
       return Object.keys(files);
     }
 
     return originalReaddirSync(target, options);
-  };
+  }) as any;
 
   fs.readFileSync = (target, options) => {
     const fileName = path.basename(String(target));
@@ -61,6 +61,53 @@ function createDb() {
   return new Database(":memory:");
 }
 
+function createInitialSchemaTables(db) {
+  db.exec(`
+    CREATE TABLE provider_connections (id TEXT PRIMARY KEY);
+    CREATE TABLE combos (id TEXT PRIMARY KEY);
+    CREATE TABLE call_logs (id TEXT PRIMARY KEY);
+  `);
+}
+
+function buildMockMigrationFiles(startVersion, endVersion, prefix) {
+  const files = {};
+
+  for (let version = startVersion; version <= endVersion; version++) {
+    const padded = String(version).padStart(3, "0");
+    const fileName = version === 1 ? "001_initial_schema.sql" : `${padded}_${prefix}_${padded}.sql`;
+    files[fileName] = `CREATE TABLE ${prefix}_${padded} (id INTEGER);`;
+  }
+
+  return files;
+}
+
+function withNonTestEnvironment(fn) {
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalVitest = process.env.VITEST;
+  const originalDisableAutoBackup = process.env.DISABLE_SQLITE_AUTO_BACKUP;
+  const originalArgv = [...process.argv];
+
+  delete process.env.NODE_ENV;
+  delete process.env.VITEST;
+  delete process.env.DISABLE_SQLITE_AUTO_BACKUP;
+  process.argv = process.argv.filter((arg) => !arg.includes("test"));
+
+  try {
+    return fn();
+  } finally {
+    process.argv = originalArgv;
+
+    if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = originalNodeEnv;
+
+    if (originalVitest === undefined) delete process.env.VITEST;
+    else process.env.VITEST = originalVitest;
+
+    if (originalDisableAutoBackup === undefined) delete process.env.DISABLE_SQLITE_AUTO_BACKUP;
+    else process.env.DISABLE_SQLITE_AUTO_BACKUP = originalDisableAutoBackup;
+  }
+}
+
 const REAL_022_ADD_MEMORY_FTS5_SQL = fs.readFileSync(
   path.resolve("src/lib/db/migrations/022_add_memory_fts5.sql"),
   "utf8"
@@ -69,6 +116,15 @@ const REAL_023_FIX_MEMORY_FTS_UUID_SQL = fs.readFileSync(
   path.resolve("src/lib/db/migrations/023_fix_memory_fts_uuid.sql"),
   "utf8"
 );
+
+test("migration infrastructure avoids cwd-based repo tracing fallbacks", () => {
+  const runnerSource = fs.readFileSync(path.resolve("src/lib/db/migrationRunner.ts"), "utf8");
+  const dataPathsSource = fs.readFileSync(path.resolve("src/lib/dataPaths.ts"), "utf8");
+
+  assert.doesNotMatch(runnerSource, /process\.cwd\(\)/);
+  assert.doesNotMatch(dataPathsSource, /process\.cwd\(\)/);
+  assert.match(runnerSource, /fileURLToPath\(import\.meta\.url\)/);
+});
 
 test("runMigrations applies pending files sequentially in version order", serial, async () => {
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
@@ -127,13 +183,19 @@ test("runMigrations skips versions that are already tracked as applied", serial,
 
     assert.equal(secondRun, 0);
     assert.equal(
-      db.prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?").get("001")
-        .count,
+      (
+        db
+          .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+          .get("001") as any
+      ).count,
       1
     );
     assert.equal(
-      db.prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?").get("002")
-        .count,
+      (
+        db
+          .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+          .get("002") as any
+      ).count,
       1
     );
   } finally {
@@ -213,9 +275,11 @@ test(
         undefined
       );
       assert.equal(
-        db
-          .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
-          .get("002").count,
+        (
+          db
+            .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+            .get("002") as any
+        ).count,
         0
       );
     } finally {
@@ -524,13 +588,97 @@ test(
         db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
         [{ version: "021" }, { version: "022" }, { version: "023" }]
       );
-      assert.deepEqual(
-        db.prepare("SELECT memory_id, content FROM memories").get(),
-        { memory_id: 1, content: "memory content" }
+      assert.deepEqual(db.prepare("SELECT memory_id, content FROM memories").get(), {
+        memory_id: 1,
+        content: "memory content",
+      });
+      assert.deepEqual(db.prepare("SELECT rowid, content, key FROM memory_fts").get(), {
+        rowid: 1,
+        content: "memory content",
+        key: "topic",
+      });
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations allows a large pending set when the physical schema still looks like 001",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      createInitialSchemaTables(db);
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "001",
+        "initial_schema"
       );
+
+      const count = withNonTestEnvironment(() =>
+        withMockedMigrationFs(buildMockMigrationFiles(1, 7, "legacy_allow"), () =>
+          runner.runMigrations(db)
+        )
+      );
+
+      assert.equal(count, 6);
       assert.deepEqual(
-        db.prepare("SELECT rowid, content, key FROM memory_fts").get(),
-        { rowid: 1, content: "memory content", key: "topic" }
+        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        [
+          { version: "001" },
+          { version: "002" },
+          { version: "003" },
+          { version: "004" },
+          { version: "005" },
+          { version: "006" },
+          { version: "007" },
+        ]
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations aborts large pending sets when the physical schema proves a newer baseline",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      createInitialSchemaTables(db);
+      db.exec(`
+        CREATE TABLE request_detail_logs (id TEXT PRIMARY KEY);
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "001",
+        "initial_schema"
+      );
+
+      assert.throws(
+        () =>
+          withNonTestEnvironment(() =>
+            withMockedMigrationFs(buildMockMigrationFiles(1, 60, "legacy_abort"), () =>
+              runner.runMigrations(db)
+            )
+          ),
+        /Physical schema already shows 006/i
       );
     } finally {
       db.close();

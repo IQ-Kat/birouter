@@ -4,9 +4,13 @@
 
 ---
 
-يشرح هذا الدليل كيفية تثبيت وتكوين جميع أدوات CLI البسيطة للذكاء الاصطناعي والمدعم
-استخدام**OmniRoute**ك واجهة خلفية موحدة، مما يتيح لك إدارة المفاتيح التركية،
-تتبع التكلفة، وتبديل الارتباطات، والتسجيل عبر كل أداة.---## How It Works
+This guide explains how to install and configure all supported AI coding CLI tools
+to use **OmniRoute** as the unified backend, giving you centralized key management,
+cost tracking, model switching, and request logging across every tool.
+
+---
+
+## How It Works
 
 ```
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
@@ -18,131 +22,154 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilo
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
-**الفوائد:**
+**Benefits:**
 
-- مفتاح API واحد لإبتكار جميع الأدوات
-- تتبع التكلفة عبر جميع CLIs في لوحة المعلومات
-- النموذج النموذجي دون إعادة كل أداة
-- يعمل محليا وعلى الموقع البعيد (VPS)---## Supported Tools (Dashboard Source of Truth)
+- One API key to manage all tools
+- Cost tracking across all CLIs in the dashboard
+- Model switching without reconfiguring every tool
+- Works locally and on remote servers (VPS)
 
-يتم إنشاء بطاقة معلومات اللوحة في `/dashboard/cli-tools` من `src/shared/constants/cliTools.ts`.
-القائمة الحالية (v3.0.0-rc.16):
+---
 
-| أداة                  | معرف             | الأمر         | وضع الإعداد | طريقة التثبيت      |
-| --------------------- | ---------------- | ------------- | ----------- | ------------------ | ----------------------------------------- |
-| **كود كلود**          | "كلود"           | "كلود"        | ببيئة       | نم                 |
-| **مخطوطة OpenAI**     | `المخطوطة`       | `المخطوطة`    | مخصص        | نم                 |
-| **مصنع الروبوت**      | "الروبوت"        | "الروبوت"     | مخصص        | المجمعة/CLI        |
-| **أوبنكلاو**          | `مخلب مفتوح`     | `مخلب مفتوح`  | مخصص        | المجمعة/CLI        |
-| **المؤشر**            | `المؤشر`         | التطبيق       | دليل        | تطبيق سطح المكتب   |
-| **كلاين**             | `كلاين`          | `كلاين`       | مخصص        | نم                 |
-| **كيلو كود**          | `كيلو`           | `الكيلو كود`  | مخصص        | نم                 |
-| **تابع**              | `متابعة`         | امتداد        | دليل        | كود مقابل          |
-| **مضادة الجاذبية**    | `مضادة الجاذبية` |               | ميتوم       | أومنيروتي          |
-| **جيثب مساعد الطيار** | `مساعد الطيار`   | امتداد        | مخصص        | كود مقابل          |
-| **الكود مفتوح**       | `الرمز مفتوح`    | `الرمز مفتوح` | دليل        | نم                 |
-| **كيرو آي**           | `كيرو`           | التطبيق/كلي   | ميتوم       | سطح المكتب/سطر مود | ### مزامنة بصمة CLI (الوكلاء + الإعدادات) |
+## Supported Tools (Dashboard Source of Truth)
 
-استخدم `/dashboard/agents` و`Settings > CLI Fingerprint` src/shared/constants/cliCompatProviders.ts.
-يؤدي ذلك إلى تفاصيل البطاقات الموفر المعتمدة ببطاقات CLI والمعارف القديمة.
+The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
+Current list (v3.0.0-rc.16):
 
-| معرف واجهة سطر مود                                                                                    | معرف بصمة الإصبع |
-| ----------------------------------------------------------------------------------------------------- | ---------------- |
-| `كيلو`                                                                                                | `الكيلو كود`     |
-| `مساعد الطيار`                                                                                        | `جيثب`           |
-| `كلود` / `كوديكس` / `مضاد الجاذبية` / `كيرو` / `المؤشر` / `كلاين` / `opencode` / `droid` / `openclaw` | نفس المعرف       |
+| Tool               | ID            | Command    | Setup Mode | Install Method |
+| ------------------ | ------------- | ---------- | ---------- | -------------- |
+| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
+| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
+| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
+| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
+| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
+| **Cline**          | `cline`       | `cline`    | custom     | npm            |
+| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
+| **Continue**       | `continue`    | extension  | guide      | VS Code        |
+| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
+| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
+| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
+| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
+| **Qwen Code**      | `qwen`        | `qwen`     | custom     | npm            |
 
-لا تزال المعرفات القديمة مقبولة للتوافق: `مساعد الطيار`، `كيمي كودينج`، `كوين`.---## Step 1 — Get an OmniRoute API Key
+### CLI fingerprint sync (Agents + Settings)
 
-1. تسجيل الدخول إلى لوحة التحكم OmniRoute →**API Manager**(`/dashboard/api-manager`)
-2. انقر**إنشاء مفتاح واجهة برمجة التطبيقات**
-3. أعطته اسمًا (على سبيل المثال، "أدوات cli") وتحديد جميع الأذونات
-4. انسخ المفتاح — ستحتاج إليه لكل واجهة سطر الأوامر (CLI) أدناه
+`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
+This keeps provider IDs aligned with CLI cards and legacy IDs.
 
-> يبدو مفتاحك كما يلي: `sk-xxxxxxxxxxxxxxxxxx-xxxxxxxxx`---## Step 2 — Install CLI Tools
+| CLI ID                                                                                               | Fingerprint Provider ID |
+| ---------------------------------------------------------------------------------------------------- | ----------------------- |
+| `kilo`                                                                                               | `kilocode`              |
+| `copilot`                                                                                            | `github`                |
+| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
 
-تتطلب جميع المستندات المستندة إلى npm Node.js 18+:```bash
+Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
 
-# كلود كود (أنثروبي)
+---
 
-تثبيت npm -g @anthropic-ai/claude-code
+## Step 1 — Get an OmniRoute API Key
 
-# مخطوطة OpenAI
+1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
+2. Click **Create API Key**
+3. Give it a name (e.g. `cli-tools`) and select all permissions
+4. Copy the key — you'll need it for every CLI below
 
-تثبيت npm -g @openai/codex
+> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
 
-# الكود المفتوح
+---
 
-تثبيت npm -g opencode-ai
+## Step 2 — Install CLI Tools
 
-# كلاين
+All npm-based tools require Node.js 18+:
 
-تثبيت npm -g cline
+```bash
+# Claude Code (Anthropic)
+npm install -g @anthropic-ai/claude-code
 
-# كيلو كود
+# OpenAI Codex
+npm install -g @openai/codex
 
-تثبيت npm -g كيلوكود
+# OpenCode
+npm install -g opencode-ai
 
-# Kiro CLI (أمازون - يتطلب تجعيد + فك الضغط)
+# Cline
+npm install -g cline
 
-apt-get install -y unzip # على Debian/Ubuntu
-حليقة -fsSL https://cli.kiro.dev/install | باش
-تصدير PATH = "$HOME/.local/bin:$PATH" # إضافة إلى ~/.bashrc```
+# KiloCode
+npm install -g kilocode
 
-**يؤكد:**```bash
-claude --version # 2.x.x
-codex --version # 0.x.x
-opencode --version # x.x.x
-cline --version # 2.x.x
-kilocode --version # x.x.x (or: kilo --version)
-kiro-cli --version # 1.x.x
+# Kiro CLI (Amazon — requires curl + unzip)
+apt-get install -y unzip   # on Debian/Ubuntu
+curl -fsSL https://cli.kiro.dev/install | bash
+export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
+```
 
-````
+**Verify:**
+
+```bash
+claude --version     # 2.x.x
+codex --version      # 0.x.x
+opencode --version   # x.x.x
+cline --version      # 2.x.x
+kilocode --version   # x.x.x (or: kilo --version)
+kiro-cli --version   # 1.x.x
+```
 
 ---
 
 ## Step 3 — Set Global Environment Variables
 
-إضافة إلى `~/.bashrc` (أو `~/.zshrc`)، ثم قم ويسمح `المصدر ~/.bashrc`:```bash
-# نقطة النهاية العالمية OmniRoute
-تصدير OPENAI_BASE_URL = "http://localhost:20128/v1"
-تصدير OPENAI_API_KEY = "sk-your-omniroute-key"
-تصدير ANTHROPIC_BASE_URL = "http://localhost:20128/v1"
-تصدير ANTHROPIC_API_KEY = "sk-your-omniroute-key"
-تصدير GEMINI_BASE_URL = "http://localhost:20128/v1"
-تصدير GEMINI_API_KEY = "sk-your-omniroute-key"```
+Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
 
-> بالنسبة إلى**الخادم البعيد**، استبدل `localhost:20128` بعنوان IP للخادم أو المجال،
-> على سبيل المثال `http://192.168.0.15:20128`.---
+```bash
+# OmniRoute Universal Endpoint
+export OPENAI_BASE_URL="http://localhost:20128/v1"
+export OPENAI_API_KEY="sk-your-omniroute-key"
+export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
+export ANTHROPIC_API_KEY="sk-your-omniroute-key"
+export GEMINI_BASE_URL="http://localhost:20128/v1"
+export GEMINI_API_KEY="sk-your-omniroute-key"
+```
+
+> For a **remote server** replace `localhost:20128` with the server IP or domain,
+> e.g. `http://192.168.0.15:20128`.
+
+---
 
 ## Step 4 — Configure Each Tool
 
 ### Claude Code
 
 ```bash
-# عبر سطر الأوامر:
-مجموعة تكوين كلود - عنوان URL لواجهة برمجة التطبيقات العالمية http://localhost:20128/v1
+# Via CLI:
+claude config set --global api-base-url http://localhost:20128/v1
 
-# أو قم بإنشاء ~/.claude/settings.json:
+# Or create ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
   "apiBaseUrl": "http://localhost:20128/v1",
-  "apiKey": "مفتاح sk-your-omniroute-"
+  "apiKey": "sk-your-omniroute-key"
 }
-EOF```
+EOF
+```
 
-**اختبار:**`كلود "قل مرحبا"`---
+**Test:** `claude "say hello"`
+
+---
 
 ### OpenAI Codex
 
 ```bash
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
-نموذج: السيارات
+model: auto
 apiKey: sk-your-omniroute-key
-رابط واجهة برمجة التطبيقات: http://localhost:20128/v1
-EOF```
+apiBaseUrl: http://localhost:20128/v1
+EOF
+```
 
-**اختبار:**`مخطوطة "ما هو 2+2؟"'---
+**Test:** `codex "what is 2+2?"`
+
+---
 
 ### OpenCode
 
@@ -150,14 +177,19 @@ EOF```
 mkdir -p ~/.config/opencode && cat > ~/.config/opencode/config.toml << EOF
 [provider.openai]
 base_url = "http://localhost:20128/v1"
-api_key = "مفتاح sk-omniroute"
-EOF```
+api_key = "sk-your-omniroute-key"
+EOF
+```
 
-**اختبار:**`الرمز المفتوح`---
+**Test:** `opencode`
+
+---
 
 ### Cline (CLI or VS Code)
 
-**وضع سطر الأوامر:**```bash
+**CLI mode:**
+
+```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
   "apiProvider": "openai",
@@ -165,125 +197,202 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
   "openAiApiKey": "sk-your-omniroute-key"
 }
 EOF
-````
+```
 
-**وضع رمز VS:**
-إعدادات امتداد Cline ← موفر واجهة برمجة التطبيقات: `متوافق مع OpenAI` ← عنوان URL الأساسي: `http://localhost:20128/v1`
+**VS Code mode:**
+Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-استخدام لوحة معلومات OmniRoute →**أدوات CLI → Cline → تطبيق المتاح**.---### KiloCode (CLI or VS Code)
+Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
 
-**وضع سطر مود:**`bash
-كيلو كود --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key`
+---
 
-**إعدادات رمز VS:**```json
+### KiloCode (CLI or VS Code)
+
+**CLI mode:**
+
+```bash
+kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
+```
+
+**VS Code settings:**
+
+```json
 {
-"kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-"kilo-code.apiKey": "sk-your-omniroute-key"
+  "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
+  "kilo-code.apiKey": "sk-your-omniroute-key"
 }
+```
 
-````
+Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
 
-استخدام لوحة معلومات OmniRoute →**CLI → KiloCode → تطبيق تفعيل**.---### Continue (VS Code Extension)
+---
 
-تحرير `~/.continue/config.yaml`:```yaml
-النماذج:
-  - الاسم: OmniRoute
-    المزود: openai
-    نموذج: السيارات
-    واجهة برمجة التطبيقات: http://localhost:20128/v1
+### Continue (VS Code Extension)
+
+Edit `~/.continue/config.yaml`:
+
+```yaml
+models:
+  - name: OmniRoute
+    provider: openai
+    model: auto
+    apiBase: http://localhost:20128/v1
     apiKey: sk-your-omniroute-key
-    الافتراضي: صحيح```
+    default: true
+```
 
-أعد تشغيل VS Code بعد التحرير.---
+Restart VS Code after editing.
+
+---
 
 ### Kiro CLI (Amazon)
 
 ```bash
-# قم بتسجيل الدخول إلى حساب AWS/Kiro الخاص بك:
-كيرو كلي تسجيل الدخول
+# Login to your AWS/Kiro account:
+kiro-cli login
 
-# تستخدم واجهة سطر الأوامر (CLI) مصادقة خاصة بها — ليست هناك حاجة إلى OmniRoute كواجهة خلفية لـ Kiro CLI نفسها.
-# استخدم kiro-cli بجانب OmniRoute لأدوات أخرى.
-حالة كيرو كلي```
+# The CLI uses its own auth — OmniRoute is not needed as backend for Kiro CLI itself.
+# Use kiro-cli alongside OmniRoute for other tools.
+kiro-cli status
+```
 
 ---
 
+### Qwen Code (Alibaba)
+
+Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
+
+**Option 1: Environment variables (`~/.qwen/.env`)**
+
+```bash
+mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
+OPENAI_API_KEY="sk-your-omniroute-key"
+OPENAI_BASE_URL="http://localhost:20128/v1"
+OPENAI_MODEL="auto"
+EOF
+```
+
+**Option 2: `settings.json` with model providers**
+
+```json
+// ~/.qwen/settings.json
+{
+  "env": {
+    "OPENAI_API_KEY": "sk-your-omniroute-key",
+    "OPENAI_BASE_URL": "http://localhost:20128/v1"
+  },
+  "modelProviders": {
+    "openai": [
+      {
+        "id": "omniroute-default",
+        "name": "OmniRoute (Auto)",
+        "envKey": "OPENAI_API_KEY",
+        "baseUrl": "http://localhost:20128/v1"
+      }
+    ]
+  }
+}
+```
+
+**Option 3: Inline CLI flags**
+
+```bash
+OPENAI_BASE_URL="http://localhost:20128/v1" \
+OPENAI_API_KEY="sk-your-omniroute-key" \
+OPENAI_MODEL="auto" \
+qwen
+```
+
+> For a **remote server** replace `localhost:20128` with the server IP or domain.
+
+**Test:** `qwen "say hello"`
+
 ### Cursor (Desktop App)
 
->**ملاحظة:**يقوم المؤشر بتوجيه الطلبات عبر السحابة الخاصة به. لتكامل OmniRoute،
-> قم بتمكين**Cloud Endpoint**في إعدادات OmniRoute واستخدم عنوان URL للنطاق العام الخاص بك.
+> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
+> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
 
-عبر واجهة المستخدم الرسومية:**الإعدادات → النماذج → مفتاح OpenAI API**
+Via GUI: **Settings → Models → OpenAI API Key**
 
-- عنوان URL الأساسي: `https://your-domain.com/v1`
-- مفتاح API: مفتاح OmniRoute الخاص بك---
+- Base URL: `https://your-domain.com/v1`
+- API Key: your OmniRoute key
+
+---
 
 ## Dashboard Auto-Configuration
 
-تقوم لوحة معلومات OmniRoute بأتمتة التكوين لمعظم الأدوات:
+The OmniRoute dashboard automates configuration for most tools:
 
-1. انتقل إلى `http://localhost:20128/dashboard/cli-tools`
-2. قم بتوسيع أي بطاقة أداة
-3. حدد مفتاح API الخاص بك من القائمة المنسدلة
-4. انقر فوق**تطبيق التكوين**(إذا تم اكتشاف الأداة على أنها مثبتة)
-5. أو انسخ مقتطف التكوين الذي تم إنشاؤه يدويًا---
+1. Go to `http://localhost:20128/dashboard/cli-tools`
+2. Expand any tool card
+3. Select your API key from the dropdown
+4. Click **Apply Config** (if tool is detected as installed)
+5. Or copy the generated config snippet manually
+
+---
 
 ## Built-in Agents: Droid & OpenClaw
 
-**Droid**و**OpenClaw**هما وكيلان للذكاء الاصطناعي مدمجان مباشرة في OmniRoute — لا حاجة للتثبيت.
-يتم تشغيلها كمسارات داخلية وتستخدم توجيه نموذج OmniRoute تلقائيًا.
+**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
+They run as internal routes and use OmniRoute's model routing automatically.
 
-- الوصول: `http://localhost:20128/dashboard/agents`
-- التكوين: نفس المجموعات ومقدمي الخدمات مثل جميع الأدوات الأخرى
-- لا يلزم تثبيت مفتاح API أو CLI---
+- Access: `http://localhost:20128/dashboard/agents`
+- Configure: same combos and providers as all other tools
+- No API key or CLI install required
+
+---
 
 ## Available API Endpoints
 
-| نقطة النهاية | الوصف | استخدم لـ |
+| Endpoint                   | Description                   | Use For                     |
 | -------------------------- | ----------------------------- | --------------------------- |
-| `/v1/chat/completions` | الدردشة القياسية (جميع مقدمي الخدمة) | جميع الأدوات الحديثة |
-| `/v1/الردود` | واجهة برمجة تطبيقات الردود (تنسيق OpenAI) | الدستور الغذائي، سير العمل الوكيل |
-| `/v1/الإكمال` | إكمال النص القديم | الأدوات القديمة التي تستخدم `المطالبة:` |
-| `/v1/embeddings` | تضمينات النص | راج، بحث |
-| `/v1/images/أجيال` | توليد الصور | DALL-E، الجريان، وما إلى ذلك |
-| `/v1/audio/speech` | تحويل النص إلى كلام | أحد عشر مختبرًا، OpenAI TTS |
-| `/v1/audio/transcriptions` | تحويل الكلام إلى نص | ديبجرام، الجمعية AI |---
+| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
+| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
+| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
+| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
+| `/v1/images/generations`   | Image generation              | DALL-E, Flux, etc.          |
+| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
+| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
+
+---
 
 ## استكشاف الأخطاء
 
-| خطأ | السبب | إصلاح |
+| Error                     | Cause                   | Fix                                        |
 | ------------------------- | ----------------------- | ------------------------------------------ |
-| `تم رفض الاتصال` | OmniRoute لا يعمل | `pm2 ابدأ في كل الاتجاهات` |
-| `401 غير مصرح به' | مفتاح API خاطئ | قم بتسجيل الدخول `/dashboard/api-manager` |
-| `لم يتم تكوين التحرير والسرد` | لا يوجد مجموعة توجيه نشطة | تم الإعداد في `/dashboard/combos` |
-| `نموذج غير صالح` | الموديل غير موجود في الكتالوج | استخدم "تلقائي" أو حدد "/dashboard/providers" |
-| يظهر سطر الأوامر "غير مثبت" | ثنائي ليس في PATH | حدد `أي <command>` |
-| `كيرو كلي: غير موجود` | ليس في المسار | `تصدير المسار = "$HOME/.local/bin:$PATH"` |---
+| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
+| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
+| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
+| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
+| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
+| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
+
+---
 
 ## Quick Setup Script (One Command)
 
 ```bash
-# تثبيت جميع واجهات سطر الأوامر (CLI) وتكوين OmniRoute (استبدلها بمفتاحك وعنوان URL الخاص بالخادم)
+# Install all CLIs and configure for OmniRoute (replace with your key and server URL)
 OMNIROUTE_URL="http://localhost:20128/v1"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
-تثبيت npm -g @anthropic-ai/clude-code @openai/codex opencode-ai cline Kilocode
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
 
-# كيرو كلي
-apt-get install -y unzip 2>/dev/null; حليقة -fsSL https://cli.kiro.dev/install | باش
+# Kiro CLI
+apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
 
-# كتابة التكوينات
+# Write configs
 mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
 
-cat > ~/.claude/settings.json <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
-cat > ~/.codex/config.yaml <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
-القط >> ~/.bashrc << EOF
-تصدير OPENAI_BASE_URL="$OMNIROUTE_URL"
-تصدير OPENAI_API_KEY = "$OMNIROUTE_KEY"
-تصدير ANTHROPIC_BASE_URL="$OMNIROUTE_URL"
-تصدير ANTHROPIC_API_KEY = "$OMNIROUTE_KEY"
+cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
+cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
+cat >> ~/.bashrc << EOF
+export OPENAI_BASE_URL="$OMNIROUTE_URL"
+export OPENAI_API_KEY="$OMNIROUTE_KEY"
+export ANTHROPIC_BASE_URL="$OMNIROUTE_URL"
+export ANTHROPIC_API_KEY="$OMNIROUTE_KEY"
 EOF
 
-المصدر ~/.bashrc
-صدى " ✅ تم تثبيت جميع واجهات سطر الأوامر (CLI) وتكوينها لـ OmniRoute"```
-````
+source ~/.bashrc
+echo "✅ All CLIs installed and configured for OmniRoute"
+```

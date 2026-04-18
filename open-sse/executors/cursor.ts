@@ -21,6 +21,7 @@ declare const EdgeRuntime: string | undefined;
  */
 
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+import { getCursorUserAgent } from "../config/providerHeaderProfiles.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import {
   generateCursorBody,
@@ -33,9 +34,6 @@ import { FORMATS } from "../translator/formats.ts";
 import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";
 import zlib from "zlib";
-
-const CURSOR_CLIENT_VERSION = "3.1.0";
-const CURSOR_USER_AGENT = `Cursor/${CURSOR_CLIENT_VERSION}`;
 
 // Detect cloud environment
 const isCloudEnv = () => {
@@ -256,7 +254,7 @@ export class CursorExecutor extends BaseExecutor {
       "connect-accept-encoding": "gzip",
       "connect-protocol-version": "1",
       "content-type": "application/connect+proto",
-      "user-agent": `Cursor/${getCursorVersion()}`,
+      "user-agent": getCursorUserAgent(getCursorVersion()),
       "x-amzn-trace-id": `Root=${crypto.randomUUID()}`,
       "x-client-key": crypto.createHash("sha256").update(cleanToken).digest("hex"),
       "x-cursor-checksum": this.generateChecksum(machineId),
@@ -270,7 +268,7 @@ export class CursorExecutor extends BaseExecutor {
             : "linux",
       "x-cursor-client-arch": process.arch === "arm64" ? "aarch64" : "x64",
       "x-cursor-client-device-type": "desktop",
-      "x-cursor-user-agent": `Cursor/${getCursorVersion()}`,
+      "x-cursor-user-agent": getCursorUserAgent(getCursorVersion()),
       "x-cursor-config-version": crypto.randomUUID(),
       "x-cursor-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       "x-ghost-mode": ghostMode ? "true" : "false",

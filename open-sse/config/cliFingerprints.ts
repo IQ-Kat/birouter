@@ -10,6 +10,11 @@
  * Header order and body field order were captured via mitmproxy traffic analysis.
  */
 import { isClaudeCodeCompatible } from "../services/provider.ts";
+import {
+  getAntigravityUserAgent,
+  GITHUB_COPILOT_CHAT_USER_AGENT,
+  getQwenOauthHeaders,
+} from "./providerHeaderProfiles.ts";
 
 export interface CliFingerprint {
   /** Ordered list of header names (case-sensitive). Unlisted headers are appended. */
@@ -144,7 +149,7 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "intent_threshold",
       "intent_content",
     ],
-    userAgent: "GitHubCopilotChat",
+    userAgent: GITHUB_COPILOT_CHAT_USER_AGENT,
   },
   antigravity: {
     headerOrder: [
@@ -156,7 +161,7 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "Accept-Encoding",
     ],
     bodyFieldOrder: ["project", "model", "userAgent", "requestType", "requestId", "request"],
-    userAgent: "antigravity",
+    userAgent: getAntigravityUserAgent(),
   },
   qwen: {
     headerOrder: [
@@ -193,22 +198,8 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "n",
       "stop",
     ],
-    userAgent: "QwenCode/0.12.3 (linux; x64)",
-    extraHeaders: {
-      "X-Dashscope-AuthType": "qwen-oauth",
-      "X-Dashscope-CacheControl": "enable",
-      "X-Dashscope-UserAgent": "QwenCode/0.12.3 (linux; x64)",
-      "X-Stainless-Arch": "x64",
-      "X-Stainless-Lang": "js",
-      "X-Stainless-Os": "Linux",
-      "X-Stainless-Package-Version": "5.11.0",
-      "X-Stainless-Retry-Count": "1",
-      "X-Stainless-Runtime": "node",
-      "X-Stainless-Runtime-Version": "v18.19.1",
-      Connection: "keep-alive",
-      "Accept-Language": "*",
-      "Sec-Fetch-Mode": "cors",
-    },
+    userAgent: getQwenOauthHeaders()["User-Agent"],
+    extraHeaders: getQwenOauthHeaders(),
   },
 };
 

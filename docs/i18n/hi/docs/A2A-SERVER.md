@@ -4,28 +4,37 @@
 
 ---
 
-> एजेंट-टू-एजेंट प्रोटोकॉल v0.3 - एक बुद्धिमान रूटिंग एजेंट के रूप में ओमनीरूट## Agent Discovery
+> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+
+## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-ओमनीरूट की क्षमताओं, कौशल और प्रमाणीकरण आवश्यकताओं का वर्णन करने वाला एजेंट कार्ड लौटाता है।---
+Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+
+---
 
 ## Authentication
 
-सभी `/a2a` अनुरोधों के लिए `प्राधिकरण` शीर्षलेख के माध्यम से एक एपीआई कुंजी की आवश्यकता होती है:```
+All `/a2a` requests require an API key via the `Authorization` header:
+
+```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+```
 
-````
+If no API key is configured on the server, authentication is bypassed.
 
-यदि सर्वर पर कोई एपीआई कुंजी कॉन्फ़िगर नहीं की गई है, तो प्रमाणीकरण बायपास हो जाता है।---
+---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-किसी कौशल को संदेश भेजता है और पूर्ण प्रतिक्रिया की प्रतीक्षा करता है।```bash
+Sends a message to a skill and waits for the complete response.
+
+```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -39,31 +48,34 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-````
+```
 
-**प्रतिक्रिया:**```json
+**Response:**
+
+```json
 {
-"jsonrpc": "2.0",
-"id": "1",
-"result": {
-"task": { "id": "uuid", "state": "completed" },
-"artifacts": [{ "type": "text", "content": "..." }],
-"metadata": {
-"routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-"cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-"resilience_trace": [
-{ "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-],
-"policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+  "jsonrpc": "2.0",
+  "id": "1",
+  "result": {
+    "task": { "id": "uuid", "state": "completed" },
+    "artifacts": [{ "type": "text", "content": "..." }],
+    "metadata": {
+      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
+      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+      "resilience_trace": [
+        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+      ],
+      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+    }
+  }
 }
-}
-}
-
-````
+```
 
 ### `message/stream` — SSE Streaming
 
-`संदेश/भेजें` के समान लेकिन वास्तविक समय स्ट्रीमिंग के लिए सर्वर-भेजे गए ईवेंट लौटाता है।```bash
+Same as `message/send` but returns Server-Sent Events for real-time streaming.
+
+```bash
 curl -N -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -76,16 +88,17 @@ curl -N -X POST http://localhost:20128/a2a \
       "messages": [{"role": "user", "content": "Explain quantum computing"}]
     }
   }'
-````
+```
 
-**एसएसई घटनाक्रम:**```
+**SSE Events:**
+
+```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
 : heartbeat 2026-03-03T17:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-
-````
+```
 
 ### `tasks/get` — Query Task Status
 
@@ -94,7 +107,7 @@ curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-````
+```
 
 ### `tasks/cancel` — Cancel a Task
 
@@ -109,10 +122,12 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-| कौशल             | विवरण                                                                                                                                   |
-| :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| `स्मार्ट-रूटिंग` | रूट्स ओमनीरूट की बुद्धिमान पाइपलाइन के माध्यम से संकेत देते हैं। रूटिंग स्पष्टीकरण, लागत और लचीलापन ट्रेस के साथ प्रतिक्रिया लौटाता है। |
-| `कोटा-प्रबंधन`   | प्रदाता कोटा के बारे में प्राकृतिक भाषा में प्रश्नों का उत्तर देता है, मुफ़्त कॉम्बो का सुझाव देता है, और कोटा रैंकिंग प्रदान करता है।  | --- |
+| Skill              | Description                                                                                                                     |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
+| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+
+---
 
 ## Task Lifecycle
 
@@ -122,19 +137,23 @@ submitted → working → completed
                     → cancelled
 ```
 
-- कार्य 5 मिनट के बाद समाप्त हो जाते हैं (कॉन्फ़िगर करने योग्य)
-- टर्मिनल बताता है: `पूर्ण`, `असफल`, `रद्द`
-- इवेंट लॉग प्रत्येक राज्य परिवर्तन को ट्रैक करता है---
+- Tasks expire after 5 minutes (configurable)
+- Terminal states: `completed`, `failed`, `cancelled`
+- Event log tracks every state transition
+
+---
 
 ## Error Codes
 
-| कोड    | मतलब                       |
-| :----- | :------------------------- | --- |
-| -32700 | पार्स त्रुटि (अमान्य JSON) |
-| -32600 | अमान्य अनुरोध/अनधिकृत      |
-| -32601 | विधि या कौशल नहीं मिला     |
-| -32602 | अमान्य पैरामीटर            |
-| -32603 | आंतरिक त्रुटि              | --- |
+| Code   | Meaning                        |
+| :----- | :----------------------------- |
+| -32700 | Parse error (invalid JSON)     |
+| -32600 | Invalid request / Unauthorized |
+| -32601 | Method or skill not found      |
+| -32602 | Invalid params                 |
+| -32603 | Internal error                 |
+
+---
 
 ## Integration Examples
 

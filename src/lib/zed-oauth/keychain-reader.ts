@@ -209,7 +209,7 @@ export async function isZedInstalled(): Promise<boolean> {
   ];
 
   for (const configPath of zedConfigPaths) {
-    if (fs.existsSync(configPath)) {
+    if (fs.existsSync(/* turbopackIgnore: true */ configPath)) {
       return true;
     }
   }

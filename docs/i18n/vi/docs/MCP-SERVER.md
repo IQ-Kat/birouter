@@ -4,69 +4,84 @@
 
 ---
 
-> Máy chủ Giao thức bối cảnh mô hình với 16 công cụ thông minh## Cài đặt
+> Model Context Protocol server with 16 intelligent tools
 
-OmniRoute MCP được tích hợp sẵn. Bắt đầu nó với:```bash
+## Cài đặt
+
+OmniRoute MCP is built-in. Start it with:
+
+```bash
 omniroute --mcp
+```
 
-````
+Or via the open-sse transport:
 
-Hoặc thông qua vận tải open-sse:```bash
+```bash
 # HTTP streamable transport (port 20130)
 omniroute --dev  # MCP auto-starts on /mcp endpoint
-````
+```
 
 ## IDE Configuration
 
-Xem [Cấu hình IDE](integrations/ide-configs.md) để biết cách thiết lập AntiGravity, Cursor, Copilot và Claude Desktop.---
+See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
+
+---
 
 ## Essential Tools (8)
 
-| Công cụ                         | Mô tả                                                      |
-| :------------------------------ | :--------------------------------------------------------- | --------------------- |
-| `omniroute_get_health`          | Tình trạng cổng, ngắt mạch, thời gian hoạt động            |
-| `omniroute_list_combos`         | Tất cả các combo được cấu hình với các mô hình             |
-| `omniroute_get_combo_metrics`   | Số liệu hiệu suất cho một kết hợp cụ thể                   |
-| `omniroute_switch_combo`        | Chuyển combo hoạt động theo ID/tên                         |
-| `omniroute_check_quota`         | Trạng thái hạn ngạch cho mỗi nhà cung cấp hoặc tất cả      |
-| `omniroute_route_request`       | Gửi thông báo hoàn tất cuộc trò chuyện thông qua OmniRoute |
-| `omniroute_cost_report`         | Phân tích chi phí trong một khoảng thời gian               |
-| `omniroute_list_models_catalog` | Danh mục mô hình đầy đủ với các khả năng                   | ## Advanced Tools (8) |
+| Tool                            | Description                              |
+| :------------------------------ | :--------------------------------------- |
+| `omniroute_get_health`          | Gateway health, circuit breakers, uptime |
+| `omniroute_list_combos`         | All configured combos with models        |
+| `omniroute_get_combo_metrics`   | Performance metrics for a specific combo |
+| `omniroute_switch_combo`        | Switch active combo by ID/name           |
+| `omniroute_check_quota`         | Quota status per provider or all         |
+| `omniroute_route_request`       | Send a chat completion through OmniRoute |
+| `omniroute_cost_report`         | Cost analytics for a time period         |
+| `omniroute_list_models_catalog` | Full model catalog with capabilities     |
 
-| Công cụ                            | Mô tả                                                                                       |
-| :--------------------------------- | :------------------------------------------------------------------------------------------ | ----------------- |
-| `omniroute_simulate_route`         | Mô phỏng định tuyến chạy thử với cây dự phòng                                               |
-| `omniroute_set_budget_guard`       | Ngân sách phiên với các hành động xuống cấp/chặn/cảnh báo                                   |
-| `omniroute_set_resilience_profile` | Áp dụng cài đặt trước thận trọng/cân bằng/tích cực                                          |
-| `omniroute_test_combo`             | Kiểm tra trực tiếp tất cả các mô hình trong một tổ hợp thông qua yêu cầu ngược dòng thực sự |
-| `omniroute_get_provider_metrics`   | Số liệu chi tiết cho một nhà cung cấp                                                       |
-| `omniroute_best_combo_for_task`    | Khuyến nghị về nhiệm vụ phù hợp với các lựa chọn thay thế                                   |
-| `omniroute_explain_route`          | Giải thích quyết định định tuyến trong quá khứ                                              |
-| `omniroute_get_session_snapshot`   | Trạng thái phiên đầy đủ: chi phí, mã thông báo, lỗi                                         | ## Authentication |
+## Advanced Tools (8)
 
-Các công cụ MCP được xác thực thông qua phạm vi khóa API. Mỗi công cụ yêu cầu phạm vi cụ thể:
+| Tool                               | Description                                                 |
+| :--------------------------------- | :---------------------------------------------------------- |
+| `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree               |
+| `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions             |
+| `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
+| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
+| `omniroute_get_provider_metrics`   | Detailed metrics for one provider                           |
+| `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
+| `omniroute_explain_route`          | Explain a past routing decision                             |
+| `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
 
-| Phạm vi            | Công cụ                                             |
-| :----------------- | :-------------------------------------------------- | ---------------- |
-| `đọc:sức khỏe`     | get_health, get_provider_metrics                    |
-| `đọc:combo`        | list_combos, get_combo_metrics                      |
-| `viết:combo`       | switch_combo                                        |
-| `đọc:hạn ngạch`    | kiểm tra_quota                                      |
-| `viết:tuyến đường` | Route_request, mô phỏng_route, test_combo           |
-| `đọc:cách sử dụng` | cost_report, get_session_snapshot, giải thích_route |
-| `viết:config`      | set_budget_guard, set_resilience_profile            |
-| `đọc:mô hình`      | list_models_catalog, best_combo_for_task            | ## Audit Logging |
+## Authentication
 
-Mọi lệnh gọi công cụ đều được ghi vào `mcp_tool_audit` bằng:
+MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
 
-- Tên công cụ, đối số, kết quả
-- Thời lượng (ms), thành công/thất bại
-- Băm khóa API, dấu thời gian## Files
+| Scope          | Tools                                            |
+| :------------- | :----------------------------------------------- |
+| `read:health`  | get_health, get_provider_metrics                 |
+| `read:combos`  | list_combos, get_combo_metrics                   |
+| `write:combos` | switch_combo                                     |
+| `read:quota`   | check_quota                                      |
+| `write:route`  | route_request, simulate_route, test_combo        |
+| `read:usage`   | cost_report, get_session_snapshot, explain_route |
+| `write:config` | set_budget_guard, set_resilience_profile         |
+| `read:models`  | list_models_catalog, best_combo_for_task         |
 
-| Tập tin                                      | Mục đích                              |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/mcp-server/server.ts`              | Tạo máy chủ MCP + 16 đăng ký công cụ  |
-| `open-sse/mcp-server/transport.ts`           | Vận chuyển Stdio + HTTP               |
-| `open-sse/mcp-server/auth.ts`                | Khóa API + xác thực phạm vi           |
-| `open-sse/mcp-server/audit.ts`               | Ghi nhật ký kiểm tra cuộc gọi công cụ |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 trình xử lý công cụ nâng cao        |
+## Audit Logging
+
+Every tool call is logged to `mcp_tool_audit` with:
+
+- Tool name, arguments, result
+- Duration (ms), success/failure
+- API key hash, timestamp
+
+## Files
+
+| File                                         | Purpose                                     |
+| :------------------------------------------- | :------------------------------------------ |
+| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
+| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
+| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
+| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |

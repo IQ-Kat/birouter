@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-route-edges-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -139,7 +140,7 @@ test("api keys route covers auth, create, masking, pagination fallback and cloud
       headers: { authorization: "Bearer sk-invalid" },
     })
   );
-  const managementKey = await createManagementKey();
+  await createManagementKey();
 
   const originalFetch = globalThis.fetch;
   const fetchCalls = [];
@@ -152,9 +153,8 @@ test("api keys route covers auth, create, masking, pagination fallback and cloud
     await localDb.updateSettings({ cloudEnabled: true });
 
     const created = await listKeysRoute.POST(
-      makeRequest("http://localhost/api/keys", {
+      await makeManagementSessionRequest("http://localhost/api/keys", {
         method: "POST",
-        token: managementKey.key,
         body: { name: "Key / Prod #1", noLog: true },
       })
     );
@@ -165,9 +165,7 @@ test("api keys route covers auth, create, masking, pagination fallback and cloud
     await apiKeysDb.createApiKey("Beta", MACHINE_ID);
 
     const paged = await listKeysRoute.GET(
-      makeRequest("http://localhost/api/keys?limit=0&offset=-25", {
-        token: managementKey.key,
-      })
+      await makeManagementSessionRequest("http://localhost/api/keys?limit=0&offset=-25")
     );
 
     const unauthenticatedBody = await unauthenticated.json();
@@ -199,23 +197,19 @@ test("api keys route covers auth, create, masking, pagination fallback and cloud
 
 test("api keys route rejects invalid payloads and malformed JSON", async () => {
   await enableManagementAuth();
-  const managementKey = await createManagementKey();
+  await createManagementKey();
 
   const missingName = await listKeysRoute.POST(
-    makeRequest("http://localhost/api/keys", {
+    await makeManagementSessionRequest("http://localhost/api/keys", {
       method: "POST",
-      token: managementKey.key,
       body: {},
     })
   );
 
   const malformed = await listKeysRoute.POST(
-    new Request("http://localhost/api/keys", {
+    await makeManagementSessionRequest("http://localhost/api/keys", {
       method: "POST",
-      headers: {
-        authorization: `Bearer ${managementKey.key}`,
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: "{",
     })
   );
@@ -502,7 +496,7 @@ test("settings proxy route covers default types, null maps, registry fallback, a
 
 test("management proxies route covers auth, pagination, lookup, where-used, patch and delete flows", async () => {
   await enableManagementAuth();
-  const managementKey = await createManagementKey();
+  await createManagementKey();
 
   const unauthenticated = await managementProxiesRoute.GET(
     new Request("http://localhost/api/v1/management/proxies")
@@ -514,9 +508,8 @@ test("management proxies route covers auth, pagination, lookup, where-used, patc
   );
 
   const createdResponse = await managementProxiesRoute.POST(
-    makeRequest("http://localhost/api/v1/management/proxies", {
+    await makeManagementSessionRequest("http://localhost/api/v1/management/proxies", {
       method: "POST",
-      token: managementKey.key,
       body: {
         name: "Branch Proxy",
         type: "http",
@@ -529,66 +522,62 @@ test("management proxies route covers auth, pagination, lookup, where-used, patc
   await localDb.assignProxyToScope("provider", "openai", created.id);
 
   const pagedList = await managementProxiesRoute.GET(
-    makeRequest("http://localhost/api/v1/management/proxies?limit=999&offset=-5", {
-      token: managementKey.key,
-    })
+    await makeManagementSessionRequest(
+      "http://localhost/api/v1/management/proxies?limit=999&offset=-5"
+    )
   );
   const byId = await managementProxiesRoute.GET(
-    makeRequest(`http://localhost/api/v1/management/proxies?id=${created.id}`, {
-      token: managementKey.key,
-    })
+    await makeManagementSessionRequest(
+      `http://localhost/api/v1/management/proxies?id=${created.id}`
+    )
   );
   const whereUsed = await managementProxiesRoute.GET(
-    makeRequest(`http://localhost/api/v1/management/proxies?id=${created.id}&where_used=1`, {
-      token: managementKey.key,
-    })
+    await makeManagementSessionRequest(
+      `http://localhost/api/v1/management/proxies?id=${created.id}&where_used=1`
+    )
   );
   const missingGet = await managementProxiesRoute.GET(
-    makeRequest("http://localhost/api/v1/management/proxies?id=missing", {
-      token: managementKey.key,
-    })
+    await makeManagementSessionRequest("http://localhost/api/v1/management/proxies?id=missing")
   );
   const invalidJsonPatch = await managementProxiesRoute.PATCH(
-    new Request("http://localhost/api/v1/management/proxies", {
+    await makeManagementSessionRequest("http://localhost/api/v1/management/proxies", {
       method: "PATCH",
-      headers: {
-        authorization: `Bearer ${managementKey.key}`,
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: "{",
     })
   );
   const invalidPatch = await managementProxiesRoute.PATCH(
-    makeRequest("http://localhost/api/v1/management/proxies", {
+    await makeManagementSessionRequest("http://localhost/api/v1/management/proxies", {
       method: "PATCH",
-      token: managementKey.key,
       body: {},
     })
   );
   const patched = await managementProxiesRoute.PATCH(
-    makeRequest("http://localhost/api/v1/management/proxies", {
+    await makeManagementSessionRequest("http://localhost/api/v1/management/proxies", {
       method: "PATCH",
-      token: managementKey.key,
       body: { id: created.id, host: "patched.local", notes: "updated" },
     })
   );
   const missingDelete = await managementProxiesRoute.DELETE(
-    makeRequest("http://localhost/api/v1/management/proxies", {
+    await makeManagementSessionRequest("http://localhost/api/v1/management/proxies", {
       method: "DELETE",
-      token: managementKey.key,
     })
   );
   const conflictDelete = await managementProxiesRoute.DELETE(
-    makeRequest(`http://localhost/api/v1/management/proxies?id=${created.id}`, {
-      method: "DELETE",
-      token: managementKey.key,
-    })
+    await makeManagementSessionRequest(
+      `http://localhost/api/v1/management/proxies?id=${created.id}`,
+      {
+        method: "DELETE",
+      }
+    )
   );
   const forcedDelete = await managementProxiesRoute.DELETE(
-    makeRequest(`http://localhost/api/v1/management/proxies?id=${created.id}&force=1`, {
-      method: "DELETE",
-      token: managementKey.key,
-    })
+    await makeManagementSessionRequest(
+      `http://localhost/api/v1/management/proxies?id=${created.id}&force=1`,
+      {
+        method: "DELETE",
+      }
+    )
   );
 
   const unauthenticatedBody = await unauthenticated.json();

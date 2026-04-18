@@ -170,3 +170,9 @@ docs/superpowers/
 # GitNexus local index
 .gitnexus
 .worktrees
+bin/omniroute.mjs
+
+# Consistent with .dockerignore / .npmignore
+.omc/
+audit-report.json
+bun.lock

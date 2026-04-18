@@ -98,6 +98,51 @@ test("v1 models catalog accepts bearer API keys and filters the list by allowed 
   );
 });
 
+test("v1 models catalog hides models excluded by every active connection while keeping models served by at least one account", async () => {
+  const first = await seedConnection("openai", {
+    name: "openai-first",
+    providerSpecificData: {
+      excludedModels: ["gpt-4o*"],
+    },
+  });
+  const second = await seedConnection("openai", {
+    name: "openai-second",
+    providerSpecificData: {
+      excludedModels: ["gpt-4.1*"],
+    },
+  });
+
+  let response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  let body = await response.json();
+  let ids = new Set(body.data.map((item) => item.id));
+
+  assert.equal(response.status, 200);
+  assert.equal(ids.has("openai/gpt-4o-mini"), true);
+
+  await providersDb.updateProviderConnection(second.id, {
+    providerSpecificData: {
+      excludedModels: ["gpt-4o*"],
+    },
+  });
+
+  response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  body = await response.json();
+  ids = new Set(body.data.map((item) => item.id));
+
+  assert.equal(response.status, 200);
+  assert.equal(ids.has("openai/gpt-4o-mini"), false);
+
+  await providersDb.updateProviderConnection(first.id, {
+    providerSpecificData: {
+      excludedModels: [],
+    },
+  });
+});
+
 test("v1 models catalog includes combos and custom models while excluding hidden models and blocked providers", async () => {
   await settingsDb.updateSettings({
     blockedProviders: ["claude"],
@@ -204,6 +249,26 @@ test("v1 models catalog exposes claude alias and provider-prefixed built-in mode
   assert.equal(aliasModel.capabilities?.vision, true);
   assert.deepEqual(aliasModel.input_modalities, ["text", "image"]);
   assert.deepEqual(aliasModel.output_modalities, ["text"]);
+});
+
+test("v1 models catalog exposes Antigravity client-visible preview aliases instead of upstream internal IDs", async () => {
+  await seedConnection("antigravity", {
+    authType: "oauth",
+    name: "antigravity-preview",
+    apiKey: null,
+    accessToken: "antigravity-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = await response.json();
+  const ids = new Set(body.data.map((item) => item.id));
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.has("antigravity/gemini-3-pro-preview"));
+  assert.ok(ids.has("antigravity/gemini-3-flash-preview"));
+  assert.equal(ids.has("antigravity/gemini-3.1-pro-high"), false);
 });
 
 test("v1 models catalog uses provider-node prefixes for compatible provider custom models", async () => {
@@ -335,6 +400,25 @@ test("v1 models catalog includes media, moderation, rerank, video, and music mod
   assert.equal(byId.get("cohere/rerank-v3.5")?.type, "rerank");
   assert.equal(byId.get("comfyui/animatediff")?.type, "video");
   assert.equal(byId.get("comfyui/stable-audio-open")?.type, "music");
+});
+
+test("v1 models catalog exposes image model input and output modalities for advanced image providers", async () => {
+  await seedConnection("together", { name: "together-images" });
+  await seedConnection("topaz", { name: "topaz-images" });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = await response.json();
+  const byId = new Map(body.data.map((item) => [item.id, item]));
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(byId.get("flux-redux")?.input_modalities, ["text", "image"]);
+  assert.deepEqual(byId.get("flux-redux")?.output_modalities, ["image"]);
+  assert.equal(byId.get("flux-redux")?.type, "image");
+  assert.ok(byId.get("flux-redux")?.supported_sizes?.includes("1024x1024"));
+  assert.deepEqual(byId.get("topaz/topaz-enhance")?.input_modalities, ["image"]);
+  assert.deepEqual(byId.get("topaz/topaz-enhance")?.output_modalities, ["image"]);
 });
 
 test("v1 models catalog tolerates custom model lookup failures and keeps builtin models available", async () => {
@@ -542,6 +626,7 @@ test("v1 models catalog adds managed fallback models for Claude-compatible provi
   const ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
+  assert.ok(ids.has("ccdemo/claude-opus-4-7"));
   assert.ok(ids.has("ccdemo/claude-opus-4-6"));
   assert.equal(ids.has("ccdemo/claude-sonnet-4-6"), false);
 });

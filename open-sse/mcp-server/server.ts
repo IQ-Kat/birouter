@@ -43,7 +43,7 @@ import {
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 
-import { logToolCall } from "./audit.ts";
+import { closeAuditDb, logToolCall } from "./audit.ts";
 import {
   evaluateToolScopes,
   resolveCallerScopeContext,
@@ -525,7 +525,11 @@ async function handleWebSearch(args: {
     | "brave-search"
     | "perplexity-search"
     | "exa-search"
-    | "tavily-search";
+    | "tavily-search"
+    | "google-pse-search"
+    | "linkup-search"
+    | "searchapi-search"
+    | "searxng-search";
 }) {
   const start = Date.now();
   try {
@@ -876,6 +880,9 @@ export async function startMcpStdio(): Promise<void> {
     await server.connect(transport);
     console.error("[MCP] OmniRoute MCP Server connected and ready.");
   } finally {
+    if (closeAuditDb()) {
+      console.error("[MCP] Audit database checkpointed and closed.");
+    }
     stopHeartbeatOnce();
     process.off("exit", stopHeartbeatOnce);
     process.off("SIGINT", stopHeartbeatOnce);

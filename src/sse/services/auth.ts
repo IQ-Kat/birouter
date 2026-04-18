@@ -25,6 +25,7 @@ import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import { preflightQuota } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
+import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
@@ -668,6 +669,9 @@ export async function getProviderCredentials(
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
       if (excludedConnectionIds.has(c.id)) return false;
+      if (requestedModel && isModelExcludedByConnection(requestedModel, c.providerSpecificData)) {
+        return false;
+      }
       if (!allowSuppressedConnections) {
         if (isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
@@ -689,10 +693,18 @@ export async function getProviderCredentials(
       const codexScopeLimited = provider === "codex" && isCodexScopeUnavailable(c, requestedModel);
       const modelLocked =
         Boolean(requestedModel) && isModelLocked(provider, c.id, requestedModel as string);
+      const modelExcluded =
+        Boolean(requestedModel) &&
+        isModelExcludedByConnection(requestedModel as string, c.providerSpecificData);
       if (excluded || rateLimited) {
         log.debug(
           "AUTH",
           `  → ${c.id?.slice(0, 8)} | ${excluded ? "excluded" : ""} ${rateLimited ? `rateLimited until ${c.rateLimitedUntil}` : ""}${allowSuppressedConnections && rateLimited ? " (retained for combo live test)" : ""}`
+        );
+      } else if (modelExcluded) {
+        log.debug(
+          "AUTH",
+          `  → ${c.id?.slice(0, 8)} | excluded by per-account model rule for ${requestedModel}`
         );
       } else if (terminalStatus) {
         log.debug(

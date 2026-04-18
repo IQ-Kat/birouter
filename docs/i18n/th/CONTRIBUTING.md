@@ -4,13 +4,19 @@
 
 ---
 
-ขอขอบคุณที่สนใจร่วมให้ข้อมูล! คู่มือนี้ครอบคลุมทุกสิ่งที่คุณต้องการในการเริ่มต้น---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (แนะนำ: 22 LTS) -**npm**10+ -**กิต**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-ตัวแปรสำคัญสำหรับการพัฒนา:
+Key variables for development:
 
-| ตัวแปร                 | ค่าเริ่มต้นการพัฒนา      | คำอธิบาย                    |
-| ---------------------- | ------------------------ | --------------------------- | ---------------------- |
-| `พอร์ต`                | `20128`                  | พอร์ตเซิร์ฟเวอร์            |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | URL ฐานสำหรับส่วนหน้า       |
-| `JWT_SECRET`           | (สร้างด้านบน)            | JWT ลงนามความลับ            |
-| `INITIAL_PASSWORD`     | `การเปลี่ยนแปลง`         | รหัสผ่านเข้าสู่ระบบครั้งแรก |
-| `APP_LOG_LEVEL`        | `ข้อมูล`                 | บันทึกระดับคำฟุ่มเฟือย      | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-แดชบอร์ดมีการสลับ UI สำหรับคุณสมบัติที่สามารถกำหนดค่าผ่านตัวแปรสภาพแวดล้อมได้:
+### Dashboard Settings
 
-| การตั้งค่าตำแหน่ง    | สลับ                  | คำอธิบาย                                 |
-| -------------------- | --------------------- | ---------------------------------------- |
-| การตั้งค่า → ขั้นสูง | โหมดแก้ไขข้อบกพร่อง   | เปิดใช้งานบันทึกคำขอแก้ไขข้อบกพร่อง (UI) |
-| การตั้งค่า → ทั่วไป  | การมองเห็นแถบด้านข้าง | แสดง/ซ่อนส่วนของแถบด้านข้าง              |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-การตั้งค่าเหล่านี้จะถูกเก็บไว้ในฐานข้อมูลและคงอยู่ตลอดการรีสตาร์ท โดยแทนที่ค่าเริ่มต้นของ env var เมื่อตั้งค่า### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-URL เริ่มต้น:
+Default URLs:
 
--**แดชบอร์ด**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**อย่าผูกมัดกับ `main` โดยตรง**ใช้สาขาฟีเจอร์เสมอ```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| คำนำหน้า | วัตถุประสงค์ |
+| Prefix      | Purpose                   |
 | ----------- | ------------------------- |
-| `feat/` | คุณสมบัติใหม่ |
-| `แก้ไข/` | แก้ไขข้อผิดพลาด |
-| `รีแฟคเตอร์/` | การปรับโครงสร้างรหัส |
-| `เอกสาร/` | การเปลี่ยนแปลงเอกสาร |
-| `ทดสอบ/` | ทดสอบเพิ่มเติม/แก้ไข |
-| `งานบ้าน/` | การใช้เครื่องมือ, CI, การขึ้นต่อกัน |### Commit Messages
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-ปฏิบัติตาม [Conventional Commits](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-ขอบเขต: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ refactor(db): consolidate rate limit tables
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,38 +146,48 @@ npm run lint
 npm run check
 ```
 
-หมายเหตุความคุ้มครอง:
+Coverage notes:
 
-- `npm run test:coverage` วัดความครอบคลุมของแหล่งที่มาสำหรับชุดการทดสอบหน่วยหลัก ไม่รวม `tests/**` และรวม `open-sse/**`
-- คำขอดึงจะต้องคงประตูความครอบคลุมโดยรวมไว้ที่**60% หรือสูงกว่า**สำหรับใบแจ้งยอด บรรทัด ฟังก์ชัน และสาขา
-- หาก PR เปลี่ยนรหัสการผลิตใน `src/`, `open-sse/`, `electron/` หรือ `bin/` จะต้องเพิ่มหรืออัปเดตการทดสอบอัตโนมัติใน PR เดียวกัน
-- `npm run Coverage:report` พิมพ์รายงานโดยละเอียดแบบไฟล์ต่อไฟล์จากการรันความครอบคลุมล่าสุด
-- `npm run test:coverage:legacy` จะรักษาเมตริกเก่าไว้สำหรับการเปรียบเทียบในอดีต
-- ดู `docs/COVERAGE_PLAN.md` สำหรับแผนงานการปรับปรุงความครอบคลุมแบบเป็นขั้นตอน### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-ก่อนที่จะเปิดหรือรวม PR:
+### Pull Request Requirements
 
-- รัน `npm run test:unit`
-- รัน `npm run test:coverage`
-- ตรวจสอบให้แน่ใจว่าประตูครอบคลุมอยู่ที่**60%+**สำหรับตัวชี้วัดทั้งหมด
-- รวมไฟล์ทดสอบที่เปลี่ยนแปลงหรือเพิ่มไว้ในคำอธิบาย PR เมื่อรหัสการผลิตมีการเปลี่ยนแปลง
-- ตรวจสอบผลลัพธ์ SonarQube บน PR เมื่อมีการกำหนดค่าความลับของโครงการใน CI
+Before opening or merging a PR:
 
-สถานะการทดสอบปัจจุบัน:**ไฟล์ทดสอบ 122 หน่วย**ครอบคลุมถึง:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- ผู้ให้บริการนักแปลและการแปลงรูปแบบ
-- การจำกัดอัตรา เซอร์กิตเบรกเกอร์ และความยืดหยุ่น
-- แคชความหมาย, idempotency, การติดตามความคืบหน้า
-- การดำเนินงานฐานข้อมูลและสคีมา (21 โมดูล DB)
-- กระแส OAuth และการรับรองความถูกต้อง
-- การตรวจสอบจุดสิ้นสุด API (Zod v4)
-- เครื่องมือเซิร์ฟเวอร์ MCP และการบังคับใช้ขอบเขต
-- ระบบหน่วยความจำและทักษะ---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— รัน `npm run lint` ก่อนที่จะคอมมิต -**Prettier**— จัดรูปแบบอัตโนมัติผ่าน `lint-staged` เมื่อคอมมิต (ช่องว่าง 2 ช่อง, อัฒภาค, เครื่องหมายคำพูดคู่, ความกว้าง 100 ตัวอักษร, เครื่องหมายจุลภาคต่อท้าย es5) -**TypeScript**— โค้ด `src/` ทั้งหมดใช้ `.ts`/`.tsx`; `open-sse/` ใช้ `.ts`/`.js`; เอกสารที่มี TSDoc (“@param`, `@returns`, `@throws`)
--**ไม่มี `eval()`**— ESLint บังคับใช้ `no-eval`, `no-implied-eval`, `no-new-func` -**การตรวจสอบความถูกต้องของ Zod**— ใช้สคีมาของ Zod v4 สำหรับการตรวจสอบความถูกต้องอินพุต API ทั้งหมด -**การตั้งชื่อ**: ไฟล์ = CamelCase/kebab-case, ส่วนประกอบ = PascalCase, ค่าคงที่ = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -229,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-เพิ่มใน `src/shared/constants/providers.ts` — ผ่านการตรวจสอบ Zod เมื่อโหลดโมดูล### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-สร้างตัวดำเนินการใน `open-sse/executors/your-provider.ts` เพื่อขยายตัวดำเนินการฐาน### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-สร้างนักแปลคำขอ/ตอบกลับใน `open-sse/translator/`### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-เพิ่มข้อมูลรับรอง OAuth ใน `src/lib/oauth/constants/oauth.ts` และบริการใน `src/lib/oauth/services/`### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-เพิ่มคำจำกัดความของโมเดลใน `open-sse/config/providerRegistry.ts`### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-เขียนการทดสอบหน่วยเป็น `tests/unit/` ครอบคลุมอย่างน้อย:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- การลงทะเบียนผู้ให้บริการ
-- การแปลคำขอ/การตอบกลับ
-- การจัดการข้อผิดพลาด---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] การทดสอบผ่าน (`การทดสอบ npm`)
-- [ ] Linting pass (`npm run lint`)
-- [ ] สร้างสำเร็จ (`npm run build`)
-- [ ] เพิ่มประเภท TypeScript สำหรับฟังก์ชั่นสาธารณะและอินเทอร์เฟซใหม่
-- [ ] ไม่มีความลับแบบฮาร์ดโค้ดหรือค่าทางเลือก
-- [ ] อินพุตทั้งหมดได้รับการตรวจสอบด้วย Zod schema
-- [ ] CHANGELOG อัปเดตแล้ว (หากผู้ใช้พบการเปลี่ยนแปลง)
-- [ ] อัปเดตเอกสารแล้ว (ถ้ามี)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-การเผยแพร่ได้รับการจัดการผ่านเวิร์กโฟลว์ `/generate-release` เมื่อมีการสร้าง GitHub Release ใหม่ แพ็คเกจจะถูก**เผยแพร่โดยอัตโนมัติเป็น npm**ผ่าน GitHub Actions---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**สถาปัตยกรรม**: ดู [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**การอ้างอิง API**: ดู [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**ปัญหา**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADRs**: ดู `docs/adr/` สำหรับบันทึกการตัดสินใจทางสถาปัตยกรรม
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

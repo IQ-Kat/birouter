@@ -45,6 +45,7 @@ import {
 } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
+import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
 import {
   getModelNormalizeToolCallId,
@@ -54,6 +55,11 @@ import {
 } from "@/lib/localDb";
 import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
+import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
+import {
+  applyConfiguredPayloadRules,
+  resolvePayloadRuleProtocols,
+} from "../services/payloadRules.ts";
 import {
   shouldPreserveCacheControl,
   providerSupportsCaching,
@@ -75,7 +81,7 @@ import {
   parseSSEToOpenAIResponse,
   parseSSEToResponsesOutput,
 } from "./sseParser.ts";
-import { sanitizeOpenAIResponse } from "./responseSanitizer.ts";
+import { sanitizeOpenAIResponse, sanitizeResponsesApiResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
@@ -110,6 +116,7 @@ import {
   isFallbackDecision,
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
+import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
 import {
   resolveExplicitStreamAlias,
   resolveStreamFlag,
@@ -127,11 +134,13 @@ import {
 } from "@/lib/memory/settings";
 import { injectSkills } from "@/lib/skills/injection";
 import { handleToolCallExecution } from "@/lib/skills/interception";
+import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 import {
   buildClaudeCodeCompatibleRequest,
   isClaudeCodeCompatibleProvider,
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
+import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -304,6 +313,24 @@ function parseNonStreamingSSEPayload(
   }
 
   return null;
+}
+
+function convertNDJSONToSSE(rawBody: string): string {
+  const chunks = String(rawBody || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (chunks.length === 0) return rawBody;
+
+  return `${chunks.map((chunk) => `data: ${chunk}\n`).join("\n")}\n`;
+}
+
+function normalizeNonStreamingEventPayload(rawBody: string, contentType: string): string {
+  if (contentType.includes("application/x-ndjson")) {
+    return convertNDJSONToSSE(rawBody);
+  }
+  return rawBody;
 }
 
 function getHeaderValueCaseInsensitive(
@@ -622,6 +649,15 @@ export async function handleChatCore({
   const cachedIdemp = checkIdempotency(idempotencyKey);
   if (cachedIdemp) {
     log?.debug?.("IDEMPOTENCY", `Hit for key=${idempotencyKey?.slice(0, 12)}...`);
+    const idempotentUsage =
+      cachedIdemp.response && typeof cachedIdemp.response === "object"
+        ? ((cachedIdemp.response as Record<string, unknown>).usage as
+            | Record<string, unknown>
+            | undefined)
+        : undefined;
+    const idempotentCost = idempotentUsage
+      ? await calculateCost(provider, model, idempotentUsage)
+      : 0;
     return {
       success: true,
       response: new Response(JSON.stringify(cachedIdemp.response), {
@@ -630,6 +666,14 @@ export async function handleChatCore({
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": getCorsOrigin(),
           "X-OmniRoute-Idempotent": "true",
+          ...buildOmniRouteResponseMetaHeaders({
+            provider,
+            model,
+            cacheHit: false,
+            latencyMs: Date.now() - startTime,
+            usage: idempotentUsage,
+            costUsd: idempotentCost,
+          }),
         },
       }),
     };
@@ -715,6 +759,20 @@ export async function handleChatCore({
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat =
     modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
+  const { body: bodyWithWebSearchFallback, fallback: webSearchFallbackPlan } =
+    prepareWebSearchFallbackBody(body as Record<string, unknown>, {
+      provider,
+      sourceFormat,
+      targetFormat,
+      nativeCodexPassthrough,
+    });
+  if (webSearchFallbackPlan.enabled) {
+    body = bodyWithWebSearchFallback as typeof body;
+    log?.info?.(
+      "TOOLS",
+      `Converted ${webSearchFallbackPlan.convertedToolCount} web_search tool(s) to OmniRoute fallback for ${provider}`
+    );
+  }
   const noLogEnabled = apiKeyInfo?.noLog === true;
   const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
   const skillRequestId = generateRequestId();
@@ -858,6 +916,7 @@ export async function handleChatCore({
 
   const stream = resolveStreamFlag(body?.stream, acceptHeader);
   const settings = await getCachedSettings();
+  setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
   // Create request logger for this session: sourceFormat_targetFormat_model
@@ -887,6 +946,10 @@ export async function handleChatCore({
     if (cached) {
       log?.debug?.("CACHE", `Semantic cache HIT for ${model} (stream=${stream})`);
       reqLogger.logConvertedResponse(cached as Record<string, unknown>);
+      const cachedUsage =
+        extractUsageFromResponse(cached as Record<string, unknown>, provider) ||
+        ((cached as Record<string, unknown>)?.usage as Record<string, unknown> | undefined);
+      const cachedCost = cachedUsage ? await calculateCost(provider, model, cachedUsage) : 0;
       persistAttemptLogs({
         status: 200,
         tokens: (cached as Record<string, unknown>)?.usage,
@@ -902,7 +965,15 @@ export async function handleChatCore({
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": getCorsOrigin(),
-            "X-OmniRoute-Cache": "HIT",
+            [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
+            ...buildOmniRouteResponseMetaHeaders({
+              provider,
+              model,
+              cacheHit: true,
+              latencyMs: Date.now() - startTime,
+              usage: cachedUsage,
+              costUsd: cachedCost,
+            }),
           },
         }),
       };
@@ -914,7 +985,10 @@ export async function handleChatCore({
   // For Responses API targets, max_output_tokens is the canonical field. For others,
   // max_tokens is preferred. We handle normalization here to support passthrough
   // paths where the translator is skipped.
-  if (targetFormat === FORMATS.OPENAI_RESPONSES) {
+  const prefersResponsesTokenField =
+    sourceFormat === FORMATS.OPENAI_RESPONSES || targetFormat === FORMATS.OPENAI_RESPONSES;
+
+  if (prefersResponsesTokenField) {
     if (body.max_output_tokens === undefined) {
       if (body.max_completion_tokens !== undefined) {
         body.max_output_tokens = body.max_completion_tokens;
@@ -1378,11 +1452,19 @@ export async function handleChatCore({
     }
   }
 
+  // ── Proactive Context Compression (Phase 4) ──
+  // Check if context exceeds 85% of limit and compress proactively before sending to provider.
+  // This prevents "prompt too long" errors for large-but-not-full contexts.
   if (translatedBody && translatedBody.messages && Array.isArray(translatedBody.messages)) {
     const estimatedTokens = estimateTokens(JSON.stringify(translatedBody.messages));
     const contextLimit = getTokenLimit(provider, effectiveModel);
     const COMPRESSION_THRESHOLD = 0.85;
     const threshold = Math.floor(contextLimit * COMPRESSION_THRESHOLD);
+
+    log?.debug?.(
+      "CONTEXT",
+      `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit)`
+    );
 
     if (estimatedTokens > threshold) {
       log?.info?.(
@@ -1394,6 +1476,7 @@ export async function handleChatCore({
         provider,
         model: effectiveModel,
         maxTokens: contextLimit,
+        reserveTokens: 0,
       });
 
       if (compressionResult.compressed) {
@@ -1421,8 +1504,15 @@ export async function handleChatCore({
             layers: "layers" in stats ? stats.layers : undefined,
           },
         });
+      } else {
+        log?.debug?.("CONTEXT", `Compression not applied: context already fits within target`);
       }
     }
+  } else {
+    log?.debug?.(
+      "CONTEXT",
+      `Skipping compression check: translatedBody=${!!translatedBody}, messages=${!!translatedBody?.messages}, isArray=${Array.isArray(translatedBody?.messages)}`
+    );
   }
 
   // Resolve executor with optional upstream proxy (CLIProxyAPI) routing.
@@ -1518,6 +1608,38 @@ export async function handleChatCore({
         translatedBody.model === modelToCall
           ? translatedBody
           : { ...translatedBody, model: modelToCall };
+      const payloadRuleModel =
+        typeof bodyToSend.model === "string" && bodyToSend.model.length > 0
+          ? bodyToSend.model
+          : modelToCall;
+      const payloadRuleProtocols = resolvePayloadRuleProtocols({
+        provider,
+        targetFormat,
+      });
+      const payloadRuleResult = await applyConfiguredPayloadRules(
+        bodyToSend,
+        payloadRuleModel,
+        payloadRuleProtocols
+      );
+      bodyToSend = payloadRuleResult.payload;
+
+      if (payloadRuleResult.applied.length > 0) {
+        const appliedSummary = payloadRuleResult.applied
+          .map((rule) => {
+            if (rule.type === "filter") return `${rule.type}:${rule.path}`;
+            const serializedValue = JSON.stringify(rule.value);
+            const safeValue =
+              typeof serializedValue === "string" && serializedValue.length > 80
+                ? `${serializedValue.slice(0, 77)}...`
+                : serializedValue;
+            return `${rule.type}:${rule.path}=${safeValue}`;
+          })
+          .join(", ");
+        log?.debug?.(
+          "PAYLOAD_RULES",
+          `Applied ${payloadRuleResult.applied.length} rule(s) for ${payloadRuleModel} (${payloadRuleProtocols.join(", ")}): ${appliedSummary}`
+        );
+      }
 
       // Qwen OAuth rejects requests without a non-empty `user` field.
       // Some minimal OpenAI-compatible clients omit it, so we backfill a
@@ -1563,6 +1685,7 @@ export async function handleChatCore({
             log,
             extendedContext,
             upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+            clientHeaders: clientRawRequest?.headers ?? null,
           });
 
           // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
@@ -1733,7 +1856,8 @@ export async function handleChatCore({
     const newCredentials = (await refreshWithRetry(
       () => executor.refreshCredentials(credentials, log),
       3,
-      log
+      log,
+      provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
     )) as null | {
       accessToken?: string;
       copilotToken?: string;
@@ -1763,6 +1887,7 @@ export async function handleChatCore({
           log,
           extendedContext,
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
+          clientHeaders: clientRawRequest?.headers ?? null,
         });
 
         if (retryResult.response.ok) {
@@ -2176,11 +2301,19 @@ export async function handleChatCore({
     const rawBody = await providerResponse.text();
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
-      contentType.includes("text/event-stream") || /(^|\n)\s*(event|data):/m.test(rawBody);
+      contentType.includes("text/event-stream") ||
+      contentType.includes("application/x-ndjson") ||
+      /(^|\n)\s*(event|data):/m.test(rawBody);
 
     if (looksLikeSSE) {
+      const streamPayload = normalizeNonStreamingEventPayload(rawBody, contentType);
+      const streamKind = contentType.includes("application/x-ndjson") ? "NDJSON" : "SSE";
+      log?.warn?.(
+        "STREAM",
+        `Unexpected ${streamKind} response for non-streaming request — buffering`
+      );
       // Upstream returned SSE even though stream=false; convert best-effort to JSON.
-      const parsedFromSSE = parseNonStreamingSSEPayload(rawBody, targetFormat, model);
+      const parsedFromSSE = parseNonStreamingSSEPayload(streamPayload, targetFormat, model);
 
       if (!parsedFromSSE) {
         appendRequestLog({
@@ -2357,11 +2490,6 @@ export async function handleChatCore({
       });
     }
 
-    if (apiKeyInfo?.id && usage) {
-      const estimatedCost = await calculateCost(provider, model, usage);
-      if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
-    }
-
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
     let translatedResponse = needsTranslation(responsePayloadFormat, clientResponseFormat)
@@ -2400,10 +2528,9 @@ export async function handleChatCore({
     // Strips non-standard fields (x_groq, usage_breakdown, service_tier, etc.)
     // Extracts <think> and <thinking> tags into reasoning_content
     // Source format determines output shape. If we are outputting OpenAI shape or pseudo-OpenAI shape, sanitize.
-    if (
-      clientResponseFormat === FORMATS.OPENAI ||
-      clientResponseFormat === FORMATS.OPENAI_RESPONSES
-    ) {
+    if (clientResponseFormat === FORMATS.OPENAI_RESPONSES) {
+      translatedResponse = sanitizeResponsesApiResponse(translatedResponse);
+    } else if (clientResponseFormat === FORMATS.OPENAI) {
       translatedResponse = sanitizeOpenAIResponse(translatedResponse);
     }
 
@@ -2437,18 +2564,82 @@ export async function handleChatCore({
       }
     }
 
-    if (apiKeyInfo?.id && memorySettings?.skillsEnabled) {
+    const customSkillExecutionEnabled =
+      Boolean(apiKeyInfo?.id) && memorySettings?.skillsEnabled === true;
+    const builtinToolNames = webSearchFallbackPlan.toolName ? [webSearchFallbackPlan.toolName] : [];
+    if (customSkillExecutionEnabled || builtinToolNames.length > 0) {
       const skillSessionId = pipelineSessionId;
 
       translatedResponse = await handleToolCallExecution(
         translatedResponse,
         getSkillsModelIdForFormat(sourceFormat),
         {
-          apiKeyId: apiKeyInfo.id,
+          apiKeyId: apiKeyInfo?.id || "local",
           sessionId: skillSessionId,
           requestId: skillRequestId,
+          builtinToolNames,
+          customSkillExecutionEnabled,
         }
       );
+    }
+
+    const guardrailContext = {
+      apiKeyInfo,
+      disabledGuardrails: resolveDisabledGuardrails({
+        apiKeyInfo: (apiKeyInfo as Record<string, unknown> | null) ?? null,
+        body,
+        headers: (clientRawRequest?.headers as Headers | Record<string, unknown> | null) ?? null,
+      }),
+      endpoint: clientRawRequest?.endpoint || null,
+      headers: (clientRawRequest?.headers as Headers | Record<string, unknown> | null) ?? null,
+      log,
+      method: "POST",
+      model,
+      provider,
+      sourceFormat: responsePayloadFormat,
+      stream: false,
+      targetFormat: clientResponseFormat,
+    } as const;
+    const postCallGuardrails = await guardrailRegistry.runPostCallHooks(
+      translatedResponse,
+      guardrailContext
+    );
+    translatedResponse = postCallGuardrails.response;
+
+    const responseUsage =
+      (usage && typeof usage === "object" ? usage : null) ||
+      (translatedResponse?.usage && typeof translatedResponse.usage === "object"
+        ? translatedResponse.usage
+        : null);
+    const estimatedCost = responseUsage ? await calculateCost(provider, model, responseUsage) : 0;
+
+    if (postCallGuardrails.blocked) {
+      const guardrailMessage = postCallGuardrails.message || "Response blocked by guardrail";
+      persistAttemptLogs({
+        status: HTTP_STATUS.BAD_REQUEST,
+        tokens: usage,
+        responseBody,
+        providerRequest: finalBody || translatedBody,
+        providerResponse: looksLikeSSE
+          ? {
+              _streamed: true,
+              _format: "sse-json",
+              summary: responseBody,
+            }
+          : responseBody,
+        clientResponse: buildErrorBody(HTTP_STATUS.BAD_REQUEST, guardrailMessage),
+        claudeCacheMeta: claudePromptCacheLogMeta,
+        claudeCacheUsageMeta: cacheUsageLogMeta,
+        cacheSource: "upstream",
+      });
+      if (apiKeyInfo?.id && estimatedCost > 0) {
+        recordCost(apiKeyInfo.id, estimatedCost);
+      }
+      log?.warn?.(
+        "GUARDRAIL",
+        `Response blocked by ${postCallGuardrails.guardrail || "guardrail"}: ${guardrailMessage}`
+      );
+      return createErrorResult(HTTP_STATUS.BAD_REQUEST, guardrailMessage);
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
@@ -2484,6 +2675,9 @@ export async function handleChatCore({
       claudeCacheUsageMeta: cacheUsageLogMeta,
       cacheSource: "upstream",
     });
+    if (apiKeyInfo?.id && estimatedCost > 0) {
+      recordCost(apiKeyInfo.id, estimatedCost);
+    }
 
     return {
       success: true,
@@ -2491,7 +2685,15 @@ export async function handleChatCore({
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": getCorsOrigin(),
-          "X-OmniRoute-Cache": "MISS",
+          [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
+          ...buildOmniRouteResponseMetaHeaders({
+            provider,
+            model,
+            cacheHit: false,
+            latencyMs: Date.now() - startTime,
+            usage: responseUsage,
+            costUsd: estimatedCost,
+          }),
         },
       }),
     };
@@ -2509,6 +2711,15 @@ export async function handleChatCore({
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
     "Access-Control-Allow-Origin": getCorsOrigin(),
+    [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
+    ...buildOmniRouteResponseMetaHeaders({
+      provider,
+      model,
+      cacheHit: false,
+      latencyMs: 0,
+      usage: null,
+      costUsd: 0,
+    }),
   };
 
   // Create transform stream with logger for streaming response
@@ -2671,7 +2882,7 @@ export async function handleChatCore({
     // Chain: provider → transform → progress → client
     const transformedBody = pipeWithDisconnect(providerResponse, transformStream, streamController);
     finalStream = transformedBody.pipeThrough(progressTransform);
-    responseHeaders["X-OmniRoute-Progress"] = "enabled";
+    responseHeaders[OMNIROUTE_RESPONSE_HEADERS.progress] = "enabled";
   } else {
     finalStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
   }

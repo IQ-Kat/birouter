@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { IMAGE_PROVIDERS } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 type Modality = "image" | "video" | "music" | "speech" | "transcription";
 type GenerationResult = {
@@ -11,6 +13,19 @@ type GenerationResult = {
   timestamp: number;
   audioUrl?: string;
 };
+
+const PROVIDER_METADATA = AI_PROVIDERS as Record<string, { name?: string }>;
+const IMAGE_PROVIDER_MODELS = Object.entries(IMAGE_PROVIDERS).map(([providerId, config]) => ({
+  id: providerId,
+  name: PROVIDER_METADATA[providerId]?.name || providerId,
+  models: config.models.map((model) => ({
+    id: `${providerId}/${model.id}`,
+    name: model.name,
+  })),
+}));
+const IMAGE_PROVIDERS_REQUIRING_CREDENTIALS = Object.entries(IMAGE_PROVIDERS)
+  .filter(([, config]) => config.authType !== "none")
+  .map(([providerId]) => providerId);
 
 const MODALITY_CONFIG: Record<
   Modality,
@@ -30,7 +45,7 @@ const MODALITY_CONFIG: Record<
     label: "Image Generation",
     placeholder: "A serene landscape with mountains at sunset...",
     color: "from-purple-500 to-pink-500",
-    needsCredentials: ["openai", "xai", "fireworks", "nebius", "hyperbolic"],
+    needsCredentials: IMAGE_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   video: {
     icon: "videocam",
@@ -67,82 +82,12 @@ const MODALITY_CONFIG: Record<
   },
 };
 
-// Static provider+model registry (mirrors open-sse/config/*Registry.ts)
+// Provider+model registry (image is derived from the runtime image registry to avoid drift)
 const PROVIDER_MODELS: Record<
   Modality,
   { id: string; name: string; models: { id: string; name: string }[] }[]
 > = {
-  image: [
-    {
-      id: "openai",
-      name: "OpenAI",
-      models: [
-        { id: "openai/dall-e-3", name: "DALL-E 3" },
-        { id: "openai/dall-e-2", name: "DALL-E 2" },
-      ],
-    },
-    {
-      id: "xai",
-      name: "xAI (Grok)",
-      models: [{ id: "xai/grok-2-image-1212", name: "Grok 2 Image" }],
-    },
-    {
-      id: "together",
-      name: "Together AI",
-      models: [
-        { id: "together/stabilityai/stable-diffusion-xl-base-1.0", name: "SDXL" },
-        { id: "together/black-forest-labs/FLUX.1-schnell-Free", name: "FLUX.1 Schnell" },
-      ],
-    },
-    {
-      id: "fireworks",
-      name: "Fireworks AI",
-      models: [
-        {
-          id: "fireworks/accounts/fireworks/models/stable-diffusion-xl-1024-v1-0",
-          name: "SDXL 1024",
-        },
-        { id: "fireworks/accounts/fireworks/models/flux-1-dev-fp8", name: "FLUX.1 Dev" },
-      ],
-    },
-    {
-      id: "nebius",
-      name: "Nebius AI",
-      models: [
-        { id: "nebius/black-forest-labs/flux-dev", name: "FLUX Dev" },
-        { id: "nebius/black-forest-labs/flux-schnell", name: "FLUX Schnell" },
-      ],
-    },
-    {
-      id: "hyperbolic",
-      name: "Hyperbolic",
-      models: [
-        { id: "hyperbolic/SDXL1.0-base", name: "SDXL Base" },
-        { id: "hyperbolic/stable-diffusion-2", name: "SD 2" },
-      ],
-    },
-    {
-      id: "nanobanana",
-      name: "NanoBanana",
-      models: [
-        { id: "nanobanana/nanobanana-flash", name: "NanoBanana Flash" },
-        { id: "nanobanana/nanobanana-pro", name: "NanoBanana Pro" },
-      ],
-    },
-    {
-      id: "sdwebui",
-      name: "SD WebUI",
-      models: [{ id: "sdwebui/sd_xl_base_1.0", name: "SDXL Base (Local)" }],
-    },
-    {
-      id: "comfyui",
-      name: "ComfyUI",
-      models: [
-        { id: "comfyui/flux-dev", name: "FLUX Dev (Local)" },
-        { id: "comfyui/sdxl", name: "SDXL (Local)" },
-      ],
-    },
-  ],
+  image: IMAGE_PROVIDER_MODELS,
   video: [
     {
       id: "comfyui",
@@ -366,6 +311,21 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error("Failed to read file"));
+    };
+    reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 /** Render image result thumbnails */
 function ImageResults({ data }: { data: any }) {
   const images: Array<{ url?: string; b64_json?: string; revised_prompt?: string }> =
@@ -438,6 +398,8 @@ export default function MediaPageClient() {
   const MAX_TRANSCRIPTION_FILE_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [fileSizeError, setFileSizeError] = useState<string | null>(null);
+  const [imageInputFile, setImageInputFile] = useState<File | null>(null);
+  const [imageMaskFile, setImageMaskFile] = useState<File | null>(null);
 
   // Fix #390: Track which local providers (sdwebui, comfyui) are actually configured
   // so we can hide them when they haven't been set up in the providers page
@@ -488,6 +450,8 @@ export default function MediaPageClient() {
     setError(null);
     setIsCredentialsError(false);
     setAudioFile(null);
+    setImageInputFile(null);
+    setImageMaskFile(null);
     // Pick first provider and first model automatically
     const providers = PROVIDER_MODELS[tab] ?? [];
     const firstProvider = providers[0];
@@ -528,9 +492,10 @@ export default function MediaPageClient() {
     try {
       const config = MODALITY_CONFIG[activeTab];
       const modelId = selectedModel;
+      const promptValue = prompt.trim();
 
       if (activeTab === "speech") {
-        if (!prompt.trim()) {
+        if (!promptValue) {
           setError("Please enter text to synthesize.");
           setLoading(false);
           return;
@@ -540,7 +505,7 @@ export default function MediaPageClient() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             model: modelId,
-            input: prompt.trim(),
+            input: promptValue,
             voice: speechVoice,
             response_format: speechFormat,
           }),
@@ -604,19 +569,44 @@ export default function MediaPageClient() {
         return;
       }
 
-      if (!prompt.trim()) {
-        setError("Please enter a prompt.");
+      if (activeTab === "image" && selectedProvider === "topaz" && !imageInputFile) {
+        setError("Topaz requires an input image.");
         setLoading(false);
         return;
       }
+
+      if (!prompt.trim()) {
+        if (activeTab !== "image" || selectedProvider !== "topaz") {
+          setError("Please enter a prompt.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      const payload: Record<string, unknown> = {
+        model: modelId,
+        prompt:
+          promptValue ||
+          (activeTab === "image" && selectedProvider === "topaz" ? "Enhance this image" : ""),
+        ...(activeTab === "image" ? { size: "1024x1024", n: 1 } : {}),
+      };
+
+      if (activeTab === "image" && imageInputFile) {
+        const imageDataUrl = await fileToDataUrl(imageInputFile);
+        payload.image_url = imageDataUrl;
+        payload.imageUrls = [imageDataUrl];
+      }
+
+      if (activeTab === "image" && imageMaskFile) {
+        const maskDataUrl = await fileToDataUrl(imageMaskFile);
+        payload.mask = maskDataUrl;
+        payload.mask_url = maskDataUrl;
+      }
+
       const res = await fetch(config.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: modelId,
-          prompt: prompt.trim(),
-          ...(activeTab === "image" ? { size: "1024x1024", n: 1 } : {}),
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const raw = await res.json().catch(() => ({}));
@@ -634,6 +624,16 @@ export default function MediaPageClient() {
 
   const config = MODALITY_CONFIG[activeTab];
   const voiceList = getVoiceList(selectedProvider);
+  const isTopazImageFlow = activeTab === "image" && selectedProvider === "topaz";
+  const isGenerateDisabled =
+    loading ||
+    (activeTab === "transcription"
+      ? !audioFile
+      : activeTab === "image"
+        ? isTopazImageFlow
+          ? !imageInputFile
+          : !prompt.trim()
+        : !prompt.trim());
 
   return (
     <div className="space-y-6">
@@ -790,27 +790,80 @@ export default function MediaPageClient() {
             </p>
           </div>
         ) : (
-          /* Prompt / Text */
-          <div>
-            <label className="block text-sm font-medium text-text-main mb-2">
-              {activeTab === "speech" ? "Text" : t("prompt")}
-            </label>
-            <textarea
-              rows={3}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={config.placeholder}
-              className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-            />
-          </div>
+          <>
+            {activeTab === "image" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-main mb-2">
+                    Source Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageInputFile(e.target.files?.[0] ?? null)}
+                    className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-sm"
+                  />
+                  {imageInputFile && (
+                    <p className="text-xs text-text-muted mt-1">
+                      {imageInputFile.name} ({formatFileSize(imageInputFile.size)})
+                    </p>
+                  )}
+                  <p className="text-[10px] text-text-muted/60 mt-1">
+                    Optional for image-to-image, editing and upscale workflows.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-main mb-2">
+                    Mask Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageMaskFile(e.target.files?.[0] ?? null)}
+                    className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-primary/10 file:text-primary file:text-sm"
+                  />
+                  {imageMaskFile && (
+                    <p className="text-xs text-text-muted mt-1">
+                      {imageMaskFile.name} ({formatFileSize(imageMaskFile.size)})
+                    </p>
+                  )}
+                  <p className="text-[10px] text-text-muted/60 mt-1">
+                    Optional. Used by inpaint-style models that support masks.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Prompt / Text */}
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-2">
+                {activeTab === "speech"
+                  ? "Text"
+                  : activeTab === "image" && selectedProvider === "topaz"
+                    ? "Prompt (optional)"
+                    : t("prompt")}
+              </label>
+              <textarea
+                rows={3}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder={
+                  activeTab === "image" && selectedProvider === "topaz"
+                    ? "Optional enhancement instructions..."
+                    : config.placeholder
+                }
+                className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+              />
+            </div>
+          </>
         )}
 
         {/* Generate button */}
         <button
           onClick={handleGenerate}
-          disabled={loading || (activeTab === "transcription" ? !audioFile : !prompt.trim())}
+          disabled={isGenerateDisabled}
           className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-all bg-gradient-to-r ${config.color} ${
-            loading || (activeTab === "transcription" ? !audioFile : !prompt.trim())
+            isGenerateDisabled
               ? "opacity-50 cursor-not-allowed"
               : "hover:opacity-90 hover:shadow-lg"
           }`}

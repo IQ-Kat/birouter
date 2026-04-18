@@ -14,6 +14,10 @@ const {
   seedConnection,
   settingsDb,
 } = harness;
+const originalRetryConfig = {
+  maxAttempts: BaseExecutor.RETRY_CONFIG.maxAttempts,
+  delayMs: BaseExecutor.RETRY_CONFIG.delayMs,
+};
 
 function buildRequestWithSignal(body, signal) {
   return new Request("http://localhost/v1/chat/completions", {
@@ -27,11 +31,14 @@ function buildRequestWithSignal(body, signal) {
 }
 
 test.beforeEach(async () => {
+  BaseExecutor.RETRY_CONFIG.maxAttempts = originalRetryConfig.maxAttempts;
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
 });
 
 test.afterEach(async () => {
+  BaseExecutor.RETRY_CONFIG.maxAttempts = originalRetryConfig.maxAttempts;
+  BaseExecutor.RETRY_CONFIG.delayMs = originalRetryConfig.delayMs;
   await resetStorage();
 });
 
@@ -82,7 +89,7 @@ test("handleChat recovers from a real 429 once the connection cooldown expires",
   });
   await settingsDb.updateSettings({
     requestRetry: 1,
-    maxRetryIntervalSec: 2,
+    maxRetryIntervalSec: 3,
   });
 
   let fetchCalls = 0;
@@ -92,12 +99,15 @@ test("handleChat recovers from a real 429 once the connection cooldown expires",
       return new Response(
         JSON.stringify({
           error: {
-            message: "Rate limit exceeded. Please retry after 1s.",
+            message: "Rate limit exceeded.",
           },
         }),
         {
           status: 429,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": "2",
+          },
         }
       );
     }
@@ -120,7 +130,7 @@ test("handleChat recovers from a real 429 once the connection cooldown expires",
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls, 4);
-  assert.ok(elapsedMs >= 900, `expected retry wait after 429, got ${elapsedMs}ms`);
+  assert.ok(elapsedMs >= 1900, `expected retry wait after 429, got ${elapsedMs}ms`);
   assert.equal(body.choices[0].message.content, "recovered after live 429");
 });
 

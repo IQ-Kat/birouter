@@ -4,117 +4,139 @@
 
 ---
 
-Ultimo aggiornamento: 28-03-2026## Baseline
+Last updated: 2026-03-28
 
-There are multiple coverage numbers depending on how the report is computed. Per la pianificazione, solo uno di essi è utile.
+## Baseline
 
-| Metric                          | Scope                                              | Statements / Lines | Branches | Functions | Note                                                       |
-| ------------------------------- | -------------------------------------------------- | -----------------: | -------: | --------: | ---------------------------------------------------------- |
-| Eredità                         | Vecchio `npm run test:coverage`                    |             79,42% |   75.15% |    67.94% | Inflazionato: conta i file di test ed esclude `open-sse`   |
-| Diagnostica                     | Solo sorgente, esclusi test ed escluso `open-sse`  |             68,16% |   63.55% |    64,06% | Utile solo per isolare `src/**`                            |
-| Base di riferimento consigliata | Solo sorgente, esclusi i test e incluso `open-sse` |             56.95% |   66,05% |    57,80% | Questa è la linea di base per migliorare l'intero progetto |
+There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful.
 
-La linea di base consigliata è il numero rispetto al quale eseguire l'ottimizzazione.## Rules
+| Metric               | Scope                                                 | Statements / Lines | Branches | Functions | Notes                                               |
+| -------------------- | ----------------------------------------------------- | -----------------: | -------: | --------: | --------------------------------------------------- |
+| Legacy               | Old `npm run test:coverage`                           |             79.42% |   75.15% |    67.94% | Inflated: counts test files and excludes `open-sse` |
+| Diagnostic           | Source-only, excluding tests and excluding `open-sse` |             68.16% |   63.55% |    64.06% | Useful only to isolate `src/**`                     |
+| Recommended baseline | Source-only, excluding tests and including `open-sse` |             56.95% |   66.05% |    57.80% | This is the project-wide baseline to improve        |
 
-- Gli obiettivi di copertura si applicano ai file sorgente, non a "test/\*\*".
-- "open-sse/\*\*" fa parte del prodotto e deve rimanere nell'ambito.
-- Il nuovo codice non dovrebbe ridurre la copertura nelle aree toccate.
-- Preferire il comportamento dei test e i risultati delle filiali rispetto ai dettagli di implementazione.
-- Preferisci i database temporanei SQLite e i piccoli dispositivi rispetto ai mock generici per `src/lib/db/**`.## Current command set
+The recommended baseline is the number to optimize against.
 
-- "npm esegui test: copertura".
-  - Gate di copertura della sorgente principale per la suite di test unitari
-  - Genera `text-summary`, `html`, `json-summary` e `lcov`
-- "npm run cover:report".
-  - Report dettagliato file per file dell'ultima esecuzione
-- `npm esegui test:coverage:legacy`
-  - Solo confronto storico## Milestones
+## Rules
 
-| Fase   |              Obiettivo | Messa a fuoco                                                         |
-| ------ | ---------------------: | --------------------------------------------------------------------- |
-| Fase 1 | 60% affermazioni/righe | Vittorie rapide e copertura delle utenze a basso rischio              |
-| Fase 2 | 65% affermazioni/righe | DB e fondazioni del percorso                                          |
-| Fase 3 | 70% affermazioni/righe | Convalida del provider e analisi dell'utilizzo                        |
-| Fase 4 | 75% affermazioni/righe | Traduttori e aiutanti `open-sse`                                      |
-| Fase 5 | 80% affermazioni/righe | Gestori `open-sse` e ​​rami esecutori                                 |
-| Fase 6 | 85% affermazioni/righe | Casi limite più difficili, debito delle filiali, suite di regressione |
-| Fase 7 | 90% affermazioni/righe | Spazzata finale, chiusura dello spazio, cricchetto rigoroso           |
+- Coverage targets apply to source files, not to `tests/**`.
+- `open-sse/**` is part of the product and must remain in scope.
+- New code should not reduce coverage in touched areas.
+- Prefer testing behavior and branch outcomes over implementation details.
+- Prefer temp SQLite databases and small fixtures over broad mocks for `src/lib/db/**`.
 
-I rami e le funzioni dovrebbero aumentare in ogni fase, ma l'obiettivo primario principale sono le istruzioni/linee.## Priority hotspots
+## Current command set
 
-Questi file o aree offrono il miglior ritorno per le fasi successive:
+- `npm run test:coverage`
+  - Main source coverage gate for the unit test suite
+  - Generates `text-summary`, `html`, `json-summary`, and `lcov`
+- `npm run coverage:report`
+  - Detailed file-by-file report from the latest run
+- `npm run test:coverage:legacy`
+  - Historical comparison only
 
-1. "open-sse/handlers".
-   - "chatCore.ts" al 7,57%
-   - Directory complessiva al 29,07%
-2. "open-sse/traduttore/richiesta".
-   - Directory complessiva al 36,39%
-   - Molti traduttori sono ancora vicini alla copertura a una cifra
-3. "open-sse/translator/response".
-   - Directory complessiva all'8,07%
-4. "open-sse/esecutori".
-   - Directory complessiva al 36,62%
+## Milestones
+
+| Phase   |                 Target | Focus                                             |
+| ------- | ---------------------: | ------------------------------------------------- |
+| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          |
+| Phase 2 | 65% statements / lines | DB and route foundations                          |
+| Phase 3 | 70% statements / lines | Provider validation and usage analytics           |
+| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                |
+| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         |
+| Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites |
+| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          |
+
+Branches and functions should ratchet upward with each phase, but the primary hard target is statements / lines.
+
+## Priority hotspots
+
+These files or areas offer the best return for the next phases:
+
+1. `open-sse/handlers`
+   - `chatCore.ts` at 7.57%
+   - Overall directory at 29.07%
+2. `open-sse/translator/request`
+   - Overall directory at 36.39%
+   - Many translators are still near single-digit coverage
+3. `open-sse/translator/response`
+   - Overall directory at 8.07%
+4. `open-sse/executors`
+   - Overall directory at 36.62%
 5. `src/lib/db`
-   - "models.ts" al 20,66%
-   - "registeredKeys.ts" al 34,46%
-   - `modelComboMappings.ts` al 36,25%
-   - "settings.ts" al 46,40%
-   - "webhooks.ts" al 33,33%
-6. `src/lib/utilizzo`
-   - "usageHistory.ts" al 21,12%
-   - "usageStats.ts" al 9,56%
-   - `costCalculator.ts` al 30,00%
-7. `src/lib/provider`
-   - "validation.ts" al 41,16%
-8. Utilità a basso rischio e file API per guadagni iniziali
+   - `models.ts` at 20.66%
+   - `registeredKeys.ts` at 34.46%
+   - `modelComboMappings.ts` at 36.25%
+   - `settings.ts` at 46.40%
+   - `webhooks.ts` at 33.33%
+6. `src/lib/usage`
+   - `usageHistory.ts` at 21.12%
+   - `usageStats.ts` at 9.56%
+   - `costCalculator.ts` at 30.00%
+7. `src/lib/providers`
+   - `validation.ts` at 41.16%
+8. Low-risk utility and API files for early gains
    - `src/shared/utils/upstreamError.ts`
    - `src/shared/utils/apiAuth.ts`
    - `src/lib/api/errorResponse.ts`
    - `src/app/api/settings/require-login/route.ts`
-   - `src/app/api/providers/[id]/models/route.ts`## Execution checklist
+   - `src/app/api/providers/[id]/models/route.ts`
+
+## Execution checklist
 
 ### Phase 1: 56.95% -> 60%
 
-- [x] Corretta la metrica di copertura in modo che rifletta il codice sorgente anziché i file di test
-- [x] Conserva uno script di copertura legacy per il confronto
-- [x] Registra la linea di base e gli hotspot nel repository
-- [ ] Aggiungere test mirati per le utenze a basso rischio:
+- [x] Fix coverage metric so it reflects source code instead of test files
+- [x] Keep a legacy coverage script for comparison
+- [x] Record the baseline and hotspots in-repo
+- [ ] Add focused tests for low-risk utilities:
   - `src/shared/utils/upstreamError.ts`
   - `src/shared/utils/fetchTimeout.ts`
   - `src/lib/api/errorResponse.ts`
   - `src/shared/utils/apiAuth.ts`
   - `src/lib/display/names.ts`
-- [ ] Aggiungi test di percorso per:
+- [ ] Add route tests for:
   - `src/app/api/settings/require-login/route.ts`
-  - `src/app/api/providers/[id]/models/route.ts`### Phase 2: 60% -> 65%
+  - `src/app/api/providers/[id]/models/route.ts`
 
-- [] Aggiungi test supportati da DB per:
+### Phase 2: 60% -> 65%
+
+- [ ] Add DB-backed tests for:
   - `src/lib/db/modelComboMappings.ts`
   - `src/lib/db/settings.ts`
   - `src/lib/db/registeredKeys.ts`
-- [] Copri il comportamento del ramo in:
-  - `src/lib/provviders/validation.ts`
+- [ ] Cover branch behavior in:
+  - `src/lib/providers/validation.ts`
   - `src/app/api/v1/embeddings/route.ts`
-  - `src/app/api/v1/moderations/route.ts`### Phase 3: 65% -> 70%
+  - `src/app/api/v1/moderations/route.ts`
 
-- [] Aggiungi test di analisi dell'utilizzo per:
+### Phase 3: 65% -> 70%
+
+- [ ] Add usage analytics tests for:
   - `src/lib/usage/usageHistory.ts`
   - `src/lib/usage/usageStats.ts`
   - `src/lib/usage/costCalculator.ts`
-- [ ] Espande la copertura del percorso per la gestione dei proxy e i rami delle impostazioni### Phase 4: 70% -> 75%
+- [ ] Expand route coverage for proxy management and settings branches
 
-- [ ] Coprire gli assistenti dei traduttori e i percorsi di traduzione centrali:
-  - "open-sse/translator/index.ts".
+### Phase 4: 70% -> 75%
+
+- [ ] Cover translator helpers and central translation paths:
+  - `open-sse/translator/index.ts`
   - `open-sse/translator/helpers/*`
   - `open-sse/translator/request/*`
-  - `open-sse/translator/response/*`### Phase 5: 75% -> 80%
+  - `open-sse/translator/response/*`
 
-- [] Aggiungi test a livello di gestore per:
-  - "open-sse/handlers/chatCore.ts".
-  - "open-sse/handlers/responsesHandler.js".
-  - "open-sse/handlers/imageGeneration.js".
-  - "open-sse/handlers/embeddings.js".
-- [ ] Aggiungere la copertura del ramo dell'esecutore per l'autenticazione, i nuovi tentativi e le sostituzioni degli endpoint specifici del provider### Phase 6: 80% -> 85%
+### Phase 5: 75% -> 80%
+
+- [ ] Add handler-level tests for:
+  - `open-sse/handlers/chatCore.ts`
+  - `open-sse/handlers/responsesHandler.js`
+  - `open-sse/handlers/imageGeneration.js`
+  - `open-sse/handlers/embeddings.js`
+- [ ] Add executor branch coverage for provider-specific auth, retries, and endpoint overrides
+
+### Phase 6: 80% -> 85%
 
 - [ ] Merge more edge-case suites into the main coverage path
 - [ ] Increase function coverage for DB modules with weak constructor/helper coverage
@@ -122,23 +144,27 @@ Questi file o aree offrono il miglior ritorno per le fasi successive:
 
 ### Phase 7: 85% -> 90%
 
-- [ ] Tratta i restanti file a bassa copertura come bloccanti
-- [] Aggiunti test di regressione per ogni bug di produzione scoperto corretto durante il passaggio al 90%
-- [ ] Alzare il cancello di copertura in CI solo dopo che la linea di base locale è stabile per almeno due esecuzioni consecutive## Ratchet policy
+- [ ] Treat the remaining low-coverage files as blockers
+- [ ] Add regression tests for every uncovered production bug fixed during the push to 90%
+- [ ] Raise the coverage gate in CI only after the local baseline is stable for at least two consecutive runs
 
-Aggiorna le soglie di `npm run test:coverage` solo dopo che il progetto ha effettivamente superato il prossimo traguardo con un buffer confortevole.
+## Ratchet policy
 
-Sequenza di cricchetti consigliata:
+Update `npm run test:coverage` thresholds only after the project actually exceeds the next milestone with a comfortable buffer.
 
-1.55/60/55
-2.60/62/58
-3.65/64/62
-4.70/66/66
-5.75/70/72
-6.80/75/78
-7.85/80/84
-8.90/85/88
+Recommended ratchet sequence:
 
-L'ordine è "istruzioni-righe/rami/funzioni".## Known gap
+1. 55/60/55
+2. 60/62/58
+3. 65/64/62
+4. 70/66/66
+5. 75/70/72
+6. 80/75/78
+7. 85/80/84
+8. 90/85/88
 
-L'attuale comando di copertura misura la suite di unità del nodo principale e include la sorgente raggiunta da essa, incluso "open-sse". Non unisce ancora la copertura Vitest in un unico report unificato. Vale la pena fare questa fusione in seguito, ma non è un ostacolo per iniziare la salita del 60% -> 80%.
+Order is `statements-lines / branches / functions`.
+
+## Known gap
+
+The current coverage command measures the main Node unit suite and includes source reached from it, including `open-sse`. It does not yet merge Vitest coverage into a single unified report. That merge is worth doing later, but it is not a blocker for starting the 60% -> 80% climb.

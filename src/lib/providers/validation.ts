@@ -985,7 +985,7 @@ async function validateSearchProvider(
 
 const SEARCH_VALIDATOR_CONFIGS: Record<
   string,
-  (apiKey: string) => { url: string; init: RequestInit }
+  (apiKey: string, providerSpecificData?: any) => { url: string; init: RequestInit }
 > = {
   "serper-search": (apiKey) => ({
     url: "https://google.serper.dev/search",
@@ -1026,10 +1026,234 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       body: JSON.stringify({ query: "test", max_results: 1 }),
     },
   }),
+  "google-pse-search": (apiKey, providerSpecificData = {}) => {
+    const cx = providerSpecificData?.cx;
+    if (!cx || typeof cx !== "string") {
+      throw new Error("Programmable Search Engine ID (cx) is required");
+    }
+    return {
+      url: `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(apiKey)}&cx=${encodeURIComponent(
+        cx
+      )}&q=test&num=1`,
+      init: {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      },
+    };
+  },
+  "linkup-search": (apiKey) => ({
+    url: "https://api.linkup.so/v1/search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        q: "test",
+        depth: "standard",
+        outputType: "searchResults",
+        maxResults: 1,
+      }),
+    },
+  }),
+  "searchapi-search": (apiKey) => ({
+    url: `https://www.searchapi.io/api/v1/search?engine=google&q=test&api_key=${encodeURIComponent(
+      apiKey
+    )}`,
+    init: {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    },
+  }),
+  "searxng-search": (_apiKey, providerSpecificData = {}) => {
+    const baseUrl =
+      typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+        ? providerSpecificData.baseUrl.trim().replace(/\/+$/, "")
+        : "http://localhost:8888/search";
+    const searchUrl = baseUrl.endsWith("/search") ? baseUrl : `${baseUrl}/search`;
+    return {
+      url: `${searchUrl}?q=test&format=json`,
+      init: {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      },
+    };
+  },
 };
 
+async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    let token = apiKey;
+    if (token.startsWith("sso=")) token = token.slice(4);
+
+    // Generate the same Cloudflare-bypass headers the GrokWebExecutor uses.
+    const randomHex = (n: number) => {
+      const a = new Uint8Array(n);
+      crypto.getRandomValues(a);
+      return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
+    };
+    const statsigMsg = `e:TypeError: Cannot read properties of null (reading 'children')`;
+    const traceId = randomHex(16);
+    const spanId = randomHex(8);
+
+    const response = await validationWrite("https://grok.com/rest/app-chat/conversations/new", {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          Accept: "*/*",
+          "Accept-Encoding": "gzip, deflate, br, zstd",
+          "Accept-Language": "en-US,en;q=0.9",
+          Baggage:
+            "sentry-environment=production,sentry-release=d6add6fb0460641fd482d767a335ef72b9b6abb8,sentry-public_key=b311e0f2690c81f25e2c4cf6d4f7ce1c",
+          "Cache-Control": "no-cache",
+          "Content-Type": "application/json",
+          Cookie: `sso=${token}`,
+          Origin: "https://grok.com",
+          Pragma: "no-cache",
+          Referer: "https://grok.com/",
+          "Sec-Ch-Ua": '"Google Chrome";v="136", "Chromium";v="136", "Not(A:Brand";v="24"',
+          "Sec-Ch-Ua-Mobile": "?0",
+          "Sec-Ch-Ua-Platform": '"macOS"',
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+          "x-statsig-id": btoa(statsigMsg),
+          "x-xai-request-id": crypto.randomUUID(),
+          traceparent: `00-${traceId}-${spanId}-00`,
+        },
+        providerSpecificData
+      ),
+      body: JSON.stringify({
+        temporary: true,
+        modelName: "grok-4-1-thinking-1129",
+        modelMode: "MODEL_MODE_FAST",
+        message: "test",
+        fileAttachments: [],
+        imageAttachments: [],
+        disableSearch: true,
+        enableImageGeneration: false,
+        returnImageBytes: false,
+        returnRawGrokInXaiRequest: false,
+        enableImageStreaming: false,
+        imageGenerationCount: 0,
+        forceConcise: true,
+        toolOverrides: {},
+        enableSideBySide: false,
+        sendFinalMetadata: false,
+        isReasoning: false,
+        disableTextFollowUps: true,
+        disableMemory: true,
+        forceSideBySide: false,
+        isAsyncChat: false,
+        disableSelfHarmShortCircuit: false,
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid SSO cookie — re-paste from grok.com DevTools → Cookies → sso",
+      };
+    }
+
+    // 200 or non-auth 4xx (e.g. 400, 429) means the cookie is accepted
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Grok unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    let sessionToken = apiKey;
+    let bearerToken: string | null = null;
+
+    if (sessionToken.startsWith("__Secure-next-auth.session-token=")) {
+      sessionToken = sessionToken.slice("__Secure-next-auth.session-token=".length);
+    } else if (/^bearer\s+/i.test(sessionToken)) {
+      bearerToken = sessionToken.replace(/^bearer\s+/i, "").trim();
+      sessionToken = "";
+    }
+
+    const timezone =
+      typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
+    const headers = applyCustomUserAgent(
+      {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+        Origin: "https://www.perplexity.ai",
+        Referer: "https://www.perplexity.ai/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+        "X-App-ApiClient": "default",
+        "X-App-ApiVersion": "client-1.11.0",
+        ...(bearerToken
+          ? { Authorization: `Bearer ${bearerToken}` }
+          : sessionToken
+            ? { Cookie: `__Secure-next-auth.session-token=${sessionToken}` }
+            : {}),
+      },
+      providerSpecificData
+    );
+
+    const response = await validationWrite("https://www.perplexity.ai/rest/sse/perplexity_ask", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        query_str: "test",
+        params: {
+          query_str: "test",
+          search_focus: "internet",
+          mode: "concise",
+          model_preference: "default",
+          sources: ["web"],
+          attachments: [],
+          frontend_uuid: crypto.randomUUID(),
+          frontend_context_uuid: crypto.randomUUID(),
+          version: "client-1.11.0",
+          language: "en-US",
+          timezone,
+          search_recency_filter: null,
+          is_incognito: true,
+          use_schematized_api: true,
+          last_backend_uuid: null,
+        },
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Invalid Perplexity session cookie — re-paste __Secure-next-auth.session-token from perplexity.ai",
+      };
+    }
+
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Perplexity unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
-  if (!provider || !apiKey) {
+  const requiresApiKey = provider !== "searxng-search";
+  if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
 
@@ -1066,6 +1290,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     databricks: validateDatabricksProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
+    "grok-web": validateGrokWebProvider,
+    "perplexity-web": validatePerplexityWebProvider,
     vertex: async ({ apiKey }: any) => {
       try {
         const { parseSAFromApiKey, getAccessToken } =
@@ -1104,7 +1330,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
         id,
         ({ apiKey, providerSpecificData }: any) => {
-          const { url, init } = configFn(apiKey);
+          const { url, init } = configFn(apiKey, providerSpecificData);
           return validateSearchProvider(url, init, providerSpecificData);
         },
       ])

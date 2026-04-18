@@ -7,14 +7,23 @@ import {
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
+import {
+  WEB_COOKIE_PROVIDERS,
+  SEARCH_PROVIDERS,
+  AUDIO_ONLY_PROVIDERS,
+} from "@/shared/constants/config";
 import { testSingleConnection } from "../[id]/test/route";
 import { providersBatchTestSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // Determine auth type group for a provider id
 function getAuthGroup(providerId) {
   if (FREE_PROVIDERS[providerId]) return "free";
   if (OAUTH_PROVIDERS[providerId]) return "oauth";
+  if (WEB_COOKIE_PROVIDERS[providerId]) return "web-cookie";
+  if (SEARCH_PROVIDERS[providerId]) return "search";
+  if (AUDIO_ONLY_PROVIDERS[providerId]) return "audio";
   if (APIKEY_PROVIDERS[providerId]) return "apikey";
   if (
     typeof providerId === "string" &&
@@ -22,7 +31,7 @@ function getAuthGroup(providerId) {
       providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
   )
     return "compatible";
-  return "apikey";
+  return "unknown";
 }
 
 function isCompatibleProvider(providerId) {
@@ -35,6 +44,9 @@ function isCompatibleProvider(providerId) {
 
 // POST /api/providers/test-batch - Test multiple connections by group
 export async function POST(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -73,13 +85,22 @@ export async function POST(request) {
       connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "free");
     } else if (mode === "apikey") {
       connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "apikey");
+    } else if (mode === "web-cookie") {
+      connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "web-cookie");
+    } else if (mode === "search") {
+      connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "search");
+    } else if (mode === "audio") {
+      connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "audio");
     } else if (mode === "compatible") {
       connectionsToTest = allConnections.filter((c) => isCompatibleProvider(c.provider));
     } else if (mode === "all") {
       connectionsToTest = allConnections;
     } else {
       return NextResponse.json(
-        { error: "Invalid mode. Use: provider, oauth, free, apikey, compatible, all" },
+        {
+          error:
+            "Invalid mode. Use: provider, oauth, free, apikey, compatible, all, web-cookie, search, audio",
+        },
         { status: 400 }
       );
     }

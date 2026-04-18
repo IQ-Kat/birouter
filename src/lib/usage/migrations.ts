@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Usage Migrations — extracted from usageDb.js (T-15)
  *

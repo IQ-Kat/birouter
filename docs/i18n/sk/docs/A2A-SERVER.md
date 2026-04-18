@@ -4,28 +4,37 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute ako inteligentný smerovací agent## Agent Discovery
+> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+
+## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Vráti kartu agenta s popisom možností, zručností a požiadaviek na overenie OmniRoute.---
+Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+
+---
 
 ## Authentication
 
-Všetky požiadavky `/a2a` vyžadujú kľúč API cez hlavičku `Authorization`:```
+All `/a2a` requests require an API key via the `Authorization` header:
+
+```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+```
 
-````
+If no API key is configured on the server, authentication is bypassed.
 
-Ak na serveri nie je nakonfigurovaný žiadny kľúč API, overenie sa vynechá.---
+---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Odošle správu zručnosti a čaká na úplnú odpoveď.```bash
+Sends a message to a skill and waits for the complete response.
+
+```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -39,31 +48,34 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-````
+```
 
-**Odpoveď:**```json
+**Response:**
+
+```json
 {
-"jsonrpc": "2.0",
-"id": "1",
-"result": {
-"task": { "id": "uuid", "state": "completed" },
-"artifacts": [{ "type": "text", "content": "..." }],
-"metadata": {
-"routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-"cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-"resilience_trace": [
-{ "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-],
-"policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+  "jsonrpc": "2.0",
+  "id": "1",
+  "result": {
+    "task": { "id": "uuid", "state": "completed" },
+    "artifacts": [{ "type": "text", "content": "..." }],
+    "metadata": {
+      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
+      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+      "resilience_trace": [
+        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+      ],
+      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+    }
+  }
 }
-}
-}
-
-````
+```
 
 ### `message/stream` — SSE Streaming
 
-Rovnaké ako `správa/odoslať`, ale vráti udalosti odoslané serverom na streamovanie v reálnom čase.```bash
+Same as `message/send` but returns Server-Sent Events for real-time streaming.
+
+```bash
 curl -N -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -76,16 +88,17 @@ curl -N -X POST http://localhost:20128/a2a \
       "messages": [{"role": "user", "content": "Explain quantum computing"}]
     }
   }'
-````
+```
 
-**Udalosti SSE:**```
+**SSE Events:**
+
+```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
 : heartbeat 2026-03-03T17:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-
-````
+```
 
 ### `tasks/get` — Query Task Status
 
@@ -94,7 +107,7 @@ curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-````
+```
 
 ### `tasks/cancel` — Cancel a Task
 
@@ -109,10 +122,12 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-| Zručnosť                  | Popis                                                                                                                                |
-| :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------- | --- |
-| "inteligentné smerovanie" | Výzvy trasy prostredníctvom inteligentného potrubia OmniRoute. Vráti odpoveď s vysvetlením smerovania, cenou a sledovaním odolnosti. |
-| "správa kvót"             | Odpovedá na otázky v prirodzenom jazyku o kvótach poskytovateľov, navrhuje bezplatné kombinácie a poskytuje hodnotenie kvót.         | --- |
+| Skill              | Description                                                                                                                     |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
+| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+
+---
 
 ## Task Lifecycle
 
@@ -122,19 +137,23 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Platnosť úloh vyprší po 5 minútach (konfigurovateľné)
-- Stavy terminálu: "dokončené", "neúspešné", "zrušené".
-- Protokol udalostí sleduje každý prechod stavu---
+- Tasks expire after 5 minutes (configurable)
+- Terminal states: `completed`, `failed`, `cancelled`
+- Event log tracks every state transition
+
+---
 
 ## Error Codes
 
-| Kód    | Význam                            |
-| :----- | :-------------------------------- | --- |
-| -32700 | Chyba analýzy (neplatný JSON)     |
-| -32600 | Neplatná požiadavka / Neoprávnená |
-| -32601 | Metóda alebo zručnosť sa nenašli  |
-| -32602 | Neplatné parametre                |
-| -32603 | Vnútorná chyba                    | --- |
+| Code   | Meaning                        |
+| :----- | :----------------------------- |
+| -32700 | Parse error (invalid JSON)     |
+| -32600 | Invalid request / Unauthorized |
+| -32601 | Method or skill not found      |
+| -32602 | Invalid params                 |
+| -32603 | Internal error                 |
+
+---
 
 ## Integration Examples
 

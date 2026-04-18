@@ -87,69 +87,77 @@ export async function registerNodejs(): Promise<void> {
     { initGracefulShutdown },
     { initApiBridgeServer },
     { startBackgroundRefresh },
+    { ensureCloudSyncInitialized },
     { startProviderLimitsSyncScheduler },
     { getSettings },
+    { applyRuntimeSettings },
+    { startRuntimeConfigHotReload },
+    { startSpendBatchWriter },
+    { registerDefaultGuardrails },
+    { ensurePersistentManagementPasswordHash },
+    { skillExecutor },
+    { registerBuiltinSkills },
   ] = await Promise.all([
     import("@/lib/gracefulShutdown"),
     import("@/lib/apiBridgeServer"),
     import("@/domain/quotaCache"),
+    import("@/lib/initCloudSync"),
     import("@/shared/services/providerLimitsSyncScheduler"),
     import("@/lib/db/settings"),
+    import("@/lib/config/runtimeSettings"),
+    import("@/lib/config/hotReload"),
+    import("@/lib/spend/batchWriter"),
+    import("@/lib/guardrails"),
+    import("@/lib/auth/managementPassword"),
+    import("@/lib/skills/executor"),
+    import("@/lib/skills/builtins"),
   ]);
 
   initGracefulShutdown();
   initApiBridgeServer();
+  startSpendBatchWriter();
+  registerDefaultGuardrails();
+  registerBuiltinSkills(skillExecutor);
+  console.log("[STARTUP] Spend batch writer started");
+  console.log("[STARTUP] Guardrail registry initialized");
+  console.log("[STARTUP] Builtin skill handlers registered");
   if (!isBackgroundServicesDisabled()) {
     startBackgroundRefresh();
     console.log("[STARTUP] Quota cache background refresh started");
     startProviderLimitsSyncScheduler();
     console.log("[STARTUP] Provider limits sync scheduler started");
+    const cloudSyncInitialized = await ensureCloudSyncInitialized();
+    console.log(
+      `[STARTUP] Cloud/model sync background bootstrap ${cloudSyncInitialized ? "initialized" : "skipped"}`
+    );
   }
 
   try {
-    const [
-      { setCustomAliases },
-      { migrateCodexConnectionDefaultsFromLegacySettings },
-      { seedDefaultModelAliases },
-    ] = await Promise.all([
-      import("@omniroute/open-sse/services/modelDeprecation.ts"),
-      import("@/lib/providers/codexConnectionDefaults"),
-      import("@/lib/modelAliasSeed"),
-    ]);
-    const settings = await getSettings();
-
-    if (settings.modelAliases) {
-      const aliases =
-        typeof settings.modelAliases === "string"
-          ? JSON.parse(settings.modelAliases)
-          : settings.modelAliases;
-      if (aliases && typeof aliases === "object") {
-        setCustomAliases(aliases);
-        console.log(
-          `[STARTUP] Restored ${Object.keys(aliases).length} custom model alias(es) from settings`
-        );
-      }
+    const [{ migrateCodexConnectionDefaultsFromLegacySettings }, { seedDefaultModelAliases }] =
+      await Promise.all([
+        import("@/lib/providers/codexConnectionDefaults"),
+        import("@/lib/modelAliasSeed"),
+      ]);
+    let settings = await getSettings();
+    const passwordState = await ensurePersistentManagementPasswordHash({
+      logger: console,
+      settings,
+      source: "startup",
+    });
+    settings = passwordState.settings;
+    const runtimeChanges = await applyRuntimeSettings(settings, { force: true, source: "startup" });
+    if (runtimeChanges.length > 0) {
+      console.log(
+        `[STARTUP] Runtime settings hydrated: ${runtimeChanges
+          .map((entry) => entry.section)
+          .join(", ")}`
+      );
     }
 
     const seededModelAliases = await seedDefaultModelAliases();
     console.log(
       `[STARTUP] Model alias seed: applied=${seededModelAliases.applied.length}, skipped=${seededModelAliases.skipped.length}, failed=${seededModelAliases.failed.length}`
     );
-
-    if (settings.backgroundDegradation) {
-      try {
-        const bgSettings =
-          typeof settings.backgroundDegradation === "string"
-            ? JSON.parse(settings.backgroundDegradation)
-            : settings.backgroundDegradation;
-        const { setBackgroundDegradationConfig } =
-          await import("@omniroute/open-sse/services/backgroundTaskDetector.ts");
-        setBackgroundDegradationConfig(bgSettings);
-        console.log(`[STARTUP] Restored background task degradation config from settings`);
-      } catch (err: unknown) {
-        console.warn(`[STARTUP] Failed to parse background degradation settings:`, err);
-      }
-    }
 
     const migration = await migrateCodexConnectionDefaultsFromLegacySettings();
     if (migration.migrated) {
@@ -166,6 +174,8 @@ export async function registerNodejs(): Promise<void> {
         console.log("[STARTUP] Synced migrated Codex connection defaults to cloud");
       }
     }
+
+    startRuntimeConfigHotReload();
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[STARTUP] Could not restore runtime settings:", msg);

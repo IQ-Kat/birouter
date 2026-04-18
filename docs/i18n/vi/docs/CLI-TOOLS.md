@@ -4,9 +4,11 @@
 
 ---
 
-Hướng dẫn này giải thích cách cài đặt và định cấu hình tất cả các công cụ CLI mã hóa AI được hỗ trợ
-để sử dụng**OmniRoute**làm chương trình phụ trợ hợp nhất, cung cấp cho bạn khả năng quản lý khóa tập trung,
-theo dõi chi phí, chuyển đổi mô hình và ghi nhật ký yêu cầu trên mọi công cụ.---
+This guide explains how to install and configure all supported AI coding CLI tools
+to use **OmniRoute** as the unified backend, giving you centralized key management,
+cost tracking, model switching, and request logging across every tool.
+
+---
 
 ## How It Works
 
@@ -20,113 +22,119 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilo
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
-**Quyền lợi:**
+**Benefits:**
 
-- Một khóa API để quản lý tất cả các công cụ
-- Theo dõi chi phí trên tất cả CLI trong bảng điều khiển
-- Chuyển đổi mô hình mà không cần cấu hình lại mọi công cụ
-- Hoạt động cục bộ và trên các máy chủ từ xa (VPS)---
+- One API key to manage all tools
+- Cost tracking across all CLIs in the dashboard
+- Model switching without reconfiguring every tool
+- Works locally and on remote servers (VPS)
+
+---
 
 ## Supported Tools (Dashboard Source of Truth)
 
-Các thẻ bảng thông tin trong `/dashboard/cli-tools` được tạo từ `src/shared/constants/cliTools.ts`.
-Danh sách hiện tại (v3.0.0-rc.16):
+The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
+Current list (v3.0.0-rc.16):
 
-| Công cụ                 | ID               | Lệnh         | Chế độ cài đặt | Phương pháp cài đặt      |
-| ----------------------- | ---------------- | ------------ | -------------- | ------------------------ | -------------------------------------------- |
-| **Mã Claude**           | `claude`         | `claude`     | env            | npm                      |
-| **OpenAI Codex**        | `codex`          | `codex`      | tùy chỉnh      | npm                      |
-| **Droid nhà máy**       | `droid`          | `droid`      | tùy chỉnh      | đi kèm/CLI               |
-| **OpenClaw**            | `móng vuốt`      | `móng vuốt`  | tùy chỉnh      | đi kèm/CLI               |
-| **Con trỏ**             | `con trỏ`        | ứng dụng     | hướng dẫn      | ứng dụng máy tính để bàn |
-| **Cline**               | `cline`          | `cline`      | tùy chỉnh      | npm                      |
-| **Mã Kilo**             | `kilo`           | `kilocode`   | tùy chỉnh      | npm                      |
-| **Tiếp tục**            | `tiếp tục`       | phần mở rộng | hướng dẫn      | Mã VS                    |
-| **Phản trọng lực**      | `phản trọng lực` | nội bộ       | mitm           | OmniRoute                |
-| **Phi công phụ GitHub** | `Phi công phụ`   | phần mở rộng | tùy chỉnh      | Mã VS                    |
-| **Mã mở**               | `mã mở`          | `mã mở`      | hướng dẫn      | npm                      |
-| **Kiro AI**             | `kiro`           | ứng dụng/cli | mitm           | máy tính để bàn/CLI      | ### CLI fingerprint sync (Agents + Settings) |
+| Tool               | ID            | Command    | Setup Mode | Install Method |
+| ------------------ | ------------- | ---------- | ---------- | -------------- |
+| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
+| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
+| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
+| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
+| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
+| **Cline**          | `cline`       | `cline`    | custom     | npm            |
+| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
+| **Continue**       | `continue`    | extension  | guide      | VS Code        |
+| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
+| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
+| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
+| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
+| **Qwen Code**      | `qwen`        | `qwen`     | custom     | npm            |
 
-`/dashboard/agents` và `Cài đặt > Dấu vân tay CLI` sử dụng `src/shared/constants/cliCompatProviders.ts`.
-Điều này giúp ID nhà cung cấp được liên kết với thẻ CLI và ID cũ.
+### CLI fingerprint sync (Agents + Settings)
 
-| ID CLI                                                                                                  | ID nhà cung cấp dấu vân tay |
-| ------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `kilo`                                                                                                  | `kilocode`                  |
-| `Phi công phụ`                                                                                          | `github`                    |
-| `claude` / `codex` / `phản trọng lực` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                     |
+`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
+This keeps provider IDs aligned with CLI cards and legacy IDs.
 
-Các ID cũ vẫn được chấp nhận về khả năng tương thích: `copilot`, `kimi-coding`, `qwen`.---
+| CLI ID                                                                                               | Fingerprint Provider ID |
+| ---------------------------------------------------------------------------------------------------- | ----------------------- |
+| `kilo`                                                                                               | `kilocode`              |
+| `copilot`                                                                                            | `github`                |
+| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
+
+Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
+
+---
 
 ## Step 1 — Get an OmniRoute API Key
 
-1. Mở bảng thông tin OmniRoute →**Trình quản lý API**(`/dashboard/api-manager`)
-2. Nhấp vào**Tạo khóa API**
-3. Đặt tên cho nó (ví dụ: `cli-tools`) và chọn tất cả các quyền
-4. Sao chép khóa — bạn sẽ cần nó cho mọi CLI bên dưới
+1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
+2. Click **Create API Key**
+3. Give it a name (e.g. `cli-tools`) and select all permissions
+4. Copy the key — you'll need it for every CLI below
 
-> Chìa khóa của bạn trông giống như: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`---
+> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+
+---
 
 ## Step 2 — Install CLI Tools
 
-Tất cả các công cụ dựa trên npm đều yêu cầu Node.js 18+:```bash
+All npm-based tools require Node.js 18+:
 
+```bash
 # Claude Code (Anthropic)
-
 npm install -g @anthropic-ai/claude-code
 
 # OpenAI Codex
-
 npm install -g @openai/codex
 
 # OpenCode
-
 npm install -g opencode-ai
 
 # Cline
-
 npm install -g cline
 
 # KiloCode
-
 npm install -g kilocode
 
 # Kiro CLI (Amazon — requires curl + unzip)
-
-apt-get install -y unzip # on Debian/Ubuntu
+apt-get install -y unzip   # on Debian/Ubuntu
 curl -fsSL https://cli.kiro.dev/install | bash
-export PATH="$HOME/.local/bin:$PATH" # add to ~/.bashrc
+export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
+```
 
-````
+**Verify:**
 
-**Xác minh:**```bash
+```bash
 claude --version     # 2.x.x
 codex --version      # 0.x.x
 opencode --version   # x.x.x
 cline --version      # 2.x.x
 kilocode --version   # x.x.x (or: kilo --version)
 kiro-cli --version   # 1.x.x
-````
+```
 
 ---
 
 ## Step 3 — Set Global Environment Variables
 
-Thêm vào `~/.bashrc` (hoặc `~/.zshrc`), sau đó chạy `source ~/.bashrc`:```bash
+Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
 
+```bash
 # OmniRoute Universal Endpoint
-
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
 export ANTHROPIC_API_KEY="sk-your-omniroute-key"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
 export GEMINI_API_KEY="sk-your-omniroute-key"
+```
 
-````
+> For a **remote server** replace `localhost:20128` with the server IP or domain,
+> e.g. `http://192.168.0.15:20128`.
 
-> Đối với**máy chủ từ xa**thay thế `localhost:20128` bằng IP hoặc miền máy chủ,
-> ví dụ: `http://192.168.0.15:20128`.---
+---
 
 ## Step 4 — Configure Each Tool
 
@@ -143,9 +151,11 @@ mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
   "apiKey": "sk-your-omniroute-key"
 }
 EOF
-````
+```
 
-**Kiểm tra:**`claude "say hello"`---
+**Test:** `claude "say hello"`
+
+---
 
 ### OpenAI Codex
 
@@ -157,7 +167,9 @@ apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
 
-**Kiểm tra:**`codex "2+2 là gì?"`---
+**Test:** `codex "what is 2+2?"`
+
+---
 
 ### OpenCode
 
@@ -169,45 +181,57 @@ api_key = "sk-your-omniroute-key"
 EOF
 ```
 
-**Kiểm tra:**`mã mở`---
+**Test:** `opencode`
+
+---
 
 ### Cline (CLI or VS Code)
 
-**Chế độ CLI:**```bash
+**CLI mode:**
+
+```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
-"apiProvider": "openai",
-"openAiBaseUrl": "http://localhost:20128/v1",
-"openAiApiKey": "sk-your-omniroute-key"
+  "apiProvider": "openai",
+  "openAiBaseUrl": "http://localhost:20128/v1",
+  "openAiApiKey": "sk-your-omniroute-key"
 }
 EOF
+```
 
-````
+**VS Code mode:**
+Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-**Chế độ Mã VS:**
-Cài đặt tiện ích mở rộng Cline → Nhà cung cấp API: `Tương thích OpenAI` → URL cơ sở: `http://localhost:20128/v1`
+Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
 
-Hoặc sử dụng bảng điều khiển OmniRoute →**Công cụ CLI → Cline → Áp dụng cấu hình**.---
+---
 
 ### KiloCode (CLI or VS Code)
 
-**Chế độ CLI:**```bash
+**CLI mode:**
+
+```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
-````
+```
 
-**Cài đặt mã VS:**```json
+**VS Code settings:**
+
+```json
 {
-"kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-"kilo-code.apiKey": "sk-your-omniroute-key"
+  "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
+  "kilo-code.apiKey": "sk-your-omniroute-key"
 }
+```
 
-````
+Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
 
-Hoặc sử dụng bảng điều khiển OmniRoute →**Công cụ CLI → KiloCode → Áp dụng cấu hình**.---
+---
 
 ### Continue (VS Code Extension)
 
-Chỉnh sửa `~/.continue/config.yaml`:```yaml
+Edit `~/.continue/config.yaml`:
+
+```yaml
 models:
   - name: OmniRoute
     provider: openai
@@ -215,9 +239,11 @@ models:
     apiBase: http://localhost:20128/v1
     apiKey: sk-your-omniroute-key
     default: true
-````
+```
 
-Khởi động lại Mã VS sau khi chỉnh sửa.---
+Restart VS Code after editing.
+
+---
 
 ### Kiro CLI (Amazon)
 
@@ -232,57 +258,116 @@ kiro-cli status
 
 ---
 
+### Qwen Code (Alibaba)
+
+Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
+
+**Option 1: Environment variables (`~/.qwen/.env`)**
+
+```bash
+mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
+OPENAI_API_KEY="sk-your-omniroute-key"
+OPENAI_BASE_URL="http://localhost:20128/v1"
+OPENAI_MODEL="auto"
+EOF
+```
+
+**Option 2: `settings.json` with model providers**
+
+```json
+// ~/.qwen/settings.json
+{
+  "env": {
+    "OPENAI_API_KEY": "sk-your-omniroute-key",
+    "OPENAI_BASE_URL": "http://localhost:20128/v1"
+  },
+  "modelProviders": {
+    "openai": [
+      {
+        "id": "omniroute-default",
+        "name": "OmniRoute (Auto)",
+        "envKey": "OPENAI_API_KEY",
+        "baseUrl": "http://localhost:20128/v1"
+      }
+    ]
+  }
+}
+```
+
+**Option 3: Inline CLI flags**
+
+```bash
+OPENAI_BASE_URL="http://localhost:20128/v1" \
+OPENAI_API_KEY="sk-your-omniroute-key" \
+OPENAI_MODEL="auto" \
+qwen
+```
+
+> For a **remote server** replace `localhost:20128` with the server IP or domain.
+
+**Test:** `qwen "say hello"`
+
 ### Cursor (Desktop App)
 
-> **Lưu ý:**Con trỏ định tuyến các yêu cầu thông qua đám mây của nó. Để tích hợp OmniRoute,
-> bật**Cloud Endpoint**trong Cài đặt OmniRoute và sử dụng URL miền công cộng của bạn.
+> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
+> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
 
-Qua GUI:**Cài đặt → Mô hình → Khóa API OpenAI**
+Via GUI: **Settings → Models → OpenAI API Key**
 
-- URL cơ sở: `https://your-domain.com/v1`
-- Khóa API: khóa OmniRoute của bạn---
+- Base URL: `https://your-domain.com/v1`
+- API Key: your OmniRoute key
+
+---
 
 ## Dashboard Auto-Configuration
 
-Bảng điều khiển OmniRoute tự động cấu hình cho hầu hết các công cụ:
+The OmniRoute dashboard automates configuration for most tools:
 
-1. Truy cập `http://localhost:20128/dashboard/cli-tools`
-2. Mở rộng bất kỳ thẻ công cụ nào
-3. Chọn khóa API của bạn từ danh sách thả xuống
-4. Nhấp vào**Áp dụng cấu hình**(nếu phát hiện thấy công cụ đã được cài đặt)
-5. Hoặc sao chép thủ công đoạn cấu hình được tạo---
+1. Go to `http://localhost:20128/dashboard/cli-tools`
+2. Expand any tool card
+3. Select your API key from the dropdown
+4. Click **Apply Config** (if tool is detected as installed)
+5. Or copy the generated config snippet manually
+
+---
 
 ## Built-in Agents: Droid & OpenClaw
 
-**Droid**và**OpenClaw**là các tác nhân AI được tích hợp trực tiếp vào OmniRoute — không cần cài đặt.
-Chúng chạy dưới dạng các tuyến nội bộ và tự động sử dụng định tuyến mô hình của OmniRoute.
+**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
+They run as internal routes and use OmniRoute's model routing automatically.
 
-- Truy cập: `http://localhost:20128/dashboard/agents`
-- Cấu hình: cùng combo và nhà cung cấp như tất cả các công cụ khác
-- Không cần cài đặt khóa API hoặc CLI---
+- Access: `http://localhost:20128/dashboard/agents`
+- Configure: same combos and providers as all other tools
+- No API key or CLI install required
+
+---
 
 ## Available API Endpoints
 
-| Điểm cuối              | Mô tả                                           | Sử dụng cho                         |
-| ---------------------- | ----------------------------------------------- | ----------------------------------- | --- |
-| `/v1/chat/hoàn thành`  | Trò chuyện tiêu chuẩn (tất cả các nhà cung cấp) | Tất cả các công cụ hiện đại         |
-| `/v1/phản hồi`         | API phản hồi (định dạng OpenAI)                 | Codex, quy trình làm việc tác nhân  |
-| `/v1/hoàn thành`       | Hoàn thành văn bản kế thừa                      | Các công cụ cũ hơn sử dụng `promp:` |
-| `/v1/nhúng`            | Nhúng văn bản                                   | RAG, tìm kiếm                       |
-| `/v1/hình ảnh/thế hệ`  | Tạo hình ảnh                                    | DALL-E, Flux, v.v.                  |
-| `/v1/âm thanh/lời nói` | Chuyển văn bản thành giọng nói                  | ElevenLabs, OpenAI TTS              |
-| `/v1/audio/bản ghi`    | Chuyển giọng nói thành văn bản                  | Deepgram, hộiAI                     | --- |
+| Endpoint                   | Description                   | Use For                     |
+| -------------------------- | ----------------------------- | --------------------------- |
+| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
+| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
+| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
+| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
+| `/v1/images/generations`   | Image generation              | DALL-E, Flux, etc.          |
+| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
+| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
+
+---
 
 ## Xử lý sự cố
 
-| Lỗi                              | Nguyên nhân                           | Sửa chữa                                            |
-| -------------------------------- | ------------------------------------- | --------------------------------------------------- | --- |
-| `Kết nối bị từ chối`             | OmniRoute không chạy                  | `pm2 bắt đầu đa tuyến`                              |
-| `401 trái phép`                  | Khóa API sai                          | Kiểm tra `/dashboard/api-manager`                   |
-| `Không có cấu hình kết hợp`      | Không có kết hợp định tuyến hoạt động | Thiết lập trong `/dashboard/combos`                 |
-| `mô hình không hợp lệ`           | Model không có trong danh mục         | Sử dụng `auto` hoặc kiểm tra `/dashboard/providers` |
-| CLI hiển thị "chưa được cài đặt" | Nhị phân không có trong PATH          | Kiểm tra ` which <command>`                         |
-| `kiro-cli: không tìm thấy`       | Không có trong ĐƯỜNG                  | `export PATH="$HOME/.local/bin:$PATH"`              | --- |
+| Error                     | Cause                   | Fix                                        |
+| ------------------------- | ----------------------- | ------------------------------------------ |
+| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
+| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
+| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
+| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
+| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
+| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
+
+---
 
 ## Quick Setup Script (One Command)
 
@@ -291,7 +376,7 @@ Chúng chạy dưới dạng các tuyến nội bộ và tự động sử dụn
 OMNIROUTE_URL="http://localhost:20128/v1"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
-npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
 
 # Kiro CLI
 apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash

@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { getSettings } from "@/lib/localDb";
-import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
+import {
+  ensurePersistentManagementPasswordHash,
+  getStoredManagementPassword,
+  verifyManagementPassword,
+} from "@/lib/auth/managementPassword";
 import { loginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -55,33 +59,30 @@ export async function POST(request) {
       return NextResponse.json({ error: "Invalid password payload" }, { status: 400 });
     }
     const settings = await getSettings();
+    const passwordState = await ensurePersistentManagementPasswordHash({
+      settings,
+      source: "auth.login",
+    });
+    const storedHash = getStoredManagementPassword(passwordState.settings);
 
-    const storedHash = typeof settings.password === "string" ? settings.password : "";
-
-    let isValid = false;
-    if (storedHash) {
-      isValid = await bcrypt.compare(password, storedHash);
-    } else {
-      // SECURITY: No default password — must be set via env or onboarding
-      if (!process.env.INITIAL_PASSWORD) {
-        logAuditEvent({
-          action: "auth.login.setup_required",
-          actor: "anonymous",
-          target: "dashboard-auth",
-          resourceType: "auth_session",
-          status: "failed",
-          ipAddress: auditContext.ipAddress || undefined,
-          requestId: auditContext.requestId,
-          metadata: { reason: "missing_initial_password" },
-        });
-        return NextResponse.json(
-          { error: "No password configured. Complete onboarding first.", needsSetup: true },
-          { status: 403 }
-        );
-      }
-      const initialPassword = process.env.INITIAL_PASSWORD;
-      isValid = password === initialPassword;
+    if (!storedHash) {
+      logAuditEvent({
+        action: "auth.login.setup_required",
+        actor: "anonymous",
+        target: "dashboard-auth",
+        resourceType: "auth_session",
+        status: "failed",
+        ipAddress: auditContext.ipAddress || undefined,
+        requestId: auditContext.requestId,
+        metadata: { reason: "missing_persisted_password" },
+      });
+      return NextResponse.json(
+        { error: "No password configured. Complete onboarding first.", needsSetup: true },
+        { status: 403 }
+      );
     }
+
+    const isValid = await verifyManagementPassword(password, storedHash);
 
     if (isValid) {
       const forceSecureCookie = process.env.AUTH_COOKIE_SECURE === "true";
@@ -113,6 +114,7 @@ export async function POST(request) {
         requestId: auditContext.requestId,
         metadata: {
           hasStoredPassword: Boolean(storedHash),
+          passwordMigrated: passwordState.migrated,
           secureCookie: useSecureCookie,
         },
       });

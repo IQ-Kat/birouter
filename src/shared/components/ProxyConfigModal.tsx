@@ -354,7 +354,10 @@ export default function ProxyConfigModal({
   const title =
     level === "global"
       ? t("titleGlobal")
-      : `${t(`level${level.charAt(0).toUpperCase() + level.slice(1)}` as any)} Proxy — ${levelLabel || levelId || ""}`;
+      : t("titleLevel", {
+          level: t(`level${level.charAt(0).toUpperCase() + level.slice(1)}` as any),
+          label: levelLabel || levelId || "",
+        });
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="lg">

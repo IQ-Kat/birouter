@@ -3,25 +3,18 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 
-interface ConfigDiff {
-  added: string[];
-  removed: string[];
-  changed: Array<{ key: string; from: any; to: any }>;
-  isEmpty: boolean;
-}
-
 interface AuditEntry {
-  id: string;
+  id: number;
   timestamp: string;
   action: string;
-  target: string;
-  targetId: string;
-  targetName: string;
-  source: string;
-  before: any;
-  after: any;
-  diff: ConfigDiff;
-  note: string | null;
+  actor: string;
+  target?: string;
+  resource_type?: string;
+  ip_address?: string;
+  status?: string;
+  request_id?: string;
+  details?: any;
+  metadata?: any;
 }
 
 export default function ConfigAuditViewer() {
@@ -48,16 +41,17 @@ export default function ConfigAuditViewer() {
   };
 
   const getActionColor = (action: string) => {
-    switch (action) {
-      case "create":
-        return "text-green-400 bg-green-400/10 border-green-500/20";
-      case "update":
-        return "text-blue-400 bg-blue-400/10 border-blue-500/20";
-      case "delete":
-        return "text-red-400 bg-red-400/10 border-red-500/20";
-      default:
-        return "text-gray-400 bg-gray-400/10 border-gray-500/20";
+    const act = action.toLowerCase();
+    if (act.includes("success") || act.includes("create")) {
+      return "text-green-400 bg-green-400/10 border-green-500/20";
     }
+    if (act.includes("update") || act.includes("modify")) {
+      return "text-blue-400 bg-blue-400/10 border-blue-500/20";
+    }
+    if (act.includes("failed") || act.includes("delete")) {
+      return "text-red-400 bg-red-400/10 border-red-500/20";
+    }
+    return "text-gray-400 bg-gray-400/10 border-gray-500/20";
   };
 
   if (loading) {
@@ -98,8 +92,8 @@ export default function ConfigAuditViewer() {
               <th className="px-6 py-4 font-medium">Timestamp</th>
               <th className="px-6 py-4 font-medium">Action</th>
               <th className="px-6 py-4 font-medium">Target</th>
-              <th className="px-6 py-4 font-medium">Resource</th>
-              <th className="px-6 py-4 font-medium">Source</th>
+              <th className="px-6 py-4 font-medium">Actor</th>
+              <th className="px-6 py-4 font-medium">Resource/IP</th>
               <th className="px-6 py-4 font-medium text-right">Details</th>
             </tr>
           </thead>
@@ -120,20 +114,20 @@ export default function ConfigAuditViewer() {
                   </span>
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap text-sm text-[var(--text-primary,#fff)] font-medium capitalize">
-                  {entry.target}
-                </td>
-                <td className="px-6 py-3 text-sm text-[var(--text-secondary,#aaa)] font-mono">
-                  {entry.targetName}
+                  {entry.target || "-"}
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap text-sm text-[var(--text-muted,#666)] capitalize">
-                  {entry.source}
+                  {entry.actor}
+                </td>
+                <td className="px-6 py-3 text-sm text-[var(--text-secondary,#aaa)] font-mono">
+                  {entry.resource_type || entry.ip_address || "-"}
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap text-right">
                   <button
                     onClick={() => setSelectedEntry(entry)}
                     className="px-3 py-1 text-xs font-medium text-[var(--text-primary,#fff)] bg-[var(--accent,#7c3aed)] hover:bg-opacity-80 rounded-md transition-colors invisible group-hover:visible"
                   >
-                    View Diff
+                    View Details
                   </button>
                 </td>
               </tr>
@@ -149,10 +143,10 @@ export default function ConfigAuditViewer() {
             <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--border,#333)] bg-[#15151f]">
               <div>
                 <h3 className="text-xl font-semibold text-[var(--text-primary,#fff)] capitalize">
-                  {selectedEntry.action} {selectedEntry.target}
+                  {selectedEntry.action}
                 </h3>
                 <p className="text-sm text-[var(--text-secondary,#aaa)] font-mono mt-1">
-                  ID: {selectedEntry.targetId} • {selectedEntry.targetName}
+                  Actor: {selectedEntry.actor} • Target: {selectedEntry.target || "N/A"}
                 </p>
               </div>
               <button
@@ -172,97 +166,34 @@ export default function ConfigAuditViewer() {
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#1a1a24]">
-              {selectedEntry.note && (
-                <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 rounded-xl text-sm italic">
-                  📝 {selectedEntry.note}
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#1a1a24] text-sm text-[var(--text-secondary,#aaa)]">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <strong>ID:</strong> {selectedEntry.id}
                 </div>
-              )}
-
-              {selectedEntry.diff?.isEmpty ? (
-                <div className="text-center p-8 text-[var(--text-muted,#666)]">
-                  No changes detected in Diff
+                <div>
+                  <strong>Timestamp:</strong> {new Date(selectedEntry.timestamp).toLocaleString()}
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Added Keys */}
-                  {selectedEntry.diff?.added?.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold text-green-400 mb-2 uppercase tracking-wider">
-                        ++ Added Properties
-                      </h4>
-                      <pre className="bg-[#111116] border border-green-500/20 rounded-xl p-4 overflow-x-auto text-xs font-mono text-green-300 shadow-inner">
-                        {JSON.stringify(
-                          selectedEntry.diff.added.reduce(
-                            (acc, key) => ({ ...acc, [key]: selectedEntry.after?.[key] }),
-                            {}
-                          ),
-                          null,
-                          2
-                        )}
-                      </pre>
-                    </div>
-                  )}
-
-                  {/* Removed Keys */}
-                  {selectedEntry.diff?.removed?.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold text-red-400 mb-2 uppercase tracking-wider">
-                        -- Removed Properties
-                      </h4>
-                      <pre className="bg-[#111116] border border-red-500/20 rounded-xl p-4 overflow-x-auto text-xs font-mono text-red-300 shadow-inner">
-                        {JSON.stringify(
-                          selectedEntry.diff.removed.reduce(
-                            (acc, key) => ({ ...acc, [key]: selectedEntry.before?.[key] }),
-                            {}
-                          ),
-                          null,
-                          2
-                        )}
-                      </pre>
-                    </div>
-                  )}
-
-                  {/* Changed Keys */}
-                  {selectedEntry.diff?.changed?.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold text-yellow-400 mb-2 uppercase tracking-wider">
-                        ~ Modified Properties
-                      </h4>
-                      <div className="space-y-2">
-                        {selectedEntry.diff.changed.map((change, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-[#111116] border border-yellow-500/20 rounded-xl overflow-hidden shadow-inner text-sm font-mono flex flex-col"
-                          >
-                            <div className="px-4 py-2 bg-[#1b1b22] border-b border-[#2d2d3a] text-yellow-500/80 font-semibold">
-                              {change.key}
-                            </div>
-                            <div className="grid grid-cols-2 divide-x divide-[#2d2d3a]">
-                              <div className="p-4 bg-red-500/5 text-red-300/80">
-                                <div className="text-[10px] text-red-400/50 mb-1 uppercase">
-                                  Before
-                                </div>
-                                <pre className="whitespace-pre-wrap break-words">
-                                  {JSON.stringify(change.from, null, 2)}
-                                </pre>
-                              </div>
-                              <div className="p-4 bg-green-500/5 text-green-300/80">
-                                <div className="text-[10px] text-green-400/50 mb-1 uppercase">
-                                  After
-                                </div>
-                                <pre className="whitespace-pre-wrap break-words">
-                                  {JSON.stringify(change.to, null, 2)}
-                                </pre>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <strong>Status:</strong> {selectedEntry.status || "-"}
                 </div>
-              )}
+                <div>
+                  <strong>IP Address:</strong> {selectedEntry.ip_address || "-"}
+                </div>
+                <div>
+                  <strong>Resource Type:</strong> {selectedEntry.resource_type || "-"}
+                </div>
+                <div>
+                  <strong>Request ID:</strong> {selectedEntry.request_id || "-"}
+                </div>
+              </div>
+
+              <h4 className="text-sm font-semibold text-gray-300 mb-2 uppercase tracking-wider">
+                Event Payload (Details/Metadata)
+              </h4>
+              <pre className="bg-[#111116] border border-gray-500/20 rounded-xl p-4 overflow-x-auto text-xs font-mono text-gray-300 shadow-inner">
+                {JSON.stringify(selectedEntry.metadata || selectedEntry.details || {}, null, 2)}
+              </pre>
             </div>
           </div>
         </div>

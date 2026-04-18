@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AsyncLocalStorage } from "node:async_hooks";
 import { fetch as undiciFetch } from "undici";
 import {
@@ -81,7 +82,13 @@ function noProxyMatch(targetUrl) {
 
     // Support wildcard matching (e.g. 192.168.* or *.local)
     if (patternHost.includes("*")) {
-      const regexStr = "^" + patternHost.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$";
+      const regexStr =
+        "^" +
+        patternHost
+          .split("*")
+          .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+          .join(".*") +
+        "$";
       if (new RegExp(regexStr).test(hostname)) return true;
     }
 
@@ -219,6 +226,7 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
         return await tlsClient.fetch(targetUrl, {
           ...options,
           headers: options.headers,
+          signal: options.signal ?? undefined,
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

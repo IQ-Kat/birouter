@@ -4,29 +4,42 @@
 
 ---
 
-> Самоуправляемые модельные цепочки с адаптивным скорингом## How It Works
+> Self-managing model chains with adaptive scoring
 
-Механизм Auto-Combo динамически выбирает лучшего поставщика/модель для каждого запроса, используя**функцию 6-факторной оценки**:
+## How It Works
 
-| Фактор       | Вес  | Описание                                                              |
-| :----------- | :--- | :-------------------------------------------------------------------- | ------------- |
-| Квота        | 0,20 | Остаточная емкость [0..1]                                             |
-| Здоровье     | 0,25 | Автоматический выключатель: ЗАКРЫТО=1,0, ПОЛОВИНА=0,5, РАЗОМКНУТО=0,0 |
-| СтоимостьИнв | 0,20 | Обратная стоимость (дешевле = более высокий балл)                     |
-| ЛатенциИнв   | 0,15 | Обратная задержка p95 (быстрее = выше)                                |
-| ТаскФит      | 0,10 | Модель × тип задачи фитнес-оценка                                     |
-| Стабильность | 0,10 | Низкая разница в задержках/ошибках                                    | ## Mode Packs |
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
 
-| Пакет                       | Фокус         | Ключевой вес         |
-| :-------------------------- | :------------ | :------------------- | --------------- |
-| 🚀**Быстрая доставка**      | Скорость      | латентностьИнв: 0,35 |
-| 💰**Экономия**              | Экономика     | стоимостьИнв: 0,40   |
-| 🎯**Качество прежде всего** | Лучшая модель | TaskFit: 0,40        |
-| 📡**Офлайн-дружественный**  | Наличие       | квота: 0,40          | ## Self-Healing |
+| Factor     | Weight | Description                                     |
+| :--------- | :----- | :---------------------------------------------- |
+| Quota      | 0.20   | Remaining capacity [0..1]                       |
+| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
+| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
+| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
+| TaskFit    | 0.10   | Model × task type fitness score                 |
+| Stability  | 0.10   | Low variance in latency/errors                  |
 
--**Временное исключение**: балл < 0,2 → исключение на 5 минут (постепенное отсрочка, максимум 30 минут) -**Опознавание выключателя**: ОТКРЫТО → автоматически исключено; HALF_OPEN → проверять запросы -**Режим инцидента**: >50% ОТКРЫТО → отключить исследование, максимизировать стабильность. -**Восстановление перезарядки**: после исключения первый запрос представляет собой «пробу» с уменьшенным временем ожидания.## Bandit Exploration
+## Mode Packs
 
-5% запросов (настраиваемых) перенаправляются случайным поставщикам для исследования. Отключено в режиме инцидента.## API
+| Pack                    | Focus        | Key Weight       |
+| :---------------------- | :----------- | :--------------- |
+| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
+| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
+| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+
+## Self-Healing
+
+- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
+- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
+- **Incident mode**: >50% OPEN → disable exploration, maximize stability
+- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+
+## Bandit Exploration
+
+5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+
+## API
 
 ```bash
 # Create auto-combo
@@ -40,13 +53,15 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-Более 30 моделей, оцененных по 6 типам задач («кодирование», «обзор», «планирование», «анализ», «отладка», «документирование»). Поддерживает шаблоны подстановочных знаков (например, `*-coder` → высокий балл кодирования).## Files
+30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
 
-| Файл                                         | Цель                                       |
-| :------------------------------------------- | :----------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`     | Функция подсчета очков и нормализация пула |
-| `open-sse/services/autoCombo/taskFitness.ts` | Модель × задача фитнес-поиск               |
-| `open-sse/services/autoCombo/engine.ts`      | Логика выбора, бандит, ограничение бюджета |
-| `open-sse/services/autoCombo/selfHealing.ts` | Исключение, проверки, режим инцидента      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 весовых профиля                          |
-| `src/app/api/combos/auto/route.ts`           | ОТДЫХ API                                  |
+## Files
+
+| File                                         | Purpose                               |
+| :------------------------------------------- | :------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
+| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                              |

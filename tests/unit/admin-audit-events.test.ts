@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-admin-audit-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -122,19 +123,18 @@ test("auth login route records failed password attempts", async () => {
 
 test("provider create/update/delete routes emit sanitized credential audit events", async () => {
   const createResponse = await providersRoute.POST(
-    new Request("http://localhost/api/providers", {
+    await makeManagementSessionRequest("http://localhost/api/providers", {
       method: "POST",
       headers: {
-        "content-type": "application/json",
         "x-forwarded-for": "203.0.113.10",
         "x-request-id": "req-provider-create",
       },
-      body: JSON.stringify({
+      body: {
         provider: "openai",
         apiKey: "sk-secret-provider-key",
         name: "Primary OpenAI",
         defaultModel: "gpt-4o-mini",
-      }),
+      },
     })
   );
 
@@ -144,18 +144,17 @@ test("provider create/update/delete routes emit sanitized credential audit event
   assert.equal(typeof connectionId, "string");
 
   const updateResponse = await providerByIdRoute.PUT(
-    new Request(`http://localhost/api/providers/${connectionId}`, {
+    await makeManagementSessionRequest(`http://localhost/api/providers/${connectionId}`, {
       method: "PUT",
       headers: {
-        "content-type": "application/json",
         "x-forwarded-for": "203.0.113.10",
         "x-request-id": "req-provider-update",
       },
-      body: JSON.stringify({
+      body: {
         name: "Primary OpenAI Updated",
         defaultModel: "gpt-4.1-mini",
         isActive: false,
-      }),
+      },
     }),
     { params: Promise.resolve({ id: connectionId }) }
   );
@@ -163,7 +162,7 @@ test("provider create/update/delete routes emit sanitized credential audit event
   assert.equal(updateResponse.status, 200);
 
   const deleteResponse = await providerByIdRoute.DELETE(
-    new Request(`http://localhost/api/providers/${connectionId}`, {
+    await makeManagementSessionRequest(`http://localhost/api/providers/${connectionId}`, {
       method: "DELETE",
       headers: {
         "x-forwarded-for": "203.0.113.10",

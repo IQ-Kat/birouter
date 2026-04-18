@@ -4,13 +4,19 @@
 
 ---
 
-Thank you for your interest in contributing! Ez az útmutató mindent tartalmaz, amire szüksége van az induláshoz.---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (ajánlott: 22 LTS) -**npm**10+ -**Git**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-A fejlesztés legfontosabb változói:
+Key variables for development:
 
-| Változó                | Fejlesztési alapértelmezett | Leírás                     |
-| ---------------------- | --------------------------- | -------------------------- | ---------------------- |
-| "KIKÖTŐ"               | "20128"                     | Szerver port               |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128`    | Az előtér alap URL-je      |
-| "JWT_SECRET"           | (generálás fent)            | JWT aláírási titok         |
-| `INITIAL_PASSWORD`     | "VÁLTOZÁS"                  | Első bejelentkezési jelszó |
-| `APP_LOG_LEVEL`        | "információ"                | Napló bőbeszédűségi szint  | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-Az irányítópult kezelőfelület-kapcsolókat biztosít a környezeti változókkal is konfigurálható funkciókhoz:
+### Dashboard Settings
 
-| Hely beállítása         | Váltás               | Leírás                                        |
-| ----------------------- | -------------------- | --------------------------------------------- |
-| Beállítások → Speciális | Hibakeresési mód     | Hibakeresési kérésnaplók (UI) engedélyezése   |
-| Beállítások → Általános | Oldalsáv láthatósága | Oldalsáv szakaszainak megjelenítése/elrejtése |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-Ezeket a beállításokat a rendszer az adatbázisban tárolja, és az újraindítások során is megmarad, felülírva az env var alapértelmezett beállításait.### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Alapértelmezett URL-ek:
+Default URLs:
 
--**Irányítópult**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**SOHA ne kötelezze el magát közvetlenül a `main'-ra.**Mindig használjon jellemző ágakat.```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| Előtag | Cél |
-| ----------- | -------------------------- |
-| `feat/` | Új funkciók |
-| `fix/` | Hibajavítások |
-| `refaktor/` | A kód átstrukturálása |
-| `dokumentumok/` | Változások a dokumentációban |
-| `teszt/` | Teszt kiegészítések/javítások |
-| `munka/` | Szerszámozás, CI, függőségek |### Commit Messages
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-Kövesse [Conventional Commits](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-Alkalmazási körök: "db", "sse", "oauth", "dashboard", "api", "cli", "docker", "ci", "mcp", "a2a", "memória", "készségek".---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ Alkalmazási körök: "db", "sse", "oauth", "dashboard", "api", "cli", "docker",
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,37 +146,48 @@ npm run lint
 npm run check
 ```
 
-Fedezeti megjegyzések:
+Coverage notes:
 
-- Az "npm run test:coverage" méri a fő egység tesztkészletének forráslefedettségét, nem tartalmazza a "tests/**" és tartalmazza az "open-sse/**"
-- A lehívási kérelmeknek a teljes lefedettségi kaput**60%-on vagy magasabbon**kell tartaniuk az utasítások, sorok, függvények és ágak esetében.
-- Ha egy PR módosítja a termelési kódot az `src/`, `open-sse/`, `electron/` vagy `bin/` karakterláncokban, akkor ugyanabban a PR-ben automatikus teszteket kell hozzáadnia vagy frissítenie.
-- `npm run coverage:report` kinyomtatja a részletes, fájlonkénti jelentést a legutóbbi lefedettségi futtatásból
-- Az `npm run test:coverage:legacy` megőrzi a régebbi mérőszámot a korábbi összehasonlításhoz
-- Lásd a `docs/COVERAGE_PLAN.md` a lefedettség fokozatos javításának ütemtervét### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-PR megnyitása vagy összevonása előtt:
+### Pull Request Requirements
 
-- Futtassa az `npm run test:unit` parancsot
-- Futtassa az `npm run test:coverage' parancsot
-- Győződjön meg arról, hogy a lefedettségi kapu**60%+**marad minden mérőszámnál
-- A módosított vagy hozzáadott tesztfájlokat a PR-leírásban kell szerepeltetni a gyártási kód megváltoztatásakor
-- Ellenőrizze a SonarQube eredményét a PR-on, ha a projekttitkok konfigurálva vannak a CI-ben
+Before opening or merging a PR:
 
-Jelenlegi tesztállapot:**122 egység tesztfájl**, amely:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- Szolgáltató fordítók és formátumkonverzió
-- Sebességkorlátozás, megszakító és rugalmasság
-- Szemantikus gyorsítótár, idempotencia, folyamatkövetés
-- Adatbázis műveletek és séma (21 DB modul)
-- OAuth-folyamatok és hitelesítés
-- API-végpont ellenőrzése (Zod v4)
-- MCP szerver eszközök és hatókör érvényesítése
-- Memória és készségek rendszerek---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— Futtassa az `npm run lint` parancsot a véglegesítés előtt -**Szebb**— Automatikus formázás a "lint-staged" segítségével véglegesítéskor (2 szóköz, pontosvessző, idézőjel, 100 karakter szélesség, es5 vessző) -**TypeScript**– Minden `src/` kód a `.ts`/`.tsx-et használja; az `open-sse/`a`.ts`/`.js-t használja; dokumentum TSDoc-kal ("@param", "@returns", "@dobások") -**Nincs `eval()`**— Az ESLint kényszeríti a `no-eval', `no-implied-eval', "no-new-func" -**Zod-ellenőrzés**— Használja a Zod v4 sémákat az összes API-bemenet ellenőrzéséhez -**Elnevezés**: Fájlok = camelCase/kebab-tok, összetevők = PascalCase, konstansok = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -228,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Hozzáadás az `src/shared/constants/providers.ts-hez — Zod-ellenőrzés a modul betöltésekor.### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Hozzon létre végrehajtót az `open-sse/executors/your-provider.ts` fájlban az alap végrehajtó kiterjesztésével.### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-Hozzon létre kérés/válasz fordítókat az `open-sse/translator/` fájlban.### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Adja hozzá az OAuth-hitelesítési adatokat az `src/lib/oauth/constants/oauth.ts' fájlhoz és a szolgáltatást az 'src/lib/oauth/services/' mappához.### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-Adja hozzá a modelldefiníciókat az "open-sse/config/providerRegistry.ts" fájlhoz.### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-Írjon egységteszteket a "tesztek/egység/" mezőbe, amely legalább a következőket tartalmazza:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- Szolgáltató regisztrációja
-- Fordítás kérése/válaszolása
-- Hibakezelés---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] A tesztek sikeresek ("npm teszt")
-- [ ] Linting pass (`npm run lint`)
-- [ ] A felépítés sikeres (`npm run build`)
-- [ ] TypeScript típusok hozzáadva az új nyilvános funkciókhoz és interfészekhez
-- [ ] Nincsenek kódolt titkok vagy tartalék értékek
-- [ ] Minden bemenet Zod-sémákkal érvényesítve
-- [ ] CHANGELOG frissítve (ha a változás a felhasználó felé fordul)
-- [ ] Dokumentáció frissítve (ha van)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-A kiadások kezelése a „/generate-release” munkafolyamattal történik. Új GitHub-kiadás létrehozásakor a csomag**automatikusan közzéteszi az npm-et**a GitHub Actions szolgáltatáson keresztül.---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**Architektúra**: Lásd: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**API-referencia**: Lásd: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Problémák**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR-ek**: Lásd a `docs/adr/` az építészeti döntési rekordokat
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

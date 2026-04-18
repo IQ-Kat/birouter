@@ -4,31 +4,37 @@
 
 ---
 
-Kompletný sprievodca inštaláciou a konfiguráciou OmniRoute na VM (VPS) s doménou spravovanou cez Cloudflare.---
+Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+
+---
 
 ## Prerequisites
 
-| Položka    | Minimálne                  | Odporúčané       |
-| ---------- | -------------------------- | ---------------- |
-| **CPU**    | 1 vCPU                     | 2 vCPU           |
-| **RAM**    | 1 GB                       | 2 GB             |
-| **Disk**   | 10 GB SSD                  | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS           | Ubuntu 24.04 LTS |
-| **Doména** | Registrovaný na Cloudflare | —                |
-| **Docker** | Docker Engine 24+          | Docker 27+       |
+| Item       | Minimum                  | Recommended      |
+| ---------- | ------------------------ | ---------------- |
+| **CPU**    | 1 vCPU                   | 2 vCPU           |
+| **RAM**    | 1 GB                     | 2 GB             |
+| **Disk**   | 10 GB SSD                | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
+| **Domain** | Registered on Cloudflare | —                |
+| **Docker** | Docker Engine 24+        | Docker 27+       |
 
-**Testovaní poskytovatelia**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.---
+**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+
+---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-U preferovaného poskytovateľa VPS:
+On your preferred VPS provider:
 
-- Vyberte Ubuntu 24.04 LTS
-- Vyberte minimálny plán (1 vCPU / 1 GB RAM)
-- Nastavte silné heslo root alebo nakonfigurujte kľúč SSH
-  – Všimnite si**verejnú IP**(napr. „203.0.113.10“)### 1.2 Connect via SSH
+- Choose Ubuntu 24.04 LTS
+- Select the minimum plan (1 vCPU / 1 GB RAM)
+- Set a strong root password or configure SSH key
+- Note the **public IP** (e.g., `203.0.113.10`)
+
+### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -72,7 +78,9 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: Pre maximálnu bezpečnosť obmedzte porty 80 a 443 iba na IP adresy Cloudflare. Pozrite si časť [Rozšírené zabezpečenie](#advanced-security).---
+> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+
+---
 
 ## 2. Install OmniRoute
 
@@ -114,7 +122,9 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️**DÔLEŽITÉ**: Vytvorte jedinečné tajné kľúče! Pre každý kľúč použite `openssl rand -hex 32`.### 2.3 Start the container
+> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+
+### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -135,31 +145,32 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-Malo by sa zobraziť: „[DB] databáza SQLite pripravená“ a „počúvanie na porte 20128“.---
+It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+
+---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-Na hlavnom paneli Cloudflare:
+In the Cloudflare dashboard:
 
-1. Prejdite na**SSL/TLS → Pôvodný server**
-2. Kliknite na**Vytvoriť certifikát**
-3. Ponechajte predvolené hodnoty (15 rokov, \*.yourdomain.com)
-4. Skopírujte**Certifikát o pôvode**a**Súkromný kľúč**```bash
-   mkdir -p /etc/nginx/ssl
+1. Go to **SSL/TLS → Origin Server**
+2. Click **Create Certificate**
+3. Keep the defaults (15 years, \*.yourdomain.com)
+4. Copy the **Origin Certificate** and the **Private Key**
+
+```bash
+mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
-
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
-
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-
-````
+```
 
 ### 3.2 Nginx Configuration
 
@@ -217,11 +228,13 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-````
+```
 
-Udržujte časové limity streamu reverzného proxy zosúladené s časovými limitmi vášho prostredia OmniRoute. Ak zvýšiš
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, zvýšiť `proxy_read_timeout` / `proxy_send_timeout`
-nad rovnakým prahom.### 3.3 Enable and Test
+Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
+above the same threshold.
+
+### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -240,21 +253,25 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-Na hlavnom paneli Cloudflare → DNS:
+In the Cloudflare dashboard → DNS:
 
-| Typ | Meno   | Obsah                | Proxy              |
-| --- | ------ | -------------------- | ------------------ | --------------------- |
-| A   | "llms" | 203.0.113.10 (VM IP) | ✅ Sprostredkovaný | ### 4.2 Configure SSL |
+| Type | Name   | Content                | Proxy      |
+| ---- | ------ | ---------------------- | ---------- |
+| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
 
-V časti**SSL/TLS → Prehľad**:
+### 4.2 Configure SSL
 
-- Režim:**Plný (prísny)**
+Under **SSL/TLS → Overview**:
 
-V časti**SSL/TLS → Edge Certificates**:
+- Mode: **Full (Strict)**
 
-- Vždy používať HTTPS: ✅ Zap
-- Minimálna verzia TLS: TLS 1.2
-- Automatické prepisy HTTPS: ✅ Zap### 4.3 Testing
+Under **SSL/TLS → Edge Certificates**:
+
+- Always Use HTTPS: ✅ On
+- Minimum TLS Version: TLS 1.2
+- Automatic HTTPS Rewrites: ✅ On
+
+### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -333,10 +350,11 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Do `nginx.conf` do bloku `http {}` pridajte nasledujúce:```nginx
-include /etc/nginx/cloudflare-ips.conf;
+Add the following to `nginx.conf` inside the `http {}` block:
 
-````
+```nginx
+include /etc/nginx/cloudflare-ips.conf;
+```
 
 ### Install fail2ban
 
@@ -347,7 +365,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-````
+```
 
 ### Block direct access to the Docker port
 
@@ -365,25 +383,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-Pre vzdialený prístup cez Cloudflare Workers (bez priameho odhalenia VM):```bash
+For remote access via Cloudflare Workers (without exposing the VM directly):
 
+```bash
 # In the local repository
-
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
-
 ```
 
-Úplnú dokumentáciu nájdete na [omnirouteCloud/README.md](../omnirouteCloud/README.md).---
+See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+
+---
 
 ## Port Summary
 
-| Prístav | Služba | Prístup |
-| ----- | ----------- | --------------------------- |
-| 22 | SSH | Verejné (s fail2ban) |
-| 80 | nginx HTTP | Presmerovanie → HTTPS |
-| 443 | nginx HTTPS | Cez Cloudflare Proxy |
-| 20128 | OmniRoute | Iba Localhost (cez nginx) |
-```
+| Port  | Service     | Access                     |
+| ----- | ----------- | -------------------------- |
+| 22    | SSH         | Public (with fail2ban)     |
+| 80    | nginx HTTP  | Redirect → HTTPS           |
+| 443   | nginx HTTPS | Via Cloudflare Proxy       |
+| 20128 | OmniRoute   | Localhost only (via nginx) |

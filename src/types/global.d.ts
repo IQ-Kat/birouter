@@ -109,3 +109,12 @@ declare module "chalk" {
   const chalk: ChalkInstance;
   export default chalk;
 }
+
+declare module "yazl" {
+  export class ZipFile {
+    addFile(realPath: string, metadataPath: string): void;
+    addBuffer(buffer: Buffer, metadataPath: string): void;
+    end(options?: Record<string, unknown>, callback?: () => void): void;
+    outputStream: NodeJS.ReadableStream;
+  }
+}

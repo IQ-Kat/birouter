@@ -44,6 +44,20 @@ test("compressContext: returns unchanged if fits", () => {
   assert.equal(result.compressed, false);
 });
 
+test("compressContext: default reserve scales down for smaller context windows", () => {
+  const body = {
+    model: "gpt-4",
+    messages: [
+      { role: "system", content: "You are helpful." },
+      { role: "user", content: "Hello" },
+    ],
+  };
+
+  const result = compressContext(body, { provider: "openai", maxTokens: 8192 });
+  assert.equal(result.compressed, false);
+  assert.equal(result.stats.final, result.stats.original);
+});
+
 test("compressContext: handles null/empty body", () => {
   assert.equal(compressContext(null).compressed, false);
   assert.equal(compressContext({}).compressed, false);

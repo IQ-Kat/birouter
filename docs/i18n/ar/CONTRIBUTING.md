@@ -4,41 +4,61 @@
 
 ---
 
-شكرا لاهتمامك بالمساهمة! يغطي هذا الدليل كل ما تحتاجه للبدء.---##إعداد التطوير### Prerequisites
+Thank you for your interest in contributing! This guide covers everything you need to get started.
 
--**Node.js**>= 18 < 24 (موصى به: 22 LTS) -**npm**10+ -**جيت**### النسخ والتثبيت`bash
-استنساخ بوابة https://github.com/diegosouzapw/OmniRoute.git
-قرص مضغوط OmniRoute
-تثبيت npm`
+---
+
+## Development Setup
+
+### Prerequisites
+
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
+
+```bash
+git clone https://github.com/diegosouzapw/OmniRoute.git
+cd OmniRoute
+npm install
+```
 
 ### Environment Variables
 
-````bash
-# قم بإنشاء .env الخاص بك من القالب
+```bash
+# Create your .env from the template
 cp .env.example .env
 
-# توليد الأسرار المطلوبة
-صدى "JWT_SECRET=$(openssl rand -base64 48)" >> .env
-صدى "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env```
+# Generate required secrets
+echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
+echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
+```
 
-المساهمة في التنمية الرئيسية:
+Key variables for development:
 
-| فنية | التطوير الافتراضي | الوصف |
+| Variable               | Development Default      | Description           |
 | ---------------------- | ------------------------ | --------------------- |
-| "ميناء" | `20128` | منفذ الخادم |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | عنوان URL الأساسي للواجهة |
-| `JWT_SECRET` | (أنشئ أعلاه) | سر توقيع JWT |
-| `INITIAL_PASSWORD` | "التغيير" | كلمة المرور الأولى لتسجيل الدخول |
-| `APP_LOG_LEVEL` | `معلومات` | تسجيل مستوى الإسهاب |### إعدادات لوحة التحكم
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-توفر أدوات تعديل لوحة المعلومات للمستخدم للميزات التي يمكن تهيئتها أيضًا عبر البيئات المتنوعة:
+### Dashboard Settings
 
-| تحديد الموقع | تغيير | الوصف |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
+
+| Setting Location    | Toggle             | Description                    |
 | ------------------- | ------------------ | ------------------------------ |
-| الإعدادات → متقدمة | وضع الرقعة | أرشيف الطلبات التصحيح (UI) |
-| الإعدادات → عام | رؤية الشريط الجانبي | إخفاء/ إخفاء أقسام الفصل الجانبي |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
 
-يتم تخزين هذه الإعدادات في قاعدة البيانات وتستمر من خلال عمليات إعادة تشغيل التشغيل، مما يؤدي إلى تجاوز إعدادات env var الافتراضية عند ضبطها.### التشغيل محليًا```bash
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
+
+```bash
 # Development mode (hot reload)
 npm run dev
 
@@ -48,156 +68,187 @@ npm run start
 
 # Common port configuration
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
-````
+```
 
-عناوين URL الافتراضية:
+Default URLs:
 
--**لوحة المعلومات**: `http://localhost:20128/dashboard` -**واجهة برمجة التطبيقات**: `http://localhost:20128/v1`---## Git Workflow
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
 
-> ⚠️**لا تلتزم مطلقًا بـ "الرئيسي".**استخدم ميزات الميزات دائمًا.```bash
-> git checkout -b feat/your-feature-name
-> #...إجراءات جديدة...
-> git الالتزام -m "الفذ: وصف التغيير الخاص بك"
-> git Push -u Origin feat/your-feature-name
+---
 
-# قم بتسجيل الطلب على GitHub```### Branch Naming
+## Git Workflow
 
-| المبادئ         | الحصاد                    |
-| --------------- | ------------------------- | ------------------ |
-| `الفذ/`         | مميزات جديدة              |
-| `/`             | إصلاحات الشويب            |
-| `إعادة البناء/` | إعادة هيكلة الكود         |
-| `المستندات/`    | تأثيرات التوثيق           |
-| `اختبار/`       | الإضافات/إصلاحات الاختبار |
-| `العمل الرتيب/` | الأدوات، CI، التبعيات     | ### رسائل الالتزام |
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
-اتبع [الالتزامات التقليدية](https://www.conventionalcommits.org/):`
-الفذ: إضافة قاطع الدائرة لمكالمات المزود
-الإصلاح: حل حالة حافة التحقق السري من JWT
-المستندات: قم بتحديث SECURITY.md مع حماية معلومات تحديد الهوية الشخصية (PII).
-الاختبار: إضافة اختبارات وحدة الملاحظة
-refactor(db): توحيد جداول حدود المعدل`
+```bash
+git checkout -b feat/your-feature-name
+# ... make changes ...
+git commit -m "feat: describe your change"
+git push -u origin feat/your-feature-name
+# Open a Pull Request on GitHub
+```
 
-النطاقات: `db`، `sse`، `oauth`، `dashboard`، `api`، `cli`، `docker`، `ci`، `mcp`، `a2a`، `memory`، `skills`.---## Running Tests
+### Branch Naming
 
-````bash
-# جميع الاختبارات (الوحدة + فيتيست + النظام البيئي + e2e)
-اختبار تشغيل npm: الكل
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-# ملف اختبار فردي (مشغل الاختبار الأصلي لـ Node.js — تستخدمه معظم الاختبارات)
-العقدة - استيراد tsx/esm - اختبارات الاختبار/الوحدة/your-file.test.mjs
+### Commit Messages
 
-# Vitest (خادم MCP، autoCombo، ذاكرة التخزين المؤقت)
-اختبار تشغيل npm: vitest
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-# اختبارات E2E (يتطلب الكاتب المسرحي)
-اختبار تشغيل npm: e2e
+```
+feat: add circuit breaker for provider calls
+fix: resolve JWT secret validation edge case
+docs: update SECURITY.md with PII protection
+test: add observability unit tests
+refactor(db): consolidate rate limit tables
+```
 
-# عملاء البروتوكول E2E (نقل MCP، A2A)
-اختبار تشغيل npm: البروتوكولات: e2e
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
 
-# اختبارات توافق النظام البيئي
-اختبار تشغيل npm: النظام البيئي
+---
 
-# التغطية (60% الحد الأدنى من البيانات/السطور/الوظائف/الفروع)
-اختبار تشغيل npm: التغطية
-تغطية تشغيل npm: تقرير
+## Running Tests
 
-# فحص الوبر + التنسيق
-npm تشغيل الوبر
-فحص تشغيل npm```
+```bash
+# All tests (unit + vitest + ecosystem + e2e)
+npm run test:all
 
-تغطية التعليقات:
+# Single test file (Node.js native test runner — most tests use this)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
-- `npm run test:coverage` يقيس المصدر لمجموعة اختبار الوحدة الرئيسية، ويستبعد `tests/**`، بما في ذلك `open-sse/**`
-- يجب أن تحافظ على طلبات التنظيف على بوابة التغطية الشاملة عند**60% أو أعلى**للكشوفات والخطوط والوظائف والأروع
-- إذا قام ممثل العلاقات العامة تغيير رمز الإنتاج في `src/` أو `open-sse/` أو `electron/` أو `bin/`، فيجب عليه إضافة أو تحديث النقاشة التلقائية في نفس العلاقات العامة
-- `تغطية تشغيل npm: التقرير' يطبع التقرير التفصيلي لكل ملف على المدى الطويل من أحدث طرق التغطية
-- `اختبار تشغيل npm:التغطية:التراث` يحافظ على قياس الأقدم للمقارنة التاريخية
-- راجع`docs/COVERAGE_PLAN.md` للحصول على خارطة طريق تحسين التغطية العامة### سحب متطلبات الطلب
+# Vitest (MCP server, autoCombo, cache)
+npm run test:vitest
 
-قبل فتح أو دمج العلاقات العامة:
+# E2E tests (requires Playwright)
+npm run test:e2e
 
-- اختبار تشغيل npm: الوحدة
-- اختبار تشغيل npm: التغطية
-- تأكد من بقاء بوابة التغطية عند**60%+**لجميع المعايير
-- تتضمن ملفات الاختبار التي تم تغييرها أو الهاتفا في وصف العلاقات العامة عند تغيير رمز الإنتاج
-- التحقق من نتيجة SonarQube على PR عندما يتم التأكد من أسرار المشروع في CI
+# Protocol clients E2E (MCP transports, A2A)
+npm run test:protocols:e2e
 
-الاختبار الحالي:**ملفات اختبار 122 وحدة**تغطي:
+# Ecosystem compatibility tests
+npm run test:ecosystem
 
-- تحويل المترجمين باستمرار
-- الحد من المعدل، وقواطع الضوء، والمرونة
-- ذاكرة تخزين مؤقتة الدلالية، والعجز، وتتبع التقدم
-- عمليات قاعدة البيانات والمخطط (21 وحدة قاعدة بيانات)
-- تدفقات OAuth والمصادقة
-- التحقق من صحة نقطة نهاية واجهة برمجة التطبيقات (Zod v4)
-- أدوات خادمة MCP وكارثة النطاق
-- لأنظمة الذاكرة والمهارات---## Code Style
+# Coverage (60% min statements/lines/functions/branches)
+npm run test:coverage
+npm run coverage:report
 
--**ESLint**— يسمح npm run lint قبل الالتزام
--**Prettier**— يتم بشكل متزايد من خلال ``التجهيز المرحلي`` عند الالتزام (مسافتان، فواصل منقوطة، علامات رسل مزدوجة، عرض 100 حرف، فاصلة زائدة es5)
--**TypeScript**— يستخدم جميع أكواد `src/` `.ts`/`.tsx`؛ `open-sse/` يستخدم `.ts`/`.js`؛ مستند باستخدام TSDoc (`@param`، `@returns`، `@throws`)
--**لا يوجد `eval()`**- يفرض ESLint `no-eval`، `no-implied-eval`، `no-new-func`.
--**التحقق من صحة Zod**— استخدم مخطط Zod v4 للتأكد من صحة واجهة برمجة التطبيقات (API).
--**التسميه**: الملفات = الجمله/علبة الكباب، المكونات = PascalCase، الثوابت = UPPER_SNAKE---## Project Structure
+# Lint + format check
+npm run lint
+npm run check
+```
 
-````
+Coverage notes:
 
-src/ # تايب سكريبت (.ts / .tsx)
-├── التطبيق/ # Next.js 16 App Router
-│ ├── (لوحة المعلومات)/ # صفحات لوحة المعلومات (23 قسم)
-│ ├── واجهة برمجة التطبيقات/ # مسارات واجهة برمجة التطبيقات (51 دليلاً)
-│ └── تسجيل الدخول/ # صفحات المصادقة (.tsx)
-├── المجال/ # محرك السياسة (policyEngine، comboResolver، costRules، إلخ.)
-├── lib/ # منطق العمل الأساسي (.ts)
-│ ├── a2a/ # خادم بروتوكول وكيل إلى وكيل v0.3
-│ ├── acp/ # تسجيل بروتوكول اتصال الوكيل
-│ ├── الامتثال/ # محرك سياسة الامتثال
-│ ├── db/ # طبقة قاعدة بيانات SQLite (21 وحدة + 16 عملية ترحيل)
-│ ├── الذاكرة/ # ذاكرة المحادثة المستمرة
-│ ├── oauth/ # موفرو OAuth والخدمات والأدوات المساعدة
-│ ├── المهارات/ # إطار المهارات الموسعة
-│ ├── الاستخدام/ # تتبع الاستخدام وحساب التكلفة
-│ └── localDb.ts # طبقة إعادة التصدير فقط - لا تقم أبدًا بإضافة المنطق هنا
-├── البرامج الوسيطة/ # طلب البرامج الوسيطة (promptInjectionGuard)
-├── mitm/ # وكيل MITM (الشهادة، DNS، التوجيه المستهدف)
-├── مشترك/
-│ ├── المكونات/ # مكونات التفاعل (.tsx)
-│ ├── الثوابت/ # تعريفات الموفر (60+)، نطاقات MCP، استراتيجيات التوجيه
-│ ├── utils/ # قاطع الدائرة، المطهر، مساعدي المصادقة
-│ └── التحقق من الصحة/ # مخططات Zod v4
-└── sse/ # خط أنابيب الوكيل SSE
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-open-sse/ # @omniroute/open-sse Workspace
-├── المنفذون/ # 14 منفذو الطلبات الخاصة بموفر الخدمة
-├── المعالجات/ # 11 معالجات الطلب (الدردشة والردود والتضمين والصور وما إلى ذلك)
-├── mcp-server/ # خادم MCP (25 أداة، 3 عمليات نقل، 10 نطاقات)
-├── الخدمات/ # 36+ خدمة (combo، autoCombo، RateLimitManager، إلخ.)
-├── مترجم/ # مترجمو التنسيق (OpenAI ↔ كلود ↔ الجوزاء ↔ الردود ↔ أولاما)
-├── محول/ # محول API الردود
-└── utils/ # 22 وحدة مساعدة (الدفق، TLS، الوكيل، التسجيل)
+### Pull Request Requirements
 
-إلكترون/ # تطبيق إلكترون لسطح المكتب (متعدد المنصات)
+Before opening or merging a PR:
 
-الاختبارات/
-├── الوحدة/ # مشغل اختبار Node.js (122 ملف اختبار)
-├── التكامل/ # اختبارات التكامل
-├── e2e/ # اختبارات الكاتب المسرحي
-├── الأمان/ # اختبارات الأمان
-├── المترجم/ # اختبارات خاصة بالمترجم
-└── تحميل/ # اختبارات التحميلمستندات/ # التوثيق
-├── ARCHITECTURE.md # بنية النظام
-├── API_REFERENCE.md # جميع نقاط النهاية
-├── USER_GUIDE.md # إعداد الموفر، تكامل CLI
-├── استكشاف الأخطاء وإصلاحها.md # المشكلات الشائعة
-├── MCP-SERVER.md # خادم MCP (25 أداة)
-├── A2A-SERVER.md # بروتوكول الوكيل A2A
-├── AUTO-COMBO.md # محرك التحرير والسرد التلقائي
-├── تكامل أدوات CLI-TOOLS.md # تكامل أدوات CLI
-├── COVERAGE_PLAN.md # اختبار خطة تحسين التغطية
-├── openapi.yaml # مواصفات OpenAPI
-└── adr/ # سجلات قرارات الهندسة المعمارية```
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
+
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
+
+## Code Style
+
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
+
+## Project Structure
+
+```
+src/                        # TypeScript (.ts / .tsx)
+├── app/                    # Next.js 16 App Router
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite database layer (21 modules + 16 migrations)
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
+├── shared/
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (60+), MCP scopes, routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
+
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 14 provider-specific request executors
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (25 tools, 3 transports, 10 scopes)
+├── services/               # 36+ services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
+
+electron/                   # Electron desktop app (cross-platform)
+
+tests/
+├── unit/                   # Node.js test runner (122 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
+
+docs/                       # Documentation
+├── ARCHITECTURE.md         # System architecture
+├── API_REFERENCE.md        # All endpoints
+├── USER_GUIDE.md           # Provider setup, CLI integration
+├── TROUBLESHOOTING.md      # Common issues
+├── MCP-SERVER.md           # MCP server (25 tools)
+├── A2A-SERVER.md           # A2A agent protocol
+├── AUTO-COMBO.md           # Auto-combo engine
+├── CLI-TOOLS.md            # CLI tools integration
+├── COVERAGE_PLAN.md        # Test coverage improvement plan
+├── openapi.yaml            # OpenAPI specification
+└── adr/                    # Architecture Decision Records
+```
 
 ---
 
@@ -205,31 +256,56 @@ open-sse/ # @omniroute/open-sse Workspace
 
 ### Step 1: Register Provider Constants
 
-أضف إلى `src/shared/constants/providers.ts` - تم التحقق من صحة Zod عند تحميل الوحدة.### الخطوة 2: إضافة Executor (إذا كانت هناك حاجة إلى منطق مخصص)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-موجود بالفعل منفذ تنفيذي في open-sse/executors/your-provider.ts لتوسيع المنفذ الأساسي.### الخطوة 3: إضافة مترجم (إذا كان تنسيق غير OpenAI)
+### Step 2: Add Executor (if custom logic needed)
 
-يجب أن تكون موجودة في الطلب المترجم/الاستجابة في `open-sse/translator/`.### الخطوة 4: إضافة تكوين OAuth (إذا كان يعتمد على OAuth)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-إضافة بيانات موثوقة OAuth في `src/lib/oauth/constants/oauth.ts` وتطبيقات في `src/lib/oauth/services/`.### الخطوة 5: تسجيل النماذج
+### Step 3: Add Translator (if non-OpenAI format)
 
-أضف تعريفات الارتباطات في "open-sse/config/providerRegistry.ts".### الخطوة 6: إضافة الاختبارات
+Create request/response translators in `open-sse/translator/`.
 
-اكتب السيولة الوحدة في `الاختبارات/الوحدة/` التي تغطي الحد الأدنى:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- تسجيل المزود
-- ترجمة الطلب/الرد
-  -تسبب سبب---## Pull Request Checklist
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-- [ ] اجتياز الاختبار (`اختبار npm`)
-- [ ] طباعات القلم (`npm run lint`)
-- [ ] نجاح البناء (`npm run build`)
-- [ ] تمت إضافة أنواع TypeScript للوظائف والواجهات العامة الجديدة
-- [ ] لا توجد أسرار ضمنية أو قيم بيعة
-- [ ] تم التحقق من صحة جميع المدخلات باستخدام مخططات Zod
-- [ ] تم تحديث سجل التغيير (في حالة التغيير الذي يواجهه المستخدم)
-- [ ] تم تحديث الوثائق (إن وجدت)---## Releasing
+### Step 5: Register Models
 
-تم إدارة الاختلاف عبر سير العمل `/generate-release`. عند إنشاء إصدار GitHub جديد، يتم**نشر المنتج اليدوي إلى npm**عبر إجراءات GitHub.---## Getting Help
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
--**الهندسة المعمارية**: تجدد [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**مرجع واجهة برمجة التطبيقات**: راجع [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**المشاكل**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADRs**: راجع `docs/adr/`
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
+
+## Pull Request Checklist
+
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
+
+## Releasing
+
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

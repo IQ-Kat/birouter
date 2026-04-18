@@ -4,31 +4,37 @@
 
 ---
 
-Kumpletong gabay sa pag-install at pag-configure ng OmniRoute sa isang VM (VPS) na may domain na pinamamahalaan sa pamamagitan ng Cloudflare.---
+Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+
+---
 
 ## Prerequisites
 
-| aytem      | Pinakamababa               | Inirerekomenda   |
-| ---------- | -------------------------- | ---------------- |
-| **CPU**    | 1 vCPU                     | 2 vCPU           |
-| **RAM**    | 1 GB                       | 2 GB             |
-| **Disk**   | 10 GB SSD                  | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS           | Ubuntu 24.04 LTS |
-| **Domain** | Nakarehistro sa Cloudflare | —                |
-| **Docker** | Docker Engine 24+          | Docker 27+       |
+| Item       | Minimum                  | Recommended      |
+| ---------- | ------------------------ | ---------------- |
+| **CPU**    | 1 vCPU                   | 2 vCPU           |
+| **RAM**    | 1 GB                     | 2 GB             |
+| **Disk**   | 10 GB SSD                | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
+| **Domain** | Registered on Cloudflare | —                |
+| **Docker** | Docker Engine 24+        | Docker 27+       |
 
-**Mga nasubok na provider**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.---
+**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+
+---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-Sa iyong gustong VPS provider:
+On your preferred VPS provider:
 
-- Piliin ang Ubuntu 24.04 LTS
-- Piliin ang minimum na plano (1 vCPU / 1 GB RAM)
-- Magtakda ng malakas na root password o i-configure ang SSH key
-- Tandaan ang**pampublikong IP**(hal., `203.0.113.10`)### 1.2 Connect via SSH
+- Choose Ubuntu 24.04 LTS
+- Select the minimum plan (1 vCPU / 1 GB RAM)
+- Set a strong root password or configure SSH key
+- Note the **public IP** (e.g., `203.0.113.10`)
+
+### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -72,7 +78,9 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: Para sa maximum na seguridad, paghigpitan ang mga port 80 at 443 sa mga Cloudflare IP lamang. Tingnan ang seksyong [Advanced Security](#advanced-security).---
+> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+
+---
 
 ## 2. Install OmniRoute
 
@@ -114,7 +122,9 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️**MAHALAGA**: Bumuo ng mga natatanging sikretong key! Gamitin ang `openssl rand -hex 32` para sa bawat key.### 2.3 Start the container
+> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+
+### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -135,31 +145,32 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-Dapat itong magpakita ng: `[DB] SQLite database ready` at `nakikinig sa port 20128`.---
+It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+
+---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-Sa dashboard ng Cloudflare:
+In the Cloudflare dashboard:
 
-1. Pumunta sa**SSL/TLS → Origin Server**
-2. I-click ang**Gumawa ng Sertipiko**
-3. Panatilihin ang mga default (15 taon, \*.yourdomain.com)
-4. Kopyahin ang**Origin Certificate**at ang**Private Key**```bash
-   mkdir -p /etc/nginx/ssl
+1. Go to **SSL/TLS → Origin Server**
+2. Click **Create Certificate**
+3. Keep the defaults (15 years, \*.yourdomain.com)
+4. Copy the **Origin Certificate** and the **Private Key**
+
+```bash
+mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
-
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
-
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-
-````
+```
 
 ### 3.2 Nginx Configuration
 
@@ -217,11 +228,13 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-````
+```
 
-Panatilihing nakahanay ang reverse-proxy stream timeout sa iyong OmniRoute timeout env vars. Kung itataas mo
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, taasan ang `proxy_read_timeout` / `proxy_send_timeout`
-sa itaas ng parehong threshold.### 3.3 Enable and Test
+Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
+above the same threshold.
+
+### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -240,21 +253,25 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-Sa Cloudflare dashboard → DNS:
+In the Cloudflare dashboard → DNS:
 
-| Uri   | Pangalan | Nilalaman              | Proxy      |
-| ----- | -------- | ---------------------- | ---------- | --------------------- |
-| Isang | `llms`   | `203.0.113.10` (VM IP) | ✅ Proxied | ### 4.2 Configure SSL |
+| Type | Name   | Content                | Proxy      |
+| ---- | ------ | ---------------------- | ---------- |
+| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
 
-Sa ilalim ng**SSL/TLS → Pangkalahatang-ideya**:
+### 4.2 Configure SSL
 
-- Mode:**Buong (Mahigpit)**
+Under **SSL/TLS → Overview**:
 
-Sa ilalim ng**SSL/TLS → Edge Certificates**:
+- Mode: **Full (Strict)**
 
-- Palaging Gumamit ng HTTPS: ✅ Naka-on
-- Minimum na Bersyon ng TLS: TLS 1.2
-- Mga Awtomatikong HTTPS Rewrite: ✅ Naka-on### 4.3 Testing
+Under **SSL/TLS → Edge Certificates**:
+
+- Always Use HTTPS: ✅ On
+- Minimum TLS Version: TLS 1.2
+- Automatic HTTPS Rewrites: ✅ On
+
+### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -333,10 +350,11 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Idagdag ang sumusunod sa `nginx.conf` sa loob ng `http {}` block:```nginx
-include /etc/nginx/cloudflare-ips.conf;
+Add the following to `nginx.conf` inside the `http {}` block:
 
-````
+```nginx
+include /etc/nginx/cloudflare-ips.conf;
+```
 
 ### Install fail2ban
 
@@ -347,7 +365,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-````
+```
 
 ### Block direct access to the Docker port
 
@@ -365,25 +383,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-Para sa malayuang pag-access sa pamamagitan ng Cloudflare Workers (nang hindi direktang inilalantad ang VM):```bash
+For remote access via Cloudflare Workers (without exposing the VM directly):
 
+```bash
 # In the local repository
-
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
-
 ```
 
-Tingnan ang buong dokumentasyon sa [omnirouteCloud/README.md](../omnirouteCloud/README.md).---
+See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+
+---
 
 ## Port Summary
 
-| Port | Serbisyo | Access |
+| Port  | Service     | Access                     |
 | ----- | ----------- | -------------------------- |
-| 22 | SSH | Pampubliko (na may fail2ban) |
-| 80 | nginx HTTP | I-redirect → HTTPS |
-| 443 | nginx HTTPS | Sa pamamagitan ng Cloudflare Proxy |
-| 20128 | OmniRoute | Localhost lang (sa pamamagitan ng nginx) |
-```
+| 22    | SSH         | Public (with fail2ban)     |
+| 80    | nginx HTTP  | Redirect → HTTPS           |
+| 443   | nginx HTTPS | Via Cloudflare Proxy       |
+| 20128 | OmniRoute   | Localhost only (via nginx) |

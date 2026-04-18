@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import Link from "next/link";
-import { APP_CONFIG } from "@/shared/constants/config";
+import { APP_CONFIG } from "@/shared/constants/appConfig";
 
 const footerLinks = {
   product: [

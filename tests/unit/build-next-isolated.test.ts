@@ -5,7 +5,8 @@ import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { movePath, resolveNextBuildEnv } = await import("../../scripts/build-next-isolated.mjs");
+const { getTransientBuildPaths, movePath, pruneStandaloneArtifacts, resolveNextBuildEnv } =
+  await import("../../scripts/build-next-isolated.mjs");
 
 async function withTempDir(fn) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-build-next-isolated-"));
@@ -100,4 +101,38 @@ test("resolveNextBuildEnv forces stable build worker mode unless already provide
   });
   assert.equal(preservedEnv.NEXT_PRIVATE_BUILD_WORKER, "1");
   assert.equal(preservedEnv.NODE_ENV, "production");
+});
+
+test("getTransientBuildPaths leaves _tasks in place by default", () => {
+  const paths = getTransientBuildPaths("/repo", {});
+
+  assert.deepEqual(
+    paths.map((entry) => entry.label),
+    ["legacy app snapshot"]
+  );
+  assert.equal(
+    paths.some((entry) => entry.sourcePath === "/repo/_tasks"),
+    false
+  );
+});
+
+test("getTransientBuildPaths only moves _tasks when explicitly enabled", () => {
+  const paths = getTransientBuildPaths("/repo", { OMNIROUTE_BUILD_MOVE_TASKS: "1" });
+
+  assert.equal(
+    paths.some((entry) => entry.sourcePath === "/repo/_tasks"),
+    true
+  );
+});
+
+test("pruneStandaloneArtifacts removes traced _tasks from standalone output", async () => {
+  await withTempDir(async (tempDir) => {
+    const tracedTaskFile = path.join(tempDir, ".next", "standalone", "_tasks", "plan.md");
+    await fs.mkdir(path.dirname(tracedTaskFile), { recursive: true });
+    await fs.writeFile(tracedTaskFile, "transient planning artifact");
+
+    await pruneStandaloneArtifacts(tempDir);
+
+    assert.equal(fsSync.existsSync(path.join(tempDir, ".next", "standalone", "_tasks")), false);
+  });
 });

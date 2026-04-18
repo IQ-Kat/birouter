@@ -3,11 +3,20 @@ import os from "os";
 
 export const APP_NAME = "omniroute";
 
+function fallbackHomeDir() {
+  const envHome = process.env.HOME || process.env.USERPROFILE;
+  if (typeof envHome === "string" && envHome.trim().length > 0) {
+    return path.resolve(envHome);
+  }
+
+  return os.tmpdir();
+}
+
 function safeHomeDir() {
   try {
     return os.homedir();
   } catch {
-    return process.cwd();
+    return fallbackHomeDir();
   }
 }
 

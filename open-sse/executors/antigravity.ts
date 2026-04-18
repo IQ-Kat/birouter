@@ -1,15 +1,20 @@
 import crypto, { randomUUID } from "crypto";
-import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
-import { antigravityUserAgent, googApiClientHeader } from "../services/antigravityHeaders.ts";
+import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
 import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
 import {
   injectCreditsField,
   shouldRetryWithCredits,
+  shouldUseCreditsFirst,
+  getCreditsMode,
   handleCreditsFailure,
 } from "../services/antigravityCredits.ts";
+import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
+import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
+import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
@@ -28,11 +33,30 @@ const creditsExhaustedUntil = new Map<string, number>();
  * Per-account GOOGLE_ONE_AI remaining credit balance cache.
  * Populated from the final SSE chunk's `remainingCredits` field after every
  * successful credit-injected request. Keyed by accountId.
+ * On first access, hydrated from the DB-persisted balances so values survive restarts.
  */
 const creditBalanceCache = new Map<string, number>();
+let creditCacheHydrated = false;
+
+function hydrateCreditCacheFromDb(): void {
+  if (creditCacheHydrated) return;
+  creditCacheHydrated = true;
+  try {
+    const persisted = getAllPersistedCreditBalances();
+    for (const [accountId, balance] of persisted) {
+      // Only fill in accounts not already populated by a live SSE response
+      if (!creditBalanceCache.has(accountId)) {
+        creditBalanceCache.set(accountId, balance);
+      }
+    }
+  } catch {
+    // DB not ready yet (build phase, etc.) — ignore silently
+  }
+}
 
 /** Read the last-known GOOGLE_ONE_AI credit balance for a given account. */
 export function getAntigravityRemainingCredits(accountId: string): number | null {
+  hydrateCreditCacheFromDb();
   const balance = creditBalanceCache.get(accountId);
   return balance !== undefined ? balance : null;
 }
@@ -40,6 +64,12 @@ export function getAntigravityRemainingCredits(accountId: string): number | null
 /** Update the balance cache — called when we parse `remainingCredits` from an SSE stream. */
 export function updateAntigravityRemainingCredits(accountId: string, balance: number): void {
   creditBalanceCache.set(accountId, balance);
+  // Persist to DB so the value survives server restarts
+  try {
+    persistCreditBalance(accountId, balance);
+  } catch {
+    // Non-critical — in-memory cache is the primary source
+  }
 }
 
 function isCreditsExhausted(accountId: string): boolean {
@@ -63,6 +93,7 @@ function markCreditsExhausted(accountId: string): void {
 function cleanModelName(model: string): string {
   if (!model) return model;
   let clean = model.includes("/") ? model.split("/").pop()! : model;
+  clean = resolveAntigravityModelId(clean);
   // Normalize bare Pro IDs to the Low tier (matching OpenClaw convention).
   // The upstream API requires an explicit tier suffix; bare IDs cause errors.
   if (BARE_PRO_IDS.has(clean)) {
@@ -92,7 +123,6 @@ export class AntigravityExecutor extends BaseExecutor {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials.accessToken}`,
       "User-Agent": antigravityUserAgent(),
-      "X-Goog-Api-Client": googApiClientHeader(),
       Accept: "text/event-stream",
       "X-OmniRoute-Source": "omniroute",
     };
@@ -150,13 +180,27 @@ export class AntigravityExecutor extends BaseExecutor {
         // Antigravity rejects synthetic thought text, but Gemini 3+ requires any
         // returned thoughtSignature metadata to survive model tool-call turns.
         const parts =
-          c.parts?.filter((p) => !p.thought && (hasFunctionCall || !p.thoughtSignature)) || [];
+          c.parts?.filter((p) => {
+            // Drop empty text parts
+            if (typeof p.text === "string" && p.text === "") return false;
+            // Drop empty functionCalls
+            if (p.functionCall && !p.functionCall.name) return false;
+
+            return !p.thought && (hasFunctionCall || !p.thoughtSignature);
+          }) || [];
         return { ...c, role, parts };
       }) || [];
 
-    const contents = normalizedContents.filter((c) =>
-      Array.isArray(c.parts) ? c.parts.length > 0 : true
-    );
+    // Merge consecutive same-role entries and filter out empty sequences
+    const contents = [];
+    for (const c of normalizedContents) {
+      if (!Array.isArray(c.parts) || c.parts.length === 0) continue;
+      if (contents.length > 0 && contents[contents.length - 1].role === c.role) {
+        contents[contents.length - 1].parts.push(...c.parts);
+      } else {
+        contents.push(c);
+      }
+    }
 
     const transformedRequest = {
       ...body.request,
@@ -400,7 +444,16 @@ export class AntigravityExecutor extends BaseExecutor {
     return collect();
   }
 
-  async execute({ model, body, stream, credentials, signal, log, upstreamExtraHeaders }) {
+  async execute({
+    model,
+    body,
+    stream,
+    credentials,
+    signal,
+    log,
+    upstreamExtraHeaders,
+  }: ExecuteInput) {
+    await resolveAntigravityVersion();
     const fallbackCount = this.getFallbackCount();
     let lastError = null;
     let lastStatus = 0;
@@ -412,17 +465,31 @@ export class AntigravityExecutor extends BaseExecutor {
     // non-streaming Response so chatCore's non-streaming path stays unchanged.
     const upstreamStream = true;
 
-    // Account ID for credits-exhausted tracking.
-    // Key must match getAntigravityUsage() in fetcher.ts (providerSpecificData?.email || sub).
-    // credentials.email and credentials.sub are populated from the same OAuth token store,
-    // so the cache keys written here and read in the fetcher will always match.
-    const accountId: string = credentials?.email || credentials?.sub || "unknown";
+    // Account ID for credits tracking.
+    // Use connectionId as the stable cache key — it's available in both the executor
+    // (via credentials.connectionId) and the usage fetcher (via connection.id).
+    // The email-based key was unreliable because email isn't always on the credentials object.
+    const accountId: string = credentials?.connectionId || "unknown";
+
+    // Resolve credits mode once per execute() call. "always" injects
+    // enabledCreditTypes: ["GOOGLE_ONE_AI"] on the first request so the
+    // preflight normal call is skipped entirely.
+    const creditsMode = getCreditsMode();
+    const useCreditsFirst = shouldUseCreditsFirst(credentials?.accessToken || "", creditsMode);
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
       const headers = this.buildHeaders(credentials, upstreamStream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
-      const transformedBody = await this.transformRequest(model, body, upstreamStream, credentials);
+      let transformedBody = await this.transformRequest(model, body, upstreamStream, credentials);
+
+      // Credits-first: inject GOOGLE_ONE_AI upfront so we never try the normal
+      // quota path. If credits are exhausted / disabled shouldUseCreditsFirst()
+      // returns false and we fall back to the legacy retry-on-429 flow.
+      if (useCreditsFirst) {
+        transformedBody = injectCreditsField(transformedBody);
+        log?.debug?.("AG_CREDITS", "Credits-first enabled (ANTIGRAVITY_CREDITS=always)");
+      }
 
       // Initialize retry counter for this URL
       if (!retryAttemptsByUrl[urlIndex]) {
@@ -457,17 +524,29 @@ export class AntigravityExecutor extends BaseExecutor {
               // 1. Try to parse explicit retry time from message
               const parsedRetryMs = this.parseRetryFromErrorMessage(errorMessage);
 
-              // 2. Classify 429
+              // 2. Classify 429 (pass header-parsed retry hint as fallback
+              //    signal — multi-hour Retry-After upgrades rate_limited to
+              //    quota_exhausted so the GOOGLE_ONE_AI credits retry fires).
+              const effectiveRetryHintMs = retryMs ?? parsedRetryMs ?? null;
               const category = classify429(errorMessage);
 
               // 3. For quota_exhausted, attempt Google One AI credits retry FIRST!
+              //    Skip if credits were already injected on the first call
+              //    (creditsMode === "always") — no point re-running with the
+              //    same body. Record the failure so the 5h breaker kicks in.
+              const creditsAlreadyInjected =
+                (transformedBody as { enabledCreditTypes?: unknown }).enabledCreditTypes != null;
+
+              if (category === "quota_exhausted" && creditsAlreadyInjected) {
+                handleCreditsFailure(credentials?.accessToken || "");
+                log?.warn?.("AG_CREDITS", "Credits-first request 429'd — credits likely exhausted");
+                markCreditsExhausted(accountId);
+              }
+
               if (
                 category === "quota_exhausted" &&
-                shouldRetryWithCredits(
-                  credentials?.accessToken || "",
-                  process.env.ANTIGRAVITY_CREDITS === "1" ||
-                    process.env.ANTIGRAVITY_CREDITS === "true"
-                )
+                !creditsAlreadyInjected &&
+                shouldRetryWithCredits(credentials?.accessToken || "", creditsMode !== "off")
               ) {
                 log?.info?.("AG_CREDITS", "Retrying with Google One AI credits");
                 const creditsBody = injectCreditsField(transformedBody);
@@ -613,7 +692,7 @@ export class AntigravityExecutor extends BaseExecutor {
         // For non-streaming clients, collect the SSE stream and return a synthetic
         // non-streaming Response so chatCore doesn't need to handle SSE conversion.
         if (!stream) {
-          return this.collectStreamToResponse(
+          const collected = await this.collectStreamToResponse(
             response,
             model,
             url,
@@ -622,6 +701,82 @@ export class AntigravityExecutor extends BaseExecutor {
             log,
             signal
           );
+          // When credits were injected (credits-first or credits-retry), the
+          // synthetic body contains _remainingCredits — mirror it into the
+          // balance cache so the dashboard stays fresh.
+          try {
+            const syntheticJson = await collected.response.clone().json();
+            const rc = syntheticJson?._remainingCredits;
+            if (Array.isArray(rc)) {
+              const googleCredit = rc.find(
+                (c: { creditType?: string }) => c?.creditType === "GOOGLE_ONE_AI"
+              );
+              if (googleCredit) {
+                const balance = parseInt(googleCredit.creditAmount, 10);
+                if (!isNaN(balance)) updateAntigravityRemainingCredits(accountId, balance);
+              }
+            }
+          } catch {
+            /* balance cache is best-effort */
+          }
+          return collected;
+        }
+
+        // Streaming path: wrap the response body in a pass-through TransformStream
+        // that extracts remainingCredits from the final SSE chunk(s) without
+        // consuming the stream. The client receives the unmodified SSE data.
+        if (response.body) {
+          let sseBuffer = "";
+          const passThrough = new TransformStream({
+            transform(chunk, controller) {
+              controller.enqueue(chunk);
+              // Accumulate text to scan for remainingCredits
+              try {
+                const text = new TextDecoder().decode(chunk, { stream: true });
+                sseBuffer += text;
+              } catch {
+                /* decoding best-effort */
+              }
+            },
+            flush() {
+              // Parse the accumulated SSE data for remainingCredits
+              try {
+                const lines = sseBuffer.split("\n");
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (!trimmed.startsWith("data:")) continue;
+                  const payload = trimmed.slice(5).trim();
+                  if (!payload || payload === "[DONE]") continue;
+                  try {
+                    const parsed = JSON.parse(payload);
+                    if (Array.isArray(parsed?.remainingCredits)) {
+                      const googleCredit = parsed.remainingCredits.find(
+                        (c) => c?.creditType === "GOOGLE_ONE_AI"
+                      );
+                      if (googleCredit) {
+                        const balance = parseInt(googleCredit.creditAmount, 10);
+                        if (!isNaN(balance)) {
+                          updateAntigravityRemainingCredits(accountId, balance);
+                        }
+                      }
+                    }
+                  } catch {
+                    /* skip malformed lines */
+                  }
+                }
+              } catch {
+                /* credits extraction is best-effort */
+              }
+              sseBuffer = "";
+            },
+          });
+          const tappedBody = response.body.pipeThrough(passThrough);
+          const tappedResponse = new Response(tappedBody, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+          });
+          return { response: tappedResponse, url, headers, transformedBody };
         }
 
         return { response, url, headers, transformedBody };

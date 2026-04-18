@@ -40,7 +40,12 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["gemini-3-pro-high", "gemini-3.1-pro-preview", "gemini-3.1-pro-preview-customtools"],
+    aliases: [
+      "gemini-3-pro-high",
+      "gemini-3-pro-preview",
+      "gemini-3.1-pro-preview",
+      "gemini-3.1-pro-preview-customtools",
+    ],
   },
 
   // ── Gemini 3.1 Pro Low ──────────────────────────────────────────
@@ -64,6 +69,16 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
+  },
+
+  // ── Claude Opus 4.7 ─────────────────────────────────────────────
+  "claude-opus-4-7": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["claude-opus-4.7"],
   },
 
   // Defaults

@@ -7,17 +7,19 @@ test("chatCore integration: compressContext called proactively when context exce
 
   const provider = "openai";
   const model = "gpt-4";
-  const contextLimit = getTokenLimit(provider, model);
+  const contextLimit = 8192; // Hardcoded to 8192 to avoid DB dependency causing 128k evaluation
   const threshold = Math.floor(contextLimit * 0.85);
 
-  const largeMessage = "x".repeat(threshold * 4 + 1000);
+  const history = Array.from({ length: 24 }, (_, index) => [
+    { role: "user", content: `Question ${index}: ${"context ".repeat(80)}` },
+    { role: "assistant", content: `Answer ${index}: ${"history ".repeat(80)}` },
+  ]).flat();
   const body = {
     model,
     messages: [
       { role: "system", content: "You are helpful." },
-      { role: "user", content: "Garbage 1".repeat(1000) },
-      { role: "assistant", content: "Garbage 2".repeat(1000) },
-      { role: "user", content: largeMessage },
+      ...history,
+      { role: "user", content: "Final question?" },
     ],
   };
 
@@ -38,6 +40,11 @@ test("chatCore integration: compressContext called proactively when context exce
     result.stats.final <= contextLimit,
     `Final tokens ${result.stats.final} should fit within limit ${contextLimit}`
   );
+  assert.equal(
+    result.body.messages[result.body.messages.length - 1].content,
+    "Final question?",
+    "Latest user turn should be preserved after compression"
+  );
 });
 
 test("chatCore integration: compressContext NOT called when context is below 85% threshold", async () => {
@@ -46,7 +53,7 @@ test("chatCore integration: compressContext NOT called when context is below 85%
 
   const provider = "openai";
   const model = "gpt-4";
-  const contextLimit = getTokenLimit(provider, model);
+  const contextLimit = 8192;
   const threshold = Math.floor(contextLimit * 0.85);
 
   const smallMessage = "Hello, how are you?";
@@ -75,7 +82,7 @@ test("chatCore integration: compression preserves message structure", async () =
 
   const provider = "claude";
   const model = "claude-sonnet-4";
-  const contextLimit = getTokenLimit(provider, model);
+  const contextLimit = 200000;
 
   const body = {
     model,
@@ -108,7 +115,7 @@ test("chatCore integration: compression handles tool messages", async () => {
 
   const provider = "openai";
   const model = "gpt-4";
-  const contextLimit = getTokenLimit(provider, model);
+  const contextLimit = 8192;
 
   const longToolOutput = "x".repeat(50000);
   const body = {

@@ -4,31 +4,37 @@
 
 ---
 
-Guide complet pour installer et configurer OmniRoute sur une VM (VPS) avec domaine géré via Cloudflare.---
+Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+
+---
 
 ## Prerequisites
 
-| Article        | Minimum                | Recommandé             |
-| -------------- | ---------------------- | ---------------------- |
-| **processeur** | 1 processeur virtuel   | 2 processeurs virtuels |
-| **RAM**        | 1 Go                   | 2 Go                   |
-| **Disque**     | Disque SSD de 10 Go    | Disque SSD de 25 Go    |
-| **OS**         | Ubuntu 22.04 LTS       | Ubuntu 24.04 LTS       |
-| **Domaine**    | Inscrit sur Cloudflare | —                      |
-| **Docker**     | Moteur Docker 24+      | Docker 27+             |
+| Item       | Minimum                  | Recommended      |
+| ---------- | ------------------------ | ---------------- |
+| **CPU**    | 1 vCPU                   | 2 vCPU           |
+| **RAM**    | 1 GB                     | 2 GB             |
+| **Disk**   | 10 GB SSD                | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
+| **Domain** | Registered on Cloudflare | —                |
+| **Docker** | Docker Engine 24+        | Docker 27+       |
 
-**Fournisseurs testés** : Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.---
+**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+
+---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-Sur votre fournisseur VPS préféré :
+On your preferred VPS provider:
 
-- Choisissez Ubuntu 24.04 LTS
-- Sélectionnez le forfait minimum (1 vCPU / 1 Go de RAM)
-- Définissez un mot de passe root fort ou configurez la clé SSH
-- Notez l'**IP publique**(par exemple, `203.0.113.10`)### 1.2 Connect via SSH
+- Choose Ubuntu 24.04 LTS
+- Select the minimum plan (1 vCPU / 1 GB RAM)
+- Set a strong root password or configure SSH key
+- Note the **public IP** (e.g., `203.0.113.10`)
+
+### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -72,7 +78,9 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Conseil** : Pour une sécurité maximale, limitez les ports 80 et 443 aux IP Cloudflare uniquement. Consultez la section [Sécurité avancée](#advanced-security).---
+> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+
+---
 
 ## 2. Install OmniRoute
 
@@ -114,7 +122,9 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️**IMPORTANT**: Générez des clés secrètes uniques ! Utilisez `openssl rand -hex 32` pour chaque clé.### 2.3 Start the container
+> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+
+### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -135,31 +145,32 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-Il devrait afficher : `[DB] Base de données SQLite prête` et `en écoute sur le port 20128`.---
+It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+
+---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-Dans le tableau de bord Cloudflare :
+In the Cloudflare dashboard:
 
-1. Accédez à**SSL/TLS → Serveur d'origine**
-2. Cliquez sur**Créer un certificat**
-3. Conservez les valeurs par défaut (15 ans, \*.votredomaine.com)
-4. Copiez le**Certificat d'origine**et la**Clé privée**```bash
-   mkdir -p /etc/nginx/ssl
+1. Go to **SSL/TLS → Origin Server**
+2. Click **Create Certificate**
+3. Keep the defaults (15 years, \*.yourdomain.com)
+4. Copy the **Origin Certificate** and the **Private Key**
+
+```bash
+mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
-
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
-
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-
-````
+```
 
 ### 3.2 Nginx Configuration
 
@@ -217,11 +228,13 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-````
+```
 
-Gardez les délais d'attente des flux de proxy inverse alignés sur vos variables d'environnement de délai d'attente OmniRoute. Si vous relancez
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, augmentez `proxy_read_timeout` / `proxy_send_timeout`
-au-dessus du même seuil.### 3.3 Enable and Test
+Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
+above the same threshold.
+
+### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -240,21 +253,25 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-Dans le tableau de bord Cloudflare → DNS :
+In the Cloudflare dashboard → DNS:
 
-| Tapez | Nom    | Contenu                                     | Proxy         |
-| ----- | ------ | ------------------------------------------- | ------------- | --------------------- |
-| Un    | `llms` | `203.0.113.10` (IP de la machine virtuelle) | ✅ Mandataire | ### 4.2 Configure SSL |
+| Type | Name   | Content                | Proxy      |
+| ---- | ------ | ---------------------- | ---------- |
+| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
 
-Sous**SSL/TLS → Présentation** :
+### 4.2 Configure SSL
 
-- Mode :**Complet (strict)**
+Under **SSL/TLS → Overview**:
 
-Sous**SSL/TLS → Certificats Edge** :
+- Mode: **Full (Strict)**
 
-- Utilisez toujours HTTPS : ✅ Activé
-  -Version TLS minimale : TLS 1.2
-- Réécritures HTTPS automatiques : ✅ Activée### 4.3 Testing
+Under **SSL/TLS → Edge Certificates**:
+
+- Always Use HTTPS: ✅ On
+- Minimum TLS Version: TLS 1.2
+- Automatic HTTPS Rewrites: ✅ On
+
+### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -333,10 +350,11 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Ajoutez ce qui suit à « nginx.conf » à l'intérieur du bloc « http {} » :```nginx
-include /etc/nginx/cloudflare-ips.conf;
+Add the following to `nginx.conf` inside the `http {}` block:
 
-````
+```nginx
+include /etc/nginx/cloudflare-ips.conf;
+```
 
 ### Install fail2ban
 
@@ -347,7 +365,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-````
+```
 
 ### Block direct access to the Docker port
 
@@ -365,25 +383,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-Pour un accès à distance via Cloudflare Workers (sans exposer directement la VM) :```bash
+For remote access via Cloudflare Workers (without exposing the VM directly):
 
+```bash
 # In the local repository
-
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
-
 ```
 
-Consultez la documentation complète sur [omnirouteCloud/README.md](../omnirouteCloud/README.md).---
+See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+
+---
 
 ## Port Summary
 
-| Port | Services | Accès |
+| Port  | Service     | Access                     |
 | ----- | ----------- | -------------------------- |
-| 22 | SSH | Public (avec fail2ban) |
-| 80 | nginx HTTP | Redirection → HTTPS |
-| 443 | nginx HTTPS | Via le proxy Cloudflare |
-| 20128 | OmniRoute | Localhost uniquement (via nginx) |
-```
+| 22    | SSH         | Public (with fail2ban)     |
+| 80    | nginx HTTP  | Redirect → HTTPS           |
+| 443   | nginx HTTPS | Via Cloudflare Proxy       |
+| 20128 | OmniRoute   | Localhost only (via nginx) |

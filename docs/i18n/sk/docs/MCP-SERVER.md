@@ -4,69 +4,84 @@
 
 ---
 
-> Model Context Protocol server so 16 inteligentnými nástrojmi## Inštalácia
+> Model Context Protocol server with 16 intelligent tools
 
-OmniRoute MCP je vstavaný. Začnite s:```bash
+## Inštalácia
+
+OmniRoute MCP is built-in. Start it with:
+
+```bash
 omniroute --mcp
+```
 
-````
+Or via the open-sse transport:
 
-Alebo cez dopravu open-sse:```bash
+```bash
 # HTTP streamable transport (port 20130)
 omniroute --dev  # MCP auto-starts on /mcp endpoint
-````
+```
 
 ## IDE Configuration
 
-Pozrite si [IDE Configs](integrations/ide-configs.md) pre nastavenie Antigravity, Cursor, Copilot a Claude Desktop.---
+See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
+
+---
 
 ## Essential Tools (8)
 
-| Nástroj                         | Popis                                       |
-| :------------------------------ | :------------------------------------------ | --------------------- |
-| `omniroute_get_health`          | Stav brány, ističe, doba prevádzky          |
-| `omniroute_list_combos`         | Všetky nakonfigurované kombá s modelmi      |
-| `omniroute_get_combo_metrics`   | Metriky výkonnosti pre konkrétnu kombináciu |
-| `omniroute_switch_combo`        | Prepnúť aktívnu kombináciu podľa ID/mena    |
-| `omniroute_check_quota`         | Stav kvóty na poskytovateľa alebo všetkých  |
-| `omniroute_route_request`       | Odoslať dokončenie rozhovoru cez OmniRoute  |
-| `omniroute_cost_report`         | Analýza nákladov za časové obdobie          |
-| `omniroute_list_models_catalog` | Kompletný katalóg modelov s funkciami       | ## Advanced Tools (8) |
+| Tool                            | Description                              |
+| :------------------------------ | :--------------------------------------- |
+| `omniroute_get_health`          | Gateway health, circuit breakers, uptime |
+| `omniroute_list_combos`         | All configured combos with models        |
+| `omniroute_get_combo_metrics`   | Performance metrics for a specific combo |
+| `omniroute_switch_combo`        | Switch active combo by ID/name           |
+| `omniroute_check_quota`         | Quota status per provider or all         |
+| `omniroute_route_request`       | Send a chat completion through OmniRoute |
+| `omniroute_cost_report`         | Cost analytics for a time period         |
+| `omniroute_list_models_catalog` | Full model catalog with capabilities     |
 
-| Nástroj                            | Popis                                                                                 |
-| :--------------------------------- | :------------------------------------------------------------------------------------ | ----------------- |
-| `omniroute_simulate_route`         | Simulácia smerovania nasucho s záložným stromom                                       |
-| `omniroute_set_budget_guard`       | Rozpočet relácie s akciami zníženia/blokovania/upozornenia                            |
-| `omniroute_set_resilience_profile` | Použiť konzervatívnu/vyváženú/agresívnu predvoľbu                                     |
-| `omniroute_test_combo`             | Živý test všetkých modelov v kombinácii prostredníctvom skutočnej upstream požiadavky |
-| `omniroute_get_provider_metrics`   | Podrobné metriky pre jedného poskytovateľa                                            |
-| `omniroute_best_combo_for_task`    | Odporúčanie vhodnosti úlohy s alternatívami                                           |
-| `omniroute_explain_route`          | Vysvetlite minulé rozhodnutie o smerovaní                                             |
-| `omniroute_get_session_snapshot`   | Úplný stav relácie: náklady, tokeny, chyby                                            | ## Authentication |
+## Advanced Tools (8)
 
-Nástroje MCP sa overujú prostredníctvom rozsahov kľúčov API. Každý nástroj vyžaduje špecifické rozsahy:
+| Tool                               | Description                                                 |
+| :--------------------------------- | :---------------------------------------------------------- |
+| `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree               |
+| `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions             |
+| `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
+| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
+| `omniroute_get_provider_metrics`   | Detailed metrics for one provider                           |
+| `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
+| `omniroute_explain_route`          | Explain a past routing decision                             |
+| `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
 
-| Rozsah             | Nástroje                                         |
-| :----------------- | :----------------------------------------------- | ---------------- |
-| "čítaj:zdravie"    | get_health, get_provider_metrics                 |
-| `read:combos`      | zoznam_combos, get_combo_metrics                 |
-| `write:combos`     | switch_combo                                     |
-| "čítaj:kvóta"      | check_quota                                      |
-| `write:route`      | route_request, simulate_route, test_combo        |
-| "čítaj:používanie" | cost_report, get_session_snapshot, explain_route |
-| `write:config`     | set_budget_guard, set_resilience_profile         |
-| "čítaj:modelky"    | zoznam_modelov_katalog, best_combo_for_task      | ## Audit Logging |
+## Authentication
 
-Každé volanie nástroja sa zaznamená do `mcp_tool_audit` pomocou:
+MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
 
-- Názov nástroja, argumenty, výsledok
-- Trvanie (ms), úspech/neúspech
-- API kľúč hash, časová pečiatka## Files
+| Scope          | Tools                                            |
+| :------------- | :----------------------------------------------- |
+| `read:health`  | get_health, get_provider_metrics                 |
+| `read:combos`  | list_combos, get_combo_metrics                   |
+| `write:combos` | switch_combo                                     |
+| `read:quota`   | check_quota                                      |
+| `write:route`  | route_request, simulate_route, test_combo        |
+| `read:usage`   | cost_report, get_session_snapshot, explain_route |
+| `write:config` | set_budget_guard, set_resilience_profile         |
+| `read:models`  | list_models_catalog, best_combo_for_task         |
 
-| Súbor                                        | Účel                                              |
-| :------------------------------------------- | :------------------------------------------------ |
-| `open-sse/mcp-server/server.ts`              | Vytvorenie MCP servera + 16 registrácií nástrojov |
-| `open-sse/mcp-server/transport.ts`           | Stdio + prenos HTTP                               |
-| `open-sse/mcp-server/auth.ts`                | Kľúč API + overenie rozsahu                       |
-| `open-sse/mcp-server/audit.ts`               | Protokolovanie auditu volaní nástroja             |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 pokročilých nástrojov na manipuláciu            |
+## Audit Logging
+
+Every tool call is logged to `mcp_tool_audit` with:
+
+- Tool name, arguments, result
+- Duration (ms), success/failure
+- API key hash, timestamp
+
+## Files
+
+| File                                         | Purpose                                     |
+| :------------------------------------------- | :------------------------------------------ |
+| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
+| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
+| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
+| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |

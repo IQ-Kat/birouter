@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -13,8 +14,27 @@ import { pathToFileURL } from "node:url";
  */
 
 const projectRoot = process.cwd();
-const legacyAppDir = path.join(projectRoot, "app");
-const backupDir = path.join(projectRoot, `.app-build-backup-${process.pid}-${Date.now()}`);
+const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
+
+export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
+  const paths = [
+    {
+      label: "legacy app snapshot",
+      sourcePath: path.join(rootDir, "app"),
+      backupPath: path.join(backupRoot, "app"),
+    },
+  ];
+
+  if (env.OMNIROUTE_BUILD_MOVE_TASKS === "1") {
+    paths.push({
+      label: "task planning workspace",
+      sourcePath: path.join(rootDir, "_tasks"),
+      backupPath: path.join(backupRoot, "_tasks"),
+    });
+  }
+
+  return paths;
+}
 
 async function exists(targetPath) {
   try {
@@ -26,6 +46,9 @@ async function exists(targetPath) {
 }
 
 export async function movePath(sourcePath, destinationPath, fsImpl = fs) {
+  const mkdir = typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
+  await mkdir(path.dirname(destinationPath), { recursive: true });
+
   try {
     await fsImpl.rename(sourcePath, destinationPath);
   } catch (error) {
@@ -81,14 +104,41 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
   };
 }
 
+async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
+  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  if (!(await exists(standaloneRoot))) return;
+
+  const staleStandaloneBackup = path.join(backupRoot, "standalone-stale");
+
+  await movePath(standaloneRoot, staleStandaloneBackup, fsImpl);
+  console.log("[build-next-isolated] Moved stale standalone output out of the build path");
+}
+
+export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = fs) {
+  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  const pruneTargets = [path.join(standaloneRoot, "_tasks")];
+
+  for (const targetPath of pruneTargets) {
+    if (!(await exists(targetPath))) continue;
+    await fsImpl.rm(targetPath, { recursive: true, force: true });
+    console.log(
+      `[build-next-isolated] Pruned standalone artifact: ${path.relative(rootDir, targetPath)}`
+    );
+  }
+}
+
 export async function main() {
-  let moved = false;
+  const movedPaths = [];
+  const transientBuildPaths = getTransientBuildPaths();
 
   try {
-    if (await exists(legacyAppDir)) {
-      await movePath(legacyAppDir, backupDir);
-      moved = true;
+    for (const entry of transientBuildPaths) {
+      if (!(await exists(entry.sourcePath))) continue;
+      await movePath(entry.sourcePath, entry.backupPath);
+      movedPaths.push(entry);
     }
+
+    await resetStandaloneOutput(projectRoot);
 
     const result = await runNextBuild();
     if (result.code === 0 && (await exists(path.join(projectRoot, ".next", "standalone")))) {
@@ -107,22 +157,39 @@ export async function main() {
       } catch (copyErr) {
         console.warn("[build-next-isolated] Non-fatal error copying static assets:", copyErr);
       }
+
+      try {
+        await pruneStandaloneArtifacts(projectRoot);
+      } catch (pruneErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error pruning standalone artifacts:",
+          pruneErr
+        );
+      }
     }
     process.exitCode = result.code;
   } catch (error) {
     console.error("[build-next-isolated] Build failed:", error);
     process.exitCode = 1;
   } finally {
-    if (moved) {
+    while (movedPaths.length > 0) {
+      const entry = movedPaths.pop();
+      if (!entry) continue;
       try {
-        await movePath(backupDir, legacyAppDir);
+        await movePath(entry.backupPath, entry.sourcePath);
       } catch (restoreError) {
         console.error(
-          `[build-next-isolated] Failed to restore legacy app dir from ${backupDir}:`,
+          `[build-next-isolated] Failed to restore ${entry.label} from ${entry.backupPath}:`,
           restoreError
         );
         process.exitCode = 1;
       }
+    }
+
+    try {
+      await fs.rm(backupRoot, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.warn("[build-next-isolated] Failed to clean temporary backup root:", cleanupError);
     }
   }
 }

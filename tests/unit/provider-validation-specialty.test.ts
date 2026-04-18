@@ -83,6 +83,57 @@ test("specialty providers surface network failures and non-auth upstream failure
   assert.equal(longcat.error, "longcat offline");
 });
 
+test("web-cookie provider validators accept valid Grok and Perplexity session cookies", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    calls.push({ url: target, init });
+
+    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
+      return new Response(JSON.stringify({ ok: true }), { status: 400 });
+    }
+    if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const grok = await validateProviderApiKey({ provider: "grok-web", apiKey: "sso=grok-cookie" });
+  const perplexity = await validateProviderApiKey({
+    provider: "perplexity-web",
+    apiKey: "__Secure-next-auth.session-token=pplx-cookie",
+  });
+
+  assert.equal(grok.valid, true);
+  assert.equal(perplexity.valid, true);
+  assert.equal(calls[0].init.headers.Cookie, "sso=grok-cookie");
+  assert.equal(calls[1].init.headers.Cookie, "__Secure-next-auth.session-token=pplx-cookie");
+});
+
+test("web-cookie provider validators surface auth failures for expired session cookies", async () => {
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+    if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const grok = await validateProviderApiKey({ provider: "grok-web", apiKey: "grok-cookie" });
+  const perplexity = await validateProviderApiKey({
+    provider: "perplexity-web",
+    apiKey: "pplx-cookie",
+  });
+
+  assert.match(grok.error || "", /Invalid SSO cookie/i);
+  assert.match(perplexity.error || "", /Invalid Perplexity session cookie/i);
+});
+
 test("search provider validators cover success, client errors, server errors and custom user agent injection", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {
@@ -120,6 +171,73 @@ test("search provider validators cover success, client errors, server errors and
   assert.equal(tavily.error, "Validation failed: 503");
   assert.equal(perplexity.error, "perplexity offline");
   assert.equal(calls[0].init.headers["User-Agent"], "SearchSuite/1.0");
+});
+
+test("extended search provider validators cover Google PSE, Linkup, SearchAPI and SearXNG", async () => {
+  const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = "true";
+  const calls = [];
+  try {
+    globalThis.fetch = async (url, init = {}) => {
+      calls.push({ url: String(url), init });
+      const target = String(url);
+      if (target.startsWith("https://www.googleapis.com/customsearch/v1")) {
+        return new Response(JSON.stringify({ items: [] }), { status: 200 });
+      }
+      if (target.startsWith("https://api.linkup.so/v1/search")) {
+        return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+      }
+      if (target.startsWith("https://www.searchapi.io/api/v1/search")) {
+        return new Response(JSON.stringify({ organic_results: [] }), { status: 200 });
+      }
+      if (target.startsWith("http://localhost:9999/search")) {
+        return new Response(JSON.stringify({ results: [] }), { status: 200 });
+      }
+      throw new Error(`unexpected fetch: ${target}`);
+    };
+
+    const google = await validateProviderApiKey({
+      provider: "google-pse-search",
+      apiKey: "google-key",
+      providerSpecificData: { cx: "engine-id" },
+    });
+    const linkup = await validateProviderApiKey({
+      provider: "linkup-search",
+      apiKey: "linkup-key",
+    });
+    const searchapi = await validateProviderApiKey({
+      provider: "searchapi-search",
+      apiKey: "searchapi-key",
+    });
+    const searxng = await validateProviderApiKey({
+      provider: "searxng-search",
+      providerSpecificData: { baseUrl: "http://localhost:9999/search" },
+    });
+
+    assert.equal(google.valid, true);
+    assert.equal(linkup.valid, true);
+    assert.equal(searchapi.valid, true);
+    assert.equal(searxng.valid, true);
+    assert.match(calls[0].url, /cx=engine-id/);
+    assert.equal(calls[1].init.headers.Authorization, "Bearer linkup-key");
+    assert.match(calls[2].url, /api_key=searchapi-key/);
+  } finally {
+    if (originalAllowPrivateProviderUrls === undefined) {
+      delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+    } else {
+      process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+    }
+  }
+});
+
+test("google PSE validator requires cx", async () => {
+  const result = await validateProviderApiKey({
+    provider: "google-pse-search",
+    apiKey: "google-key",
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Programmable Search Engine ID (cx) is required");
 });
 
 test("OpenAI-compatible validator covers /responses mode and final ping fallback", async () => {

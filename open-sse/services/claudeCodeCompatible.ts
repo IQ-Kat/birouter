@@ -1,6 +1,15 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
+import {
+  ANTHROPIC_BETA_FULL,
+  ANTHROPIC_VERSION_HEADER,
+  CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
+  CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
+  CLAUDE_CLI_USER_AGENT,
+  CLAUDE_CLI_VERSION,
+} from "../config/anthropicHeaders.ts";
+import { supportsXHighEffort } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { computeFingerprint, extractFirstUserMessageText } from "./claudeCodeFingerprint.ts";
@@ -26,11 +35,18 @@ export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 8092;
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = "2023-06-01";
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA =
-  "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,effort-2025-11-24,token-efficient-tools-2025-02-19";
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.87";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = `claude-cli/${CLAUDE_CODE_COMPATIBLE_VERSION} (external, cli)`;
+export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = ANTHROPIC_VERSION_HEADER;
+export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = ANTHROPIC_BETA_FULL;
+export const CLAUDE_CODE_COMPATIBLE_VERSION = CLAUDE_CLI_VERSION;
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = CLAUDE_CLI_USER_AGENT;
+export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
+const CONTEXT_1M_SUPPORTED_MODELS = [
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+  "claude-sonnet-4-6",
+  "claude-sonnet-4-5",
+  "claude-sonnet-4",
+];
 /**
  * Build the billing header dynamically with fingerprint and CCH placeholder.
  * The cch=00000 placeholder is later replaced by signRequestBody().
@@ -70,6 +86,10 @@ type BuildRequestOptions = {
   sessionId?: string | null;
   preserveCacheControl?: boolean;
 };
+
+function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
+  return typeof model === "string" && supportsXHighEffort("claude", model);
+}
 
 export function isClaudeCodeCompatibleProvider(provider: string | null | undefined): boolean {
   return typeof provider === "string" && provider.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
@@ -116,6 +136,37 @@ export function joinClaudeCodeCompatibleUrl(baseUrl: string, path: string): stri
   return joinNormalizedBaseUrlAndPath(stripClaudeCodeCompatibleEndpointSuffix(baseUrl), path);
 }
 
+export function appendAnthropicBetaHeader(
+  headers: Record<string, string>,
+  betaHeader: string
+): void {
+  const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+  if (!existingKey) {
+    headers["anthropic-beta"] = betaHeader;
+    return;
+  }
+
+  const existingValues = String(headers[existingKey] || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (!existingValues.includes(betaHeader)) {
+    headers[existingKey] = [...existingValues, betaHeader].join(",");
+  }
+}
+
+export function modelSupportsContext1mBeta(model: string | null | undefined): boolean {
+  const normalizedModel = String(model || "")
+    .trim()
+    .toLowerCase()
+    .replace(/-\d{8}$/, "");
+
+  return CONTEXT_1M_SUPPORTED_MODELS.some(
+    (supported) => normalizedModel === supported || normalizedModel.startsWith(`${supported}-`)
+  );
+}
+
 export function buildClaudeCodeCompatibleHeaders(
   apiKey: string,
   stream = false,
@@ -136,11 +187,11 @@ export function buildClaudeCodeCompatibleHeaders(
     "X-Stainless-Retry-Count": "0",
     "X-Stainless-Timeout": String(CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS),
     "X-Stainless-Lang": "js",
-    "X-Stainless-Package-Version": "0.80.0",
+    "X-Stainless-Package-Version": CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
     "X-Stainless-OS": "MacOS",
     "X-Stainless-Arch": "arm64",
     "X-Stainless-Runtime": "node",
-    "X-Stainless-Runtime-Version": "v24.3.0",
+    "X-Stainless-Runtime-Version": CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
     "accept-language": "*",
     "sec-fetch-mode": "cors",
     "accept-encoding": "identity",
@@ -331,7 +382,7 @@ export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,
   normalizedBody?: Record<string, unknown> | null,
   model?: string | null
-): "low" | "medium" | "high" {
+): "low" | "medium" | "high" | "xhigh" {
   const raw =
     readNestedString(sourceBody, ["output_config", "effort"]) ||
     readNestedString(sourceBody, ["reasoning", "effort"]) ||
@@ -342,14 +393,16 @@ export function resolveClaudeCodeCompatibleEffort(
     "";
 
   const normalizedEffort = raw.toLowerCase();
-  void model;
 
   if (!normalizedEffort) return "high";
   if (normalizedEffort === "low") return "low";
   if (normalizedEffort === "medium") return "medium";
   if (normalizedEffort === "high") return "high";
   if (normalizedEffort === "none" || normalizedEffort === "disabled") return "low";
-  if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
+  if (normalizedEffort === "xhigh") {
+    return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
+  }
+  if (normalizedEffort === "max") {
     return "high";
   }
   return "high";
@@ -384,11 +437,16 @@ function buildClaudeCodeCompatibleMessages(messages: MessageLike[]) {
     .filter(
       (
         message
-      ): message is { role: "user" | "assistant"; content: Array<Record<string, unknown>> } =>
-        !!message && message.content.length > 0
+      ): message is {
+        role: "user" | "assistant";
+        content: Array<{ type: string; text: string }>;
+      } => !!message && message.content.length > 0
     );
 
-  const merged: Array<{ role: "user" | "assistant"; content: Array<Record<string, unknown>> }> = [];
+  const merged: Array<{
+    role: "user" | "assistant";
+    content: Array<{ type: string; text: string }>;
+  }> = [];
 
   for (const message of converted) {
     const last = merged[merged.length - 1];
@@ -520,9 +578,9 @@ function buildClaudeCodeCompatibleSystemBlocks({
   ];
 
   for (const systemBlock of customSystemBlocks) {
-    const preparedBlock = { ...systemBlock };
+    const preparedBlock = { ...systemBlock } as Record<string, unknown>;
     if (!preserveCacheControl) {
-      delete preparedBlock.cache_control;
+      delete preparedBlock["cache_control"];
     }
     blocks.push(preparedBlock);
   }
@@ -647,9 +705,12 @@ function prepareClaudeCodeCompatibleBody(
   const prepared = prepareClaudeRequest(
     {
       system: normalizeClaudeSystemInput(claudeBody.system),
-      messages: normalizeClaudeMessageInput(claudeBody.messages),
+      messages: normalizeClaudeMessageInput(claudeBody.messages) as Array<{
+        role?: string;
+        content?: string | Array<Record<string, unknown>>;
+      }>,
       tools: normalizeClaudeToolInput(claudeBody.tools),
-      thinking: readRecord(claudeBody.thinking) || claudeBody.thinking,
+      thinking: (readRecord(claudeBody.thinking) || null) as Record<string, unknown> | null,
     },
     CLAUDE_CODE_COMPATIBLE_PREFIX,
     true
@@ -682,7 +743,7 @@ function normalizeClaudeMessageInput(messages: unknown) {
         content: normalizeClaudeContentInput(record.content),
       };
     })
-    .filter((message): message is Record<string, unknown> => !!message);
+    .filter((message): message is Record<string, unknown> & { content: unknown } => !!message);
 }
 
 function normalizeClaudeToolInput(tools: unknown) {

@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const initCloudSync = await import("../../src/lib/initCloudSync.ts");
 
 async function resetStorage() {
   coreDb.resetDbInstance();
@@ -134,6 +135,40 @@ test("initCloudSync: startup initialization also starts model sync scheduler", (
   const source = fs.readFileSync(filePath, "utf8");
 
   assert.match(source, /startModelSyncScheduler\s*\(/);
+});
+
+test("cloud sync bootstrap is wired to server startup, not app layout imports", () => {
+  const layoutSource = fs.readFileSync(path.join(process.cwd(), "src/app/layout.tsx"), "utf8");
+  const instrumentationSource = fs.readFileSync(
+    path.join(process.cwd(), "src/instrumentation-node.ts"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(layoutSource, /initCloudSync/);
+  assert.match(instrumentationSource, /ensureCloudSyncInitialized/);
+});
+
+test("initCloudSync skips auto initialization during build and test processes unless explicitly re-enabled", () => {
+  assert.equal(
+    initCloudSync.shouldSkipCloudSyncInitialization({ NEXT_PHASE: "phase-production-build" }, [
+      "node",
+    ]),
+    true
+  );
+  assert.equal(
+    initCloudSync.shouldSkipCloudSyncInitialization({ NODE_ENV: "test" }, ["node", "--test"]),
+    true
+  );
+  assert.equal(
+    initCloudSync.shouldSkipCloudSyncInitialization(
+      {
+        NODE_ENV: "test",
+        OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS: "1",
+      },
+      ["node", "--test"]
+    ),
+    false
+  );
 });
 
 test("proxy: internal model sync token is only allowed for provider model sync routes", () => {

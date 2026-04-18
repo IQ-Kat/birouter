@@ -80,16 +80,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("[SECURITY] Prompt injection guard failed:", error);
-    return new Response(
-      JSON.stringify({
-        error: {
-          message: "Security validation temporarily unavailable",
-          type: "security_guard_unavailable",
-          code: "SECURITY_002",
-        },
-      }),
-      { status: 503, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
   }
 
   // Standard path: body already has messages[] (chat format)

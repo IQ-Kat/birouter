@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 
 // ── CCH signing ───────────────────────────────────────────────────────────────
 import { computeCCH, signRequestBody, CCH_PATTERN } from "../../open-sse/services/claudeCodeCCH.ts";
+import { CLAUDE_CODE_COMPATIBLE_VERSION } from "../../open-sse/services/claudeCodeCompatible.ts";
 
 // ── Fingerprint ───────────────────────────────────────────────────────────────
 import {
@@ -63,8 +64,7 @@ describe("computeCCH", () => {
 
 describe("signRequestBody", () => {
   it("replaces cch=00000 placeholder with computed hash", async () => {
-    const body =
-      '{"x-anthropic-billing-header":"cc_version=2.1.87.abc; cch=00000;","model":"claude"}';
+    const body = `{"x-anthropic-billing-header":"cc_version=${CLAUDE_CODE_COMPATIBLE_VERSION}.abc; cch=00000;","model":"claude"}`;
     const signed = await signRequestBody(body);
     assert.ok(signed.includes("cch="), "signed body should contain cch=");
     assert.ok(!signed.includes("cch=00000"), "placeholder cch=00000 should be replaced");
@@ -91,31 +91,31 @@ describe("signRequestBody", () => {
 
 describe("computeFingerprint", () => {
   it("returns a 3-character hex string", () => {
-    const fp = computeFingerprint("Hello, world!", "2.1.87");
+    const fp = computeFingerprint("Hello, world!", CLAUDE_CODE_COMPATIBLE_VERSION);
     assert.equal(fp.length, 3, "fingerprint must be 3 chars");
     assert.match(fp, /^[0-9a-f]{3}$/, "fingerprint must be lowercase hex");
   });
 
   it("is deterministic — same text + version always produces the same fingerprint", () => {
-    const fp1 = computeFingerprint("Hello, world!", "2.1.87");
-    const fp2 = computeFingerprint("Hello, world!", "2.1.87");
+    const fp1 = computeFingerprint("Hello, world!", CLAUDE_CODE_COMPATIBLE_VERSION);
+    const fp2 = computeFingerprint("Hello, world!", CLAUDE_CODE_COMPATIBLE_VERSION);
     assert.equal(fp1, fp2, "fingerprint must be deterministic");
   });
 
   it("changes when fingerprint version changes", () => {
-    const fp1 = computeFingerprint("same text", "2.1.87");
-    const fp2 = computeFingerprint("same text", "2.1.88");
+    const fp1 = computeFingerprint("same text", CLAUDE_CODE_COMPATIBLE_VERSION);
+    const fp2 = computeFingerprint("same text", "2.1.93");
     assert.notEqual(fp1, fp2, "different versions must produce different fingerprints");
   });
 
   it("handles short messages safely — uses '0' for missing indices", () => {
     // indices are [4, 7, 20]; short string should not throw
-    const fp = computeFingerprint("hi", "2.1.87");
+    const fp = computeFingerprint("hi", CLAUDE_CODE_COMPATIBLE_VERSION);
     assert.ok(fp.length === 3, "short input should not throw and return 3-char fingerprint");
   });
 
   it("handles empty string without throwing", () => {
-    const fp = computeFingerprint("", "2.1.87");
+    const fp = computeFingerprint("", CLAUDE_CODE_COMPATIBLE_VERSION);
     assert.ok(fp.length === 3, "empty string should not throw");
   });
 });

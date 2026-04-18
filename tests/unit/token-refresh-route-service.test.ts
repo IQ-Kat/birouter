@@ -128,7 +128,7 @@ test("token refresh wrapper delegates provider-specific refresh helpers and form
       );
       const qwen = await tokenRefresh.refreshQwenToken("refresh-qwen");
       const codex = await tokenRefresh.refreshCodexToken("refresh-codex");
-      const qoder = await tokenRefresh.refreshIflowToken("refresh-qoder");
+      const qoder = await tokenRefresh.refreshQoderToken("refresh-qoder");
       const github = await tokenRefresh.refreshGitHubToken("refresh-github");
       const copilot = await tokenRefresh.refreshCopilotToken("github-access");
       const access = await tokenRefresh.getAccessToken("github", {

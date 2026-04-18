@@ -8,6 +8,15 @@
 
 import { platform, arch } from "os";
 import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
+import { ANTIGRAVITY_PUBLIC_MODELS } from "./antigravityModelAliases.ts";
+import {
+  ANTHROPIC_BETA_API_KEY,
+  ANTHROPIC_BETA_CLAUDE_OAUTH,
+  ANTHROPIC_VERSION_HEADER,
+  CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
+  CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
+  CLAUDE_CLI_USER_AGENT,
+} from "./anthropicHeaders.ts";
 import { getCodexDefaultHeaders } from "./codexClient.ts";
 import {
   GLMT_REQUEST_DEFAULTS,
@@ -15,7 +24,15 @@ import {
   GLM_SHARED_HEADERS,
   GLM_SHARED_MODELS,
 } from "./glmProvider.ts";
-import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
+import {
+  CURSOR_REGISTRY_VERSION,
+  getAntigravityProviderHeaders,
+  getCursorRegistryHeaders,
+  getGitHubCopilotChatHeaders,
+  getKiroServiceHeaders,
+  getQoderDefaultHeaders,
+  getQwenOauthHeaders,
+} from "./providerHeaderProfiles.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -26,6 +43,7 @@ export interface RegistryModel {
   toolCalling?: boolean;
   supportsReasoning?: boolean;
   supportsVision?: boolean;
+  supportsXHighEffort?: boolean;
   targetFormat?: string;
   unsupportedParams?: readonly string[];
   /** Maximum context window in tokens */
@@ -108,8 +126,8 @@ const KIMI_CODING_SHARED = {
   baseUrl: "https://api.kimi.com/coding/v1/messages",
   authHeader: "x-api-key",
   headers: {
-    "Anthropic-Version": "2023-06-01",
-    "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+    "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+    "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
     { id: "kimi-k2.5", name: "Kimi K2.5" },
@@ -255,16 +273,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     defaultContextLength: 200000,
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta":
-        "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
       "Anthropic-Dangerous-Direct-Browser-Access": "true",
-      "User-Agent": "claude-cli/2.1.63 (external, cli)",
+      "User-Agent": CLAUDE_CLI_USER_AGENT,
       "X-App": "cli",
       "X-Stainless-Helper-Method": "stream",
       "X-Stainless-Retry-Count": "0",
-      "X-Stainless-Runtime-Version": "v24.3.0",
-      "X-Stainless-Package-Version": "0.74.0",
+      "X-Stainless-Runtime-Version": CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
+      "X-Stainless-Package-Version": CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
       "X-Stainless-Runtime": "node",
       "X-Stainless-Lang": "js",
       "X-Stainless-Arch": mapStainlessArch(),
@@ -277,11 +294,20 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://console.anthropic.com/v1/oauth/token",
     },
     models: [
-      { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
-      { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet" },
-      { id: "claude-opus-4-5-20251101", name: "Claude 4.5 Opus" },
-      { id: "claude-sonnet-4-5-20250929", name: "Claude 4.5 Sonnet" },
-      { id: "claude-haiku-4-5-20251001", name: "Claude 4.5 Haiku" },
+      { id: "claude-opus-4-7", name: "Claude Opus 4.7", supportsXHighEffort: true },
+      { id: "claude-opus-4-6", name: "Claude Opus 4.6", supportsXHighEffort: false },
+      { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet", supportsXHighEffort: false },
+      { id: "claude-opus-4-5-20251101", name: "Claude 4.5 Opus", supportsXHighEffort: false },
+      {
+        id: "claude-sonnet-4-5-20250929",
+        name: "Claude 4.5 Sonnet",
+        supportsXHighEffort: false,
+      },
+      {
+        id: "claude-haiku-4-5-20251001",
+        name: "Claude 4.5 Haiku",
+        supportsXHighEffort: false,
+      },
     ],
   },
 
@@ -385,22 +411,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://chat.qwen.ai/api/v1/services/aigc/text-generation/generation",
     authType: "oauth",
     authHeader: "bearer",
-    headers: {
-      "User-Agent": "QwenCode/0.12.3 (linux; x64)",
-      "X-Dashscope-AuthType": "qwen-oauth",
-      "X-Dashscope-CacheControl": "enable",
-      "X-Dashscope-UserAgent": "QwenCode/0.12.3 (linux; x64)",
-      "X-Stainless-Arch": "x64",
-      "X-Stainless-Lang": "js",
-      "X-Stainless-Os": "Linux",
-      "X-Stainless-Package-Version": "5.11.0",
-      "X-Stainless-Retry-Count": "1",
-      "X-Stainless-Runtime": "node",
-      "X-Stainless-Runtime-Version": "v18.19.1",
-      Connection: "keep-alive",
-      "Accept-Language": "*",
-      "Sec-Fetch-Mode": "cors",
-    },
+    headers: getQwenOauthHeaders(),
     oauth: {
       clientIdEnv: "QWEN_OAUTH_CLIENT_ID",
       clientIdDefault: "f0304373b74a44d2b584a3fb70ca9e56",
@@ -423,9 +434,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://api.qoder.com/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
-    headers: {
-      "User-Agent": "Qoder-Cli",
-    },
+    headers: getQoderDefaultHeaders(),
     oauth: {
       clientIdEnv: "QODER_OAUTH_CLIENT_ID",
       clientSecretEnv: "QODER_OAUTH_CLIENT_SECRET",
@@ -464,24 +473,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     authType: "oauth",
     authHeader: "bearer",
-    headers: {
-      "User-Agent": antigravityUserAgent(),
-    },
+    headers: getAntigravityProviderHeaders(),
     oauth: {
       clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
       clientIdDefault: "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
       clientSecretEnv: "ANTIGRAVITY_OAUTH_CLIENT_SECRET",
       clientSecretDefault: "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",
     },
-    models: [
-      { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
-      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
-      { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
-      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)" },
-      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
-      { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
-    ],
+    models: [...ANTIGRAVITY_PUBLIC_MODELS],
     passthroughModels: true,
   },
 
@@ -495,18 +494,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     defaultContextLength: 128000,
-    headers: {
-      "copilot-integration-id": "vscode-chat",
-      "editor-version": "vscode/1.110.0",
-      "editor-plugin-version": "copilot-chat/0.38.0",
-      "user-agent": "GitHubCopilotChat/0.38.0",
-      "openai-intent": "conversation-panel",
-      "x-github-api-version": "2025-04-01",
-      "x-vscode-user-agent-library-version": "electron-fetch",
-      "X-Initiator": "user",
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: getGitHubCopilotChatHeaders(),
     models: [
       { id: "gpt-4.1", name: "GPT-4.1" },
       { id: "gpt-4o", name: "GPT-4o" },
@@ -545,13 +533,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     defaultContextLength: 200000,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/vnd.amazon.eventstream",
-      "X-Amz-Target": "AmazonCodeWhispererStreamingService.GenerateAssistantResponse",
-      "User-Agent": "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0",
-      "X-Amz-User-Agent": "aws-sdk-js/3.0.0 kiro-ide/1.0.0",
-    },
+    headers: getKiroServiceHeaders(),
     oauth: {
       tokenUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/refreshToken",
       authUrl: "https://prod.us-east-1.auth.desktop.kiro.dev",
@@ -572,13 +554,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "oauth",
     authHeader: "bearer",
     defaultContextLength: 200000,
-    headers: {
-      "connect-accept-encoding": "gzip",
-      "connect-protocol-version": "1",
-      "Content-Type": "application/connect+proto",
-      "User-Agent": "Cursor/3.1.0",
-    },
-    clientVersion: "3.1.0",
+    headers: getCursorRegistryHeaders(),
+    clientVersion: CURSOR_REGISTRY_VERSION,
     models: [
       { id: "default", name: "Auto (Server Picks)" },
       { id: "claude-4.6-opus-high-thinking", name: "Claude 4.6 Opus High Thinking" },
@@ -630,7 +607,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     defaultContextLength: 200000,
     headers: {
-      "Anthropic-Version": "2023-06-01",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
@@ -743,8 +721,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "x-api-key",
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
@@ -768,8 +746,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "x-api-key",
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "glm-5", name: "GLM 5" },
@@ -900,8 +878,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
@@ -924,8 +902,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
@@ -1223,13 +1201,23 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
       { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)", toolCalling: false },
+      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B", toolCalling: false },
       { id: "meta/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
       { id: "nvidia/llama-3.3-70b-instruct", name: "Llama 3.3 70B (NVIDIA Prefix)" },
       { id: "meta/llama-4-maverick-17b-128e-instruct", name: "Llama 4 Maverick" },
+      { id: "nvidia/llama-3.1-nemotron-ultra-253b-v1", name: "Llama 3.1 Nemotron Ultra 253B" },
+      { id: "nvidia/nemotron-3-super-120b-a12b", name: "Nemotron 3 Super 120B A12B" },
+      { id: "nvidia/llama-3.3-nemotron-super-49b-v1.5", name: "Llama 3.3 Nemotron Super 49B" },
       { id: "moonshotai/kimi-k2.5", name: "Kimi K2.5" },
       { id: "z-ai/glm4.7", name: "GLM 4.7" },
       { id: "deepseek-ai/deepseek-v3.2", name: "DeepSeek V3.2" },
       { id: "deepseek/deepseek-r1", name: "DeepSeek R1" },
+      {
+        id: "mistralai/mistral-large-3-675b-instruct-2512",
+        name: "Mistral Large 3 675B",
+      },
+      { id: "qwen/qwen3-coder-480b-a35b-instruct", name: "Qwen3 Coder 480B" },
+      { id: "mistralai/devstral-2-123b-instruct-2512", name: "Devstral 2 123B" },
       { id: "nvidia/llama-3.1-70b-instruct", name: "Llama 3.1 70B" },
       { id: "nvidia/llama-3.1-405b-instruct", name: "Llama 3.1 405B" },
     ],
@@ -1438,17 +1426,47 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "pol",
     format: "openai",
     executor: "pollinations",
-    // API key required. Free Spore tier currently grants 0.01 pollen/hour.
+    // Primary endpoint is text.pollinations.ai. gen.pollinations.ai is the current
+    // OpenAI-compatible fallback used when the primary edge is rate-limited or unavailable.
     baseUrl: "https://text.pollinations.ai/openai/chat/completions",
+    baseUrls: [
+      "https://text.pollinations.ai/openai/chat/completions",
+      "https://gen.pollinations.ai/v1/chat/completions",
+    ],
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "openai", name: "GPT-5 via Pollinations (Spore)" },
-      { id: "claude", name: "Claude via Pollinations (Spore)" },
-      { id: "gemini", name: "Gemini via Pollinations (Spore)" },
-      { id: "deepseek", name: "DeepSeek V3 via Pollinations (Spore)" },
-      { id: "llama", name: "Llama 4 via Pollinations (Spore)" },
-      { id: "mistral", name: "Mistral via Pollinations (Spore)" },
+      { id: "openai", name: "OpenAI (Pollinations)" },
+      { id: "openai-fast", name: "OpenAI Fast (Pollinations)" },
+      { id: "openai-large", name: "OpenAI Large (Pollinations)" },
+      { id: "qwen-coder", name: "Qwen Coder (Pollinations)" },
+      { id: "mistral", name: "Mistral (Pollinations)" },
+      { id: "gemini", name: "Gemini (Pollinations)" },
+      { id: "gemini-flash-lite-3.1", name: "Gemini Flash Lite 3.1 (Pollinations)" },
+      { id: "gemini-fast", name: "Gemini Fast (Pollinations)" },
+      { id: "deepseek", name: "DeepSeek (Pollinations)" },
+      { id: "grok", name: "Grok (Pollinations)" },
+      { id: "grok-large", name: "Grok Large (Pollinations)" },
+      { id: "gemini-search", name: "Gemini Search (Pollinations)" },
+      { id: "midijourney", name: "Midijourney (Pollinations)" },
+      { id: "midijourney-large", name: "Midijourney Large (Pollinations)" },
+      { id: "claude-fast", name: "Claude Fast (Pollinations)" },
+      { id: "claude", name: "Claude (Pollinations)" },
+      { id: "claude-large", name: "Claude Large (Pollinations)" },
+      { id: "perplexity-fast", name: "Perplexity Fast (Pollinations)" },
+      { id: "perplexity-reasoning", name: "Perplexity Reasoning (Pollinations)" },
+      { id: "kimi", name: "Kimi (Pollinations)" },
+      { id: "gemini-large", name: "Gemini Large (Pollinations)" },
+      { id: "nova-fast", name: "Nova Fast (Pollinations)" },
+      { id: "nova", name: "Nova (Pollinations)" },
+      { id: "glm", name: "GLM (Pollinations)" },
+      { id: "minimax", name: "MiniMax (Pollinations)" },
+      { id: "mistral-large", name: "Mistral Large (Pollinations)" },
+      { id: "polly", name: "Polly (Pollinations)" },
+      { id: "qwen-coder-large", name: "Qwen Coder Large (Pollinations)" },
+      { id: "qwen-large", name: "Qwen Large (Pollinations)" },
+      { id: "qwen-vision", name: "Qwen Vision (Pollinations)" },
+      { id: "qwen-safety", name: "Qwen Safety (Pollinations)" },
     ],
   },
 
@@ -1510,6 +1528,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen/qwen3-235b-a22b", name: "Qwen3 235B (Puter)" },
       { id: "qwen/qwen3-32b", name: "Qwen3 32B (Puter)" },
       { id: "qwen/qwen3-coder", name: "Qwen3 Coder 480B (Puter)" },
+      // Perplexity Sonar via OpenRouter aliases exposed by Puter
+      { id: "perplexity/sonar", name: "Perplexity Sonar (Puter)" },
+      { id: "perplexity/sonar-pro", name: "Perplexity Sonar Pro (Puter)" },
+      { id: "perplexity/sonar-pro-search", name: "Perplexity Sonar Pro Search (Puter)" },
+      { id: "perplexity/sonar-reasoning-pro", name: "Perplexity Sonar Reasoning Pro (Puter)" },
+      { id: "perplexity/sonar-deep-research", name: "Perplexity Sonar Deep Research (Puter)" },
     ],
     passthroughModels: true, // 500+ models available — users can type arbitrary Puter model IDs
   },

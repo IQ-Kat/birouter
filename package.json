@@ -1,10 +1,10 @@
 {
   "name": "omniroute",
-  "version": "3.6.7",
+  "version": "3.6.8",
   "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
   "type": "module",
   "bin": {
-    "omniroute": "bin/omniroute.ts",
+    "omniroute": "bin/omniroute.mjs",
     "omniroute-reset-password": "bin/reset-password.mjs"
   },
   "files": [
@@ -23,6 +23,7 @@
     "src/shared/utils/nodeRuntimeSupport.ts",
     ".env.example",
     "scripts/postinstall.mjs",
+    "scripts/postinstallSupport.mjs",
     "scripts/check-supported-node-runtime.ts",
     "scripts/sync-env.mjs",
     "scripts/native-binary-compat.mjs",
@@ -34,7 +35,7 @@
     "open-sse"
   ],
   "engines": {
-    "node": ">=20.20.2 <21 || >=22.22.2 <23"
+    "node": ">=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <25"
   },
   "keywords": [
     "ai",

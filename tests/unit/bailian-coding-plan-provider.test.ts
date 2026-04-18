@@ -260,13 +260,22 @@ test("getStaticModelsForProvider returns models with correct structure", () => {
 });
 
 test("getStaticModelsForProvider returns undefined for non-static providers", () => {
-  // Test with providers that are NOT in STATIC_MODEL_PROVIDERS
-  const nonStaticProviders = ["openai", "anthropic", "deepseek", "groq", "unknown-provider"];
+  const nonStaticProviders = ["anthropic", "deepseek", "groq", "unknown-provider"];
 
   for (const provider of nonStaticProviders) {
     const models = getStaticModelsForProvider(provider);
     assert.equal(models, undefined, `Should return undefined for non-static provider: ${provider}`);
   }
+});
+
+test("getStaticModelsForProvider returns local image catalogs for image-capable providers", () => {
+  const models = getStaticModelsForProvider("openai");
+
+  assert.ok(models, "OpenAI should expose local image models");
+  assert.deepEqual(
+    models.map((model) => model.id),
+    ["gpt-image-1", "dall-e-3", "dall-e-2"]
+  );
 });
 
 test("getStaticModelsForProvider returns models for other static providers", () => {

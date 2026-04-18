@@ -1,3 +1,13 @@
+import {
+  getStaticProviderCatalogGroup,
+  resolveProviderCatalogEntry,
+  type CompatibleProviderLabels,
+  type CompatibleProviderNodeLike,
+  type ProviderCatalogMetadata,
+  type ResolvedProviderCatalogEntry,
+  type StaticProviderCatalogCategory,
+} from "@/lib/providers/catalog";
+
 export interface ProviderStatsSnapshot {
   total?: number;
   [key: string]: unknown;
@@ -44,6 +54,19 @@ export function buildMergedOAuthProviderEntries<TProvider = Record<string, unkno
   ];
 }
 
+export function buildStaticProviderEntries(
+  category: StaticProviderCatalogCategory,
+  getProviderStats: GetProviderStats
+): ProviderEntry<ProviderCatalogMetadata>[] {
+  const group = getStaticProviderCatalogGroup(category);
+  return buildProviderEntries(
+    group.providers,
+    group.displayAuthType,
+    group.toggleAuthType,
+    getProviderStats
+  );
+}
+
 export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
   showConfiguredOnly: boolean
@@ -51,4 +74,14 @@ export function filterConfiguredProviderEntries<TProvider>(
   if (!showConfiguredOnly) return entries;
 
   return entries.filter((entry) => Number(entry.stats?.total || 0) > 0);
+}
+
+export function resolveDashboardProviderInfo(
+  providerId: string,
+  options?: {
+    providerNode?: CompatibleProviderNodeLike | null;
+    compatibleLabels?: CompatibleProviderLabels | null;
+  }
+): ResolvedProviderCatalogEntry | null {
+  return resolveProviderCatalogEntry(providerId, options);
 }

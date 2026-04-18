@@ -67,3 +67,42 @@ images
 clipr
 omnirouteCloud
 omnirouteSite
+
+# Temporary/Scratch Folders
+_*
+
+# CI/CD and Version Control (that are not actual code)
+.github
+.husky
+.omc
+
+# Test Configs and Reports
+playwright.config.ts
+vitest*.ts
+audit-report.json
+sonar-project.properties
+
+# Deployment Configs
+docker-compose*.yml
+fly.toml
+
+# Consistent with .gitignore
+.DS_Store
+.idea/
+.config/
+.data/
+.omnivscodeagent/
+*.sqlite-*
+*.tsbuildinfo
+next-env.d.ts
+security-analysis/
+.analysis/
+antigravity-manager-analysis/
+.sisyphus/
+.plans/
+app.__qa_backup/
+.app-build-backup-*/
+.gitnexus
+.worktrees
+.next-playwright/
+cloud/

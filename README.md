@@ -695,7 +695,7 @@ During deep debugging, long histories with tool results quickly exceed provider 
 
 ```txt
 Combo: "maximize-claude"
-  1. cc/claude-opus-4-6
+  1. cc/claude-opus-4-7
   2. glm/glm-4.7
   3. if/kimi-k2-thinking
 
@@ -719,7 +719,7 @@ Outcome: stable free coding workflow
 
 ```txt
 Combo: "always-on"
-  1. cc/claude-opus-4-6
+  1. cc/claude-opus-4-7
   2. cx/gpt-5.2-codex
   3. glm/glm-4.7
   4. minimax/MiniMax-M2.1
@@ -1511,7 +1511,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ```txt
 Combo: "my-coding-stack"
-  1. cc/claude-opus-4-6
+  1. cc/claude-opus-4-7
   2. nvidia/llama-3.3-70b
   3. glm/glm-4.7
   4. if/kimi-k2-thinking
@@ -1650,7 +1650,7 @@ Dashboard → Providers → Connect Claude Code
 → 5-hour + weekly quota tracking
 
 Models:
-  cc/claude-opus-4-6
+  cc/claude-opus-4-7
   cc/claude-sonnet-4-5-20250929
   cc/claude-haiku-4-5-20251001
 ```
@@ -1850,7 +1850,7 @@ Dashboard → Combos → Create New
 
 Name: premium-coding
 Models:
-  1. cc/claude-opus-4-6 (Subscription primary)
+  1. cc/claude-opus-4-7 (Subscription primary)
   2. glm/glm-4.7 (Cheap backup, $0.6/1M)
   3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
 
@@ -1880,7 +1880,7 @@ Cost: $0 forever!
 Settings → Models → Advanced:
   OpenAI API Base URL: http://localhost:20128/v1
   OpenAI API Key: [from OmniRoute dashboard]
-  Model: cc/claude-opus-4-6
+  Model: cc/claude-opus-4-7
 ```
 
 ### Claude Code
@@ -1990,7 +1990,7 @@ opencode
 **Rate limiting**
 
 - Subscription quota out → Fallback to GLM/MiniMax
-- Add combo: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Add combo: `cc/claude-opus-4-7 → glm/glm-4.7 → if/kimi-k2-thinking`
 
 **OAuth token expired**
 
@@ -2322,9 +2322,23 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 
 ## 📊 Star History
 
-## Stargazers over time
+<a href="https://www.star-history.com/?repos=diegosouzapw%2Fomniroute&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
+ </picture>
+</a>
 
-## [![Stargazers over time](https://starchart.cc/diegosouzapw/OmniRoute.svg?variant=adaptive)](https://starchart.cc/diegosouzapw/OmniRoute)
+## 🌍 StarMapper
+
+<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
+    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
+  </picture>
+</a>
 
 ## 🙏 Acknowledgments
 

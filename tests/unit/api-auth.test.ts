@@ -90,11 +90,27 @@ test("verifyAuth falls back to bearer API key validation after a bad JWT", async
       },
     },
     headers: new Headers({ authorization: `Bearer ${key.key}` }),
+    url: "https://example.com/api/v1/models",
   };
 
   const result = await apiAuth.verifyAuth(request);
 
   assert.equal(result, null);
+});
+
+test("verifyAuth rejects bearer API keys on management routes", async () => {
+  const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers({ authorization: `Bearer ${key.key}` }),
+    url: "https://example.com/api/providers",
+  });
+
+  assert.equal(result, "Invalid management token");
 });
 
 test("verifyAuth rejects requests without valid credentials", async () => {
@@ -105,12 +121,27 @@ test("verifyAuth rejects requests without valid credentials", async () => {
       },
     },
     headers: new Headers({ authorization: "Bearer sk-invalid" }),
+    url: "https://example.com/api/v1/models",
   });
 
   assert.equal(result, "Authentication required");
 });
 
-test("isAuthenticated accepts bearer API keys", async () => {
+test("isAuthenticated accepts bearer API keys on client-facing routes", async () => {
+  const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
+  const request = new Request("https://example.com/api/v1/models", {
+    headers: { authorization: `Bearer ${key.key}` },
+  });
+
+  const result = await apiAuth.isAuthenticated(request);
+
+  assert.equal(result, true);
+});
+
+test("isAuthenticated rejects bearer API keys on management routes", async () => {
+  process.env.INITIAL_PASSWORD = "bootstrap-password";
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
   const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
   const request = new Request("https://example.com/api/providers", {
     headers: { authorization: `Bearer ${key.key}` },
@@ -118,7 +149,7 @@ test("isAuthenticated accepts bearer API keys", async () => {
 
   const result = await apiAuth.isAuthenticated(request);
 
-  assert.equal(result, true);
+  assert.equal(result, false);
 });
 
 test("isAuthenticated returns false when auth is required without valid credentials", async () => {

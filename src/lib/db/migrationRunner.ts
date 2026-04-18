@@ -25,17 +25,25 @@ import type Database from "better-sqlite3";
  * `file://` URL, causing `fileURLToPath` to throw `ERR_INVALID_FILE_URL_PATH`.
  */
 function resolveMigrationsDir(): string {
-  try {
-    const metaUrl = import.meta.url;
-    if (metaUrl && metaUrl.startsWith("file://")) {
-      const __filename = fileURLToPath(metaUrl);
-      return path.join(path.dirname(__filename), "migrations");
-    }
-  } catch {
-    // fileURLToPath failed (e.g. Windows global install) — use fallback
+  const configuredDir = process.env.OMNIROUTE_MIGRATIONS_DIR;
+  if (typeof configuredDir === "string" && configuredDir.trim().length > 0) {
+    return path.resolve(configuredDir);
   }
-  // Fallback: resolve relative to cwd (works for both dev and global installs)
-  return path.join(process.cwd(), "src", "lib", "db", "migrations");
+
+  try {
+    return path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
+  } catch {
+    // Fall through to a more defensive URL parse below.
+  }
+
+  const metaUrl = import.meta.url;
+  if (typeof metaUrl === "string" && metaUrl.startsWith("file://")) {
+    return path.join(path.dirname(fileURLToPath(metaUrl)), "migrations");
+  }
+
+  throw new Error(
+    "[Migration] Could not resolve migrations directory. Set OMNIROUTE_MIGRATIONS_DIR."
+  );
 }
 
 const MIGRATIONS_DIR = resolveMigrationsDir();
@@ -48,7 +56,7 @@ const MIGRATIONS_DIR = resolveMigrationsDir();
  *
  * Set to 0 to disable this safety check.
  */
-const MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 5;
+const MAX_PENDING_MIGRATIONS_ON_EXISTING_DB = 50;
 
 const RENAMED_MIGRATION_COMPATIBILITY = [
   {
@@ -58,6 +66,24 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
     toName: "call_logs_summary_storage",
   },
 ] as const;
+
+const PHYSICAL_SCHEMA_SENTINELS = [
+  { version: "024", tableName: "sync_tokens", description: "sync_tokens table" },
+  { version: "022", tableName: "memory_fts", description: "memory_fts virtual table" },
+  { version: "019", tableName: "context_handoffs", description: "context_handoffs table" },
+  { version: "017", tableName: "version_manager", description: "version_manager table" },
+  { version: "016", tableName: "skill_executions", description: "skill_executions table" },
+  { version: "015", tableName: "memories", description: "memories table" },
+  { version: "013", tableName: "quota_snapshots", description: "quota_snapshots table" },
+  { version: "011", tableName: "webhooks", description: "webhooks table" },
+  { version: "010", tableName: "model_combo_mappings", description: "model_combo_mappings table" },
+  { version: "008", tableName: "registered_keys", description: "registered_keys table" },
+  { version: "006", tableName: "request_detail_logs", description: "request_detail_logs table" },
+  { version: "004", tableName: "proxy_registry", description: "proxy_registry table" },
+  { version: "002", tableName: "mcp_tool_audit", description: "mcp_tool_audit table" },
+] as const;
+
+const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"] as const;
 
 /**
  * Ensure the schema_migrations tracking table exists.
@@ -116,6 +142,45 @@ function getAppliedRecords(db: Database.Database): Array<{ version: string; name
   }>;
 }
 
+function hasTable(db: Database.Database, tableName: string): boolean {
+  const row = db
+    .prepare("SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?")
+    .get(tableName) as { name?: string } | undefined;
+  return Boolean(row?.name);
+}
+
+function inferPhysicalSchemaBaseline(db: Database.Database): {
+  version: string;
+  description: string;
+} | null {
+  for (const sentinel of PHYSICAL_SCHEMA_SENTINELS) {
+    if (hasTable(db, sentinel.tableName)) {
+      return {
+        version: sentinel.version,
+        description: sentinel.description,
+      };
+    }
+  }
+
+  const hasInitialSchema = INITIAL_SCHEMA_SENTINELS.every((tableName) => hasTable(db, tableName));
+  if (hasInitialSchema) {
+    return {
+      version: "001",
+      description: "initial schema tables",
+    };
+  }
+
+  return null;
+}
+
+function getPlausiblePendingCount(
+  files: Array<{ version: string; name: string; path: string }>,
+  baselineVersion: string
+): number {
+  const baseline = Number.parseInt(baselineVersion, 10);
+  return files.filter((file) => Number.parseInt(file.version, 10) > baseline).length;
+}
+
 /**
  * Detect migration name mismatches — when a migration version number
  * has been reused/renumbered with a different name. This is a strong signal
@@ -150,12 +215,10 @@ function reconcileRenumberedMigrations(
 
   for (const compatibility of RENAMED_MIGRATION_COMPATIBILITY) {
     const hasTargetFile = files.some(
-      (file) =>
-        file.version === compatibility.toVersion && file.name === compatibility.toName
+      (file) => file.version === compatibility.toVersion && file.name === compatibility.toName
     );
     const hasSourceFile = files.some(
-      (file) =>
-        file.version === compatibility.fromVersion && file.name !== compatibility.fromName
+      (file) => file.version === compatibility.fromVersion && file.name !== compatibility.fromName
     );
 
     if (!hasTargetFile || !hasSourceFile) {
@@ -241,7 +304,8 @@ function createPreMigrationBackup(db: Database.Database): string | null {
  * 2. Aborts if too many pending migrations on an existing DB (likely wipe)
  * 3. Creates automatic backup before running any migrations
  */
-export function runMigrations(db: Database.Database): number {
+export function runMigrations(db: Database.Database, options?: { isNewDb?: boolean }): number {
+  const isNewDb = options?.isNewDb === true;
   ensureMigrationsTable(db);
 
   const files = getMigrationFiles();
@@ -284,18 +348,39 @@ export function runMigrations(db: Database.Database): number {
 
   if (
     !isTestEnvironment &&
+    !isNewDb &&
     process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true" &&
     MAX_PENDING_MIGRATIONS_ON_EXISTING_DB > 0 &&
     applied.size > 0 &&
     pending.length > MAX_PENDING_MIGRATIONS_ON_EXISTING_DB
   ) {
-    const msg =
-      `[Migration] 🛑 ABORT: Detected ${pending.length} pending migrations on an existing database ` +
-      `(threshold is ${MAX_PENDING_MIGRATIONS_ON_EXISTING_DB}). ` +
-      `This usually means the migration tracking table was accidentally wiped. ` +
-      `Running all migrations from scratch will cause data loss or schema errors.`;
-    console.error(msg);
-    throw new Error(msg);
+    const physicalBaseline = inferPhysicalSchemaBaseline(db);
+    const plausiblePendingCount = physicalBaseline
+      ? getPlausiblePendingCount(files, physicalBaseline.version)
+      : null;
+
+    if (plausiblePendingCount !== null && pending.length <= plausiblePendingCount) {
+      console.warn(
+        `[Migration] Allowing ${pending.length} pending migrations on an existing database ` +
+          `because the physical schema only proves ${physicalBaseline?.version} ` +
+          `(${physicalBaseline?.description}).`
+      );
+    } else {
+      const schemaHint =
+        physicalBaseline && plausiblePendingCount !== null
+          ? ` Physical schema already shows ${physicalBaseline.version} ` +
+            `(${physicalBaseline.description}), so at most ${plausiblePendingCount} pending ` +
+            `migration(s) are expected from a legitimate upgrade.`
+          : "";
+      const msg =
+        `[Migration] 🛑 ABORT: Detected ${pending.length} pending migrations on an existing database ` +
+        `(threshold is ${MAX_PENDING_MIGRATIONS_ON_EXISTING_DB}). ` +
+        `This usually means the migration tracking table was accidentally wiped. ` +
+        `Running all migrations from scratch will cause data loss or schema errors.` +
+        schemaHint;
+      console.error(msg);
+      throw new Error(msg);
+    }
   }
 
   // ── Safety Check 3: Pre-migration backup ──

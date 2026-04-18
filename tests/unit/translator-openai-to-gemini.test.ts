@@ -88,6 +88,43 @@ test("OpenAI -> Gemini helper cleans complex JSON Schema structures for Gemini c
   assert.equal(cleaned.properties.emptyObject.properties.reason.type, "string");
 });
 
+test("OpenAI -> Gemini helper inlines local refs and preserves only additionalProperties=true", () => {
+  const cleaned = cleanJSONSchemaForAntigravity({
+    type: "object",
+    $defs: {
+      Address: {
+        type: "object",
+        properties: {
+          street: { type: "string", minLength: 1 },
+        },
+        required: ["street"],
+        additionalProperties: false,
+      },
+    },
+    properties: {
+      shipping: { $ref: "#/$defs/Address" },
+      metadata: {
+        type: "object",
+        additionalProperties: true,
+      },
+      options: {
+        type: "object",
+        additionalProperties: { type: "string" },
+      },
+    },
+    required: ["shipping"],
+  });
+
+  assert.equal(cleaned.$defs, undefined);
+  assert.equal(cleaned.properties.shipping.$ref, undefined);
+  assert.equal(cleaned.properties.shipping.properties.street.type, "string");
+  assert.equal(cleaned.properties.shipping.properties.street.minLength, undefined);
+  assert.deepEqual(cleaned.properties.shipping.required, ["street"]);
+  assert.equal(cleaned.properties.shipping.additionalProperties, undefined);
+  assert.equal(cleaned.properties.metadata.additionalProperties, true);
+  assert.equal(cleaned.properties.options.additionalProperties, undefined);
+});
+
 test("OpenAI -> Gemini request maps messages, merged system instructions, tools and response schema", () => {
   const result = openaiToGeminiRequest(
     "gemini-2.5-pro",

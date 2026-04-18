@@ -121,19 +121,19 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     example: "Example: Multiple accounts of the same model to distribute usage evenly.",
   },
   auto: {
-    when: "Use when you have one preferred model and only want fallback on failure.",
-    avoid: "Avoid when you need balanced load between models.",
-    example: "Example: Primary coding model with cheaper backup for outages.",
+    when: "Use when you want multi-factor scoring based on cost, latency, and quality.",
+    avoid: "Avoid when you need strict priority ordering or historical persistence.",
+    example: "Example: Balance requests between models with different strengths.",
   },
   lkgp: {
-    when: "Use when you have one preferred model and only want fallback on failure.",
-    avoid: "Avoid when you need balanced load between models.",
-    example: "Example: Primary coding model with cheaper backup for outages.",
+    when: "Use when you want routing based on historical success rates and performance.",
+    avoid: "Avoid when historical data is limited or unreliable.",
+    example: "Example: Route to models with proven track records for specific tasks.",
   },
   "context-optimized": {
-    when: "Use when you have one preferred model and only want fallback on failure.",
-    avoid: "Avoid when you need balanced load between models.",
-    example: "Example: Primary coding model with cheaper backup for outages.",
+    when: "Use when you need to optimize for context window usage across models.",
+    avoid: "Avoid when models have similar context lengths or simple tasks.",
+    example: "Example: Distribute long conversations across models with large context windows.",
   },
 };
 
@@ -240,30 +240,30 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
     ],
   },
   auto: {
-    title: "Fail-safe baseline",
-    description: "Use one primary model and keep fallback chain short and reliable.",
+    title: "Multi-factor optimization",
+    description: "Routes based on real-time scoring of cost, latency, quality, and health.",
     tips: [
-      "Put your most reliable model first.",
-      "Keep 1-2 backup models with similar quality.",
-      "Use safe retries to absorb transient provider failures.",
+      "Let the engine balance across multiple factors automatically.",
+      "Monitor which factors drive routing decisions in the logs.",
+      "Use for complex workloads where no single factor dominates.",
     ],
   },
   lkgp: {
-    title: "Fail-safe baseline",
-    description: "Use one primary model and keep fallback chain short and reliable.",
+    title: "History-based routing",
+    description: "Routes based on historical success rates and persistent performance data.",
     tips: [
-      "Put your most reliable model first.",
-      "Keep 1-2 backup models with similar quality.",
-      "Use safe retries to absorb transient provider failures.",
+      "Let success history accumulate before relying on this strategy.",
+      "Models with better track records get preference over time.",
+      "Ideal for stable workloads with consistent model availability.",
     ],
   },
   "context-optimized": {
-    title: "Fail-safe baseline",
-    description: "Use one primary model and keep fallback chain short and reliable.",
+    title: "Context-aware distribution",
+    description: "Routes to optimize context window usage and conversation continuity.",
     tips: [
-      "Put your most reliable model first.",
-      "Keep 1-2 backup models with similar quality.",
-      "Use safe retries to absorb transient provider failures.",
+      "Best for long conversations that span multiple requests.",
+      "Selects models with appropriate context capacity automatically.",
+      "Use when context limits are a bottleneck for your workload.",
     ],
   },
 };
@@ -314,7 +314,7 @@ const COMBO_TEMPLATE_FALLBACK = {
   balancedDesc: "Least-used routing to spread demand over time.",
   freeStackTitle: "Free Stack ($0)",
   freeStackDesc:
-    "Round-robin across all free providers: Kiro, iFlow, Qwen, Gemini CLI. Zero cost, never stops.",
+    "Round-robin across all free providers: Kiro, Qoder, Qwen, Gemini CLI. Zero cost, never stops.",
   paidPremiumTitle: "Paid Premium",
   paidPremiumDesc:
     "Round-robin across paid subscriptions: Cursor, Antigravity. Top-tier models, distributed load.",
@@ -1812,7 +1812,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   const [builderConnectionId, setBuilderConnectionId] = useState(COMBO_BUILDER_AUTO_CONNECTION);
   const [builderComboRefName, setBuilderComboRefName] = useState("");
   const [builderError, setBuilderError] = useState("");
-  const [builderStage, setBuilderStage] = useState(COMBO_BUILDER_STAGES[0]);
+  const [builderStage, setBuilderStage] = useState<string>(COMBO_BUILDER_STAGES[0]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [config, setConfig] = useState(combo?.config || {});
   const [showStrategyNudge, setShowStrategyNudge] = useState(false);
@@ -2724,7 +2724,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
               t={t}
               config={config}
               activeProviders={activeProviders}
-              onChange={(nextIntelligentConfig) =>
+              onChange={(nextIntelligentConfig: any) =>
                 setConfig((previousConfig) => ({
                   ...previousConfig,
                   ...nextIntelligentConfig,

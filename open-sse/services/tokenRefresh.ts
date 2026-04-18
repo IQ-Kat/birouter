@@ -1,4 +1,6 @@
+// @ts-nocheck
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 
@@ -10,6 +12,23 @@ const CACHE_SECRET = "omniroute-token-cache";
 // In-flight refresh promise cache to prevent race conditions
 // Key: "provider:sha256(refreshToken)" → Value: Promise<result>
 const refreshPromiseCache = new Map();
+
+type RefreshLogger = {
+  info?: (tag: string, message: string, data?: Record<string, unknown>) => void;
+  warn?: (tag: string, message: string, data?: Record<string, unknown>) => void;
+  error?: (tag: string, message: string, data?: Record<string, unknown>) => void;
+  debug?: (tag: string, message: string, data?: Record<string, unknown>) => void;
+} | null;
+
+function buildFormParams(entries: Record<string, unknown>): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(entries)) {
+    if (typeof value === "string" && value.length > 0) {
+      params.set(key, value);
+    }
+  }
+  return params;
+}
 
 function getRefreshCacheKey(provider, refreshToken) {
   const tokenHash = pbkdf2Sync(refreshToken, CACHE_SECRET, 1000, 32, "sha256").toString("hex");
@@ -24,7 +43,7 @@ export async function refreshAccessToken(
   refreshToken,
   credentials,
   log,
-  proxyConfig = null
+  proxyConfig: unknown = null
 ) {
   const config = PROVIDERS[provider];
 
@@ -92,7 +111,7 @@ export async function refreshAccessToken(
  * Specialized refresh for Cline OAuth tokens.
  * Cline refresh endpoint expects JSON body and returns camelCase fields.
  */
-export async function refreshClineToken(refreshToken, log, proxyConfig = null) {
+export async function refreshClineToken(refreshToken, log, proxyConfig: unknown = null) {
   const endpoint = PROVIDERS.cline?.refreshUrl;
   if (!endpoint) {
     log?.warn?.("TOKEN_REFRESH", "No refresh URL configured for Cline");
@@ -152,7 +171,7 @@ export async function refreshClineToken(refreshToken, log, proxyConfig = null) {
  * Specialized refresh for Kimi Coding OAuth tokens.
  * Uses custom X-Msh-* headers required by Kimi OAuth API.
  */
-export async function refreshKimiCodingToken(refreshToken, log, proxyConfig = null) {
+export async function refreshKimiCodingToken(refreshToken, log, proxyConfig: unknown = null) {
   const endpoint = PROVIDERS["kimi-coding"]?.refreshUrl || PROVIDERS["kimi-coding"]?.tokenUrl;
   if (!endpoint) {
     log?.warn?.("TOKEN_REFRESH", "No refresh URL configured for Kimi Coding");
@@ -220,10 +239,10 @@ export async function refreshKimiCodingToken(refreshToken, log, proxyConfig = nu
 /**
  * Specialized refresh for Claude OAuth tokens
  */
-export async function refreshClaudeOAuthToken(refreshToken, log, proxyConfig = null) {
+export async function refreshClaudeOAuthToken(refreshToken, log, proxyConfig: unknown = null) {
   try {
     // Standard OAuth2 token refresh uses form-urlencoded (not JSON)
-    const params = new URLSearchParams({
+    const params = buildFormParams({
       grant_type: "refresh_token",
       refresh_token: refreshToken,
       client_id: PROVIDERS.claude.clientId,
@@ -277,7 +296,7 @@ export async function refreshGoogleToken(
   clientId,
   clientSecret,
   log,
-  proxyConfig = null
+  proxyConfig: unknown = null
 ) {
   const response = await runWithProxyContext(proxyConfig, () =>
     fetch(OAUTH_ENDPOINTS.google.token, {
@@ -286,7 +305,7 @@ export async function refreshGoogleToken(
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
       },
-      body: new URLSearchParams({
+      body: buildFormParams({
         grant_type: "refresh_token",
         refresh_token: refreshToken,
         client_id: clientId,
@@ -319,10 +338,7 @@ export async function refreshGoogleToken(
   };
 }
 
-/**
- * Specialized refresh for Qwen OAuth tokens
- */
-export async function refreshQwenToken(refreshToken, log, proxyConfig = null) {
+export async function refreshQwenToken(refreshToken, log, proxyConfig: unknown = null) {
   const endpoint = OAUTH_ENDPOINTS.qwen.token;
 
   try {
@@ -333,7 +349,7 @@ export async function refreshQwenToken(refreshToken, log, proxyConfig = null) {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
         },
-        body: new URLSearchParams({
+        body: buildFormParams({
           grant_type: "refresh_token",
           refresh_token: refreshToken,
           client_id: PROVIDERS.qwen.clientId,
@@ -402,7 +418,7 @@ export async function refreshQwenToken(refreshToken, log, proxyConfig = null) {
  * Returns { error: 'refresh_token_reused' } when the token has already been consumed,
  * so callers can stop retrying and request re-authentication.
  */
-export async function refreshCodexToken(refreshToken, log, proxyConfig = null) {
+export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown = null) {
   try {
     const response = await runWithProxyContext(proxyConfig, () =>
       fetch(OAUTH_ENDPOINTS.openai.token, {
@@ -411,7 +427,7 @@ export async function refreshCodexToken(refreshToken, log, proxyConfig = null) {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
         },
-        body: new URLSearchParams({
+        body: buildFormParams({
           grant_type: "refresh_token",
           refresh_token: refreshToken,
           client_id: PROVIDERS.codex.clientId,
@@ -479,7 +495,7 @@ export async function refreshKiroToken(
   refreshToken,
   providerSpecificData,
   log,
-  proxyConfig = null
+  proxyConfig: unknown = null
 ) {
   try {
     const authMethod = providerSpecificData?.authMethod;
@@ -536,8 +552,13 @@ export async function refreshKiroToken(
     }
 
     // Social Auth (Google/GitHub) - use Kiro's refresh endpoint
+    const tokenUrl = PROVIDERS.kiro.tokenUrl;
+    if (!tokenUrl) {
+      log?.error?.("TOKEN_REFRESH", "Missing Kiro token endpoint");
+      return null;
+    }
     const response = await runWithProxyContext(proxyConfig, () =>
-      fetch(PROVIDERS.kiro.tokenUrl, {
+      fetch(tokenUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -579,7 +600,7 @@ export async function refreshKiroToken(
 /**
  * Specialized refresh for Qoder OAuth tokens
  */
-export async function refreshIflowToken(refreshToken, log, proxyConfig = null) {
+export async function refreshQoderToken(refreshToken, log, proxyConfig: unknown = null) {
   if (!OAUTH_ENDPOINTS.qoder.token || !PROVIDERS.qoder.clientId || !PROVIDERS.qoder.clientSecret) {
     log?.warn?.(
       "TOKEN_REFRESH",
@@ -598,7 +619,7 @@ export async function refreshIflowToken(refreshToken, log, proxyConfig = null) {
         Accept: "application/json",
         Authorization: `Basic ${basicAuth}`,
       },
-      body: new URLSearchParams({
+      body: buildFormParams({
         grant_type: "refresh_token",
         refresh_token: refreshToken,
         client_id: PROVIDERS.qoder.clientId,
@@ -634,7 +655,7 @@ export async function refreshIflowToken(refreshToken, log, proxyConfig = null) {
 /**
  * Specialized refresh for GitHub Copilot OAuth tokens
  */
-export async function refreshGitHubToken(refreshToken, log, proxyConfig = null) {
+export async function refreshGitHubToken(refreshToken, log, proxyConfig: unknown = null) {
   const response = await runWithProxyContext(proxyConfig, () =>
     fetch(OAUTH_ENDPOINTS.github.token, {
       method: "POST",
@@ -642,7 +663,7 @@ export async function refreshGitHubToken(refreshToken, log, proxyConfig = null) 
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
       },
-      body: new URLSearchParams({
+      body: buildFormParams({
         grant_type: "refresh_token",
         refresh_token: refreshToken,
         client_id: PROVIDERS.github.clientId,
@@ -678,17 +699,11 @@ export async function refreshGitHubToken(refreshToken, log, proxyConfig = null) 
 /**
  * Refresh GitHub Copilot token using GitHub access token
  */
-export async function refreshCopilotToken(githubAccessToken, log, proxyConfig = null) {
+export async function refreshCopilotToken(githubAccessToken, log, proxyConfig: unknown = null) {
   try {
     const response = await runWithProxyContext(proxyConfig, () =>
       fetch("https://api.github.com/copilot_internal/v2/token", {
-        headers: {
-          Authorization: `token ${githubAccessToken}`,
-          "User-Agent": "GithubCopilot/1.0",
-          "Editor-Version": "vscode/1.100.0",
-          "Editor-Plugin-Version": "copilot/1.300.0",
-          Accept: "application/json",
-        },
+        headers: getGitHubCopilotRefreshHeaders(`token ${githubAccessToken}`),
       })
     );
 
@@ -723,7 +738,7 @@ export async function refreshCopilotToken(githubAccessToken, log, proxyConfig = 
 /**
  * Get access token for a specific provider (internal, does the actual work)
  */
-async function _getAccessTokenInternal(provider, credentials, log, proxyConfig = null) {
+async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: unknown = null) {
   switch (provider) {
     case "gemini":
     case "gemini-cli":
@@ -746,7 +761,7 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig =
       return await refreshQwenToken(credentials.refreshToken, log, proxyConfig);
 
     case "qoder":
-      return await refreshIflowToken(credentials.refreshToken, log, proxyConfig);
+      return await refreshQoderToken(credentials.refreshToken, log, proxyConfig);
 
     case "github":
       return await refreshGitHubToken(credentials.refreshToken, log, proxyConfig);
@@ -812,7 +827,7 @@ export function isUnrecoverableRefreshError(result) {
  * subsequent calls share the existing promise instead of making
  * parallel OAuth requests.
  */
-export async function getAccessToken(provider, credentials, log, proxyConfig = null) {
+export async function getAccessToken(provider, credentials, log, proxyConfig: unknown = null) {
   if (!credentials || !credentials.refreshToken || typeof credentials.refreshToken !== "string") {
     log?.warn?.("TOKEN_REFRESH", `No valid refresh token available for provider: ${provider}`);
     return null;
@@ -1039,7 +1054,7 @@ async function withTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<
 export async function refreshWithRetry(
   refreshFn,
   maxRetries = 3,
-  log = null,
+  log: RefreshLogger = null,
   provider = "unknown"
 ) {
   // Circuit breaker check

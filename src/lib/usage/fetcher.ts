@@ -2,10 +2,25 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import { GITHUB_CONFIG, GEMINI_CONFIG } from "@/lib/oauth/constants/oauth";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
-import { getAntigravityFetchAvailableModelsUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { getAntigravityRemainingCredits } from "@omniroute/open-sse/executors/antigravity.ts";
+import { GEMINI_CONFIG } from "@/lib/oauth/constants/oauth";
+import {
+  getGitHubCopilotInternalUserHeaders,
+  getKiroServiceHeaders,
+} from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+import {
+  getAntigravityHeaders,
+  antigravityUserAgent,
+  googApiClientHeader,
+} from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import {
+  getAntigravityFetchAvailableModelsUrls,
+  ANTIGRAVITY_BASE_URLS,
+} from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import {
+  getAntigravityRemainingCredits,
+  updateAntigravityRemainingCredits,
+} from "@omniroute/open-sse/executors/antigravity.ts";
+import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 
 /**
  * Get usage data for a provider connection
@@ -21,7 +36,12 @@ export async function getUsageForProvider(connection) {
     case "gemini-cli":
       return await getGeminiUsage(accessToken);
     case "antigravity":
-      return await getAntigravityUsage(accessToken, providerSpecificData);
+      return await getAntigravityUsage(
+        accessToken,
+        providerSpecificData,
+        connection.projectId,
+        connection.id
+      );
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
@@ -29,7 +49,7 @@ export async function getUsageForProvider(connection) {
     case "qwen":
       return await getQwenUsage(accessToken, providerSpecificData);
     case "qoder":
-      return await getIflowUsage(accessToken);
+      return await getQoderUsage(accessToken);
     case "kiro":
       return await getKiroUsage(accessToken);
     default:
@@ -49,12 +69,7 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
     }
 
     const response = await fetch("https://api.github.com/copilot_internal/user", {
-      headers: {
-        Authorization: `Bearer ${copilotToken}`,
-        Accept: "application/json",
-        "X-GitHub-Api-Version": GITHUB_CONFIG.apiVersion,
-        "User-Agent": GITHUB_CONFIG.userAgent,
-      },
+      headers: getGitHubCopilotInternalUserHeaders(`Bearer ${copilotToken}`),
     });
 
     if (!response.ok) {
@@ -148,22 +163,119 @@ async function getGeminiUsage(accessToken) {
 }
 
 /**
+ * Proactive credit balance probe for Antigravity.
+ *
+ * Fires a minimal streamGenerateContent request with GOOGLE_ONE_AI credits enabled
+ * and maxOutputTokens=1 to extract the `remainingCredits` field from the SSE stream.
+ * This uses ~1 credit but lets us show the balance on the dashboard without waiting
+ * for a real user request.
+ *
+ * Returns the credit balance, or null if the probe failed.
+ */
+async function probeAntigravityCreditBalance(
+  accessToken: string,
+  accountId: string,
+  projectId?: string | null
+): Promise<number | null> {
+  try {
+    if (!projectId) return null; // Can't call streamGenerateContent without a projectId
+
+    const baseUrl = ANTIGRAVITY_BASE_URLS[0];
+    const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
+
+    const body = {
+      project: projectId,
+      model: "gemini-2-flash",
+      userAgent: "antigravity",
+      requestType: "agent",
+      requestId: `credits-probe-${Date.now()}`,
+      enabledCreditTypes: ["GOOGLE_ONE_AI"],
+      request: {
+        model: "gemini-2-flash",
+        contents: [{ role: "user", parts: [{ text: "hi" }] }],
+        generationConfig: { maxOutputTokens: 1 },
+      },
+    };
+
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "User-Agent": antigravityUserAgent(),
+      "X-Goog-Api-Client": googApiClientHeader(),
+      Accept: "text/event-stream",
+    };
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!res.ok) return null;
+
+    // Read the full SSE response and scan for remainingCredits
+    const rawSSE = await res.text();
+    const lines = rawSSE.split("\n");
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("data:")) continue;
+      const payload = trimmed.slice(5).trim();
+      if (payload === "[DONE]") break;
+      try {
+        const parsed = JSON.parse(payload);
+        if (Array.isArray(parsed?.remainingCredits)) {
+          const googleCredit = parsed.remainingCredits.find(
+            (c: { creditType?: string }) => c?.creditType === "GOOGLE_ONE_AI"
+          );
+          if (googleCredit) {
+            const balance = parseInt(googleCredit.creditAmount, 10);
+            if (!isNaN(balance)) {
+              // Cache the balance for future reads (also persists to DB)
+              updateAntigravityRemainingCredits(accountId, balance);
+              return balance;
+            }
+          }
+        }
+      } catch {
+        // Skip malformed SSE lines
+      }
+    }
+
+    return null;
+  } catch {
+    // Probe is best-effort — don't let it break the usage fetch
+    return null;
+  }
+}
+
+/**
  * Antigravity Usage
  * Calls fetchAvailableModels to get per-model quota fractions.
  * Credit balance (GOOGLE_ONE_AI) is read from the executor's in-memory cache,
  * which is populated automatically after each successful credit-injected SSE call.
+ * If the cache is empty and credits mode is enabled, fires a minimal probe request
+ * to fetch the balance proactively.
  */
 async function getAntigravityUsage(
   accessToken: string,
-  providerSpecificData: Record<string, unknown> = {}
+  providerSpecificData: Record<string, unknown> = {},
+  projectId?: string | null,
+  connectionId?: string | null
 ) {
   try {
-    // Derive accountId (same key used in AntigravityExecutor.execute)
-    const accountId: string =
-      (providerSpecificData?.email as string) || (providerSpecificData?.sub as string) || "unknown";
+    // Use connectionId as the cache key — matches executor's credentials.connectionId
+    const accountId: string = connectionId || "unknown";
 
     // Read cached credit balance from executor module (populated from SSE remainingCredits)
-    const creditBalance = getAntigravityRemainingCredits(accountId);
+    let creditBalance = getAntigravityRemainingCredits(accountId);
+
+    // If no cached balance and credits mode is enabled, fire a minimal probe
+    const creditsMode = getCreditsMode();
+    if (creditBalance === null && creditsMode !== "off") {
+      creditBalance = await probeAntigravityCreditBalance(accessToken, accountId, projectId);
+    }
 
     // fetchAvailableModels — resolves project from token, no projectId needed
     let res: Response | null = null;
@@ -275,7 +387,7 @@ async function getAntigravityUsage(
  * Claude Usage (legacy fallback)
  * Real Claude OAuth quota windows are fetched in @omniroute/open-sse/services/usage.ts.
  */
-async function getClaudeUsage() {
+async function getClaudeUsage(accessToken?: string) {
   try {
     return {
       message:
@@ -326,7 +438,7 @@ async function getQwenUsage(accessToken, providerSpecificData) {
 /**
  * Qoder Usage
  */
-async function getIflowUsage(accessToken) {
+async function getQoderUsage(accessToken) {
   try {
     // Qoder may have usage endpoint
     return { message: "Qoder connected. Usage tracked per request." };
@@ -346,9 +458,7 @@ async function getKiroUsage(accessToken: string) {
       method: "GET",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        "User-Agent": "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0",
-        "X-Amz-User-Agent": "aws-sdk-js/3.0.0 kiro-ide/1.0.0",
+        ...getKiroServiceHeaders("application/json"),
       },
     });
 

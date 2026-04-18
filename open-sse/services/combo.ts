@@ -33,12 +33,19 @@ import {
 import { supportsToolCalling } from "./modelCapabilities.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
+import { getProviderConnections } from "../../src/lib/db/providers";
 import {
   getComboModelString,
   getComboStepTarget,
   getComboStepWeight,
   normalizeComboStep,
 } from "../../src/lib/combos/steps.ts";
+import {
+  getConnectionRoutingTags,
+  matchesRoutingTags,
+  resolveRequestRoutingTags,
+  type RoutingTagMatchMode,
+} from "../../src/domain/tagRouter.ts";
 
 // Status codes that should mark semaphore + record circuit breaker failures
 const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];
@@ -81,6 +88,7 @@ type ResolvedComboTarget = {
   provider: string;
   providerId: string | null;
   connectionId: string | null;
+  allowedConnectionIds?: string[] | null;
   weight: number;
   label: string | null;
 };
@@ -840,6 +848,98 @@ function dedupeTargetsByExecutionKey(targets: ResolvedComboTarget[]) {
   });
 }
 
+async function applyRequestTagRouting(
+  targets: ResolvedComboTarget[],
+  body: Record<string, unknown> | null | undefined,
+  log: { info?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void }
+): Promise<ResolvedComboTarget[]> {
+  const { tags, matchMode } = resolveRequestRoutingTags(body);
+  if (tags.length === 0 || targets.length === 0) {
+    return targets;
+  }
+
+  const providerIds = Array.from(
+    new Set(targets.map((target) => target.providerId || target.provider))
+  ).filter(
+    (providerId): providerId is string => typeof providerId === "string" && providerId.length > 0
+  );
+  const providerConnections = new Map<string, Array<Record<string, unknown>>>();
+
+  await Promise.all(
+    providerIds.map(async (providerId) => {
+      try {
+        const connections = await getProviderConnections({ provider: providerId, isActive: true });
+        providerConnections.set(
+          providerId,
+          Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
+        );
+      } catch (error) {
+        log.warn?.(
+          "COMBO",
+          `Tag routing failed to load connections for provider=${providerId}: ${error instanceof Error ? error.message : String(error)}`
+        );
+        providerConnections.set(providerId, []);
+      }
+    })
+  );
+
+  const filteredTargets = targets.reduce<ResolvedComboTarget[]>((acc, target) => {
+    const providerKey = target.providerId || target.provider;
+    const candidateConnections =
+      providerConnections.get(providerKey)?.filter((connection) => {
+        const connectionId =
+          typeof connection.id === "string" && connection.id.trim().length > 0
+            ? connection.id
+            : null;
+        if (!connectionId) return false;
+        if (target.connectionId) {
+          return connectionId === target.connectionId;
+        }
+        return true;
+      }) || [];
+
+    const matchedConnectionIds = candidateConnections
+      .filter((connection) =>
+        matchesRoutingTags(
+          getConnectionRoutingTags(connection.providerSpecificData),
+          tags,
+          matchMode as RoutingTagMatchMode
+        )
+      )
+      .map((connection) => connection.id)
+      .filter((connectionId): connectionId is string => typeof connectionId === "string");
+
+    if (matchedConnectionIds.length === 0) {
+      return acc;
+    }
+
+    if (target.connectionId) {
+      acc.push(target);
+      return acc;
+    }
+
+    acc.push({
+      ...target,
+      allowedConnectionIds: Array.from(new Set(matchedConnectionIds)),
+    });
+    return acc;
+  }, []);
+
+  if (filteredTargets.length === 0) {
+    log.info?.(
+      "COMBO",
+      `Tag routing matched 0/${targets.length} targets for [${tags.join(", ")}] (${matchMode}); falling back to the full target set`
+    );
+    return targets;
+  }
+
+  log.info?.(
+    "COMBO",
+    `Tag routing matched ${filteredTargets.length}/${targets.length} targets for [${tags.join(", ")}] (${matchMode})`
+  );
+  return filteredTargets;
+}
+
 export function resolveComboTargets(combo, allCombos) {
   return allCombos ? resolveNestedComboTargets(combo, allCombos) : getDirectComboTargets(combo);
 }
@@ -1137,6 +1237,8 @@ export async function handleComboChat({
     strategy === "weighted"
       ? resolveWeightedTargets(combo, allCombos)?.orderedTargets || []
       : resolveComboTargets(combo, allCombos);
+
+  orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
   if (strategy === "weighted") {
     log.info(
@@ -1658,7 +1760,8 @@ async function handleRoundRobinCombo({
   const retryDelayMs = config.retryDelayMs ?? 2000;
 
   const orderedTargets = resolveComboTargets(combo, allCombos);
-  const modelCount = orderedTargets.length;
+  const filteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
+  const modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
   }
@@ -1679,7 +1782,7 @@ async function handleRoundRobinCombo({
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
     const modelIndex = (startIndex + offset) % modelCount;
-    const target = orderedTargets[modelIndex];
+    const target = filteredTargets[modelIndex];
     const modelStr = target.modelStr;
     const provider = target.provider;
     const profile = await getRuntimeProviderProfile(provider);

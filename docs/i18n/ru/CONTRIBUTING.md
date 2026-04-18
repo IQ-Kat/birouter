@@ -4,13 +4,19 @@
 
 ---
 
-Благодарим вас за интерес к участию! В этом руководстве описано все, что вам нужно для начала работы.---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (рекомендуется: 22 LTS) -**нпм**10+ -**Гит**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Ключевые переменные для развития:
+Key variables for development:
 
-| Переменная             | Разработка по умолчанию  | Описание                         |
-| ---------------------- | ------------------------ | -------------------------------- | ---------------------- |
-| `ПОРТ`                 | `20128`                  | Порт сервера                     |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Базовый URL-адрес для интерфейса |
-| `JWT_SECRET`           | (сгенерировать выше)     | Секрет подписания JWT            |
-| `INITIAL_PASSWORD`     | `ИЗМЕНИТЬ`               | Первый пароль для входа          |
-| `APP_LOG_LEVEL`        | `информация`             | Уровень детализации журнала      | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-На панели мониторинга предусмотрены переключатели пользовательского интерфейса для функций, которые также можно настроить с помощью переменных среды:
+### Dashboard Settings
 
-| Местоположение настройки  | Переключить              | Описание                                                       |
-| ------------------------- | ------------------------ | -------------------------------------------------------------- |
-| Настройки → Дополнительно | Режим отладки            | Включить журналы запросов отладки (пользовательский интерфейс) |
-| Настройки → Общие         | Видимость боковой панели | Показать/скрыть разделы боковой панели                         |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-Эти настройки хранятся в базе данных и сохраняются при перезапусках, переопределяя значения по умолчанию для env var, если они установлены.### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-URL-адреса по умолчанию:
+Default URLs:
 
--**Панель управления**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**НИКОГДА не фиксируйте непосредственно `main`.**Всегда используйте функциональные ветки.```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| Префикс | Цель |
+| Prefix      | Purpose                   |
 | ----------- | ------------------------- |
-| `подвиг/` | Новые возможности |
-| `исправить/` | Исправления ошибок |
-| `рефакторинг/` | Реструктуризация кода |
-| `документы/` | Изменения в документации |
-| `тест/` | Тестовые дополнения/исправления |
-| `работа/` | Инструментарий, CI, зависимости |### Commit Messages
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-Следуйте [Обычным коммитам](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-Области применения: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ refactor(db): consolidate rate limit tables
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,37 +146,48 @@ npm run lint
 npm run check
 ```
 
-Примечания к покрытию:
+Coverage notes:
 
-- `npm run test:coverage` измеряет покрытие источника для основного набора модульных тестов, исключает `tests/**` и включает `open-sse/**`
-  – Запросы на включение должны поддерживать общий уровень покрытия на уровне**60 % или выше**для операторов, строк, функций и ветвей.
-- Если PR меняет производственный код в `src/`, `open-sse/`, `electron/` или `bin/`, он должен добавить или обновить автоматические тесты в том же PR.
-- `npm run Coverage:report` печатает подробный пофайловый отчет из последнего запуска покрытия.
-- `npm run test:coverage:legacy` сохраняет старую метрику для исторического сравнения.
-- См. «docs/COVERAGE_PLAN.md» для ознакомления с планом поэтапного улучшения покрытия.### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-Прежде чем открыть или объединить PR:
+### Pull Request Requirements
 
-- Запустите `npm run test:unit`
-- Запустите `npm run test:coverage`
-  – Убедитесь, что порог покрытия остается на уровне**60 %+**для всех показателей.
-- Включите измененные или добавленные тестовые файлы в описание PR при изменении производственного кода.
-- Проверьте результат SonarQube на PR, когда секреты проекта настроены в CI.
+Before opening or merging a PR:
 
-Текущий статус тестирования:**122 файла модульных тестов**, охватывающие:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- Переводчики провайдеров и конвертация форматов
-- Ограничение скорости, автоматический выключатель и устойчивость
-- Семантический кеш, идемпотентность, отслеживание прогресса
-- Операции и схема базы данных (21 модуль БД)
-- Потоки OAuth и аутентификация
-- Проверка конечной точки API (Zod v4)
-- Инструменты сервера MCP и обеспечение соблюдения требований
-- Системы памяти и навыков---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— перед фиксацией запустите `npm run lint` -**Prettier**— автоматически форматируется с помощью `lint-staged` при фиксации (2 пробела, точки с запятой, двойные кавычки, ширина 100 символов, завершающие запятые es5) -**TypeScript**— весь код `src/` использует `.ts`/`.tsx`; `open-sse/` использует `.ts`/`.js`; документ с TSDoc(`@param`, `@returns`, `@throws`) -**No `eval()`**— ESLint применяет `no-eval`, `no-implied-eval`, `no-new-func` -**Проверка Zod** — используйте схемы Zod v4 для проверки всех входных данных API. -**Именование**: файлы = CamelCase/kebab-case, компоненты = PascalCase, константы = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -228,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Добавить в `src/shared/constants/providers.ts` — проверено Zod при загрузке модуля.### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Создайте исполнителя в `open-sse/executors/your-provider.ts`, расширяя базовый исполнитель.### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-Создайте переводчики запросов/ответов в `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Добавьте учетные данные OAuth в `src/lib/oauth/constants/oauth.ts` и сервис в `src/lib/oauth/services/`.### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-Добавьте определения модели в `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-Напишите модульные тесты в `tests/unit/`, охватывающие как минимум:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- Регистрация провайдера
-- Перевод запроса/ответа
-- Обработка ошибок---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] Тесты пройдены (`npm test`)
-- [ ] Проходы проверки (`npm run lint`)
-- [ ] Сборка прошла успешно (`npm run build`)
-- [] Добавлены типы TypeScript для новых общедоступных функций и интерфейсов.
-- [ ] Никаких жестко запрограммированных секретов или резервных значений.
-- [ ] Все входные данные проверены с помощью схем Zod.
-- [ ] Обновление CHANGELOG (при изменении, касающемся пользователя)
-- [ ] Обновлена документация (если применимо)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-Выпуски управляются с помощью рабочего процесса `/generate-release`. При создании нового выпуска GitHub пакет**автоматически публикуется в npm**с помощью действий GitHub.---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**Архитектура**: см. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). -**Справочник по API**: см. [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md). -**Проблемы**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR**: записи архитектурных решений см. в `docs/adr/`.
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

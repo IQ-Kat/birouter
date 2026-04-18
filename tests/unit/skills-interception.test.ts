@@ -12,6 +12,8 @@ const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
 const { interceptToolCalls, extractToolCalls, handleToolCallExecution } =
   await import("../../src/lib/skills/interception.ts");
+const { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } =
+  await import("../../open-sse/services/webSearchFallback.ts");
 
 function resetRuntime() {
   skillRegistry["registeredSkills"].clear();
@@ -116,6 +118,20 @@ test("extractToolCalls supports OpenAI, Anthropic and Gemini shapes", () => {
     },
     "gemini-2.5-pro"
   );
+  const responses = extractToolCalls(
+    {
+      object: "response",
+      output: [
+        {
+          type: "function_call",
+          call_id: "call-response",
+          name: OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME,
+          arguments: '{"query":"latest omniroute"}',
+        },
+      ],
+    },
+    "openai"
+  );
 
   assert.deepEqual(openaiRoot, [
     {
@@ -141,6 +157,13 @@ test("extractToolCalls supports OpenAI, Anthropic and Gemini shapes", () => {
   assert.equal(gemini.length, 1);
   assert.equal(gemini[0].name, "lookup@1.0.0");
   assert.deepEqual(gemini[0].arguments, { id: "gemini" });
+  assert.deepEqual(responses, [
+    {
+      id: "call-response",
+      name: OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME,
+      arguments: { query: "latest omniroute" },
+    },
+  ]);
   assert.deepEqual(extractToolCalls({}, "custom-model"), []);
 });
 
@@ -207,6 +230,38 @@ test("handleToolCallExecution appends Anthropic tool_result blocks", async () =>
       type: "tool_result",
       tool_use_id: "tool-1",
       content: '{"record":"resolved:77"}',
+    },
+  ]);
+});
+
+test("handleToolCallExecution appends Responses API function_call_output items", async () => {
+  const responsesResult = await handleToolCallExecution(
+    {
+      object: "response",
+      output: [
+        {
+          type: "function_call",
+          call_id: "call-response",
+          name: "lookup@1.0.0",
+          arguments: '{"id":"55"}',
+        },
+      ],
+    },
+    "openai",
+    executionContext
+  );
+
+  assert.deepEqual(responsesResult.output, [
+    {
+      type: "function_call",
+      call_id: "call-response",
+      name: "lookup@1.0.0",
+      arguments: '{"id":"55"}',
+    },
+    {
+      type: "function_call_output",
+      call_id: "call-response",
+      output: '{"record":"resolved:55"}',
     },
   ]);
 });

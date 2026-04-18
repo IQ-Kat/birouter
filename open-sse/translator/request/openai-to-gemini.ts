@@ -2,7 +2,7 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
-import { getGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
+import { resolveGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
 import { openaiToClaudeRequestForAntigravity } from "./openai-to-claude.ts";
 import {
   capMaxOutputTokens,
@@ -41,6 +41,7 @@ type GeminiGenerationConfig = {
   };
   responseMimeType?: string;
   responseSchema?: unknown;
+  stopSequences?: string[] | unknown[];
 };
 
 type GeminiFunctionDeclaration = {
@@ -95,6 +96,18 @@ function buildChangedToolNameMap(toolNameMap: Map<string, string>): Map<string, 
     ([sanitizedName, originalName]) => sanitizedName !== originalName
   );
   return changedEntries.length > 0 ? new Map(changedEntries) : null;
+}
+
+function extractClientThoughtSignature(toolCall) {
+  if (!toolCall || typeof toolCall !== "object") return null;
+
+  return (
+    toolCall.thoughtSignature ||
+    toolCall.thought_signature ||
+    toolCall.function?.thoughtSignature ||
+    toolCall.function?.thought_signature ||
+    null
+  );
 }
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
@@ -209,26 +222,28 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
         if (msg.tool_calls && Array.isArray(msg.tool_calls)) {
           const toolCallIds = [];
           const firstPersistedSignature = msg.tool_calls
-            .map((tc) => getGeminiThoughtSignature(tc.id))
+            .map((tc) => resolveGeminiThoughtSignature(tc.id, extractClientThoughtSignature(tc)))
             .find((signature) => typeof signature === "string" && signature.length > 0);
 
-          const shouldUseEmbeddedSignature = !parts.some((p) => p.thoughtSignature);
-          let embeddedSignatureUsed = false;
+          let shouldUseEmbeddedSignature = !parts.some((p) => p.thoughtSignature);
 
           for (const tc of msg.tool_calls) {
             if (tc.type !== "function") continue;
 
             const args = tryParseJSON(tc.function?.arguments || "{}");
-            const signatureForToolCall = getGeminiThoughtSignature(tc.id);
-            const embeddedThoughtSignature =
-              shouldUseEmbeddedSignature && !embeddedSignatureUsed
-                ? firstPersistedSignature ||
-                  signatureForToolCall ||
-                  DEFAULT_THINKING_GEMINI_SIGNATURE
-                : undefined;
+            const signatureForToolCall = resolveGeminiThoughtSignature(
+              tc.id,
+              extractClientThoughtSignature(tc)
+            );
+            const embeddedThoughtSignature = shouldUseEmbeddedSignature
+              ? firstPersistedSignature || signatureForToolCall || DEFAULT_THINKING_GEMINI_SIGNATURE
+              : undefined;
 
-            // Gemini expects the signature on the functionCall part itself. For
-            // parallel calls, only the first functionCall in the batch carries it.
+            if (embeddedThoughtSignature) {
+              shouldUseEmbeddedSignature = false;
+            }
+
+            // Gemini expects the signature on the functionCall part itself.
             parts.push({
               ...(embeddedThoughtSignature ? { thoughtSignature: embeddedThoughtSignature } : {}),
               functionCall: {
@@ -238,9 +253,6 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
               },
             });
 
-            if (embeddedThoughtSignature) {
-              embeddedSignatureUsed = true;
-            }
             toolCallIds.push(tc.id);
           }
 

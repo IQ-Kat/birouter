@@ -4,13 +4,19 @@
 
 ---
 
-Ďakujeme za váš záujem prispievať! Táto príručka obsahuje všetko, čo potrebujete, aby ste mohli začať.---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (odporúčané: 22 LTS) -**npm**10+ -**Git**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Kľúčové premenné pre vývoj:
+Key variables for development:
 
-| Premenná               | Vývoj Predvolené         | Popis                            |
-| ---------------------- | ------------------------ | -------------------------------- | ---------------------- |
-| "PORT"                 | "20128"                  | Port servera                     |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Základná adresa URL pre frontend |
-| `JWT_SECRET`           | (vygenerovať vyššie)     | Tajomstvo podpisu JWT            |
-| `ÚVODNÉ_HESLO`         | "ZMENA"                  | Prvé prihlasovacie heslo         |
-| `APP_LOG_LEVEL`        | "informácie"             | Úroveň výrečnosti protokolu      | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-Dashboard poskytuje prepínače používateľského rozhrania pre funkcie, ktoré možno konfigurovať aj prostredníctvom premenných prostredia:
+### Dashboard Settings
 
-| Nastavenie polohy      | Prepnúť                    | Popis                                     |
-| ---------------------- | -------------------------- | ----------------------------------------- |
-| Nastavenia → Rozšírené | Režim ladenia              | Povoliť protokoly žiadostí o ladenie (UI) |
-| Nastavenia → Všeobecné | Viditeľnosť bočného panela | Zobraziť/skryť sekcie bočného panela      |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-Tieto nastavenia sú uložené v databáze a pretrvávajú počas reštartov, pričom pri nastavení prepíšu predvolené hodnoty env var.### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Predvolené adresy URL:
+Default URLs:
 
--**Dashboard**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**NIKDY sa nezaväzujte priamo k `main`.**Vždy používajte vetvy funkcií.```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| Predpona | Účel |
-| ----------- | -------------------------- |
-| `feat/` | Nové funkcie |
-| `opraviť/` | Opravy chýb |
-| `reaktor/` | Reštrukturalizácia kódexu |
-| `docs/` | Zmeny dokumentácie |
-| `test/` | Skúšobné doplnky/opravy |
-| `fuška/` | Nástroje, CI, závislosti |### Commit Messages
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-Postupujte podľa [konvenčných záväzkov](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-Rozsahy: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `pamäť`, `zručnosti`.---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ Rozsahy: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`,
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,37 +146,48 @@ npm run lint
 npm run check
 ```
 
-Poznámky k pokrytiu:
+Coverage notes:
 
-- `npm run test:coverage` meria pokrytie zdroja pre testovaciu sadu hlavnej jednotky, vylučuje `tests/**` a zahŕňa `open-sse/**`
-- Žiadosti o stiahnutie musia udržiavať celkovú bránu pokrytia na**60 % alebo vyššej**pre výpisy, linky, funkcie a pobočky
-- Ak PR zmení produkčný kód v `src/`, `open-sse/`, `electron/` alebo `bin/`, musí pridať alebo aktualizovať automatizované testy v rovnakom PR
-- `npm run coverage:report` vytlačí podrobnú správu po jednotlivých súboroch z posledného spustenia pokrytia
-- `npm run test:coverage:legacy` zachováva staršiu metriku pre historické porovnanie
-- Pozrite si `docs/COVERAGE_PLAN.md` pre postupné zlepšovanie pokrytia### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-Pred otvorením alebo zlúčením PR:
+### Pull Request Requirements
 
-- Spustite `npm run test:unit`
-- Spustite `npm run test:coverage`
-  – Zabezpečte, aby brána pokrytia zostala na**60 %+**pre všetky metriky
-- Zahrňte zmenené alebo pridané testovacie súbory do popisu PR pri zmene výrobného kódu
-- Skontrolujte výsledok SonarQube na PR, keď sú tajné informácie projektu nakonfigurované v CI
+Before opening or merging a PR:
 
-Aktuálny stav testu:**122 testovacích súborov jednotiek**pokrývajúcich:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- Poskytovateľ prekladateľov a konverzie formátu
-- Obmedzenie rýchlosti, istič a odolnosť
-- Sémantická vyrovnávacia pamäť, idempotencia, sledovanie pokroku
-- Databázové operácie a schéma (21 DB modulov)
-- Toky OAuth a overenie
-- Overenie koncového bodu API (Zod v4)
-- Serverové nástroje MCP a presadzovanie rozsahu
-- Systémy pamäte a zručností---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— Pred potvrdením spustite príkaz `npm run lint` -**Prettier**– Automatické formátovanie pomocou príkazu `lint-staged` pri odovzdaní (2 medzery, bodkočiarky, dvojité úvodzovky, šírka 100 znakov, koncové čiarky es5) -**TypeScript**– Všetok kód `src/` používa `.ts`/`.tsx`; `open-sse/` používa `.ts`/`.js`; dokument s TSDoc (`@param`, `@returns`, `@throws`) -**No `eval()`**– ESLint presadzuje `no-eval`, `no-implied-eval`, `no-new-func` -**Overenie Zod**– Použite schémy Zod v4 na overenie všetkých vstupov API -**Pomenovanie**: Súbory = puzdro na ťavu/kufor na kebab, komponenty = puzdro Pascal, konštanty = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -228,38 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Pridať do `src/shared/constants/providers.ts` — Zod-overené pri načítaní modulu.### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Vytvorte exekútor v `open-sse/executors/your-provider.ts` rozširujúci základný exekútor.### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-Vytvorte prekladače požiadaviek/odpovedí v `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Pridajte poverenia OAuth do súboru `src/lib/oauth/constants/oauth.ts` a službu v súbore `src/lib/oauth/services/`.### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-Pridajte definície modelov do súboru `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-Napíšte testy jednotiek v `tests/unit/`, ktoré pokrývajú minimálne:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- Registrácia poskytovateľa
-- Žiadosť/odpoveď na preklad
-- Spracovanie chýb---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] Úspešné testy (`npm test`)
-- [ ] Linting passy (`npm run lint`)
-- [ ] Zostavenie bolo úspešné (`npm run build`)
-- [ ] Typy TypeScript pridané pre nové verejné funkcie a rozhrania
-- [ ] Žiadne pevne zakódované tajomstvá ani záložné hodnoty
-- [ ] Všetky vstupy overené pomocou schém Zod
-- [ ] CHANGELOG aktualizovaný (ak sa zmení používateľ)
-- [ ] Aktualizovaná dokumentácia (ak je to potrebné)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-Vydania sa spravujú prostredníctvom pracovného postupu `/generate-release`. Keď sa vytvorí nové vydanie GitHub, balík sa**automaticky zverejní na npm**prostredníctvom akcií GitHub.---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**Architektúra**: Pozrite si [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**Referencia API**: Pozrite si [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
-–**Problémy**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR**: Záznamy architektonických rozhodnutí nájdete v `docs/adr/`
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

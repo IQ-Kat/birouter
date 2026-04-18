@@ -1,4 +1,4 @@
-import { isAuthenticated, isAuthRequired } from "@/shared/utils/apiAuth";
+import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 export async function requireManagementAuth(request: Request): Promise<Response | null> {
@@ -6,7 +6,7 @@ export async function requireManagementAuth(request: Request): Promise<Response 
     return null;
   }
 
-  if (await isAuthenticated(request)) {
+  if (await isDashboardSessionAuthenticated(request)) {
     return null;
   }
 

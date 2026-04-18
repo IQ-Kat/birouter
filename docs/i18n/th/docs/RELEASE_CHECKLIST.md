@@ -4,26 +4,41 @@
 
 ---
 
-ใช้รายการตรวจสอบนี้ก่อนที่จะแท็กหรือเผยแพร่ OmniRoute ใหม่## Version and Changelog
+Use this checklist before tagging or publishing a new OmniRoute release.
 
-1. ชนเวอร์ชัน `package.json` (`x.y.z`) ในเวอร์ชัน release
-2. ย้ายบันทึกประจำรุ่นจาก `## [Unreleased]` ใน `CHANGELOG.md` ไปยังส่วนที่ลงวันที่:
-   - `## [x.y.z] — ปปปป-ดด-วว`
-3. เก็บ `## [Unreleased]` ไว้เป็นส่วนบันทึกการเปลี่ยนแปลงแรกสำหรับงานที่กำลังจะมาถึง
-4. ตรวจสอบให้แน่ใจว่าส่วน semver ล่าสุดใน `CHANGELOG.md` เท่ากับเวอร์ชัน `package.json`## API Docs
+## Version and Changelog
 
-5. อัปเดต `docs/openapi.yaml`:
-   - `info.version` ต้องเท่ากับเวอร์ชัน `package.json`
-6. ตรวจสอบตัวอย่างตำแหน่งข้อมูลหากสัญญา API มีการเปลี่ยนแปลง## Runtime Docs
+1. Bump `package.json` version (`x.y.z`) in the release branch.
+2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
+   - `## [x.y.z] — YYYY-MM-DD`
+3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
+4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
 
-7. ตรวจสอบ `docs/ARCHITECTURE.md` สำหรับการจัดเก็บ/รันไทม์ดริฟท์
-8. ตรวจสอบ `docs/TROUBLESHOOTING.md` สำหรับ env var และดริฟท์การปฏิบัติงาน
-9. อัปเดตเอกสารที่แปลเป็นภาษาท้องถิ่นหากเอกสารต้นฉบับมีการเปลี่ยนแปลงอย่างมาก## Automated Check
+## API Docs
 
-เรียกใช้ตัวป้องกันการซิงค์ในเครื่องก่อนที่จะเปิด PR:```bash
+1. Update `docs/openapi.yaml`:
+   - `info.version` must equal `package.json` version.
+2. Validate endpoint examples if API contracts changed.
+
+## Runtime Docs
+
+1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
+2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
+3. Verify the release/runtime Node.js version still satisfies the supported secure floor:
+   - `>=20.20.2 <21` or `>=22.22.2 <23`
+   - `npm run check:node-runtime`
+4. Validate the npm publish artifact after building the standalone package:
+   - `npm run build:cli`
+   - `npm run check:pack-artifact`
+   - confirm no `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, or other local residue
+5. Update localized docs if source docs changed significantly.
+
+## Automated Check
+
+Run the sync guard locally before opening PR:
+
+```bash
 npm run check:docs-sync
-
 ```
 
-CI ยังรันการตรวจสอบนี้ใน `.github/workflows/ci.yml` (งานผ้าสำลี)
-```
+CI also runs this check in `.github/workflows/ci.yml` (lint job).

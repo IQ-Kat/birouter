@@ -20,6 +20,30 @@ import {
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
+type PreservedTableSnapshot = {
+  table: string;
+  rowCount: number;
+  maxRows: number;
+  columns: string[];
+  rows: JsonRecord[];
+};
+type SkippedTableSnapshot = {
+  table: string;
+  rowCount: number;
+  maxRows: number;
+  reason: string;
+};
+type PreservedCriticalDbState = {
+  captureSucceeded: boolean;
+  captureError: string | null;
+  preservedTables: PreservedTableSnapshot[];
+  skippedTables: SkippedTableSnapshot[];
+};
+type CriticalTableSpec = {
+  table: string;
+  maxRows?: number;
+  readRows?: (db: SqliteDatabase) => JsonRecord[];
+};
 
 // ──────────────── Environment Detection ────────────────
 
@@ -34,6 +58,34 @@ const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
 export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite");
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
 export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
+const DEFAULT_CRITICAL_TABLE_ROW_LIMIT = 10_000;
+const SKIP_PRESERVE_NAMESPACES = new Set(["syncedAvailableModels", "providerLimitsCache", "lkgp"]);
+const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
+  {
+    table: "key_value",
+    maxRows: 10_000,
+    readRows(db) {
+      return (
+        (db.prepare("SELECT namespace, key, value FROM key_value").all() as JsonRecord[]) ?? []
+      ).filter(
+        (row) => typeof row.namespace !== "string" || !SKIP_PRESERVE_NAMESPACES.has(row.namespace)
+      );
+    },
+  },
+  { table: "provider_connections", maxRows: 5_000 },
+  { table: "provider_nodes", maxRows: 5_000 },
+  { table: "combos", maxRows: 5_000 },
+  { table: "api_keys", maxRows: 5_000 },
+  { table: "proxy_registry", maxRows: 5_000 },
+  { table: "proxy_assignments", maxRows: 10_000 },
+  { table: "model_combo_mappings", maxRows: 5_000 },
+  { table: "sync_tokens", maxRows: 5_000 },
+  { table: "registered_keys", maxRows: 10_000 },
+  { table: "provider_key_limits", maxRows: 10_000 },
+  { table: "account_key_limits", maxRows: 10_000 },
+  { table: "upstream_proxy_config", maxRows: 5_000 },
+  { table: "webhooks", maxRows: 5_000 },
+];
 
 // Ensure data directory exists — with fallback for restricted home directories (#133)
 if (!isCloud && !fs.existsSync(DATA_DIR)) {
@@ -233,9 +285,28 @@ const SCHEMA_SQL = `
   CREATE TABLE IF NOT EXISTS domain_budgets (
     api_key_id TEXT PRIMARY KEY,
     daily_limit_usd REAL NOT NULL,
+    weekly_limit_usd REAL DEFAULT 0,
     monthly_limit_usd REAL DEFAULT 0,
-    warning_threshold REAL DEFAULT 0.8
+    warning_threshold REAL DEFAULT 0.8,
+    reset_interval TEXT DEFAULT 'daily',
+    reset_time TEXT DEFAULT '00:00',
+    budget_reset_at INTEGER,
+    last_budget_reset_at INTEGER,
+    warning_emitted_at INTEGER,
+    warning_period_start INTEGER
   );
+
+  CREATE TABLE IF NOT EXISTS domain_budget_reset_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    api_key_id TEXT NOT NULL,
+    reset_interval TEXT NOT NULL,
+    previous_spend REAL NOT NULL DEFAULT 0,
+    reset_at INTEGER NOT NULL,
+    next_reset_at INTEGER NOT NULL,
+    period_start INTEGER NOT NULL,
+    period_end INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_dbrl_key_reset ON domain_budget_reset_logs(api_key_id, reset_at DESC);
 
   CREATE TABLE IF NOT EXISTS domain_cost_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -505,6 +576,159 @@ function hasTable(db: SqliteDatabase, tableName: string): boolean {
   );
 }
 
+function quoteIdentifier(identifier: string): string {
+  return `"${identifier.replace(/"/g, '""')}"`;
+}
+
+function getTableColumns(db: SqliteDatabase, tableName: string): string[] {
+  return (
+    db.prepare(`PRAGMA table_info(${quoteIdentifier(tableName)})`).all() as Array<{ name?: string }>
+  )
+    .map((column) => String(column.name ?? ""))
+    .filter((column) => column.length > 0);
+}
+
+function summarizePreservedTables(tables: PreservedTableSnapshot[]): string {
+  if (tables.length === 0) return "none";
+  return tables.map((table) => `${table.table}(${table.rowCount})`).join(", ");
+}
+
+function summarizeSkippedTables(tables: SkippedTableSnapshot[]): string {
+  if (tables.length === 0) return "none";
+  return tables
+    .map((table) => `${table.table}(${table.rowCount}/${table.maxRows}: ${table.reason})`)
+    .join(", ");
+}
+
+function listProbeFailureBackups(sqliteFile: string): string[] {
+  const directory = path.dirname(sqliteFile);
+  const baseName = path.basename(sqliteFile);
+  if (!fs.existsSync(directory)) return [];
+
+  return fs
+    .readdirSync(directory)
+    .filter((name) => name.startsWith(`${baseName}.probe-failed-`))
+    .map((name) => path.join(directory, name))
+    .sort((left, right) => {
+      const leftMtime = fs.statSync(left).mtimeMs;
+      const rightMtime = fs.statSync(right).mtimeMs;
+      return rightMtime - leftMtime;
+    });
+}
+
+function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
+  const snapshot: PreservedCriticalDbState = {
+    captureSucceeded: false,
+    captureError: null,
+    preservedTables: [],
+    skippedTables: [],
+  };
+
+  if (!fs.existsSync(sqliteFile)) {
+    snapshot.captureSucceeded = true;
+    return snapshot;
+  }
+
+  let probe: SqliteDatabase | null = null;
+  try {
+    probe = new Database(sqliteFile, { readonly: true });
+
+    for (const tableSpec of CRITICAL_DB_TABLES) {
+      if (!hasTable(probe, tableSpec.table)) continue;
+
+      const maxRows = tableSpec.maxRows ?? DEFAULT_CRITICAL_TABLE_ROW_LIMIT;
+      const rows = (tableSpec.readRows?.(probe) ??
+        (probe
+          .prepare(`SELECT * FROM ${quoteIdentifier(tableSpec.table)}`)
+          .all() as JsonRecord[])) as JsonRecord[];
+      const rowCount = rows.length;
+
+      if (rowCount === 0) continue;
+
+      if (rowCount > maxRows) {
+        snapshot.skippedTables.push({
+          table: tableSpec.table,
+          rowCount,
+          maxRows,
+          reason: "row_limit_exceeded",
+        });
+        continue;
+      }
+
+      snapshot.preservedTables.push({
+        table: tableSpec.table,
+        rowCount,
+        maxRows,
+        columns: getTableColumns(probe, tableSpec.table),
+        rows,
+      });
+    }
+
+    snapshot.captureSucceeded = true;
+    return snapshot;
+  } catch (error: unknown) {
+    snapshot.captureError = error instanceof Error ? error.message : String(error);
+    return snapshot;
+  } finally {
+    try {
+      probe?.close();
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+function restoreCriticalDbState(
+  db: SqliteDatabase,
+  snapshot: PreservedCriticalDbState
+): PreservedTableSnapshot[] {
+  const restoredTables: PreservedTableSnapshot[] = [];
+
+  const restore = db.transaction(() => {
+    for (const table of snapshot.preservedTables) {
+      if (table.rows.length === 0) continue;
+      if (!hasTable(db, table.table)) {
+        throw new Error(`Current schema is missing preserved table "${table.table}"`);
+      }
+
+      const currentColumns = new Set(getTableColumns(db, table.table));
+      const restoreColumns = table.columns.filter((column) => currentColumns.has(column));
+      if (restoreColumns.length === 0) {
+        throw new Error(`No compatible columns remain for preserved table "${table.table}"`);
+      }
+
+      const sql = `INSERT OR REPLACE INTO ${quoteIdentifier(table.table)} (${restoreColumns
+        .map((column) => quoteIdentifier(column))
+        .join(", ")}) VALUES (${restoreColumns.map(() => "?").join(", ")})`;
+      const insert = db.prepare(sql);
+
+      for (const row of table.rows) {
+        insert.run(...restoreColumns.map((column) => row[column] ?? null));
+      }
+
+      restoredTables.push(table);
+    }
+  });
+
+  restore();
+  return restoredTables;
+}
+
+function cleanupRecreatedSqliteFiles(sqliteFile: string) {
+  for (const filePath of [
+    sqliteFile,
+    `${sqliteFile}-wal`,
+    `${sqliteFile}-shm`,
+    `${sqliteFile}-journal`,
+  ]) {
+    try {
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 function parseLegacyError(value: unknown): unknown {
   if (typeof value !== "string" || value.trim().length === 0) return null;
   try {
@@ -770,6 +994,53 @@ export function getDbInstance(): SqliteDatabase {
     throw new Error("SQLITE_FILE is unavailable for local mode");
   }
   const jsonDbFile = JSON_DB_FILE;
+  const probeFailureBackups = listProbeFailureBackups(sqliteFile);
+  if (!fs.existsSync(sqliteFile) && probeFailureBackups.length > 0) {
+    throw new Error(
+      `[DB] Manual recovery required before startup. ` +
+        `Detected preserved database from a previous probe failure: ${probeFailureBackups[0]}. ` +
+        `Restore the preserved file or another backup to ${sqliteFile} before restarting.`
+    );
+  }
+
+  let preservedCriticalState: PreservedCriticalDbState = {
+    captureSucceeded: true,
+    captureError: null,
+    preservedTables: [],
+    skippedTables: [],
+  };
+  let failedProbePath: string | null = null;
+  let failedProbeMessage: string | null = null;
+
+  if (fs.existsSync(sqliteFile)) {
+    preservedCriticalState = captureCriticalDbState(sqliteFile);
+    if (preservedCriticalState.captureSucceeded) {
+      if (preservedCriticalState.preservedTables.length > 0) {
+        console.log(
+          `[DB] Preserved critical DB state before potential recreation: ${summarizePreservedTables(
+            preservedCriticalState.preservedTables
+          )}`
+        );
+      }
+      if (preservedCriticalState.skippedTables.length > 0) {
+        console.warn(
+          `[DB] Critical DB tables skipped during preservation: ${summarizeSkippedTables(
+            preservedCriticalState.skippedTables
+          )}`
+        );
+      }
+    } else if (preservedCriticalState.captureError) {
+      console.warn(
+        `[DB] Could not preserve critical DB state before recreation: ${preservedCriticalState.captureError}`
+      );
+    }
+  }
+
+  // Track whether the DB file is brand new (fresh DATA_DIR / Docker volume).
+  // This is needed so the migration runner skips the mass-migration safety abort
+  // that would otherwise trigger because heuristic seeding marks some migrations
+  // as applied, making the fresh DB look like a wiped existing DB (#1328).
+  const isNewDb = !fs.existsSync(sqliteFile);
 
   // Detect and handle old schema format — preserve data when possible (#146)
   // Uses a single probe connection that becomes the real connection when possible.
@@ -826,15 +1097,44 @@ export function getDbInstance(): SqliteDatabase {
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       console.warn("[DB] Could not probe existing DB:", message);
+
+      // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
+      if (
+        message.includes("Module did not self-register") ||
+        message.includes("could not be found") ||
+        message.includes("ERR_DLOPEN_FAILED") ||
+        (e as any)?.code === "ERR_DLOPEN_FAILED"
+      ) {
+        throw e;
+      }
+
       // SAFETY: Never delete the database — rename to backup so data can be recovered.
       // The old code would silently destroy all user data on any probe failure.
       const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;
       try {
         fs.renameSync(sqliteFile, failedPath);
         console.warn(`[DB] Renamed corrupt DB to ${path.basename(failedPath)}`);
+        failedProbePath = failedPath;
+        failedProbeMessage = message;
       } catch {
         /* ok */
       }
+    }
+  }
+
+  if (failedProbePath) {
+    const hasUnsafeSkippedTables = preservedCriticalState.skippedTables.length > 0;
+    const missingSnapshot = !preservedCriticalState.captureSucceeded;
+    if (hasUnsafeSkippedTables || missingSnapshot) {
+      const details = missingSnapshot
+        ? `snapshot_failed=${preservedCriticalState.captureError || "unknown"}`
+        : `skipped_tables=${summarizeSkippedTables(preservedCriticalState.skippedTables)}`;
+      throw new Error(
+        `[DB] Manual recovery required after probe failure. ` +
+          `Preserved database: ${failedProbePath}. ` +
+          `Automatic recovery was aborted because ${details}. ` +
+          `Original probe error: ${failedProbeMessage || "unknown"}.`
+      );
     }
   }
 
@@ -935,12 +1235,36 @@ export function getDbInstance(): SqliteDatabase {
       "call_logs_summary_storage"
     );
   }
-  runMigrations(db);
+  runMigrations(db, { isNewDb });
   offloadLegacyCallLogDetails(db);
 
   // Auto-migrate from db.json if exists
   if (jsonDbFile && fs.existsSync(jsonDbFile)) {
     migrateFromJson(db, jsonDbFile);
+  }
+
+  if (failedProbePath && preservedCriticalState.preservedTables.length > 0) {
+    try {
+      const restoredTables = restoreCriticalDbState(db, preservedCriticalState);
+      console.log(
+        `[DB] Restored preserved critical DB state after probe failure: ${summarizePreservedTables(
+          restoredTables
+        )}`
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      try {
+        if (db.open) db.close();
+      } catch {
+        /* ignore */
+      }
+      cleanupRecreatedSqliteFiles(sqliteFile);
+      throw new Error(
+        `[DB] Automatic recovery aborted after probe failure. ` +
+          `Preserved database: ${failedProbePath}. ` +
+          `Restore failure: ${message}.`
+      );
+    }
   }
 
   // Store schema version

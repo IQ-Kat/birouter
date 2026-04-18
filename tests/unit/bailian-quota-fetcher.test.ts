@@ -24,7 +24,7 @@ test.afterEach(() => {
 });
 
 test("fetchBailianQuota returns null when no registered credentials exist", async () => {
-  const quota = await fetchBailianQuota(`missing-${Date.now()}`);
+  const quota: any = await fetchBailianQuota(`missing-${Date.now()}`);
   assert.equal(quota, null);
 });
 
@@ -63,7 +63,7 @@ test("fetchBailianQuota uses apiKey when consoleApiKey is absent", async () => {
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-api-key",
   });
 
@@ -109,7 +109,7 @@ test("fetchBailianQuota uses apiKey when consoleApiKey is empty string", async (
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "fallback-key",
     providerSpecificData: {
       consoleApiKey: "",
@@ -158,7 +158,7 @@ test("fetchBailianQuota prefers consoleApiKey when present", async () => {
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "regular-key",
     providerSpecificData: {
       consoleApiKey: "ck-test",
@@ -207,7 +207,7 @@ test("fetchBailianQuota parses triple-window and returns percentUsed = max(5h%, 
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-key",
   });
 
@@ -269,13 +269,13 @@ test("fetchBailianQuota retries with China host on ConsoleNeedLogin", async () =
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-key",
   });
 
   assert.equal(calls.length, 2);
-  assert.ok(calls[0].url.includes("modelstudio.console.alibabacloud.com"));
-  assert.ok(calls[1].url.includes("bailian.console.aliyun.com"));
+  assert.ok(calls[0].url.includes("://modelstudio.console.alibabacloud.com/"));
+  assert.ok(calls[1].url.includes("://bailian.console.aliyun.com/"));
   assert.equal(quota?.percentUsed, 0.45);
 
   invalidateBailianQuotaCache(connectionId);
@@ -299,7 +299,7 @@ test("fetchBailianQuota does not retry more than once on ConsoleNeedLogin", asyn
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-key",
   });
 
@@ -316,7 +316,7 @@ test("fetchBailianQuota returns null on network error", async () => {
     throw new Error("Network error");
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-key",
   });
 
@@ -345,7 +345,7 @@ test("fetchBailianQuota returns null when response has no codingPlanQuotaInfo", 
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-key",
   });
 
@@ -444,12 +444,12 @@ test("ALIBABA_CODING_PLAN_HOST env var overrides default host", async () => {
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-key",
   });
 
   assert.equal(calls.length, 1);
-  assert.ok(calls[0].url.includes("custom.bailian.aliyun.com"));
+  assert.ok(calls[0].url.includes("://custom.bailian.aliyun.com/"));
   assert.equal(quota?.percentUsed, 0.55);
 
   process.env.ALIBABA_CODING_PLAN_HOST = originalEnv;
@@ -494,12 +494,12 @@ test("ALIBABA_CODING_PLAN_QUOTA_URL env var overrides full URL", async () => {
     );
   };
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-key",
   });
 
   assert.equal(calls.length, 1);
-  assert.ok(calls[0].url.includes("override.example.com"));
+  assert.ok(calls[0].url.includes("://override.example.com/"));
   assert.equal(quota?.percentUsed, 0.2);
 
   process.env.ALIBABA_CODING_PLAN_QUOTA_URL = originalEnv;
@@ -567,7 +567,7 @@ test("fetchBailianQuota returns null on malformed JSON response", async () => {
       headers: { "content-type": "application/json" },
     });
 
-  const quota = await fetchBailianQuota(connectionId, {
+  const quota: any = await fetchBailianQuota(connectionId, {
     apiKey: "test-key",
   });
 

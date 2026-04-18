@@ -47,6 +47,7 @@ export async function getSettings() {
     stickyRoundRobinLimit: 3,
     requestRetry: 3,
     maxRetryIntervalSec: 30,
+    antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
     hiddenSidebarItems: [],
     alwaysPreserveClientCache: "auto",
@@ -90,7 +91,19 @@ export async function updateSettings(updates: Record<string, unknown>) {
   tx();
   backupDbFile("pre-write");
   invalidateDbCache("settings"); // Bust the read cache immediately
-  return getSettings();
+  const nextSettings = await getSettings();
+
+  try {
+    const { applyRuntimeSettings } = await import("@/lib/config/runtimeSettings");
+    await applyRuntimeSettings(nextSettings, { source: "settings:update" });
+  } catch (error) {
+    console.warn(
+      "[HOT_RELOAD] Failed to apply runtime settings after update:",
+      error instanceof Error ? error.message : error
+    );
+  }
+
+  return nextSettings;
 }
 
 export async function isCloudEnabled() {

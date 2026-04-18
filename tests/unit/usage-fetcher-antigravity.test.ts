@@ -15,7 +15,11 @@ test("usage fetcher retries Antigravity quota discovery across shared fallback U
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
 
-    if (String(url).includes("daily-cloudcode-pa.googleapis.com")) {
+    const urlStr = String(url);
+    if (
+      urlStr === "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels" ||
+      urlStr === "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels"
+    ) {
       return new Response("unavailable", { status: 503 });
     }
 
@@ -34,7 +38,7 @@ test("usage fetcher retries Antigravity quota discovery across shared fallback U
     );
   };
 
-  const usage = await usageFetcher.getUsageForProvider({
+  const usage: any = await usageFetcher.getUsageForProvider({
     provider: "antigravity",
     accessToken: "ag-token",
     providerSpecificData: { email: "coder@example.com" },
@@ -43,6 +47,7 @@ test("usage fetcher retries Antigravity quota discovery across shared fallback U
   assert.deepEqual(
     calls.map((call) => call.url),
     [
+      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
       "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
       "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
     ]

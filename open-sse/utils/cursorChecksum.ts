@@ -7,10 +7,8 @@
 
 import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";
+import { getCursorUserAgent } from "../config/providerHeaderProfiles.ts";
 import { getCursorVersion } from "./cursorVersionDetector.ts";
-
-const CURSOR_CLIENT_VERSION = "3.1.0";
-const CURSOR_USER_AGENT = `Cursor/${CURSOR_CLIENT_VERSION}`;
 
 /**
  * Generate SHA-256 hash like generateHashed64Hex
@@ -116,12 +114,12 @@ export function buildCursorHeaders(accessToken, machineId = null, ghostMode = tr
     "connect-accept-encoding": "gzip",
     "connect-protocol-version": "1",
     "Content-Type": "application/connect+proto",
-    "User-Agent": `Cursor/${getCursorVersion()}`,
+    "User-Agent": getCursorUserAgent(getCursorVersion()),
     "x-amzn-trace-id": `Root=${crypto.randomUUID()}`,
     "x-client-key": clientKey,
     "x-cursor-checksum": checksum,
     "x-cursor-client-version": getCursorVersion(),
-    "x-cursor-user-agent": `Cursor/${getCursorVersion()}`,
+    "x-cursor-user-agent": getCursorUserAgent(getCursorVersion()),
     "x-cursor-config-version": crypto.randomUUID(),
     "x-cursor-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     "x-ghost-mode": ghostMode ? "true" : "false",

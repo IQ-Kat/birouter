@@ -18,6 +18,13 @@ interface StatementLike<TRow = unknown> {
 
 interface AuditDatabase {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
+  pragma: (sql: string) => unknown;
+  close: () => void;
+  open?: boolean;
+}
+
+declare global {
+  var __omnirouteMcpAuditDb: AuditDatabase | null | undefined;
 }
 
 interface AuditStatsRow {
@@ -121,7 +128,13 @@ function buildAuditFilterSql(filters: McpAuditQuery): { whereSql: string; params
   };
 }
 
-let db: AuditDatabase | null = null;
+function getCachedAuditDb(): AuditDatabase | null {
+  return globalThis.__omnirouteMcpAuditDb ?? null;
+}
+
+function setCachedAuditDb(database: AuditDatabase | null): void {
+  globalThis.__omnirouteMcpAuditDb = database;
+}
 
 function toNumber(value: unknown, fallback = 0): number {
   const parsed =
@@ -142,7 +155,8 @@ function toString(value: unknown): string {
  * Uses the same SQLite database as the main OmniRoute app.
  */
 async function getDb(): Promise<AuditDatabase | null> {
-  if (db) return db;
+  const cachedDb = getCachedAuditDb();
+  if (cachedDb) return cachedDb;
 
   try {
     // Try importing the db module from the main app
@@ -162,13 +176,41 @@ async function getDb(): Promise<AuditDatabase | null> {
     const Database = (await import("better-sqlite3")).default as unknown as new (
       dbPath: string
     ) => AuditDatabase;
-    db = new Database(dbPath);
-    return db;
+    const database = new Database(dbPath);
+    setCachedAuditDb(database);
+    return database;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[MCP Audit] Failed to connect to database:", message);
     return null;
   }
+}
+
+export function closeAuditDb(): boolean {
+  const database = getCachedAuditDb();
+  if (!database) return false;
+
+  setCachedAuditDb(null);
+
+  try {
+    try {
+      if (database.open !== false) {
+        database.pragma("wal_checkpoint(TRUNCATE)");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn("[MCP Audit] WAL checkpoint failed during close:", message);
+    }
+  } finally {
+    try {
+      database.close();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn("[MCP Audit] Failed to close database:", message);
+    }
+  }
+
+  return true;
 }
 
 // ============ Audit Logger ============

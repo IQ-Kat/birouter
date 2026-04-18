@@ -4,52 +4,64 @@
 
 ---
 
-> نماذج النماذج الذاتية الإدارة مع تسجيل التعديلات التكيفية## How It Works
+> Self-managing model chains with adaptive scoring
 
-يقوم محرك التحرير والسرد التلقائي باختيار أفضل/نموذج ديناميكي لكل طلب باستخدام**وظيفة تسجيل مكونة من 6 اختيارات**:
+## How It Works
 
-| عامل            | الوزن | الوصف                                  |
-| :-------------- | :---- | :------------------------------------- | ------------- |
-| الحصة           | 0.20  | القدرة المتبقية [0..1]                 |
-| الصحة           | 0.25  | الفاصل: مغلق=1.0، نصف=0.5، مفتوح=0.0   |
-| تكلفة الاستثمار | 0.20  | التكلفة العكسية (أرخص = الدرجة الأعلى) |
-| الكمون          | 0.15  | الكمون العكسي p95 (أسرع = الأعلى)      |
-| تاسكفيت         | 0.10  | نموذج × درجة اللياقة البدنية لنوع مهم  |
-|                 | 0.10  | متباينة في الوصول إلى زمن/الأخطاء      | ## Mode Packs |
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
 
-| حزمة                     | التركيز    | الوزن الرئيسي       |
-| :----------------------- | :--------- | :------------------ | ---------------- |
-| 🚀**الشحن السريع**       | السرعة     | الكمون: 0.35        |
-| 💰**توفير التكلفة**      | اقتصاد     | تكلفة التكلفة: 0.40 |
-| 🎯**الجودة الجديدة**     | أفضل نموذج | المهمة فيت: 0.40    |
-| 📡**غير متصل بالإنترنت** | التوفر     | الحصة: 0.40         | ## الشفاء الذاتي |
+| Factor     | Weight | Description                                     |
+| :--------- | :----- | :---------------------------------------------- |
+| Quota      | 0.20   | Remaining capacity [0..1]                       |
+| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
+| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
+| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
+| TaskFit    | 0.10   | Model × task type fitness score                 |
+| Stability  | 0.10   | Low variance in latency/errors                  |
 
--**الاستبعاد المؤقت**: النتيجة < 0.2 ← تم الاستبعاد لمدة 5 صباحا ( التراجع المتقدم، الأقصى 30 دقيقة) -**التوعية بقاطع الدورة**: مفتوح → مدمر التدمير؛ HALF_OPEN → طلبات التحقيق -**وضع الحادث**: >50% متوقع → ثم الاستكشاف المتوقع -**استرداد فترة التهدئة**: بعد الاختفاء، يكون الطلب الأول من "تحقيق" مع مهلة الأقل## Bandit Exploration
+## Mode Packs
 
-يتم توجيه 5% من الطلبات (القابلة للتكوين) إلى موفر خدمات غير آمنة للاستكشاف. معطل في الحادث.## API```bash
+| Pack                    | Focus        | Key Weight       |
+| :---------------------- | :----------- | :--------------- |
+| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
+| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
+| 📡 **Offline Friendly** | Availability | quota: 0.40      |
 
+## Self-Healing
+
+- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
+- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
+- **Incident mode**: >50% OPEN → disable exploration, maximize stability
+- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+
+## Bandit Exploration
+
+5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+
+## API
+
+```bash
 # Create auto-combo
-
 curl -X POST http://localhost:20128/api/combos/auto \
- -H "Content-Type: application/json" \
- -d '{"id":"my-auto","name":"Auto Coder","candidatePool":["anthropic","google","openai"],"modePack":"ship-fast"}'
+  -H "Content-Type: application/json" \
+  -d '{"id":"my-auto","name":"Auto Coder","candidatePool":["anthropic","google","openai"],"modePack":"ship-fast"}'
 
 # List auto-combos
-
 curl http://localhost:20128/api/combos/auto
-
 ```
 
 ## Task Fitness
 
-تم تسجيل أكثر من 30 نموذجًا عبر 6 أنواع من المهام (`الترميز`، و`المراجعة`، و`التخطيط`، و`التحليل`، و`تصحيح سبب`، و`التوثيق`). محترف أحرف البدل (على سبيل المثال، `*-coder` → درجة ترميز عالية).## Files
+30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
 
-| ملف | الحصاد |
+## Files
+
+| File                                         | Purpose                               |
 | :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts` | وظيفة الهديف وتطبيع التكيف |
-| `open-sse/services/autoCombo/taskFitness.ts` | نموذج × مهمة بحث اللياقة البدنية |
-| `open-sse/services/autoCombo/engine.ts` | الاختيار المنطقي، قطاع الطرق، ميزانية الإنفاق |
-| `open-sse/services/autoCombo/selfHealing.ts` | الابعاد، التفاصيل، حالة الحادث |
-| `open-sse/services/autoCombo/modePacks.ts` | 4 ملفات تعريف للوزن |
-| `src/app/api/combos/auto/route.ts` | ريست API |
-```
+| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
+| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                              |

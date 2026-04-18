@@ -82,6 +82,48 @@ function buildResponsesSse(text = "Brasilia") {
   );
 }
 
+function buildResponsesNdjson(text = "Brasilia") {
+  return new Response(
+    [
+      JSON.stringify({
+        type: "response.created",
+        response: {
+          id: "resp_1",
+          model: "gpt-5.3-codex",
+          status: "in_progress",
+          output: [],
+        },
+      }),
+      JSON.stringify({
+        type: "response.output_text.delta",
+        output_index: 0,
+        delta: text,
+      }),
+      JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_1",
+          object: "response",
+          model: "gpt-5.3-codex",
+          status: "completed",
+          output: [
+            {
+              type: "message",
+              role: "assistant",
+              content: [{ type: "output_text", text }],
+            },
+          ],
+          usage: { input_tokens: 6, output_tokens: 1 },
+        },
+      }),
+    ].join("\n"),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/x-ndjson" },
+    }
+  );
+}
+
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -194,6 +236,27 @@ test("chatCore converts Responses-style SSE fallback into JSON when stream=false
   assert.ok(payload.usage.total_tokens >= 7);
   assert.ok(payload.usage.prompt_tokens > 0);
   assert.ok(payload.usage.completion_tokens > 0);
+});
+
+test("chatCore converts Responses-style NDJSON fallback into JSON when stream=false", async () => {
+  const { result, call } = await invokeChatCore({
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "Qual a capital do Brasil?" }],
+    },
+    provider: "openai",
+    model: "gpt-4o-mini",
+    responseFactory: () => buildResponsesNdjson("Brasilia"),
+  });
+
+  const payload = await result.response.json();
+
+  assert.equal(result.success, true);
+  assert.equal(call.headers.Accept || call.headers.accept, "application/json");
+  assert.equal(payload.object, "chat.completion");
+  assert.equal(payload.choices[0].message.content, "Brasilia");
+  assert.ok(payload.usage.total_tokens >= 7);
 });
 
 test("handleComboChat validates non-stream quality using the original client stream intent", async () => {

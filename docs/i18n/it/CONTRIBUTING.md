@@ -4,13 +4,19 @@
 
 ---
 
-Grazie per il tuo interesse nel contribuire! Questa guida copre tutto ciò di cui hai bisogno per iniziare.---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (consigliato: 22 LTS) -**npm**10+ -**Git**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Variabili chiave per lo sviluppo:
+Key variables for development:
 
-| Variabile              | Sviluppo predefinito     | Descrizione                      |
-| ---------------------- | ------------------------ | -------------------------------- | ---------------------- |
-| "PORTO"                | `20128`                  | Porta del server                 |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | URL di base per il frontend      |
-| `JWT_SECRET`           | (generare sopra)         | Segreto della firma JWT          |
-| `PASSWORD_INIZIALE`    | `CAMBIAMI`               | Prima password di accesso        |
-| `APP_LOG_LEVEL`        | "informazioni"           | Registra il livello di dettaglio | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-La dashboard fornisce interruttori dell'interfaccia utente per funzionalità che possono essere configurate anche tramite variabili di ambiente:
+### Dashboard Settings
 
-| Impostazione della posizione | Attiva/disattiva                | Descrizione                                     |
-| ---------------------------- | ------------------------------- | ----------------------------------------------- |
-| Impostazioni → Avanzate      | Modalità debug                  | Abilita i log delle richieste di debug (UI)     |
-| Impostazioni → Generale      | Visibilità della barra laterale | Mostra/nascondi le sezioni della barra laterale |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-Queste impostazioni vengono archiviate nel database e persistono dopo i riavvii, sovrascrivendo le impostazioni predefinite di env var quando impostate.### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-URL predefiniti:
+Default URLs:
 
--**Dashboard**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**MAI impegnarsi direttamente in `main`.**Utilizza sempre i rami delle funzionalità.```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| Prefisso | Scopo |
-| ----------- | ------------------------ |
-| `impresa/` | Nuove funzionalità |
-| `aggiustare/` | Correzioni di bug |
-| `refactoring/` | Ristrutturazione del codice |
-| `documenti/` | Modifiche alla documentazione |
-| `prova/` | Aggiunte/correzioni ai test |
-| `lavoretto/` | Strumenti, CI, dipendenze |### Commit Messages
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-Segui [Commit convenzionali](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-Ambiti: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ Ambiti: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, 
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,38 +146,48 @@ npm run lint
 npm run check
 ```
 
-Note sulla copertura:
+Coverage notes:
 
-- "npm run test:coverage" misura la copertura del codice sorgente per la suite di unit test principale, esclude "tests/**" e include "open-sse/**"
-- Le richieste pull devono mantenere il livello di copertura complessiva al**60% o superiore**per estratti conto, linee, funzioni e filiali
-- Se un PR modifica il codice di produzione in `src/`, `open-sse/`, `electron/` o `bin/`, deve aggiungere o aggiornare test automatizzati nello stesso PR
-- `npm run cover:report` stampa il report dettagliato file per file dell'ultima esecuzione della copertura
-- `npm run test:coverage:legacy` preserva la metrica precedente per il confronto storico
-- Consulta `docs/COVERAGE_PLAN.md` per la roadmap di miglioramento graduale della copertura### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-Prima di aprire o unire un PR:
+### Pull Request Requirements
 
-- Esegui `npm run test:unit`
-- Esegui `npm run test:coverage`
-- Assicurarsi che il limite di copertura rimanga al**60%+**per tutte le metriche
-- Includere i file di test modificati o aggiunti nella descrizione PR quando il codice di produzione è cambiato
-- Controllare il risultato SonarQube sul PR quando i segreti del progetto sono configurati in CI
+Before opening or merging a PR:
 
-Stato attuale del test:**122 file di test unitari**che coprono:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- Traduttori del fornitore e conversione del formato
-- Limitazione della velocità, interruttore automatico e resilienza
-- Cache semantica, idempotenza, monitoraggio dei progressi
-- Operazioni e schema del database (21 moduli DB)
-- Flussi e autenticazione OAuth
-- Convalida dell'endpoint API (Zod v4)
-- Strumenti server MCP e applicazione dell'ambito
-- Sistemi di memoria e abilità---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— Esegui `npm run lint` prima del commit -**Più carino**— Formattato automaticamente tramite `lint-staged` al commit (2 spazi, punto e virgola, virgolette doppie, larghezza 100 caratteri, virgole finali es5) -**TypeScript**— Tutto il codice `src/` utilizza `.ts`/`.tsx`; `open-sse/` utilizza `.ts`/`.js`; documento con TSDoc ("@param`, `@returns`, `@throws`)
--**No `eval()`**— ESLint applica `no-eval`, `no-implied-eval`, `no-new-func` -**Convalida Zod**: utilizza gli schemi Zod v4 per tutta la convalida degli input API -**Nome**: File = camelCase/kebab-case, componenti = PascalCase, costanti = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -229,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Aggiungi a `src/shared/constants/provviders.ts` — Convalidato da Zod al caricamento del modulo.### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Crea un esecutore in "open-sse/executors/your-provider.ts" estendendo l'esecutore di base.### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-Crea traduttori di richiesta/risposta in `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Aggiungi le credenziali OAuth in `src/lib/oauth/constants/oauth.ts` e il servizio in `src/lib/oauth/services/`.### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-Aggiungi le definizioni del modello in "open-sse/config/providerRegistry.ts".### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-Scrivi i test unitari in `tests/unit/` che coprano almeno:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- Registrazione del fornitore
-- Traduzione richiesta/risposta
-- Gestione degli errori---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] I test sono superati (`npm test`)
-- [ ] Passaggi di lint (`npm run lint`)
-- [ ] La compilazione riesce (`npm run build`)
-- [] Tipi TypeScript aggiunti per nuove funzioni e interfacce pubbliche
-- [ ] Nessun segreto codificato o valore di fallback
-- [ ] Tutti gli input convalidati con schemi Zod
-- [] CHANGELOG aggiornato (se la modifica è rivolta all'utente)
-- [ ] Documentazione aggiornata (se applicabile)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-Le versioni vengono gestite tramite il flusso di lavoro "/generate-release". Quando viene creata una nuova versione GitHub, il pacchetto viene**pubblicato automaticamente su npm**tramite GitHub Actions.---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**Architettura**: vedi [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**Riferimento API**: vedi [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Problemi**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR**: vedere `docs/adr/` per i record delle decisioni architettoniche
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

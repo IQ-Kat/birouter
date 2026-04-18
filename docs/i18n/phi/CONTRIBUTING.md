@@ -4,13 +4,19 @@
 
 ---
 
-Salamat sa iyong interes sa pag-aambag! Sinasaklaw ng gabay na ito ang lahat ng kailangan mo para makapagsimula.---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (inirerekomenda: 22 LTS) -**npm**10+ -**Git**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Mga pangunahing variable para sa pag-unlad:
+Key variables for development:
 
-| Variable               | Default ng Pag-unlad     | Paglalarawan              |
-| ---------------------- | ------------------------ | ------------------------- | ---------------------- |
-| `PORT`                 | `20128`                  | Port ng server            |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL para sa frontend |
-| `JWT_SECRET`           | (bumuo sa itaas)         | JWT signing secret        |
-| `INITIAL_PASSWORD`     | `PALITAN`                | Unang login password      |
-| `APP_LOG_LEVEL`        | `impormasyon`            | Log verbosity level       | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-Nagbibigay ang dashboard ng mga toggle ng UI para sa mga feature na maaari ding i-configure sa pamamagitan ng mga variable ng kapaligiran:
+### Dashboard Settings
 
-| Pagtatakda ng Lokasyon      | I-toggle           | Paglalarawan                                          |
-| --------------------------- | ------------------ | ----------------------------------------------------- |
-| Mga Setting → Advanced      | Debug Mode         | Paganahin ang mga log ng kahilingan sa pag-debug (UI) |
-| Mga Setting → Pangkalahatan | Sidebar Visibility | Ipakita/itago ang mga seksyon ng sidebar              |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-Ang mga setting na ito ay naka-store sa database at nagpapatuloy sa mga pag-restart, na na-override ang mga env var default kapag nakatakda.### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Mga Default na URL:
+Default URLs:
 
--**Dashboard**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**NEVER commit directly to `main`.**Palaging gumamit ng mga feature branch.```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| Prefix | Layunin |
-| ----------- | -------------------------- |
-| `feat/` | Mga bagong feature |
-| `ayusin/` | Mga pag-aayos ng bug |
-| `refactor/` | Pag-aayos ng code |
-| `docs/` | Mga pagbabago sa dokumentasyon |
-| `pagsusulit/` | Mga pagdaragdag/pag-aayos ng pagsubok |
-| `gawain/` | Tooling, CI, dependencies |### Commit Messages
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-Sundin ang [Conventional Commits](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-Mga Saklaw: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ Mga Saklaw: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mc
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,37 +146,48 @@ npm run lint
 npm run check
 ```
 
-Mga tala sa saklaw:
+Coverage notes:
 
-- Sinusukat ng `npm run test:coverage` ang source coverage para sa pangunahing unit test suite, hindi kasama ang `tests/**`, at may kasamang `open-sse/**`
-- Ang mga kahilingan sa paghila ay dapat panatilihin ang kabuuang gate ng saklaw sa**60% o mas mataas**para sa mga pahayag, linya, function, at sangay
-- Kung binago ng isang PR ang production code sa `src/`, `open-sse/`, `electron/`, o `bin/`, dapat itong magdagdag o mag-update ng mga automated na pagsubok sa parehong PR
-- Ang `npm run coverage:report` ay nagpi-print ng detalyadong file-by-file na ulat mula sa pinakabagong coverage run
-- Pinapanatili ng `npm run test:coverage:legacy` ang mas lumang sukatan para sa makasaysayang paghahambing
-- Tingnan ang `docs/COVERAGE_PLAN.md` para sa phased na roadmap ng pagpapabuti ng coverage### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-Bago buksan o pagsamahin ang isang PR:
+### Pull Request Requirements
 
-- Patakbuhin ang `npm run test:unit`
-- Patakbuhin ang `npm run test:coverage`
-- Tiyaking mananatili ang gate ng coverage sa**60%+**para sa lahat ng sukatan
-- Isama ang binago o idinagdag na mga test file sa paglalarawan ng PR kapag nagbago ang production code
-- Suriin ang resulta ng SonarQube sa PR kapag ang mga lihim ng proyekto ay na-configure sa CI
+Before opening or merging a PR:
 
-Kasalukuyang status ng pagsubok:**122 unit test file**na sumasaklaw sa:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- Tagasalin ng provider at conversion ng format
-- Paglilimita sa rate, circuit breaker, at katatagan
-- Semantic cache, idempotency, pagsubaybay sa pag-unlad
-- Mga pagpapatakbo ng database at schema (21 DB modules)
-- Mga daloy ng OAuth at pagpapatunay
-- Pagpapatunay ng endpoint ng API (Zod v4)
-- Mga tool sa server ng MCP at pagpapatupad ng saklaw
-- Mga sistema ng Memory at Kasanayan---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— Patakbuhin ang `npm run lint` bago gumawa -**Prettier**— Awtomatikong na-format sa pamamagitan ng `lint-staged` sa commit (2 space, semicolon, double quotes, 100 char width, es5 trailing commas) -**TypeScript**— Lahat ng `src/` code ay gumagamit ng `.ts`/`.tsx`; Ang `open-sse/` ay gumagamit ng `.ts`/`.js`; dokumentong may TSDoc (`@param`, `@returns`, `@throws`) -**Walang `eval()`**— Ipinapatupad ng ESLint ang `no-eval`, `no-implied-eval`, `no-new-func` -**Pagpapatunay ng Zod**— Gumamit ng mga schema ng Zod v4 para sa lahat ng pagpapatunay ng input ng API -**Pagpapangalan**: Mga File = camelCase/kebab-case, mga bahagi = PascalCase, constants = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -228,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Idagdag sa `src/shared/constants/providers.ts` — Zod-validated sa module load.### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Gumawa ng executor sa `open-sse/executors/your-provider.ts` na nagpapalawak sa base executor.### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-Gumawa ng mga tagasalin ng kahilingan/tugon sa `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Magdagdag ng mga kredensyal ng OAuth sa `src/lib/oauth/constants/oauth.ts` at serbisyo sa `src/lib/oauth/services/`.### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-Magdagdag ng mga kahulugan ng modelo sa `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-Sumulat ng mga unit test sa `tests/unit/` na sumasaklaw nang hindi bababa sa:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- Pagpaparehistro ng provider
-- Kahilingan/tugon sa pagsasalin
-- Error sa paghawak---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] Mga test pass (`npm test`)
-- [ ] Linting pass (`npm run lint`)
-- [ ] Nagtagumpay ang Build (`npm run build`)
-- [ ] Idinagdag ang mga uri ng TypeScript para sa mga bagong pampublikong function at interface
-- [ ] Walang mga hardcoded na lihim o fallback na halaga
-- [ ] Lahat ng mga input ay napatunayan gamit ang Zod schema
-- [ ] CHANGELOG na-update (kung may pagbabago sa user)
-- [ ] Na-update ang dokumentasyon (kung naaangkop)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-Ang mga release ay pinamamahalaan sa pamamagitan ng `/generate-release` workflow. Kapag gumawa ng bagong GitHub Release, ang package ay**awtomatikong na-publish sa npm**sa pamamagitan ng GitHub Actions.---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**Arkitektura**: Tingnan ang [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**Reference ng API**: Tingnan ang [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Mga Isyu**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**Mga ADR**: Tingnan ang `docs/adr/` para sa mga talaan ng desisyon sa arkitektura
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

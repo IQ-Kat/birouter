@@ -4,6 +4,15 @@ import { enforceWebRuntimeEnv } from "./lib/env/runtimeEnv";
 import { enforceSecrets } from "./shared/utils/secretsValidator";
 import { initAuditLog, cleanupExpiredLogs, logAuditEvent } from "./lib/compliance/index";
 import { initConsoleInterceptor } from "./lib/consoleInterceptor";
+import { startBudgetResetJob } from "./lib/jobs/budgetResetJob";
+import { getSettings } from "./lib/db/settings";
+import { applyRuntimeSettings } from "./lib/config/runtimeSettings";
+import { startRuntimeConfigHotReload } from "./lib/config/hotReload";
+import { startSpendBatchWriter } from "./lib/spend/batchWriter";
+import { registerDefaultGuardrails } from "./lib/guardrails";
+import { ensurePersistentManagementPasswordHash } from "./lib/auth/managementPassword";
+import { skillExecutor } from "./lib/skills/executor";
+import { registerBuiltinSkills } from "./lib/skills/builtins";
 
 async function startServer() {
   // Trigger request-log layout migration during startup, before serving requests.
@@ -44,8 +53,32 @@ async function startServer() {
   console.log("Starting server with cloud sync...");
 
   try {
+    let settings = await getSettings();
+    const passwordState = await ensurePersistentManagementPasswordHash({
+      logger: console,
+      settings,
+      source: "startup",
+    });
+    settings = passwordState.settings;
+    const runtimeChanges = await applyRuntimeSettings(settings, { force: true, source: "startup" });
+    if (runtimeChanges.length > 0) {
+      console.log(
+        `[STARTUP] Runtime settings hydrated: ${runtimeChanges
+          .map((entry) => entry.section)
+          .join(", ")}`
+      );
+    }
+
     // Initialize cloud sync
+    startSpendBatchWriter();
+    registerDefaultGuardrails();
+    registerBuiltinSkills(skillExecutor);
+    console.log("[STARTUP] Spend batch writer started");
+    console.log("[STARTUP] Guardrail registry initialized");
+    console.log("[STARTUP] Builtin skill handlers registered");
     await initializeCloudSync();
+    startBudgetResetJob();
+    startRuntimeConfigHotReload();
     console.log("Server started with cloud sync initialized");
 
     // Log server start event to audit log

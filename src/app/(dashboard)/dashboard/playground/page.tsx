@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { ALIAS_TO_ID } from "@/shared/constants/providers";
@@ -185,18 +185,21 @@ export default function PlaygroundPage() {
   const t = useTranslations("playground");
 
   // Get translated endpoint options
-  const getEndpointOptions = () => [
-    { value: "chat", label: t("endpointOptions.chat") },
-    { value: "responses", label: t("endpointOptions.responses") },
-    { value: "images", label: t("endpointOptions.images") },
-    { value: "embeddings", label: t("endpointOptions.embeddings") },
-    { value: "speech", label: t("endpointOptions.speech") },
-    { value: "transcription", label: t("endpointOptions.transcription") },
-    { value: "video", label: t("endpointOptions.video") },
-    { value: "music", label: t("endpointOptions.music") },
-    { value: "rerank", label: t("endpointOptions.rerank") },
-    { value: "search", label: t("endpointOptions.search") },
-  ];
+  const endpointOptions = useMemo(
+    () => [
+      { value: "chat", label: t("endpointOptions.chat") },
+      { value: "responses", label: t("endpointOptions.responses") },
+      { value: "images", label: t("endpointOptions.images") },
+      { value: "embeddings", label: t("endpointOptions.embeddings") },
+      { value: "speech", label: t("endpointOptions.speech") },
+      { value: "transcription", label: t("endpointOptions.transcription") },
+      { value: "video", label: t("endpointOptions.video") },
+      { value: "music", label: t("endpointOptions.music") },
+      { value: "rerank", label: t("endpointOptions.rerank") },
+      { value: "search", label: t("endpointOptions.search") },
+    ],
+    [t]
+  );
 
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [providers, setProviders] = useState<ProviderOption[]>([]);
@@ -495,7 +498,7 @@ export default function PlaygroundPage() {
             <Select
               value={selectedEndpoint}
               onChange={(e: any) => handleEndpointChange(e.target.value)}
-              options={getEndpointOptions()}
+              options={endpointOptions}
               className="w-full"
             />
           </div>

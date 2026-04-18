@@ -177,6 +177,26 @@ test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight account
   assert.equal(selected.connectionId, healthy.id);
 });
 
+test("getProviderCredentials skips connections that exclude the requested model and selects the next eligible account", async () => {
+  const excluded = await seedConnection("openai", {
+    name: "excluded-first",
+    priority: 1,
+    providerSpecificData: {
+      excludedModels: ["gpt-4o*"],
+    },
+  });
+  const allowed = await seedConnection("openai", {
+    name: "allowed-second",
+    priority: 2,
+    apiKey: "sk-allowed",
+  });
+
+  const selected = await auth.getProviderCredentials("openai", null, null, "gpt-4o-mini");
+
+  assert.equal(selected.connectionId, allowed.id);
+  assert.notEqual(selected.connectionId, excluded.id);
+});
+
 test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a forced connection is blocked by preflight", async () => {
   const blocked = await seedConnection("openai", {
     name: "quota-preflight-forced",

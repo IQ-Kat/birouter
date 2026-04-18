@@ -38,7 +38,7 @@ permissions:
   packages: write
 
 env:
-  NPM_PUBLISH_NODE_VERSION: "22.22.2"
+  NPM_PUBLISH_NODE_VERSION: "24"
 
 jobs:
   publish:

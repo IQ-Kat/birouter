@@ -421,10 +421,10 @@ async function getLatestCallLog() {
   return callLogsDb.getCallLogById(rows[0].id);
 }
 
-async function getResponsesCallLogCount() {
+async function getResponsesCallLogs() {
   const rows = await callLogsDb.getCallLogs({ limit: 200 });
-  if (!Array.isArray(rows) || rows.length === 0) return 0;
-  return rows.filter((row) => row.path === "/v1/responses").length;
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+  return rows.filter((row) => row.path === "/v1/responses");
 }
 
 test.beforeEach(async () => {
@@ -514,6 +514,11 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
   assert.match(fetchCalls[0].url, /\/responses$/);
   assert.equal(fetchCalls[0].headers.Authorization, "Bearer sk-codex-primary");
   assert.equal(json.object, "response");
+  assert.equal(json.output[0].type, "message");
+  assert.equal(json.output[0].content[0].text, "responses streamed from codex");
+  assert.equal(json.output_text, "responses streamed from codex");
+  assert.equal(json.usage.input_tokens_details.cached_tokens, 40);
+  assert.equal(json.usage.output_tokens_details.reasoning_tokens, 13);
 
   assert.ok(callLog, "expected a call log row to be created");
   assert.equal(callLog.provider, "codex");
@@ -523,7 +528,7 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
   assert.equal(callLog.tokens.reasoning, 13);
 });
 
-test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and logs only once", async () => {
+test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and logs cache hits separately", async () => {
   await seedConnection("codex", { apiKey: "sk-codex-cache-seq" });
   const fetchCalls = [];
 
@@ -553,10 +558,11 @@ test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and 
   const requestBody = {
     model: "codex/gpt-5.3-codex",
     stream: false,
+    temperature: 0,
     input: [{ role: "user", content: [{ type: "input_text", text: uniquePrompt }] }],
   };
 
-  const beforeCount = await getResponsesCallLogCount();
+  const beforeCount = (await getResponsesCallLogs()).length;
 
   const firstResponse = await handleChat(
     buildRequest({
@@ -594,12 +600,17 @@ test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and 
   assert.equal(fetchCalls.length, 1, "expected upstream to be called only once for MISS");
   assert.match(fetchCalls[0].url, /\/responses$/);
 
-  const afterCount = await waitFor(async () => {
-    const count = await getResponsesCallLogCount();
-    return count === beforeCount + 1 ? count : null;
+  const callLogs = await waitFor(async () => {
+    const rows = await getResponsesCallLogs();
+    return rows.length === beforeCount + 3 ? rows : null;
   }, 2000);
 
-  assert.equal(afterCount, beforeCount + 1, "expected exactly one new /v1/responses call log");
+  assert.ok(callLogs, "expected /v1/responses call logs to be recorded");
+  assert.equal(callLogs.length, beforeCount + 3, "expected MISS plus two HIT call logs");
+
+  const newLogs = callLogs.slice(0, 3);
+  assert.equal(newLogs.filter((row) => row.cacheSource === "upstream").length, 1);
+  assert.equal(newLogs.filter((row) => row.cacheSource === "semantic").length, 2);
 
   const callLog = await waitFor(() => getLatestCallLog());
   assert.ok(callLog, "expected a call log row to exist");
@@ -943,6 +954,10 @@ test("chat pipeline surfaces upstream 500 responses as structured errors", async
 
 test("chat pipeline returns 429 with Retry-After when the upstream rate-limits the only account", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-429" });
+  await settingsDb.updateSettings({
+    requestRetry: 0,
+    maxRetryIntervalSec: 0,
+  });
   let attempts = 0;
 
   globalThis.fetch = async () => {

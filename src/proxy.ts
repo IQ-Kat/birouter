@@ -100,6 +100,7 @@ export async function proxy(request: any) {
     // Verify authentication (JWT cookie or Bearer API key)
     const authError = await verifyAuth(request);
     if (authError) {
+      const status = authError === "Invalid management token" ? 403 : 401;
       return NextResponse.json(
         {
           error: {
@@ -108,7 +109,7 @@ export async function proxy(request: any) {
             correlation_id: requestId,
           },
         },
-        { status: 401 }
+        { status }
       );
     }
   }
