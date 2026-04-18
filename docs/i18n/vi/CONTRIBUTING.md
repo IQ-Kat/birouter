@@ -4,13 +4,19 @@
 
 ---
 
-Cảm ơn bạn đã quan tâm đóng góp! Hướng dẫn này bao gồm mọi thứ bạn cần để bắt đầu.---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (khuyến nghị: 22 LTS) -**npm**10+ -**Git**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Các biến chính cho sự phát triển:
+Key variables for development:
 
-| Biến                   | Mặc định phát triển      | Mô tả                              |
-| ---------------------- | ------------------------ | ---------------------------------- | ---------------------- |
-| `CỔNG`                 | `20128`                  | Cổng máy chủ                       |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | URL cơ sở cho giao diện người dùng |
-| `JWT_BÍ MẬT`           | (tạo ở trên)             | Bí mật ký kết JWT                  |
-| `INITIAL_PASSWORD`     | `ĐỔI ĐỔI`                | Mật khẩu đăng nhập lần đầu         |
-| `APP_LOG_LEVEL`        | `thông tin`              | Mức độ chi tiết của nhật ký        | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-Trang tổng quan cung cấp các chuyển đổi giao diện người dùng cho các tính năng cũng có thể được định cấu hình thông qua các biến môi trường:
+### Dashboard Settings
 
-| Cài đặt vị trí     | Chuyển đổi         | Mô tả                           |
-| ------------------ | ------------------ | ------------------------------- |
-| Cài đặt → Nâng cao | Chế độ gỡ lỗi      | Bật nhật ký yêu cầu gỡ lỗi (UI) |
-| Cài đặt → Chung    | Hiển thị thanh bên | Hiển thị/ẩn các phần thanh bên  |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-Các cài đặt này được lưu trữ trong cơ sở dữ liệu và tồn tại trong suốt quá trình khởi động lại, ghi đè các giá trị mặc định của env var khi được đặt.### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-URL mặc định:
+Default URLs:
 
--**Bảng điều khiển**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**KHÔNG BAO GIỜ cam kết trực tiếp với `main`.**Luôn sử dụng các nhánh tính năng.```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| Tiền tố | Mục đích |
+| Prefix      | Purpose                   |
 | ----------- | ------------------------- |
-| `chiến công/` | Tính năng mới |
-| `sửa/` | Sửa lỗi |
-| `tái cấu trúc/` | Tái cấu trúc mã |
-| `tài liệu/` | Thay đổi tài liệu |
-| `kiểm tra/` | Kiểm tra bổ sung/sửa lỗi |
-| `việc vặt/` | Công cụ, CI, phụ thuộc |### Commit Messages
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-Thực hiện theo [Cam kết thông thường](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-Phạm vi: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ Phạm vi: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,37 +146,48 @@ npm run lint
 npm run check
 ```
 
-Ghi chú bảo hiểm:
+Coverage notes:
 
-- `npm run test:coverage` đo mức độ bao phủ nguồn cho bộ thử nghiệm đơn vị chính, loại trừ `tests/**` và bao gồm `open-sse/**`
-- Yêu cầu kéo phải giữ cổng bao phủ tổng thể ở mức**60% trở lên**cho các câu lệnh, dòng, chức năng và nhánh
-- Nếu một PR thay đổi mã sản xuất trong `src/`, `open-sse/`, `electron/`, hoặc `bin/` thì phải thêm hoặc cập nhật các bài kiểm tra tự động trong cùng một PR
-- `npm run cover: report` in báo cáo chi tiết theo từng tệp từ lần chạy bảo hiểm mới nhất
-- `npm run test:coverage:legacy` giữ nguyên số liệu cũ hơn để so sánh lịch sử
-- Xem `docs/COVERAGE_PLAN.md` để biết lộ trình cải thiện phạm vi bảo hiểm theo từng giai đoạn### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-Trước khi mở hoặc sáp nhập một PR:
+### Pull Request Requirements
 
-- Chạy `npm run test:unit`
-- Chạy `npm run test:coverage`
-- Đảm bảo cổng phủ sóng luôn ở mức**60%+**cho tất cả các chỉ số
-- Bao gồm các file test đã thay đổi hoặc bổ sung trong phần mô tả PR khi mã sản xuất thay đổi
-- Kiểm tra kết quả SonarQube trên PR khi bí mật dự án được cấu hình trong CI
+Before opening or merging a PR:
 
-Trạng thái kiểm tra hiện tại:**122 tệp kiểm tra đơn vị**bao gồm:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- Nhà cung cấp dịch giả và chuyển đổi định dạng
-- Giới hạn tốc độ, ngắt mạch và khả năng phục hồi
-- Bộ nhớ đệm ngữ nghĩa, tính bình thường, theo dõi tiến trình
-- Hoạt động cơ sở dữ liệu và lược đồ (21 mô-đun DB)
-- Luồng OAuth và xác thực
-- Xác thực điểm cuối API (Zod v4)
-- Công cụ máy chủ MCP và thực thi phạm vi
-- Hệ thống trí nhớ và kỹ năng---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— Chạy `npm run lint` trước khi chuyển giao -**Đẹp hơn**— Được định dạng tự động thông qua `lint-staged` trên cam kết (2 dấu cách, dấu chấm phẩy, dấu ngoặc kép, chiều rộng 100 ký tự, dấu phẩy ở cuối es5) -**TypeScript**— Tất cả mã `src/` đều sử dụng `.ts`/`.tsx`; `open-sse/` sử dụng `.ts`/`.js`; tài liệu có TSDoc (`@param`, `@returns`, `@throws`) -**Không `eval()`**— ESLint thực thi `no-eval`, `no-implied-eval`, `no-new-func` -**Xác thực Zod**— Sử dụng lược đồ Zod v4 để xác thực tất cả thông tin đầu vào API -**Đặt tên**: Files = CamelCase/kebab-case, Components = PascalCase, constants = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -228,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Thêm vào `src/shared/constants/providers.ts` — Được xác thực Zod khi tải mô-đun.### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Tạo trình thực thi trong `open-sse/executors/your-provider.ts` mở rộng trình thực thi cơ sở.### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-Tạo trình dịch yêu cầu/phản hồi trong `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Thêm thông tin xác thực OAuth trong `src/lib/oauth/constants/oauth.ts` và dịch vụ trong `src/lib/oauth/services/`.### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-Thêm định nghĩa mô hình trong `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-Viết bài kiểm tra đơn vị trong `tests/unit/` bao gồm tối thiểu:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- Đăng ký nhà cung cấp
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
 - Request/response translation
-- Xử lý lỗi---
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] Các bài kiểm tra đã vượt qua (`npm test`)
-- [ ] Linting pass (`npm run lint`)
-- [ ] Build thành công (`npm run build`)
-- [] Các loại TypeScript được thêm vào cho các chức năng và giao diện công khai mới
-- [] Không có bí mật hoặc giá trị dự phòng được mã hóa cứng
-- [ ] Tất cả thông tin đầu vào được xác thực bằng lược đồ Zod
-- [ ] CHANGELOG được cập nhật (nếu giao diện người dùng thay đổi)
-- [ ] Tài liệu được cập nhật (nếu có)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-Các bản phát hành được quản lý thông qua quy trình làm việc `/generate-release`. Khi Bản phát hành GitHub mới được tạo, gói sẽ**tự động được xuất bản lên npm**thông qua GitHub Actions.---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**Kiến trúc**: Xem [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**Tham khảo API**: Xem [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Vấn đề**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADRs**: Xem `docs/adr/` để biết hồ sơ quyết định kiến trúc
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

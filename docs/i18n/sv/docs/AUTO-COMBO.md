@@ -4,29 +4,42 @@
 
 ---
 
-> Självförvaltande modellkedjor med adaptiv poängsättning## How It Works
+> Self-managing model chains with adaptive scoring
 
-Auto-Combo Engine väljer dynamiskt den bästa leverantören/modellen för varje begäran med hjälp av en**6-faktors poängfunktion**:
+## How It Works
 
-| Faktor     | Vikt | Beskrivning                                     |
-| :--------- | :--- | :---------------------------------------------- | ------------- |
-| Kvot       | 0,20 | Återstående kapacitet [0..1]                    |
-| Hälsa      | 0,25 | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0,20 | Omvänd kostnad (billigare = högre poäng)        |
-| LatencyInv | 0,15 | Omvänd p95-latens (snabbare = högre)            |
-| TaskFit    | 0,10 | Modell × uppgiftstyp fitnesspoäng               |
-| Stabilitet | 0,10 | Låg varians i latens/fel                        | ## Mode Packs |
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
 
-| Packa                   | Fokus          | Nyckelvikt       |
-| :---------------------- | :------------- | :--------------- | --------------- |
-| 🚀**Skicka snabbt**     | Hastighet      | latencyInv: 0,35 |
-| 💰**Kostnadsbesparing** | Ekonomi        | kostnadInv: 0,40 |
-| 🎯**Kvalitet först**    | Bästa modellen | taskFit: 0,40    |
-| 📡**Offlinevänlig**     | Tillgänglighet | kvot: 0,40       | ## Self-Healing |
+| Factor     | Weight | Description                                     |
+| :--------- | :----- | :---------------------------------------------- |
+| Quota      | 0.20   | Remaining capacity [0..1]                       |
+| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
+| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
+| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
+| TaskFit    | 0.10   | Model × task type fitness score                 |
+| Stability  | 0.10   | Low variance in latency/errors                  |
 
--**Tillfällig uteslutning**: Poäng < 0,2 → utesluten i 5 min (progressiv backoff, max 30 min) -**Medvetenhet om strömbrytare**: ÖPPEN → automatiskt utesluten; HALF_OPEN → sökbegäranden -**Incidentläge**: >50 % ÖPPEN → inaktivera utforskning, maximera stabiliteten -**Cooldown-återställning**: Efter uteslutning är första begäran en "sond" med reducerad timeout## Bandit Exploration
+## Mode Packs
 
-5 % av förfrågningarna (konfigurerbara) dirigeras till slumpmässiga leverantörer för utforskning. Inaktiverad i incidentläge.## API
+| Pack                    | Focus        | Key Weight       |
+| :---------------------- | :----------- | :--------------- |
+| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
+| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
+| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+
+## Self-Healing
+
+- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
+- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
+- **Incident mode**: >50% OPEN → disable exploration, maximize stability
+- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+
+## Bandit Exploration
+
+5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+
+## API
 
 ```bash
 # Create auto-combo
@@ -40,13 +53,15 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-Över 30 modeller fick poäng för 6 uppgiftstyper ('kodning', 'granskning', 'planering', 'analys', 'felsökning', 'dokumentation'). Stöder jokerteckenmönster (t.ex. `*-coder` → hög kodningspoäng).## Files
+30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
 
-| Arkiv                                        | Syfte                             |
-| :------------------------------------------- | :-------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`     | Poängfunktion & poolnormalisering |
-| `open-sse/services/autoCombo/taskFitness.ts` | Modell × uppgift fitness lookup   |
-| `open-sse/services/autoCombo/engine.ts`      | Urvalslogik, bandit, budgettak    |
-| `open-sse/services/autoCombo/selfHealing.ts` | Uteslutning, sonder, incidentläge |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 viktprofiler                    |
-| `src/app/api/combos/auto/route.ts`           | REST API                          |
+## Files
+
+| File                                         | Purpose                               |
+| :------------------------------------------- | :------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
+| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                              |

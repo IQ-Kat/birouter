@@ -4,28 +4,41 @@
 
 ---
 
-新しい OmniRoute リリースをタグ付けまたは公開する前に、このチェックリストを使用してください。## Version and Changelog
+Use this checklist before tagging or publishing a new OmniRoute release.
 
-1. `package.json` バージョン (`x.y.z`) をリリース ブランチにバンプします。
-2. リリース ノートを「CHANGELOG.md」の「## [未リリース]」から日付付きセクションに移動します。
+## Version and Changelog
+
+1. Bump `package.json` version (`x.y.z`) in the release branch.
+2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
    - `## [x.y.z] — YYYY-MM-DD`
-3. `## [未リリース]` を今後の作業の最初の変更ログ セクションとして保持します。
-4. `CHANGELOG.md` の最新の semver セクションが `package.json` のバージョンと等しいことを確認します。## API Docs
+3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
+4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
 
-1.「docs/openapi.yaml」を更新します。
+## API Docs
 
-- `info.version` は `package.json` のバージョンと等しくなければなりません。
+1. Update `docs/openapi.yaml`:
+   - `info.version` must equal `package.json` version.
+2. Validate endpoint examples if API contracts changed.
 
-2. API コントラクトが変更された場合は、エンドポイントの例を検証します。## Runtime Docs
+## Runtime Docs
 
-1. ストレージ/ランタイムのドリフトについて「docs/ARCHITECTURE.md」を確認します。
-1. `docs/TROUBLESHOOTING.md` を参照して、環境変数と運用上の変動を確認します。
-1. ソースドキュメントが大幅に変更された場合は、ローカライズされたドキュメントを更新します。## Automated Check
+1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
+2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
+3. Verify the release/runtime Node.js version still satisfies the supported secure floor:
+   - `>=20.20.2 <21` or `>=22.22.2 <23`
+   - `npm run check:node-runtime`
+4. Validate the npm publish artifact after building the standalone package:
+   - `npm run build:cli`
+   - `npm run check:pack-artifact`
+   - confirm no `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, or other local residue
+5. Update localized docs if source docs changed significantly.
 
-PR を開く前に、同期ガードをローカルで実行します。```bash
+## Automated Check
+
+Run the sync guard locally before opening PR:
+
+```bash
 npm run check:docs-sync
-
 ```
 
-CI はこのチェックを `.github/workflows/ci.yml` でも実行します (lint ジョブ)。
-```
+CI also runs this check in `.github/workflows/ci.yml` (lint job).

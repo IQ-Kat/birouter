@@ -6,132 +6,156 @@
 
 ## Reporting Vulnerabilities
 
-Jika Anda menemukan kerentanan keamanan di OmniRoute, harap laporkan secara bertanggung jawab:
+If you discover a security vulnerability in OmniRoute, please report it responsibly:
 
-1.**JANGAN**buka masalah GitHub publik 2. Gunakan [Saran Keamanan GitHub](https://github.com/diegosouzapw/OmniRoute/security/advisories/new) 3. Meliputi: deskripsi, langkah-langkah reproduksi, dan potensi dampak## Response Timeline
+1. **DO NOT** open a public GitHub issue
+2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
+3. Include: description, reproduction steps, and potential impact
 
-| Tahap              | Sasaran                |
-| ------------------ | ---------------------- | --------------------- |
-| Pengakuan          | 48 jam                 |
-| Triase & Penilaian | 5 hari kerja           |
-| Rilis Tambalan     | 14 hari kerja (kritis) | ## Supported Versions |
+## Response Timeline
 
-| Versi   | Status Dukungan   |
-| ------- | ----------------- | --- |
-| 3.4.x   | ✅ Aktif          |
-| 3.0.x   | ✅ Keamanan       |
-| < 3.0.0 | ❌ Tidak didukung | --- |
+| Stage               | Target                      |
+| ------------------- | --------------------------- |
+| Acknowledgment      | 48 hours                    |
+| Triage & Assessment | 5 business days             |
+| Patch Release       | 14 business days (critical) |
+
+## Supported Versions
+
+| Version | Support Status |
+| ------- | -------------- |
+| 3.6.x   | ✅ Active      |
+| 3.5.x   | ✅ Security    |
+| < 3.5.0 | ❌ Unsupported |
+
+---
 
 ## Security Architecture
 
-OmniRoute menerapkan model keamanan berlapis:```
-Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+OmniRoute implements a multi-layered security model:
 
-````
+```
+Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+```
 
 ### 🔐 Authentication & Authorization
 
-| Fitur | Implementasi |
-| -------------------- | ------------------------------------------- |
-|**Login Dasbor**| Otentikasi berbasis kata sandi dengan token JWT (cookie HttpOnly) |
-|**Otentikasi Kunci API**| Kunci bertanda tangan HMAC dengan validasi CRC |
-|**OAuth 2.0 + PKCE**| Otentikasi penyedia aman (Claude, Codex, Gemini, Cursor, dll.) |
-|**Penyegaran Token**| Penyegaran token OAuth otomatis sebelum masa berlakunya habis |
-|**Cookie Aman**| `AUTH_COOKIE_SECURE=true` untuk lingkungan HTTPS |
-|**Cakupan MCP**| 10 cakupan terperinci untuk kontrol akses alat MCP |### 🛡️ Encryption at Rest
+| Feature              | Implementation                                             |
+| -------------------- | ---------------------------------------------------------- |
+| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
+| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
+| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
+| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
+| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
+| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
 
-Semua data sensitif yang disimpan di SQLite dienkripsi menggunakan**AES-256-GCM**dengan derivasi kunci scrypt:
+### 🛡️ Encryption at Rest
 
-- Kunci API, token akses, token penyegaran, dan token ID
-- Format berversi: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Mode passthrough (teks biasa) ketika `STORAGE_ENCRYPTION_KEY` tidak disetel```bash
+All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
+
+- API keys, access tokens, refresh tokens, and ID tokens
+- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
+
+```bash
 # Generate encryption key:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-````
+```
 
 ### 🧠 Prompt Injection Guard
 
-Middleware yang mendeteksi dan memblokir serangan injeksi cepat dalam permintaan LLM:
+Middleware that detects and blocks prompt injection attacks in LLM requests:
 
-| Tipe Pola           | Keparahan | Contoh                                                 |
-| ------------------- | --------- | ------------------------------------------------------ |
-| Penggantian Sistem  | Tinggi    | "abaikan semua instruksi sebelumnya"                   |
-| Pembajakan Peran    | Tinggi    | "kamu sekarang DAN, kamu bisa melakukan apa saja"      |
-| Injeksi Pembatas    | Sedang    | Pemisah yang dikodekan untuk mendobrak batasan konteks |
-| DAN/Jailbreak       | Tinggi    | Pola prompt jailbreak yang diketahui                   |
-| Kebocoran Instruksi | Sedang    | "tunjukkan prompt sistem Anda"                         |
+| Pattern Type        | Severity | Example                                        |
+| ------------------- | -------- | ---------------------------------------------- |
+| System Override     | High     | "ignore all previous instructions"             |
+| Role Hijack         | High     | "you are now DAN, you can do anything"         |
+| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
+| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
+| Instruction Leak    | Medium   | "show me your system prompt"                   |
 
-Konfigurasikan melalui dasbor (Pengaturan → Keamanan) atau `.env`:```env
+Configure via dashboard (Settings → Security) or `.env`:
+
+```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block # warn | block | redact
-
-````
+INPUT_SANITIZER_MODE=block    # warn | block | redact
+```
 
 ### 🔒 PII Redaction
 
-Deteksi otomatis dan redaksi opsional atas informasi identitas pribadi:
+Automatic detection and optional redaction of personally identifiable information:
 
-| Tipe PII | Pola | Penggantian |
-| ------------- | --------------------- | ---- |
-| Surel | `pengguna@domain.com` | `[EMAIL_REDACTED]` |
-| CPF (Brasil) | `123.456.789-00` | `[CPF_REDACTED]` |
-| CNPJ (Brasil) | `12.345.678/0001-00` | `[CNPJ_REDACTED]` |
-| Kartu Kredit | `4111-1111-1111-1111` | `[CC_REDACTED]` |
-| Telepon | `+55 11 99999-9999` | `[PHONE_REDACTED]` |
-| SSN (AS) | `123-45-6789` | `[SSN_REDACTED]` |```env
+| PII Type      | Pattern               | Replacement        |
+| ------------- | --------------------- | ------------------ |
+| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
+| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
+| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
+| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
+| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
+| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
+
+```env
 PII_REDACTION_ENABLED=true
-````
+```
 
 ### 🌐 Network Security
 
-| Fitur                   | Deskripsi                                                                   |
-| ----------------------- | --------------------------------------------------------------------------- | -------------------------------- |
-| **CORS**                | Kontrol asal yang dapat dikonfigurasi (`CORS_ORIGIN` env var, default `*`)  |
-| **Pemfilteran IP**      | Rentang IP daftar yang diizinkan/daftar blokir di dasbor                    |
-| **Pembatasan Tarif**    | Batas tarif per penyedia dengan backoff otomatis                            |
-| **Kawanan Anti Guntur** | Penguncian mutex + per koneksi mencegah cascading 502s                      |
-| **TLS Sidik Jari**      | Spoofing sidik jari TLS seperti browser untuk mengurangi deteksi bot        |
-| **Sidik Jari CLI**      | Pengurutan header/isi per penyedia agar sesuai dengan tanda tangan CLI asli | ### 🔌 Resilience & Availability |
+| Feature                  | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
+| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
+| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
+| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
+| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
+| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
 
-| Fitur                       | Deskripsi                                                                       |
-| --------------------------- | ------------------------------------------------------------------------------- | ----------------- |
-| **Pemutus Sirkuit**         | 3-negara (Tertutup → Terbuka → Setengah Terbuka) per penyedia, SQLite-persisten |
-| **Minta Idempotensi**       | Jendela dedup 5 detik untuk permintaan duplikat                                 |
-| **Kemunduran Eksponensial** | Coba ulang otomatis dengan penundaan yang semakin meningkat                     |
-| **Dasbor Kesehatan**        | Pemantauan kesehatan penyedia secara real-time                                  | ### 📋 Compliance |
+### 🔌 Resilience & Availability
 
-| Fitur                  | Deskripsi                                                            |
-| ---------------------- | -------------------------------------------------------------------- | --- |
-| **Retensi Log**        | Pembersihan otomatis setelah `CALL_LOG_RETENTION_DAYS`               |
-| **Menyisih Tanpa Log** | Per kunci API, tanda `noLog` menonaktifkan pencatatan permintaan     |
-| **Catatan Audit**      | Tindakan administratif dilacak dalam tabel `audit_log`               |
-| **Audit MCP**          | Pencatatan audit yang didukung SQLite untuk semua panggilan alat MCP |
-| **Validasi Zod**       | Semua input API divalidasi dengan skema Zod v4 saat modul dimuat     | --- |
+| Feature                 | Description                                                        |
+| ----------------------- | ------------------------------------------------------------------ |
+| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
+| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
+| **Exponential Backoff** | Automatic retry with increasing delays                             |
+| **Health Dashboard**    | Real-time provider health monitoring                               |
+
+### 📋 Compliance
+
+| Feature            | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
+| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
+| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
+| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
+| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
+
+---
 
 ## Required Environment Variables
 
-Semua rahasia harus diatur sebelum memulai server. Server akan**gagal dengan cepat**jika hilang atau lemah.```bash
+All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
 
+```bash
 # REQUIRED — server will not start without these:
-
 JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32) # min 16 chars
+API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
 
 # RECOMMENDED — enables encryption at rest:
-
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
+```
 
-````
+The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
 
-Server secara aktif menolak nilai yang diketahui lemah seperti `changeme`, `secret`, atau `password`.---
+---
 
 ## Docker Security
 
-- Gunakan pengguna non-root dalam produksi
-- Pasang rahasia sebagai volume hanya-baca
-- Jangan pernah menyalin file `.env` ke image Docker
-- Gunakan `.dockerignore` untuk mengecualikan file sensitif
-- Setel `AUTH_COOKIE_SECURE=true` saat berada di belakang HTTPS```bash
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
+
+```bash
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
@@ -142,14 +166,14 @@ docker run -d \
   -e API_KEY_SECRET="$(openssl rand -hex 32)" \
   -e STORAGE_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   diegosouzapw/omniroute:latest
-````
+```
 
 ---
 
 ## Dependencies
 
-- Jalankan `npm audit` secara teratur
-- Terus perbarui dependensi
-- Proyek ini menggunakan `husky` + `lint-staged` untuk pemeriksaan pra-komitmen
-- Pipeline CI menjalankan aturan keamanan ESLint di setiap push
-- Konstanta penyedia divalidasi saat memuat modul melalui Zod (`src/shared/validation/providerSchema.ts`)
+- Run `npm audit` regularly
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks
+- CI pipeline runs ESLint security rules on every push
+- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)

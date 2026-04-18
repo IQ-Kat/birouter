@@ -4,13 +4,19 @@
 
 ---
 
-Kiitos mielenkiinnostasi osallistua! Tämä opas kattaa kaiken, mitä tarvitset aloittaaksesi.---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (suositus: 22 LTS) -**npm**10+ -**Juttu**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Keskeiset muuttujat kehitystä varten:
+Key variables for development:
 
-| Muuttuja               | Kehityksen oletusarvo    | Kuvaus                             |
-| ---------------------- | ------------------------ | ---------------------------------- | ---------------------- |
-| "PORTTI"               | "20128"                  | Palvelinportti                     |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Käyttöliittymän perus-URL-osoite   |
-| "JWT_SECRET"           | (luo edellä)             | JWT:n allekirjoitussalaisuus       |
-| `ALKU_SALASANA`        | "MUUTOS"                 | Ensimmäisen kirjautumisen salasana |
-| `APP_LOG_LEVEL`        | "info"                   | Lokin monisanaisuustaso            | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-Kojelauta tarjoaa käyttöliittymän vaihdot ominaisuuksille, jotka voidaan myös määrittää ympäristömuuttujien avulla:
+### Dashboard Settings
 
-| Asetuspaikka              | Vaihda              | Kuvaus                                                  |
-| ------------------------- | ------------------- | ------------------------------------------------------- |
-| Asetukset → Lisäasetukset | Virheenkorjaustila  | Ota virheenkorjauspyyntölokit käyttöön (käyttöliittymä) |
-| Asetukset → Yleiset       | Sivupalkin näkyvyys | Näytä/piilota sivupalkin osiot                          |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-Nämä asetukset tallennetaan tietokantaan ja pysyvät uudelleenkäynnistyksen jälkeen ohittaen env var -oletukset, kun ne on asetettu.### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Oletus-URL-osoitteet:
+Default URLs:
 
--**Käyttöpaneeli**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**ÄLÄ KOSKAAN sitoudu suoraan pääsivuun.**Käytä aina ominaisuushaaroja.```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| Etuliite | Tarkoitus |
-| ----------- | -------------------------- |
-| `feat/` | Uusia ominaisuuksia |
-| `korjaa/` | Virheenkorjauksia |
-| `refaktori/` | Koodin uudelleenjärjestely |
-| `docs/` | Asiakirjojen muutokset |
-| `testi/` | Testaa lisäyksiä/korjauksia |
-| `työ/` | Työkalut, CI, riippuvuudet |### Commit Messages
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-Seuraa [Conventional Commits](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-Laajuus: "db", "sse", "oauth", "dashboard", "api", "cli", "docker", "ci", "mcp", "a2a", "muisti", "taidot".---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ Laajuus: "db", "sse", "oauth", "dashboard", "api", "cli", "docker", "ci", "mcp",
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,37 +146,48 @@ npm run lint
 npm run check
 ```
 
-Kattavuushuomautukset:
+Coverage notes:
 
-- "npm run test:coverage" mittaa pääyksikön testipaketin lähteen kattavuuden, ei sisällä "tests/**" ja sisältää "open-sse/**"
-- Vetopyyntöjen on pidettävä lausekkeiden, rivien, funktioiden ja haarojen kokonaispeitto**60 %:ssa tai korkeammassa**.
-- Jos PR muuttaa tuotantokoodia tiedostoissa "src/", "open-sse/", "electron/" tai "bin/", sen on lisättävä tai päivitettävä automaattisia testejä samassa PR:ssa
-- `npm run coverage:report` tulostaa yksityiskohtaisen tiedostokohtaisen raportin viimeisimmästä kattavuusajosta
-- "npm run test:coverage:legacy" säilyttää vanhemman tiedon historiallista vertailua varten
-- Katso `docs/COVERAGE_PLAN.md` vaiheittaisen kattavuuden parantamissuunnitelman### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-Ennen PR:n avaamista tai yhdistämistä:
+### Pull Request Requirements
 
-- Suorita `npm run test:unit`
-- Suorita `npm run test:coverage'
-- Varmista, että kattavuusportti pysyy**60 %+**:ssa kaikissa mittareissa
-- Sisällytä muutetut tai lisätyt testitiedostot PR-kuvaukseen, kun tuotantokoodia muutetaan
-- Tarkista SonarQube-tulos PR:stä, kun projektin salaisuudet on määritetty CI:ssä
+Before opening or merging a PR:
 
-Nykyinen testitila:**122 yksikkötestitiedostoa**, joka kattaa:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- Palveluntarjoajan kääntäjät ja muotomuunnos
-- Nopeuden rajoitus, katkaisija ja joustavuus
-- Semanttinen välimuisti, idempotenssi, edistymisen seuranta
-- Tietokantatoiminnot ja -skeema (21 DB-moduulia)
-- OAuth-virrat ja todennus
-- API-päätepisteen vahvistus (Zod v4)
-- MCP-palvelintyökalut ja laajuuden valvonta
-- Muisti- ja taitojärjestelmät---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— Suorita `npm run lint` ennen sitoutumista -**Kauneempi**— Muotoiltu automaattisesti "lint-staged"-toiminnolla vahvistuksen yhteydessä (2 välilyöntiä, puolipisteet, lainausmerkit, 100 merkin leveys, es5-pilkut) -**TypeScript**— Kaikki src/-koodit käyttävät .ts/'.tsx-koodia; `open-sse/` käyttää `.ts`/`.js`; asiakirja, jossa on TSDoc (`@param`, "@returns", "@heitot") -**No `eval()`**— ESLint pakottaa "no-eval", "no-implied-eval", "no-new-func" -**Zod-validointi**— Käytä Zod v4 -skeemoja kaikkeen API-syötteen validointiin -**Nimitys**: Tiedostot = camelCase/kebab-kotelo, komponentit = PascalCase, vakiot = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -228,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Lisää tiedostoon "src/shared/constants/providers.ts" — Zod-validoitu moduulin latauksen yhteydessä.### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Luo suoritin tiedostoon "open-sse/executors/your-provider.ts" laajentaen perussuoritusohjelmaa.### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-Luo pyyntö-/vastauskääntäjät tiedostossa "open-sse/translator/".### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Lisää OAuth-tunnistetiedot kansioon `src/lib/oauth/constants/oauth.ts' ja palvelu kansioon `src/lib/oauth/services/`.### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-Lisää mallin määritelmät tiedostoon "open-sse/config/providerRegistry.ts".### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-Kirjoita yksikkötestit kohtaan `tests/unit/`, joka kattaa vähintään:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- Palveluntarjoajan rekisteröinti
-- Pyydä/vastaa käännös
-- Virheiden käsittely---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] Testit läpäisivät (`npm-testi`)
-- [ ] Linting passit (`npm run lint`)
-- [ ] Rakennus onnistuu (`npm run build`)
-- [ ] TypeScript-tyypit lisätty uusia julkisia toimintoja ja liitäntöjä varten
-- [ ] Ei kovakoodattuja salaisuuksia tai vara-arvoja
-- [ ] Kaikki syötteet on vahvistettu Zod-skeemoilla
-- [ ] CHANGELOG päivitetty (jos käyttäjälle suunnattu muutos)
-- [ ] Dokumentaatio päivitetty (tarvittaessa)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-Julkaisuja hallitaan /generate-release-työnkulun kautta. Kun uusi GitHub-julkaisu luodaan, paketti**julkaistaan ​​automaattisesti npm:lle**GitHub Actionsin kautta.---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**Arkkitehtuuri**: Katso [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**API-viite**: Katso [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Ongelmat**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR:t**: Katso arkkitehtoniset päätöstiedot kohdasta `docs/adr/`
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

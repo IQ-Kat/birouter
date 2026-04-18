@@ -4,9 +4,11 @@
 
 ---
 
-> **Agent-to-Agent Protocol v0.3**— Gør det muligt for enhver AI-agent at bruge OmniRoute som en intelligent routingagent via JSON-RPC 2.0.
+> **Agent-to-Agent Protocol v0.3** — Enables any AI agent to use OmniRoute as an intelligent routing agent via JSON-RPC 2.0.
 
-A2A-serveren afslører OmniRoute som en**førsteklasses agent**, som andre agenter kan opdage, uddelegere opgaver til og samarbejde med ved hjælp af [A2A-protokollen](https://google.github.io/A2A/).---
+The A2A Server exposes OmniRoute as a **first-class agent** that other agents can discover, delegate tasks to, and collaborate with using the [A2A Protocol](https://google.github.io/A2A/).
+
+---
 
 ## Arkitektur
 
@@ -41,12 +43,15 @@ A2A-serveren afslører OmniRoute som en**førsteklasses agent**, som andre agent
 
 ### Agent Discovery
 
-Alle A2A-kompatible agenter afslører et**Agent Card**på `/.well-known/agent.json`:```bash
+Every A2A-compatible agent exposes an **Agent Card** at `/.well-known/agent.json`:
+
+```bash
 curl http://localhost:20128/.well-known/agent.json
+```
 
-````
+**Response:**
 
-**Svar:**```json
+```json
 {
   "name": "OmniRoute",
   "description": "Intelligent AI gateway with auto-routing across 50+ providers",
@@ -83,7 +88,7 @@ curl http://localhost:20128/.well-known/agent.json
     "apiKeyHeader": "Authorization"
   }
 }
-````
+```
 
 ---
 
@@ -91,24 +96,27 @@ curl http://localhost:20128/.well-known/agent.json
 
 ### `message/send` — Synchronous Execution
 
-Send en besked til en færdighed og modtag det komplette svar.```bash
+Send a message to a skill and receive the complete response.
+
+```bash
 curl -X POST http://localhost:20128/a2a \
- -H "Content-Type: application/json" \
- -H "Authorization: Bearer YOUR_KEY" \
- -d '{
-"jsonrpc": "2.0",
-"id": "1",
-"method": "message/send",
-"params": {
-"skill": "smart-routing",
-"messages": [{"role": "user", "content": "Write a Python hello world"}],
-"metadata": {"model": "auto", "combo": "fast-coding"}
-}
-}'
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_KEY" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "1",
+    "method": "message/send",
+    "params": {
+      "skill": "smart-routing",
+      "messages": [{"role": "user", "content": "Write a Python hello world"}],
+      "metadata": {"model": "auto", "combo": "fast-coding"}
+    }
+  }'
+```
 
-````
+**Response:**
 
-**Svar:**```json
+```json
 {
   "jsonrpc": "2.0",
   "id": "1",
@@ -125,33 +133,36 @@ curl -X POST http://localhost:20128/a2a \
     }
   }
 }
-````
+```
 
 ### `message/stream` — SSE Streaming
 
-Samme som "besked/send", men returnerer serversendte hændelser til streaming i realtid.```bash
+Same as `message/send` but returns Server-Sent Events for real-time streaming.
+
+```bash
 curl -N -X POST http://localhost:20128/a2a \
- -H "Content-Type: application/json" \
- -H "Authorization: Bearer YOUR_KEY" \
- -d '{
-"jsonrpc": "2.0",
-"id": "1",
-"method": "message/stream",
-"params": {
-"skill": "smart-routing",
-"messages": [{"role": "user", "content": "Explain quantum computing"}]
-}
-}'
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_KEY" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "1",
+    "method": "message/stream",
+    "params": {
+      "skill": "smart-routing",
+      "messages": [{"role": "user", "content": "Explain quantum computing"}]
+    }
+  }'
+```
 
-````
+**SSE Events:**
 
-**SSE-begivenheder:**```
+```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"Quantum computing..."}}}
 
 : heartbeat 2026-03-04T21:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-````
+```
 
 ### `tasks/get` — Query Task Status
 
@@ -177,36 +188,40 @@ curl -X POST http://localhost:20128/a2a \
 
 ### `smart-routing`
 
-Ruter prompter gennem OmniRoutes intelligente pipeline med fuld observerbarhed.
+Routes prompts through OmniRoute's intelligent pipeline with full observability.
 
-**Parametre (i `metadata`):**
+**Parameters (in `metadata`):**
 
-| Parameter     | Skriv    | Standard          | Beskrivelse                                                                                            |
-| ------------- | -------- | ----------------- | ------------------------------------------------------------------------------------------------------ |
-| `model`       | `streng` | `"auto"`          | Målmodel (f.eks. "claude-sonnet-4", "gpt-4o", "auto")                                                  |
-| `kombination` | `streng` | aktiv kombination | Specifik kombination til rute gennem                                                                   |
-| `budget`      | `nummer` | ingen             | Maksimal pris i USD for denne anmodning                                                                |
-| 'rolle'       | `streng` | ingen             | Tip til opgaverolle: `kodning`, `gennemgang`, `planlægning`, `analyse`, `fejlretning`, `dokumentation` |
+| Parameter | Type     | Default      | Description                                                                              |
+| --------- | -------- | ------------ | ---------------------------------------------------------------------------------------- |
+| `model`   | `string` | `"auto"`     | Target model (e.g., `claude-sonnet-4`, `gpt-4o`, `auto`)                                 |
+| `combo`   | `string` | active combo | Specific combo to route through                                                          |
+| `budget`  | `number` | none         | Maximum cost in USD for this request                                                     |
+| `role`    | `string` | none         | Task role hint: `coding`, `review`, `planning`, `analysis`, `debugging`, `documentation` |
 
-**Returnering:**
+**Returns:**
 
-| Felt                           | Beskrivelse                                                     |
-| ------------------------------ | --------------------------------------------------------------- | ---------------------- |
-| `artefakter[].indhold`         | LLM-svarteksten                                                 |
-| `metadata.routing_explanation` | Menneskelæselig forklaring af rutebeslutning                    |
-| `metadata.cost_envelope`       | Estimeret vs faktiske omkostninger med valuta                   |
-| `metadata.resilience_trace`    | Array af begivenheder (primary_selected, fallback_needed, etc.) |
-| `metadata.policy_verdict`      | Om anmodningen blev godkendt og hvorfor                         | ### `quota-management` |
+| Field                          | Description                                               |
+| ------------------------------ | --------------------------------------------------------- |
+| `artifacts[].content`          | The LLM response text                                     |
+| `metadata.routing_explanation` | Human-readable explanation of routing decision            |
+| `metadata.cost_envelope`       | Estimated vs actual cost with currency                    |
+| `metadata.resilience_trace`    | Array of events (primary_selected, fallback_needed, etc.) |
+| `metadata.policy_verdict`      | Whether the request was allowed and why                   |
 
-Besvarer forespørgsler på naturligt sprog om udbyderkvoter.
+### `quota-management`
 
-**Forespørgselstyper (udledt af beskedindhold):**
+Answers natural-language queries about provider quotas.
 
-| Forespørgselsmønster                                | Svartype                                                  |
-| --------------------------------------------------- | --------------------------------------------------------- | --- |
-| Indeholder `"rangering"`, `"mest kvote"`, `"bedst"` | Udbydere rangeret efter resterende kvote                  |
-| Indeholder `"gratis", `"suggest"`                   | Viser gratis kombinationer eller foreslår gratis udbydere |
-| Standard                                            | Fuld kvoteoversigt med advarsler for lavkvoteudbydere     | --- |
+**Query types (inferred from message content):**
+
+| Query Pattern                                  | Response Type                                            |
+| ---------------------------------------------- | -------------------------------------------------------- |
+| Contains `"ranking"`, `"most quota"`, `"best"` | Providers ranked by remaining quota                      |
+| Contains `"free"`, `"suggest"`                 | Lists free combos or suggests free-tier providers        |
+| Default                                        | Full quota summary with warnings for low-quota providers |
+
+---
 
 ## Task Lifecycle
 
@@ -216,17 +231,19 @@ submitted ──→ working ──→ completed
               ──────────→ cancelled
 ```
 
-| Stat          | Beskrivelse                                                      |
-| ------------- | ---------------------------------------------------------------- |
-| `indsendt`    | Opgave oprettet, sat i kø til udførelse                          |
-| `arbejder`    | Færdighedshandler udfører                                        |
-| `afsluttet`   | Udførelsen lykkedes, artefakter tilgængelige                     |
-| 'mislykkedes' | Udførelse mislykkedes eller opgave udløbet (TTL: 5 min standard) |
-| `annulleret`  | Annulleret af klient via `opgaver/annuller`                      |
+| State       | Description                                           |
+| ----------- | ----------------------------------------------------- |
+| `submitted` | Task created, queued for execution                    |
+| `working`   | Skill handler is executing                            |
+| `completed` | Execution succeeded, artifacts available              |
+| `failed`    | Execution failed or task expired (TTL: 5 min default) |
+| `cancelled` | Cancelled by client via `tasks/cancel`                |
 
-- Terminaltilstande: 'fuldført', 'mislykkedes', 'annulleret' (ingen yderligere overgange)
-- Udløbne opgaver i "indsendt" eller "fungerende" bliver automatisk markeret som "mislykkedes".
-- Opgaver bliver skraldet efter 2× TTL---
+- Terminal states: `completed`, `failed`, `cancelled` (no further transitions)
+- Expired tasks in `submitted` or `working` are auto-marked as `failed`
+- Tasks are garbage-collected after 2× TTL
+
+---
 
 ## Client Examples
 
@@ -524,12 +541,15 @@ func main() {
 
 ### 🤖 Use Case 1: Multi-Agent Coding Pipeline
 
-En orkestratoragent uddelegerer kodegenerering til OmniRoute og sender derefter outputtet til en gennemgangsagent.```python
-def coding_pipeline(task: str): # Step 1: Generate code via OmniRoute A2A
-code_result = a2a_send("smart-routing", [
-{"role": "user", "content": f"Write production-quality code: {task}"}
-], metadata={"model": "auto", "role": "coding"})
-code = code_result["artifacts"][0]["content"]
+An orchestrator agent delegates code generation to OmniRoute, then passes the output to a review agent.
+
+```python
+def coding_pipeline(task: str):
+    # Step 1: Generate code via OmniRoute A2A
+    code_result = a2a_send("smart-routing", [
+        {"role": "user", "content": f"Write production-quality code: {task}"}
+    ], metadata={"model": "auto", "role": "coding"})
+    code = code_result["artifacts"][0]["content"]
 
     # Step 2: Review the code via OmniRoute A2A (different model)
     review_result = a2a_send("smart-routing", [
@@ -542,12 +562,13 @@ code = code_result["artifacts"][0]["content"]
     print(f"Review cost: ${review_result['metadata']['cost_envelope']['actual']}")
 
     return {"code": code, "review": review}
-
-````
+```
 
 ### 💡 Use Case 2: Quota-Aware Agent Swarm
 
-Flere agenter deler kvote gennem OmniRoute ved at bruge kvotefærdigheden til at koordinere.```python
+Multiple agents share quota through OmniRoute, using the quota skill to coordinate.
+
+```python
 async def quota_aware_agent(agent_name: str, task: str):
     # Check quota before starting
     quota = a2a_send("quota-management", [
@@ -570,30 +591,32 @@ async def quota_aware_agent(agent_name: str, task: str):
         print(f"[{agent_name}] Free alternatives: {quota['artifacts'][0]['content']}")
 
     return result
-````
+```
 
 ### 📊 Use Case 3: Real-Time Streaming Dashboard
 
-En overvågningsagent streamer svar og viser fremskridt i realtid.```typescript
+A monitoring agent streams responses and displays progress in real-time.
+
+```typescript
 async function streamingDashboard(prompt: string) {
   const response = await fetch(`${BASE_URL}/a2a`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-body: JSON.stringify({
-jsonrpc: "2.0",
-id: "dash-1",
-method: "message/stream",
-params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
-}),
-});
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: "dash-1",
+      method: "message/stream",
+      params: { skill: "smart-routing", messages: [{ role: "user", content: prompt }] },
+    }),
+  });
 
-let totalChunks = 0;
-const reader = response.body!.getReader();
-const decoder = new TextDecoder();
+  let totalChunks = 0;
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
 
-while (true) {
-const { done, value } = await reader.read();
-if (done) break;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
 
     for (const line of decoder.decode(value).split("\n")) {
       if (line.startsWith("data: ")) {
@@ -617,15 +640,15 @@ if (done) break;
         }
       }
     }
-
+  }
 }
-}
-
-````
+```
 
 ### 🔁 Use Case 4: Task Polling Pattern
 
-For langvarige opgaver skal du polle opgavestatus i stedet for at vente synkront.```python
+For long-running tasks, poll the task status instead of waiting synchronously.
+
+```python
 import time
 
 def poll_task(task_id: str, timeout: int = 60):
@@ -655,71 +678,75 @@ def poll_task(task_id: str, timeout: int = 60):
         "params": {"taskId": task_id},
     })
     raise TimeoutError(f"Task {task_id} timed out after {timeout}s")
-````
+```
 
 ---
 
 ## Error Codes
 
-| Kode   | Konstant                 | Betydning                                        |
-| ------ | ------------------------ | ------------------------------------------------ | --- |
-| -32700 | —                        | Parse fejl (ugyldig JSON)                        |
-| -32600 | `INVALID_REQUEST`        | Ugyldig JSON-RPC-anmodning eller uautoriseret    |
-| -32601 | `METHOD_NOT_FOUND`       | Ukendt metode eller færdighed                    |
-| -32602 | `INVALID_PARAMS`         | Manglende eller ugyldige parametre               |
-| -32603 | `INTERN_FEJL`            | Udførelse af færdigheder mislykkedes             |
-| -32001 | `OPGAVE_NOT_FOUND`       | Opgave-id ikke fundet                            |
-| -32002 | `TASK_ALREADY_COMPLETED` | Kan ikke ændre en fuldført opgave                |
-| -32003 | `Uautoriseret`           | Ugyldig eller manglende API-nøgle                |
-| -32004 | `BUDGET_OVERSKEDET`      | Anmodningen overskrider det konfigurerede budget |
-| -32005 | `PROVIDER_UNAVAILABLE`   | Ingen tilgængelige udbydere                      | --- |
+| Code   | Constant                 | Meaning                                  |
+| ------ | ------------------------ | ---------------------------------------- |
+| -32700 | —                        | Parse error (invalid JSON)               |
+| -32600 | `INVALID_REQUEST`        | Invalid JSON-RPC request or unauthorized |
+| -32601 | `METHOD_NOT_FOUND`       | Unknown method or skill                  |
+| -32602 | `INVALID_PARAMS`         | Missing or invalid parameters            |
+| -32603 | `INTERNAL_ERROR`         | Skill execution failed                   |
+| -32001 | `TASK_NOT_FOUND`         | Task ID not found                        |
+| -32002 | `TASK_ALREADY_COMPLETED` | Cannot modify a completed task           |
+| -32003 | `UNAUTHORIZED`           | Invalid or missing API key               |
+| -32004 | `BUDGET_EXCEEDED`        | Request exceeds configured budget        |
+| -32005 | `PROVIDER_UNAVAILABLE`   | No available providers                   |
+
+---
 
 ## Authentication
 
-Alle `/a2a`-anmodninger kræver et Bærer-token via "Autorisation"-headeren:```
-Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+All `/a2a` requests require a Bearer token via the `Authorization` header:
 
 ```
+Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+```
 
-Hvis der ikke er konfigureret en API-nøgle på serveren (`OMNIROUTE_API_KEY` er tom), omgås godkendelse.---
+If no API key is configured on the server (`OMNIROUTE_API_KEY` is empty), authentication is bypassed.
+
+---
 
 ## File Structure
 
 ```
-
 src/lib/a2a/
-├── taskManager.ts # Task lifecycle (create/update/cancel/list), TTL, cleanup
-├── taskExecution.ts # Generic task executor with state management
-├── streaming.ts # SSE stream formatting, heartbeat, chunk/completion events
-├── routingLogger.ts # Routing decision logger (stats, history, retention)
+├── taskManager.ts         # Task lifecycle (create/update/cancel/list), TTL, cleanup
+├── taskExecution.ts       # Generic task executor with state management
+├── streaming.ts           # SSE stream formatting, heartbeat, chunk/completion events
+├── routingLogger.ts       # Routing decision logger (stats, history, retention)
 └── skills/
-├── smartRouting.ts # Smart routing skill (routes via /v1/chat/completions)
-└── quotaManagement.ts # Quota management skill (natural-language quota queries)
+    ├── smartRouting.ts    # Smart routing skill (routes via /v1/chat/completions)
+    └── quotaManagement.ts # Quota management skill (natural-language quota queries)
 
 src/app/a2a/
-└── route.ts # Next.js API route handler (JSON-RPC 2.0 dispatch)
+└── route.ts               # Next.js API route handler (JSON-RPC 2.0 dispatch)
 
 open-sse/mcp-server/
-└── schemas/a2a.ts # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
-
+└── schemas/a2a.ts         # Zod schemas (AgentCard, Task, JSON-RPC, SSE events)
 ```
 
 ---
 
 ## Comparison: MCP vs A2A
 
-| Funktion | MCP-server | A2A-server |
-| ------------------ | ---------------------------- | -------------------------------------------------- |
-|**Protokol**| Modelkontekstprotokol | Agent-to-Agent Protocol v0.3 |
-|**Transport**| stdio / HTTP | HTTP (JSON-RPC 2.0) |
-|**Opdagelse**| Værktøjsfortegnelse via MCP | `/.well-known/agent.json` |
-|**Granularitet**| 16 individuelle værktøjer | 2 færdigheder på højt niveau |
-|**Bedst til**| IDE-agenter (Markør, VS-kode) | Multi-agent systemer (LangChain, CrewAI) |
-|**Streaming**| Ikke understøttet | SSE via `meddelelse/stream` |
-|**Opgavesporing**| Nej | Fuld livscyklus (indsendt → afsluttet) |
-|**Observabilitet**| Revisionslog pr. værktøjsopkald | Omkostningskonvolut + sporbarhed + politikudtalelse |---
+| Feature           | MCP Server                   | A2A Server                                        |
+| ----------------- | ---------------------------- | ------------------------------------------------- |
+| **Protocol**      | Model Context Protocol       | Agent-to-Agent Protocol v0.3                      |
+| **Transport**     | stdio / HTTP                 | HTTP (JSON-RPC 2.0)                               |
+| **Discovery**     | Tool listing via MCP         | `/.well-known/agent.json`                         |
+| **Granularity**   | 16 individual tools          | 2 high-level skills                               |
+| **Best for**      | IDE agents (Cursor, VS Code) | Multi-agent systems (LangChain, CrewAI)           |
+| **Streaming**     | Not supported                | SSE via `message/stream`                          |
+| **Task tracking** | No                           | Full lifecycle (submitted → completed)            |
+| **Observability** | Audit log per tool call      | Cost envelope + resilience trace + policy verdict |
+
+---
 
 ## Licens
 
-En del af [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — MIT-licens.
-```
+Part of [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — MIT License.

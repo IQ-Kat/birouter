@@ -4,29 +4,42 @@
 
 ---
 
-> Chuỗi mô hình tự quản lý với tính năng chấm điểm thích ứng## How It Works
+> Self-managing model chains with adaptive scoring
 
-Công cụ Tự động Kết hợp tự động chọn nhà cung cấp/mô hình tốt nhất cho mỗi yêu cầu bằng cách sử dụng**chức năng chấm điểm 6 yếu tố**:
+## How It Works
 
-| Yếu tố         | Cân nặng | Mô tả                                       |
-| :------------- | :------- | :------------------------------------------ | ------------- |
-| Hạn ngạch      | 0,20     | Dung lượng còn lại [0..1]                   |
-| Sức khỏe       | 0,25     | Bộ ngắt mạch: ĐÓNG=1,0, HALF=0,5, MỞ=0,0    |
-| Chi phí đầu tư | 0,20     | Chi phí nghịch đảo (rẻ hơn = điểm cao hơn)  |
-| Độ trễInv      | 0,15     | Độ trễ nghịch đảo p95 (nhanh hơn = cao hơn) |
-| Nhiệm vụFit    | 0,10     | Mô hình × điểm thể lực của loại nhiệm vụ    |
-| Tính ổn định   | 0,10     | Phương sai thấp về độ trễ/lỗi               | ## Mode Packs |
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
 
-| Gói                          | Tập trung        | Trọng lượng phím  |
-| :--------------------------- | :--------------- | :---------------- | --------------- |
-| 🚀**Giao hàng nhanh**        | Tốc độ           | độ trễInv: 0,35   |
-| 💰**Tiết kiệm chi phí**      | Kinh tế          | chi phíInv: 0,40  |
-| 🎯**Chất lượng là trên hết** | Mô hình tốt nhất | nhiệm vụFit: 0,40 |
-| 📡**Thân thiện ngoại tuyến** | Sẵn có           | hạn ngạch: 0,40   | ## Self-Healing |
+| Factor     | Weight | Description                                     |
+| :--------- | :----- | :---------------------------------------------- |
+| Quota      | 0.20   | Remaining capacity [0..1]                       |
+| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
+| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
+| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
+| TaskFit    | 0.10   | Model × task type fitness score                 |
+| Stability  | 0.10   | Low variance in latency/errors                  |
 
--**Loại trừ tạm thời**: Điểm < 0,2 → bị loại trong 5 phút (thời gian lùi lũy tiến, tối đa 30 phút) -**Nhận thức về cầu dao**: MỞ → tự động loại trừ; HALF_OPEN → yêu cầu thăm dò -**Chế độ sự cố**: >50% MỞ → tắt tính năng thăm dò, tối đa hóa độ ổn định -**Phục hồi thời gian hồi chiêu**: Sau khi loại trừ, yêu cầu đầu tiên là "thăm dò" với thời gian chờ giảm## Bandit Exploration
+## Mode Packs
 
-5% yêu cầu (có thể định cấu hình) được chuyển đến các nhà cung cấp ngẫu nhiên để khám phá. Bị vô hiệu hóa trong chế độ sự cố.## API
+| Pack                    | Focus        | Key Weight       |
+| :---------------------- | :----------- | :--------------- |
+| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
+| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
+| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+
+## Self-Healing
+
+- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
+- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
+- **Incident mode**: >50% OPEN → disable exploration, maximize stability
+- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+
+## Bandit Exploration
+
+5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+
+## API
 
 ```bash
 # Create auto-combo
@@ -40,13 +53,15 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-Hơn 30 mô hình được chấm điểm trên 6 loại nhiệm vụ (`viết mã`, `đánh giá`, `lập kế hoạch`, `phân tích`, `gỡ lỗi`, `tài liệu`). Hỗ trợ các mẫu ký tự đại diện (ví dụ: `*-code` → điểm mã hóa cao).## Files
+30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
 
-| Tập tin                                      | Mục đích                                    |
-| :------------------------------------------- | :------------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Chức năng tính điểm & chuẩn hóa nhóm        |
-| `open-sse/services/autoCombo/taskFitness.ts` | Mô hình × tra cứu thể lực nhiệm vụ          |
-| `open-sse/services/autoCombo/engine.ts`      | Logic lựa chọn, kẻ cướp, giới hạn ngân sách |
-| `open-sse/services/autoCombo/selfHealing.ts` | Loại trừ, thăm dò, chế độ sự cố             |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 hồ sơ trọng lượng                         |
-| `src/app/api/combos/auto/route.ts`           | API REST                                    |
+## Files
+
+| File                                         | Purpose                               |
+| :------------------------------------------- | :------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
+| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                              |

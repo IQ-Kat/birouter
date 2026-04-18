@@ -4,28 +4,37 @@
 
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute som en intelligent rutingagent## Agent Discovery
+> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+
+## Agent Discovery
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returnerer agentkortet som beskriver OmniRoutes evner, ferdigheter og autentiseringskrav.---
+Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+
+---
 
 ## Authentication
 
-Alle `/a2a`-forespørsler krever en API-nøkkel via "Authorization"-overskriften:```
+All `/a2a` requests require an API key via the `Authorization` header:
+
+```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+```
 
-````
+If no API key is configured on the server, authentication is bypassed.
 
-Hvis ingen API-nøkkel er konfigurert på serveren, omgås autentisering.---
+---
 
 ## JSON-RPC 2.0 Methods
 
 ### `message/send` — Synchronous Execution
 
-Sender en melding til en ferdighet og venter på hele svaret.```bash
+Sends a message to a skill and waits for the complete response.
+
+```bash
 curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -39,31 +48,34 @@ curl -X POST http://localhost:20128/a2a \
       "metadata": {"model": "auto", "combo": "fast-coding"}
     }
   }'
-````
+```
 
-**Svar:**```json
+**Response:**
+
+```json
 {
-"jsonrpc": "2.0",
-"id": "1",
-"result": {
-"task": { "id": "uuid", "state": "completed" },
-"artifacts": [{ "type": "text", "content": "..." }],
-"metadata": {
-"routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
-"cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
-"resilience_trace": [
-{ "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
-],
-"policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+  "jsonrpc": "2.0",
+  "id": "1",
+  "result": {
+    "task": { "id": "uuid", "state": "completed" },
+    "artifacts": [{ "type": "text", "content": "..." }],
+    "metadata": {
+      "routing_explanation": "Selected claude-sonnet via provider \"anthropic\" (latency: 1200ms, cost: $0.003)",
+      "cost_envelope": { "estimated": 0.005, "actual": 0.003, "currency": "USD" },
+      "resilience_trace": [
+        { "event": "primary_selected", "provider": "anthropic", "timestamp": "..." }
+      ],
+      "policy_verdict": { "allowed": true, "reason": "within budget and quota limits" }
+    }
+  }
 }
-}
-}
-
-````
+```
 
 ### `message/stream` — SSE Streaming
 
-Samme som "melding/send", men returnerer serversendte hendelser for sanntidsstrømming.```bash
+Same as `message/send` but returns Server-Sent Events for real-time streaming.
+
+```bash
 curl -N -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
@@ -76,16 +88,17 @@ curl -N -X POST http://localhost:20128/a2a \
       "messages": [{"role": "user", "content": "Explain quantum computing"}]
     }
   }'
-````
+```
 
-**SSE-arrangementer:**```
+**SSE Events:**
+
+```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
 
 : heartbeat 2026-03-03T17:00:00Z
 
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
-
-````
+```
 
 ### `tasks/get` — Query Task Status
 
@@ -94,7 +107,7 @@ curl -X POST http://localhost:20128/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
-````
+```
 
 ### `tasks/cancel` — Cancel a Task
 
@@ -109,10 +122,12 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-| Ferdighet          | Beskrivelse                                                                                                          |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------- | --- |
-| `smart-ruting`     | Ruter spør gjennom OmniRoutes intelligente pipeline. Returnerer svar med ruteforklaring, kostnads- og spenstsporing. |
-| `kvoteforvaltning` | Svarer på spørsmål på naturlig språk om leverandørkvoter, foreslår gratis kombinasjoner og gir kvoterangeringer.     | --- |
+| Skill              | Description                                                                                                                     |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
+| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+
+---
 
 ## Task Lifecycle
 
@@ -122,19 +137,23 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Oppgaver utløper etter 5 minutter (konfigurerbar)
-- Terminalen sier: "fullført", "mislyktes", "avbrutt".
-- Hendelseslogg sporer hver tilstandsovergang---
+- Tasks expire after 5 minutes (configurable)
+- Terminal states: `completed`, `failed`, `cancelled`
+- Event log tracks every state transition
+
+---
 
 ## Error Codes
 
-| Kode   | Betydning                          |
-| :----- | :--------------------------------- | --- |
-| -32700 | Parse feil (ugyldig JSON)          |
-| -32600 | Ugyldig forespørsel / Uautorisert  |
-| -32601 | Metode eller ferdighet ikke funnet |
-| -32602 | Ugyldige parametere                |
-| -32603 | Intern feil                        | --- |
+| Code   | Meaning                        |
+| :----- | :----------------------------- |
+| -32700 | Parse error (invalid JSON)     |
+| -32600 | Invalid request / Unauthorized |
+| -32601 | Method or skill not found      |
+| -32602 | Invalid params                 |
+| -32603 | Internal error                 |
+
+---
 
 ## Integration Examples
 

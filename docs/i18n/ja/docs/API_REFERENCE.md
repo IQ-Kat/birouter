@@ -4,19 +4,23 @@
 
 ---
 
-すべての OmniRoute API エンドポイントの完全なリファレンス。---
+Complete reference for all OmniRoute API endpoints.
+
+---
 
 ## Table of Contents
 
-- [チャットの完了](#chat-completions)
-- [埋め込み](#embeddings)
-- [イメージ生成](#image-generate)
-- [モデルのリスト](#list-models)
-- [互換性エンドポイント](#compatibility-endpoints)
-- [セマンティックキャッシュ](#semantic-cache)
-- [ダッシュボードと管理](#dashboard--management)
-- [リクエスト処理](#request-processing)
-- [認証](#authentication)---
+- [Chat Completions](#chat-completions)
+- [Embeddings](#embeddings)
+- [Image Generation](#image-generation)
+- [List Models](#list-models)
+- [Compatibility Endpoints](#compatibility-endpoints)
+- [Semantic Cache](#semantic-cache)
+- [Dashboard & Management](#dashboard--management)
+- [Request Processing](#request-processing)
+- [Authentication](#authentication)
+
+---
 
 ## Chat Completions
 
@@ -36,20 +40,22 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| ヘッダー                    | 方向       | 説明                                                        |
-| --------------------------- | ---------- | ----------------------------------------------------------- | ---------------------------------------------- |
-| `X-OmniRoute-No-Cache`      | リクエスト | キャッシュをバイパスするには「true」に設定します。          |
-| `X-OmniRoute-Progress`      | リクエスト | 進行状況イベントの場合は「true」に設定します。              |
-| `X セッション ID`           | リクエスト | 外部セッション アフィニティ用のスティッキー セッション キー |
-| `x_session_id`              | リクエスト | アンダースコアのバリアントも受け入れられます (直接 HTTP)。  |
-| `冪等性キー`                | リクエスト | 重複排除キー (5 秒ウィンドウ)                               |
-| `X-リクエストID`            | リクエスト | 代替の重複排除キー                                          |
-| `X-オムニルートキャッシュ`  | 応答       | `HIT` または `MISS` (非ストリーミング)                      |
-| `X-OmniRoute-冪等`          | 応答       | 重複排除されている場合は「true」                            |
-| `X-OmniRoute-Progress`      | 応答       |                                                             | で進行状況を追跡する場合は「有効」になります。 |
-| `X-OmniRoute-セッション-Id` | 応答       | OmniRoute によって使用される有効なセッション ID             |
+| Header                   | Direction | Description                                      |
+| ------------------------ | --------- | ------------------------------------------------ |
+| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
+| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
+| `X-Session-Id`           | Request   | Sticky session key for external session affinity |
+| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
+| `Idempotency-Key`        | Request   | Dedup key (5s window)                            |
+| `X-Request-Id`           | Request   | Alternative dedup key                            |
+| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                  |
+| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
+| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
+| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
 
-> Nginx 注: アンダースコアヘッダー (例: `x_session_id`) に依存する場合は、`underscores_in_headers on;` を有効にしてください。---
+> Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
+
+---
 
 ## Embeddings
 
@@ -64,13 +70,12 @@ Content-Type: application/json
 }
 ```
 
-利用可能なプロバイダー: Nebius、OpenAI、Mistral、Togetter AI、Fireworks、NVIDIA。```bash
+Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, **GitHub Models**.
 
+```bash
 # List all embedding models
-
 GET /v1/embeddings
-
-````
+```
 
 ---
 
@@ -86,15 +91,14 @@ Content-Type: application/json
   "prompt": "A beautiful sunset over mountains",
   "size": "1024x1024"
 }
-````
+```
 
-利用可能なプロバイダー: OpenAI (DALL-E)、xAI (Grok Image)、Togetter AI (FLUX)、Fireworks AI。```bash
+Available providers: OpenAI (DALL-E, GPT Image 1), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
 
+```bash
 # List all image models
-
 GET /v1/images/generations
-
-````
+```
 
 ---
 
@@ -105,24 +109,26 @@ GET /v1/models
 Authorization: Bearer your-api-key
 
 → Returns all chat, embedding, and image models + combos in OpenAI format
-````
+```
 
 ---
 
 ## Compatibility Endpoints
 
-| 方法 | パス                        | フォーマット          |
-| ---- | --------------------------- | --------------------- | ----------------------------- |
-| 投稿 | `/v1/chat/completions`      | オープンAI            |
-| 投稿 | `/v1/messages`              | 人類                  |
-| 投稿 | `/v1/responses`             | OpenAI の応答         |
-| 投稿 | `/v1/embeddings`            | オープンAI            |
-| 投稿 | `/v1/images/世代`           | オープンAI            |
-| 入手 | `/v1/models`                | オープンAI            |
-| 投稿 | `/v1/messages/count_tokens` | Anthropic             |
-| 入手 | `/v1beta/models`            | ジェミニ              |
-| 投稿 | `/v1beta/models/{...path}`  | Gemini コンテンツ生成 |
-| 投稿 | `/v1/api/chat`              | オラマ                | ### Dedicated Provider Routes |
+| Method | Path                        | Format                 |
+| ------ | --------------------------- | ---------------------- |
+| POST   | `/v1/chat/completions`      | OpenAI                 |
+| POST   | `/v1/messages`              | Anthropic              |
+| POST   | `/v1/responses`             | OpenAI Responses       |
+| POST   | `/v1/embeddings`            | OpenAI                 |
+| POST   | `/v1/images/generations`    | OpenAI                 |
+| GET    | `/v1/models`                | OpenAI                 |
+| POST   | `/v1/messages/count_tokens` | Anthropic              |
+| GET    | `/v1beta/models`            | Gemini                 |
+| POST   | `/v1beta/models/{...path}`  | Gemini generateContent |
+| POST   | `/v1/api/chat`              | Ollama                 |
+
+### Dedicated Provider Routes
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -130,7 +136,9 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-プロバイダーのプレフィックスが存在しない場合は、自動的に追加されます。モデルが一致しない場合は「400」が返されます。---
+The provider prefix is auto-added if missing. Mismatched models return `400`.
+
+---
 
 ## Semantic Cache
 
@@ -142,21 +150,22 @@ GET /api/cache/stats
 DELETE /api/cache/stats
 ```
 
-応答例:```json
-{
-"semanticCache": {
-"memorySize": 42,
-"memoryMaxSize": 500,
-"dbSize": 128,
-"hitRate": 0.65
-},
-"idempotency": {
-"activeKeys": 3,
-"windowMs": 5000
-}
-}
+Response example:
 
-````
+```json
+{
+  "semanticCache": {
+    "memorySize": 42,
+    "memoryMaxSize": 500,
+    "dbSize": 128,
+    "hitRate": 0.65
+  },
+  "idempotency": {
+    "activeKeys": 3,
+    "windowMs": 5000
+  }
+}
+```
 
 ---
 
@@ -164,129 +173,188 @@ DELETE /api/cache/stats
 
 ### Authentication
 
-|エンドポイント |方法 |説明 |
+| Endpoint                      | Method  | Description           |
 | ----------------------------- | ------- | --------------------- |
-| `/api/auth/login` |投稿 |ログイン |
-| `/api/auth/logout` |投稿 |ログアウト |
-| `/api/settings/require-login` | GET/PUT |ログインが必要かどうかを切り替えます |### Provider Management
+| `/api/auth/login`             | POST    | Login                 |
+| `/api/auth/logout`            | POST    | Logout                |
+| `/api/settings/require-login` | GET/PUT | Toggle login required |
 
-|エンドポイント |方法 | Description              |
-| ---------------------------- | --------------- | ------------------------ |
-| `/api/プロバイダー` |取得/投稿 |プロバイダーのリスト/作成 |
-| `/api/providers/[id]` |取得/挿入/削除 |プロバイダーを管理する |
-| `/api/providers/[id]/test` |投稿 |プロバイダー接続をテストする |
-| `/api/providers/[id]/models` |入手 |プロバイダーモデルのリスト |
-| `/api/providers/validate` |投稿 |プロバイダー構成を検証する |
-| `/api/provider-nodes*` |いろいろ |プロバイダーノード管理 |
-| `/api/provider-models` |取得/投稿/削除 |カスタムモデル |### OAuth Flows
+### Provider Management
 
-|エンドポイント |方法 |説明 |
+| Endpoint                     | Method                | Description                                    |
+| ---------------------------- | --------------------- | ---------------------------------------------- |
+| `/api/providers`             | GET/POST              | List / create providers                        |
+| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                              |
+| `/api/providers/[id]/test`   | POST                  | Test provider connection                       |
+| `/api/providers/[id]/models` | GET                   | List provider models                           |
+| `/api/providers/validate`    | POST                  | Validate provider config                       |
+| `/api/provider-nodes*`       | Various               | Provider node management                       |
+| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete) |
+
+### OAuth Flows
+
+| Endpoint                         | Method  | Description             |
 | -------------------------------- | ------- | ----------------------- |
-| `/api/oauth/[プロバイダー]/[アクション]` |いろいろ |プロバイダー固有の OAuth |### Routing & Config
+| `/api/oauth/[provider]/[action]` | Various | Provider-specific OAuth |
 
-|エンドポイント |方法 |説明 |
+### Routing & Config
+
+| Endpoint              | Method   | Description                   |
 | --------------------- | -------- | ----------------------------- |
-| `/api/models/alias` |取得/投稿 |モデルの別名 |
-| `/api/モデル/カタログ` |入手 |プロバイダー + タイプ別のすべてのモデル |
-| `/api/combos*` |いろいろ |コンボ管理 |
-| `/api/keys*` |いろいろ | API キー管理 |
-| `/api/価格` |入手 |モデルの価格 |### Usage & Analytics
+| `/api/models/alias`   | GET/POST | Model aliases                 |
+| `/api/models/catalog` | GET      | All models by provider + type |
+| `/api/combos*`        | Various  | Combo management              |
+| `/api/keys*`          | Various  | API key management            |
+| `/api/pricing`        | GET      | Model pricing                 |
 
-|エンドポイント |方法 |説明 |
-| ------------------------- | ------ | -------------------- |
-| `/api/使用法/履歴` |入手 |利用履歴 |
-| `/api/usage/logs` |入手 |使用ログ |
-| `/api/usage/request-logs` |入手 |リクエストレベルのログ |
-| `/api/usage/[接続ID]` |入手 |接続ごとの使用量 |### Settings
+### Usage & Analytics
 
-|エンドポイント |方法 |説明 |
+| Endpoint                    | Method | Description          |
+| --------------------------- | ------ | -------------------- |
+| `/api/usage/history`        | GET    | Usage history        |
+| `/api/usage/logs`           | GET    | Usage logs           |
+| `/api/usage/request-logs`   | GET    | Request-level logs   |
+| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+
+### Settings
+
+| Endpoint                        | Method        | Description            |
 | ------------------------------- | ------------- | ---------------------- |
-| `/api/設定` |取得/挿入/パッチ |一般設定 |
-| `/api/settings/proxy` | GET/PUT |ネットワークプロキシ設定 |
-| `/api/settings/proxy/test` |投稿 |プロキシ接続をテストする |
-| `/api/settings/ip-filter` | GET/PUT | IP 許可リスト/ブロックリスト |
-| `/api/settings/ Thinking-budget` | GET/PUT |トークンの予算の推論 |
-| `/api/settings/システムプロンプト` | GET/PUT |グローバル システム プロンプト |### Monitoring
+| `/api/settings`                 | GET/PUT/PATCH | General settings       |
+| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
+| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
+| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
+| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
+| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
 
-|エンドポイント |方法 |説明 |
+### Monitoring
+
+| Endpoint                 | Method     | Description                                                                                          |
 | ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
-| `/api/sessions` |入手 |アクティブなセッションの追跡 |
-| `/api/rate-limits` |入手 |アカウントごとのレート制限 |
-| `/api/モニタリング/ヘルス` |入手 |ヘルスチェック + プロバイダーの概要 (`catalogCount`、`configuredCount`、`activeCount`、`monitoredCount`) |
-| `/api/cache/stats` |取得/削除 |キャッシュ統計 / クリア |### Backup & Export/Import
+| `/api/sessions`          | GET        | Active session tracking                                                                              |
+| `/api/rate-limits`       | GET        | Per-account rate limits                                                                              |
+| `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
+| `/api/cache/stats`       | GET/DELETE | Cache stats / clear                                                                                  |
 
-|エンドポイント |方法 |説明 |
-| ------------------------- | ------ | -------------------------------------- |
-| `/api/db-backups` |入手 |利用可能なバックアップをリストする |
-| `/api/db-backups` |置く |手動バックアップを作成する |
-| `/api/db-backups` |投稿 |特定のバックアップから復元する |
-| `/api/db-backups/export` |入手 |データベースを .sqlite ファイルとしてダウンロード |
-| `/api/db-backups/import` |投稿 | .sqlite ファイルをアップロードしてデータベースを置き換える |
-| `/api/db-backups/exportAll` |入手 |完全バックアップを .tar.gz アーカイブとしてダウンロード |### Cloud Sync
+### Backup & Export/Import
 
-|エンドポイント |方法 |説明 |
+| Endpoint                    | Method | Description                             |
+| --------------------------- | ------ | --------------------------------------- |
+| `/api/db-backups`           | GET    | List available backups                  |
+| `/api/db-backups`           | PUT    | Create a manual backup                  |
+| `/api/db-backups`           | POST   | Restore from a specific backup          |
+| `/api/db-backups/export`    | GET    | Download database as .sqlite file       |
+| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database |
+| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive |
+
+### Cloud Sync
+
+| Endpoint               | Method  | Description           |
 | ---------------------- | ------- | --------------------- |
-| `/api/sync/cloud` |いろいろ |クラウド同期操作 |
-| `/api/sync/initialize` |投稿 |同期を初期化する |
-| `/api/cloud/*` |いろいろ |クラウド管理 |### Tunnels
+| `/api/sync/cloud`      | Various | Cloud sync operations |
+| `/api/sync/initialize` | POST    | Initialize sync       |
+| `/api/cloud/*`         | Various | Cloud management      |
 
-|エンドポイント |方法 |説明 |
-| ------------------------ | ------ | ----------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` |入手 |ダッシュボードの Cloudflare Quick Tunnel インストール/ランタイム ステータスを読む |
-| `/api/tunnels/cloudflared` |投稿 | Cloudflare クイック トンネルを有効または無効にします (`action=enable/disable`) |### CLI Tools
+### Tunnels
 
-|エンドポイント |方法 |説明 |
+| Endpoint                   | Method | Description                                                             |
+| -------------------------- | ------ | ----------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
+| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
+
+### CLI Tools
+
+| Endpoint                           | Method | Description         |
 | ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings` |入手 |クロード CLI ステータス |
-| `/api/cli-tools/codex-settings` |入手 | Codex CLI ステータス |
-| `/api/cli-tools/droid-settings` |入手 | Droid CLI ステータス |
-| `/api/cli-tools/openclaw-settings` |入手 | OpenClaw CLI ステータス |
-| `/api/cli-tools/runtime/[toolId]` |入手 |汎用 CLI ランタイム |
+| `/api/cli-tools/claude-settings`   | GET    | Claude CLI status   |
+| `/api/cli-tools/codex-settings`    | GET    | Codex CLI status    |
+| `/api/cli-tools/droid-settings`    | GET    | Droid CLI status    |
+| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI status |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | Generic CLI runtime |
 
-CLI 応答には、「installed」、「runnable」、「command」、「commandPath」、「runtimeMode」、「reason」が含まれます。### ACP Agents
+CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
-|エンドポイント |方法 |説明 |
+### ACP Agents
+
+| Endpoint          | Method | Description                                              |
 | ----------------- | ------ | -------------------------------------------------------- |
-| `/api/acp/agents` |入手 |検出されたすべてのエージェント (組み込み + カスタム) をステータスとともにリストします。
-| `/api/acp/agents` |投稿 |カスタム エージェントを追加するか、検出キャッシュを更新する |
-| `/api/acp/agents` |削除 | `id` クエリ パラメータによってカスタム エージェントを削除します。
+| `/api/acp/agents` | GET    | List all detected agents (built-in + custom) with status |
+| `/api/acp/agents` | POST   | Add custom agent or refresh detection cache              |
+| `/api/acp/agents` | DELETE | Remove a custom agent by `id` query param                |
 
-GET 応答には、`agents[]` (id、name、binary、version、installed、protocol、isCustom) および `summary` (total、installed、notFound、builtIn、custom) が含まれます。### Resilience & Rate Limits
+GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
 
-|エンドポイント |方法 |説明 |
+### Resilience & Rate Limits
+
+| Endpoint                | Method    | Description                     |
 | ----------------------- | --------- | ------------------------------- |
-| `/api/resilience` |取得/パッチ |回復力プロファイルを取得/更新する |
-| `/api/resilience/reset` |投稿 |サーキットブレーカーをリセットする |
-| `/api/rate-limits` |入手 |アカウントごとのレート制限ステータス |
-| `/api/レート制限` |入手 |グローバルレート制限の設定 |### Evals
+| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
+| `/api/resilience/reset` | POST      | Reset circuit breakers          |
+| `/api/rate-limits`      | GET       | Per-account rate limit status   |
+| `/api/rate-limit`       | GET       | Global rate limit configuration |
 
-|エンドポイント |方法 |説明 |
+### Evals
+
+| Endpoint     | Method   | Description                       |
 | ------------ | -------- | --------------------------------- |
-| `/api/evals` |取得/投稿 |評価スイートのリスト / 評価の実行 |### Policies
+| `/api/evals` | GET/POST | List eval suites / run evaluation |
 
-|エンドポイント |方法 |説明 |
+### Policies
+
+| Endpoint        | Method          | Description             |
 | --------------- | --------------- | ----------------------- |
-| `/api/ポリシー` |取得/投稿/削除 |ルーティング ポリシーを管理する |### Compliance
+| `/api/policies` | GET/POST/DELETE | Manage routing policies |
 
-|エンドポイント |方法 |説明 |
-| ------------------------- | ------ | ----------------------------- |
-| `/api/compliance/audit-log` |入手 |コンプライアンス監査ログ (最後の N) |### v1beta (Gemini-Compatible)
+### Compliance
 
-|エンドポイント |方法 |説明 |
-| ------------------------ | ------ | --------------------------------- |
-| `/v1beta/models` |入手 | Gemini 形式でモデルをリストする |
-| `/v1beta/models/{...path}` |投稿 | Gemini の「generateContent」エンドポイント |
+| Endpoint                    | Method | Description                   |
+| --------------------------- | ------ | ----------------------------- |
+| `/api/compliance/audit-log` | GET    | Compliance audit log (last N) |
 
-これらのエンドポイントは、ネイティブの Gemini SDK 互換性を期待するクライアント向けに、Gemini の API 形式を反映しています。### Internal / System APIs
+### v1beta (Gemini-Compatible)
 
-|エンドポイント |方法 |説明 |
-| --------------- | ------ | ---------------------------------------------------- |
-| `/api/init` |入手 |アプリケーション初期化チェック (最初の実行時に使用) |
-| `/api/tags` |入手 | Ollama 互換モデル タグ (Ollama クライアント用) |
-| `/api/restart` |投稿 |サーバーの正常な再起動をトリガーする |
-| `/api/シャットダウン` |投稿 |サーバーの正常なシャットダウンをトリガーする |
+| Endpoint                   | Method | Description                       |
+| -------------------------- | ------ | --------------------------------- |
+| `/v1beta/models`           | GET    | List models in Gemini format      |
+| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint |
 
->**注:**これらのエンドポイントは、システムによって内部的に使用されるか、Ollama クライアントの互換性のために使用されます。 They are not typically called by end users.---
+These endpoints mirror Gemini's API format for clients that expect native Gemini SDK compatibility.
+
+### Internal / System APIs
+
+| Endpoint                 | Method | Description                                          |
+| ------------------------ | ------ | ---------------------------------------------------- |
+| `/api/init`              | GET    | Application initialization check (used on first run) |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
+| `/api/restart`           | POST   | Trigger graceful server restart                      |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| `/api/system-info`       | GET    | Generate system diagnostics report                   |
+
+> **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
+
+### OAuth Environment Repair _(v3.6.1+)_
+
+```bash
+POST /api/system/env/repair
+Content-Type: application/json
+
+{
+  "provider": "claude-code"
+}
+```
+
+Repairs missing or corrupted OAuth environment variables for a specific provider. Returns:
+
+```json
+{
+  "success": true,
+  "repaired": ["CLAUDE_CODE_OAUTH_CLIENT_ID", "CLAUDE_CODE_OAUTH_CLIENT_SECRET"],
+  "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
+}
+```
+
+---
 
 ## Audio Transcription
 
@@ -294,63 +362,69 @@ GET 応答には、`agents[]` (id、name、binary、version、installed、protoc
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
-````
+```
 
-Deepgram または AssemblyAI を使用して音声ファイルを文字起こしします。
+Transcribe audio files using Deepgram or AssemblyAI.
 
-**リクエスト：**```bash
+**Request:**
+
+```bash
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
- -H "Authorization: Bearer your-api-key" \
- -F "file=@recording.mp3" \
- -F "model=deepgram/nova-3"
+  -H "Authorization: Bearer your-api-key" \
+  -F "file=@recording.mp3" \
+  -F "model=deepgram/nova-3"
+```
 
-````
+**Response:**
 
-**応答：**```json
+```json
 {
   "text": "Hello, this is the transcribed audio content.",
   "task": "transcribe",
   "language": "en",
   "duration": 12.5
 }
-````
+```
 
-**サポートされているプロバイダー:**`deepgram/nova-3`、`assemblyai/best`。
+**Supported providers:** `deepgram/nova-3`, `assemblyai/best`.
 
-**サポートされている形式:**`mp3`、`wav`、`m4a`、`flac`、`ogg`、`webm`。---
+**Supported formats:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
+
+---
 
 ## Ollama Compatibility
 
-Ollama の API 形式を使用するクライアントの場合:```bash
+For clients that use Ollama's API format:
 
+```bash
 # Chat endpoint (Ollama format)
-
 POST /v1/api/chat
 
 # Model listing (Ollama format)
-
 GET /api/tags
+```
 
-````
+Requests are automatically translated between Ollama and internal formats.
 
-リクエストは、Ollama 形式と内部形式の間で自動的に変換されます。---
+---
 
 ## Telemetry
 
 ```bash
 # Get latency telemetry summary (p50/p95/p99 per provider)
 GET /api/telemetry/summary
-````
+```
 
-**応答：**```json
+**Response:**
+
+```json
 {
-"providers": {
-"claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
-"github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
+  "providers": {
+    "claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
+    "github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
+  }
 }
-}
-
-````
+```
 
 ---
 
@@ -369,7 +443,7 @@ Content-Type: application/json
   "limit": 50.00,
   "period": "monthly"
 }
-````
+```
 
 ---
 
@@ -392,21 +466,23 @@ Content-Type: application/json
 
 ## Request Processing
 
-1. クライアントはリクエストを `/v1/*` に送信します
-2. ルート ハンドラーが `handleChat`、`handleEmbedding`、`handleAudioTranscription`、または `handleImageGeneration` を呼び出します。
-3. モデルが解決されます (直接プロバイダー/モデルまたはエイリアス/コンボ)
-4. アカウント可用性フィルタリングを使用してローカル DB から選択された資格情報
-5. チャットの場合: `handleChatCore` — フォーマット検出、変換、キャッシュ チェック、冪等性チェック
-6. プロバイダーエグゼキューターがアップストリームリクエストを送信します
-7. 応答はクライアント形式に変換されるか (チャット)、またはそのまま返されます (埋め込み/画像/音声)
-8. 使用状況/ログの記録
-9. フォールバックはコンボルールに従ってエラーに適用されます
+1. Client sends request to `/v1/*`
+2. Route handler calls `handleChat`, `handleEmbedding`, `handleAudioTranscription`, or `handleImageGeneration`
+3. Model is resolved (direct provider/model or alias/combo)
+4. Credentials selected from local DB with account availability filtering
+5. For chat: `handleChatCore` — format detection, translation, cache check, idempotency check
+6. Provider executor sends upstream request
+7. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
+8. Usage/logging recorded
+9. Fallback applies on errors according to combo rules
 
-完全なアーキテクチャリファレンス: [`ARCHITECTURE.md`](ARCHITECTURE.md)---
+Full architecture reference: [`ARCHITECTURE.md`](ARCHITECTURE.md)
+
+---
 
 ## Authentication
 
-- ダッシュボード ルート (`/dashboard/*`) は `auth_token` Cookie を使用します
-- ログインには保存されたパスワード ハッシュが使用されます。 `INITIAL_PASSWORD` へのフォールバック
-- 「requireLogin」は「/api/settings/require-login」経由で切り替え可能
-- `REQUIRE_API_KEY=true` の場合、`/v1/*` ルートはオプションでベアラー API キーを必要とします
+- Dashboard routes (`/dashboard/*`) use `auth_token` cookie
+- Login uses saved password hash; fallback to `INITIAL_PASSWORD`
+- `requireLogin` toggleable via `/api/settings/require-login`
+- `/v1/*` routes optionally require Bearer API key when `REQUIRE_API_KEY=true`

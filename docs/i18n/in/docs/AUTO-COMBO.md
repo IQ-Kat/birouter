@@ -4,29 +4,42 @@
 
 ---
 
-> अनुकूली स्कोरिंग के साथ मॉडल श्रृंखलाओं का स्व-प्रबंधन## How It Works
+> Self-managing model chains with adaptive scoring
 
-ऑटो-कॉम्बो इंजन**6-कारक स्कोरिंग फ़ंक्शन**का उपयोग करके प्रत्येक अनुरोध के लिए गतिशील रूप से सर्वश्रेष्ठ प्रदाता/मॉडल का चयन करता है:
+## How It Works
 
-| कारक        | वजन  | विवरण                                     |
-| :---------- | :--- | :---------------------------------------- | ------------- |
-| कोटा        | 0.20 | शेष क्षमता [0..1]                         |
-| स्वास्थ्य   | 0.25 | सर्किट ब्रेकर: बंद=1.0, आधा=0.5, खुला=0.0 |
-| कॉस्टइन्व   | 0.20 | उलटा लागत (सस्ता = उच्च स्कोर)            |
-| लेटेंसीइन्व | 0.15 | व्युत्क्रम p95 विलंबता (तेज़ = अधिक)      |
-| टास्कफ़िट   | 0.10 | मॉडल × कार्य प्रकार फिटनेस स्कोर          |
-| स्थिरता     | 0.10 | विलंबता/त्रुटियों में कम विचरण            | ## Mode Packs |
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
 
-| पैक                        | फोकस             | मुख्य वज़न       |
-| :------------------------- | :--------------- | :--------------- | --------------- |
-| 🚀**जल्दी भेजें**          | गति              | विलंबताInv: 0.35 |
-| 💰**लागत बचाने वाला**      | अर्थव्यवस्था     | कॉस्टइन्व: 0.40  |
-| 🎯**गुणवत्ता पहले**        | सर्वश्रेष्ठ मॉडल | टास्कफ़िट: 0.40  |
-| 📡**ऑफ़लाइन मित्रतापूर्ण** | उपलब्धता         | कोटा: 0.40       | ## Self-Healing |
+| Factor     | Weight | Description                                     |
+| :--------- | :----- | :---------------------------------------------- |
+| Quota      | 0.20   | Remaining capacity [0..1]                       |
+| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
+| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
+| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
+| TaskFit    | 0.10   | Model × task type fitness score                 |
+| Stability  | 0.10   | Low variance in latency/errors                  |
 
--**अस्थायी बहिष्करण**: स्कोर <0.2 → 5 मिनट के लिए बाहर रखा गया (प्रगतिशील बैकऑफ़, अधिकतम 30 मिनट) -**सर्किट ब्रेकर जागरूकता**: खुला → स्वतः-बहिष्कृत; HALF_OPEN → जांच अनुरोध -**घटना मोड**: >50% खुला → अन्वेषण अक्षम करें, स्थिरता अधिकतम करें -**कूल्डाउन पुनर्प्राप्ति**: बहिष्करण के बाद, पहला अनुरोध कम समयबाह्य के साथ एक "जांच" है## Bandit Exploration
+## Mode Packs
 
-5% अनुरोध (कॉन्फ़िगर करने योग्य) अन्वेषण के लिए यादृच्छिक प्रदाताओं को भेजे जाते हैं। घटना मोड में अक्षम.## API
+| Pack                    | Focus        | Key Weight       |
+| :---------------------- | :----------- | :--------------- |
+| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
+| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
+| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+
+## Self-Healing
+
+- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
+- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
+- **Incident mode**: >50% OPEN → disable exploration, maximize stability
+- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+
+## Bandit Exploration
+
+5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+
+## API
 
 ```bash
 # Create auto-combo
@@ -40,13 +53,15 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-30+ मॉडलों ने 6 कार्य प्रकारों (`कोडिंग`, `समीक्षा`, `योजना`, `विश्लेषण`, `डीबगिंग`, `दस्तावेज़ीकरण`) में स्कोर किया। वाइल्डकार्ड पैटर्न का समर्थन करता है (उदाहरण के लिए, `*-कोडर` → उच्च कोडिंग स्कोर)।## Files
+30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
 
-| फ़ाइल                                        | उद्देश्य                            |
-| :------------------------------------------- | :---------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`     | स्कोरिंग फ़ंक्शन और पूल सामान्यीकरण |
-| `open-sse/services/autoCombo/taskFitness.ts` | मॉडल × कार्य फिटनेस लुकअप           |
-| `ओपन-एसएसई/सर्विसेज/ऑटोकॉम्बो/इंजन.टीएस`     | चयन तर्क, दस्यु, बजट सीमा           |
-| `open-sse/services/autoCombo/selfHealing.ts` | बहिष्करण, जांच, घटना मोड            |
-| `ओपन-sse/services/autoCombo/modePacks.ts`    | 4 वज़न प्रोफाइल                     |
-| `src/app/api/combos/auto/route.ts`           | बाकी एपीआई                          |
+## Files
+
+| File                                         | Purpose                               |
+| :------------------------------------------- | :------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
+| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                              |

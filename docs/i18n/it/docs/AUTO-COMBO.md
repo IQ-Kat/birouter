@@ -4,29 +4,42 @@
 
 ---
 
-> Catene di modelli autogestiti con scoring adattivo## How It Works
+> Self-managing model chains with adaptive scoring
 
-Il motore Auto-Combo seleziona dinamicamente il miglior fornitore/modello per ciascuna richiesta utilizzando una**funzione di punteggio a 6 fattori**:
+## How It Works
 
-| Fattore    | Peso | Descrizione                                                |
-| :--------- | :--- | :--------------------------------------------------------- | ------------- |
-| Quota      | 0,20 | Capacità rimanente [0..1]                                  |
-| Salute     | 0,25 | Interruttore automatico: CHIUSO=1.0, META'=0.5, APERTO=0.0 |
-| InvCosto   | 0,20 | Costo inverso (più economico = punteggio più alto)         |
-| LatenzaInv | 0,15 | Latenza p95 inversa (più veloce = più alta)                |
-| TaskFit    | 0,10 | Modello × punteggio di fitness del tipo di attività        |
-| Stabilità  | 0,10 | Bassa varianza di latenza/errori                           | ## Mode Packs |
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
 
-| Confezione                      | Messa a fuoco   | Peso chiave      |
-| :------------------------------ | :-------------- | :--------------- | --------------- |
-| 🚀**Spedisci velocemente**      | Velocità        | latenzaInv: 0,35 |
-| 💰**Risparmio sui costi**       | Economia        | costoInv: 0,40   |
-| 🎯**La qualità prima di tutto** | Miglior modello | taskFit: 0,40    |
-| 📡**Amichevole offline**        | Disponibilità   | quota: 0,40      | ## Self-Healing |
+| Factor     | Weight | Description                                     |
+| :--------- | :----- | :---------------------------------------------- |
+| Quota      | 0.20   | Remaining capacity [0..1]                       |
+| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
+| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
+| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
+| TaskFit    | 0.10   | Model × task type fitness score                 |
+| Stability  | 0.10   | Low variance in latency/errors                  |
 
--**Esclusione temporanea**: Punteggio < 0,2 → escluso per 5 min (backoff progressivo, max 30 min) -**Consapevolezza interruttore**: APERTO → autoescluso; HALF_OPEN → richieste sonda -**Modalità incidente**: >50% APERTO → disabilita l'esplorazione, massimizza la stabilità -**Recupero cooldown**: dopo l'esclusione, la prima richiesta è una "sonda" con timeout ridotto## Bandit Exploration
+## Mode Packs
 
-Il 5% delle richieste (configurabili) viene instradato a provider casuali per l'esplorazione. Disabilitato in modalità incidente.## API
+| Pack                    | Focus        | Key Weight       |
+| :---------------------- | :----------- | :--------------- |
+| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
+| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
+| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+
+## Self-Healing
+
+- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
+- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
+- **Incident mode**: >50% OPEN → disable exploration, maximize stability
+- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+
+## Bandit Exploration
+
+5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+
+## API
 
 ```bash
 # Create auto-combo
@@ -44,11 +57,11 @@ curl http://localhost:20128/api/combos/auto
 
 ## Files
 
-| File                                         | Scopo                                            |
-| :------------------------------------------- | :----------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`     | Funzione di punteggio e normalizzazione del pool |
-| `open-sse/services/autoCombo/taskFitness.ts` | Ricerca modello × attività fitness               |
-| `open-sse/services/autoCombo/engine.ts`      | Logica di selezione, bandito, limite di budget   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Esclusione, sonde, modalità incidente            |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 profili di peso                                |
-| `src/app/api/combos/auto/route.ts`           | API REST                                         |
+| File                                         | Purpose                               |
+| :------------------------------------------- | :------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
+| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                              |

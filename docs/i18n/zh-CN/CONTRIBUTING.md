@@ -4,13 +4,19 @@
 
 ---
 
-感谢您有兴趣贡献！本指南涵盖了入门所需的一切。---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24（推荐：22 LTS）-**npm**10+ -**吉特**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -31,22 +37,26 @@ echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 
 Key variables for development:
 
-| 变量                   | Development Default      | 描述           |
-| ---------------------- | ------------------------ | -------------- | ---------------------- |
-| `端口`                 | `20128`                  | 服务器端口     |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | 前端的基本 URL |
-| `JWT_SECRET`           | (generate above)         | JWT 签名秘笈   |
-| `初始密码`             | `CHANGEME`               | 首次登录密码   |
-| `APP_LOG_LEVEL`        | `info`                   | 日志详细级别   | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-仪表板提供了功能的 UI 切换，也可以通过环境变量进行配置：
+### Dashboard Settings
 
-| 设置位置  | 切换         | 描述                  |
-| --------- | ------------ | --------------------- |
-| 设置→高级 | 调试模式     | 启用调试请求日志 (UI) |
-| 设置→常规 | 侧边栏可见性 | 显示/隐藏侧边栏部分   |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-这些设置存储在数据库中并在重新启动后保留，并在设置时覆盖环境变量默认值。### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-默认网址：
+Default URLs:
 
--**仪表板**：`http://localhost:20128/dashboard` -**API**：`http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**永远不要直接提交到 `main`。**始终使用功能分支。```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-|前缀 |目的|
-| ----------- | ---------------------------------- |
-| `壮举/` |新功能 |
-| `修复/` |错误修复 |
-| `重构/` |代码重组 |
-| `文档/` |文档变更 |
-| `测试/` |测试添加/修复 |
-| `家务/` |工具、CI、依赖项 |### Commit Messages
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-遵循[常规提交](https://www.conventionalcommits.org/)：```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-范围：`db`、`sse`、`oauth`、`dashboard`、`api`、`cli`、`docker`、`ci`、`mcp`、`a2a`、`内存`、`技能`。---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ refactor(db): consolidate rate limit tables
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,37 +146,48 @@ npm run lint
 npm run check
 ```
 
-覆盖范围注释：
+Coverage notes:
 
-- `npm run test:coverage` 测量主单元测试套件的源覆盖率，不包括 `tests/**`，并包括 `open-sse/**`
-- Pull 请求必须将语句、行、函数和分支的总体覆盖率保持在**60% 或更高**
-- 如果 PR 更改了 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的生产代码，则必须在同一 PR 中添加或更新自动化测试
-- `npm runcoverage:report` 从最新的覆盖率运行中打印详细的逐个文件报告
-- `npm run test:coverage:legacy` 保留旧指标以进行历史比较
-- 有关分阶段覆盖率改进路线图，请参阅“docs/COVERAGE_PLAN.md”### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-在打开或合并 PR 之前：
+### Pull Request Requirements
 
-- 运行“npm run test:unit”
-- 运行“npm run test：覆盖率”
-- 确保所有指标的覆盖范围保持在**60%+**
-- 当生产代码更改时，在 PR 描述中包含更改或添加的测试文件
-- 当在 CI 中配置项目机密时，检查 PR 上的 SonarQube 结果
+Before opening or merging a PR:
 
-当前测试状态：**122 个单元测试文件**涵盖：
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- 提供翻译器和格式转换
-- 速率限制、断路器和弹性
-- 语义缓存、幂等性、进度跟踪
-- 数据库操作和架构（21 个数据库模块）
-- OAuth 流程和身份验证
-- API端点验证（Zod v4）
-- MCP 服务器工具和范围实施
-- 记忆和技能系统---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— 在提交之前运行 `npm run lint` -**Prettier**— 在提交时通过 `lint-staged` 自动格式化（2 个空格、分号、双引号、100 个字符宽度、es5 尾随逗号）-**TypeScript**— 所有 `src/` 代码都使用 `.ts`/`.tsx`； `open-sse/` 使用 `.ts`/`.js`；带有 TSDoc 的文档（`@param`、`@returns`、`@throws`）-**没有 `eval()`**— ESLint 强制执行 `no-eval`、`no-implied-eval`、`no-new-func` -**Zod 验证**— 使用 Zod v4 模式进行所有 API 输入验证 -**命名**：文件 = 驼峰命名法/短横线命名法，组件 = PascalCase，常量 = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -228,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-添加到 `src/shared/constants/providers.ts` — 在模块加载时经过 Zod 验证。### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-在`open-sse/executors/your-provider.ts`中创建执行器来扩展基本执行器。### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-在`open-sse/translator/`中创建请求/响应转换器。### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-在 `src/lib/oauth/constants/oauth.ts` 中添加 OAuth 凭据，并在 `src/lib/oauth/services/` 中添加服务。### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-在 `open-sse/config/providerRegistry.ts` 中添加模型定义。### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-在“tests/unit/”中编写单元测试，至少涵盖：
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- 提供商注册
-- 请求/响应翻译
-- 错误处理---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] 测试通过（`npm test`）
-- [ ] Linting 通行证（`npm run lint`）
-- [ ] 构建成功（`npm run build`）
-- [ ] 为新的公共函数和接口添加了 TypeScript 类型
-- [ ] 没有硬编码的秘密或后备值
-- [ ] 所有输入均使用 Zod 模式进行验证
-- [ ] 更新变更日志（如果面向用户的变更）
-- [ ] 更新文档（如果适用）---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-发布是通过“/generate-release”工作流程进行管理的。创建新的 GitHub 版本时，该包会通过 GitHub Actions**自动发布到 npm**。---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**架构**：参见 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**API 参考**：参见 [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**问题**：[github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR**：有关架构决策记录，请参阅“docs/adr/”
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

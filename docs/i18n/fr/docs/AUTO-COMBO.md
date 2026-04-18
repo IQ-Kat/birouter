@@ -4,29 +4,42 @@
 
 ---
 
-> Chaînes de modèles autogérées avec notation adaptative## How It Works
+> Self-managing model chains with adaptive scoring
 
-Le moteur Auto-Combo sélectionne dynamiquement le meilleur fournisseur/modèle pour chaque demande à l'aide d'une**fonction de notation à 6 facteurs** :
+## How It Works
 
-| Facteur    | Poids | Descriptif                                            |
-| :--------- | :---- | :---------------------------------------------------- | ------------- |
-| Quotas     | 0,20  | Capacité restante [0..1]                              |
-| Santé      | 0,25  | Disjoncteur : FERMÉ=1,0, DEMI=0,5, OUVERT=0,0         |
-| CoûtInv    | 0,20  | Coût inverse (moins cher = score plus élevé)          |
-| LatenceInv | 0,15  | Latence p95 inverse (plus rapide = plus élevée)       |
-| TâcheFit   | 0,10  | Modèle × score de condition physique du type de tâche |
-| Stabilité  | 0,10  | Faible variance de latence/erreurs                    | ## Mode Packs |
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
 
-| Pack                       | Mise au point   | Poids clé         |
-| :------------------------- | :-------------- | :---------------- | --------------- |
-| 🚀**Expédier rapidement**  | Vitesse         | latenceInv : 0,35 |
-| 💰**Économiseur de coûts** | Économie        | coûtInv : 0,40    |
-| 🎯**La qualité d'abord**   | Meilleur modèle | taskFit: 0.40     |
-| 📡**Convivial hors ligne** | Disponibilité   | quota : 0,40      | ## Self-Healing |
+| Factor     | Weight | Description                                     |
+| :--------- | :----- | :---------------------------------------------- |
+| Quota      | 0.20   | Remaining capacity [0..1]                       |
+| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
+| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
+| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
+| TaskFit    | 0.10   | Model × task type fitness score                 |
+| Stability  | 0.10   | Low variance in latency/errors                  |
 
--**Exclusion temporaire** : Score < 0,2 → exclu pendant 5 min (backoff progressif, max 30 min) -**Conscience du disjoncteur** : OUVERT → auto-exclu ; HALF_OPEN → requêtes de sonde -**Mode incident** : >50 % OUVERT → désactiver l'exploration, maximiser la stabilité -**Cooldown recovery** : Après exclusion, la première demande est une "sonde" avec un délai d'attente réduit## Bandit Exploration
+## Mode Packs
 
-5 % des requêtes (configurables) sont acheminées vers des fournisseurs aléatoires pour exploration. Désactivé en mode incident.## API
+| Pack                    | Focus        | Key Weight       |
+| :---------------------- | :----------- | :--------------- |
+| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
+| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
+| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+
+## Self-Healing
+
+- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
+- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
+- **Incident mode**: >50% OPEN → disable exploration, maximize stability
+- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+
+## Bandit Exploration
+
+5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+
+## API
 
 ```bash
 # Create auto-combo
@@ -40,13 +53,15 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-Plus de 30 modèles notés sur 6 types de tâches (« codage », « révision », « planification », « analyse », « débogage », « documentation »). Prend en charge les modèles génériques (par exemple, `*-coder` → score de codage élevé).## Files
+30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
 
-| Fichier                                      | Objectif                                          |
-| :------------------------------------------- | :------------------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Fonction de notation et normalisation du pool     |
-| `open-sse/services/autoCombo/taskFitness.ts` | Recherche de condition physique de modèle × tâche |
-| `open-sse/services/autoCombo/engine.ts`      | Logique de sélection, bandit, plafond budgétaire  |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, sondes, mode incident                  |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 profils de poids                                |
-| `src/app/api/combos/auto/route.ts`           | API REST                                          |
+## Files
+
+| File                                         | Purpose                               |
+| :------------------------------------------- | :------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
+| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                              |

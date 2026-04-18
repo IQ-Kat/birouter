@@ -4,26 +4,41 @@
 
 ---
 
-Utilizza questo elenco di controllo prima di contrassegnare o pubblicare una nuova versione di OmniRoute.## Version and Changelog
+Use this checklist before tagging or publishing a new OmniRoute release.
 
-1. Eseguire il bump della versione di `package.json` (`x.y.z`) nel ramo di rilascio.
-2. Sposta le note di rilascio da "## [Unreleased]" in "CHANGELOG.md" in una sezione con data:
-   - `## [x.y.z] — AAAA-MM-GG`
-3. Mantieni "## [Unreleased]" come prima sezione del registro delle modifiche per i prossimi lavori.
-4. Assicurati che l'ultima sezione del semestre in "CHANGELOG.md" corrisponda alla versione di "package.json".## API Docs
+## Version and Changelog
 
-5. Aggiorna `docs/openapi.yaml`:
-   - "info.version" deve essere uguale alla versione di "package.json".
-6. Convalidare gli esempi di endpoint se i contratti API sono cambiati.## Runtime Docs
+1. Bump `package.json` version (`x.y.z`) in the release branch.
+2. Move release notes from `## [Unreleased]` in `CHANGELOG.md` to a dated section:
+   - `## [x.y.z] — YYYY-MM-DD`
+3. Keep `## [Unreleased]` as the first changelog section for upcoming work.
+4. Ensure the latest semver section in `CHANGELOG.md` equals `package.json` version.
 
-7. Esaminare `docs/ARCHITECTURE.md` per informazioni sulla deriva di archiviazione/runtime.
-8. Consultare `docs/TROUBLESHOOTING.md` per env var e deriva operativa.
-9. Aggiorna i documenti localizzati se i documenti di origine sono cambiati in modo significativo.## Automated Check
+## API Docs
 
-Esegui la protezione della sincronizzazione localmente prima di aprire PR:```bash
+1. Update `docs/openapi.yaml`:
+   - `info.version` must equal `package.json` version.
+2. Validate endpoint examples if API contracts changed.
+
+## Runtime Docs
+
+1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
+2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
+3. Verify the release/runtime Node.js version still satisfies the supported secure floor:
+   - `>=20.20.2 <21` or `>=22.22.2 <23`
+   - `npm run check:node-runtime`
+4. Validate the npm publish artifact after building the standalone package:
+   - `npm run build:cli`
+   - `npm run check:pack-artifact`
+   - confirm no `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, or other local residue
+5. Update localized docs if source docs changed significantly.
+
+## Automated Check
+
+Run the sync guard locally before opening PR:
+
+```bash
 npm run check:docs-sync
-
 ```
 
-CI esegue questo controllo anche in `.github/workflows/ci.yml` (lavoro lint).
-```
+CI also runs this check in `.github/workflows/ci.yml` (lint job).

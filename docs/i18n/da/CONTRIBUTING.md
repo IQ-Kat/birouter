@@ -4,13 +4,19 @@
 
 ---
 
-Tak for din interesse i at bidrage! Denne guide dækker alt, hvad du behøver for at komme i gang.---
+Thank you for your interest in contributing! This guide covers everything you need to get started.
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
--**Node.js**>= 18 < 24 (anbefalet: 22 LTS) -**npm**10+ -**Git**### Clone & Install
+- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **npm** 10+
+- **Git**
+
+### Clone & Install
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -29,24 +35,28 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Nøglevariabler for udvikling:
+Key variables for development:
 
-| Variabel               | Udviklingsstandard       | Beskrivelse                  |
-| ---------------------- | ------------------------ | ---------------------------- | ---------------------- |
-| `PORT`                 | `20128`                  | Serverport                   |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Basis-URL for frontend       |
-| `JWT_SECRET`           | (generer ovenfor)        | JWT underskriver hemmelighed |
-| `INITIAL_PASSWORD`     | `ÆNDRING`                | Første login-adgangskode     |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity niveau         | ### Dashboard Settings |
+| Variable               | Development Default      | Description           |
+| ---------------------- | ------------------------ | --------------------- |
+| `PORT`                 | `20128`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
+| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
 
-Dashboardet giver UI-skift til funktioner, der også kan konfigureres via miljøvariabler:
+### Dashboard Settings
 
-| Indstilling af placering  | Skift                | Beskrivelse                                       |
-| ------------------------- | -------------------- | ------------------------------------------------- |
-| Indstillinger → Avanceret | Fejlretningstilstand | Aktiver logfiler for fejlretningsanmodninger (UI) |
-| Indstillinger → Generelt  | Sidebjælke synlighed | Vis/skjul sidebjælkeafsnit                        |
+The dashboard provides UI toggles for features that can also be configured via environment variables:
 
-Disse indstillinger gemmes i databasen og fortsætter på tværs af genstarter, og tilsidesætter env var-standarder, når de er indstillet.### Running Locally
+| Setting Location    | Toggle             | Description                    |
+| ------------------- | ------------------ | ------------------------------ |
+| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
+| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+
+These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+
+### Running Locally
 
 ```bash
 # Development mode (hot reload)
@@ -60,44 +70,51 @@ npm run start
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Standardwebadresser:
+Default URLs:
 
--**Dashboard**: `http://localhost:20128/dashboard` -**API**: `http://localhost:20128/v1`---
+- **Dashboard**: `http://localhost:20128/dashboard`
+- **API**: `http://localhost:20128/v1`
+
+---
 
 ## Git Workflow
 
-> ⚠️**Forpligt dig ALDRIG direkte til `main`.**Brug altid funktionsgrene.```bash
-> git checkout -b feat/your-feature-name
+> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
 
+```bash
+git checkout -b feat/your-feature-name
 # ... make changes ...
-
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-
 # Open a Pull Request on GitHub
-
-````
+```
 
 ### Branch Naming
 
-| Præfiks | Formål |
-| ----------- | -------------------------- |
-| `feat/` | Nye funktioner |
-| `fix/` | Fejlrettelser |
-| `refaktor/` | Kode omstrukturering |
-| `docs/` | Dokumentationsændringer |
-| `test/` | Testtilføjelser/rettelser |
-| `arbejde/` | Værktøj, CI, afhængigheder |### Commit Messages
+| Prefix      | Purpose                   |
+| ----------- | ------------------------- |
+| `feat/`     | New features              |
+| `fix/`      | Bug fixes                 |
+| `refactor/` | Code restructuring        |
+| `docs/`     | Documentation changes     |
+| `test/`     | Test additions/fixes      |
+| `chore/`    | Tooling, CI, dependencies |
 
-Følg [Conventional Commits](https://www.conventionalcommits.org/):```
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update SECURITY.md with PII protection
 test: add observability unit tests
 refactor(db): consolidate rate limit tables
-````
+```
 
-Omfang: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.---
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+
+---
 
 ## Running Tests
 
@@ -106,7 +123,7 @@ Omfang: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, 
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -129,37 +146,48 @@ npm run lint
 npm run check
 ```
 
-Dækningsnoter:
+Coverage notes:
 
-- `npm run test:coverage` måler kildedækningen for hovedenhedens testsuite, ekskluderer `tests/**` og inkluderer `open-sse/**`
-- Pull-anmodninger skal holde den overordnede dækningsgate på**60 % eller højere**for udsagn, linjer, funktioner og filialer
-- Hvis en PR ændrer produktionskode i `src/`, `open-sse/`, `electron/` eller `bin/`, skal den tilføje eller opdatere automatiserede test i samme PR
-- `npm run coverage:report` udskriver den detaljerede fil-for-fil-rapport fra den seneste dækningskørsel
-- `npm run test:coverage:legacy` bevarer den ældre metric til historisk sammenligning
-- Se `docs/COVERAGE_PLAN.md` for den trinvise dækningsforbedring køreplan### Pull Request Requirements
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-Før åbning eller sammenlægning af en PR:
+### Pull Request Requirements
 
-- Kør `npm run test:unit`
-- Kør `npm run test:coverage`
-- Sørg for, at dækningsporten forbliver på**60%+**for alle målinger
-- Inkluder de ændrede eller tilføjede testfiler i PR-beskrivelsen, når produktionskoden ændres
-- Tjek SonarQube-resultatet på PR'en, når projekthemmelighederne er konfigureret i CI
+Before opening or merging a PR:
 
-Aktuel teststatus:**122 enhedstestfiler**, der dækker:
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** for all metrics
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-- Udbyder oversættere og formatkonvertering
-- Hastighedsbegrænsning, kredsløbsafbryder og modstandsdygtighed
-- Semantisk cache, idempotens, fremskridtssporing
-- Databaseoperationer og skema (21 DB-moduler)
-- OAuth-flows og godkendelse
-- API-endepunktsvalidering (Zod v4)
-- MCP-serverværktøjer og håndhævelse af omfang
-- Hukommelses- og færdighedssystemer---
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
+
+---
 
 ## Code Style
 
--**ESLint**— Kør `npm run lint` før du forpligter dig -**Smukkere**— Automatisk formateret via "lint-stageed" på commit (2 mellemrum, semikolon, dobbelte anførselstegn, 100 tegnbredde, es5 efterstillede kommaer) -**TypeScript**— Al `src/`-kode bruger `.ts`/`.tsx`; `open-sse/` bruger `.ts`/`.js`; dokument med TSDoc (`@param`, `@returns`, `@throws`) -**No `eval()`**— ESLint håndhæver `no-eval`, `no-implied-eval`, `no-new-func` -**Zod-validering**— Brug Zod v4-skemaer til al API-inputvalidering -**Navngivning**: Filer = camelCase/kebab-case, komponenter = PascalCase, konstanter = UPPER_SNAKE---
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+---
 
 ## Project Structure
 
@@ -228,37 +256,56 @@ docs/                       # Documentation
 
 ### Step 1: Register Provider Constants
 
-Tilføj til `src/shared/constants/providers.ts` — Zod-valideret ved modulindlæsning.### Step 2: Add Executor (if custom logic needed)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Opret executor i `open-sse/executors/your-provider.ts`, der udvider basis executor.### Step 3: Add Translator (if non-OpenAI format)
+### Step 2: Add Executor (if custom logic needed)
 
-Opret anmodnings-/svar-oversættere i `open-sse/translator/`.### Step 4: Add OAuth Config (if OAuth-based)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Tilføj OAuth-legitimationsoplysninger i `src/lib/oauth/constants/oauth.ts` og service i `src/lib/oauth/services/`.### Step 5: Register Models
+### Step 3: Add Translator (if non-OpenAI format)
 
-Tilføj modeldefinitioner i `open-sse/config/providerRegistry.ts`.### Step 6: Add Tests
+Create request/response translators in `open-sse/translator/`.
 
-Skriv enhedstests i `tests/unit/`, der som minimum dækker:
+### Step 4: Add OAuth Config (if OAuth-based)
 
-- Udbyder registrering
-- Anmodning/svar oversættelse
-- Fejlhåndtering---
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+
+### Step 5: Register Models
+
+Add model definitions in `open-sse/config/providerRegistry.ts`.
+
+### Step 6: Add Tests
+
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
+
+---
 
 ## Pull Request Checklist
 
-- [ ] Tester bestået ("npm test")
-- [ ] Linting-pas ("npm run lint")
-- [ ] Build lykkes ('npm run build')
-- [ ] TypeScript-typer tilføjet til nye offentlige funktioner og grænseflader
-- [ ] Ingen hårdkodede hemmeligheder eller reserveværdier
-- [ ] Alle input valideret med Zod-skemaer
-- [ ] CHANGELOG opdateret (hvis brugervendt ændring)
-- [ ] Dokumentation opdateret (hvis relevant)---
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] All inputs validated with Zod schemas
+- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Documentation updated (if applicable)
+
+---
 
 ## Releasing
 
-Udgivelser administreres via `/generate-release` arbejdsgangen. Når en ny GitHub-udgivelse er oprettet,**udgives pakken automatisk til npm**via GitHub Actions.---
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+---
 
 ## Getting Help
 
--**Architecture**: Se [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) -**API-reference**: Se [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) -**Problemer**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues) -**ADR'er**: Se `docs/adr/` for arkitektoniske beslutningsposter
+- **Architecture**: See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **API Reference**: See [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

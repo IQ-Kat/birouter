@@ -4,19 +4,23 @@
 
 ---
 
-Tham chiếu đầy đủ cho tất cả các điểm cuối API OmniRoute.---
+Complete reference for all OmniRoute API endpoints.
+
+---
 
 ## Table of Contents
 
-- [Hoàn thành trò chuyện](#chat-completions)
-- [Nhúng](#embeddings)
-- [Tạo hình ảnh](#tạo hình ảnh)
-- [Danh sách mô hình](#list-models)
-- [Điểm cuối tương thích](#điểm cuối tương thích)
-- [Bộ đệm ngữ nghĩa](#semantic-cache)
-- [Trang tổng quan & Quản lý](#dashboard--management)
-- [Xử lý yêu cầu](#request-processing)
-- [Xác thực](#xác thực)---
+- [Chat Completions](#chat-completions)
+- [Embeddings](#embeddings)
+- [Image Generation](#image-generation)
+- [List Models](#list-models)
+- [Compatibility Endpoints](#compatibility-endpoints)
+- [Semantic Cache](#semantic-cache)
+- [Dashboard & Management](#dashboard--management)
+- [Request Processing](#request-processing)
+- [Authentication](#authentication)
+
+---
 
 ## Chat Completions
 
@@ -36,20 +40,22 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| Tiêu đề                  | Hướng    | Mô tả                                                   |
-| ------------------------ | -------- | ------------------------------------------------------- |
-| `X-OmniRoute-No-Cache`   | Yêu cầu  | Đặt thành `true` để bỏ qua bộ đệm                       |
-| `X-OmniRoute-Progress`   | Yêu cầu  | Đặt thành `true` cho các sự kiện tiến trình             |
-| `Id phiên X`             | Yêu cầu  | Khóa phiên cố định cho mối quan hệ phiên bên ngoài      |
-| `x_session_id`           | Yêu cầu  | Biến thể gạch dưới cũng được chấp nhận (HTTP trực tiếp) |
-| `Idempotency-Key`        | Yêu cầu  | Khóa khấu trừ (cửa sổ 5s)                               |
-| `X-Yêu cầu-Id`           | Yêu cầu  | Khóa khấu trừ thay thế                                  |
-| `X-OmniRoute-Cache`      | Phản hồi | `HIT` hoặc `MISS` (không phát trực tuyến)               |
-| `X-OmniRoute-Idempotent` | Phản hồi | `true` nếu được loại bỏ                                 |
-| `X-OmniRoute-Progress`   | Phản hồi | `đã bật` nếu bật tính năng theo dõi tiến trình          |
-| `X-OmniRoute-Phiên-Id`   | Phản hồi | ID phiên hiệu quả được OmniRoute sử dụng                |
+| Header                   | Direction | Description                                      |
+| ------------------------ | --------- | ------------------------------------------------ |
+| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
+| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
+| `X-Session-Id`           | Request   | Sticky session key for external session affinity |
+| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
+| `Idempotency-Key`        | Request   | Dedup key (5s window)                            |
+| `X-Request-Id`           | Request   | Alternative dedup key                            |
+| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                  |
+| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
+| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
+| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
 
-> Lưu ý Nginx: nếu bạn dựa vào tiêu đề gạch dưới (ví dụ `x_session_id`), hãy bật `underscores_in_headers on;`.---
+> Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
+
+---
 
 ## Embeddings
 
@@ -64,13 +70,12 @@ Content-Type: application/json
 }
 ```
 
-Các nhà cung cấp hiện có: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.```bash
+Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, **GitHub Models**.
 
+```bash
 # List all embedding models
-
 GET /v1/embeddings
-
-````
+```
 
 ---
 
@@ -86,15 +91,14 @@ Content-Type: application/json
   "prompt": "A beautiful sunset over mountains",
   "size": "1024x1024"
 }
-````
+```
 
-Các nhà cung cấp hiện có: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.```bash
+Available providers: OpenAI (DALL-E, GPT Image 1), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
 
+```bash
 # List all image models
-
 GET /v1/images/generations
-
-````
+```
 
 ---
 
@@ -105,24 +109,26 @@ GET /v1/models
 Authorization: Bearer your-api-key
 
 → Returns all chat, embedding, and image models + combos in OpenAI format
-````
+```
 
 ---
 
 ## Compatibility Endpoints
 
-| Phương pháp | Đường dẫn                   | Định dạng              |
-| ----------- | --------------------------- | ---------------------- | ----------------------------- |
-| ĐĂNG        | `/v1/chat/hoàn thành`       | OpenAI                 |
-| ĐĂNG        | `/v1/tin nhắn`              | Nhân chủng học         |
-| ĐĂNG        | `/v1/phản hồi`              | Phản hồi OpenAI        |
-| ĐĂNG        | `/v1/nhúng`                 | OpenAI                 |
-| ĐĂNG        | `/v1/hình ảnh/thế hệ`       | OpenAI                 |
-| NHẬN        | `/v1/model`                 | OpenAI                 |
-| ĐĂNG        | `/v1/messages/count_tokens` | Nhân chủng học         |
-| NHẬN        | `/v1beta/model`             | Song Tử                |
-| ĐĂNG        | `/v1beta/models/{...path}`  | Gemini generateContent |
-| ĐĂNG        | `/v1/api/chat`              | Olama                  | ### Dedicated Provider Routes |
+| Method | Path                        | Format                 |
+| ------ | --------------------------- | ---------------------- |
+| POST   | `/v1/chat/completions`      | OpenAI                 |
+| POST   | `/v1/messages`              | Anthropic              |
+| POST   | `/v1/responses`             | OpenAI Responses       |
+| POST   | `/v1/embeddings`            | OpenAI                 |
+| POST   | `/v1/images/generations`    | OpenAI                 |
+| GET    | `/v1/models`                | OpenAI                 |
+| POST   | `/v1/messages/count_tokens` | Anthropic              |
+| GET    | `/v1beta/models`            | Gemini                 |
+| POST   | `/v1beta/models/{...path}`  | Gemini generateContent |
+| POST   | `/v1/api/chat`              | Ollama                 |
+
+### Dedicated Provider Routes
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -130,7 +136,9 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Tiền tố nhà cung cấp được tự động thêm vào nếu thiếu. Các mô hình không khớp trả về `400`.---
+The provider prefix is auto-added if missing. Mismatched models return `400`.
+
+---
 
 ## Semantic Cache
 
@@ -142,21 +150,22 @@ GET /api/cache/stats
 DELETE /api/cache/stats
 ```
 
-Ví dụ phản hồi:```json
-{
-"semanticCache": {
-"memorySize": 42,
-"memoryMaxSize": 500,
-"dbSize": 128,
-"hitRate": 0.65
-},
-"idempotency": {
-"activeKeys": 3,
-"windowMs": 5000
-}
-}
+Response example:
 
-````
+```json
+{
+  "semanticCache": {
+    "memorySize": 42,
+    "memoryMaxSize": 500,
+    "dbSize": 128,
+    "hitRate": 0.65
+  },
+  "idempotency": {
+    "activeKeys": 3,
+    "windowMs": 5000
+  }
+}
+```
 
 ---
 
@@ -164,129 +173,188 @@ Ví dụ phản hồi:```json
 
 ### Authentication
 
-| Điểm cuối | Phương pháp | Mô tả |
+| Endpoint                      | Method  | Description           |
 | ----------------------------- | ------- | --------------------- |
-| `/api/auth/đăng nhập` | ĐĂNG | Đăng nhập |
-| `/api/auth/logout` | ĐĂNG | Đăng xuất |
-| `/api/settings/require-login` | NHẬN/ĐẶT | Chuyển đổi yêu cầu đăng nhập |### Provider Management
+| `/api/auth/login`             | POST    | Login                 |
+| `/api/auth/logout`            | POST    | Logout                |
+| `/api/settings/require-login` | GET/PUT | Toggle login required |
 
-| Điểm cuối | Phương pháp | Mô tả |
-| ---------------------------- | --------------- | ------------------------ |
-| `/api/nhà cung cấp` | NHẬN/ĐĂNG | Liệt kê/tạo nhà cung cấp |
-| `/api/nhà cung cấp/[id]` | NHẬN/ĐẶT/XÓA | Quản lý nhà cung cấp |
-| `/api/providers/[id]/test` | ĐĂNG | Kết nối nhà cung cấp thử nghiệm |
-| `/api/providers/[id]/models` | NHẬN | Liệt kê mô hình nhà cung cấp |
-| `/api/nhà cung cấp/xác thực` | ĐĂNG | Xác thực cấu hình nhà cung cấp |
-| `/api/provider-nodes*` | Khác nhau | Quản lý nút nhà cung cấp |
-| `/api/nhà cung cấp-model` | NHẬN/ĐĂNG/XÓA | Mô hình tùy chỉnh |### OAuth Flows
+### Provider Management
 
-| Điểm cuối | Phương pháp | Mô tả |
-| -------------------------------- | ------- | -------------- |
-| `/api/oauth/[nhà cung cấp]/[hành động]` | Khác nhau | OAuth dành riêng cho nhà cung cấp |### Routing & Config
+| Endpoint                     | Method                | Description                                    |
+| ---------------------------- | --------------------- | ---------------------------------------------- |
+| `/api/providers`             | GET/POST              | List / create providers                        |
+| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                              |
+| `/api/providers/[id]/test`   | POST                  | Test provider connection                       |
+| `/api/providers/[id]/models` | GET                   | List provider models                           |
+| `/api/providers/validate`    | POST                  | Validate provider config                       |
+| `/api/provider-nodes*`       | Various               | Provider node management                       |
+| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete) |
 
-| Điểm cuối | Phương pháp | Mô tả |
+### OAuth Flows
+
+| Endpoint                         | Method  | Description             |
+| -------------------------------- | ------- | ----------------------- |
+| `/api/oauth/[provider]/[action]` | Various | Provider-specific OAuth |
+
+### Routing & Config
+
+| Endpoint              | Method   | Description                   |
 | --------------------- | -------- | ----------------------------- |
-| `/api/model/bí danh` | NHẬN/ĐĂNG | Bí danh mẫu |
-| `/api/model/catalog` | NHẬN | Tất cả các mô hình theo nhà cung cấp + loại |
-| `/api/combos*` | Khác nhau | Quản lý kết hợp |
-| `/api/keys*` | Khác nhau | Quản lý khóa API |
-| `/api/giá` | NHẬN | Giá mẫu |### Usage & Analytics
+| `/api/models/alias`   | GET/POST | Model aliases                 |
+| `/api/models/catalog` | GET      | All models by provider + type |
+| `/api/combos*`        | Various  | Combo management              |
+| `/api/keys*`          | Various  | API key management            |
+| `/api/pricing`        | GET      | Model pricing                 |
 
-| Điểm cuối | Phương pháp | Mô tả |
-| ----------------------------- | ------ | -------------------- |
-| `/api/usage/history` | NHẬN | Lịch sử sử dụng |
-| `/api/usage/log` | NHẬN | Nhật ký sử dụng |
-| `/api/usage/request-logs` | NHẬN | Nhật ký cấp yêu cầu |
-| `/api/usage/[connectionId]` | NHẬN | Mức sử dụng trên mỗi kết nối |### Settings
+### Usage & Analytics
 
-| Điểm cuối | Phương pháp | Mô tả |
+| Endpoint                    | Method | Description          |
+| --------------------------- | ------ | -------------------- |
+| `/api/usage/history`        | GET    | Usage history        |
+| `/api/usage/logs`           | GET    | Usage logs           |
+| `/api/usage/request-logs`   | GET    | Request-level logs   |
+| `/api/usage/[connectionId]` | GET    | Per-connection usage |
+
+### Settings
+
+| Endpoint                        | Method        | Description            |
 | ------------------------------- | ------------- | ---------------------- |
-| `/api/settings` | NHẬN/PUT/PATCH | Cài đặt chung |
-| `/api/settings/proxy` | NHẬN/ĐẶT | Cấu hình proxy mạng |
-| `/api/settings/proxy/test` | ĐĂNG | Kiểm tra kết nối proxy |
-| `/api/settings/ip-filter` | NHẬN/ĐẶT | Danh sách cho phép/danh sách chặn IP |
-| `/api/settings/thinking-budget` | NHẬN/ĐẶT | Lập luận về ngân sách mã thông báo |
-| `/api/settings/system-prompt` | NHẬN/ĐẶT | Lời nhắc hệ thống toàn cầu |### Monitoring
+| `/api/settings`                 | GET/PUT/PATCH | General settings       |
+| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
+| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
+| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
+| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
+| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
 
-| Điểm cuối | Phương pháp | Mô tả |
-| ------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------- |
-| `/api/phiên` | NHẬN | Theo dõi phiên hoạt động |
-| `/api/rate-giới hạn` | NHẬN | Giới hạn tỷ lệ cho mỗi tài khoản |
-| `/api/giám sát/sức khỏe` | NHẬN | Kiểm tra sức khỏe + tóm tắt nhà cung cấp (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
-| `/api/cache/stats` | NHẬN/XÓA | Thống kê bộ nhớ đệm / xóa |### Backup & Export/Import
+### Monitoring
 
-| Điểm cuối | Phương pháp | Mô tả |
-| ----------------------------- | ------ | ------------------------------ |
-| `/api/db-backups` | NHẬN | Liệt kê các bản sao lưu có sẵn |
-| `/api/db-backups` | ĐƯA | Tạo bản sao lưu thủ công |
-| `/api/db-backups` | ĐĂNG | Khôi phục từ bản sao lưu cụ thể |
-| `/api/db-backups/export` | NHẬN | Tải xuống cơ sở dữ liệu dưới dạng tệp .sqlite |
-| `/api/db-backups/import` | ĐĂNG | Tải lên tệp .sqlite để thay thế cơ sở dữ liệu |
-| `/api/db-backups/exportAll` | NHẬN | Tải xuống bản sao lưu đầy đủ dưới dạng kho lưu trữ .tar.gz |### Cloud Sync
+| Endpoint                 | Method     | Description                                                                                          |
+| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
+| `/api/sessions`          | GET        | Active session tracking                                                                              |
+| `/api/rate-limits`       | GET        | Per-account rate limits                                                                              |
+| `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
+| `/api/cache/stats`       | GET/DELETE | Cache stats / clear                                                                                  |
 
-| Điểm cuối | Phương pháp | Mô tả |
+### Backup & Export/Import
+
+| Endpoint                    | Method | Description                             |
+| --------------------------- | ------ | --------------------------------------- |
+| `/api/db-backups`           | GET    | List available backups                  |
+| `/api/db-backups`           | PUT    | Create a manual backup                  |
+| `/api/db-backups`           | POST   | Restore from a specific backup          |
+| `/api/db-backups/export`    | GET    | Download database as .sqlite file       |
+| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database |
+| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive |
+
+### Cloud Sync
+
+| Endpoint               | Method  | Description           |
 | ---------------------- | ------- | --------------------- |
-| `/api/sync/cloud` | Khác nhau | Hoạt động đồng bộ hóa đám mây |
-| `/api/sync/khởi tạo` | ĐĂNG | Khởi tạo đồng bộ hóa |
-| `/api/cloud/*` | Khác nhau | Quản lý đám mây |### Tunnels
+| `/api/sync/cloud`      | Various | Cloud sync operations |
+| `/api/sync/initialize` | POST    | Initialize sync       |
+| `/api/cloud/*`         | Various | Cloud management      |
 
-| Điểm cuối | Phương pháp | Mô tả |
+### Tunnels
+
+| Endpoint                   | Method | Description                                                             |
 | -------------------------- | ------ | ----------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | NHẬN | Đọc trạng thái cài đặt/thời gian chạy của Cloudflare Quick Tunnel cho bảng điều khiển |
-| `/api/tunnels/cloudflared` | ĐĂNG | Bật hoặc tắt Đường hầm nhanh Cloudflare (`action=enable/disable`) |### CLI Tools
+| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
+| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
 
-| Điểm cuối | Phương pháp | Mô tả |
+### CLI Tools
+
+| Endpoint                           | Method | Description         |
 | ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings` | NHẬN | Trạng thái Claude CLI |
-| `/api/cli-tools/codex-settings` | NHẬN | Trạng thái CLI của Codex |
-| `/api/cli-tools/droid-settings` | NHẬN | Trạng thái CLI của Droid |
-| `/api/cli-tools/openclaw-settings` | NHẬN | Trạng thái CLI OpenClaw |
-| `/api/cli-tools/runtime/[toolId]` | NHẬN | Thời gian chạy CLI chung |
+| `/api/cli-tools/claude-settings`   | GET    | Claude CLI status   |
+| `/api/cli-tools/codex-settings`    | GET    | Codex CLI status    |
+| `/api/cli-tools/droid-settings`    | GET    | Droid CLI status    |
+| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI status |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | Generic CLI runtime |
 
-Các phản hồi CLI bao gồm: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.### ACP Agents
+CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
-| Điểm cuối | Phương pháp | Mô tả |
+### ACP Agents
+
+| Endpoint          | Method | Description                                              |
 | ----------------- | ------ | -------------------------------------------------------- |
-| `/api/acp/đại lý` | NHẬN | Liệt kê tất cả các tác nhân được phát hiện (tích hợp + tùy chỉnh) có trạng thái |
-| `/api/acp/đại lý` | ĐĂNG | Thêm tác nhân tùy chỉnh hoặc bộ đệm phát hiện làm mới |
-| `/api/acp/đại lý` | XÓA | Xóa tác nhân tùy chỉnh theo thông số truy vấn `id` |
+| `/api/acp/agents` | GET    | List all detected agents (built-in + custom) with status |
+| `/api/acp/agents` | POST   | Add custom agent or refresh detection cache              |
+| `/api/acp/agents` | DELETE | Remove a custom agent by `id` query param                |
 
-Phản hồi NHẬN bao gồm `tác nhân[]` (id, tên, nhị phân, phiên bản, đã cài đặt, giao thức, isCustom) và `tóm tắt` (tổng cộng, đã cài đặt, notFound, tích hợp, tùy chỉnh).### Resilience & Rate Limits
+GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
 
-| Điểm cuối | Phương pháp | Mô tả |
-| -------------- | --------- | ------------------------------- |
-| `/api/khả năng phục hồi` | NHẬN/PATCH | Nhận/cập nhật hồ sơ khả năng phục hồi |
-| `/api/khả năng phục hồi/đặt lại` | ĐĂNG | Đặt lại bộ ngắt mạch |
-| `/api/rate-giới hạn` | NHẬN | Trạng thái giới hạn tỷ lệ cho mỗi tài khoản |
-| `/api/rate-giới hạn` | NHẬN | Cấu hình giới hạn tốc độ toàn cầu |### Evals
+### Resilience & Rate Limits
 
-| Điểm cuối | Phương pháp | Mô tả |
+| Endpoint                | Method    | Description                     |
+| ----------------------- | --------- | ------------------------------- |
+| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
+| `/api/resilience/reset` | POST      | Reset circuit breakers          |
+| `/api/rate-limits`      | GET       | Per-account rate limit status   |
+| `/api/rate-limit`       | GET       | Global rate limit configuration |
+
+### Evals
+
+| Endpoint     | Method   | Description                       |
 | ------------ | -------- | --------------------------------- |
-| `/api/eval` | NHẬN/ĐĂNG | Liệt kê các bộ đánh giá / đánh giá chạy |### Policies
+| `/api/evals` | GET/POST | List eval suites / run evaluation |
 
-| Điểm cuối | Phương pháp | Mô tả |
-| --------------- | --------------- | -------------- |
-| `/api/chính sách` | NHẬN/ĐĂNG/XÓA | Quản lý chính sách định tuyến |### Compliance
+### Policies
 
-| Điểm cuối | Phương pháp | Mô tả |
-| ----------------------------- | ------ | ----------------------------- |
-| `/api/tuân thủ/nhật ký kiểm toán` | NHẬN | Nhật ký kiểm tra tuân thủ (N cuối cùng) |### v1beta (Gemini-Compatible)
+| Endpoint        | Method          | Description             |
+| --------------- | --------------- | ----------------------- |
+| `/api/policies` | GET/POST/DELETE | Manage routing policies |
 
-| Điểm cuối | Phương pháp | Mô tả |
+### Compliance
+
+| Endpoint                    | Method | Description                   |
+| --------------------------- | ------ | ----------------------------- |
+| `/api/compliance/audit-log` | GET    | Compliance audit log (last N) |
+
+### v1beta (Gemini-Compatible)
+
+| Endpoint                   | Method | Description                       |
 | -------------------------- | ------ | --------------------------------- |
-| `/v1beta/model` | NHẬN | Liệt kê các mô hình ở định dạng Gemini |
-| `/v1beta/models/{...path}` | ĐĂNG | Điểm cuối `generateContent` của Gemini |
+| `/v1beta/models`           | GET    | List models in Gemini format      |
+| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint |
 
-Các điểm cuối này phản ánh định dạng API của Gemini dành cho những khách hàng mong đợi khả năng tương thích SDK Gemini gốc.### Internal / System APIs
+These endpoints mirror Gemini's API format for clients that expect native Gemini SDK compatibility.
 
-| Điểm cuối | Phương pháp | Mô tả |
-| --------------- | ------ | ------------------------------------------------------------------- |
-| `/api/init` | NHẬN | Kiểm tra khởi tạo ứng dụng (được sử dụng trong lần chạy đầu tiên) |
-| `/api/tag` | NHẬN | Thẻ mô hình tương thích với Ollama (dành cho khách hàng Ollama) |
-| `/api/khởi động lại` | ĐĂNG | Kích hoạt khởi động lại máy chủ duyên dáng |
-| `/api/tắt máy` | ĐĂNG | Kích hoạt tắt máy chủ duyên dáng |
+### Internal / System APIs
 
->**Lưu ý:**Các điểm cuối này được hệ thống sử dụng nội bộ hoặc để tương thích với máy khách Ollama. Chúng thường không được người dùng cuối gọi.---
+| Endpoint                 | Method | Description                                          |
+| ------------------------ | ------ | ---------------------------------------------------- |
+| `/api/init`              | GET    | Application initialization check (used on first run) |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
+| `/api/restart`           | POST   | Trigger graceful server restart                      |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| `/api/system-info`       | GET    | Generate system diagnostics report                   |
+
+> **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
+
+### OAuth Environment Repair _(v3.6.1+)_
+
+```bash
+POST /api/system/env/repair
+Content-Type: application/json
+
+{
+  "provider": "claude-code"
+}
+```
+
+Repairs missing or corrupted OAuth environment variables for a specific provider. Returns:
+
+```json
+{
+  "success": true,
+  "repaired": ["CLAUDE_CODE_OAUTH_CLIENT_ID", "CLAUDE_CODE_OAUTH_CLIENT_SECRET"],
+  "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
+}
+```
+
+---
 
 ## Audio Transcription
 
@@ -294,63 +362,69 @@ Các điểm cuối này phản ánh định dạng API của Gemini dành cho n
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
-````
+```
 
-Phiên âm các tệp âm thanh bằng Deepgram hoặc AssemblyAI.
+Transcribe audio files using Deepgram or AssemblyAI.
 
-**Lời yêu cầu:**```bash
+**Request:**
+
+```bash
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
- -H "Authorization: Bearer your-api-key" \
- -F "file=@recording.mp3" \
- -F "model=deepgram/nova-3"
+  -H "Authorization: Bearer your-api-key" \
+  -F "file=@recording.mp3" \
+  -F "model=deepgram/nova-3"
+```
 
-````
+**Response:**
 
-**Phản ứng:**```json
+```json
 {
   "text": "Hello, this is the transcribed audio content.",
   "task": "transcribe",
   "language": "en",
   "duration": 12.5
 }
-````
+```
 
-**Các nhà cung cấp được hỗ trợ:**`deepgram/nova-3`, `assemblyai/best`.
+**Supported providers:** `deepgram/nova-3`, `assemblyai/best`.
 
-**Các định dạng được hỗ trợ:**`mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.---
+**Supported formats:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
+
+---
 
 ## Ollama Compatibility
 
-Đối với khách hàng sử dụng định dạng API của Ollama:```bash
+For clients that use Ollama's API format:
 
+```bash
 # Chat endpoint (Ollama format)
-
 POST /v1/api/chat
 
 # Model listing (Ollama format)
-
 GET /api/tags
+```
 
-````
+Requests are automatically translated between Ollama and internal formats.
 
-Các yêu cầu được dịch tự động giữa Ollama và các định dạng nội bộ.---
+---
 
 ## Telemetry
 
 ```bash
 # Get latency telemetry summary (p50/p95/p99 per provider)
 GET /api/telemetry/summary
-````
+```
 
-**Phản ứng:**```json
+**Response:**
+
+```json
 {
-"providers": {
-"claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
-"github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
+  "providers": {
+    "claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
+    "github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
+  }
 }
-}
-
-````
+```
 
 ---
 
@@ -369,7 +443,7 @@ Content-Type: application/json
   "limit": 50.00,
   "period": "monthly"
 }
-````
+```
 
 ---
 
@@ -392,21 +466,23 @@ Content-Type: application/json
 
 ## Request Processing
 
-1. Client gửi yêu cầu tới `/v1/*`
-2. Trình xử lý tuyến gọi `handleChat`, `handleEmbedding`, `handleAudioTranscription` hoặc `handleImageGeneration`
-3. Mô hình đã được giải quyết (nhà cung cấp/mô hình trực tiếp hoặc bí danh/combo)
-4. Thông tin xác thực được chọn từ DB cục bộ với tính năng lọc tính khả dụng của tài khoản
-5. Để trò chuyện: `handleChatCore` — phát hiện định dạng, dịch thuật, kiểm tra bộ đệm, kiểm tra idempotency
-6. Người thực thi nhà cung cấp gửi yêu cầu ngược dòng
-7. Phản hồi được dịch trở lại định dạng máy khách (trò chuyện) hoặc trả về nguyên trạng (nhúng/hình ảnh/âm thanh)
-8. Việc sử dụng/ghi nhật ký được ghi lại
-9. Dự phòng áp dụng cho các lỗi theo quy tắc kết hợp
+1. Client sends request to `/v1/*`
+2. Route handler calls `handleChat`, `handleEmbedding`, `handleAudioTranscription`, or `handleImageGeneration`
+3. Model is resolved (direct provider/model or alias/combo)
+4. Credentials selected from local DB with account availability filtering
+5. For chat: `handleChatCore` — format detection, translation, cache check, idempotency check
+6. Provider executor sends upstream request
+7. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
+8. Usage/logging recorded
+9. Fallback applies on errors according to combo rules
 
-Tham khảo kiến trúc đầy đủ: [`ARCHITECTURE.md`](ARCHITECTURE.md)---
+Full architecture reference: [`ARCHITECTURE.md`](ARCHITECTURE.md)
+
+---
 
 ## Authentication
 
-- Các tuyến bảng điều khiển (`/dashboard/*`) sử dụng cookie `auth_token`
-- Đăng nhập sử dụng hàm băm mật khẩu đã lưu; dự phòng thành `INITIAL_PASSWORD`
-- `requireLogin` có thể chuyển đổi thông qua `/api/settings/require-login`
-- Các tuyến `/v1/*` tùy chọn yêu cầu khóa API Bearer khi `REQUIRE_API_KEY=true`
+- Dashboard routes (`/dashboard/*`) use `auth_token` cookie
+- Login uses saved password hash; fallback to `INITIAL_PASSWORD`
+- `requireLogin` toggleable via `/api/settings/require-login`
+- `/v1/*` routes optionally require Bearer API key when `REQUIRE_API_KEY=true`

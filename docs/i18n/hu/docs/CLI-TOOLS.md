@@ -4,9 +4,11 @@
 
 ---
 
-Ez az útmutató elmagyarázza, hogyan kell telepíteni és konfigurálni az összes támogatott AI kódoló CLI eszközt
-az**OmniRoute**egységes háttérként való használata, amely központi kulcskezelést biztosít,
-költségkövetés, modellváltás és kérések naplózása minden eszközön.---
+This guide explains how to install and configure all supported AI coding CLI tools
+to use **OmniRoute** as the unified backend, giving you centralized key management,
+cost tracking, model switching, and request logging across every tool.
+
+---
 
 ## How It Works
 
@@ -20,113 +22,119 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilo
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
-**Előnyök:**
+**Benefits:**
 
-- Egy API-kulcs az összes eszköz kezeléséhez
-- Költségkövetés az összes CLI-ben az irányítópulton
-- Modellváltás minden szerszám újrakonfigurálása nélkül
-- Helyben és távoli szervereken (VPS) működik---
+- One API key to manage all tools
+- Cost tracking across all CLIs in the dashboard
+- Model switching without reconfiguring every tool
+- Works locally and on remote servers (VPS)
+
+---
 
 ## Supported Tools (Dashboard Source of Truth)
 
-A „/dashboard/cli-tools” irányítópult-kártyái az „src/shared/constants/cliTools.ts” fájlból jönnek létre.
-Jelenlegi lista (v3.0.0-rc.16):
+The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
+Current list (v3.0.0-rc.16):
 
-| Szerszám               | ID               | Parancs       | Beállítási mód | Telepítési módszer |
-| ---------------------- | ---------------- | ------------- | -------------- | ------------------ | -------------------------------------------- |
-| **Claude Code**        | `claude`         | `claude`      | env            | npm                |
-| **OpenAI Codex**       | "kódex"          | "kódex"       | egyedi         | npm                |
-| **Gyári droid**        | "droid"          | "droid"       | egyedi         | csomagban/CLI      |
-| **OpenClaw**           | "nyílt karmú"    | "nyílt karmú" | egyedi         | csomagban/CLI      |
-| **Kurzor**             | "kurzor"         | app           | útmutató       | asztali alkalmazás |
-| **Cline**              | "cline"          | "cline"       | egyedi         | npm                |
-| **Kiló kód**           | "kiló"           | "kilokód"     | egyedi         | npm                |
-| **Folytatás**          | "folytatás"      | kiterjesztése | útmutató       | VS kód             |
-| **Antigravitáció**     | "antigravitáció" | belső         | mitm           | OmniRoute          |
-| **GitHub másodpilóta** | "másodpilóta"    | kiterjesztése | egyedi         | VS kód             |
-| **OpenCode**           | "nyitott kód"    | "nyitott kód" | útmutató       | npm                |
-| **Kiro AI**            | "kiro"           | app/cli       | mitm           | asztali/CLI        | ### CLI fingerprint sync (Agents + Settings) |
+| Tool               | ID            | Command    | Setup Mode | Install Method |
+| ------------------ | ------------- | ---------- | ---------- | -------------- |
+| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
+| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
+| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
+| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
+| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
+| **Cline**          | `cline`       | `cline`    | custom     | npm            |
+| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
+| **Continue**       | `continue`    | extension  | guide      | VS Code        |
+| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
+| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
+| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
+| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
+| **Qwen Code**      | `qwen`        | `qwen`     | custom     | npm            |
 
-A „/dashboard/agents” és a „Settings > CLI Fingerprint” az „src/shared/constants/cliCompatProviders.ts” fájlt használja.
-Ez a szolgáltatói azonosítókat a CLI-kártyákhoz és a régi azonosítókhoz igazítja.
+### CLI fingerprint sync (Agents + Settings)
 
-| CLI ID                                                                                                  | Ujjlenyomat-szolgáltató azonosítója |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| "kiló"                                                                                                  | "kilokód"                           |
-| "másodpilóta"                                                                                           | "github"                            |
-| "claude" / "codex" / "antigravitáció" / "kiro" / "kurzor" / "cline" / "opencode" / "droid" / "openclaw" | ugyanaz az azonosító                |
+`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
+This keeps provider IDs aligned with CLI cards and legacy IDs.
 
-A kompatibilitás szempontjából továbbra is elfogadott régebbi azonosítók: "copilot", "kimi-coding", "qwen".---
+| CLI ID                                                                                               | Fingerprint Provider ID |
+| ---------------------------------------------------------------------------------------------------- | ----------------------- |
+| `kilo`                                                                                               | `kilocode`              |
+| `copilot`                                                                                            | `github`                |
+| `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
+
+Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
+
+---
 
 ## Step 1 — Get an OmniRoute API Key
 
-1. Nyissa meg az OmniRoute irányítópultot →**API Manager**(`/dashboard/api-manager`)
-2. Kattintson az**API-kulcs létrehozása**lehetőségre.
-3. Adjon neki nevet (pl. "cli-tools"), és válassza ki az összes engedélyt
-4. Másolja ki a kulcsot – minden alábbi CLI-hez szüksége lesz rá
+1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
+2. Click **Create API Key**
+3. Give it a name (e.g. `cli-tools`) and select all permissions
+4. Copy the key — you'll need it for every CLI below
 
-> A kulcs így néz ki: "sk-xxxxxxxxxxxxxxxxx-xxxxxxxxxx"---
+> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+
+---
 
 ## Step 2 — Install CLI Tools
 
-Minden npm-alapú eszközhöz Node.js 18+ szükséges:```bash
+All npm-based tools require Node.js 18+:
 
+```bash
 # Claude Code (Anthropic)
-
 npm install -g @anthropic-ai/claude-code
 
 # OpenAI Codex
-
 npm install -g @openai/codex
 
 # OpenCode
-
 npm install -g opencode-ai
 
 # Cline
-
 npm install -g cline
 
 # KiloCode
-
 npm install -g kilocode
 
 # Kiro CLI (Amazon — requires curl + unzip)
-
-apt-get install -y unzip # on Debian/Ubuntu
+apt-get install -y unzip   # on Debian/Ubuntu
 curl -fsSL https://cli.kiro.dev/install | bash
-export PATH="$HOME/.local/bin:$PATH" # add to ~/.bashrc
+export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
+```
 
-````
+**Verify:**
 
-**Ellenőrzés:**```bash
+```bash
 claude --version     # 2.x.x
 codex --version      # 0.x.x
 opencode --version   # x.x.x
 cline --version      # 2.x.x
 kilocode --version   # x.x.x (or: kilo --version)
 kiro-cli --version   # 1.x.x
-````
+```
 
 ---
 
 ## Step 3 — Set Global Environment Variables
 
-Adja hozzá a "~/.bashrc" (vagy "~/.zshrc") fájlhoz, majd futtassa a "source ~/.bashrc" parancsot:```bash
+Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
 
+```bash
 # OmniRoute Universal Endpoint
-
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
 export ANTHROPIC_API_KEY="sk-your-omniroute-key"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
 export GEMINI_API_KEY="sk-your-omniroute-key"
+```
 
-````
+> For a **remote server** replace `localhost:20128` with the server IP or domain,
+> e.g. `http://192.168.0.15:20128`.
 
->**Távoli szerver**esetén cserélje ki a `localhost:20128' szót a szerver IP-címére vagy tartományára,
-> pl. "http://192.168.0.15:20128".---
+---
 
 ## Step 4 — Configure Each Tool
 
@@ -143,9 +151,11 @@ mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
   "apiKey": "sk-your-omniroute-key"
 }
 EOF
-````
+```
 
-**Teszt:**`claude "köszönj"`---
+**Test:** `claude "say hello"`
+
+---
 
 ### OpenAI Codex
 
@@ -157,7 +167,9 @@ apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
 
-**Teszt:**"mi a 2+2?" kódex---
+**Test:** `codex "what is 2+2?"`
+
+---
 
 ### OpenCode
 
@@ -169,45 +181,57 @@ api_key = "sk-your-omniroute-key"
 EOF
 ```
 
-**Teszt:**"nyílt kód".---
+**Test:** `opencode`
+
+---
 
 ### Cline (CLI or VS Code)
 
-**CLI mód:**```bash
+**CLI mode:**
+
+```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
-"apiProvider": "openai",
-"openAiBaseUrl": "http://localhost:20128/v1",
-"openAiApiKey": "sk-your-omniroute-key"
+  "apiProvider": "openai",
+  "openAiBaseUrl": "http://localhost:20128/v1",
+  "openAiApiKey": "sk-your-omniroute-key"
 }
 EOF
+```
 
-````
+**VS Code mode:**
+Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-**VS kód mód:**
-Klinikabővítmény beállításai → API-szolgáltató: "OpenAI-kompatibilis" → Alap URL: "http://localhost:20128/v1"
+Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
 
-Vagy használja az OmniRoute irányítópultot →**CLI Tools → Cline → Apply Config**.---
+---
 
 ### KiloCode (CLI or VS Code)
 
-**CLI mód:**```bash
+**CLI mode:**
+
+```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
-````
+```
 
-**VS kód beállításai:**```json
+**VS Code settings:**
+
+```json
 {
-"kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-"kilo-code.apiKey": "sk-your-omniroute-key"
+  "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
+  "kilo-code.apiKey": "sk-your-omniroute-key"
 }
+```
 
-````
+Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
 
-Vagy használja az OmniRoute irányítópultot →**CLI Tools → KiloCode → Apply Config**.---
+---
 
 ### Continue (VS Code Extension)
 
-Szerkessze a `~/.continue/config.yaml` fájlt:```yaml
+Edit `~/.continue/config.yaml`:
+
+```yaml
 models:
   - name: OmniRoute
     provider: openai
@@ -215,9 +239,11 @@ models:
     apiBase: http://localhost:20128/v1
     apiKey: sk-your-omniroute-key
     default: true
-````
+```
 
-Szerkesztés után indítsa újra a VS kódot.---
+Restart VS Code after editing.
+
+---
 
 ### Kiro CLI (Amazon)
 
@@ -232,57 +258,116 @@ kiro-cli status
 
 ---
 
+### Qwen Code (Alibaba)
+
+Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
+
+**Option 1: Environment variables (`~/.qwen/.env`)**
+
+```bash
+mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
+OPENAI_API_KEY="sk-your-omniroute-key"
+OPENAI_BASE_URL="http://localhost:20128/v1"
+OPENAI_MODEL="auto"
+EOF
+```
+
+**Option 2: `settings.json` with model providers**
+
+```json
+// ~/.qwen/settings.json
+{
+  "env": {
+    "OPENAI_API_KEY": "sk-your-omniroute-key",
+    "OPENAI_BASE_URL": "http://localhost:20128/v1"
+  },
+  "modelProviders": {
+    "openai": [
+      {
+        "id": "omniroute-default",
+        "name": "OmniRoute (Auto)",
+        "envKey": "OPENAI_API_KEY",
+        "baseUrl": "http://localhost:20128/v1"
+      }
+    ]
+  }
+}
+```
+
+**Option 3: Inline CLI flags**
+
+```bash
+OPENAI_BASE_URL="http://localhost:20128/v1" \
+OPENAI_API_KEY="sk-your-omniroute-key" \
+OPENAI_MODEL="auto" \
+qwen
+```
+
+> For a **remote server** replace `localhost:20128` with the server IP or domain.
+
+**Test:** `qwen "say hello"`
+
 ### Cursor (Desktop App)
 
-> **Megjegyzés:**A kurzor a felhőn keresztül irányítja a kéréseket. Az OmniRoute integrációhoz
-> engedélyezze a**Cloud Endpoint**lehetőséget az OmniRoute beállításaiban, és használja a nyilvános domain URL-jét.
+> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
+> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
 
-GUI-n keresztül:**Beállítások → Modellek → OpenAI API-kulcs**
+Via GUI: **Settings → Models → OpenAI API Key**
 
-- Alap URL: `https://sajat-domain.com/v1`
-- API-kulcs: az Ön OmniRoute-kulcsa---
+- Base URL: `https://your-domain.com/v1`
+- API Key: your OmniRoute key
+
+---
 
 ## Dashboard Auto-Configuration
 
-Az OmniRoute irányítópult a legtöbb eszköz konfigurálását automatizálja:
+The OmniRoute dashboard automates configuration for most tools:
 
-1. Nyissa meg a "http://localhost:20128/dashboard/cli-tools" oldalt.
-2. Bontsa ki bármelyik szerszámkártyát
-3. Válassza ki az API-kulcsot a legördülő menüből
-4. Kattintson az**Apply Config**elemre (ha a rendszer telepített eszközt észlel)
-5. Vagy másolja ki manuálisan a generált konfigurációs kódrészletet---
+1. Go to `http://localhost:20128/dashboard/cli-tools`
+2. Expand any tool card
+3. Select your API key from the dropdown
+4. Click **Apply Config** (if tool is detected as installed)
+5. Or copy the generated config snippet manually
+
+---
 
 ## Built-in Agents: Droid & OpenClaw
 
-A**Droid**és**OpenClaw**közvetlenül az OmniRoute-ba beépített mesterséges intelligencia-ügynökök – nincs szükség telepítésre.
-Belső útvonalként futnak, és automatikusan az OmniRoute modell-útválasztását használják.
+**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
+They run as internal routes and use OmniRoute's model routing automatically.
 
-- Hozzáférés: `http://localhost:20128/dashboard/agents`
-- Konfigurálás: ugyanazok a kombinációk és szolgáltatók, mint az összes többi eszköz
-- Nincs szükség API-kulcsra vagy CLI-telepítésre---
+- Access: `http://localhost:20128/dashboard/agents`
+- Configure: same combos and providers as all other tools
+- No API key or CLI install required
+
+---
 
 ## Available API Endpoints
 
-| Végpont                    | Leírás                               | Használja                      |
-| -------------------------- | ------------------------------------ | ------------------------------ | --- |
-| "/v1/chat/completions"     | Normál csevegés (minden szolgáltató) | Minden modern eszköz           |
-| "/v1/responses"            | Responses API (OpenAI formátum)      | Codex, ügynöki munkafolyamatok |
-| "/v1/befejezések"          | Hagyományos szövegkiegészítések      | Régebbi, `prompt:`             |
-| "/v1/beágyazások"          | Szöveg beágyazások                   | RAG, keresés                   |
-| "/v1/images/generations"   | Képgenerálás                         | DALL-E, Flux stb.              |
-| "/v1/audio/speech"         | Szövegfelolvasó                      | ElevenLabs, OpenAI TTS         |
-| "/v1/audio/transcriptions" | Beszéd-szöveg                        | Deepgram, AssemblyAI           | --- |
+| Endpoint                   | Description                   | Use For                     |
+| -------------------------- | ----------------------------- | --------------------------- |
+| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
+| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
+| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
+| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
+| `/v1/images/generations`   | Image generation              | DALL-E, Flux, etc.          |
+| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
+| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
+
+---
 
 ## Hibaelhárítás
 
-| Hiba                                      | Ok                             | Fix                                                                      |
-| ----------------------------------------- | ------------------------------ | ------------------------------------------------------------------------ | --- |
-| "Kapcsolat elutasítva"                    | Az OmniRoute nem fut           | `pm2 start omniroute`                                                    |
-| "401 Jogosulatlan"                        | Hibás API-kulcs                | Bejelentkezés: `/dashboard/api-manager`                                  |
-| `Nincs kombó konfigurálva`                | Nincs aktív útválasztási kombó | Beállítás itt: `/dashboard/combos`                                       |
-| `érvénytelen modell`                      | Modell nincs a katalógusban    | Használja az „auto” beállítást, vagy jelölje be a „/dashboard/providers” |
-| A CLI azt mutatja, hogy "nincs telepítve" | Bináris nem a PATH             | Jelölje be, `melyik <parancs>`                                           |
-| `kiro-cli: nem található`                 | Nem a PATH                     | `export PATH="$HOME/.local/bin:$PATH"`                                   | --- |
+| Error                     | Cause                   | Fix                                        |
+| ------------------------- | ----------------------- | ------------------------------------------ |
+| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
+| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
+| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
+| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
+| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
+| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
+
+---
 
 ## Quick Setup Script (One Command)
 
@@ -291,7 +376,7 @@ Belső útvonalként futnak, és automatikusan az OmniRoute modell-útválasztá
 OMNIROUTE_URL="http://localhost:20128/v1"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
-npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
 
 # Kiro CLI
 apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash

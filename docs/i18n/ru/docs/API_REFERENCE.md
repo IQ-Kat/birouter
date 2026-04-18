@@ -4,19 +4,23 @@
 
 ---
 
-Полный справочник по всем конечным точкам API OmniRoute.---
+Complete reference for all OmniRoute API endpoints.
+
+---
 
 ## Table of Contents
 
-- [Завершения чата](#chat-complements)
-- [Встраивания](#встраивания)
-- [Генерация изображения](#image-generation)
-- [Список моделей](#list-models)
-- [Конечные точки совместимости](#compatibility-endpoints)
-- [Семантический кэш](#semantic-cache)
-- [Панель управления и управление](#dashboard--management)
-- [Обработка запроса](#request-processing)
-- [Аутентификация](#аутентификация)---
+- [Chat Completions](#chat-completions)
+- [Embeddings](#embeddings)
+- [Image Generation](#image-generation)
+- [List Models](#list-models)
+- [Compatibility Endpoints](#compatibility-endpoints)
+- [Semantic Cache](#semantic-cache)
+- [Dashboard & Management](#dashboard--management)
+- [Request Processing](#request-processing)
+- [Authentication](#authentication)
+
+---
 
 ## Chat Completions
 
@@ -36,20 +40,22 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| Заголовок                | Направление | Описание                                                 |
-| ------------------------ | ----------- | -------------------------------------------------------- |
-| `X-OmniRoute-No-Cache`   | Запрос      | Установите значение true для обхода кэша                 |
-| `X-OmniRoute-Прогресс`   | Запрос      | Установите значение true для событий хода выполнения     |
-| `X-Session-Id`           | Запрос      | Закрепленный сеансовый ключ для привязки внешнего сеанса |
-| `x_session_id`           | Запрос      | Также принимается вариант с подчеркиванием (прямой HTTP) |
-| `Идемпотентный ключ`     | Запрос      | Ключ дедупликации (окно 5s)                              |
-| `X-Request-Id`           | Запрос      | Альтернативный ключ дедупликации                         |
-| `X-OmniRoute-Cache`      | Ответ       | `HIT` или `MISS` (без потоковой передачи)                |
-| `X-OmniRoute-Идемпотент` | Ответ       | `true`, если дедуплицировано                             |
-| `X-OmniRoute-Прогресс`   | Ответ       | `включено`, если отслеживание прогресса включено         |
-| `X-OmniRoute-Session-Id` | Ответ       | Эффективный идентификатор сеанса, используемый OmniRoute |
+| Header                   | Direction | Description                                      |
+| ------------------------ | --------- | ------------------------------------------------ |
+| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
+| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
+| `X-Session-Id`           | Request   | Sticky session key for external session affinity |
+| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
+| `Idempotency-Key`        | Request   | Dedup key (5s window)                            |
+| `X-Request-Id`           | Request   | Alternative dedup key                            |
+| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                  |
+| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
+| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
+| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
 
-> Примечание Nginx: если вы используете заголовки подчеркивания (например, `x_session_id`), включите `underscores_in_headers on;`.---
+> Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
+
+---
 
 ## Embeddings
 
@@ -64,13 +70,12 @@ Content-Type: application/json
 }
 ```
 
-Доступные провайдеры: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA.```bash
+Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, **GitHub Models**.
 
+```bash
 # List all embedding models
-
 GET /v1/embeddings
-
-````
+```
 
 ---
 
@@ -86,15 +91,14 @@ Content-Type: application/json
   "prompt": "A beautiful sunset over mountains",
   "size": "1024x1024"
 }
-````
+```
 
-Доступные провайдеры: OpenAI (DALL-E), xAI (Grok Image), Together AI (FLUX), Fireworks AI.```bash
+Available providers: OpenAI (DALL-E, GPT Image 1), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
 
+```bash
 # List all image models
-
 GET /v1/images/generations
-
-````
+```
 
 ---
 
@@ -105,24 +109,26 @@ GET /v1/models
 Authorization: Bearer your-api-key
 
 → Returns all chat, embedding, and image models + combos in OpenAI format
-````
+```
 
 ---
 
 ## Compatibility Endpoints
 
-| Метод    | Путь                        | Формат                   |
-| -------- | --------------------------- | ------------------------ | ----------------------------- |
-| ПОСТ     | `/v1/чат/завершения`        | ОпенАИ                   |
-| ПОСТ     | `/v1/сообщения`             | Антропный                |
-| ПОСТ     | `/v1/ответы`                | Ответы OpenAI            |
-| ПОСТ     | `/v1/вложения`              | ОпенАИ                   |
-| ПОСТ     | `/v1/images/generations`    | ОпенАИ                   |
-| ПОЛУЧИТЬ | `/v1/модели`                | ОпенАИ                   |
-| ПОСТ     | `/v1/messages/count_tokens` | Антропный                |
-| ПОЛУЧИТЬ | `/v1beta/модели`            | Близнецы                 |
-| ПОСТ     | `/v1beta/models/{...path}`  | Близнецы создают контент |
-| ПОСТ     | `/v1/api/chat`              | Оллама                   | ### Dedicated Provider Routes |
+| Method | Path                        | Format                 |
+| ------ | --------------------------- | ---------------------- |
+| POST   | `/v1/chat/completions`      | OpenAI                 |
+| POST   | `/v1/messages`              | Anthropic              |
+| POST   | `/v1/responses`             | OpenAI Responses       |
+| POST   | `/v1/embeddings`            | OpenAI                 |
+| POST   | `/v1/images/generations`    | OpenAI                 |
+| GET    | `/v1/models`                | OpenAI                 |
+| POST   | `/v1/messages/count_tokens` | Anthropic              |
+| GET    | `/v1beta/models`            | Gemini                 |
+| POST   | `/v1beta/models/{...path}`  | Gemini generateContent |
+| POST   | `/v1/api/chat`              | Ollama                 |
+
+### Dedicated Provider Routes
 
 ```bash
 POST /v1/providers/{provider}/chat/completions
@@ -130,7 +136,9 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Префикс провайдера добавляется автоматически, если он отсутствует. Несовпадающие модели возвращают «400».---
+The provider prefix is auto-added if missing. Mismatched models return `400`.
+
+---
 
 ## Semantic Cache
 
@@ -142,21 +150,22 @@ GET /api/cache/stats
 DELETE /api/cache/stats
 ```
 
-Пример ответа:```json
-{
-"semanticCache": {
-"memorySize": 42,
-"memoryMaxSize": 500,
-"dbSize": 128,
-"hitRate": 0.65
-},
-"idempotency": {
-"activeKeys": 3,
-"windowMs": 5000
-}
-}
+Response example:
 
-````
+```json
+{
+  "semanticCache": {
+    "memorySize": 42,
+    "memoryMaxSize": 500,
+    "dbSize": 128,
+    "hitRate": 0.65
+  },
+  "idempotency": {
+    "activeKeys": 3,
+    "windowMs": 5000
+  }
+}
+```
 
 ---
 
@@ -164,129 +173,188 @@ DELETE /api/cache/stats
 
 ### Authentication
 
-| Конечная точка | Метод | Описание |
+| Endpoint                      | Method  | Description           |
 | ----------------------------- | ------- | --------------------- |
-| `/api/auth/login` | ПОСТ | Войти |
-| `/api/auth/выход` | ПОСТ | Выйти |
-| `/api/settings/require-login` | ПОЛУЧИТЬ/ПОСТАВИТЬ | Переключить требуется вход |### Provider Management
+| `/api/auth/login`             | POST    | Login                 |
+| `/api/auth/logout`            | POST    | Logout                |
+| `/api/settings/require-login` | GET/PUT | Toggle login required |
 
-| Конечная точка | Метод | Описание |
-| ---------------------------- | --------------- | ------------------------ |
-| `/api/providers` | ПОЛУЧИТЬ/ОТПРАВИТЬ | Список/создание поставщиков |
-| `/api/providers/[id]` | ПОЛУЧИТЬ/ПОСТАВИТЬ/УДАЛИТЬ | Управление провайдером |
-| `/api/providers/[id]/test` | ПОСТ | Проверка подключения к провайдеру |
-| `/api/providers/[id]/models` | ПОЛУЧИТЬ | Список моделей поставщиков |
-| `/api/providers/validate` | ПОСТ | Проверка конфигурации провайдера |
-| `/api/provider-nodes*` | Разное | Управление узлами провайдера |
-| `/api/provider-models` | ПОЛУЧИТЬ/ОТПРАВИТЬ/УДАЛИТЬ | Нестандартные модели |### OAuth Flows
+### Provider Management
 
-| Конечная точка | Метод | Описание |
+| Endpoint                     | Method                | Description                                    |
+| ---------------------------- | --------------------- | ---------------------------------------------- |
+| `/api/providers`             | GET/POST              | List / create providers                        |
+| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                              |
+| `/api/providers/[id]/test`   | POST                  | Test provider connection                       |
+| `/api/providers/[id]/models` | GET                   | List provider models                           |
+| `/api/providers/validate`    | POST                  | Validate provider config                       |
+| `/api/provider-nodes*`       | Various               | Provider node management                       |
+| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete) |
+
+### OAuth Flows
+
+| Endpoint                         | Method  | Description             |
 | -------------------------------- | ------- | ----------------------- |
-| `/api/oauth/[поставщик]/[действие]` | Разное | OAuth для конкретного поставщика |### Routing & Config
+| `/api/oauth/[provider]/[action]` | Various | Provider-specific OAuth |
 
-| Конечная точка | Метод | Описание |
+### Routing & Config
+
+| Endpoint              | Method   | Description                   |
 | --------------------- | -------- | ----------------------------- |
-| `/api/models/alias` | ПОЛУЧИТЬ/ОТПРАВИТЬ | Псевдонимы моделей |
-| `/api/models/catalog` | ПОЛУЧИТЬ | Все модели по поставщику + типу |
-| `/api/combos*` | Разное | Комбинированное управление |
-| `/api/keys*` | Разное | Управление ключами API |
-| `/api/pricing` | ПОЛУЧИТЬ | Цены на модели |### Usage & Analytics
+| `/api/models/alias`   | GET/POST | Model aliases                 |
+| `/api/models/catalog` | GET      | All models by provider + type |
+| `/api/combos*`        | Various  | Combo management              |
+| `/api/keys*`          | Various  | API key management            |
+| `/api/pricing`        | GET      | Model pricing                 |
 
-| Конечная точка | Метод | Описание |
+### Usage & Analytics
+
+| Endpoint                    | Method | Description          |
 | --------------------------- | ------ | -------------------- |
-| `/api/usage/история` | ПОЛУЧИТЬ | История использования |
-| `/api/usage/logs` | ПОЛУЧИТЬ | Журналы использования |
-| `/api/usage/request-logs` | ПОЛУЧИТЬ | Журналы уровня запроса |
-| `/api/usage/[connectionId]` | ПОЛУЧИТЬ | Использование для каждого соединения |### Settings
+| `/api/usage/history`        | GET    | Usage history        |
+| `/api/usage/logs`           | GET    | Usage logs           |
+| `/api/usage/request-logs`   | GET    | Request-level logs   |
+| `/api/usage/[connectionId]` | GET    | Per-connection usage |
 
-| Конечная точка | Метод | Описание |
+### Settings
+
+| Endpoint                        | Method        | Description            |
 | ------------------------------- | ------------- | ---------------------- |
-| `/api/settings` | ПОЛУЧИТЬ/ПОСТАВИТЬ/ИСПРАВИТЬ | Общие настройки |
-| `/api/settings/proxy` | ПОЛУЧИТЬ/ПОСТАВИТЬ | Конфигурация сетевого прокси |
-| `/api/settings/proxy/test` | ПОСТ | Проверить прокси-соединение |
-| `/api/settings/ip-filter` | ПОЛУЧИТЬ/ПОСТАВИТЬ | Список разрешенных/блокированных IP-адресов |
-| `/api/settings/thinking-budget` | ПОЛУЧИТЬ/ПОСТАВИТЬ | Обоснование бюджета жетона |
-| `/api/settings/system-prompt` | ПОЛУЧИТЬ/ПОСТАВИТЬ | Глобальная системная подсказка |### Monitoring
+| `/api/settings`                 | GET/PUT/PATCH | General settings       |
+| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
+| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
+| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
+| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
+| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
 
-| Конечная точка | Метод | Описание |
+### Monitoring
+
+| Endpoint                 | Method     | Description                                                                                          |
 | ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------- |
-| `/api/сессии` | ПОЛУЧИТЬ | Отслеживание активных сессий |
-| `/api/rate-limits` | ПОЛУЧИТЬ | Ограничения ставок для каждого аккаунта |
-| `/api/monitoring/health` | ПОЛУЧИТЬ | Проверка работоспособности + сводка поставщика (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
-| `/api/cache/stats` | ПОЛУЧИТЬ/УДАЛИТЬ | Статистика кэша / очистить |### Backup & Export/Import
+| `/api/sessions`          | GET        | Active session tracking                                                                              |
+| `/api/rate-limits`       | GET        | Per-account rate limits                                                                              |
+| `/api/monitoring/health` | GET        | Health check + provider summary (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
+| `/api/cache/stats`       | GET/DELETE | Cache stats / clear                                                                                  |
 
-| Конечная точка | Метод | Описание |
+### Backup & Export/Import
+
+| Endpoint                    | Method | Description                             |
 | --------------------------- | ------ | --------------------------------------- |
-| `/api/db-backups` | ПОЛУЧИТЬ | Список доступных резервных копий |
-| `/api/db-backups` | ПУТЬ | Создайте резервную копию вручную |
-| `/api/db-backups` | ПОСТ | Восстановление из определенной резервной копии |
-| `/api/db-backups/export` | ПОЛУЧИТЬ | Загрузить базу данных в виде файла .sqlite |
-| `/api/db-backups/import` | ПОСТ | Загрузите файл .sqlite для замены базы данных |
-| `/api/db-backups/exportAll` | ПОЛУЧИТЬ | Загрузите полную резервную копию в виде архива .tar.gz |### Cloud Sync
+| `/api/db-backups`           | GET    | List available backups                  |
+| `/api/db-backups`           | PUT    | Create a manual backup                  |
+| `/api/db-backups`           | POST   | Restore from a specific backup          |
+| `/api/db-backups/export`    | GET    | Download database as .sqlite file       |
+| `/api/db-backups/import`    | POST   | Upload .sqlite file to replace database |
+| `/api/db-backups/exportAll` | GET    | Download full backup as .tar.gz archive |
 
-| Конечная точка | Метод | Описание |
+### Cloud Sync
+
+| Endpoint               | Method  | Description           |
 | ---------------------- | ------- | --------------------- |
-| `/api/sync/cloud` | Разное | Операции облачной синхронизации |
-| `/api/sync/initialize` | ПОСТ | Инициализировать синхронизацию |
-| `/api/cloud/*` | Разное | Облачное управление |### Tunnels
+| `/api/sync/cloud`      | Various | Cloud sync operations |
+| `/api/sync/initialize` | POST    | Initialize sync       |
+| `/api/cloud/*`         | Various | Cloud management      |
 
-| Конечная точка | Метод | Описание |
+### Tunnels
+
+| Endpoint                   | Method | Description                                                             |
 | -------------------------- | ------ | ----------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | ПОЛУЧИТЬ | Прочитайте статус установки/работы Cloudflare Quick Tunnel для панели мониторинга |
-| `/api/tunnels/cloudflared` | ПОСТ | Включить или отключить быстрый туннель Cloudflare (`action=enable/disable`) |### CLI Tools
+| `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
+| `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
 
-| Конечная точка | Метод | Описание |
+### CLI Tools
+
+| Endpoint                           | Method | Description         |
 | ---------------------------------- | ------ | ------------------- |
-| `/api/cli-tools/claude-settings` | ПОЛУЧИТЬ | Статус Клода CLI |
-| `/api/cli-tools/codex-settings` | ПОЛУЧИТЬ | Статус CLI Кодекса |
-| `/api/cli-tools/droid-settings` | ПОЛУЧИТЬ | Статус Droid CLI |
-| `/api/cli-tools/openclaw-settings` | ПОЛУЧИТЬ | Статус OpenClaw CLI |
-| `/api/cli-tools/runtime/[toolId]` | ПОЛУЧИТЬ | Общая среда выполнения CLI |
+| `/api/cli-tools/claude-settings`   | GET    | Claude CLI status   |
+| `/api/cli-tools/codex-settings`    | GET    | Codex CLI status    |
+| `/api/cli-tools/droid-settings`    | GET    | Droid CLI status    |
+| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI status |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | Generic CLI runtime |
 
-Ответы CLI включают: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.### ACP Agents
+CLI responses include: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
-| Конечная точка | Метод | Описание |
-| ----------------- | ------ | ---------------------------------------- |
-| `/api/acp/агенты` | ПОЛУЧИТЬ | Список всех обнаруженных агентов (встроенных и пользовательских) со статусом |
-| `/api/acp/агенты` | ПОСТ | Добавьте собственный агент или обновите кэш обнаружения |
-| `/api/acp/агенты` | УДАЛИТЬ | Удаление пользовательского агента по параметру запроса `id` |
+### ACP Agents
 
-Ответ GET включает агенты[](идентификатор, имя, двоичный файл, версию, установленный, протокол, isCustom) и сводку (всего, установленных, не найденных, встроенных, пользовательских).### Resilience & Rate Limits
+| Endpoint          | Method | Description                                              |
+| ----------------- | ------ | -------------------------------------------------------- |
+| `/api/acp/agents` | GET    | List all detected agents (built-in + custom) with status |
+| `/api/acp/agents` | POST   | Add custom agent or refresh detection cache              |
+| `/api/acp/agents` | DELETE | Remove a custom agent by `id` query param                |
 
-| Конечная точка | Метод | Описание |
+GET response includes `agents[]` (id, name, binary, version, installed, protocol, isCustom) and `summary` (total, installed, notFound, builtIn, custom).
+
+### Resilience & Rate Limits
+
+| Endpoint                | Method    | Description                     |
 | ----------------------- | --------- | ------------------------------- |
-| `/api/устойчивость` | ПОЛУЧИТЬ/ИСПРАВИТЬ | Получить/обновить профили устойчивости |
-| `/api/resilience/reset` | ПОСТ | Сброс автоматических выключателей |
-| `/api/rate-limits` | ПОЛУЧИТЬ | Статус ограничения ставки для каждого аккаунта |
-| `/api/rate-limit` | ПОЛУЧИТЬ | Конфигурация глобального ограничения скорости |### Evals
+| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
+| `/api/resilience/reset` | POST      | Reset circuit breakers          |
+| `/api/rate-limits`      | GET       | Per-account rate limit status   |
+| `/api/rate-limit`       | GET       | Global rate limit configuration |
 
-| Конечная точка | Метод | Описание |
+### Evals
+
+| Endpoint     | Method   | Description                       |
 | ------------ | -------- | --------------------------------- |
-| `/api/evals` | ПОЛУЧИТЬ/ОТПРАВИТЬ | Получение списка пакетов оценки / запуск оценки |### Policies
+| `/api/evals` | GET/POST | List eval suites / run evaluation |
 
-| Конечная точка | Метод | Описание |
+### Policies
+
+| Endpoint        | Method          | Description             |
 | --------------- | --------------- | ----------------------- |
-| `/api/policies` | ПОЛУЧИТЬ/ОТПРАВИТЬ/УДАЛИТЬ | Управление политиками маршрутизации |### Compliance
+| `/api/policies` | GET/POST/DELETE | Manage routing policies |
 
-| Конечная точка | Метод | Описание |
+### Compliance
+
+| Endpoint                    | Method | Description                   |
 | --------------------------- | ------ | ----------------------------- |
-| `/api/compliance/audit-log` | ПОЛУЧИТЬ | Журнал аудита соответствия (последний N) |### v1beta (Gemini-Compatible)
+| `/api/compliance/audit-log` | GET    | Compliance audit log (last N) |
 
-| Конечная точка | Метод | Описание |
+### v1beta (Gemini-Compatible)
+
+| Endpoint                   | Method | Description                       |
 | -------------------------- | ------ | --------------------------------- |
-| `/v1beta/модели` | ПОЛУЧИТЬ | Список моделей в формате Gemini |
-| `/v1beta/models/{...path}` | ПОСТ | Конечная точка Gemini `generateContent` |
+| `/v1beta/models`           | GET    | List models in Gemini format      |
+| `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint |
 
-Эти конечные точки отражают формат API Gemini для клиентов, которым требуется встроенная совместимость с Gemini SDK.### Internal / System APIs
+These endpoints mirror Gemini's API format for clients that expect native Gemini SDK compatibility.
 
-| Конечная точка | Метод | Описание |
-| --------------- | ------ | ---------------------------------------------------- |
-| `/api/init` | ПОЛУЧИТЬ | Проверка инициализации приложения (используется при первом запуске) |
-| `/api/tags` | ПОЛУЧИТЬ | Теги моделей, совместимые с Ollama (для клиентов Ollama) |
-| `/api/restart` | ПОСТ | Запустить плавный перезапуск сервера |
-| `/api/shutdown` | ПОСТ | Запустить корректное завершение работы сервера |
+### Internal / System APIs
 
->**Примечание.**Эти конечные точки используются внутри системы или для совместимости с клиентом Ollama. Обычно они не вызываются конечными пользователями.---
+| Endpoint                 | Method | Description                                          |
+| ------------------------ | ------ | ---------------------------------------------------- |
+| `/api/init`              | GET    | Application initialization check (used on first run) |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
+| `/api/restart`           | POST   | Trigger graceful server restart                      |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| `/api/system-info`       | GET    | Generate system diagnostics report                   |
+
+> **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
+
+### OAuth Environment Repair _(v3.6.1+)_
+
+```bash
+POST /api/system/env/repair
+Content-Type: application/json
+
+{
+  "provider": "claude-code"
+}
+```
+
+Repairs missing or corrupted OAuth environment variables for a specific provider. Returns:
+
+```json
+{
+  "success": true,
+  "repaired": ["CLAUDE_CODE_OAUTH_CLIENT_ID", "CLAUDE_CODE_OAUTH_CLIENT_SECRET"],
+  "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
+}
+```
+
+---
 
 ## Audio Transcription
 
@@ -294,63 +362,69 @@ DELETE /api/cache/stats
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
-````
+```
 
-Транскрибируйте аудиофайлы с помощью Deepgram или AssemblyAI.
+Transcribe audio files using Deepgram or AssemblyAI.
 
-**Запрос:**```bash
+**Request:**
+
+```bash
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
- -H "Authorization: Bearer your-api-key" \
- -F "file=@recording.mp3" \
- -F "model=deepgram/nova-3"
+  -H "Authorization: Bearer your-api-key" \
+  -F "file=@recording.mp3" \
+  -F "model=deepgram/nova-3"
+```
 
-````
+**Response:**
 
-**Ответ:**```json
+```json
 {
   "text": "Hello, this is the transcribed audio content.",
   "task": "transcribe",
   "language": "en",
   "duration": 12.5
 }
-````
+```
 
-**Поддерживаемые поставщики:**`deepgram/nova-3`, `assemblyai/best`.
+**Supported providers:** `deepgram/nova-3`, `assemblyai/best`.
 
-**Поддерживаемые форматы:**`mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.---
+**Supported formats:** `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
+
+---
 
 ## Ollama Compatibility
 
-Для клиентов, использующих формат API Ollama:```bash
+For clients that use Ollama's API format:
 
+```bash
 # Chat endpoint (Ollama format)
-
 POST /v1/api/chat
 
 # Model listing (Ollama format)
-
 GET /api/tags
+```
 
-````
+Requests are automatically translated between Ollama and internal formats.
 
-Запросы автоматически переводятся между Олламой и внутренними форматами.---
+---
 
 ## Telemetry
 
 ```bash
 # Get latency telemetry summary (p50/p95/p99 per provider)
 GET /api/telemetry/summary
-````
+```
 
-**Ответ:**```json
+**Response:**
+
+```json
 {
-"providers": {
-"claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
-"github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
+  "providers": {
+    "claudeCode": { "p50": 245, "p95": 890, "p99": 1200, "count": 150 },
+    "github": { "p50": 180, "p95": 620, "p99": 950, "count": 320 }
+  }
 }
-}
-
-````
+```
 
 ---
 
@@ -369,7 +443,7 @@ Content-Type: application/json
   "limit": 50.00,
   "period": "monthly"
 }
-````
+```
 
 ---
 
@@ -392,21 +466,23 @@ Content-Type: application/json
 
 ## Request Processing
 
-1. Клиент отправляет запрос `/v1/*`
-2. Обработчик маршрута вызывает handleChat, handleEmbedding, handleAudioTranscription или handleImageGeneration.
-3. Модель разрешена (прямой поставщик/модель или псевдоним/комбо)
-4. Учетные данные, выбранные из локальной базы данных с фильтрацией доступности учетной записи.
-5. Для чата: `handleChatCore` — определение формата, трансляция, проверка кэша, проверка идемпотентности.
-6. Исполнитель провайдера отправляет восходящий запрос.
-7. Ответ переводится обратно в формат клиента (чат) или возвращается в исходном виде (встраивания/изображения/аудио).
-8. Запись использования/регистрации
-9. Резервный вариант применяется при ошибках в соответствии с правилами комбо.
+1. Client sends request to `/v1/*`
+2. Route handler calls `handleChat`, `handleEmbedding`, `handleAudioTranscription`, or `handleImageGeneration`
+3. Model is resolved (direct provider/model or alias/combo)
+4. Credentials selected from local DB with account availability filtering
+5. For chat: `handleChatCore` — format detection, translation, cache check, idempotency check
+6. Provider executor sends upstream request
+7. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
+8. Usage/logging recorded
+9. Fallback applies on errors according to combo rules
 
-Полная ссылка на архитектуру: [`ARCHITECTURE.md`](ARCHITECTURE.md)---
+Full architecture reference: [`ARCHITECTURE.md`](ARCHITECTURE.md)
+
+---
 
 ## Authentication
 
-- Маршруты информационной панели (`/dashboard/*`) используют файл cookie `auth_token`.
-- Для входа используется сохраненный хеш пароля; возврат к `INITIAL_PASSWORD`
-- `requireLogin` переключается через `/api/settings/require-login`
-- Для маршрутов `/v1/*` опционально требуется ключ Bearer API, если `REQUIRE_API_KEY=true`
+- Dashboard routes (`/dashboard/*`) use `auth_token` cookie
+- Login uses saved password hash; fallback to `INITIAL_PASSWORD`
+- `requireLogin` toggleable via `/api/settings/require-login`
+- `/v1/*` routes optionally require Bearer API key when `REQUIRE_API_KEY=true`

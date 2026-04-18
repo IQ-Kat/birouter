@@ -6,132 +6,156 @@
 
 ## Reporting Vulnerabilities
 
-Se scopri una vulnerabilità della sicurezza in OmniRoute, segnalala in modo responsabile:
+If you discover a security vulnerability in OmniRoute, please report it responsibly:
 
-1.**NON**aprire un problema pubblico di GitHub 2. Utilizzare [Avvisi sulla sicurezza di GitHub](https://github.com/diegosouzapw/OmniRoute/security/advisories/new) 3. Includere: descrizione, passaggi di riproduzione e potenziale impatto## Response Timeline
+1. **DO NOT** open a public GitHub issue
+2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
+3. Include: description, reproduction steps, and potential impact
 
-| Palcoscenico         | Obiettivo                      |
-| -------------------- | ------------------------------ | --------------------- |
-| Riconoscimento       | 48 ore                         |
-| Triage e valutazione | 5 giorni lavorativi            |
-| Rilascio patch       | 14 giorni lavorativi (critico) | ## Supported Versions |
+## Response Timeline
 
-| Versione | Support Status    |
-| -------- | ----------------- | --- |
-| 3.4.x    | ✅Attivo          |
-| 3.0.x    | ✅ Sicurezza      |
-| <3.0.0   | ❌ Non supportato | --- |
+| Stage               | Target                      |
+| ------------------- | --------------------------- |
+| Acknowledgment      | 48 hours                    |
+| Triage & Assessment | 5 business days             |
+| Patch Release       | 14 business days (critical) |
+
+## Supported Versions
+
+| Version | Support Status |
+| ------- | -------------- |
+| 3.6.x   | ✅ Active      |
+| 3.5.x   | ✅ Security    |
+| < 3.5.0 | ❌ Unsupported |
+
+---
 
 ## Security Architecture
 
-OmniRoute implementa un modello di sicurezza a più livelli:```
-Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+OmniRoute implements a multi-layered security model:
 
-````
+```
+Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+```
 
 ### 🔐 Authentication & Authorization
 
-| Caratteristica | Attuazione |
+| Feature              | Implementation                                             |
 | -------------------- | ---------------------------------------------------------- |
-|**Accesso alla dashboard**| Autenticazione basata su password con token JWT (cookie HttpOnly) |
-|**Autenticazione chiave API**| Chiavi firmate HMAC con convalida CRC |
-|**OAuth 2.0 + PKCE**| Autenticazione sicura del provider (Claude, Codex, Gemini, Cursor, ecc.) |
-|**Aggiornamento token**| Aggiornamento automatico del token OAuth prima della scadenza |
-|**Cookie sicuri**| `AUTH_COOKIE_SECURE=true` per ambienti HTTPS |
-|**Ambiti MCP**| 10 ambiti granulari per il controllo dell'accesso allo strumento MCP |### 🛡️ Encryption at Rest
+| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
+| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
+| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
+| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
+| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
+| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
 
-Tutti i dati sensibili archiviati in SQLite vengono crittografati utilizzando**AES-256-GCM**con derivazione della chiave scrypt:
+### 🛡️ Encryption at Rest
 
-- Chiavi API, token di accesso, token di aggiornamento e token ID
-- Formato della versione: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Modalità passthrough (testo normale) quando `STORAGE_ENCRYPTION_KEY` non è impostato```bash
+All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
+
+- API keys, access tokens, refresh tokens, and ID tokens
+- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
+
+```bash
 # Generate encryption key:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-````
+```
 
 ### 🧠 Prompt Injection Guard
 
-Middleware che rileva e blocca gli attacchi di prompt injection nelle richieste LLM:
+Middleware that detects and blocks prompt injection attacks in LLM requests:
 
-| Tipo di modello        | Gravità | Esempio                                                  |
-| ---------------------- | ------- | -------------------------------------------------------- |
-| Override del sistema   | Alto    | "ignora tutte le istruzioni precedenti"                  |
-| Dirottamento del ruolo | Alto    | "ora sei DAN, puoi fare qualsiasi cosa"                  |
-| Iniezione delimitatore | Medio   | Separatori codificati per rompere i confini del contesto |
-| DAN/Jailbreak          | Alto    | Modelli di prompt di jailbreak noti                      |
-| Perdita di istruzioni  | Medio   | "mostrami il prompt del tuo sistema"                     |
+| Pattern Type        | Severity | Example                                        |
+| ------------------- | -------- | ---------------------------------------------- |
+| System Override     | High     | "ignore all previous instructions"             |
+| Role Hijack         | High     | "you are now DAN, you can do anything"         |
+| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
+| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
+| Instruction Leak    | Medium   | "show me your system prompt"                   |
 
-Configura tramite dashboard (Impostazioni → Sicurezza) o `.env`:```env
+Configure via dashboard (Settings → Security) or `.env`:
+
+```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block # warn | block | redact
-
-````
+INPUT_SANITIZER_MODE=block    # warn | block | redact
+```
 
 ### 🔒 PII Redaction
 
-Rilevamento automatico e oscuramento facoltativo delle informazioni di identificazione personale:
+Automatic detection and optional redaction of personally identifiable information:
 
-| Tipo PII | Modello | Sostituzione |
+| PII Type      | Pattern               | Replacement        |
 | ------------- | --------------------- | ------------------ |
-| E-mail | `utente@dominio.com` | `[EMAIL_REDACTED]` |
-| CPF (Brasile) | `123.456.789-00` | `[CPF_REDACTED]` |
-| CNPJ (Brasile) | `12.345.678/0001-00` | `[CNPJ_REDACTED]` |
-| Carta di credito | `4111-1111-1111-1111` | `[CC_REDACTED]` |
-| Telefono | `+55 11 99999-9999` | `[PHONE_REDACTED]` |
-| SSN (USA) | `123-45-6789` | `[SSN_REDACTED]` |```env
+| Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
+| CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
+| CNPJ (Brazil) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
+| Credit Card   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
+| Phone         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
+| SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
+
+```env
 PII_REDACTION_ENABLED=true
-````
+```
 
 ### 🌐 Network Security
 
-| Caratteristica                 | Descrizione                                                                                    |
-| ------------------------------ | ---------------------------------------------------------------------------------------------- | -------------------------------- |
-| **CORSO**                      | Controllo dell'origine configurabile (`CORS_ORIGIN` env var, predefinito `*`)                  |
-| **Filtro IP**                  | Intervalli IP della lista consentita/lista bloccata nella dashboard                            |
-| **Limitazione della velocità** | Limiti tariffari per fornitore con backoff automatico                                          |
-| **Branco Antituonante**        | Mutex + blocco per connessione impedisce 502 a cascata                                         |
-| **Impronta digitale TLS**      | Browser-like TLS fingerprint spoofing to reduce bot detection                                  |
-| **Impronta digitale CLI**      | Ordinamento dell'intestazione/corpo per provider in modo che corrisponda alle firme CLI native | ### 🔌 Resilience & Availability |
+| Feature                  | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
+| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
+| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
+| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
+| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
+| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
 
-| Caratteristica              | Descrizione                                                                |
-| --------------------------- | -------------------------------------------------------------------------- | ----------------- |
-| **Interruttore automatico** | 3 stati (Chiuso → Aperto → Semiaperto) per provider, persistente su SQLite |
-| **Richiesta Idempotenza**   | Finestra di deduplicazione di 5 secondi per richieste duplicate            |
-| **Backoff esponenziale**    | Nuovo tentativo automatico con ritardi crescenti                           |
-| **Dashboard salute**        | Monitoraggio dello stato del fornitore in tempo reale                      | ### 📋 Compliance |
+### 🔌 Resilience & Availability
 
-| Caratteristica                         | Descrizione                                                                              |
-| -------------------------------------- | ---------------------------------------------------------------------------------------- | --- |
-| **Conservazione dei registri**         | Pulizia automatica dopo `CALL_LOG_RETENTION_DAYS`                                        |
-| **Disattivazione senza registrazione** | Il flag "noLog" per chiave API disabilita la registrazione delle richieste               |
-| **Registro di controllo**              | Azioni amministrative tracciate nella tabella `audit_log`                                |
-| **Audit MCP**                          | Registrazione di controllo supportata da SQLite per tutte le chiamate allo strumento MCP |
-| **Convalida Zod**                      | Tutti gli input API convalidati con schemi Zod v4 al caricamento del modulo              | --- |
+| Feature                 | Description                                                        |
+| ----------------------- | ------------------------------------------------------------------ |
+| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
+| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
+| **Exponential Backoff** | Automatic retry with increasing delays                             |
+| **Health Dashboard**    | Real-time provider health monitoring                               |
+
+### 📋 Compliance
+
+| Feature            | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
+| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
+| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
+| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
+| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
+
+---
 
 ## Required Environment Variables
 
-Tutti i segreti devono essere impostati prima di avviare il server. Il server**fallirà velocemente**se mancano o sono deboli.```bash
+All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
 
+```bash
 # REQUIRED — server will not start without these:
-
 JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32) # min 16 chars
+API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
 
 # RECOMMENDED — enables encryption at rest:
-
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
+```
 
-````
+The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
 
-Il server rifiuta attivamente valori noti come "changeme", "secret" o "password".---
+---
 
 ## Docker Security
 
-- Utilizzare l'utente non root in produzione
-- Montare i segreti come volumi di sola lettura
-- Non copiare mai i file `.env` nelle immagini Docker
-- Utilizza `.dockerignore` per escludere file sensibili
-- Imposta `AUTH_COOKIE_SECURE=true` quando sei dietro HTTPS```bash
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
+
+```bash
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
@@ -142,14 +166,14 @@ docker run -d \
   -e API_KEY_SECRET="$(openssl rand -hex 32)" \
   -e STORAGE_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   diegosouzapw/omniroute:latest
-````
+```
 
 ---
 
 ## Dependencies
 
-- Esegui regolarmente "npm audit".
-- Mantieni aggiornate le dipendenze
-- Il progetto utilizza `husky` + `lint-staged` per i controlli pre-commit
-- La pipeline CI esegue le regole di sicurezza ESLint a ogni push
-- Costanti del provider convalidate al caricamento del modulo tramite Zod (`src/shared/validation/providerSchema.ts`)
+- Run `npm audit` regularly
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks
+- CI pipeline runs ESLint security rules on every push
+- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)

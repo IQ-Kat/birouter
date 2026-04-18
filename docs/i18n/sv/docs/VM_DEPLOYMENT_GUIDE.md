@@ -4,31 +4,37 @@
 
 ---
 
-Komplett guide för att installera och konfigurera OmniRoute på en virtuell dator (VPS) med domän som hanteras via Cloudflare.---
+Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+
+---
 
 ## Prerequisites
 
-| Objekt     | Minsta                    | Rekommenderas    |
-| ---------- | ------------------------- | ---------------- |
-| **CPU**    | 1 vCPU                    | 2 vCPU           |
-| **RAM**    | 1 GB                      | 2 GB             |
-| **Disk**   | 10 GB SSD                 | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS          | Ubuntu 24.04 LTS |
-| **Domän**  | Registrerad på Cloudflare | —                |
-| **Docker** | Docker Engine 24+         | Docker 27+       |
+| Item       | Minimum                  | Recommended      |
+| ---------- | ------------------------ | ---------------- |
+| **CPU**    | 1 vCPU                   | 2 vCPU           |
+| **RAM**    | 1 GB                     | 2 GB             |
+| **Disk**   | 10 GB SSD                | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
+| **Domain** | Registered on Cloudflare | —                |
+| **Docker** | Docker Engine 24+        | Docker 27+       |
 
-**Testade leverantörer**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.---
+**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+
+---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-På din föredragna VPS-leverantör:
+On your preferred VPS provider:
 
-- Välj Ubuntu 24.04 LTS
-- Välj minimiplan (1 vCPU / 1 GB RAM)
-- Ställ in ett starkt root-lösenord eller konfigurera SSH-nyckel
-- Notera den**offentliga IP-adressen**(t.ex. "203.0.113.10")### 1.2 Connect via SSH
+- Choose Ubuntu 24.04 LTS
+- Select the minimum plan (1 vCPU / 1 GB RAM)
+- Set a strong root password or configure SSH key
+- Note the **public IP** (e.g., `203.0.113.10`)
+
+### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -72,7 +78,9 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tips**: För maximal säkerhet, begränsa portarna 80 och 443 till endast Cloudflare IP-adresser. Se avsnittet [Avancerad säkerhet](#avancerad-säkerhet).---
+> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+
+---
 
 ## 2. Install OmniRoute
 
@@ -137,31 +145,32 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-Den bör visa: `[DB] SQLite-databas redo` och `lyssnar på port 20128`.---
+It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+
+---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-I Cloudflares instrumentpanel:
+In the Cloudflare dashboard:
 
-1. Gå till**SSL/TLS → Origin Server**
-2. Klicka på**Skapa certifikat**
-3. Behåll standardinställningarna (15 år, \*.dindomän.com)
-4. Kopiera**ursprungscertifikatet**och**privat nyckel**```bash
-   mkdir -p /etc/nginx/ssl
+1. Go to **SSL/TLS → Origin Server**
+2. Click **Create Certificate**
+3. Keep the defaults (15 years, \*.yourdomain.com)
+4. Copy the **Origin Certificate** and the **Private Key**
+
+```bash
+mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
-
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
-
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-
-````
+```
 
 ### 3.2 Nginx Configuration
 
@@ -219,11 +228,13 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-````
+```
 
-Se till att tidsgränserna för omvänd proxyström är anpassade till din OmniRoute-timeout-env vars. Om du höjer
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, höj `proxy_read_timeout` / `proxy_send_timeout`
-över samma tröskel.### 3.3 Enable and Test
+Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
+above the same threshold.
+
+### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -242,21 +253,25 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-I Cloudflares instrumentpanel → DNS:
+In the Cloudflare dashboard → DNS:
 
-| Skriv | Namn   | Innehåll               | Proxy       |
-| ----- | ------ | ---------------------- | ----------- | --------------------- |
-| A     | `llms` | `203.0.113.10` (VM IP) | ✅ Fullmakt | ### 4.2 Configure SSL |
+| Type | Name   | Content                | Proxy      |
+| ---- | ------ | ---------------------- | ---------- |
+| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
 
-Under**SSL/TLS → Översikt**:
+### 4.2 Configure SSL
 
-- Läge:**Fullständig (Strikt)**
+Under **SSL/TLS → Overview**:
 
-Under**SSL/TLS → Edge-certifikat**:
+- Mode: **Full (Strict)**
 
-- Använd alltid HTTPS: ✅ På
-- Minsta TLS-version: TLS 1.2
-- Automatiska HTTPS-omskrivningar: ✅ På### 4.3 Testing
+Under **SSL/TLS → Edge Certificates**:
+
+- Always Use HTTPS: ✅ On
+- Minimum TLS Version: TLS 1.2
+- Automatic HTTPS Rewrites: ✅ On
+
+### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -335,10 +350,11 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Lägg till följande till `nginx.conf` inuti `http {}`-blocket:```nginx
-include /etc/nginx/cloudflare-ips.conf;
+Add the following to `nginx.conf` inside the `http {}` block:
 
-````
+```nginx
+include /etc/nginx/cloudflare-ips.conf;
+```
 
 ### Install fail2ban
 
@@ -349,7 +365,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-````
+```
 
 ### Block direct access to the Docker port
 
@@ -367,25 +383,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-För fjärråtkomst via Cloudflare Workers (utan att exponera den virtuella datorn direkt):```bash
+For remote access via Cloudflare Workers (without exposing the VM directly):
 
+```bash
 # In the local repository
-
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
-
 ```
 
-Se hela dokumentationen på [omnirouteCloud/README.md](../omnirouteCloud/README.md).---
+See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+
+---
 
 ## Port Summary
 
-| Hamn | Service | Tillgång |
+| Port  | Service     | Access                     |
 | ----- | ----------- | -------------------------- |
-| 22 | SSH | Public (med fail2ban) |
-| 80 | nginx HTTP | Omdirigering → HTTPS |
-| 443 | nginx HTTPS | Via Cloudflare Proxy |
-| 20128 | OmniRoute | Endast Localhost (via nginx) |
-```
+| 22    | SSH         | Public (with fail2ban)     |
+| 80    | nginx HTTP  | Redirect → HTTPS           |
+| 443   | nginx HTTPS | Via Cloudflare Proxy       |
+| 20128 | OmniRoute   | Localhost only (via nginx) |

@@ -4,129 +4,155 @@
 
 ---
 
-Останнє оновлення: 2026-03-28## Baseline
+Last updated: 2026-03-28
 
-Існує кілька показників покриття залежно від того, як обчислюється звіт. Для планування корисний тільки один з них.
+## Baseline
 
-| Метричний                  | Сфера                                                        | Заяви / Рядки | Відділення | Функції | Примітки                                                  |
-| -------------------------- | ------------------------------------------------------------ | ------------: | ---------: | ------: | --------------------------------------------------------- |
-| Спадщина                   | Старий `npm run test:coverage`                               |        79,42% |     75,15% |  67,94% | Роздутий: підраховує тестові файли та виключає `open-sse` |
-| Діагностичний              | Лише вихідний код, за винятком тестів і `open-sse`           |        68,16% |     63,55% |  64,06% | Корисно лише для ізоляції `src/**`                        |
-| Рекомендована базова лінія | Лише вихідний код, за винятком тестів і включаючи `open-sse` |        56,95% |     66,05% |  57,80% | Це базовий рівень для всього проекту для покращення       |
+There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful.
 
-Рекомендована базова лінія – це число, за яким потрібно оптимізувати.## Rules
+| Metric               | Scope                                                 | Statements / Lines | Branches | Functions | Notes                                               |
+| -------------------- | ----------------------------------------------------- | -----------------: | -------: | --------: | --------------------------------------------------- |
+| Legacy               | Old `npm run test:coverage`                           |             79.42% |   75.15% |    67.94% | Inflated: counts test files and excludes `open-sse` |
+| Diagnostic           | Source-only, excluding tests and excluding `open-sse` |             68.16% |   63.55% |    64.06% | Useful only to isolate `src/**`                     |
+| Recommended baseline | Source-only, excluding tests and including `open-sse` |             56.95% |   66.05% |    57.80% | This is the project-wide baseline to improve        |
 
-- Цілі охоплення застосовуються до вихідних файлів, а не до `tests/**`.
-- `open-sse/**` є частиною продукту і має залишатися в межах.
-- Новий код не повинен зменшувати охоплення в зачеплених областях.
-- Надавайте перевагу поведінці тестування та результатам розгалуження над деталями реалізації.
-- Надавайте перевагу тимчасовим базам даних SQLite та невеликим фікстурам, ніж широким моделям для `src/lib/db/**`.## Current command set
+The recommended baseline is the number to optimize against.
+
+## Rules
+
+- Coverage targets apply to source files, not to `tests/**`.
+- `open-sse/**` is part of the product and must remain in scope.
+- New code should not reduce coverage in touched areas.
+- Prefer testing behavior and branch outcomes over implementation details.
+- Prefer temp SQLite databases and small fixtures over broad mocks for `src/lib/db/**`.
+
+## Current command set
 
 - `npm run test:coverage`
-  — Шлюз покриття основного джерела для набору модульних тестів
-  - Генерує `text-summary`, `html`, `json-summary` та `lcov`
+  - Main source coverage gate for the unit test suite
+  - Generates `text-summary`, `html`, `json-summary`, and `lcov`
 - `npm run coverage:report`
-  - Детальний звіт по файлах з останнього запуску
+  - Detailed file-by-file report from the latest run
 - `npm run test:coverage:legacy`
-  - Тільки історичне порівняння## Milestones
+  - Historical comparison only
 
-| Фаза   |             Цільовий | Фокус                                                                  |
-| ------ | -------------------: | ---------------------------------------------------------------------- |
-| Фаза 1 | 60% виписок / рядків | Швидкі виграші та покриття комунальних послуг із низьким рівнем ризику |
-| Фаза 2 | 65% виписок / рядків | БД і основи траси                                                      |
-| Фаза 3 | 70% виписок / рядків | Перевірка постачальника та аналітика використання                      |
-| Фаза 4 | 75% виписок / рядків | `open-sse` перекладачі та помічники                                    |
-| Фаза 5 | 80% виписок / рядків | `open-sse` обробники та гілки виконавця                                |
-| Фаза 6 | 85% виписок / рядків | Важкі крайні випадки, заборгованість філій, пакети регресії            |
-| Фаза 7 |    90% заяв / рядків | Остаточна розгортка, закриття розриву, сувора тріскачка                |
+## Milestones
 
-Гілки та функції мають зростати з кожною фазою, але основною жорсткою ціллю є оператори/рядки.## Priority hotspots
+| Phase   |                 Target | Focus                                             |
+| ------- | ---------------------: | ------------------------------------------------- |
+| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          |
+| Phase 2 | 65% statements / lines | DB and route foundations                          |
+| Phase 3 | 70% statements / lines | Provider validation and usage analytics           |
+| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                |
+| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         |
+| Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites |
+| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          |
 
-Ці файли або області пропонують найкращу віддачу для наступних етапів:
+Branches and functions should ratchet upward with each phase, but the primary hard target is statements / lines.
 
-1. `open-sse/обробники`
-   - `chatCore.ts` на 7,57%
-   - Загальний каталог на 29,07%
+## Priority hotspots
+
+These files or areas offer the best return for the next phases:
+
+1. `open-sse/handlers`
+   - `chatCore.ts` at 7.57%
+   - Overall directory at 29.07%
 2. `open-sse/translator/request`
-   - Загальний каталог на 36,39%
-   - Багато перекладачів все ще близькі до однозначного охоплення
+   - Overall directory at 36.39%
+   - Many translators are still near single-digit coverage
 3. `open-sse/translator/response`
-   - Загальний каталог на 8,07%
+   - Overall directory at 8.07%
 4. `open-sse/executors`
-   - Загальний каталог на 36,62%
+   - Overall directory at 36.62%
 5. `src/lib/db`
-   - `models.ts` на 20,66%
-   - `registeredKeys.ts` на 34,46%
-   - `modelComboMappings.ts` на 36,25%
-   - `settings.ts` на 46,40%
-   - `webhooks.ts` на 33,33%
+   - `models.ts` at 20.66%
+   - `registeredKeys.ts` at 34.46%
+   - `modelComboMappings.ts` at 36.25%
+   - `settings.ts` at 46.40%
+   - `webhooks.ts` at 33.33%
 6. `src/lib/usage`
-   - `usageHistory.ts` на 21,12%
-   - `usageStats.ts` на 9,56%
-   - `costCalculator.ts` на 30,00%
+   - `usageHistory.ts` at 21.12%
+   - `usageStats.ts` at 9.56%
+   - `costCalculator.ts` at 30.00%
 7. `src/lib/providers`
-   - `validation.ts` на 41,16%
-8. Утиліта з низьким рівнем ризику та файли API для ранніх прибутків
+   - `validation.ts` at 41.16%
+8. Low-risk utility and API files for early gains
    - `src/shared/utils/upstreamError.ts`
    - `src/shared/utils/apiAuth.ts`
    - `src/lib/api/errorResponse.ts`
    - `src/app/api/settings/require-login/route.ts`
-   - `src/app/api/providers/[id]/models/route.ts`## Execution checklist
+   - `src/app/api/providers/[id]/models/route.ts`
+
+## Execution checklist
 
 ### Phase 1: 56.95% -> 60%
 
-- [x] Виправлено метрику покриття, щоб вона відображала вихідний код замість тестових файлів
-- [x] Зберігайте застарілий сценарій покриття для порівняння
-- [x] Запис базової лінії та гарячих точок у сховищі
-- [ ] Додайте цілеспрямовані тести для утиліт з низьким рівнем ризику:
+- [x] Fix coverage metric so it reflects source code instead of test files
+- [x] Keep a legacy coverage script for comparison
+- [x] Record the baseline and hotspots in-repo
+- [ ] Add focused tests for low-risk utilities:
   - `src/shared/utils/upstreamError.ts`
   - `src/shared/utils/fetchTimeout.ts`
   - `src/lib/api/errorResponse.ts`
   - `src/shared/utils/apiAuth.ts`
   - `src/lib/display/names.ts`
-- [ ] Додайте тести маршруту для:
+- [ ] Add route tests for:
   - `src/app/api/settings/require-login/route.ts`
-  - `src/app/api/providers/[id]/models/route.ts`### Phase 2: 60% -> 65%
+  - `src/app/api/providers/[id]/models/route.ts`
 
-- [ ] Додати тести з підтримкою БД для:
+### Phase 2: 60% -> 65%
+
+- [ ] Add DB-backed tests for:
   - `src/lib/db/modelComboMappings.ts`
   - `src/lib/db/settings.ts`
   - `src/lib/db/registeredKeys.ts`
-- [ ] Висвітлення поведінки гілок у:
+- [ ] Cover branch behavior in:
   - `src/lib/providers/validation.ts`
   - `src/app/api/v1/embeddings/route.ts`
-  - `src/app/api/v1/moderations/route.ts`### Phase 3: 65% -> 70%
+  - `src/app/api/v1/moderations/route.ts`
 
-- [ ] Додайте тести аналітики використання для:
+### Phase 3: 65% -> 70%
+
+- [ ] Add usage analytics tests for:
   - `src/lib/usage/usageHistory.ts`
   - `src/lib/usage/usageStats.ts`
   - `src/lib/usage/costCalculator.ts`
-- [ ] Розширення покриття маршрутів для гілок керування проксі-сервером і налаштувань### Phase 4: 70% -> 75%
+- [ ] Expand route coverage for proxy management and settings branches
 
-- [ ] Охоплення помічників перекладачів і центральних шляхів перекладу:
+### Phase 4: 70% -> 75%
+
+- [ ] Cover translator helpers and central translation paths:
   - `open-sse/translator/index.ts`
   - `open-sse/translator/helpers/*`
   - `open-sse/translator/request/*`
-  - `open-sse/translator/response/*`### Phase 5: 75% -> 80%
+  - `open-sse/translator/response/*`
 
-- [ ] Додати тести на рівні обробника для:
+### Phase 5: 75% -> 80%
+
+- [ ] Add handler-level tests for:
   - `open-sse/handlers/chatCore.ts`
   - `open-sse/handlers/responsesHandler.js`
   - `open-sse/handlers/imageGeneration.js`
   - `open-sse/handlers/embeddings.js`
-- [ ] Додано покриття гілок виконавця для автентифікації, повторних спроб і кінцевих точок для постачальника### Phase 6: 80% -> 85%
+- [ ] Add executor branch coverage for provider-specific auth, retries, and endpoint overrides
 
-- [ ] Об’єднайте більше комплектів крайових випадків у основний шлях покриття
-- [ ] Збільшення охоплення функцій для модулів БД зі слабким охопленням конструктора/помічника
-- [ ] Закрити прогалини в гілках `settings.ts`, `registeredKeys.ts`, `validation.ts` і помічники перекладачів### Phase 7: 85% -> 90%
+### Phase 6: 80% -> 85%
 
-- [ ] Розглядайте файли з низьким рівнем покриття, що залишилися, як блокувальники
-- [ ] Додати регресійні тести для кожної виявленої виробничої помилки, виправленої під час push, до 90%
-- [ ] Підвищуйте межу покриття в CI лише після того, як локальна базова лінія буде стабільною протягом принаймні двох послідовних прогонів## Ratchet policy
+- [ ] Merge more edge-case suites into the main coverage path
+- [ ] Increase function coverage for DB modules with weak constructor/helper coverage
+- [ ] Close branch gaps in `settings.ts`, `registeredKeys.ts`, `validation.ts`, and translator helpers
 
-Оновлюйте порогові значення `npm run test:coverage` тільки після того, як проект фактично перевищить наступну віху зі зручним буфером.
+### Phase 7: 85% -> 90%
 
-Рекомендована послідовність храпового механізму:
+- [ ] Treat the remaining low-coverage files as blockers
+- [ ] Add regression tests for every uncovered production bug fixed during the push to 90%
+- [ ] Raise the coverage gate in CI only after the local baseline is stable for at least two consecutive runs
+
+## Ratchet policy
+
+Update `npm run test:coverage` thresholds only after the project actually exceeds the next milestone with a comfortable buffer.
+
+Recommended ratchet sequence:
 
 1. 55/60/55
 2. 60/62/58
@@ -137,6 +163,8 @@
 7. 85/80/84
 8. 90/85/88
 
-Порядок – це `оператори-рядки / гілки / функції`.## Known gap
+Order is `statements-lines / branches / functions`.
 
-Поточна команда покриття вимірює основний набір блоків Node і включає джерело, отримане з нього, включаючи `open-sse`. Він ще не об’єднує покриття Vitest в єдиний звіт. Це злиття варто зробити пізніше, але це не блокувальник для початку підйому 60% -> 80%.
+## Known gap
+
+The current coverage command measures the main Node unit suite and includes source reached from it, including `open-sse`. It does not yet merge Vitest coverage into a single unified report. That merge is worth doing later, but it is not a blocker for starting the 60% -> 80% climb.

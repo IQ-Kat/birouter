@@ -4,69 +4,84 @@
 
 ---
 
-> Server Model Context Protocol cu ​​16 instrumente inteligente## Instalare
+> Model Context Protocol server with 16 intelligent tools
 
-OmniRoute MCP este încorporat. Începeți cu:```bash
+## Instalare
+
+OmniRoute MCP is built-in. Start it with:
+
+```bash
 omniroute --mcp
+```
 
-````
+Or via the open-sse transport:
 
-Sau prin transportul open-sse:```bash
+```bash
 # HTTP streamable transport (port 20130)
 omniroute --dev  # MCP auto-starts on /mcp endpoint
-````
+```
 
 ## IDE Configuration
 
-Consultați [IDE Configs](integrations/ide-configs.md) pentru configurarea Antigravity, Cursor, Copilot și Claude Desktop.---
+See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
+
+---
 
 ## Essential Tools (8)
 
-| Instrument                      | Descriere                                             |
-| :------------------------------ | :---------------------------------------------------- | --------------------- |
-| `omniroute_get_health`          | Sănătate gateway, întrerupătoare, timp de funcționare |
-| `omniroute_list_combos`         | Toate combinațiile configurate cu modele              |
-| `omniroute_get_combo_metrics`   | Valori de performanță pentru un anumit combo          |
-| `omniroute_switch_combo`        | Comutați combinația activă după ID/nume               |
-| `omniroute_check_quota`         | Starea cotei pentru fiecare furnizor sau pentru toate |
-| `omniroute_route_request`       | Trimiteți o finalizare a conversației prin OmniRoute  |
-| `raport_cost_omniroute`         | Analiza costurilor pentru o perioadă de timp          |
-| `omniroute_list_models_catalog` | Catalog complet de modele cu capabilități             | ## Advanced Tools (8) |
+| Tool                            | Description                              |
+| :------------------------------ | :--------------------------------------- |
+| `omniroute_get_health`          | Gateway health, circuit breakers, uptime |
+| `omniroute_list_combos`         | All configured combos with models        |
+| `omniroute_get_combo_metrics`   | Performance metrics for a specific combo |
+| `omniroute_switch_combo`        | Switch active combo by ID/name           |
+| `omniroute_check_quota`         | Quota status per provider or all         |
+| `omniroute_route_request`       | Send a chat completion through OmniRoute |
+| `omniroute_cost_report`         | Cost analytics for a time period         |
+| `omniroute_list_models_catalog` | Full model catalog with capabilities     |
 
-| Instrument                         | Descriere                                                                      |
-| :--------------------------------- | :----------------------------------------------------------------------------- | ----------------- |
-| `omniroute_simulate_route`         | Simulare de rutare de rulare uscată cu arbore de rezervă                       |
-| `omniroute_set_budget_guard`       | Bugetul sesiunii cu acțiuni de degradare/blocare/alertare                      |
-| `omniroute_set_resilience_profile` | Aplicați presetarea conservatoare/echilibrate/agresive                         |
-| `combo_test_omniroute`             | Testați în direct toate modelele într-un combo printr-o cerere reală în amonte |
-| `omniroute_get_provider_metrics`   | Valori detaliate pentru un furnizor                                            |
-| `omniroute_best_combo_for_task`    | Recomandare sarcină-fitness cu alternative                                     |
-| `omniroute_explain_route`          | Explicați o decizie trecută de rutare                                          |
-| `omniroute_get_session_snapshot`   | Stare completă a sesiunii: costuri, jetoane, erori                             | ## Authentication |
+## Advanced Tools (8)
 
-Instrumentele MCP sunt autentificate prin domeniile cheii API. Fiecare instrument necesită domenii specifice:
+| Tool                               | Description                                                 |
+| :--------------------------------- | :---------------------------------------------------------- |
+| `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree               |
+| `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions             |
+| `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
+| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
+| `omniroute_get_provider_metrics`   | Detailed metrics for one provider                           |
+| `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
+| `omniroute_explain_route`          | Explain a past routing decision                             |
+| `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
 
-| Domeniul de aplicare | Instrumente                                     |
-| :------------------- | :---------------------------------------------- | ---------------- |
-| `citește:sănătate`   | get_health, get_provider_metrics                |
-| `citește:combo-uri`  | list_combo, get_combo_metrics                   |
-| `write:combo`        | switch_combo                                    |
-| `citește:cotă`       | verifica_cota                                   |
-| `write:route`        | ruta_cerere, simulare_rută, test_combo          |
-| `citește:utilizare`  | cost_report, get_session_snapshot, explica_ruta |
-| `write:config`       | set_budget_guard, set_resilience_profile        |
-| `citește:modele`     | list_models_catalog, best_combo_for_task        | ## Audit Logging |
+## Authentication
 
-Fiecare apel de instrument este înregistrat în `mcp_tool_audit` cu:
+MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
 
-- Nume instrument, argumente, rezultat
-- Durata (ms), succes/eșec
-- Hash cheie API, marca temporală## Files
+| Scope          | Tools                                            |
+| :------------- | :----------------------------------------------- |
+| `read:health`  | get_health, get_provider_metrics                 |
+| `read:combos`  | list_combos, get_combo_metrics                   |
+| `write:combos` | switch_combo                                     |
+| `read:quota`   | check_quota                                      |
+| `write:route`  | route_request, simulate_route, test_combo        |
+| `read:usage`   | cost_report, get_session_snapshot, explain_route |
+| `write:config` | set_budget_guard, set_resilience_profile         |
+| `read:models`  | list_models_catalog, best_combo_for_task         |
 
-| Fișier                                       | Scop                                                 |
-| :------------------------------------------- | :--------------------------------------------------- |
-| `open-sse/mcp-server/server.ts`              | Creare server MCP + 16 înregistrări de instrumente   |
-| `open-sse/mcp-server/transport.ts`           | Stdio + transport HTTP                               |
-| `open-sse/mcp-server/auth.ts`                | Cheia API + validarea domeniului                     |
-| `open-sse/mcp-server/audit.ts`               | Înregistrare de auditare a apelurilor instrumentului |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 instrumente de manipulare avansate                 |
+## Audit Logging
+
+Every tool call is logged to `mcp_tool_audit` with:
+
+- Tool name, arguments, result
+- Duration (ms), success/failure
+- API key hash, timestamp
+
+## Files
+
+| File                                         | Purpose                                     |
+| :------------------------------------------- | :------------------------------------------ |
+| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
+| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
+| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
+| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |

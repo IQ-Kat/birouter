@@ -4,29 +4,42 @@
 
 ---
 
-> 適応スコアリングを備えた自己管理モデルチェーン## How It Works
+> Self-managing model chains with adaptive scoring
 
-オートコンボ エンジンは、**6 要素スコアリング関数**を使用して、各リクエストに最適なプロバイダー/モデルを動的に選択します。
+## How It Works
 
-| Factor          | 重量 | 説明                                                 |
-| :-------------- | :--- | :--------------------------------------------------- | ------------- |
-| クォータ        | 0.20 | 残容量 [0..1]                                        |
-| 健康            | 0.25 | サーキットブレーカー: CLOSED=1.0、HALF=0.5、OPEN=0.0 |
-| コストインブ    | 0.20 | 逆コスト (安い = スコアが高い)                       |
-| レイテンシーInv | 0.15 | 逆 p95 レイテンシー (速い = 高い)                    |
-| タスクフィット  | 0.10 | モデル×タスクタイプの適応度スコア                    |
-| 安定性          | 0.10 | レイテンシ/エラーのばらつきが小さい                  | ## Mode Packs |
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
 
-| パック               | フォーカス   | キーの重み            |
-| :------------------- | :----------- | :-------------------- | --------------- |
-| 🚀**迅速に発送**     | スピード     | レイテンシーInv: 0.35 |
-| 💰**コスト削減**     | 経済         | コストInv: 0.40       |
-| 🎯**品質第一**       | ベストモデル | タスクフィット: 0.40  |
-| 📡**オフライン対応** | 可用性       | 割り当て: 0.40        | ## Self-Healing |
+| Factor     | Weight | Description                                     |
+| :--------- | :----- | :---------------------------------------------- |
+| Quota      | 0.20   | Remaining capacity [0..1]                       |
+| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
+| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
+| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
+| TaskFit    | 0.10   | Model × task type fitness score                 |
+| Stability  | 0.10   | Low variance in latency/errors                  |
 
--**一時的な除外**: スコア < 0.2 → 5 分間除外 (漸進的バックオフ、最大 30 分) -**サーキットブレーカーの認識**: OPEN → 自動除外。 HALF_OPEN → プローブリクエスト -**インシデントモード**: >50% OPEN → 探索を無効にし、安定性を最大化します -**クールダウン回復**: 除外後の最初のリクエストは、タイムアウトが短縮された「プローブ」になります。## Bandit Exploration
+## Mode Packs
 
-リクエスト (構成可能) の 5% は、探索のためにランダムなプロバイダーにルーティングされます。インシデントモードでは無効になります。## API
+| Pack                    | Focus        | Key Weight       |
+| :---------------------- | :----------- | :--------------- |
+| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
+| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
+| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+
+## Self-Healing
+
+- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
+- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
+- **Incident mode**: >50% OPEN → disable exploration, maximize stability
+- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+
+## Bandit Exploration
+
+5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+
+## API
 
 ```bash
 # Create auto-combo
@@ -40,13 +53,15 @@ curl http://localhost:20128/api/combos/auto
 
 ## Task Fitness
 
-6 種類のタスク (「コーディング」、「レビュー」、「計画」、「分析」、「デバッグ」、「文書化」) にわたって 30 以上のモデルがスコア付けされています。ワイルドカード パターンをサポートします (例: `*-coder` → 高いコーディング スコア)。## Files
+30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
 
-| ファイル                                     | 目的                                    |
-| :------------------------------------------- | :-------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`     | スコアリング関数とプールの正規化        |
-| `open-sse/services/autoCombo/taskFitness.ts` | モデル×タスクの適合性検索               |
-| `open-sse/services/autoCombo/engine.ts`      | 選択ロジック、バンディット、予算上限 ​​ |
-| `open-sse/services/autoCombo/selfHealing.ts` | 除外、プローブ、インシデントモード      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 つの重量プロファイル                  |
-| `src/app/api/combos/auto/route.ts`           | REST API                                |
+## Files
+
+| File                                         | Purpose                               |
+| :------------------------------------------- | :------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
+| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
+| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
+| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
+| `src/app/api/combos/auto/route.ts`           | REST API                              |

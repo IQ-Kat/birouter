@@ -4,31 +4,37 @@
 
 ---
 
-Hướng dẫn đầy đủ để cài đặt và định cấu hình OmniRoute trên VM (VPS) với miền được quản lý qua Cloudflare.---
+Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+
+---
 
 ## Prerequisites
 
-| Mục        | Tối thiểu                  | Được đề xuất     |
-| ---------- | -------------------------- | ---------------- |
-| **CPU**    | 1 vCPU                     | 2 vCPU           |
-| **RAM**    | 1GB                        | 2GB              |
-| **Đĩa**    | SSD 10GB                   | SSD 25 GB        |
-| **HĐH**    | Ubuntu 22.04 LTS           | Ubuntu 24.04 LTS |
-| **Miền**   | Đã đăng ký trên Cloudflare | —                |
-| **Docker** | Công cụ Docker 24+         | Docker 27+       |
+| Item       | Minimum                  | Recommended      |
+| ---------- | ------------------------ | ---------------- |
+| **CPU**    | 1 vCPU                   | 2 vCPU           |
+| **RAM**    | 1 GB                     | 2 GB             |
+| **Disk**   | 10 GB SSD                | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
+| **Domain** | Registered on Cloudflare | —                |
+| **Docker** | Docker Engine 24+        | Docker 27+       |
 
-**Các nhà cung cấp đã được thử nghiệm**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.---
+**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+
+---
 
 ## 1. Configure the VM
 
 ### 1.1 Create the instance
 
-Trên nhà cung cấp VPS ưa thích của bạn:
+On your preferred VPS provider:
 
-- Chọn Ubuntu 24.04 LTS
-- Chọn gói tối thiểu (1 vCPU / 1 GB RAM)
-- Đặt mật khẩu root mạnh hoặc định cấu hình khóa SSH
-- Lưu ý**IP công khai**(ví dụ: `203.0.113.10`)### 1.2 Connect via SSH
+- Choose Ubuntu 24.04 LTS
+- Select the minimum plan (1 vCPU / 1 GB RAM)
+- Set a strong root password or configure SSH key
+- Note the **public IP** (e.g., `203.0.113.10`)
+
+### 1.2 Connect via SSH
 
 ```bash
 ssh root@203.0.113.10
@@ -72,7 +78,9 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Mẹo**: Để bảo mật tối đa, hãy hạn chế cổng 80 và 443 đối với IP Cloudflare. Xem phần [Bảo mật nâng cao](#advanced-security).---
+> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+
+---
 
 ## 2. Install OmniRoute
 
@@ -114,7 +122,9 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️**QUAN TRỌNG**: Tạo các khóa bí mật duy nhất! Sử dụng `openssl rand -hex 32` cho mỗi khóa.### 2.3 Start the container
+> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+
+### 2.3 Start the container
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -135,31 +145,32 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-Nó sẽ hiển thị: `[DB] Cơ sở dữ liệu SQLite đã sẵn sàng` và `lắng nghe trên cổng 20128`.---
+It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+
+---
 
 ## 3. Configure nginx (Reverse Proxy)
 
 ### 3.1 Generate SSL certificate (Cloudflare Origin)
 
-Trong bảng điều khiển Cloudflare:
+In the Cloudflare dashboard:
 
-1. Đi tới**SSL/TLS → Máy chủ gốc**
-2. Nhấp vào**Tạo chứng chỉ**
-3. Giữ nguyên giá trị mặc định (15 năm, \*.yourdomain.com)
-4. Sao chép**Chứng chỉ xuất xứ**và**Khóa riêng**```bash
-   mkdir -p /etc/nginx/ssl
+1. Go to **SSL/TLS → Origin Server**
+2. Click **Create Certificate**
+3. Keep the defaults (15 years, \*.yourdomain.com)
+4. Copy the **Origin Certificate** and the **Private Key**
+
+```bash
+mkdir -p /etc/nginx/ssl
 
 # Paste the certificate
-
 nano /etc/nginx/ssl/origin.crt
 
 # Paste the private key
-
 nano /etc/nginx/ssl/origin.key
 
 chmod 600 /etc/nginx/ssl/origin.key
-
-````
+```
 
 ### 3.2 Nginx Configuration
 
@@ -217,11 +228,13 @@ server {
     return 301 https://$server_name$request_uri;
 }
 NGINX
-````
+```
 
-Giữ thời gian chờ của luồng proxy ngược phù hợp với các biến env thời gian chờ OmniRoute của bạn. Nếu bạn nâng cao
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, tăng `proxy_read_timeout` / `proxy_send_timeout`
-trên cùng một ngưỡng.### 3.3 Enable and Test
+Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
+above the same threshold.
+
+### 3.3 Enable and Test
 
 ```bash
 # Remove default configuration
@@ -240,21 +253,25 @@ nginx -t && systemctl reload nginx
 
 ### 4.1 Add DNS record
 
-Trong bảng điều khiển Cloudflare → DNS:
+In the Cloudflare dashboard → DNS:
 
-| Loại | Tên    | Nội dung               | Ủy quyền         |
-| ---- | ------ | ---------------------- | ---------------- | --------------------- |
-| A    | `llms` | `203.0.113.10` (IP VM) | ✅ Được ủy quyền | ### 4.2 Configure SSL |
+| Type | Name   | Content                | Proxy      |
+| ---- | ------ | ---------------------- | ---------- |
+| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
 
-Trong**SSL/TLS → Tổng quan**:
+### 4.2 Configure SSL
 
-- Chế độ:**Đầy đủ (Nghiêm ngặt)**
+Under **SSL/TLS → Overview**:
 
-Trong**SSL/TLS → Chứng chỉ biên**:
+- Mode: **Full (Strict)**
 
-- Luôn sử dụng HTTPS: ✅ Bật
-- Phiên bản TLS tối thiểu: TLS 1.2
-- Tự động ghi lại HTTPS: ✅ Bật### 4.3 Testing
+Under **SSL/TLS → Edge Certificates**:
+
+- Always Use HTTPS: ✅ On
+- Minimum TLS Version: TLS 1.2
+- Automatic HTTPS Rewrites: ✅ On
+
+### 4.3 Testing
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -333,10 +350,11 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Thêm phần sau vào `nginx.conf` bên trong khối `http {}`:```nginx
-include /etc/nginx/cloudflare-ips.conf;
+Add the following to `nginx.conf` inside the `http {}` block:
 
-````
+```nginx
+include /etc/nginx/cloudflare-ips.conf;
+```
 
 ### Install fail2ban
 
@@ -347,7 +365,7 @@ systemctl start fail2ban
 
 # Check status
 fail2ban-client status sshd
-````
+```
 
 ### Block direct access to the Docker port
 
@@ -365,25 +383,25 @@ netfilter-persistent save
 
 ## 7. Deploy to Cloudflare Workers (Optional)
 
-Để truy cập từ xa thông qua Cloudflare Workers (không để lộ trực tiếp VM):```bash
+For remote access via Cloudflare Workers (without exposing the VM directly):
 
+```bash
 # In the local repository
-
 cd omnirouteCloud
 npm install
 npx wrangler login
 npx wrangler deploy
-
 ```
 
-Xem tài liệu đầy đủ tại [omnirouteCloud/README.md](../omnirouteCloud/README.md).---
+See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+
+---
 
 ## Port Summary
 
-| Cảng | Dịch vụ | Truy cập |
+| Port  | Service     | Access                     |
 | ----- | ----------- | -------------------------- |
-| 22 | SSH | Công khai (với Fail2ban) |
-| 80 | nginx HTTP | Chuyển hướng → HTTPS |
-| 443 | nginx HTTPS | Qua Proxy Cloudflare |
-| 20128 | OmniRoute | Chỉ Localhost (thông qua nginx) |
-```
+| 22    | SSH         | Public (with fail2ban)     |
+| 80    | nginx HTTP  | Redirect → HTTPS           |
+| 443   | nginx HTTPS | Via Cloudflare Proxy       |
+| 20128 | OmniRoute   | Localhost only (via nginx) |

@@ -4,69 +4,84 @@
 
 ---
 
-> Modell Context Protocol-server med 16 intelligenta verktyg## Installera
+> Model Context Protocol server with 16 intelligent tools
 
-OmniRoute MCP är inbyggt. Börja med:```bash
+## Installera
+
+OmniRoute MCP is built-in. Start it with:
+
+```bash
 omniroute --mcp
+```
 
-````
+Or via the open-sse transport:
 
-Eller via open-sse transport:```bash
+```bash
 # HTTP streamable transport (port 20130)
 omniroute --dev  # MCP auto-starts on /mcp endpoint
-````
+```
 
 ## IDE Configuration
 
-Se [IDE Configs](integrations/ide-configs.md) för inställning av Antigravity, Cursor, Copilot och Claude Desktop.---
+See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
+
+---
 
 ## Essential Tools (8)
 
-| Verktyg                         | Beskrivning                                   |
-| :------------------------------ | :-------------------------------------------- | --------------------- |
-| `omniroute_get_health`          | Gateway hälsa, strömbrytare, drifttid         |
-| `omniroute_list_combos`         | Alla konfigurerade kombinationer med modeller |
-| `omniroute_get_combo_metrics`   | Prestandamått för en specifik kombination     |
-| `omniroute_switch_combo`        | Byt aktiv kombination efter ID/namn           |
-| `omniroute_check_quota`         | Kvotstatus per leverantör eller alla          |
-| `omniroute_route_request`       | Skicka en chattklarering via OmniRoute        |
-| `omniroute_cost_report`         | Kostnadsanalys för en tidsperiod              |
-| `omniroute_list_models_catalog` | Fullständig modellkatalog med funktioner      | ## Advanced Tools (8) |
+| Tool                            | Description                              |
+| :------------------------------ | :--------------------------------------- |
+| `omniroute_get_health`          | Gateway health, circuit breakers, uptime |
+| `omniroute_list_combos`         | All configured combos with models        |
+| `omniroute_get_combo_metrics`   | Performance metrics for a specific combo |
+| `omniroute_switch_combo`        | Switch active combo by ID/name           |
+| `omniroute_check_quota`         | Quota status per provider or all         |
+| `omniroute_route_request`       | Send a chat completion through OmniRoute |
+| `omniroute_cost_report`         | Cost analytics for a time period         |
+| `omniroute_list_models_catalog` | Full model catalog with capabilities     |
 
-| Verktyg                            | Beskrivning                                                         |
-| :--------------------------------- | :------------------------------------------------------------------ | ----------------- |
-| `omniroute_simulate_route`         | Dry-run routingsimulering med reservträd                            |
-| `omniroute_set_budget_guard`       | Sessionsbudget med åtgärder för nedbrytning/blockering/varning      |
-| `omniroute_set_resilience_profile` | Använd konservativ/balanserad/aggressiv förinställning              |
-| `omniroute_test_combo`             | Livetesta alla modeller i en combo via en riktig uppströmsförfrågan |
-| `omniroute_get_provider_metrics`   | Detaljerad statistik för en leverantör                              |
-| `omniroute_best_combo_for_task`    | Task-fitness rekommendation med alternativ                          |
-| `omniroute_explain_route`          | Förklara ett tidigare routingbeslut                                 |
-| `omniroute_get_session_snapshot`   | Fullständig sessionstillstånd: kostnader, tokens, fel               | ## Authentication |
+## Advanced Tools (8)
 
-MCP-verktyg autentiseras via API-nyckelomfång. Varje verktyg kräver specifika omfattningar:
+| Tool                               | Description                                                 |
+| :--------------------------------- | :---------------------------------------------------------- |
+| `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree               |
+| `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions             |
+| `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
+| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
+| `omniroute_get_provider_metrics`   | Detailed metrics for one provider                           |
+| `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
+| `omniroute_explain_route`          | Explain a past routing decision                             |
+| `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
 
-| Omfattning          | Verktyg                                              |
-| :------------------ | :--------------------------------------------------- | ---------------- |
-| `läs:hälsa`         | get_health, get_provider_metrics                     |
-| `läs:kombinationer` | list_combos, get_combo_metrics                       |
-| `write:combos`      | switch_combo                                         |
-| `läs:kvot`          | check_quota                                          |
-| `skriv:väg`         | route_request, simulate_route, test_combo            |
-| `läs:användning`    | kostnadsrapport, get_session_snapshot, explain_route |
-| `write:config`      | set_budget_guard, set_resilience_profile             |
-| `läs:modeller`      | list_models_catalog, best_combo_for_task             | ## Audit Logging |
+## Authentication
 
-Varje verktygsanrop loggas till `mcp_tool_audit` med:
+MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
 
-- Verktygsnamn, argument, resultat
-- Varaktighet (ms), framgång/misslyckande
-- API-nyckelhash, tidsstämpel## Files
+| Scope          | Tools                                            |
+| :------------- | :----------------------------------------------- |
+| `read:health`  | get_health, get_provider_metrics                 |
+| `read:combos`  | list_combos, get_combo_metrics                   |
+| `write:combos` | switch_combo                                     |
+| `read:quota`   | check_quota                                      |
+| `write:route`  | route_request, simulate_route, test_combo        |
+| `read:usage`   | cost_report, get_session_snapshot, explain_route |
+| `write:config` | set_budget_guard, set_resilience_profile         |
+| `read:models`  | list_models_catalog, best_combo_for_task         |
 
-| Arkiv                                        | Syfte                                          |
-| :------------------------------------------- | :--------------------------------------------- |
-| `open-sse/mcp-server/server.ts`              | MCP-serverskapande + 16 verktygsregistreringar |
-| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP-transport                         |
-| `open-sse/mcp-server/auth.ts`                | API-nyckel + omfattningsvalidering             |
-| `open-sse/mcp-server/audit.ts`               | Loggning av verktygsanropsrevision             |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 avancerade verktygshanterare                 |
+## Audit Logging
+
+Every tool call is logged to `mcp_tool_audit` with:
+
+- Tool name, arguments, result
+- Duration (ms), success/failure
+- API key hash, timestamp
+
+## Files
+
+| File                                         | Purpose                                     |
+| :------------------------------------------- | :------------------------------------------ |
+| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
+| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
+| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
+| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |
