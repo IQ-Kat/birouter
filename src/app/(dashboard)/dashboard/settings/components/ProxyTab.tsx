@@ -28,16 +28,19 @@ export default function ProxyTab() {
   };
 
   const updateDebugMode = async (value: boolean) => {
+    const previousValue = debugMode;
+    setDebugMode(value);
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ debugMode: value }),
       });
-      if (res.ok) {
-        setDebugMode(value);
+      if (!res.ok) {
+        setDebugMode(previousValue);
       }
     } catch (err) {
+      setDebugMode(previousValue);
       console.error("Failed to update debugMode:", err);
     }
   };
@@ -66,7 +69,7 @@ export default function ProxyTab() {
     mountedRef.current = true;
     async function init() {
       try {
-        const res = await fetch("/api/settings/proxy?level=global");
+        const res = await fetch("/api/settings/proxy?level=global", { cache: "no-store" });
         if (!mountedRef.current) return;
         if (res.ok) {
           const data = await res.json();
@@ -81,7 +84,7 @@ export default function ProxyTab() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/settings")
+    fetch("/api/settings", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         return res.json();
@@ -173,18 +176,12 @@ export default function ProxyTab() {
                 size="sm"
                 variant="primary"
                 onClick={updateUsageTokenBuffer}
-                disabled={
-                  bufferSaving ||
-                  loading ||
-                  parseInt(bufferInput, 10) === usageTokenBuffer
-                }
+                disabled={bufferSaving || loading || parseInt(bufferInput, 10) === usageTokenBuffer}
               >
                 {bufferSaving ? tc("saving") : tc("save")}
               </Button>
               {usageTokenBuffer !== null && parseInt(bufferInput, 10) !== usageTokenBuffer && (
-                <span className="text-xs text-text-muted">
-                  Current: {usageTokenBuffer}
-                </span>
+                <span className="text-xs text-text-muted">Current: {usageTokenBuffer}</span>
               )}
             </div>
           </div>

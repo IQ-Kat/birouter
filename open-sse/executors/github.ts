@@ -14,11 +14,11 @@ export class GithubExecutor extends BaseExecutor {
     super("github", PROVIDERS.github);
   }
 
-  getCopilotToken(credentials) {
+  getCopilotToken(credentials: Record<string, any> | null | undefined) {
     return credentials?.copilotToken || credentials?.providerSpecificData?.copilotToken || null;
   }
 
-  getCopilotTokenExpiresAt(credentials) {
+  getCopilotTokenExpiresAt(credentials: Record<string, any> | null | undefined) {
     return (
       credentials?.copilotTokenExpiresAt ||
       credentials?.providerSpecificData?.copilotTokenExpiresAt ||
@@ -26,7 +26,7 @@ export class GithubExecutor extends BaseExecutor {
     );
   }
 
-  buildUrl(model, stream, urlIndex = 0) {
+  buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
     const targetFormat = getModelTargetFormat("gh", model);
     if (targetFormat === "openai-responses") {
       return (
@@ -38,7 +38,7 @@ export class GithubExecutor extends BaseExecutor {
     return this.config.baseUrl;
   }
 
-  injectResponseFormat(messages: any[], responseFormat: any) {
+  injectResponseFormat(messages: Array<Record<string, any>>, responseFormat: any) {
     if (!responseFormat) return messages;
 
     let formatInstruction = "";
@@ -55,9 +55,9 @@ export class GithubExecutor extends BaseExecutor {
 
     if (!formatInstruction) return messages;
 
-    const systemIdx = messages.findIndex((m: any) => m.role === "system");
+    const systemIdx = messages.findIndex((m) => m.role === "system");
     if (systemIdx >= 0) {
-      return messages.map((m: any, i: number) =>
+      return messages.map((m, i: number) =>
         i === systemIdx ? { ...m, content: `${m.content}\n\n${formatInstruction}` } : m
       );
     }

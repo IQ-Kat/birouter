@@ -1,6 +1,15 @@
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 
+type CloudflareCredentials = {
+  apiKey?: string;
+  accessToken?: string;
+  accountId?: string;
+  providerSpecificData?: {
+    accountId?: string;
+  } | null;
+} | null;
+
 /**
  * CloudflareAIExecutor — handles dynamic URL construction with accountId.
  * Cloudflare Workers AI uses the authenticated user's account ID in the URL.
@@ -18,7 +27,12 @@ export class CloudflareAIExecutor extends BaseExecutor {
     super("cloudflare-ai", PROVIDERS["cloudflare-ai"] || { format: "openai" });
   }
 
-  buildUrl(_model: string, _stream: boolean, _urlIndex = 0, credentials: any = null): string {
+  buildUrl(
+    _model: string,
+    _stream: boolean,
+    _urlIndex = 0,
+    credentials: CloudflareCredentials = null
+  ): string {
     // Account ID can be stored in providerSpecificData or at top level credentials
     const accountId =
       credentials?.providerSpecificData?.accountId ||
@@ -36,7 +50,7 @@ export class CloudflareAIExecutor extends BaseExecutor {
     return `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1/chat/completions`;
   }
 
-  buildHeaders(credentials: any, stream = true): Record<string, string> {
+  buildHeaders(credentials: CloudflareCredentials, stream = true): Record<string, string> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials.apiKey || credentials.accessToken}`,
@@ -49,7 +63,12 @@ export class CloudflareAIExecutor extends BaseExecutor {
     return headers;
   }
 
-  transformRequest(_model: string, body: any, _stream: boolean, _credentials: any): any {
+  transformRequest(
+    _model: string,
+    body: Record<string, unknown>,
+    _stream: boolean,
+    _credentials: CloudflareCredentials
+  ): Record<string, unknown> {
     // Cloudflare uses full model paths like @cf/meta/llama-3.3-70b-instruct
     // No transformation needed — user sends the full Cloudflare model path.
     return body;

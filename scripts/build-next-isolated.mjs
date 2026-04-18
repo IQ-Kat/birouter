@@ -104,6 +104,16 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
   };
 }
 
+async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
+  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  if (!(await exists(standaloneRoot))) return;
+
+  const staleStandaloneBackup = path.join(backupRoot, "standalone-stale");
+
+  await movePath(standaloneRoot, staleStandaloneBackup, fsImpl);
+  console.log("[build-next-isolated] Moved stale standalone output out of the build path");
+}
+
 export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = fs) {
   const standaloneRoot = path.join(rootDir, ".next", "standalone");
   const pruneTargets = [path.join(standaloneRoot, "_tasks")];
@@ -127,6 +137,8 @@ export async function main() {
       await movePath(entry.sourcePath, entry.backupPath);
       movedPaths.push(entry);
     }
+
+    await resetStandaloneOutput(projectRoot);
 
     const result = await runNextBuild();
     if (result.code === 0 && (await exists(path.join(projectRoot, ".next", "standalone")))) {

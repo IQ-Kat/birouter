@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";

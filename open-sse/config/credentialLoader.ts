@@ -19,12 +19,21 @@ import { join } from "path";
 import { resolveDataDir } from "../../src/lib/dataPaths";
 
 // Fields that can be overridden per provider
-const CREDENTIAL_FIELDS = ["clientId", "clientSecret", "tokenUrl", "authUrl", "refreshUrl"];
+const CREDENTIAL_FIELDS = [
+  "clientId",
+  "clientSecret",
+  "tokenUrl",
+  "authUrl",
+  "refreshUrl",
+] as const;
+type CredentialField = (typeof CREDENTIAL_FIELDS)[number];
+type ProviderCredentialOverrides = Partial<Record<CredentialField, unknown>>;
+type MutableProviderRecord = Record<string, Record<string, unknown>>;
 
 // TTL-based cache — reloads credentials from disk at most once per minute
 const CONFIG_TTL_MS = 60_000;
 let lastLoadTime = 0;
-let cachedProviders = null;
+let cachedProviders: Record<string, unknown> | null = null;
 
 // Survives Next.js dev HMR: module-level cache resets but process is the same (V4 pattern).
 type CredGlobals = typeof globalThis & { __omnirouteCredNoFileLogged?: boolean };
@@ -39,7 +48,7 @@ function credGlobals(): CredGlobals {
  *
  * previous: Priority: DATA_DIR env → ./data (project root)
  */
-function resolveCredentialsPath() {
+function resolveCredentialsPath(): string {
   return join(resolveDataDir(), "provider-credentials.json");
 }
 
@@ -51,10 +60,10 @@ function resolveCredentialsPath() {
  * @param {object} providers - The PROVIDERS object from constants.js
  * @returns {object} The same PROVIDERS object (mutated in place)
  */
-export function loadProviderCredentials(providers) {
+export function loadProviderCredentials<T extends Record<string, unknown>>(providers: T): T {
   // Return cached result if within TTL
   if (cachedProviders && Date.now() - lastLoadTime < CONFIG_TTL_MS) {
-    return cachedProviders;
+    return cachedProviders as T;
   }
 
   const credPath = resolveCredentialsPath();
@@ -71,12 +80,14 @@ export function loadProviderCredentials(providers) {
 
   try {
     const raw = readFileSync(credPath, "utf-8");
-    const external = JSON.parse(raw);
+    const external = JSON.parse(raw) as Record<string, unknown>;
 
     let overrideCount = 0;
 
+    const mutableProviders = providers as MutableProviderRecord;
+
     for (const [providerKey, creds] of Object.entries(external)) {
-      if (!providers[providerKey]) {
+      if (!mutableProviders[providerKey]) {
         console.log(
           `[CREDENTIALS] Warning: unknown provider "${providerKey}" in credentials file, skipping.`
         );
@@ -90,9 +101,10 @@ export function loadProviderCredentials(providers) {
         continue;
       }
 
+      const credentialOverrides = creds as ProviderCredentialOverrides;
       for (const field of CREDENTIAL_FIELDS) {
-        if (creds[field] !== undefined) {
-          providers[providerKey][field] = creds[field];
+        if (credentialOverrides[field] !== undefined) {
+          mutableProviders[providerKey][field] = credentialOverrides[field];
           overrideCount++;
         }
       }

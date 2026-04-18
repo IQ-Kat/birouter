@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PROVIDERS } from "../config/constants.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import {

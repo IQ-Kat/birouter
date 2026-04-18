@@ -32,6 +32,8 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   "gemini-claude-opus-4-5-thinking": "claude-opus-4-5-thinking",
 });
 
+type AntigravityModelAliasMap = Record<string, string>;
+
 export const ANTIGRAVITY_REVERSE_MODEL_ALIASES = Object.freeze(
   Object.entries(ANTIGRAVITY_MODEL_ALIASES).reduce<Record<string, string>>(
     (acc, [alias, target]) => {
@@ -53,7 +55,7 @@ const CLIENT_VISIBLE_MODEL_NAMES = Object.freeze(
 
 export function resolveAntigravityModelId(modelId: string): string {
   if (!modelId) return modelId;
-  return ANTIGRAVITY_MODEL_ALIASES[modelId] || modelId;
+  return (ANTIGRAVITY_MODEL_ALIASES as AntigravityModelAliasMap)[modelId] || modelId;
 }
 
 export function toClientAntigravityModelId(modelId: string): string {

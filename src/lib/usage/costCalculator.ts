@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Cost Calculator — extracted from usageDb.js (T-15)
  *

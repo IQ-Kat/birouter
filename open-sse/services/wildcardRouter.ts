@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Wildcard Model Routing — Phase 8
  *

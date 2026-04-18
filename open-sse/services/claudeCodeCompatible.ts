@@ -578,7 +578,7 @@ function buildClaudeCodeCompatibleSystemBlocks({
   ];
 
   for (const systemBlock of customSystemBlocks) {
-    const preparedBlock = { ...systemBlock };
+    const preparedBlock = { ...systemBlock } as Record<string, unknown>;
     if (!preserveCacheControl) {
       delete preparedBlock["cache_control"];
     }

@@ -268,25 +268,32 @@ test("syncAllBudgetSchedules advances overdue budgets and records a reset log", 
   const now = Date.UTC(2026, 3, 17, 12, 0, 0);
   const previousPeriodStart = Date.UTC(2026, 3, 15, 0, 0, 0);
   const overdueResetAt = Date.UTC(2026, 3, 16, 0, 0, 0);
+  const originalNow = Date.now;
 
-  domainState.saveBudget("key-reset", {
-    dailyLimitUsd: 10,
-    warningThreshold: 0.8,
-    resetInterval: "daily",
-    resetTime: "00:00",
-    budgetResetAt: overdueResetAt,
-    lastBudgetResetAt: previousPeriodStart,
-  });
-  domainState.saveCostEntry("key-reset", 3.5, Date.UTC(2026, 3, 15, 12, 0, 0));
+  try {
+    Date.now = () => now;
 
-  const result = costRules.syncAllBudgetSchedules(now);
-  const synced = costRules.getBudget("key-reset");
-  const logs = domainState.loadBudgetResetLogs("key-reset", 5);
+    domainState.saveBudget("key-reset", {
+      dailyLimitUsd: 10,
+      warningThreshold: 0.8,
+      resetInterval: "daily",
+      resetTime: "00:00",
+      budgetResetAt: overdueResetAt,
+      lastBudgetResetAt: previousPeriodStart,
+    });
+    domainState.saveCostEntry("key-reset", 3.5, Date.UTC(2026, 3, 15, 12, 0, 0));
 
-  assert.equal(result.processed, 1);
-  assert.equal(result.resetCount, 1);
-  assert.equal(synced?.lastBudgetResetAt, Date.UTC(2026, 3, 17, 0, 0, 0));
-  assert.equal(logs.length, 1);
-  assert.equal(logs[0].previousSpend, 3.5);
-  assert.equal(logs[0].resetInterval, "daily");
+    const result = costRules.syncAllBudgetSchedules(now);
+    const synced = costRules.getBudget("key-reset");
+    const logs = domainState.loadBudgetResetLogs("key-reset", 5);
+
+    assert.equal(result.processed, 1);
+    assert.equal(result.resetCount, 1);
+    assert.equal(synced?.lastBudgetResetAt, Date.UTC(2026, 3, 17, 0, 0, 0));
+    assert.equal(logs.length, 1);
+    assert.equal(logs[0].previousSpend, 3.5);
+    assert.equal(logs[0].resetInterval, "daily");
+  } finally {
+    Date.now = originalNow;
+  }
 });
