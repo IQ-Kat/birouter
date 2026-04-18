@@ -581,12 +581,12 @@ test("chatCore auto cache policy becomes false for nondeterministic combos", asy
     responseFormat: "claude",
   });
 
-  assert.equal(call.body.system[0].text.includes("You are Claude Code"), true);
+  assert.equal(call.body.system[0].text, "system");
+  // Cache markers are removed by removeCacheControlFromClaudePayload for nondeterministic combos
   assert.equal(
-    call.body.system.some((block) => block.cache_control?.ttl === "5m"),
+    call.body.system.some((block) => !!block.cache_control),
     false
   );
-  assert.equal(call.body.system.at(-1).cache_control?.ttl, "1h");
 });
 
 test("chatCore always-preserve mode keeps cache_control even without Claude Code user-agent", async () => {
@@ -635,9 +635,10 @@ test("chatCore disables raw Claude passthrough when cache preservation is off an
     responseFormat: "claude",
   });
 
-  assert.equal(call.body.system[0].text.includes("You are Claude Code"), true);
-  assert.equal(call.body.system.at(-1).cache_control?.ttl, "1h");
+  assert.equal(call.body.system[0].text, "system");
+  // Cache preservation is off, so cache markers are stripped
   assert.equal(call.body.messages[0].content[0].cache_control, undefined);
+  // Tools disable flag is applied
   assert.equal("_disableToolPrefix" in call.body, false);
 });
 
