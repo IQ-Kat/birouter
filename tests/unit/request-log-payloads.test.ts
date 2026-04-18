@@ -44,7 +44,7 @@ test("wraps raw text payloads in JSON-safe objects", () => {
 
 test("serializes truncated payloads as valid JSON objects", () => {
   const stored = serializePayloadForStorage({ text: "x".repeat(200) }, 80);
-  const parsed = parseStoredPayload(stored);
+  const parsed: any = parseStoredPayload(stored);
 
   assert.equal(parsed._truncated, true);
   assert.equal(parsed._originalSize > 80, true);
@@ -101,7 +101,7 @@ test("builds compact OpenAI stream summary for detailed logs", () => {
     FORMATS.OPENAI,
     "gpt-4.1-mini"
   );
-  const compact = compactStructuredStreamPayload(
+  const compact: any = compactStructuredStreamPayload(
     collector.build(summary, { includeEvents: false })
   );
 
@@ -146,7 +146,7 @@ test("builds compact Claude stream summary for detailed logs", () => {
     FORMATS.CLAUDE,
     "claude-sonnet-4"
   );
-  const compact = compactStructuredStreamPayload(
+  const compact: any = compactStructuredStreamPayload(
     collector.build(summary, { includeEvents: false })
   );
 
@@ -196,7 +196,7 @@ test("builds compact OpenAI summary with reasoning alias (delta.reasoning)", () 
     FORMATS.OPENAI,
     "moonshotai/kimi-k2.5"
   );
-  const compact = compactStructuredStreamPayload(
+  const compact: any = compactStructuredStreamPayload(
     collector.build(summary, { includeEvents: false })
   );
 
