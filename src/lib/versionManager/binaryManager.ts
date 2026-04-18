@@ -69,7 +69,9 @@ async function verifyChecksum(filePath: string, expectedSha256: string): Promise
 function findBinaryInDir(dir: string): string | null {
   const candidates = ["cli-proxy-api", "cli-proxy-api.exe", "CLIProxyAPI", "CLIProxyAPI.exe"];
   for (const name of candidates) {
-    if (fsSync.existsSync(path.join(dir, name))) return path.join(dir, name);
+    if (fsSync.existsSync(path.join(/* turbopackIgnore: true */ dir, name))) {
+      return path.join(/* turbopackIgnore: true */ dir, name);
+    }
   }
   return null;
 }
@@ -146,7 +148,7 @@ export async function getCurrentBinaryPath(dataDir?: string): Promise<string | n
   const symlinkPath = path.join(dir, "bin", "cliproxyapi");
   try {
     const real = await fs.realpath(symlinkPath);
-    return fsSync.existsSync(real) ? real : null;
+    return fsSync.existsSync(/* turbopackIgnore: true */ real) ? real : null;
   } catch {
     return null;
   }
@@ -159,7 +161,9 @@ export async function getInstalledVersions(dataDir?: string): Promise<string[]> 
     const entries = await fs.readdir(binDir);
     return entries
       .filter(
-        (e) => e.startsWith("cliproxyapi-") && fsSync.statSync(path.join(binDir, e)).isDirectory()
+        (e) =>
+          e.startsWith("cliproxyapi-") &&
+          fsSync.statSync(path.join(/* turbopackIgnore: true */ binDir, e)).isDirectory()
       )
       .map((e) => e.replace("cliproxyapi-", ""));
   } catch {

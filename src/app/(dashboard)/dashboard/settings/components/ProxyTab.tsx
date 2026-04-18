@@ -142,11 +142,7 @@ export default function ProxyTab() {
             <div>
               <p className="font-medium">{t("debugToggle")}</p>
             </div>
-            <Toggle
-              checked={debugMode}
-              onChange={() => updateDebugMode(!debugMode)}
-              disabled={loading}
-            />
+            <Toggle checked={debugMode} onChange={updateDebugMode} disabled={loading} />
           </div>
         </Card>
         <Card className="p-6 mt-4">

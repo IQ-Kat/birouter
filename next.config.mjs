@@ -17,7 +17,18 @@ const nextConfig = {
   outputFileTracingExcludes: {
     // Planning/task docs are not runtime assets and can break standalone copies
     // when broad fs/path tracing pulls the whole repository into the NFT graph.
-    "/*": ["./_tasks/**/*"],
+    "/*": [
+      "./.git/**/*",
+      "./_tasks/**/*",
+      "./_references/**/*",
+      "./_ideia/**/*",
+      "./_mono_repo/**/*",
+      "./coverage/**/*",
+      "./test-results/**/*",
+      "./playwright-report/**/*",
+      "./app.__qa_backup/**/*",
+      "./tests/**/*",
+    ],
   },
   serverExternalPackages: [
     "pino",

@@ -135,7 +135,7 @@ function getPayloadRulesPath() {
   return (
     process.env.OMNIROUTE_PAYLOAD_RULES_PATH ||
     process.env.PAYLOAD_RULES_PATH ||
-    path.join(process.cwd(), "config", "payloadRules.json")
+    path.join(/* turbopackIgnore: true */ process.cwd(), "config", "payloadRules.json")
   );
 }
 
