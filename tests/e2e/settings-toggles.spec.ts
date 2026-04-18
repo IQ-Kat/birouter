@@ -7,6 +7,14 @@ test.describe("Settings Toggles", () => {
       .locator('xpath=ancestor::div[contains(@class, "flex items-center justify-between")][1]')
       .getByRole("switch");
 
+  const waitForSettingsPatch = (page) =>
+    page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/settings") &&
+        response.request().method() === "PATCH" &&
+        response.ok()
+    );
+
   test("Debug mode toggle should work", async ({ page }) => {
     await page.goto("/dashboard/settings");
     await page.waitForLoadState("networkidle");
@@ -15,9 +23,10 @@ test.describe("Settings Toggles", () => {
     const debugToggle = getDebugToggle(page);
 
     await expect(debugToggle).toBeVisible({ timeout: 15000 });
+    await expect(debugToggle).toBeEnabled({ timeout: 15000 });
 
     const initialState = await debugToggle.getAttribute("aria-checked");
-    await debugToggle.click();
+    await Promise.all([waitForSettingsPatch(page), debugToggle.click()]);
     await expect(debugToggle).toHaveAttribute(
       "aria-checked",
       initialState === "true" ? "false" : "true",
@@ -83,15 +92,18 @@ test.describe("Settings Toggles", () => {
     const debugToggle = getDebugToggle(page);
 
     await expect(debugToggle).toBeVisible({ timeout: 15000 });
+    await expect(debugToggle).toBeEnabled({ timeout: 15000 });
 
     const initialState = await debugToggle.getAttribute("aria-checked");
-    await debugToggle.click();
+    await Promise.all([waitForSettingsPatch(page), debugToggle.click()]);
     const nextState = initialState === "true" ? "false" : "true";
     await expect(debugToggle).toHaveAttribute("aria-checked", nextState, { timeout: 15000 });
     await page.reload();
     await page.waitForLoadState("networkidle");
     await page.getByRole("tab", { name: /advanced/i }).click();
-    await expect(getDebugToggle(page)).toHaveAttribute("aria-checked", nextState, {
+    const reloadedToggle = getDebugToggle(page);
+    await expect(reloadedToggle).toBeEnabled({ timeout: 15000 });
+    await expect(reloadedToggle).toHaveAttribute("aria-checked", nextState, {
       timeout: 15000,
     });
   });
