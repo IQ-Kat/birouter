@@ -14,6 +14,9 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(combo):** Fallback to the next model when all provider accounts return a 503 rate-limited signal instead of aborting the routing sequence (#1398)
+- **fix(codex):** Strip server-generated IDs from response items in input to prevent 404 lookup errors in multi-turn Codex Conversations (#1397)
+- **fix(codex):** Optimize Chat Completions paths by converting `system` to `developer` roles instead of hoisting them into instructions, enabling prompt caching for system messages on GPT-5 models (#1400)
 - **fix(providers):** Resolve Claude passthrough corruption (#1359), Kimi-k2 reasoning header rejections (#1360), thinking parameter leaks (#1361), and Ollama proxy redirect drops (#1381)
 - **fix(core):** Proxy lookup in key validation respects the new ProxyRegistry environments, and proxy contexts correctly inherit downwards during token refresh preventing expiration loops (#1384, #1390)
 - **fix(providers):** Treat upstream legacy validation HTTP 5xx responses as a valid bypass for Qoder PAT tokens to prevent false negative invalidation (#1391)
