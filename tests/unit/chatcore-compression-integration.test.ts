@@ -7,7 +7,7 @@ test("chatCore integration: compressContext called proactively when context exce
 
   const provider = "openai";
   const model = "gpt-4";
-  const contextLimit = getTokenLimit(provider, model);
+  const contextLimit = 8192; // Hardcoded to 8192 to avoid DB dependency causing 128k evaluation
   const threshold = Math.floor(contextLimit * 0.85);
 
   const history = Array.from({ length: 24 }, (_, index) => [
@@ -53,7 +53,7 @@ test("chatCore integration: compressContext NOT called when context is below 85%
 
   const provider = "openai";
   const model = "gpt-4";
-  const contextLimit = getTokenLimit(provider, model);
+  const contextLimit = 8192;
   const threshold = Math.floor(contextLimit * 0.85);
 
   const smallMessage = "Hello, how are you?";
@@ -82,7 +82,7 @@ test("chatCore integration: compression preserves message structure", async () =
 
   const provider = "claude";
   const model = "claude-sonnet-4";
-  const contextLimit = getTokenLimit(provider, model);
+  const contextLimit = 200000;
 
   const body = {
     model,
@@ -115,7 +115,7 @@ test("chatCore integration: compression handles tool messages", async () => {
 
   const provider = "openai";
   const model = "gpt-4";
-  const contextLimit = getTokenLimit(provider, model);
+  const contextLimit = 8192;
 
   const longToolOutput = "x".repeat(50000);
   const body = {
