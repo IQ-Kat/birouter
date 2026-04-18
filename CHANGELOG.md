@@ -8,6 +8,8 @@
 
 ### ✨ New Features
 
+- **feat(cli-tools):** Add direct configuration file generation and override support for Qwen Code local settings (#1394)
+- **feat(providers):** Derive Claude CLI model defaults dynamically from provider registry to stay current with upstream API changes (#1393)
 - **feat(core):** Implement persistent API key, backup pruning, and GPU optimization (#1350, #1367, #1369)
 
 ### 🐛 Bug Fixes
