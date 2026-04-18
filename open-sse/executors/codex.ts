@@ -1,6 +1,5 @@
 import {
   getCodexRequestDefaults,
-  isOpenAIResponsesStoreEnabled,
 } from "@/lib/providers/requestDefaults";
 import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
@@ -257,6 +256,80 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
   }
 }
 
+/**
+ * Strip server-generated item IDs from the input array.
+ *
+ * The Codex /codex/responses endpoint does not persist response items even when
+ * store=true is sent. When proxy clients (e.g. OpenClaw) include response items
+ * from previous turns in the input array, those items carry server-assigned IDs
+ * (prefixed with "rs_", "fc_", "resp_", "msg_"). The Codex backend tries to
+ * validate these IDs against its persistence store and returns 404 when the items
+ * are not found (because store was effectively false).
+ *
+ * This function:
+ *   1. Removes bare string references ("rs_abc123") from the input array
+ *   2. Removes object items with type "item_reference" (explicit stored-item refs)
+ *   3. Strips the "id" field from any object in input whose id matches a
+ *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
+ *      preserved but the backend won't try to look it up
+ *   4. Always deletes previous_response_id (endpoint doesn't persist responses)
+ */
+function stripStoredItemReferences(body: Record<string, unknown>): void {
+  // Always strip previous_response_id — the /codex/responses endpoint does not
+  // persist responses, so any reference to a previous response would cause a 404.
+  // The official Codex CLI sets previous_response_id to None for HTTP transport.
+  // Ref: codex-rs codex-api/src/common.rs:187 — previous_response_id: None
+  // Ref: CLIProxyAPI codex_executor.go:115 — sjson.DeleteBytes(body, "previous_response_id")
+  delete body.previous_response_id;
+
+  if (!Array.isArray(body.input)) return;
+
+  const SERVER_ID_PATTERN = /^(rs|fc|resp|msg)_/;
+  let strippedCount = 0;
+
+  body.input = body.input.filter((item) => {
+    // Bare string references: "rs_abc123", "resp_abc123"
+    if (typeof item === "string" && SERVER_ID_PATTERN.test(item)) {
+      strippedCount++;
+      return false;
+    }
+
+    // Object references: { type: "item_reference", id: "rs_..." }
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item) &&
+      (item as Record<string, unknown>).type === "item_reference"
+    ) {
+      strippedCount++;
+      return false;
+    }
+
+    // Object items with server-generated IDs: strip the id field but keep the item.
+    // e.g. { id: "rs_...", type: "reasoning", summary: [...] } → keep content, remove id
+    // e.g. { id: "fc_...", type: "function_call", ... } → keep content, remove id
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item)
+    ) {
+      const record = item as Record<string, unknown>;
+      if (typeof record.id === "string" && SERVER_ID_PATTERN.test(record.id)) {
+        delete record.id;
+        strippedCount++;
+      }
+    }
+
+    return true;
+  });
+
+  if (strippedCount > 0) {
+    console.debug(
+      `[Codex] stripStoredItemReferences: sanitized ${strippedCount} server-generated ID(s) from input`
+    );
+  }
+}
+
 function normalizeCodexTools(body: Record<string, unknown>): void {
   if (!Array.isArray(body.tools)) return;
 
@@ -408,7 +481,30 @@ export class CodexExecutor extends BaseExecutor {
       headers["chatgpt-account-id"] = workspaceId;
     }
 
+    // Originator header — identifies the client type to the Codex backend.
+    // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
+    headers["originator"] = "codex_cli_rs";
+
+    // session_id header — enables prompt cache affinity on the Codex backend.
+    // The official Codex client sets this to conversation_id (a stable UUID per session).
+    // Ref: openai/codex codex-api/src/requests/headers.rs build_conversation_headers()
+    const cacheSessionId = this.getPromptCacheSessionId(credentials);
+    if (cacheSessionId) {
+      headers["session_id"] = cacheSessionId;
+    }
+
     return headers;
+  }
+
+  /**
+   * Derive a stable session ID for prompt cache affinity.
+   * Uses workspaceId (chatgpt account ID) as the cache partition key.
+   * This mirrors the official Codex client's use of conversation_id for
+   * prompt_cache_key and session_id header.
+   * Ref: openai/codex core/src/client.rs line 853
+   */
+  private getPromptCacheSessionId(credentials): string | null {
+    return credentials?.providerSpecificData?.workspaceId || null;
   }
 
   /**
@@ -448,10 +544,9 @@ export class CodexExecutor extends BaseExecutor {
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
     const requestDefaults = getCodexRequestDefaults(credentials?.providerSpecificData);
-    const storeEnabled = isOpenAIResponsesStoreEnabled(credentials?.providerSpecificData);
     const thinkingBudgetConfig = getThinkingBudgetConfig();
     const allowConnectionReasoningDefaults = thinkingBudgetConfig.mode === ThinkingMode.PASSTHROUGH;
-    const responsesStoreMarker = consumeResponsesStoreMarker(body);
+    consumeResponsesStoreMarker(body);
 
     // Codex /responses rejects stream=false, but /responses/compact rejects the stream field entirely.
     if (isCompactRequest) {
@@ -512,16 +607,23 @@ export class CodexExecutor extends BaseExecutor {
       hoistSystemMessagesToInstructions(body);
     }
 
-    if (!storeEnabled) {
-      body.store = false;
-    } else if (responsesStoreMarker !== undefined && body.store === undefined) {
-      body.store = responsesStoreMarker;
+    // Store: The Codex API defaults store to false when not specified.
+    // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
+    // which requires store=true so that response items are persisted.
+    // If the client explicitly sets store, respect it. Otherwise default to true.
+    if (body.store === undefined) {
+      body.store = true;
     }
 
     // Codex Responses only supports function tools with non-empty names.
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
     normalizeCodexTools(body);
+
+    // Strip stored response item references (rs_, resp_, msg_ IDs) from input.
+    // The /codex/responses endpoint does not persist responses even with store=true,
+    // so any references to previous response items would cause 404 errors.
+    stripStoredItemReferences(body);
 
     // Issue #806: Even for native passthrough, some clients (purist completions) might indiscriminately inject
     // a `messages` or `prompt` array which the strict Codex Responses schema rejects.
@@ -561,6 +663,28 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body.reasoning_effort;
 
+    // previous_response_id: always stripped by stripStoredItemReferences().
+    // The /codex/responses endpoint does not persist responses, so any reference
+    // to a previous response ID would cause a 404. This matches the behavior of
+    // both the official Codex CLI (sets None) and CLIProxyAPI (deletes the field).
+
+    // Remove unsupported token limit parameters BEFORE the passthrough return.
+    // Codex API rejects both max_tokens and max_output_tokens regardless of
+    // whether the request came via native passthrough or translation.
+    delete body.max_tokens;
+    delete body.max_output_tokens;
+
+    // Inject prompt_cache_key for Codex prompt caching.
+    // The official Codex client sets this to conversation_id (a stable UUID per session).
+    // Ref: openai/codex core/src/client.rs line 853:
+    //   let prompt_cache_key = Some(self.client.state.conversation_id.to_string());
+    if (!body.prompt_cache_key) {
+      const cacheSessionId = this.getPromptCacheSessionId(credentials);
+      if (cacheSessionId) {
+        body.prompt_cache_key = cacheSessionId;
+      }
+    }
+
     if (nativeCodexPassthrough) {
       return body;
     }
@@ -574,8 +698,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.top_logprobs;
     delete body.n;
     delete body.seed;
-    delete body.max_tokens;
-    delete body.max_output_tokens; // Responses API translator maps max_tokens -> max_output_tokens, but Codex rejects it
+    // max_tokens and max_output_tokens already deleted above (before passthrough return)
     delete body.user; // Cursor sends this but Codex doesn't support it
     delete body.prompt_cache_retention; // Cursor sends this but Codex doesn't support it
     delete body.metadata; // Cursor sends this but Codex doesn't support it
