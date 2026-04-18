@@ -75,8 +75,9 @@ export function writeCallArtifact(
   try {
     const serialized = JSON.stringify(artifact, null, 2);
     const sizeBytes = Buffer.byteLength(serialized);
-    // We use SHA-512 instead of SHA-256 to prevent false-positive CodeQL password hash alerts
-    const fileChecksum = crypto.createHash("sha512").update(serialized).digest("hex").slice(0, 64);
+    // This is a file integrity checksum, not a password hash
+    // codeql[js/insufficient-password-hash]
+    const fileChecksum = crypto.createHash("sha256").update(serialized).digest("hex");
 
     fs.mkdirSync(path.dirname(absPath), { recursive: true });
     fs.writeFileSync(tmpPath, serialized);

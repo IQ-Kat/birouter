@@ -361,13 +361,16 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
       );
     }
 
-    if (String(url).startsWith("https://cloudcode-pa.googleapis.com/")) {
-      return new Response("bad gateway", { status: 502 });
-    }
-
-    const urlStr = String(url);
-    if (urlStr.startsWith("https://daily-cloudcode-pa.googleapis.com/")) {
-      return new Response("bad gateway", { status: 502 });
+    try {
+      const parsedUrl = new URL(String(url));
+      if (parsedUrl.hostname === "cloudcode-pa.googleapis.com") {
+        return new Response("bad gateway", { status: 502 });
+      }
+      if (parsedUrl.hostname === "daily-cloudcode-pa.googleapis.com") {
+        return new Response("bad gateway", { status: 502 });
+      }
+    } catch {
+      // Ignore invalid URLs
     }
 
     return new Response(
