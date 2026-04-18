@@ -954,6 +954,10 @@ test("chat pipeline surfaces upstream 500 responses as structured errors", async
 
 test("chat pipeline returns 429 with Retry-After when the upstream rate-limits the only account", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-429" });
+  await settingsDb.updateSettings({
+    requestRetry: 0,
+    maxRetryIntervalSec: 0,
+  });
   let attempts = 0;
 
   globalThis.fetch = async () => {
