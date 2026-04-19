@@ -266,10 +266,10 @@ curl -s -o /dev/null -w "LOCAL:  HTTP %{http_code}\n" http://192.168.0.15:20128/
 curl -s -o /dev/null -w "AKAMAI: HTTP %{http_code}\n" http://69.164.221.35:20128/
 ```
 
-### 16. Clean up release branch
+### 16. Preserve release branch
 
 ```bash
-git branch -d release/v2.x.y
+# Branch is kept for historical purposes. Do not delete.
 ```
 
 ---
