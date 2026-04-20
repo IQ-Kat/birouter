@@ -1493,7 +1493,7 @@ export async function handleComboChat({
   let earliestRetryAfter = null;
   let lastStatus = null;
   const startTime = Date.now();
-  globalAttempts = 0;
+  let globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
 

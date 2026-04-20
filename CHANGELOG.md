@@ -4,6 +4,21 @@
 
 ---
 
+## [3.7.0] — 2026-04-19
+
+### ✨ New Features
+
+- **feat(providers):** Add ModelScope provider (Chinese AI marketplace) with Kimi K2.5, GLM-5, and Step-3.5-Flash integration. (#1430)
+- **feat(core):** Implement provider-level Circuit Breaker to prevent cascading failures across connections, enforcing a 10-minute cooldown after 5 consecutive transient failures. (#1430)
+- **feat(core):** Add daily quota exhaustion lock to detect "quota exceeded" signals and lock the specific model until midnight. (#1430)
+- **feat(dashboard):** Introduce real-time model status badges with countdown timers in the provider detail and combo panel interfaces. (#1430)
+
+### 🐛 Bug Fixes
+
+- **fix(dashboard):** Correct TOML round-trip corruption in Codex config serializer by dequoting keys and preserving array/boolean structures properly. (#1438)
+
+---
+
 ## [3.6.9] — 2026-04-19
 
 ### ✨ New Features
