@@ -281,7 +281,7 @@ OpenAI використовує один формат, Claude (Anthropic) вик
 - **Тести з'єднання через проксі** — Тести з'єднання використовують налаштований проксі (більше немає прямого обходу)
 - **Підтримка SOCKS5** — Повна підтримка SOCKS5 проксі для вихідної маршрутизації
 - **Підробка TLS відбитка** — TLS відбиток, схожий на браузер, через `wreq-js` для обходу виявлення ботів
-- **🔏 Відповідність відбитку CLI** — Переупорядковує заголовки та поля тіла для відповідності нативним сигнатурам CLI бінарників, drastично зменшуючи ризик позначення акаунта. IP проксі зберігається — ви отримуєте і приховування **і** маскування IP одночасно
+- **🔏 Відповідність відбитку CLI** — Переупорядковує заголовки та поля тіла для відповідності нативним сигнатурам CLI бінарників, драстично зменшуючи ризик позначення акаунта. IP проксі зберігається — ви отримуєте і приховування **і** маскування IP одночасно
 
 </details>
 
@@ -744,13 +744,13 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 > Налаштуйте AI кодування за хвилини за **$0/місяць**. Підключіть ці безкоштовні акаунти та використовуйте вбудоване комбо **Free Stack**.
 
-| Крок | Дія                                                | Розблоковані провайдери                                            |
-| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
-| 1    | Підключіть **Kiro** (AWS Builder ID OAuth)        | Claude Sonnet 4.5, Haiku 4.5 — **необмежено**                      |
-| 2    | Підключіть **Qoder** (Google OAuth)               | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **необмежено** |
-| 3    | Підключіть **Qwen** (Device Code)                 | qwen3-coder-plus, qwen3-coder-flash... — **необмежено**            |
-| 4    | Підключіть **Gemini CLI** (Google OAuth)          | gemini-3-flash, gemini-2.5-pro — **180K/міс безкоштовно**          |
-| 5    | `/dashboard/combos` → шаблон **Free Stack ($0)**  | Циклічне перемикання всіх безкоштовних провайдерів автоматично    |
+| Крок | Дія                                              | Розблоковані провайдери                                             |
+| ---- | ------------------------------------------------ | ------------------------------------------------------------------- |
+| 1    | Підключіть **Kiro** (AWS Builder ID OAuth)       | Claude Sonnet 4.5, Haiku 4.5 — **необмежено**                       |
+| 2    | Підключіть **Qoder** (Google OAuth)              | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **необмежено** |
+| 3    | Підключіть **Qwen** (Device Code)                | qwen3-coder-plus, qwen3-coder-flash... — **необмежено**             |
+| 4    | Підключіть **Gemini CLI** (Google OAuth)         | gemini-3-flash, gemini-2.5-pro — **180K/міс безкоштовно**           |
+| 5    | `/dashboard/combos` → шаблон **Free Stack ($0)** | Циклічне перемикання всіх безкоштовних провайдерів автоматично      |
 
 **Налаштуйте будь-яку IDE/CLI на:** `http://localhost:20128/v1` · API Key: `any-string` · Готово.
 
@@ -775,13 +775,13 @@ omniroute
 
 Панель відкривається за адресою `http://localhost:20128`, а базовий URL API — `http://localhost:20128/v1`.
 
-| Команда                 | Опис                                                        |
-| ----------------------- | ----------------------------------------------------------- |
+| Команда                 | Опис                                                           |
+| ----------------------- | -------------------------------------------------------------- |
 | `omniroute`             | Запустити сервер (`PORT=20128`, API та панель на одному порту) |
-| `omniroute --port 3000` | Встановити канонічний/API порт на 3000                      |
-| `omniroute --mcp`       | Запустити MCP сервер (stdio транспорт)                      |
-| `omniroute --no-open`   | Не відкривати браузер автоматично                           |
-| `omniroute --help`      | Показати довідку                                            |
+| `omniroute --port 3000` | Встановити канонічний/API порт на 3000                         |
+| `omniroute --mcp`       | Запустити MCP сервер (stdio транспорт)                         |
+| `omniroute --no-open`   | Не відкривати браузер автоматично                              |
+| `omniroute --help`      | Показати довідку                                               |
 
 Опціональний режим роздільних портів:
 
@@ -795,10 +795,10 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 
 Коли вам більше не потрібен OmniRoute, ми надаємо два швидкі скрипти для чистого видалення:
 
-| Команда                  | Дія                                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------- |
+| Команда                  | Дія                                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
 | `npm run uninstall`      | Видаляє системний застосунок, але **зберігає вашу БД та конфігурації** в `~/.omniroute`. |
-| `npm run uninstall:full` | Видаляє застосунок І назавжди **стирає всі конфігурації, ключі та бази даних**.      |
+| `npm run uninstall:full` | Видаляє застосунок І назавжди **стирає всі конфігурації, ключі та бази даних**.          |
 
 > Примітка: Щоб виконати ці команди, перейдіть до папки проєкту OmniRoute (якщо ви його клонували) та запустіть їх. Альтернативно, якщо встановлено глобально, ви можете просто запустити `npm uninstall -g omniroute`.
 
@@ -806,10 +806,10 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 
 Для більшості розгортань вам потрібно лише:
 
-| Змінна                   | За замовчуванням              | Призначення                                                                                                                                  |
-| ------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `REQUEST_TIMEOUT_MS`     | `600000`                      | Спільна базова лінія для тайм-ауту початку відповіді upstream, прихованих тайм-аутів Undici, запитів TLS відбитка та тайм-аутів запиту/проксі API bridge |
-| `STREAM_IDLE_TIMEOUT_MS` | успадковує `REQUEST_TIMEOUT_MS` | Максимальний проміжок між частинами стрімінгу, перш ніж OmniRoute перериває SSE потік                                                       |
+| Змінна                   | За замовчуванням                | Призначення                                                                                                                                              |
+| ------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REQUEST_TIMEOUT_MS`     | `600000`                        | Спільна базова лінія для тайм-ауту початку відповіді upstream, прихованих тайм-аутів Undici, запитів TLS відбитка та тайм-аутів запиту/проксі API bridge |
+| `STREAM_IDLE_TIMEOUT_MS` | успадковує `REQUEST_TIMEOUT_MS` | Максимальний проміжок між частинами стрімінгу, перш ніж OmniRoute перериває SSE потік                                                                    |
 
 Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, and other per-layer timeout vars still work and override the shared baseline.
 
@@ -1091,10 +1091,10 @@ volumes:
   omniroute-data:
 ```
 
-| Образ                    | Тег      | Розмір | Опис                  |
-| ------------------------ | -------- | ------ | --------------------- |
+| Образ                    | Тег      | Розмір | Опис                      |
+| ------------------------ | -------- | ------ | ------------------------- |
 | `diegosouzapw/omniroute` | `latest` | ~250MB | Останній стабільний реліз |
-| `diegosouzapw/omniroute` | `3.6.2`  | ~250MB | Поточна версія        |
+| `diegosouzapw/omniroute` | `3.6.2`  | ~250MB | Поточна версія            |
 
 ---
 
@@ -1137,33 +1137,33 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ## 💰 Ціни загалом
 
-| Рівень              | Провайдер                   | Вартість                  | Скидання квоти   | Найкраще для                      |
-| ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
-| **💳 ПІДПИСКА**     | Claude Code (Pro)           | $20/міс                   | 5год + тижнева   | Вже підписані                     |
-|                     | Codex (Plus/Pro)            | $20-200/міс               | 5год + тижнева   | Користувачі OpenAI                |
-|                     | Gemini CLI                  | **БЕЗКОШТОВНО**           | 180K/міс + 1K/день | Всім!                           |
-|                     | GitHub Copilot              | $10-19/міс                | Щомісяця         | Користувачі GitHub                |
-| **🔑 API KEY**      | NVIDIA NIM                  | **БЕЗКОШТОВНО** (назавжди)| ~40 RPM          | 70+ відкритих моделей             |
-|                     | Cerebras                    | **БЕЗКОШТОВНО** (1M токенів/день) | 60K TPM / 30 RPM | Найшвидший у світі              |
-|                     | Groq                        | **БЕЗКОШТОВНО** (30 RPM)  | 14.4K RPD        | Ультрашвидкий Llama/Gemma         |
-|                     | DeepSeek V3.2               | $0.27/$1.10 за 1M         | Немає            | Найкраще співвідношення ціна/якість |
-|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕 | None             | Fastest + tool calling, ultralow  |
-|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Reasoning flagship from xAI       |
-|                     | Mistral                     | Безкоштовна пробна + платна | Обмежена швидкість | Європейський AI                |
-|                     | OpenRouter                  | Оплата за використання    | Немає            | 100+ моделей агрегація            |
-| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
-|                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                   | 5-годинний       | Найдешевший варіант               |
-|                     | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use               | None             | Direct Moonshot API access        |
-|                     | Kimi K2                     | $9/міс фіксовано          | 10M токенів/міс  | Передбачувана вартість            |
-| **🆓 БЕЗКОШТОВНІ**  | Qoder                       | **$0**                    | Необмежено       | 5 моделей необмежено              |
-|                     | Qwen                        | **$0**                    | Необмежено       | 4 моделі необмежено               |
-|                     | Kiro                        | **$0**                    | Необмежено       | Claude Sonnet/Haiku (AWS Builder) |
-|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)   | 1 RPS            | Largest free quota on Earth       |
-|                     | Pollinations AI 🆕          | **$0** (no key needed)    | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
-|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ models, global edge           |
-|                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
+| Рівень             | Провайдер                   | Вартість                          | Скидання квоти     | Найкраще для                        |
+| ------------------ | --------------------------- | --------------------------------- | ------------------ | ----------------------------------- |
+| **💳 ПІДПИСКА**    | Claude Code (Pro)           | $20/міс                           | 5год + тижнева     | Вже підписані                       |
+|                    | Codex (Plus/Pro)            | $20-200/міс                       | 5год + тижнева     | Користувачі OpenAI                  |
+|                    | Gemini CLI                  | **БЕЗКОШТОВНО**                   | 180K/міс + 1K/день | Всім!                               |
+|                    | GitHub Copilot              | $10-19/міс                        | Щомісяця           | Користувачі GitHub                  |
+| **🔑 API KEY**     | NVIDIA NIM                  | **БЕЗКОШТОВНО** (назавжди)        | ~40 RPM            | 70+ відкритих моделей               |
+|                    | Cerebras                    | **БЕЗКОШТОВНО** (1M токенів/день) | 60K TPM / 30 RPM   | Найшвидший у світі                  |
+|                    | Groq                        | **БЕЗКОШТОВНО** (30 RPM)          | 14.4K RPD          | Ультрашвидкий Llama/Gemma           |
+|                    | DeepSeek V3.2               | $0.27/$1.10 за 1M                 | Немає              | Найкраще співвідношення ціна/якість |
+|                    | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕         | None               | Fastest + tool calling, ultralow    |
+|                    | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕             | None               | Reasoning flagship from xAI         |
+|                    | Mistral                     | Безкоштовна пробна + платна       | Обмежена швидкість | Європейський AI                     |
+|                    | OpenRouter                  | Оплата за використання            | Немає              | 100+ моделей агрегація              |
+| **💰 CHEAP**       | GLM-5 (via Z.AI) 🆕         | $0.5/1M                           | Daily 10AM         | 128K output, newest flagship        |
+|                    | GLM-4.7                     | $0.6/1M                           | Daily 10AM         | Budget backup                       |
+|                    | MiniMax M2.5 🆕             | $0.3/1M input                     | 5-hour rolling     | Reasoning + agentic tasks           |
+|                    | MiniMax M2.1                | $0.2/1M                           | 5-годинний         | Найдешевший варіант                 |
+|                    | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use                       | None               | Direct Moonshot API access          |
+|                    | Kimi K2                     | $9/міс фіксовано                  | 10M токенів/міс    | Передбачувана вартість              |
+| **🆓 БЕЗКОШТОВНІ** | Qoder                       | **$0**                            | Необмежено         | 5 моделей необмежено                |
+|                    | Qwen                        | **$0**                            | Необмежено         | 4 моделі необмежено                 |
+|                    | Kiro                        | **$0**                            | Необмежено         | Claude Sonnet/Haiku (AWS Builder)   |
+|                    | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)           | 1 RPS              | Largest free quota on Earth         |
+|                    | Pollinations AI 🆕          | **$0** (no key needed)            | 1 req/15s          | GPT-5, Claude, DeepSeek, Llama 4    |
+|                    | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)          | ~150 resp/day      | 50+ models, global edge             |
+|                    | Scaleway AI 🆕              | **$0** (1M tokens total)          | Rate limited       | EU/GDPR, Qwen3 235B, Llama 70B      |
 
 > 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
 
@@ -1196,40 +1196,40 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 
 ### 🔵 МОДЕЛІ CLAUDE (через Kiro — AWS Builder ID)
 
-| Модель              | Префікс | Ліміт        | Обмеження швидкості   |
-| ------------------- | ------ | ------------- | --------------------- |
-| `claude-sonnet-4.5` | `kr/`  | **Необмежено** | Немає повідомлень про денний ліміт |
-| `claude-haiku-4.5`  | `kr/`  | **Необмежено** | Немає повідомлень про денний ліміт |
-| `claude-opus-4.6`   | `kr/`  | **Необмежено** | Останній Opus через Kiro |
+| Модель              | Префікс | Ліміт          | Обмеження швидкості                |
+| ------------------- | ------- | -------------- | ---------------------------------- |
+| `claude-sonnet-4.5` | `kr/`   | **Необмежено** | Немає повідомлень про денний ліміт |
+| `claude-haiku-4.5`  | `kr/`   | **Необмежено** | Немає повідомлень про денний ліміт |
+| `claude-opus-4.6`   | `kr/`   | **Необмежено** | Останній Opus через Kiro           |
 
 ### 🟢 МОДЕЛІ QODER (Безкоштовний PAT через qodercli)
 
-| Model              | Prefix | Limit         | Rate Limit      |
-| ------------------ | ------ | ------------- | --------------- |
+| Model              | Prefix | Limit          | Rate Limit                  |
+| ------------------ | ------ | -------------- | --------------------------- |
 | `kimi-k2-thinking` | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
 | `qwen3-coder-plus` | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
 | `deepseek-r1`      | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
-| `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+| `minimax-m2.1`     | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
+| `kimi-k2`          | `if/`  | **Необмежено** | Немає повідомлень про ліміт |
 
 > Рекомендований метод підключення: **Personal Access Token + `qodercli`**. OAuth через браузер є
 > експериментальним та вимкнений за замовчуванням, якщо не налаштовані змінні середовища `QODER_OAUTH_*`.
 
 ### 🟡 МОДЕЛІ QWEN (Авторизація через Device Code)
 
-| Model               | Prefix | Limit         | Rate Limit          |
-| ------------------- | ------ | ------------- | ------------------- |
+| Model               | Prefix | Limit          | Rate Limit                  |
+| ------------------- | ------ | -------------- | --------------------------- |
 | `qwen3-coder-plus`  | `qw/`  | **Необмежено** | Немає повідомлень про ліміт |
 | `qwen3-coder-flash` | `qw/`  | **Необмежено** | Немає повідомлень про ліміт |
-| `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
+| `qwen3-coder-next`  | `qw/`  | **Необмежено** | Немає повідомлень про ліміт |
 | `vision-model`      | `qw/`  | **Необмежено** | Мультимодальна (зображення) |
 
 ### 🟣 GEMINI CLI (Google OAuth)
 
-| Model                    | Prefix | Limit                       | Rate Limit    |
-| ------------------------ | ------ | --------------------------- | ------------- |
+| Model                    | Prefix | Limit                          | Rate Limit         |
+| ------------------------ | ------ | ------------------------------ | ------------------ |
 | `gemini-3-flash-preview` | `gc/`  | **180K токенів/міс** + 1K/день | Щомісячне скидання |
-| `gemini-2.5-pro`         | `gc/`  | 180K/міс (спільний пул)     | Висока якість |
+| `gemini-2.5-pro`         | `gc/`  | 180K/міс (спільний пул)        | Висока якість      |
 
 ### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
@@ -1345,28 +1345,28 @@ OmniRoute v3.6 побудований як операційна платформ
 
 ### 🆕 Новинки — основні моменти v3.6.x (квітень 2026)
 
-| Функція                            | Що вона робить                                                                                                                                    |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Функція                            | Що вона робить                                                                                                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🌐 **V1 WebSocket Bridge**         | OpenAI-сумісний WebSocket трафік оновлений та проксійований через `/v1/ws` — повний стрімінг через WS з сесійною авторизацією (API ключ або сесійна кука) |
-| 🔑 **Sync Tokens & Config Bundle** | Видача/відкликання sync токенів для кінцевих точок синхронізації конфігурації. Пакети конфігурації версіоновані з ETag для ефективного опитування |
-| 🧠 **GLM Thinking (glmt) Preset**  | GLM Thinking registered first-class: 65 536 max tokens, 24 576 thinking budget, 900s timeout, usage sync & pricing — Claude-compatible API        |
-| 🔢 **Hybrid Token Counting**       | Uses provider-side `/messages/count_tokens` when available; falls back to estimation — accurate usage tracking without guessing                   |
-| 🌱 **Model Alias Auto-Seed**       | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                |
-| 🛡️ **Safe Outbound Fetch**         | All provider validation and model discovery go through a guarded fetch layer blocking private/local URLs with retry, timeout, and SSRF protection |
-| 🔄 **Cooldown-Aware Retries**      | Chat requests auto-retry on model-scoped cooldowns with configurable `requestRetry` and `maxRetryIntervalSec`                                     |
-| 🔍 **Runtime Env Validation**      | Startup validates all env vars with Zod schemas — clear errors for missing secrets, invalid URLs, or wrong types                                  |
-| 📋 **Compliance Audit Expansion**  | Structured audit logs with pagination, request context, auth events, provider CRUD events, and SSRF-blocked validation logging                    |
-| 🔐 **TPS Log Metric**              | Log details modal shows Tokens Per Second (TPS) — quick performance at-a-glance for every request                                                 |
-| 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                               |
-| 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                           |
-| 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                       |
-| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                  |
-| 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                  |
-| 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                               |
-| 🛡️ **Proxy Hardening**             | Token health check, API key validation, and undici dispatcher all honor proxy config                                                              |
-| ⚠️ **Node.js 24 Login Warning**    | Login page proactively detects incompatible Node.js versions and shows a clear warning banner                                                     |
-| 📎 **Gemini PDF Attachments**      | PDF attachments correctly routed to Gemini via `inline_data` and generic base64 detection                                                         |
-| 🔒 **CodeQL Security Hardening**   | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                                      |
+| 🔑 **Sync Tokens & Config Bundle** | Видача/відкликання sync токенів для кінцевих точок синхронізації конфігурації. Пакети конфігурації версіоновані з ETag для ефективного опитування         |
+| 🧠 **GLM Thinking (glmt) Preset**  | GLM Thinking registered first-class: 65 536 max tokens, 24 576 thinking budget, 900s timeout, usage sync & pricing — Claude-compatible API                |
+| 🔢 **Hybrid Token Counting**       | Uses provider-side `/messages/count_tokens` when available; falls back to estimation — accurate usage tracking without guessing                           |
+| 🌱 **Model Alias Auto-Seed**       | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                        |
+| 🛡️ **Safe Outbound Fetch**         | All provider validation and model discovery go through a guarded fetch layer blocking private/local URLs with retry, timeout, and SSRF protection         |
+| 🔄 **Cooldown-Aware Retries**      | Chat requests auto-retry on model-scoped cooldowns with configurable `requestRetry` and `maxRetryIntervalSec`                                             |
+| 🔍 **Runtime Env Validation**      | Startup validates all env vars with Zod schemas — clear errors for missing secrets, invalid URLs, or wrong types                                          |
+| 📋 **Compliance Audit Expansion**  | Structured audit logs with pagination, request context, auth events, provider CRUD events, and SSRF-blocked validation logging                            |
+| 🔐 **TPS Log Metric**              | Log details modal shows Tokens Per Second (TPS) — quick performance at-a-glance for every request                                                         |
+| 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                                       |
+| 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                                   |
+| 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                               |
+| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                          |
+| 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                          |
+| 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                                       |
+| 🛡️ **Proxy Hardening**             | Token health check, API key validation, and undici dispatcher all honor proxy config                                                                      |
+| ⚠️ **Node.js 24 Login Warning**    | Login page proactively detects incompatible Node.js versions and shows a clear warning banner                                                             |
+| 📎 **Gemini PDF Attachments**      | PDF attachments correctly routed to Gemini via `inline_data` and generic base64 detection                                                                 |
+| 🔒 **CodeQL Security Hardening**   | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                                              |
 
 ### 🆕 New — ClawRouter-Inspired Improvements (Mar 2026)
 
@@ -1754,7 +1754,7 @@ npm run test:protocols:e2e
 2. Отримайте API ключ
 3. Панель → Додати провайдера → OpenRouter
 
-**Моделі:** Access 100+ models from all major providers through a single API key.
+**Моделі:** Доступ до 100+ моделей від усіх основних провайдерів через один API ключ.
 
 **Поведінка панелі:** Моделі OpenRouter керуються з **Доступних моделей**. Ручне додавання, імпорт та автосинхронізація оновлюють той самий список.
 
@@ -2249,7 +2249,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ---
 
-## 📖 Documentation
+## 📖 Документація
 
 | Document                                                 | Description                                         |
 | -------------------------------------------------------- | --------------------------------------------------- |
@@ -2349,7 +2349,7 @@ Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)*
 
 ---
 
-## 📄 License
+## 📄 Ліцензія
 
 MIT License - see [LICENSE](LICENSE) for details.
 
