@@ -110,14 +110,16 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
     console.warn(
       "[Encryption] Found encrypted data but STORAGE_ENCRYPTION_KEY is not set. Cannot decrypt."
     );
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
+    return null;
   }
 
   const body = ciphertext.slice(PREFIX.length);
   const parts = body.split(":");
   if (parts.length !== 3) {
     console.error("[Encryption] Malformed encrypted value");
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending malformed encrypted tokens to providers
+    return null;
   }
 
   const [ivHex, encryptedHex, authTagHex] = parts;
@@ -134,7 +136,8 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[Encryption] Decryption failed:", message);
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
+    return null;
   }
 }
 
