@@ -2,6 +2,7 @@ import {
   COOLDOWN_MS,
   BACKOFF_CONFIG,
   BACKOFF_STEPS_MS,
+  PROVIDER_PROFILES,
   RateLimitReason,
   HTTP_STATUS,
 } from "../config/constants.ts";
@@ -27,6 +28,10 @@ type ProviderProfile = {
   maxBackoffLevel: number;
   circuitBreakerThreshold: number;
   circuitBreakerReset: number;
+  // Provider-level circuit breaker fields
+  providerFailureThreshold: number;
+  providerFailureWindowMs: number;
+  providerCooldownMs: number;
 };
 type JsonRecord = Record<string, unknown>;
 type ModelLockoutEntry = {
@@ -187,6 +192,10 @@ function buildProviderProfile(
     maxBackoffLevel: connectionCooldown.maxBackoffSteps,
     circuitBreakerThreshold: providerBreaker.failureThreshold,
     circuitBreakerReset: providerBreaker.resetTimeoutMs,
+    // Provider-level circuit breaker fields (not configurable via settings, use PROVIDER_PROFILES defaults)
+    providerFailureThreshold: PROVIDER_PROFILES[category].providerFailureThreshold,
+    providerFailureWindowMs: PROVIDER_PROFILES[category].providerFailureWindowMs,
+    providerCooldownMs: PROVIDER_PROFILES[category].providerCooldownMs,
   } satisfies ProviderProfile;
 }
 
