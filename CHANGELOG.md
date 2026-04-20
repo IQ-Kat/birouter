@@ -16,6 +16,7 @@
 ### 🐛 Bug Fixes
 
 - **fix(dashboard):** Correct TOML round-trip corruption in Codex config serializer by dequoting keys and preserving array/boolean structures properly. (#1438)
+- **fix(security):** Resolve CodeQL alert 164 (ReDoS in extraction) and 163 (incomplete URL sanitization) (#163, #164)
 
 ---
 
