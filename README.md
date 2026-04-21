@@ -775,6 +775,15 @@ omniroute
 
 Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
 
+#### Arch Linux (AUR)
+
+Arch Linux users can install the [AUR package](https://aur.archlinux.org/packages/omniroute-bin), which installs OmniRoute and provides a systemd user service:
+
+```bash
+yay -S omniroute-bin
+systemctl --user enable --now omniroute.service
+```
+
 | Command                 | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
 | `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port) |
