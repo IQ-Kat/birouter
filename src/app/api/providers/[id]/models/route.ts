@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
-import { getProviderConnectionById } from "@/models";
 import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
-import { getModelIsHidden, resolveProxyForProvider } from "@/lib/localDb";
+import {
+  getProviderConnectionById,
+  getModelIsHidden,
+  resolveProxyForProvider,
+} from "@/lib/localDb";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
   getSafeOutboundFetchErrorStatus,

@@ -6,8 +6,8 @@ import {
   withInjectionGuard,
 } from "../../src/middleware/promptInjectionGuard.ts";
 
-async function withEnv(overrides, fn) {
-  const originals = {};
+async function withEnv(overrides: Record<string, string | undefined>, fn: any) {
+  const originals: Record<string, string | undefined> = {};
 
   for (const [key, value] of Object.entries(overrides)) {
     originals[key] = process.env[key];

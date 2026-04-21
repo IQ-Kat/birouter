@@ -1,9 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Card from "@/shared/components/Card";
-import EmptyState from "@/shared/components/EmptyState";
-import { formatDistanceToNow } from "date-fns";
+import { Card, EmptyState } from "@/shared/components";
+
+function formatDistanceToNow(timestamp: number) {
+  const seconds = Math.floor(Date.now() / 1000 - timestamp);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 export default function BatchPage() {
   const [batches, setBatches] = useState([]);
@@ -70,7 +79,7 @@ export default function BatchPage() {
                 </span>
               </div>
               <span className="text-xs text-text-muted">
-                {formatDistanceToNow(batch.createdAt, { addSuffix: true })}
+                {formatDistanceToNow(batch.createdAt)}
               </span>
             </div>
 
@@ -121,9 +130,7 @@ export default function BatchPage() {
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm font-semibold">{file.id}</span>
               </div>
-              <span className="text-xs text-text-muted">
-                {formatDistanceToNow(file.createdAt, { addSuffix: true })}
-              </span>
+              <span className="text-xs text-text-muted">{formatDistanceToNow(file.createdAt)}</span>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">

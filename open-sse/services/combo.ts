@@ -1944,7 +1944,11 @@ async function handleRoundRobinCombo({
         // Extract error info
         let errorText = result.statusText || "";
         let retryAfter = null;
-        let errorBody: { error?: { code?: string | null; message?: string | null } } | null = null;
+        let errorBody: {
+          error?: { code?: string | null; message?: string | null } | string;
+          message?: string | null;
+          retryAfter?: number | string | null;
+        } | null = null;
         try {
           const cloned = result.clone();
           try {
