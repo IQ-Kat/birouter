@@ -220,6 +220,7 @@ export {
   updateBatch,
   listBatches,
   getPendingBatches,
+  getTerminalBatches,
 } from "./db/batches";
 
 export type { FileRecord } from "./db/files";

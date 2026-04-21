@@ -140,3 +140,11 @@ export function getPendingBatches(): BatchRecord[] {
   ).all();
   return rows.map(row => parseBatchRow(row));
 }
+
+export function getTerminalBatches(): BatchRecord[] {
+  const db = getDbInstance();
+  const rows = db.prepare(
+    "SELECT * FROM batches WHERE status IN ('completed', 'failed', 'cancelled', 'expired') ORDER BY created_at ASC"
+  ).all();
+  return rows.map(row => parseBatchRow(row));
+}

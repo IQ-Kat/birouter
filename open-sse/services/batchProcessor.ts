@@ -1,12 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import {
   getPendingBatches,
+  getTerminalBatches,
   updateBatch,
   getFileContent,
   createFile,
   getApiKeyById,
   getBatch,
-  listBatches,
   listFiles,
   deleteFile,
   updateFileStatus,
@@ -90,7 +90,7 @@ export async function processPendingBatches() {
 async function cleanupExpiredBatches() {
   try {
     const now = Math.floor(Date.now() / 1000);
-    const batches = listBatches(undefined, 200); // Check last 200 batches
+    const batches = getTerminalBatches();
 
     const parseWindow = (window: string): number => {
       if (!window) return 86400;
@@ -104,10 +104,9 @@ async function cleanupExpiredBatches() {
       return 86400;
     };
 
+    // Delete files for terminal batches that have exceeded their completion window
     for (const batch of batches) {
       const windowSeconds = parseWindow(batch.completionWindow);
-
-      // Cleanup completed/failed/cancelled batches after their completion window
       const completionTime =
         batch.completedAt || batch.failedAt || batch.cancelledAt || batch.expiredAt;
       if (completionTime && now - completionTime > windowSeconds) {
@@ -115,9 +114,12 @@ async function cleanupExpiredBatches() {
         if (batch.outputFileId) deleteFile(batch.outputFileId);
         if (batch.errorFileId) deleteFile(batch.errorFileId);
       }
+    }
 
-      // Expire pending batches that have exceeded their completion window
+    // Expire validating batches that have exceeded their completion window
+    for (const batch of getPendingBatches()) {
       if (batch.status === "validating") {
+        const windowSeconds = parseWindow(batch.completionWindow);
         if (now - batch.createdAt > windowSeconds) {
           updateBatch(batch.id, { status: "expired", expiredAt: now });
         }
@@ -125,7 +127,8 @@ async function cleanupExpiredBatches() {
     }
 
     // Cleanup orphan files (batch-purpose files stuck in validating after 48h)
-    const allFiles = listFiles();
+    // Use asc order so oldest files are processed first; use a high limit to avoid missing old orphans.
+    const allFiles = listFiles({ order: "asc", limit: 100 });
     for (const file of allFiles) {
       if (
         file.purpose === "batch" &&
@@ -162,8 +165,10 @@ async function startBatch(batch: any) {
 
     // Fire-and-forget: process items in the background so the poll loop isn't blocked.
     // isProcessing prevents a second poll tick from overlapping.
-    // noinspection ES6MissingAwait
-    processBatchItems(batch, lines);
+    processBatchItems(batch, lines).catch((err) => {
+      console.error(`[BATCH] Critical error in processBatchItems for ${batch.id}:`, err);
+      failBatch(batch.id, String(err));
+    });
   } catch (err) {
     console.error(`[BATCH] Error starting batch ${batch.id}:`, err);
     failBatch(batch.id, err instanceof Error ? err.message : String(err));
@@ -272,20 +277,36 @@ async function processBatchItems(batch: any, lines: string[]) {
       failedCount++;
     }
 
-    // Periodic progress update
-    updateBatch(batch.id, {
-      requestCountsCompleted: completedCount,
-      requestCountsFailed: failedCount,
-      model: usedModel,
-      usage: {
-        input_tokens: totalInputTokens,
-        output_tokens: totalOutputTokens,
-        total_tokens: totalInputTokens + totalOutputTokens,
-        input_tokens_details: { cached_tokens: 0 },
-        output_tokens_details: { reasoning_tokens: totalReasoningTokens },
-      },
-    });
+    // Throttle progress updates to every 50 items to reduce DB contention
+    if ((completedCount + failedCount) % 50 === 0) {
+      updateBatch(batch.id, {
+        requestCountsCompleted: completedCount,
+        requestCountsFailed: failedCount,
+        model: usedModel,
+        usage: {
+          input_tokens: totalInputTokens,
+          output_tokens: totalOutputTokens,
+          total_tokens: totalInputTokens + totalOutputTokens,
+          input_tokens_details: { cached_tokens: 0 },
+          output_tokens_details: { reasoning_tokens: totalReasoningTokens },
+        },
+      });
+    }
   }
+
+  // Final progress update to capture accurate counts before finalization
+  updateBatch(batch.id, {
+    requestCountsCompleted: completedCount,
+    requestCountsFailed: failedCount,
+    model: usedModel,
+    usage: {
+      input_tokens: totalInputTokens,
+      output_tokens: totalOutputTokens,
+      total_tokens: totalInputTokens + totalOutputTokens,
+      input_tokens_details: { cached_tokens: 0 },
+      output_tokens_details: { reasoning_tokens: totalReasoningTokens },
+    },
+  });
 
   // Finalize
   await finalizeBatch(batch.id, results, errors);

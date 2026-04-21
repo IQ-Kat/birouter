@@ -32,9 +32,17 @@ export async function POST(request: Request) {
 
     const bytes = file.size;
     const filename = file.name;
-    const arrayBuffer = await file.arrayBuffer();
-    const content = Buffer.from(arrayBuffer);
     const mimeType = file.type;
+
+    // Stream the upload into memory in chunks to avoid allocating a large contiguous ArrayBuffer
+    const reader = file.stream().getReader();
+    const chunks: Uint8Array[] = [];
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    const content = Buffer.concat(chunks.map((c) => Buffer.from(c)));
 
     let expiresAt: number | undefined;
     if (expiresAfterAnchor === "created_at" && expiresAfterSeconds) {

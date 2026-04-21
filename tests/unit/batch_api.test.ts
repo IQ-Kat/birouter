@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert";
-import { createFile, createBatch, getBatch, getFileContent, updateBatch, createProviderConnection, createApiKey, getFile, listFiles, formatFileResponse, deleteFile } from "../../src/lib/localDb";
+import { createFile, createBatch, getBatch, getFileContent, updateBatch, createProviderConnection, createApiKey, getFile, listFiles, formatFileResponse, deleteFile, getTerminalBatches } from "../../src/lib/localDb";
 import { getDbInstance } from "@/lib/db/core.ts";
 import { initBatchProcessor, stopBatchProcessor } from "../../open-sse/services/batchProcessor";
 
@@ -618,4 +618,56 @@ test("Retrieve file content spec compliance", async () => {
     // In the route, this would return 404
     const unauthorized = (file.apiKeyId !== null && file.apiKeyId !== otherApiKey.id);
     assert.ok(unauthorized);
+});
+
+test("getTerminalBatches returns only terminal statuses ordered oldest first", async () => {
+    const apiKey = await createApiKey("Terminal Batches Test Key", "test-machine");
+
+    const file = createFile({
+        bytes: 10,
+        filename: "terminal_mock.jsonl",
+        purpose: "batch",
+        content: Buffer.from("{}"),
+        apiKeyId: apiKey.id
+    });
+
+    // Create batches in different terminal and non-terminal states
+    const completedBatch = createBatch({ endpoint: "/v1/chat/completions", completionWindow: "24h", inputFileId: file.id, apiKeyId: apiKey.id });
+    updateBatch(completedBatch.id, { status: "completed", completedAt: Math.floor(Date.now() / 1000) });
+
+    const failedBatch = createBatch({ endpoint: "/v1/chat/completions", completionWindow: "24h", inputFileId: file.id, apiKeyId: apiKey.id });
+    updateBatch(failedBatch.id, { status: "failed", failedAt: Math.floor(Date.now() / 1000) });
+
+    const cancelledBatch = createBatch({ endpoint: "/v1/chat/completions", completionWindow: "24h", inputFileId: file.id, apiKeyId: apiKey.id });
+    updateBatch(cancelledBatch.id, { status: "cancelled", cancelledAt: Math.floor(Date.now() / 1000) });
+
+    const expiredBatch = createBatch({ endpoint: "/v1/chat/completions", completionWindow: "24h", inputFileId: file.id, apiKeyId: apiKey.id });
+    updateBatch(expiredBatch.id, { status: "expired", expiredAt: Math.floor(Date.now() / 1000) });
+
+    // This one should NOT appear in terminal batches
+    const pendingBatch = createBatch({ endpoint: "/v1/chat/completions", completionWindow: "24h", inputFileId: file.id, apiKeyId: apiKey.id });
+
+    const terminalIds = new Set([completedBatch.id, failedBatch.id, cancelledBatch.id, expiredBatch.id]);
+    const terminal = getTerminalBatches();
+
+    // All returned batches must be terminal
+    for (const b of terminal) {
+        assert.ok(
+            ["completed", "failed", "cancelled", "expired"].includes(b.status),
+            `Unexpected status: ${b.status}`
+        );
+    }
+
+    // Our four terminal batches must all be present
+    for (const id of terminalIds) {
+        assert.ok(terminal.some(b => b.id === id), `Missing terminal batch ${id}`);
+    }
+
+    // The pending batch must not appear
+    assert.ok(!terminal.some(b => b.id === pendingBatch.id), "Pending batch should not be in terminal list");
+
+    // Results must be ordered oldest first (created_at ASC)
+    for (let i = 1; i < terminal.length; i++) {
+        assert.ok(terminal[i].createdAt >= terminal[i - 1].createdAt, "Results should be ordered oldest first");
+    }
 });
