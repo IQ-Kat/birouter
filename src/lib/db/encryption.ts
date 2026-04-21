@@ -135,14 +135,16 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
     console.warn(
       "[Encryption] Found encrypted data but STORAGE_ENCRYPTION_KEY is not set. Cannot decrypt."
     );
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
+    return null;
   }
 
   const body = ciphertext.slice(PREFIX.length);
   const parts = body.split(":");
   if (parts.length !== 3) {
     console.error("[Encryption] Malformed encrypted value");
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending malformed encrypted tokens to providers
+    return null;
   }
 
   const [ivHex, encryptedHex, authTagHex] = parts;
@@ -154,7 +156,17 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
     decipher.setAuthTag(authTag);
 
     let decrypted = decipher.update(encryptedHex, "hex", "utf8");
-    decrypted += decipher.final("utf8");
+    try {
+      decrypted += decipher.final("utf8");
+    } catch (finalErr: unknown) {
+      const finalMessage = finalErr instanceof Error ? finalErr.message : String(finalErr);
+      console.error(
+        `[Encryption] Decryption final() failed: ${finalMessage}. ` +
+          `Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
+          `Auth tag validation likely failed.`
+      );
+      return ciphertext;
+    }
     return decrypted;
   } catch (err: unknown) {
     const legacyKey = getLegacyKey();
@@ -174,7 +186,8 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
     }
     const message = err instanceof Error ? err.message : String(err);
     console.error("[Encryption] Decryption failed:", message);
-    return ciphertext;
+    // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
+    return null;
   }
 }
 
