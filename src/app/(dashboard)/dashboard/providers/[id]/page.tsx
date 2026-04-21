@@ -5839,7 +5839,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
-    passthroughModels: connection.providerSpecificData?.passthroughModels === true,
+    passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5907,7 +5907,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
-        passthroughModels: connection.providerSpecificData?.passthroughModels === true,
+        passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
