@@ -13,6 +13,7 @@
 - **feat(core):** Add daily quota exhaustion lock to detect "quota exceeded" signals and lock the specific model until midnight. (#1430)
 - **feat(core):** Auto-inject `stream_options.include_usage = true` for OpenAI format streams to guarantee token usage is reported correctly during streaming. (#1423)
 - **feat(dashboard):** Introduce real-time model status badges with countdown timers in the provider detail and combo panel interfaces. (#1430)
+- **feat(dashboard):** Add Batch/File management data grid to the Dashboard. (#1479)
 
 ### 🐛 Bug Fixes
 
