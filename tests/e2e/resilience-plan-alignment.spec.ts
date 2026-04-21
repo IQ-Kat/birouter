@@ -305,7 +305,9 @@ test.describe("Resilience Plan Alignment", () => {
     await mockResilienceSettings(page);
 
     await gotoDashboardRoute(page, "/dashboard/settings?tab=resilience");
-    await expect(page.getByText("Connection Cooldown")).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.getByRole("heading", { name: "Connection Cooldown", exact: true })
+    ).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Base cooldown", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Use upstream retry hints", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Max backoff steps", { exact: true }).first()).toBeVisible();

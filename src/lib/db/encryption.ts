@@ -149,41 +149,41 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
 
   const [ivHex, encryptedHex, authTagHex] = parts;
 
-  try {
-    const iv = Buffer.from(ivHex, "hex");
-    const authTag = Buffer.from(authTagHex, "hex");
-    const decipher = createDecipheriv(ALGORITHM, key, iv);
-    decipher.setAuthTag(authTag);
-
-    let decrypted = decipher.update(encryptedHex, "hex", "utf8");
+  const tryDecryptWithKey = (candidateKey: Buffer): string | null => {
     try {
+      const iv = Buffer.from(ivHex, "hex");
+      const authTag = Buffer.from(authTagHex, "hex");
+      const decipher = createDecipheriv(ALGORITHM, candidateKey, iv);
+      decipher.setAuthTag(authTag);
+
+      let decrypted = decipher.update(encryptedHex, "hex", "utf8");
       decrypted += decipher.final("utf8");
-    } catch (finalErr: unknown) {
-      const finalMessage = finalErr instanceof Error ? finalErr.message : String(finalErr);
-      console.error(
-        `[Encryption] Decryption final() failed: ${finalMessage}. ` +
-          `Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
-          `Auth tag validation likely failed.`
-      );
-      return ciphertext;
+      return decrypted;
+    } catch {
+      return null;
     }
-    return decrypted;
-  } catch (err: unknown) {
+  };
+
+  try {
+    const decrypted = tryDecryptWithKey(key);
+    if (decrypted !== null) {
+      return decrypted;
+    }
+
     const legacyKey = getLegacyKey();
     if (legacyKey) {
-      try {
-        const iv = Buffer.from(ivHex, "hex");
-        const authTag = Buffer.from(authTagHex, "hex");
-        const legacyDecipher = createDecipheriv(ALGORITHM, legacyKey, iv);
-        legacyDecipher.setAuthTag(authTag);
-
-        let legacyDecrypted = legacyDecipher.update(encryptedHex, "hex", "utf8");
-        legacyDecrypted += legacyDecipher.final("utf8");
+      const legacyDecrypted = tryDecryptWithKey(legacyKey);
+      if (legacyDecrypted !== null) {
         return legacyDecrypted;
-      } catch (legacyErr) {
-        // Fallback failed as well
       }
     }
+
+    console.error(
+      `[Encryption] Decryption failed. Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
+        `Auth tag validation likely failed.`
+    );
+    return null;
+  } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[Encryption] Decryption failed:", message);
     // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
