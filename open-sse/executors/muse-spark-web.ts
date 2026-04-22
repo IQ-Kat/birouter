@@ -5,13 +5,20 @@ import {
   type ExecuteInput,
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
+import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
+import {
+  normalizeSessionCookieHeader,
+  normalizeSessionCookieHeaders,
+} from "@/lib/providers/webCookieAuth";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
 const META_AI_DEFAULT_COOKIE = "abra_sess";
 const META_AI_SEND_MESSAGE_DOC_ID = "078dfdff6fb0d420d8011b49073e6886";
 const META_AI_ROOT_BRANCH_PATH = "0";
 const META_AI_ENTRY_POINT = "KADABRA__CHAT__UNIFIED_INPUT_BAR";
+const META_AI_FRIENDLY_NAME = "useAbraSendMessageMutation";
+const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
+const META_AI_ASBD_ID = "129477";
 const META_AI_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
 const BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -35,6 +42,8 @@ type MetaSseFrame = {
 type ParsedMetaAiResponse = {
   content: string;
   deltas: string[];
+  reasoningContent: string;
+  reasoningDeltas: string[];
   errorCode: string | null;
   errorMessage: string | null;
   status: number;
@@ -295,6 +304,37 @@ function readMetaJsonPayloads(text: string): Array<Record<string, unknown>> {
     .filter((frame): frame is Record<string, unknown> => !!frame);
 }
 
+const META_AI_REASONING_KEYS = [
+  "reasoning",
+  "reasoningContent",
+  "reasoning_content",
+  "reasoningText",
+  "thinking",
+  "thinkingContent",
+  "thinkingText",
+  "thought",
+  "thoughtText",
+  "thoughts",
+  "internalThoughts",
+  "chainOfThought",
+  "thinkingTrace",
+  "thinking_trace",
+] as const;
+
+const META_AI_NESTED_RENDERER_KEYS = [
+  "contentRenderer",
+  "textContent",
+  "message",
+  "mediaContent",
+  "unified_response",
+  "unifiedResponseContent",
+  "sections",
+  "view_model",
+  "primitive",
+  "primitives",
+  "nested_responses",
+] as const;
+
 function collectRendererTexts(value: unknown, seen: Set<string>, depth = 0): string[] {
   if (depth > 8) {
     return [];
@@ -343,6 +383,56 @@ function collectRendererTexts(value: unknown, seen: Set<string>, depth = 0): str
   return parts;
 }
 
+function collectReasoningTexts(
+  value: unknown,
+  seen: Set<string>,
+  depth = 0,
+  force = false
+): string[] {
+  if (depth > 8) {
+    return [];
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim();
+    if (!force || !normalized || seen.has(normalized)) {
+      return [];
+    }
+    seen.add(normalized);
+    return [normalized];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectReasoningTexts(item, seen, depth + 1, force));
+  }
+
+  if (!isRecord(value)) {
+    return [];
+  }
+
+  const typename = typeof value.__typename === "string" ? value.__typename : "";
+  const localForce = force || /reasoning|thinking|thought/i.test(typename);
+  const parts: string[] = [];
+
+  if (typeof value.text === "string" && localForce) {
+    parts.push(...collectReasoningTexts(value.text, seen, depth + 1, true));
+  }
+
+  for (const key of META_AI_REASONING_KEYS) {
+    if (key in value) {
+      parts.push(...collectReasoningTexts(value[key], seen, depth + 1, true));
+    }
+  }
+
+  for (const key of META_AI_NESTED_RENDERER_KEYS) {
+    if (key in value) {
+      parts.push(...collectReasoningTexts(value[key], seen, depth + 1, localForce));
+    }
+  }
+
+  return parts;
+}
+
 function extractAssistantContent(message: Record<string, unknown>): string {
   if (typeof message.content === "string" && message.content.length > 0) {
     return message.content;
@@ -354,6 +444,11 @@ function extractAssistantContent(message: Record<string, unknown>): string {
   }
 
   const parts = collectRendererTexts(contentRenderer, new Set());
+  return parts.join("\n\n").trim();
+}
+
+function extractAssistantReasoning(message: Record<string, unknown>): string {
+  const parts = collectReasoningTexts(message, new Set());
   return parts.join("\n\n").trim();
 }
 
@@ -405,9 +500,11 @@ function classifyMetaAiError(errorMessage: string | null, content: string) {
   return null;
 }
 
-function parseMetaAiResponseText(text: string): ParsedMetaAiResponse {
+function parseMetaAiResponseText(text: string, isThinkingModel: boolean): ParsedMetaAiResponse {
   let lastContent = "";
   const deltas: string[] = [];
+  let lastReasoning = "";
+  const reasoningDeltas: string[] = [];
   let errorCode: string | null = null;
   let errorMessage: string | null = null;
 
@@ -433,6 +530,16 @@ function parseMetaAiResponseText(text: string): ParsedMetaAiResponse {
       lastContent = content;
     }
 
+    if (isThinkingModel) {
+      const reasoning = extractAssistantReasoning(sendMessageStream);
+      if (reasoning && reasoning !== content && reasoning !== lastReasoning) {
+        reasoningDeltas.push(
+          reasoning.startsWith(lastReasoning) ? reasoning.slice(lastReasoning.length) : reasoning
+        );
+        lastReasoning = reasoning;
+      }
+    }
+
     const upstreamError = extractAssistantError(sendMessageStream);
     if (upstreamError.message) {
       errorMessage = upstreamError.message;
@@ -442,12 +549,14 @@ function parseMetaAiResponseText(text: string): ParsedMetaAiResponse {
 
   const classifiedError = classifyMetaAiError(errorMessage, lastContent);
   if (classifiedError) {
-    return {
-      content: lastContent,
-      deltas,
-      errorCode,
-      errorMessage: classifiedError.message,
-      status: classifiedError.status,
+      return {
+        content: lastContent,
+        deltas,
+        reasoningContent: lastReasoning,
+        reasoningDeltas,
+        errorCode,
+        errorMessage: classifiedError.message,
+        status: classifiedError.status,
     };
   }
 
@@ -455,6 +564,8 @@ function parseMetaAiResponseText(text: string): ParsedMetaAiResponse {
     return {
       content: lastContent,
       deltas,
+      reasoningContent: lastReasoning,
+      reasoningDeltas,
       errorCode,
       errorMessage: `Meta AI returned an error: ${errorMessage}`,
       status: 502,
@@ -465,6 +576,8 @@ function parseMetaAiResponseText(text: string): ParsedMetaAiResponse {
     return {
       content: "",
       deltas: [],
+      reasoningContent: lastReasoning,
+      reasoningDeltas,
       errorCode: null,
       errorMessage: "Meta AI returned no assistant content",
       status: 502,
@@ -474,6 +587,8 @@ function parseMetaAiResponseText(text: string): ParsedMetaAiResponse {
   return {
     content: lastContent,
     deltas: deltas.filter((delta) => delta.length > 0),
+    reasoningContent: lastReasoning,
+    reasoningDeltas: reasoningDeltas.filter((delta) => delta.length > 0),
     errorCode: null,
     errorMessage: null,
     status: 200,
@@ -486,6 +601,7 @@ function sseChunk(data: unknown): string {
 
 function buildStreamingResponse(
   deltas: string[],
+  reasoningDeltas: string[],
   model: string,
   id: string,
   created: number
@@ -513,6 +629,29 @@ function buildStreamingResponse(
           })
         )
       );
+
+      for (const delta of reasoningDeltas) {
+        if (!delta) continue;
+        controller.enqueue(
+          encoder.encode(
+            sseChunk({
+              id,
+              object: "chat.completion.chunk",
+              created,
+              model,
+              system_fingerprint: null,
+              choices: [
+                {
+                  index: 0,
+                  delta: { reasoning_content: delta },
+                  finish_reason: null,
+                  logprobs: null,
+                },
+              ],
+            })
+          )
+        );
+      }
 
       for (const delta of deltas) {
         if (!delta) continue;
@@ -555,8 +694,18 @@ function buildStreamingResponse(
   });
 }
 
-function buildNonStreamingResponse(content: string, model: string, id: string, created: number) {
+function buildNonStreamingResponse(
+  content: string,
+  reasoningContent: string,
+  model: string,
+  id: string,
+  created: number
+) {
   const completionTokens = estimateTokens(content);
+  const message: Record<string, unknown> = { role: "assistant", content };
+  if (reasoningContent) {
+    message.reasoning_content = reasoningContent;
+  }
 
   return new Response(
     JSON.stringify({
@@ -568,7 +717,7 @@ function buildNonStreamingResponse(content: string, model: string, id: string, c
       choices: [
         {
           index: 0,
-          message: { role: "assistant", content },
+          message,
           finish_reason: "stop",
           logprobs: null,
         },
@@ -629,6 +778,47 @@ export function normalizeMetaAiCookieHeader(apiKey: string): string {
   return normalizeSessionCookieHeader(apiKey, META_AI_DEFAULT_COOKIE);
 }
 
+function selectMetaAiCookieHeader(credentials: ExecuteInput["credentials"]): string {
+  const extraCookieValues = Array.isArray(credentials.providerSpecificData?.extraApiKeys)
+    ? credentials.providerSpecificData.extraApiKeys.filter(
+        (value): value is string => typeof value === "string" && value.trim().length > 0
+      )
+    : [];
+
+  const normalizedPool = normalizeSessionCookieHeaders(
+    [credentials.apiKey || "", ...extraCookieValues],
+    META_AI_DEFAULT_COOKIE
+  );
+
+  if (normalizedPool.length === 0) {
+    return "";
+  }
+
+  if (normalizedPool.length === 1 || !credentials.connectionId) {
+    return normalizedPool[0];
+  }
+
+  return getRotatingApiKey(credentials.connectionId, normalizedPool[0], normalizedPool.slice(1));
+}
+
+function buildMetaAiHeaders(cookieHeader: string): Record<string, string> {
+  return {
+    Accept: "text/event-stream",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Content-Type": "application/json",
+    Cookie: cookieHeader,
+    Origin: "https://www.meta.ai",
+    Referer: "https://www.meta.ai/",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
+    "User-Agent": META_AI_USER_AGENT,
+    "X-ASBD-ID": META_AI_ASBD_ID,
+    "X-FB-Friendly-Name": META_AI_FRIENDLY_NAME,
+    "X-FB-Request-Analytics-Tags": META_AI_REQUEST_ANALYTICS_TAGS,
+  };
+}
+
 export class MuseSparkWebExecutor extends BaseExecutor {
   constructor() {
     super("muse-spark-web", { id: "muse-spark-web", baseUrl: META_AI_GRAPHQL_API });
@@ -669,16 +859,10 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       };
     }
 
+    const modelInfo = getMuseSparkModelInfo(model);
     const transformedBody = buildMetaAiRequestBody(prompt, model);
-    const cookieHeader = normalizeMetaAiCookieHeader(credentials.apiKey || "");
-    const headers: Record<string, string> = {
-      Accept: "text/event-stream",
-      "Content-Type": "application/json",
-      Cookie: cookieHeader,
-      Origin: "https://www.meta.ai",
-      Referer: "https://www.meta.ai/",
-      "User-Agent": META_AI_USER_AGENT,
-    };
+    const cookieHeader = selectMetaAiCookieHeader(credentials);
+    const headers = buildMetaAiHeaders(cookieHeader);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
@@ -741,7 +925,7 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     }
 
     const responseText = await readTextResponse(upstreamResponse.body, signal);
-    const parsed = parseMetaAiResponseText(responseText);
+    const parsed = parseMetaAiResponseText(responseText, modelInfo.isThinking);
     if (parsed.status !== 200 || parsed.errorMessage) {
       return {
         response: buildErrorResponse(
@@ -758,10 +942,11 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const id = `chatcmpl-meta-${crypto.randomUUID().slice(0, 12)}`;
     const created = Math.floor(Date.now() / 1000);
     const deltas = parsed.deltas.length > 0 ? parsed.deltas : [parsed.content];
+    const reasoningDeltas = parsed.reasoningDeltas;
 
     return {
       response: stream
-        ? new Response(buildStreamingResponse(deltas, model, id, created), {
+        ? new Response(buildStreamingResponse(deltas, reasoningDeltas, model, id, created), {
             status: 200,
             headers: {
               "Content-Type": "text/event-stream",
@@ -769,7 +954,7 @@ export class MuseSparkWebExecutor extends BaseExecutor {
               "X-Accel-Buffering": "no",
             },
           })
-        : buildNonStreamingResponse(parsed.content, model, id, created),
+        : buildNonStreamingResponse(parsed.content, parsed.reasoningContent, model, id, created),
       url: META_AI_GRAPHQL_API,
       headers,
       transformedBody,

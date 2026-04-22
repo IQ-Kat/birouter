@@ -16,3 +16,21 @@ export function normalizeSessionCookieHeader(rawValue: string, defaultCookieName
 
   return `${defaultCookieName}=${normalized}`;
 }
+
+export function normalizeSessionCookieHeaders(
+  rawValues: Array<string | null | undefined>,
+  defaultCookieName: string
+): string[] {
+  const seen = new Set<string>();
+  const normalizedHeaders: string[] = [];
+
+  for (const rawValue of rawValues) {
+    if (typeof rawValue !== "string") continue;
+    const normalized = normalizeSessionCookieHeader(rawValue, defaultCookieName);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    normalizedHeaders.push(normalized);
+  }
+
+  return normalizedHeaders;
+}

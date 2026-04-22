@@ -1189,6 +1189,9 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
 };
 
 const META_AI_SEND_MESSAGE_DOC_ID = "078dfdff6fb0d420d8011b49073e6886";
+const META_AI_FRIENDLY_NAME = "useAbraSendMessageMutation";
+const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
+const META_AI_ASBD_ID = "129477";
 const META_AI_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
 const META_AI_BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -1589,10 +1592,17 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
         {
           "Content-Type": "application/json",
           Accept: "text/event-stream",
+          "Accept-Language": "en-US,en;q=0.9",
           Cookie: cookieHeader,
           Origin: "https://www.meta.ai",
           Referer: "https://www.meta.ai/",
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
           "User-Agent": META_AI_USER_AGENT,
+          "X-ASBD-ID": META_AI_ASBD_ID,
+          "X-FB-Friendly-Name": META_AI_FRIENDLY_NAME,
+          "X-FB-Request-Analytics-Tags": META_AI_REQUEST_ANALYTICS_TAGS,
         },
         providerSpecificData
       ),

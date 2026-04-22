@@ -72,6 +72,34 @@ function mockFetchCapture(status = 200, text = metaAiSseText([])) {
   };
 }
 
+function mockFetchCaptureMany(status = 200, text = metaAiSseText([])) {
+  const original = globalThis.fetch;
+  const calls: Array<{
+    url: string;
+    headers: Record<string, string>;
+    body: Record<string, unknown>;
+  }> = [];
+
+  globalThis.fetch = async (url: any, opts: any) => {
+    calls.push({
+      url: String(url),
+      headers: opts?.headers || {},
+      body: JSON.parse(opts?.body || "{}"),
+    });
+    return new Response(mockTextStream(text), {
+      status,
+      headers: { "Content-Type": "text/event-stream" },
+    });
+  };
+
+  return {
+    restore: () => {
+      globalThis.fetch = original;
+    },
+    calls,
+  };
+}
+
 test("MuseSparkWebExecutor is registered in executor index", () => {
   assert.ok(hasSpecializedExecutor("muse-spark-web"));
   assert.ok(hasSpecializedExecutor("ms-web"));
@@ -139,12 +167,14 @@ test("Streaming: produces valid SSE chunks", async () => {
         id: "meta-msg-1",
         content: "Hello ",
         streamingState: "STREAMING",
+        thinkingText: "First thought",
       },
       {
         __typename: "AssistantMessage",
         id: "meta-msg-1",
         content: "Hello from Muse Spark",
         streamingState: "DONE",
+        thinkingText: "First thought\nSecond thought",
       },
     ])
   );
@@ -167,17 +197,59 @@ test("Streaming: produces valid SSE chunks", async () => {
     const lines = text.split("\n").filter((line) => line.startsWith("data: "));
     assert.ok(lines.length >= 4, `Expected at least 4 SSE data lines, got ${lines.length}`);
 
-    const first = JSON.parse(lines[0].slice(6));
+    const payloads = lines
+      .filter((line) => line !== "data: [DONE]")
+      .map((line) => JSON.parse(line.slice(6)));
+
+    const first = payloads[0];
     assert.equal(first.choices[0].delta.role, "assistant");
 
-    const second = JSON.parse(lines[1].slice(6));
-    assert.equal(second.choices[0].delta.content, "Hello ");
+    const reasoningChunks = payloads.filter((payload) => payload.choices[0].delta.reasoning_content);
+    assert.ok(reasoningChunks.length >= 2);
+    assert.equal(reasoningChunks[0].choices[0].delta.reasoning_content, "First thought");
+    assert.equal(reasoningChunks[1].choices[0].delta.reasoning_content, "\nSecond thought");
 
-    const third = JSON.parse(lines[2].slice(6));
-    assert.equal(third.choices[0].delta.content, "from Muse Spark");
+    const contentChunks = payloads.filter((payload) => payload.choices[0].delta.content);
+    assert.ok(contentChunks.length >= 2);
+    assert.equal(contentChunks[0].choices[0].delta.content, "Hello ");
+    assert.equal(contentChunks[1].choices[0].delta.content, "from Muse Spark");
 
     const lastLine = text.trim().split("\n").filter(Boolean).pop();
     assert.equal(lastLine, "data: [DONE]");
+  } finally {
+    restore();
+  }
+});
+
+test("Non-streaming thinking mode includes reasoning_content", async () => {
+  const restore = mockFetch(
+    200,
+    metaAiSseText([
+      {
+        __typename: "AssistantMessage",
+        id: "meta-msg-2",
+        content: "Answer",
+        streamingState: "DONE",
+        thinkingText: "Reason through the plan",
+      },
+    ])
+  );
+
+  try {
+    const executor = new MuseSparkWebExecutor();
+    const result = await executor.execute({
+      model: "muse-spark-thinking",
+      body: { messages: [{ role: "user", content: "hi" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "abra-session-token" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 200);
+    const json = (await result.response.json()) as any;
+    assert.equal(json.choices[0].message.content, "Answer");
+    assert.equal(json.choices[0].message.reasoning_content, "Reason through the plan");
   } finally {
     restore();
   }
@@ -260,8 +332,51 @@ test("Request: posts to correct Meta endpoint with normalized cookie", async () 
     assert.equal(cap.url, "https://www.meta.ai/api/graphql");
     assert.equal(cap.headers.Cookie, "abra_sess=raw-session-token");
     assert.equal(cap.headers.Accept, "text/event-stream");
+    assert.equal(cap.headers["X-FB-Friendly-Name"], "useAbraSendMessageMutation");
+    assert.equal(cap.headers["X-ASBD-ID"], "129477");
     assert.equal(cap.headers.Origin, "https://www.meta.ai");
     assert.equal(cap.headers.Referer, "https://www.meta.ai/");
+  } finally {
+    cap.restore();
+  }
+});
+
+test("Request: rotates across extra abra_sess cookies with round-robin", async () => {
+  const cap = mockFetchCaptureMany(
+    200,
+    metaAiSseText([
+      {
+        __typename: "AssistantMessage",
+        id: "meta-msg-3",
+        content: "ok",
+        streamingState: "DONE",
+      },
+    ])
+  );
+
+  try {
+    const executor = new MuseSparkWebExecutor();
+    for (let i = 0; i < 3; i++) {
+      await executor.execute({
+        model: "muse-spark",
+        body: { messages: [{ role: "user", content: `test ${i}` }], stream: false },
+        stream: false,
+        credentials: {
+          apiKey: "primary-cookie",
+          connectionId: "muse-spark-rotation",
+          providerSpecificData: {
+            extraApiKeys: ["secondary-cookie", "abra_sess=third-cookie"],
+          },
+        },
+        signal: AbortSignal.timeout(10000),
+        log: null,
+      });
+    }
+
+    assert.deepEqual(
+      cap.calls.map((call) => call.headers.Cookie),
+      ["abra_sess=primary-cookie", "abra_sess=secondary-cookie", "abra_sess=third-cookie"]
+    );
   } finally {
     cap.restore();
   }
