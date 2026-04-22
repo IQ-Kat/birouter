@@ -58,7 +58,7 @@ test("resolveModelOrError rejects ambiguous aliases without a provider prefix", 
 
   assert.ok(result.error);
   assert.equal(result.error.status, 400);
-  const json = await result.error.json();
+  const json = (await result.error.json()) as any;
   assert.match(json.error.message, /Ambiguous model/i);
 });
 
@@ -71,7 +71,7 @@ test("resolveModelOrError rejects ambiguous slashful canonical ids instead of mi
 
   assert.ok(result.error);
   assert.equal(result.error.status, 400);
-  const json = await result.error.json();
+  const json = (await result.error.json()) as any;
   assert.match(json.error.message, /Ambiguous model/i);
   assert.match(json.error.message, /openai\/gpt-oss-120b/i);
 });
@@ -85,7 +85,7 @@ test("resolveModelOrError rejects malformed model strings", async () => {
 
   assert.ok(result.error);
   assert.equal(result.error.status, 400);
-  const json = await result.error.json();
+  const json = (await result.error.json()) as any;
   assert.match(json.error.message, /Invalid model format/i);
 });
 
@@ -101,7 +101,7 @@ test("checkPipelineGates blocks providers with an open circuit breaker", async (
       resetTimeoutMs: 5_000,
     },
   });
-  const json = await response.json();
+  const json = (await response.json()) as any;
   const retryAfter = Number(response.headers.get("Retry-After"));
 
   assert.equal(response.status, 503);
@@ -143,8 +143,8 @@ test("handleNoCredentials reports missing provider credentials and exhausted acc
     500
   );
 
-  const missingJson = await missing.json();
-  const exhaustedJson = await exhausted.json();
+  const missingJson = (await missing.json()) as any;
+  const exhaustedJson = (await exhausted.json()) as any;
 
   assert.equal(missing.status, 400);
   assert.match(missingJson.error.message, /No credentials for provider: openai/);
@@ -168,7 +168,7 @@ test("handleNoCredentials returns Retry-After when every account is rate limited
     null,
     null
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 429);
   assert.ok(Number(response.headers.get("Retry-After")) >= 1);
@@ -193,7 +193,7 @@ test("handleNoCredentials returns structured model_cooldown when every credentia
     null,
     null
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 429);
   assert.equal(Number(response.headers.get("Retry-After")) >= 1, true);
@@ -207,7 +207,7 @@ test("handleNoCredentials returns structured model_cooldown when every credentia
 test("safeResolveProxy returns the direct route when no proxy config is present", async () => {
   const connection = await seedConnection("openai", { apiKey: "sk-openai-direct" });
 
-  const resolved = await safeResolveProxy(connection.id);
+  const resolved = await safeResolveProxy((connection as any).id);
 
   assert.deepEqual(resolved, {
     proxy: null,
@@ -230,7 +230,10 @@ test("executeChatWithBreaker converts proxy fast-fail errors", async () => {
       apiKey: "sk-openai-helper",
       providerSpecificData: {},
     };
+    const breaker = getCircuitBreaker("openai");
     const proxyResult = await executeChatWithBreaker({
+      bypassCircuitBreaker: false,
+      breaker,
       body: { model: "openai/gpt-4o-mini" },
       provider: "openai",
       model: "gpt-4o-mini",

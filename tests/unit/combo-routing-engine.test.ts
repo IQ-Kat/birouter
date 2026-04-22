@@ -113,7 +113,7 @@ async function cleanupTestDataDir() {
       core.resetDbInstance();
       fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       return;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
@@ -622,7 +622,7 @@ test("handleComboChat preserves the first failure status but surfaces the last e
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 500);
   assert.equal(payload.error.message, "fail:model-b");
@@ -982,7 +982,7 @@ test("handleComboChat returns the earliest retry-after when all priority targets
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 429);
   assert.match(payload.error.message, /limited:model-b/);
@@ -1013,7 +1013,7 @@ test("handleComboChat returns 404 model_not_found when a combo has no executable
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 404);
   assert.equal(payload.error.code, "model_not_found");
@@ -1046,7 +1046,7 @@ test("handleComboChat round-robin returns 404 when no models are configured", as
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 404);
   assert.equal(payload.error.code, "model_not_found");
@@ -1137,7 +1137,7 @@ test("handleComboChat round-robin surfaces retry-after metadata after exhausting
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
 
   assert.equal(result.status, 429);
   assert.match(payload.error.message, /rr-limited:model-b/);
@@ -1222,7 +1222,7 @@ test("handleComboChat round-robin falls through provider-scoped 400s and returns
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.status, 400);
   assert.equal(payload.error.message, "rr-final-fail");
   assert.deepEqual(calls, ["model-a", "model-b"]);
@@ -1388,7 +1388,7 @@ test("handleComboChat returns a 503 when every model is unavailable before execu
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.status, 503);
   assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
 });
@@ -1694,7 +1694,7 @@ test("handleComboChat context cache protection pins the model and tags tool-call
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["claude/claude-sonnet-4-6"]);
   assert.match(
@@ -1809,7 +1809,7 @@ test("handleComboChat round-robin resolves nested combos and returns inactive wh
     ],
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.status, 503);
   assert.equal(payload.error.code, "ALL_ACCOUNTS_INACTIVE");
 });
@@ -1947,7 +1947,7 @@ test("handleComboChat falls back to next model when first model returns all-acco
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   // First model returns 503 with "unavailable" → combo should try model-b next
   // If the fix is not applied, combo would abort here and return 503 immediately
   assert.equal(result.ok, true);
@@ -1988,7 +1988,7 @@ test("handleComboChat round-robin falls back when all-accounts-rate-limited 503 
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["model-a", "model-b"]);
   assert.equal(payload.choices[0].message.content, "ok");
@@ -2022,7 +2022,7 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
     relayOptions: null,
   });
 
-  const payload = await result.json();
+  const payload = (await result.json()) as any;
   // Without the fix, combo would abort (still 503). With the fix, it's still 503 because
   // the signal check filters out non-JSON or non-"unavailable" responses.
   assert.equal(result.status, 503);

@@ -23,7 +23,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -437,7 +437,7 @@ test("proxy helpers resolve key, provider, global, and direct paths while tolera
   });
   db.prepare("UPDATE combos SET data = ? WHERE id = ?").run("{not-json", combo.id);
 
-  const providerResolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const providerResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(providerResolved.level, "provider");
   assert.equal(providerResolved.proxy.host, "provider.local");
@@ -449,26 +449,26 @@ test("proxy helpers resolve key, provider, global, and direct paths while tolera
 
   await settingsDb.deleteProxyForLevel("provider", "openai");
 
-  const globalResolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const globalResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(globalResolved.level, "global");
   assert.equal(globalResolved.proxy.host, "global.local");
 
-  await settingsDb.setProxyForLevel("key", connection.id, {
+  await settingsDb.setProxyForLevel("key", (connection as any).id, {
     type: "http",
     host: "key.local",
     port: 3128,
   });
 
-  const keyResolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const keyResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(keyResolved.level, "key");
   assert.equal(keyResolved.proxy.host, "key.local");
 
-  await settingsDb.deleteProxyForLevel("key", connection.id);
+  await settingsDb.deleteProxyForLevel("key", (connection as any).id);
   await settingsDb.deleteProxyForLevel("global", null);
 
-  const directResolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const directResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(directResolved.level, "direct");
   assert.equal(directResolved.proxy, null);
@@ -494,14 +494,14 @@ test("proxy resolution skips combos without serialized data and falls back to pr
     models: ["claude/claude-3-5-sonnet"],
     strategy: "priority",
   });
-  await settingsDb.setProxyForLevel("combo", combo.id, {
+  await settingsDb.setProxyForLevel("combo" as any, (combo as any).id, {
     type: "http",
     host: "combo-null.local",
     port: 8080,
   });
   db.prepare("UPDATE combos SET data = ? WHERE id = ?").run(0, combo.id);
 
-  const resolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const resolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(resolved.level, "provider");
   assert.equal(resolved.proxy.host, "provider-claude.local");
@@ -520,13 +520,13 @@ test("proxy resolution matches combo proxies through aliased model entries", asy
     models: [{ model: "cc/claude-3-5-sonnet" }],
     strategy: "priority",
   });
-  await settingsDb.setProxyForLevel("combo", combo.id, {
+  await settingsDb.setProxyForLevel("combo", (combo as any).id, {
     type: "https",
     host: "combo-alias.local",
     port: 443,
   });
 
-  const resolved = await settingsDb.resolveProxyForConnection(connection.id);
+  const resolved = await settingsDb.resolveProxyForConnection((connection as any).id);
 
   assert.equal(resolved.level, "combo");
   assert.equal(resolved.levelId, combo.id);

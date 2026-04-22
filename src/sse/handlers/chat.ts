@@ -699,6 +699,8 @@ async function handleSingleModelChat(
       // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
       if (telemetry) telemetry.startPhase("connect");
       const { result, tlsFingerprintUsed } = await executeChatWithBreaker({
+        bypassCircuitBreaker: forceLiveComboTest || hasForcedConnection,
+        breaker,
         body: requestBody,
         provider,
         model,

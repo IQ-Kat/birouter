@@ -37,7 +37,7 @@ test("Claude -> OpenAI maps system blocks, parameters, tool declarations and too
     role: "user",
     content: "Hello",
   });
-  assert.equal(result.tools.length, 1);
+  assert.equal((result.tools as any).length, 1);
   assert.deepEqual(result.tools[0], {
     type: "function",
     function: {

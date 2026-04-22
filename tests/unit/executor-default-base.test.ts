@@ -428,7 +428,7 @@ test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for 
   const result = executor.transformRequest("qwen3-coder-plus", body, true, {});
 
   assert.notEqual(result, body);
-  assert.equal(result.tool_choice, "auto");
+  assert.equal((result as any).tool_choice, "auto");
 });
 
 test("DefaultExecutor.transformRequest applies GLMT preset defaults without overriding explicit values", () => {
@@ -440,9 +440,9 @@ test("DefaultExecutor.transformRequest applies GLMT preset defaults without over
   const autoResult = executor.transformRequest("glm-5.1", autoBody, true, {});
 
   assert.notEqual(autoResult, autoBody);
-  assert.equal(autoResult.max_tokens, 65536);
-  assert.equal(autoResult.temperature, 0.2);
-  assert.deepEqual(autoResult.thinking, {
+  assert.equal((autoResult as any).max_tokens, 65536);
+  (assert as any).equal((autoResult as any).temperature, 0.2);
+  (assert as any).deepEqual((autoResult as any).thinking, {
     type: "enabled",
     budget_tokens: 24576,
   });
@@ -456,9 +456,9 @@ test("DefaultExecutor.transformRequest applies GLMT preset defaults without over
   const explicitResult = executor.transformRequest("glm-5.1", explicitBody, true, {});
 
   assert.notEqual(explicitResult, explicitBody);
-  assert.equal(explicitResult.max_tokens, 4096);
-  assert.equal(explicitResult.temperature, 0.7);
-  assert.deepEqual(explicitResult.thinking, {
+  assert.equal((explicitResult as any).max_tokens, 4096);
+  assert.equal((explicitResult as any).temperature, 0.7);
+  assert.deepEqual((explicitResult as any).thinking, {
     type: "enabled",
     budget_tokens: 4095,
   });
@@ -621,8 +621,8 @@ test("BaseExecutor.execute returns response metadata and merges headers", async 
 
     assert.equal(result.url, "https://primary.example/v1/chat/completions");
     assert.equal(result.response.status, 200);
-    assert.equal(result.transformedBody.transformed, true);
-    assert.equal(result.transformedBody.model, "gpt-4.1");
+    (assert as any).equal((result.transformedBody as any).transformed, true);
+    assert.equal((result.transformedBody as any).model, "gpt-4.1");
     assert.equal(result.headers.Authorization, "Bearer override");
     assert.equal(result.headers["User-Agent"], "UpstreamAgent/2.0");
     assert.equal(result.headers["user-agent"], undefined);

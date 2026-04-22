@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 
@@ -1799,16 +1800,7 @@ export const versionManagerInstallSchema = versionManagerToolSchema.extend({
 
 export const v1BatchCreateSchema = z.object({
   input_file_id: z.string().min(1),
-  endpoint: z.enum([
-    "/v1/responses",
-    "/v1/chat/completions",
-    "/v1/embeddings",
-    "/v1/completions",
-    "/v1/moderations",
-    "/v1/images/generations",
-    "/v1/images/edits",
-    "/v1/videos",
-  ]),
+  endpoint: z.enum(SUPPORTED_BATCH_ENDPOINTS),
   completion_window: z.enum(["24h"]),
   metadata: z
     .record(z.string().max(64), z.string().max(512))

@@ -15,6 +15,7 @@ const CLI_TOOLS: Record<string, any> = {
     healthcheckTimeoutMs: 4000,
     paths: {
       settings: ".claude/settings.json",
+      auth: ".claude/.credentials.json",
     },
   },
   codex: {

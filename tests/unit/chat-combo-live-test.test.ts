@@ -122,7 +122,7 @@ test("combo live test bypasses connection cooldown and breaker state to perform 
   const liveResponse = await chatRoute.POST(
     makeRequest({ "X-Internal-Test": "combo-health-check" })
   );
-  const liveBody = await liveResponse.json();
+  const liveBody = (await liveResponse.json()) as any;
 
   assert.equal(liveResponse.status, 200);
   assert.equal(fetchCalls.length, 1);
@@ -130,7 +130,7 @@ test("combo live test bypasses connection cooldown and breaker state to perform 
   assert.equal(fetchCalls[0].init.headers.Authorization, "Bearer sk-live-test");
   assert.equal(liveBody.choices[0].message.content, "OK");
 
-  const updated = await providersDb.getProviderConnectionById(created.id);
+  const updated = await providersDb.getProviderConnectionById((created as any).id);
   assert.equal(updated.testStatus, "active");
 });
 
@@ -174,7 +174,7 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
 
   try {
     const cachedResponse = await chatRoute.POST(makeRequest());
-    const cachedBody = await cachedResponse.json();
+    const cachedBody = (await cachedResponse.json()) as any;
 
     assert.equal(cachedResponse.status, 200);
     assert.equal(fetchCalls.length, 0);
@@ -187,7 +187,7 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
         "X-Request-Id": "combo-test-cache-bypass",
       })
     );
-    const liveBody = await liveResponse.json();
+    const liveBody = (await liveResponse.json()) as any;
 
     assert.equal(liveResponse.status, 200);
     assert.equal(fetchCalls.length, 1);

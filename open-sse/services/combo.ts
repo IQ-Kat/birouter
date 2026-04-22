@@ -1982,7 +1982,7 @@ async function handleRoundRobinCombo({
           }
         }
 
-        if (isProviderBreakerOpenResponse(result, errorBody)) {
+        if (isProviderBreakerOpenResponse(result, errorBody as any)) {
           lastError = errorText || String(result.status);
           if (!lastStatus) lastStatus = result.status;
           if (offset > 0) fallbackCount++;

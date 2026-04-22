@@ -84,7 +84,7 @@ test("handleChat returns 400 for malformed JSON payloads", async () => {
       body: "{bad-json",
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(json.error.message, /Invalid JSON body/i);
@@ -106,7 +106,7 @@ test("handleChat rejects suspicious prompt-injection payloads before routing", a
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(json.error.message, /suspicious content detected/i);
@@ -132,7 +132,7 @@ test("handleChat redacts PII before sending the upstream request", async () => {
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
@@ -199,7 +199,7 @@ test("handleChat rejects requests without a model", async () => {
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(json.error.message, /Missing model/i);
@@ -232,7 +232,7 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(seenAuthHeaders, ["Bearer sk-deepseek-task-route"]);
@@ -279,7 +279,7 @@ test("handleChat routes exact combo names and can recover via global fallback", 
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(attempts, 2);
@@ -320,7 +320,7 @@ test("handleChat keeps the combo error when the global fallback throws", async (
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 503);
   assert.equal(attempts, 2);
@@ -337,7 +337,7 @@ test("handleChat returns 400 when no provider credentials exist", async () => {
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(json.error.message, /No credentials for provider: openai/);
@@ -358,7 +358,7 @@ test("handleChat returns 503 for cooled-down connections and 503 for open circui
       },
     })
   );
-  const cooldownJson = await cooldownResponse.json();
+  const cooldownJson = (await cooldownResponse.json()) as any;
   assert.equal(cooldownResponse.status, 503);
   assert.ok(Number(cooldownResponse.headers.get("Retry-After")) >= 1);
   assert.match(cooldownJson.error.message, /\[openai\/gpt-4o-mini\]/i);
@@ -377,7 +377,7 @@ test("handleChat returns 503 for cooled-down connections and 503 for open circui
       },
     })
   );
-  const breakerJson = await breakerBlocked.json();
+  const breakerJson = (await breakerBlocked.json()) as any;
 
   assert.equal(breakerBlocked.status, 503);
   assert.equal(breakerBlocked.headers.get("X-OmniRoute-Provider-Breaker"), "open");
@@ -403,7 +403,7 @@ test("handleChat maps upstream timeouts to HTTP 504", async () => {
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 504);
   assert.match(json.error.message, /\[504\]: upstream timed out/);
@@ -440,7 +440,7 @@ test("handleChat uses the emergency fallback model on budget exhaustion", async 
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(seenBodies.length, 2);
@@ -483,7 +483,7 @@ test("handleChat returns the primary budget error when emergency fallback also f
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 402);
   assert.deepEqual(seenModels, ["gpt-4o-mini", "openai/gpt-oss-120b", "openai/gpt-oss-120b"]);
@@ -506,7 +506,7 @@ test("handleChat rejects models that are not allowed by the caller API key polic
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 403);
   assert.match(json.error.message, /not allowed|model restriction|forbidden/i);

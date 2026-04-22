@@ -155,7 +155,7 @@ test("provider models route falls back after OpenAI-compatible endpoint probes a
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "openai-compatible-fallback");
@@ -184,7 +184,7 @@ test("provider models route retries transient OpenAI-compatible probe failures b
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
@@ -201,7 +201,7 @@ test("provider models route returns static catalog entries for providers with ha
   });
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "bailian-coding-plan");
@@ -214,7 +214,7 @@ test("provider models route returns the local catalog for built-in image provide
   });
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "topaz");
@@ -228,7 +228,7 @@ test("provider models route returns the local catalog for new built-in chat-open
   });
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "deepinfra");
@@ -278,7 +278,7 @@ test("provider models route maps Gemini CLI quota buckets into a model list", as
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body.models, [
@@ -311,7 +311,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const discoveryUrls = seenUrls.filter((url) => url.includes("/v1internal:models"));
 
   assert.equal(response.status, 200);
@@ -337,7 +337,7 @@ test("provider models route falls back through all Antigravity discovery endpoin
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const discoveryUrls = seenUrls.filter((url) => url.includes("/v1internal:models"));
 
   assert.equal(response.status, 200);
@@ -359,7 +359,7 @@ test("provider models route returns the local catalog for OAuth-backed Qwen conn
   });
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.source, "local_catalog");
@@ -375,7 +375,7 @@ test("provider models route filters hidden models from the static Claude catalog
   modelsDb.mergeModelCompatOverride("claude", "claude-sonnet-4-6", { isHidden: true });
 
   const response = await callRoute(connection.id, "?excludeHidden=true");
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "claude");
@@ -429,7 +429,7 @@ test("provider models route trims Anthropic-compatible message URLs and filters 
   };
 
   const response = await callRoute(connection.id, "?excludeHidden=true");
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body.models, [{ id: "visible-model", name: "Visible Model" }]);
@@ -496,7 +496,7 @@ test("provider models route paginates generic providers and filters hidden model
   };
 
   const response = await callRoute(connection.id, "?excludeHidden=true");
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body.models.map((model) => model.id).sort(), [
@@ -527,7 +527,7 @@ test("provider models route stops pagination when the upstream repeats the next 
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(
@@ -611,7 +611,7 @@ test("provider models route uses provider-specific auth headers for Kimi Coding"
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "kimi-coding");

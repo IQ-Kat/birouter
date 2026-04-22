@@ -174,7 +174,7 @@ test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and
     maxConcurrency: 1,
     timeoutMs: 15,
   });
-  await assert.rejects(timeoutPromise, (error) => error?.code === "SEMAPHORE_TIMEOUT");
+  await assert.rejects(timeoutPromise, (error) => (error as any).code === "SEMAPHORE_TIMEOUT");
   heldRelease();
 
   const firstRelease = await rateLimitSemaphore.acquire("model-c", { maxConcurrency: 1 });

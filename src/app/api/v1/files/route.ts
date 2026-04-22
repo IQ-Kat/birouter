@@ -1,12 +1,12 @@
 import { CORS_HEADERS } from "@/shared/utils/cors";
-import { extractApiKey } from "@/sse/services/auth";
-import { createFile, listFiles, getApiKeyMetadata, formatFileResponse } from "@/lib/localDb";
+import { createFile, listFiles, formatFileResponse } from "@/lib/localDb";
 import { NextResponse } from "next/server";
+import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 
 export async function POST(request: Request) {
-  const apiKey = extractApiKey(request);
-  const apiKeyMetadata = await getApiKeyMetadata(apiKey);
-  const apiKeyId = apiKeyMetadata?.id || null;
+  const scope = await getApiKeyRequestScope(request);
+  if (scope.rejection) return scope.rejection;
+  const apiKeyId = scope.apiKeyId;
 
   try {
     const formData = await request.formData();
@@ -25,7 +25,12 @@ export async function POST(request: Request) {
     const MAX_FILE_BYTES = 512 * 1024 * 1024; // 512 MB
     if (file.size > MAX_FILE_BYTES) {
       return NextResponse.json(
-        { error: { message: "File exceeds maximum allowed size of 512 MB", type: "invalid_request_error" } },
+        {
+          error: {
+            message: "File exceeds maximum allowed size of 512 MB",
+            type: "invalid_request_error",
+          },
+        },
         { status: 400, headers: CORS_HEADERS }
       );
     }
@@ -61,7 +66,7 @@ export async function POST(request: Request) {
       apiKeyId,
       expiresAt,
     });
-    
+
     return NextResponse.json(formatFileResponse(record), { headers: CORS_HEADERS });
   } catch (error) {
     console.error("[FILES] Upload failed:", error);
@@ -73,9 +78,9 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const apiKey = extractApiKey(request);
-  const apiKeyMetadata = await getApiKeyMetadata(apiKey);
-  const apiKeyId = apiKeyMetadata?.id || null;
+  const scope = await getApiKeyRequestScope(request);
+  if (scope.rejection) return scope.rejection;
+  const apiKeyId = scope.apiKeyId;
 
   const { searchParams } = new URL(request.url);
   const limit = Math.min(Number.parseInt(searchParams.get("limit") || "20") || 20, 10000);
@@ -89,12 +94,12 @@ export async function GET(request: Request) {
     purpose,
     limit: limit + 1,
     after,
-    order
+    order,
   });
 
   const hasMore = files.length > limit;
   const data = files.slice(0, limit);
-  
+
   return NextResponse.json(
     {
       object: "list",

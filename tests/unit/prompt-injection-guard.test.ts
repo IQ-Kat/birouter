@@ -205,7 +205,7 @@ test("promptInjectionGuard: withInjectionGuard blocks suspicious POST bodies", a
     });
 
     const response = await wrapped(request, {});
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 400);
     assert.equal(payload.error.type, "injection_detected");
@@ -235,7 +235,7 @@ test("promptInjectionGuard: withInjectionGuard annotates downstream headers in w
     });
 
     const response = await wrapped(request, {});
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(payload.flagged, "true");

@@ -90,7 +90,7 @@ test("providers route accepts managed audio, web-cookie and search providers", a
       201,
       `${entry.provider} should be accepted by POST /api/providers`
     );
-    const payload = await response.json();
+    const payload = (await response.json()) as any;
     assert.equal(payload.connection.provider, entry.provider);
   }
 });

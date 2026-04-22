@@ -79,7 +79,7 @@ test("model sync route skips success log when fetched models do not change store
     );
 
     assert.equal(response.status, 200);
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(body.logged, false);
     assert.deepEqual(body.modelChanges, { added: 0, removed: 0, updated: 0, total: 0 });
 
@@ -119,7 +119,7 @@ test("model sync route stores the real provider while keeping the account label"
     );
 
     assert.equal(response.status, 200);
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(body.logged, true);
     assert.deepEqual(body.modelChanges, { added: 1, removed: 0, updated: 0, total: 1 });
     assert.equal(body.provider, "openrouter");
@@ -151,7 +151,7 @@ test("model sync route requires authentication for external requests when auth i
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 401);
   assert.equal(body.error.message, "Authentication required");
@@ -195,7 +195,7 @@ test("model sync route propagates upstream failures and records an error log ent
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
 
   assert.equal(response.status, 502);
@@ -228,7 +228,7 @@ test("model sync route falls back to the upstream HTTP status when the models pa
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
 
   assert.equal(response.status, 429);
@@ -268,7 +268,7 @@ test("model sync route preserves previously synced models when the upstream omit
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
 
   assert.equal(response.status, 200);
@@ -321,7 +321,7 @@ test("model sync route writes synced available models for Gemini connections", a
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const synced = await modelsDb.getSyncedAvailableModels("gemini");
   const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
 
@@ -407,7 +407,7 @@ test("model sync route records added, removed, and updated model diffs with fall
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
 
   assert.equal(response.status, 200);
@@ -484,7 +484,7 @@ test("model sync route forwards cookies, filters built-ins, and syncs aliases fo
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const aliases = await localDb.getModelAliases();
   const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
 
@@ -549,7 +549,7 @@ test("model sync route uses provider-node prefixes when syncing compatible-provi
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const aliases = await localDb.getModelAliases();
 
   assert.equal(response.status, 200);
@@ -579,7 +579,7 @@ test("model sync route returns 500 and records a failure when the internal model
     }),
     { params: { id: connection.id } }
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
 
   assert.equal(response.status, 500);

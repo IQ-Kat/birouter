@@ -237,7 +237,7 @@ async function waitForServer(
       });
       if (response.ok) return;
       lastError = `HTTP ${response.status}`;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error instanceof Error ? error.message : String(error);
     }
     await sleep(500);
@@ -383,14 +383,14 @@ async function patchResilience(baseUrl: string, config: Record<string, unknown>)
     body: JSON.stringify(config),
     signal: AbortSignal.timeout(10_000),
   });
-  const payload = await response.json();
+  const payload = (await response.json()) as any;
   assert.equal(response.status, 200, JSON.stringify(payload));
   return payload;
 }
 
 async function getJson(url: string) {
   const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-  const json = await response.json();
+  const json = (await response.json()) as any;
   return { response, json };
 }
 

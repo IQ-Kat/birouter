@@ -24,7 +24,7 @@ import {
   isTlsFingerprintActive,
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
-import { getCircuitBreaker } from "../../shared/utils/circuitBreaker";
+import { CircuitBreakerOpenError, getCircuitBreaker } from "../../shared/utils/circuitBreaker";
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
@@ -102,6 +102,8 @@ export async function checkPipelineGates(
 }
 
 export async function executeChatWithBreaker({
+  bypassCircuitBreaker,
+  breaker,
   body,
   provider,
   model,
@@ -154,14 +156,36 @@ export async function executeChatWithBreaker({
         })
       );
 
+    if (bypassCircuitBreaker) {
+      if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
+        const tracked = await runWithTlsTracking(chatFn);
+        return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
+      }
+
+      const result = await chatFn();
+      return { result, tlsFingerprintUsed: false };
+    }
+
     if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
-      const tracked = await runWithTlsTracking(chatFn);
+      const tracked = await breaker.execute(async () => runWithTlsTracking(chatFn));
       return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
     }
 
-    const result = await chatFn();
+    const result = await breaker.execute(chatFn);
     return { result, tlsFingerprintUsed: false };
   } catch (cbErr: any) {
+    if (cbErr instanceof CircuitBreakerOpenError) {
+      log.warn("CIRCUIT", `${provider} circuit open during retry: ${cbErr.message}`);
+      return {
+        result: {
+          success: false,
+          response: providerCircuitOpenResponse(provider, Math.ceil(cbErr.retryAfterMs / 1000)),
+          status: HTTP_STATUS.SERVICE_UNAVAILABLE,
+        },
+        tlsFingerprintUsed: false,
+      };
+    }
+
     if (cbErr?.code === "PROXY_UNREACHABLE" || /proxy unreachable/i.test(cbErr?.message || "")) {
       const detail = cbErr?.message || "Proxy unreachable";
       log.warn("PROXY", detail);

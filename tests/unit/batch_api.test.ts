@@ -22,8 +22,10 @@ const {
   getTerminalBatches,
 } = await import("../../src/lib/localDb.ts");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
-const { initBatchProcessor, stopBatchProcessor } =
+const { initBatchProcessor, stopBatchProcessor, processPendingBatches } =
   await import("../../open-sse/services/batchProcessor.ts");
+const batchesRoute = await import("../../src/app/api/v1/batches/route.ts");
+const filesRoute = await import("../../src/app/api/v1/files/route.ts");
 
 test("Batch API and Processing", async () => {
   // 0. Setup environment, mock provider and API key
@@ -255,6 +257,128 @@ test("Batch handles and counts failures correctly", async () => {
   }
 });
 
+test("Batch dispatches non-chat endpoints through the matching route handler", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        object: "list",
+        data: [{ object: "embedding", embedding: [0.1, 0.2], index: 0 }],
+        usage: { prompt_tokens: 2, total_tokens: 2 },
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+  initBatchProcessor();
+  try {
+    await createProviderConnection({
+      provider: "openai",
+      authType: "apikey",
+      name: "Mock OpenAI Embeddings",
+      apiKey: "sk-mock-embeddings-key",
+      isActive: true,
+    });
+
+    const batchItems = [
+      JSON.stringify({
+        custom_id: "embed-request",
+        method: "POST",
+        url: "/v1/embeddings",
+        body: {
+          model: "openai/text-embedding-3-small",
+          input: "Hello embeddings",
+        },
+      }),
+    ].join("\n");
+
+    const file = createFile({
+      bytes: Buffer.byteLength(batchItems),
+      filename: "embeddings_batch.jsonl",
+      purpose: "batch",
+      content: Buffer.from(batchItems),
+      apiKeyId: null,
+    });
+
+    const batch = createBatch({
+      endpoint: "/v1/embeddings",
+      completionWindow: "24h",
+      inputFileId: file.id,
+      apiKeyId: null,
+    });
+
+    let maxAttempts = 20;
+    let currentBatch = getBatch(batch.id);
+    while (
+      maxAttempts > 0 &&
+      currentBatch?.status !== "completed" &&
+      currentBatch?.status !== "failed"
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      currentBatch = getBatch(batch.id);
+      maxAttempts--;
+    }
+
+    assert.strictEqual(currentBatch?.status, "completed", "embedding batch should complete");
+    assert.strictEqual(currentBatch?.requestCountsCompleted, 1);
+    assert.ok(currentBatch?.outputFileId, "embedding batch should produce an output file");
+
+    const outputContent = getFileContent(currentBatch.outputFileId!);
+    const result = JSON.parse(outputContent.toString());
+    assert.strictEqual(result.response.status_code, 200);
+    assert.ok(Array.isArray(result.response.body.data));
+    assert.strictEqual(result.response.body.object, "list");
+  } finally {
+    stopBatchProcessor();
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Batch rejects input lines whose url does not match the batch endpoint", async () => {
+  initBatchProcessor();
+  try {
+    const batchItems = [
+      JSON.stringify({
+        custom_id: "wrong-endpoint",
+        method: "POST",
+        url: "/v1/embeddings",
+        body: {
+          model: "openai/text-embedding-3-small",
+          input: "Wrong endpoint",
+        },
+      }),
+    ].join("\n");
+
+    const file = createFile({
+      bytes: Buffer.byteLength(batchItems),
+      filename: "wrong_endpoint_batch.jsonl",
+      purpose: "batch",
+      content: Buffer.from(batchItems),
+      apiKeyId: null,
+    });
+
+    const batch = createBatch({
+      endpoint: "/v1/chat/completions",
+      completionWindow: "24h",
+      inputFileId: file.id,
+      apiKeyId: null,
+    });
+
+    await processPendingBatches();
+
+    const currentBatch = getBatch(batch.id);
+    assert.strictEqual(currentBatch?.status, "failed");
+    assert.match(
+      String(currentBatch?.errors?.[0]?.message || ""),
+      /does not match batch endpoint/i
+    );
+  } finally {
+    stopBatchProcessor();
+  }
+});
+
 test("Batch forces stream: false for all requests", async () => {
   initBatchProcessor();
   try {
@@ -424,7 +548,8 @@ test("List batches pagination and response format", async () => {
     apiKeyId: apiKey.id,
   });
 
-  const batchIds: string[] = [];
+  const batchOrder: Array<{ createdAt: number; id: string }> = [];
+  const baseCreatedAt = Math.floor(Date.now() / 1000) - 10_000;
   for (let i = 0; i < 5; i++) {
     const b = createBatch({
       endpoint: "/v1/chat/completions",
@@ -433,11 +558,12 @@ test("List batches pagination and response format", async () => {
       apiKeyId: apiKey.id,
       metadata: { index: i },
     });
-    batchIds.push(b.id);
+    updateBatch(b.id, { createdAt: baseCreatedAt + i });
+    batchOrder.push({ createdAt: baseCreatedAt + i, id: b.id });
   }
 
-  // Sort batchIds in descending order as listBatches returns them by ID DESC
-  batchIds.sort().reverse();
+  batchOrder.sort((a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id));
+  const batchIds = batchOrder.map((entry) => entry.id);
 
   // 2. Test listBatches logic (direct DB call)
   const { listBatches } = await import("../../src/lib/localDb");
@@ -474,6 +600,92 @@ test("List batches pagination and response format", async () => {
   assert.strictEqual(data3.length, 1);
   assert.strictEqual(hasMore3, false);
   assert.strictEqual(data3[0].id, batchIds[4]);
+});
+
+test("Batch cleanup honors output_expires_after for output artifacts", async () => {
+  const apiKey = await createApiKey("Batch Retention Key", "test-machine");
+  const now = Math.floor(Date.now() / 1000);
+
+  const inputFile = createFile({
+    bytes: 10,
+    filename: "retention_input.jsonl",
+    purpose: "batch",
+    content: Buffer.from("{}"),
+    apiKeyId: apiKey.id,
+  });
+  const outputFile = createFile({
+    bytes: 10,
+    filename: "retention_output.jsonl",
+    purpose: "batch_output",
+    content: Buffer.from("{}"),
+    apiKeyId: apiKey.id,
+    status: "completed",
+  });
+  const errorFile = createFile({
+    bytes: 10,
+    filename: "retention_error.jsonl",
+    purpose: "batch_output",
+    content: Buffer.from("{}"),
+    apiKeyId: apiKey.id,
+    status: "completed",
+  });
+
+  const batch = createBatch({
+    endpoint: "/v1/chat/completions",
+    completionWindow: "24h",
+    inputFileId: inputFile.id,
+    apiKeyId: apiKey.id,
+    outputExpiresAfterSeconds: 3600,
+    outputExpiresAfterAnchor: "created_at",
+  });
+
+  updateBatch(batch.id, {
+    status: "completed",
+    createdAt: now - 3700,
+    completedAt: now - 30,
+    outputFileId: outputFile.id,
+    errorFileId: errorFile.id,
+  });
+
+  await processPendingBatches();
+
+  assert.ok(getFile(inputFile.id), "input file should still follow completion_window retention");
+  assert.equal(getFile(outputFile.id), null);
+  assert.equal(getFile(errorFile.id), null);
+});
+
+test("Batch list route rejects missing API key when REQUIRE_API_KEY is enabled", async () => {
+  const previous = process.env.REQUIRE_API_KEY;
+  process.env.REQUIRE_API_KEY = "true";
+
+  try {
+    const response = await batchesRoute.GET(new Request("http://localhost/api/v1/batches"));
+    const json = await response.json();
+
+    assert.strictEqual(response.status, 401);
+    assert.strictEqual(json.error.message, "Missing API key");
+  } finally {
+    process.env.REQUIRE_API_KEY = previous ?? "false";
+  }
+});
+
+test("Files list route rejects invalid API key when REQUIRE_API_KEY is enabled", async () => {
+  const previous = process.env.REQUIRE_API_KEY;
+  process.env.REQUIRE_API_KEY = "true";
+
+  try {
+    const response = await filesRoute.GET(
+      new Request("http://localhost/api/v1/files", {
+        headers: { Authorization: "Bearer invalid-test-key" },
+      })
+    );
+    const json = await response.json();
+
+    assert.strictEqual(response.status, 401);
+    assert.strictEqual(json.error.message, "Invalid API key");
+  } finally {
+    process.env.REQUIRE_API_KEY = previous ?? "false";
+  }
 });
 
 test("Batch Cancel API", async () => {
@@ -704,62 +916,66 @@ test("Retrieve file content spec compliance", async () => {
 });
 
 test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () => {
-    initBatchProcessor();
-    try {
-        const batchItems = [
-            JSON.stringify({
-                custom_id: "embed-request-1",
-                method: "POST",
-                url: "/v1/embeddings",
-                body: { model: "mistral/mistral-embed", input: "The food was delicious." }
-            })
-        ].join("\n");
+  initBatchProcessor();
+  try {
+    const batchItems = [
+      JSON.stringify({
+        custom_id: "embed-request-1",
+        method: "POST",
+        url: "/v1/embeddings",
+        body: { model: "mistral/mistral-embed", input: "The food was delicious." },
+      }),
+    ].join("\n");
 
-        const file = createFile({
-            bytes: Buffer.byteLength(batchItems),
-            filename: "embed_batch.jsonl",
-            purpose: "batch",
-            content: Buffer.from(batchItems),
-            apiKeyId: null
-        });
+    const file = createFile({
+      bytes: Buffer.byteLength(batchItems),
+      filename: "embed_batch.jsonl",
+      purpose: "batch",
+      content: Buffer.from(batchItems),
+      apiKeyId: null,
+    });
 
-        const batch = createBatch({
-            endpoint: "/v1/embeddings",
-            completionWindow: "24h",
-            inputFileId: file.id,
-            apiKeyId: null
-        });
+    const batch = createBatch({
+      endpoint: "/v1/embeddings",
+      completionWindow: "24h",
+      inputFileId: file.id,
+      apiKeyId: null,
+    });
 
-        let maxAttempts = 20;
-        let currentBatch = getBatch(batch.id);
-        while (maxAttempts > 0 && currentBatch?.status !== "completed" && currentBatch?.status !== "failed") {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            currentBatch = getBatch(batch.id);
-            maxAttempts--;
-        }
-
-        assert.ok(
-            currentBatch?.status === "completed" || currentBatch?.status === "failed",
-            "Batch should reach a terminal state"
-        );
-        assert.strictEqual(currentBatch?.requestCountsTotal, 1);
-
-        // Verify the batch item was dispatched to the embeddings handler, not the chat handler.
-        // The chat handler would return errors about missing "messages", "Missing model", etc.
-        // The embeddings handler returns errors about missing credentials or invalid embedding models.
-        const outputFileId = currentBatch?.outputFileId || currentBatch?.errorFileId;
-        assert.ok(outputFileId, "Should have an output or error file");
-        const outputContent = getFileContent(outputFileId!);
-        assert.ok(outputContent, "Output file should have content");
-        const result = JSON.parse(outputContent.toString());
-        const errorMsg = result.response?.body?.error?.message || "";
-        assert.ok(
-            !errorMsg.includes("messages") && !errorMsg.includes("Missing model"),
-            `Error should not be a chat-specific error. Got: ${errorMsg}`
-        );
-    } finally {
-        stopBatchProcessor();
+    let maxAttempts = 20;
+    let currentBatch = getBatch(batch.id);
+    while (
+      maxAttempts > 0 &&
+      currentBatch?.status !== "completed" &&
+      currentBatch?.status !== "failed"
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      currentBatch = getBatch(batch.id);
+      maxAttempts--;
     }
+
+    assert.ok(
+      currentBatch?.status === "completed" || currentBatch?.status === "failed",
+      "Batch should reach a terminal state"
+    );
+    assert.strictEqual(currentBatch?.requestCountsTotal, 1);
+
+    // Verify the batch item was dispatched to the embeddings handler, not the chat handler.
+    // The chat handler would return errors about missing "messages", "Missing model", etc.
+    // The embeddings handler returns errors about missing credentials or invalid embedding models.
+    const outputFileId = currentBatch?.outputFileId || currentBatch?.errorFileId;
+    assert.ok(outputFileId, "Should have an output or error file");
+    const outputContent = getFileContent(outputFileId!);
+    assert.ok(outputContent, "Output file should have content");
+    const result = JSON.parse(outputContent.toString());
+    const errorMsg = result.response?.body?.error?.message || "";
+    assert.ok(
+      !errorMsg.includes("messages") && !errorMsg.includes("Missing model"),
+      `Error should not be a chat-specific error. Got: ${errorMsg}`
+    );
+  } finally {
+    stopBatchProcessor();
+  }
 });
 
 test("getTerminalBatches returns only terminal statuses ordered oldest first", async () => {

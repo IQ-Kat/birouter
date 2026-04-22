@@ -141,7 +141,7 @@ describe("Settings API - debugMode and hiddenSidebarItems", () => {
           body: { antigravitySignatureCacheMode: "bypass" },
         })
       );
-      const body = await response.json();
+      const body = (await response.json()) as any;
 
       assert.equal(response.status, 200);
       assert.equal(body.antigravitySignatureCacheMode, "bypass");

@@ -1,12 +1,12 @@
 import { CORS_HEADERS } from "@/shared/utils/cors";
-import { extractApiKey } from "@/sse/services/auth";
-import { getFile, getFileContent, getApiKeyMetadata } from "@/lib/localDb";
+import { getFile, getFileContent } from "@/lib/localDb";
 import { NextResponse } from "next/server";
+import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const apiKey = extractApiKey(request);
-  const apiKeyMetadata = await getApiKeyMetadata(apiKey);
-  const apiKeyId = apiKeyMetadata?.id || null;
+  const scope = await getApiKeyRequestScope(request);
+  if (scope.rejection) return scope.rejection;
+  const apiKeyId = scope.apiKeyId;
 
   const { id } = await params;
   const file = getFile(id);
@@ -20,7 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const content = getFileContent(id);
   if (!content) {
-     return NextResponse.json(
+    return NextResponse.json(
       { error: { message: "File content not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }
     );

@@ -96,7 +96,7 @@ test("markAccountUnavailable does not overwrite terminal status", async () => {
   });
 
   const result = await auth.markAccountUnavailable(
-    conn.id,
+    (conn as any).id,
     503,
     "temporary upstream error",
     "openai",
@@ -106,7 +106,7 @@ test("markAccountUnavailable does not overwrite terminal status", async () => {
   assert.equal(result.shouldFallback, true);
   assert.equal(result.cooldownMs, 0);
 
-  const after = await providersDb.getProviderConnectionById(conn.id);
+  const after = await providersDb.getProviderConnectionById((conn as any).id);
   assert.equal(after.testStatus, "credits_exhausted");
 });
 
@@ -122,13 +122,13 @@ test("markAccountUnavailable marks 401 connections as expired without adding coo
   });
 
   const result = await auth.markAccountUnavailable(
-    conn.id,
+    (conn as any).id,
     401,
     "unauthorized",
     "openai",
     "gpt-4.1"
   );
-  const after = await providersDb.getProviderConnectionById(conn.id);
+  const after = await providersDb.getProviderConnectionById((conn as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.cooldownMs, 0);
@@ -148,13 +148,13 @@ test("markAccountUnavailable marks 402 connections as credits_exhausted without 
   });
 
   const result = await auth.markAccountUnavailable(
-    conn.id,
+    (conn as any).id,
     402,
     "payment required",
     "openai",
     "gpt-4.1"
   );
-  const after = await providersDb.getProviderConnectionById(conn.id);
+  const after = await providersDb.getProviderConnectionById((conn as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.cooldownMs, 0);
@@ -173,8 +173,14 @@ test("markAccountUnavailable marks 403 connections as banned without adding cool
     testStatus: "active",
   });
 
-  const result = await auth.markAccountUnavailable(conn.id, 403, "forbidden", "openai", "gpt-4.1");
-  const after = await providersDb.getProviderConnectionById(conn.id);
+  const result = await auth.markAccountUnavailable(
+    (conn as any).id,
+    403,
+    "forbidden",
+    "openai",
+    "gpt-4.1"
+  );
+  const after = await providersDb.getProviderConnectionById((conn as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.cooldownMs, 0);
@@ -194,13 +200,13 @@ test("markAccountUnavailable keeps project-route 403 errors non-terminal", async
   });
 
   const result = await auth.markAccountUnavailable(
-    conn.id,
+    (conn as any).id,
     403,
     "The service has not been used in project",
     "openai",
     "gpt-4.1"
   );
-  const after = await providersDb.getProviderConnectionById(conn.id);
+  const after = await providersDb.getProviderConnectionById((conn as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.cooldownMs, 0);
@@ -221,13 +227,13 @@ test("markAccountUnavailable keeps oauth-invalid 401 errors non-terminal", async
   });
 
   const result = await auth.markAccountUnavailable(
-    conn.id,
+    (conn as any).id,
     401,
     "Invalid authentication credentials provided",
     "openai",
     "gpt-4.1"
   );
-  const after = await providersDb.getProviderConnectionById(conn.id);
+  const after = await providersDb.getProviderConnectionById((conn as any).id);
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.cooldownMs, 0);

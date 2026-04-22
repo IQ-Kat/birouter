@@ -471,7 +471,7 @@ test("chat pipeline handles OpenAI passthrough with valid API key auth", async (
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
   assert.match(fetchCalls[0].url, /\/chat\/completions$/);
@@ -504,7 +504,7 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   const callLog = await waitFor(() => getLatestCallLog());
 
   assert.equal(response.status, 200);
@@ -639,7 +639,7 @@ test("chat pipeline translates OpenAI requests to Claude and returns OpenAI-shap
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
   assert.match(fetchCalls[0].url, /\?beta=true$/);
@@ -673,7 +673,7 @@ test("chat pipeline translates OpenAI requests to Gemini and returns OpenAI-shap
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
   assert.match(fetchCalls[0].url, /generateContent$/);
@@ -710,7 +710,7 @@ test("chat pipeline translates Claude-format requests into OpenAI upstream and b
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
   assert.match(fetchCalls[0].url, /\/chat\/completions$/);
@@ -757,7 +757,7 @@ test("chat pipeline rejects invalid API keys and malformed JSON bodies", async (
       },
     })
   );
-  const invalidKeyJson = await invalidKeyResponse.json();
+  const invalidKeyJson = (await invalidKeyResponse.json()) as any;
 
   const invalidJsonResponse = await handleChat(
     new Request("http://localhost/v1/chat/completions", {
@@ -766,7 +766,7 @@ test("chat pipeline rejects invalid API keys and malformed JSON bodies", async (
       body: "{bad-json",
     })
   );
-  const invalidJson = await invalidJsonResponse.json();
+  const invalidJson = (await invalidJsonResponse.json()) as any;
 
   assert.equal(invalidKeyResponse.status, 401);
   assert.match(invalidKeyJson.error.message, /Invalid API key/i);
@@ -786,7 +786,7 @@ test("chat pipeline rejects requests without a bearer key when strict API key mo
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 401);
   assert.match(json.error.message, /Missing API key/i);
@@ -801,7 +801,7 @@ test("chat pipeline returns 400 when the model field is omitted", async () => {
       },
     })
   );
-  const json = await response.json();
+  const json = (await response.json()) as any;
 
   assert.equal(response.status, 400);
   assert.match(json.error.message, /Missing model/i);
@@ -857,7 +857,7 @@ test("chat pipeline supports local mode without Authorization on explicit combos
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
   assert.equal(json.choices[0].message.content, "Local combo route");
@@ -901,7 +901,7 @@ test("chat pipeline returns current no-credentials contract when no provider con
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 400);
   assert.match(json.error.message, /No credentials for provider: openai/);
 });
@@ -925,7 +925,7 @@ test("chat pipeline surfaces upstream 500 responses as structured errors", async
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 500);
   assert.match(json.error.message, /\[500\]: provider exploded/);
 });
@@ -963,7 +963,7 @@ test("chat pipeline returns 429 with Retry-After when the upstream rate-limits t
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 429);
   assert.ok(attempts >= 1, "expected at least one upstream attempt");
   assert.ok(Number(response.headers.get("Retry-After")) >= 1);
@@ -1029,7 +1029,7 @@ test("chat pipeline maps upstream timeouts to 504 responses", async () => {
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 504);
   assert.match(json.error.message, /\[504\]: upstream timed out/);
 });
@@ -1068,7 +1068,7 @@ test("chat pipeline injects memory context before sending the upstream request",
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
   assert.equal(fetchCalls[0].body.messages[0].role, "system");
@@ -1129,7 +1129,7 @@ test("chat pipeline injects skills into tools and intercepts tool calls with ski
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
   assert.ok(Array.isArray(fetchCalls[0].body.tools));
@@ -1176,7 +1176,7 @@ test("chat pipeline falls back to the next account after a provider failure", as
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.deepEqual(seenAuthHeaders, [
     "Bearer sk-openai-primary-fallback",
@@ -1224,7 +1224,7 @@ test("chat pipeline falls back across combo models when the first provider fails
     })
   );
 
-  const json = await response.json();
+  const json = (await response.json()) as any;
   assert.equal(response.status, 200);
   assert.equal(attempts.length, 2);
   assert.match(attempts[0].url, /\/chat\/completions$/);

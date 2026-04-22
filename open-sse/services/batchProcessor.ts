@@ -1,24 +1,31 @@
 import { v4 as uuidv4 } from "uuid";
 import {
-  createFile,
-  deleteFile,
-  getApiKeyById,
-  getBatch,
-  getFileContent,
   getPendingBatches,
   getTerminalBatches,
-  listFiles,
   updateBatch,
+  getFileContent,
+  createFile,
+  getApiKeyById,
+  getBatch,
+  listFiles,
+  deleteFile,
   updateFileStatus,
 } from "@/lib/localDb";
-import { handleChat } from "@/sse/handlers/chat";
-import { POST as handleEmbeddingsRoute } from "@/app/api/v1/embeddings/route";
-import { POST as handleModerationsRoute } from "@/app/api/v1/moderations/route";
-import { POST as handleImagesGenerationsRoute } from "@/app/api/v1/images/generations/route";
-import { POST as handleVideosGenerationsRoute } from "@/app/api/v1/videos/generations/route";
+import type { BatchRecord } from "@/lib/localDb";
+import { dispatchBatchApiRequest } from "@/lib/batches/dispatch";
+import type { SupportedBatchEndpoint } from "@/shared/constants/batchEndpoints";
 
 let isProcessing = false;
 let pollInterval: NodeJS.Timeout | null = null;
+const DEFAULT_BATCH_WINDOW_SECONDS = 24 * 60 * 60;
+
+interface BatchRequestItem {
+  body: Record<string, unknown>;
+  customId: string | null;
+  lineNumber: number;
+  method: "POST";
+  url: SupportedBatchEndpoint;
+}
 
 export function initBatchProcessor() {
   if (pollInterval) return pollInterval;
@@ -91,39 +98,125 @@ export async function processPendingBatches() {
   await cleanupExpiredBatches();
 }
 
+function parseBatchWindowSeconds(window: string | null | undefined): number {
+  if (!window) return DEFAULT_BATCH_WINDOW_SECONDS;
+  const match = /^(\d+)([hdm])$/.exec(window);
+  if (!match) return DEFAULT_BATCH_WINDOW_SECONDS;
+
+  const value = Number.parseInt(match[1], 10);
+  const unit = match[2];
+  if (unit === "h") return value * 3600;
+  if (unit === "d") return value * 86400;
+  if (unit === "m") return value * 60;
+  return DEFAULT_BATCH_WINDOW_SECONDS;
+}
+
+function getBatchOutputExpiresAt(batch: BatchRecord): number | null {
+  if (
+    batch.outputExpiresAfterAnchor === "created_at" &&
+    typeof batch.outputExpiresAfterSeconds === "number" &&
+    batch.outputExpiresAfterSeconds > 0
+  ) {
+    return batch.createdAt + batch.outputExpiresAfterSeconds;
+  }
+
+  const completionTime =
+    batch.completedAt || batch.failedAt || batch.cancelledAt || batch.expiredAt;
+  if (!completionTime) return null;
+  return completionTime + parseBatchWindowSeconds(batch.completionWindow);
+}
+
+function resolveBatchApiKeyValue(batch: Pick<BatchRecord, "apiKeyId">, apiKeyRow: any) {
+  if (typeof apiKeyRow?.key === "string" && apiKeyRow.key.length > 0) {
+    return apiKeyRow.key;
+  }
+  if (batch.apiKeyId === "env-key") {
+    return process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY || null;
+  }
+  return null;
+}
+
+function parseBatchItems(
+  content: Buffer,
+  batchEndpoint: SupportedBatchEndpoint
+): { items: BatchRequestItem[]; error: null } | { items: null; error: string } {
+  const lines = content
+    .toString()
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const items: BatchRequestItem[] = [];
+  for (const [index, line] of lines.entries()) {
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(line);
+    } catch {
+      return { items: null, error: `Line ${index + 1} is not valid JSON` };
+    }
+
+    const method = String(parsed.method || "POST").toUpperCase();
+    const url = parsed.url;
+    const body = parsed.body;
+
+    if (method !== "POST") {
+      return {
+        items: null,
+        error: `Line ${index + 1} uses unsupported method ${method}; only POST is supported`,
+      };
+    }
+    if (url !== batchEndpoint) {
+      return {
+        items: null,
+        error: `Line ${index + 1} url ${String(url)} does not match batch endpoint ${batchEndpoint}`,
+      };
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return { items: null, error: `Line ${index + 1} must include a JSON object body` };
+    }
+
+    items.push({
+      body: body as Record<string, unknown>,
+      customId: typeof parsed.custom_id === "string" ? parsed.custom_id : null,
+      lineNumber: index + 1,
+      method: "POST",
+      url: batchEndpoint,
+    });
+  }
+
+  return { items, error: null };
+}
+
 async function cleanupExpiredBatches() {
   try {
     const now = Math.floor(Date.now() / 1000);
     const batches = getTerminalBatches();
 
-    const parseWindow = (window: string): number => {
-      if (!window) return 86400;
-      const match = new RegExp(/^(\d+)([hdm])$/).exec(window);
-      if (!match) return 86400;
-      const val = Number.parseInt(match[1]);
-      const unit = match[2];
-      if (unit === "h") return val * 3600;
-      if (unit === "d") return val * 86400;
-      if (unit === "m") return val * 60;
-      return 86400;
-    };
-
     // Delete files for terminal batches that have exceeded their completion window
     for (const batch of batches) {
-      const windowSeconds = parseWindow(batch.completionWindow);
       const completionTime =
         batch.completedAt || batch.failedAt || batch.cancelledAt || batch.expiredAt;
-      if (completionTime && now - completionTime > windowSeconds) {
-        if (batch.inputFileId) deleteFile(batch.inputFileId);
-        if (batch.outputFileId) deleteFile(batch.outputFileId);
-        if (batch.errorFileId) deleteFile(batch.errorFileId);
+      const inputExpiresAt =
+        completionTime && batch.inputFileId
+          ? completionTime + parseBatchWindowSeconds(batch.completionWindow)
+          : null;
+      const outputExpiresAt = getBatchOutputExpiresAt(batch);
+
+      if (batch.inputFileId && inputExpiresAt && now > inputExpiresAt) {
+        deleteFile(batch.inputFileId);
+      }
+      if (batch.outputFileId && outputExpiresAt && now > outputExpiresAt) {
+        deleteFile(batch.outputFileId);
+      }
+      if (batch.errorFileId && outputExpiresAt && now > outputExpiresAt) {
+        deleteFile(batch.errorFileId);
       }
     }
 
     // Expire validating batches that have exceeded their completion window
     for (const batch of getPendingBatches()) {
       if (batch.status === "validating") {
-        const windowSeconds = parseWindow(batch.completionWindow);
+        const windowSeconds = parseBatchWindowSeconds(batch.completionWindow);
         if (now - batch.createdAt > windowSeconds) {
           updateBatch(batch.id, { status: "expired", expiredAt: now });
         }
@@ -157,8 +250,13 @@ async function startBatch(batch: any) {
   }
 
   try {
-    const lines = content.toString().split("\n").filter((l) => l.trim());
-    const total = lines.length;
+    const parsedItems = parseBatchItems(content, batch.endpoint);
+    if (parsedItems.error) {
+      updateFileStatus(batch.inputFileId, "processed");
+      failBatch(batch.id, parsedItems.error);
+      return;
+    }
+    const total = parsedItems.items.length;
 
     updateFileStatus(batch.inputFileId, "validating");
     updateBatch(batch.id, {
@@ -169,7 +267,7 @@ async function startBatch(batch: any) {
 
     // Fire-and-forget: process items in the background so the poll loop isn't blocked.
     // isProcessing prevents a second poll tick from overlapping.
-    processBatchItems(batch, lines).catch((err) => {
+    processBatchItems(batch, parsedItems.items).catch((err) => {
       console.error(`[BATCH] Critical error in processBatchItems for ${batch.id}:`, err);
       failBatch(batch.id, String(err));
     });
@@ -179,50 +277,7 @@ async function startBatch(batch: any) {
   }
 }
 
-/**
- * Dispatch a single batch item to the correct handler based on the URL.
- * Each batch item may target a different API endpoint (chat, embeddings, etc.).
- */
-async function dispatchBatchItem(
-  url: string,
-  headers: Headers,
-  body: Record<string, unknown>
-): Promise<Response> {
-  const request = new Request(`http://localhost${url}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
-
-  switch (url) {
-    case "/v1/embeddings":
-      return handleEmbeddingsRoute(request);
-    case "/v1/moderations":
-      return handleModerationsRoute(request);
-    case "/v1/images/generations":
-    case "/v1/images/edits":
-      return handleImagesGenerationsRoute(request);
-    case "/v1/videos":
-    case "/v1/videos/generations":
-      return handleVideosGenerationsRoute(request);
-      // /v1/chat/completions, /v1/completions, /v1/responses
-    default: {
-      return handleChat(
-        new Request(`http://localhost${url}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            ...body,
-            // BATCH-SPECIFIC: Force stream: false — batches don't support SSE responses
-            stream: body.stream ?? false,
-          }),
-        })
-      );
-    }
-  }
-}
-
-async function processBatchItems(batch: any, lines: string[]) {
+async function processBatchItems(batch: BatchRecord, items: BatchRequestItem[]) {
   const results: any[] = [];
   const errors: any[] = [];
   let completedCount = 0;
@@ -233,8 +288,9 @@ async function processBatchItems(batch: any, lines: string[]) {
   let usedModel = batch.model || null;
 
   const apiKeyRow = batch.apiKeyId ? await getApiKeyById(batch.apiKeyId) : null;
+  const apiKeyValue = resolveBatchApiKeyValue(batch, apiKeyRow);
 
-  for (const line of lines) {
+  for (const item of items) {
     // Check if cancelled mid-process
     const current = getBatch(batch.id);
     if (!current || current.status === "cancelling" || current.status === "cancelled") {
@@ -242,16 +298,13 @@ async function processBatchItems(batch: any, lines: string[]) {
     }
 
     try {
-      const item = JSON.parse(line);
-      const { custom_id: customId, url, body } = item;
-
-      const headers = new Headers();
-      if (apiKeyRow?.key) {
-        headers.set("Authorization", `Bearer ${apiKeyRow.key}`);
-      }
-      headers.set("Content-Type", "application/json");
-
-      const response = await dispatchBatchItem(url, headers, body);
+      // BATCH-SPECIFIC: Force stream: false — batches don't support SSE responses
+      const batchItemBody = { ...item.body, stream: false };
+      const response = await dispatchBatchApiRequest({
+        endpoint: item.url,
+        body: batchItemBody,
+        apiKey: apiKeyValue,
+      });
 
       let responseData: { error: any; id?: any; usage?: any; model?: any };
       let statusCode = 200;
@@ -266,7 +319,9 @@ async function processBatchItems(batch: any, lines: string[]) {
           try {
             responseData = JSON.parse(text);
           } catch {
-            responseData = { error: { message: text || "Unknown error", type: "invalid_response" } };
+            responseData = {
+              error: { message: text || "Unknown error", type: "invalid_response" },
+            };
           }
         }
       } else {
@@ -278,7 +333,7 @@ async function processBatchItems(batch: any, lines: string[]) {
 
       results.push({
         id: requestId,
-        custom_id: customId,
+        custom_id: item.customId,
         response: {
           status_code: statusCode,
           request_id: responseData?.id || "req_unknown",
@@ -303,14 +358,8 @@ async function processBatchItems(batch: any, lines: string[]) {
       }
     } catch (err) {
       console.error(`[BATCH] Item failed in ${batch.id}:`, err);
-      let customId = "unknown";
-      try {
-        customId = JSON.parse(line).custom_id || "unknown";
-      } catch {
-        // line was malformed JSON
-      }
       errors.push({
-        custom_id: customId,
+        custom_id: item.customId || `line-${item.lineNumber}`,
         error: err instanceof Error ? err.message : String(err),
       });
       failedCount++;
@@ -365,9 +414,8 @@ async function finalizeBatch(batchId: string, results: any[], itemsWithErrors: a
   }
 
   let outputFileId: string | null = null;
-  const successes = results.filter(
-    (r) => r.response.status_code < 400 && !r.response.body?.error
-  );
+  const outputExpiresAt = current ? getBatchOutputExpiresAt(current) : null;
+  const successes = results.filter((r) => r.response.status_code < 400 && !r.response.body?.error);
   if (successes.length > 0) {
     const outputContent = successes.map((r) => JSON.stringify(r)).join("\n");
     const file = createFile({
@@ -377,14 +425,13 @@ async function finalizeBatch(batchId: string, results: any[], itemsWithErrors: a
       content: Buffer.from(outputContent),
       apiKeyId: current?.apiKeyId,
       status: "completed",
+      expiresAt: outputExpiresAt,
     });
     outputFileId = file.id;
   }
 
   let errorFileId: string | null = null;
-  const failures = results.filter(
-    (r) => r.response.status_code >= 400 || r.response.body?.error
-  );
+  const failures = results.filter((r) => r.response.status_code >= 400 || r.response.body?.error);
   const allFailures = [
     ...failures,
     ...itemsWithErrors.map((e) => ({
@@ -404,6 +451,7 @@ async function finalizeBatch(batchId: string, results: any[], itemsWithErrors: a
       content: Buffer.from(errorContent),
       apiKeyId: current?.apiKeyId,
       status: "completed",
+      expiresAt: outputExpiresAt,
     });
     errorFileId = file.id;
   }
