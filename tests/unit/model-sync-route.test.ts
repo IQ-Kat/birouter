@@ -63,7 +63,10 @@ test("model sync route skips success log when fetched models do not change store
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     return Response.json({
       models: [{ id: "custom-model-1", name: "Custom Model 1" }],
     });
@@ -103,7 +106,10 @@ test("model sync route stores the real provider while keeping the account label"
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     return Response.json({
       models: [{ id: "custom-model-2", name: "Custom Model 2" }],
     });
@@ -184,7 +190,10 @@ test("model sync route propagates upstream failures and records an error log ent
   });
 
   globalThis.fetch = async (url) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     return Response.json({ error: "Provider upstream unavailable" }, { status: 502 });
   };
 
@@ -217,7 +226,10 @@ test("model sync route falls back to the upstream HTTP status when the models pa
   });
 
   globalThis.fetch = async (url) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     return Response.json({}, { status: 429 });
   };
 
@@ -257,7 +269,10 @@ test("model sync route preserves previously synced models when the upstream omit
   ]);
 
   globalThis.fetch = async (url) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     return Response.json({});
   };
 
@@ -298,7 +313,10 @@ test("model sync route writes synced available models for Gemini connections", a
   });
 
   globalThis.fetch = async (url) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     return Response.json({
       models: [
         {
@@ -359,6 +377,57 @@ test("model sync route writes synced available models for Gemini connections", a
   assert.equal(logs[0].status, 200);
 });
 
+test("model sync route writes synced available models for non-Gemini providers too", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "opencode-go",
+    authType: "apikey",
+    name: "OpenCode Go Sync",
+    apiKey: "opencode-go-key",
+  });
+
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
+    return Response.json({
+      models: [
+        {
+          id: "glm-5.1",
+          name: "GLM 5.1",
+          supportedEndpoints: ["chat"],
+          inputTokenLimit: 262144,
+        },
+      ],
+    });
+  };
+
+  const response = await modelSyncRoute.POST(
+    new Request(`http://localhost/api/providers/${connection.id}/sync-models`, {
+      method: "POST",
+      headers: scheduler.buildModelSyncInternalHeaders(),
+    }),
+    { params: { id: connection.id } }
+  );
+  const body = (await response.json()) as any;
+  const synced = await modelsDb.getSyncedAvailableModels("opencode-go");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "opencode-go");
+  assert.equal(body.syncedModels, 1);
+  assert.deepEqual(synced, [
+    {
+      id: "glm-5.1",
+      name: "GLM 5.1",
+      source: "api-sync",
+      supportedEndpoints: ["chat"],
+      inputTokenLimit: 262144,
+    },
+  ]);
+});
+
 test("model sync route records added, removed, and updated model diffs with fallback identifiers", async () => {
   await resetStorage();
 
@@ -383,7 +452,10 @@ test("model sync route records added, removed, and updated model diffs with fall
   ]);
 
   globalThis.fetch = async (url) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     return Response.json({
       models: [
         {
@@ -458,7 +530,10 @@ test("model sync route forwards cookies, filters built-ins, and syncs aliases fo
   await localDb.setModelAlias("router-v2", "other-provider/router-v2");
 
   globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     assert.equal(init.headers.cookie, "session=test-cookie");
     assert.equal(
       init.headers[scheduler.getModelSyncInternalAuthHeaderName()],
@@ -536,7 +611,10 @@ test("model sync route uses provider-node prefixes when syncing compatible-provi
   await localDb.setModelAlias("sonnet-4-6", "some-other-provider/sonnet-4-6");
 
   globalThis.fetch = async (url) => {
-    assert.equal(String(url), `http://localhost/api/providers/${connection.id}/models`);
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
     return Response.json({
       models: [{ id: "sonnet-4-6", name: "Sonnet 4.6" }],
     });

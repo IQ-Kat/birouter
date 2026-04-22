@@ -14,6 +14,8 @@ import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
+import { BlackboxWebExecutor } from "./blackbox-web.ts";
+import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
 
 const executors = {
@@ -41,6 +43,10 @@ const executors = {
   "perplexity-web": new PerplexityWebExecutor(),
   "pplx-web": new PerplexityWebExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
+  "blackbox-web": new BlackboxWebExecutor(),
+  "bb-web": new BlackboxWebExecutor(), // Alias
+  "muse-spark-web": new MuseSparkWebExecutor(),
+  "ms-web": new MuseSparkWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -72,4 +78,6 @@ export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
+export { BlackboxWebExecutor } from "./blackbox-web.ts";
+export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 export { AzureOpenAIExecutor } from "./azure-openai.ts";

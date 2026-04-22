@@ -21,6 +21,7 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 
@@ -1187,6 +1188,114 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
   },
 };
 
+const META_AI_SEND_MESSAGE_DOC_ID = "078dfdff6fb0d420d8011b49073e6886";
+const META_AI_USER_AGENT =
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+const META_AI_BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+function encodeMetaAiBase62(value: bigint, padLength: number): string {
+  let remaining = value;
+  let encoded = "";
+
+  while (remaining > 0n) {
+    encoded = META_AI_BASE62_ALPHABET[Number(remaining % 62n)] + encoded;
+    remaining /= 62n;
+  }
+
+  return encoded.padStart(padLength, "0");
+}
+
+function decodeMetaAiBase62(value: string): bigint {
+  let decoded = 0n;
+  for (const char of value) {
+    const index = META_AI_BASE62_ALPHABET.indexOf(char);
+    if (index < 0) {
+      throw new Error(`Invalid Meta AI base62 character: ${char}`);
+    }
+    decoded = decoded * 62n + BigInt(index);
+  }
+  return decoded;
+}
+
+function randomMetaAiBigInt(byteLength: number): bigint {
+  const bytes = new Uint8Array(byteLength);
+  crypto.getRandomValues(bytes);
+  let result = 0n;
+  for (const byte of bytes) {
+    result = (result << 8n) | BigInt(byte);
+  }
+  return result;
+}
+
+function generateMetaAiConversationId(): string {
+  const timestamp = BigInt(Date.now()) & ((1n << 44n) - 1n);
+  const random = randomMetaAiBigInt(8) & ((1n << 64n) - 1n);
+  return `c.${encodeMetaAiBase62((timestamp << 64n) | random, 19)}`;
+}
+
+function generateMetaAiEventId(conversationId: string): string | null {
+  if (!conversationId.startsWith("c.")) {
+    return null;
+  }
+
+  try {
+    const packedConversation = decodeMetaAiBase62(conversationId.slice(2));
+    const conversationRandom = packedConversation & ((1n << 64n) - 1n);
+    const timestamp = BigInt(Date.now()) & ((1n << 44n) - 1n);
+    const eventRandom = randomMetaAiBigInt(4) & ((1n << 32n) - 1n);
+    return `e.${encodeMetaAiBase62((timestamp << (64n + 32n)) | (conversationRandom << 32n) | eventRandom, 25)}`;
+  } catch {
+    return null;
+  }
+}
+
+function generateMetaAiNumericMessageId(): string {
+  return (
+    BigInt(Date.now()) * 1000n +
+    BigInt(Math.floor(Math.random() * 1000)) +
+    (randomMetaAiBigInt(2) & 0xfffn)
+  ).toString();
+}
+
+function buildMetaAiValidationBody() {
+  const conversationId = generateMetaAiConversationId();
+  return {
+    doc_id: META_AI_SEND_MESSAGE_DOC_ID,
+    variables: {
+      assistantMessageId: crypto.randomUUID(),
+      attachments: null,
+      clientLatitude: null,
+      clientLongitude: null,
+      clientTimezone:
+        typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC",
+      clippyIp: null,
+      content: "test",
+      conversationId,
+      conversationStarterId: null,
+      currentBranchPath: "0",
+      developerOverridesForMessage: null,
+      devicePixelRatio: 1,
+      entryPoint: "KADABRA__CHAT__UNIFIED_INPUT_BAR",
+      imagineOperationRequest: null,
+      isNewConversation: true,
+      mentions: null,
+      mode: "mode_fast",
+      promptEditType: null,
+      promptSessionId: crypto.randomUUID(),
+      promptType: null,
+      qplJoinId: null,
+      requestedToolCall: null,
+      rewriteOptions: null,
+      turnId: crypto.randomUUID(),
+      userAgent: META_AI_USER_AGENT,
+      userEventId: generateMetaAiEventId(conversationId),
+      userLocale: "en_US",
+      userMessageId: crypto.randomUUID(),
+      userUniqueMessageId: generateMetaAiNumericMessageId(),
+    },
+  };
+}
+
 async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     let token = apiKey;
@@ -1359,6 +1468,173 @@ async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {}
   }
 }
 
+async function validateBlackboxWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const cookieHeader = normalizeSessionCookieHeader(apiKey, "__Secure-authjs.session-token");
+    const sessionHeaders = applyCustomUserAgent(
+      {
+        Accept: "application/json",
+        Cookie: cookieHeader,
+        Origin: "https://app.blackbox.ai",
+        Referer: "https://app.blackbox.ai/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+      },
+      providerSpecificData
+    );
+
+    const sessionResponse = await validationRead("https://app.blackbox.ai/api/auth/session", {
+      method: "GET",
+      headers: sessionHeaders,
+    });
+
+    const sessionText = await sessionResponse.text();
+    const sessionPayload = sessionText ? JSON.parse(sessionText) : null;
+    const userEmail = sessionPayload?.user?.email;
+
+    if (!sessionResponse.ok || !userEmail) {
+      return {
+        valid: false,
+        error:
+          "Invalid Blackbox session cookie — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    const subscriptionHeaders = applyCustomUserAgent(
+      {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Cookie: cookieHeader,
+        Origin: "https://app.blackbox.ai",
+        Referer: "https://app.blackbox.ai/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+      },
+      providerSpecificData
+    );
+
+    const subscriptionResponse = await validationWrite(
+      "https://app.blackbox.ai/api/check-subscription",
+      {
+        method: "POST",
+        headers: subscriptionHeaders,
+        body: JSON.stringify({ email: userEmail }),
+      }
+    );
+
+    const subscriptionText = await subscriptionResponse.text();
+    const subscriptionPayload = subscriptionText ? JSON.parse(subscriptionText) : null;
+    const explicitActive =
+      subscriptionPayload?.hasActiveSubscription === true ||
+      subscriptionPayload?.isTrialSubscription === true ||
+      subscriptionPayload?.status === "PREMIUM";
+    const explicitInactive =
+      subscriptionPayload?.hasActiveSubscription === false ||
+      subscriptionPayload?.status === "FREE";
+    const requiresAuthentication =
+      subscriptionPayload?.requiresAuthentication === true ||
+      /login is required/i.test(subscriptionText || "");
+
+    if (subscriptionResponse.status === 401 || subscriptionResponse.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Invalid Blackbox session cookie — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    if (requiresAuthentication) {
+      return {
+        valid: false,
+        error:
+          "Blackbox session expired — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    if (subscriptionResponse.ok && explicitActive) {
+      return { valid: true, error: null };
+    }
+
+    if (
+      (subscriptionResponse.ok && explicitInactive) ||
+      subscriptionPayload?.previouslySubscribed
+    ) {
+      return {
+        valid: false,
+        error:
+          "Blackbox account authenticated, but no active paid subscription was detected for premium web models.",
+      };
+    }
+
+    if (subscriptionResponse.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (subscriptionResponse.status >= 500) {
+      return { valid: false, error: `Blackbox unavailable (${subscriptionResponse.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${subscriptionResponse.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const cookieHeader = normalizeSessionCookieHeader(apiKey, "abra_sess");
+    const response = await validationWrite("https://www.meta.ai/api/graphql", {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+          Cookie: cookieHeader,
+          Origin: "https://www.meta.ai",
+          Referer: "https://www.meta.ai/",
+          "User-Agent": META_AI_USER_AGENT,
+        },
+        providerSpecificData
+      ),
+      body: JSON.stringify(buildMetaAiValidationBody()),
+    });
+
+    const responseText = await response.text();
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid Meta AI session cookie — re-paste abra_sess from meta.ai",
+      };
+    }
+
+    if (/authentication required to send messages|login is required|sign in/i.test(responseText)) {
+      return {
+        valid: false,
+        error: "Invalid Meta AI session cookie — re-paste abra_sess from meta.ai",
+      };
+    }
+
+    if (
+      response.status === 429 ||
+      /limit exceeded|rate limit|too many requests/i.test(responseText)
+    ) {
+      return { valid: true, error: null };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Meta AI unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = provider !== "searxng-search";
   if (!provider || (requiresApiKey && !apiKey)) {
@@ -1400,6 +1676,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     gigachat: validateGigachatProvider,
     "grok-web": validateGrokWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
+    "blackbox-web": validateBlackboxWebProvider,
+    "muse-spark-web": validateMuseSparkWebProvider,
     "azure-openai": validateAzureOpenAIProvider,
     vertex: async ({ apiKey }: any) => {
       try {

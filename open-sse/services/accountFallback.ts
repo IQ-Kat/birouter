@@ -1,11 +1,16 @@
 import {
-  COOLDOWN_MS,
-  BACKOFF_CONFIG,
   BACKOFF_STEPS_MS,
   PROVIDER_PROFILES,
   RateLimitReason,
   HTTP_STATUS,
 } from "../config/constants.ts";
+import {
+  BACKOFF_CONFIG,
+  COOLDOWN_MS,
+  calculateBackoffCooldown,
+  findMatchingErrorRule,
+  matchErrorRuleByText,
+} from "../config/errorConfig.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
@@ -707,20 +712,10 @@ export function classifyErrorText(errorText) {
   if (isAccountDeactivated(errorText)) {
     return RateLimitReason.AUTH_ERROR;
   }
-  if (
-    lower.includes("rate limit") ||
-    lower.includes("too many requests") ||
-    lower.includes("rate_limit")
-  ) {
-    return RateLimitReason.RATE_LIMIT_EXCEEDED;
-  }
-  if (
-    lower.includes("capacity") ||
-    lower.includes("overloaded") ||
-    lower.includes("resource exhausted")
-  ) {
-    return RateLimitReason.MODEL_CAPACITY;
-  }
+  const configuredRule = matchErrorRuleByText(errorText);
+  if (configuredRule?.reason) return configuredRule.reason;
+  if (lower.includes("rate_limit")) return RateLimitReason.RATE_LIMIT_EXCEEDED;
+  if (lower.includes("resource exhausted")) return RateLimitReason.MODEL_CAPACITY;
   if (
     lower.includes("unauthorized") ||
     lower.includes("invalid api key") ||
@@ -816,8 +811,7 @@ export function getBackoffDuration(failureCount) {
  * @returns {number} Cooldown in milliseconds
  */
 export function getQuotaCooldown(backoffLevel = 0) {
-  const cooldown = BACKOFF_CONFIG.base * Math.pow(2, backoffLevel);
-  return Math.min(cooldown, BACKOFF_CONFIG.max);
+  return calculateBackoffCooldown(backoffLevel);
 }
 
 /**
@@ -937,8 +931,6 @@ export function checkFallbackError(
 
   // Check error message FIRST - specific patterns take priority over status codes
   if (errorText) {
-    const lowerError = errorStr.toLowerCase();
-
     // T06 (sub2api #1037): Permanent account deactivation — do NOT retry, mark as permanent failure
     if (isAccountDeactivated(errorStr)) {
       return {
@@ -971,69 +963,20 @@ export function checkFallbackError(
         dailyQuotaExhausted: true,
       };
     }
-
-    if (lowerError.includes("no credentials")) {
-      return {
-        shouldFallback: true,
-        cooldownMs: COOLDOWN_MS.notFound,
-        reason: RateLimitReason.AUTH_ERROR,
-      };
-    }
-
-    if (lowerError.includes("request not allowed")) {
-      return {
-        shouldFallback: true,
-        cooldownMs: COOLDOWN_MS.requestNotAllowed,
-        baseCooldownMs: COOLDOWN_MS.requestNotAllowed,
-        reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
-      };
-    }
-
-    // Rate limit keywords - exponential backoff
-    if (
-      lowerError.includes("rate limit") ||
-      lowerError.includes("too many requests") ||
-      lowerError.includes("quota exceeded") ||
-      lowerError.includes("quota will reset") ||
-      lowerError.includes("exhausted your capacity") ||
-      lowerError.includes("quota exhausted") ||
-      lowerError.includes("capacity") ||
-      lowerError.includes("overloaded")
-    ) {
-      const reason = classifyErrorText(errorStr);
-      return buildRetryableFallback(reason);
-    }
   }
 
-  if (status === HTTP_STATUS.UNAUTHORIZED) {
+  const configuredRule = findMatchingErrorRule(status, errorStr);
+  if (configuredRule) {
+    if (configuredRule.backoff) {
+      return buildRetryableFallback(configuredRule.reason ?? classifyError(status, errorStr));
+    }
+    const cooldownMs = configuredRule.cooldownMs ?? 0;
     return {
       shouldFallback: true,
-      cooldownMs: 0,
-      baseCooldownMs: 0,
-      reason: RateLimitReason.AUTH_ERROR,
+      cooldownMs,
+      baseCooldownMs: cooldownMs,
+      reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
-  }
-
-  if (status === HTTP_STATUS.PAYMENT_REQUIRED || status === HTTP_STATUS.FORBIDDEN) {
-    return {
-      shouldFallback: true,
-      cooldownMs: 0,
-      baseCooldownMs: 0,
-      reason: RateLimitReason.QUOTA_EXHAUSTED,
-    };
-  }
-
-  if (status === HTTP_STATUS.NOT_FOUND) {
-    return {
-      shouldFallback: true,
-      cooldownMs: COOLDOWN_MS.notFound,
-      reason: RateLimitReason.UNKNOWN,
-    };
-  }
-
-  // 429 - Rate limit with exponential backoff
-  if (status === HTTP_STATUS.RATE_LIMITED) {
-    return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
   }
 
   if (status === HTTP_STATUS.NOT_ACCEPTABLE || retryableStatuses.has(status)) {

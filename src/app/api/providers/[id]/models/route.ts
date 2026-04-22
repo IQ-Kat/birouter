@@ -27,6 +27,11 @@ import {
   getClientVisibleAntigravityModelName,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+import {
+  getCachedDiscoveredModels,
+  isAutoFetchModelsEnabled,
+  persistDiscoveredModels,
+} from "@/lib/providerModels/modelDiscovery";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -470,6 +475,7 @@ export async function GET(
     // Check if we should exclude hidden models (used by MCP tools to prevent hidden model leaks)
     const { searchParams } = new URL(request.url);
     const excludeHidden = searchParams.get("excludeHidden") === "true";
+    const refresh = searchParams.get("refresh") === "true";
 
     const connection = await getProviderConnectionById(id);
 
@@ -498,10 +504,126 @@ export async function GET(
     const connectionId = typeof connection.id === "string" ? connection.id : id;
     const apiKey = typeof connection.apiKey === "string" ? connection.apiKey : "";
     const accessToken = typeof connection.accessToken === "string" ? connection.accessToken : "";
+    const autoFetchModels = isAutoFetchModelsEnabled(connection.providerSpecificData);
+    const cachedDiscoveryModels = await getCachedDiscoveredModels(provider, connectionId);
+
+    const toLocalCatalogModels = () => {
+      const localCatalog = getStaticModelsForProvider(provider) || PROVIDER_MODELS[provider] || [];
+      return localCatalog.map((model: any) => ({
+        id: model.id,
+        name: model.name || model.id,
+        owned_by: provider,
+      }));
+    };
+
+    const buildCachedDiscoveryResponse = (warning?: string) =>
+      buildResponse({
+        provider,
+        connectionId,
+        models: cachedDiscoveryModels,
+        source: "cache",
+        ...(warning ? { warning } : {}),
+      });
+
+    const buildLocalCatalogResponse = (warning?: string) => {
+      const localModels = toLocalCatalogModels();
+      if (localModels.length === 0) return null;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: localModels,
+        source: "local_catalog",
+        ...(warning ? { warning } : {}),
+      });
+    };
+
+    const buildDiscoveryFallbackResponse = ({
+      cacheWarning = "API unavailable — using cached catalog",
+      localWarning = "API unavailable — using local catalog",
+    }: {
+      cacheWarning?: string;
+      localWarning?: string;
+    } = {}) => {
+      if (cachedDiscoveryModels.length > 0) {
+        return buildCachedDiscoveryResponse(cacheWarning);
+      }
+      return buildLocalCatalogResponse(localWarning);
+    };
+
+    const buildDiscoveryErrorFallbackResponse = (
+      error: unknown,
+      warnings?: {
+        cacheWarning?: string;
+        localWarning?: string;
+      }
+    ) => {
+      const status = getSafeOutboundFetchErrorStatus(error);
+      if (status === 400) return null;
+      return buildDiscoveryFallbackResponse(warnings);
+    };
+
+    const maybeReturnCachedDiscovery = () => {
+      if (!refresh && cachedDiscoveryModels.length > 0) {
+        return buildCachedDiscoveryResponse();
+      }
+      return null;
+    };
+
+    const maybeReturnAutoFetchDisabled = () => {
+      if (refresh || autoFetchModels) return null;
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "Auto-fetch disabled — using cached catalog",
+        localWarning: "Auto-fetch disabled — using local catalog",
+      });
+      if (fallback) return fallback;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: [],
+        source: "local_catalog",
+        warning: "Auto-fetch disabled — no cached models available",
+      });
+    };
+
+    const buildApiDiscoveryResponse = async (models: any[]) => {
+      if (Array.isArray(models) && models.length > 0) {
+        await persistDiscoveredModels(provider, connectionId, models);
+        return buildResponse({
+          provider,
+          connectionId,
+          models,
+          source: "api",
+        });
+      }
+
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "No remote models discovered — using cached catalog",
+        localWarning: "No remote models discovered — using local catalog",
+      });
+      if (fallback) return fallback;
+
+      return buildResponse({
+        provider,
+        connectionId,
+        models: [],
+        source: "api",
+      });
+    };
 
     if (isOpenAICompatibleProvider(provider)) {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
       const baseUrl = getProviderBaseUrl(connection.providerSpecificData);
       if (!baseUrl) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "Base URL unavailable — using cached catalog",
+          localWarning: "Base URL unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
         return NextResponse.json(
           { error: "No base URL configured for OpenAI compatible provider" },
           { status: 400 }
@@ -563,6 +685,18 @@ export async function GET(
 
       // If all endpoints failed (but not because of auth), fallback to local catalog
       if (!models) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning:
+            lastErrorStatus === 401 || lastErrorStatus === 403
+              ? `Auth failed (${lastErrorStatus}) — using cached catalog`
+              : "API unavailable — using cached catalog",
+          localWarning:
+            lastErrorStatus === 401 || lastErrorStatus === 403
+              ? `Auth failed (${lastErrorStatus}) — using local catalog`
+              : "API unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+
         if (lastErrorStatus === 401 || lastErrorStatus === 403) {
           return NextResponse.json(
             { error: `Auth failed: ${lastErrorStatus}` },
@@ -571,29 +705,16 @@ export async function GET(
         }
 
         console.warn(`[models] All endpoints failed for ${provider}, using local catalog`);
-        const localModels = PROVIDER_MODELS[provider] || [];
-        models = localModels.map((m: any) => ({
-          id: m.id,
-          name: m.name || m.id,
-          owned_by: provider,
-        }));
+        models = toLocalCatalogModels();
+        return buildResponse({
+          provider,
+          connectionId,
+          models,
+          source: "local_catalog",
+          warning: "API unavailable — using local catalog",
+        });
       }
-
-      // Track source for MCP tool T39 requirement
-      const source =
-        models === null || (models && models.length > 0 && models[0].owned_by === provider)
-          ? "local_catalog"
-          : "api";
-
-      return buildResponse({
-        provider,
-        connectionId,
-        models,
-        source,
-        ...(source === "local_catalog"
-          ? { warning: "API unavailable — using cached catalog" }
-          : {}),
-      });
+      return buildApiDiscoveryResponse(models);
     }
 
     if (provider === "claude") {
@@ -605,21 +726,36 @@ export async function GET(
     }
 
     if (provider === "glm" || provider === "glmt") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
       const url = getGlmModelsUrl(connection.providerSpecificData);
       const token = apiKey || accessToken;
 
-      const response = await safeOutboundFetch(url, {
-        ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-        guard: getProviderOutboundGuard(),
-        proxyConfig: proxy,
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      let response: Response;
+      try {
+        response = await safeOutboundFetch(url, {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+      } catch (error) {
+        const fallback = buildDiscoveryErrorFallbackResponse(error);
+        if (fallback) return fallback;
+        throw error;
+      }
 
       if (!response.ok) {
+        const fallback = buildDiscoveryFallbackResponse();
+        if (fallback) return fallback;
         return NextResponse.json(
           { error: `Failed to fetch models: ${response.status}` },
           { status: response.status }
@@ -629,10 +765,16 @@ export async function GET(
       const data = await response.json();
       const models = data.data || data.models || [];
 
-      return buildResponse({ provider, connectionId, models });
+      return buildApiDiscoveryResponse(models);
     }
 
     if (provider === "gemini-cli") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
       // Gemini CLI doesn't have a /models endpoint. Instead, query the quota
       // endpoint to discover available models from the quota buckets.
       if (!accessToken) {
@@ -671,6 +813,8 @@ export async function GET(
         if (!quotaRes.ok) {
           const errText = await quotaRes.text();
           console.log(`[models] Gemini CLI quota fetch failed (${quotaRes.status}):`, errText);
+          const fallback = buildDiscoveryFallbackResponse();
+          if (fallback) return fallback;
           return NextResponse.json(
             { error: `Failed to fetch Gemini CLI models: ${quotaRes.status}` },
             { status: quotaRes.status }
@@ -688,25 +832,38 @@ export async function GET(
             owned_by: "google",
           }));
 
-        return buildResponse({ provider, connectionId, models });
+        return buildApiDiscoveryResponse(models);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         console.log("[models] Gemini CLI model fetch error:", msg);
+        const fallback = buildDiscoveryFallbackResponse();
+        if (fallback) return fallback;
         return NextResponse.json({ error: "Failed to fetch Gemini CLI models" }, { status: 500 });
       }
     }
 
     if (provider === "antigravity") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
       const staticModels = STATIC_MODEL_PROVIDERS.antigravity();
       const discoveryUrls = getAntigravityModelsDiscoveryUrls();
 
       if (!accessToken) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "OAuth token unavailable — using cached catalog",
+          localWarning: "OAuth token unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
         return buildResponse({
           provider,
           connectionId,
           models: staticModels,
           source: "local_catalog",
-          warning: "OAuth token unavailable — using cached catalog",
+          warning: "OAuth token unavailable — using local catalog",
         });
       }
 
@@ -735,12 +892,7 @@ export async function GET(
             mapAntigravityModelForClient
           );
           if (remoteModels.length > 0) {
-            return buildResponse({
-              provider,
-              connectionId,
-              models: remoteModels,
-              source: "api",
-            });
+            return buildApiDiscoveryResponse(remoteModels);
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
@@ -748,16 +900,25 @@ export async function GET(
         }
       }
 
+      const fallback = buildDiscoveryFallbackResponse();
+      if (fallback) return fallback;
+
       return buildResponse({
         provider,
         connectionId,
         models: staticModels,
         source: "local_catalog",
-        warning: "API unavailable — using cached catalog",
+        warning: "API unavailable — using local catalog",
       });
     }
 
     if (isAnthropicCompatibleProvider(provider)) {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
       if (isClaudeCodeCompatibleProvider(provider)) {
         return NextResponse.json(
           { error: `Provider ${provider} does not support models listing` },
@@ -767,6 +928,11 @@ export async function GET(
 
       let baseUrl = getProviderBaseUrl(connection.providerSpecificData);
       if (!baseUrl) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "Base URL unavailable — using cached catalog",
+          localWarning: "Base URL unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
         return NextResponse.json(
           { error: "No base URL configured for Anthropic compatible provider" },
           { status: 400 }
@@ -783,22 +949,31 @@ export async function GET(
       const modelsPath = toNonEmptyString(psd.modelsPath) || "/models";
       const url = `${baseUrl}${modelsPath}`;
       const token = accessToken || apiKey;
-      const response = await safeOutboundFetch(url, {
-        ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-        guard: getProviderOutboundGuard(),
-        proxyConfig: proxy,
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(apiKey ? { "x-api-key": apiKey } : {}),
-          "anthropic-version": "2023-06-01",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      let response: Response;
+      try {
+        response = await safeOutboundFetch(url, {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(apiKey ? { "x-api-key": apiKey } : {}),
+            "anthropic-version": "2023-06-01",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+      } catch (error) {
+        const fallback = buildDiscoveryErrorFallbackResponse(error);
+        if (fallback) return fallback;
+        throw error;
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
         console.log(`Error fetching models from ${provider}:`, errorText);
+        const fallback = buildDiscoveryFallbackResponse();
+        if (fallback) return fallback;
         return NextResponse.json(
           { error: `Failed to fetch models: ${response.status}` },
           { status: response.status }
@@ -808,11 +983,7 @@ export async function GET(
       const data = await response.json();
       const models = data.data || data.models || [];
 
-      return buildResponse({
-        provider,
-        connectionId,
-        models,
-      });
+      return buildApiDiscoveryResponse(models);
     }
 
     // Static model providers (no remote /models API)
@@ -855,7 +1026,7 @@ export async function GET(
           owned_by: provider,
         })),
         source: "local_catalog",
-        warning: "API unavailable — using cached catalog",
+        warning: "API unavailable — using local catalog",
       });
     }
     if (!config) {
@@ -865,9 +1036,20 @@ export async function GET(
       );
     }
 
+    const cachedResponse = maybeReturnCachedDiscovery();
+    if (cachedResponse) return cachedResponse;
+
+    const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+    if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
     // Get auth token
     const token = accessToken || apiKey;
     if (!token) {
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "No token configured — using cached catalog",
+        localWarning: "No token configured — using local catalog",
+      });
+      if (fallback) return fallback;
       return NextResponse.json(
         {
           error:
@@ -907,18 +1089,27 @@ export async function GET(
 
     while (pageUrl && pageCount < MAX_PAGES) {
       pageCount++;
-      const response = await safeOutboundFetch(pageUrl, {
-        ...SAFE_OUTBOUND_FETCH_PRESETS.modelsPagination,
-        guard: getProviderOutboundGuard(),
-        proxyConfig: proxy,
-        // Ollama Cloud /v1/models returns 301 redirects (#1381)
-        ...(provider === "ollama-cloud" ? { allowRedirect: true } : {}),
-        ...fetchOptions,
-      });
+      let response: Response;
+      try {
+        response = await safeOutboundFetch(pageUrl, {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsPagination,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          // Ollama Cloud /v1/models returns 301 redirects (#1381)
+          ...(provider === "ollama-cloud" ? { allowRedirect: true } : {}),
+          ...fetchOptions,
+        });
+      } catch (error) {
+        const fallback = buildDiscoveryErrorFallbackResponse(error);
+        if (fallback) return fallback;
+        throw error;
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
         console.log(`Error fetching models from ${provider}:`, errorText);
+        const fallback = buildDiscoveryFallbackResponse();
+        if (fallback) return fallback;
         return NextResponse.json(
           { error: `Failed to fetch models: ${response.status}` },
           { status: response.status }
@@ -948,11 +1139,7 @@ export async function GET(
       );
     }
 
-    return buildResponse({
-      provider,
-      connectionId,
-      models: allModels,
-    });
+    return buildApiDiscoveryResponse(allModels);
   } catch (error) {
     const status = getSafeOutboundFetchErrorStatus(error);
     if (status) {

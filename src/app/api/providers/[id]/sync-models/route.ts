@@ -9,6 +9,7 @@ import {
   syncManagedAvailableModelAliases,
   usesManagedAvailableModels,
 } from "@/lib/providerModels/managedAvailableModels";
+import { normalizeDiscoveredModels } from "@/lib/providerModels/modelDiscovery";
 import { saveCallLog } from "@/lib/usage/callLogs";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
@@ -117,8 +118,9 @@ function getModelSyncChannelLabel(connection: unknown) {
  * POST /api/providers/[id]/sync-models
  *
  * Fetches the model list from a provider's /models endpoint and replaces the
- * full custom models list for that provider. Successful syncs only write a
- * call log when the fetched channel actually changes the stored model list.
+ * full custom models list for that provider while refreshing the per-connection
+ * discovery cache. Successful syncs only write a call log when the fetched
+ * channel actually changes the stored model list.
  *
  * Used by:
  * - modelSyncScheduler (auto-sync on interval)
@@ -155,9 +157,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const safeOrigin = SAFE_HOSTS.has(incomingUrl.hostname)
       ? incomingUrl.origin
       : `http://127.0.0.1:${process.env.PORT || "20128"}`;
-    const modelsPath = `/api/providers/${encodeURIComponent(id)}/models`;
+    const modelsPath = `/api/providers/${encodeURIComponent(id)}/models?refresh=true`;
     const modelsRes = await fetch(new URL(modelsPath, safeOrigin).href, {
       method: "GET",
+      cache: "no-store",
       headers: {
         cookie: request.headers.get("cookie") || "",
         ...buildModelSyncInternalHeaders(),
@@ -212,25 +215,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const previousModels = await getCustomModels(logProvider);
     const replaced = await replaceCustomModels(logProvider, models);
 
-    // For Gemini: also write to syncedAvailableModels (unioned across API keys)
-    if (logProvider === "gemini") {
-      try {
-        const syncedModels = models.map((m: any) => ({
-          id: m.id,
-          name: m.name || m.id,
-          source: "api-sync" as const,
-          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
-          ...(typeof m.inputTokenLimit === "number" ? { inputTokenLimit: m.inputTokenLimit } : {}),
-          ...(typeof m.outputTokenLimit === "number"
-            ? { outputTokenLimit: m.outputTokenLimit }
-            : {}),
-          ...(typeof m.description === "string" ? { description: m.description } : {}),
-          ...(m.supportsThinking === true ? { supportsThinking: true } : {}),
-        }));
+    try {
+      const syncedModels = normalizeDiscoveredModels(fetchedModels);
+      if (syncedModels.length > 0) {
         await replaceSyncedAvailableModelsForConnection(logProvider, id, syncedModels);
-      } catch (e) {
-        console.error("Failed to union synced available models for gemini:", e);
       }
+    } catch (e) {
+      console.error(`Failed to union synced available models for ${logProvider}:`, e);
     }
 
     const modelChanges = summarizeModelChanges(previousModels, replaced);

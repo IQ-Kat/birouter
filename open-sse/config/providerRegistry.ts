@@ -1046,6 +1046,53 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "blackbox-web": {
+    id: "blackbox-web",
+    alias: "bb-web",
+    format: "openai",
+    executor: "blackbox-web",
+    baseUrl: "https://app.blackbox.ai/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "minimax/minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "anthropic/claude-opus-4.7", name: "Claude Opus 4.7" },
+      { id: "anthropic/claude-opus-4.6", name: "Claude Opus 4.6" },
+      { id: "anthropic/claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
+      { id: "openai/gpt-5.4", name: "GPT-5.4" },
+      { id: "moonshotai/kimi-k2.6", name: "Kimi K2.6" },
+      { id: "z-ai/glm-5", name: "GLM-5" },
+      { id: "x-ai/grok-4.1-fast", name: "Grok 4.1 Fast" },
+      { id: "blackbox/encrypted", name: "Blackbox Encrypted" },
+    ],
+  },
+
+  "muse-spark-web": {
+    id: "muse-spark-web",
+    alias: "ms-web",
+    format: "openai",
+    executor: "muse-spark-web",
+    baseUrl: "https://www.meta.ai/api/graphql",
+    authType: "apikey",
+    authHeader: "cookie",
+    defaultContextLength: 262000,
+    models: [
+      { id: "muse-spark", name: "Muse Spark", contextLength: 262000 },
+      {
+        id: "muse-spark-thinking",
+        name: "Muse Spark Thinking",
+        supportsReasoning: true,
+        contextLength: 262000,
+      },
+      {
+        id: "muse-spark-contemplating",
+        name: "Muse Spark Contemplating",
+        supportsReasoning: true,
+        contextLength: 262000,
+      },
+    ],
+  },
+
   xai: {
     id: "xai",
     alias: "xai",

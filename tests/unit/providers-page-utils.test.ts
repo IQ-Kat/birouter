@@ -219,6 +219,8 @@ test("static catalog entries resolve search, audio, web-cookie and upstream prov
   const audioProvider = providerPageUtils.resolveDashboardProviderInfo("assemblyai");
   const webCookieProvider = providerPageUtils.resolveDashboardProviderInfo("grok-web");
   const perplexityWebProvider = providerPageUtils.resolveDashboardProviderInfo("perplexity-web");
+  const blackboxWebProvider = providerPageUtils.resolveDashboardProviderInfo("blackbox-web");
+  const museSparkWebProvider = providerPageUtils.resolveDashboardProviderInfo("muse-spark-web");
   const upstreamProvider = providerPageUtils.resolveDashboardProviderInfo("cliproxyapi");
 
   assert.equal(searchProvider?.category, "search");
@@ -233,6 +235,12 @@ test("static catalog entries resolve search, audio, web-cookie and upstream prov
   assert.equal(perplexityWebProvider?.category, "web-cookie");
   assert.equal(perplexityWebProvider?.name, providers.WEB_COOKIE_PROVIDERS["perplexity-web"].name);
 
+  assert.equal(blackboxWebProvider?.category, "web-cookie");
+  assert.equal(blackboxWebProvider?.name, providers.WEB_COOKIE_PROVIDERS["blackbox-web"].name);
+
+  assert.equal(museSparkWebProvider?.category, "web-cookie");
+  assert.equal(museSparkWebProvider?.name, providers.WEB_COOKIE_PROVIDERS["muse-spark-web"].name);
+
   assert.equal(upstreamProvider?.category, "upstream-proxy");
   assert.equal(
     upstreamProvider?.name,
@@ -245,6 +253,8 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("assemblyai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("grok-web"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("perplexity-web"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("blackbox-web"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("muse-spark-web"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("brave-search"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("cliproxyapi"), false);
   assert.equal(providerCatalog.isManagedProviderConnectionId("claude"), false);
@@ -253,6 +263,10 @@ test("managed provider connection ids include supported static categories and ex
 test("grok-web taxonomy stays web-cookie only and does not leak into api-key entries", () => {
   assert.equal("grok-web" in providers.APIKEY_PROVIDERS, false);
   assert.equal("grok-web" in providers.WEB_COOKIE_PROVIDERS, true);
+  assert.equal("blackbox-web" in providers.APIKEY_PROVIDERS, false);
+  assert.equal("blackbox-web" in providers.WEB_COOKIE_PROVIDERS, true);
+  assert.equal("muse-spark-web" in providers.APIKEY_PROVIDERS, false);
+  assert.equal("muse-spark-web" in providers.WEB_COOKIE_PROVIDERS, true);
 
   const apiKeyEntries = providerPageUtils.buildStaticProviderEntries("apikey", () => ({
     total: 0,
@@ -267,6 +281,14 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     webCookieEntries.some((entry) => entry.providerId === "grok-web"),
+    true
+  );
+  assert.equal(
+    webCookieEntries.some((entry) => entry.providerId === "blackbox-web"),
+    true
+  );
+  assert.equal(
+    webCookieEntries.some((entry) => entry.providerId === "muse-spark-web"),
     true
   );
 });

@@ -381,6 +381,34 @@ test("v1 models catalog keeps Gemini chat models untyped when synced endpoints a
   assert.equal(chatModel.context_length, 8192);
 });
 
+test("v1 models catalog includes synced non-Gemini provider models from discovery cache", async () => {
+  const connection = await seedConnection("opencode-go", {
+    name: "opencode-go-synced",
+    apiKey: "go-key",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", (connection as any).id, [
+    {
+      id: "glm-5.1",
+      name: "GLM 5.1",
+      source: "api-sync",
+      supportedEndpoints: ["chat"],
+      inputTokenLimit: 262144,
+    },
+  ]);
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const syncedModel = body.data.find((item) => item.id === "opencode-go/glm-5.1");
+
+  assert.equal(response.status, 200);
+  assert.ok(syncedModel);
+  assert.equal(syncedModel.owned_by, "opencode-go");
+  assert.equal(syncedModel.context_length, 262144);
+});
+
 test("v1 models catalog includes media, moderation, rerank, video, and music models for active providers", async () => {
   await seedConnection("openai", { name: "openai-media" });
   await seedConnection("cohere", { name: "cohere-rerank" });

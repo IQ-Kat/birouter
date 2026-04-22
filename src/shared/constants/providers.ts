@@ -94,6 +94,27 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.perplexity.ai",
     authHint: "Paste your __Secure-next-auth.session-token cookie value from perplexity.ai",
   },
+  "blackbox-web": {
+    id: "blackbox-web",
+    alias: "bb-web",
+    name: "Blackbox Web (Subscription)",
+    icon: "view_in_ar",
+    color: "#1A1A2E",
+    textIcon: "BW",
+    website: "https://app.blackbox.ai",
+    authHint:
+      "Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai",
+  },
+  "muse-spark-web": {
+    id: "muse-spark-web",
+    alias: "ms-web",
+    name: "Muse Spark Web (Meta AI)",
+    icon: "auto_awesome",
+    color: "#0866FF",
+    textIcon: "MS",
+    website: "https://www.meta.ai",
+    authHint: "Paste your abra_sess value or full cookie header from meta.ai",
+  },
 };
 
 // API Key Providers

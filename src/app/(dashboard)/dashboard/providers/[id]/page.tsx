@@ -52,6 +52,7 @@ import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
 } from "@/lib/providers/requestDefaults";
+import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
@@ -492,6 +493,7 @@ interface ConnectionRowConnection {
 interface ConnectionRowProps {
   connection: ConnectionRowConnection;
   isOAuth: boolean;
+  isClaude?: boolean;
   isCodex?: boolean;
   isFirst: boolean;
   isLast: boolean;
@@ -499,6 +501,7 @@ interface ConnectionRowProps {
   onMoveDown: () => void;
   onToggleActive: (isActive?: boolean) => void | Promise<void>;
   onToggleRateLimit: (enabled?: boolean) => void;
+  onToggleClaudeExtraUsage?: (enabled?: boolean) => void;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
   isCcCompatible?: boolean;
@@ -1014,8 +1017,8 @@ export default function ProviderDetailPage() {
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
-  // For Gemini: always use synced API models (empty if no keys added yet)
-  // For other providers: merge registry models with custom/imported models (deduped)
+  // Prefer synced API-discovered models when available, then merge built-ins
+  // and user-managed custom/imported models without duplicating IDs.
   const models = useMemo(() => {
     if (providerId === "gemini") {
       return syncedAvailableModels.map((model: any) => ({
@@ -1029,17 +1032,23 @@ export default function ProviderDetailPage() {
       source: "system",
     }));
 
-    if (!modelMeta.customModels || modelMeta.customModels.length === 0) return builtInModels;
-
     const registryIds = new Set(builtInModels.map((m) => m.id));
+    const syncedExtras = syncedAvailableModels
+      .filter((model: any) => model?.id && !registryIds.has(model.id))
+      .map((model: any) => ({
+        id: model.id,
+        name: model.name || model.id,
+        source: "api-sync",
+      }));
+    const knownIds = new Set([...registryIds, ...syncedExtras.map((model: any) => model.id)]);
     const customExtras = modelMeta.customModels
-      .filter((cm: any) => cm.id && !registryIds.has(cm.id))
+      .filter((cm: any) => cm.id && !knownIds.has(cm.id))
       .map((cm: any) => ({
         id: cm.id,
         name: cm.name || cm.id,
         source: cm.source === "api-sync" ? "api-sync" : "custom",
       }));
-    return [...builtInModels, ...customExtras];
+    return [...builtInModels, ...syncedExtras, ...customExtras];
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
@@ -1119,19 +1128,21 @@ export default function ProviderDetailPage() {
         customModels: data.models || [],
         modelCompatOverrides: data.modelCompatOverrides || [],
       });
-      // Fetch synced available models for Gemini
-      if (providerId === "gemini") {
-        try {
-          const syncRes = await fetch("/api/synced-available-models?provider=gemini", {
+      try {
+        const syncRes = await fetch(
+          `/api/synced-available-models?provider=${encodeURIComponent(providerId)}`,
+          {
             cache: "no-store",
-          });
-          if (syncRes.ok) {
-            const syncData = await syncRes.json();
-            setSyncedAvailableModels(syncData.models || []);
           }
-        } catch {
-          // Non-critical
+        );
+        if (syncRes.ok) {
+          const syncData = await syncRes.json();
+          setSyncedAvailableModels(syncData.models || []);
+        } else {
+          setSyncedAvailableModels([]);
         }
+      } catch {
+        setSyncedAvailableModels([]);
       }
     } catch (e) {
       console.error("fetchProviderModelMeta", e);
@@ -1435,6 +1446,66 @@ export default function ProviderDetailPage() {
       }
     } catch (error) {
       console.error("Error toggling rate limit:", error);
+    }
+  };
+
+  const handleToggleClaudeExtraUsage = async (connectionId, enabled) => {
+    try {
+      const target = connections.find((connection) => connection.id === connectionId);
+      if (!target) return;
+
+      const providerSpecificData =
+        target.providerSpecificData && typeof target.providerSpecificData === "object"
+          ? target.providerSpecificData
+          : {};
+
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSpecificData: {
+            ...providerSpecificData,
+            blockExtraUsage: enabled,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error || "Failed to update Claude extra-usage policy");
+        return;
+      }
+
+      setConnections((prev) =>
+        prev.map((connection) =>
+          connection.id === connectionId
+            ? {
+                ...connection,
+                providerSpecificData: {
+                  ...(connection.providerSpecificData || {}),
+                  blockExtraUsage: enabled,
+                },
+                ...(!enabled && connection.lastErrorSource === "extra_usage"
+                  ? {
+                      testStatus: "active",
+                      lastError: null,
+                      lastErrorAt: null,
+                      lastErrorType: null,
+                      lastErrorSource: null,
+                      errorCode: null,
+                      rateLimitedUntil: null,
+                    }
+                  : {}),
+              }
+            : connection
+        )
+      );
+      notify.success(
+        enabled ? "Claude extra-usage blocking enabled" : "Claude extra-usage blocking disabled"
+      );
+    } catch (error) {
+      console.error("Error toggling Claude extra-usage policy:", error);
+      notify.error("Failed to update Claude extra-usage policy");
     }
   };
 
@@ -1801,7 +1872,7 @@ export default function ProviderDetailPage() {
     });
 
     try {
-      const res = await fetch(`/api/providers/${activeConnection.id}/models`);
+      const res = await fetch(`/api/providers/${activeConnection.id}/models?refresh=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({
@@ -2762,6 +2833,7 @@ export default function ProviderDetailPage() {
                         key={conn.id}
                         connection={conn}
                         isOAuth={conn.authType === "oauth"}
+                        isClaude={providerId === "claude"}
                         isFirst={index === 0}
                         isLast={index === sorted.length - 1}
                         onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
@@ -2770,6 +2842,9 @@ export default function ProviderDetailPage() {
                           handleUpdateConnectionStatus(conn.id, isActive)
                         }
                         onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                        onToggleClaudeExtraUsage={(enabled) =>
+                          handleToggleClaudeExtraUsage(conn.id, enabled)
+                        }
                         isCodex={providerId === "codex"}
                         isCcCompatible={isCcCompatible}
                         cliproxyapiEnabled={cpaProviderEnabled}
@@ -2874,6 +2949,7 @@ export default function ProviderDetailPage() {
                               key={conn.id}
                               connection={conn}
                               isOAuth={conn.authType === "oauth"}
+                              isClaude={providerId === "claude"}
                               isFirst={gi === 0 && index === 0}
                               isLast={
                                 gi === groupKeys.length - 1 && index === groupConns.length - 1
@@ -2889,6 +2965,9 @@ export default function ProviderDetailPage() {
                               }
                               onToggleRateLimit={(enabled) =>
                                 handleToggleRateLimit(conn.id, enabled)
+                              }
+                              onToggleClaudeExtraUsage={(enabled) =>
+                                handleToggleClaudeExtraUsage(conn.id, enabled)
                               }
                               isCodex={providerId === "codex"}
                               onToggleCodex5h={(enabled) =>
@@ -4422,7 +4501,7 @@ function CompatibleModelsSection({
       await onImportWithProgress(
         // fetchModels callback
         async () => {
-          const res = await fetch(`/api/providers/${activeConnection.id}/models`);
+          const res = await fetch(`/api/providers/${activeConnection.id}/models?refresh=true`);
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || t("failedImportModels"));
           return data;
@@ -4853,6 +4932,7 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
 function ConnectionRow({
   connection,
   isOAuth,
+  isClaude,
   isCodex,
   isCcCompatible,
   cliproxyapiEnabled,
@@ -4862,6 +4942,7 @@ function ConnectionRow({
   onMoveDown,
   onToggleActive,
   onToggleRateLimit,
+  onToggleClaudeExtraUsage,
   onToggleCodex5h,
   onToggleCodexWeekly,
   onToggleCliproxyapiMode,
@@ -4956,6 +5037,9 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
+  const claudeBlockExtraUsageEnabled = isClaude
+    ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
+    : false;
   const cliproxyapiDeepMode = !!cliproxyapiEnabled;
 
   return (
@@ -5046,6 +5130,23 @@ function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
+            {isClaude && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleClaudeExtraUsage?.(!claudeBlockExtraUsageEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    claudeBlockExtraUsageEnabled
+                      ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title="Toggle Claude extra-usage blocking"
+                >
+                  <span className="material-symbols-outlined text-[13px]">payments</span>
+                  Block Extra {claudeBlockExtraUsageEnabled ? "ON" : "OFF"}
+                </button>
+              </>
+            )}
             {isCcCompatible && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
@@ -5247,6 +5348,7 @@ ConnectionRow.propTypes = {
     providerSpecificData: PropTypes.object,
   }).isRequired,
   isOAuth: PropTypes.bool.isRequired,
+  isClaude: PropTypes.bool,
   isCodex: PropTypes.bool,
   isFirst: PropTypes.bool.isRequired,
   isLast: PropTypes.bool.isRequired,
@@ -5254,6 +5356,7 @@ ConnectionRow.propTypes = {
   onMoveDown: PropTypes.func.isRequired,
   onToggleActive: PropTypes.func.isRequired,
   onToggleRateLimit: PropTypes.func.isRequired,
+  onToggleClaudeExtraUsage: PropTypes.func,
   onToggleCodex5h: PropTypes.func,
   onToggleCodexWeekly: PropTypes.func,
   isCcCompatible: PropTypes.bool,
@@ -5394,7 +5497,9 @@ function AddApiKeyModal({
   const isGooglePse = provider === "google-pse-search";
   const isGrokWeb = provider === "grok-web";
   const isPerplexityWeb = provider === "perplexity-web";
-  const isWebSessionProvider = isGrokWeb || isPerplexityWeb;
+  const isBlackboxWeb = provider === "blackbox-web";
+  const isMuseSparkWeb = provider === "muse-spark-web";
+  const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
   const apiKeyOptional = isSearxng;
 
   const [formData, setFormData] = useState({
@@ -5583,11 +5688,15 @@ function AddApiKeyModal({
                   ? "Paste your sso cookie value from grok.com"
                   : isPerplexityWeb
                     ? "Paste your __Secure-next-auth.session-token value"
-                    : isSearxng
-                      ? "Optional"
-                      : isQoder
-                        ? "Paste your Qoder Personal Access Token"
-                        : undefined
+                    : isBlackboxWeb
+                      ? "Paste your __Secure-authjs.session-token value"
+                      : isMuseSparkWeb
+                        ? "Paste your abra_sess value"
+                        : isSearxng
+                          ? "Optional"
+                          : isQoder
+                            ? "Paste your Qoder Personal Access Token"
+                            : undefined
             }
             hint={
               isQoder
@@ -5596,9 +5705,13 @@ function AddApiKeyModal({
                   ? "Paste the sso cookie from grok.com. A full 'sso=...' value also works."
                   : isPerplexityWeb
                     ? "Paste the __Secure-next-auth.session-token cookie from perplexity.ai."
-                    : isSearxng
-                      ? "Optional. Leave blank if your SearXNG instance does not require authentication."
-                      : undefined
+                    : isBlackboxWeb
+                      ? "Paste the __Secure-authjs.session-token cookie from app.blackbox.ai. A full cookie header also works."
+                      : isMuseSparkWeb
+                        ? "Paste the abra_sess cookie from meta.ai. A full cookie header also works."
+                        : isSearxng
+                          ? "Optional. Leave blank if your SearXNG instance does not require authentication."
+                          : undefined
             }
           />
           <div className="pt-6">
@@ -5845,6 +5958,10 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    blockExtraUsage:
+      connection?.provider === "claude"
+        ? isClaudeExtraUsageBlockEnabled(connection?.provider, connection?.providerSpecificData)
+        : false,
     passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
   });
   const [testing, setTesting] = useState(false);
@@ -5865,6 +5982,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
+  const isClaude = connection?.provider === "claude";
   const isSearxng = connection?.provider === "searxng-search";
   const isGooglePse = connection?.provider === "google-pse-search";
   const apiKeyOptional = isSearxng;
@@ -5913,6 +6031,10 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
+        blockExtraUsage: isClaudeExtraUsageBlockEnabled(
+          connection.provider,
+          connection.providerSpecificData
+        ),
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
       });
       // Load existing extra keys from providerSpecificData
@@ -6102,6 +6224,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tags: parseRoutingTagsInput(formData.routingTags),
           excludedModels: parseExcludedModelsInput(formData.excludedModels),
         };
+        if (isClaude) {
+          updates.providerSpecificData.blockExtraUsage = formData.blockExtraUsage;
+        }
         if (isCodex) {
           updates.providerSpecificData.requestDefaults = {
             reasoningEffort: formData.codexReasoningEffort,
@@ -6181,6 +6306,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(checked) => setFormData({ ...formData, codexOpenaiStoreEnabled: checked })}
               label="OpenAI Responses Store"
               description="Preserves `store`, `previous_response_id`, and adds a stable fallback `session_id` for long Codex sessions. Enable only when the upstream account accepts stored Responses."
+            />
+          </div>
+        )}
+        {isClaude && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Toggle
+              checked={formData.blockExtraUsage}
+              onChange={(checked) => setFormData({ ...formData, blockExtraUsage: checked })}
+              label="Block Claude Extra Usage"
+              description="When enabled, OmniRoute marks this Claude Code account unavailable as soon as the usage API reports `extra_usage.queued`, so fallback switches to another account before extra pay-as-you-go charges continue."
             />
           </div>
         )}

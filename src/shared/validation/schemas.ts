@@ -61,6 +61,24 @@ function validateProviderSpecificData(
     });
   }
 
+  const blockExtraUsage = data.blockExtraUsage;
+  if (blockExtraUsage !== undefined && typeof blockExtraUsage !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.blockExtraUsage must be a boolean",
+      path: ["blockExtraUsage"],
+    });
+  }
+
+  const autoFetchModels = data.autoFetchModels;
+  if (autoFetchModels !== undefined && typeof autoFetchModels !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.autoFetchModels must be a boolean",
+      path: ["autoFetchModels"],
+    });
+  }
+
   const requestDefaults = data.requestDefaults;
   if (requestDefaults !== undefined) {
     if (!requestDefaults || typeof requestDefaults !== "object" || Array.isArray(requestDefaults)) {

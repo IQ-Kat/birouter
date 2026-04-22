@@ -143,6 +143,8 @@ import {
   resolveClaudeCodeCompatibleSessionId,
 } from "../services/claudeCodeCompatible.ts";
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
+import { fetchLiveProviderLimits } from "@/lib/usage/providerLimits";
+import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -236,6 +238,29 @@ function extractMemoryTextFromRequestBody(
   return "";
 }
 
+async function maybeSyncClaudeExtraUsageState({
+  provider,
+  connectionId,
+  providerSpecificData,
+  log,
+}: {
+  provider: string | null | undefined;
+  connectionId: string | null | undefined;
+  providerSpecificData: unknown;
+  log?: { debug?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void } | null;
+}) {
+  if (!connectionId || !isClaudeExtraUsageBlockEnabled(provider, providerSpecificData)) {
+    return;
+  }
+
+  try {
+    await fetchLiveProviderLimits(connectionId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log?.debug?.("CLAUDE_USAGE", `Failed to sync Claude extra-usage state: ${message}`);
+  }
+}
+
 function resolveMemoryOwnerId(apiKeyInfo: Record<string, unknown> | null): string | null {
   const rawId = apiKeyInfo?.id;
   if (typeof rawId === "string" && rawId.trim().length > 0) {
@@ -304,6 +329,25 @@ function restoreClaudePassthroughToolNames(
     ...responseBody,
     content,
   };
+}
+
+function mergeResponseToolNameMap(
+  baseToolNameMap: Map<string, string> | null,
+  transformedBody: Record<string, unknown> | null | undefined
+) {
+  const executorToolNameMap =
+    transformedBody && transformedBody._toolNameMap instanceof Map
+      ? (transformedBody._toolNameMap as Map<string, string>)
+      : null;
+
+  if (!executorToolNameMap?.size) return baseToolNameMap;
+  if (!baseToolNameMap?.size) return executorToolNameMap;
+
+  const merged = new Map(baseToolNameMap);
+  for (const [toolName, originalName] of executorToolNameMap.entries()) {
+    merged.set(toolName, originalName);
+  }
+  return merged;
 }
 
 function materializeDeduplicatedExecutionResult<T extends Record<string, unknown>>(result: T): T {
@@ -2501,8 +2545,13 @@ export async function handleChatCore({
       }
     }
 
+    const responseToolNameMap = mergeResponseToolNameMap(
+      toolNameMap,
+      (finalBody as Record<string, unknown> | null | undefined) ?? null
+    );
+
     if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) {
-      responseBody = restoreClaudePassthroughToolNames(responseBody, toolNameMap);
+      responseBody = restoreClaudePassthroughToolNames(responseBody, responseToolNameMap);
     }
     reqLogger.logProviderResponse(
       providerResponse.status,
@@ -2521,6 +2570,12 @@ export async function handleChatCore({
     if (onRequestSuccess) {
       await onRequestSuccess();
     }
+    await maybeSyncClaudeExtraUsageState({
+      provider,
+      connectionId,
+      providerSpecificData: credentials?.providerSpecificData,
+      log,
+    });
 
     // Log usage for non-streaming responses
     const usage = extractUsageFromResponse(responseBody, provider);
@@ -2579,7 +2634,7 @@ export async function handleChatCore({
           responseBody,
           responsePayloadFormat,
           clientResponseFormat,
-          toolNameMap as Map<string, string> | null
+          responseToolNameMap as Map<string, string> | null
         )
       : responseBody;
     const memoryExtractionResponse = translatedResponse;
@@ -2803,6 +2858,10 @@ export async function handleChatCore({
 
   // Create transform stream with logger for streaming response
   let transformStream;
+  const responseToolNameMap = mergeResponseToolNameMap(
+    toolNameMap,
+    (finalBody as Record<string, unknown> | null | undefined) ?? null
+  );
 
   // Callback to save call log when stream completes (include responseBody when provided by stream)
   const onStreamComplete = ({
@@ -2814,6 +2873,15 @@ export async function handleChatCore({
     ttft,
   }) => {
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
+
+    if (streamStatus === 200) {
+      void maybeSyncClaudeExtraUsageState({
+        provider,
+        connectionId,
+        providerSpecificData: credentials?.providerSpecificData,
+        log,
+      });
+    }
 
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
@@ -2936,7 +3004,7 @@ export async function handleChatCore({
       "openai",
       provider,
       reqLogger,
-      toolNameMap,
+      responseToolNameMap,
       model,
       connectionId,
       body,
@@ -2951,7 +3019,7 @@ export async function handleChatCore({
       clientResponseFormat,
       provider,
       reqLogger,
-      toolNameMap,
+      responseToolNameMap,
       model,
       connectionId,
       body,
@@ -2963,7 +3031,7 @@ export async function handleChatCore({
     transformStream = createPassthroughStreamWithLogger(
       provider,
       reqLogger,
-      toolNameMap,
+      responseToolNameMap,
       model,
       connectionId,
       body,

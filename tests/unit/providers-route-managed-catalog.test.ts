@@ -55,6 +55,22 @@ test("providers route accepts managed audio, web-cookie and search providers", a
       },
     },
     {
+      provider: "blackbox-web",
+      body: {
+        provider: "blackbox-web",
+        apiKey: "__Secure-authjs.session-token=bb-cookie",
+        name: "Blackbox Web Session",
+      },
+    },
+    {
+      provider: "muse-spark-web",
+      body: {
+        provider: "muse-spark-web",
+        apiKey: "abra_sess=meta-cookie",
+        name: "Muse Spark Web Session",
+      },
+    },
+    {
       provider: "google-pse-search",
       body: {
         provider: "google-pse-search",

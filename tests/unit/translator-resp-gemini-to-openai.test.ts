@@ -160,6 +160,36 @@ test("Gemini non-stream: restores sanitized tool names from the request map", ()
   assert.equal((result as any).choices[0].message.tool_calls[0].function.name, originalToolName);
 });
 
+test("Gemini non-stream: restores Antigravity _ide-cloaked tool names from the request map", () => {
+  const result = translateNonStreamingResponse(
+    {
+      responseId: "resp-ag-tool-map",
+      modelVersion: "antigravity/gemini-2.5-pro",
+      createTime: "2026-04-22T12:00:00.000Z",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                functionCall: {
+                  name: "read_project_file_ide",
+                  args: { path: "/tmp/a" },
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    FORMATS.ANTIGRAVITY,
+    FORMATS.OPENAI,
+    new Map([["read_project_file_ide", "read_project_file"]])
+  );
+
+  assert.equal((result as any).choices[0].message.tool_calls[0].function.name, "read_project_file");
+});
+
 test("Gemini stream: first text chunk emits assistant role then content delta", () => {
   const state = createStreamingState();
   const result = geminiToOpenAIResponse(
