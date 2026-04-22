@@ -8,6 +8,8 @@
 
 ### ✨ New Features
 
+- **feat(providers):** Add search functionality to the providers dashboard with i18n support. (#1511 — thanks @th-ch)
+- **feat(providers):** Register 6 new models in the opencode-go provider catalog. (#1510 — thanks @kang-heewon)
 - **feat(providers):** Add ModelScope provider (Chinese AI marketplace) with Kimi K2.5, GLM-5, and Step-3.5-Flash integration. (#1430 — thanks @clousky2020)
 - **feat(providers):** Add LM Studio as an OpenAI-compatible local provider for self-hosted model inference.
 - **feat(providers):** Add Grok 4.3 thinking model support for xAI web executor requests.
@@ -21,6 +23,8 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(core):** Add periodic runtime log rotation checks to prevent disk exhaustion in long-running instances. (#1504 — thanks @ether-btc)
+- **fix(build):** Resolve missing `process` module in webpack client build for pino-abstract-transport. (#1509 — thanks @hartmark)
 - **fix(ui):** Add dark mode support for native dropdown `<option>` elements on Linux/Windows, resolving invisible text in settings and combo builders (#1488)
 - **fix(batch):** Add batch item dispatching to specific handlers based on URL to support embeddings and other modalities (#1495 — thanks @hartmark)
 - **fix(dashboard):** Correct TOML round-trip corruption in Codex config serializer by dequoting keys and preserving array/boolean structures properly. (#1438 — thanks @benzntech)
