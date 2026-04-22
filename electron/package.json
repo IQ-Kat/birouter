@@ -53,7 +53,8 @@
         "from": "../.next/electron-standalone",
         "to": "app",
         "filter": [
-          "**/*"
+          "**/*",
+          "node_modules/**/*"
         ]
       },
       {

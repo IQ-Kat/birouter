@@ -15,7 +15,7 @@ const CLI_TOOLS: Record<string, any> = {
     healthcheckTimeoutMs: 4000,
     paths: {
       settings: ".claude/settings.json",
-      auth: ".claude/.credentials.json",
+      auth: [".claude/.credentials.json", ".config/claude/credentials.json"],
     },
   },
   codex: {
@@ -821,10 +821,23 @@ export const getCliConfigPaths = (toolId: string) => {
 
   const home = getCliConfigHome();
   return Object.fromEntries(
-    Object.entries(tool.paths).map(([key, relativePath]) => [
-      key,
-      path.join(home, relativePath as string),
-    ])
+    Object.entries(tool.paths).map(([key, relativePath]) => {
+      let resolvedPath = "";
+      if (Array.isArray(relativePath)) {
+        // Find the first path that exists, or default to the first one
+        resolvedPath = path.join(home, relativePath[0]);
+        for (const p of relativePath) {
+          const candidate = path.join(home, p);
+          if (fsSync.existsSync(candidate)) {
+            resolvedPath = candidate;
+            break;
+          }
+        }
+      } else {
+        resolvedPath = path.join(home, relativePath as string);
+      }
+      return [key, resolvedPath];
+    })
   );
 };
 

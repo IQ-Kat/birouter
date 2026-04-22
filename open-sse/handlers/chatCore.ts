@@ -1227,8 +1227,10 @@ export async function handleChatCore({
         const { getComboByName } = await import("../../src/lib/localDb");
         const { parseModel } = await import("../services/model.ts");
         const { resolveComboTargets } = await import("../services/combo.ts");
-        const comboToSearch = comboName.startsWith("combo/") ? comboName.substring(6) : comboName;
-        const comboConfig = await getComboByName(comboToSearch);
+        let comboConfig = await getComboByName(comboName);
+        if (!comboConfig && comboName.startsWith("combo/")) {
+          comboConfig = await getComboByName(comboName.substring(6));
+        }
         if (comboConfig) {
           const targets = await resolveComboTargets(comboConfig, null);
           const limits = targets.map((t: { modelStr?: string }) => {
