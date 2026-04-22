@@ -110,6 +110,15 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".config/opencode/opencode.json",
     },
   },
+  hermes: {
+    defaultCommand: "hermes",
+    envBinKey: "CLI_HERMES_BIN",
+    requiresBinary: false,
+    healthcheckTimeoutMs: 4000,
+    paths: {
+      config: ".config/hermes/config.json",
+    },
+  },
   amp: {
     defaultCommand: "amp",
     envBinKey: "CLI_AMP_BIN",

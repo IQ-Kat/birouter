@@ -117,6 +117,15 @@ export const APIKEY_PROVIDERS = {
     textIcon: "GL",
     website: "https://open.bigmodel.cn",
   },
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glmcn",
+    name: "GLM Coding (China)",
+    icon: "code",
+    color: "#DC2626",
+    textIcon: "GC",
+    website: "https://open.bigmodel.cn",
+  },
   glmt: {
     id: "glmt",
     alias: "glmt",
@@ -198,6 +207,18 @@ export const APIKEY_PROVIDERS = {
     color: "#10A37F",
     textIcon: "OA",
     website: "https://platform.openai.com",
+  },
+  "azure-openai": {
+    id: "azure-openai",
+    alias: "azure",
+    name: "Azure OpenAI",
+    icon: "cloud",
+    color: "#0078D4",
+    textIcon: "AZ",
+    website: "https://azure.microsoft.com/products/ai-services/openai-service",
+    authHint:
+      "Use your Azure OpenAI API key. Base URL should be your resource endpoint, for example https://my-resource.openai.azure.com.",
+    passthroughModels: true,
   },
   anthropic: {
     id: "anthropic",
@@ -440,6 +461,16 @@ export const APIKEY_PROVIDERS = {
     textIcon: "VA",
     website: "https://cloud.google.com/vertex-ai",
     authHint: "Provide Service Account JSON or OAuth access_token",
+  },
+  "vertex-partner": {
+    id: "vertex-partner",
+    alias: "vp",
+    name: "Vertex AI Partners",
+    icon: "cloud",
+    color: "#34A853",
+    textIcon: "VP",
+    website: "https://cloud.google.com/vertex-ai",
+    authHint: "Provide the same Service Account JSON used for Vertex AI partner models.",
   },
   zai: {
     id: "zai",

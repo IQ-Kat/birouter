@@ -438,6 +438,22 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  "opencode-go": {
+    url: "https://opencode.ai/zen/go/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
+  "glm-cn": {
+    url: "https://open.bigmodel.cn/api/coding/paas/v4/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
 };
 
 /**

@@ -5271,6 +5271,7 @@ ConnectionRow.propTypes = {
 };
 
 const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
+  "azure-openai",
   "bailian-coding-plan",
   "xiaomi-mimo",
   "heroku",
@@ -5280,6 +5281,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
 ]);
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
+  "azure-openai": "https://example-resource.openai.azure.com",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
   "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
   "searxng-search": "http://localhost:8888/search",
@@ -5291,6 +5293,8 @@ function getProviderBaseUrlDefault(providerId?: string | null) {
 
 function getProviderBaseUrlHint(providerId?: string | null) {
   switch (providerId) {
+    case "azure-openai":
+      return "Required: paste your Azure OpenAI resource endpoint. OmniRoute will append /openai/deployments/{model}/chat/completions?api-version=....";
     case "bailian-coding-plan":
       return "Optional: Custom base URL for bailian-coding-plan provider";
     case "xiaomi-mimo":
@@ -5310,6 +5314,8 @@ function getProviderBaseUrlHint(providerId?: string | null) {
 
 function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   switch (providerId) {
+    case "azure-openai":
+      return "https://my-resource.openai.azure.com";
     case "bailian-coding-plan":
     case "xiaomi-mimo":
       return getProviderBaseUrlDefault(providerId);
@@ -5379,7 +5385,7 @@ function AddApiKeyModal({
   const t = useTranslations("providers");
   const usesBaseUrl = CONFIGURABLE_BASE_URL_PROVIDERS.has(provider || "");
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
-  const isVertex = provider === "vertex";
+  const isVertex = provider === "vertex" || provider === "vertex-partner";
   const defaultRegion = "us-central1";
   const isGlm = provider === "glm" || provider === "glmt";
   const isQoder = provider === "qoder";
@@ -5855,7 +5861,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 
   const usesBaseUrl = CONFIGURABLE_BASE_URL_PROVIDERS.has(connection?.provider || "");
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
-  const isVertex = connection?.provider === "vertex";
+  const isVertex = connection?.provider === "vertex" || connection?.provider === "vertex-partner";
   const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";

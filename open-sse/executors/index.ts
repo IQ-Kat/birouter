@@ -14,6 +14,7 @@ import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
+import { AzureOpenAIExecutor } from "./azure-openai.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -24,6 +25,7 @@ const executors = {
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
   cu: new CursorExecutor(), // Alias for cursor
+  "azure-openai": new AzureOpenAIExecutor(),
   pollinations: new PollinationsExecutor(),
   pol: new PollinationsExecutor(), // Alias
   "cloudflare-ai": new CloudflareAIExecutor(),
@@ -33,6 +35,7 @@ const executors = {
   puter: new PuterExecutor(),
   pu: new PuterExecutor(), // Alias
   vertex: new VertexExecutor(),
+  "vertex-partner": new VertexExecutor(),
   cliproxyapi: new CliproxyapiExecutor(),
   cpa: new CliproxyapiExecutor(), // Alias
   "perplexity-web": new PerplexityWebExecutor(),
@@ -69,3 +72,4 @@ export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
+export { AzureOpenAIExecutor } from "./azure-openai.ts";

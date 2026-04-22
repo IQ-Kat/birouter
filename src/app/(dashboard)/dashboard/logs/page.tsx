@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { RequestLoggerV2, ProxyLogger, SegmentedControl } from "@/shared/components";
 import ConsoleLogViewer from "@/shared/components/ConsoleLogViewer";
+import ActiveRequestsPanel from "@/shared/components/ActiveRequestsPanel";
 import AuditLogTab from "./AuditLogTab";
 import { useTranslations } from "next-intl";
 
@@ -132,7 +133,12 @@ export default function LogsPage() {
       </div>
 
       {/* Content */}
-      {activeTab === "request-logs" && <RequestLoggerV2 />}
+      {activeTab === "request-logs" && (
+        <div className="flex flex-col gap-6">
+          <ActiveRequestsPanel />
+          <RequestLoggerV2 />
+        </div>
+      )}
       {activeTab === "proxy-logs" && <ProxyLogger />}
       {activeTab === "audit-logs" && <AuditLogTab />}
       {activeTab === "console" && <ConsoleLogViewer />}

@@ -46,6 +46,8 @@ export interface RegistryModel {
   supportsXHighEffort?: boolean;
   targetFormat?: string;
   unsupportedParams?: readonly string[];
+  /** Content types to remove before translation/upstream dispatch. */
+  strip?: readonly string[];
   /** Maximum context window in tokens */
   contextLength?: number;
 }
@@ -596,6 +598,19 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "azure-openai": {
+    id: "azure-openai",
+    alias: "azure",
+    format: "openai",
+    executor: "azure-openai",
+    baseUrl: "https://example-resource.openai.azure.com",
+    authType: "apikey",
+    authHeader: "api-key",
+    defaultContextLength: 128000,
+    models: [],
+    passthroughModels: true,
+  },
+
   anthropic: {
     id: "anthropic",
     alias: "anthropic",
@@ -628,6 +643,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     format: "openai",
     executor: "opencode",
     baseUrl: "https://opencode.ai/zen/go/v1",
+    modelsUrl: "https://opencode.ai/zen/go/v1/models",
     // (#532) Key validation must hit the main zen endpoint (same key works for both tiers)
     testKeyBaseUrl: "https://opencode.ai/zen/v1",
     authType: "apikey",
@@ -710,6 +726,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [...GLM_SHARED_MODELS],
   },
 
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glmcn",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
+    modelsUrl: "https://open.bigmodel.cn/api/coding/paas/v4/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 200000,
+    models: [
+      { id: "glm-5.1", name: "GLM 5.1" },
+      { id: "glm-5", name: "GLM 5" },
+      { id: "glm-4.7", name: "GLM 4.7" },
+      { id: "glm-4.6", name: "GLM 4.6" },
+      { id: "glm-4.5-air", name: "GLM 4.5 Air" },
+    ],
+  },
+
   "bailian-coding-plan": {
     id: "bailian-coding-plan",
     alias: "bcp",
@@ -727,7 +762,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
       { id: "qwen3-max-2026-01-23", name: "Qwen3 Max (2026-01-23)" },
-      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+      { id: "qwen3-coder-next", name: "Qwen3 Coder Next", strip: ["image", "audio"] },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
       { id: "glm-5", name: "GLM 5" },
@@ -965,8 +1000,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "deepseek-chat", name: "DeepSeek V3.2 Chat" },
-      { id: "deepseek-reasoner", name: "DeepSeek V3.2 Reasoner" },
+      { id: "deepseek-chat", name: "DeepSeek V3.2 Chat", strip: ["image", "audio"] },
+      { id: "deepseek-reasoner", name: "DeepSeek V3.2 Reasoner", strip: ["image", "audio"] },
     ],
   },
 
@@ -1253,8 +1288,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "deepseek-ai/DeepSeek-V3.2", name: "DeepSeek V3.2" },
-      { id: "deepseek-ai/DeepSeek-V3.1", name: "DeepSeek V3.1" },
+      {
+        id: "deepseek-ai/DeepSeek-V3.2",
+        name: "DeepSeek V3.2",
+        strip: ["image", "audio"],
+      },
+      {
+        id: "deepseek-ai/DeepSeek-V3.1",
+        name: "DeepSeek V3.1",
+        strip: ["image", "audio"],
+      },
       { id: "deepseek-ai/DeepSeek-R1", name: "DeepSeek R1" },
       { id: "Qwen/Qwen3-235B-A22B-Instruct-2507", name: "Qwen3 235B" },
       { id: "Qwen/Qwen3-Coder-480B-A35B-Instruct", name: "Qwen3 Coder 480B" },
@@ -1378,6 +1421,21 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "glm-5", name: "GLM-5 (Vertex Partner)" },
       { id: "claude-opus-4-5@20251101", name: "Claude Opus 4.5 (Vertex)" },
       { id: "claude-sonnet-4-5@20251101", name: "Claude Sonnet 4.5 (Vertex)" },
+    ],
+  },
+
+  "vertex-partner": {
+    id: "vertex-partner",
+    alias: "vp",
+    format: "gemini",
+    executor: "vertex",
+    baseUrl: "https://us-central1-aiplatform.googleapis.com/v1/projects",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2 (Vertex Partner)" },
+      { id: "qwen3-next-80b", name: "Qwen3 Next 80B (Vertex Partner)" },
+      { id: "glm-5", name: "GLM-5 (Vertex Partner)" },
     ],
   },
 

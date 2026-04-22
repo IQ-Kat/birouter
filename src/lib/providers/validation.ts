@@ -31,6 +31,12 @@ function normalizeBaseUrl(baseUrl: string) {
   return (baseUrl || "").trim().replace(/\/$/, "");
 }
 
+function normalizeAzureOpenAIBaseUrl(baseUrl: string) {
+  return normalizeBaseUrl(baseUrl)
+    .replace(/\/openai$/i, "")
+    .replace(/\/openai\/deployments\/[^/]+\/chat\/completions.*$/i, "");
+}
+
 function normalizeAnthropicBaseUrl(baseUrl: string) {
   return stripAnthropicMessagesSuffix(baseUrl || "");
 }
@@ -673,6 +679,108 @@ async function validateGigachatProvider({ apiKey, providerSpecificData = {} }: a
   });
 }
 
+async function validateAzureOpenAIProvider({ apiKey, providerSpecificData = {} }: any) {
+  const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
+  if (!rawBaseUrl) {
+    return { valid: false, error: "Missing base URL" };
+  }
+
+  const baseUrl = normalizeAzureOpenAIBaseUrl(rawBaseUrl);
+  const apiVersion =
+    typeof providerSpecificData.validationApiVersion === "string" &&
+    providerSpecificData.validationApiVersion.trim()
+      ? providerSpecificData.validationApiVersion.trim()
+      : "2024-12-01-preview";
+  const headers = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+    },
+    providerSpecificData
+  );
+  const encodedVersion = encodeURIComponent(apiVersion);
+
+  for (const probeUrl of [
+    `${baseUrl}/openai/deployments?api-version=${encodedVersion}`,
+    `${baseUrl}/openai/models?api-version=${encodedVersion}`,
+  ]) {
+    try {
+      const response = await validationRead(probeUrl, { method: "GET", headers });
+      if (response.ok) {
+        return { valid: true, error: null, method: "azure_probe" };
+      }
+      if (response.status === 401 || response.status === 403) {
+        return { valid: false, error: "Invalid API key" };
+      }
+      if (response.status === 400 || response.status === 404 || response.status === 405) {
+        continue;
+      }
+      if (response.status === 429) {
+        return {
+          valid: true,
+          error: null,
+          method: "azure_probe",
+          warning: "Rate limited, but credentials are valid",
+        };
+      }
+      if (response.status >= 500) {
+        return { valid: false, error: `Provider unavailable (${response.status})` };
+      }
+    } catch (error) {
+      return toValidationErrorResult(error);
+    }
+  }
+
+  const deploymentId =
+    typeof providerSpecificData.validationModelId === "string"
+      ? providerSpecificData.validationModelId.trim()
+      : "";
+
+  if (!deploymentId) {
+    return {
+      valid: true,
+      error: null,
+      warning:
+        "Azure key accepted, but no deployment name was provided for a chat probe. Set Model ID to validate a specific deployment.",
+    };
+  }
+
+  const chatUrl = `${baseUrl}/openai/deployments/${encodeURIComponent(deploymentId)}/chat/completions?api-version=${encodedVersion}`;
+  const response = await validationWrite(chatUrl, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      model: deploymentId,
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    }),
+  });
+
+  if (
+    response.ok ||
+    response.status === 400 ||
+    response.status === 422 ||
+    response.status === 429
+  ) {
+    return { valid: true, error: null, method: "chat_probe" };
+  }
+  if (response.status === 401 || response.status === 403) {
+    return { valid: false, error: "Invalid API key" };
+  }
+  if (response.status === 404) {
+    return {
+      valid: true,
+      error: null,
+      method: "chat_probe",
+      warning: "Azure credentials are valid, but the requested deployment was not found.",
+    };
+  }
+  if (response.status >= 500) {
+    return { valid: false, error: `Provider unavailable (${response.status})` };
+  }
+  return { valid: false, error: `Validation failed: ${response.status}` };
+}
+
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -1292,12 +1400,24 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     gigachat: validateGigachatProvider,
     "grok-web": validateGrokWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
+    "azure-openai": validateAzureOpenAIProvider,
     vertex: async ({ apiKey }: any) => {
       try {
         const { parseSAFromApiKey, getAccessToken } =
           await import("@omniroute/open-sse/executors/vertex.ts");
         const sa = parseSAFromApiKey(apiKey);
         // Validates credentials by successfully exchanging them for a JWT from Google Identity
+        await getAccessToken(sa);
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return { valid: false, error: "Invalid Service Account JSON: " + error.message };
+      }
+    },
+    "vertex-partner": async ({ apiKey }: any) => {
+      try {
+        const { parseSAFromApiKey, getAccessToken } =
+          await import("@omniroute/open-sse/executors/vertex.ts");
+        const sa = parseSAFromApiKey(apiKey);
         await getAccessToken(sa);
         return { valid: true, error: null };
       } catch (error: any) {

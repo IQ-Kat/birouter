@@ -12,6 +12,10 @@ import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import {
+  getStripTypesForProviderModel,
+  stripIncompatibleMessageContent,
+} from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import {
@@ -1316,6 +1320,21 @@ export async function handleChatCore({
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   const upstreamStream = stream || isClaudeCodeCompatible;
   let ccSessionId: string | null = null;
+  const stripTypes = getStripTypesForProviderModel(provider || "", model || "");
+
+  if (Array.isArray(translatedBody?.messages) && stripTypes.length > 0) {
+    const stripResult = stripIncompatibleMessageContent(translatedBody.messages, stripTypes);
+    if (stripResult.removedParts > 0) {
+      translatedBody = {
+        ...translatedBody,
+        messages: stripResult.messages,
+      };
+      log?.warn?.(
+        "CONTENT",
+        `Stripped ${stripResult.removedParts} incompatible content part(s) for ${provider}/${model}`
+      );
+    }
+  }
 
   // Determine if we should preserve client-side cache_control headers
   // Fetch settings from DB to get user preference

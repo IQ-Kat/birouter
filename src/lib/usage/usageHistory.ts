@@ -55,9 +55,33 @@ function stdDev(values: number[], avg: number): number {
 const pendingRequests: {
   byModel: Record<string, number>;
   byAccount: Record<string, Record<string, number>>;
+  details: Record<
+    string,
+    Record<
+      string,
+      {
+        model: string;
+        provider: string;
+        connectionId: string | null;
+        startedAt: number;
+      }
+    >
+  >;
 } = {
   byModel: Object.create(null) as Record<string, number>,
   byAccount: Object.create(null) as Record<string, Record<string, number>>,
+  details: Object.create(null) as Record<
+    string,
+    Record<
+      string,
+      {
+        model: string;
+        provider: string;
+        connectionId: string | null;
+        startedAt: number;
+      }
+    >
+  >,
 };
 
 /**
@@ -84,6 +108,17 @@ export function trackPendingRequest(
     if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount, connectionId)) {
       pendingRequests.byAccount[connectionId] = Object.create(null) as Record<string, number>;
     }
+    if (!Object.prototype.hasOwnProperty.call(pendingRequests.details, connectionId)) {
+      pendingRequests.details[connectionId] = Object.create(null) as Record<
+        string,
+        {
+          model: string;
+          provider: string;
+          connectionId: string | null;
+          startedAt: number;
+        }
+      >;
+    }
     if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount[connectionId], modelKey)) {
       pendingRequests.byAccount[connectionId][modelKey] = 0;
     }
@@ -91,6 +126,23 @@ export function trackPendingRequest(
       0,
       pendingRequests.byAccount[connectionId][modelKey] + (started ? 1 : -1)
     );
+
+    const nextCount = pendingRequests.byAccount[connectionId][modelKey];
+    if (started && nextCount > 0) {
+      if (!pendingRequests.details[connectionId][modelKey]) {
+        pendingRequests.details[connectionId][modelKey] = {
+          model,
+          provider,
+          connectionId,
+          startedAt: Date.now(),
+        };
+      }
+    } else if (!started && nextCount === 0) {
+      delete pendingRequests.details[connectionId][modelKey];
+      if (Object.keys(pendingRequests.details[connectionId]).length === 0) {
+        delete pendingRequests.details[connectionId];
+      }
+    }
   }
 }
 
