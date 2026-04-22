@@ -703,6 +703,65 @@ test("Retrieve file content spec compliance", async () => {
   assert.ok(unauthorized);
 });
 
+test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () => {
+    initBatchProcessor();
+    try {
+        const batchItems = [
+            JSON.stringify({
+                custom_id: "embed-request-1",
+                method: "POST",
+                url: "/v1/embeddings",
+                body: { model: "mistral/mistral-embed", input: "The food was delicious." }
+            })
+        ].join("\n");
+
+        const file = createFile({
+            bytes: Buffer.byteLength(batchItems),
+            filename: "embed_batch.jsonl",
+            purpose: "batch",
+            content: Buffer.from(batchItems),
+            apiKeyId: null
+        });
+
+        const batch = createBatch({
+            endpoint: "/v1/embeddings",
+            completionWindow: "24h",
+            inputFileId: file.id,
+            apiKeyId: null
+        });
+
+        let maxAttempts = 20;
+        let currentBatch = getBatch(batch.id);
+        while (maxAttempts > 0 && currentBatch?.status !== "completed" && currentBatch?.status !== "failed") {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            currentBatch = getBatch(batch.id);
+            maxAttempts--;
+        }
+
+        assert.ok(
+            currentBatch?.status === "completed" || currentBatch?.status === "failed",
+            "Batch should reach a terminal state"
+        );
+        assert.strictEqual(currentBatch?.requestCountsTotal, 1);
+
+        // Verify the batch item was dispatched to the embeddings handler, not the chat handler.
+        // The chat handler would return errors about missing "messages", "Missing model", etc.
+        // The embeddings handler returns errors about missing credentials or invalid embedding models.
+        const outputFileId = currentBatch?.outputFileId || currentBatch?.errorFileId;
+        assert.ok(outputFileId, "Should have an output or error file");
+        const outputContent = getFileContent(outputFileId!);
+        assert.ok(outputContent, "Output file should have content");
+        const result = JSON.parse(outputContent.toString());
+        const errorMsg = result.response?.body?.error?.message || "";
+        assert.ok(
+            !errorMsg.includes("messages") && !errorMsg.includes("Missing model"),
+            `Error should not be a chat-specific error. Got: ${errorMsg}`
+        );
+    } finally {
+        stopBatchProcessor();
+    }
+});
+
 test("getTerminalBatches returns only terminal statuses ordered oldest first", async () => {
   const apiKey = await createApiKey("Terminal Batches Test Key", "test-machine");
 

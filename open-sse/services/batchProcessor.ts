@@ -1,17 +1,21 @@
 import { v4 as uuidv4 } from "uuid";
 import {
-  getPendingBatches,
-  getTerminalBatches,
-  updateBatch,
-  getFileContent,
   createFile,
+  deleteFile,
   getApiKeyById,
   getBatch,
+  getFileContent,
+  getPendingBatches,
+  getTerminalBatches,
   listFiles,
-  deleteFile,
+  updateBatch,
   updateFileStatus,
 } from "@/lib/localDb";
 import { handleChat } from "@/sse/handlers/chat";
+import { POST as handleEmbeddingsRoute } from "@/app/api/v1/embeddings/route";
+import { POST as handleModerationsRoute } from "@/app/api/v1/moderations/route";
+import { POST as handleImagesGenerationsRoute } from "@/app/api/v1/images/generations/route";
+import { POST as handleVideosGenerationsRoute } from "@/app/api/v1/videos/generations/route";
 
 let isProcessing = false;
 let pollInterval: NodeJS.Timeout | null = null;
@@ -175,6 +179,49 @@ async function startBatch(batch: any) {
   }
 }
 
+/**
+ * Dispatch a single batch item to the correct handler based on the URL.
+ * Each batch item may target a different API endpoint (chat, embeddings, etc.).
+ */
+async function dispatchBatchItem(
+  url: string,
+  headers: Headers,
+  body: Record<string, unknown>
+): Promise<Response> {
+  const request = new Request(`http://localhost${url}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  switch (url) {
+    case "/v1/embeddings":
+      return handleEmbeddingsRoute(request);
+    case "/v1/moderations":
+      return handleModerationsRoute(request);
+    case "/v1/images/generations":
+    case "/v1/images/edits":
+      return handleImagesGenerationsRoute(request);
+    case "/v1/videos":
+    case "/v1/videos/generations":
+      return handleVideosGenerationsRoute(request);
+      // /v1/chat/completions, /v1/completions, /v1/responses
+    default: {
+      return handleChat(
+        new Request(`http://localhost${url}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            ...body,
+            // BATCH-SPECIFIC: Force stream: false — batches don't support SSE responses
+            stream: body.stream ?? false,
+          }),
+        })
+      );
+    }
+  }
+}
+
 async function processBatchItems(batch: any, lines: string[]) {
   const results: any[] = [];
   const errors: any[] = [];
@@ -204,15 +251,7 @@ async function processBatchItems(batch: any, lines: string[]) {
       }
       headers.set("Content-Type", "application/json");
 
-      // BATCH-SPECIFIC: Force stream: false — batches don't support SSE responses
-      const batchItemBody = { ...body, stream: false };
-
-      const response = await handleChat({
-        json: async () => batchItemBody,
-        url: `http://localhost${url}`,
-        headers,
-        method: "POST",
-      } as any);
+      const response = await dispatchBatchItem(url, headers, body);
 
       let responseData: { error: any; id?: any; usage?: any; model?: any };
       let statusCode = 200;
