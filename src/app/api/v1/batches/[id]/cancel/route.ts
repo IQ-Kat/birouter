@@ -1,4 +1,4 @@
-import { CORS_HEADERS } from "@/shared/utils/cors";
+import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getBatch, updateBatch } from "@/lib/localDb";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
@@ -32,6 +32,10 @@ function formatBatchResponse(batch: any) {
     model: batch.model || null,
     usage: batch.usage || null,
   };
+}
+
+export async function OPTIONS() {
+  return handleCorsOptions();
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {

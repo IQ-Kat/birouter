@@ -1,7 +1,11 @@
-import { CORS_HEADERS } from "@/shared/utils/cors";
+import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createFile, listFiles, formatFileResponse } from "@/lib/localDb";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
+
+export async function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function POST(request: Request) {
   const scope = await getApiKeyRequestScope(request);
@@ -38,16 +42,7 @@ export async function POST(request: Request) {
     const bytes = file.size;
     const filename = file.name;
     const mimeType = file.type;
-
-    // Stream the upload into memory in chunks to avoid allocating a large contiguous ArrayBuffer
-    const reader = file.stream().getReader();
-    const chunks: Uint8Array[] = [];
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-    }
-    const content = Buffer.concat(chunks.map((c) => Buffer.from(c)));
+    const content = Buffer.from(await file.arrayBuffer());
 
     let expiresAt: number | undefined;
     if (expiresAfterAnchor === "created_at" && expiresAfterSeconds) {

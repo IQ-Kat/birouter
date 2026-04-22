@@ -110,6 +110,34 @@ export function resolveImageAsDataUri(imageUrl: string): string {
   return `data:image/png;base64,${imageUrl}`;
 }
 
+async function fetchRemoteImageAsDataUri(imageUrl: string, signal: AbortSignal): Promise<string> {
+  const response = await fetch(imageUrl, { signal });
+  if (!response.ok) {
+    throw new Error(`Vision image fetch error ${response.status}`);
+  }
+
+  const mediaType = response.headers.get("content-type")?.split(";")[0]?.trim() || "image/png";
+  const bytes = Buffer.from(await response.arrayBuffer());
+  return `data:${mediaType};base64,${bytes.toString("base64")}`;
+}
+
+async function normalizeVisionImageInput(
+  imageInput: string,
+  isAnthropic: boolean,
+  signal: AbortSignal
+): Promise<string> {
+  const normalizedImage = resolveImageAsDataUri(imageInput);
+
+  if (
+    isAnthropic &&
+    (normalizedImage.startsWith("http://") || normalizedImage.startsWith("https://"))
+  ) {
+    return fetchRemoteImageAsDataUri(normalizedImage, signal);
+  }
+
+  return normalizedImage;
+}
+
 export interface VisionModelConfig {
   model: string;
   prompt: string;
@@ -137,9 +165,12 @@ export async function callVisionModel(
 
   try {
     // Extract model name from provider/model format
-    const modelName = config.model.includes("/")
-      ? config.model.split("/")[1]
-      : config.model;
+    const modelName = config.model.includes("/") ? config.model.split("/")[1] : config.model;
+    const normalizedImageInput = await normalizeVisionImageInput(
+      imageDataUri,
+      isAnthropic,
+      controller.signal
+    );
 
     let response: Response;
 
@@ -148,9 +179,9 @@ export async function callVisionModel(
       const anthropicBaseUrl = process.env.ANTHROPIC_API_URL || "https://api.anthropic.com";
 
       // Parse data URI to extract media type and base64 data
-      const matches = imageDataUri.match(/^data:([^;]+);base64,(.+)$/);
+      const matches = normalizedImageInput.match(/^data:([^;]+);base64,(.+)$/);
       let mediaType = "image/png";
-      let base64Data = imageDataUri;
+      let base64Data = normalizedImageInput;
 
       if (matches) {
         mediaType = matches[1];
@@ -209,7 +240,7 @@ export async function callVisionModel(
                 {
                   type: "image_url",
                   image_url: {
-                    url: imageDataUri,
+                    url: normalizedImageInput,
                     detail: "low",
                   },
                 },
@@ -239,7 +270,9 @@ export async function callVisionModel(
       };
 
       if (anthropicData.error) {
-        throw new Error(`Vision API error: ${anthropicData.error.message || JSON.stringify(anthropicData.error)}`);
+        throw new Error(
+          `Vision API error: ${anthropicData.error.message || JSON.stringify(anthropicData.error)}`
+        );
       }
 
       const textContent = anthropicData.content?.find((c) => c.type === "text");
@@ -257,7 +290,9 @@ export async function callVisionModel(
       };
 
       if (openaiData.error) {
-        throw new Error(`Vision API error: ${openaiData.error.message || JSON.stringify(openaiData.error)}`);
+        throw new Error(
+          `Vision API error: ${openaiData.error.message || JSON.stringify(openaiData.error)}`
+        );
       }
 
       const content = openaiData.choices?.[0]?.message?.content;

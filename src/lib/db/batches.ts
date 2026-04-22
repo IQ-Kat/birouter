@@ -171,7 +171,9 @@ export function listBatches(apiKeyId?: string, limit: number = 20, after?: strin
 export function getPendingBatches(): BatchRecord[] {
   const db = getDbInstance();
   const rows = db
-    .prepare("SELECT * FROM batches WHERE status IN ('validating', 'in_progress', 'cancelling')")
+    .prepare(
+      "SELECT * FROM batches WHERE status IN ('validating', 'in_progress', 'finalizing', 'cancelling')"
+    )
     .all();
   return rows.map((row) => parseBatchRow(row));
 }

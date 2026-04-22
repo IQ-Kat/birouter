@@ -40,6 +40,18 @@ export async function getApiKeyRequestScope(request: Request): Promise<ApiKeyReq
     }
   }
 
+  if (apiKey && !(await isValidApiKey(apiKey))) {
+    return {
+      apiKey: null,
+      apiKeyId: null,
+      apiKeyMetadata: null,
+      rejection: NextResponse.json(
+        { error: { message: "Invalid API key", type: "invalid_request_error" } },
+        { status: 401, headers: CORS_HEADERS }
+      ),
+    };
+  }
+
   const apiKeyMetadata = await getApiKeyMetadata(apiKey);
   return {
     apiKey,

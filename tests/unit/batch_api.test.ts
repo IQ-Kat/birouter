@@ -6,6 +6,7 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-batch-api-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-secret-123";
 
 const {
   createFile,
@@ -25,7 +26,11 @@ const { getDbInstance } = await import("../../src/lib/db/core.ts");
 const { initBatchProcessor, stopBatchProcessor, processPendingBatches } =
   await import("../../open-sse/services/batchProcessor.ts");
 const batchesRoute = await import("../../src/app/api/v1/batches/route.ts");
+const batchByIdRoute = await import("../../src/app/api/v1/batches/[id]/route.ts");
+const batchCancelRoute = await import("../../src/app/api/v1/batches/[id]/cancel/route.ts");
 const filesRoute = await import("../../src/app/api/v1/files/route.ts");
+const fileByIdRoute = await import("../../src/app/api/v1/files/[id]/route.ts");
+const fileContentRoute = await import("../../src/app/api/v1/files/[id]/content/route.ts");
 
 test("Batch API and Processing", async () => {
   // 0. Setup environment, mock provider and API key
@@ -654,6 +659,43 @@ test("Batch cleanup honors output_expires_after for output artifacts", async () 
   assert.equal(getFile(errorFile.id), null);
 });
 
+test("Batch processor fails orphaned finalizing batches during startup recovery", async () => {
+  const apiKey = await createApiKey("Finalizing Recovery Key", "test-machine");
+  const inputFile = createFile({
+    bytes: 2,
+    filename: "finalizing.jsonl",
+    purpose: "batch",
+    content: Buffer.from("{}"),
+    apiKeyId: apiKey.id,
+  });
+
+  const batch = createBatch({
+    endpoint: "/v1/chat/completions",
+    completionWindow: "24h",
+    inputFileId: inputFile.id,
+    apiKeyId: apiKey.id,
+  });
+
+  updateBatch(batch.id, {
+    status: "finalizing",
+    finalizingAt: Math.floor(Date.now() / 1000),
+  });
+
+  initBatchProcessor();
+
+  try {
+    const recoveredBatch = getBatch(batch.id);
+    assert.strictEqual(recoveredBatch?.status, "failed");
+    assert.match(
+      String(recoveredBatch?.errors?.[0]?.message || ""),
+      /interrupted during finalization/i
+    );
+    assert.strictEqual(getFile(inputFile.id)?.status, "processed");
+  } finally {
+    stopBatchProcessor();
+  }
+});
+
 test("Batch list route rejects missing API key when REQUIRE_API_KEY is enabled", async () => {
   const previous = process.env.REQUIRE_API_KEY;
   process.env.REQUIRE_API_KEY = "true";
@@ -685,6 +727,78 @@ test("Files list route rejects invalid API key when REQUIRE_API_KEY is enabled",
     assert.strictEqual(json.error.message, "Invalid API key");
   } finally {
     process.env.REQUIRE_API_KEY = previous ?? "false";
+  }
+});
+
+test("Files upload route rejects invalid API key even when auth is optional", async () => {
+  const previous = process.env.REQUIRE_API_KEY;
+  process.env.REQUIRE_API_KEY = "false";
+
+  try {
+    const formData = new FormData();
+    formData.set("purpose", "batch");
+    formData.set(
+      "file",
+      new File([Buffer.from('{"ok":true}\n')], "input.jsonl", { type: "application/json" })
+    );
+
+    const response = await filesRoute.POST(
+      new Request("http://localhost/api/v1/files", {
+        method: "POST",
+        headers: { Authorization: "Bearer invalid-test-key" },
+        body: formData,
+      })
+    );
+    const json = await response.json();
+
+    assert.strictEqual(response.status, 401);
+    assert.strictEqual(json.error.message, "Invalid API key");
+  } finally {
+    process.env.REQUIRE_API_KEY = previous ?? "false";
+  }
+});
+
+test("Files upload route stores multipart content", async () => {
+  const fileContent = '{"custom_id":"req-1"}\n';
+  const formData = new FormData();
+  formData.set("purpose", "batch");
+  formData.set(
+    "file",
+    new File([Buffer.from(fileContent)], "upload.jsonl", { type: "application/json" })
+  );
+
+  const response = await filesRoute.POST(
+    new Request("http://localhost/api/v1/files", {
+      method: "POST",
+      body: formData,
+    })
+  );
+  const json = await response.json();
+
+  assert.strictEqual(response.status, 200);
+  assert.ok(json.id);
+  assert.strictEqual(getFileContent(json.id)?.toString(), fileContent);
+});
+
+test("Files and batches routes expose explicit CORS preflight handlers", async () => {
+  const routes = [
+    batchesRoute,
+    batchByIdRoute,
+    batchCancelRoute,
+    filesRoute,
+    fileByIdRoute,
+    fileContentRoute,
+  ];
+
+  for (const route of routes) {
+    assert.strictEqual(typeof route.OPTIONS, "function");
+    const response = await route.OPTIONS();
+    assert.strictEqual(response.status, 204);
+    assert.strictEqual(response.headers.get("Access-Control-Allow-Origin"), "*");
+    assert.match(
+      String(response.headers.get("Access-Control-Allow-Headers") || ""),
+      /Authorization/i
+    );
   }
 });
 

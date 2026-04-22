@@ -1,4 +1,4 @@
-import { CORS_HEADERS } from "@/shared/utils/cors";
+import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createBatch, getFile, listBatches } from "@/lib/localDb";
 import { v1BatchCreateSchema } from "@/shared/validation/schemas";
 import { NextResponse } from "next/server";
@@ -33,6 +33,10 @@ function formatBatchResponse(batch: any) {
     model: batch.model || null,
     usage: batch.usage || null,
   };
+}
+
+export async function OPTIONS() {
+  return handleCorsOptions();
 }
 
 export async function POST(request: Request) {

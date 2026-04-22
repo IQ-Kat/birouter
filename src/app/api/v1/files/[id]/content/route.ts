@@ -1,7 +1,11 @@
-import { CORS_HEADERS } from "@/shared/utils/cors";
+import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getFile, getFileContent } from "@/lib/localDb";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
+
+export async function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const scope = await getApiKeyRequestScope(request);

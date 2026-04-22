@@ -58,19 +58,27 @@ export function stopBatchProcessor() {
 }
 
 /**
- * Mark any in_progress batches as failed on startup.
+ * Mark any in_progress/finalizing batches as failed on startup.
  * These were orphaned by a server crash or restart and cannot be safely resumed.
  */
 function recoverOrphanedBatches() {
   try {
     const pending = getPendingBatches();
     for (const batch of pending) {
-      if (batch.status === "in_progress") {
-        console.warn(`[BATCH] Failing orphaned in_progress batch ${batch.id} (server restarted)`);
+      if (batch.status === "in_progress" || batch.status === "finalizing") {
+        const interruptedPhase =
+          batch.status === "finalizing" ? "during finalization" : "while processing requests";
+        console.warn(
+          `[BATCH] Failing orphaned ${batch.status} batch ${batch.id} (server restarted)`
+        );
         updateBatch(batch.id, {
           status: "failed",
           failedAt: Math.floor(Date.now() / 1000),
-          errors: [{ message: "Batch interrupted by server restart and cannot be resumed" }],
+          errors: [
+            {
+              message: `Batch interrupted ${interruptedPhase} by server restart and cannot be resumed`,
+            },
+          ],
         });
         if (batch.inputFileId) {
           updateFileStatus(batch.inputFileId, "processed");
@@ -90,8 +98,8 @@ export async function processPendingBatches() {
     } else if (batch.status === "cancelling") {
       await cancelBatch(batch);
     }
-    // in_progress: currently being processed by processBatchItems running in background;
-    // orphaned in_progress batches are handled by recoverOrphanedBatches() at startup.
+    // in_progress/finalizing batches are either actively being worked by the current process
+    // or will be failed by recoverOrphanedBatches() on the next startup.
   }
 
   // Cleanup task: delete files for batches completed more than completionWindow ago
