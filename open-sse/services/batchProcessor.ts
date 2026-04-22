@@ -299,7 +299,19 @@ async function processBatchItems(batch: BatchRecord, items: BatchRequestItem[]) 
 
     try {
       // BATCH-SPECIFIC: Force stream: false — batches don't support SSE responses
-      const batchItemBody = { ...item.body, stream: false };
+      const isChatEndpoint = ![
+        "/v1/embeddings",
+        "/v1/moderations",
+        "/v1/images/generations",
+        "/v1/images/edits",
+        "/v1/videos",
+        "/v1/videos/generations",
+      ].includes(item.url);
+
+      const batchItemBody = {
+        ...item.body,
+        ...(isChatEndpoint ? { stream: false } : {}),
+      };
       const response = await dispatchBatchApiRequest({
         endpoint: item.url,
         body: batchItemBody,
