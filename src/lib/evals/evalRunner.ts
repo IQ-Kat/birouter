@@ -95,6 +95,8 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
   try {
     let passed = false;
     const details: Record<string, any> = {};
+    details.actualSnippet =
+      typeof actualOutput === "string" ? actualOutput.slice(0, 240) : String(actualOutput ?? "");
 
     switch (evalCase.expected.strategy) {
       case "exact":
@@ -159,9 +161,14 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
  *
  * @param {string} suiteId
  * @param {Record<string, string>} outputs - Map of caseId → actualOutput
+ * @param {Record<string, { durationMs?: number, error?: string }>} [caseMetrics]
  * @returns {{ suiteId: string, suiteName: string, results: EvalResult[], summary: { total: number, passed: number, failed: number, passRate: number } }}
  */
-export function runSuite(suiteId: string, outputs: Record<string, string>) {
+export function runSuite(
+  suiteId: string,
+  outputs: Record<string, string>,
+  caseMetrics: Record<string, { durationMs?: number; error?: string }> = {}
+) {
   const suite = suites.get(suiteId);
   if (!suite) {
     throw new Error(`Suite not found: ${suiteId}`);
@@ -169,7 +176,18 @@ export function runSuite(suiteId: string, outputs: Record<string, string>) {
 
   const results = suite.cases.map((c) => {
     const output = outputs[c.id] || "";
-    return evaluateCase(c, output);
+    const result = evaluateCase(c, output);
+    const metrics = caseMetrics[c.id];
+
+    if (metrics && Number.isFinite(Number(metrics.durationMs))) {
+      result.durationMs = Math.max(0, Math.round(Number(metrics.durationMs)));
+    }
+
+    if (metrics?.error && !result.error) {
+      result.error = metrics.error;
+    }
+
+    return result;
   });
 
   const passed = results.filter((r) => r.passed).length;

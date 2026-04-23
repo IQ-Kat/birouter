@@ -94,6 +94,21 @@ export {
 } from "./db/apiKeys";
 
 export {
+  // Evals
+  saveEvalRun,
+  listEvalRuns,
+  getEvalScorecard,
+  serializeEvalTargetKey,
+} from "./db/evals";
+
+export type {
+  EvalTargetType,
+  EvalTargetDescriptor,
+  EvalRunSummary,
+  PersistedEvalRun,
+} from "./db/evals";
+
+export {
   // Settings
   getSettings,
   updateSettings,
