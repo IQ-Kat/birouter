@@ -298,7 +298,7 @@ async function handleKieImageGeneration({
   log,
 }) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
   const timeoutMs = normalizePositiveNumber(body.timeout_ms, 180000);
   const pollIntervalMs = normalizePositiveNumber(body.poll_interval_ms, 2500);
   const payload: Record<string, unknown> = {
