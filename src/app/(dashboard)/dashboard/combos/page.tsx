@@ -140,13 +140,27 @@ const STRATEGY_GUIDANCE_FALLBACK = {
 const ADVANCED_FIELD_HELP_FALLBACK = {
   maxRetries: "How many retries are attempted before failing the request.",
   retryDelay: "Initial delay between retries. Higher values reduce burst pressure.",
-  timeout: "Maximum request time before aborting. Set higher for long generations.",
-  healthcheck: "Skips unhealthy models/providers from routing decisions when enabled.",
   concurrencyPerModel:
     "Round-robin combo/model limit: max simultaneous requests sent to each model target. This is separate from any provider account-only cap.",
   queueTimeout:
     "How long a request can wait for a round-robin model slot before timing out. This queue is separate from any account-only concurrency cap.",
 };
+
+const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
+  "timeoutMs",
+  "healthCheckEnabled",
+  "healthCheckTimeoutMs",
+]);
+
+function sanitizeComboRuntimeConfig(config) {
+  if (!config || typeof config !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(config).filter(
+      ([key, value]) =>
+        value !== undefined && value !== null && !LEGACY_COMBO_RESILIENCE_KEYS.has(key)
+    )
+  );
+}
 
 const STRATEGY_RECOMMENDATIONS_FALLBACK = {
   priority: {
@@ -336,7 +350,6 @@ const COMBO_TEMPLATES = [
     config: {
       maxRetries: 3,
       retryDelayMs: 500,
-      healthCheckEnabled: true,
     },
   },
   {
@@ -351,7 +364,6 @@ const COMBO_TEMPLATES = [
     config: {
       maxRetries: 2,
       retryDelayMs: 1500,
-      healthCheckEnabled: true,
     },
   },
   {
@@ -366,7 +378,6 @@ const COMBO_TEMPLATES = [
     config: {
       maxRetries: 1,
       retryDelayMs: 500,
-      healthCheckEnabled: true,
     },
   },
   {
@@ -381,7 +392,6 @@ const COMBO_TEMPLATES = [
     config: {
       maxRetries: 1,
       retryDelayMs: 1000,
-      healthCheckEnabled: true,
     },
   },
   {
@@ -396,7 +406,6 @@ const COMBO_TEMPLATES = [
     config: {
       maxRetries: 2,
       retryDelayMs: 1000,
-      healthCheckEnabled: true,
     },
   },
 ];
@@ -742,7 +751,7 @@ export default function CombosPage() {
       name: newName,
       models: combo.models,
       strategy: combo.strategy || "priority",
-      config: combo.config || {},
+      config: sanitizeComboRuntimeConfig(combo.config),
     };
 
     await handleCreate(data);
@@ -1816,7 +1825,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
   const [builderError, setBuilderError] = useState("");
   const [builderStage, setBuilderStage] = useState<string>(COMBO_BUILDER_STAGES[0]);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [config, setConfig] = useState(combo?.config || {});
+  const [config, setConfig] = useState(sanitizeComboRuntimeConfig(combo?.config));
   const [showStrategyNudge, setShowStrategyNudge] = useState(false);
   const strategyChangeMountedRef = useRef(false);
   // Agent features (#399 / #401 / #454)
@@ -1842,8 +1851,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
             }
           : {};
       const nextConfig = nextCombo?.config
-        ? { ...nextCombo.config }
-        : Object.fromEntries(Object.entries(nextDefaults).filter(([key]) => key !== "strategy"));
+        ? sanitizeComboRuntimeConfig(nextCombo.config)
+        : sanitizeComboRuntimeConfig(
+            Object.fromEntries(Object.entries(nextDefaults).filter(([key]) => key !== "strategy"))
+          );
 
       setName(nextCombo?.name || "");
       setModels((nextCombo?.models || []).map((m) => normalizeModelEntry(m)));
@@ -2319,25 +2330,23 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
   const applyStrategyRecommendations = () => {
     const strategyDefaults = {
-      priority: { maxRetries: 2, retryDelayMs: 1500, healthCheckEnabled: true },
-      weighted: { maxRetries: 1, retryDelayMs: 1000, healthCheckEnabled: true },
+      priority: { maxRetries: 2, retryDelayMs: 1500 },
+      weighted: { maxRetries: 1, retryDelayMs: 1000 },
       "round-robin": {
         maxRetries: 1,
         retryDelayMs: 750,
-        healthCheckEnabled: true,
         concurrencyPerModel: 3,
         queueTimeoutMs: 30000,
       },
       "context-relay": {
         maxRetries: 1,
         retryDelayMs: 750,
-        healthCheckEnabled: true,
         handoffThreshold: 0.85,
         maxMessagesForSummary: 30,
       },
-      random: { maxRetries: 1, retryDelayMs: 1000, healthCheckEnabled: true },
-      "least-used": { maxRetries: 1, retryDelayMs: 1000, healthCheckEnabled: true },
-      "cost-optimized": { maxRetries: 1, retryDelayMs: 500, healthCheckEnabled: true },
+      random: { maxRetries: 1, retryDelayMs: 1000 },
+      "least-used": { maxRetries: 1, retryDelayMs: 1000 },
+      "cost-optimized": { maxRetries: 1, retryDelayMs: 500 },
     };
 
     const defaults = strategyDefaults[strategy] || strategyDefaults.priority;
@@ -2468,7 +2477,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
     };
 
     // Include config only if any values are set
-    const configToSave = { ...config };
+    const configToSave = sanitizeComboRuntimeConfig(config);
     // Add round-robin specific fields to config
     if (strategy === "round-robin") {
       if (config.concurrencyPerModel !== undefined)
@@ -3225,48 +3234,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
                           })
                         }
                         className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <FieldLabelWithHelp
-                        label={t("timeout")}
-                        help={getI18nOrFallback(
-                          t,
-                          "advancedHelp.timeout",
-                          ADVANCED_FIELD_HELP_FALLBACK.timeout
-                        )}
-                      />
-                      <input
-                        type="number"
-                        min="1000"
-                        step="1000"
-                        value={config.timeoutMs ?? ""}
-                        placeholder="120000"
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            timeoutMs: e.target.value ? Number(e.target.value) : undefined,
-                          })
-                        }
-                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <FieldLabelWithHelp
-                        label={t("healthcheck")}
-                        help={getI18nOrFallback(
-                          t,
-                          "advancedHelp.healthcheck",
-                          ADVANCED_FIELD_HELP_FALLBACK.healthcheck
-                        )}
-                      />
-                      <input
-                        type="checkbox"
-                        checked={config.healthCheckEnabled !== false}
-                        onChange={(e) =>
-                          setConfig({ ...config, healthCheckEnabled: e.target.checked })
-                        }
-                        className="accent-primary"
                       />
                     </div>
                   </div>

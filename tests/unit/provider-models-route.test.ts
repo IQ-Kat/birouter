@@ -155,7 +155,7 @@ test("provider models route falls back after OpenAI-compatible endpoint probes a
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "openai-compatible-fallback");
@@ -184,7 +184,7 @@ test("provider models route retries transient OpenAI-compatible probe failures b
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
@@ -201,7 +201,7 @@ test("provider models route returns static catalog entries for providers with ha
   });
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "bailian-coding-plan");
@@ -214,12 +214,36 @@ test("provider models route returns the local catalog for built-in image provide
   });
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "topaz");
   assert.ok(Array.isArray(body.models));
   assert.deepEqual(body.models, [{ id: "topaz-enhance", name: "topaz-enhance" }]);
+});
+
+test("provider models route prefers the remote OpenRouter /models API over static image models", async () => {
+  const connection = await seedConnection("openrouter", {
+    apiKey: "openrouter-key",
+  });
+  const seenUrls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    seenUrls.push(String(url));
+    assert.equal(init.method, "GET");
+    assert.equal(init.headers.Authorization, "Bearer openrouter-key");
+    return Response.json({
+      data: [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }],
+    });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenUrls, ["https://openrouter.ai/api/v1/models"]);
+  assert.deepEqual(body.models, [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }]);
 });
 
 test("provider models route returns the local catalog for new built-in chat-openai-compat providers", async () => {
@@ -228,15 +252,106 @@ test("provider models route returns the local catalog for new built-in chat-open
   });
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "deepinfra");
   assert.equal(body.source, "local_catalog");
-  assert.match(body.warning, /cached catalog/i);
+  assert.match(body.warning, /local catalog/i);
   assert.ok(Array.isArray(body.models));
   assert.ok(body.models.length > 0);
   assert.ok(body.models.some((model) => model.id === "Qwen/Qwen3-Coder-480B-A35B-Instruct"));
+});
+
+test("provider models route caches discovered opencode-go models per connection", async () => {
+  const connection = await seedConnection("opencode-go", {
+    apiKey: "opencode-go-key",
+  });
+  let fetchCalls = 0;
+
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls += 1;
+    assert.equal(String(url), "https://opencode.ai/zen/go/v1/models");
+    assert.equal(init.method, "GET");
+    assert.equal(init.headers.Authorization, "Bearer opencode-go-key");
+    return Response.json({
+      data: [{ id: "glm-5.1", name: "GLM 5.1" }],
+    });
+  };
+
+  const firstResponse = await callRoute(connection.id);
+  const firstBody = (await firstResponse.json()) as any;
+  const cachedModels = await modelsDb.getSyncedAvailableModelsForConnection(
+    "opencode-go",
+    connection.id
+  );
+
+  assert.equal(firstResponse.status, 200);
+  assert.equal(firstBody.source, "api");
+  assert.deepEqual(firstBody.models, [{ id: "glm-5.1", name: "GLM 5.1" }]);
+  assert.deepEqual(cachedModels, [{ id: "glm-5.1", name: "GLM 5.1", source: "api-sync" }]);
+
+  globalThis.fetch = async () => {
+    throw new Error("cached route should not hit upstream");
+  };
+
+  const cachedResponse = await callRoute(connection.id);
+  const cachedBody = (await cachedResponse.json()) as any;
+
+  assert.equal(cachedResponse.status, 200);
+  assert.equal(cachedBody.source, "cache");
+  assert.deepEqual(cachedBody.models, [{ id: "glm-5.1", name: "GLM 5.1", source: "api-sync" }]);
+  assert.equal(fetchCalls, 1);
+});
+
+test("provider models route falls back to cached models when a refresh fails", async () => {
+  const connection = await seedConnection("opencode-go", {
+    apiKey: "opencode-go-key",
+  });
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", connection.id, [
+    { id: "cached-go", name: "Cached Go", source: "api-sync" },
+  ]);
+  let fetchCalls = 0;
+
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    return new Response("upstream unavailable", { status: 503 });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "cache");
+  assert.match(body.warning, /cached catalog/i);
+  assert.deepEqual(body.models, [{ id: "cached-go", name: "Cached Go", source: "api-sync" }]);
+  assert.equal(fetchCalls, 1);
+});
+
+test("provider models route honors autoFetchModels=false and skips remote discovery", async () => {
+  const connection = await seedConnection("opencode-go", {
+    apiKey: "opencode-go-key",
+    providerSpecificData: {
+      autoFetchModels: false,
+    },
+  });
+  let called = false;
+
+  globalThis.fetch = async () => {
+    called = true;
+    return Response.json({
+      data: [{ id: "glm-5.1", name: "GLM 5.1" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.match(body.warning, /auto-fetch disabled/i);
+  assert.equal(called, false);
+  assert.ok(body.models.some((model) => model.id === "glm-5"));
 });
 
 test("provider models route validates Gemini CLI credentials before fetching quota buckets", async () => {
@@ -278,7 +393,7 @@ test("provider models route maps Gemini CLI quota buckets into a model list", as
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body.models, [
@@ -311,7 +426,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const discoveryUrls = seenUrls.filter((url) => url.includes("/v1internal:models"));
 
   assert.equal(response.status, 200);
@@ -337,12 +452,12 @@ test("provider models route falls back through all Antigravity discovery endpoin
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const discoveryUrls = seenUrls.filter((url) => url.includes("/v1internal:models"));
 
   assert.equal(response.status, 200);
   assert.equal(body.source, "local_catalog");
-  assert.match(body.warning, /cached catalog/i);
+  assert.match(body.warning, /local catalog/i);
   assert.deepEqual(discoveryUrls, [
     "https://cloudcode-pa.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
@@ -359,7 +474,7 @@ test("provider models route returns the local catalog for OAuth-backed Qwen conn
   });
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.source, "local_catalog");
@@ -375,7 +490,7 @@ test("provider models route filters hidden models from the static Claude catalog
   modelsDb.mergeModelCompatOverride("claude", "claude-sonnet-4-6", { isHidden: true });
 
   const response = await callRoute(connection.id, "?excludeHidden=true");
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "claude");
@@ -429,7 +544,7 @@ test("provider models route trims Anthropic-compatible message URLs and filters 
   };
 
   const response = await callRoute(connection.id, "?excludeHidden=true");
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body.models, [{ id: "visible-model", name: "Visible Model" }]);
@@ -496,7 +611,7 @@ test("provider models route paginates generic providers and filters hidden model
   };
 
   const response = await callRoute(connection.id, "?excludeHidden=true");
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(body.models.map((model) => model.id).sort(), [
@@ -527,7 +642,7 @@ test("provider models route stops pagination when the upstream repeats the next 
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(
@@ -545,11 +660,13 @@ test("provider models route forwards upstream status codes for generic provider 
   globalThis.fetch = async () => new Response("upstream unavailable", { status: 503 });
 
   const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
 
-  assert.equal(response.status, 503);
-  assert.deepEqual(await response.json(), {
-    error: "Failed to fetch models: 503",
-  });
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.match(body.warning, /local catalog/i);
+  assert.ok(Array.isArray(body.models));
+  assert.ok(body.models.length > 0);
 });
 
 test("provider models route returns 500 when fetching models throws unexpectedly", async () => {
@@ -562,11 +679,11 @@ test("provider models route returns 500 when fetching models throws unexpectedly
   };
 
   const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
 
-  assert.equal(response.status, 500);
-  assert.deepEqual(await response.json(), {
-    error: "Failed to fetch models",
-  });
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.match(body.warning, /local catalog/i);
 });
 
 test("provider models route rejects generic providers without any configured token", async () => {
@@ -574,11 +691,20 @@ test("provider models route rejects generic providers without any configured tok
     apiKey: null,
     accessToken: null,
   });
+  let called = false;
+
+  globalThis.fetch = async () => {
+    called = true;
+    return Response.json({ data: [] });
+  };
 
   const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
 
-  assert.equal(response.status, 400);
-  assert.match((await response.json()).error, /No API key configured/i);
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.match(body.warning, /local catalog/i);
+  assert.equal(called, false);
 });
 
 test("provider models route rejects unsupported providers without a models config", async () => {
@@ -611,7 +737,7 @@ test("provider models route uses provider-specific auth headers for Kimi Coding"
   };
 
   const response = await callRoute(connection.id);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "kimi-coding");

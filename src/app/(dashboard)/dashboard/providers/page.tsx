@@ -26,7 +26,6 @@ import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
-import ModelAvailabilityBadge from "./components/ModelAvailabilityBadge";
 import { useTranslations } from "next-intl";
 import {
   buildMergedOAuthProviderEntries,
@@ -124,6 +123,7 @@ export default function ProvidersPage() {
     missingCount: number;
   } | null>(null);
   const [repairingEnv, setRepairingEnv] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const notify = useNotificationStore();
   const t = useTranslations("providers");
   const tc = useTranslations("common");
@@ -393,27 +393,32 @@ export default function ProvidersPage() {
 
   const oauthProviderEntries = filterConfiguredProviderEntries(
     buildMergedOAuthProviderEntries(OAUTH_PROVIDERS, FREE_PROVIDERS, getProviderStats),
-    showConfiguredOnly
+    showConfiguredOnly,
+    searchQuery
   );
 
   const apiKeyProviderEntries = filterConfiguredProviderEntries(
     buildStaticProviderEntries("apikey", getProviderStats),
-    showConfiguredOnly
+    showConfiguredOnly,
+    searchQuery
   );
 
   const webCookieProviderEntries = filterConfiguredProviderEntries(
     buildStaticProviderEntries("web-cookie", getProviderStats),
-    showConfiguredOnly
+    showConfiguredOnly,
+    searchQuery
   );
 
   const searchProviderEntries = filterConfiguredProviderEntries(
     buildStaticProviderEntries("search", getProviderStats),
-    showConfiguredOnly
+    showConfiguredOnly,
+    searchQuery
   );
 
   const audioProviderEntries = filterConfiguredProviderEntries(
     buildStaticProviderEntries("audio", getProviderStats),
-    showConfiguredOnly
+    showConfiguredOnly,
+    searchQuery
   );
 
   const compatibleProviderEntries = filterConfiguredProviderEntries(
@@ -440,7 +445,8 @@ export default function ProvidersPage() {
         toggleAuthType: "apikey" as const,
       })),
     ],
-    showConfiguredOnly
+    showConfiguredOnly,
+    searchQuery
   );
 
   if (loading) {
@@ -454,6 +460,31 @@ export default function ProvidersPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Search Bar */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">
+            search
+          </span>
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t("searchProviders")}
+            aria-label={t("searchProviders")}
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-text-primary transition-colors"
+              aria-label={tc("clear")}
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Expiration Banner */}
       {expirations?.summary &&
         (expirations.summary.expired > 0 || expirations.summary.expiringSoon > 0) && (
@@ -496,7 +527,6 @@ export default function ProvidersPage() {
             <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
           </h2>
           <div className="flex items-center gap-2">
-            <ModelAvailabilityBadge />
             <Toggle
               size="sm"
               checked={showConfiguredOnly}

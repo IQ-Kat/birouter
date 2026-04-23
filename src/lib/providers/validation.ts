@@ -21,6 +21,7 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 
@@ -29,6 +30,12 @@ const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
 
 function normalizeBaseUrl(baseUrl: string) {
   return (baseUrl || "").trim().replace(/\/$/, "");
+}
+
+function normalizeAzureOpenAIBaseUrl(baseUrl: string) {
+  return normalizeBaseUrl(baseUrl)
+    .replace(/\/openai$/i, "")
+    .replace(/\/openai\/deployments\/[^/]+\/chat\/completions.*$/i, "");
 }
 
 function normalizeAnthropicBaseUrl(baseUrl: string) {
@@ -673,6 +680,108 @@ async function validateGigachatProvider({ apiKey, providerSpecificData = {} }: a
   });
 }
 
+async function validateAzureOpenAIProvider({ apiKey, providerSpecificData = {} }: any) {
+  const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
+  if (!rawBaseUrl) {
+    return { valid: false, error: "Missing base URL" };
+  }
+
+  const baseUrl = normalizeAzureOpenAIBaseUrl(rawBaseUrl);
+  const apiVersion =
+    typeof providerSpecificData.validationApiVersion === "string" &&
+    providerSpecificData.validationApiVersion.trim()
+      ? providerSpecificData.validationApiVersion.trim()
+      : "2024-12-01-preview";
+  const headers = applyCustomUserAgent(
+    {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+    },
+    providerSpecificData
+  );
+  const encodedVersion = encodeURIComponent(apiVersion);
+
+  for (const probeUrl of [
+    `${baseUrl}/openai/deployments?api-version=${encodedVersion}`,
+    `${baseUrl}/openai/models?api-version=${encodedVersion}`,
+  ]) {
+    try {
+      const response = await validationRead(probeUrl, { method: "GET", headers });
+      if (response.ok) {
+        return { valid: true, error: null, method: "azure_probe" };
+      }
+      if (response.status === 401 || response.status === 403) {
+        return { valid: false, error: "Invalid API key" };
+      }
+      if (response.status === 400 || response.status === 404 || response.status === 405) {
+        continue;
+      }
+      if (response.status === 429) {
+        return {
+          valid: true,
+          error: null,
+          method: "azure_probe",
+          warning: "Rate limited, but credentials are valid",
+        };
+      }
+      if (response.status >= 500) {
+        return { valid: false, error: `Provider unavailable (${response.status})` };
+      }
+    } catch (error) {
+      return toValidationErrorResult(error);
+    }
+  }
+
+  const deploymentId =
+    typeof providerSpecificData.validationModelId === "string"
+      ? providerSpecificData.validationModelId.trim()
+      : "";
+
+  if (!deploymentId) {
+    return {
+      valid: true,
+      error: null,
+      warning:
+        "Azure key accepted, but no deployment name was provided for a chat probe. Set Model ID to validate a specific deployment.",
+    };
+  }
+
+  const chatUrl = `${baseUrl}/openai/deployments/${encodeURIComponent(deploymentId)}/chat/completions?api-version=${encodedVersion}`;
+  const response = await validationWrite(chatUrl, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      model: deploymentId,
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    }),
+  });
+
+  if (
+    response.ok ||
+    response.status === 400 ||
+    response.status === 422 ||
+    response.status === 429
+  ) {
+    return { valid: true, error: null, method: "chat_probe" };
+  }
+  if (response.status === 401 || response.status === 403) {
+    return { valid: false, error: "Invalid API key" };
+  }
+  if (response.status === 404) {
+    return {
+      valid: true,
+      error: null,
+      method: "chat_probe",
+      warning: "Azure credentials are valid, but the requested deployment was not found.",
+    };
+  }
+  if (response.status >= 500) {
+    return { valid: false, error: `Provider unavailable (${response.status})` };
+  }
+  return { valid: false, error: `Validation failed: ${response.status}` };
+}
+
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -1079,6 +1188,117 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
   },
 };
 
+const META_AI_SEND_MESSAGE_DOC_ID = "078dfdff6fb0d420d8011b49073e6886";
+const META_AI_FRIENDLY_NAME = "useAbraSendMessageMutation";
+const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
+const META_AI_ASBD_ID = "129477";
+const META_AI_USER_AGENT =
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+const META_AI_BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+function encodeMetaAiBase62(value: bigint, padLength: number): string {
+  let remaining = value;
+  let encoded = "";
+
+  while (remaining > 0n) {
+    encoded = META_AI_BASE62_ALPHABET[Number(remaining % 62n)] + encoded;
+    remaining /= 62n;
+  }
+
+  return encoded.padStart(padLength, "0");
+}
+
+function decodeMetaAiBase62(value: string): bigint {
+  let decoded = 0n;
+  for (const char of value) {
+    const index = META_AI_BASE62_ALPHABET.indexOf(char);
+    if (index < 0) {
+      throw new Error(`Invalid Meta AI base62 character: ${char}`);
+    }
+    decoded = decoded * 62n + BigInt(index);
+  }
+  return decoded;
+}
+
+function randomMetaAiBigInt(byteLength: number): bigint {
+  const bytes = new Uint8Array(byteLength);
+  crypto.getRandomValues(bytes);
+  let result = 0n;
+  for (const byte of bytes) {
+    result = (result << 8n) | BigInt(byte);
+  }
+  return result;
+}
+
+function generateMetaAiConversationId(): string {
+  const timestamp = BigInt(Date.now()) & ((1n << 44n) - 1n);
+  const random = randomMetaAiBigInt(8) & ((1n << 64n) - 1n);
+  return `c.${encodeMetaAiBase62((timestamp << 64n) | random, 19)}`;
+}
+
+function generateMetaAiEventId(conversationId: string): string | null {
+  if (!conversationId.startsWith("c.")) {
+    return null;
+  }
+
+  try {
+    const packedConversation = decodeMetaAiBase62(conversationId.slice(2));
+    const conversationRandom = packedConversation & ((1n << 64n) - 1n);
+    const timestamp = BigInt(Date.now()) & ((1n << 44n) - 1n);
+    const eventRandom = randomMetaAiBigInt(4) & ((1n << 32n) - 1n);
+    return `e.${encodeMetaAiBase62((timestamp << (64n + 32n)) | (conversationRandom << 32n) | eventRandom, 25)}`;
+  } catch {
+    return null;
+  }
+}
+
+function generateMetaAiNumericMessageId(): string {
+  return (
+    BigInt(Date.now()) * 1000n +
+    BigInt(Math.floor(Math.random() * 1000)) +
+    (randomMetaAiBigInt(2) & 0xfffn)
+  ).toString();
+}
+
+function buildMetaAiValidationBody() {
+  const conversationId = generateMetaAiConversationId();
+  return {
+    doc_id: META_AI_SEND_MESSAGE_DOC_ID,
+    variables: {
+      assistantMessageId: crypto.randomUUID(),
+      attachments: null,
+      clientLatitude: null,
+      clientLongitude: null,
+      clientTimezone:
+        typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC",
+      clippyIp: null,
+      content: "test",
+      conversationId,
+      conversationStarterId: null,
+      currentBranchPath: "0",
+      developerOverridesForMessage: null,
+      devicePixelRatio: 1,
+      entryPoint: "KADABRA__CHAT__UNIFIED_INPUT_BAR",
+      imagineOperationRequest: null,
+      isNewConversation: true,
+      mentions: null,
+      mode: "mode_fast",
+      promptEditType: null,
+      promptSessionId: crypto.randomUUID(),
+      promptType: null,
+      qplJoinId: null,
+      requestedToolCall: null,
+      rewriteOptions: null,
+      turnId: crypto.randomUUID(),
+      userAgent: META_AI_USER_AGENT,
+      userEventId: generateMetaAiEventId(conversationId),
+      userLocale: "en_US",
+      userMessageId: crypto.randomUUID(),
+      userUniqueMessageId: generateMetaAiNumericMessageId(),
+    },
+  };
+}
+
 async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     let token = apiKey;
@@ -1251,6 +1471,180 @@ async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {}
   }
 }
 
+async function validateBlackboxWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const cookieHeader = normalizeSessionCookieHeader(apiKey, "__Secure-authjs.session-token");
+    const sessionHeaders = applyCustomUserAgent(
+      {
+        Accept: "application/json",
+        Cookie: cookieHeader,
+        Origin: "https://app.blackbox.ai",
+        Referer: "https://app.blackbox.ai/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+      },
+      providerSpecificData
+    );
+
+    const sessionResponse = await validationRead("https://app.blackbox.ai/api/auth/session", {
+      method: "GET",
+      headers: sessionHeaders,
+    });
+
+    const sessionText = await sessionResponse.text();
+    const sessionPayload = sessionText ? JSON.parse(sessionText) : null;
+    const userEmail = sessionPayload?.user?.email;
+
+    if (!sessionResponse.ok || !userEmail) {
+      return {
+        valid: false,
+        error:
+          "Invalid Blackbox session cookie — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    const subscriptionHeaders = applyCustomUserAgent(
+      {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Cookie: cookieHeader,
+        Origin: "https://app.blackbox.ai",
+        Referer: "https://app.blackbox.ai/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+      },
+      providerSpecificData
+    );
+
+    const subscriptionResponse = await validationWrite(
+      "https://app.blackbox.ai/api/check-subscription",
+      {
+        method: "POST",
+        headers: subscriptionHeaders,
+        body: JSON.stringify({ email: userEmail }),
+      }
+    );
+
+    const subscriptionText = await subscriptionResponse.text();
+    const subscriptionPayload = subscriptionText ? JSON.parse(subscriptionText) : null;
+    const explicitActive =
+      subscriptionPayload?.hasActiveSubscription === true ||
+      subscriptionPayload?.isTrialSubscription === true ||
+      subscriptionPayload?.status === "PREMIUM";
+    const explicitInactive =
+      subscriptionPayload?.hasActiveSubscription === false ||
+      subscriptionPayload?.status === "FREE";
+    const requiresAuthentication =
+      subscriptionPayload?.requiresAuthentication === true ||
+      /login is required/i.test(subscriptionText || "");
+
+    if (subscriptionResponse.status === 401 || subscriptionResponse.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Invalid Blackbox session cookie — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    if (requiresAuthentication) {
+      return {
+        valid: false,
+        error:
+          "Blackbox session expired — re-paste __Secure-authjs.session-token from app.blackbox.ai",
+      };
+    }
+
+    if (subscriptionResponse.ok && explicitActive) {
+      return { valid: true, error: null };
+    }
+
+    if (
+      (subscriptionResponse.ok && explicitInactive) ||
+      subscriptionPayload?.previouslySubscribed
+    ) {
+      return {
+        valid: false,
+        error:
+          "Blackbox account authenticated, but no active paid subscription was detected for premium web models.",
+      };
+    }
+
+    if (subscriptionResponse.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (subscriptionResponse.status >= 500) {
+      return { valid: false, error: `Blackbox unavailable (${subscriptionResponse.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${subscriptionResponse.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const cookieHeader = normalizeSessionCookieHeader(apiKey, "abra_sess");
+    const response = await validationWrite("https://www.meta.ai/api/graphql", {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+          "Accept-Language": "en-US,en;q=0.9",
+          Cookie: cookieHeader,
+          Origin: "https://www.meta.ai",
+          Referer: "https://www.meta.ai/",
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
+          "User-Agent": META_AI_USER_AGENT,
+          "X-ASBD-ID": META_AI_ASBD_ID,
+          "X-FB-Friendly-Name": META_AI_FRIENDLY_NAME,
+          "X-FB-Request-Analytics-Tags": META_AI_REQUEST_ANALYTICS_TAGS,
+        },
+        providerSpecificData
+      ),
+      body: JSON.stringify(buildMetaAiValidationBody()),
+    });
+
+    const responseText = await response.text();
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid Meta AI session cookie — re-paste abra_sess from meta.ai",
+      };
+    }
+
+    if (/authentication required to send messages|login is required|sign in/i.test(responseText)) {
+      return {
+        valid: false,
+        error: "Invalid Meta AI session cookie — re-paste abra_sess from meta.ai",
+      };
+    }
+
+    if (
+      response.status === 429 ||
+      /limit exceeded|rate limit|too many requests/i.test(responseText)
+    ) {
+      return { valid: true, error: null };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Meta AI unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = provider !== "searxng-search";
   if (!provider || (requiresApiKey && !apiKey)) {
@@ -1292,12 +1686,26 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     gigachat: validateGigachatProvider,
     "grok-web": validateGrokWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
+    "blackbox-web": validateBlackboxWebProvider,
+    "muse-spark-web": validateMuseSparkWebProvider,
+    "azure-openai": validateAzureOpenAIProvider,
     vertex: async ({ apiKey }: any) => {
       try {
         const { parseSAFromApiKey, getAccessToken } =
           await import("@omniroute/open-sse/executors/vertex.ts");
         const sa = parseSAFromApiKey(apiKey);
         // Validates credentials by successfully exchanging them for a JWT from Google Identity
+        await getAccessToken(sa);
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return { valid: false, error: "Invalid Service Account JSON: " + error.message };
+      }
+    },
+    "vertex-partner": async ({ apiKey }: any) => {
+      try {
+        const { parseSAFromApiKey, getAccessToken } =
+          await import("@omniroute/open-sse/executors/vertex.ts");
+        const sa = parseSAFromApiKey(apiKey);
         await getAccessToken(sa);
         return { valid: true, error: null };
       } catch (error: any) {

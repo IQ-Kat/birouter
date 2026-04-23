@@ -97,6 +97,12 @@ export const updateSettingsSchema = z.object({
   // models.dev sync settings
   modelsDevSyncEnabled: z.boolean().optional(),
   modelsDevSyncInterval: z.number().int().min(3600000).max(604800000).optional(),
+  // Vision Bridge settings
+  visionBridgeEnabled: z.boolean().optional(),
+  visionBridgeModel: z.string().max(200).optional(),
+  visionBridgePrompt: z.string().max(5000).optional(),
+  visionBridgeTimeout: z.number().int().min(1000).max(300000).optional(),
+  visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
   // Missing settings
   lkgpEnabled: z.boolean().optional(),
   backgroundDegradation: z.unknown().optional(),

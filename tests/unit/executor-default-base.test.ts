@@ -428,7 +428,7 @@ test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for 
   const result = executor.transformRequest("qwen3-coder-plus", body, true, {});
 
   assert.notEqual(result, body);
-  assert.equal(result.tool_choice, "auto");
+  assert.equal((result as any).tool_choice, "auto");
 });
 
 test("DefaultExecutor.transformRequest applies GLMT preset defaults without overriding explicit values", () => {
@@ -440,9 +440,9 @@ test("DefaultExecutor.transformRequest applies GLMT preset defaults without over
   const autoResult = executor.transformRequest("glm-5.1", autoBody, true, {});
 
   assert.notEqual(autoResult, autoBody);
-  assert.equal(autoResult.max_tokens, 65536);
-  assert.equal(autoResult.temperature, 0.2);
-  assert.deepEqual(autoResult.thinking, {
+  assert.equal((autoResult as any).max_tokens, 65536);
+  (assert as any).equal((autoResult as any).temperature, 0.2);
+  (assert as any).deepEqual((autoResult as any).thinking, {
     type: "enabled",
     budget_tokens: 24576,
   });
@@ -456,9 +456,9 @@ test("DefaultExecutor.transformRequest applies GLMT preset defaults without over
   const explicitResult = executor.transformRequest("glm-5.1", explicitBody, true, {});
 
   assert.notEqual(explicitResult, explicitBody);
-  assert.equal(explicitResult.max_tokens, 4096);
-  assert.equal(explicitResult.temperature, 0.7);
-  assert.deepEqual(explicitResult.thinking, {
+  assert.equal((explicitResult as any).max_tokens, 4096);
+  assert.equal((explicitResult as any).temperature, 0.7);
+  assert.deepEqual((explicitResult as any).thinking, {
     type: "enabled",
     budget_tokens: 4095,
   });
@@ -621,8 +621,8 @@ test("BaseExecutor.execute returns response metadata and merges headers", async 
 
     assert.equal(result.url, "https://primary.example/v1/chat/completions");
     assert.equal(result.response.status, 200);
-    assert.equal(result.transformedBody.transformed, true);
-    assert.equal(result.transformedBody.model, "gpt-4.1");
+    (assert as any).equal((result.transformedBody as any).transformed, true);
+    assert.equal((result.transformedBody as any).model, "gpt-4.1");
     assert.equal(result.headers.Authorization, "Bearer override");
     assert.equal(result.headers["User-Agent"], "UpstreamAgent/2.0");
     assert.equal(result.headers["user-agent"], undefined);
@@ -788,4 +788,52 @@ test("BaseExecutor.execute clears the startup timeout after headers arrive", asy
     BaseExecutor.FETCH_START_TIMEOUT_MS = originalFetchStartTimeoutMs;
     globalThis.fetch = originalFetch;
   }
+});
+
+// Regression test for issue #1454: duplicate anthropic-version header when
+// Claude Code CLI headers are detected on the native `claude` provider.
+// The provider config seeds headers with Title-Case "Anthropic-Version" while
+// the Claude-Code patch injects lowercase "anthropic-version".  Before the fix,
+// both keys coexisted in the JS object and undici combined their values into
+// "2023-06-01, 2023-06-01", causing a 400 from Anthropic.
+test("DefaultExecutor.execute does not produce duplicate anthropic-version header when Claude Code CLI headers are present", async () => {
+  const executor = new DefaultExecutor("claude");
+  const originalFetch = globalThis.fetch;
+  let capturedHeaders: Record<string, string> = {};
+
+  globalThis.fetch = async (_url, init = {}) => {
+    // Capture raw headers without normalisation so case-variant duplicate keys are visible.
+    capturedHeaders = (init.headers as Record<string, string>) || {};
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    await executor.execute({
+      model: "claude-sonnet-4-6",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: { accessToken: "oauth-token" },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+        "anthropic-beta": "oauth-2025-04-20",
+      },
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // Must be exactly one key — not multiple case variants that undici would combine
+  const versionKeys = Object.keys(capturedHeaders).filter(
+    (k) => k.toLowerCase() === "anthropic-version"
+  );
+  assert.equal(versionKeys.length, 1, "Duplicate anthropic-version header keys found");
+  assert.equal(capturedHeaders[versionKeys[0]], "2023-06-01");
 });

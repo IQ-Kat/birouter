@@ -47,7 +47,7 @@ test.after(() => {
 
 test("v1 search GET lists all 9 search providers", async () => {
   const response = await searchRoute.GET();
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = body.data.map((item: { id: string }) => item.id);
 
   assert.equal(response.status, 200);
@@ -105,7 +105,7 @@ test("v1 search POST uses stored Linkup credentials and returns normalized resul
         }),
       })
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(capturedUrl, "https://api.linkup.so/v1/search");
@@ -162,7 +162,7 @@ test("v1 search POST accepts authless SearXNG with provider_options baseUrl", as
         }),
       })
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(
@@ -210,7 +210,7 @@ test("v1 search POST accepts authless SearXNG with the built-in default base URL
         }),
       })
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(
@@ -265,7 +265,7 @@ test("v1 search POST preserves stored SearXNG baseUrl for authless providers", a
         }),
       })
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(
@@ -311,7 +311,7 @@ test("v1 search POST auto-select uses authless SearXNG when no API-key providers
         }),
       })
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.equal(

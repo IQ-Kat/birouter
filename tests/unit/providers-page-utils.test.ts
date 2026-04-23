@@ -76,6 +76,112 @@ test("configured-only filter keeps only providers with saved connections", () =>
   assert.equal(providerPageUtils.filterConfiguredProviderEntries(entries, false).length, 3);
 });
 
+test("search filter matches provider name and id case-insensitively", () => {
+  const entries = [
+    {
+      providerId: "claude",
+      provider: { id: "claude", name: "Claude" },
+      stats: { total: 2 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "openai",
+      provider: { id: "openai", name: "OpenAI" },
+      stats: { total: 1 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "gemini",
+      provider: { id: "gemini", name: "Google Gemini" },
+      stats: { total: 1 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+  ];
+
+  const byName = providerPageUtils.filterConfiguredProviderEntries(entries, false, "claude");
+  assert.deepEqual(
+    byName.map((e) => e.providerId),
+    ["claude"]
+  );
+
+  const byNameCaseInsensitive = providerPageUtils.filterConfiguredProviderEntries(
+    entries,
+    false,
+    "OPENAI"
+  );
+  assert.deepEqual(
+    byNameCaseInsensitive.map((e) => e.providerId),
+    ["openai"]
+  );
+
+  const byPartialName = providerPageUtils.filterConfiguredProviderEntries(entries, false, "google");
+  assert.deepEqual(
+    byPartialName.map((e) => e.providerId),
+    ["gemini"]
+  );
+
+  const byId = providerPageUtils.filterConfiguredProviderEntries(entries, false, "gem");
+  assert.deepEqual(
+    byId.map((e) => e.providerId),
+    ["gemini"]
+  );
+
+  const noMatch = providerPageUtils.filterConfiguredProviderEntries(entries, false, "xyz");
+  assert.equal(noMatch.length, 0);
+
+  const emptySearch = providerPageUtils.filterConfiguredProviderEntries(entries, false, "");
+  assert.equal(emptySearch.length, 3);
+
+  const whitespaceSearch = providerPageUtils.filterConfiguredProviderEntries(entries, false, "   ");
+  assert.equal(whitespaceSearch.length, 3);
+});
+
+test("search and configured-only filters work together", () => {
+  const entries = [
+    {
+      providerId: "claude",
+      provider: { id: "claude", name: "Claude" },
+      stats: { total: 2 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "openai",
+      provider: { id: "openai", name: "OpenAI" },
+      stats: { total: 0 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+    {
+      providerId: "gemini",
+      provider: { id: "gemini", name: "Google Gemini" },
+      stats: { total: 1 },
+      displayAuthType: "oauth",
+      toggleAuthType: "oauth",
+    },
+  ];
+
+  const configuredAndSearched = providerPageUtils.filterConfiguredProviderEntries(
+    entries,
+    true,
+    "claude"
+  );
+  assert.deepEqual(
+    configuredAndSearched.map((e) => e.providerId),
+    ["claude"]
+  );
+
+  const configuredButNoMatch = providerPageUtils.filterConfiguredProviderEntries(
+    entries,
+    true,
+    "openai"
+  );
+  assert.equal(configuredButNoMatch.length, 0);
+});
+
 test("configured-only preference parser only enables explicit true values", () => {
   assert.equal(providerPageStorage.parseConfiguredOnlyPreference("true"), true);
   assert.equal(providerPageStorage.parseConfiguredOnlyPreference("false"), false);
@@ -113,6 +219,8 @@ test("static catalog entries resolve search, audio, web-cookie and upstream prov
   const audioProvider = providerPageUtils.resolveDashboardProviderInfo("assemblyai");
   const webCookieProvider = providerPageUtils.resolveDashboardProviderInfo("grok-web");
   const perplexityWebProvider = providerPageUtils.resolveDashboardProviderInfo("perplexity-web");
+  const blackboxWebProvider = providerPageUtils.resolveDashboardProviderInfo("blackbox-web");
+  const museSparkWebProvider = providerPageUtils.resolveDashboardProviderInfo("muse-spark-web");
   const upstreamProvider = providerPageUtils.resolveDashboardProviderInfo("cliproxyapi");
 
   assert.equal(searchProvider?.category, "search");
@@ -127,6 +235,12 @@ test("static catalog entries resolve search, audio, web-cookie and upstream prov
   assert.equal(perplexityWebProvider?.category, "web-cookie");
   assert.equal(perplexityWebProvider?.name, providers.WEB_COOKIE_PROVIDERS["perplexity-web"].name);
 
+  assert.equal(blackboxWebProvider?.category, "web-cookie");
+  assert.equal(blackboxWebProvider?.name, providers.WEB_COOKIE_PROVIDERS["blackbox-web"].name);
+
+  assert.equal(museSparkWebProvider?.category, "web-cookie");
+  assert.equal(museSparkWebProvider?.name, providers.WEB_COOKIE_PROVIDERS["muse-spark-web"].name);
+
   assert.equal(upstreamProvider?.category, "upstream-proxy");
   assert.equal(
     upstreamProvider?.name,
@@ -139,6 +253,8 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("assemblyai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("grok-web"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("perplexity-web"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("blackbox-web"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("muse-spark-web"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("brave-search"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("cliproxyapi"), false);
   assert.equal(providerCatalog.isManagedProviderConnectionId("claude"), false);
@@ -147,6 +263,10 @@ test("managed provider connection ids include supported static categories and ex
 test("grok-web taxonomy stays web-cookie only and does not leak into api-key entries", () => {
   assert.equal("grok-web" in providers.APIKEY_PROVIDERS, false);
   assert.equal("grok-web" in providers.WEB_COOKIE_PROVIDERS, true);
+  assert.equal("blackbox-web" in providers.APIKEY_PROVIDERS, false);
+  assert.equal("blackbox-web" in providers.WEB_COOKIE_PROVIDERS, true);
+  assert.equal("muse-spark-web" in providers.APIKEY_PROVIDERS, false);
+  assert.equal("muse-spark-web" in providers.WEB_COOKIE_PROVIDERS, true);
 
   const apiKeyEntries = providerPageUtils.buildStaticProviderEntries("apikey", () => ({
     total: 0,
@@ -161,6 +281,14 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     webCookieEntries.some((entry) => entry.providerId === "grok-web"),
+    true
+  );
+  assert.equal(
+    webCookieEntries.some((entry) => entry.providerId === "blackbox-web"),
+    true
+  );
+  assert.equal(
+    webCookieEntries.some((entry) => entry.providerId === "muse-spark-web"),
     true
   );
 });

@@ -56,7 +56,7 @@ test("v1 models catalog requires auth when the route is protected and login is e
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 401);
   assert.equal(body.error.code, "invalid_api_key");
@@ -87,7 +87,7 @@ test("v1 models catalog accepts bearer API keys and filters the list by allowed 
       headers: { Authorization: `Bearer ${key.key}` },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = body.data.map((item) => item.id);
 
   assert.equal(response.status, 200);
@@ -115,13 +115,13 @@ test("v1 models catalog hides models excluded by every active connection while k
   let response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  let body = await response.json();
+  let body = (await response.json()) as any;
   let ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
   assert.equal(ids.has("openai/gpt-4o-mini"), true);
 
-  await providersDb.updateProviderConnection(second.id, {
+  await providersDb.updateProviderConnection((second as any).id, {
     providerSpecificData: {
       excludedModels: ["gpt-4o*"],
     },
@@ -130,13 +130,13 @@ test("v1 models catalog hides models excluded by every active connection while k
   response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  body = await response.json();
+  body = (await response.json()) as any;
   ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
   assert.equal(ids.has("openai/gpt-4o-mini"), false);
 
-  await providersDb.updateProviderConnection(first.id, {
+  await providersDb.updateProviderConnection((first as any).id, {
     providerSpecificData: {
       excludedModels: [],
     },
@@ -172,7 +172,7 @@ test("v1 models catalog includes combos and custom models while excluding hidden
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
@@ -181,7 +181,7 @@ test("v1 models catalog includes combos and custom models while excluding hidden
   assert.ok(ids.has("kiro/custom-kiro"));
   assert.equal(ids.has("openai/gpt-4o-mini"), false);
   assert.equal(
-    [...ids].some((id) => id.startsWith("claude/") || id.startsWith("cc/")),
+    [...ids].some((id) => (id as any).startsWith("claude/") || (id as any).startsWith("cc/")),
     false
   );
 });
@@ -192,7 +192,7 @@ test("v1 models catalog keeps only visible combos when no providers are active",
     strategy: "priority",
     models: ["openai/gpt-4o"],
   });
-  await combosDb.updateCombo(visible.id, { context_length: 32000 });
+  await combosDb.updateCombo((visible as any).id, { context_length: 32000 });
   const hidden = await combosDb.createCombo({
     name: "hidden-combo",
     strategy: "priority",
@@ -204,12 +204,12 @@ test("v1 models catalog keeps only visible combos when no providers are active",
     strategy: "priority",
     models: ["openai/gpt-4o"],
   });
-  await combosDb.updateCombo(inactive.id, { isActive: false });
+  await combosDb.updateCombo((inactive as any).id, { isActive: false });
 
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(
@@ -238,7 +238,7 @@ test("v1 models catalog exposes claude alias and provider-prefixed built-in mode
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const aliasModel = body.data.find((item) => item.id === "cc/claude-sonnet-4-6");
   const providerModel = body.data.find((item) => item.id === "claude/claude-sonnet-4-6");
 
@@ -262,7 +262,7 @@ test("v1 models catalog exposes Antigravity client-visible preview aliases inste
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
@@ -294,7 +294,7 @@ test("v1 models catalog uses provider-node prefixes for compatible provider cust
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);
@@ -308,34 +308,38 @@ test("v1 models catalog includes synced Gemini models and duplicates audio model
     apiKey: "gm-key",
   });
 
-  await modelsDb.replaceSyncedAvailableModelsForConnection("gemini", connection.id, [
-    {
-      id: "gemini-audio-live",
-      name: "Gemini Audio Live",
-      source: "api-sync",
-      supportedEndpoints: ["audio"],
-      inputTokenLimit: 4096,
-    },
-    {
-      id: "text-embedding-004",
-      name: "Text Embedding 004",
-      source: "api-sync",
-      supportedEndpoints: ["embeddings"],
-      inputTokenLimit: 2048,
-    },
-    {
-      id: "gemini-hidden",
-      name: "Gemini Hidden",
-      source: "api-sync",
-      supportedEndpoints: ["chat"],
-    },
-  ]);
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    "gemini" as any,
+    (connection as any).id,
+    [
+      {
+        id: "gemini-audio-live",
+        name: "Gemini Audio Live",
+        source: "api-sync",
+        supportedEndpoints: ["audio"],
+        inputTokenLimit: 4096,
+      },
+      {
+        id: "text-embedding-004",
+        name: "Text Embedding 004",
+        source: "api-sync",
+        supportedEndpoints: ["embeddings"],
+        inputTokenLimit: 2048,
+      },
+      {
+        id: "gemini-hidden",
+        name: "Gemini Hidden",
+        source: "api-sync",
+        supportedEndpoints: ["chat"],
+      },
+    ]
+  );
   modelsDb.mergeModelCompatOverride("gemini", "gemini-hidden", { isHidden: true });
 
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const audioVariants = body.data.filter((item) => item.id === "gemini/gemini-audio-live");
   const embedding = body.data.find((item) => item.id === "gemini/text-embedding-004");
 
@@ -355,7 +359,7 @@ test("v1 models catalog keeps Gemini chat models untyped when synced endpoints a
     apiKey: "gm-chat-key",
   });
 
-  await modelsDb.replaceSyncedAvailableModelsForConnection("gemini", connection.id, [
+  await modelsDb.replaceSyncedAvailableModelsForConnection("gemini", (connection as any).id, [
     {
       id: "gemini-2.5-pro-live",
       name: "Gemini 2.5 Pro Live",
@@ -367,7 +371,7 @@ test("v1 models catalog keeps Gemini chat models untyped when synced endpoints a
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const chatModel = body.data.find((item) => item.id === "gemini/gemini-2.5-pro-live");
 
   assert.equal(response.status, 200);
@@ -375,6 +379,34 @@ test("v1 models catalog keeps Gemini chat models untyped when synced endpoints a
   assert.equal("type" in chatModel, false);
   assert.equal("supported_endpoints" in chatModel, false);
   assert.equal(chatModel.context_length, 8192);
+});
+
+test("v1 models catalog includes synced non-Gemini provider models from discovery cache", async () => {
+  const connection = await seedConnection("opencode-go", {
+    name: "opencode-go-synced",
+    apiKey: "go-key",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", (connection as any).id, [
+    {
+      id: "glm-5.1",
+      name: "GLM 5.1",
+      source: "api-sync",
+      supportedEndpoints: ["chat"],
+      inputTokenLimit: 262144,
+    },
+  ]);
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const syncedModel = body.data.find((item) => item.id === "opencode-go/glm-5.1");
+
+  assert.equal(response.status, 200);
+  assert.ok(syncedModel);
+  assert.equal(syncedModel.owned_by, "opencode-go");
+  assert.equal(syncedModel.context_length, 262144);
 });
 
 test("v1 models catalog includes media, moderation, rerank, video, and music models for active providers", async () => {
@@ -389,17 +421,17 @@ test("v1 models catalog includes media, moderation, rerank, video, and music mod
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const byId = new Map(body.data.map((item) => [item.id, item]));
 
   assert.equal(response.status, 200);
-  assert.equal(byId.get("openai/gpt-image-1")?.type, "image");
-  assert.equal(byId.get("openai/whisper-1")?.type, "audio");
-  assert.equal(byId.get("openai/whisper-1")?.subtype, "transcription");
-  assert.equal(byId.get("openai/omni-moderation-latest")?.type, "moderation");
-  assert.equal(byId.get("cohere/rerank-v3.5")?.type, "rerank");
-  assert.equal(byId.get("comfyui/animatediff")?.type, "video");
-  assert.equal(byId.get("comfyui/stable-audio-open")?.type, "music");
+  assert.equal((byId.get("openai/gpt-image-1") as any).type, "image");
+  assert.equal((byId.get("openai/whisper-1") as any).type, "audio");
+  assert.equal((byId.get("openai/whisper-1") as any).subtype, "transcription");
+  assert.equal((byId.get("openai/omni-moderation-latest") as any).type, "moderation");
+  assert.equal((byId.get("cohere/rerank-v3.5") as any).type, "rerank");
+  assert.equal((byId.get("comfyui/animatediff") as any).type, "video");
+  assert.equal((byId.get("comfyui/stable-audio-open") as any).type, "music");
 });
 
 test("v1 models catalog exposes image model input and output modalities for advanced image providers", async () => {
@@ -409,16 +441,16 @@ test("v1 models catalog exposes image model input and output modalities for adva
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const byId = new Map(body.data.map((item) => [item.id, item]));
 
   assert.equal(response.status, 200);
-  assert.deepEqual(byId.get("flux-redux")?.input_modalities, ["text", "image"]);
-  assert.deepEqual(byId.get("flux-redux")?.output_modalities, ["image"]);
-  assert.equal(byId.get("flux-redux")?.type, "image");
-  assert.ok(byId.get("flux-redux")?.supported_sizes?.includes("1024x1024"));
-  assert.deepEqual(byId.get("topaz/topaz-enhance")?.input_modalities, ["image"]);
-  assert.deepEqual(byId.get("topaz/topaz-enhance")?.output_modalities, ["image"]);
+  assert.deepEqual((byId as any).get("flux-redux")?.input_modalities, ["text", "image"]);
+  (assert as any).deepEqual((byId.get("flux-redux") as any).output_modalities, ["image"]);
+  (assert as any).equal((byId.get("flux-redux") as any).type, "image");
+  assert.ok((byId.get("flux-redux") as any).supported_sizes?.includes("1024x1024"));
+  (assert as any).deepEqual((byId.get("topaz/topaz-enhance") as any).input_modalities, ["image"]);
+  assert.deepEqual((byId.get("topaz/topaz-enhance") as any).output_modalities, ["image"]);
 });
 
 test("v1 models catalog tolerates custom model lookup failures and keeps builtin models available", async () => {
@@ -443,7 +475,7 @@ test("v1 models catalog tolerates custom model lookup failures and keeps builtin
     const response = await v1ModelsCatalog.getUnifiedModelsResponse(
       new Request("http://localhost/api/v1/models")
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
     assert.ok(body.data.some((item) => item.id === "openai/gpt-4o"));
@@ -504,7 +536,7 @@ test("v1 models catalog exposes provider-prefixed custom models, filters by raw 
       headers: { Authorization: `Bearer ${key.key}` },
     })
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = new Set(body.data.map((item) => item.id));
   const shortAlias = body.data.find((item) => item.id === "cl/demo-custom");
   const providerAlias = body.data.find((item) => item.id === "cline/demo-custom");
@@ -557,7 +589,7 @@ test("v1 models catalog returns 500 when model compatibility lookup crashes", as
     const response = await v1ModelsCatalog.getUnifiedModelsResponse(
       new Request("http://localhost/api/v1/models")
     );
-    const body = await response.json();
+    const body = (await response.json()) as any;
 
     assert.equal(response.status, 500);
     assert.equal(body.error.type, "server_error");
@@ -585,7 +617,7 @@ test("v1 models catalog skips duplicate built-ins and custom models from inactiv
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const duplicateBuiltins = body.data.filter((item) => item.id === "openai/gpt-4o");
 
   assert.equal(response.status, 200);
@@ -622,7 +654,7 @@ test("v1 models catalog adds managed fallback models for Claude-compatible provi
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const ids = new Set(body.data.map((item) => item.id));
 
   assert.equal(response.status, 200);

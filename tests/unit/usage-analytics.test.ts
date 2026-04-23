@@ -224,9 +224,24 @@ test("getUsageStats aggregates totals, buckets, pending requests, and cost break
     timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
   });
 
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, true);
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, true);
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, false);
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider",
+    (connection as any).id,
+    true
+  );
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider" as any,
+    (connection as any).id,
+    true
+  );
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider" as any,
+    (connection as any).id,
+    false
+  );
 
   const stats = await usageStats.getUsageStats();
   const expectedCost =

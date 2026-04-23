@@ -46,6 +46,8 @@ export interface RegistryModel {
   supportsXHighEffort?: boolean;
   targetFormat?: string;
   unsupportedParams?: readonly string[];
+  /** Content types to remove before translation/upstream dispatch. */
+  strip?: readonly string[];
   /** Maximum context window in tokens */
   contextLength?: number;
 }
@@ -596,6 +598,19 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "azure-openai": {
+    id: "azure-openai",
+    alias: "azure",
+    format: "openai",
+    executor: "azure-openai",
+    baseUrl: "https://example-resource.openai.azure.com",
+    authType: "apikey",
+    authHeader: "api-key",
+    defaultContextLength: 128000,
+    models: [],
+    passthroughModels: true,
+  },
+
   anthropic: {
     id: "anthropic",
     alias: "anthropic",
@@ -628,6 +643,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     format: "openai",
     executor: "opencode",
     baseUrl: "https://opencode.ai/zen/go/v1",
+    modelsUrl: "https://opencode.ai/zen/go/v1/models",
     // (#532) Key validation must hit the main zen endpoint (same key works for both tiers)
     testKeyBaseUrl: "https://opencode.ai/zen/v1",
     authType: "apikey",
@@ -635,8 +651,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authPrefix: "Bearer",
     defaultContextLength: 200000,
     models: [
+      { id: "glm-5.1", name: "GLM-5.1", contextLength: 204800 },
       { id: "glm-5", name: "GLM-5" },
+      { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "kimi-k2.5", name: "Kimi K2.5" },
+      { id: "mimo-v2-pro", name: "MiMo V2 Pro" },
+      { id: "mimo-v2-omni", name: "MiMo V2 Omni" },
+      { id: "qwen3.6-plus", name: "Qwen 3.6 Plus" },
+      { id: "qwen3.5-plus", name: "Qwen 3.5 Plus" },
       { id: "minimax-m2.7", name: "MiniMax M2.7", targetFormat: "claude" },
       { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
     ],
@@ -710,6 +732,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [...GLM_SHARED_MODELS],
   },
 
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glmcn",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
+    modelsUrl: "https://open.bigmodel.cn/api/coding/paas/v4/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 200000,
+    models: [
+      { id: "glm-5.1", name: "GLM 5.1" },
+      { id: "glm-5", name: "GLM 5" },
+      { id: "glm-4.7", name: "GLM 4.7" },
+      { id: "glm-4.6", name: "GLM 4.6" },
+      { id: "glm-4.5-air", name: "GLM 4.5 Air" },
+    ],
+  },
+
   "bailian-coding-plan": {
     id: "bailian-coding-plan",
     alias: "bcp",
@@ -727,7 +768,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
       { id: "qwen3-max-2026-01-23", name: "Qwen3 Max (2026-01-23)" },
-      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+      { id: "qwen3-coder-next", name: "Qwen3 Coder Next", strip: ["image", "audio"] },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
       { id: "glm-5", name: "GLM 5" },
@@ -965,8 +1006,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "deepseek-chat", name: "DeepSeek V3.2 Chat" },
-      { id: "deepseek-reasoner", name: "DeepSeek V3.2 Reasoner" },
+      { id: "deepseek-chat", name: "DeepSeek V3.2 Chat", strip: ["image", "audio"] },
+      { id: "deepseek-reasoner", name: "DeepSeek V3.2 Reasoner", strip: ["image", "audio"] },
     ],
   },
 
@@ -1002,6 +1043,53 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "deepseek-v3", name: "DeepSeek V3" },
       { id: "blackboxai", name: "Blackbox AI" },
       { id: "blackboxai-pro", name: "Blackbox AI Pro" },
+    ],
+  },
+
+  "blackbox-web": {
+    id: "blackbox-web",
+    alias: "bb-web",
+    format: "openai",
+    executor: "blackbox-web",
+    baseUrl: "https://app.blackbox.ai/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "minimax/minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "anthropic/claude-opus-4.7", name: "Claude Opus 4.7" },
+      { id: "anthropic/claude-opus-4.6", name: "Claude Opus 4.6" },
+      { id: "anthropic/claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
+      { id: "openai/gpt-5.4", name: "GPT-5.4" },
+      { id: "moonshotai/kimi-k2.6", name: "Kimi K2.6" },
+      { id: "z-ai/glm-5", name: "GLM-5" },
+      { id: "x-ai/grok-4.1-fast", name: "Grok 4.1 Fast" },
+      { id: "blackbox/encrypted", name: "Blackbox Encrypted" },
+    ],
+  },
+
+  "muse-spark-web": {
+    id: "muse-spark-web",
+    alias: "ms-web",
+    format: "openai",
+    executor: "muse-spark-web",
+    baseUrl: "https://www.meta.ai/api/graphql",
+    authType: "apikey",
+    authHeader: "cookie",
+    defaultContextLength: 262000,
+    models: [
+      { id: "muse-spark", name: "Muse Spark", contextLength: 262000 },
+      {
+        id: "muse-spark-thinking",
+        name: "Muse Spark Thinking",
+        supportsReasoning: true,
+        contextLength: 262000,
+      },
+      {
+        id: "muse-spark-contemplating",
+        name: "Muse Spark Contemplating",
+        supportsReasoning: true,
+        contextLength: 262000,
+      },
     ],
   },
 
@@ -1151,6 +1239,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen-3-32b", name: "Qwen3 32B" },
     ],
   },
+  "lm-studio": {
+    id: "lm-studio",
+    alias: "lmstudio",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:1234/v1",
+    authType: "apikey", // Some setups may use proxy with api key
+    authHeader: "bearer",
+    models: [], // Usually dynamic based on local models downloaded
+  },
 
   "ollama-cloud": {
     id: "ollama-cloud",
@@ -1199,9 +1297,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
-      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)", toolCalling: false },
-      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B", toolCalling: false },
+      { id: "gpt-oss-120b", name: "GPT OSS 120B" },
+      { id: "openai/gpt-oss-120b", name: "GPT OSS 120B (OpenAI Prefix)" },
+      { id: "openai/gpt-oss-20b", name: "GPT OSS 20B" },
       { id: "meta/llama-3.3-70b-instruct", name: "Llama 3.3 70B" },
       { id: "nvidia/llama-3.3-70b-instruct", name: "Llama 3.3 70B (NVIDIA Prefix)" },
       { id: "meta/llama-4-maverick-17b-128e-instruct", name: "Llama 4 Maverick" },
@@ -1243,8 +1341,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "deepseek-ai/DeepSeek-V3.2", name: "DeepSeek V3.2" },
-      { id: "deepseek-ai/DeepSeek-V3.1", name: "DeepSeek V3.1" },
+      {
+        id: "deepseek-ai/DeepSeek-V3.2",
+        name: "DeepSeek V3.2",
+        strip: ["image", "audio"],
+      },
+      {
+        id: "deepseek-ai/DeepSeek-V3.1",
+        name: "DeepSeek V3.1",
+        strip: ["image", "audio"],
+      },
       { id: "deepseek-ai/DeepSeek-R1", name: "DeepSeek R1" },
       { id: "Qwen/Qwen3-235B-A22B-Instruct-2507", name: "Qwen3 235B" },
       { id: "Qwen/Qwen3-Coder-480B-A35B-Instruct", name: "Qwen3 Coder 480B" },
@@ -1371,6 +1477,21 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "vertex-partner": {
+    id: "vertex-partner",
+    alias: "vp",
+    format: "gemini",
+    executor: "vertex",
+    baseUrl: "https://us-central1-aiplatform.googleapis.com/v1/projects",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2 (Vertex Partner)" },
+      { id: "qwen3-next-80b", name: "Qwen3 Next 80B (Vertex Partner)" },
+      { id: "glm-5", name: "GLM-5 (Vertex Partner)" },
+    ],
+  },
+
   alibaba: {
     id: "alibaba",
     alias: "ali",
@@ -1398,6 +1519,25 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen3-235b-a22b", name: "Qwen3 235B A22B" },
     ],
     passthroughModels: true,
+  },
+
+  modelscope: {
+    id: "modelscope",
+    alias: "ms",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api-inference.modelscope.cn/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    // ModelScope uses per-model quotas. Setting passthroughModels: true ensures 429/404
+    // only locks the specific model, not the entire connection. This allows fallback
+    // to other models on the same API key.
+    passthroughModels: true,
+    models: [
+      { id: "moonshotai/Kimi-K2.5", name: "Kimi K2.5" },
+      { id: "ZhipuAI/GLM-5", name: "GLM-5" },
+      { id: "stepfun-ai/Step-3.5-Flash", name: "Step-3.5-Flash" },
+    ],
   },
 
   // ── New Free Providers (2026) ─────────────────────────────────────────────
@@ -2128,8 +2268,14 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
   const cached = _unsupportedParamsMap.get(modelId);
   if (cached) return cached;
 
-  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3")
+  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3", "moonshotai/Kimi-K2.5" → "moonshotai/Kimi-K2.5")
+  // ModelScope models have slash in ID, check both full ID and bare ID
   if (modelId.includes("/")) {
+    // First check full model ID with provider prefix (e.g., "moonshotai/Kimi-K2.5")
+    const cachedWithPrefix = _unsupportedParamsMap.get(modelId);
+    if (cachedWithPrefix) return cachedWithPrefix;
+
+    // Fall back to bare ID (e.g., "Kimi-K2.5")
     const bareId = modelId.split("/").pop() || "";
     const bare = _unsupportedParamsMap.get(bareId);
     if (bare) return bare;
@@ -2154,6 +2300,7 @@ export function getProviderCategory(provider: string): "oauth" | "apikey" {
  * Derive the latest opus/sonnet/haiku model IDs from the `claude` registry entry.
  * Picks the first model whose ID matches each family pattern — registry order
  * determines precedence, so newer models should be listed first.
+ * @deprecated This function will be removed in v4.0, please use REGISTRY.claude?.models directly
  */
 export function getClaudeCodeDefaultModels(): {
   opus: string;

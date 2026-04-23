@@ -52,6 +52,7 @@ import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
 } from "@/lib/providers/requestDefaults";
+import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
@@ -326,6 +327,7 @@ function anyUpstreamHeadersBadge(
 interface ModelRowProps {
   model: { id: string; name?: string; source?: string; isHidden?: boolean };
   fullModel: string;
+  provider: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   t: (key: string, values?: Record<string, unknown>) => string;
@@ -410,10 +412,7 @@ interface CompatibleModelsSectionProps {
   onDeleteAlias: (alias: string) => void;
   connections: { id?: string; isActive?: boolean }[];
   isAnthropic?: boolean;
-  onImportWithProgress: (
-    fetchModels: () => Promise<{ models: unknown[] }>,
-    processModel: (model: unknown) => Promise<boolean>
-  ) => Promise<void>;
+  onImportWithProgress: (connectionId: string) => Promise<void>;
   t: (key: string, values?: Record<string, unknown>) => string;
   effectiveModelNormalize: (alias: string) => boolean;
   effectiveModelPreserveDeveloper: (alias: string) => boolean;
@@ -491,6 +490,7 @@ interface ConnectionRowConnection {
 interface ConnectionRowProps {
   connection: ConnectionRowConnection;
   isOAuth: boolean;
+  isClaude?: boolean;
   isCodex?: boolean;
   isFirst: boolean;
   isLast: boolean;
@@ -498,6 +498,7 @@ interface ConnectionRowProps {
   onMoveDown: () => void;
   onToggleActive: (isActive?: boolean) => void | Promise<void>;
   onToggleRateLimit: (enabled?: boolean) => void;
+  onToggleClaudeExtraUsage?: (enabled?: boolean) => void;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
   isCcCompatible?: boolean;
@@ -1014,8 +1015,8 @@ export default function ProviderDetailPage() {
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
-  // For Gemini: always use synced API models (empty if no keys added yet)
-  // For other providers: merge registry models with custom/imported models (deduped)
+  // Prefer synced API-discovered models when available, then merge built-ins
+  // and user-managed custom/imported models without duplicating IDs.
   const models = useMemo(() => {
     if (providerId === "gemini") {
       return syncedAvailableModels.map((model: any) => ({
@@ -1029,17 +1030,23 @@ export default function ProviderDetailPage() {
       source: "system",
     }));
 
-    if (!modelMeta.customModels || modelMeta.customModels.length === 0) return builtInModels;
-
     const registryIds = new Set(builtInModels.map((m) => m.id));
+    const syncedExtras = syncedAvailableModels
+      .filter((model: any) => model?.id && !registryIds.has(model.id))
+      .map((model: any) => ({
+        id: model.id,
+        name: model.name || model.id,
+        source: "api-sync",
+      }));
+    const knownIds = new Set([...registryIds, ...syncedExtras.map((model: any) => model.id)]);
     const customExtras = modelMeta.customModels
-      .filter((cm: any) => cm.id && !registryIds.has(cm.id))
+      .filter((cm: any) => cm.id && !knownIds.has(cm.id))
       .map((cm: any) => ({
         id: cm.id,
         name: cm.name || cm.id,
         source: cm.source === "api-sync" ? "api-sync" : "custom",
       }));
-    return [...builtInModels, ...customExtras];
+    return [...builtInModels, ...syncedExtras, ...customExtras];
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
@@ -1119,19 +1126,21 @@ export default function ProviderDetailPage() {
         customModels: data.models || [],
         modelCompatOverrides: data.modelCompatOverrides || [],
       });
-      // Fetch synced available models for Gemini
-      if (providerId === "gemini") {
-        try {
-          const syncRes = await fetch("/api/synced-available-models?provider=gemini", {
+      try {
+        const syncRes = await fetch(
+          `/api/synced-available-models?provider=${encodeURIComponent(providerId)}`,
+          {
             cache: "no-store",
-          });
-          if (syncRes.ok) {
-            const syncData = await syncRes.json();
-            setSyncedAvailableModels(syncData.models || []);
           }
-        } catch {
-          // Non-critical
+        );
+        if (syncRes.ok) {
+          const syncData = await syncRes.json();
+          setSyncedAvailableModels(syncData.models || []);
+        } else {
+          setSyncedAvailableModels([]);
         }
+      } catch {
+        setSyncedAvailableModels([]);
       }
     } catch (e) {
       console.error("fetchProviderModelMeta", e);
@@ -1345,10 +1354,16 @@ export default function ProviderDetailPage() {
             }
 
             const syncedCount = syncData.syncedModels || 0;
+            const availableCount =
+              typeof syncData.availableModelsCount === "number"
+                ? syncData.availableModelsCount
+                : Array.isArray(syncData.models)
+                  ? syncData.models.length
+                  : syncedCount;
             const syncedModelList: Array<{ id: string; name?: string }> = syncData.models || [];
             const logs: string[] = [];
             if (syncedModelList.length > 0) {
-              logs.push(`✓ ${syncedCount} models available`);
+              logs.push(`✓ ${availableCount} models available`);
               logs.push("");
               for (const m of syncedModelList) {
                 logs.push(`  ${m.name || m.id}`);
@@ -1358,10 +1373,10 @@ export default function ProviderDetailPage() {
             setImportProgress((prev) => ({
               ...prev,
               phase: "done",
-              status: t("modelsImported", { count: syncedCount }),
-              total: syncedCount,
-              current: syncedCount,
-              importedCount: syncedCount,
+              status: t("modelsImported", { count: availableCount }),
+              total: availableCount,
+              current: availableCount,
+              importedCount: availableCount,
               logs,
             }));
 
@@ -1435,6 +1450,66 @@ export default function ProviderDetailPage() {
       }
     } catch (error) {
       console.error("Error toggling rate limit:", error);
+    }
+  };
+
+  const handleToggleClaudeExtraUsage = async (connectionId, enabled) => {
+    try {
+      const target = connections.find((connection) => connection.id === connectionId);
+      if (!target) return;
+
+      const providerSpecificData =
+        target.providerSpecificData && typeof target.providerSpecificData === "object"
+          ? target.providerSpecificData
+          : {};
+
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSpecificData: {
+            ...providerSpecificData,
+            blockExtraUsage: enabled,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error || "Failed to update Claude extra-usage policy");
+        return;
+      }
+
+      setConnections((prev) =>
+        prev.map((connection) =>
+          connection.id === connectionId
+            ? {
+                ...connection,
+                providerSpecificData: {
+                  ...(connection.providerSpecificData || {}),
+                  blockExtraUsage: enabled,
+                },
+                ...(!enabled && connection.lastErrorSource === "extra_usage"
+                  ? {
+                      testStatus: "active",
+                      lastError: null,
+                      lastErrorAt: null,
+                      lastErrorType: null,
+                      lastErrorSource: null,
+                      errorCode: null,
+                      rateLimitedUntil: null,
+                    }
+                  : {}),
+              }
+            : connection
+        )
+      );
+      notify.success(
+        enabled ? "Claude extra-usage blocking enabled" : "Claude extra-usage blocking disabled"
+      );
+    } catch (error) {
+      console.error("Error toggling Claude extra-usage policy:", error);
+      notify.error("Failed to update Claude extra-usage policy");
     }
   };
 
@@ -1801,7 +1876,7 @@ export default function ProviderDetailPage() {
     });
 
     try {
-      const res = await fetch(`/api/providers/${activeConnection.id}/models`);
+      const res = await fetch(`/api/providers/${activeConnection.id}/models?refresh=true`);
       const data = await res.json();
       if (!res.ok) {
         setImportProgress((prev) => ({
@@ -1933,10 +2008,7 @@ export default function ProviderDetailPage() {
   };
 
   // Shared import handler for CompatibleModelsSection
-  const handleCompatibleImportWithProgress = async (
-    fetchModels: () => Promise<{ models: any[] }>,
-    processModel: (model: any) => Promise<boolean>
-  ) => {
+  const handleCompatibleImportWithProgress = async (connectionId: string) => {
     setShowImportModal(true);
     setImportProgress({
       current: 0,
@@ -1949,53 +2021,60 @@ export default function ProviderDetailPage() {
     });
 
     try {
-      const data = await fetchModels();
-      const models = data.models || [];
-      if (models.length === 0) {
+      const response = await fetch(`/api/providers/${connectionId}/sync-models?mode=import`, {
+        method: "POST",
+        signal: AbortSignal.timeout(60_000),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || t("failedImportModels"));
+      }
+
+      const importedModels = Array.isArray(data.importedModels) ? data.importedModels : [];
+      const importedCount =
+        typeof data.importedCount === "number" ? data.importedCount : importedModels.length;
+      const changedCount =
+        typeof data.importedChanges?.total === "number"
+          ? data.importedChanges.total
+          : importedCount;
+
+      if (importedModels.length === 0) {
         setImportProgress((prev) => ({
           ...prev,
           phase: "done",
-          status: t("noModelsFound"),
-          logs: [t("noModelsReturnedFromEndpoint")],
+          status:
+            importedCount > 0
+              ? t("importSuccessCount", { count: importedCount })
+              : t("noNewModelsAdded"),
+          logs: [
+            importedCount > 0
+              ? t("importDoneCount", { count: importedCount })
+              : t("noNewModelsAdded"),
+          ],
+          importedCount,
         }));
+        if (changedCount > 0) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        }
         return;
       }
 
       setImportProgress((prev) => ({
         ...prev,
-        phase: "importing",
-        total: models.length,
-        status: t("importingModelsProgress", { current: 0, total: models.length }),
-        logs: [t("foundModelsStartingImport", { count: models.length })],
-      }));
-
-      let importedCount = 0;
-      for (let i = 0; i < models.length; i++) {
-        const model = models[i];
-        const modelId = model.id || model.name || model.model;
-        if (!modelId) continue;
-
-        setImportProgress((prev) => ({
-          ...prev,
-          current: i + 1,
-          status: t("importingModelsProgress", { current: i + 1, total: models.length }),
-          logs: [...prev.logs, t("importingModelById", { modelId })],
-        }));
-
-        const added = await processModel(model);
-        if (added) importedCount += 1;
-      }
-
-      setImportProgress((prev) => ({
-        ...prev,
         phase: "done",
-        current: models.length,
+        total: importedModels.length,
+        current: importedModels.length,
         status:
           importedCount > 0
             ? t("importSuccessCount", { count: importedCount })
             : t("noNewModelsAdded"),
         logs: [
-          ...prev.logs,
+          t("foundModelsStartingImport", { count: importedModels.length }),
+          ...importedModels.map((model: any) =>
+            t("importingModelById", { modelId: model.id || model.name || model.model })
+          ),
           importedCount > 0
             ? t("importDoneCount", { count: importedCount })
             : t("noNewModelsAdded"),
@@ -2003,7 +2082,7 @@ export default function ProviderDetailPage() {
         importedCount,
       }));
 
-      if (importedCount > 0) {
+      if (changedCount > 0) {
         setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -2461,6 +2540,7 @@ export default function ProviderDetailPage() {
                 key={model.id}
                 model={model}
                 fullModel={`${providerDisplayAlias}/${model.id}`}
+                provider={providerId}
                 copied={copied}
                 onCopy={copy}
                 t={t}
@@ -2761,6 +2841,7 @@ export default function ProviderDetailPage() {
                         key={conn.id}
                         connection={conn}
                         isOAuth={conn.authType === "oauth"}
+                        isClaude={providerId === "claude"}
                         isFirst={index === 0}
                         isLast={index === sorted.length - 1}
                         onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
@@ -2769,6 +2850,9 @@ export default function ProviderDetailPage() {
                           handleUpdateConnectionStatus(conn.id, isActive)
                         }
                         onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                        onToggleClaudeExtraUsage={(enabled) =>
+                          handleToggleClaudeExtraUsage(conn.id, enabled)
+                        }
                         isCodex={providerId === "codex"}
                         isCcCompatible={isCcCompatible}
                         cliproxyapiEnabled={cpaProviderEnabled}
@@ -2873,6 +2957,7 @@ export default function ProviderDetailPage() {
                               key={conn.id}
                               connection={conn}
                               isOAuth={conn.authType === "oauth"}
+                              isClaude={providerId === "claude"}
                               isFirst={gi === 0 && index === 0}
                               isLast={
                                 gi === groupKeys.length - 1 && index === groupConns.length - 1
@@ -2888,6 +2973,9 @@ export default function ProviderDetailPage() {
                               }
                               onToggleRateLimit={(enabled) =>
                                 handleToggleRateLimit(conn.id, enabled)
+                              }
+                              onToggleClaudeExtraUsage={(enabled) =>
+                                handleToggleClaudeExtraUsage(conn.id, enabled)
                               }
                               isCodex={providerId === "codex"}
                               onToggleCodex5h={(enabled) =>
@@ -3330,6 +3418,7 @@ export default function ProviderDetailPage() {
 function ModelRow({
   model,
   fullModel,
+  provider,
   copied,
   onCopy,
   t,
@@ -3408,6 +3497,7 @@ ModelRow.propTypes = {
     id: PropTypes.string.isRequired,
   }).isRequired,
   fullModel: PropTypes.string.isRequired,
+  provider: PropTypes.string.isRequired,
   copied: PropTypes.string,
   onCopy: PropTypes.func.isRequired,
   t: PropTypes.func,
@@ -4411,49 +4501,11 @@ function CompatibleModelsSection({
   const handleImport = async () => {
     if (!allowImport || importing) return;
     const activeConnection = connections.find((conn) => conn.isActive !== false);
-    if (!activeConnection) return;
+    if (!activeConnection?.id) return;
 
     setImporting(true);
     try {
-      const workingAliases = { ...modelAliases };
-      await onImportWithProgress(
-        // fetchModels callback
-        async () => {
-          const res = await fetch(`/api/providers/${activeConnection.id}/models`);
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || t("failedImportModels"));
-          return data;
-        },
-        // processModel callback
-        async (model: any) => {
-          const modelId = model.id || model.name || model.model;
-          if (!modelId) return false;
-          const resolvedAlias = resolveAlias(modelId, workingAliases);
-          if (!resolvedAlias) return false;
-
-          // Save to customModels DB FIRST - only create alias if this succeeds
-          const customModelRes = await fetch("/api/provider-models", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              provider: providerStorageAlias,
-              modelId,
-              modelName: model.name || modelId,
-              source: "imported",
-            }),
-          });
-
-          if (!customModelRes.ok) {
-            notify.error(t("failedSaveImportedModel"));
-            return false;
-          }
-
-          // Only create alias after customModel is saved successfully
-          await onSetAlias(modelId, resolvedAlias, providerStorageAlias);
-          workingAliases[resolvedAlias] = `${providerStorageAlias}/${modelId}`;
-          return true;
-        }
-      );
+      await onImportWithProgress(activeConnection.id);
     } catch (error) {
       console.error("Error importing models:", error);
       notify.error(t("failedImportModelsTryAgain"));
@@ -4850,6 +4902,7 @@ function getStatusPresentation(connection, effectiveStatus, isCooldown, t) {
 function ConnectionRow({
   connection,
   isOAuth,
+  isClaude,
   isCodex,
   isCcCompatible,
   cliproxyapiEnabled,
@@ -4859,6 +4912,7 @@ function ConnectionRow({
   onMoveDown,
   onToggleActive,
   onToggleRateLimit,
+  onToggleClaudeExtraUsage,
   onToggleCodex5h,
   onToggleCodexWeekly,
   onToggleCliproxyapiMode,
@@ -4953,6 +5007,9 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
+  const claudeBlockExtraUsageEnabled = isClaude
+    ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
+    : false;
   const cliproxyapiDeepMode = !!cliproxyapiEnabled;
 
   return (
@@ -5043,6 +5100,23 @@ function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
+            {isClaude && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleClaudeExtraUsage?.(!claudeBlockExtraUsageEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    claudeBlockExtraUsageEnabled
+                      ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title="Toggle Claude extra-usage blocking"
+                >
+                  <span className="material-symbols-outlined text-[13px]">payments</span>
+                  Block Extra {claudeBlockExtraUsageEnabled ? "ON" : "OFF"}
+                </button>
+              </>
+            )}
             {isCcCompatible && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
@@ -5244,6 +5318,7 @@ ConnectionRow.propTypes = {
     providerSpecificData: PropTypes.object,
   }).isRequired,
   isOAuth: PropTypes.bool.isRequired,
+  isClaude: PropTypes.bool,
   isCodex: PropTypes.bool,
   isFirst: PropTypes.bool.isRequired,
   isLast: PropTypes.bool.isRequired,
@@ -5251,6 +5326,7 @@ ConnectionRow.propTypes = {
   onMoveDown: PropTypes.func.isRequired,
   onToggleActive: PropTypes.func.isRequired,
   onToggleRateLimit: PropTypes.func.isRequired,
+  onToggleClaudeExtraUsage: PropTypes.func,
   onToggleCodex5h: PropTypes.func,
   onToggleCodexWeekly: PropTypes.func,
   isCcCompatible: PropTypes.bool,
@@ -5268,6 +5344,7 @@ ConnectionRow.propTypes = {
 };
 
 const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
+  "azure-openai",
   "bailian-coding-plan",
   "xiaomi-mimo",
   "heroku",
@@ -5277,6 +5354,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
 ]);
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
+  "azure-openai": "https://example-resource.openai.azure.com",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
   "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
   "searxng-search": "http://localhost:8888/search",
@@ -5288,6 +5366,8 @@ function getProviderBaseUrlDefault(providerId?: string | null) {
 
 function getProviderBaseUrlHint(providerId?: string | null) {
   switch (providerId) {
+    case "azure-openai":
+      return "Required: paste your Azure OpenAI resource endpoint. OmniRoute will append /openai/deployments/{model}/chat/completions?api-version=....";
     case "bailian-coding-plan":
       return "Optional: Custom base URL for bailian-coding-plan provider";
     case "xiaomi-mimo":
@@ -5307,6 +5387,8 @@ function getProviderBaseUrlHint(providerId?: string | null) {
 
 function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   switch (providerId) {
+    case "azure-openai":
+      return "https://my-resource.openai.azure.com";
     case "bailian-coding-plan":
     case "xiaomi-mimo":
       return getProviderBaseUrlDefault(providerId);
@@ -5376,7 +5458,7 @@ function AddApiKeyModal({
   const t = useTranslations("providers");
   const usesBaseUrl = CONFIGURABLE_BASE_URL_PROVIDERS.has(provider || "");
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
-  const isVertex = provider === "vertex";
+  const isVertex = provider === "vertex" || provider === "vertex-partner";
   const defaultRegion = "us-central1";
   const isGlm = provider === "glm" || provider === "glmt";
   const isQoder = provider === "qoder";
@@ -5385,7 +5467,9 @@ function AddApiKeyModal({
   const isGooglePse = provider === "google-pse-search";
   const isGrokWeb = provider === "grok-web";
   const isPerplexityWeb = provider === "perplexity-web";
-  const isWebSessionProvider = isGrokWeb || isPerplexityWeb;
+  const isBlackboxWeb = provider === "blackbox-web";
+  const isMuseSparkWeb = provider === "muse-spark-web";
+  const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
   const apiKeyOptional = isSearxng;
 
   const [formData, setFormData] = useState({
@@ -5403,6 +5487,7 @@ function AddApiKeyModal({
     accountId: "",
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    passthroughModels: false,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -5496,6 +5581,9 @@ function AddApiKeyModal({
       if (formData.excludedModels.trim()) {
         providerSpecificData.excludedModels = parseExcludedModelsInput(formData.excludedModels);
       }
+      if (formData.passthroughModels) {
+        providerSpecificData.passthroughModels = true;
+      }
       if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
         providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
       }
@@ -5570,11 +5658,15 @@ function AddApiKeyModal({
                   ? "Paste your sso cookie value from grok.com"
                   : isPerplexityWeb
                     ? "Paste your __Secure-next-auth.session-token value"
-                    : isSearxng
-                      ? "Optional"
-                      : isQoder
-                        ? "Paste your Qoder Personal Access Token"
-                        : undefined
+                    : isBlackboxWeb
+                      ? "Paste your __Secure-authjs.session-token value"
+                      : isMuseSparkWeb
+                        ? "Paste your abra_sess value"
+                        : isSearxng
+                          ? "Optional"
+                          : isQoder
+                            ? "Paste your Qoder Personal Access Token"
+                            : undefined
             }
             hint={
               isQoder
@@ -5583,9 +5675,13 @@ function AddApiKeyModal({
                   ? "Paste the sso cookie from grok.com. A full 'sso=...' value also works."
                   : isPerplexityWeb
                     ? "Paste the __Secure-next-auth.session-token cookie from perplexity.ai."
-                    : isSearxng
-                      ? "Optional. Leave blank if your SearXNG instance does not require authentication."
-                      : undefined
+                    : isBlackboxWeb
+                      ? "Paste the __Secure-authjs.session-token cookie from app.blackbox.ai. A full cookie header also works."
+                      : isMuseSparkWeb
+                        ? "Paste the abra_sess cookie from meta.ai. A full cookie header also works."
+                        : isSearxng
+                          ? "Optional. Leave blank if your SearXNG instance does not require authentication."
+                          : undefined
             }
           />
           <div className="pt-6">
@@ -5685,6 +5781,13 @@ function AddApiKeyModal({
               onChange={(e) => setFormData({ ...formData, excludedModels: e.target.value })}
               placeholder="gpt-5*, claude-opus-*, gemini-*-pro*"
               hint="Comma-separated wildcard patterns. This connection will never serve matching models."
+            />
+            <Toggle
+              size="sm"
+              checked={formData.passthroughModels}
+              onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
+              label={t("perModelQuotaLabel")}
+              description={t("perModelQuotaDescription")}
             />
             {provider === "bailian-coding-plan" && (
               <Input
@@ -5826,6 +5929,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    blockExtraUsage:
+      connection?.provider === "claude"
+        ? isClaudeExtraUsageBlockEnabled(connection?.provider, connection?.providerSpecificData)
+        : false,
+    passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -5841,10 +5949,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 
   const usesBaseUrl = CONFIGURABLE_BASE_URL_PROVIDERS.has(connection?.provider || "");
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
-  const isVertex = connection?.provider === "vertex";
+  const isVertex = connection?.provider === "vertex" || connection?.provider === "vertex-partner";
   const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
+  const isClaude = connection?.provider === "claude";
   const isSearxng = connection?.provider === "searxng-search";
   const isGooglePse = connection?.provider === "google-pse-search";
   const apiKeyOptional = isSearxng;
@@ -5897,6 +6006,11 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
+        blockExtraUsage: isClaudeExtraUsageBlockEnabled(
+          connection.provider,
+          connection.providerSpecificData
+        ),
+        passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
       });
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
@@ -6049,6 +6163,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tags: parseRoutingTagsInput(formData.routingTags),
           excludedModels: parseExcludedModelsInput(formData.excludedModels),
           customUserAgent: formData.customUserAgent.trim(),
+          // Only write when explicitly enabled; omit to let registry default take effect
+          ...(formData.passthroughModels ? { passthroughModels: true } : {}),
         };
         if (connection.provider === "bailian-coding-plan") {
           if (formData.consoleApiKey.trim()) {
@@ -6095,6 +6211,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           tags: parseRoutingTagsInput(formData.routingTags),
           excludedModels: parseExcludedModelsInput(formData.excludedModels),
         };
+        if (isClaude) {
+          updates.providerSpecificData.blockExtraUsage = formData.blockExtraUsage;
+        }
         if (isCodex) {
           updates.providerSpecificData.requestDefaults = {
             reasoningEffort: formData.codexReasoningEffort,
@@ -6174,6 +6293,16 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(checked) => setFormData({ ...formData, codexOpenaiStoreEnabled: checked })}
               label="OpenAI Responses Store"
               description="Preserves `store`, `previous_response_id`, and adds a stable fallback `session_id` for long Codex sessions. Enable only when the upstream account accepts stored Responses."
+            />
+          </div>
+        )}
+        {isClaude && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Toggle
+              checked={formData.blockExtraUsage}
+              onChange={(checked) => setFormData({ ...formData, blockExtraUsage: checked })}
+              label="Block Claude Extra Usage"
+              description="When enabled, OmniRoute marks this Claude Code account unavailable as soon as the usage API reports `extra_usage.queued`, so fallback switches to another account before extra pay-as-you-go charges continue."
             />
           </div>
         )}
@@ -6324,6 +6453,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                   onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
                   placeholder="my-app/1.0"
                   hint="Optional override sent upstream as the User-Agent header for this connection"
+                />
+                <Toggle
+                  size="sm"
+                  checked={formData.passthroughModels}
+                  onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
+                  label={t("perModelQuotaLabel")}
+                  description={t("perModelQuotaDescription")}
                 />
                 {connection.provider === "bailian-coding-plan" && (
                   <Input

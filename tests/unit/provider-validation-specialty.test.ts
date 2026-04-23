@@ -10,6 +10,30 @@ test.afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 
+function metaAiSseText(content: string, streamingState = "DONE") {
+  return `event: next
+data: ${JSON.stringify({
+    data: {
+      sendMessageStream: {
+        __typename: "AssistantMessage",
+        id: "meta-msg-1",
+        content,
+        streamingState,
+        error:
+          streamingState === "ERROR"
+            ? { message: content, code: null, stack: "Error: " + content }
+            : null,
+        contentRenderer: { __typename: "TextContentRenderer", text: content },
+      },
+    },
+  })}
+
+event: complete
+data:
+
+`;
+}
+
 test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, ElevenLabs and Inworld branches", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
@@ -83,7 +107,7 @@ test("specialty providers surface network failures and non-auth upstream failure
   assert.equal(longcat.error, "longcat offline");
 });
 
-test("web-cookie provider validators accept valid Grok and Perplexity session cookies", async () => {
+test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and Muse Spark session cookies", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
@@ -95,6 +119,30 @@ test("web-cookie provider validators accept valid Grok and Perplexity session co
     if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     }
+    if (target.includes("app.blackbox.ai/api/auth/session")) {
+      return new Response(
+        JSON.stringify({
+          user: { id: "bb-user-1", email: "premium@example.com" },
+        }),
+        { status: 200 }
+      );
+    }
+    if (target.includes("app.blackbox.ai/api/check-subscription")) {
+      return new Response(
+        JSON.stringify({
+          hasActiveSubscription: true,
+          isTrialSubscription: false,
+          plan: "pro",
+        }),
+        { status: 200 }
+      );
+    }
+    if (target.includes("meta.ai/api/graphql")) {
+      return new Response(metaAiSseText("Muse Spark says hello"), {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    }
 
     throw new Error(`unexpected fetch: ${target}`);
   };
@@ -104,21 +152,82 @@ test("web-cookie provider validators accept valid Grok and Perplexity session co
     provider: "perplexity-web",
     apiKey: "__Secure-next-auth.session-token=pplx-cookie",
   });
+  const blackbox = await validateProviderApiKey({
+    provider: "blackbox-web",
+    apiKey: "__Secure-authjs.session-token=bb-cookie",
+  });
+  const museSpark = await validateProviderApiKey({
+    provider: "muse-spark-web",
+    apiKey: "abra_sess=meta-cookie",
+  });
 
   assert.equal(grok.valid, true);
   assert.equal(perplexity.valid, true);
-  assert.equal(calls[0].init.headers.Cookie, "sso=grok-cookie");
-  assert.equal(calls[1].init.headers.Cookie, "__Secure-next-auth.session-token=pplx-cookie");
+  assert.equal(blackbox.valid, true);
+  assert.equal(museSpark.valid, true);
+
+  const grokCall = calls.find((call) =>
+    call.url.includes("grok.com/rest/app-chat/conversations/new")
+  );
+  const perplexityCall = calls.find((call) =>
+    call.url.includes("perplexity.ai/rest/sse/perplexity_ask")
+  );
+  const blackboxSessionCall = calls.find((call) =>
+    call.url.includes("app.blackbox.ai/api/auth/session")
+  );
+  const blackboxSubscriptionCall = calls.find((call) =>
+    call.url.includes("app.blackbox.ai/api/check-subscription")
+  );
+  const museSparkCall = calls.find((call) => call.url.includes("meta.ai/api/graphql"));
+
+  assert.equal(grokCall?.init.headers.Cookie, "sso=grok-cookie");
+  assert.equal(perplexityCall?.init.headers.Cookie, "__Secure-next-auth.session-token=pplx-cookie");
+  assert.equal(blackboxSessionCall?.init.headers.Cookie, "__Secure-authjs.session-token=bb-cookie");
+  assert.equal(
+    blackboxSubscriptionCall?.init.headers.Cookie,
+    "__Secure-authjs.session-token=bb-cookie"
+  );
+  assert.equal(museSparkCall?.init.headers.Cookie, "abra_sess=meta-cookie");
+  assert.equal(museSparkCall?.init.headers["X-FB-Friendly-Name"], "useAbraSendMessageMutation");
 });
 
-test("web-cookie provider validators surface auth failures for expired session cookies", async () => {
-  globalThis.fetch = async (url) => {
+test("web-cookie provider validators surface auth and subscription failures", async () => {
+  globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     if (target.includes("grok.com/rest/app-chat/conversations/new")) {
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
     }
     if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
       return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+    if (target.includes("app.blackbox.ai/api/auth/session")) {
+      const cookie = (init.headers as Record<string, string>)?.Cookie || "";
+      if (cookie.includes("expired-cookie")) {
+        return new Response("null", { status: 200 });
+      }
+      return new Response(
+        JSON.stringify({
+          user: { id: "bb-user-2", email: "free@example.com" },
+        }),
+        { status: 200 }
+      );
+    }
+    if (target.includes("app.blackbox.ai/api/check-subscription")) {
+      return new Response(
+        JSON.stringify({
+          hasActiveSubscription: false,
+          isTrialSubscription: false,
+          previouslySubscribed: true,
+          plan: "free",
+        }),
+        { status: 200 }
+      );
+    }
+    if (target.includes("meta.ai/api/graphql")) {
+      return new Response(metaAiSseText("Authentication required to send messages", "ERROR"), {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
     }
 
     throw new Error(`unexpected fetch: ${target}`);
@@ -129,9 +238,24 @@ test("web-cookie provider validators surface auth failures for expired session c
     provider: "perplexity-web",
     apiKey: "pplx-cookie",
   });
+  const blackboxExpired = await validateProviderApiKey({
+    provider: "blackbox-web",
+    apiKey: "expired-cookie",
+  });
+  const blackboxNoSubscription = await validateProviderApiKey({
+    provider: "blackbox-web",
+    apiKey: "free-account-cookie",
+  });
+  const museSpark = await validateProviderApiKey({
+    provider: "muse-spark-web",
+    apiKey: "meta-cookie",
+  });
 
   assert.match(grok.error || "", /Invalid SSO cookie/i);
   assert.match(perplexity.error || "", /Invalid Perplexity session cookie/i);
+  assert.match(blackboxExpired.error || "", /Invalid Blackbox session cookie/i);
+  assert.match(blackboxNoSubscription.error || "", /no active paid subscription/i);
+  assert.match(museSpark.error || "", /Invalid Meta AI session cookie/i);
 });
 
 test("search provider validators cover success, client errors, server errors and custom user agent injection", async () => {
