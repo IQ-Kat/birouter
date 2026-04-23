@@ -24,6 +24,7 @@ const executors = {
   github: new GithubExecutor(),
   qoder: new QoderExecutor(),
   kiro: new KiroExecutor(),
+  "amazon-q": new KiroExecutor("amazon-q"),
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
   cu: new CursorExecutor(), // Alias for cursor

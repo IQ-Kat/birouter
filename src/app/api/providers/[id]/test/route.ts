@@ -81,6 +81,10 @@ const OAUTH_TEST_CONFIG = {
     checkExpiry: true,
     refreshable: true,
   },
+  "amazon-q": {
+    checkExpiry: true,
+    refreshable: true,
+  },
 };
 
 const CLI_RUNTIME_PROVIDER_MAP = {

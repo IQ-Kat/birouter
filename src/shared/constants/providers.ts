@@ -24,6 +24,17 @@ export const FREE_PROVIDERS = {
       "Google restricts third-party OAuth usage for Gemini CLI (Mar 2026). Pro models require paid plans. Use 'gemini' (API key) provider instead.",
   },
   kiro: { id: "kiro", alias: "kr", name: "Kiro AI", icon: "psychology_alt", color: "#FF6B35" },
+  "amazon-q": {
+    id: "amazon-q",
+    alias: "aq",
+    name: "Amazon Q",
+    icon: "cloud",
+    color: "#FF9900",
+    textIcon: "AQ",
+    website: "https://aws.amazon.com/q/developer/",
+    authHint:
+      "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
+  },
 };
 
 export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
@@ -948,6 +959,26 @@ export const APIKEY_PROVIDERS = {
     authHint: "Bearer API key for the FenayAI OpenAI-compatible gateway.",
     passthroughModels: true,
   },
+  "voyage-ai": {
+    id: "voyage-ai",
+    alias: "voyage",
+    name: "Voyage AI",
+    icon: "blur_on",
+    color: "#0F766E",
+    textIcon: "VA",
+    website: "https://www.voyageai.com",
+    authHint: "Bearer API key for Voyage AI embeddings and rerank APIs.",
+  },
+  "jina-ai": {
+    id: "jina-ai",
+    alias: "jina",
+    name: "Jina AI",
+    icon: "sort",
+    color: "#2563EB",
+    textIcon: "JA",
+    website: "https://jina.ai",
+    authHint: "Bearer API key for the Jina AI rerank API.",
+  },
   "fal-ai": {
     id: "fal-ai",
     alias: "fal",
@@ -1378,6 +1409,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "antigravity",
   "gemini-cli",
   "kiro",
+  "amazon-q",
   "github",
   "codex",
   "claude",

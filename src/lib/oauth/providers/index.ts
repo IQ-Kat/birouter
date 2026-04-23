@@ -33,6 +33,7 @@ export const PROVIDERS = {
   "kimi-coding": kimiCoding,
   github,
   kiro,
+  "amazon-q": kiro,
   cursor,
   kilocode,
   cline,

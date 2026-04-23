@@ -260,6 +260,7 @@ export const PROVIDERS = {
   OPENAI: "openai",
   GITHUB: "github",
   KIRO: "kiro",
+  AMAZON_Q: "amazon-q",
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",

@@ -107,6 +107,55 @@ test("specialty providers surface network failures and non-auth upstream failure
   assert.equal(longcat.error, "longcat offline");
 });
 
+test("embedding and rerank specialty validators cover Voyage AI and Jina AI", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.voyageai.com/v1/embeddings") {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer voyage-key");
+      const body = JSON.parse(String(init.body));
+      assert.equal(body.model, "voyage-4-large");
+      return new Response(JSON.stringify({ data: [{ embedding: [0.1, 0.2] }] }), { status: 200 });
+    }
+
+    if (target === "https://api.jina.ai/v1/rerank") {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer jina-key");
+      const body = JSON.parse(String(init.body));
+      assert.equal(body.model, "jina-reranker-v3");
+      return new Response(JSON.stringify({ results: [{ index: 0, relevance_score: 0.99 }] }), {
+        status: 200,
+      });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const voyage = await validateProviderApiKey({ provider: "voyage-ai", apiKey: "voyage-key" });
+  const jina = await validateProviderApiKey({ provider: "jina-ai", apiKey: "jina-key" });
+
+  assert.equal(voyage.valid, true);
+  assert.equal(jina.valid, true);
+});
+
+test("embedding and rerank specialty validators surface auth failures for Voyage AI and Jina AI", async () => {
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+    if (target === "https://api.voyageai.com/v1/embeddings") {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+    if (target === "https://api.jina.ai/v1/rerank") {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const voyage = await validateProviderApiKey({ provider: "voyage-ai", apiKey: "voyage-key" });
+  const jina = await validateProviderApiKey({ provider: "jina-ai", apiKey: "jina-key" });
+
+  assert.equal(voyage.error, "Invalid API key");
+  assert.equal(jina.error, "Invalid API key");
+});
+
 test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and Muse Spark session cookies", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {

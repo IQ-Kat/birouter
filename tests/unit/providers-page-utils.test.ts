@@ -215,16 +215,22 @@ test("configured-only preference storage round-trips correctly", () => {
 });
 
 test("static catalog entries resolve local, search, audio, web-cookie and upstream providers", () => {
+  const freeProvider = providerPageUtils.resolveDashboardProviderInfo("amazon-q");
   const localProvider = providerPageUtils.resolveDashboardProviderInfo("sdwebui");
   const localChatProvider = providerPageUtils.resolveDashboardProviderInfo("lm-studio");
   const searchProvider = providerPageUtils.resolveDashboardProviderInfo("brave-search");
   const audioProvider = providerPageUtils.resolveDashboardProviderInfo("assemblyai");
   const webCookieProvider = providerPageUtils.resolveDashboardProviderInfo("grok-web");
   const apiKeyProvider = providerPageUtils.resolveDashboardProviderInfo("glhf");
+  const embeddingProvider = providerPageUtils.resolveDashboardProviderInfo("voyage-ai");
+  const rerankProvider = providerPageUtils.resolveDashboardProviderInfo("jina-ai");
   const perplexityWebProvider = providerPageUtils.resolveDashboardProviderInfo("perplexity-web");
   const blackboxWebProvider = providerPageUtils.resolveDashboardProviderInfo("blackbox-web");
   const museSparkWebProvider = providerPageUtils.resolveDashboardProviderInfo("muse-spark-web");
   const upstreamProvider = providerPageUtils.resolveDashboardProviderInfo("cliproxyapi");
+
+  assert.equal(freeProvider?.category, "free");
+  assert.equal(freeProvider?.name, providers.FREE_PROVIDERS["amazon-q"].name);
 
   assert.equal(localProvider?.category, "local");
   assert.equal(localProvider?.name, providers.LOCAL_PROVIDERS.sdwebui.name);
@@ -239,6 +245,12 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
 
   assert.equal(apiKeyProvider?.category, "apikey");
   assert.equal(apiKeyProvider?.name, providers.APIKEY_PROVIDERS.glhf.name);
+
+  assert.equal(embeddingProvider?.category, "apikey");
+  assert.equal(embeddingProvider?.name, providers.APIKEY_PROVIDERS["voyage-ai"].name);
+
+  assert.equal(rerankProvider?.category, "apikey");
+  assert.equal(rerankProvider?.name, providers.APIKEY_PROVIDERS["jina-ai"].name);
 
   assert.equal(webCookieProvider?.category, "web-cookie");
   assert.equal(webCookieProvider?.name, providers.WEB_COOKIE_PROVIDERS["grok-web"].name);
@@ -265,6 +277,8 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("cablyai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("thebai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("fenayai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("voyage-ai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("jina-ai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("sdwebui"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("lm-studio"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("vllm"), true);
@@ -297,6 +311,8 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal("cablyai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("thebai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("fenayai" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("voyage-ai" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("jina-ai" in providers.APIKEY_PROVIDERS, true);
 
   const apiKeyEntries = providerPageUtils.buildStaticProviderEntries("apikey", () => ({
     total: 0,
@@ -342,6 +358,14 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "fenayai"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "voyage-ai"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "jina-ai"),
     true
   );
   assert.equal(

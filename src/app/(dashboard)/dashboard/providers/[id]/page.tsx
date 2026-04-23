@@ -3120,10 +3120,10 @@ export default function ProviderDetailPage() {
 
       {/* Modals */}
       {!isUpstreamProxyProvider &&
-        (providerId === "kiro" ? (
+        (providerId === "kiro" || providerId === "amazon-q" ? (
           <KiroOAuthWrapper
             isOpen={showOAuthModal}
-            providerInfo={providerInfo}
+            providerInfo={{ ...providerInfo, id: providerId }}
             onSuccess={handleOAuthSuccess}
             onClose={() => {
               setShowOAuthModal(false);

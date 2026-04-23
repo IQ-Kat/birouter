@@ -63,6 +63,22 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "voyage-ai",
+      body: {
+        provider: "voyage-ai",
+        apiKey: "voyage-key",
+        name: "Voyage AI Primary",
+      },
+    },
+    {
+      provider: "jina-ai",
+      body: {
+        provider: "jina-ai",
+        apiKey: "jina-key",
+        name: "Jina AI Primary",
+      },
+    },
+    {
       provider: "sdwebui",
       body: {
         provider: "sdwebui",

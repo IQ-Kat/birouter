@@ -496,6 +496,7 @@ export async function getUsageForProvider(connection) {
     case "codex":
       return await getCodexUsage(accessToken, providerSpecificData);
     case "kiro":
+    case "amazon-q":
       return await getKiroUsage(accessToken, providerSpecificData);
     case "kimi-coding":
       return await getKimiUsage(accessToken);

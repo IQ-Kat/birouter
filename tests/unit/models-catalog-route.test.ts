@@ -251,6 +251,64 @@ test("v1 models catalog exposes claude alias and provider-prefixed built-in mode
   assert.deepEqual(aliasModel.output_modalities, ["text"]);
 });
 
+test("v1 models catalog exposes amazon-q alias and provider-prefixed models via the kiro-compatible registry", async () => {
+  await seedConnection("amazon-q", {
+    authType: "oauth",
+    name: "amazon-q-main",
+    apiKey: null,
+    accessToken: "amazon-q-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const aliasModel = body.data.find((item) => item.id === "aq/claude-sonnet-4.5");
+  const providerModel = body.data.find((item) => item.id === "amazon-q/claude-sonnet-4.5");
+
+  assert.equal(response.status, 200);
+  assert.ok(aliasModel);
+  assert.ok(providerModel);
+  assert.equal(providerModel.parent, aliasModel.id);
+  assert.equal(aliasModel.owned_by, "amazon-q");
+});
+
+test("v1 models catalog exposes refreshed GitHub Copilot aliases and drops retired models", async () => {
+  await seedConnection("github", {
+    authType: "oauth",
+    name: "github-current",
+    apiKey: null,
+    accessToken: "github-access",
+    providerSpecificData: {
+      copilotToken: "copilot-token",
+    },
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const aliasModel = body.data.find((item) => item.id === "gh/gpt-5.4");
+  const providerModel = body.data.find((item) => item.id === "github/gpt-5.4");
+  const codexModel = body.data.find((item) => item.id === "gh/gpt-5.3-codex");
+  const opusModel = body.data.find((item) => item.id === "github/claude-opus-4.7");
+
+  assert.equal(response.status, 200);
+  assert.ok(aliasModel);
+  assert.ok(providerModel);
+  assert.ok(codexModel);
+  assert.ok(opusModel);
+  assert.equal(providerModel.parent, aliasModel.id);
+  assert.equal(
+    body.data.some((item) => item.id === "gh/gpt-5.1"),
+    false
+  );
+  assert.equal(
+    body.data.some((item) => item.id === "gh/claude-opus-4.1"),
+    false
+  );
+});
+
 test("v1 models catalog exposes Antigravity client-visible preview aliases instead of upstream internal IDs", async () => {
   await seedConnection("antigravity", {
     authType: "oauth",

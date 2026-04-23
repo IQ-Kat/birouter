@@ -1,4 +1,6 @@
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
+import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   buildClaudeCodeCompatibleValidationPayload,
@@ -267,6 +269,90 @@ async function validateDirectChatProvider({ url, headers, body, providerSpecific
       method: "POST",
       headers: applyCustomUserAgent(headers, providerSpecificData),
       body: JSON.stringify(body),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateEmbeddingApiProvider({
+  apiKey,
+  providerSpecificData = {},
+  url,
+  modelId,
+}: any) {
+  if (!url) {
+    return { valid: false, error: "Missing embedding endpoint" };
+  }
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: providerSpecificData?.validationModelId || modelId,
+        input: ["test"],
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429
+    ) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateRerankApiProvider({ apiKey, providerSpecificData = {}, url, modelId }: any) {
+  if (!url) {
+    return { valid: false, error: "Missing rerank endpoint" };
+  }
+
+  try {
+    const response = await validationWrite(url, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: providerSpecificData?.validationModelId || modelId,
+        query: "test",
+        documents: ["test"],
+        top_n: 1,
+        return_documents: false,
+      }),
     });
 
     if (response.status === 401 || response.status === 403) {
@@ -1690,6 +1776,24 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "blackbox-web": validateBlackboxWebProvider,
     "muse-spark-web": validateMuseSparkWebProvider,
     "azure-openai": validateAzureOpenAIProvider,
+    "voyage-ai": ({ apiKey, providerSpecificData }: any) => {
+      const embeddingProvider = getEmbeddingProvider("voyage-ai");
+      return validateEmbeddingApiProvider({
+        apiKey,
+        providerSpecificData,
+        url: embeddingProvider?.baseUrl,
+        modelId: embeddingProvider?.models?.[0]?.id || "voyage-4-lite",
+      });
+    },
+    "jina-ai": ({ apiKey, providerSpecificData }: any) => {
+      const rerankProvider = getRerankProvider("jina-ai");
+      return validateRerankApiProvider({
+        apiKey,
+        providerSpecificData,
+        url: rerankProvider?.baseUrl,
+        modelId: rerankProvider?.models?.[0]?.id || "jina-reranker-v3",
+      });
+    },
     vertex: async ({ apiKey }: any) => {
       try {
         const { parseSAFromApiKey, getAccessToken } =

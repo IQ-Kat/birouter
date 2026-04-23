@@ -661,6 +661,15 @@ test("usage service covers Codex, Kiro and Kimi usage parsing and error branches
   assert.equal(kiro.quotas.agentic_request.used, 12);
   assert.equal(kiro.quotas.agentic_request_freetrial.remaining, 3);
 
+  const amazonQ: any = await usageService.getUsageForProvider({
+    provider: "amazon-q",
+    accessToken: "amazon-q-token",
+    providerSpecificData: { profileArn: "arn:test:amazon-q" },
+  });
+  assert.equal(amazonQ.plan, "Kiro Pro");
+  assert.equal(amazonQ.quotas.agentic_request.used, 12);
+  assert.equal(amazonQ.quotas.agentic_request_freetrial.remaining, 3);
+
   const kimi: any = await usageService.getUsageForProvider({
     provider: "kimi-coding",
     accessToken: "kimi-token",

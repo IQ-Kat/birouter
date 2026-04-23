@@ -6,7 +6,7 @@ import {
   isSelfHostedChatProvider,
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { PROVIDER_MODELS } from "@/shared/constants/models";
+import { getModelsByProviderId } from "@/shared/constants/models";
 import {
   getProviderConnectionById,
   getModelIsHidden,
@@ -29,6 +29,8 @@ import {
   getClientVisibleAntigravityModelName,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
+import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import {
   getCachedDiscoveredModels,
   isAutoFetchModelsEnabled,
@@ -194,6 +196,22 @@ export function getStaticModelsForProvider(
   const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
   if (staticModelsFn) {
     return staticModelsFn();
+  }
+
+  const embeddingProvider = getEmbeddingProvider(provider);
+  if (embeddingProvider) {
+    return embeddingProvider.models.map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    }));
+  }
+
+  const rerankProvider = getRerankProvider(provider);
+  if (rerankProvider) {
+    return rerankProvider.models.map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    }));
   }
 
   const imageProvider = getImageProvider(provider);
@@ -551,13 +569,16 @@ export async function GET(
     const accessToken = typeof connection.accessToken === "string" ? connection.accessToken : "";
     const autoFetchModels = isAutoFetchModelsEnabled(connection.providerSpecificData);
     const cachedDiscoveryModels = await getCachedDiscoveredModels(provider, connectionId);
+    const registryCatalogModels = getModelsByProviderId(provider) || [];
+    const specialtyCatalogModels = getStaticModelsForProvider(provider) || [];
 
     const toLocalCatalogModels = () => {
-      const localCatalog = getStaticModelsForProvider(provider) || PROVIDER_MODELS[provider] || [];
+      const localCatalog =
+        registryCatalogModels.length > 0 ? registryCatalogModels : specialtyCatalogModels;
       return localCatalog.map((model: any) => ({
         id: model.id,
         name: model.name || model.id,
-        owned_by: provider,
+        ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
       }));
     };
 
@@ -1044,18 +1065,9 @@ export async function GET(
         : undefined;
 
     // Static model providers (no remote /models API)
-    const staticModels = getStaticModelsForProvider(provider);
-    if (!config && staticModels) {
-      return buildResponse({
-        provider,
-        connectionId,
-        models: staticModels,
-      });
-    }
-
     // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
     if (provider === "qwen" && connection.authType === "oauth") {
-      const qwenModels = PROVIDER_MODELS["qwen"] || [];
+      const qwenModels = getModelsByProviderId("qwen");
       return buildResponse({
         provider,
         connectionId,
@@ -1069,9 +1081,7 @@ export async function GET(
     }
 
     const localCatalog =
-      (config
-        ? PROVIDER_MODELS[provider] || staticModels
-        : staticModels || PROVIDER_MODELS[provider]) || [];
+      registryCatalogModels.length > 0 ? registryCatalogModels : specialtyCatalogModels;
     if (!config && localCatalog.length > 0) {
       return buildResponse({
         provider,
@@ -1079,7 +1089,7 @@ export async function GET(
         models: localCatalog.map((m: any) => ({
           id: m.id,
           name: m.name || m.id,
-          owned_by: provider,
+          ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),
         source: "local_catalog",
         warning: "API unavailable — using local catalog",

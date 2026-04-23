@@ -326,6 +326,94 @@ test("provider models route fetches remote catalogs for new OpenAI-compatible ga
   }
 });
 
+test("provider models route returns the local catalog for embedding and rerank providers", async () => {
+  const voyage = await seedConnection("voyage-ai", {
+    apiKey: "voyage-key",
+  });
+  const jina = await seedConnection("jina-ai", {
+    apiKey: "jina-key",
+  });
+
+  const [voyageResponse, jinaResponse] = await Promise.all([
+    callRoute(voyage.id),
+    callRoute(jina.id),
+  ]);
+  const voyageBody = (await voyageResponse.json()) as any;
+  const jinaBody = (await jinaResponse.json()) as any;
+
+  assert.equal(voyageResponse.status, 200);
+  assert.equal(voyageBody.provider, "voyage-ai");
+  assert.equal(voyageBody.source, "local_catalog");
+  assert.ok(voyageBody.models.some((model) => model.id === "voyage-4-large"));
+  assert.ok(voyageBody.models.some((model) => model.id === "voyage-3-large"));
+
+  assert.equal(jinaResponse.status, 200);
+  assert.equal(jinaBody.provider, "jina-ai");
+  assert.equal(jinaBody.source, "local_catalog");
+  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v3"));
+  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v2-base-multilingual"));
+});
+
+test("provider models route returns the local catalog for amazon-q via the kiro-compatible registry", async () => {
+  const connection = await seedConnection("amazon-q", {
+    authType: "oauth",
+    apiKey: null,
+    accessToken: "amazon-q-access",
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "amazon-q");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(body.models.some((model) => model.id === "claude-sonnet-4.5"));
+  assert.ok(body.models.some((model) => model.id === "claude-sonnet-4"));
+});
+
+test("provider models route returns the updated local catalog for GitHub Copilot", async () => {
+  const connection = await seedConnection("github", {
+    authType: "oauth",
+    apiKey: null,
+    accessToken: "github-access",
+    providerSpecificData: {
+      copilotToken: "copilot-token",
+    },
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "github");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(body.models.some((model) => model.id === "gpt-5.4"));
+  assert.ok(body.models.some((model) => model.id === "gpt-5.3-codex"));
+  assert.ok(body.models.some((model) => model.id === "claude-opus-4.7"));
+  assert.equal(
+    body.models.some((model) => model.id === "gpt-5.1"),
+    false
+  );
+});
+
+test("provider models route returns the expanded local catalog for Kiro", async () => {
+  const connection = await seedConnection("kiro", {
+    authType: "oauth",
+    apiKey: null,
+    accessToken: "kiro-access",
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "kiro");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(body.models.some((model) => model.id === "auto"));
+  assert.ok(body.models.some((model) => model.id === "claude-opus-4.7"));
+  assert.ok(body.models.some((model) => model.id === "qwen3-coder-next"));
+});
+
 test("provider models route returns the local catalog for new built-in chat-openai-compat providers", async () => {
   const connection = await seedConnection("deepinfra", {
     apiKey: "deepinfra-key",
