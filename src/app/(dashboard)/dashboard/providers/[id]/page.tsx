@@ -23,10 +23,12 @@ import {
   ProxyConfigModal,
 } from "@/shared/components";
 import {
+  LOCAL_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
+  isSelfHostedChatProvider,
   supportsApiKeyOnFreeProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
@@ -89,6 +91,11 @@ type CompatModelRow = {
 };
 
 type CompatModelMap = Map<string, CompatModelRow>;
+type LocalProviderMetadata = {
+  name?: string;
+  localDefault?: string;
+  [key: string]: unknown;
+};
 
 function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
   const m = new Map<string, CompatModelRow>();
@@ -5338,11 +5345,37 @@ const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "searxng-search": "http://localhost:8888/search",
 };
 
+function getLocalProviderMetadata(providerId?: string | null) {
+  if (!providerId || !isSelfHostedChatProvider(providerId)) return null;
+  return (LOCAL_PROVIDERS as Record<string, LocalProviderMetadata>)[providerId] || null;
+}
+
+function isBaseUrlConfigurableProvider(providerId?: string | null) {
+  return Boolean(
+    providerId &&
+    (CONFIGURABLE_BASE_URL_PROVIDERS.has(providerId) || isSelfHostedChatProvider(providerId))
+  );
+}
+
 function getProviderBaseUrlDefault(providerId?: string | null) {
+  const localProvider = getLocalProviderMetadata(providerId);
+  if (typeof localProvider?.localDefault === "string" && localProvider.localDefault.trim()) {
+    return localProvider.localDefault;
+  }
   return providerId ? DEFAULT_PROVIDER_BASE_URLS[providerId] || "" : "";
 }
 
-function getProviderBaseUrlHint(providerId?: string | null, t?: (key: string) => string) {
+function getProviderBaseUrlHint(
+  providerId?: string | null,
+  t?: ((key: string, values?: Record<string, unknown>) => string) | null
+) {
+  const localProvider = getLocalProviderMetadata(providerId);
+  if (localProvider && t) {
+    return t("localProviderBaseUrlHint", {
+      provider: localProvider.name || providerId,
+      baseUrl: getProviderBaseUrlDefault(providerId),
+    });
+  }
   switch (providerId) {
     case "azure-openai":
       return t ? t("azureOpenAiBaseUrlHint") : undefined;
@@ -5364,6 +5397,9 @@ function getProviderBaseUrlHint(providerId?: string | null, t?: (key: string) =>
 }
 
 function getProviderBaseUrlPlaceholder(providerId?: string | null) {
+  if (isSelfHostedChatProvider(providerId || "")) {
+    return getProviderBaseUrlDefault(providerId);
+  }
   switch (providerId) {
     case "azure-openai":
       return "https://my-resource.openai.azure.com";
@@ -5434,13 +5470,15 @@ function AddApiKeyModal({
   onClose,
 }: AddApiKeyModalProps) {
   const t = useTranslations("providers");
-  const usesBaseUrl = CONFIGURABLE_BASE_URL_PROVIDERS.has(provider || "");
+  const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const defaultRegion = "us-central1";
   const isGlm = provider === "glm" || provider === "glmt";
   const isQoder = provider === "qoder";
   const isCloudflare = provider === "cloudflare-ai";
+  const localProviderMetadata = getLocalProviderMetadata(provider);
+  const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isSearxng = provider === "searxng-search";
   const isGooglePse = provider === "google-pse-search";
   const isGrokWeb = provider === "grok-web";
@@ -5448,7 +5486,7 @@ function AddApiKeyModal({
   const isBlackboxWeb = provider === "blackbox-web";
   const isMuseSparkWeb = provider === "muse-spark-web";
   const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
-  const apiKeyOptional = isSearxng;
+  const apiKeyOptional = isSearxng || isLocalSelfHostedProvider;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -5476,7 +5514,7 @@ function AddApiKeyModal({
     ? t("personalAccessTokenLabel")
     : isWebSessionProvider
       ? t("sessionCookieLabel")
-      : isSearxng
+      : apiKeyOptional
         ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
         : t("apiKeyLabel");
   const apiCredentialPlaceholder = isVertex
@@ -5491,7 +5529,7 @@ function AddApiKeyModal({
             ? t("museSparkWebCookiePlaceholder")
             : isQoder
               ? t("qoderPatPlaceholder")
-              : isSearxng
+              : apiKeyOptional
                 ? t("optional")
                 : undefined;
   const apiCredentialHint = isQoder
@@ -5504,9 +5542,13 @@ function AddApiKeyModal({
           ? t("blackboxWebCookieHint")
           : isMuseSparkWeb
             ? t("museSparkWebCookieHint")
-            : isSearxng
-              ? t("apiKeyOptionalHint")
-              : undefined;
+            : isLocalSelfHostedProvider
+              ? t("localProviderApiKeyOptionalHint", {
+                  provider: localProviderMetadata?.name || providerName || provider || "",
+                })
+              : isSearxng
+                ? t("apiKeyOptionalHint")
+                : undefined;
 
   const handleValidate = async () => {
     setValidating(true);
@@ -5922,18 +5964,27 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const { emailsVisible: showEmail, toggleEmailVisibility: toggleShowEmail } =
     useEmailPrivacyStore();
 
-  const usesBaseUrl = CONFIGURABLE_BASE_URL_PROVIDERS.has(connection?.provider || "");
+  const usesBaseUrl = isBaseUrlConfigurableProvider(connection?.provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
   const isVertex = connection?.provider === "vertex" || connection?.provider === "vertex-partner";
   const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
   const isClaude = connection?.provider === "claude";
+  const localProviderMetadata = getLocalProviderMetadata(connection?.provider);
+  const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isSearxng = connection?.provider === "searxng-search";
   const isGooglePse = connection?.provider === "google-pse-search";
-  const apiKeyOptional = isSearxng;
+  const apiKeyOptional = isSearxng || isLocalSelfHostedProvider;
   const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
   const defaultRegion = "us-central1";
+  const apiCredentialHint = isLocalSelfHostedProvider
+    ? t("localProviderApiKeyOptionalHint", {
+        provider: localProviderMetadata?.name || connection?.provider || "",
+      })
+    : isSearxng
+      ? t("apiKeyOptionalHint")
+      : t("leaveBlankKeepCurrentApiKey");
 
   useEffect(() => {
     if (connection) {
@@ -6361,12 +6412,12 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           <>
             <div className="flex gap-2">
               <Input
-                label={isSearxng ? t("apiKeyOptionalLabel") : t("apiKeyLabel")}
+                label={apiKeyOptional ? t("apiKeyOptionalLabel") : t("apiKeyLabel")}
                 type="password"
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                 placeholder={isVertex ? t("vertexServiceAccountPlaceholder") : t("enterNewApiKey")}
-                hint={isSearxng ? t("apiKeyOptionalHint") : t("leaveBlankKeepCurrentApiKey")}
+                hint={apiCredentialHint}
                 className="flex-1"
               />
               <div className="pt-6">

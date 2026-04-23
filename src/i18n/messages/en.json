@@ -2149,6 +2149,7 @@
     "museSparkWebCookieHint": "Paste the abra_sess cookie from meta.ai. A full cookie header also works.",
     "apiKeyOptionalLabel": "API Key (optional)",
     "apiKeyOptionalHint": "Optional. Leave blank if your SearXNG instance does not require authentication.",
+    "localProviderApiKeyOptionalHint": "Optional. Leave blank if your {provider} endpoint does not require authentication.",
     "ccCompatibleNamePlaceholder": "CC Compatible Production",
     "ccCompatibleNameHint": "Display name for this provider.",
     "ccCompatiblePrefixPlaceholder": "cc",
@@ -2164,7 +2165,8 @@
     "herokuBaseUrlHint": "Required: paste the Heroku Inference base URL. The app will append /v1/chat/completions.",
     "databricksBaseUrlHint": "Required: paste the Databricks serving-endpoints base URL. The app will append /chat/completions.",
     "snowflakeBaseUrlHint": "Required: paste the Snowflake account base URL. The app will append /api/v2/cortex/inference:complete.",
-    "searxngBaseUrlHint": "Required: paste your SearXNG instance base URL. The app will use /search and request format=json. Local/private URLs require OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true for dashboard validation."
+    "searxngBaseUrlHint": "Required: paste your SearXNG instance base URL. The app will use /search and request format=json. Local/private URLs require OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true for dashboard validation.",
+    "localProviderBaseUrlHint": "Required: paste your {provider} OpenAI-compatible /v1 base URL (default: {baseUrl}). Local/private URLs require OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true for dashboard validation."
   },
   "settings": {
     "title": "Settings",

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import {
   isClaudeCodeCompatibleProvider,
-  isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
+  isOpenAICompatibleProvider,
+  isSelfHostedChatProvider,
 } from "@/shared/constants/providers";
+import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { PROVIDER_MODELS } from "@/shared/constants/models";
 import {
   getProviderConnectionById,
@@ -49,6 +51,17 @@ function getProviderBaseUrl(providerSpecificData: unknown): string | null {
   const data = asRecord(providerSpecificData);
   const baseUrl = data.baseUrl;
   return typeof baseUrl === "string" && baseUrl.trim().length > 0 ? baseUrl : null;
+}
+
+function isLocalOpenAIStyleProvider(provider: string): boolean {
+  return isSelfHostedChatProvider(provider);
+}
+
+function buildOptionalBearerHeaders(token: string | null | undefined): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 }
 
 function normalizeAntigravityModelsResponse(data: unknown): Array<{ id: string; name: string }> {
@@ -610,14 +623,19 @@ export async function GET(
       });
     };
 
-    if (isOpenAICompatibleProvider(provider)) {
+    if (isOpenAICompatibleProvider(provider) || isLocalOpenAIStyleProvider(provider)) {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      const baseUrl = getProviderBaseUrl(connection.providerSpecificData);
+      const registryEntry = isLocalOpenAIStyleProvider(provider)
+        ? getRegistryEntry(provider)
+        : null;
+      const baseUrl =
+        getProviderBaseUrl(connection.providerSpecificData) ||
+        (typeof registryEntry?.baseUrl === "string" ? registryEntry.baseUrl : null);
       if (!baseUrl) {
         const fallback = buildDiscoveryFallbackResponse({
           cacheWarning: "Base URL unavailable — using cached catalog",
@@ -625,7 +643,11 @@ export async function GET(
         });
         if (fallback) return fallback;
         return NextResponse.json(
-          { error: "No base URL configured for OpenAI compatible provider" },
+          {
+            error: isOpenAICompatibleProvider(provider)
+              ? "No base URL configured for OpenAI compatible provider"
+              : "No base URL configured for local provider",
+          },
           { status: 400 }
         );
       }
@@ -650,6 +672,7 @@ export async function GET(
       const uniqueEndpoints = [...new Set(endpoints)];
       let models = null;
       let lastErrorStatus = null;
+      const token = apiKey || accessToken;
 
       for (const modelsUrl of uniqueEndpoints) {
         try {
@@ -658,10 +681,7 @@ export async function GET(
             guard: getProviderOutboundGuard(),
             proxyConfig: proxy,
             method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
+            headers: buildOptionalBearerHeaders(token),
           });
 
           if (response.ok) {

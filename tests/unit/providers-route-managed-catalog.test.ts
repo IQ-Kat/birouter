@@ -41,6 +41,76 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "lm-studio",
+      body: {
+        provider: "lm-studio",
+        name: "LM Studio Local",
+        providerSpecificData: {
+          baseUrl: "http://localhost:1234/v1",
+        },
+      },
+    },
+    {
+      provider: "vllm",
+      body: {
+        provider: "vllm",
+        name: "vLLM Local",
+        providerSpecificData: {
+          baseUrl: "http://localhost:8000/v1",
+        },
+      },
+    },
+    {
+      provider: "llamafile",
+      body: {
+        provider: "llamafile",
+        name: "Llamafile Local",
+        providerSpecificData: {
+          baseUrl: "http://127.0.0.1:8080/v1",
+        },
+      },
+    },
+    {
+      provider: "triton",
+      body: {
+        provider: "triton",
+        name: "Triton Local",
+        providerSpecificData: {
+          baseUrl: "http://localhost:8000/v1",
+        },
+      },
+    },
+    {
+      provider: "docker-model-runner",
+      body: {
+        provider: "docker-model-runner",
+        name: "Docker Model Runner Local",
+        providerSpecificData: {
+          baseUrl: "http://localhost:12434/v1",
+        },
+      },
+    },
+    {
+      provider: "xinference",
+      body: {
+        provider: "xinference",
+        name: "XInference Local",
+        providerSpecificData: {
+          baseUrl: "http://localhost:9997/v1",
+        },
+      },
+    },
+    {
+      provider: "oobabooga",
+      body: {
+        provider: "oobabooga",
+        name: "oobabooga Local",
+        providerSpecificData: {
+          baseUrl: "http://localhost:5000/v1",
+        },
+      },
+    },
+    {
       provider: "assemblyai",
       body: {
         provider: "assemblyai",

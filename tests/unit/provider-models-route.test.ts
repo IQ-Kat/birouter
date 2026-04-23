@@ -208,6 +208,32 @@ test("provider models route returns static catalog entries for providers with ha
   assert.equal(body.models.length, 8);
 });
 
+test("provider models route discovers local OpenAI-style models without requiring an API key", async () => {
+  process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = "true";
+
+  const connection = await seedConnection("lm-studio", {
+    providerSpecificData: {
+      baseUrl: "http://localhost:1234/v1",
+    },
+  });
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "http://localhost:1234/v1/models");
+    assert.equal(init.headers.Authorization, undefined);
+    return Response.json({
+      data: [{ id: "local-model", name: "Local Model" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "lm-studio");
+  assert.equal(body.source, "api");
+  assert.deepEqual(body.models, [{ id: "local-model", name: "Local Model" }]);
+});
+
 test("provider models route returns the local catalog for built-in image providers", async () => {
   const connection = await seedConnection("topaz", {
     apiKey: "topaz-key",

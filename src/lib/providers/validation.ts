@@ -13,6 +13,7 @@ import {
   isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
+  isSelfHostedChatProvider,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -150,13 +151,13 @@ function withCustomUserAgent(init: RequestInit, providerSpecificData: any = {}) 
 }
 
 function buildBearerHeaders(apiKey: string, providerSpecificData: any = {}) {
-  return applyCustomUserAgent(
-    {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    providerSpecificData
-  );
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+  return applyCustomUserAgent(headers, providerSpecificData);
 }
 
 async function validationRead(url: string, init: RequestInit) {
@@ -1646,7 +1647,7 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 }
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
-  const requiresApiKey = provider !== "searxng-search";
+  const requiresApiKey = provider !== "searxng-search" && !isSelfHostedChatProvider(provider);
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }

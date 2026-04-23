@@ -2150,6 +2150,7 @@
     "museSparkWebCookieHint": "Cole o cookie abra_sess do meta.ai. Um cabeçalho de cookie completo também funciona.",
     "apiKeyOptionalLabel": "Chave de API (opcional)",
     "apiKeyOptionalHint": "Opcional. Deixe em branco se sua instância SearXNG não exigir autenticação.",
+    "localProviderApiKeyOptionalHint": "Opcional. Deixe em branco se o endpoint {provider} não exigir autenticação.",
     "ccCompatibleNamePlaceholder": "Produção CC Compatível",
     "ccCompatibleNameHint": "Nome de exibição para este provedor.",
     "ccCompatiblePrefixPlaceholder": "cc",
@@ -2165,7 +2166,8 @@
     "herokuBaseUrlHint": "Obrigatório: cole a URL base do Heroku Inference. O app adicionará /v1/chat/completions.",
     "databricksBaseUrlHint": "Obrigatório: cole a URL base do serving-endpoints do Databricks. O app adicionará /chat/completions.",
     "snowflakeBaseUrlHint": "Obrigatório: cole a URL base da conta Snowflake. O app adicionará /api/v2/cortex/inference:complete.",
-    "searxngBaseUrlHint": "Obrigatório: cole a URL base da sua instância SearXNG. O app usará /search e request format=json. URLs locais/privadas exigem OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true para validação no dashboard."
+    "searxngBaseUrlHint": "Obrigatório: cole a URL base da sua instância SearXNG. O app usará /search e request format=json. URLs locais/privadas exigem OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true para validação no dashboard.",
+    "localProviderBaseUrlHint": "Obrigatório: cole a URL base OpenAI-compatible /v1 do seu {provider} (padrão: {baseUrl}). URLs locais/privadas exigem OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true para validação no dashboard."
   },
   "settings": {
     "title": "Configurações",

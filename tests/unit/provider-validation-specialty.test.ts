@@ -364,6 +364,43 @@ test("google PSE validator requires cx", async () => {
   assert.equal(result.error, "Programmable Search Engine ID (cx) is required");
 });
 
+test("local OpenAI-style providers validate without sending Authorization when apiKey is blank", async () => {
+  const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = "true";
+  const calls = [];
+
+  try {
+    globalThis.fetch = async (url, init = {}) => {
+      calls.push({ url: String(url), headers: init.headers || {} });
+      return new Response(JSON.stringify({ data: [{ id: "local-model" }] }), { status: 200 });
+    };
+
+    const lmStudio = await validateProviderApiKey({
+      provider: "lm-studio",
+      providerSpecificData: { baseUrl: "http://localhost:1234/v1" },
+    });
+    const vllm = await validateProviderApiKey({
+      provider: "vllm",
+      providerSpecificData: { baseUrl: "http://localhost:8000/v1" },
+    });
+
+    assert.equal(lmStudio.valid, true);
+    assert.equal(vllm.valid, true);
+    assert.deepEqual(
+      calls.map((call) => call.url),
+      ["http://localhost:1234/v1/models", "http://localhost:8000/v1/models"]
+    );
+    assert.equal(calls[0].headers.Authorization, undefined);
+    assert.equal(calls[1].headers.Authorization, undefined);
+  } finally {
+    if (originalAllowPrivateProviderUrls === undefined) {
+      delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+    } else {
+      process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+    }
+  }
+});
+
 test("OpenAI-compatible validator covers /responses mode and final ping fallback", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {

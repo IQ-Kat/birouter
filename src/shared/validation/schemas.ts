@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
+import { isLocalProvider } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 
@@ -243,8 +244,8 @@ export const createProviderSchema = z
   })
   .superRefine((data, ctx) => {
     const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
-    const apiKeyOptionalProviders = new Set(["searxng-search", "sdwebui", "comfyui"]);
-    if (!apiKeyOptionalProviders.has(data.provider) && apiKey.length === 0) {
+    const apiKeyOptional = data.provider === "searxng-search" || isLocalProvider(data.provider);
+    if (!apiKeyOptional && apiKey.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "API key is required",

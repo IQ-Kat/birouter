@@ -51,6 +51,18 @@ function normalizeGigachatChatUrl(baseUrl) {
   return `${normalized}/chat/completions`;
 }
 
+function normalizeOpenAIChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (
+    normalized.endsWith("/chat/completions") ||
+    normalized.endsWith("/responses") ||
+    normalized.endsWith("/chat")
+  ) {
+    return normalized;
+  }
+  return normalized.endsWith("/v1") ? `${normalized}/chat/completions` : normalized;
+}
+
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
@@ -109,6 +121,16 @@ export class DefaultExecutor extends BaseExecutor {
       case "gigachat": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeGigachatChatUrl(baseUrl);
+      }
+      case "lm-studio":
+      case "vllm":
+      case "llamafile":
+      case "triton":
+      case "docker-model-runner":
+      case "xinference":
+      case "oobabooga": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeOpenAIChatUrl(baseUrl);
       }
       case "claude":
       case "glm":
@@ -189,7 +211,10 @@ export class DefaultExecutor extends BaseExecutor {
             headers["anthropic-version"] = "2023-06-01";
           }
         } else {
-          headers["Authorization"] = `Bearer ${effectiveKey || credentials.accessToken}`;
+          const bearerToken = effectiveKey || credentials.accessToken;
+          if (bearerToken) {
+            headers["Authorization"] = `Bearer ${bearerToken}`;
+          }
         }
     }
 

@@ -406,15 +406,6 @@ export const APIKEY_PROVIDERS = {
     textIcon: "NB",
     website: "https://nanobananaapi.ai",
   },
-  "lm-studio": {
-    id: "lm-studio",
-    alias: "lmstudio",
-    name: "LM Studio",
-    icon: "server",
-    color: "#4A148C",
-    textIcon: "LM",
-    website: "https://lmstudio.ai",
-  },
   "ollama-cloud": {
     id: "ollama-cloud",
     alias: "ollamacloud",
@@ -962,6 +953,97 @@ export const APIKEY_PROVIDERS = {
 
 // Local / Self-Hosted Providers
 export const LOCAL_PROVIDERS = {
+  "lm-studio": {
+    id: "lm-studio",
+    alias: "lmstudio",
+    name: "LM Studio",
+    icon: "server",
+    color: "#4A148C",
+    textIcon: "LM",
+    website: "https://lmstudio.ai",
+    authHint:
+      "API key optional. Configure the local LM Studio OpenAI-compatible base URL (default: http://localhost:1234/v1).",
+    localDefault: "http://localhost:1234/v1",
+    passthroughModels: true,
+  },
+  vllm: {
+    id: "vllm",
+    alias: "vllm",
+    name: "vLLM",
+    icon: "memory",
+    color: "#0F766E",
+    textIcon: "VL",
+    website: "https://github.com/vllm-project/vllm",
+    authHint:
+      "API key optional. Configure the local vLLM OpenAI-compatible base URL (default: http://localhost:8000/v1).",
+    localDefault: "http://localhost:8000/v1",
+    passthroughModels: true,
+  },
+  llamafile: {
+    id: "llamafile",
+    alias: "llamafile",
+    name: "Llamafile",
+    icon: "article",
+    color: "#EA580C",
+    textIcon: "LF",
+    website: "https://github.com/Mozilla-Ocho/llamafile",
+    authHint:
+      "API key optional. Configure the local Llamafile OpenAI-compatible base URL (default: http://127.0.0.1:8080/v1).",
+    localDefault: "http://127.0.0.1:8080/v1",
+    passthroughModels: true,
+  },
+  triton: {
+    id: "triton",
+    alias: "triton",
+    name: "NVIDIA Triton",
+    icon: "developer_board",
+    color: "#76B900",
+    textIcon: "TR",
+    website: "https://developer.nvidia.com/triton-inference-server",
+    authHint:
+      "API key optional. Configure the Triton OpenAI-compatible base URL (default: http://localhost:8000/v1).",
+    localDefault: "http://localhost:8000/v1",
+    passthroughModels: true,
+  },
+  "docker-model-runner": {
+    id: "docker-model-runner",
+    alias: "dmr",
+    name: "Docker Model Runner",
+    icon: "inventory_2",
+    color: "#2496ED",
+    textIcon: "DM",
+    website: "https://docs.docker.com/ai/model-runner/",
+    authHint:
+      "API key optional. Configure the local Docker Model Runner OpenAI-compatible base URL (default: http://localhost:12434/v1).",
+    localDefault: "http://localhost:12434/v1",
+    passthroughModels: true,
+  },
+  xinference: {
+    id: "xinference",
+    alias: "xinference",
+    name: "XInference",
+    icon: "hub",
+    color: "#DC2626",
+    textIcon: "XI",
+    website: "https://inference.readthedocs.io",
+    authHint:
+      "API key optional. Configure the local XInference OpenAI-compatible base URL (default: http://localhost:9997/v1).",
+    localDefault: "http://localhost:9997/v1",
+    passthroughModels: true,
+  },
+  oobabooga: {
+    id: "oobabooga",
+    alias: "ooba",
+    name: "oobabooga",
+    icon: "dns",
+    color: "#8B5CF6",
+    textIcon: "OO",
+    website: "https://github.com/oobabooga/text-generation-webui",
+    authHint:
+      "API key optional. Configure the local oobabooga OpenAI-compatible base URL (default: http://localhost:5000/v1).",
+    localDefault: "http://localhost:5000/v1",
+    passthroughModels: true,
+  },
   sdwebui: {
     id: "sdwebui",
     alias: "sdwebui",
@@ -1172,6 +1254,27 @@ export const UPSTREAM_PROXY_PROVIDERS = {
 
 export function isClaudeCodeCompatibleProvider(providerId) {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
+}
+
+export function isLocalProvider(providerId) {
+  return (
+    typeof providerId === "string" &&
+    Object.prototype.hasOwnProperty.call(LOCAL_PROVIDERS, providerId)
+  );
+}
+
+export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
+  "lm-studio",
+  "vllm",
+  "llamafile",
+  "triton",
+  "docker-model-runner",
+  "xinference",
+  "oobabooga",
+]);
+
+export function isSelfHostedChatProvider(providerId) {
+  return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
 // All providers (combined)
