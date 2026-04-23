@@ -272,6 +272,60 @@ test("provider models route prefers the remote OpenRouter /models API over stati
   assert.deepEqual(body.models, [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }]);
 });
 
+test("provider models route fetches remote catalogs for new OpenAI-compatible gateway providers", async () => {
+  const cases = [
+    {
+      provider: "glhf",
+      apiKey: "glhf-key",
+      expectedUrl: "https://glhf.chat/api/openai/v1/models",
+      model: { id: "hf:Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B via GLHF" },
+    },
+    {
+      provider: "cablyai",
+      apiKey: "cably-key",
+      expectedUrl: "https://cablyai.com/v1/models",
+      model: { id: "gpt-4o", name: "GPT-4o via CablyAI" },
+    },
+    {
+      provider: "thebai",
+      apiKey: "theb-key",
+      expectedUrl: "https://api.theb.ai/v1/models",
+      model: { id: "gpt-4o", name: "GPT-4o via TheB.AI" },
+    },
+    {
+      provider: "fenayai",
+      apiKey: "fenay-key",
+      expectedUrl: "https://fenayai.com/v1/models",
+      model: { id: "deepseek-chat", name: "DeepSeek Chat via FenayAI" },
+    },
+  ];
+
+  for (const entry of cases) {
+    const connection = await seedConnection(entry.provider, {
+      apiKey: entry.apiKey,
+    });
+    const seenUrls = [];
+
+    globalThis.fetch = async (url, init = {}) => {
+      seenUrls.push(String(url));
+      assert.equal(init.method, "GET");
+      assert.equal(init.headers.Authorization, `Bearer ${entry.apiKey}`);
+      return Response.json({
+        data: [entry.model],
+      });
+    };
+
+    const response = await callRoute(connection.id, "?refresh=true");
+    const body = (await response.json()) as any;
+
+    assert.equal(response.status, 200);
+    assert.equal(body.provider, entry.provider);
+    assert.equal(body.source, "api");
+    assert.deepEqual(seenUrls, [entry.expectedUrl]);
+    assert.deepEqual(body.models, [entry.model]);
+  }
+});
+
 test("provider models route returns the local catalog for new built-in chat-openai-compat providers", async () => {
   const connection = await seedConnection("deepinfra", {
     apiKey: "deepinfra-key",

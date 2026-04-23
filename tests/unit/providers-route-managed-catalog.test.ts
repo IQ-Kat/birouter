@@ -31,6 +31,38 @@ test.after(() => {
 test("providers route accepts managed local, audio, web-cookie and search providers", async () => {
   const cases = [
     {
+      provider: "glhf",
+      body: {
+        provider: "glhf",
+        apiKey: "glhf-key",
+        name: "GLHF Chat",
+      },
+    },
+    {
+      provider: "cablyai",
+      body: {
+        provider: "cablyai",
+        apiKey: "cably-key",
+        name: "CablyAI Primary",
+      },
+    },
+    {
+      provider: "thebai",
+      body: {
+        provider: "thebai",
+        apiKey: "theb-key",
+        name: "TheB.AI Primary",
+      },
+    },
+    {
+      provider: "fenayai",
+      body: {
+        provider: "fenayai",
+        apiKey: "fenay-key",
+        name: "FenayAI Primary",
+      },
+    },
+    {
       provider: "sdwebui",
       body: {
         provider: "sdwebui",

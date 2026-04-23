@@ -182,6 +182,14 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "allenai/Olmo-3-32B-Think",
   ]),
+  glhf: buildModels([
+    "hf:meta-llama/Llama-3.3-70B-Instruct",
+    "hf:Qwen/Qwen2.5-72B-Instruct",
+    "hf:deepseek-ai/DeepSeek-V3",
+  ]),
+  cablyai: buildModels(["gpt-4o", "gpt-4o-mini", "deepseek-chat"]),
+  thebai: buildModels(["gpt-4o", "claude-3.5-sonnet", "llama-3.3-70b"]),
+  fenayai: buildModels(["gpt-4o", "claude-3.5-sonnet", "deepseek-chat"]),
   moonshot: buildModels(["kimi-k2.5", "kimi-latest", "moonshot-v1-auto"]),
   "meta-llama": buildModels([
     "Llama-3.3-70B-Instruct",
@@ -1870,6 +1878,58 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS.publicai,
+  },
+
+  glhf: {
+    id: "glhf",
+    alias: "glhf",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://glhf.chat/api/openai/v1/chat/completions",
+    modelsUrl: "https://glhf.chat/api/openai/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.glhf,
+    passthroughModels: true,
+  },
+
+  cablyai: {
+    id: "cablyai",
+    alias: "cablyai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://cablyai.com/v1/chat/completions",
+    modelsUrl: "https://cablyai.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.cablyai,
+    passthroughModels: true,
+  },
+
+  thebai: {
+    id: "thebai",
+    alias: "thebai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.theb.ai/v1/chat/completions",
+    modelsUrl: "https://api.theb.ai/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.thebai,
+    passthroughModels: true,
+  },
+
+  fenayai: {
+    id: "fenayai",
+    alias: "fenayai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://fenayai.com/v1/chat/completions",
+    modelsUrl: "https://fenayai.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.fenayai,
+    passthroughModels: true,
   },
 
   moonshot: {

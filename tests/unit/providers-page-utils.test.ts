@@ -220,6 +220,7 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const searchProvider = providerPageUtils.resolveDashboardProviderInfo("brave-search");
   const audioProvider = providerPageUtils.resolveDashboardProviderInfo("assemblyai");
   const webCookieProvider = providerPageUtils.resolveDashboardProviderInfo("grok-web");
+  const apiKeyProvider = providerPageUtils.resolveDashboardProviderInfo("glhf");
   const perplexityWebProvider = providerPageUtils.resolveDashboardProviderInfo("perplexity-web");
   const blackboxWebProvider = providerPageUtils.resolveDashboardProviderInfo("blackbox-web");
   const museSparkWebProvider = providerPageUtils.resolveDashboardProviderInfo("muse-spark-web");
@@ -235,6 +236,9 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
 
   assert.equal(audioProvider?.category, "audio");
   assert.equal(audioProvider?.name, providers.AUDIO_ONLY_PROVIDERS.assemblyai.name);
+
+  assert.equal(apiKeyProvider?.category, "apikey");
+  assert.equal(apiKeyProvider?.name, providers.APIKEY_PROVIDERS.glhf.name);
 
   assert.equal(webCookieProvider?.category, "web-cookie");
   assert.equal(webCookieProvider?.name, providers.WEB_COOKIE_PROVIDERS["grok-web"].name);
@@ -257,6 +261,10 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
 
 test("managed provider connection ids include supported static categories and exclude upstream proxy", () => {
   assert.equal(providerCatalog.isManagedProviderConnectionId("qoder"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("glhf"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("cablyai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("thebai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("fenayai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("sdwebui"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("lm-studio"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("vllm"), true);
@@ -285,6 +293,10 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal("blackbox-web" in providers.WEB_COOKIE_PROVIDERS, true);
   assert.equal("muse-spark-web" in providers.APIKEY_PROVIDERS, false);
   assert.equal("muse-spark-web" in providers.WEB_COOKIE_PROVIDERS, true);
+  assert.equal("glhf" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("cablyai" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("thebai" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("fenayai" in providers.APIKEY_PROVIDERS, true);
 
   const apiKeyEntries = providerPageUtils.buildStaticProviderEntries("apikey", () => ({
     total: 0,
@@ -315,6 +327,22 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "grok-web"),
     false
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "glhf"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "cablyai"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "thebai"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "fenayai"),
+    true
   );
   assert.equal(
     localEntries.some((entry) => entry.providerId === "sdwebui"),
