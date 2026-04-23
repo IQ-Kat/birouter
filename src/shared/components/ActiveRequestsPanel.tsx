@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type ActiveRequestRow = {
   model: string;
@@ -9,6 +10,10 @@ type ActiveRequestRow = {
   startedAt: number;
   runningTimeMs: number;
   count: number;
+  clientEndpoint?: string | null;
+  clientRequest?: unknown;
+  providerRequest?: unknown;
+  providerUrl?: string | null;
 };
 
 function formatDuration(ms: number): string {
@@ -22,8 +27,10 @@ function formatDuration(ms: number): string {
 }
 
 export default function ActiveRequestsPanel() {
+  const t = useTranslations("logs");
   const [rows, setRows] = useState<ActiveRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRow, setSelectedRow] = useState<ActiveRequestRow | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,15 +71,13 @@ export default function ActiveRequestsPanel() {
       <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-text-main">
-            Running Requests
+            {t("runningRequests")}
           </h3>
-          <p className="text-xs text-text-muted">
-            Requests that are still in flight across providers and accounts.
-          </p>
+          <p className="text-xs text-text-muted">{t("runningRequestsDesc")}</p>
         </div>
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          {loading ? "Loading..." : `${rows.length} active`}
+          {loading ? t("loading") : t("activeCount", { count: rows.length })}
         </div>
       </div>
 
@@ -80,11 +85,12 @@ export default function ActiveRequestsPanel() {
         <table className="min-w-full text-sm">
           <thead className="bg-sidebar/40 text-left text-xs uppercase tracking-wide text-text-muted">
             <tr>
-              <th className="px-4 py-3 font-medium">Model</th>
-              <th className="px-4 py-3 font-medium">Provider</th>
-              <th className="px-4 py-3 font-medium">Account</th>
-              <th className="px-4 py-3 font-medium">Elapsed</th>
-              <th className="px-4 py-3 font-medium">Count</th>
+              <th className="px-4 py-3 font-medium">{t("model")}</th>
+              <th className="px-4 py-3 font-medium">{t("provider")}</th>
+              <th className="px-4 py-3 font-medium">{t("account")}</th>
+              <th className="px-4 py-3 font-medium">{t("elapsed")}</th>
+              <th className="px-4 py-3 font-medium">{t("count")}</th>
+              <th className="px-4 py-3 font-medium">{t("payloads")}</th>
             </tr>
           </thead>
           <tbody>
@@ -98,11 +104,74 @@ export default function ActiveRequestsPanel() {
                 <td className="px-4 py-3 text-text-muted">{row.account}</td>
                 <td className="px-4 py-3 text-text-main">{formatDuration(row.runningTimeMs)}</td>
                 <td className="px-4 py-3 text-text-main">{row.count}</td>
+                <td className="px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRow(row)}
+                    className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-main transition-colors hover:bg-sidebar/40"
+                  >
+                    {t("viewPayloads")}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {selectedRow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+          <div className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+              <div>
+                <h4 className="text-lg font-semibold text-text-main">
+                  {selectedRow.provider} / {selectedRow.model}
+                </h4>
+                <p className="mt-1 text-sm text-text-muted">
+                  {t("runningRequestDetailMeta", {
+                    account: selectedRow.account,
+                    elapsed: formatDuration(selectedRow.runningTimeMs),
+                  })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRow(null)}
+                className="rounded-full border border-border p-2 text-text-muted transition-colors hover:bg-sidebar/40 hover:text-text-main"
+                aria-label={t("close")}
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            <div className="grid gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2">
+              <section className="rounded-xl border border-border bg-bg-subtle p-4">
+                <div className="mb-3">
+                  <h5 className="text-sm font-semibold text-text-main">{t("clientPayload")}</h5>
+                  <p className="mt-1 text-xs text-text-muted">
+                    {selectedRow.clientEndpoint || t("notAvailable")}
+                  </p>
+                </div>
+                <pre className="overflow-x-auto rounded-lg border border-border/70 bg-bg p-3 text-xs text-text-muted">
+                  {JSON.stringify(selectedRow.clientRequest || {}, null, 2)}
+                </pre>
+              </section>
+
+              <section className="rounded-xl border border-border bg-bg-subtle p-4">
+                <div className="mb-3">
+                  <h5 className="text-sm font-semibold text-text-main">{t("upstreamPayload")}</h5>
+                  <p className="mt-1 break-all text-xs text-text-muted">
+                    {selectedRow.providerUrl || t("upstreamNotSentYet")}
+                  </p>
+                </div>
+                <pre className="overflow-x-auto rounded-lg border border-border/70 bg-bg p-3 text-xs text-text-muted">
+                  {JSON.stringify(selectedRow.providerRequest || {}, null, 2)}
+                </pre>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

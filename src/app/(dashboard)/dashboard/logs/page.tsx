@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { RequestLoggerV2, ProxyLogger, SegmentedControl } from "@/shared/components";
 import ConsoleLogViewer from "@/shared/components/ConsoleLogViewer";
 import ActiveRequestsPanel from "@/shared/components/ActiveRequestsPanel";
@@ -22,11 +23,21 @@ const TAB_TO_LOG_TYPE: Record<string, string> = {
 };
 
 export default function LogsPage() {
-  const [activeTab, setActiveTab] = useState("request-logs");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    requestedTab && TAB_TO_LOG_TYPE[requestedTab] ? requestedTab : "request-logs"
+  );
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("logs");
+
+  useEffect(() => {
+    if (requestedTab && TAB_TO_LOG_TYPE[requestedTab] && requestedTab !== activeTab) {
+      setActiveTab(requestedTab);
+    }
+  }, [activeTab, requestedTab]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

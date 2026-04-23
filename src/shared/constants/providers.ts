@@ -424,24 +424,6 @@ export const APIKEY_PROVIDERS = {
     textIcon: "OC",
     website: "https://ollama.com/settings/api-keys",
   },
-  sdwebui: {
-    id: "sdwebui",
-    alias: "sdwebui",
-    name: "SD WebUI",
-    icon: "brush",
-    color: "#FF7043",
-    textIcon: "SD",
-    website: "https://github.com/AUTOMATIC1111/stable-diffusion-webui",
-  },
-  comfyui: {
-    id: "comfyui",
-    alias: "comfyui",
-    name: "ComfyUI",
-    icon: "account_tree",
-    color: "#4CAF50",
-    textIcon: "CF",
-    website: "https://github.com/comfyanonymous/ComfyUI",
-  },
   huggingface: {
     id: "huggingface",
     alias: "hf",
@@ -978,6 +960,34 @@ export const APIKEY_PROVIDERS = {
   },
 };
 
+// Local / Self-Hosted Providers
+export const LOCAL_PROVIDERS = {
+  sdwebui: {
+    id: "sdwebui",
+    alias: "sdwebui",
+    name: "SD WebUI",
+    icon: "brush",
+    color: "#FF7043",
+    textIcon: "SD",
+    website: "https://github.com/AUTOMATIC1111/stable-diffusion-webui",
+    authHint:
+      "No API key required. Configure the local WebUI base URL (default: http://localhost:7860).",
+    localDefault: "http://localhost:7860",
+  },
+  comfyui: {
+    id: "comfyui",
+    alias: "comfyui",
+    name: "ComfyUI",
+    icon: "account_tree",
+    color: "#4CAF50",
+    textIcon: "CF",
+    website: "https://github.com/comfyanonymous/ComfyUI",
+    authHint:
+      "No API key required. Configure the local ComfyUI base URL (default: http://localhost:8188).",
+    localDefault: "http://localhost:8188",
+  },
+};
+
 // Search Providers
 export const SEARCH_PROVIDERS = {
   "perplexity-search": {
@@ -1170,6 +1180,7 @@ export const AI_PROVIDERS = {
   ...OAUTH_PROVIDERS,
   ...APIKEY_PROVIDERS,
   ...WEB_COOKIE_PROVIDERS,
+  ...LOCAL_PROVIDERS,
   ...SEARCH_PROVIDERS,
   ...AUDIO_ONLY_PROVIDERS,
   ...UPSTREAM_PROXY_PROVIDERS,
@@ -1237,5 +1248,7 @@ validateProviders(FREE_PROVIDERS, "FREE_PROVIDERS");
 validateProviders(OAUTH_PROVIDERS, "OAUTH_PROVIDERS");
 validateProviders(APIKEY_PROVIDERS, "APIKEY_PROVIDERS");
 validateProviders(WEB_COOKIE_PROVIDERS, "WEB_COOKIE_PROVIDERS");
+validateProviders(LOCAL_PROVIDERS, "LOCAL_PROVIDERS");
 validateProviders(SEARCH_PROVIDERS, "SEARCH_PROVIDERS");
 validateProviders(AUDIO_ONLY_PROVIDERS, "AUDIO_ONLY_PROVIDERS");
+validateProviders(UPSTREAM_PROXY_PROVIDERS, "UPSTREAM_PROXY_PROVIDERS");

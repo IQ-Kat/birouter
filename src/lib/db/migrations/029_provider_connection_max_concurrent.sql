@@ -1,4 +1,4 @@
--- 028_provider_connection_max_concurrent.sql
+-- 029_provider_connection_max_concurrent.sql
 -- Adds account-native concurrency cap to provider_connections.
 -- This defines the maximum concurrent requests allowed for a specific account (connection).
 -- Coexists with existing combo-level concurrencyPerModel, which is separate.

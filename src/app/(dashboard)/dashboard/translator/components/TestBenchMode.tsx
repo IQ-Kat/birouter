@@ -178,9 +178,7 @@ export default function TestBenchMode() {
                   setSourceFormat(e.target.value);
                   setResults({});
                 }}
-                options={FORMAT_OPTIONS.filter((o) =>
-                  ["openai", "claude", "gemini", "openai-responses"].includes(o.value)
-                )}
+                options={FORMAT_OPTIONS}
               />
             </div>
             <div className="flex items-center justify-center px-2">

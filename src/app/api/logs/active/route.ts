@@ -30,6 +30,10 @@ export async function GET(request: Request) {
           startedAt: detail.startedAt,
           runningTimeMs: Math.max(0, now - detail.startedAt),
           count: pending.byAccount?.[connectionId]?.[modelKey] || 0,
+          clientEndpoint: detail.clientEndpoint || null,
+          clientRequest: detail.clientRequest ?? null,
+          providerRequest: detail.providerRequest ?? null,
+          providerUrl: detail.providerUrl || null,
         }))
       )
       .filter((requestRow) => requestRow.count > 0)

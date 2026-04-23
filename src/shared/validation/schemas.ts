@@ -243,7 +243,8 @@ export const createProviderSchema = z
   })
   .superRefine((data, ctx) => {
     const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
-    if (data.provider !== "searxng-search" && apiKey.length === 0) {
+    const apiKeyOptionalProviders = new Set(["searxng-search", "sdwebui", "comfyui"]);
+    if (!apiKeyOptionalProviders.has(data.provider) && apiKey.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "API key is required",
@@ -1358,10 +1359,48 @@ export const dbBackupRestoreSchema = z.object({
   backupId: z.string().trim().min(1, "backupId is required"),
 });
 
-export const evalRunSuiteSchema = z.object({
-  suiteId: z.string().trim().min(1, "suiteId is required"),
-  outputs: z.record(z.string(), z.string()),
-});
+const evalTargetSchema = z
+  .object({
+    type: z.enum(["suite-default", "model", "combo"]),
+    id: z.string().trim().min(1).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.type === "suite-default") {
+      return;
+    }
+
+    if (typeof value.id !== "string" || value.id.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "target.id is required for model and combo targets",
+        path: ["id"],
+      });
+    }
+  });
+
+export const evalRunSuiteSchema = z
+  .object({
+    suiteId: z.string().trim().min(1, "suiteId is required"),
+    outputs: z.record(z.string(), z.string()).optional(),
+    target: evalTargetSchema.optional(),
+    compareTarget: evalTargetSchema.optional(),
+    apiKeyId: z.string().trim().min(1, "apiKeyId must not be empty").optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.compareTarget) {
+      const primaryType = value.target?.type || "suite-default";
+      const primaryId = value.target?.id?.trim() || "";
+      const compareId = value.compareTarget.id?.trim() || "";
+
+      if (primaryType === value.compareTarget.type && primaryId === compareId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "compareTarget must differ from target",
+          path: ["compareTarget"],
+        });
+      }
+    }
+  });
 
 const accessScheduleSchema = z.object({
   enabled: z.boolean(),

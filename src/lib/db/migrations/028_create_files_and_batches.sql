@@ -1,4 +1,4 @@
--- 027_create_files_and_batches.sql
+-- 028_create_files_and_batches.sql
 -- Creates the files and batches tables with their complete final schema.
 
 CREATE TABLE IF NOT EXISTS files (

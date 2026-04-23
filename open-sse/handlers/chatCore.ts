@@ -33,10 +33,12 @@ import {
 import { updateProviderConnection } from "@/lib/db/providers";
 import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
 import { logAuditEvent } from "@/lib/compliance";
+import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
   saveRequestUsage,
   trackPendingRequest,
+  updatePendingRequest,
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
@@ -1027,6 +1029,29 @@ export async function handleChatCore({
     claudeCacheUsageMeta?: Record<string, unknown>;
     cacheSource?: "upstream" | "semantic";
   }) => {
+    const providerWarnings = extractProviderWarnings(
+      providerResponse,
+      clientResponse,
+      responseBody
+    );
+    if (providerWarnings.length > 0) {
+      logAuditEvent({
+        action: "provider.warning",
+        actor: "system",
+        target: [provider, connectionId].filter(Boolean).join(":") || provider || model,
+        resourceType: "provider_warning",
+        status: "warning",
+        requestId: skillRequestId,
+        details: {
+          provider,
+          model,
+          connectionId,
+          httpStatus: status,
+          warnings: providerWarnings,
+        },
+      });
+    }
+
     const callLogId = generateRequestId();
     const pipelinePayloads = detailedLoggingEnabled ? reqLogger?.getPipelinePayloads?.() : null;
 
@@ -2027,7 +2052,10 @@ export async function handleChatCore({
   };
 
   // Track pending request
-  trackPendingRequest(model, provider, connectionId, true);
+  trackPendingRequest(model, provider, connectionId, true, {
+    clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
+    clientRequest: clientRawRequest?.body ?? body,
+  });
 
   // T5: track which models we've tried for intra-family fallback
   const triedModels = new Set<string>([effectiveModel]);
@@ -2065,6 +2093,10 @@ export async function handleChatCore({
 
     // Log target request (final request to provider)
     reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+    updatePendingRequest(model, provider, connectionId, {
+      providerRequest: finalBody,
+      providerUrl,
+    });
 
     // Update rate limiter from response headers (learn limits dynamically)
     updateFromHeaders(
@@ -2208,6 +2240,10 @@ export async function handleChatCore({
           providerHeaders = retryResult.headers;
           finalBody = retryResult.transformedBody;
           reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+          updatePendingRequest(model, provider, connectionId, {
+            providerRequest: finalBody,
+            providerUrl,
+          });
           upstreamErrorParsed = false; // Reset since new response is OK
         } else {
           providerResponse = retryResult.response;

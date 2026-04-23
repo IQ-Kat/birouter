@@ -28,8 +28,18 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("providers route accepts managed audio, web-cookie and search providers", async () => {
+test("providers route accepts managed local, audio, web-cookie and search providers", async () => {
   const cases = [
+    {
+      provider: "sdwebui",
+      body: {
+        provider: "sdwebui",
+        name: "SD WebUI Local",
+        providerSpecificData: {
+          baseUrl: "http://localhost:7860",
+        },
+      },
+    },
     {
       provider: "assemblyai",
       body: {

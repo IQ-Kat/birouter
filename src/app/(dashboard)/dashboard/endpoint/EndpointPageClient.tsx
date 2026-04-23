@@ -248,6 +248,7 @@ export default function APIPageClient({ machineId }) {
     const chat = allModels.filter((m) => !m.type && !m.parent);
     const embeddings = allModels.filter((m) => m.type === "embedding" && !m.parent);
     const images = allModels.filter((m) => m.type === "image" && !m.parent);
+    const video = allModels.filter((m) => m.type === "video" && !m.parent);
     const rerank = allModels.filter((m) => m.type === "rerank" && !m.parent);
     const audioTranscription = allModels.filter(
       (m) => m.type === "audio" && m.subtype === "transcription" && !m.parent
@@ -257,7 +258,17 @@ export default function APIPageClient({ machineId }) {
     );
     const moderation = allModels.filter((m) => m.type === "moderation" && !m.parent);
     const music = allModels.filter((m) => m.type === "music" && !m.parent);
-    return { chat, embeddings, images, rerank, audioTranscription, audioSpeech, moderation, music };
+    return {
+      chat,
+      embeddings,
+      images,
+      video,
+      rerank,
+      audioTranscription,
+      audioSpeech,
+      moderation,
+      music,
+    };
   }, [allModels]);
 
   const postCloudAction = async (action, timeoutMs = CLOUD_ACTION_TIMEOUT_MS) => {
@@ -1210,6 +1221,7 @@ export default function APIPageClient({ machineId }) {
                       endpointData.chat,
                       endpointData.embeddings,
                       endpointData.images,
+                      endpointData.video,
                       endpointData.rerank,
                       endpointData.audioTranscription,
                       endpointData.audioSpeech,
@@ -1393,6 +1405,25 @@ export default function APIPageClient({ machineId }) {
                 copied={copied}
                 baseUrl={currentEndpoint}
               />
+
+              {/* Video Generation */}
+              <EndpointSection
+                icon="videocam"
+                iconColor="text-red-500"
+                iconBg="bg-red-500/10"
+                title={t("videoGeneration") || "Video Generation"}
+                path="/v1/videos/generations"
+                description={
+                  t("videoDesc") ||
+                  "Generate videos via ComfyUI, Stable Diffusion WebUI, and compatible providers"
+                }
+                models={endpointData.video}
+                expanded={expandedEndpoint === "video"}
+                onToggle={() => setExpandedEndpoint(expandedEndpoint === "video" ? null : "video")}
+                copy={copy}
+                copied={copied}
+                baseUrl={currentEndpoint}
+              />
             </div>
           </div>
 
@@ -1541,7 +1572,7 @@ export default function APIPageClient({ machineId }) {
                 <div className="mt-3 text-xs text-text-muted space-y-1">
                   <p>
                     {t("protocolToolsLabel") || "Tools"}:{" "}
-                    <span className="text-text-main font-semibold">{mcpToolCount || 16}</span>
+                    <span className="text-text-main font-semibold">{mcpToolCount || 29}</span>
                   </p>
                   <p>
                     {t("protocolLastActivity") || "Last activity"}:{" "}
