@@ -216,16 +216,18 @@ async function handleKieMusicGeneration({
     }
 
     const deadline = Date.now() + timeoutMs;
+    const statusBaseUrl = `${baseUrl}/api/v1/generate/record-info`;
+
     while (Date.now() < deadline) {
-      const recordRes = await fetch(
-        `${baseUrl}/api/v1/generate/record-info?taskId=${encodeURIComponent(taskId)}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const pollUrl = new URL(statusBaseUrl);
+      pollUrl.searchParams.set("taskId", String(taskId));
+
+      const recordRes = await fetch(pollUrl.toString(), {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!recordRes.ok) {
         const errorText = await recordRes.text();
@@ -233,16 +235,19 @@ async function handleKieMusicGeneration({
       }
 
       const recordData = await recordRes.json();
-      const state = String(recordData?.data?.status || "PENDING").toUpperCase();
+      const state = String(recordData?.data?.status || recordData?.msg || "PENDING").toUpperCase();
 
-      if (state === "SUCCESS") {
+      if (state === "SUCCESS" || state === "1" || state === "FINISHED") {
         const tracks = Array.isArray(recordData?.data?.response?.sunoData)
           ? recordData.data.response.sunoData
           : [];
         const audioFiles = tracks
-          .map((track) => track?.audioUrl)
-          .filter((url) => typeof url === "string" && url.length > 0)
-          .map((url) => ({ url, format: "mp3" }));
+          .map((track: unknown) => {
+            const t = track as Record<string, unknown>;
+            return (typeof t?.audioUrl === "string" ? t.audioUrl : t?.url) as string;
+          })
+          .filter((url: string) => typeof url === "string" && url.length > 0)
+          .map((url: string) => ({ url, format: "mp3" }));
 
         saveCallLog({
           method: "POST",
@@ -261,13 +266,18 @@ async function handleKieMusicGeneration({
       }
 
       if (
-        state.includes("FAILED") ||
+        state.includes("FAIL") ||
         state.includes("ERROR") ||
+        state === "2" ||
+        state === "3" ||
         state === "CREATE_TASK_FAILED" ||
         state === "GENERATE_AUDIO_FAILED"
       ) {
         const errorMessage =
-          recordData?.data?.errorMessage || recordData?.msg || "KIE music task failed";
+          recordData?.data?.errorMessage ||
+          recordData?.data?.failMsg ||
+          recordData?.msg ||
+          `KIE music task failed with status: ${state}`;
         return { success: false, status: 502, error: errorMessage };
       }
 

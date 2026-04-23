@@ -347,10 +347,15 @@ async function handleKieImageGeneration({
       });
     }
 
-    const statusUrl = providerConfig.baseUrl.replace("/generate", "/record-info");
+    const statusUrl = providerConfig.baseUrl
+      .replace(/\/generate$/, "/record-info")
+      .replace("/api/v1/gpt4o-image/generate", "/api/v1/gpt4o-image/record-info");
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
-      const recordRes = await fetch(`${statusUrl}?taskId=${encodeURIComponent(taskId)}`, {
+      const pollUrl = new URL(statusUrl);
+      pollUrl.searchParams.set("taskId", String(taskId));
+
+      const recordRes = await fetch(pollUrl.toString(), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -374,13 +379,15 @@ async function handleKieImageGeneration({
         recordData?.data?.status ?? recordData?.data?.successFlag ?? recordData?.msg ?? "PENDING"
       ).toUpperCase();
 
-      if (state === "SUCCESS" || state === "1") {
+      if (state === "SUCCESS" || state === "1" || state === "FINISHED") {
         const urls = Array.isArray(recordData?.data?.response?.resultUrls)
           ? recordData.data.response.resultUrls
-          : [];
+          : Array.isArray(recordData?.data?.resultImageUrls)
+            ? recordData.data.resultImageUrls
+            : [];
         const images = urls
-          .filter((url) => typeof url === "string" && url.length > 0)
-          .map((url) => ({ url, revised_prompt: body.prompt }));
+          .filter((url: unknown) => typeof url === "string" && url.length > 0)
+          .map((url: unknown) => ({ url: url as string, revised_prompt: body.prompt }));
         return saveImageSuccessResult({
           provider,
           model,
@@ -391,16 +398,21 @@ async function handleKieImageGeneration({
         });
       }
 
+      // Expanded failure state detection
       if (
-        state.includes("FAIL") ||
-        state.includes("ERROR") ||
+        state === "FAIL" ||
+        state === "FAILED" ||
+        state === "ERROR" ||
         state === "2" ||
         state === "3" ||
+        state.includes("FAIL") ||
+        state.includes("ERROR") ||
         state === "CREATE_TASK_FAILED" ||
         state === "GENERATE_FAILED"
       ) {
         const errorMessage =
           recordData?.data?.errorMessage ||
+          recordData?.data?.failMsg ||
           recordData?.msg ||
           `KIE image task failed with status: ${state}`;
         return saveImageErrorResult({

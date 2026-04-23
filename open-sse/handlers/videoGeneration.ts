@@ -318,16 +318,18 @@ async function handleKieVideoGeneration({
     }
 
     const deadline = Date.now() + timeoutMs;
+    const statusBaseUrl = `${baseUrl}/api/v1/jobs/recordInfo`;
+
     while (Date.now() < deadline) {
-      const recordRes = await fetch(
-        `${baseUrl}/api/v1/jobs/recordInfo?taskId=${encodeURIComponent(taskId)}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const pollUrl = new URL(statusBaseUrl);
+      pollUrl.searchParams.set("taskId", String(taskId));
+
+      const recordRes = await fetch(pollUrl.toString(), {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!recordRes.ok) {
         const errorText = await recordRes.text();
@@ -335,10 +337,12 @@ async function handleKieVideoGeneration({
       }
 
       const recordData = await recordRes.json();
-      const state = String(recordData?.data?.state || "generating").toLowerCase();
+      const state = String(
+        recordData?.data?.state || recordData?.data?.status || "generating"
+      ).toLowerCase();
 
-      if (state === "success") {
-        let resultJson: any = {};
+      if (state === "success" || state === "1" || state === "finished") {
+        let resultJson: Record<string, unknown> = {};
         try {
           resultJson =
             typeof recordData?.data?.resultJson === "string"
@@ -351,10 +355,12 @@ async function handleKieVideoGeneration({
           ? resultJson.resultUrls
           : Array.isArray(resultJson?.videoUrls)
             ? resultJson.videoUrls
-            : [];
+            : Array.isArray(recordData?.data?.response?.resultUrls)
+              ? recordData.data.response.resultUrls
+              : [];
         const videos = urls
-          .filter((url) => typeof url === "string" && url.length > 0)
-          .map((url) => ({ url, format: "mp4" }));
+          .filter((url: unknown) => typeof url === "string" && url.length > 0)
+          .map((url: unknown) => ({ url: url as string, format: "mp4" }));
 
         saveCallLog({
           method: "POST",
@@ -372,9 +378,21 @@ async function handleKieVideoGeneration({
         };
       }
 
-      if (state === "fail" || state === "failed" || state === "error" || state.includes("fail") || state.includes("error")) {
+      if (
+        state === "fail" ||
+        state === "failed" ||
+        state === "error" ||
+        state === "2" ||
+        state === "3" ||
+        state.includes("fail") ||
+        state.includes("error") ||
+        state.includes("failed")
+      ) {
         const errorMessage =
-          recordData?.data?.failMsg || recordData?.msg || "KIE video task failed";
+          recordData?.data?.failMsg ||
+          recordData?.data?.errorMessage ||
+          recordData?.msg ||
+          `KIE video task failed with state: ${state}`;
         return { success: false, status: 502, error: errorMessage };
       }
 
