@@ -98,3 +98,76 @@ test("scorecard keeps only the latest run per suite and target scope", () => {
   assert.equal(scorecard.totalPassed, 3);
   assert.equal(scorecard.overallPassRate, 75);
 });
+
+test("custom eval suites persist cases and support update/delete", () => {
+  const created = evalsDb.saveCustomEvalSuite({
+    name: "Support Regression",
+    description: "Checks refund phrasing",
+    cases: [
+      {
+        name: "Refund policy",
+        model: "gpt-4o-mini",
+        input: {
+          messages: [{ role: "user", content: "Explain the refund policy" }],
+        },
+        expected: {
+          strategy: "contains",
+          value: "refund",
+        },
+        tags: ["support", "billing"],
+      },
+    ],
+  });
+
+  assert.ok(created.id);
+  assert.equal(created.source, "custom");
+  assert.equal(created.caseCount, 1);
+  assert.equal(created.cases[0]?.expected.strategy, "contains");
+  assert.deepEqual(created.cases[0]?.tags, ["support", "billing"]);
+
+  const updated = evalsDb.saveCustomEvalSuite({
+    id: created.id,
+    name: "Support Regression v2",
+    description: "Checks refund and escalation phrasing",
+    cases: [
+      {
+        id: created.cases[0]?.id,
+        name: "Refund policy",
+        model: "gpt-4o-mini",
+        input: {
+          messages: [{ role: "user", content: "Explain the refund policy" }],
+        },
+        expected: {
+          strategy: "contains",
+          value: "refund",
+        },
+        tags: ["support"],
+      },
+      {
+        name: "Escalation path",
+        model: "gpt-4o-mini",
+        input: {
+          messages: [{ role: "user", content: "How do I escalate a billing issue?" }],
+        },
+        expected: {
+          strategy: "regex",
+          value: "support|billing",
+        },
+        tags: ["billing"],
+      },
+    ],
+  });
+
+  assert.equal(updated.id, created.id);
+  assert.equal(updated.name, "Support Regression v2");
+  assert.equal(updated.caseCount, 2);
+  assert.equal(updated.cases[1]?.expected.strategy, "regex");
+
+  const listed = evalsDb.listCustomEvalSuites();
+  assert.equal(listed.length, 1);
+  assert.equal(listed[0]?.id, created.id);
+  assert.equal(evalsDb.getCustomEvalSuite(created.id)?.cases.length, 2);
+
+  assert.equal(evalsDb.deleteCustomEvalSuite(created.id), true);
+  assert.equal(evalsDb.getCustomEvalSuite(created.id), null);
+});

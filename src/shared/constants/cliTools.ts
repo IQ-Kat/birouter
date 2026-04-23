@@ -524,6 +524,15 @@ amp --model "{{model}}"
 }`,
     },
   },
+  custom: {
+    id: "custom",
+    name: "Custom CLI",
+    icon: "terminal",
+    color: "#10B981",
+    description: "Generic OpenAI-compatible CLI or SDK configuration generator",
+    docsUrl: "/docs?section=cli-tools",
+    configType: "custom-builder",
+  },
   // HIDDEN: gemini-cli
   // "gemini-cli": {
   //   id: "gemini-cli",

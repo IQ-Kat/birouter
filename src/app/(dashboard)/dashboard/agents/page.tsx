@@ -451,14 +451,14 @@ export default function AgentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label={t("agentName")}
-                placeholder="e.g. My Custom CLI"
+                placeholder={t("agentNamePlaceholder")}
                 value={newAgent.name}
                 onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
                 required
               />
               <Input
                 label={t("binaryName")}
-                placeholder="e.g. mycli"
+                placeholder={t("binaryNamePlaceholder")}
                 value={newAgent.binary}
                 onChange={(e) => setNewAgent({ ...newAgent, binary: e.target.value })}
                 required
@@ -467,13 +467,13 @@ export default function AgentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label={t("versionCommand")}
-                placeholder="e.g. mycli --version"
+                placeholder={t("versionCommandPlaceholder")}
                 value={newAgent.versionCommand}
                 onChange={(e) => setNewAgent({ ...newAgent, versionCommand: e.target.value })}
               />
               <Input
                 label={t("spawnArgs")}
-                placeholder="e.g. --quiet, --json"
+                placeholder={t("spawnArgsPlaceholder")}
                 value={newAgent.spawnArgs}
                 onChange={(e) => setNewAgent({ ...newAgent, spawnArgs: e.target.value })}
               />

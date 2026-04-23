@@ -145,6 +145,53 @@ test("pricing layers merge synced, models.dev and user overrides", async () => {
   assert.deepEqual(await settingsDb.resetAllPricing(), {});
 });
 
+test("getPricingWithSources reports the winning layer for each provider/model", async () => {
+  const db = core.getDbInstance();
+
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "pricing_synced",
+    "layer-source",
+    JSON.stringify({
+      "model-litellm": { prompt: 1, completion: 2 },
+      "model-user": { prompt: 3 },
+    })
+  );
+  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    "models_dev_pricing",
+    "layer-source",
+    JSON.stringify({
+      "model-modelsdev": { prompt: 4, completion: 5 },
+      "model-user": { completion: 6 },
+    })
+  );
+
+  await settingsDb.updatePricing({
+    "layer-source": {
+      "model-user": { cached: 7 },
+    },
+  });
+
+  const { pricing, sourceMap } = await settingsDb.getPricingWithSources();
+
+  assert.deepEqual(pricing["layer-source"]["model-litellm"], {
+    prompt: 1,
+    completion: 2,
+  });
+  assert.deepEqual(pricing["layer-source"]["model-modelsdev"], {
+    prompt: 4,
+    completion: 5,
+  });
+  assert.deepEqual(pricing["layer-source"]["model-user"], {
+    prompt: 3,
+    completion: 6,
+    cached: 7,
+  });
+  assert.equal(sourceMap["layer-source"]["model-litellm"], "litellm");
+  assert.equal(sourceMap["layer-source"]["model-modelsdev"], "modelsDev");
+  assert.equal(sourceMap["layer-source"]["model-user"], "user");
+  assert.equal(sourceMap.openai["gpt-4o"], "default");
+});
+
 test("LKGP values can be set, read and cleared", async () => {
   assert.equal(await settingsDb.getLKGP("combo-a", "model-a"), null);
 
@@ -225,48 +272,50 @@ test("settings and pricing readers skip malformed rows while merging surviving l
       };
     }
 
-    if (text.includes("namespace = 'pricing_synced'")) {
+    if (text === "SELECT key, value FROM key_value WHERE namespace = ?") {
       return {
-        all: () => [
-          123,
-          { key: 456, value: JSON.stringify({ ignored: true }) },
-          {
-            key: "layered-provider",
-            value: JSON.stringify({
-              "model-a": { prompt: 1, completion: 2 },
-            }),
-          },
-        ],
-      };
-    }
+        all: (namespace) => {
+          if (namespace === "pricing_synced") {
+            return [
+              123,
+              { key: 456, value: JSON.stringify({ ignored: true }) },
+              {
+                key: "layered-provider",
+                value: JSON.stringify({
+                  "model-a": { prompt: 1, completion: 2 },
+                }),
+              },
+            ];
+          }
 
-    if (text.includes("namespace = 'models_dev_pricing'")) {
-      return {
-        all: () => [
-          { key: "broken-provider", value: "{bad" },
-          { key: "missing-value", value: null },
-          {
-            key: "layered-provider",
-            value: JSON.stringify({
-              "model-a": { cached: 3 },
-            }),
-          },
-        ],
-      };
-    }
+          if (namespace === "models_dev_pricing") {
+            return [
+              { key: "broken-provider", value: "{bad" },
+              { key: "missing-value", value: null },
+              {
+                key: "layered-provider",
+                value: JSON.stringify({
+                  "model-a": { cached: 3 },
+                }),
+              },
+            ];
+          }
 
-    if (text.includes("namespace = 'pricing'")) {
-      return {
-        all: () => [
-          {
-            key: "layered-provider",
-            value: JSON.stringify({
-              "model-a": { prompt: 9, custom: 42 },
-              "model-b": { prompt: 7 },
-            }),
-          },
-          { key: null, value: JSON.stringify({ ignored: true }) },
-        ],
+          if (namespace === "pricing") {
+            return [
+              {
+                key: "layered-provider",
+                value: JSON.stringify({
+                  "model-a": { prompt: 9, custom: 42 },
+                  "model-b": { prompt: 7 },
+                }),
+              },
+              { key: null, value: JSON.stringify({ ignored: true }) },
+            ];
+          }
+
+          return originalPrepare(sql).all(namespace);
+        },
       };
     }
 

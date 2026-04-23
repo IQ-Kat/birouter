@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Card, Button, EmptyState, DataTable, FilterBar, Select } from "@/shared/components";
+import {
+  Card,
+  Button,
+  EmptyState,
+  DataTable,
+  FilterBar,
+  Input,
+  Modal,
+  Select,
+} from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 
 type EvalTargetType = "suite-default" | "model" | "combo";
@@ -39,8 +48,10 @@ interface EvalSuite {
   id: string;
   name: string;
   description?: string;
+  source?: "built-in" | "custom";
   caseCount?: number;
   cases?: EvalCasePreview[];
+  updatedAt?: string;
 }
 
 interface EvalResult {
@@ -104,6 +115,26 @@ interface EvalsDashboardPayload {
   apiKeys: EvalApiKeyOption[];
 }
 
+type BuilderStrategy = "contains" | "exact" | "regex";
+
+interface EvalCaseDraft {
+  id: string;
+  name: string;
+  model: string;
+  systemPrompt: string;
+  userPrompt: string;
+  strategy: BuilderStrategy;
+  expectedValue: string;
+  tags: string;
+}
+
+interface EvalSuiteDraft {
+  id?: string;
+  name: string;
+  description: string;
+  cases: EvalCaseDraft[];
+}
+
 const STRATEGIES = [
   {
     name: "contains",
@@ -156,6 +187,70 @@ const HISTORY_COLUMNS = [
 
 const NO_COMPARE_TARGET = "__none__";
 const AUTO_API_KEY = "__auto__";
+
+function createDraftId() {
+  return `draft-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function createEmptyCaseDraft(): EvalCaseDraft {
+  return {
+    id: createDraftId(),
+    name: "",
+    model: "",
+    systemPrompt: "",
+    userPrompt: "",
+    strategy: "contains",
+    expectedValue: "",
+    tags: "",
+  };
+}
+
+function createEmptySuiteDraft(): EvalSuiteDraft {
+  return {
+    name: "",
+    description: "",
+    cases: [createEmptyCaseDraft()],
+  };
+}
+
+function joinPromptMessages(
+  messages: Array<{ role: string; content: string }> | undefined,
+  role: string
+): string {
+  return (messages || [])
+    .filter((message) => message.role === role && typeof message.content === "string")
+    .map((message) => message.content)
+    .join("\n\n");
+}
+
+function suiteToDraft(suite: EvalSuite): EvalSuiteDraft {
+  return {
+    id: suite.id,
+    name: suite.name || "",
+    description: suite.description || "",
+    cases:
+      suite.cases && suite.cases.length > 0
+        ? suite.cases.map((evalCase) => ({
+            id: evalCase.id || createDraftId(),
+            name: evalCase.name || "",
+            model: evalCase.model || "",
+            systemPrompt: joinPromptMessages(evalCase.input?.messages, "system"),
+            userPrompt:
+              joinPromptMessages(evalCase.input?.messages, "user") ||
+              (evalCase.input?.messages || [])
+                .filter((message) => message.role !== "system")
+                .map((message) => message.content)
+                .join("\n\n"),
+            strategy:
+              evalCase.expected?.strategy === "exact" || evalCase.expected?.strategy === "regex"
+                ? evalCase.expected.strategy
+                : "contains",
+            expectedValue: evalCase.expected?.value || "",
+            tags: (evalCase.tags || []).join(", "),
+          }))
+        : [createEmptyCaseDraft()],
+  };
+}
 
 function getTargetLabel(
   target: { type: EvalTargetType; id: string | null },
@@ -246,6 +341,10 @@ export default function EvalsTab() {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+  const [suiteDraft, setSuiteDraft] = useState<EvalSuiteDraft>(createEmptySuiteDraft());
+  const [savingSuite, setSavingSuite] = useState(false);
+  const [deletingSuiteId, setDeletingSuiteId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -334,6 +433,154 @@ export default function EvalsTab() {
     setTargetOptions(Array.isArray(payload.targets) ? payload.targets : []);
     setApiKeys(Array.isArray(payload.apiKeys) ? payload.apiKeys : []);
     setSuites(Array.isArray(payload.suites) ? payload.suites : []);
+  }
+
+  function openNewSuiteBuilder() {
+    setSuiteDraft(createEmptySuiteDraft());
+    setIsBuilderOpen(true);
+  }
+
+  function openEditSuiteBuilder(suite: EvalSuite) {
+    setSuiteDraft(suiteToDraft(suite));
+    setIsBuilderOpen(true);
+  }
+
+  async function handleSaveSuite() {
+    const suiteName = suiteDraft.name.trim();
+    if (!suiteName) {
+      notify.warning(t("suiteBuilderNameRequired"));
+      return;
+    }
+
+    if (suiteDraft.cases.length === 0) {
+      notify.warning(t("suiteBuilderCasesRequired"));
+      return;
+    }
+
+    const invalidCaseIndex = suiteDraft.cases.findIndex((draftCase) => {
+      const hasMessage =
+        draftCase.systemPrompt.trim().length > 0 || draftCase.userPrompt.trim().length > 0;
+      return (
+        !draftCase.name.trim() ||
+        !draftCase.expectedValue.trim() ||
+        !hasMessage ||
+        !draftCase.model.trim()
+      );
+    });
+
+    if (invalidCaseIndex >= 0) {
+      notify.warning(t("suiteBuilderCaseInvalid", { index: invalidCaseIndex + 1 }));
+      return;
+    }
+
+    setSavingSuite(true);
+    try {
+      const payload = {
+        name: suiteName,
+        description: suiteDraft.description.trim(),
+        cases: suiteDraft.cases.map((draftCase) => {
+          const messages: Array<{ role: string; content: string }> = [];
+          if (draftCase.systemPrompt.trim()) {
+            messages.push({ role: "system", content: draftCase.systemPrompt.trim() });
+          }
+          if (draftCase.userPrompt.trim()) {
+            messages.push({ role: "user", content: draftCase.userPrompt.trim() });
+          }
+
+          return {
+            ...(draftCase.id.startsWith("draft-") ? {} : { id: draftCase.id }),
+            name: draftCase.name.trim(),
+            model: draftCase.model.trim(),
+            input: {
+              messages,
+            },
+            expected: {
+              strategy: draftCase.strategy,
+              value: draftCase.expectedValue.trim(),
+            },
+            tags: draftCase.tags
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter(Boolean),
+          };
+        }),
+      };
+
+      const isEditing = typeof suiteDraft.id === "string" && suiteDraft.id.trim().length > 0;
+      const response = await fetch(
+        isEditing ? `/api/evals/suites/${encodeURIComponent(suiteDraft.id!)}` : "/api/evals/suites",
+        {
+          method: isEditing ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          result?.error?.message || result?.error || result?.message || t("suiteBuilderSaveFailed")
+        );
+      }
+
+      await refreshDashboard();
+      setExpanded(result?.suite?.id || suiteDraft.id || null);
+      setIsBuilderOpen(false);
+      setSuiteDraft(createEmptySuiteDraft());
+      notify.success(
+        isEditing ? t("suiteBuilderUpdated") : t("suiteBuilderCreated"),
+        t("notifyEvalTitle", { name: suiteName })
+      );
+    } catch (error: any) {
+      notify.error(
+        t("notifyEvalRunFailedWithReason", {
+          reason: error?.message || t("notAvailableSymbol"),
+        }),
+        t("suiteBuilderSaveFailed")
+      );
+    } finally {
+      setSavingSuite(false);
+    }
+  }
+
+  async function handleDeleteSuite(suite: EvalSuite) {
+    if (suite.source !== "custom") return;
+    const confirmDelete = window.confirm(
+      t("suiteBuilderDeleteConfirm", { name: suite.name || suite.id })
+    );
+    if (!confirmDelete) return;
+
+    setDeletingSuiteId(suite.id);
+    try {
+      const response = await fetch(`/api/evals/suites/${encodeURIComponent(suite.id)}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          result?.error?.message ||
+            result?.error ||
+            result?.message ||
+            t("suiteBuilderDeleteFailed")
+        );
+      }
+      await refreshDashboard();
+      if (expanded === suite.id) {
+        setExpanded(null);
+      }
+      notify.success(
+        t("suiteBuilderDeleted"),
+        t("notifyEvalTitle", { name: suite.name || suite.id })
+      );
+    } catch (error: any) {
+      notify.error(
+        t("notifyEvalRunFailedWithReason", {
+          reason: error?.message || t("notAvailableSymbol"),
+        }),
+        t("suiteBuilderDeleteFailed")
+      );
+    } finally {
+      setDeletingSuiteId(null);
+    }
   }
 
   async function handleRunEval(suite: EvalSuite) {
@@ -728,14 +975,19 @@ export default function EvalsTab() {
       </Card>
 
       <Card className="p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-violet-500/10 text-violet-500">
-            <span className="material-symbols-outlined text-[20px]">science</span>
+        <div className="flex flex-col gap-3 mb-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-violet-500/10 text-violet-500">
+              <span className="material-symbols-outlined text-[20px]">science</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">{t("evalSuites")}</h3>
+              <p className="text-xs text-text-muted">{t("evalSuitesHint")}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">{t("evalSuites")}</h3>
-            <p className="text-xs text-text-muted">{t("evalSuitesHint")}</p>
-          </div>
+          <Button icon="add" onClick={openNewSuiteBuilder}>
+            {t("suiteBuilderNewSuite")}
+          </Button>
         </div>
 
         <FilterBar
@@ -782,6 +1034,17 @@ export default function EvalsTab() {
                         <p className="text-sm font-medium text-text-main">
                           {suite.name || suite.id}
                         </p>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${
+                            suite.source === "custom"
+                              ? "bg-sky-500/10 text-sky-400"
+                              : "bg-text-muted/10 text-text-muted"
+                          }`}
+                        >
+                          {suite.source === "custom"
+                            ? t("suiteBuilderCustomBadge")
+                            : t("suiteBuilderBuiltInBadge")}
+                        </span>
                         {typeof latestScore === "number" && (
                           <span
                             className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -802,6 +1065,11 @@ export default function EvalsTab() {
                           <span className="ml-1">- {suite.description}</span>
                         ) : null}
                       </p>
+                      {suite.source === "custom" && suite.updatedAt ? (
+                        <p className="text-[11px] text-text-muted mt-1">
+                          {t("suiteBuilderUpdatedAt", { value: formatTimestamp(suite.updatedAt) })}
+                        </p>
+                      ) : null}
                       {suiteModels.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {suiteModels.map((model) => (
@@ -817,18 +1085,49 @@ export default function EvalsTab() {
                     </div>
                   </div>
 
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    loading={isRunning}
-                    disabled={running !== null}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void handleRunEval(suite);
-                    }}
-                  >
-                    {isRunning ? t("runEvalRunning") : t("runEval")}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {suite.source === "custom" && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          icon="edit"
+                          disabled={running !== null || deletingSuiteId === suite.id}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openEditSuiteBuilder(suite);
+                          }}
+                        >
+                          {t("edit")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          icon="delete"
+                          disabled={running !== null || deletingSuiteId === suite.id}
+                          loading={deletingSuiteId === suite.id}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void handleDeleteSuite(suite);
+                          }}
+                        >
+                          {t("delete")}
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      loading={isRunning}
+                      disabled={running !== null}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleRunEval(suite);
+                      }}
+                    >
+                      {isRunning ? t("runEvalRunning") : t("runEval")}
+                    </Button>
+                  </div>
                 </div>
 
                 {isExpanded && (
@@ -1067,6 +1366,20 @@ export default function EvalsTab() {
           })}
         </div>
       </Card>
+
+      <SuiteBuilderModal
+        draft={suiteDraft}
+        isOpen={isBuilderOpen}
+        onChange={setSuiteDraft}
+        onClose={() => {
+          if (savingSuite) return;
+          setIsBuilderOpen(false);
+          setSuiteDraft(createEmptySuiteDraft());
+        }}
+        onSave={() => void handleSaveSuite()}
+        saving={savingSuite}
+        t={t}
+      />
     </div>
   );
 }
@@ -1116,5 +1429,190 @@ function HeroSection({ t }: { t: (key: string, values?: Record<string, unknown>)
         </div>
       </div>
     </Card>
+  );
+}
+
+function SuiteBuilderModal({
+  draft,
+  isOpen,
+  onChange,
+  onClose,
+  onSave,
+  saving,
+  t,
+}: {
+  draft: EvalSuiteDraft;
+  isOpen: boolean;
+  onChange: (next: EvalSuiteDraft) => void;
+  onClose: () => void;
+  onSave: () => void;
+  saving: boolean;
+  t: (key: string, values?: Record<string, unknown>) => string;
+}) {
+  const editableStrategies = STRATEGIES.filter((strategy) => strategy.name !== "custom");
+
+  function updateCase(caseId: string, patch: Partial<EvalCaseDraft>) {
+    onChange({
+      ...draft,
+      cases: draft.cases.map((entry) => (entry.id === caseId ? { ...entry, ...patch } : entry)),
+    });
+  }
+
+  function addCase() {
+    onChange({
+      ...draft,
+      cases: [...draft.cases, createEmptyCaseDraft()],
+    });
+  }
+
+  function removeCase(caseId: string) {
+    if (draft.cases.length <= 1) {
+      onChange({
+        ...draft,
+        cases: [createEmptyCaseDraft()],
+      });
+      return;
+    }
+
+    onChange({
+      ...draft,
+      cases: draft.cases.filter((entry) => entry.id !== caseId),
+    });
+  }
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      title={draft.id ? t("suiteBuilderEditTitle") : t("suiteBuilderCreateTitle")}
+      onClose={onClose}
+    >
+      <div className="flex max-h-[75vh] flex-col gap-4 overflow-y-auto pr-1">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Input
+            label={t("suiteBuilderNameLabel")}
+            value={draft.name}
+            onChange={(event) => onChange({ ...draft, name: event.target.value })}
+            placeholder={t("suiteBuilderNamePlaceholder")}
+          />
+          <Input
+            label={t("suiteBuilderDescriptionLabel")}
+            value={draft.description}
+            onChange={(event) => onChange({ ...draft, description: event.target.value })}
+            placeholder={t("suiteBuilderDescriptionPlaceholder")}
+          />
+        </div>
+
+        <div className="rounded-xl border border-border/20 bg-surface/20 p-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h4 className="text-sm font-semibold text-text-main">
+                {t("suiteBuilderCasesTitle")}
+              </h4>
+              <p className="text-xs text-text-muted">{t("suiteBuilderCasesHint")}</p>
+            </div>
+            <Button icon="add" variant="secondary" onClick={addCase}>
+              {t("suiteBuilderAddCase")}
+            </Button>
+          </div>
+        </div>
+
+        {draft.cases.map((draftCase, index) => (
+          <Card key={draftCase.id} className="p-4">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-semibold text-text-main">
+                  {t("suiteBuilderCaseCardTitle", { index: index + 1 })}
+                </h4>
+                <p className="text-xs text-text-muted">
+                  {t("suiteBuilderCaseCardHint", { index: index + 1 })}
+                </p>
+              </div>
+              <Button variant="ghost" icon="delete" onClick={() => removeCase(draftCase.id)}>
+                {t("delete")}
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Input
+                label={t("suiteBuilderCaseNameLabel")}
+                value={draftCase.name}
+                onChange={(event) => updateCase(draftCase.id, { name: event.target.value })}
+                placeholder={t("suiteBuilderCaseNamePlaceholder")}
+              />
+              <Input
+                label={t("suiteBuilderCaseModelLabel")}
+                value={draftCase.model}
+                onChange={(event) => updateCase(draftCase.id, { model: event.target.value })}
+                placeholder={t("suiteBuilderCaseModelPlaceholder")}
+              />
+              <Input
+                label={t("suiteBuilderCaseTagsLabel")}
+                value={draftCase.tags}
+                onChange={(event) => updateCase(draftCase.id, { tags: event.target.value })}
+                placeholder={t("suiteBuilderCaseTagsPlaceholder")}
+                hint={t("suiteBuilderCaseTagsHint")}
+              />
+              <Select
+                label={t("suiteBuilderCaseStrategyLabel")}
+                value={draftCase.strategy}
+                onChange={(event) =>
+                  updateCase(draftCase.id, { strategy: event.target.value as BuilderStrategy })
+                }
+                options={editableStrategies.map((strategy) => ({
+                  value: strategy.name,
+                  label: t(strategy.labelKey),
+                }))}
+              />
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4">
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-text-main">
+                  {t("suiteBuilderCaseSystemPromptLabel")}
+                </span>
+                <textarea
+                  value={draftCase.systemPrompt}
+                  onChange={(event) =>
+                    updateCase(draftCase.id, { systemPrompt: event.target.value })
+                  }
+                  rows={3}
+                  placeholder={t("suiteBuilderCaseSystemPromptPlaceholder")}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-text-main">
+                  {t("suiteBuilderCaseUserPromptLabel")}
+                </span>
+                <textarea
+                  value={draftCase.userPrompt}
+                  onChange={(event) => updateCase(draftCase.id, { userPrompt: event.target.value })}
+                  rows={4}
+                  placeholder={t("suiteBuilderCaseUserPromptPlaceholder")}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
+                />
+              </label>
+              <Input
+                label={t("suiteBuilderCaseExpectedLabel")}
+                value={draftCase.expectedValue}
+                onChange={(event) =>
+                  updateCase(draftCase.id, { expectedValue: event.target.value })
+                }
+                placeholder={t("suiteBuilderCaseExpectedPlaceholder")}
+              />
+            </div>
+          </Card>
+        ))}
+
+        <div className="flex gap-2">
+          <Button fullWidth onClick={onSave} disabled={saving}>
+            {saving ? t("saving") : draft.id ? t("save") : t("suiteBuilderCreateAction")}
+          </Button>
+          <Button fullWidth variant="ghost" onClick={onClose} disabled={saving}>
+            {t("cancel")}
+          </Button>
+        </div>
+      </div>
+    </Modal>
   );
 }

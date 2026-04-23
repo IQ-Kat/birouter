@@ -98,10 +98,16 @@ export {
   saveEvalRun,
   listEvalRuns,
   getEvalScorecard,
+  listCustomEvalSuites,
+  getCustomEvalSuite,
+  saveCustomEvalSuite,
+  deleteCustomEvalSuite,
   serializeEvalTargetKey,
 } from "./db/evals";
 
 export type {
+  EvalCaseRecord,
+  EvalSuiteRecord,
   EvalTargetType,
   EvalTargetDescriptor,
   EvalRunSummary,
@@ -120,6 +126,7 @@ export {
 
   // Pricing
   getPricing,
+  getPricingWithSources,
   getPricingForModel,
   updatePricing,
   resetPricing,
@@ -133,6 +140,8 @@ export {
   resolveProxyForConnection,
   setProxyConfig,
 } from "./db/settings";
+
+export type { PricingSource, PricingSourceMap } from "./db/settings";
 
 export {
   // Proxy Registry

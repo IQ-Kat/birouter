@@ -1378,6 +1378,26 @@ const evalTargetSchema = z
     }
   });
 
+const evalMessageSchema = z.object({
+  role: z.string().trim().min(1, "message.role is required").max(50),
+  content: z.string().trim().min(1, "message.content is required").max(20000),
+});
+
+const evalCaseBuilderSchema = z.object({
+  id: z.string().trim().min(1).optional(),
+  name: z.string().trim().min(1, "case.name is required").max(200),
+  model: z.string().trim().min(1).max(300).optional().nullable(),
+  input: z.object({
+    messages: z.array(evalMessageSchema).min(1, "At least one message is required").max(32),
+    max_tokens: z.number().int().min(1).max(8192).optional(),
+  }),
+  expected: z.object({
+    strategy: z.enum(["contains", "exact", "regex"]),
+    value: z.string().trim().min(1, "expected.value is required").max(20000),
+  }),
+  tags: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
+});
+
 export const evalRunSuiteSchema = z
   .object({
     suiteId: z.string().trim().min(1, "suiteId is required"),
@@ -1401,6 +1421,13 @@ export const evalRunSuiteSchema = z
       }
     }
   });
+
+export const evalSuiteSaveSchema = z.object({
+  id: z.string().trim().min(1).optional(),
+  name: z.string().trim().min(1, "name is required").max(200),
+  description: z.string().trim().max(2000).optional(),
+  cases: z.array(evalCaseBuilderSchema).min(1, "At least one case is required").max(200),
+});
 
 const accessScheduleSchema = z.object({
   enabled: z.boolean(),

@@ -18,6 +18,7 @@ import {
   DefaultToolCard,
   AntigravityToolCard,
   CopilotToolCard,
+  CustomCliCard,
 } from "./components";
 import { useTranslations } from "next-intl";
 
@@ -41,6 +42,7 @@ const GUIDED_TOOL_IDS = new Set([
   "qwen",
 ]);
 const MITM_TOOL_IDS = new Set(["antigravity", "kiro"]);
+const CUSTOM_TOOL_IDS = new Set(["custom"]);
 
 export default function CLIToolsPageClient({ machineId: _machineId }) {
   const t = useTranslations("cliTools");
@@ -246,6 +248,7 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
     if (activeCategory === "auto") return AUTO_CONFIGURED_TOOL_IDS.has(toolId);
     if (activeCategory === "guided") return GUIDED_TOOL_IDS.has(toolId);
     if (activeCategory === "mitm") return MITM_TOOL_IDS.has(toolId);
+    if (activeCategory === "custom") return CUSTOM_TOOL_IDS.has(toolId);
     return true;
   });
 
@@ -344,6 +347,16 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
             cloudEnabled={cloudEnabled}
           />
         );
+      case "custom":
+        return (
+          <CustomCliCard
+            key={toolId}
+            {...commonProps}
+            availableModels={availableModels}
+            hasActiveProviders={hasActiveProviders}
+            cloudEnabled={cloudEnabled}
+          />
+        );
       default:
         // #487: Any tool with configType "mitm" should use the MITM card (Start/Stop controls)
         if (tool.configType === "mitm") {
@@ -421,6 +434,10 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
               { value: "auto", label: t("autoConfiguredTab") },
               { value: "guided", label: t("guidedClientsTab") },
               { value: "mitm", label: t("mitmClientsTab") },
+              {
+                value: "custom",
+                label: translateOrFallback("customCliTab", "Custom CLI"),
+              },
               { value: "all", label: t("allToolsTab") },
             ]}
             value={activeCategory}
