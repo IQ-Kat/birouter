@@ -53,7 +53,7 @@ const MODALITY_CONFIG: Record<
     label: "Video Generation",
     placeholder: "A timelapse of a flower blooming...",
     color: "from-blue-500 to-cyan-500",
-    needsCredentials: [],
+    needsCredentials: ["kie"],
   },
   music: {
     icon: "music_note",
@@ -61,7 +61,7 @@ const MODALITY_CONFIG: Record<
     label: "Music Generation",
     placeholder: "Upbeat electronic music with synth pads...",
     color: "from-orange-500 to-yellow-500",
-    needsCredentials: [],
+    needsCredentials: ["kie"],
   },
   speech: {
     icon: "record_voice_over",
@@ -90,6 +90,14 @@ const PROVIDER_MODELS: Record<
   image: IMAGE_PROVIDER_MODELS,
   video: [
     {
+      id: "kie",
+      name: "KIE.AI",
+      models: [
+        { id: "kie/kling-2.6/text-to-video", name: "Kling 2.6 Text to Video" },
+        { id: "kie/wan/2-6-text-to-video", name: "Wan 2.6 Text to Video" },
+      ],
+    },
+    {
       id: "comfyui",
       name: "ComfyUI",
       models: [
@@ -104,6 +112,15 @@ const PROVIDER_MODELS: Record<
     },
   ],
   music: [
+    {
+      id: "kie",
+      name: "KIE.AI",
+      models: [
+        { id: "kie/V4", name: "Suno V4" },
+        { id: "kie/V4_5", name: "Suno V4.5" },
+        { id: "kie/V5", name: "Suno V5" },
+      ],
+    },
     {
       id: "comfyui",
       name: "ComfyUI",

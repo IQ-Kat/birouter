@@ -231,6 +231,16 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1280", "1024x1536", "1536x1024", "1280x1024"],
   },
 
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai/api/v1/gpt4o-image/generate",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-image",
+    models: [{ id: "gpt4o-image", name: "KIE 4o Image" }],
+    supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4"],
+  },
+
   sdwebui: {
     id: "sdwebui",
     baseUrl: "http://localhost:7860/sdapi/v1/txt2img",

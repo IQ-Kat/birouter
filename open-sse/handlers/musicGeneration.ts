@@ -50,6 +50,10 @@ export async function handleMusicGeneration({ body, credentials, log }) {
     return handleComfyUIMusicGeneration({ model, provider, providerConfig, body, log });
   }
 
+  if (providerConfig.format === "kie-music") {
+    return handleKieMusicGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+
   return {
     success: false,
     status: 400,
@@ -163,4 +167,123 @@ async function handleComfyUIMusicGeneration({ model, provider, providerConfig, b
     }).catch(() => {});
     return { success: false, status: 502, error: `Music provider error: ${err.message}` };
   }
+}
+
+async function handleKieMusicGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const timeoutMs = Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000;
+  const pollIntervalMs = Number(body.poll_interval_ms) > 0 ? Number(body.poll_interval_ms) : 2500;
+  const token = credentials?.apiKey || credentials?.accessToken;
+  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
+  const payload = {
+    prompt: body.prompt,
+    customMode: false,
+    instrumental: true,
+    model,
+  };
+
+  if (log) {
+    const promptPreview = String(body.prompt ?? "").slice(0, 60);
+    log.info("MUSIC", `${provider}/${model} (kie-music) | prompt: "${promptPreview}..."`);
+  }
+
+  try {
+    const createRes = await fetch(`${baseUrl}/api/v1/generate`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!createRes.ok) {
+      const errorText = await createRes.text();
+      return { success: false, status: createRes.status, error: errorText };
+    }
+
+    const createData = await createRes.json();
+    const taskId = createData?.data?.taskId || createData?.taskId;
+    if (!taskId) {
+      return { success: false, status: 502, error: "KIE music generation did not return taskId" };
+    }
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const recordRes = await fetch(
+        `${baseUrl}/api/v1/generate/record-info?taskId=${encodeURIComponent(taskId)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!recordRes.ok) {
+        const errorText = await recordRes.text();
+        return { success: false, status: recordRes.status, error: errorText };
+      }
+
+      const recordData = await recordRes.json();
+      const state = String(recordData?.data?.status || "PENDING").toUpperCase();
+
+      if (state === "SUCCESS") {
+        const tracks = Array.isArray(recordData?.data?.response?.sunoData)
+          ? recordData.data.response.sunoData
+          : [];
+        const audioFiles = tracks
+          .map((track) => track?.audioUrl)
+          .filter((url) => typeof url === "string" && url.length > 0)
+          .map((url) => ({ url, format: "mp3" }));
+
+        saveCallLog({
+          method: "POST",
+          path: "/v1/music/generations",
+          status: 200,
+          model: `${provider}/${model}`,
+          provider,
+          duration: Date.now() - startTime,
+          responseBody: { audio_count: audioFiles.length },
+        }).catch(() => {});
+
+        return {
+          success: true,
+          data: { created: Math.floor(Date.now() / 1000), data: audioFiles },
+        };
+      }
+
+      if (
+        state.includes("FAILED") ||
+        state.includes("ERROR") ||
+        state === "CREATE_TASK_FAILED" ||
+        state === "GENERATE_AUDIO_FAILED"
+      ) {
+        const errorMessage =
+          recordData?.data?.errorMessage || recordData?.msg || "KIE music task failed";
+        return { success: false, status: 502, error: errorMessage };
+      }
+
+      await sleep(pollIntervalMs);
+    }
+
+    return {
+      success: false,
+      status: 504,
+      error: `KIE music polling timed out after ${timeoutMs}ms`,
+    };
+  } catch (err) {
+    return { success: false, status: 502, error: `Music provider error: ${err.message}` };
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

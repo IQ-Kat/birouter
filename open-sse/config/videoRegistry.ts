@@ -22,6 +22,18 @@ interface VideoProvider {
 }
 
 export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-video",
+    models: [
+      { id: "kling-2.6/text-to-video", name: "Kling 2.6 Text to Video" },
+      { id: "wan/2-6-text-to-video", name: "Wan 2.6 Text to Video" },
+    ],
+  },
+
   comfyui: {
     id: "comfyui",
     baseUrl: "http://localhost:8188",

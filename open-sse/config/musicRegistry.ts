@@ -22,6 +22,19 @@ interface MusicProvider {
 }
 
 export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-music",
+    models: [
+      { id: "V4", name: "Suno V4" },
+      { id: "V4_5", name: "Suno V4.5" },
+      { id: "V5", name: "Suno V5" },
+    ],
+  },
+
   comfyui: {
     id: "comfyui",
     baseUrl: "http://localhost:8188",

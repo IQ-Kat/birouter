@@ -267,6 +267,17 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
     });
   }
 
+  if (providerConfig.format === "kie-image") {
+    return handleKieImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   if (providerConfig.format === "sdwebui") {
     return handleSDWebUIImageGeneration({ model, provider, providerConfig, body, log });
   }
@@ -276,6 +287,153 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
   }
 
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
+}
+
+async function handleKieImageGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const token = credentials.apiKey || credentials.accessToken;
+  const timeoutMs = normalizePositiveNumber(body.timeout_ms, 180000);
+  const pollIntervalMs = normalizePositiveNumber(body.poll_interval_ms, 2500);
+  const payload: Record<string, unknown> = {
+    prompt: body.prompt,
+    size: typeof body.size === "string" ? body.size : "1:1",
+    nVariants: Number(body.n) > 0 ? Number(body.n) : 1,
+  };
+
+  try {
+    if (log) {
+      const promptPreview = String(body.prompt ?? "").slice(0, 60);
+      log.info("IMAGE", `${provider}/${model} (kie-image) | prompt: "${promptPreview}..."`);
+    }
+
+    const createRes = await fetch(providerConfig.baseUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!createRes.ok) {
+      const errorText = await createRes.text();
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: createRes.status,
+        startTime,
+        error: errorText,
+        requestBody: payload,
+      });
+    }
+
+    const createData = await createRes.json();
+    const taskId = createData?.data?.taskId || createData?.taskId;
+    if (!taskId) {
+      return saveImageErrorResult({
+        provider,
+        model,
+        status: 502,
+        startTime,
+        error: "KIE image generation did not return taskId",
+        requestBody: payload,
+      });
+    }
+
+    const statusUrl = "https://api.kie.ai/api/v1/gpt4o-image/record-info";
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const recordRes = await fetch(`${statusUrl}?taskId=${encodeURIComponent(taskId)}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!recordRes.ok) {
+        const errorText = await recordRes.text();
+        return saveImageErrorResult({
+          provider,
+          model,
+          status: recordRes.status,
+          startTime,
+          error: errorText,
+          requestBody: payload,
+        });
+      }
+
+      const recordData = await recordRes.json();
+      const state = String(
+        recordData?.data?.status ?? recordData?.data?.successFlag ?? recordData?.msg ?? "PENDING"
+      ).toUpperCase();
+
+      if (state === "SUCCESS" || state === "1") {
+        const urls = Array.isArray(recordData?.data?.response?.resultUrls)
+          ? recordData.data.response.resultUrls
+          : [];
+        const images = urls
+          .filter((url) => typeof url === "string" && url.length > 0)
+          .map((url) => ({ url, revised_prompt: body.prompt }));
+        return saveImageSuccessResult({
+          provider,
+          model,
+          startTime,
+          requestBody: payload,
+          responseBody: { images_count: images.length },
+          images,
+        });
+      }
+
+      if (
+        state.includes("FAIL") ||
+        state.includes("ERROR") ||
+        state === "2" ||
+        state === "3" ||
+        state === "CREATE_TASK_FAILED" ||
+        state === "GENERATE_FAILED"
+      ) {
+        const errorMessage =
+          recordData?.data?.errorMessage ||
+          recordData?.msg ||
+          `KIE image task failed with status: ${state}`;
+        return saveImageErrorResult({
+          provider,
+          model,
+          status: 502,
+          startTime,
+          error: errorMessage,
+          requestBody: payload,
+        });
+      }
+
+      await sleep(pollIntervalMs);
+    }
+
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 504,
+      startTime,
+      error: `KIE image polling timed out after ${timeoutMs}ms`,
+      requestBody: payload,
+    });
+  } catch (err) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 502,
+      startTime,
+      error: `Image provider error: ${err.message}`,
+      requestBody: payload,
+    });
+  }
 }
 
 /**

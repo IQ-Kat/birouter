@@ -55,6 +55,10 @@ export async function handleVideoGeneration({ body, credentials, log }) {
     return handleSDWebUIVideoGeneration({ model, provider, providerConfig, body, log });
   }
 
+  if (providerConfig.format === "kie-video") {
+    return handleKieVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+
   return {
     success: false,
     status: 400,
@@ -261,4 +265,132 @@ async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, b
     }).catch(() => {});
     return { success: false, status: 502, error: `Video provider error: ${err.message}` };
   }
+}
+
+async function handleKieVideoGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const timeoutMs = Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000;
+  const pollIntervalMs = Number(body.poll_interval_ms) > 0 ? Number(body.poll_interval_ms) : 2500;
+  const token = credentials?.apiKey || credentials?.accessToken;
+  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
+
+  const payload = {
+    model,
+    input: {
+      prompt: body.prompt,
+      duration: body.duration ? String(body.duration) : "5",
+      aspect_ratio: body.aspect_ratio || "16:9",
+      sound: body.sound === true,
+    },
+  };
+
+  if (log) {
+    const promptPreview = String(body.prompt ?? "").slice(0, 60);
+    log.info("VIDEO", `${provider}/${model} (kie-video) | prompt: "${promptPreview}..."`);
+  }
+
+  try {
+    const createRes = await fetch(`${baseUrl}/api/v1/jobs/createTask`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!createRes.ok) {
+      const errorText = await createRes.text();
+      return { success: false, status: createRes.status, error: errorText };
+    }
+
+    const createData = await createRes.json();
+    const taskId = createData?.data?.taskId || createData?.taskId;
+    if (!taskId) {
+      return { success: false, status: 502, error: "KIE video generation did not return taskId" };
+    }
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const recordRes = await fetch(
+        `${baseUrl}/api/v1/jobs/recordInfo?taskId=${encodeURIComponent(taskId)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!recordRes.ok) {
+        const errorText = await recordRes.text();
+        return { success: false, status: recordRes.status, error: errorText };
+      }
+
+      const recordData = await recordRes.json();
+      const state = String(recordData?.data?.state || "generating").toLowerCase();
+
+      if (state === "success") {
+        let resultJson: any = {};
+        try {
+          resultJson =
+            typeof recordData?.data?.resultJson === "string"
+              ? JSON.parse(recordData.data.resultJson)
+              : recordData?.data?.resultJson || {};
+        } catch {
+          resultJson = {};
+        }
+        const urls = Array.isArray(resultJson?.resultUrls)
+          ? resultJson.resultUrls
+          : Array.isArray(resultJson?.videoUrls)
+            ? resultJson.videoUrls
+            : [];
+        const videos = urls
+          .filter((url) => typeof url === "string" && url.length > 0)
+          .map((url) => ({ url, format: "mp4" }));
+
+        saveCallLog({
+          method: "POST",
+          path: "/v1/videos/generations",
+          status: 200,
+          model: `${provider}/${model}`,
+          provider,
+          duration: Date.now() - startTime,
+          responseBody: { videos_count: videos.length },
+        }).catch(() => {});
+
+        return {
+          success: true,
+          data: { created: Math.floor(Date.now() / 1000), data: videos },
+        };
+      }
+
+      if (state === "fail") {
+        const errorMessage =
+          recordData?.data?.failMsg || recordData?.msg || "KIE video task failed";
+        return { success: false, status: 502, error: errorMessage };
+      }
+
+      await sleep(pollIntervalMs);
+    }
+
+    return {
+      success: false,
+      status: 504,
+      error: `KIE video polling timed out after ${timeoutMs}ms`,
+    };
+  } catch (err) {
+    return { success: false, status: 502, error: `Video provider error: ${err.message}` };
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
