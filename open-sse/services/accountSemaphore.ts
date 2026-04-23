@@ -1,14 +1,13 @@
 /**
  * Account Semaphore
  *
- * In-memory provider/account concurrency limiter keyed by provider, model, and account.
+ * In-memory provider/account concurrency limiter keyed by provider and account.
  * Requests beyond the configured concurrency cap wait in a FIFO queue until a slot opens,
  * the gate is unblocked, or the queue timeout expires.
  */
 
 export interface AccountSemaphoreKeyParts {
   provider: string;
-  model: string;
   accountKey: string;
 }
 
@@ -47,10 +46,9 @@ const gates = new Map<string, AccountGate>();
  */
 export function buildAccountSemaphoreKey({
   provider,
-  model,
   accountKey,
 }: AccountSemaphoreKeyParts): string {
-  return `${String(provider)}:${String(model)}:${String(accountKey)}`;
+  return `${String(provider)}:${String(accountKey)}`;
 }
 
 function isBypassed(maxConcurrency?: number | null): boolean {

@@ -487,7 +487,7 @@ function resolveAccountSemaphoreKey({
 }): string | null {
   const accountKey = resolveAccountSemaphoreAccountKey(connectionId, credentials);
   if (!accountKey || !provider) return null;
-  return buildAccountSemaphoreKey({ provider, model, accountKey });
+  return buildAccountSemaphoreKey({ provider, accountKey });
 }
 
 function buildClaudePromptCacheLogMeta(
@@ -1867,71 +1867,89 @@ export async function handleChatCore({
         }
       }
 
-      const releaseAccountSemaphore =
+      const acquireAccountSemaphoreRelease =
         accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
           ? await acquireAccountSemaphore(accountSemaphoreKey, {
               maxConcurrency: accountSemaphoreMaxConcurrency,
             })
           : () => {};
 
-      try {
-        const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
-          let attempts = 0;
-          const maxAttempts = provider === "qwen" ? 3 : 1;
+      const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
+        let attempts = 0;
+        const maxAttempts = provider === "qwen" ? 3 : 1;
 
-          while (attempts < maxAttempts) {
-            const res = await executor.execute({
-              model: modelToCall,
-              body: bodyToSend,
-              stream: upstreamStream,
-              credentials: executionCredentials,
-              signal: streamController.signal,
-              log,
-              extendedContext,
-              upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-              clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
-              onCredentialsRefreshed,
-            });
+        while (attempts < maxAttempts) {
+          const res = await executor.execute({
+            model: modelToCall,
+            body: bodyToSend,
+            stream: upstreamStream,
+            credentials: executionCredentials,
+            signal: streamController.signal,
+            log,
+            extendedContext,
+            upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+            clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+            onCredentialsRefreshed,
+          });
 
-            // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
-            if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
-              const bodyPeek = await res.response
-                .clone()
-                .text()
-                .catch(() => "");
-              if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
-                const delay = 1500 * (attempts + 1);
-                log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
-                await new Promise((r) => setTimeout(r, delay));
-                attempts++;
-                continue;
-              }
+          // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
+          if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
+            const bodyPeek = await res.response
+              .clone()
+              .text()
+              .catch(() => "");
+            if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
+              const delay = 1500 * (attempts + 1);
+              log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+              await new Promise((r) => setTimeout(r, delay));
+              attempts++;
+              continue;
             }
-            return res;
           }
-        });
 
-        if (stream) return rawResult;
+          // For streaming: wrap response body to release semaphore only when stream is fully consumed
+          if (stream) {
+            const originalBody = res.response.body;
+            const wrappedBody = originalBody
+              ? originalBody.pipeThrough(
+                  new TransformStream({
+                    flush: () => {
+                      acquireAccountSemaphoreRelease();
+                    },
+                  })
+                )
+              : null;
+            return {
+              ...res,
+              response: new Response(wrappedBody, {
+                status: res.response.status,
+                statusText: res.response.statusText,
+                headers: res.response.headers,
+              }),
+            };
+          }
 
-        // Non-stream responses need cloning for shared dedup consumers.
-        const status = rawResult.response.status;
-        const statusText = rawResult.response.statusText;
-        const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
-        const payload = await rawResult.response.text();
+          return res;
+        }
+      });
 
-        return {
-          ...rawResult,
-          response: new Response(payload, { status, statusText, headers }),
-          _dedupSnapshot: {
-            status,
-            statusText,
-            headers,
-            payload,
-          },
-        };
-      } finally {
-        releaseAccountSemaphore();
-      }
+      // Non-stream: release semaphore immediately after reading full response body
+      const status = rawResult.response.status;
+      const statusText = rawResult.response.statusText;
+      const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
+      const payload = await rawResult.response.text();
+      acquireAccountSemaphoreRelease();
+
+      return {
+        ...rawResult,
+        response: new Response(payload, { status, statusText, headers }),
+        _dedupSnapshot: {
+          status,
+          statusText,
+          headers,
+          payload,
+        },
+      };
     };
 
     if (allowDedup && dedupEnabled && dedupHash) {
