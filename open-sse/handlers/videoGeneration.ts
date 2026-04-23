@@ -372,7 +372,7 @@ async function handleKieVideoGeneration({
         };
       }
 
-      if (state === "fail") {
+      if (state === "fail" || state === "failed" || state === "error" || state.includes("fail") || state.includes("error")) {
         const errorMessage =
           recordData?.data?.failMsg || recordData?.msg || "KIE video task failed";
         return { success: false, status: 502, error: errorMessage };
