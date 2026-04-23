@@ -543,6 +543,7 @@ interface EditConnectionModalConnection {
   name?: string;
   email?: string;
   priority?: number;
+  maxConcurrent?: number | null;
   authType?: string;
   provider?: string;
   providerSpecificData?: Record<string, unknown>;
@@ -5910,6 +5911,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const [formData, setFormData] = useState({
     name: "",
     priority: 1,
+    maxConcurrent: "",
     apiKey: "",
     healthCheckInterval: 60,
     baseUrl: "",
@@ -5980,6 +5982,10 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
+        maxConcurrent:
+          connection.maxConcurrent === null || connection.maxConcurrent === undefined
+            ? ""
+            : String(connection.maxConcurrent),
         apiKey: "",
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || defaultBaseUrl,
@@ -6077,9 +6083,21 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     setSaving(true);
     setSaveError(null);
     try {
+      const trimmedMaxConcurrent = formData.maxConcurrent.trim();
+      let parsedMaxConcurrent: number | null = null;
+      if (trimmedMaxConcurrent) {
+        const numericMaxConcurrent = Number(trimmedMaxConcurrent);
+        if (!Number.isInteger(numericMaxConcurrent) || numericMaxConcurrent < 0) {
+          setSaveError("Max concurrent must be a whole number greater than or equal to 0.");
+          return;
+        }
+        parsedMaxConcurrent = numericMaxConcurrent;
+      }
+
       const updates: any = {
         name: formData.name,
         priority: formData.priority,
+        maxConcurrent: parsedMaxConcurrent,
         healthCheckInterval: formData.healthCheckInterval,
       };
 
@@ -6340,6 +6358,30 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
           }
         />
+        <Input
+          label={t("accountConcurrencyCapLabel")}
+          type="number"
+          min={0}
+          step={1}
+          value={formData.maxConcurrent}
+          onChange={(e) => {
+            const nextValue = e.target.value;
+            setFormData({ ...formData, maxConcurrent: nextValue });
+            if (saveError && nextValue.trim()) {
+              const numericValue = Number(nextValue);
+              if (Number.isInteger(numericValue) && numericValue >= 0) {
+                setSaveError(null);
+              }
+            }
+          }}
+          placeholder="0"
+          hint={t("accountConcurrencyCapHint")}
+        />
+        {saveError && (
+          <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            {saveError}
+          </div>
+        )}
         {!isOAuth && (
           <>
             <div className="flex gap-2">
@@ -6384,11 +6426,6 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               <Badge variant={validationResult === "success" ? "success" : "error"}>
                 {validationResult === "success" ? t("valid") : t("invalid")}
               </Badge>
-            )}
-            {saveError && (
-              <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                {saveError}
-              </div>
             )}
             <button
               type="button"

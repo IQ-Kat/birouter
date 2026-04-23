@@ -2347,6 +2347,10 @@ components:
           type: string
         isActive:
           type: boolean
+        maxConcurrent:
+          type: integer
+          nullable: true
+          minimum: 0
         priority:
           type: integer
         testStatus:
@@ -2372,6 +2376,10 @@ components:
         isActive:
           type: boolean
           default: true
+        maxConcurrent:
+          type: integer
+          nullable: true
+          minimum: 0
 
     ApiKey:
       type: object
