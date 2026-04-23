@@ -347,7 +347,7 @@ async function handleKieImageGeneration({
       });
     }
 
-    const statusUrl = "https://api.kie.ai/api/v1/gpt4o-image/record-info";
+    const statusUrl = providerConfig.baseUrl.replace("/generate", "/record-info");
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       const recordRes = await fetch(`${statusUrl}?taskId=${encodeURIComponent(taskId)}`, {
