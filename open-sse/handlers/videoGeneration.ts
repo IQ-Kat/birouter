@@ -23,6 +23,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
+import { sleep } from "../utils/sleep.ts";
 
 /**
  * Handle video generation request
@@ -267,6 +268,28 @@ async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, b
   }
 }
 
+function normalizeKieVideoResult(recordData: any): string[] {
+  let resultJson: Record<string, unknown> = {};
+  try {
+    resultJson =
+      typeof recordData?.data?.resultJson === "string"
+        ? JSON.parse(recordData.data.resultJson)
+        : recordData?.data?.resultJson || {};
+  } catch {
+    resultJson = {};
+  }
+
+  const urls = Array.isArray(resultJson?.resultUrls)
+    ? (resultJson.resultUrls as string[])
+    : Array.isArray(resultJson?.videoUrls)
+      ? (resultJson.videoUrls as string[])
+      : Array.isArray(recordData?.data?.response?.resultUrls)
+        ? (recordData.data.response.resultUrls as string[])
+        : [];
+
+  return urls.filter((url: unknown) => typeof url === "string" && url.length > 0);
+}
+
 async function handleKieVideoGeneration({
   model,
   provider,
@@ -274,6 +297,13 @@ async function handleKieVideoGeneration({
   body,
   credentials,
   log,
+}: {
+  model: string;
+  provider: string;
+  providerConfig: any;
+  body: any;
+  credentials: any;
+  log: any;
 }) {
   const startTime = Date.now();
   const timeoutMs = Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000;
@@ -318,10 +348,10 @@ async function handleKieVideoGeneration({
     }
 
     const deadline = Date.now() + timeoutMs;
-    const statusBaseUrl = `${baseUrl}/api/v1/jobs/recordInfo`;
+    const statusUrl = providerConfig.statusUrl || `${baseUrl}/api/v1/jobs/recordInfo`;
 
     while (Date.now() < deadline) {
-      const pollUrl = new URL(statusBaseUrl);
+      const pollUrl = new URL(statusUrl);
       pollUrl.searchParams.set("taskId", String(taskId));
 
       const recordRes = await fetch(pollUrl.toString(), {
@@ -342,25 +372,8 @@ async function handleKieVideoGeneration({
       ).toLowerCase();
 
       if (state === "success" || state === "1" || state === "finished") {
-        let resultJson: Record<string, unknown> = {};
-        try {
-          resultJson =
-            typeof recordData?.data?.resultJson === "string"
-              ? JSON.parse(recordData.data.resultJson)
-              : recordData?.data?.resultJson || {};
-        } catch {
-          resultJson = {};
-        }
-        const urls = Array.isArray(resultJson?.resultUrls)
-          ? resultJson.resultUrls
-          : Array.isArray(resultJson?.videoUrls)
-            ? resultJson.videoUrls
-            : Array.isArray(recordData?.data?.response?.resultUrls)
-              ? recordData.data.response.resultUrls
-              : [];
-        const videos = urls
-          .filter((url: unknown) => typeof url === "string" && url.length > 0)
-          .map((url: unknown) => ({ url: url as string, format: "mp4" }));
+        const videoUrls = normalizeKieVideoResult(recordData);
+        const videos = videoUrls.map((url) => ({ url, format: "mp4" }));
 
         saveCallLog({
           method: "POST",
@@ -405,10 +418,10 @@ async function handleKieVideoGeneration({
       error: `KIE video polling timed out after ${timeoutMs}ms`,
     };
   } catch (err) {
-    return { success: false, status: 502, error: `Video provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: `Video provider error: ${err instanceof Error ? err.message : String(err)}`,
+    };
   }
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

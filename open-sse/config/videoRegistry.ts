@@ -15,6 +15,7 @@ interface VideoModel {
 interface VideoProvider {
   id: string;
   baseUrl: string;
+  statusUrl?: string;
   authType: string;
   authHeader: string;
   format: string;
@@ -25,6 +26,7 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
+    statusUrl: "https://api.kie.ai/api/v1/jobs/recordInfo",
     authType: "apikey",
     authHeader: "bearer",
     format: "kie-video",

@@ -15,6 +15,7 @@ interface MusicModel {
 interface MusicProvider {
   id: string;
   baseUrl: string;
+  statusUrl?: string;
   authType: string;
   authHeader: string;
   format: string;
@@ -25,6 +26,7 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
+    statusUrl: "https://api.kie.ai/api/v1/generate/record-info",
     authType: "apikey",
     authHeader: "bearer",
     format: "kie-music",

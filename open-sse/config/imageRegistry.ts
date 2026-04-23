@@ -234,6 +234,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai/api/v1/gpt4o-image/generate",
+    statusUrl: "https://api.kie.ai/api/v1/gpt4o-image/record-info",
     authType: "apikey",
     authHeader: "bearer",
     format: "kie-image",

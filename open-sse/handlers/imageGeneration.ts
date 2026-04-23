@@ -19,12 +19,22 @@ import { randomUUID } from "crypto";
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { saveCallLog } from "@/lib/usageDb";
+import { sleep } from "../utils/sleep.ts";
 import {
   submitComfyWorkflow,
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
+
+interface KieImageOptions {
+  model: string;
+  provider: string;
+  providerConfig: any;
+  body: any;
+  credentials: any;
+  log: any;
+}
 
 const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
   "black-forest-labs/FLUX.1-redux",
@@ -296,23 +306,24 @@ async function handleKieImageGeneration({
   body,
   credentials,
   log,
-}) {
+}: KieImageOptions) {
   const startTime = Date.now();
   const token = credentials?.apiKey || credentials?.accessToken;
-  const timeoutMs = normalizePositiveNumber(body.timeout_ms, 180000);
+  const timeoutMs = normalizePositiveNumber(body.timeout_ms, 300000);
   const pollIntervalMs = normalizePositiveNumber(body.poll_interval_ms, 2500);
-  const payload: Record<string, unknown> = {
+
+  const payload = {
     prompt: body.prompt,
-    size: typeof body.size === "string" ? body.size : "1:1",
-    nVariants: Number(body.n) > 0 ? Number(body.n) : 1,
+    image_size: mapImageSize(body.size, "1:1"),
+    num_images: body.n || 1,
   };
 
-  try {
-    if (log) {
-      const promptPreview = String(body.prompt ?? "").slice(0, 60);
-      log.info("IMAGE", `${provider}/${model} (kie-image) | prompt: "${promptPreview}..."`);
-    }
+  if (log) {
+    const promptPreview = String(body.prompt ?? "").slice(0, 60);
+    log.info("IMAGE", `${provider}/${model} (kie-image) | prompt: "${promptPreview}..."`);
+  }
 
+  try {
     const createRes = await fetch(providerConfig.baseUrl, {
       method: "POST",
       headers: {
@@ -347,9 +358,13 @@ async function handleKieImageGeneration({
       });
     }
 
-    const statusUrl = providerConfig.baseUrl
-      .replace(/\/generate$/, "/record-info")
-      .replace("/api/v1/gpt4o-image/generate", "/api/v1/gpt4o-image/record-info");
+    // Use statusUrl from providerConfig if available, fallback to dynamic derivation
+    const statusUrl =
+      providerConfig.statusUrl ||
+      providerConfig.baseUrl
+        .replace(/\/generate$/, "/record-info")
+        .replace("/api/v1/gpt4o-image/generate", "/api/v1/gpt4o-image/record-info");
+
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       const pollUrl = new URL(statusUrl);
@@ -442,12 +457,10 @@ async function handleKieImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
-      requestBody: payload,
+      error: `Image provider error: ${err instanceof Error ? err.message : String(err)}`,
     });
   }
 }
-
 /**
  * Handle Gemini-format image generation (Antigravity / Nano Banana)
  * Uses Gemini's generateContent API with responseModalities: ["TEXT", "IMAGE"]
@@ -2037,10 +2050,6 @@ function normalizePositiveNumber(value, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return fallback;
   return Math.floor(n);
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**

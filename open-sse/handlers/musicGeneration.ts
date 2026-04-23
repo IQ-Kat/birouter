@@ -22,6 +22,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
+import { sleep } from "../utils/sleep.ts";
 
 /**
  * Handle music generation request
@@ -176,6 +177,13 @@ async function handleKieMusicGeneration({
   body,
   credentials,
   log,
+}: {
+  model: string;
+  provider: string;
+  providerConfig: any;
+  body: any;
+  credentials: any;
+  log: any;
 }) {
   const startTime = Date.now();
   const timeoutMs = Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000;
@@ -216,10 +224,10 @@ async function handleKieMusicGeneration({
     }
 
     const deadline = Date.now() + timeoutMs;
-    const statusBaseUrl = `${baseUrl}/api/v1/generate/record-info`;
+    const statusUrl = providerConfig.statusUrl || `${baseUrl}/api/v1/generate/record-info`;
 
     while (Date.now() < deadline) {
-      const pollUrl = new URL(statusBaseUrl);
+      const pollUrl = new URL(statusUrl);
       pollUrl.searchParams.set("taskId", String(taskId));
 
       const recordRes = await fetch(pollUrl.toString(), {
@@ -290,10 +298,10 @@ async function handleKieMusicGeneration({
       error: `KIE music polling timed out after ${timeoutMs}ms`,
     };
   } catch (err) {
-    return { success: false, status: 502, error: `Music provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: `Music provider error: ${err instanceof Error ? err.message : String(err)}`,
+    };
   }
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
