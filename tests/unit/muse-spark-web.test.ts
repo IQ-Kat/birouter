@@ -204,7 +204,9 @@ test("Streaming: produces valid SSE chunks", async () => {
     const first = payloads[0];
     assert.equal(first.choices[0].delta.role, "assistant");
 
-    const reasoningChunks = payloads.filter((payload) => payload.choices[0].delta.reasoning_content);
+    const reasoningChunks = payloads.filter(
+      (payload) => payload.choices[0].delta.reasoning_content
+    );
     assert.ok(reasoningChunks.length >= 2);
     assert.equal(reasoningChunks[0].choices[0].delta.reasoning_content, "First thought");
     assert.equal(reasoningChunks[1].choices[0].delta.reasoning_content, "\nSecond thought");

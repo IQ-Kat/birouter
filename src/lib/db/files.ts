@@ -26,9 +26,7 @@ export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileReco
   const values = Object.values(snakeRecord);
   const placeholders = keys.map(() => "?").join(", ");
 
-  db.prepare(
-    `INSERT INTO files (${keys.join(", ")}) VALUES (${placeholders})`
-  ).run(...values);
+  db.prepare(`INSERT INTO files (${keys.join(", ")}) VALUES (${placeholders})`).run(...values);
 
   return record;
 }
@@ -41,20 +39,24 @@ export function getFile(id: string): FileRecord | null {
 
 export function getFileContent(id: string): Buffer | null {
   const db = getDbInstance();
-  const row = db.prepare("SELECT content FROM files WHERE id = ? AND deleted_at IS NULL").get(id) as { content: Buffer } | undefined;
+  const row = db
+    .prepare("SELECT content FROM files WHERE id = ? AND deleted_at IS NULL")
+    .get(id) as { content: Buffer } | undefined;
   return row?.content || null;
 }
 
-export function listFiles(options: { 
-  apiKeyId?: string, 
-  purpose?: string, 
-  limit?: number, 
-  after?: string, 
-  order?: "asc" | "desc" 
-} = {}): FileRecord[] {
+export function listFiles(
+  options: {
+    apiKeyId?: string;
+    purpose?: string;
+    limit?: number;
+    after?: string;
+    order?: "asc" | "desc";
+  } = {}
+): FileRecord[] {
   const db = getDbInstance();
   const { apiKeyId, purpose, limit = 20, after, order = "desc" } = options;
-  
+
   let query = "SELECT * FROM files WHERE deleted_at IS NULL";
   const params: any[] = [];
 
@@ -86,7 +88,7 @@ export function listFiles(options: {
   params.push(limit);
 
   const rows = db.prepare(query).all(...params);
-  return rows.map(row => rowToCamel(row) as unknown as FileRecord);
+  return rows.map((row) => rowToCamel(row) as unknown as FileRecord);
 }
 
 export function updateFileStatus(id: string, status: string): boolean {
@@ -110,6 +112,8 @@ export function formatFileResponse(file: FileRecord) {
 
 export function deleteFile(id: string): boolean {
   const db = getDbInstance();
-  const result = db.prepare("UPDATE files SET deleted_at = ?, content = NULL WHERE id = ?").run(Math.floor(Date.now() / 1000), id);
+  const result = db
+    .prepare("UPDATE files SET deleted_at = ?, content = NULL WHERE id = ?")
+    .run(Math.floor(Date.now() / 1000), id);
   return result.changes > 0;
 }

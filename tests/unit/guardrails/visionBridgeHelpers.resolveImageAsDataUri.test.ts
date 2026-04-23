@@ -19,13 +19,15 @@ test("resolveImageAsDataUri passes through HTTP URL as-is", () => {
 });
 
 test("resolveImageAsDataUri passes through data URI as-is", () => {
-  const dataUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+  const dataUri =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
   const result = resolveImageAsDataUri(dataUri);
   assert.strictEqual(result, dataUri);
 });
 
 test("resolveImageAsDataUri converts base64 string to PNG data URI", () => {
-  const base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+  const base64 =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
   const result = resolveImageAsDataUri(base64);
   assert.strictEqual(result, `data:image/png;base64,${base64}`);
 });

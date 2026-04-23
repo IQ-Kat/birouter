@@ -42,11 +42,13 @@ function makeFileContent(text: string) {
   return Buffer.from(text);
 }
 
-function createTestFile(opts: {
-  filename?: string;
-  content?: Buffer | null;
-  mimeType?: string;
-} = {}) {
+function createTestFile(
+  opts: {
+    filename?: string;
+    content?: Buffer | null;
+    mimeType?: string;
+  } = {}
+) {
   const { filename = "test.jsonl", content = makeFileContent("line1\nline2"), mimeType } = opts;
   return localDb.createFile({
     bytes: content ? content.length : 0,

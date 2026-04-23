@@ -20,9 +20,12 @@
 - **feat(vision-bridge):** Add automatic image description fallback for non-vision models via `VisionBridgeGuardrail` (priority 5). Intercepts image-bearing requests to non-vision models, extracts descriptions via a configurable vision model (default: gpt-4o-mini), and replaces images with text before forwarding. Fails open on any error. (#1476)
 - **feat(dashboard):** Introduce real-time model status badges with countdown timers in the provider detail and combo panel interfaces. (#1430)
 - **feat(dashboard):** Add Batch/File management data grid with full i18n translations for batch processing workflows. (#1479)
+- **feat(usage):** MiniMax + MiniMax-CN quota tracking in provider limits dashboard. (#1516)
+- **feat(providers):** Fix OpenRouter remote discovery and unify managed model sync. (#1521)
 
 ### 🐛 Bug Fixes
 
+- **fix(providers):** Resolve 400 errors for GLM and Antigravity Claude adapter during request translation by scoping prompt caching to compatible Anthropic endpoints and flattening system instructions. (#1514, #1520, #1522)
 - **fix(core):** Strip `reasoning_content` from OpenAI format messages for non-reasoning models to prevent upstream HTTP 400 validation errors. (#1505)
 - **fix(ui):** Add missing UI wiring for "Add Memory" and "Import" buttons on the `/dashboard/memory` page. (#1506)
 - **fix(core):** Add periodic runtime log rotation checks to prevent disk exhaustion in long-running instances. (#1504 — thanks @ether-btc)
@@ -45,6 +48,7 @@
 - **fix(core):** Fix reference counting in `ModelStatusContext` — changed `registeredModels` from `Set` to `Map<string, number>` to prevent polling stop when one component unmounts while others still track the same model.
 - **fix(security):** Prompt injection guard failures now return an explicit 500 response instead of silently passing through (fail-closed policy).
 - **fix(security):** Encryption now derives new keys from a secret-based salt while falling back to the legacy static-salt key during decryption, preserving existing stored credentials.
+- **fix(combo):** Resolve context truncation bug in combo routing to prevent incomplete execution states. (#1517)
 
 ### ♻️ Refactoring
 

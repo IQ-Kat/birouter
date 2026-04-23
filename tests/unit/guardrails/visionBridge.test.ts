@@ -6,15 +6,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { VisionBridgeGuardrail } = await import(
-  "../../../src/lib/guardrails/visionBridge.ts"
-);
-const { resetGuardrailsForTests } = await import(
-  "../../../src/lib/guardrails/registry.ts"
-);
-const { getResolvedModelCapabilities } = await import(
-  "../../../src/lib/modelCapabilities.ts"
-);
+const { VisionBridgeGuardrail } = await import("../../../src/lib/guardrails/visionBridge.ts");
+const { resetGuardrailsForTests } = await import("../../../src/lib/guardrails/registry.ts");
+const { getResolvedModelCapabilities } = await import("../../../src/lib/modelCapabilities.ts");
 import type { GuardrailContext } from "../../../src/lib/guardrails/base.ts";
 import type { VisionModelConfig } from "../../../src/lib/guardrails/visionBridgeHelpers.ts";
 
@@ -32,17 +26,12 @@ let mockVisionResponse = "A beautiful sunset over the ocean";
 let shouldVisionFail = false;
 let visionCallCount = 0;
 
-function createGuardrail(
-  options?: Parameters<typeof VisionBridgeGuardrail>[0]
-) {
+function createGuardrail(options?: Parameters<typeof VisionBridgeGuardrail>[0]) {
   return new VisionBridgeGuardrail({
     ...options,
     deps: {
       getSettings: async () => mockSettings,
-      callVisionModel: async (
-        _imageDataUri: string,
-        _config: VisionModelConfig
-      ) => {
+      callVisionModel: async (_imageDataUri: string, _config: VisionModelConfig) => {
         visionCallCount++;
         if (shouldVisionFail) {
           throw new Error("Vision model failed");
@@ -68,9 +57,7 @@ test.beforeEach(() => {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function createContext(
-  overrides: Partial<GuardrailContext> = {}
-): GuardrailContext {
+function createContext(overrides: Partial<GuardrailContext> = {}): GuardrailContext {
   return {
     model: "minimax/minimax-01",
     log: console,
@@ -78,9 +65,7 @@ function createContext(
   };
 }
 
-function createPayload(
-  overrides: Record<string, unknown> = {}
-): Record<string, unknown> {
+function createPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     model: "minimax/minimax-01",
     messages: [{ role: "user", content: "Hello" }],
@@ -164,10 +149,7 @@ test("VB-S02: passthroughs for vision-capable model (gpt-4o)", async () => {
     ],
   });
 
-  const result = await guardrail.preCall(
-    payload,
-    createContext({ model: "openai/gpt-4o" })
-  );
+  const result = await guardrail.preCall(payload, createContext({ model: "openai/gpt-4o" }));
 
   // If supportsVision is true, it should passthrough (no modification)
   // If supportsVision is null/undefined (no sync data), it will process — that's correct behavior
@@ -230,10 +212,7 @@ test("VB-S01: replaces image with description for non-vision model", async () =>
     ],
   });
 
-  const result = await guardrail.preCall(
-    payload,
-    createContext({ model: "minimax/minimax-01" })
-  );
+  const result = await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
 
   assert.strictEqual(result.block, false);
   assert.ok(result.modifiedPayload);
@@ -249,9 +228,7 @@ test("VB-S01: replaces image with description for non-vision model", async () =>
   const imagePart = content.find((p) => p.type === "image_url");
   assert.strictEqual(imagePart, undefined);
 
-  const descriptionPart = content.find(
-    (p) => p.type === "text" && p.text?.includes("sunset")
-  );
+  const descriptionPart = content.find((p) => p.type === "text" && p.text?.includes("sunset"));
   assert.ok(descriptionPart);
 });
 
@@ -296,10 +273,7 @@ test("VB-S04: processes multiple images and concatenates descriptions", async ()
     ],
   });
 
-  const result = await guardrail.preCall(
-    payload,
-    createContext({ model: "minimax/minimax-01" })
-  );
+  const result = await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
 
   assert.strictEqual(result.block, false);
   assert.ok(result.modifiedPayload);
@@ -313,15 +287,9 @@ test("VB-S04: processes multiple images and concatenates descriptions", async ()
     text?: string;
   }>;
 
-  assert.ok(
-    content.some((p) => p.type === "text" && p.text?.includes("[Image 1]"))
-  );
-  assert.ok(
-    content.some((p) => p.type === "text" && p.text?.includes("[Image 2]"))
-  );
-  assert.ok(
-    content.some((p) => p.type === "text" && p.text?.includes("[Image 3]"))
-  );
+  assert.ok(content.some((p) => p.type === "text" && p.text?.includes("[Image 1]")));
+  assert.ok(content.some((p) => p.type === "text" && p.text?.includes("[Image 2]")));
+  assert.ok(content.some((p) => p.type === "text" && p.text?.includes("[Image 3]")));
 });
 
 // ── VB-S03: Fail-open on vision error ──────────────────────────────────────
@@ -346,10 +314,7 @@ test("VB-S03: returns modified payload with unavailable text when vision API fai
     ],
   });
 
-  const result = await guardrail.preCall(
-    payload,
-    createContext({ model: "minimax/minimax-01" })
-  );
+  const result = await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
 
   assert.strictEqual(result.block, false);
   assert.ok(result.modifiedPayload);
@@ -363,9 +328,7 @@ test("VB-S03: returns modified payload with unavailable text when vision API fai
   }>;
 
   // Should have "unavailable" text instead of image
-  const unavailPart = content.find(
-    (p) => p.type === "text" && p.text?.includes("unavailable")
-  );
+  const unavailPart = content.find((p) => p.type === "text" && p.text?.includes("unavailable"));
   assert.ok(unavailPart);
 });
 
@@ -433,10 +396,7 @@ test("VB-S07: handles base64 image format", async () => {
     ],
   });
 
-  const result = await guardrail.preCall(
-    payload,
-    createContext({ model: "minimax/minimax-01" })
-  );
+  const result = await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
 
   assert.strictEqual(result.block, false);
   assert.ok(result.modifiedPayload);
@@ -463,10 +423,7 @@ test("VB-S09: respects maxImages setting", async () => {
     ],
   });
 
-  await guardrail.preCall(
-    payload,
-    createContext({ model: "minimax/minimax-01" })
-  );
+  await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
 
   // Should only call vision API for 2 images (maxImages=2)
   assert.strictEqual(visionCallCount, 2);
@@ -498,10 +455,7 @@ test("VB-S10: returns meta with imagesProcessed count", async () => {
     ],
   });
 
-  const result = await guardrail.preCall(
-    payload,
-    createContext({ model: "minimax/minimax-01" })
-  );
+  const result = await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
 
   assert.ok(result.meta);
   assert.ok(typeof result.meta === "object");

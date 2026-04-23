@@ -208,7 +208,7 @@ test("getApiKeyMetadata recognizes OMNIROUTE_API_KEY environment variable", asyn
   assert.ok(metadata);
   assert.equal(metadata.id, "env-key");
   assert.equal(metadata.name, "Environment Key");
-  
+
   delete process.env.OMNIROUTE_API_KEY;
 });
 
@@ -220,6 +220,6 @@ test("getApiKeyMetadata recognizes ROUTER_API_KEY environment variable", async (
 
   assert.ok(metadata);
   assert.equal(metadata.id, "env-key");
-  
+
   delete process.env.ROUTER_API_KEY;
 });

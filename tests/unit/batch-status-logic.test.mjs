@@ -47,59 +47,35 @@ function progressPcts(batch) {
 
 describe("effectiveStatus — no failures", () => {
   it("returns 'completed' when requestCountsFailed is 0", () => {
-    assert.equal(
-      effectiveStatus({ status: "completed", requestCountsFailed: 0 }),
-      "completed"
-    );
+    assert.equal(effectiveStatus({ status: "completed", requestCountsFailed: 0 }), "completed");
   });
 
   it("returns 'in_progress' when requestCountsFailed is 0", () => {
-    assert.equal(
-      effectiveStatus({ status: "in_progress", requestCountsFailed: 0 }),
-      "in_progress"
-    );
+    assert.equal(effectiveStatus({ status: "in_progress", requestCountsFailed: 0 }), "in_progress");
   });
 
   it("returns 'finalizing' when requestCountsFailed is 0", () => {
-    assert.equal(
-      effectiveStatus({ status: "finalizing", requestCountsFailed: 0 }),
-      "finalizing"
-    );
+    assert.equal(effectiveStatus({ status: "finalizing", requestCountsFailed: 0 }), "finalizing");
   });
 
   it("returns 'cancelled' when requestCountsFailed is 0", () => {
-    assert.equal(
-      effectiveStatus({ status: "cancelled", requestCountsFailed: 0 }),
-      "cancelled"
-    );
+    assert.equal(effectiveStatus({ status: "cancelled", requestCountsFailed: 0 }), "cancelled");
   });
 
   it("returns 'failed' unchanged (already a failure state)", () => {
-    assert.equal(
-      effectiveStatus({ status: "failed", requestCountsFailed: 0 }),
-      "failed"
-    );
+    assert.equal(effectiveStatus({ status: "failed", requestCountsFailed: 0 }), "failed");
   });
 
   it("returns 'validating' unchanged", () => {
-    assert.equal(
-      effectiveStatus({ status: "validating", requestCountsFailed: 0 }),
-      "validating"
-    );
+    assert.equal(effectiveStatus({ status: "validating", requestCountsFailed: 0 }), "validating");
   });
 
   it("returns 'expired' unchanged", () => {
-    assert.equal(
-      effectiveStatus({ status: "expired", requestCountsFailed: 0 }),
-      "expired"
-    );
+    assert.equal(effectiveStatus({ status: "expired", requestCountsFailed: 0 }), "expired");
   });
 
   it("returns 'cancelling' unchanged", () => {
-    assert.equal(
-      effectiveStatus({ status: "cancelling", requestCountsFailed: 0 }),
-      "cancelling"
-    );
+    assert.equal(effectiveStatus({ status: "cancelling", requestCountsFailed: 0 }), "cancelling");
   });
 });
 
@@ -134,56 +110,35 @@ describe("effectiveStatus — with failures", () => {
 
   it("failed + failures → failed (already a terminal error, no extra suffix)", () => {
     // 'failed' means the whole batch failed, not partial — no mapping needed
-    assert.equal(
-      effectiveStatus({ status: "failed", requestCountsFailed: 10 }),
-      "failed"
-    );
+    assert.equal(effectiveStatus({ status: "failed", requestCountsFailed: 10 }), "failed");
   });
 
   it("expired + failures → expired (no mapping defined)", () => {
-    assert.equal(
-      effectiveStatus({ status: "expired", requestCountsFailed: 1 }),
-      "expired"
-    );
+    assert.equal(effectiveStatus({ status: "expired", requestCountsFailed: 1 }), "expired");
   });
 
   it("validating + failures → validating (no mapping defined)", () => {
-    assert.equal(
-      effectiveStatus({ status: "validating", requestCountsFailed: 1 }),
-      "validating"
-    );
+    assert.equal(effectiveStatus({ status: "validating", requestCountsFailed: 1 }), "validating");
   });
 
   it("cancelling + failures → cancelling (no mapping defined)", () => {
-    assert.equal(
-      effectiveStatus({ status: "cancelling", requestCountsFailed: 2 }),
-      "cancelling"
-    );
+    assert.equal(effectiveStatus({ status: "cancelling", requestCountsFailed: 2 }), "cancelling");
   });
 });
 
 describe("effectiveStatus — edge cases", () => {
   it("treats null requestCountsFailed as 0", () => {
-    assert.equal(
-      effectiveStatus({ status: "completed", requestCountsFailed: null }),
-      "completed"
-    );
+    assert.equal(effectiveStatus({ status: "completed", requestCountsFailed: null }), "completed");
   });
 
   it("treats undefined requestCountsFailed as 0", () => {
-    assert.equal(
-      effectiveStatus({ status: "completed" }),
-      "completed"
-    );
+    assert.equal(effectiveStatus({ status: "completed" }), "completed");
   });
 
   it("treats negative failed count as 0 (> 0 check is false for negatives)", () => {
     // Negative counts should not happen in practice.
     // The check is `> 0`, so -1 does not trigger the failure mapping.
-    assert.equal(
-      effectiveStatus({ status: "completed", requestCountsFailed: -1 }),
-      "completed"
-    );
+    assert.equal(effectiveStatus({ status: "completed", requestCountsFailed: -1 }), "completed");
   });
 });
 

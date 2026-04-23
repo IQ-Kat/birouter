@@ -549,14 +549,14 @@ function parseMetaAiResponseText(text: string, isThinkingModel: boolean): Parsed
 
   const classifiedError = classifyMetaAiError(errorMessage, lastContent);
   if (classifiedError) {
-      return {
-        content: lastContent,
-        deltas,
-        reasoningContent: lastReasoning,
-        reasoningDeltas,
-        errorCode,
-        errorMessage: classifiedError.message,
-        status: classifiedError.status,
+    return {
+      content: lastContent,
+      deltas,
+      reasoningContent: lastReasoning,
+      reasoningDeltas,
+      errorCode,
+      errorMessage: classifiedError.message,
+      status: classifiedError.status,
     };
   }
 

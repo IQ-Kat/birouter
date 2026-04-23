@@ -17,9 +17,7 @@ type RequestContentPart =
   | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
 
 test("extractImageParts returns empty array for messages without images", () => {
-  const messages: RequestMessage[] = [
-    { role: "user", content: "Hello, how are you?" },
-  ];
+  const messages: RequestMessage[] = [{ role: "user", content: "Hello, how are you?" }];
   const result = extractImageParts(messages);
   assert.deepStrictEqual(result, []);
 });
@@ -83,9 +81,15 @@ test("extractImageParts handles multiple images in single message", () => {
 
 test("extractImageParts handles images across multiple messages", () => {
   const messages: RequestMessage[] = [
-    { role: "user", content: [{ type: "image_url", image_url: { url: "https://example.com/image1.png" } }] },
+    {
+      role: "user",
+      content: [{ type: "image_url", image_url: { url: "https://example.com/image1.png" } }],
+    },
     { role: "assistant", content: "Here is analysis of the first image." },
-    { role: "user", content: [{ type: "image_url", image_url: { url: "https://example.com/image2.png" } }] },
+    {
+      role: "user",
+      content: [{ type: "image_url", image_url: { url: "https://example.com/image2.png" } }],
+    },
   ];
   const result = extractImageParts(messages);
   assert.strictEqual(result.length, 2);
@@ -108,7 +112,8 @@ test("extractImageParts handles messages with null/undefined content", () => {
 });
 
 test("extractImageParts handles data URI image_url format", () => {
-  const dataUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+  const dataUri =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
   const messages: RequestMessage[] = [
     { role: "user", content: [{ type: "image_url", image_url: { url: dataUri } }] },
   ];

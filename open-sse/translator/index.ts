@@ -221,7 +221,12 @@ export function translateRequest(
         msg.reasoning_content = "";
       }
     }
-  } else if (!isReasoner && targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {
+  } else if (
+    !isReasoner &&
+    targetFormat === FORMATS.OPENAI &&
+    result.messages &&
+    Array.isArray(result.messages)
+  ) {
     for (const msg of result.messages) {
       if (msg.reasoning_content !== undefined) {
         delete msg.reasoning_content;

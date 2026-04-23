@@ -40,7 +40,11 @@ export default function MemoryPage() {
   const [health, setHealth] = useState<{ working: boolean; latencyMs: number } | null>(null);
   const [checkingHealth, setCheckingHealth] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newMemory, setNewMemory] = useState<Partial<Memory>>({ type: "factual", key: "", content: "" });
+  const [newMemory, setNewMemory] = useState<Partial<Memory>>({
+    type: "factual",
+    key: "",
+    content: "",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -105,19 +109,24 @@ export default function MemoryPage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     setIsSubmitting(true);
     try {
       const text = await file.text();
       const data = JSON.parse(text);
       const memoriesToImport = Array.isArray(data) ? data : [data];
-      
+
       for (const m of memoriesToImport) {
         if (!m.key || !m.content) continue;
         await fetch("/api/memory", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: m.type || "factual", key: m.key, content: m.content, metadata: m.metadata || {} }),
+          body: JSON.stringify({
+            type: m.type || "factual",
+            key: m.key,
+            content: m.content,
+            metadata: m.metadata || {},
+          }),
         });
       }
       fetchMemories();
@@ -211,12 +220,12 @@ export default function MemoryPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            accept=".json" 
-            className="hidden" 
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".json"
+            className="hidden"
           />
           <Button variant="outline" onClick={handleExport}>
             {t("export")}
@@ -224,9 +233,7 @@ export default function MemoryPage() {
           <Button variant="outline" onClick={handleImportClick} loading={isSubmitting}>
             {t("import")}
           </Button>
-          <Button onClick={() => setAddDialogOpen(true)}>
-            {t("addMemory")}
-          </Button>
+          <Button onClick={() => setAddDialogOpen(true)}>{t("addMemory")}</Button>
         </div>
       </div>
 
@@ -344,10 +351,18 @@ export default function MemoryPage() {
         title={t("addMemory")}
         footer={
           <>
-            <Button variant="outline" onClick={() => setAddDialogOpen(false)} disabled={isSubmitting}>
+            <Button
+              variant="outline"
+              onClick={() => setAddDialogOpen(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddMemory} loading={isSubmitting} disabled={!newMemory.key || !newMemory.content}>
+            <Button
+              onClick={handleAddMemory}
+              loading={isSubmitting}
+              disabled={!newMemory.key || !newMemory.content}
+            >
               Save
             </Button>
           </>

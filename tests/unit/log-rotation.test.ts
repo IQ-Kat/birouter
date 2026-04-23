@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, writeFileSync, unlinkSync, readdirSync, mkdtempSync, rmdirSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  unlinkSync,
+  readdirSync,
+  mkdtempSync,
+  rmdirSync,
+} from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 

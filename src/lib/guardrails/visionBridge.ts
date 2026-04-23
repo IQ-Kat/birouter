@@ -37,10 +37,7 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     this.deps = options?.deps ?? {};
   }
 
-  async preCall(
-    payload: unknown,
-    context: GuardrailContext
-  ): Promise<GuardrailResult<unknown>> {
+  async preCall(payload: unknown, context: GuardrailContext): Promise<GuardrailResult<unknown>> {
     // 1. Check if disabled at guardrail level
     if (!this.enabled) {
       return { block: false };
@@ -53,7 +50,7 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
 
     // 3. Get model from context or payload
     const model =
-      context.model || (payload as Record<string, unknown>)?.model as string | undefined;
+      context.model || ((payload as Record<string, unknown>)?.model as string | undefined);
     if (!model) {
       return { block: false };
     }
@@ -72,9 +69,7 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     }
 
     // 6. Check for images using helper (extractImageParts returns empty if no images)
-    const imageParts = extractImageParts(
-      messages as Parameters<typeof extractImageParts>[0]
-    );
+    const imageParts = extractImageParts(messages as Parameters<typeof extractImageParts>[0]);
     if (imageParts.length === 0) {
       return { block: false };
     }
@@ -124,7 +119,8 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       if (result.status === "fulfilled") {
         return result.value;
       }
-      const message = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      const message =
+        result.reason instanceof Error ? result.reason.message : String(result.reason);
       logger?.warn?.("VISION-BRIDGE", `Failed to get description for image ${i + 1}: ${message}`);
       return `[Image ${i + 1}]: (unavailable)`;
     });
