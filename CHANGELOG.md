@@ -4,7 +4,7 @@
 
 ---
 
-## [3.7.0] — 2026-04-21
+## [3.7.0] — 2026-04-23
 
 ### ✨ New Features
 
@@ -22,11 +22,16 @@
 - **feat(dashboard):** Add Batch/File management data grid with full i18n translations for batch processing workflows. (#1479)
 - **feat(usage):** MiniMax + MiniMax-CN quota tracking in provider limits dashboard. (#1516)
 - **feat(providers):** Fix OpenRouter remote discovery and unify managed model sync. (#1521)
+- **feat(providers):** Implement provider and account-level concurrency cap enforcement (`maxConcurrent`) using robust semaphore mechanisms. (#1524)
+- **feat(core):** Implement Hermes CLI config generation and message content stripping. (#1475)
 
 ### 🐛 Bug Fixes
 
 - **fix(providers):** Resolve 400 errors for GLM and Antigravity Claude adapter during request translation by scoping prompt caching to compatible Anthropic endpoints and flattening system instructions. (#1514, #1520, #1522)
 - **fix(core):** Strip `reasoning_content` from OpenAI format messages for non-reasoning models to prevent upstream HTTP 400 validation errors. (#1505)
+- **fix(sse):** Map Claude `output_config/thinking` to OpenAI `reasoning_effort` for proper Antigravity tool translation. (#1528)
+- **fix(combo):** Fallback to next model on all-accounts-rate-limited (HTTP 503/429) to maintain high availability. (#1523)
+- **fix(api):** Harden batch and file endpoints for auth and recovery to prevent schema state collisions.
 - **fix(ui):** Add missing UI wiring for "Add Memory" and "Import" buttons on the `/dashboard/memory` page. (#1506)
 - **fix(core):** Add periodic runtime log rotation checks to prevent disk exhaustion in long-running instances. (#1504 — thanks @ether-btc)
 - **fix(build):** Resolve missing `process` module in webpack client build for pino-abstract-transport. (#1509 — thanks @hartmark)
