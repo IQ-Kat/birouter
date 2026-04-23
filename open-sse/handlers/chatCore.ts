@@ -89,6 +89,11 @@ import {
   initializeRateLimits,
 } from "../services/rateLimitManager.ts";
 import {
+  acquire as acquireAccountSemaphore,
+  buildAccountSemaphoreKey,
+  markBlocked as markAccountSemaphoreBlocked,
+} from "../services/accountSemaphore.ts";
+import {
   generateSignature,
   getCachedResponse,
   setCachedResponse,
@@ -417,6 +422,72 @@ function getHeaderValueCaseInsensitive(
     }
   }
   return null;
+}
+
+function toFiniteNumberOrNull(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function isSemaphoreTimeoutError(error: unknown): error is Error & { code: string } {
+  return (
+    !!error &&
+    typeof error === "object" &&
+    (error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT"
+  );
+}
+
+function resolveAccountSemaphoreAccountKey(
+  connectionId: string | null | undefined,
+  credentials: Record<string, unknown> | null | undefined
+): string | null {
+  if (typeof connectionId === "string" && connectionId.trim().length > 0) {
+    return connectionId;
+  }
+
+  const candidateKeys = [
+    credentials?.connectionId,
+    credentials?.id,
+    credentials?.email,
+    credentials?.name,
+    credentials?.displayName,
+  ];
+
+  for (const candidate of candidateKeys) {
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate.trim();
+    }
+  }
+
+  return null;
+}
+
+function resolveAccountSemaphoreMaxConcurrency(
+  credentials: Record<string, unknown> | null | undefined
+): number | null {
+  return toFiniteNumberOrNull(credentials?.maxConcurrent);
+}
+
+function resolveAccountSemaphoreKey({
+  provider,
+  model,
+  connectionId,
+  credentials,
+}: {
+  provider: string | null | undefined;
+  model: string;
+  connectionId: string | null | undefined;
+  credentials: Record<string, unknown> | null | undefined;
+}): string | null {
+  const accountKey = resolveAccountSemaphoreAccountKey(connectionId, credentials);
+  if (!accountKey || !provider) return null;
+  return buildAccountSemaphoreKey({ provider, model, accountKey });
 }
 
 function buildClaudePromptCacheLogMeta(
@@ -1720,6 +1791,15 @@ export async function handleChatCore({
 
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
+      const executionCredentials = getExecutionCredentials();
+      const accountSemaphoreMaxConcurrency =
+        resolveAccountSemaphoreMaxConcurrency(executionCredentials);
+      const accountSemaphoreKey = resolveAccountSemaphoreKey({
+        provider,
+        model: modelToCall,
+        connectionId,
+        credentials: executionCredentials,
+      });
       let bodyToSend =
         translatedBody.model === modelToCall
           ? translatedBody
@@ -1787,60 +1867,71 @@ export async function handleChatCore({
         }
       }
 
-      const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
-        let attempts = 0;
-        const maxAttempts = provider === "qwen" ? 3 : 1;
+      const releaseAccountSemaphore =
+        accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
+          ? await acquireAccountSemaphore(accountSemaphoreKey, {
+              maxConcurrency: accountSemaphoreMaxConcurrency,
+            })
+          : () => {};
 
-        while (attempts < maxAttempts) {
-          const res = await executor.execute({
-            model: modelToCall,
-            body: bodyToSend,
-            stream: upstreamStream,
-            credentials: getExecutionCredentials(),
-            signal: streamController.signal,
-            log,
-            extendedContext,
-            upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-            clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
-            onCredentialsRefreshed,
-          });
+      try {
+        const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
+          let attempts = 0;
+          const maxAttempts = provider === "qwen" ? 3 : 1;
 
-          // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
-          if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
-            const bodyPeek = await res.response
-              .clone()
-              .text()
-              .catch(() => "");
-            if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
-              const delay = 1500 * (attempts + 1);
-              log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
-              await new Promise((r) => setTimeout(r, delay));
-              attempts++;
-              continue;
+          while (attempts < maxAttempts) {
+            const res = await executor.execute({
+              model: modelToCall,
+              body: bodyToSend,
+              stream: upstreamStream,
+              credentials: executionCredentials,
+              signal: streamController.signal,
+              log,
+              extendedContext,
+              upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+              clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+              onCredentialsRefreshed,
+            });
+
+            // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
+            if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
+              const bodyPeek = await res.response
+                .clone()
+                .text()
+                .catch(() => "");
+              if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
+                const delay = 1500 * (attempts + 1);
+                log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+                await new Promise((r) => setTimeout(r, delay));
+                attempts++;
+                continue;
+              }
             }
+            return res;
           }
-          return res;
-        }
-      });
+        });
 
-      if (stream) return rawResult;
+        if (stream) return rawResult;
 
-      // Non-stream responses need cloning for shared dedup consumers.
-      const status = rawResult.response.status;
-      const statusText = rawResult.response.statusText;
-      const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
-      const payload = await rawResult.response.text();
+        // Non-stream responses need cloning for shared dedup consumers.
+        const status = rawResult.response.status;
+        const statusText = rawResult.response.statusText;
+        const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
+        const payload = await rawResult.response.text();
 
-      return {
-        ...rawResult,
-        response: new Response(payload, { status, statusText, headers }),
-        _dedupSnapshot: {
-          status,
-          statusText,
-          headers,
-          payload,
-        },
-      };
+        return {
+          ...rawResult,
+          response: new Response(payload, { status, statusText, headers }),
+          _dedupSnapshot: {
+            status,
+            statusText,
+            headers,
+            payload,
+          },
+        };
+      } finally {
+        releaseAccountSemaphore();
+      }
     };
 
     if (allowDedup && dedupEnabled && dedupHash) {
@@ -1904,6 +1995,28 @@ export async function handleChatCore({
     );
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
+    if (isSemaphoreTimeoutError(error)) {
+      appendRequestLog({
+        model,
+        provider,
+        connectionId,
+        status: `FAILED ${error.code}`,
+      }).catch(() => {});
+      if (isCombo) {
+        throw error;
+      }
+      const failureMessage = error.message || "Semaphore timeout";
+      persistAttemptLogs({
+        status: HTTP_STATUS.RATE_LIMITED,
+        error: failureMessage,
+        providerRequest: finalBody || translatedBody,
+        clientResponse: buildErrorBody(HTTP_STATUS.RATE_LIMITED, failureMessage),
+        claudeCacheMeta: claudePromptCacheLogMeta,
+        cacheSource: "upstream",
+      });
+      persistFailureUsage(HTTP_STATUS.RATE_LIMITED, error.code);
+      return createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
+    }
     const failureStatus =
       error.name === "AbortError"
         ? 499
@@ -2080,6 +2193,15 @@ export async function handleChatCore({
           // each model has independent quota. A 429 on one model must NOT lock out
           // the entire connection — other models may still have quota available.
           const rateLimitCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
+          const accountSemaphoreKey = resolveAccountSemaphoreKey({
+            provider,
+            model: currentModel,
+            connectionId,
+            credentials,
+          });
+          if (accountSemaphoreKey) {
+            markAccountSemaphoreBlocked(accountSemaphoreKey, rateLimitCooldownMs);
+          }
           if (
             lockModelIfPerModelQuota(
               provider,
@@ -2109,17 +2231,27 @@ export async function handleChatCore({
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
+          const quotaCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
+          const accountSemaphoreKey = resolveAccountSemaphoreKey({
+            provider,
+            model: currentModel,
+            connectionId,
+            credentials,
+          });
+          if (accountSemaphoreKey) {
+            markAccountSemaphoreBlocked(accountSemaphoreKey, quotaCooldownMs);
+          }
           if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,
               model,
               "quota_exhausted",
-              retryAfterMs || COOLDOWN_MS.rateLimit
+              quotaCooldownMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil((retryAfterMs || COOLDOWN_MS.rateLimit) / 1000)}s (connection stays active)`
+              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
             await updateProviderConnection(connectionId, {

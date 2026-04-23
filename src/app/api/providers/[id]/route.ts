@@ -115,6 +115,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       rateLimitedUntil,
       lastTested,
       healthCheckInterval,
+      maxConcurrent,
       providerSpecificData: incomingPsd,
     } = body;
 
@@ -139,6 +140,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (rateLimitedUntil !== undefined) updateData.rateLimitedUntil = rateLimitedUntil;
     if (lastTested !== undefined) updateData.lastTested = lastTested;
     if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
+    if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {
@@ -160,7 +162,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
 
       updateData.providerSpecificData =
-        normalizeProviderSpecificData(existing.provider, mergedPsd) || {};
+        normalizeProviderSpecificData(existing.provider as string | null | undefined, mergedPsd) ||
+        {};
     }
 
     const updated = await updateProviderConnection(id, updateData);

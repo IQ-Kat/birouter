@@ -142,8 +142,10 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
   retryDelay: "Initial delay between retries. Higher values reduce burst pressure.",
   timeout: "Maximum request time before aborting. Set higher for long generations.",
   healthcheck: "Skips unhealthy models/providers from routing decisions when enabled.",
-  concurrencyPerModel: "Max simultaneous requests sent to each model in round-robin.",
-  queueTimeout: "How long a request can wait in queue before timeout in round-robin.",
+  concurrencyPerModel:
+    "Round-robin combo/model limit: max simultaneous requests sent to each model target. This is separate from any provider account-only cap.",
+  queueTimeout:
+    "How long a request can wait for a round-robin model slot before timing out. This queue is separate from any account-only concurrency cap.",
 };
 
 const STRATEGY_RECOMMENDATIONS_FALLBACK = {

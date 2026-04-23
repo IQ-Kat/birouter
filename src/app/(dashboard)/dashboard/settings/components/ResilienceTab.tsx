@@ -224,7 +224,11 @@ function RateLimitCard({ rateLimitStatus, defaults, onSaveDefaults, saving }) {
             {[
               { key: "requestsPerMinute", label: t("rpm") },
               { key: "minTimeBetweenRequests", label: t("minGap"), format: formatMs },
-              { key: "concurrentRequests", label: t("maxConcurrent") },
+              {
+                key: "concurrentRequests",
+                label: t("comboConcurrencyLabel"),
+                hint: t("comboConcurrencyHint"),
+              },
             ].map(({ key, label, format }) => (
               <div key={key}>
                 {editMode ? (
@@ -243,6 +247,11 @@ function RateLimitCard({ rateLimitStatus, defaults, onSaveDefaults, saving }) {
                   </div>
                 )}
                 <div className="text-xs text-text-muted">{label}</div>
+                {key === "concurrentRequests" && (
+                  <p className="mt-1 text-[11px] leading-relaxed text-text-muted">
+                    {t("comboConcurrencyHint")}
+                  </p>
+                )}
               </div>
             ))}
           </div>
