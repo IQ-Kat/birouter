@@ -23,6 +23,7 @@ import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityH
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getGlmModelsUrl } from "@omniroute/open-sse/config/glmProvider.ts";
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 import {
   AZURE_AI_DEFAULT_BASE_URL,
@@ -332,6 +333,14 @@ export function getStaticModelsForProvider(
   const imageProvider = getImageProvider(provider);
   if (imageProvider) {
     return imageProvider.models.map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    }));
+  }
+
+  const videoProvider = getVideoProvider(provider);
+  if (videoProvider) {
+    return videoProvider.models.map((model) => ({
       id: model.id,
       name: model.name || model.id,
     }));

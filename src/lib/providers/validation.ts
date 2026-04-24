@@ -61,6 +61,11 @@ import {
   buildWatsonxChatUrl,
   buildWatsonxModelsUrl,
 } from "@omniroute/open-sse/config/watsonx.ts";
+import {
+  buildRunwayApiUrl,
+  buildRunwayHeaders,
+  normalizeRunwayBaseUrl,
+} from "@omniroute/open-sse/config/runway.ts";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
@@ -1538,6 +1543,42 @@ async function validateNlpCloudProvider({ apiKey, providerSpecificData = {} }: a
   return { valid: false, error: "Connection failed while testing NLP Cloud" };
 }
 
+async function validateRunwayProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = normalizeRunwayBaseUrl(providerSpecificData.baseUrl);
+
+  try {
+    const response = await validationRead(buildRunwayApiUrl("/organization", baseUrl), {
+      method: "GET",
+      headers: buildRunwayHeaders(apiKey),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "runway_organization" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "runway_organization",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Runway" };
+}
+
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -2473,6 +2514,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     clarifai: validateClarifaiProvider,
     reka: validateRekaProvider,
     nlpcloud: validateNlpCloudProvider,
+    runwayml: validateRunwayProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
     "grok-web": validateGrokWebProvider,

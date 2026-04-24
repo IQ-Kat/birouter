@@ -165,6 +165,14 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "runwayml",
+      body: {
+        provider: "runwayml",
+        apiKey: "runway-key",
+        name: "Runway Primary",
+      },
+    },
+    {
       provider: "voyage-ai",
       body: {
         provider: "voyage-ai",

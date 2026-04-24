@@ -379,6 +379,19 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     freeNote: "Trial credits for new accounts",
   },
+  runwayml: {
+    id: "runwayml",
+    alias: "runway",
+    name: "Runway",
+    icon: "movie",
+    color: "#111827",
+    textIcon: "RW",
+    website: "https://docs.dev.runwayml.com",
+    authHint:
+      "Use your Runway API key in Authorization: Bearer <key>. OmniRoute targets the current Runway API at https://api.dev.runwayml.com/v1 and sends the required X-Runway-Version header automatically.",
+    apiHint:
+      "Runway video generation is task-based. OmniRoute submits text-to-video or image-to-video jobs, polls /v1/tasks/{id}, and normalizes the finished video outputs back into the OpenAI-like /v1/videos/generations response.",
+  },
   anthropic: {
     id: "anthropic",
     alias: "anthropic",

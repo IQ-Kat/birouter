@@ -235,6 +235,7 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const modalProvider = providerPageUtils.resolveDashboardProviderInfo("modal");
   const rekaProvider = providerPageUtils.resolveDashboardProviderInfo("reka");
   const nlpCloudProvider = providerPageUtils.resolveDashboardProviderInfo("nlpcloud");
+  const runwayProvider = providerPageUtils.resolveDashboardProviderInfo("runwayml");
   const embeddingProvider = providerPageUtils.resolveDashboardProviderInfo("voyage-ai");
   const rerankProvider = providerPageUtils.resolveDashboardProviderInfo("jina-ai");
   const perplexityWebProvider = providerPageUtils.resolveDashboardProviderInfo("perplexity-web");
@@ -284,6 +285,8 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   assert.equal(rekaProvider?.name, providers.APIKEY_PROVIDERS.reka.name);
   assert.equal(nlpCloudProvider?.category, "apikey");
   assert.equal(nlpCloudProvider?.name, providers.APIKEY_PROVIDERS.nlpcloud.name);
+  assert.equal(runwayProvider?.category, "apikey");
+  assert.equal(runwayProvider?.name, providers.APIKEY_PROVIDERS.runwayml.name);
 
   assert.equal(embeddingProvider?.category, "apikey");
   assert.equal(embeddingProvider?.name, providers.APIKEY_PROVIDERS["voyage-ai"].name);
@@ -328,6 +331,7 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("modal"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("reka"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("nlpcloud"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("runwayml"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("voyage-ai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("jina-ai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("sdwebui"), true);
@@ -376,6 +380,7 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal("modal" in providers.APIKEY_PROVIDERS, true);
   assert.equal("reka" in providers.APIKEY_PROVIDERS, true);
   assert.equal("nlpcloud" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("runwayml" in providers.APIKEY_PROVIDERS, true);
   assert.equal("voyage-ai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("jina-ai" in providers.APIKEY_PROVIDERS, true);
 
@@ -471,6 +476,10 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "nlpcloud"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "runwayml"),
     true
   );
   assert.equal(

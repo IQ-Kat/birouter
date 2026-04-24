@@ -1324,3 +1324,48 @@ test("specialty validator rejects invalid NLP Cloud credentials", async () => {
 
   assert.equal(nlpCloud.error, "Invalid API key");
 });
+
+test("specialty validator accepts Runway credentials on the organization endpoint", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.dev.runwayml.com/v1/organization") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer runway-key");
+      assert.equal(headers["X-Runway-Version"], "2024-11-06");
+      return new Response(JSON.stringify({ id: "org_demo" }), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const runway = await validateProviderApiKey({
+    provider: "runwayml",
+    apiKey: "runway-key",
+  });
+
+  assert.equal(runway.valid, true);
+  assert.equal(runway.method, "runway_organization");
+});
+
+test("specialty validator rejects invalid Runway credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.dev.runwayml.com/v1/organization") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer runway-bad");
+      assert.equal(headers["X-Runway-Version"], "2024-11-06");
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const runway = await validateProviderApiKey({
+    provider: "runwayml",
+    apiKey: "runway-bad",
+  });
+
+  assert.equal(runway.error, "Invalid API key");
+});

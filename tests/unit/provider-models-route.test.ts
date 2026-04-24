@@ -413,6 +413,22 @@ test("provider models route returns the local catalog for NLP Cloud", async () =
   assert.ok(body.models.some((model) => model.id === "dolphin-mixtral-8x7b"));
 });
 
+test("provider models route returns the local catalog for Runway video models", async () => {
+  const connection = await seedConnection("runwayml", {
+    apiKey: "runway-key",
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "runwayml");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(body.models.some((model) => model.id === "gen4.5"));
+  assert.ok(body.models.some((model) => model.id === "veo3.1"));
+  assert.ok(body.models.some((model) => model.id === "gen3a_turbo"));
+});
+
 test("provider models route returns the local catalog for amazon-q via the kiro-compatible registry", async () => {
   const connection = await seedConnection("amazon-q", {
     authType: "oauth",
