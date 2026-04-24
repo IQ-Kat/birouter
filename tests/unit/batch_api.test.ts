@@ -844,6 +844,95 @@ test("Batch Cancel API", async () => {
   assert.strictEqual(canCancel, false);
 });
 
+test("Batch processor keeps cancelled status for in-flight batches", async () => {
+  const originalFetch = globalThis.fetch;
+  const apiKey = await createApiKey("In Flight Cancel Key", "test-machine");
+
+  await createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Cancelable OpenAI",
+    apiKey: "sk-cancel-batch",
+    isActive: true,
+  });
+
+  const batchItems = [
+    JSON.stringify({
+      custom_id: "cancel-mid-flight",
+      method: "POST",
+      url: "/v1/chat/completions",
+      body: {
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: "cancel me" }],
+      },
+    }),
+  ].join("\n");
+
+  const file = createFile({
+    bytes: Buffer.byteLength(batchItems),
+    filename: "cancel_mid_flight.jsonl",
+    purpose: "batch",
+    content: Buffer.from(batchItems),
+    apiKeyId: apiKey.id,
+  });
+
+  const batch = createBatch({
+    endpoint: "/v1/chat/completions",
+    completionWindow: "24h",
+    inputFileId: file.id,
+    apiKeyId: apiKey.id,
+  });
+
+  globalThis.fetch = async () => {
+    updateBatch(batch.id, {
+      status: "cancelled",
+      cancelledAt: Math.floor(Date.now() / 1000),
+    });
+
+    return Response.json({
+      id: "chatcmpl-batch-cancelled",
+      object: "chat.completion",
+      model: "gpt-4o-mini",
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "ok" },
+          finish_reason: "stop",
+        },
+      ],
+      usage: {
+        prompt_tokens: 1,
+        completion_tokens: 1,
+        total_tokens: 2,
+        completion_tokens_details: { reasoning_tokens: 0 },
+      },
+    });
+  };
+
+  try {
+    await processPendingBatches();
+
+    let currentBatch = getBatch(batch.id);
+    let remainingAttempts = 40;
+    while (
+      remainingAttempts > 0 &&
+      currentBatch &&
+      !["cancelled", "completed", "failed", "expired"].includes(currentBatch.status)
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      currentBatch = getBatch(batch.id);
+      remainingAttempts--;
+    }
+
+    assert.strictEqual(currentBatch?.status, "cancelled");
+    assert.ok(!currentBatch?.outputFileId, "Cancelled batch must not emit an output file");
+    assert.ok(!currentBatch?.errorFileId, "Cancelled batch must not emit an error file");
+    assert.strictEqual(getFile(file.id)?.status, "processed");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("List files pagination and response format", async () => {
   const apiKey = await createApiKey("File List Test Key", "test-machine");
 

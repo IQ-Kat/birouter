@@ -75,9 +75,15 @@ test("Claude Code compatible effort and max token helpers cover priority fallbac
   );
 });
 
-test("buildClaudeCodeCompatibleRequest covers normalized OpenAI-style messages, source tools and fallback text", () => {
+test("buildClaudeCodeCompatibleRequest promotes source system/developer messages into top-level Claude system blocks", () => {
   const payload = buildClaudeCodeCompatibleRequest({
     sourceBody: {
+      messages: [
+        { role: "system", content: "system note" },
+        { role: "developer", content: [{ type: "text", text: "developer note" }] },
+        { role: "assistant", content: [{ type: "text", text: "draft answer" }] },
+        { role: "tool", content: "ignored" },
+      ],
       tools: [
         null,
         {
@@ -111,13 +117,12 @@ test("buildClaudeCodeCompatibleRequest covers normalized OpenAI-style messages, 
   assert.deepEqual(payload.messages, [
     {
       role: "user",
-      content: [{ type: "text", text: "draft answer\nalternate answer" }],
+      content: [{ type: "text", text: "draft answer" }],
     },
   ]);
-  assert.equal(payload.system.length, 3);
-  assert.match((payload as any).system[0].text, /Claude Agent SDK/);
-  assert.equal(payload.system[1].text, "system note");
-  assert.equal(payload.system[2].text, "developer note");
+  assert.equal(payload.system.length, 2);
+  assert.equal(payload.system[0].text, "system note");
+  assert.equal(payload.system[1].text, "developer note");
   assert.equal(payload.tools.length, 1);
   assert.deepEqual(payload.tools[0], {
     name: "lookup_account",
@@ -128,6 +133,33 @@ test("buildClaudeCodeCompatibleRequest covers normalized OpenAI-style messages, 
   assert.deepEqual(payload.tool_choice, { type: "tool", name: "lookup_account" });
   assert.equal(payload.output_config.effort, "low");
   assert.equal(payload.max_tokens, 19);
+});
+
+test("buildClaudeCodeCompatibleRequest prefers existing Claude top-level system over extracted source messages", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      system: [{ type: "text", text: "top-level system" }],
+      messages: [
+        { role: "system", content: "stale system message" },
+        { role: "user", content: "hello" },
+      ],
+    },
+    normalizedBody: {
+      messages: [
+        { role: "system", content: "stale system message" },
+        { role: "user", content: "hello" },
+      ],
+    },
+    model: "claude-sonnet-4-6",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+  });
+
+  assert.equal(payload.system.length, 1);
+  assert.equal((payload.system[0] as any).text, "top-level system");
+  assert.deepEqual(payload.messages, [
+    { role: "user", content: [{ type: "text", text: "hello" }] },
+  ]);
 });
 
 test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-control stripping", () => {
@@ -205,6 +237,77 @@ test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-con
   (assert as any).deepEqual((preserved.system[0] as any).cache_control, { type: "ephemeral" });
   (assert as any).equal((preserved.messages[0].content[0] as any).cache_control.type, "ephemeral");
   assert.equal((preserved.tools[0].cache_control as any).type, "ephemeral");
+});
+
+test("buildClaudeCodeCompatibleRequest keeps the next user message anchored by matching tool_result after assistant tool_use", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    claudeBody: {
+      messages: [
+        {
+          role: "assistant",
+          content: [
+            { type: "text", text: "Calling tool" },
+            { type: "tool_use", id: "toolu_123", name: "Bash", input: { command: "pwd" } },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_123",
+              content: [{ type: "text", text: "/tmp" }],
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [{ type: "text", text: "Continue" }],
+        },
+      ],
+      tools: [{ name: "Bash", input_schema: { type: "object", properties: {} } }],
+    },
+    model: "claude-sonnet-4-6",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+  });
+
+  assert.equal(payload.messages.length, 2);
+  assert.equal(payload.messages[0].role, "assistant");
+  assert.equal((payload.messages[0].content[1] as any).type, "tool_use");
+  assert.equal(payload.messages[1].role, "user");
+  assert.equal((payload.messages[1].content[0] as any).type, "tool_result");
+  assert.equal((payload.messages[1].content[0] as any).tool_use_id, "toolu_123");
+  assert.equal((payload.messages[1].content[1] as any).type, "text");
+  assert.equal((payload.messages[1].content[1] as any).text, "Continue");
+});
+
+test("buildClaudeCodeCompatibleRequest preserves trailing assistant tool_use message awaiting next tool_result", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    claudeBody: {
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "text", text: "Run pwd" }],
+        },
+        {
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "toolu_pending", name: "Bash", input: { command: "pwd" } },
+          ],
+        },
+      ],
+      tools: [{ name: "Bash", input_schema: { type: "object", properties: {} } }],
+    },
+    model: "claude-sonnet-4-6",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+  });
+
+  assert.equal(payload.messages.length, 2);
+  assert.equal(payload.messages[1].role, "assistant");
+  assert.equal((payload.messages[1].content[0] as any).type, "tool_use");
+  assert.equal((payload.messages[1].content[0] as any).id, "toolu_pending");
 });
 
 test("buildClaudeCodeCompatibleRequest omits tool choice when there are no tools", () => {

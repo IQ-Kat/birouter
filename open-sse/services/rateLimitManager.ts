@@ -80,6 +80,78 @@ function buildLimiterDefaults() {
   };
 }
 
+function updateAllLimiterSettings() {
+  for (const limiter of limiters.values()) {
+    limiter.updateSettings({
+      maxConcurrent: currentRequestQueueSettings.concurrentRequests,
+      minTime: currentRequestQueueSettings.minTimeBetweenRequestsMs,
+      maxWait: currentRequestQueueSettings.maxWaitMs,
+      reservoir: currentRequestQueueSettings.requestsPerMinute,
+      reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
+      reservoirRefreshInterval: 60 * 1000,
+    });
+  }
+}
+
+function reconcileEnabledConnections(
+  connectionsRaw: unknown[],
+  requestQueueSettings: RequestQueueSettings
+) {
+  const nextEnabledConnections = new Set<string>();
+  let explicitCount = 0;
+  let autoCount = 0;
+
+  for (const connRaw of connectionsRaw) {
+    const conn = toRecord(connRaw);
+    const connectionId = typeof conn.id === "string" ? conn.id : "";
+    const provider = typeof conn.provider === "string" ? conn.provider : "";
+    const isActive = conn.isActive === true;
+    const rateLimitProtection = conn.rateLimitProtection === true;
+    if (!connectionId || !provider) continue;
+
+    if (rateLimitProtection) {
+      nextEnabledConnections.add(connectionId);
+      explicitCount++;
+      continue;
+    }
+
+    if (
+      requestQueueSettings.autoEnableApiKeyProviders &&
+      getProviderCategory(provider) === "apikey" &&
+      isActive
+    ) {
+      nextEnabledConnections.add(connectionId);
+      autoCount++;
+
+      const key = `${provider}:${connectionId}`;
+      if (!limiters.has(key)) {
+        limiters.set(
+          key,
+          new Bottleneck({
+            ...buildLimiterDefaults(),
+            id: key,
+          })
+        );
+      }
+    }
+  }
+
+  for (const connectionId of Array.from(enabledConnections)) {
+    if (!nextEnabledConnections.has(connectionId)) {
+      disableRateLimitProtection(connectionId);
+    }
+  }
+
+  for (const connectionId of nextEnabledConnections) {
+    enabledConnections.add(connectionId);
+  }
+
+  return {
+    explicitCount,
+    autoCount,
+  };
+}
+
 function trackAsyncOperation<T>(promise: Promise<T>): Promise<T> {
   pendingAsyncOperations.add(promise);
   promise.finally(() => {
@@ -100,44 +172,12 @@ export async function initializeRateLimits() {
     const { getProviderConnections, getSettings } = await import("@/lib/localDb");
     const [connections, settings] = await Promise.all([getProviderConnections(), getSettings()]);
     const resilience = resolveResilienceSettings(settings);
-    applyRequestQueueSettings(resilience.requestQueue);
-    let explicitCount = 0;
-    let autoCount = 0;
-
-    for (const connRaw of connections as unknown[]) {
-      const conn = toRecord(connRaw);
-      const connectionId = typeof conn.id === "string" ? conn.id : "";
-      const provider = typeof conn.provider === "string" ? conn.provider : "";
-      const isActive = conn.isActive === true;
-      const rateLimitProtection = conn.rateLimitProtection === true;
-      if (!connectionId || !provider) continue;
-
-      if (rateLimitProtection) {
-        // Explicitly enabled by user
-        enabledConnections.add(connectionId);
-        explicitCount++;
-      } else if (
-        resilience.requestQueue.autoEnableApiKeyProviders &&
-        getProviderCategory(provider) === "apikey" &&
-        isActive
-      ) {
-        // Auto-enable for API key providers (safety net)
-        enabledConnections.add(connectionId);
-        autoCount++;
-
-        // Create a pre-configured limiter with conservative defaults
-        const key = `${provider}:${connectionId}`;
-        if (!limiters.has(key)) {
-          limiters.set(
-            key,
-            new Bottleneck({
-              ...buildLimiterDefaults(),
-              id: key,
-            })
-          );
-        }
-      }
-    }
+    currentRequestQueueSettings = { ...resilience.requestQueue };
+    const { explicitCount, autoCount } = reconcileEnabledConnections(
+      connections as unknown[],
+      currentRequestQueueSettings
+    );
+    updateAllLimiterSettings();
 
     if (explicitCount > 0 || autoCount > 0) {
       console.log(
@@ -152,19 +192,12 @@ export async function initializeRateLimits() {
   }
 }
 
-export function applyRequestQueueSettings(nextSettings: RequestQueueSettings) {
+export async function applyRequestQueueSettings(nextSettings: RequestQueueSettings) {
   currentRequestQueueSettings = { ...nextSettings };
-
-  for (const limiter of limiters.values()) {
-    limiter.updateSettings({
-      maxConcurrent: currentRequestQueueSettings.concurrentRequests,
-      minTime: currentRequestQueueSettings.minTimeBetweenRequestsMs,
-      maxWait: currentRequestQueueSettings.maxWaitMs,
-      reservoir: currentRequestQueueSettings.requestsPerMinute,
-      reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
-      reservoirRefreshInterval: 60 * 1000,
-    });
-  }
+  const { getProviderConnections } = await import("@/lib/localDb");
+  const connections = await getProviderConnections();
+  reconcileEnabledConnections(connections as unknown[], currentRequestQueueSettings);
+  updateAllLimiterSettings();
 }
 
 /**

@@ -77,7 +77,6 @@ export async function persistDiscoveredModels(
   models: unknown
 ): Promise<SyncedAvailableModel[]> {
   const normalized = normalizeDiscoveredModels(models);
-  if (normalized.length === 0) return [];
   await replaceSyncedAvailableModelsForConnection(providerId, connectionId, normalized);
   return normalized;
 }

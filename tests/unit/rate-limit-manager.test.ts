@@ -8,6 +8,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rate-limi
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const resilienceSettings = await import("../../src/lib/resilience/settings.ts");
 const rateLimitManager = await import("../../open-sse/services/rateLimitManager.ts");
 const accountFallback = await import("../../open-sse/services/accountFallback.ts");
 
@@ -174,4 +176,46 @@ test("rate limit manager parses retry hints from response bodies and locks model
     null
   );
   assert.equal(rateLimitManager.getRateLimitStatus("openai", "conn-body").active, true);
+});
+
+test("rate limit manager recomputes auto-enabled API key connections when queue settings change", async () => {
+  const autoConnection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Auto OpenAI",
+    apiKey: "sk-auto",
+    isActive: true,
+  });
+  const explicitConnection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Explicit OpenAI",
+    apiKey: "sk-explicit",
+    isActive: true,
+    rateLimitProtection: true,
+  });
+
+  await rateLimitManager.initializeRateLimits();
+
+  assert.equal(rateLimitManager.isRateLimitEnabled(autoConnection.id), true);
+  assert.equal(rateLimitManager.isRateLimitEnabled(explicitConnection.id), true);
+  assert.ok(rateLimitManager.getAllRateLimitStatus()[`openai:${autoConnection.id}`]);
+
+  await rateLimitManager.applyRequestQueueSettings({
+    ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
+    autoEnableApiKeyProviders: false,
+  });
+
+  assert.equal(rateLimitManager.isRateLimitEnabled(autoConnection.id), false);
+  assert.equal(rateLimitManager.isRateLimitEnabled(explicitConnection.id), true);
+  assert.equal(rateLimitManager.getAllRateLimitStatus()[`openai:${autoConnection.id}`], undefined);
+
+  await rateLimitManager.applyRequestQueueSettings({
+    ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
+    autoEnableApiKeyProviders: true,
+  });
+
+  assert.equal(rateLimitManager.isRateLimitEnabled(autoConnection.id), true);
+  assert.equal(rateLimitManager.isRateLimitEnabled(explicitConnection.id), true);
+  assert.ok(rateLimitManager.getAllRateLimitStatus()[`openai:${autoConnection.id}`]);
 });

@@ -1500,7 +1500,11 @@ export async function handleChatCore({
     content?: unknown;
   };
 
-  const normalizeClaudeUpstreamMessages = (payload: Record<string, unknown>) => {
+  const normalizeClaudeUpstreamMessages = (
+    payload: Record<string, unknown>,
+    options?: { preserveToolResultBlocks?: boolean }
+  ) => {
+    const preserveToolResultBlocks = options?.preserveToolResultBlocks === true;
     if (!Array.isArray(payload.messages)) return;
     const messages = payload.messages as ClaudeMessage[];
 
@@ -1549,6 +1553,9 @@ export async function handleChatCore({
         }
 
         if (block.type === "tool_result") {
+          if (preserveToolResultBlocks) {
+            return [block];
+          }
           const toolId = block.tool_use_id ?? block.id ?? "unknown";
           const resultContent = block.content ?? block.text ?? block.output ?? "";
           const resultText =
@@ -1626,7 +1633,7 @@ export async function handleChatCore({
       // regardless of combo strategy or cache_control settings.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
-      normalizeClaudeUpstreamMessages(translatedBody);
+      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
     } else {

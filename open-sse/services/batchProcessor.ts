@@ -422,8 +422,13 @@ async function processBatchItems(batch: BatchRecord, items: BatchRequestItem[]) 
 
 async function finalizeBatch(batchId: string, results: any[], itemsWithErrors: any[]) {
   const current = getBatch(batchId);
-  if (current?.status === "cancelling") {
-    updateBatch(batchId, { status: "cancelled", cancelledAt: Math.floor(Date.now() / 1000) });
+  if (current?.status === "cancelling" || current?.status === "cancelled") {
+    if (current?.inputFileId) {
+      updateFileStatus(current.inputFileId, "processed");
+    }
+    if (current?.status === "cancelling") {
+      updateBatch(batchId, { status: "cancelled", cancelledAt: Math.floor(Date.now() / 1000) });
+    }
     return;
   }
 
