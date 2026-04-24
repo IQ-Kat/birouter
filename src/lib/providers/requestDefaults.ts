@@ -153,6 +153,19 @@ export function normalizeProviderSpecificData(
   return Object.keys(normalized).length > 0 ? normalized : undefined;
 }
 
+export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRecord | undefined {
+  const record = asRecord(value);
+  if (Object.keys(record).length === 0) return undefined;
+
+  const sanitized: JsonRecord = { ...record };
+  delete sanitized.consoleApiKey;
+  delete sanitized.secretAccessKey;
+  delete sanitized.awsSecretAccessKey;
+  delete sanitized.sessionToken;
+  delete sanitized.awsSessionToken;
+  return sanitized;
+}
+
 export function isOpenAIResponsesStoreEnabled(providerSpecificData: unknown): boolean {
   return asRecord(providerSpecificData).openaiStoreEnabled === true;
 }

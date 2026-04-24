@@ -28,10 +28,13 @@ test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
   assert.equal(info.model, "gpt-4o");
 });
 
-test("getModelInfoCore resolves gpt-5.4 to codex", async () => {
+test("getModelInfoCore reports ambiguous unprefixed GPT Codex models", async () => {
   const info = await getModelInfoCore("gpt-5.4", {});
-  assert.equal(info.provider, "codex");
+  assert.equal(info.provider, null);
   assert.equal(info.model, "gpt-5.4");
+  assert.equal(info.errorType, "ambiguous_model");
+  assert.ok(info.candidateProviders.includes("codex"));
+  assert.ok(info.candidateProviders.includes("github"));
 });
 
 test("getModelInfoCore resolves codex-auto-review to codex", async () => {
@@ -57,7 +60,7 @@ test("getModelInfoCore canonicalizes github legacy alias with explicit provider 
 
 test("GithubExecutor routes codex-family model to /responses", () => {
   const executor = new GithubExecutor();
-  const url = executor.buildUrl("gpt-5.1-codex", true);
+  const url = executor.buildUrl("gpt-5.3-codex", true);
   assert.match(url, /\/responses$/);
 });
 

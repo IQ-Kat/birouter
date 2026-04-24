@@ -53,6 +53,10 @@ import {
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import {
+  getSpeechProvider,
+  getTranscriptionProvider,
+} from "@omniroute/open-sse/config/audioRegistry.ts";
+import {
   getCachedDiscoveredModels,
   isAutoFetchModelsEnabled,
   persistDiscoveredModels,
@@ -74,6 +78,21 @@ function getProviderBaseUrl(providerSpecificData: unknown): string | null {
   const data = asRecord(providerSpecificData);
   const baseUrl = data.baseUrl;
   return typeof baseUrl === "string" && baseUrl.trim().length > 0 ? baseUrl : null;
+}
+
+function normalizeAzureOpenAIBaseUrl(baseUrl: string) {
+  return baseUrl
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/openai$/i, "")
+    .replace(/\/openai\/deployments\/[^/]+\/chat\/completions.*$/i, "");
+}
+
+function getAzureOpenAIApiVersion(providerSpecificData: unknown) {
+  const data = asRecord(providerSpecificData);
+  const apiVersion =
+    toNonEmptyString(data.apiVersion) || toNonEmptyString(data.validationApiVersion);
+  return apiVersion || "2024-12-01-preview";
 }
 
 function isLocalOpenAIStyleProvider(provider: string): boolean {
@@ -348,6 +367,22 @@ export function getStaticModelsForProvider(
   const videoProvider = getVideoProvider(provider);
   if (videoProvider) {
     return videoProvider.models.map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    }));
+  }
+
+  const speechProvider = getSpeechProvider(provider);
+  if (speechProvider) {
+    return speechProvider.models.map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    }));
+  }
+
+  const transcriptionProvider = getTranscriptionProvider(provider);
+  if (transcriptionProvider) {
+    return transcriptionProvider.models.map((model) => ({
       id: model.id,
       name: model.name || model.id,
     }));
@@ -1114,6 +1149,85 @@ export async function GET(
       }));
 
       return buildApiDiscoveryResponse(models.filter((model) => model.id));
+    }
+
+    if (provider === "azure-openai") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = accessToken || apiKey;
+      if (!token) {
+        return NextResponse.json(
+          {
+            error:
+              "No API key configured for this provider. Please add an API key in the provider settings.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const rawBaseUrl = getProviderBaseUrl(connection.providerSpecificData);
+      if (!rawBaseUrl) {
+        return NextResponse.json(
+          { error: "No Azure OpenAI resource endpoint configured" },
+          { status: 400 }
+        );
+      }
+
+      const baseUrl = normalizeAzureOpenAIBaseUrl(rawBaseUrl);
+      const apiVersion = encodeURIComponent(
+        getAzureOpenAIApiVersion(connection.providerSpecificData)
+      );
+      const discoveryUrls = [
+        `${baseUrl}/openai/deployments?api-version=${apiVersion}`,
+        `${baseUrl}/openai/models?api-version=${apiVersion}`,
+      ];
+
+      let lastStatus = 0;
+      for (const modelsUrl of discoveryUrls) {
+        let response: Response;
+        try {
+          response = await safeOutboundFetch(modelsUrl, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "api-key": token,
+            },
+          });
+        } catch (error) {
+          const fallback = buildDiscoveryErrorFallbackResponse(error, {
+            cacheWarning: "Azure OpenAI models API unavailable — using cached catalog",
+            localWarning: "Azure OpenAI models API unavailable — using local catalog",
+          });
+          if (fallback) return fallback;
+          throw error;
+        }
+
+        if (response.ok) {
+          return buildApiDiscoveryResponse(
+            normalizeOpenAiLikeModelsResponse(await response.json(), "azure-openai")
+          );
+        }
+
+        lastStatus = response.status;
+        if (response.status === 401 || response.status === 403) break;
+      }
+
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: `Azure OpenAI models probe failed (${lastStatus}) — using cached catalog`,
+        localWarning: `Azure OpenAI models probe failed (${lastStatus}) — using local catalog`,
+      });
+      if (fallback) return fallback;
+      return NextResponse.json(
+        { error: `Failed to fetch models: ${lastStatus || "unknown"}` },
+        { status: lastStatus || 502 }
+      );
     }
 
     if (provider === "watsonx") {

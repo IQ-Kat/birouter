@@ -191,6 +191,7 @@ export function initLogRotation(): void {
     config.maxFileSize,
     config.maxFiles
   );
+  rotationTimer.unref?.();
 }
 
 /**

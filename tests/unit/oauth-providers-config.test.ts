@@ -11,6 +11,7 @@ Object.assign(process.env, {
   GEMINI_CLI_OAUTH_CLIENT_ID:
     "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
   GEMINI_CLI_OAUTH_CLIENT_SECRET: "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",
+  GITLAB_DUO_OAUTH_CLIENT_ID: "gitlab-duo-client-id",
   QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
   KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
   ANTIGRAVITY_OAUTH_CLIENT_ID:
@@ -32,6 +33,7 @@ const {
   CURSOR_CONFIG,
   GEMINI_CONFIG,
   GITHUB_CONFIG,
+  GITLAB_DUO_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
@@ -53,6 +55,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "qwen",
   "kimi-coding",
   "github",
+  "gitlab-duo",
   "kiro",
   "amazon-q",
   "cursor",
@@ -69,6 +72,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   qwen: QWEN_CONFIG,
   "kimi-coding": KIMI_CODING_CONFIG,
   github: GITHUB_CONFIG,
+  "gitlab-duo": GITLAB_DUO_CONFIG,
   kiro: KIRO_CONFIG,
   "amazon-q": KIRO_CONFIG,
   cursor: CURSOR_CONFIG,
@@ -85,6 +89,16 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   qwen: ["deviceCodeUrl", "tokenUrl", "scope", "clientId"],
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],
   github: ["deviceCodeUrl", "tokenUrl", "userInfoUrl", "copilotTokenUrl", "clientId"],
+  "gitlab-duo": [
+    "baseUrl",
+    "authorizeUrl",
+    "tokenUrl",
+    "userInfoUrl",
+    "directAccessUrl",
+    "scope",
+    "codeChallengeMethod",
+    "clientId",
+  ],
   kiro: [
     "registerClientUrl",
     "deviceAuthUrl",

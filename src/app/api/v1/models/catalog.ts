@@ -371,13 +371,25 @@ export async function getUnifiedModelsResponse(
           if (getModelIsHidden(providerId, sm.id)) continue;
 
           const aliasId = `${alias}/${sm.id}`;
-          if (models.some((model) => model.id === aliasId)) continue;
-
           const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
+          const syncedFields = {
+            ...(modelType ? { type: modelType } : {}),
+            ...(modelType === "audio" ? { subtype: "transcription" } : {}),
+            ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
+            ...(endpoints.length > 1 || !endpoints.includes("chat")
+              ? { supported_endpoints: endpoints }
+              : {}),
+          };
+
+          const existingAliasModel = models.find((model) => model.id === aliasId);
+          if (existingAliasModel) {
+            Object.assign(existingAliasModel, syncedFields);
+            continue;
+          }
 
           models.push({
             id: aliasId,
@@ -387,12 +399,7 @@ export async function getUnifiedModelsResponse(
             permission: [],
             root: sm.id,
             parent: null,
-            ...(modelType ? { type: modelType } : {}),
-            ...(modelType === "audio" ? { subtype: "transcription" } : {}),
-            ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
-            ...(endpoints.length > 1 || !endpoints.includes("chat")
-              ? { supported_endpoints: endpoints }
-              : {}),
+            ...syncedFields,
           });
 
           if (modelType === "audio") {
@@ -424,11 +431,7 @@ export async function getUnifiedModelsResponse(
                 permission: [],
                 root: sm.id,
                 parent: aliasId,
-                ...(modelType ? { type: modelType } : {}),
-                ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
-                ...(endpoints.length > 1 || !endpoints.includes("chat")
-                  ? { supported_endpoints: endpoints }
-                  : {}),
+                ...syncedFields,
               });
             }
           }

@@ -180,6 +180,7 @@ export class DefaultExecutor extends BaseExecutor {
       case "modal":
       case "reka":
       case "vllm":
+      case "lemonade":
       case "llamafile":
       case "triton":
       case "docker-model-runner":

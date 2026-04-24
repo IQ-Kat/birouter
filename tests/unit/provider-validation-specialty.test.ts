@@ -137,6 +137,45 @@ test("embedding and rerank specialty validators cover Voyage AI and Jina AI", as
   assert.equal(jina.valid, true);
 });
 
+test("AWS Polly specialty validator signs DescribeVoices with SigV4", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+    const headers = init.headers as Record<string, string>;
+
+    assert.equal(target, "https://polly.us-east-2.amazonaws.com/v1/voices?Engine=standard");
+    assert.match(
+      headers.Authorization,
+      /^AWS4-HMAC-SHA256 Credential=AKIA_POLLY\/\d{8}\/us-east-2\/polly\/aws4_request,/
+    );
+    assert.equal(headers.host, "polly.us-east-2.amazonaws.com");
+    assert.equal(headers["x-amz-content-sha256"].length, 64);
+    return new Response(JSON.stringify({ Voices: [] }), { status: 200 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "aws-polly",
+    apiKey: "aws-secret",
+    providerSpecificData: {
+      accessKeyId: "AKIA_POLLY",
+      region: "us-east-2",
+    },
+  });
+
+  assert.equal(result.valid, true);
+});
+
+test("AWS Polly specialty validator requires an access key id", async () => {
+  const result = await validateProviderApiKey({
+    provider: "aws-polly",
+    apiKey: "aws-secret",
+    providerSpecificData: {
+      region: "us-east-2",
+    },
+  });
+
+  assert.equal(result.error, "Missing AWS accessKeyId");
+});
+
 test("embedding and rerank specialty validators surface auth failures for Voyage AI and Jina AI", async () => {
   globalThis.fetch = async (url) => {
     const target = String(url);
@@ -460,15 +499,25 @@ test("local OpenAI-style providers validate without sending Authorization when a
       provider: "vllm",
       providerSpecificData: { baseUrl: "http://localhost:8000/v1" },
     });
+    const lemonade = await validateProviderApiKey({
+      provider: "lemonade",
+      providerSpecificData: { baseUrl: "http://localhost:13305/api/v1" },
+    });
 
     assert.equal(lmStudio.valid, true);
     assert.equal(vllm.valid, true);
+    assert.equal(lemonade.valid, true);
     assert.deepEqual(
       calls.map((call) => call.url),
-      ["http://localhost:1234/v1/models", "http://localhost:8000/v1/models"]
+      [
+        "http://localhost:1234/v1/models",
+        "http://localhost:8000/v1/models",
+        "http://localhost:13305/api/v1/models",
+      ]
     );
     assert.equal(calls[0].headers.Authorization, undefined);
     assert.equal(calls[1].headers.Authorization, undefined);
+    assert.equal(calls[2].headers.Authorization, undefined);
   } finally {
     if (originalAllowPrivateProviderUrls === undefined) {
       delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;

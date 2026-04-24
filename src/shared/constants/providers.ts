@@ -1297,6 +1297,19 @@ export const LOCAL_PROVIDERS = {
     localDefault: "http://localhost:8000/v1",
     passthroughModels: true,
   },
+  lemonade: {
+    id: "lemonade",
+    alias: "lemonade",
+    name: "Lemonade Server",
+    icon: "bolt",
+    color: "#F59E0B",
+    textIcon: "LM",
+    website: "https://lemonade-server.ai",
+    authHint:
+      "API key optional. Configure the local Lemonade OpenAI-compatible base URL (default: http://localhost:13305/api/v1).",
+    localDefault: "http://localhost:13305/api/v1",
+    passthroughModels: true,
+  },
   llamafile: {
     id: "llamafile",
     alias: "llamafile",
@@ -1548,6 +1561,17 @@ export const AUDIO_ONLY_PROVIDERS = {
     textIcon: "IW",
     website: "https://inworld.ai",
   },
+  "aws-polly": {
+    id: "aws-polly",
+    alias: "polly",
+    name: "AWS Polly",
+    icon: "record_voice_over",
+    color: "#FF9900",
+    textIcon: "PL",
+    website: "https://aws.amazon.com/polly/",
+    authHint:
+      "Use AWS Secret Access Key as API key; set providerSpecificData.accessKeyId and optional region.",
+  },
 };
 
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
@@ -1594,6 +1618,7 @@ export function isLocalProvider(providerId) {
 export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
   "lm-studio",
   "vllm",
+  "lemonade",
   "llamafile",
   "triton",
   "docker-model-runner",

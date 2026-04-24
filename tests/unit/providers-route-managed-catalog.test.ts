@@ -134,6 +134,17 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "azure-openai",
+      body: {
+        provider: "azure-openai",
+        apiKey: "azure-openai-key",
+        name: "Azure OpenAI Primary",
+        providerSpecificData: {
+          baseUrl: "https://my-resource.openai.azure.com",
+        },
+      },
+    },
+    {
       provider: "bedrock",
       body: {
         provider: "bedrock",
@@ -250,6 +261,16 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "lemonade",
+      body: {
+        provider: "lemonade",
+        name: "Lemonade Local",
+        providerSpecificData: {
+          baseUrl: "http://localhost:13305/api/v1",
+        },
+      },
+    },
+    {
       provider: "llamafile",
       body: {
         provider: "llamafile",
@@ -305,6 +326,18 @@ test("providers route accepts managed local, audio, web-cookie and search provid
         provider: "assemblyai",
         apiKey: "aa-key",
         name: "AssemblyAI Primary",
+      },
+    },
+    {
+      provider: "aws-polly",
+      body: {
+        provider: "aws-polly",
+        apiKey: "aws-secret-key",
+        name: "AWS Polly Primary",
+        providerSpecificData: {
+          accessKeyId: "AKIA_TEST",
+          region: "us-east-1",
+        },
       },
     },
     {

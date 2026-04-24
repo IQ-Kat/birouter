@@ -541,20 +541,21 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
     }
   }
 
-  // Add system instruction (Antigravity default)
-  let combinedSystemText = ANTIGRAVITY_DEFAULT_SYSTEM;
+  // Keep Antigravity's default and caller-provided system rules as distinct parts,
+  // matching the Gemini bridge and avoiding accidental prompt concatenation.
+  const systemParts: GeminiPart[] = [{ text: ANTIGRAVITY_DEFAULT_SYSTEM }];
 
   if (claudeRequest.system) {
     if (Array.isArray(claudeRequest.system)) {
       for (const block of claudeRequest.system) {
-        if (block.text) combinedSystemText += "\n\n" + block.text;
+        if (block.text) systemParts.push({ text: block.text });
       }
     } else if (typeof claudeRequest.system === "string") {
-      combinedSystemText += "\n\n" + claudeRequest.system;
+      systemParts.push({ text: claudeRequest.system });
     }
   }
 
-  envelope.request.systemInstruction = { role: "user", parts: [{ text: combinedSystemText }] };
+  envelope.request.systemInstruction = { role: "user", parts: systemParts };
 
   const changedToolNameMap = buildChangedToolNameMap(toolNameMap);
   if (changedToolNameMap) {

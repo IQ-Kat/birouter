@@ -218,9 +218,11 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const freeProvider = providerPageUtils.resolveDashboardProviderInfo("amazon-q");
   const localProvider = providerPageUtils.resolveDashboardProviderInfo("sdwebui");
   const localChatProvider = providerPageUtils.resolveDashboardProviderInfo("lm-studio");
+  const lemonadeProvider = providerPageUtils.resolveDashboardProviderInfo("lemonade");
   const searchProvider = providerPageUtils.resolveDashboardProviderInfo("brave-search");
   const youcomSearchProvider = providerPageUtils.resolveDashboardProviderInfo("youcom-search");
   const audioProvider = providerPageUtils.resolveDashboardProviderInfo("assemblyai");
+  const awsPollyProvider = providerPageUtils.resolveDashboardProviderInfo("aws-polly");
   const webCookieProvider = providerPageUtils.resolveDashboardProviderInfo("grok-web");
   const apiKeyProvider = providerPageUtils.resolveDashboardProviderInfo("glhf");
   const gitlabProvider = providerPageUtils.resolveDashboardProviderInfo("gitlab");
@@ -232,6 +234,7 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const nousProvider = providerPageUtils.resolveDashboardProviderInfo("nous-research");
   const petalsProvider = providerPageUtils.resolveDashboardProviderInfo("petals");
   const poeProvider = providerPageUtils.resolveDashboardProviderInfo("poe");
+  const azureOpenAiProvider = providerPageUtils.resolveDashboardProviderInfo("azure-openai");
   const azureAiProvider = providerPageUtils.resolveDashboardProviderInfo("azure-ai");
   const watsonxProvider = providerPageUtils.resolveDashboardProviderInfo("watsonx");
   const ociProvider = providerPageUtils.resolveDashboardProviderInfo("oci");
@@ -254,6 +257,8 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   assert.equal(localProvider?.name, providers.LOCAL_PROVIDERS.sdwebui.name);
   assert.equal(localChatProvider?.category, "local");
   assert.equal(localChatProvider?.name, providers.LOCAL_PROVIDERS["lm-studio"].name);
+  assert.equal(lemonadeProvider?.category, "local");
+  assert.equal(lemonadeProvider?.name, providers.LOCAL_PROVIDERS.lemonade.name);
 
   assert.equal(searchProvider?.category, "search");
   assert.equal(searchProvider?.name, providers.SEARCH_PROVIDERS["brave-search"].name);
@@ -262,6 +267,8 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
 
   assert.equal(audioProvider?.category, "audio");
   assert.equal(audioProvider?.name, providers.AUDIO_ONLY_PROVIDERS.assemblyai.name);
+  assert.equal(awsPollyProvider?.category, "audio");
+  assert.equal(awsPollyProvider?.name, providers.AUDIO_ONLY_PROVIDERS["aws-polly"].name);
 
   assert.equal(apiKeyProvider?.category, "apikey");
   assert.equal(apiKeyProvider?.name, providers.APIKEY_PROVIDERS.glhf.name);
@@ -283,6 +290,8 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   assert.equal(petalsProvider?.name, providers.APIKEY_PROVIDERS.petals.name);
   assert.equal(poeProvider?.category, "apikey");
   assert.equal(poeProvider?.name, providers.APIKEY_PROVIDERS.poe.name);
+  assert.equal(azureOpenAiProvider?.category, "apikey");
+  assert.equal(azureOpenAiProvider?.name, providers.APIKEY_PROVIDERS["azure-openai"].name);
   assert.equal(azureAiProvider?.category, "apikey");
   assert.equal(azureAiProvider?.name, providers.APIKEY_PROVIDERS["azure-ai"].name);
   assert.equal(watsonxProvider?.category, "apikey");
@@ -339,6 +348,7 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("nous-research"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("petals"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("poe"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("azure-openai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("azure-ai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("bedrock"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("watsonx"), true);
@@ -353,7 +363,9 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("sdwebui"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("lm-studio"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("vllm"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("lemonade"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("assemblyai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("aws-polly"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("grok-web"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("perplexity-web"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("blackbox-web"), true);
@@ -373,6 +385,8 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal("lm-studio" in providers.LOCAL_PROVIDERS, true);
   assert.equal("vllm" in providers.APIKEY_PROVIDERS, false);
   assert.equal("vllm" in providers.LOCAL_PROVIDERS, true);
+  assert.equal("lemonade" in providers.APIKEY_PROVIDERS, false);
+  assert.equal("lemonade" in providers.LOCAL_PROVIDERS, true);
   assert.equal("comfyui" in providers.APIKEY_PROVIDERS, false);
   assert.equal("comfyui" in providers.LOCAL_PROVIDERS, true);
   assert.equal("blackbox-web" in providers.APIKEY_PROVIDERS, false);
@@ -428,6 +442,10 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "vllm"),
+    false
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "lemonade"),
     false
   );
   assert.equal(
@@ -540,6 +558,10 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     localEntries.some((entry) => entry.providerId === "vllm"),
+    true
+  );
+  assert.equal(
+    localEntries.some((entry) => entry.providerId === "lemonade"),
     true
   );
   assert.equal(

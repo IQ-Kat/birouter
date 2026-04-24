@@ -67,6 +67,7 @@ import {
   normalizeRunwayBaseUrl,
 } from "@omniroute/open-sse/config/runway.ts";
 import { PETALS_DEFAULT_MODEL, normalizePetalsBaseUrl } from "@omniroute/open-sse/config/petals.ts";
+import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
@@ -752,6 +753,73 @@ async function validateInworldProvider({ apiKey, providerSpecificData = {} }: an
 
     // Any other response indicates auth is accepted (payload/model may still be wrong)
     return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+function getAwsProviderString(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function getAwsPollyRegion(providerSpecificData: any = {}) {
+  return (
+    getAwsProviderString(providerSpecificData.region) ||
+    getAwsProviderString(providerSpecificData.awsRegion) ||
+    process.env.AWS_REGION ||
+    process.env.AWS_DEFAULT_REGION ||
+    "us-east-1"
+  );
+}
+
+function getAwsPollyBaseUrl(providerSpecificData: any = {}, region: string) {
+  return (
+    getAwsProviderString(providerSpecificData.baseUrl) || `https://polly.${region}.amazonaws.com`
+  ).replace(/\/+$/, "");
+}
+
+async function validateAwsPollyProvider({ apiKey, providerSpecificData = {} }: any) {
+  const accessKeyId =
+    getAwsProviderString(providerSpecificData.accessKeyId) ||
+    getAwsProviderString(providerSpecificData.awsAccessKeyId);
+  const secretAccessKey = getAwsProviderString(apiKey);
+
+  if (!accessKeyId) {
+    return { valid: false, error: "Missing AWS accessKeyId" };
+  }
+  if (!secretAccessKey) {
+    return { valid: false, error: "Missing AWS Secret Access Key" };
+  }
+
+  const region = getAwsPollyRegion(providerSpecificData);
+  const baseUrl = getAwsPollyBaseUrl(providerSpecificData, region).replace(/\/v1\/voices$/i, "");
+  const url = `${baseUrl}/v1/voices?Engine=standard`;
+
+  try {
+    const signedHeaders = signAwsRequest({
+      method: "GET",
+      url,
+      region,
+      service: "polly",
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+        sessionToken:
+          getAwsProviderString(providerSpecificData.sessionToken) ||
+          getAwsProviderString(providerSpecificData.awsSessionToken),
+      },
+    });
+
+    const response = await validationRead(url, {
+      method: "GET",
+      headers: applyCustomUserAgent(signedHeaders, providerSpecificData),
+    });
+
+    if (response.ok) return { valid: true, error: null };
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
     return toValidationErrorResult(error);
   }
@@ -2635,6 +2703,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     nanobanana: validateNanoBananaProvider,
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
+    "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,

@@ -76,6 +76,7 @@ describe("accountSemaphore", async () => {
 
     const releaseA = await acquire(key, { maxConcurrency: 1, timeoutMs: 200 });
     const queued = acquire(key, { maxConcurrency: 1, timeoutMs: 200 });
+    const keepAlive = setTimeout(() => {}, 250);
 
     try {
       await queued;
@@ -84,6 +85,8 @@ describe("accountSemaphore", async () => {
       assert.ok(err instanceof Error);
       const error = err as Error & { code?: string };
       assert.equal(error.code, "SEMAPHORE_TIMEOUT");
+    } finally {
+      clearTimeout(keepAlive);
     }
 
     releaseA();
@@ -136,7 +139,7 @@ describe("accountSemaphore", async () => {
       blockedUntil: null,
     });
 
-    markBlocked(key, Date.now() + 50);
+    markBlocked(key, 50);
 
     // Should block even though slot is available
     const acquired = acquire(key, { maxConcurrency: 1, timeoutMs: 100 });
@@ -164,7 +167,7 @@ describe("accountSemaphore", async () => {
     });
 
     await acquire(key, { maxConcurrency: 2, timeoutMs: 200 });
-    markBlocked(key, Date.now() + 50);
+    markBlocked(key, 50);
 
     const stats = getStats()[key];
     assert.equal(stats.running, 1);

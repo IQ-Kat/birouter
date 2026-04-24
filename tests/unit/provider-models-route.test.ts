@@ -208,6 +208,27 @@ test("provider models route returns static catalog entries for providers with ha
   assert.equal(body.models.length, 8);
 });
 
+test("provider models route returns AWS Polly speech engines from the audio registry", async () => {
+  const connection = await seedConnection("aws-polly", {
+    apiKey: "aws-secret-key",
+    providerSpecificData: {
+      accessKeyId: "AKIA_TEST",
+      region: "us-east-1",
+    },
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "aws-polly");
+  assert.equal(body.source, "local_catalog");
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["standard", "neural", "long-form", "generative"]
+  );
+});
+
 test("provider models route returns the local catalog for GitLab Duo fallback models", async () => {
   const connection = await seedConnection("gitlab", {
     apiKey: "glpat-test",
@@ -248,27 +269,49 @@ test("provider models route returns the local catalog for GitLab Duo OAuth fallb
 test("provider models route discovers local OpenAI-style models without requiring an API key", async () => {
   process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = "true";
 
-  const connection = await seedConnection("lm-studio", {
+  const lmStudioConnection = await seedConnection("lm-studio", {
     providerSpecificData: {
       baseUrl: "http://localhost:1234/v1",
     },
   });
+  const lemonadeConnection = await seedConnection("lemonade", {
+    providerSpecificData: {
+      baseUrl: "http://localhost:13305/api/v1",
+    },
+  });
 
   globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "http://localhost:1234/v1/models");
+    const target = String(url);
     assert.equal(init.headers.Authorization, undefined);
-    return Response.json({
-      data: [{ id: "local-model", name: "Local Model" }],
-    });
+    if (target === "http://localhost:1234/v1/models") {
+      return Response.json({
+        data: [{ id: "local-model", name: "Local Model" }],
+      });
+    }
+    if (target === "http://localhost:13305/api/v1/models") {
+      return Response.json({
+        data: [{ id: "Llama-3.2-1B-Instruct-Hybrid", name: "Lemonade Llama" }],
+      });
+    }
+    throw new Error(`unexpected fetch: ${target}`);
   };
 
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
+  const lmStudioResponse = await callRoute(lmStudioConnection.id);
+  const lmStudioBody = (await lmStudioResponse.json()) as any;
+  const lemonadeResponse = await callRoute(lemonadeConnection.id);
+  const lemonadeBody = (await lemonadeResponse.json()) as any;
 
-  assert.equal(response.status, 200);
-  assert.equal(body.provider, "lm-studio");
-  assert.equal(body.source, "api");
-  assert.deepEqual(body.models, [{ id: "local-model", name: "Local Model" }]);
+  assert.equal(lmStudioResponse.status, 200);
+  assert.equal(lmStudioBody.provider, "lm-studio");
+  assert.equal(lmStudioBody.source, "api");
+  assert.deepEqual(lmStudioBody.models, [{ id: "local-model", name: "Local Model" }]);
+
+  assert.equal(lemonadeResponse.status, 200);
+  assert.equal(lemonadeBody.provider, "lemonade");
+  assert.equal(lemonadeBody.source, "api");
+  assert.deepEqual(lemonadeBody.models, [
+    { id: "Llama-3.2-1B-Instruct-Hybrid", name: "Lemonade Llama" },
+  ]);
 });
 
 test("provider models route returns the local catalog for built-in image providers", async () => {
@@ -1122,6 +1165,43 @@ test("provider models route discovers Azure AI Foundry deployments through the v
   assert.deepEqual(body.models, [
     { id: "DeepSeek-V3.1", name: "DeepSeek V3.1", owned_by: "azure-ai" },
     { id: "Claude-Opus-4.6", name: "Claude-Opus-4.6", owned_by: "azure-ai" },
+  ]);
+});
+
+test("provider models route discovers Azure OpenAI deployments from the resource endpoint", async () => {
+  const connection = await seedConnection("azure-openai", {
+    apiKey: "azure-openai-key",
+    providerSpecificData: {
+      baseUrl: "https://my-resource.openai.azure.com/openai",
+      apiVersion: "2024-12-01-preview",
+    },
+  });
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(
+      String(url),
+      "https://my-resource.openai.azure.com/openai/deployments?api-version=2024-12-01-preview"
+    );
+    assert.equal(init.method, "GET");
+    assert.equal(init.headers["api-key"], "azure-openai-key");
+
+    return Response.json({
+      data: [
+        { id: "gpt4o-prod", model: "gpt-4o", display_name: "GPT-4o Production" },
+        { id: "o3-mini-staging", model: "o3-mini" },
+      ],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "azure-openai");
+  assert.equal(body.source, "api");
+  assert.deepEqual(body.models, [
+    { id: "gpt4o-prod", name: "GPT-4o Production", owned_by: "azure-openai" },
+    { id: "o3-mini-staging", name: "o3-mini-staging", owned_by: "azure-openai" },
   ]);
 });
 

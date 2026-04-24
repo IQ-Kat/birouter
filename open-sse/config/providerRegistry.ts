@@ -1420,6 +1420,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [],
     passthroughModels: true,
   },
+  lemonade: {
+    id: "lemonade",
+    alias: "lemonade",
+    format: "openai",
+    executor: "default",
+    baseUrl: "http://localhost:13305/api/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [],
+    passthroughModels: true,
+  },
   llamafile: {
     id: "llamafile",
     alias: "llamafile",

@@ -917,7 +917,8 @@ test("Batch processor keeps cancelled status for in-flight batches", async () =>
     while (
       remainingAttempts > 0 &&
       currentBatch &&
-      !["cancelled", "completed", "failed", "expired"].includes(currentBatch.status)
+      (!["cancelled", "completed", "failed", "expired"].includes(currentBatch.status) ||
+        getFile(file.id)?.status !== "processed")
     ) {
       await new Promise((resolve) => setTimeout(resolve, 50));
       currentBatch = getBatch(batch.id);

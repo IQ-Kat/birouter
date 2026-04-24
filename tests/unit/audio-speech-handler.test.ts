@@ -208,6 +208,65 @@ test("handleAudioSpeech maps PlayHT credentials, output format, and speed", asyn
   }
 });
 
+test("handleAudioSpeech signs AWS Polly synthesize requests with SigV4", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      headers: options.headers as Record<string, string>,
+      body: JSON.parse(String(options.body || "{}")),
+    };
+
+    return new Response(new Uint8Array([8, 8, 8]), {
+      status: 200,
+      headers: { "content-type": "audio/ogg" },
+    });
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "aws-polly/neural",
+        input: "hello from polly",
+        voice: "Joanna",
+        response_format: "opus",
+        language_code: "en-US",
+        sample_rate: "48000",
+      },
+      credentials: {
+        apiKey: "aws-secret-key",
+        providerSpecificData: {
+          accessKeyId: "AKIA_TEST",
+          region: "us-west-2",
+        },
+      },
+    });
+
+    assert.equal(captured.url, "https://polly.us-west-2.amazonaws.com/v1/speech");
+    assert.equal(captured.headers["content-type"], "application/json");
+    assert.equal(captured.headers["x-amz-content-sha256"].length, 64);
+    assert.match(
+      captured.headers.Authorization,
+      /^AWS4-HMAC-SHA256 Credential=AKIA_TEST\/\d{8}\/us-west-2\/polly\/aws4_request,/
+    );
+    assert.deepEqual(captured.body, {
+      Engine: "neural",
+      OutputFormat: "ogg_opus",
+      Text: "hello from polly",
+      TextType: "text",
+      VoiceId: "Joanna",
+      LanguageCode: "en-US",
+      SampleRate: "48000",
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "audio/ogg");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleAudioSpeech requires credentials for authenticated providers", async () => {
   const response = await handleAudioSpeech({
     body: {

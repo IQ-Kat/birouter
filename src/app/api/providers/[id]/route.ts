@@ -14,7 +14,10 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateProviderConnectionSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
+import {
+  normalizeProviderSpecificData,
+  sanitizeProviderSpecificDataForResponse,
+} from "@/lib/providers/requestDefaults";
 import {
   buildClaudeExtraUsageStateClearUpdate,
   isClaudeExtraUsageBlockEnabled,
@@ -65,7 +68,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     delete result.refreshToken;
     delete result.idToken;
     if (result.providerSpecificData) {
-      delete result.providerSpecificData.consoleApiKey;
+      result.providerSpecificData = sanitizeProviderSpecificDataForResponse(
+        result.providerSpecificData
+      );
     }
 
     return NextResponse.json({ connection: result });
@@ -193,7 +198,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     delete result.refreshToken;
     delete result.idToken;
     if (result.providerSpecificData) {
-      delete result.providerSpecificData.consoleApiKey;
+      result.providerSpecificData = sanitizeProviderSpecificDataForResponse(
+        result.providerSpecificData
+      );
     }
 
     // Auto sync to Cloud if enabled

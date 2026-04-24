@@ -275,6 +275,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
 
   const firstResponse = await handleChat(
     buildRequest({
+      url: "http://localhost/v1/responses",
       headers: {
         "X-Session-Id": "relay-live-session",
         "X-OmniRoute-No-Cache": "true",
@@ -306,6 +307,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
 
   const secondResponse = await handleChat(
     buildRequest({
+      url: "http://localhost/v1/responses",
       headers: {
         "X-Session-Id": "relay-live-session",
         "X-OmniRoute-No-Cache": "true",
