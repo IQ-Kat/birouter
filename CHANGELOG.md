@@ -12,6 +12,7 @@
 
 ### ✨ New Features
 
+- **feat(sse):** Codex CLI image_generation + DALL-E-style image route (#1544)
 - **feat(providers):** Add search functionality to the providers dashboard with i18n support. (#1511 — thanks @th-ch)
 - **feat(providers):** Register 6 new models in the opencode-go provider catalog. (#1510 — thanks @kang-heewon)
 - **feat(providers):** Add ModelScope provider (Chinese AI marketplace) with Kimi K2.5, GLM-5, and Step-3.5-Flash integration. (#1430 — thanks @clousky2020)
@@ -31,6 +32,7 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(claude):** preserve tool_result adjacency in native and CC-compatible paths (#1555)
 - **fix(providers):** Resolve 400 errors for GLM and Antigravity Claude adapter during request translation by scoping prompt caching to compatible Anthropic endpoints and flattening system instructions. (#1514, #1520, #1522)
 - **fix(core):** Strip `reasoning_content` from OpenAI format messages for non-reasoning models to prevent upstream HTTP 400 validation errors. (#1505)
 - **fix(sse):** Map Claude `output_config/thinking` to OpenAI `reasoning_effort` for proper Antigravity tool translation. (#1528)
