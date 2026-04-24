@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   CodexExecutor,
+  encodeResponseSseEvent,
   getCodexModelScope,
   getCodexRateLimitKey,
   getCodexResetTime,
@@ -270,6 +271,42 @@ test("CodexExecutor.transformRequest lets model suffix beat connection reasoning
 
   assert.equal(result.model, "gpt-5.3-codex");
   assert.equal(result.reasoning.effort, "high");
+});
+
+test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhigh reasoning", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    { model: "gpt-5.5", input: [], reasoning_effort: "xhigh" },
+    false,
+    {}
+  );
+
+  assert.equal(result.model, "gpt-5.5");
+  assert.equal(result.reasoning.effort, "xhigh");
+});
+
+test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {
+  const raw = JSON.stringify({
+    type: "error",
+    status_code: 429,
+    error: {
+      type: "usage_limit_reached",
+      message: "The usage limit has been reached",
+    },
+  });
+
+  const result = encodeResponseSseEvent(raw);
+  assert.equal(result.terminal, true);
+  assert.match(result.sse, /^event: response\.failed/m);
+
+  const dataLine = result.sse.split("\n").find((line) => line.startsWith("data: "));
+  assert.ok(dataLine);
+  const payload = JSON.parse(dataLine.slice("data: ".length));
+  assert.equal(payload.type, "response.failed");
+  assert.equal(payload.response.status, "failed");
+  assert.equal(payload.response.error.code, "usage_limit_reached");
+  assert.equal(payload.response.error.status_code, 429);
 });
 
 test("CodexExecutor.transformRequest does not apply connection reasoning defaults when Thinking Budget is not passthrough", () => {
