@@ -480,6 +480,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
+      { id: "codex-auto-review", name: "Codex Auto Review", targetFormat: "openai-responses" },
       { id: "gpt-5.5", name: "GPT 5.5", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },

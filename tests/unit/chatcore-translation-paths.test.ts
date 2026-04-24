@@ -18,6 +18,13 @@ const { clearCache, getCachedResponse, generateSignature } =
   await import("../../src/lib/semanticCache.ts");
 const { clearIdempotency } = await import("../../src/lib/idempotencyLayer.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
+const {
+  buildAccountSemaphoreKey,
+  getStats: getAccountSemaphoreStats,
+  resetAll: resetAccountSemaphores,
+} = await import("../../open-sse/services/accountSemaphore.ts");
+const { clearModelLock, isModelLocked } =
+  await import("../../open-sse/services/accountFallback.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
 const {
@@ -346,12 +353,14 @@ async function invokeChatCore({
 
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
+  resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
 });
 
 test.after(async () => {
   globalThis.fetch = originalFetch;
+  resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -2005,6 +2014,146 @@ test("chatCore maps upstream aborts to request-aborted errors", async () => {
   assert.equal(result.success, false);
   assert.equal(result.status, 499);
   assert.equal(result.error, "Request aborted");
+});
+
+test("chatCore returns streaming responses without waiting for upstream completion", async () => {
+  const encoder = new TextEncoder();
+  let closeUpstream: (() => void) | null = null;
+
+  const invocation = invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    body: {
+      model: "gpt-4o-mini",
+      stream: true,
+      messages: [{ role: "user", content: "do not buffer streaming" }],
+    },
+    responseFactory() {
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({
+                  id: "chatcmpl-stream",
+                  object: "chat.completion.chunk",
+                  choices: [
+                    {
+                      index: 0,
+                      delta: { role: "assistant", content: "streamed-without-buffering" },
+                    },
+                  ],
+                })}\n\n`
+              )
+            );
+            closeUpstream = () => {
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+            };
+          },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        }
+      );
+    },
+  });
+
+  const raceResult = await Promise.race([
+    invocation.then(() => "returned"),
+    new Promise((resolve) => setTimeout(() => resolve("blocked"), 1000)),
+  ]);
+
+  if (raceResult !== "returned") {
+    closeUpstream?.();
+  }
+  const { result } = await invocation;
+
+  assert.equal(raceResult, "returned");
+  closeUpstream?.();
+
+  const streamText = await result.response.text();
+  assert.equal(result.success, true);
+  assert.match(streamText, /streamed-without-buffering/);
+});
+
+test("chatCore releases account semaphore slots when upstream execution throws", async () => {
+  const connectionId = "sem-exception";
+  const semaphoreKey = buildAccountSemaphoreKey({
+    provider: "openai",
+    accountKey: connectionId,
+  });
+
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    connectionId,
+    credentials: {
+      apiKey: "sk-test",
+      maxConcurrent: 1,
+      providerSpecificData: {},
+    },
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "executor throws" }],
+    },
+    responseFactory() {
+      throw new Error("simulated upstream network failure");
+    },
+  });
+
+  await waitForAsyncSideEffects();
+
+  assert.equal(result.success, false);
+  assert.equal(result.status, 502);
+  assert.equal(getAccountSemaphoreStats()[semaphoreKey], undefined);
+});
+
+test("chatCore locks per-model quota failures without dropping quota helper references", async () => {
+  const model = "gemini-1.5-pro";
+  const connection = await providersDb.createProviderConnection({
+    provider: "gemini",
+    authType: "apikey",
+    name: "gemini-quota-lock",
+    apiKey: "gemini-key",
+    isActive: true,
+    providerSpecificData: {},
+  });
+
+  try {
+    const { result } = await invokeChatCore({
+      provider: "gemini",
+      model,
+      connectionId: connection.id,
+      credentials: {
+        apiKey: "gemini-key",
+        providerSpecificData: {},
+      },
+      body: {
+        model,
+        stream: false,
+        messages: [{ role: "user", content: "quota lock" }],
+      },
+      responseFactory() {
+        return new Response(
+          JSON.stringify({ error: { message: "insufficient_quota: quota exhausted" } }),
+          {
+            status: 402,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      },
+    });
+
+    assert.equal(result.success, false);
+    assert.equal(result.status, 402);
+    assert.equal(isModelLocked("gemini", connection.id, model), true);
+  } finally {
+    clearModelLock("gemini", connection.id, model);
+  }
 });
 
 // ── Streaming semantic cache tests ──────────────────────────────────────────

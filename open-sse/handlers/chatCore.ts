@@ -24,7 +24,7 @@ import {
   parseUpstreamError,
   formatProviderError,
 } from "../utils/error.ts";
-import { HTTP_STATUS, PROVIDER_MAX_TOKENS } from "../config/constants.ts";
+import { COOLDOWN_MS, HTTP_STATUS, PROVIDER_MAX_TOKENS } from "../config/constants.ts";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -96,6 +96,7 @@ import {
   buildAccountSemaphoreKey,
   markBlocked as markAccountSemaphoreBlocked,
 } from "../services/accountSemaphore.ts";
+import { lockModelIfPerModelQuota } from "../services/accountFallback.ts";
 import {
   generateSignature,
   getCachedResponse,
@@ -488,6 +489,45 @@ function isSemaphoreTimeoutError(error: unknown): error is Error & { code: strin
     typeof error === "object" &&
     (error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT"
   );
+}
+
+function wrapReadableStreamWithFinalize<T>(
+  readable: ReadableStream<T>,
+  finalize: () => void
+): ReadableStream<T> {
+  const reader = readable.getReader();
+  let finalized = false;
+
+  const runFinalize = () => {
+    if (finalized) return;
+    finalized = true;
+    finalize();
+  };
+
+  return new ReadableStream<T>({
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          runFinalize();
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      } catch (error) {
+        runFinalize();
+        controller.error(error);
+      }
+    },
+
+    async cancel(reason) {
+      try {
+        await reader.cancel(reason);
+      } finally {
+        runFinalize();
+      }
+    },
+  });
 }
 
 function resolveAccountSemaphoreAccountKey(
@@ -1968,82 +2008,90 @@ export async function handleChatCore({
             })
           : () => {};
 
-      const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
-        let attempts = 0;
-        const maxAttempts = provider === "qwen" ? 3 : 1;
+      try {
+        const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
+          let attempts = 0;
+          const maxAttempts = provider === "qwen" ? 3 : 1;
 
-        while (attempts < maxAttempts) {
-          const res = await executor.execute({
-            model: modelToCall,
-            body: bodyToSend,
-            stream: upstreamStream,
-            credentials: executionCredentials,
-            signal: streamController.signal,
-            log,
-            extendedContext,
-            upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-            clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
-            onCredentialsRefreshed,
-          });
+          while (attempts < maxAttempts) {
+            const res = await executor.execute({
+              model: modelToCall,
+              body: bodyToSend,
+              stream: upstreamStream,
+              credentials: executionCredentials,
+              signal: streamController.signal,
+              log,
+              extendedContext,
+              upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+              clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+              onCredentialsRefreshed,
+            });
 
-          // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
-          if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
-            const bodyPeek = await res.response
-              .clone()
-              .text()
-              .catch(() => "");
-            if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
-              const delay = 1500 * (attempts + 1);
-              log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
-              await new Promise((r) => setTimeout(r, delay));
-              attempts++;
-              continue;
+            // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
+            if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
+              const bodyPeek = await res.response
+                .clone()
+                .text()
+                .catch(() => "");
+              if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
+                const delay = 1500 * (attempts + 1);
+                log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+                await new Promise((r) => setTimeout(r, delay));
+                attempts++;
+                continue;
+              }
             }
-          }
 
-          // For streaming: wrap response body to release semaphore only when stream is fully consumed
-          if (stream) {
-            const originalBody = res.response.body;
-            const wrappedBody = originalBody
-              ? originalBody.pipeThrough(
-                  new TransformStream({
-                    flush: () => {
-                      acquireAccountSemaphoreRelease();
-                    },
-                  })
-                )
-              : null;
-            return {
-              ...res,
-              response: new Response(wrappedBody, {
-                status: res.response.status,
-                statusText: res.response.statusText,
-                headers: res.response.headers,
-              }),
-            };
-          }
+            // For streaming: release the semaphore when the client drains or cancels the stream.
+            if (stream) {
+              const originalBody = res.response.body;
+              if (!originalBody) {
+                acquireAccountSemaphoreRelease();
+                return res;
+              }
 
-          return res;
+              return {
+                ...res,
+                response: new Response(
+                  wrapReadableStreamWithFinalize(originalBody, acquireAccountSemaphoreRelease),
+                  {
+                    status: res.response.status,
+                    statusText: res.response.statusText,
+                    headers: res.response.headers,
+                  }
+                ),
+              };
+            }
+
+            return res;
+          }
+        });
+
+        if (stream) {
+          return rawResult;
         }
-      });
 
-      // Non-stream: release semaphore immediately after reading full response body
-      const status = rawResult.response.status;
-      const statusText = rawResult.response.statusText;
-      const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
-      const payload = await rawResult.response.text();
-      acquireAccountSemaphoreRelease();
+        // Non-stream: release semaphore immediately after reading full response body.
+        const status = rawResult.response.status;
+        const statusText = rawResult.response.statusText;
+        const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
+        const payload = await rawResult.response.text();
+        acquireAccountSemaphoreRelease();
 
-      return {
-        ...rawResult,
-        response: new Response(payload, { status, statusText, headers }),
-        _dedupSnapshot: {
-          status,
-          statusText,
-          headers,
-          payload,
-        },
-      };
+        return {
+          ...rawResult,
+          response: new Response(payload, { status, statusText, headers }),
+          _dedupSnapshot: {
+            status,
+            statusText,
+            headers,
+            payload,
+          },
+        };
+      } catch (error) {
+        acquireAccountSemaphoreRelease();
+        throw error;
+      }
     };
 
     if (allowDedup && dedupEnabled && dedupHash) {
